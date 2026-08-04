@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '../Icon';
 import { RecoveryCoachTokens as T } from '../../theme/recoveryCoachTokens';
+import { afMotion } from '../../theme/afTokens';
 import {
   deriveRecoveryCommandView, type RecoveryCommand,
 } from '../../utils/recovery/recoveryCommand';
@@ -81,8 +82,14 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
   const ringScale = useSharedValue(0.94);
   const ringOpacity = useSharedValue(0.24);
   useEffect(() => {
-    enterOpacity.value = withTiming(1, { duration: 420, easing: Easing.bezier(0.22, 1, 0.36, 1) });
-    enterY.value = withTiming(0, { duration: 420, easing: Easing.bezier(0.22, 1, 0.36, 1) });
+    // ENTER (afMotion pattern #1): durations.slow + easing.standardOut. Was
+    // 420ms/Easing.bezier(0.22,1,0.36,1) — the LITERAL standardOut curve
+    // already, now imported from the token instead of redeclared. Duration
+    // judged down to slow (360, diff 60ms): a content-entrance fade+rise,
+    // not a hero cinematic reveal (the pulse loop below stays untouched —
+    // already reduced-motion gated).
+    enterOpacity.value = withTiming(1, { duration: afMotion.durations.slow, easing: Easing.bezier(...afMotion.easing.standardOut) });
+    enterY.value = withTiming(0, { duration: afMotion.durations.slow, easing: Easing.bezier(...afMotion.easing.standardOut) });
     if (!reduceMotion) {
       const ease = Easing.inOut(Easing.quad);
       pulseScale.value = withRepeat(withSequence(

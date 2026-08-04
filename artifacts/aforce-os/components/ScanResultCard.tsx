@@ -18,6 +18,7 @@ import Animated, {
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
+import { afMotion } from '@/theme/afTokens';
 import type { ScanResult } from '@/types/scan';
 
 const VERDICT_COLOR: Record<ScanResult['verdict'], string> = {
@@ -49,8 +50,11 @@ export function ScanResultCard({ result }: Props) {
   useEffect(() => {
     opacity.value = 0;
     ty.value = 10;
-    opacity.value = withDelay(40, withTiming(1, { duration: 320, easing: Easing.out(Easing.cubic) }));
-    ty.value = withDelay(40, withTiming(0, { duration: 360, easing: Easing.out(Easing.cubic) }));
+    // ENTER (afMotion pattern #1): entrance/slow + easing.standardOut.
+    // opacity was 320ms (diff 60ms from entrance:260) / translateY was 360ms
+    // (exact match to slow:360). Easing.out(cubic) → the token curve.
+    opacity.value = withDelay(40, withTiming(1, { duration: afMotion.durations.entrance, easing: Easing.bezier(...afMotion.easing.standardOut) }));
+    ty.value = withDelay(40, withTiming(0, { duration: afMotion.durations.slow, easing: Easing.bezier(...afMotion.easing.standardOut) }));
     // Re-run on every new scan
   }, [result.scannedAt, opacity, ty]);
 

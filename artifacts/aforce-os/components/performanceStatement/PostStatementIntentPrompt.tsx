@@ -36,6 +36,7 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
+import { afMotion } from '@/theme/afTokens';
 import { INTENT_IDS, type IntentId } from '@/utils/intentCapture';
 import { useIntentCapture } from '@/hooks/useIntentCapture';
 
@@ -99,13 +100,18 @@ export function PostStatementIntentPrompt({ onDone }: { onDone: () => void }) {
   const [armed, setArmed] = React.useState(false);
   React.useEffect(() => {
     if (!show) return;
+    // ENTER (afMotion pattern #1), delayed. Was 420ms — judged down to
+    // durations.slow (360, diff 60ms): a card rising in after a spoken
+    // pause, not a full-screen entrance that needs the longer register.
+    // EASE (Easing.inOut(Easing.ease)) is NOT the standardOut curve, so it
+    // stays local rather than being swapped for the token easing.
     opacity.value = withDelay(
       ENTER_DELAY_MS,
-      withTiming(1, { duration: 420, easing: EASE, reduceMotion: ReduceMotion.System }),
+      withTiming(1, { duration: afMotion.durations.slow, easing: EASE, reduceMotion: ReduceMotion.System }),
     );
     ty.value = withDelay(
       ENTER_DELAY_MS,
-      withTiming(0, { duration: 420, easing: EASE, reduceMotion: ReduceMotion.System }),
+      withTiming(0, { duration: afMotion.durations.slow, easing: EASE, reduceMotion: ReduceMotion.System }),
     );
     const id = setTimeout(() => setArmed(true), ENTER_DELAY_MS);
     return () => clearTimeout(id);

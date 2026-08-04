@@ -27,6 +27,7 @@ import * as Haptics from 'expo-haptics';
 
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
+import { afMotion } from '../theme/afTokens';
 import { ConfidenceChip } from './ConfidenceChip';
 import { CommandConfidenceBadge } from './CommandConfidenceBadge';
 import { buildDataBehindThis, type DataBehindSignal } from '../utils/confidence/dataBehindThis';
@@ -57,12 +58,16 @@ export function DataBehindThisSheet({ visible, onDismiss, confidence, signals }:
   useEffect(() => {
     if (visible) {
       if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-      opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
+      // was 220ms/Easing.out(quad) — exact duration match, token easing curve.
+      opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
+      translateY.value = withSpring(0, afMotion.springs.standard);
+      // was { damping: 18, stiffness: 220 } — the dominant sheet spring, token match.
     } else {
       nowRef.current = 0;
-      opacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(60, { duration: 180 });
+      // EXIT (afMotion pattern #2): durations.selection, was 180ms — diff 30ms.
+      opacity.value = withTiming(0, { duration: afMotion.durations.selection });
+      translateY.value = withTiming(60, { duration: afMotion.durations.selection });
     }
   }, [visible]);
 

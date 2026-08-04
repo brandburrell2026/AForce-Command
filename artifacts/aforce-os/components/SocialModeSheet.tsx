@@ -26,15 +26,16 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withSpring, withRepeat,
-  Easing, interpolate,
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
+import { afMotion } from '../theme/afTokens';
 import { Icon, type IconName } from './Icon';
+import { PulseRing } from './PulseRing';
 import { RecoveryCapacityCard } from './RecoveryCapacityCard';
 import { RecoveryModeCard } from './RecoveryModeCard';
 import { RecoveryModePaywall } from './RecoveryModePaywall';
@@ -48,37 +49,11 @@ import type { DrinkType, ScoreEngineOutput, SocialModeState } from '../types';
  * ─── Chunk #7a polish primitives ──────────────────────────────────
  * Tiny, additive Reanimated wrappers used by the modifier surface.
  * Kept inline so the polish is self-contained and easy to audit.
+ *
+ * `PulseRing` (the glow behind the CRUISE / SHIELD live-timer pills) moved
+ * out to components/PulseRing.tsx (RC-1 Wave-2A) so its reduced-motion gate
+ * can be unit-tested without mounting this whole sheet.
  */
-
-/** Soft repeating glow used behind live-timer pills. ~1.8s loop. */
-function PulseRing({ color }: { color: string }) {
-  const t = useSharedValue(0);
-  useEffect(() => {
-    t.value = withRepeat(
-      withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.quad) }),
-      -1, true,
-    );
-  }, [t]);
-  const style = useAnimatedStyle(() => ({
-    opacity: interpolate(t.value, [0, 1], [0.35, 0.85]),
-    transform: [{ scale: interpolate(t.value, [0, 1], [1, 1.06]) }],
-  }));
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        StyleSheet.absoluteFill,
-        {
-          borderRadius: 100,
-          borderWidth: 1,
-          borderColor: `${color}AA`,
-          backgroundColor: `${color}10`,
-        },
-        style,
-      ]}
-    />
-  );
-}
 
 /**
  * Press-to-scale wrapper. Built on `Animated.createAnimatedComponent(Pressable)`
@@ -170,11 +145,15 @@ export function SocialModeSheet({
   useEffect(() => {
     if (visible) {
       if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-      opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
+      // was 220ms/Easing.out(quad) — exact duration match, token easing curve.
+      opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
+      translateY.value = withSpring(0, afMotion.springs.standard);
+      // was { damping: 18, stiffness: 220 } — the dominant sheet spring, token match.
     } else {
-      opacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(60, { duration: 180 });
+      // EXIT (afMotion pattern #2): durations.selection, was 180ms — diff 30ms.
+      opacity.value = withTiming(0, { duration: afMotion.durations.selection });
+      translateY.value = withTiming(60, { duration: afMotion.durations.selection });
     }
   }, [visible]);
 

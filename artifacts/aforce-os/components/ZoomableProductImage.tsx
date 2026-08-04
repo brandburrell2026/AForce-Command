@@ -44,6 +44,7 @@ import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
+import { afMotion } from '@/theme/afTokens';
 
 interface Props {
   source: number | { uri: string };
@@ -101,15 +102,21 @@ export function ZoomableProductImage({
     // kick off the in-animation on the next frame so Modal mount has a chance.
     modalOpacity.value = 0;
     modalScale.value = 0.85;
-    modalOpacity.value = withTiming(1, { duration: 180, easing: Easing.out(Easing.cubic) });
+    // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
+    // was 180ms/Easing.out(cubic) — diff 40ms.
+    modalOpacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
+    // Bespoke lightbox-pop spring (damping:16, stiffness:180) — not the
+    // dominant sheet spring; left as-is (see PR body holdout list).
     modalScale.value = withSpring(1, { damping: 16, stiffness: 180 });
   }, [disabled, modalOpacity, modalScale]);
 
   const closeLightbox = useCallback(() => {
-    modalOpacity.value = withTiming(0, { duration: 160, easing: Easing.in(Easing.cubic) }, (done) => {
+    // EXIT (afMotion pattern #2): durations.selection, was 160ms — diff 10ms.
+    // Native Easing.in(cubic) kept — exits have no designated token easing.
+    modalOpacity.value = withTiming(0, { duration: afMotion.durations.selection, easing: Easing.in(Easing.cubic) }, (done) => {
       if (done) runOnJS(setOpen)(false);
     });
-    modalScale.value = withTiming(0.9, { duration: 160, easing: Easing.in(Easing.cubic) });
+    modalScale.value = withTiming(0.9, { duration: afMotion.durations.selection, easing: Easing.in(Easing.cubic) });
   }, [modalOpacity, modalScale]);
 
   const inlineAnimStyle = useAnimatedStyle(() => ({

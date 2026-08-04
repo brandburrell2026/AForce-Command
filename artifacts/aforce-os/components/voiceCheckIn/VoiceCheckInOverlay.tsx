@@ -57,6 +57,7 @@ import {
 } from '@/utils/intentCapture';
 import { useIntentCapture } from '@/hooks/useIntentCapture';
 import { useFlagsSlice } from '@/store/slices';
+import { afMotion } from '@/theme/afTokens';
 
 const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
@@ -165,8 +166,14 @@ function Fade({
   React.useEffect(() => {
     o.value = 0;
     ty.value = 10;
-    o.value = withTiming(1, { duration: 420, easing: EASE });
-    ty.value = withTiming(0, { duration: 420, easing: EASE });
+    // TRANSITION (afMotion pattern #4): step-to-step content swap. Was
+    // 420ms — judged down to durations.slow (360, diff 60ms) rather than
+    // kept at the RecoveryCoach-style "needs the longer feel" exception,
+    // since this is a same-surface step swap, not a full-screen entrance.
+    // EASE (Easing.inOut(Easing.ease)) is NOT the standardOut curve, so it
+    // stays local rather than being swapped for the token easing.
+    o.value = withTiming(1, { duration: afMotion.durations.slow, easing: EASE });
+    ty.value = withTiming(0, { duration: afMotion.durations.slow, easing: EASE });
   }, [stepKey, o, ty]);
   const st = useAnimatedStyle(() => ({
     opacity: o.value,
