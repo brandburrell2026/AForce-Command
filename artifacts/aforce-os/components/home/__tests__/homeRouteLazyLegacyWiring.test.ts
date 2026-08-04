@@ -2,11 +2,11 @@
  * Home route (`app/(tabs)/index.tsx`) — deferred legacy import tree
  * wiring (RC-1 Wave-3 P1 perf fix, audit P2-7).
  *
- * `app/(tabs)/index.tsx` and `app/(tabs)/HomeScreenLegacy.tsx` both pull in
- * `useAppStore` / `expo-router` / `@clerk/expo` (the legacy screen also
- * pulls in the full CommandConsole/EntryActions/HomeDashboard/etc. tree) —
- * the same category of store+router-connected container this repo's
- * existing tests deliberately never mount directly (see
+ * `app/(tabs)/index.tsx` and `components/home/HomeScreenLegacy.tsx` both
+ * pull in `useAppStore` / `expo-router` / `@clerk/expo` (the legacy screen
+ * also pulls in the full CommandConsole/EntryActions/HomeDashboard/etc.
+ * tree) — the same category of store+router-connected container this
+ * repo's existing tests deliberately never mount directly (see
  * `components/home/__tests__/homeScreenV2Wiring.test.ts`'s header, which
  * documents the convention and points at
  * `components/health/__tests__/connectedHealthContainer.render.test.tsx`
@@ -16,12 +16,21 @@
  * fabricating a store + router + Clerk harness this suite has no existing
  * pattern for.
  *
+ * RC-1 fix-forward (PR #544 code review, blocker 1): `HomeScreenLegacy.tsx`
+ * moved from `app/(tabs)/HomeScreenLegacy.tsx` to
+ * `components/home/HomeScreenLegacy.tsx` — the old location made it an
+ * undeclared expo-router route (a phantom 6th tab). This file's paths and
+ * import-path assertion were updated to match; see
+ * `components/home/__tests__/homeTabsRouteManifest.test.ts` for the new
+ * regression guard against a non-route file landing under `app/(tabs)/`
+ * again.
+ *
  * What this verifies:
  *   1. the legacy render path is `React.lazy`-loaded via a dynamic
- *      `import('./HomeScreenLegacy')`, wrapped in `React.Suspense`, and
- *      reachable from the `spec_home` flag branch (still a ternary) —
- *      i.e. the actual P2-7 wiring is present, not just that the file
- *      compiles;
+ *      `import('@/components/home/HomeScreenLegacy')`, wrapped in
+ *      `React.Suspense`, and reachable from the `spec_home` flag branch
+ *      (still a ternary) — i.e. the actual P2-7 wiring is present, not
+ *      just that the file compiles;
  *   2. `index.tsx` no longer statically imports the heavy legacy
  *      component tree (CommandConsole, EntryActions, HomeDashboard,
  *      MetabolicReadinessZone, PerformanceAgeZone, VoiceCheckInZone,
@@ -51,7 +60,7 @@ const INDEX_SOURCE = readFileSync(
   'utf8',
 );
 const LEGACY_SOURCE = readFileSync(
-  join(__dirname, '..', '..', '..', 'app', '(tabs)', 'HomeScreenLegacy.tsx'),
+  join(__dirname, '..', 'HomeScreenLegacy.tsx'),
   'utf8',
 );
 const INDEX_CODE = INDEX_SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
@@ -71,7 +80,7 @@ const HEAVY_LEGACY_COMPONENTS = [
 
 describe('Home route — legacy tree is React.lazy-loaded, not statically imported (RC-1 P2-7)', () => {
   it('React.lazy-loads HomeScreenLegacy via a dynamic import, wrapped in Suspense', () => {
-    expect(INDEX_CODE).toContain("React.lazy(() => import('./HomeScreenLegacy'))");
+    expect(INDEX_CODE).toContain("React.lazy(() => import('@/components/home/HomeScreenLegacy'))");
     expect(INDEX_CODE).toMatch(/<React\.Suspense[\s>]/);
   });
 

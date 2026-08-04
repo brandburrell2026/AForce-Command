@@ -1,16 +1,26 @@
 // @vitest-environment happy-dom
 /**
  * useAppStateGatedInterval — AppState-gating regression coverage (RC-1
- * Wave-3 P1, audit P0-2).
+ * Wave-3 P1, audit P0-2; edge-detection coverage added in the RC-1
+ * fix-forward, should-fix 3).
  *
- * Proves the three properties the fix promises for the store's three
- * long-lived timers (1s countdown, 30s /state poll, 15min weather):
+ * Note: as of the fix-forward this hook now gates only the store's 30s
+ * /state poll and 15min weather refresh — the 1s countdown tick was
+ * reverted to a plain always-on interval (see `store/useAppStore.tsx`'s
+ * comment above its tick effect, and `store/__tests__/appStoreTimerGating.test.ts`).
+ * This file still tests the hook generically via an arbitrary callback +
+ * cadence, so it stays accurate regardless of which timers currently use it.
+ *
+ * Proves the properties the fix promises:
  *   1. the callback fires on the normal cadence while foregrounded — same
  *      as the plain `setInterval` this hook replaces;
  *   2. ZERO callback invocations while backgrounded;
  *   3. an immediate "resume-fire" the instant the app returns to the
- *      foreground (not a wait for the next full interval), then the
- *      normal cadence resumes.
+ *      foreground on a GENUINE background/inactive → active edge (not a
+ *      wait for the next full interval), then the normal cadence resumes;
+ *   4. NO resume-fire on a spurious active → active event with no real stop
+ *      behind it (cold-start permission dialogs, Control Center) — edge
+ *      detection via a tracked "previous AppState" ref.
  * Also covers cleanup (unmount stops the interval and removes the
  * listener) and that the interval always calls the LATEST callback
  * closure, matching the ref-mirroring pattern this repo's other
@@ -166,6 +176,37 @@ describe('useAppStateGatedInterval', () => {
     cb.mockClear();
     vi.advanceTimersByTime(5000);
     expect(cb).toHaveBeenCalledTimes(0);
+  });
+
+  // RC-1 W3P1 fix-forward, should-fix 3: edge detection. Cold-start
+  // permission dialogs and Control Center can emit an 'active' event with
+  // no genuine background stop behind it (or repeat 'active' back-to-back)
+  // — resume-fire must not treat every raw 'active' event as a return from
+  // background.
+  it('does NOT resume-fire on an active → active event (no real stop occurred)', () => {
+    const cb = vi.fn();
+    mount({ callback: cb, intervalMs: 1000 });
+    // Already active at mount; emitting 'active' again is the spurious
+    // no-real-transition case this guard targets.
+    emitAppState('active');
+    expect(cb).not.toHaveBeenCalled();
+  });
+
+  it('fires EXACTLY once on a genuine inactive → active edge, even if a spurious active repeats immediately after', () => {
+    const cb = vi.fn();
+    mount({ callback: cb, intervalMs: 1000 });
+
+    emitAppState('inactive');
+    cb.mockClear();
+
+    // Genuine edge: previous state ('inactive') was not active.
+    emitAppState('active');
+    expect(cb).toHaveBeenCalledTimes(1);
+
+    // Spurious duplicate 'active' immediately after (no intervening stop) —
+    // must NOT fire again.
+    emitAppState('active');
+    expect(cb).toHaveBeenCalledTimes(1);
   });
 
   it('stops the interval and removes the AppState listener on unmount', () => {

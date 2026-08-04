@@ -225,10 +225,40 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => setBusSpeakerImpl(null);
   }, []);
 
-  // Live countdown timer (drives recheck). AppState-gated (RC-1 W3P1):
-  // zero dispatches while backgrounded; fires once immediately on
-  // foreground return, then resumes the normal 1s cadence.
-  useAppStateGatedInterval(() => dispatch({ type: 'TICK_TIMER' }), 1000);
+  // Live countdown timer (drives recheck). INTENTIONALLY NOT AppState-gated
+  // (RC-1 W3P1 fix-forward, PR #544 code review — blocker 2, reversing the
+  // gating this timer originally shipped with). WHY: the reducer's
+  // `TICK_TIMER` case (`appStoreReducer.ts`) is a pure "decrement
+  // `timerSeconds` by 1 per dispatch" accumulator — it has no clock, no
+  // deadline timestamp, nothing that lets it infer how much real time
+  // passed while paused. AppState-gating this (as originally shipped)
+  // meant backgrounding froze the countdown outright: a user who
+  // backgrounds for 2 minutes returns to find the recheck timer exactly
+  // where they left it, and `pendingConfirmation` then fires up to that
+  // same 2 minutes late — a trust-surface regression, since this timer is
+  // what confirms the user is still following the current command. Worse,
+  // `AppState` also reports `'inactive'` (Control Center, permission
+  // dialogs, the app switcher) — which the gating hook treats identically
+  // to backgrounded — so even brief, common interruptions paused the
+  // countdown, not just true backgrounding.
+  //
+  // The 30s `/state` poll and 15min weather refresh below stay
+  // AppState-gated: both are idempotent network wakes (a poll/fetch you
+  // skipped while backgrounded is simply stale, not silently WRONG), and
+  // resume-fire-on-foreground is the right semantics for them. This timer
+  // is different in kind, not degree — it accumulates rather than reads.
+  //
+  // Making the tick safely gate-able would require reworking it to track a
+  // deadline timestamp (`Date.now() + N`) and derive the displayed seconds
+  // from elapsed wall-clock time on every dispatch/resume, instead of
+  // blindly decrementing by 1 — a real semantic change to the reducer's
+  // contract, not a wiring change. That is future work; until it lands,
+  // this stays a plain, always-on interval — its pre-PR-#544 behavior.
+  // Regression coverage: `store/__tests__/appStoreTimerGating.test.ts`.
+  useEffect(() => {
+    const id = setInterval(() => dispatch({ type: 'TICK_TIMER' }), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Ref-backed latest snapshot of the full UserState. Long-lived
   // intervals (30s poll, 15min weather) close over `state.userState` at
@@ -439,7 +469,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       // We just reached the server successfully — a good moment to drain any
       // intakes queued while offline. No-op (returns immediately) when the
-      // flag is off or the queue is empty.
+      // flag is off or the queue is empty. THE single flush call site (RC-1
+      // fix-forward, should-fix 4) — a duplicate standalone 'active'
+      // listener that ALSO called this was removed; see the comment above
+      // the 30s gated interval below for why.
       void flushOutboxRef.current();
     } catch {
       // swallow — UI keeps last known engineOutput
@@ -461,20 +494,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // AppState-gated (RC-1 W3P1): zero polls while backgrounded; fires once
   // immediately on foreground return (so a returning user isn't stuck on
   // state that's up to as-stale-as-the-background-duration), then resumes
-  // the normal 30s cadence.
+  // the normal 30s cadence. This is ALSO the app's sole foreground-return
+  // outbox-flush trigger — see `refreshState`'s `flushOutboxRef.current()`
+  // call above and the fix-forward note below.
   useAppStateGatedInterval(() => { void refreshState(); }, 30 * 1000);
 
-  // Flush the offline intake outbox the moment the app returns to the
-  // foreground — the most likely point connectivity has been restored. The
-  // listener is always registered (cheap); `flushOutbox` itself is inert when
-  // the flag is off, so this is byte-identical in production.
-  useEffect(() => {
-    const onChange = (next: AppStateStatus) => {
-      if (next === 'active') void flushOutboxRef.current();
-    };
-    const sub = RNAppState.addEventListener('change', onChange);
-    return () => sub.remove();
-  }, []);
+  // RC-1 fix-forward (PR #544 code review — should-fix 4): a SECOND,
+  // standalone `AppState` 'active' listener used to live here and ALSO call
+  // `flushOutboxRef.current()` — meaning every foreground-return fired the
+  // outbox flush twice from two independent listeners on the same event.
+  // `flushOutbox` (above) does have an in-flight guard (`flushInFlightRef`),
+  // but `services/intakeOutbox.ts` itself has no flush-level dedupe of its
+  // own (its per-item mutators like `markIntakeSynced` are idempotent, but
+  // nothing there prevented a second full flush pass from starting) — so the
+  // in-flight guard was ONLY catching the double-fire when the two calls
+  // happened to overlap in time, not by construction. Removed this second
+  // listener entirely rather than rely on that timing: `refreshState`'s own
+  // flush call (fired via the gated interval's resume-fire immediately on
+  // foreground return, same as this listener was, plus every 30s while
+  // foregrounded) is now the ONE flush path. Guard gap noted for a
+  // follow-up: `intakeOutbox.ts` could grow its own module-level in-flight
+  // flush guard so correctness doesn't depend on `useAppStore.tsx` staying
+  // single-call-site.
 
   // When the user switches languages, the AI command strings (action /
   // explanation) live inside engineOutput and were rendered with the

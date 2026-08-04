@@ -13,8 +13,9 @@
  * they were "still reachable" because `spec_home` defaults OFF; both claims
  * are false): the legacy Home's four detail zones — MetabolicReadinessZone,
  * PerformanceAgeZone, VoiceCheckInZone, ActivationJourneyZone (all in
- * components/home/) — are rendered ONLY by HomeScreenLegacy (defined below
- * in app/(tabs)/index.tsx). Tapping the arc opens Readiness Insights, which
+ * components/home/) — are rendered ONLY by HomeScreenLegacy
+ * (`components/home/HomeScreenLegacy.tsx`, React.lazy-loaded from
+ * `app/(tabs)/index.tsx`). Tapping the arc opens Readiness Insights, which
  * shows a chart + drivers + insight, not those four zones.
  *
  * `featureFlags/flags.ts` sets `spec_home: true` in `DEFAULT_FLAGS`, and
