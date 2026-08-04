@@ -9,6 +9,7 @@
     "back": "Atrás",
     "yes": "Sí",
     "no": "No",
+    "was": "antes",
     "minutes": "min",
     "minutes_long": "{{count}} minuto",
     "minutes_long_plural": "{{count}} minutos",
@@ -78,6 +79,18 @@
       "heat_moderate": "Moderate",
       "heat_low": "Low",
       "greeting_default": "there"
+    },
+    "live_status": {
+      "last_label": "LAST",
+      "pts_suffix": "pts",
+      "a11y_label": "Trend {{verb}}",
+      "verb_ascending": "ASCENDING",
+      "verb_locked_in": "LOCKED IN",
+      "verb_holding": "HOLDING",
+      "verb_drifting": "DRIFTING",
+      "verb_declining": "DECLINING",
+      "verb_recovering": "RECOVERING",
+      "verb_critical": "CRITICAL"
     }
   },
   "logIntake": {

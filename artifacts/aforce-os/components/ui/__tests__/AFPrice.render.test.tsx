@@ -14,8 +14,14 @@
  * — so a screen reader announced two disconnected reads instead of one
  * composed price ("$29.99, was $39.99"), and non-English locales got the
  * wrong word for "was" regardless of the user's language. The fix wraps both
- * in a single accessible row with one composed label built from the existing
- * `logIntake.score_was` i18n key, and drops the individual labels.
+ * in a single accessible row with one composed label built from an i18n key.
+ *
+ * RC-1 verdict-pass correction (Wave-1 r2, item 2): the original fix reused
+ * `logIntake.score_was`, a key scoped to the intake-logging feature and
+ * left untranslated (English "was") in ar/hi/ja/ko/zh — an orphan-key reuse
+ * across unrelated surfaces. This now uses a dedicated `common.was` key
+ * instead (added to all 11 locales; see docs/i18n/TRANSLATION-REVIEW.md for
+ * the still-English-source locales pending human translation).
  */
 import React from 'react';
 import { flushSync } from 'react-dom';
@@ -71,7 +77,7 @@ describe('AFPrice — composed price + compare-at announcement (RC-1 fix #5)', (
     expect(labelled?.getAttribute('aria-label')).toBe('$29.99, was $39.99');
   });
 
-  it('uses the real, existing logIntake.score_was translation — never a hardcoded "Was"', () => {
+  it('uses the dedicated common.was translation — never a hardcoded "Was"', () => {
     renderPrice({ value: '$10.00', compareAt: '$12.00' });
     const labelled = q('[aria-label]');
     // Would read "Was $12.00" (capital W, no comma) under the old bug.

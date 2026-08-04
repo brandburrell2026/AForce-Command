@@ -28,10 +28,13 @@ export function AFPrice({ value, compareAt, caption, size = 'md', testID }: AFPr
   // RC-1 fix: `value` and `compareAt` were two separately-labeled Text nodes
   // ("$29.99" then the hardcoded, non-localized "Was $39.99"), so a screen
   // reader announced them as two disconnected reads instead of one price.
-  // Composed into a single "$X, was $Y" label on the row, reusing the
-  // existing `logIntake.score_was` i18n key (translated in every locale
-  // already) instead of adding a new hardcoded English string.
-  const composedLabel = compareAt ? `${value}, ${t('logIntake.score_was')} ${compareAt}` : value;
+  // Composed into a single "$X, was $Y" label on the row. RC-1 verdict-pass
+  // correction: this previously reused `logIntake.score_was`, an orphan key
+  // scoped to the intake-logging surface with a different meaning in
+  // context; a pricing primitive should not borrow another feature's key.
+  // Uses the dedicated `common.was` key instead (added alongside this fix;
+  // see docs/i18n/TRANSLATION-REVIEW.md for its per-locale status).
+  const composedLabel = compareAt ? `${value}, ${t('common.was')} ${compareAt}` : value;
   return (
     <View style={styles.wrap} testID={testID}>
       <View
