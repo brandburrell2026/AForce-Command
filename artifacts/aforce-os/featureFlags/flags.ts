@@ -173,18 +173,23 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // production binary, ON in DEMO_ALL_ON. OFF ⇒ freshest-wins stays live.
   signal_hierarchy_enabled: false,
 
-  // Weekly Performance Report™ — once-per-week (Sunday) shareable recap
-  // (What improved / What needs attention / Performance Age movement /
-  // Habit Velocity / Recovery trend / Top command / Next week focus).
-  // Build 100% · Show 10%: OFF in the production binary, ON in DEMO_ALL_ON.
-  // Score-Protection: read-only projection; sections without data render
-  // explicit "collecting"/"awaiting", never fabricated trends.
+  // Home V2 switch — ON in production: HomeScreenV2 is the shipped Home
+  // (app/(tabs)/index.tsx renders V2 XOR legacy on this flag; the legacy
+  // zones are unreachable while this is true — see HomeScreenV2's header).
+  // RC-1 r3 note: the Weekly-recap doc comment that previously sat here
+  // described a different flag and was re-homed above spec_weekly_report.
   spec_home: true,
   // Elite Home (E1) — presentation-only elevation of HomeScreenV2. OFF in the
   // production binary, ON in DEMO_ALL_ON. Score-Protection: band-tint / reveal /
   // count-up / ordering only; never reads into or mutates score, command,
   // eligibility, timing, or safety. Reduced-motion → static Home.
   elite_home_experience_enabled: false,
+  // Weekly Report V2 switch — ON in production: routes /weekly-report to
+  // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
+  // renders (What improved / What needs attention / Performance Age movement /
+  // Habit Velocity / Recovery trend / Top command / Next week focus).
+  // Score-Protection: read-only projection; sections without data render
+  // explicit "collecting"/"awaiting", never fabricated trends.
   spec_weekly_report: true,
   // Elite Weekly Report (E2) — editorial elevation of Readiness Insights. OFF in
   // production, ON in DEMO_ALL_ON. Score-Protection: reuses the honest

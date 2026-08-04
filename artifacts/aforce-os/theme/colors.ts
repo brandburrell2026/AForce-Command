@@ -90,7 +90,8 @@ export const Colors = {
     //   secondary .66 -> 8.36-8.77:1   (new — clear gap above muted below)
     //   muted     .52 -> 5.62-5.69:1   (unchanged)
     //   ghost     .48 -> 4.95-5.00:1   (see below — also changed this pass)
-    // Worst-case gap secondary-to-muted is now 2.74 (8.36 - 5.62), up from
+    // Worst-case gap secondary-to-muted is now 2.67 (min 8.36 vs max 5.69,
+    // min-vs-max like the 0.45 figure below), up from
     // an effectively-invisible 0.45 (6.14 - 5.69) at the old .55 — the three
     // tiers now read as three tiers again, not two.
     secondary: 'rgba(255,255,255,0.66)',
@@ -112,7 +113,9 @@ export const Colors = {
     // text app-wide reads slightly brighter as a result; see PR body.
     //
     // RC-1 verdict-pass correction (Wave-1 r2, item 7): ghost's flat-background
-    // numbers above (4.50-4.62:1 at .46) cleared AA on a bare background, but
+    // numbers (4.62-4.68:1 at .46 — corrected r3: the 4.50-4.62 figure
+    // inherited from the first bump was not reproducible) cleared AA on a
+    // bare background, but
     // ghost is also used on raised/interactive surfaces painted with a
     // translucent white fill on top — e.g. `surface` (#141420) + `fill.medium`
     // (rgba(255,255,255,0.05)) — and text sits on the RESULT of that

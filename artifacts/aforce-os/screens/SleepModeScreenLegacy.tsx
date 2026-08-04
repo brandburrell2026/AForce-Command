@@ -50,10 +50,11 @@ const PRE_SLEEP_LEAD_MIN = 90;
 const RECOVERY_WINDOW_LEAD_MIN = 60;
 const LIME = '#C1281B';
 // LIME as TEXT measures ~3.3:1 on these dark surfaces — under the 4.5:1 AA
-// floor. LIME stays for fills/borders only (lines 391, 494-495 as of this
-// writing: the demo-chip selected border/background and the time-save pill
-// border/background). RC-1 verdict-pass correction: this inventory
-// previously cited stale line numbers (386, 489-490) that had drifted off
+// floor. LIME stays for fills/borders only: the `demoChip` selected
+// border/background and the `timeSave` pill border/background (cited by
+// STYLE KEY, not line number — line citations in this block drifted twice
+// during RC-1, both times because an edit to this very comment moved them).
+// Historical note: earlier revisions cited lines that had drifted off
 // their real targets, AND was incomplete — it didn't disclose that two TEXT
 // sites were still rendering LIME directly, failing the same 3.3:1 floor
 // this comment warns about: `healthValueLink` (the underlined "Connect
