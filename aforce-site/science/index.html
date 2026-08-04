@@ -365,406 +365,320 @@
   </div>
 </div>
 
-<!-- ============ SECTION 1 — HERO ============ -->
-<header class="sci-hero" id="top">
-  <video class="sci-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/science-hero-poster.jpg" aria-label="AFORCE — the science of hydration, cinematic loop">
-    <source src="/assets/science-hero.webm" type="video/webm">
-    <source src="/assets/science-hero.mp4" type="video/mp4">
-  </video>
-  <img class="sci-hero-still" src="/assets/science-hero-poster.jpg" alt="AFORCE — the science of hydration" loading="eager" decoding="async">
-  <div class="sci-hero-scrim"></div>
-  <div class="sci-hero-content reveal">
-    <div class="eyebrow">The Science</div>
-    <h1 class="h-display" style="text-transform:none;">Hydration is only the beginning.</h1>
-    <p class="serif">Every ingredient. Every mineral. Every process. Chosen to support preparation before performance.</p>
-    <p class="anchor-line">Preparation begins long before performance is visible.</p>
-    <div>
-      <a class="cta red" href="#why">Explore the Science <span class="arw">↓</span></a>
+<!-- ============ SCIENCE — rebuilt to the reference (light Paper, Inter) ============ -->
+<style>
+  /* Science redesign components — built on the page's existing tokens (Inter, --canvas/--c/--red) */
+  .sr-wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--gutter); }
+  .sr-sec{ padding:clamp(64px,10vh,128px) 0; border-top:1px solid var(--c14); }
+  .sr-hero{ min-height:84vh; display:flex; flex-direction:column; justify-content:center; padding:clamp(122px,18vh,200px) 0 clamp(52px,8vh,92px); }
+  .sr-hero .h-display{ text-transform:none; margin-top:20px; max-width:15ch; }
+  .sr-kicker{ font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--c40); }
+  .sr-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); }
+  .sr-eyebrow .s{ color:var(--c25); margin:0 .6em; }
+  .sr-serif{ font-size:clamp(20px,2.6vw,32px); line-height:1.28; color:var(--c70); font-weight:400; max-width:26ch; }
+  .sr-lead{ font-size:clamp(16px,1.35vw,19px); line-height:1.7; color:var(--c70); max-width:60ch; }
+  .sr-lead.big{ font-size:clamp(18px,1.6vw,22px); color:var(--c); max-width:24ch; font-weight:500; }
+  .sr-mt-s{ margin-top:14px; } .sr-mt-m{ margin-top:26px; } .sr-mt-l{ margin-top:clamp(30px,4vw,52px); }
+  .sr-red{ color:var(--red); }
+  .sr-cta{ display:flex; flex-wrap:wrap; gap:14px; margin-top:clamp(34px,5vw,56px); }
+  .sr-btn{ display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:12px; letter-spacing:.13em; text-transform:uppercase; padding:15px 24px; border-radius:3px; transition:transform .3s, border-color .3s, background .3s; }
+  .sr-btn.primary{ background:var(--red); color:var(--canvas); }
+  .sr-btn.primary:hover{ transform:translateY(-2px); }
+  .sr-btn.ghost{ border:1px solid var(--c25); color:var(--c); }
+  .sr-btn.ghost:hover{ border-color:var(--c); }
+  .sr-link{ display:inline-flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--red); border-bottom:1px solid var(--c14); padding-bottom:4px; }
+
+  /* Grids */
+  .sr-grid{ display:grid; gap:1px; background:var(--c14); border:1px solid var(--c14); border-radius:6px; overflow:hidden; margin-top:clamp(28px,4vw,44px); }
+  .sr-g2{ grid-template-columns:repeat(2,1fr); } .sr-g3{ grid-template-columns:repeat(3,1fr); } .sr-g4{ grid-template-columns:repeat(4,1fr); }
+  @media (max-width:820px){ .sr-g3,.sr-g4{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:560px){ .sr-g2,.sr-g3,.sr-g4{ grid-template-columns:1fr; } }
+  .sr-cell{ background:var(--canvas); padding:clamp(20px,2.6vw,30px); }
+  .sr-cell .k{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--c40); }
+  .sr-cell .sym{ font-size:clamp(22px,2.4vw,30px); font-weight:700; }
+  .sr-cell .v{ font-size:clamp(17px,1.8vw,21px); font-weight:600; margin-top:6px; }
+  .sr-cell .d{ color:var(--c70); font-size:14.5px; margin-top:10px; line-height:1.6; }
+
+  /* Numbered steps / flow */
+  .sr-steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(16px,2.2vw,26px); margin-top:clamp(30px,4vw,48px); }
+  @media (max-width:760px){ .sr-steps{ grid-template-columns:1fr 1fr; } }
+  .sr-step{ border-top:2px solid var(--red); padding-top:16px; }
+  .sr-step .sn{ font-family:var(--mono); font-size:12px; color:var(--red); }
+  .sr-step .st{ font-weight:700; font-size:clamp(16px,1.6vw,19px); margin-top:8px; }
+  .sr-step .sd{ color:var(--c70); font-size:14.5px; margin-top:6px; }
+  .sr-flow{ list-style:none; display:flex; flex-wrap:wrap; gap:10px; margin-top:clamp(26px,3.6vw,40px); }
+  .sr-flow li{ font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--c70); border:1px solid var(--c14); border-radius:999px; padding:9px 15px; }
+  .sr-flow li .fn{ color:var(--red); margin-right:8px; }
+
+  /* Closing triad */
+  .sr-triad{ margin-top:clamp(30px,4vw,48px); display:flex; flex-direction:column; gap:6px; }
+  .sr-triad span{ font-size:clamp(20px,2.4vw,30px); font-weight:600; letter-spacing:-0.01em; }
+  .sr-triad span b{ color:var(--red); font-weight:600; }
+
+  /* Product cards */
+  .sr-cans{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2.2vw,26px); margin-top:clamp(30px,4vw,48px); }
+  @media (max-width:760px){ .sr-cans{ grid-template-columns:1fr; } }
+  .sr-can{ border:1px solid var(--c14); border-radius:6px; padding:clamp(22px,2.6vw,32px); text-align:center; background:linear-gradient(180deg, rgba(11,13,18,0.015), transparent); }
+  .sr-can img{ height:clamp(180px,22vw,240px); width:auto; margin:0 auto 18px; display:block; filter:drop-shadow(0 18px 40px rgba(11,13,18,0.18)); }
+  .sr-can .cn{ font-weight:700; font-size:clamp(16px,1.6vw,19px); }
+  .sr-can .cs{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--c40); margin-top:8px; }
+
+  /* Ritual sequence */
+  .sr-ritual{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(16px,2.2vw,26px); margin-top:clamp(30px,4vw,48px); }
+  @media (max-width:760px){ .sr-ritual{ grid-template-columns:1fr 1fr; } }
+  .sr-ritual .r{ }
+  .sr-ritual .r .rn{ font-family:var(--mono); font-size:12px; color:var(--red); }
+  .sr-ritual .r .rt{ font-weight:700; font-size:clamp(17px,1.8vw,22px); margin-top:8px; }
+  .sr-ritual .r .rd{ color:var(--c70); font-size:14.5px; margin-top:4px; }
+
+  /* OS callout + mock */
+  .sr-os{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:clamp(28px,4vw,56px); align-items:center; margin-top:clamp(34px,5vw,56px); }
+  @media (max-width:860px){ .sr-os{ grid-template-columns:1fr; } }
+  .sr-os ul{ list-style:none; margin-top:22px; }
+  .sr-os li{ padding:14px 0; border-top:1px solid var(--c14); color:var(--c70); font-size:15.5px; display:flex; gap:12px; }
+  .sr-os li::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--red); margin-top:9px; flex:0 0 auto; }
+  .sr-phone{ background:var(--ink); color:var(--canvas); border-radius:22px; padding:clamp(20px,2.4vw,28px); box-shadow:0 30px 70px rgba(11,13,18,0.3); }
+  .sr-phone .pbar{ display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:rgba(245,240,232,0.6); letter-spacing:.1em; }
+  .sr-phone .pmetric{ font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:rgba(245,240,232,0.55); margin-top:28px; }
+  .sr-phone .pstate{ font-size:clamp(20px,2.4vw,26px); font-weight:700; margin-top:6px; }
+  .sr-phone .pnote{ font-family:var(--mono); font-size:11px; color:rgba(245,240,232,0.5); margin-top:10px; }
+  .sr-phone .pact{ margin-top:24px; border:1px solid rgba(245,240,232,0.16); border-radius:12px; padding:16px; }
+  .sr-phone .pact .pk{ font-family:var(--mono); font-size:11px; letter-spacing:.18em; color:var(--red); }
+  .sr-phone .pact .pv{ margin-top:8px; font-size:15px; color:rgba(245,240,232,0.9); }
+  .sr-phone .pfoot{ font-family:var(--mono); font-size:10px; color:rgba(245,240,232,0.4); margin-top:18px; letter-spacing:.06em; }
+
+  /* Proof ledger */
+  .sr-cats{ display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+  .sr-cats span{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--c55); border:1px solid var(--c14); border-radius:999px; padding:8px 14px; }
+  .sr-ledger{ margin-top:clamp(28px,4vw,44px); }
+  .sr-item{ display:grid; grid-template-columns:auto 1fr; gap:clamp(16px,2.4vw,40px); padding:clamp(20px,2.6vw,30px) 0; border-top:1px solid var(--c14); }
+  @media (max-width:640px){ .sr-item{ grid-template-columns:1fr; gap:10px; } }
+  .sr-item .sid{ font-family:var(--mono); font-size:13px; color:var(--red); letter-spacing:.06em; }
+  .sr-item .sbody .sh{ font-weight:700; font-size:clamp(16px,1.6vw,19px); }
+  .sr-item .sbody .sp{ color:var(--c70); font-size:15px; margin-top:8px; max-width:64ch; }
+  .sr-item .sbody .sl{ margin-top:12px; }
+  .sr-refs{ list-style:none; margin-top:clamp(24px,3vw,36px); border-top:1px solid var(--c14); }
+  .sr-refs li{ border-bottom:1px solid var(--c14); }
+  .sr-refs li a{ display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:16px 0; color:var(--c70); font-size:15px; }
+  .sr-refs li a:hover{ color:var(--c); }
+  .sr-refs li a .arw{ color:var(--red); font-family:var(--mono); font-size:12px; }
+
+  /* Refusals + verification */
+  .sr-refuse{ list-style:none; margin-top:clamp(28px,4vw,44px); }
+  .sr-refuse li{ display:grid; grid-template-columns:auto 1fr; gap:18px; padding:18px 0; border-top:1px solid var(--c14); font-size:clamp(16px,1.5vw,20px); color:var(--c); }
+  .sr-refuse li:last-child{ border-bottom:1px solid var(--c14); }
+  .sr-refuse li .rn{ font-family:var(--mono); font-size:12px; color:var(--red); }
+  .sr-verify{ display:flex; flex-wrap:wrap; gap:14px 40px; margin-top:clamp(30px,4vw,48px); }
+  .sr-verify span{ font-size:clamp(18px,2vw,26px); font-weight:600; }
+  .sr-verify span::before{ content:''; display:inline-block; width:7px; height:7px; background:var(--red); border-radius:50%; margin-right:12px; vertical-align:middle; }
+
+  /* Disclaimers */
+  .sr-disc{ font-family:var(--mono); font-size:11px; line-height:1.7; letter-spacing:.02em; color:var(--c40); margin-top:22px; max-width:78ch; }
+  .sr-end{ margin-top:clamp(44px,6vw,80px); font-family:var(--mono); font-size:clamp(13px,1.5vw,16px); letter-spacing:.22em; text-transform:uppercase; color:var(--c); }
+</style>
+
+<!-- HERO -->
+<header class="sr-hero" id="top">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal in">The Science<span class="s">—</span>Before Performance Is Visible</div>
+    <h1 class="h-display reveal in" style="text-transform:none;">The science of before.</h1>
+    <p class="sr-serif reveal in sr-mt-m">Before performance becomes visible, the body regulates.</p>
+    <p class="sr-lead reveal in sr-mt-m">AFORCE is pH 8.8 alkaline hydration built into a repeatable readiness ritual — one intentional, Water-First action taken before the moment, not after it.</p>
+    <div class="sr-cta reveal in">
+      <a class="sr-btn primary" href="#principle">Reveal the system ↓</a>
+      <a class="sr-btn ghost" href="#standard">Read the principle ↗</a>
     </div>
   </div>
-  <div class="sci-hero-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </header>
 
-<!-- ============ SECTION 2 — WHY HYDRATION MATTERS ============ -->
-<section id="why" class="divider">
-  <div class="wrap two-col">
-    <div class="reveal stack-md">
-      <div class="eyebrow">Why Hydration Matters</div>
-      <h2 class="h-2">Before your body<br>performs, it regulates.</h2>
-      <p class="lead">Hydration supports the systems your body relies on before pressure arrives: fluid balance, muscle function, nerve signaling, and cognitive focus. Readiness is not a single moment — it is the state you maintain before the moment asks anything of you.</p>
-    </div>
-    <div class="reveal">
-      <!-- REAL DELIVERABLE — systems diagram, inline SVG, locked palette -->
-      <svg class="sys-svg" viewBox="0 0 460 320" role="img" aria-label="Diagram: hydration supports fluid balance, electrolyte balance, muscle contraction, nerve signaling, and cognitive focus">
-        <rect x="150" y="14" width="160" height="42" rx="2" fill="none" stroke="#C1281B" stroke-width="1.5"/>
-        <text x="230" y="40" text-anchor="middle" fill="#0B0D12" font-size="14" letter-spacing="3" style="text-transform:uppercase">HYDRATION</text>
-        <g stroke="rgba(11,13,18,.28)" stroke-width="1">
-          <line x1="230" y1="56" x2="230" y2="86"/>
-          <line x1="60" y1="86" x2="400" y2="86"/>
-          <line x1="60" y1="86" x2="60" y2="108"/>
-          <line x1="145" y1="86" x2="145" y2="108"/>
-          <line x1="230" y1="86" x2="230" y2="108"/>
-          <line x1="315" y1="86" x2="315" y2="108"/>
-          <line x1="400" y1="86" x2="400" y2="108"/>
-        </g>
-        <g fill="none" stroke="#C1281B" stroke-width="1.5">
-          <circle cx="60" cy="118" r="9"/><circle cx="145" cy="118" r="9"/><circle cx="230" cy="118" r="9"/><circle cx="315" cy="118" r="9"/><circle cx="400" cy="118" r="9"/>
-        </g>
-        <g fill="rgba(11,13,18,.72)" font-size="10" letter-spacing="1.5" text-anchor="middle">
-          <text x="60" y="160">FLUID</text><text x="60" y="174">BALANCE</text>
-          <text x="145" y="160">ELECTROLYTE</text><text x="145" y="174">BALANCE</text>
-          <text x="230" y="160">MUSCLE</text><text x="230" y="174">FUNCTION</text>
-          <text x="315" y="160">NERVE</text><text x="315" y="174">SIGNALING</text>
-          <text x="400" y="160">COGNITIVE</text><text x="400" y="174">FOCUS</text>
-        </g>
-        <text x="230" y="250" text-anchor="middle" fill="rgba(11,13,18,.4)" font-size="10" letter-spacing="4" style="text-transform:uppercase">THE STATE BEFORE THE MOMENT</text>
-      </svg>
+<!-- 01 · THE PRINCIPLE -->
+<section class="sr-sec" id="principle" aria-label="The principle">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">01<span class="s">—</span>The Principle<span class="s">·</span>Why Hydration Matters</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The body does not wait for the moment.<br>It prepares for it.</h2>
+    <p class="sr-lead reveal sr-mt-m">Fluid balance, muscle function, nerve signaling and cognitive function depend on normal physiology already working before pressure arrives. Readiness is not summoned in the moment — it is maintained beforehand.</p>
+    <div class="sr-kicker reveal sr-mt-l">H₂O — The regulation layer</div>
+    <div class="sr-grid sr-g4">
+      <div class="sr-cell reveal"><div class="v">Fluid balance</div></div>
+      <div class="sr-cell reveal"><div class="v">Muscle function</div></div>
+      <div class="sr-cell reveal"><div class="v">Nerve signaling</div></div>
+      <div class="sr-cell reveal"><div class="v">Cognitive function</div></div>
     </div>
   </div>
 </section>
 
-<!-- ============ SECTION 3 — THE REGULATION LAYER ============ -->
-<section id="regulation" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">The Regulation Layer</div>
-      <h2 class="h-2">The Regulation Layer.</h2>
-      <p class="serif">Electrolytes help the body stay ready.</p>
+<!-- 02 · THE DIFFERENCE -->
+<section class="sr-sec" aria-label="The difference">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">02<span class="s">—</span>The Aha<span class="s">·</span>The Difference</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Most hydration brands end at the drink.<br>AFORCE begins there.</h2>
+    <div class="sr-steps">
+      <div class="sr-step reveal"><div class="sn">01</div><div class="st">Body</div><div class="sd">Normal regulation</div></div>
+      <div class="sr-step reveal"><div class="sn">02</div><div class="st">Formula</div><div class="sd">pH 8.8 hydration</div></div>
+      <div class="sr-step reveal"><div class="sn">03</div><div class="st">Ritual</div><div class="sd">Repeatable behavior</div></div>
+      <div class="sr-step reveal"><div class="sn">04</div><div class="st">Intelligence</div><div class="sd">Patterns over time</div></div>
     </div>
-    <!-- REAL DELIVERABLE — ion grid, locked palette -->
-    <div class="ion-grid reveal">
-      <div class="ion-cell">
-        <div class="lbl">Ion · Na⁺</div>
-        <div class="sym">Na⁺</div>
-        <div class="nm">Sodium</div>
-        <div class="fn">Supports fluid balance and hydration signaling.</div>
-      </div>
-      <div class="ion-cell">
-        <div class="lbl">Ion · K⁺</div>
-        <div class="sym">K⁺</div>
-        <div class="nm">Potassium</div>
-        <div class="fn">Supports normal muscle and nerve function.</div>
-      </div>
-      <div class="ion-cell">
-        <div class="lbl">Ion · Mg²⁺</div>
-        <div class="sym">Mg²⁺</div>
-        <div class="nm">Magnesium</div>
-        <div class="fn">Supports muscle function and energy metabolism.</div>
-      </div>
-      <div class="ion-cell">
-        <div class="lbl">Ion · Ca²⁺</div>
-        <div class="sym">Ca²⁺</div>
-        <div class="nm">Calcium</div>
-        <div class="fn">Supports muscle contraction and nerve signaling.</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SECTION 4 — THE AFORCE FORMULA ============ -->
-<section id="formula" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">The AFORCE Formula</div>
-      <h2 class="h-2">Designed with intention.</h2>
-      <p class="lead">Each element is here for a reason. Tap any ingredient to see what it is, why it matters, and how it supports the AFORCE ritual.</p>
-      <p class="mono-note">Ingredient list pending formulation sign-off</p>
-    </div>
-    <!-- Cards render from the INGREDIENTS config (see script). -->
-    <div class="card-grid reveal" id="ingredientGrid"></div>
-  </div>
-</section>
-
-<!-- ============ SECTION 5 — STANDARDS ============ -->
-<section id="standards" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">Standards</div>
-      <h2 class="h-2">Standards.</h2>
-      <p class="serif">Luxury companies talk about standards. Everyone else talks about features.</p>
-    </div>
-    <div class="seq reveal">
-      <div class="seq-row">
-        <div class="snum">Standard One</div>
-        <div>
-          <div class="stitle">Alkaline pH 8.8</div>
-          <p class="sbody">Chosen intentionally. Formulated at pH 8.8 as part of the hydration experience and brand standard.</p>
-        </div>
-      </div>
-      <div class="seq-row">
-        <div class="snum">Standard Two</div>
-        <div>
-          <div class="stitle">Controlled formulation</div>
-          <p class="sbody">Three formulations, locked. Nothing added without reason.</p>
-        </div>
-      </div>
-      <div class="seq-row">
-        <div class="snum">Standard Three</div>
-        <div>
-          <div class="stitle">Retort stability</div>
-          <p class="sbody">Every can shelf-stable, safe, and consistent.</p>
-          <a class="slink" href="#precision">See the Precision section →</a>
-        </div>
-      </div>
-      <div class="seq-row">
-        <div class="snum">Standard Four</div>
-        <div>
-          <div class="stitle">Behavior-first design</div>
-          <p class="sbody">The product is built around the ritual, not the other way around.</p>
-        </div>
-      </div>
-      <div class="seq-row">
-        <div class="snum">Standard Five</div>
-        <div>
-          <div class="stitle">OS integration</div>
-          <p class="sbody">Every can connects to the system that measures the behavior.</p>
-        </div>
-      </div>
-    </div>
-    <p class="display-close reveal">The promise is not a miracle.<br><span class="dim">The promise is</span> consistency.</p>
-  </div>
-</section>
-
-<!-- ============ PROOF LAYER · SECTION A — THE REFUSALS ============ -->
-<section id="refusals" class="divider">
-  <div class="wrap refusals">
-    <div class="reveal stack-md">
-      <div class="eyebrow">Our Standard</div>
-      <h2 class="h-2">The Refusals.</h2>
-      <p class="serif">What a brand declines to say tells you more than what it claims.</p>
-    </div>
-    <!-- FINAL COPY — six refusals, verbatim, do not soften or add -->
-    <div style="margin-top:clamp(30px,4vw,50px)">
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim alkaline water cures anything.</p>
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim detoxification.</p>
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim to change your body's chemistry.</p>
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not publish absorption percentages we cannot substantiate.</p>
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not claim our processing preserves what we have not measured.</p>
-      <p class="refuse-line reveal"><span class="x">✕</span>We do not promise outcomes we cannot verify.</p>
-    </div>
-    <p class="display-close reveal">What remains is what<br>we can <span class="accent-red">stand behind.</span></p>
-  </div>
-</section>
-
-<!-- ============ PROOF LAYER · SECTION B — VERIFICATION BEFORE ASSERTION ============ -->
-<section id="verification" class="divider">
-  <div class="wrap" style="max-width:900px">
-    <div class="reveal stack-md">
-      <h2 class="h-2">Verification before assertion.</h2>
-      <p class="lead">Before anything becomes part of AFORCE, it passes three questions.</p>
-    </div>
-    <div class="exhibit reveal">
-      <div class="exhibit-row"><div class="qn">01</div><div class="qt">Can we explain it?</div></div>
-      <div class="exhibit-row"><div class="qn">02</div><div class="qt">Can we verify it?</div></div>
-      <div class="exhibit-row"><div class="qn">03</div><div class="qt">Can we repeat it?</div></div>
-    </div>
-    <p class="lead reveal" style="margin-top:clamp(26px,3vw,40px)">If the answer is no, it does not become part of the standard.</p>
-  </div>
-</section>
-
-<!-- ============ SECTION 6 — PRECISION (RETORT) ============ -->
-<section id="precision" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">Precision</div>
-      <h2 class="h-2">Precision.</h2>
-      <h3 class="h-3" style="color:var(--c70)">Engineered to perform. Built to last.</h3>
-      <p class="lead">Not all beverages are manufactured the same. AFORCE ready-to-drink cans are produced using advanced thermal processing — retort — a controlled process chosen for stability, safety, and consistency from the first can to the last.</p>
-    </div>
-
-    <div class="reveal" style="margin-top:clamp(40px,5vw,72px)">
-      <div class="mono-note" style="color:var(--red)">Why We Chose Retort Technology</div>
-      <div class="exhibit-block">
-        <div class="eb-num">01</div>
-        <div class="eb-title">Shelf Stability</div>
-        <p class="eb-body">No refrigeration required. Advanced thermal processing helps create a shelf-stable beverage that is ready whenever preparation is.</p>
-      </div>
-      <div class="exhibit-block">
-        <div class="eb-num">02</div>
-        <div class="eb-title">Safety</div>
-        <p class="eb-body">Every can is protected. Retort processing uses carefully controlled heat treatment to support microbiological safety.</p>
-      </div>
-      <div class="exhibit-block">
-        <div class="eb-num">03</div>
-        <div class="eb-title">Consistency</div>
-        <p class="eb-body">Every can performs the same. The process is designed to help deliver the same experience from batch to batch.</p>
-      </div>
-      <div class="exhibit-block">
-        <div class="eb-num">04</div>
-        <div class="eb-title">Convenience</div>
-        <p class="eb-body">Ready anywhere. Desk. Gym bag. Carry-on. Car. Studio. Firehouse. Flight deck. Preparation should travel with you.</p>
-      </div>
-    </div>
-
-    <!-- Manufacturing sequence — vertical editorial timeline (structured markup, Apple-engineering register) -->
-    <div class="reveal" style="margin-top:clamp(20px,3vw,40px)">
-      <div class="mono-note">The Sequence</div>
-      <ol class="timeline" aria-label="Manufacturing sequence">
-        <li class="done"><div class="tstep">Step 01</div><div class="tname">Ingredient Selection</div></li>
-        <li class="done"><div class="tstep">Step 02</div><div class="tname">Precision Formulation</div></li>
-        <li class="done"><div class="tstep">Step 03</div><div class="tname">Can Filling</div></li>
-        <li class="done"><div class="tstep">Step 04</div><div class="tname">Thermal Processing</div></li>
-        <li class="done"><div class="tstep">Step 05</div><div class="tname">Cooling</div></li>
-        <li class="done"><div class="tstep">Step 06</div><div class="tname">Quality Assurance</div></li>
-        <li><div class="tstep">Step 07</div><div class="tname">Ready for Preparation</div></li>
-      </ol>
-    </div>
-
-    <p class="display-close reveal">Preparation is not accidental.<br><span class="dim">Every ingredient. Every process. Every can.</span><br>Engineered to be <span class="accent-red">NON—<span class="flip">N</span>EGOTIABLE.</span></p>
-  </div>
-</section>
-
-<!-- ============ SECTION 7 — THE RITUAL (choreographed moment 1) ============ -->
-<section id="ritual" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">The Ritual</div>
-      <h2 class="h-2">Hydration is chemistry.<br>Preparation is behavior.</h2>
-    </div>
-    <!-- CHOREOGRAPHED MOMENT 1 — words reveal sequentially on scroll -->
-    <div class="ritual-line" id="ritualLine" aria-label="Pause. Hydrate. Lock In. Perform.">
-      <span class="ritual-word">Pause.</span>
-      <span class="ritual-word">Hydrate.</span>
-      <span class="ritual-word rw-accent">Lock In.</span>
-      <span class="ritual-word">Perform.</span>
-    </div>
-    <p class="lead reveal" style="margin-top:clamp(34px,4vw,54px)">The ritual turns hydration into a repeatable behavior. Repetition builds consistency. Consistency builds readiness.</p>
-  </div>
-</section>
-
-<!-- ============ SECTION 8 — THE AFORCE OS ============ -->
-<!-- CHOREOGRAPHED MOMENT 2 — interstitial, two lines reveal on scroll -->
-<section class="interstitial" id="osInterstitial" aria-label="Everything above can be purchased. Everything below has to be practiced.">
-  <div class="wrap">
-    <p class="os-line">Everything above<br>can be purchased.</p>
-    <p class="os-line dim">Everything below<br>has to be practiced.</p>
-  </div>
-</section>
-
-<section id="os" class="divider">
-  <div class="wrap two-col">
-    <div class="reveal stack-md">
-      <div class="eyebrow">The AFORCE OS</div>
-      <h2 class="h-2">From hydration<br>to behavior.</h2>
-      <p class="lead">AFORCE OS is designed to help turn daily preparation into measurable behavior — the layer that reads the ritual and holds you to the standard.</p>
-    </div>
-    <div class="reveal">
-      <!-- REAL DELIVERABLE — OS flow, vertical (structured markup) -->
-      <ol class="flow" aria-label="Hydration to Ritual to Behavior to Readiness to Consistency to Performance">
-        <li><span class="fdot">→</span>Hydration</li>
-        <li><span class="fdot">→</span>Ritual</li>
-        <li><span class="fdot">→</span>Behavior</li>
-        <li><span class="fdot">→</span>Readiness</li>
-        <li><span class="fdot">→</span>Consistency</li>
-        <li><span class="fdot">→</span>Performance</li>
-      </ol>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SECTION 8B — OBSERVATIONS ============ -->
-<section id="observations" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">Observations</div>
-      <h2 class="h-2">Observations.</h2>
-      <p class="serif">Not reviews. Not promises. Patterns.</p>
-    </div>
-    <div class="obs-grid reveal">
-      <div class="obs-cell"><div class="on">Observation 01</div><div class="ot">People who prepare intentionally tend to prepare repeatedly.</div></div>
-      <div class="obs-cell"><div class="on">Observation 02</div><div class="ot">Consistency compounds.</div></div>
-      <div class="obs-cell"><div class="on">Observation 03</div><div class="ot">Performance begins before execution.</div></div>
-      <div class="obs-cell"><div class="on">Observation 04</div><div class="ot">The ritual matters more than motivation.</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SECTION 9 — THE EVIDENCE ENGINE ============ -->
-<section id="evidence" class="divider">
-  <div class="wrap">
-    <div class="reveal stack-md">
-      <div class="eyebrow">The Evidence Engine</div>
-      <h2 class="h-2">We measure behavior,<br>not just consumption.</h2>
-      <p class="lead">These are platform behavior metrics — how the ritual is practiced over time. Ritual logging reflects completed rituals, not live biometric readings.</p>
-    </div>
-    <!-- Dashboard renders from METRICS config. Permanent ILLUSTRATIVE — SAMPLE DATA tag is designed in. -->
-    <div class="dash reveal">
-      <div class="dash-head">
-        <span class="dh-title">AFORCE OS · Behavior Dashboard</span>
-        <span class="sample-tag">Illustrative — Sample Data</span>
-      </div>
-      <div class="dash-grid" id="metricGrid"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ FINAL SECTION ============ -->
-<section class="final divider" id="closing">
-  <div class="wrap">
-    <p class="fbig" id="finalLines">
+    <div class="sr-triad reveal">
       <span>Hydration is the entry point.</span>
-      <span>Behavior is the product.</span>
-      <span>Readiness is the standard.</span>
-      <span class="dim">Performance is the outcome.</span>
-    </p>
-    <p class="serif reveal" style="margin-top:clamp(30px,4vw,48px)">Preparation is a discipline. AFORCE is the system built around it.</p>
-    <div class="reveal" style="margin-top:clamp(34px,4vw,52px)">
-      <a class="cta" href="/shop">Enter the Standard <span class="arw">→</span></a>
+      <span>Behavior is the bridge.</span>
+      <span><b>Readiness is the standard.</b></span>
     </div>
   </div>
 </section>
 
-<!-- ============ THE AFORCE STANDARD / REFERENCES ============ -->
-<section id="references" class="divider">
-  <div class="wrap refs">
+<!-- 03 · THE FORMULA -->
+<section class="sr-sec" id="formula" aria-label="The formula">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">03<span class="s">—</span>The Formula<span class="s">·</span>The AFORCE Standard</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">One standard. Three expressions.</h2>
+    <p class="sr-lead reveal sr-mt-m">Three distinct formulations, one deliberate architecture: alkaline pH 8.8, a considered electrolyte and mineral profile, and one signature algae ingredient each. We do not use pH 8.8 as a shortcut to a health promise — it is a formulation standard, held to a lane.</p>
+    <div class="sr-grid sr-g4">
+      <div class="sr-cell reveal"><div class="k">Standard</div><div class="v">pH 8.8</div><div class="d">A formulation standard, not a blood-pH claim.</div></div>
+      <div class="sr-cell reveal"><div class="k">Regulation</div><div class="v">Electrolytes + Minerals</div><div class="d">Selected around established physiological roles.</div></div>
+      <div class="sr-cell reveal"><div class="k">Signature</div><div class="v">Algae Ingredients</div><div class="d">Chlorella, dulse and seamoss — one per expression.</div></div>
+      <div class="sr-cell reveal"><div class="k">Discipline</div><div class="v">Controlled Formulation</div><div class="d">Nothing added without a reason. Nothing claimed without a lane.</div></div>
+    </div>
+    <div class="sr-cans">
+      <div class="sr-can reveal"><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge with Chlorella can" loading="lazy"><div class="cn">Watermelon Surge + Chlorella</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
+      <div class="sr-can reveal"><img src="/assets/can-blue.png" alt="AFORCE Berry Blast with Dulse can" loading="lazy"><div class="cn">Berry Blast + Dulse</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
+      <div class="sr-can reveal"><img src="/assets/can-green.png" alt="AFORCE Soursop Edge with Seamoss can" loading="lazy"><div class="cn">Soursop Edge + Seamoss</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
+    </div>
+    <p class="sr-disc reveal">Product specifications shown reflect the current AFORCE standard. Final ingredients and values are subject to formulation sign-off before launch.</p>
+  </div>
+</section>
 
-    <!-- THE AFORCE STANDARD -->
-    <div class="reveal stack-md">
-      <div class="eyebrow">The AFORCE Standard</div>
-      <p class="lead">Before anything becomes part of AFORCE, it earns its place. Every ingredient. Every process. Every decision is held to the same standard.</p>
+<!-- 04 · THE REGULATION LAYER -->
+<section class="sr-sec" id="regulation" aria-label="The regulation layer">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">04<span class="s">—</span>The Regulation Layer<span class="s">·</span>Established Physiology</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Electrolytes are not the spectacle.<br>Regulation is.</h2>
+    <div class="sr-grid sr-g4">
+      <div class="sr-cell reveal"><div class="k">Na⁺</div><div class="sym">Sodium</div><div class="d">Contributes to normal fluid balance and supports normal muscle and nerve function.</div></div>
+      <div class="sr-cell reveal"><div class="k">K⁺</div><div class="sym">Potassium</div><div class="d">Its cellular gradient is required for normal nerve transmission and muscle contraction.</div></div>
+      <div class="sr-cell reveal"><div class="k">Mg²⁺</div><div class="sym">Magnesium</div><div class="d">Participates in energy production and normal nerve and muscle function.</div></div>
+      <div class="sr-cell reveal"><div class="k">Ca²⁺</div><div class="sym">Calcium</div><div class="d">Supports normal muscle movement and communication between nerves and muscle.</div></div>
     </div>
-    <div class="reveal std-group">
-      <div class="std-block"><h3 class="h-3">Established Science</h3><p class="eb-body">Peer-reviewed scientific literature informs our understanding of hydration, electrolyte physiology, ingredient selection, and human performance.</p></div>
-      <div class="std-block"><h3 class="h-3">Engineering Standards</h3><p class="eb-body">Research informs our decisions. Engineering turns those decisions into a consistent product through disciplined formulation, manufacturing, and quality standards.</p></div>
-      <div class="std-block"><h3 class="h-3">Behavioral Intelligence</h3><p class="eb-body">AFORCE OS is designed to recognize preparation as a repeatable behavior. By observing completed rituals over time, it identifies patterns that help users build consistency and readiness. These observations are presented separately from scientific research and are not clinical outcomes.</p></div>
-    </div>
+    <p class="sr-disc reveal">These descriptions summarize established physiological roles of the minerals in general nutrition; they are not AFORCE-specific outcome claims.</p>
+  </div>
+</section>
 
-    <!-- WHY WE CHOSE THIS -->
-    <div class="reveal stack-md" style="margin-top:clamp(60px,7vw,110px)">
-      <div class="eyebrow">Why We Chose This</div>
-      <p class="lead">Every choice reflects a standard.</p>
+<!-- 05 · PRECISION -->
+<section class="sr-sec" id="precision" aria-label="Precision">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">05<span class="s">—</span>Precision<span class="s">·</span>Ready-to-Drink Engineering</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The product travels because the process is controlled.</h2>
+    <div class="sr-grid sr-g3">
+      <div class="sr-cell reveal"><div class="k">Stability</div><div class="d">A sealed, shelf-stable format designed to be ready when the moment is.</div></div>
+      <div class="sr-cell reveal"><div class="k">Safety</div><div class="d">A process built around controlled time, temperature and sealing.</div></div>
+      <div class="sr-cell reveal"><div class="k">Consistency</div><div class="d">A disciplined process built to protect the intended experience, can after can.</div></div>
     </div>
-    <div class="reveal std-group">
-      <div class="std-block"><h3 class="h-3">Marine &amp; Plant Ingredients</h3><p class="eb-body">Selected for their naturally occurring nutrient and mineral profiles and their alignment with our formulation philosophy.</p></div>
-      <div class="std-block"><h3 class="h-3">Electrolyte System</h3><p class="eb-body">Designed around minerals with established roles in hydration, fluid balance, muscle function, and nerve signaling.</p></div>
-      <div class="std-block"><h3 class="h-3">Alkaline pH 8.8</h3><p class="eb-body">Chosen intentionally as one of our formulation standards.</p></div>
-      <div class="std-block"><h3 class="h-3">Retort Processing</h3><p class="eb-body">Selected to support product safety, shelf stability, and manufacturing consistency through a controlled thermal process.</p></div>
-    </div>
-
-    <!-- SCIENTIFIC FOUNDATION -->
-    <div class="reveal stack-md" style="margin-top:clamp(60px,7vw,110px)">
-      <div class="eyebrow">Scientific Foundation</div>
-      <p class="lead">The references below provide educational context for the hydration physiology, electrolyte function, formulation principles, and manufacturing concepts discussed throughout this page. Unless explicitly stated, these references are not clinical studies conducted on AFORCE or evidence of product-specific outcomes.</p>
-    </div>
-    <ol class="ref-list reveal">
-      <li><span class="rn">01</span><span><span class="ref-topic">Hydration physiology &amp; fluid balance</span><span class="ref-cite">Jéquier E, Constant F. Water as an essential nutrient: the physiological basis of hydration. European Journal of Clinical Nutrition. 2010;64(2):115–123.</span></span></li>
-      <li><span class="rn">02</span><span><span class="ref-topic">Electrolyte function &amp; muscle contraction</span><span class="ref-cite">Shrimanker I, Bhattarai S. Electrolytes. In: StatPearls. Treasure Island (FL): StatPearls Publishing; 2023. NCBI Bookshelf NBK541123.</span></span></li>
-      <li><span class="rn">03</span><span><span class="ref-topic">Sodium, potassium &amp; hydration signaling</span><span class="ref-cite">Popkin BM, D'Anci KE, Rosenberg IH. Water, hydration, and health. Nutrition Reviews. 2010;68(8):439–458.</span></span></li>
-      <li><span class="rn">04</span><span><span class="ref-topic">Magnesium &amp; energy metabolism</span><span class="ref-cite">de Baaij JHF, Hoenderop JGJ, Bindels RJM. Magnesium in man: implications for health and disease. Physiological Reviews. 2015;95(1):1–46.</span></span></li>
-      <li><span class="rn">05</span><span><span class="ref-topic">Cognitive function under mild dehydration</span><span class="ref-cite">Szinnai G, Schachinger H, Arnaud MJ, Linder L, Keller U. Effect of water deprivation on cognitive-motor performance in healthy men and women. American Journal of Physiology – Regulatory, Integrative and Comparative Physiology. 2005;289(1):R275–R280.</span></span></li>
+    <ol class="sr-flow reveal">
+      <li><span class="fn">01</span>Ingredient selection</li>
+      <li><span class="fn">02</span>Precision formulation</li>
+      <li><span class="fn">03</span>Can filling</li>
+      <li><span class="fn">04</span>Thermal processing</li>
+      <li><span class="fn">05</span>Cooling</li>
+      <li><span class="fn">06</span>Quality review</li>
+      <li><span class="fn">07</span>Ready for the ritual</li>
     </ol>
-
-    <!-- CLOSING -->
-    <div class="reveal refs-close">
-      <p class="refs-final-line">Nothing belongs in AFORCE without a reason.</p>
-      <p class="nonneg-line">Performance Is Non-<span class="flip">N</span>egotiable.</p>
-      <div class="nn-mark" role="img" aria-label="AFORCE N-N mark"><span>N</span><span class="nn-bar"></span><span class="flip">N</span></div>
-    </div>
-
+    <p class="reveal sr-mt-l"><a class="sr-link" href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-113" target="_blank" rel="noopener">Read the regulatory framework · 21 CFR Part 113 ↗</a></p>
   </div>
 </section>
 
-<!-- ============ COMPLIANCE FOOTER — verbatim ============ -->
+<!-- 06 · BEHAVIOR -->
+<section class="sr-sec" id="os" aria-label="Behavior">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">06<span class="s">—</span>Behavior<span class="s">·</span>The Second Half of the Science</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Hydration is chemistry.<br>Preparation is behavior.</h2>
+    <div class="sr-ritual">
+      <div class="r reveal"><div class="rn">01</div><div class="rt">Pause</div><div class="rd">Create the space.</div></div>
+      <div class="r reveal"><div class="rn">02</div><div class="rt">Hydrate</div><div class="rd">Complete the act.</div></div>
+      <div class="r reveal"><div class="rn">03</div><div class="rt">Lock In</div><div class="rd">Name the intention.</div></div>
+      <div class="r reveal"><div class="rn">04</div><div class="rt">Perform</div><div class="rd">Enter the moment.</div></div>
+    </div>
+    <div class="sr-os">
+      <div class="reveal">
+        <div class="sr-kicker">AFORCE OS</div>
+        <p class="sr-lead big sr-mt-s">The OS does not reward looking. It recognizes verified doing.</p>
+        <ul>
+          <li>A scan, recommendation, intention or purchase is score-neutral. Only verified behavior moves the metric.</li>
+          <li>HydroState remains the single hero metric.</li>
+          <li>Freshness, confidence and unknowns stay visible.</li>
+          <li>The body first. The recommendation second. The product last.</li>
+          <li>Code calculates. AI explains.</li>
+        </ul>
+        <p class="sr-mt-l"><a class="sr-link" href="/aforce-os">Explore AFORCE OS ↗</a></p>
+      </div>
+      <div class="sr-phone reveal" aria-label="Illustrative AFORCE OS interface">
+        <div class="pbar"><span>9:41</span><span>AFORCE OS •••</span></div>
+        <div class="pmetric">HydroState</div>
+        <div class="pstate">Calibrating</div>
+        <div class="pnote">Confidence building · Signals current · Unknowns visible</div>
+        <div class="pact">
+          <div class="pk">Now · Water-First</div>
+          <div class="pv">Take 1 unit now. One clear action. No dashboard clutter.</div>
+        </div>
+        <div class="pfoot">Completed behavior — verification required · Illustrative interface, not a live reading</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 · THE PROOF LEDGER -->
+<section class="sr-sec" id="evidence" aria-label="The proof ledger">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">07<span class="s">—</span>The Proof Ledger<span class="s">·</span>Evidence With Boundaries</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Proof has a type. We label it.</h2>
+    <div class="sr-cats reveal">
+      <span>Established science</span><span>AFORCE standard</span><span>Platform governance</span>
+    </div>
+    <div class="sr-ledger">
+      <div class="sr-item reveal"><div class="sid">S.01</div><div class="sbody"><div class="sh">Hydration physiology</div><div class="sp">Water is essential to normal physiological regulation and fluid balance. This literature provides educational context; it is not an AFORCE-specific claim.</div><div class="sl"><a class="sr-link" href="https://www.nature.com/articles/1602736" target="_blank" rel="noopener">Jéquier &amp; Constant · European Journal of Clinical Nutrition ↗</a></div></div></div>
+      <div class="sr-item reveal"><div class="sid">S.02</div><div class="sbody"><div class="sh">Water, hydration and health</div><div class="sp">A broad review of water intake, hydration physiology and health context. It informs the category — not a product-specific outcome claim.</div><div class="sl"><a class="sr-link" href="https://academic.oup.com/nutritionreviews/article/68/8/439/1841926" target="_blank" rel="noopener">Popkin, D’Anci &amp; Rosenberg · Nutrition Reviews ↗</a></div></div></div>
+      <div class="sr-item reveal"><div class="sid">S.03</div><div class="sbody"><div class="sh">Electrolyte physiology</div><div class="sp">Government scientific resources describe established roles for sodium, potassium, magnesium and calcium in fluid, nerve and muscle function.</div><div class="sl"><a class="sr-link" href="https://ods.od.nih.gov/factsheets/list-all/" target="_blank" rel="noopener">FDA + NIH Office of Dietary Supplements ↗</a></div></div></div>
+      <div class="sr-item reveal"><div class="sid">S.04</div><div class="sbody"><div class="sh">Controlled thermal processing</div><div class="sp">U.S. food regulations define retort and the controls used for thermally processed low-acid foods in sealed containers.</div><div class="sl"><a class="sr-link" href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-113" target="_blank" rel="noopener">Electronic Code of Federal Regulations · 21 CFR Part 113 ↗</a></div></div></div>
+    </div>
+    <h3 class="h-3 reveal sr-mt-l" style="text-transform:none;">Science informs our decisions. Verification defines our standards.</h3>
+    <ul class="sr-refs reveal">
+      <li><a href="https://www.nature.com/articles/1602736" target="_blank" rel="noopener"><span>Water as an essential nutrient: the physiological basis of hydration</span><span class="arw">↗</span></a></li>
+      <li><a href="https://academic.oup.com/nutritionreviews/article/68/8/439/1841926" target="_blank" rel="noopener"><span>Water, hydration, and health</span><span class="arw">↗</span></a></li>
+      <li><a href="https://ods.od.nih.gov/factsheets/Sodium-HealthProfessional/" target="_blank" rel="noopener"><span>FDA · Sodium and normal fluid, nerve, and muscle function</span><span class="arw">↗</span></a></li>
+      <li><a href="https://ods.od.nih.gov/factsheets/Potassium-HealthProfessional/" target="_blank" rel="noopener"><span>NIH ODS · Potassium physiology</span><span class="arw">↗</span></a></li>
+      <li><a href="https://ods.od.nih.gov/factsheets/Magnesium-HealthProfessional/" target="_blank" rel="noopener"><span>NIH ODS · Magnesium physiology</span><span class="arw">↗</span></a></li>
+      <li><a href="https://ods.od.nih.gov/factsheets/Calcium-HealthProfessional/" target="_blank" rel="noopener"><span>NIH ODS · Calcium physiology</span><span class="arw">↗</span></a></li>
+      <li><a href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-113" target="_blank" rel="noopener"><span>21 CFR Part 113 · Thermal processing framework</span><span class="arw">↗</span></a></li>
+    </ul>
+    <p class="sr-disc reveal">These references provide educational context for hydration physiology and processing standards. They are not AFORCE-specific clinical claims.</p>
+  </div>
+</section>
+
+<!-- 08 · OUR STANDARD -->
+<section class="sr-sec" id="standard" aria-label="Our standard">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">08<span class="s">—</span>Our Standard<span class="s">·</span>Credibility Is Also What You Refuse</div>
+    <h2 class="h-2 reveal sr-mt-m">The Refusals.</h2>
+    <ol class="sr-refuse">
+      <li class="reveal"><span class="rn">01</span><span>We do not claim alkaline hydration cures anything.</span></li>
+      <li class="reveal"><span class="rn">02</span><span>We do not claim to detoxify the body or change blood pH.</span></li>
+      <li class="reveal"><span class="rn">03</span><span>We do not turn general research into AFORCE-specific clinical claims.</span></li>
+      <li class="reveal"><span class="rn">04</span><span>We do not let a scan, recommendation or purchase increase HydroState.</span></li>
+      <li class="reveal"><span class="rn">05</span><span>We do not publish percentages we cannot substantiate.</span></li>
+      <li class="reveal"><span class="rn">06</span><span>We do not promise outcomes we have not verified.</span></li>
+    </ol>
+    <div class="sr-verify reveal">
+      <span>Can we explain it?</span><span>Can we verify it?</span><span>Can we repeat it?</span>
+    </div>
+    <h3 class="h-3 reveal sr-mt-l" style="text-transform:none;">The AFORCE standard</h3>
+    <p class="sr-lead big reveal sr-mt-s">Nothing belongs in AFORCE without a reason.</p>
+    <p class="sr-lead reveal sr-mt-m">The body first. The formula with intention. The ritual made repeatable. The intelligence that explains rather than flatters. One standard, applied end to end.</p>
+    <div class="sr-cta reveal">
+      <a class="sr-btn primary" href="/shop">Enter the standard ↗</a>
+      <a class="sr-btn ghost" href="/aforce-os">Explore the OS ↗</a>
+    </div>
+    <div class="sr-end reveal">Before is where performance is built.</div>
+  </div>
+</section>
+
 <footer>
   <p class="foot-legal">AFORCE OS ritual logging reflects completed rituals, not live biometric readings. Provisional patent filed. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
   <div class="foot-meta">
