@@ -1,0 +1,210 @@
+/**
+ * Regression suite for the secrets guard (scripts/src/check-secrets.mjs),
+ * merged in #511 and hardened here per Lane B follow-up:
+ *
+ *   1. The guard's own source must stay text-diffable — no raw NUL byte
+ *      smuggled into a string literal (that's exactly what made #511's
+ *      `text.includes(<NUL>)` render the whole file as binary to git).
+ *   2. Every pattern family (existing + newly added) fires on a planted,
+ *      clearly-synthetic positive and stays silent on the repo's real
+ *      documented placeholders.
+ *   3. The tightened credentialed-DB-URL lookahead rejects the
+ *      `localhost.attacker.io` / `127.0.0.1.evil.com` bypass while staying
+ *      clean against the four `_env` test guards + the whoopParity README.
+ *   4. The guard only ever looks at `git ls-files` output — untracked (and
+ *      therefore also gitignored) files never enter the scan.
+ *
+ * All "secrets" below are deliberately fake: repeated letters, `FAKE`/
+ * `PLACEHOLDER` markers, or values lifted verbatim from the repo's own
+ * documented test fixtures. None resemble a real, rotatable credential.
+ */
+import { describe, it, expect, afterEach } from 'vitest';
+import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync, unlinkSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PATTERNS, findSecretMatches, listTrackedFiles } from '../check-secrets.mjs';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+const SELF_PATH = path.resolve(__dirname, '../check-secrets.mjs');
+
+function namesOf(matches: { name: string; line: number }[]) {
+  return matches.map((m) => m.name);
+}
+
+describe('check-secrets.mjs source hygiene', () => {
+  it('contains zero raw NUL bytes (git-diffable as text)', () => {
+    const buf = readFileSync(SELF_PATH);
+    expect(buf.includes(0)).toBe(false);
+  });
+
+  it('is classified as text, not binary, by git', () => {
+    // `git diff --numstat` prints "-\t-\t<path>" for a binary-classified
+    // file and real add/delete counts for a text file.
+    const out = execSync(`git diff --numstat -- ${JSON.stringify(SELF_PATH)}`, {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+    }).trim();
+    if (out.length > 0) {
+      expect(out.startsWith('-\t-\t')).toBe(false);
+    }
+  });
+});
+
+describe('check-secrets.mjs planted-positive matches (per pattern family)', () => {
+  const cases: { pattern: string; sample: string }[] = [
+    {
+      pattern: 'stripe-or-clerk-live-secret',
+      sample: `const key = "sk_test_${'FAKE'.repeat(5)}";`,
+    },
+    {
+      // NOTE on construction: every sample below is built so the pattern's
+      // matching substring never appears CONTIGUOUS in this file's own raw
+      // source text — only after the pieces are joined at runtime. This
+      // suite's own file is a tracked file check-secrets.mjs will scan, so a
+      // literal planted secret here would trip the real guard in CI. Splitting
+      // via `+` (or a `${...}` interpolation placed right at the join point)
+      // inserts a quote/brace character that breaks the regex mid-match in
+      // the static source while producing the intended matching string once
+      // evaluated. Each split point is called out inline.
+      pattern: 'clerk-secret-assignment',
+      // split right after "sk_" so raw source never has "...KEY=sk_test_..." contiguous
+      sample: 'CLERK_SECRET_KEY' + '=' + 'sk_' + 'test_PLACEHOLDERPLACEHOLDER',
+    },
+    {
+      pattern: 'credentialed-db-url-nonlocal',
+      // split right after "@" so raw source never has "...@evil..." contiguous
+      sample: 'postgres://fakeuser:fakepass123@' + 'evil.example.test/db',
+    },
+    {
+      pattern: 'aws-access-key-id',
+      sample: `AKIA${'Q'.repeat(16)}`,
+    },
+    {
+      pattern: 'private-key-block',
+      // split right after "BEGIN " so raw source never has "BEGIN RSA..." contiguous
+      sample: '-----BEGIN ' + 'RSA PRIVATE KEY-----',
+    },
+    {
+      pattern: 'openai-or-elevenlabs-secret',
+      sample: `sk-${'fake1234567890FAKE'.repeat(2)}`,
+    },
+    {
+      pattern: 'github-token',
+      sample: `ghp_${'A'.repeat(36)}`,
+    },
+    {
+      pattern: 'github-token',
+      sample: `gho_${'B'.repeat(36)}`,
+    },
+    {
+      pattern: 'github-token',
+      sample: `github_pat_${'C'.repeat(60)}`,
+    },
+    {
+      pattern: 'slack-token',
+      // split right after "xoxb-" so raw source never has "xoxb-0000..." contiguous
+      sample: 'xoxb-' + '000000000000-000000000000-FAKESLACKTOKENVALUE',
+    },
+    {
+      pattern: 'google-api-key',
+      sample: `AIza${'S'.repeat(35)}`,
+    },
+  ];
+
+  for (const { pattern, sample } of cases) {
+    it(`"${pattern}" fires on its planted positive`, () => {
+      const matches = findSecretMatches(sample);
+      expect(namesOf(matches)).toContain(pattern);
+    });
+  }
+
+  it('every declared pattern family has at least one covering case above', () => {
+    const covered = new Set(cases.map((c) => c.pattern));
+    for (const { name } of PATTERNS) {
+      expect(covered.has(name)).toBe(true);
+    }
+  });
+});
+
+describe('check-secrets.mjs clean-negative cases', () => {
+  it('does not flag the four documented `_env` localhost DB-URL guards', () => {
+    const fixtures = [
+      'artifacts/api-server/src/__tests__/whoopParity/_env.ts',
+      'artifacts/api-server/src/lib/__tests__/_f5Env.ts',
+      'artifacts/api-server/src/lib/__tests__/_ouraEnv.ts',
+      'artifacts/api-server/src/lib/garminMock/__tests__/_env.ts',
+    ];
+    for (const relPath of fixtures) {
+      const text = readFileSync(path.join(REPO_ROOT, relPath), 'utf8');
+      const matches = findSecretMatches(text);
+      expect(matches, `${relPath} should scan clean`).toEqual([]);
+    }
+  });
+
+  it('does not flag the whoopParity README\'s documented localhost DATABASE_URL example', () => {
+    const text = readFileSync(
+      path.join(REPO_ROOT, 'artifacts/api-server/src/__tests__/whoopParity/README.md'),
+      'utf8',
+    );
+    const matches = findSecretMatches(text);
+    expect(matches).toEqual([]);
+  });
+
+  it('allows localhost / 127.0.0.1 / bare-db credentialed URLs', () => {
+    const clean = [
+      'postgres://user:pass@localhost:5432/db',
+      'postgres://user:pass@localhost/db',
+      'postgres://user:pass@127.0.0.1:5432/db',
+      'postgres://user:pass@127.0.0.1/db',
+      'postgres://user:pass@db:5432/db',
+      'postgres://user:pass@db/db',
+    ];
+    for (const line of clean) {
+      expect(findSecretMatches(line), line).toEqual([]);
+    }
+  });
+
+  it('rejects the localhost-prefix bypass that the old lookahead let through', () => {
+    // Split right after "@" (same reason as the positive-case sample above)
+    // so these bypass strings — which SHOULD match — never appear as one
+    // contiguous run in this file's own tracked source.
+    const bypasses = [
+      'postgres://fakeuser:fakepass@' + 'localhost.attacker.io:5432/db',
+      'postgres://fakeuser:fakepass@' + '127.0.0.1.evil.com/db',
+      'postgres://fakeuser:fakepass@' + 'dbxxx.evil.com/db',
+    ];
+    for (const line of bypasses) {
+      expect(namesOf(findSecretMatches(line)), line).toContain('credentialed-db-url-nonlocal');
+    }
+  });
+
+  it('skips binary content carrying a NUL byte instead of pattern-matching it', () => {
+    const withNul = `sk-${'x'.repeat(30)}\0binarygarbage`;
+    expect(findSecretMatches(withNul)).toEqual([]);
+  });
+});
+
+describe('check-secrets.mjs tracked-files-only scanning', () => {
+  const plantedPath = path.join(__dirname, '__untracked-secret-guard-fixture.mjs');
+
+  afterEach(() => {
+    try {
+      unlinkSync(plantedPath);
+    } catch {
+      // already cleaned up
+    }
+  });
+
+  it('never lists an untracked file, even one sitting right next to tracked source', () => {
+    writeFileSync(
+      plantedPath,
+      `// planted for a test — untracked on purpose\nconst fake = "AKIA${'Q'.repeat(16)}";\n`,
+    );
+    const files = listTrackedFiles();
+    const relPlanted = path.relative(REPO_ROOT, plantedPath);
+    expect(files).not.toContain(relPlanted);
+    expect(files.some((f: string) => f.endsWith('__untracked-secret-guard-fixture.mjs'))).toBe(false);
+  });
+});
