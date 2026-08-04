@@ -27,7 +27,12 @@ export default defineConfig({
       'artifacts/aforce-os/components/ui/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/home/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/profile/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/cart/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/nightOut/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cruise/__tests__/**/*.render.test.tsx',
@@ -63,6 +68,12 @@ export default defineConfig({
       ['artifacts/aforce-os/components/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/ui/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/home/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // RC-1 Wave-2B — Readiness Insights loading skeleton + Profile
+      // provider-section skeleton render harnesses (pure subcomponents only;
+      // the connected screens themselves stay source-guard-tested per the
+      // convention documented in homeScreenV2Wiring.test.ts).
+      ['artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      ['artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx', 'happy-dom'],
     ],
     reporters: 'default',
   },
