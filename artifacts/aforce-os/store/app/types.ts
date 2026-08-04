@@ -18,6 +18,14 @@ import type { AppState } from '../appStoreTypes';
 
 export interface AppContextValue {
   state: AppState;
+  /**
+   * RC-1 Wave-2B — true once the mount-time `/v1/home` fetch has settled
+   * (success or failure). False only during the brief pre-hydration window
+   * where `state` still reflects the local, synchronous initial guess.
+   * Monotonic — never goes back to false. See `store/useAppStore.tsx`'s
+   * `AppProvider` for where it flips.
+   */
+  isHydrated: boolean;
   logIntake: (
     fluidType: FluidType,
     opts?: {
