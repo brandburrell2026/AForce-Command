@@ -87,8 +87,9 @@ describe('buildScanCoachScript', () => {
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('AForce Stick');
     expect(script.headline).toContain('Peak state');
-    expect(script.transcript).toContain('Fit score 92');
-    expect(script.transcript).toContain('94% efficiency');
+    expect(script.transcript).toContain('strong match — stay with it');
+    expect(script.transcript).not.toContain('Fit score');
+    expect(script.transcript).not.toMatch(/\d+%\s+efficiency/);
     expect(script.transcript).toContain('16 ounces water');
   });
 
@@ -157,7 +158,8 @@ describe('buildScanCoachScript', () => {
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('LMNT fits');
-    expect(script.transcript).toContain('78 fit, 78% efficiency');
+    expect(script.transcript).toContain('A solid choice right now');
+    expect(script.transcript).not.toMatch(/\d+ fit, \d+%/);
     expect(script.transcript).toContain('16 ounces water');
   });
 
@@ -177,7 +179,8 @@ describe('buildScanCoachScript', () => {
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('not optimal');
-    expect(script.transcript).toContain('Fit score 22');
+    expect(script.transcript).toContain('Water alone is the safer move here');
+    expect(script.transcript).not.toContain('Fit score');
     expect(script.transcript).toContain('Take 16 ounces water now');
   });
 

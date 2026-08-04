@@ -58,3 +58,58 @@ describe('Section 64 — every coachIntelligence locale string is compliant', ()
     }
   });
 });
+
+// RC-1 Wave 4: the worst-10 coach-voice rewrite (item 1) and the new
+// context-variant explanations (item 2) both live under `coach.*`, which
+// this suite did not previously sweep — added so the guard applies to
+// every string that namespace ships, not just `coachIntelligence.*`.
+describe('Section 64 — every coach.* locale string is compliant', () => {
+  const ns = (en as unknown as Record<string, Record<string, unknown>>).coach;
+
+  it('the namespace exists', () => {
+    expect(ns).toBeTruthy();
+  });
+
+  it('no coach.* string uses forbidden words or population comparison', () => {
+    for (const [k, v] of Object.entries(ns)) {
+      if (typeof v !== 'string') continue; // skip nested namespaces (coach.v2.*)
+      expect(isCompliantCoachLine(v), `coach.${k} = ${JSON.stringify(v)}`).toBe(true);
+    }
+  });
+
+  it('the RC-1 Wave-4 rewritten worst-10 lines are present and compliant', () => {
+    const rewritten = [
+      'balanced_explanation',
+      'peak_explanation',
+      'morning_explanation',
+      'consequence_drop',
+      'context_late_night',
+      'pattern_streak',
+      'social_take_rtd_explanation',
+    ];
+    for (const k of rewritten) {
+      expect(ns[k], k).toBeTruthy();
+      expect(isCompliantCoachLine(ns[k] as string), `coach.${k}`).toBe(true);
+    }
+  });
+
+  it('the new context-variant explanations (heat/sleep/streak) are compliant', () => {
+    const variants = [
+      'peak_explanation_heat', 'peak_explanation_sleep', 'peak_explanation_streak',
+      'balanced_explanation_heat', 'balanced_explanation_sleep', 'balanced_explanation_streak',
+      'recovering_explanation_heat', 'recovering_explanation_sleep',
+      'depleted_explanation_heat', 'depleted_explanation_sleep',
+    ];
+    for (const k of variants) {
+      expect(ns[k], k).toBeTruthy();
+      expect(isCompliantCoachLine(ns[k] as string), `coach.${k}`).toBe(true);
+    }
+  });
+
+  it('the two compliance-flagged lines are untouched (founder/counsel owned)', () => {
+    expect(ns.depleted_explanation).toBe('Deep recovery window. Electrolytes will restore your balance.');
+    expect(ns.social_do_not_drive_explanation).toBe(
+      'Reaction time and judgment are significantly reduced. A ride is the safer next move.',
+    );
+  });
+});

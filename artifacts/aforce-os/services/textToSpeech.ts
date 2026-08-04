@@ -18,10 +18,41 @@ import { resolvePersona } from './voicePersonaService';
 import { elevenLabsIdFor } from './voiceCatalog';
 import type { PerformanceLevel } from '../types';
 import type { SupportedLanguage } from './i18nService';
+import type { CoachMode } from './coachMode';
 
 // Default ON now that voice output is shipping. The store flips this
 // to false when the user toggles "Voice coach" off in Profile.
 let enabled = true;
+
+// Coach Mode gate (audit item 7 fix). `services/coachMode.ts` defines
+// silent/ambient/spoken and its own `shouldSpeak()` predicate, but until
+// this fix NOTHING actually enforced it here — most speak() call sites
+// (VoiceOverlay, VoiceCheckInOverlay, useHeatGuard, PerformanceStatement,
+// the system-command voice effect in useAppStore.tsx) called speak()
+// directly, so DEFAULT_COACH_MODE = 'ambient' ("no speech") did not
+// actually stay silent. Only the two Hydration Scan screens happened to
+// gate correctly, because they checked shouldSpeak() at their own call
+// site.
+//
+// Rather than sprinkle shouldSpeak() checks at N call sites (easy to miss
+// on the next new caller), this is the ONE choke point: every speak()
+// passes through here, so gating it here is authoritative for the whole
+// app. `components/CoachModeVoiceSync.tsx` mirrors the effective mode
+// (the user's stored CoachMode choice, or 'spoken' while `spec_coachV2`
+// is off) into this module-level singleton via `setEffectiveCoachMode()`
+// — same bridge pattern as `setVoicePlaybackEnabled()` below. Defaults to
+// 'spoken' so behavior is unchanged for any caller/test that runs before
+// the app has mirrored a real value in.
+let effectiveCoachMode: CoachMode = 'spoken';
+
+/** Mirror the effective CoachMode in. See `components/CoachModeVoiceSync.tsx`. */
+export function setEffectiveCoachMode(next: CoachMode): void {
+  effectiveCoachMode = next;
+}
+
+export function getEffectiveCoachMode(): CoachMode {
+  return effectiveCoachMode;
+}
 
 // Selected coach id (e.g. 'rock'), mirrored from the user's Profile
 // picker. The catalog resolves it to the right ElevenLabs voiceId at
@@ -70,12 +101,14 @@ export interface SpeakOpts {
 }
 
 /**
- * Speak `text` if the user has voice playback enabled. The persona
- * resolver picks rate + pitch from the current band so DEPLETED lines
- * land with controlled urgency without sounding excited.
+ * Speak `text` if the user has voice playback enabled AND Coach Mode
+ * allows it (silent/ambient never speak — only 'spoken' does). The
+ * persona resolver picks rate + pitch from the current band so DEPLETED
+ * lines land with controlled urgency without sounding excited.
  */
 export function speak(text: string, opts: SpeakOpts = {}): void {
   if (!enabled) return;
+  if (effectiveCoachMode !== 'spoken') return;
   if (!text || !text.trim()) return;
   const profile = opts.level ? resolvePersona(opts.level).profile : null;
 

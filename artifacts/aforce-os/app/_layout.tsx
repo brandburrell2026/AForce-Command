@@ -33,6 +33,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
 import { ActivationDeepLinkObserver } from '@/components/ActivationDeepLinkObserver';
+import { CoachModeVoiceSync } from '@/components/CoachModeVoiceSync';
 import { useCommandLedgerSync } from '@/hooks/useCommandLedgerSync';
 import { ClerkAuthBridge } from '@/components/ClerkAuthBridge';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -382,6 +383,9 @@ function AppShell() {
                   {/* Read-only bridge: mirrors live runtime sources into the
                       Command-Event Ledger (sandbox). No routing, no score. */}
                   <CommandLedgerSyncMount />
+                  {/* Read-only bridge: mirrors the effective Coach Mode into
+                      textToSpeech's single speak() gate. No routing, no score. */}
+                  <CoachModeVoiceSync />
                   <RootLayoutNav />
                   <SplashGate />
                   <InvestorDemoMount />

@@ -8,9 +8,16 @@
  *
  * This module is the single source of truth for *whether* the coach
  * talks. It does NOT control *how* the coach sounds (rate / pitch /
- * persona) — that stays in ttsConfigService. Today's voice paths are
- * not yet gated on this value; later rules will read `shouldSpeak`
- * and `shouldHaptic` to wire the modes through.
+ * persona) — that stays in ttsConfigService.
+ *
+ * Gating (RC-1 Wave 4, audit item 7): `services/textToSpeech.speak()` is
+ * the ONE place that actually enforces `shouldSpeak()` — every speak()
+ * call site is gated there rather than re-checking at each caller.
+ * `components/CoachModeVoiceSync.tsx` mirrors the effective mode (below)
+ * into `textToSpeech`'s module-level singleton via `setEffectiveCoachMode()`,
+ * mounted once in `app/_layout.tsx`. Do not add a second, redundant
+ * `shouldSpeak()` check at a new call site — wire new voice paths through
+ * `textToSpeech.speak()` and the gate applies automatically.
  *
  * Persisted to AsyncStorage so the choice survives reloads. A tiny
  * module-level store + `useSyncExternalStore` exposes the value to
@@ -118,6 +125,18 @@ export function useCoachModeSetting(): CoachMode {
 }
 
 /**
+ * Pure formula for the effective mode: 'spoken' (today's behavior) until
+ * `spec_coachV2` is on, at which point the user's stored choice takes
+ * effect. Shared by `useCoachMode()` below and
+ * `components/CoachModeVoiceSync.tsx` (which mirrors this same value into
+ * `services/textToSpeech`'s speak() gate) so the two can never drift out
+ * of sync, and so the rule is unit-testable without rendering a hook.
+ */
+export function resolveEffectiveCoachMode(specCoachV2: boolean, stored: CoachMode): CoachMode {
+  return specCoachV2 ? stored : 'spoken';
+}
+
+/**
  * Effective coach mode for downstream voice / haptic gates. Returns
  * 'spoken' (today's behavior) until `spec_coachV2` is flipped on, at
  * which point the user's stored choice takes effect.
@@ -125,5 +144,5 @@ export function useCoachModeSetting(): CoachMode {
 export function useCoachMode(): CoachMode {
   const stored = useCoachModeSetting();
   const flags = useFeatureFlags();
-  return flags.spec_coachV2 ? stored : 'spoken';
+  return resolveEffectiveCoachMode(flags.spec_coachV2, stored);
 }
