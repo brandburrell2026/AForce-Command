@@ -226,7 +226,11 @@ const styles = StyleSheet.create({
   buttonDisabled: { opacity: 0.4 },
   buttonPressed: { opacity: 0.85 },
   buttonText: {
-    fontFamily: 'Inter_700Bold', fontSize: 15, color: '#0A0A0F', letterSpacing: 0.5,
+    // #0A0A0F on af.red measures ~3.37:1 — under AA. af.onRed (#FFFFFF,
+    // ~5.86:1) is AFButton's own AA-verified on-red text color (AFButton.tsx);
+    // matched here rather than restructuring this screen's custom Pressable
+    // onto AFPrimaryButton, for the smaller diff.
+    fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onRed, letterSpacing: 0.5,
   },
   linkRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
   linkText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.textTertiary },
