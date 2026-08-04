@@ -86,9 +86,11 @@ approval required (unlike Garmin).
 
 ### Authorization
 - [ ] **First connection** — OAuth consent screen appears with exactly the
-      declared scopes (`daily`, `heartrate`, `workout`, `personal` per
-      `ouraPkce.ts`'s documented default scope set), user grants, app
-      transitions to `connected`.
+      declared scopes (`daily`, `heartrate`, `workout` — `OURA_DEFAULT_SCOPES`
+      in `ouraPkce.ts:47`). The `personal` scope (gender/age/height/weight
+      profile) must NOT appear: it is deliberately dropped on privacy grounds
+      (`ouraPkce.ts:42`) — its presence on the consent screen is a FAIL, not
+      its absence. User grants, app transitions to `connected`.
 - [ ] **Cancel** — user backs out of the Oura consent screen or closes the
       in-app browser mid-flow; app does not claim `connected`.
 - [ ] **Partial approval** — N/A if Oura's consent screen is all-or-nothing

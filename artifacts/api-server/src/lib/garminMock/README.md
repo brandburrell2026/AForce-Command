@@ -40,7 +40,8 @@ documented (unverified) wire shapes:
    for a live Garmin fetcher in that seam — internally it calls the REAL,
    unmodified `fetchGarminSnapshot` against fixture data, never a
    hand-rolled reimplementation of the mapping.
-3. **`__tests__/garminMock.test.ts`** — three contract tests:
+3. **`__tests__/garminMock.test.ts`** — 9 contract tests in four groups
+   (the fourth, **(d)**, proves the suite runs without `DATABASE_URL`):
    - **(a)** fixture payloads run through the real `fetchGarminSnapshot`
      produce the KNOWN drifted `GarminSnapshot` shape (`hrvMs`, `stress` —
      field names that don't match the persisted biometrics schema's
