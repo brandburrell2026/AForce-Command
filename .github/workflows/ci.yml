@@ -279,3 +279,9 @@ jobs:
       # Pure node:fs/node:path — no dependency install needed.
       - name: Check governance drift
         run: node scripts/src/check-governance-drift.mjs
+
+      # Phase-4 credential containment (2026-08-04): fail if a live-looking
+      # secret pattern lands in any TRACKED file. Prints file:line + pattern
+      # name only — never matched content.
+      - name: Secrets guard
+        run: node scripts/src/check-secrets.mjs
