@@ -116,6 +116,24 @@ export interface AccountDeletionDeps extends DestructiveRouteDeps {
    *  up a full `HealthRecordsRepo`. */
   healthRecordsRepo: Pick<HealthRecordsRepo, "purgeUser">;
   log?: Pick<Logger, "info" | "warn" | "error">;
+  /**
+   * Optional: run the four cascade steps below inside a single DB
+   * transaction so a step throwing mid-cascade rolls back everything
+   * already done, instead of leaving a partial deletion. All four steps
+   * are LOCAL data only (token rows, auth-state rows, the biometrics
+   * column, the health-records table) — this route makes no external/
+   * network calls, so nothing here needs to sit outside the transaction.
+   *
+   * Left optional and defaulted to the field-by-field calls below (see
+   * the handler) so DB-free unit tests that pass plain fakes for
+   * `whoopTokenStoreFor` etc. keep working unchanged — those fakes have
+   * no real transaction semantics to prove, and proving atomicity against
+   * a fake would be theater. The real guarantee is proven against a real
+   * Postgres by the Testcontainers fault-injection test in
+   * `lib/db/src/__integration__/`. `buildDefaultAccountDeletionDeps`
+   * below always supplies this for the production mount.
+   */
+  runCascadeInTransaction?: (userId: string) => Promise<{ purged: number }>;
 }
 
 function errName(err: unknown): string {
@@ -145,35 +163,47 @@ export function buildAccountDeletionRouter(deps: AccountDeletionDeps): IRouter {
         return;
       }
       try {
-        // Step 1 — provider token rows, all four providers regardless
-        // of which are actually connected (clearing an empty store is
-        // a no-op).
-        await deps.whoopTokenStoreFor(userId).clear();
-        await deps.garminTokenStoreFor(userId).clear();
-        await deps.ouraTokenStoreFor(userId).clear();
-        await deps.stravaTokenStoreFor(userId).clear();
+        let purgedRecords: number;
+        if (deps.runCascadeInTransaction) {
+          // All-or-nothing: a step throwing here rolls back every step
+          // already run in this call, including ones before it. The
+          // route still 500s below on failure; a subsequent retry runs
+          // the same idempotent cascade against a clean, fully-intact
+          // (or fully-purged) state.
+          const result = await deps.runCascadeInTransaction(userId);
+          purgedRecords = result.purged;
+        } else {
+          // Legacy/test path — no transactional guarantee, kept only so
+          // DB-free unit tests with plain fakes are unaffected.
+          // Step 1 — provider token rows, all four providers regardless
+          // of which are actually connected (clearing an empty store is
+          // a no-op).
+          await deps.whoopTokenStoreFor(userId).clear();
+          await deps.garminTokenStoreFor(userId).clear();
+          await deps.ouraTokenStoreFor(userId).clear();
+          await deps.stravaTokenStoreFor(userId).clear();
 
-        // Step 2 — in-flight OAuth auth-state rows (abandoned-flow
-        // cleanup; normally already consumed by the time a user reaches
-        // "delete my data").
-        await deps.authStateDb.deleteWhoopAuthStates(userId);
-        await deps.authStateDb.deleteGarminAuthStates(userId);
-        await deps.authStateDb.deleteOuraAuthStates(userId);
-        await deps.authStateDb.deleteStravaAuthStates(userId);
+          // Step 2 — in-flight OAuth auth-state rows (abandoned-flow
+          // cleanup; normally already consumed by the time a user reaches
+          // "delete my data").
+          await deps.authStateDb.deleteWhoopAuthStates(userId);
+          await deps.authStateDb.deleteGarminAuthStates(userId);
+          await deps.authStateDb.deleteOuraAuthStates(userId);
+          await deps.authStateDb.deleteStravaAuthStates(userId);
 
-        // Step 3 — biometrics snapshot column, every provider at once.
-        await deps.authStateDb.clearBiometrics(userId);
+          // Step 3 — biometrics snapshot column, every provider at once.
+          await deps.authStateDb.clearBiometrics(userId);
 
-        // Step 4 — canonical health-record plane, hard delete.
-        const purge = await deps.healthRecordsRepo.purgeUser(userId);
+          // Step 4 — canonical health-record plane, hard delete.
+          const purge = await deps.healthRecordsRepo.purgeUser(userId);
+          purgedRecords = purge.purged;
+        }
 
         req.log?.info(
-          { userId, purgedRecords: purge.purged },
+          { userId, purgedRecords },
           "accountDeletion:delete-health-data complete",
         );
-        res
-          .status(200)
-          .json({ ok: true, status: "purged", purgedRecords: purge.purged });
+        res.status(200).json({ ok: true, status: "purged", purgedRecords });
       } catch (err) {
         req.log?.error(
           { userId, err: errName(err) },
@@ -235,33 +265,82 @@ function createDrizzleAccountDeletionAuthStateDb(
  * own `tokenStoreFor` wiring exactly (same env var names, same
  * dual-write/prefer-enc behavior).
  */
+/** Builds the four per-user token-store factories against whichever db
+ *  handle is passed — the real singleton for the plain fields below, or
+ *  a `tx` inside `runCascadeInTransaction` so every cascade statement
+ *  enrolls in the same transaction. Kept as one function so the two
+ *  call sites can never drift (same encryption-key env vars, same
+ *  options) — see the WHOOP-freeze note in the module doc for why that
+ *  matters. */
+function buildTokenStoresFor(
+  dbx: NodePgDatabase<Record<string, unknown>>,
+  log?: Pick<Logger, "info" | "warn" | "error">,
+): Pick<
+  AccountDeletionDeps,
+  | "whoopTokenStoreFor"
+  | "garminTokenStoreFor"
+  | "ouraTokenStoreFor"
+  | "stravaTokenStoreFor"
+> {
+  return {
+    whoopTokenStoreFor: (userId) =>
+      createDrizzleWhoopTokenStoreForUser(dbx, userId, {
+        encryptionKey: process.env["WHOOP_TOKEN_ENCRYPTION_KEY"] ?? null,
+        log,
+      }),
+    garminTokenStoreFor: (userId) =>
+      createDrizzleGarminTokenStoreForUser(dbx, userId, {
+        encryptionKey: process.env["GARMIN_TOKEN_ENCRYPTION_KEY"] ?? null,
+        log,
+      }),
+    ouraTokenStoreFor: (userId) =>
+      createDrizzleOuraTokenStoreForUser(dbx, userId, {
+        encryptionKey: process.env["OURA_TOKEN_ENCRYPTION_KEY"] ?? null,
+        log,
+      }),
+    stravaTokenStoreFor: (userId) =>
+      createDrizzleStravaTokenStoreForUser(dbx, userId, {
+        encryptionKey: process.env["STRAVA_TOKEN_ENCRYPTION_KEY"] ?? null,
+        log,
+      }),
+  };
+}
+
 export function buildDefaultAccountDeletionDeps(
   db: NodePgDatabase<Record<string, unknown>>,
   log?: Pick<Logger, "info" | "warn" | "error">,
 ): AccountDeletionDeps {
   return {
-    whoopTokenStoreFor: (userId) =>
-      createDrizzleWhoopTokenStoreForUser(db, userId, {
-        encryptionKey: process.env["WHOOP_TOKEN_ENCRYPTION_KEY"] ?? null,
-        log,
-      }),
-    garminTokenStoreFor: (userId) =>
-      createDrizzleGarminTokenStoreForUser(db, userId, {
-        encryptionKey: process.env["GARMIN_TOKEN_ENCRYPTION_KEY"] ?? null,
-        log,
-      }),
-    ouraTokenStoreFor: (userId) =>
-      createDrizzleOuraTokenStoreForUser(db, userId, {
-        encryptionKey: process.env["OURA_TOKEN_ENCRYPTION_KEY"] ?? null,
-        log,
-      }),
-    stravaTokenStoreFor: (userId) =>
-      createDrizzleStravaTokenStoreForUser(db, userId, {
-        encryptionKey: process.env["STRAVA_TOKEN_ENCRYPTION_KEY"] ?? null,
-        log,
-      }),
+    ...buildTokenStoresFor(db, log),
     authStateDb: createDrizzleAccountDeletionAuthStateDb(db),
     healthRecordsRepo: createHealthRecordsRepo(db),
     log,
+    runCascadeInTransaction: (userId) =>
+      db.transaction(async (tx) => {
+        const stores = buildTokenStoresFor(tx, log);
+        // Step 1 — provider token rows, all four providers regardless
+        // of which are actually connected (clearing an empty store is
+        // a no-op).
+        await stores.whoopTokenStoreFor(userId).clear();
+        await stores.garminTokenStoreFor(userId).clear();
+        await stores.ouraTokenStoreFor(userId).clear();
+        await stores.stravaTokenStoreFor(userId).clear();
+
+        // Step 2 — in-flight OAuth auth-state rows (abandoned-flow
+        // cleanup; normally already consumed by the time a user reaches
+        // "delete my data").
+        const authStateDb = createDrizzleAccountDeletionAuthStateDb(tx);
+        await authStateDb.deleteWhoopAuthStates(userId);
+        await authStateDb.deleteGarminAuthStates(userId);
+        await authStateDb.deleteOuraAuthStates(userId);
+        await authStateDb.deleteStravaAuthStates(userId);
+
+        // Step 3 — biometrics snapshot column, every provider at once.
+        await authStateDb.clearBiometrics(userId);
+
+        // Step 4 — canonical health-record plane, hard delete.
+        const purge = await createHealthRecordsRepo(tx).purgeUser(userId);
+        return { purged: purge.purged };
+      }),
   };
 }
