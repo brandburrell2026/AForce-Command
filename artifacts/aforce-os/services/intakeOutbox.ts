@@ -288,6 +288,36 @@ export function selectHasFailedItem(state: IntakeOutboxState): boolean {
   return state.items.some((item) => item.status === 'failed');
 }
 
+// ─── Flush coordination (module-level, RC-1 W3P2 carried follow-up c) ──
+// The flush LOOP itself (drain due items via the network layer) lives in
+// `store/useAppStore.tsx`'s `flushOutbox` — this module intentionally has
+// no network dependency (see the file header: no top-level I/O beyond
+// AsyncStorage). Until now, "only one flush runs at a time" was enforced
+// solely by a `useRef` INSIDE `AppProvider` — a per-component-instance
+// guard that only protects concurrent calls that happen to originate from
+// that one component instance. `runExclusiveFlush` moves the actual
+// coalescing here, at the module level (mirroring `writeQueue` above for
+// persists and `hydrating`/`generation` for hydration), so the guarantee
+// holds regardless of how many call sites or `AppProvider` instances exist.
+let flushInFlight: Promise<void> | null = null;
+
+/**
+ * Run `task` exclusively. If a flush is already in flight, this call
+ * coalesces onto the SAME in-flight promise instead of starting a second,
+ * overlapping pass — e.g. a 30s poll's foreground-return flush landing
+ * while a still-draining flush from the previous trigger hasn't finished.
+ * Callers should route every flush attempt through here rather than
+ * guarding re-entrancy themselves.
+ */
+export function runExclusiveFlush(task: () => Promise<void>): Promise<void> {
+  if (flushInFlight) return flushInFlight;
+  const run = task().finally(() => {
+    flushInFlight = null;
+  });
+  flushInFlight = run;
+  return run;
+}
+
 // ─── Subscribe / hook ─────────────────────────────────────────────────
 
 export function subscribeIntakeOutbox(l: () => void): () => void {

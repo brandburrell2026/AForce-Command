@@ -68,8 +68,12 @@ describe('ReadinessInsightsV2 — loading skeleton vs. honest empty state (RC-1 
     expect(CODE).toContain("import { ReadinessInsightsSkeleton } from './ReadinessInsightsSkeleton';");
   });
 
-  it('reads isHydrated off the store — the real first-paint signal (RC-1 Wave-2B item 2a), same one HomeScreenV2 gates on', () => {
-    expect(CODE).toMatch(/const\s*\{\s*state,\s*isHydrated\s*\}\s*=\s*useAppStore\(\);/);
+  it('reads isHydrated off the sliced bootstrap context — the real first-paint signal (RC-1 Wave-2B item 2a; migrated off the useAppStore facade onto BootstrapSlice in RC-1 W3P2), same one HomeScreenV2 gates on', () => {
+    expect(CODE).toMatch(/const\s*\{\s*isHydrated\s*\}\s*=\s*useBootstrapSlice\(\);/);
+  });
+
+  it('never calls the useAppStore() facade (RC-1 W3P2 regression guard — see the render-count harness for the behavioral proof)', () => {
+    expect(CODE).not.toMatch(/useAppStore\(/);
   });
 
   it('gates the skeleton on !isHydrated, not on the unrelated analytics-snapshot fetch', () => {
@@ -85,15 +89,21 @@ describe('ReadinessInsightsV2 — loading skeleton vs. honest empty state (RC-1 
     // `analyticsLoading` must not exist anywhere in this file: the
     // getAnalyticsSnapshot() fetch feeds ONLY the share payload
     // (`shareEvents`) and must never gate the honest empty state again.
+    // (RC-1 W3P2 carried follow-up, #540 code-review nit: the previous
+    // second assertion here — banning any `scores.length < 2 &&` substring
+    // anywhere in the file — was a brittle, overly-broad regex; the
+    // `toMatch` assertion above already pins the exact ternary shape the
+    // fix requires, so it alone is sufficient positive+negative coverage.)
     expect(CODE).not.toContain('analyticsLoading');
-    // Guard against re-coupling via a differently-named loading flag on the
-    // same fetch: the empty/skeleton ternary's condition must be exactly
-    // `!isHydrated`, not something derived from the analytics effect.
-    expect(CODE).not.toMatch(/scores\.length\s*<\s*2\s*&&/);
   });
 
-  it('the analytics snapshot effect no longer tracks a loading flag — best-effort population of shareEvents only', () => {
-    expect(CODE).toMatch(/getAnalyticsSnapshot\(\)\s*\.then\([\s\S]*?\)\s*\.catch\(/);
-    expect(CODE).not.toMatch(/\.finally\(/);
+  it('the analytics snapshot effect no longer tracks a loading flag — best-effort population of shareEvents only, no .finally on that chain', () => {
+    // (RC-1 W3P2 carried follow-up, #540 code-review nit: scoped from a
+    // file-wide `.finally(` ban — which would false-positive on any
+    // unrelated `.finally()` this file might legitimately grow elsewhere —
+    // to just the getAnalyticsSnapshot chain this guard is actually about.)
+    const analyticsChain = CODE.match(/getAnalyticsSnapshot\(\)\s*\.then\([\s\S]*?\.catch\([\s\S]*?\}\);/);
+    expect(analyticsChain).not.toBeNull();
+    expect(analyticsChain![0]).not.toMatch(/\.finally\(/);
   });
 });

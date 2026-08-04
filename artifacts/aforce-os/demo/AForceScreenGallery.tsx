@@ -137,7 +137,15 @@ function StoreOverride({ state, children }: { state: StoreAppState; children: Re
   const actions = React.useMemo(() => buildDemoActionsSlice(), []);
   return (
     <AppContext.Provider value={contextValue}>
-      <SliceProvider state={state} actions={actions}>
+      <SliceProvider
+        state={state}
+        actions={actions}
+        isHydrated={contextValue.isHydrated}
+        selectedVoiceId={contextValue.selectedVoiceId}
+        voiceCoachEnabled={contextValue.voiceCoachEnabled}
+        voiceIntensity={contextValue.voiceIntensity}
+        voiceScope={contextValue.voiceScope}
+      >
         {children}
       </SliceProvider>
     </AppContext.Provider>

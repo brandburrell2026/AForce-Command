@@ -86,9 +86,22 @@ describe('ProfileScreenV2 — provider-section mount-loading skeleton', () => {
     expect(CODE).toContain("import { ProviderSectionSkeleton } from './ProviderSectionSkeleton';");
   });
 
+  it('never calls the useAppStore() facade (RC-1 W3P2 regression guard — see the render-count harness for the behavioral proof)', () => {
+    expect(CODE).not.toMatch(/useAppStore\(/);
+  });
+
   it('gates the provider list on both checked flags, rendering the skeleton until both settle', () => {
     expect(CODE).toMatch(
-      /\(!whoopStatusChecked\s*\|\|\s*!garminStatusChecked\)\s*\?\s*\(\s*<ProviderSectionSkeleton\s+count=\{HEALTH_PROVIDERS\.length\}\s*\/>\s*\)\s*:\s*\[\.\.\.HEALTH_PROVIDERS\]/,
+      /\(!whoopStatusChecked\s*\|\|\s*!garminStatusChecked\)\s*\?\s*\(\s*<ProviderSectionSkeleton\s+count=\{HEALTH_PROVIDERS\.length\}\s*\/>\s*\)\s*:\s*sortedHealthProviders/,
     );
+  });
+
+  it('the health-providers list is sorted once via a memoized sortedHealthProviders, not re-sorted inline on every render (RC-1 W3P2, audit item 7)', () => {
+    expect(CODE).toMatch(
+      /const\s+sortedHealthProviders\s*=\s*React\.useMemo\(\s*\(\)\s*=>\s*\[\.\.\.HEALTH_PROVIDERS\]\.sort\(/,
+    );
+    // The regression this guards: a fresh `[...HEALTH_PROVIDERS].sort(...)`
+    // spread+sort re-appearing directly in the JSX map call site.
+    expect(CODE).not.toMatch(/:\s*\[\.\.\.HEALTH_PROVIDERS\]\.sort\(/);
   });
 });

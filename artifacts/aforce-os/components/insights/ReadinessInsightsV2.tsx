@@ -24,8 +24,8 @@ import {
   AFEmptyState,
 } from '@/components/ui';
 import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
-import { useEngineSlice } from '@/store/slices';
+import { useFeatureFlags } from '@/store/useAppStore';
+import { useEngineSlice, useHistorySlice, useBootstrapSlice, useUserSlice } from '@/store/slices';
 import { EliteWeeklyEditorial } from './EliteWeeklyEditorial';
 import { ReadinessInsightsSkeleton } from './ReadinessInsightsSkeleton';
 import type { AnalyticsEvent } from '@/utils/analytics/metrics';
@@ -71,16 +71,25 @@ function dayInitial(ts: Date | string): string {
 export function ReadinessInsightsV2() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { state, isHydrated } = useAppStore();
+  const history = useHistorySlice();
+  const { isHydrated } = useBootstrapSlice();
+  const userState = useUserSlice();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const elite = flags.elite_weekly_report_enabled;
-  const { history } = state;
 
   // Chronological window of the most recent readings (history is newest-first).
-  const window = history.slice(0, 7).reverse();
-  const scores = window.map((h) => h.score);
-  const labels = window.map((h) => dayInitial(h.timestamp));
+  // Memoized (audit P2-8): recomputing these on every render was harmless-but-
+  // wasteful before this screen still subscribed to the once-a-second
+  // TICK_TIMER facade re-render; keeping the memo now that it doesn't makes
+  // the dependency (`history`) the actual re-render trigger, not incidental.
+  const { scores, labels } = React.useMemo(() => {
+    const win = history.slice(0, 7).reverse();
+    return {
+      scores: win.map((h) => h.score),
+      labels: win.map((h) => dayInitial(h.timestamp)),
+    };
+  }, [history]);
 
   const avg = scores.length
     ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
@@ -88,10 +97,15 @@ export function ReadinessInsightsV2() {
   const delta = scores.length >= 2 ? scores[scores.length - 1] - scores[0] : null;
 
   // Drivers = the live score breakdown, biggest movers first, non-zero only.
-  const drivers = [...engine.breakdown]
-    .filter((c) => c.delta !== 0)
-    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-    .slice(0, 3);
+  // Memoized (audit P2-8) keyed on the true dependency (`engine.breakdown`).
+  const drivers = React.useMemo(
+    () =>
+      [...engine.breakdown]
+        .filter((c) => c.delta !== 0)
+        .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+        .slice(0, 3),
+    [engine.breakdown],
+  );
 
   const topPositive = drivers.find((d) => d.delta > 0);
 
@@ -103,8 +117,8 @@ export function ReadinessInsightsV2() {
   // so "share" always composes the full 7-section report — identical
   // content regardless of whether the legacy grid or this Phase-2 view is
   // the one currently on screen.
-  const healthCanonicalConsumers = state.featureFlags.health_canonical_consumers;
-  const biometrics = state.userState.biometrics;
+  const healthCanonicalConsumers = flags.health_canonical_consumers;
+  const biometrics = userState.biometrics;
   const shareNowISO = React.useRef(new Date().toISOString()).current;
   const shareWeek = React.useMemo(() => lastCompletedWeek(shareNowISO), [shareNowISO]);
 

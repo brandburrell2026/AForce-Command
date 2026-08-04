@@ -32,8 +32,16 @@ import {
   fetchAppleHealthSnapshot,
   type AppleHealthSnapshot,
 } from '@/services/appleHealth';
-import { useAppStore } from '@/store/useAppStore';
-import { useUnitPreferencesSlice, useProfileIdentitySlice } from '@/store/slices';
+import {
+  useUnitPreferencesSlice,
+  useProfileIdentitySlice,
+  useUserSlice,
+  useFlagsSlice,
+  useVoiceSettingsSlice,
+  useActionsSlice,
+  useSubscriptionSlice,
+} from '@/store/slices';
+import type { AppContextValue } from '@/store/app/types';
 import { EditProfileModal } from '@/components/EditProfileModal';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
@@ -125,21 +133,46 @@ const TIER_LABELS: Record<string, { color: string }> = {
 export function ProfileScreenV2() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const {
-    state, setFeatureFlags, setAppleHealthSnapshot, setProviderBiometrics, setLanguage,
-    activateSocialMode, logSocialDrink, deactivateSocialMode,
-    voiceCoachEnabled, setVoiceCoachEnabled,
-    selectedVoiceId, setSelectedVoiceId,
-    voiceIntensity, setVoiceIntensity,
-    voiceScope, setVoiceScope,
-    setInvestorDemoActive,
-    setUnitPreference,
-    setProfileIdentity,
-  } = useAppStore();
+  // RC-1 W3P2: narrow slice subscriptions replace the single `useAppStore()`
+  // facade call this screen used to make — the facade memoizes on the raw
+  // reducer state object, so every 1s TICK_TIMER re-rendered this entire
+  // 3000+ line screen regardless of which of its many sections (voice
+  // settings / health providers / subscription / user profile / feature
+  // flags) actually changed. Each slice below only changes identity when its
+  // own concern changes.
+  const userState = useUserSlice();
+  const flags = useFlagsSlice();
   const unitPreferences = useUnitPreferencesSlice();
   const coachMode = useCoachModeSetting();
   const profileIdentity = useProfileIdentitySlice();
   const devMode = useDevMode();
+  const { selectedVoiceId, voiceCoachEnabled, voiceIntensity, voiceScope } = useVoiceSettingsSlice();
+  const {
+    setFeatureFlags, setAppleHealthSnapshot, setProviderBiometrics, setLanguage,
+    activateSocialMode, logSocialDrink, deactivateSocialMode,
+    setVoiceCoachEnabled, setSelectedVoiceId, setVoiceIntensity, setVoiceScope,
+    setInvestorDemoActive,
+    setUnitPreference,
+    setProfileIdentity,
+  } = useActionsSlice<
+    Pick<
+      AppContextValue,
+      | 'setFeatureFlags'
+      | 'setAppleHealthSnapshot'
+      | 'setProviderBiometrics'
+      | 'setLanguage'
+      | 'activateSocialMode'
+      | 'logSocialDrink'
+      | 'deactivateSocialMode'
+      | 'setVoiceCoachEnabled'
+      | 'setSelectedVoiceId'
+      | 'setVoiceIntensity'
+      | 'setVoiceScope'
+      | 'setInvestorDemoActive'
+      | 'setUnitPreference'
+      | 'setProfileIdentity'
+    >
+  >();
 
   // ──────────────────────────────────────────────────────────────────
   // WHOOP token encryption status — admin-only readout. Hidden behind
@@ -229,8 +262,8 @@ export function ProfileScreenV2() {
     try { await deactivateSocialMode(); } finally { setDemoBusy(null); }
   }, [deactivateSocialMode]);
 
-  const socialActive = !!state.userState.socialMode?.active;
-  const inRecovery = !!state.userState.socialMode && !state.userState.socialMode.active && !!state.userState.socialMode.endedAt;
+  const socialActive = !!userState.socialMode?.active;
+  const inRecovery = !!userState.socialMode && !userState.socialMode.active && !!userState.socialMode.endedAt;
   const { t } = useTranslation();
 
   // Real Clerk identity for the profile header. Other `mockUserProfile`
@@ -243,9 +276,11 @@ export function ProfileScreenV2() {
   // (the auth source of truth) and finally to the mock fixture so the
   // card never renders blank.
   const clerkName = clerkUser?.fullName ?? clerkUser?.firstName ?? mockUserProfile.name;
-  const profileIdentityForName = state.profileIdentity;
+  // `profileIdentity` (ProfileIdentitySlice, already sourced above) — this
+  // used to re-read the same data off the `state` facade as a separate
+  // `profileIdentityForName` binding.
   const displayName =
-    (profileIdentityForName.displayName && profileIdentityForName.displayName.trim()) ||
+    (profileIdentity.displayName && profileIdentity.displayName.trim()) ||
     clerkName;
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
@@ -608,7 +643,7 @@ export function ProfileScreenV2() {
       // (positive fetchedAt) supersedes it on the next state sync via
       // freshest-wins. Only seed when absent, so a real snapshot is never
       // clobbered back to the placeholder.
-      if (!state.userState.biometrics?.whoop) {
+      if (!userState.biometrics?.whoop) {
         setProviderBiometrics('whoop', {
           providerId: 'whoop',
           fetchedAt: 0,
@@ -619,7 +654,7 @@ export function ProfileScreenV2() {
           restingHeartRate: null,
         });
       }
-    } else if (state.userState.biometrics?.whoop) {
+    } else if (userState.biometrics?.whoop) {
       // Not connected → drop any stale WHOOP snapshot so a disconnected (or
       // prior-session/other-user) snapshot can't keep feeding the score or
       // render the panel as connected.
@@ -682,19 +717,29 @@ export function ProfileScreenV2() {
 
   const layout = useResponsiveLayout();
 
+  // RC-1 W3P2 (audit item 7): `HEALTH_PROVIDERS` is a static, module-level
+  // constant — re-spreading + re-sorting it on every render (including every
+  // stray re-render from an unrelated section of this large screen) was pure
+  // waste. Memoized with an empty dep array since the source array never
+  // changes at runtime.
+  const sortedHealthProviders = React.useMemo(
+    () => [...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)),
+    [],
+  );
+
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
   const tierKey = mockUserProfile.subscriptionTier;
   const tier = TIER_LABELS[tierKey] ?? TIER_LABELS.core;
 
   const toggleFlag = (key: keyof FeatureFlags) => {
-    setFeatureFlags({ ...state.featureFlags, [key]: !state.featureFlags[key] });
+    setFeatureFlags({ ...flags, [key]: !flags[key] });
   };
 
   // Compare against the clamped unlock payload so restricted internal-preview
   // flags (Night Out) never make "unlock all" read as incomplete.
   const demoUnlockPayload = demoUnlockAllFlags();
-  const allOn = Object.keys(demoUnlockPayload).every((k) => state.featureFlags[k as keyof FeatureFlags] === demoUnlockPayload[k as keyof FeatureFlags]);
+  const allOn = Object.keys(demoUnlockPayload).every((k) => flags[k as keyof FeatureFlags] === demoUnlockPayload[k as keyof FeatureFlags]);
 
   return (
     <View style={styles.root}>
@@ -965,7 +1010,7 @@ export function ProfileScreenV2() {
 
             // §55/Show-10 — Profile Strength (completeness chip). Flag-gated,
             // additive, presentational. Chip is copy-independent (label+opacity).
-            const profileStrengthCard = state.featureFlags.spec_profileStrengthSection ? (
+            const profileStrengthCard = flags.spec_profileStrengthSection ? (
               <>
                 <SectionHeader label={t('profile.v2.strength_label')} />
                 <View style={styles.card}>
@@ -1066,7 +1111,7 @@ export function ProfileScreenV2() {
             // Flag-gated public entry to the Weekly Performance Report™.
             // Hidden until `spec_weekly_report` is on (Build 100% · Show 10%);
             // the Modules launcher always lists it for internal evaluation.
-            const weeklyReportCard = state.featureFlags.spec_weekly_report ? (
+            const weeklyReportCard = flags.spec_weekly_report ? (
               <>
                 <SectionHeader label={t('profile.v2.weekly_label')} hint={t('profile.v2.weekly_hint')} />
                 <View style={styles.card}>
@@ -1224,7 +1269,7 @@ export function ProfileScreenV2() {
                       before the real check corrects it). */}
                   {(!whoopStatusChecked || !garminStatusChecked) ? (
                     <ProviderSectionSkeleton count={HEALTH_PROVIDERS.length} />
-                  ) : [...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
+                  ) : sortedHealthProviders.map((p, i) => {
                     // §26 (RC-L13): the row status comes from the honest
                     // resolver — token presence alone is never "LIVE", an
                     // expired token demotes to Needs Attention, and providers
@@ -1272,7 +1317,7 @@ export function ProfileScreenV2() {
                       // wiring — cohort/beta rollout work will flip these
                       // flags per-provider without needing a follow-up code
                       // change here; do not revert this wiring as "unused."
-                      healthFlags: healthFlagsFromFeatureFlags(state.featureFlags),
+                      healthFlags: healthFlagsFromFeatureFlags(flags),
                     });
                     const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
                     const linked = row.live || demoLinked;
@@ -1429,7 +1474,7 @@ export function ProfileScreenV2() {
                           // payload the score engine consumes, so the panel matches
                           // the orb. No mock: until the first pull lands we show an
                           // honest "syncing" state rather than fabricated numbers.
-                          const snap = state.userState.biometrics?.whoop;
+                          const snap = userState.biometrics?.whoop;
                           const hasData =
                             !!snap &&
                             (snap.recoveryPct != null ||
@@ -1570,7 +1615,7 @@ export function ProfileScreenV2() {
                   {__DEV__ ? (
                     <Pressable
                       onPress={() => {
-                        setFeatureFlags({ ...state.featureFlags, spec_recoveryCoach: true });
+                        setFeatureFlags({ ...flags, spec_recoveryCoach: true });
                         router.push('/recovery-coach');
                       }}
                       style={[styles.demoMaster, { borderColor: af.red, marginTop: 10 }]}
@@ -1582,16 +1627,16 @@ export function ProfileScreenV2() {
                     </Pressable>
                   ) : null}
 
-                  <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="clutch_clip_enabled" label={t('profile.v2.flag_clip_label')} desc={t('profile.v2.flag_clip_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="clutch_clip_enabled" label={t('profile.v2.flag_clip_label')} desc={t('profile.v2.flag_clip_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
 
-                  <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={'#8B5CF6'} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
 
-                  <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} state={state} onToggle={toggleFlag} />
+                  <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
                 </View>
               </>
             );
@@ -1881,7 +1926,7 @@ export function ProfileScreenV2() {
                           `demo_mode_enabled` so it is absent from production
                           navigation; self-contained overlay; never mutates
                           user state (Score-Protection). */}
-                      {state.featureFlags.demo_mode_enabled ? (
+                      {flags.demo_mode_enabled ? (
                         <Pressable
                           onPress={() => { setInvestorDemoActive(true); }}
                           style={({ pressed }) => [
@@ -1922,8 +1967,8 @@ export function ProfileScreenV2() {
             // admin toggle. Destination screens additionally wrap their body
             // in <FeatureGate>, so this is defense in depth — first hide the
             // entry, then gate the surface.
-            const showClutchEntry = state.featureFlags.clutch_access_enabled;
-            const showGuardianEntry = state.featureFlags.guardian_intelligence_enabled;
+            const showClutchEntry = flags.clutch_access_enabled;
+            const showGuardianEntry = flags.guardian_intelligence_enabled;
             const phaseEntryRow = !showClutchEntry && !showGuardianEntry ? null : (
               <View style={styles.phaseRow}>
                 {showClutchEntry ? (
@@ -1985,31 +2030,31 @@ export function ProfileScreenV2() {
                   />
                   <Divider />
                   <AnalyticsConsentRow />
-                  {state.featureFlags.performance_memory_governance_enabled ? (
+                  {flags.performance_memory_governance_enabled ? (
                     <>
                       <Divider />
                       <PerformanceMemoryGovernanceCard />
                     </>
                   ) : null}
-                  {state.featureFlags.performance_identity_enabled ? (
+                  {flags.performance_identity_enabled ? (
                     <>
                       <Divider />
                       <PerformanceIdentityCard />
                     </>
                   ) : null}
-                  {state.featureFlags.adaptive_response_enabled ? (
+                  {flags.adaptive_response_enabled ? (
                     <>
                       <Divider />
                       <PersonalResponseLibraryCard />
                     </>
                   ) : null}
-                  {state.featureFlags.living_performance_enabled ? (
+                  {flags.living_performance_enabled ? (
                     <>
                       <Divider />
                       <DailyLessonCard />
                     </>
                   ) : null}
-                  {state.featureFlags.response_timeline_enabled ? (
+                  {flags.response_timeline_enabled ? (
                     <>
                       <Divider />
                       <ResponseTimelineCard />
@@ -2525,16 +2570,16 @@ function HardwareRow({ name, kind, ledColor, status }: { name: string; kind: str
 }
 
 function FlagRow({
-  flag, label, desc, color, state, onToggle,
+  flag, label, desc, color, flags, onToggle,
 }: {
   flag: keyof FeatureFlags;
   label: string;
   desc: string;
   color: string;
-  state: ReturnType<typeof useAppStore>['state'];
+  flags: FeatureFlags;
   onToggle: (k: keyof FeatureFlags) => void;
 }) {
-  const value = state.featureFlags[flag];
+  const value = flags[flag];
   return (
     <View style={styles.flagRow}>
       <View style={{ flex: 1 }}>
@@ -2654,8 +2699,7 @@ function UnitPreferenceRow<T extends string>({
 function SubscriptionPanel() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { state } = useAppStore();
-  const sub = state.subscription;
+  const sub = useSubscriptionSlice();
   const [portalBusy, setPortalBusy] = React.useState(false);
 
   const onManage = React.useCallback(async () => {

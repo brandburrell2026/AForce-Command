@@ -26,11 +26,13 @@ import type {
   FeatureFlags,
   IntakeEvent,
   InventoryState,
+  HistoryEntry,
 } from '../types';
 import type { UserSubscription } from '../types/subscription';
 import type { SweatAutopilot } from '../types/sweat';
 import type { UnitPreferences } from '../utils/units';
 import type { ProfileIdentity } from '../utils/profileIdentity';
+import type { VoiceIntensity, VoiceScope } from '../services/voice/commandVoice';
 import type { AppState } from './appStoreTypes';
 
 // ─── Slice value shapes ──────────────────────────────────────────────
@@ -82,6 +84,34 @@ export interface SweatAutopilotSlice {
   setAt: number | null;
 }
 
+/** Recovery/cycle history, newest-first — powers the Readiness Insights chart. */
+export type HistorySlice = HistoryEntry[];
+
+export interface BootstrapSlice {
+  /**
+   * RC-1 Wave-2B — true once the mount-time `/v1/home` fetch has settled
+   * (success or failure). False only during the brief pre-hydration window
+   * where `state` still reflects the local, synchronous initial guess.
+   * Monotonic — never goes back to false. See `store/useAppStore.tsx`'s
+   * `AppProvider` for where it flips.
+   */
+  isHydrated: boolean;
+}
+
+export interface VoiceSettingsSlice {
+  /**
+   * Selected ElevenLabs voice id, or null when the user prefers the
+   * device synthesizer. Persisted to AsyncStorage by `AppProvider`.
+   */
+  selectedVoiceId: string | null;
+  /** Voice Coach (T3) master toggle — reads each new AI command aloud. */
+  voiceCoachEnabled: boolean;
+  /** AForce Command Voice Engine — intensity setting ('calm'|'standard'|'pressure'). */
+  voiceIntensity: VoiceIntensity;
+  /** AForce Command Voice Engine — scope setting (which categories may speak). */
+  voiceScope: VoiceScope;
+}
+
 // Actions are passed through unchanged — the AppProvider already memoizes
 // the callbacks so this context value is stable across renders unless a
 // callback identity actually changes. Consumers narrow it to the subset
@@ -105,6 +135,9 @@ const InventoryContext = createContext<InventorySlice | null>(null);
 const SweatAutopilotContext = createContext<SweatAutopilotSlice | null>(null);
 const UnitPreferencesContext = createContext<UnitPreferencesSlice | null>(null);
 const ProfileIdentityContext = createContext<ProfileIdentitySlice | null>(null);
+const HistoryContext = createContext<HistorySlice | null>(null);
+const BootstrapContext = createContext<BootstrapSlice | null>(null);
+const VoiceSettingsContext = createContext<VoiceSettingsSlice | null>(null);
 const ActionsContext = createContext<ActionsSlice | null>(null);
 
 // ─── Selector hooks ──────────────────────────────────────────────────
@@ -169,6 +202,18 @@ export function useUnitPreferencesSlice(): UnitPreferencesSlice {
 export function useProfileIdentitySlice(): ProfileIdentitySlice {
   return required(useContext(ProfileIdentityContext), 'useProfileIdentitySlice');
 }
+/** Recovery/cycle history, newest-first (chart source for Readiness Insights). */
+export function useHistorySlice(): HistorySlice {
+  return required(useContext(HistoryContext), 'useHistorySlice');
+}
+/** First-paint hydration status — see `BootstrapSlice` for the contract. */
+export function useBootstrapSlice(): BootstrapSlice {
+  return required(useContext(BootstrapContext), 'useBootstrapSlice');
+}
+/** Voice Coach / Command Voice Engine preferences (coach id, intensity, scope). */
+export function useVoiceSettingsSlice(): VoiceSettingsSlice {
+  return required(useContext(VoiceSettingsContext), 'useVoiceSettingsSlice');
+}
 export function useActionsSlice<T = ActionsSlice>(): T {
   return required(useContext(ActionsContext), 'useActionsSlice') as unknown as T;
 }
@@ -189,6 +234,17 @@ interface SliceProviderProps {
   state: AppState;
   actions: ActionsSlice;
   /**
+   * First-paint hydration flag + Voice Coach preferences. These live as
+   * plain `useState` in `AppProvider` (not the reducer's `AppState`), so
+   * they're threaded in as primitive props rather than read off `state`
+   * — `SliceProvider` still owns memoizing them into their own slices.
+   */
+  isHydrated: boolean;
+  selectedVoiceId: string | null;
+  voiceCoachEnabled: boolean;
+  voiceIntensity: VoiceIntensity;
+  voiceScope: VoiceScope;
+  /**
    * Optional clock override for tests so the 24h window is deterministic.
    * Defaults to `Date.now`.
    */
@@ -201,7 +257,17 @@ interface SliceProviderProps {
  * off only the fields it needs so consumers re-render exactly when their
  * slice changes — not when an unrelated part of state changes.
  */
-export function SliceProvider({ state, actions, now = Date.now, children }: SliceProviderProps) {
+export function SliceProvider({
+  state,
+  actions,
+  isHydrated,
+  selectedVoiceId,
+  voiceCoachEnabled,
+  voiceIntensity,
+  voiceScope,
+  now = Date.now,
+  children,
+}: SliceProviderProps) {
   const engineValue = useMemo<EngineSlice>(() => state.engineOutput, [state.engineOutput]);
 
   const userValue = useMemo<UserSlice>(() => state.userState, [state.userState]);
@@ -279,6 +345,15 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
     [state.profileIdentity],
   );
 
+  const historyValue = useMemo<HistorySlice>(() => state.history, [state.history]);
+
+  const bootstrapValue = useMemo<BootstrapSlice>(() => ({ isHydrated }), [isHydrated]);
+
+  const voiceSettingsValue = useMemo<VoiceSettingsSlice>(
+    () => ({ selectedVoiceId, voiceCoachEnabled, voiceIntensity, voiceScope }),
+    [selectedVoiceId, voiceCoachEnabled, voiceIntensity, voiceScope],
+  );
+
   // Actions identity is already stabilized by the parent AppProvider's
   // useMemo. Pass through unchanged so callback consumers don't re-render
   // unless an action actually changes identity.
@@ -296,9 +371,15 @@ export function SliceProvider({ state, actions, now = Date.now, children }: Slic
                         <SweatAutopilotContext.Provider value={sweatAutopilotValue}>
                           <UnitPreferencesContext.Provider value={unitPreferencesValue}>
                             <ProfileIdentityContext.Provider value={profileIdentityValue}>
-                              <ActionsContext.Provider value={actions}>
-                                {children}
-                              </ActionsContext.Provider>
+                              <HistoryContext.Provider value={historyValue}>
+                                <BootstrapContext.Provider value={bootstrapValue}>
+                                  <VoiceSettingsContext.Provider value={voiceSettingsValue}>
+                                    <ActionsContext.Provider value={actions}>
+                                      {children}
+                                    </ActionsContext.Provider>
+                                  </VoiceSettingsContext.Provider>
+                                </BootstrapContext.Provider>
+                              </HistoryContext.Provider>
                             </ProfileIdentityContext.Provider>
                           </UnitPreferencesContext.Provider>
                         </SweatAutopilotContext.Provider>
