@@ -55,8 +55,7 @@
   .afx-nav .mark .nn .flip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
   .wrap{ max-width:var(--maxw); margin:0 auto; padding-left:var(--pad); padding-right:var(--pad); }
-  .sec{ padding:clamp(72px,11vh,140px) 0; border-top:1px solid var(--line); }
-  .sec:first-of-type{ border-top:0; }
+  .sec{ padding:clamp(72px,11vh,140px) 0; }
 
   /* Type */
   .label{ font-family:var(--mono); font-size:11.5px; letter-spacing:0.26em; text-transform:uppercase; color:var(--red); font-weight:500; }
@@ -116,6 +115,20 @@
   .sec.dark .specs, .sec.dark .moments{ background:rgba(245,240,232,0.14); border-color:rgba(245,240,232,0.14); }
   .sec.dark .specs .cell, .sec.dark .moments .m{ background:#141414; }
   .sec.dark .portrait{ background:#141414; border-color:rgba(245,240,232,0.14); }
+
+  /* Exact per-section tones sampled from the reference Our Story */
+  .sec.t-teal{ background:#182126; }   /* founders */
+  .sec.t-paper1{ background:#ECEEEB; } /* the stillness */
+  .sec.t-paper2{ background:#EEE8DE; } /* the call */
+  .sec.t-maroon{ background:#68191D; } /* it's impossible */
+  .sec.t-paper3{ background:#F2EEE6; } /* the name in the file */
+  .sec.t-sand{ background:#E2D5C6; }   /* building what didn't exist */
+  .sec.t-blue{ background:#273746; }   /* the second vision */
+  .sec.t-paper4{ background:#EBE6DE; } /* the brotherhood */
+  .sec.t-mint{ background:#DFE8E2; }   /* what AFORCE is becoming */
+  /* Maroon block: the Signal-Red label would vanish on maroon — lift to bone */
+  .sec.t-maroon .label{ color:rgba(248,243,233,0.72); }
+  .sec.t-maroon .label .sep{ color:rgba(248,243,233,0.40); }
 
   /* Film / media */
   .film{ position:relative; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:#000; }
@@ -280,7 +293,7 @@
 </header>
 
 <!-- ============ 00 · THE FOUNDERS ============ -->
-<section class="sec dark" id="founders" aria-label="The founders">
+<section class="sec dark t-teal" id="founders" aria-label="The founders">
   <div class="wrap">
     <div class="label reveal">The Founders<span class="sep">—</span>From the Beginning</div>
     <h2 class="h-lg reveal mt-m">Before the story was told.<br>Two brothers. One frame.</h2>
@@ -293,7 +306,7 @@
 </section>
 
 <!-- ============ 01 · THE STILLNESS ============ -->
-<section class="sec" aria-label="The stillness">
+<section class="sec t-paper1" aria-label="The stillness">
   <div class="wrap split">
     <div>
       <div class="label reveal">01<span class="sep">—</span>The Stillness</div>
@@ -316,7 +329,7 @@
 </section>
 
 <!-- ============ 02 · THE CALL ============ -->
-<section class="sec dark" aria-label="The call">
+<section class="sec t-paper2" aria-label="The call">
   <div class="wrap">
     <div class="label reveal">02<span class="sep">—</span>The Call<span class="sep">—</span>One Call, Two Brothers</div>
     <p class="lead reveal mt-m">Brandon stopped walking and called Julius.</p>
@@ -341,7 +354,7 @@
 </section>
 
 <!-- ============ 03 · THE WORK ============ -->
-<section class="sec" aria-label="The work">
+<section class="sec dark t-maroon" aria-label="The work">
   <div class="wrap split">
     <div>
       <div class="label reveal">03<span class="sep">—</span>The Work</div>
@@ -355,7 +368,7 @@
 </section>
 
 <!-- ============ 04 · THE NAME IN THE FILE ============ -->
-<section class="sec dark" aria-label="The name in the file">
+<section class="sec t-paper3" aria-label="The name in the file">
   <div class="wrap">
     <div class="label reveal">04<span class="sep">—</span>The Name in the File<span class="sep">—</span>Old File, Found</div>
     <div class="kicker reveal mt-s">pH Science</div>
@@ -380,7 +393,7 @@
 </section>
 
 <!-- ============ 05 · BUILDING WHAT DIDN'T EXIST ============ -->
-<section class="sec" aria-label="Building what didn’t exist">
+<section class="sec t-sand" aria-label="Building what didn’t exist">
   <div class="wrap">
     <div class="label reveal">05<span class="sep">—</span>Building What Didn’t Exist</div>
     <h2 class="h-lg reveal mt-m">Belief became repetition.</h2>
@@ -399,7 +412,7 @@
 </section>
 
 <!-- ============ 06 · THE SECOND VISION ============ -->
-<section class="sec dark" aria-label="The second vision">
+<section class="sec dark t-blue" aria-label="The second vision">
   <div class="wrap">
     <div class="label reveal">06<span class="sep">—</span>The Second Vision</div>
     <h2 class="h-lg reveal mt-m">Then the vision widened.</h2>
@@ -425,7 +438,7 @@
 </section>
 
 <!-- ============ 07 · THE BROTHERHOOD ============ -->
-<section class="sec" aria-label="The brotherhood">
+<section class="sec t-paper4" aria-label="The brotherhood">
   <div class="wrap">
     <div class="label reveal">07<span class="sep">—</span>The Brotherhood<span class="sep">—</span>Behind the Discipline</div>
     <h2 class="h-lg reveal mt-m">The work was serious.<br>The brotherhood stayed human.</h2>
@@ -451,7 +464,7 @@
 </section>
 
 <!-- ============ 08 · WHAT AFORCE IS BECOMING ============ -->
-<section class="sec dark" aria-label="What AFORCE is becoming">
+<section class="sec t-mint" aria-label="What AFORCE is becoming">
   <div class="wrap">
     <div class="label reveal">08<span class="sep">—</span>What AFORCE Is Becoming<span class="sep">—</span>More Than a Beverage</div>
     <h2 class="display reveal mt-m">A readiness company.</h2>
