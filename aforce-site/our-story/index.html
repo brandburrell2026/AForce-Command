@@ -99,6 +99,10 @@
   .replay:hover{ border-color:var(--red); color:var(--red); }
   .credits{ margin-top:18px; font-family:var(--mono); font-size:12px; letter-spacing:0.06em; color:var(--mute); }
   .credits b{ color:var(--ink); font-weight:500; }
+  /* Childhood portrait — square, framed, not cropped */
+  .portrait{ max-width:560px; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--canvas-dim); }
+  .portrait img{ width:100%; height:auto; display:block; }
+  .portrait figcaption{ font-family:var(--mono); font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--mute); padding:14px 18px; }
 
   /* Grid helpers */
   .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,5vw,72px); align-items:center; }
@@ -226,18 +230,12 @@
 <!-- ============ 00 · THE FOUNDERS ============ -->
 <section class="sec" id="founders" aria-label="The founders">
   <div class="wrap">
-    <div class="label reveal">The Founders<span class="sep">—</span>Before the Interview</div>
+    <div class="label reveal">The Founders<span class="sep">—</span>From the Beginning</div>
     <h2 class="h-lg reveal mt-m">Before the story was told.<br>Two brothers. One frame.</h2>
-    <div class="film reveal mt-xl">
-      <video data-film autoplay muted loop playsinline preload="metadata" poster="/assets/aforce-founders-couch-poster.jpg" aria-label="Brandon and Julius Burrell seated together on set before the interview">
-        <source src="/assets/aforce-founders-couch.webm" type="video/webm">
-        <source src="/assets/aforce-founders-couch.mp4" type="video/mp4">
-      </video>
-      <div class="film-cap">
-        <span class="c-l">The quiet before<span class="sep"> — </span>Founders in frame</span>
-        <button class="replay" data-replay type="button">Replay ↻</button>
-      </div>
-    </div>
+    <figure class="portrait reveal mt-xl">
+      <img src="/assets/our-story/founders-childhood.webp" width="883" height="883" loading="lazy" decoding="async" alt="Brandon and Julius Burrell as young brothers — a vintage black-and-white childhood portrait">
+      <figcaption>The quiet before — brothers, from the start</figcaption>
+    </figure>
     <p class="credits reveal"><b>Brandon Burrell</b> — Founder &amp; CEO &nbsp;·&nbsp; <b>Julius Burrell</b> — Co-Founder</p>
   </div>
 </section>
