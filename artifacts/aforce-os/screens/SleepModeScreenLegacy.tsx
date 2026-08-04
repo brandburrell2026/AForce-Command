@@ -40,6 +40,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme';
 import { useUserSlice, useFlagsSlice } from '@/store/slices';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
@@ -49,9 +50,18 @@ const PRE_SLEEP_LEAD_MIN = 90;
 const RECOVERY_WINDOW_LEAD_MIN = 60;
 const LIME = '#C1281B';
 // LIME as TEXT measures ~3.3:1 on these dark surfaces — under the 4.5:1 AA
-// floor. LIME stays for fills/borders (386, 489-490); LIME_TEXT mirrors
-// af.redText (theme/afTokens.ts) — AA-verified (~5:1) red for text/links.
-const LIME_TEXT = '#E4564A';
+// floor. LIME stays for fills/borders only (lines 391, 494-495 as of this
+// writing: the demo-chip selected border/background and the time-save pill
+// border/background). RC-1 verdict-pass correction: this inventory
+// previously cited stale line numbers (386, 489-490) that had drifted off
+// their real targets, AND was incomplete — it didn't disclose that two TEXT
+// sites were still rendering LIME directly, failing the same 3.3:1 floor
+// this comment warns about: `healthValueLink` (the underlined "Connect
+// Journal" link) and `demoChipText` when selected. Both are fixed to use
+// `LIME_TEXT` below. `LIME_TEXT` is `af.redText` (theme/afTokens.ts) —
+// AA-verified (~5:1) red for text/links — imported directly rather than
+// re-hardcoded, so it can never drift from the token again.
+const LIME_TEXT = af.redText;
 
 type Phase = 'idle' | 'pre_sleep' | 'recovery_window' | 'morning';
 
@@ -395,7 +405,7 @@ export default function SleepModeScreenLegacy() {
               >
                 <Text style={[
                   styles.demoChipText,
-                  demoPhase === p && { color: LIME },
+                  demoPhase === p && { color: LIME_TEXT },
                 ]}>
                   {p.replace('_', ' ').toUpperCase()}
                 </Text>
@@ -513,7 +523,7 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   healthValueLink: {
-    color: LIME,
+    color: LIME_TEXT,
     textDecorationLine: 'underline',
   },
   complianceFinePrint: {
