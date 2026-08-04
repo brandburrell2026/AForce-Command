@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
 import { af } from '@/theme';
+import { AFInlineErrorRow } from '@/components/ui';
+import { ProviderSectionSkeleton } from './ProviderSectionSkeleton';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
@@ -282,16 +284,28 @@ export function ProfileScreenV2() {
   // small "Live from Apple Health" panel so the user can see the
   // numbers AForce is pulling.
   const [appleSnapshot, setAppleSnapshot] = useState<AppleHealthSnapshot | null>(null);
+  // RC-1 Wave-2B (item 4, audit P1-7) — `fetchAppleHealthSnapshot()` had NO
+  // catch at all: a failure here silently left the panel showing nothing
+  // (or stale data) with zero feedback, and — since `connectAppleHealth`
+  // `await`s this — could surface as an unhandled rejection up the call
+  // chain. Caught here now; the existing refresh icon (below, in the JSX)
+  // IS the retry affordance this reuses.
+  const [appleFetchError, setAppleFetchError] = useState<string | null>(null);
 
   const refreshAppleSnapshot = React.useCallback(async () => {
     if (!isAppleHealthSupported()) return;
-    const snap = await fetchAppleHealthSnapshot();
-    setAppleSnapshot(snap);
-    // Push into the global score so HRV / sleep actually move the orb
-    // and show up in the score breakdown. We tag it with fetchedAt so
-    // downstream consumers can decide whether to trust it.
-    setAppleHealthSnapshot({ ...snap, fetchedAt: Date.now() });
-  }, [setAppleHealthSnapshot]);
+    try {
+      const snap = await fetchAppleHealthSnapshot();
+      setAppleFetchError(null);
+      setAppleSnapshot(snap);
+      // Push into the global score so HRV / sleep actually move the orb
+      // and show up in the score breakdown. We tag it with fetchedAt so
+      // downstream consumers can decide whether to trust it.
+      setAppleHealthSnapshot({ ...snap, fetchedAt: Date.now() });
+    } catch (err) {
+      setAppleFetchError(err instanceof Error ? err.message : t('profile.v2.apple_fetch_failed'));
+    }
+  }, [setAppleHealthSnapshot, t]);
 
   const connectAppleHealth = async (): Promise<boolean> => {
     if (!isAppleHealthSupported()) {
@@ -396,6 +410,10 @@ export function ProfileScreenV2() {
     ]);
   };
 
+  // RC-1 Wave-2B (item 2b) — see `whoopStatusChecked` above; the two
+  // together gate the provider-section mount skeleton.
+  const [garminStatusChecked, setGarminStatusChecked] = useState(false);
+
   // ─── Garmin: real backend OAuth flow ──────────────────────────────────
   // Sync the Garmin connection state from the server. In the current
   // dormant build (no creds configured) this resolves to
@@ -419,6 +437,8 @@ export function ProfileScreenV2() {
       }
     } catch {
       // Network/unknown error — leave the current state untouched.
+    } finally {
+      setGarminStatusChecked(true);
     }
   }, []);
 
@@ -533,12 +553,23 @@ export function ProfileScreenV2() {
     offerGarminDemo();
   };
 
+  // RC-1 Wave-2B (item 4, audit P1-7) — this check's `catch` was fully
+  // silent ("leave the current state untouched") with zero UI feedback: a
+  // network failure here left the row showing a stale/default state
+  // forever, with no way for the user to know a retry might help.
+  const [whoopStatusError, setWhoopStatusError] = useState<string | null>(null);
+  // RC-1 Wave-2B (item 2b) — true until the mount-time WHOOP + Garmin status
+  // checks have both settled at least once (success or failure). Gates the
+  // provider-section skeleton below. Monotonic — never reset to false.
+  const [whoopStatusChecked, setWhoopStatusChecked] = useState(false);
+
   // ─── WHOOP: real backend OAuth flow ───────────────────────────────────
   // Sync WHOOP connection state from SERVER truth (`/whoop/status`). When
   // connected, pull immediately so the card/score reflect real data.
   const refreshWhoopState = useCallback(async () => {
     try {
       const status = await getWhoopStatus();
+      setWhoopStatusError(null);
       setWhoopState(status.state);
       setWhoopExpiresAt(status.expiresAt ?? null);
       if (status.state === 'connected') {
@@ -550,8 +581,13 @@ export function ProfileScreenV2() {
         const whoop = (await fetchServerBiometrics())?.whoop;
         if (whoop) setProviderBiometrics('whoop', whoop);
       }
-    } catch {
-      // Network/unknown — leave the current state untouched.
+    } catch (err) {
+      // Network/unknown — leave the current CONNECTION state untouched
+      // (unchanged behavior), but now surface the failure so a retry is
+      // possible instead of a silent stale row.
+      setWhoopStatusError(err instanceof Error ? err.message : t('profile.v2.whoop_status_failed'));
+    } finally {
+      setWhoopStatusChecked(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1181,7 +1217,14 @@ export function ProfileScreenV2() {
                 </View>
                 <SectionHeader label={t('profile.v2.health_platforms_label')} hint={t('profile.v2.health_platforms_hint')} />
                 <View style={styles.card}>
-                  {[...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
+                  {/* RC-1 Wave-2B (item 2b) — while the mount-time WHOOP +
+                      Garmin status checks are in flight, skeleton the rows
+                      instead of rendering them against the 'not_connected'
+                      defaults (which could briefly show the wrong status
+                      before the real check corrects it). */}
+                  {(!whoopStatusChecked || !garminStatusChecked) ? (
+                    <ProviderSectionSkeleton count={HEALTH_PROVIDERS.length} />
+                  ) : [...HEALTH_PROVIDERS].sort((a, b) => a.name.localeCompare(b.name)).map((p, i) => {
                     // §26 (RC-L13): the row status comes from the honest
                     // resolver — token presence alone is never "LIVE", an
                     // expired token demotes to Needs Attention, and providers
@@ -1401,6 +1444,22 @@ export function ProfileScreenV2() {
                             />
                           );
                         })()}
+                        {/* RC-1 Wave-2B (item 4, audit P1-7) — the WHOOP
+                            status check's catch used to be fully silent.
+                            Surfaced here, independent of `linked`, since a
+                            failed CHECK (not a failed connection) can happen
+                            either way. Retry re-invokes the same
+                            refreshWhoopState the mount effect calls. */}
+                        {p.id === 'whoop' && whoopStatusError && (
+                          <View style={styles.snapshotBlock}>
+                            <AFInlineErrorRow
+                              message={whoopStatusError}
+                              onRetry={() => { void refreshWhoopState(); }}
+                              retryLabel={t('common.retry')}
+                              testID="profile-whoop-status-error"
+                            />
+                          </View>
+                        )}
                         {p.id === 'apple_health' && linked && appleSnapshot && (
                           <View style={styles.snapshotBlock}>
                             <View style={styles.snapshotHeader}>
@@ -1452,6 +1511,32 @@ export function ProfileScreenV2() {
                                 }
                               />
                             </View>
+                            {appleFetchError && (
+                              <View style={styles.snapshotErrorWrap}>
+                                <AFInlineErrorRow
+                                  message={appleFetchError}
+                                  onRetry={() => { void refreshAppleSnapshot(); }}
+                                  retryLabel={t('common.retry')}
+                                  testID="profile-apple-fetch-error"
+                                />
+                              </View>
+                            )}
+                          </View>
+                        )}
+                        {/* RC-1 Wave-2B (item 4) — the fetch failed on the VERY
+                            first attempt (permission granted, no data ever
+                            landed): the block above never mounts because it
+                            requires `appleSnapshot`, so this is the only
+                            surface for that failure. Same retry affordance
+                            (refreshAppleSnapshot), no new logic. */}
+                        {p.id === 'apple_health' && linked && !appleSnapshot && appleFetchError && (
+                          <View style={styles.snapshotBlock}>
+                            <AFInlineErrorRow
+                              message={appleFetchError}
+                              onRetry={() => { void refreshAppleSnapshot(); }}
+                              retryLabel={t('common.retry')}
+                              testID="profile-apple-fetch-error"
+                            />
                           </View>
                         )}
                         {i < HEALTH_PROVIDERS.length - 1 && <Divider />}
@@ -3038,6 +3123,7 @@ const styles = StyleSheet.create({
   snapshotCellValue: {
     fontSize: 16, fontFamily: 'Inter_700Bold', color: af.textPrimary,
   },
+  snapshotErrorWrap: { marginTop: 2 },
   flagRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,
