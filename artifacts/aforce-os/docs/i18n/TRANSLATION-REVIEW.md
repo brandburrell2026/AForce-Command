@@ -16,6 +16,7 @@ considered done in that locale.
 | Key | File origin | en source value | Locales still English | Notes |
 |---|---|---|---|---|
 | `common.was` | `components/ui/AFPrice.tsx` (RC-1 Wave-1 r2, item 2) | `"was"` | ar, hi, ja, ko, zh | New key added to replace the reused, differently-scoped `logIntake.score_was`. `de`/`es`/`fr`/`it`/`pt` already carry real translations (copied from their existing `logIntake.score_was` values: vorher/antes/avant/prima/antes). |
+| `common.offline_banner.queued_one` / `queued_other` / `failed_one` / `failed_other` | `components/ui/AFOfflineBanner.tsx` (RC-1 Wave-2B, item 1) | `"1 intake queued — not yet synced. It'll send automatically once you're back online."` (+ 3 siblings) | ar, hi, ja, ko, zh | New keys for the offline intake-outbox banner. `de`/`es`/`fr`/`it`/`pt` got real human-quality translations (the `common.*` namespace is otherwise well-translated in those 5 locales); `ar`/`hi`/`ja`/`ko`/`zh` carry the English source per house rule pending real translation. |
 | `home.live_status.last_label` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"LAST"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | New key from `home.*` localization of `LiveStatusLine`. The whole `home.v2.*`/`home.live_status.*` sub-namespace is English-only in all 10 non-English locales today (confirmed via `home.v2.greeting_default`, pre-existing) — not specific to this fix. |
 | `home.live_status.pts_suffix` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"pts"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
 | `home.live_status.verb_ascending` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"ASCENDING"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | One of the 7-value `StatusVerb` set (`services/statusVerb.ts`). |
@@ -26,6 +27,8 @@ considered done in that locale.
 | `home.live_status.verb_recovering` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"RECOVERING"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
 | `home.live_status.verb_critical` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"CRITICAL"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
 | `home.live_status.a11y_label` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"Trend {{verb}}"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Accessibility label composed from the verb above. |
+| `profile.v2.apple_fetch_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't refresh Apple Health data."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | New key for the Apple Health fetch-failure inline error row. `profile.v2.*` is, like `home.v2.*`, already English-only across all 10 non-English locales (confirmed: 268–273 of 281 `profile.v2` keys are byte-identical to the English source in de/es/fr/it/pt) — no existing equivalent phrase to carry over, so all 10 are listed here rather than just the 5-locale set. |
+| `profile.v2.whoop_status_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't check WHOOP connection status."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same as above — WHOOP status-check failure inline error row. |
 
 ## Convention this table follows
 

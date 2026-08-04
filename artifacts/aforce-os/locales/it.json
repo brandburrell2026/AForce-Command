@@ -17,7 +17,13 @@
     "today": "oggi",
     "now": "ora",
     "remove": "Remove",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "offline_banner": {
+      "queued_one": "1 assunzione in coda — non ancora sincronizzata. Verrà inviata automaticamente non appena tornerai online.",
+      "queued_other": "{{count}} assunzioni in coda — non ancora sincronizzate. Verranno inviate automaticamente non appena tornerai online.",
+      "failed_one": "1 assunzione in coda — l'ultimo tentativo di sincronizzazione non è riuscito. AForce continuerà a riprovare automaticamente.",
+      "failed_other": "{{count}} assunzioni in coda — l'ultimo tentativo di sincronizzazione non è riuscito. AForce continuerà a riprovare automaticamente."
+    }
   },
   "tabs": {
     "hydration": "Idratazione",
@@ -436,7 +442,9 @@
       "approval_pending": "APPROVAZIONE IN ATTESA",
       "coming_soon": "IN ARRIVO",
       "via_health_connect": "VIA HEALTH CONNECT",
-      "unsupported": "Non supportato su questo dispositivo"
+      "unsupported": "Non supportato su questo dispositivo",
+      "apple_fetch_failed": "Couldn't refresh Apple Health data.",
+      "whoop_status_failed": "Couldn't check WHOOP connection status."
     }
   },
   "settings": {
