@@ -50,9 +50,16 @@ export function composeExplanation(
   let overlays = 0;
   const MAX_OVERLAYS = 2;
 
+  // Re-derive the SAME highest-signal context selectExplanationContext()
+  // used to pick `base`'s explanation variant (buildBaseCommand calls it
+  // with these identical (level, state) inputs). When `base` already
+  // carries heat or streak context, skip the matching overlay below so
+  // the coach never mentions the same thing twice in one breath.
+  const baseContext = selectExplanationContext(level, state);
+
   // Heat — single highest-priority context modifier. Two tiers so
   // copy escalates with depletion rate.
-  if (overlays < MAX_OVERLAYS) {
+  if (overlays < MAX_OVERLAYS && baseContext !== 'heat') {
     if (state.heatLoad >= 8) {
       parts.push(i18n.t('coach.context_heat_high'));
       overlays++;
@@ -78,6 +85,7 @@ export function composeExplanation(
   // reinforcement, not a contrast against a critical command.
   if (
     overlays < MAX_OVERLAYS &&
+    baseContext !== 'streak' &&
     state.complianceStreak >= 4 &&
     (level === 'PEAK' || level === 'BALANCED')
   ) {
@@ -102,6 +110,79 @@ export function composeExplanation(
   }
 
   return parts.join(' ');
+}
+
+// ─── Context-variant explanation selection ─────────────────────────────────────
+/**
+ * The band explanations below (`coach.<band>_explanation`) were static per-band
+ * strings — no matter how hard the heat was hitting, how little the user slept,
+ * or how long a streak was running, PEAK always said the same sentence. This
+ * selects the ONE highest-signal context to color that sentence instead,
+ * picked by strict priority (never stacked — a coach mentions one thing at a
+ * time, not three):
+ *
+ *   1. heat      — state.heatLoad >= 6. The most urgent physiological driver;
+ *                  it changes what the body needs *right now*, so it always
+ *                  wins when present.
+ *   2. sleep     — Apple Health sleepHoursLastNight < 6. A systemic driver
+ *                  that colors the whole day, not just this moment — second
+ *                  priority because it's real but less acute than active heat.
+ *   3. streak    — state.complianceStreak >= 4, and only at PEAK/BALANCED.
+ *                  Reinforcement, not urgency — only worth naming when
+ *                  nothing more pressing is going on, and only while things
+ *                  are actually going well (mirrors composeExplanation's own
+ *                  streak gate below, so a streak is never framed as a
+ *                  consolation prize during RECOVERING/DEPLETED).
+ *
+ * Returns null when none apply, in which case callers use the plain band
+ * line unchanged — this is what keeps the "no context" case byte-identical
+ * to the original static string.
+ *
+ * The morning command (overnightLossOz > 8) is deliberately NOT part of this
+ * matrix: it is already its own context-specific branch (the overnight
+ * deficit itself), and layering heat/sleep/streak on top of it would make
+ * the copy surface combinatorial instead of a small, reviewable matrix.
+ *
+ * composeExplanation() re-derives this SAME selection from the same
+ * (state, level) inputs so its heat/streak overlays can skip a context the
+ * base explanation already carries — the coach never mentions heat or a
+ * streak twice in one breath.
+ */
+export type ExplanationContext = 'heat' | 'sleep' | 'streak';
+
+export function selectExplanationContext(
+  level: PerformanceLevel,
+  state: UserState,
+): ExplanationContext | null {
+  if (state.heatLoad >= 6) return 'heat';
+  const sleepHrs = state.appleHealth?.sleepHoursLastNight;
+  if (sleepHrs != null && sleepHrs < 6) return 'sleep';
+  if (state.complianceStreak >= 4 && (level === 'PEAK' || level === 'BALANCED')) {
+    return 'streak';
+  }
+  return null;
+}
+
+const BAND_EXPLANATION_KEY: Record<PerformanceLevel, string> = {
+  PEAK: 'coach.peak_explanation',
+  BALANCED: 'coach.balanced_explanation',
+  RECOVERING: 'coach.recovering_explanation',
+  DEPLETED: 'coach.depleted_explanation',
+};
+
+/**
+ * Resolve the explanation line for a band, applying the context-variant
+ * selection above. `_heat` / `_sleep` / `_streak` suffixed keys exist only
+ * for the band+context pairs the priority function above can actually
+ * select (e.g. no `_streak` variant exists for RECOVERING/DEPLETED, since
+ * selectExplanationContext() never returns 'streak' for those bands) — a
+ * deliberately small matrix, not a combinatorial one.
+ */
+function buildExplanation(level: PerformanceLevel, state: UserState): string {
+  const context = selectExplanationContext(level, state);
+  const base = BAND_EXPLANATION_KEY[level];
+  const key = context ? `${base}_${context}` : base;
+  return i18n.t(key, { count: state.complianceStreak });
 }
 
 // ─── Reasons Generation ───────────────────────────────────────────────────────
@@ -315,7 +396,7 @@ function buildBaseCommand(level: PerformanceLevel, state: UserState, score: numb
       return {
         id: 'cmd-peak',
         action: i18n.t('coach.peak_action', { score }),
-        explanation: i18n.t('coach.peak_explanation'),
+        explanation: buildExplanation(level, state),
         urgencyLevel: 'low',
         estimatedImpact: '+2 to score',
       };
@@ -323,7 +404,7 @@ function buildBaseCommand(level: PerformanceLevel, state: UserState, score: numb
       return {
         id: 'cmd-balanced',
         action: i18n.t('coach.balanced_action', { score }),
-        explanation: i18n.t('coach.balanced_explanation'),
+        explanation: buildExplanation(level, state),
         urgencyLevel: 'medium',
         estimatedImpact: '+5 to score',
       };
@@ -331,7 +412,7 @@ function buildBaseCommand(level: PerformanceLevel, state: UserState, score: numb
       return {
         id: 'cmd-recovering',
         action: i18n.t('coach.recovering_action', { score }),
-        explanation: i18n.t('coach.recovering_explanation'),
+        explanation: buildExplanation(level, state),
         urgencyLevel: 'high',
         estimatedImpact: '+10 to score',
       };
@@ -339,7 +420,7 @@ function buildBaseCommand(level: PerformanceLevel, state: UserState, score: numb
       return {
         id: 'cmd-depleted',
         action: i18n.t('coach.depleted_action', { score }),
-        explanation: i18n.t('coach.depleted_explanation'),
+        explanation: buildExplanation(level, state),
         urgencyLevel: 'critical',
         estimatedImpact: '+18 to score',
       };
