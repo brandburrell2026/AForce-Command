@@ -327,8 +327,11 @@
     .reveal,.ritual-word,.os-line,.final .fbig span{opacity:1 !important;transform:none !important;transition:none !important;}
     .cta .arw{transition:none;}
   }
-  /* Brand N–И monogram stays Archivo Black (logo, not body writing) */
-  .afx-nav .nn, .f-nn, .afx-nav .mark .nn{ font-family:'Archivo Black',serif !important; }
+  /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
+  .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
+  .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
+  .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
+  .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
 </style>
 </head>
 <body>
