@@ -490,8 +490,6 @@
       "unsupported": "Unsupported on this device",
       "row_a11y_demo": "{{name}}, demo mode, double tap to disconnect",
       "row_a11y_connected": "{{name}}, connected, double tap to disconnect",
-      "row_a11y_syncing": "{{name}}, connected, syncing, double tap to disconnect",
-      "row_a11y_partial": "{{name}}, connected with limited permissions, double tap to disconnect",
       "row_a11y_needs_attention": "{{name}}, needs attention, double tap to disconnect",
       "row_a11y_approval_pending": "{{name}}, approval pending",
       "row_a11y_coming_soon": "{{name}}, coming soon",

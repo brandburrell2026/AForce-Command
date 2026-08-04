@@ -171,17 +171,23 @@ export function deriveProviderRowStatus(f: ProviderRowFacts): HealthProviderStat
  * `linked`, so a screen reader would announce "Connect WHOOP" on a row that
  * was actually Approval Pending, Coming Soon, or Unsupported — an action
  * that was never available. This mirrors the render branch order in
- * ProfileScreenV2 exactly (demo → live[+syncing/partial] → needs_attention →
- * approval_pending → coming_soon → via_health_connect → unsupported →
- * connect) so the announced state can never drift from the visual pill, and
- * "Connect"/"Disconnect" are only ever announced when that tap is the real
- * one the row performs.
+ * ProfileScreenV2, at its ONLY call site (`row.status`/`row.live` sourced
+ * directly from `deriveProviderRowStatus`, above): demo → live →
+ * needs_attention → approval_pending → coming_soon → via_health_connect →
+ * unsupported → connect. `deriveProviderRowStatus`'s `link` is only ever
+ * assigned 'none' | 'connected' | 'expired' (never 'syncing' / 'partial' /
+ * 'authorizing' / 'error'), so `resolveHealthProviderStatus`'s 'syncing' and
+ * 'partially_authorized' statuses can never actually reach this function —
+ * a real connection at this call site is always the plain `live` kind. The
+ * reachability lock in providerRowStatus.test.ts proves this by construction
+ * across the full input space; if a future change (e.g. a real sync-in-
+ * progress or partial-scopes signal) makes one of those statuses reachable,
+ * that lock fails, which is the signal to add its a11y branch (and en.json
+ * copy) THEN — not to carry the untested branch ahead of the real behavior.
  */
 export type ProviderRowA11yKind =
   | 'demo'
   | 'live'
-  | 'syncing'
-  | 'partially_authorized'
   | 'needs_attention'
   | 'approval_pending'
   | 'coming_soon'
@@ -193,8 +199,6 @@ export type ProviderRowA11yKind =
 export const PROVIDER_ROW_A11Y_I18N_KEY: Record<ProviderRowA11yKind, string> = {
   demo: 'profile.v2.row_a11y_demo',
   live: 'profile.v2.row_a11y_connected',
-  syncing: 'profile.v2.row_a11y_syncing',
-  partially_authorized: 'profile.v2.row_a11y_partial',
   needs_attention: 'profile.v2.row_a11y_needs_attention',
   approval_pending: 'profile.v2.row_a11y_approval_pending',
   coming_soon: 'profile.v2.row_a11y_coming_soon',
@@ -212,11 +216,7 @@ export function providerRowA11yKind(params: {
 }): ProviderRowA11yKind {
   const { demoLinked, live, status } = params;
   if (demoLinked && !live) return 'demo';
-  if (live) {
-    if (status === 'syncing') return 'syncing';
-    if (status === 'partially_authorized') return 'partially_authorized';
-    return 'live';
-  }
+  if (live) return 'live';
   if (status === 'needs_attention') return 'needs_attention';
   if (status === 'approval_pending') return 'approval_pending';
   if (status === 'coming_soon') return 'coming_soon';
