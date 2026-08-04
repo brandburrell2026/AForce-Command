@@ -13,6 +13,7 @@
 
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -105,9 +106,27 @@ const COLOR_MAP: Record<PulseConfig['colorMode'], { primary: string; glow: strin
   red:   { primary: Colors.states.DEPLETED.primary,   glow: Colors.states.DEPLETED.glow },
 };
 
+// RC-1 fix (P0 a11y): band name for the composed accessibility label below,
+// via the existing generic `states.*` i18n namespace (already used for
+// Peak/Balanced/Recovering/Depleted elsewhere — e.g. components/home/OrbSection
+// signal tiles) rather than inventing a parallel set of strings.
+const BAND_I18N_KEY: Record<PulseConfig['colorMode'], 'peak' | 'balanced' | 'recovering' | 'depleted'> = {
+  lime: 'peak',
+  teal: 'balanced',
+  amber: 'recovering',
+  red: 'depleted',
+};
+
 export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, socialOverlay, displayedAccent, displayedScore, voiceActive = false, trend = 'flat', deEmphasize = false }: Props) {
+  const { t } = useTranslation();
   const { pulseSpeed, glowStrength, pulseIntensity, waveBehavior, colorMode, animations } = pulseConfig;
   const baseColors = COLOR_MAP[colorMode];
+  // RC-1 fix (P0 a11y): the primary CTA was a bare Pressable that announced
+  // only the raw score number — a screen-reader user got no band context and
+  // no indication tapping does anything. Composed label + explicit button
+  // role via `home.tap_to_open` (an existing, previously-unused key written
+  // for exactly this) + the generic `states.*` band namespace.
+  const orbA11yLabel = `${Math.round(score)} ${t(`states.${BAND_I18N_KEY[colorMode]}`)}. ${t('home.tap_to_open')}`;
   // Override colour ONLY — kinetic behaviour (waveBehavior, flare,
   // collapse) still tracks the engine's actual band so the motion
   // matches the user's true physiological state.
@@ -566,6 +585,8 @@ export function StatusPulseOrb({ pulseConfig, score, burstAt = 0, onTap, size, s
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
           android_ripple={null}
+          accessibilityRole="button"
+          accessibilityLabel={orbA11yLabel}
           style={[
             styles.orb,
             {
