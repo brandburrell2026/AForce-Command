@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 
 import { Colors } from '../theme/colors';
 import { Typography } from '../theme/typography';
+import { afMotion } from '../theme/afTokens';
 import type { ScoreContribution, PerformanceState } from '../types';
 import { ScoreDrivers } from './ScoreDrivers';
 import { buildScoreDrivers } from '../utils/scoring/drivers';
@@ -35,8 +36,11 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
   useEffect(() => {
     if (visible) {
       if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
-      opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
+      // was 220ms/Easing.out(quad) — exact duration match, token easing curve.
+      opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
+      translateY.value = withSpring(0, afMotion.springs.standard);
+      // was { damping: 18, stiffness: 220 } — the dominant sheet spring, token match.
       // Internal analytics pipeline (Task #39) — the explainability /
       // impact surface was shown. Key it by the most impactful driver
       // being explained. Consent-gated; one emit per open.
@@ -46,8 +50,9 @@ export function ScoreBreakdownSheet({ visible, onDismiss, score, contributions, 
       );
       void emit('impact_shown', { impactKey: top?.id ?? 'score_breakdown' });
     } else {
-      opacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(60, { duration: 180 });
+      // EXIT (afMotion pattern #2): durations.selection, was 180ms — diff 30ms.
+      opacity.value = withTiming(0, { duration: afMotion.durations.selection });
+      translateY.value = withTiming(60, { duration: afMotion.durations.selection });
     }
   }, [visible]);
 

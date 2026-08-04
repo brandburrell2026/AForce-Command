@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
+import { afMotion } from '@/theme/afTokens';
 import { getStatusColor } from '@/theme/statusColor';
 import type { ScanCoachScript } from '@/services/scanCoachVoice';
 import { useAppStore } from '@/store/useAppStore';
@@ -137,7 +138,10 @@ export function ScanAICoachCard({
     entryY.value = 14;
     entryScale.value = 0.98;
     entryOpacity.value = withTiming(1, { duration: 320, easing: Easing.out(Easing.cubic) });
-    entryY.value = withSpring(0, { damping: 18, stiffness: 220 });
+    // afMotion.springs.standard — exact-config match to the dominant sheet
+    // spring (RC-1 Wave-2A §3). entryScale keeps its bespoke {16,240} tune
+    // (see PR body holdout list).
+    entryY.value = withSpring(0, afMotion.springs.standard);
     entryScale.value = withSpring(1, { damping: 16, stiffness: 240 });
   }, [scanKey, entryOpacity, entryY, entryScale]);
 

@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 
 import type { CycleResult } from '../types';
 import { Colors, getStateColors } from '../theme/colors';
+import { afMotion } from '../theme/afTokens';
 
 interface Props {
   result: CycleResult;
@@ -56,8 +57,12 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
 
-    // Enter
-    opacity.value = withTiming(1, { duration: 240, easing: Easing.out(Easing.quad) });
+    // Enter — afMotion pattern #6 (CELEBRATE), the hero reveal beat.
+    // ENTER (afMotion pattern #1 opacity beat): durations.standard +
+    // easing.standardOut, was 240ms/Easing.out(quad) — diff 20ms.
+    opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
+    // Card pop spring is a bespoke celebration tune (damping:14, stiffness:180)
+    // — not the dominant sheet spring; left as-is (see PR body holdout list).
     scale.value = withSpring(1, { damping: 14, stiffness: 180 });
 
     // Gain pop

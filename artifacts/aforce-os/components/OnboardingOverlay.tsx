@@ -14,7 +14,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withSpring,
+  useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
 import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
+import { afMotion } from '../theme/afTokens';
 
 interface Props {
   visible: boolean;
@@ -40,11 +41,15 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
 
   React.useEffect(() => {
     if (visible) {
-      opacity.value = withTiming(1, { duration: 280 });
-      translateY.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // ENTER (afMotion pattern #1): durations.entrance + easing.standardOut,
+      // was 280ms/no easing (linear) — diff 20ms, now an explicit ease-out curve.
+      opacity.value = withTiming(1, { duration: afMotion.durations.entrance, easing: Easing.bezier(...afMotion.easing.standardOut) });
+      translateY.value = withSpring(0, afMotion.springs.standard);
+      // was { damping: 18, stiffness: 220 } — the dominant sheet spring, token match.
     } else {
-      opacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(40, { duration: 180 });
+      // EXIT (afMotion pattern #2): durations.selection, was 180ms — diff 30ms.
+      opacity.value = withTiming(0, { duration: afMotion.durations.selection });
+      translateY.value = withTiming(40, { duration: afMotion.durations.selection });
     }
   }, [visible]);
 
