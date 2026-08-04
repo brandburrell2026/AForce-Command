@@ -1,12 +1,14 @@
 /**
- * ReadinessInsightsSkeleton (RC-1 Wave-2B, item 2c) — shown ONLY while
- * `ReadinessInsightsV2` has both (a) fewer than 2 days of score history AND
- * (b) its analytics snapshot fetch (`getAnalyticsSnapshot()`, landed in #531)
- * is still in flight. Distinct from the screen's designed, honest empty
- * state (`AFEmptyState` — "not enough data yet") which renders once the
- * fetch has settled and history is STILL short: this skeleton only covers
- * the brief real loading window, never permanently substitutes for the
- * honest-empty copy.
+ * ReadinessInsightsSkeleton (RC-1 Wave-2B, item 2c; corrected r2) — shown
+ * ONLY while `ReadinessInsightsV2` has not yet hydrated (`isHydrated` false —
+ * the same mount-time `/v1/home` first-paint signal `HomeScreenV2` gates on,
+ * item 2a). Distinct from the screen's designed, honest empty state
+ * (`AFEmptyState` — "not enough data yet") which renders once hydration has
+ * settled and history is STILL short: this skeleton only covers the brief
+ * real loading window, never permanently substitutes for the honest-empty
+ * copy. It is NOT tied to the screen's separate `getAnalyticsSnapshot()`
+ * fetch, which feeds only the share-sheet payload and has no bearing on
+ * score history.
  *
  * Shapes the score hero + chart + drivers list. Deliberately its own file,
  * importing ONLY af.* tokens + `AFSkeleton` — no store/router — so it can be

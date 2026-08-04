@@ -71,7 +71,7 @@ function dayInitial(ts: Date | string): string {
 export function ReadinessInsightsV2() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { state } = useAppStore();
+  const { state, isHydrated } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const elite = flags.elite_weekly_report_enabled;
@@ -109,14 +109,15 @@ export function ReadinessInsightsV2() {
   const shareWeek = React.useMemo(() => lastCompletedWeek(shareNowISO), [shareNowISO]);
 
   const [shareEvents, setShareEvents] = React.useState<AnalyticsEvent[]>([]);
-  // RC-1 Wave-2B (item 2c) — the #531 analytics fetch above never tracked a
-  // loading flag; this screen's short-history branch went straight to the
-  // honest "not enough data yet" empty state even on the very first frame,
-  // before the fetch had a chance to settle. `analyticsLoading` distinguishes
-  // that brief real-loading window from the settled, honest-empty state —
-  // it flips false on EITHER outcome (success or failure) since either way
-  // the one fetch attempt has completed.
-  const [analyticsLoading, setAnalyticsLoading] = React.useState(true);
+  // RC-1 Wave-2B (item 2c) originally gated the empty-vs-chart decision below
+  // on this fetch's own loading flag. That was wrong: `getAnalyticsSnapshot()`
+  // feeds ONLY `shareEvents` (the share-sheet payload built below); it has no
+  // bearing on `history`/`scores`, which come straight from the store and are
+  // already known synchronously. Coupling the two meant the honest empty
+  // state sat behind an unrelated fetch it never needed. This effect now
+  // exists purely to populate `shareEvents` — best-effort, no loading state
+  // of its own (see the `isHydrated`-gated skeleton below for the real
+  // first-paint signal that decision uses instead, RC-1 Wave-2B item 2a).
   React.useEffect(() => {
     let cancelled = false;
     getAnalyticsSnapshot()
@@ -127,9 +128,6 @@ export function ReadinessInsightsV2() {
         // Best-effort — a failed snapshot fetch leaves shareEvents at its
         // honest empty default; the shared report's sections simply read
         // "collecting"/"awaiting" (Score-Protection), never a crash.
-      })
-      .finally(() => {
-        if (!cancelled) setAnalyticsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -213,7 +211,7 @@ export function ReadinessInsightsV2() {
         actions={[{ icon: 'share', onPress: onShare, label: t('reports.share_a11y') }]}
       />
 
-      {scores.length < 2 && analyticsLoading ? (
+      {!isHydrated ? (
         <ReadinessInsightsSkeleton />
       ) : scores.length < 2 ? (
         <AFEmptyState

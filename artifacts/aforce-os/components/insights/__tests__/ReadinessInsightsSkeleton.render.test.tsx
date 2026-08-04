@@ -3,8 +3,9 @@
  * ReadinessInsightsSkeleton — NON-SHIPPING render harness.
  *
  * Pure, store-free presentational piece `ReadinessInsightsV2` mounts while
- * short on history AND its analytics fetch is still pending (RC-1 Wave-2B,
- * item 2c). `AFSkeleton` drives `react-native-reanimated` shared values —
+ * not yet hydrated (RC-1 Wave-2B, item 2c, corrected r2 — gated on
+ * `isHydrated`, not the unrelated analytics-snapshot fetch). `AFSkeleton`
+ * drives `react-native-reanimated` shared values —
  * mocked with the same targeted stub used in
  * `components/__tests__/statusPulseOrb.render.test.tsx`.
  */
