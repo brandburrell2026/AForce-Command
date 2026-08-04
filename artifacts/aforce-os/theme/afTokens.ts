@@ -124,6 +124,49 @@ export const afLayout = {
 // Plain data — durations in ms, translate in pt, easing as cubic-bezier tuples.
 // Every motion MUST have a reduced/static alternative at the call site (§11/§12);
 // these tokens describe the animated register only.
+//
+// ─── The six named patterns (RC-1 Wave-2A motion-language proposal) ─────────
+// Every animated surface in the app is an instance of ONE of these six. Two
+// rules are non-negotiable and apply to every pattern below without
+// exception: (1) a `useReducedMotion` gate with a static alternative — never
+// Reanimated's per-call `reduceMotion` option alone, so the whole app reads
+// one signal (see `hooks/useReducedMotion.ts`); (2) `cancelAnimation` in the
+// effect's cleanup for anything driven by `withRepeat`, so no shared value
+// keeps animating on the UI thread past unmount.
+//
+//   1. ENTER    — a surface (sheet, overlay, card) arriving on screen.
+//                 opacity 0→1 (+ short translateY) at `durations.standard`
+//                 or `.entrance`, `easing.standardOut`. Reference:
+//                 components/ScoreBreakdownSheet.tsx (sheet rise-in).
+//   2. EXIT     — the same surface leaving. Faster than its own enter
+//                 (`durations.fast`/`.selection`), no bounce, native easing
+//                 (`Easing.in`) — never `standardOut` in reverse. Reference:
+//                 components/DataBehindThisSheet.tsx (dismiss fade).
+//   3. EMPHASIZE — a momentary call-out on an already-visible element: a
+//                 press-scale, a value pop, a selection tone change.
+//                 `durations.fast` + `scale.pressed`, or a spring for a
+//                 tactile release. Reference:
+//                 components/ui/AFMotionPressable.tsx (press-scale).
+//   4. TRANSITION — content swapping in place (a step, a tab, a re-keyed
+//                 card) without the container itself entering/exiting.
+//                 `durations.standard`/`.slow` cross-fade + short rise.
+//                 Reference: components/voiceCheckIn/VoiceCheckInOverlay.tsx
+//                 (`Fade`, step-to-step).
+//   5. PROGRESS  — a value filling toward a target: a bar, a ring, a
+//                 count-up. Duration scales with the value change rather
+//                 than a fixed token; `easing.standardOut` or
+//                 `Easing.out(Easing.cubic)`. Reference:
+//                 components/ui/AFReadinessArc.tsx (score ring fill).
+//   6. CELEBRATE — a hero, low-frequency moment (cycle complete, a
+//                 milestone). The only tier allowed to run longer than
+//                 `durations.slow` and to compose multiple springs/ripples.
+//                 `durations.cinematic` for the reveal beat. Reference:
+//                 components/CycleSuccessOverlay.tsx (ripple + count-up).
+//
+// A `withRepeat` ambient loop (a pulse, a breathing ring, a Ken-Burns pan) is
+// not a seventh pattern — it is PROGRESS or EMPHASIZE running unbounded, and
+// is held to the same two non-negotiable rules above. Reference for the
+// gate+cleanup shape: components/WhoopSnapshotCard.tsx:126-168.
 export const afMotion = {
   durations: {
     fast: 120, //        120ms — press-scale, tab dot; the quickest register
@@ -145,6 +188,18 @@ export const afMotion = {
   easing: {
     standardOut: [0.22, 1, 0.36, 1] as const, //   ease-out
     standardInOut: [0.4, 0, 0.2, 1] as const, //    symmetric
+  },
+  // The dominant sheet/card entrance spring (RC-1 Wave-2A §3): the exact
+  // { damping, stiffness } pair independently repeated at 5 of the 15
+  // withSpring call sites audited (DataBehindThisSheet, ScoreBreakdownSheet,
+  // OnboardingOverlay, SocialModeSheet, ScanAICoachCard — all a translateY
+  // sheet/card rise-in paired with an opacity ENTER). Springs are more
+  // perceptually sensitive than a duration number, so only EXACT-config call
+  // sites were migrated onto this token — near matches are left as
+  // deliberately-tuned bespoke springs (see PR body for the full holdout
+  // list + rationale).
+  springs: {
+    standard: { damping: 18, stiffness: 220 },
   },
 } as const;
 
