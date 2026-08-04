@@ -12,17 +12,25 @@
  * than three separate imports specifically so a future route cannot
  * accidentally pick up two of the three.
  *
- * ── Why a route-level Origin check and not an app.ts CORS change ──────
+ * ── Why a route-level Origin check, on top of app.ts's CORS config ─────
  *
- * `app.ts` configures the `cors` package to REFLECT any origin when
- * `CORS_ALLOWED_ORIGINS` is unset and NODE_ENV !== 'production'. Two
- * separate problems with relying on that layer:
+ * `app.ts` configures the `cors` package (`./corsPolicy.ts`) to reflect
+ * any origin only when `CORS_ALLOWED_ORIGINS` is unset, AND
+ * `NODE_ENV !== 'production'`, AND the operator has explicitly set
+ * `CORS_DEV_REFLECT=1` — #504 tightened what used to be an unconditional
+ * dev-mode reflect-all into that opt-in (see `./corsPolicy.ts` for the
+ * full history and threat model). Even with that fix in place, two
+ * separate problems remain with relying on that layer for destructive
+ * routes:
  *
- *   a) Under the dev reflect-all config, `credentials: true` + reflected
- *      origin means any web page the user visits can issue a credentialed
- *      cross-origin `DELETE /api/oura/disconnect` against a dev/preview
- *      api-server and the browser will happily complete the preflight.
- *      That is CSRF against an irreversible endpoint.
+ *   a) `CORS_DEV_REFLECT=1` is set per-deployment, not per-route: an
+ *      operator who needs it to serve the Expo web client from a hosted
+ *      dev/preview environment gets reflect-all + `credentials: true`
+ *      for EVERY route, including the five destructive endpoints. Any
+ *      web page the user visits can then issue a credentialed
+ *      cross-origin `DELETE /api/oura/disconnect` against that preview
+ *      and the browser will happily complete the preflight. That is
+ *      CSRF against an irreversible endpoint.
  *   b) More fundamentally, CORS is a BROWSER-side gate on reading the
  *      RESPONSE. It is not a server-side gate on EXECUTING the request.
  *      Even in production, a non-allow-listed origin's request still
@@ -31,15 +39,17 @@
  *      is not a defense — the deletion already happened.
  *
  * The fix therefore has to REJECT the request server-side, which the
- * `cors` middleware does not do. Editing `app.ts`'s global CORS block
- * was considered and rejected: it is the single highest-blast-radius
- * line in the server (every route, every client, the Expo web preview
- * workflow, and the published replit.app domain all depend on it), and
- * tightening it globally would break dev previews for read routes that
- * have no destructive surface. Enforcing at the five destructive routes
- * is precisely scoped, unit-testable in the route harness, and reads the
- * SAME `CORS_ALLOWED_ORIGINS` env var, so there is one allow-list to
- * operate, not two. `app.ts` is left untouched.
+ * `cors` middleware does not do — reason (b) holds no matter how strict
+ * `app.ts`'s CORS config is. #504 DID edit `app.ts`'s global CORS block
+ * (that's what introduced the `CORS_DEV_REFLECT` gate); what's still
+ * deliberately NOT done there is route-scoped enforcement — folding a
+ * destructive-routes-only rule into the shared, every-route `cors()`
+ * mount would mean either loosening it for reads (undoing #504's fix)
+ * or blocking dev previews for read routes that have no destructive
+ * surface. Enforcing at the five destructive routes instead is precisely
+ * scoped, unit-testable in the route harness, and reads the SAME
+ * `CORS_ALLOWED_ORIGINS` env var, so there is one allow-list to operate,
+ * not two.
  *
  * Resolution rules (`enforceAllowedOrigin`):
  *
