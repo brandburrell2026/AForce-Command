@@ -17,9 +17,9 @@
  * in app/(tabs)/index.tsx). Tapping the arc opens Readiness Insights, which
  * shows a chart + drivers + insight, not those four zones.
  *
- * `featureFlags/flags.ts` sets `spec_home: true` in `DEFAULT_FLAGS` (line
- * 182 as of this writing), and `app/(tabs)/index.tsx`'s `HomeScreen` is a
- * ternary — `specHome ? <HomeScreenV2 /> : <HomeScreenLegacy />` — that
+ * `featureFlags/flags.ts` sets `spec_home: true` in `DEFAULT_FLAGS`, and
+ * `app/(tabs)/index.tsx`'s `HomeScreen` is a ternary —
+ * `specHome ? <HomeScreenV2 /> : <HomeScreenLegacy />` — that
  * renders EITHER this component OR the legacy screen, never both. There is
  * no code path today where both render "alongside" each other. That means
  * the four legacy detail zones are ALREADY orphaned/unreachable in today's

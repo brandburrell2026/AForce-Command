@@ -63,27 +63,37 @@ describe('ReadinessInsightsV2 — AFTopBar back + share wiring (RC-1 P0)', () =>
   });
 });
 
-describe('ReadinessInsightsV2 — loading skeleton vs. honest empty state (RC-1 Wave-2B, item 2c)', () => {
+describe('ReadinessInsightsV2 — loading skeleton vs. honest empty state (RC-1 Wave-2B, item 2c; decoupled r2)', () => {
   it('imports the store-free ReadinessInsightsSkeleton', () => {
     expect(CODE).toContain("import { ReadinessInsightsSkeleton } from './ReadinessInsightsSkeleton';");
   });
 
-  it('tracks analyticsLoading, defaulting true, and clears it on EITHER fetch outcome via .finally', () => {
-    expect(CODE).toContain('const [analyticsLoading, setAnalyticsLoading] = React.useState(true);');
-    expect(CODE).toMatch(/getAnalyticsSnapshot\(\)[\s\S]*?\.finally\(\(\)\s*=>\s*\{\s*if\s*\(!cancelled\)\s*setAnalyticsLoading\(false\);/);
+  it('reads isHydrated off the store — the real first-paint signal (RC-1 Wave-2B item 2a), same one HomeScreenV2 gates on', () => {
+    expect(CODE).toMatch(/const\s*\{\s*state,\s*isHydrated\s*\}\s*=\s*useAppStore\(\);/);
   });
 
-  it('shows the skeleton only while short-history AND still loading; the honest empty state is untouched once settled', () => {
-    expect(CODE).toMatch(/scores\.length\s*<\s*2\s*&&\s*analyticsLoading\s*\?\s*\(\s*<ReadinessInsightsSkeleton\s*\/>\s*\)\s*:\s*scores\.length\s*<\s*2\s*\?\s*\(/);
+  it('gates the skeleton on !isHydrated, not on the unrelated analytics-snapshot fetch', () => {
+    expect(CODE).toMatch(/!isHydrated\s*\?\s*\(\s*<ReadinessInsightsSkeleton\s*\/>\s*\)\s*:\s*scores\.length\s*<\s*2\s*\?\s*\(/);
     // The pre-existing empty-state copy/props are byte-identical — this fix
-    // only inserted a branch BEFORE it, never edited it.
+    // only changed the gating condition on the branch BEFORE it.
     expect(CODE).toContain("icon=\"activity\"");
     expect(CODE).toContain("title={t('reports.v2.empty_title')}");
     expect(CODE).toContain("message={t('reports.v2.empty_message')}");
   });
 
-  it('analyticsLoading is referenced exactly where expected: the state declaration and the one render condition (no stray second gate)', () => {
-    const occurrences = CODE.split('analyticsLoading').length - 1;
-    expect(occurrences).toBe(2);
+  it('never re-couples the empty-vs-chart decision to the share-fetch loading state (regression guard, RC-1 Wave-2 r2)', () => {
+    // `analyticsLoading` must not exist anywhere in this file: the
+    // getAnalyticsSnapshot() fetch feeds ONLY the share payload
+    // (`shareEvents`) and must never gate the honest empty state again.
+    expect(CODE).not.toContain('analyticsLoading');
+    // Guard against re-coupling via a differently-named loading flag on the
+    // same fetch: the empty/skeleton ternary's condition must be exactly
+    // `!isHydrated`, not something derived from the analytics effect.
+    expect(CODE).not.toMatch(/scores\.length\s*<\s*2\s*&&/);
+  });
+
+  it('the analytics snapshot effect no longer tracks a loading flag — best-effort population of shareEvents only', () => {
+    expect(CODE).toMatch(/getAnalyticsSnapshot\(\)\s*\.then\([\s\S]*?\)\s*\.catch\(/);
+    expect(CODE).not.toMatch(/\.finally\(/);
   });
 });

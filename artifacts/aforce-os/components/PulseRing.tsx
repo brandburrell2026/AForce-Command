@@ -10,7 +10,7 @@
  * RC-1 Wave-2A gating fix: this was an ungated `withRepeat(..., -1)` with no
  * reduced-motion check and no unmount cleanup — it ran forever, including
  * for users with motion reduction on. Pattern mirrors
- * components/WhoopSnapshotCard.tsx:126-168 — gate on the shared
+ * WhoopSnapshotCard's connection-dot gate — gate on the shared
  * `useReducedMotion` hook, hold the static frame when reduced, and
  * `cancelAnimation` on unmount either way.
  */

@@ -107,7 +107,7 @@ export const Colors = {
     // `secondary` (now .66) and ghost below `muted`, preserving the emphasis
     // ladder:
     //   muted     .52 -> 5.62-5.69:1   (was .30 -> 2.53-2.69:1)
-    //   ghost     .48 -> 4.95-5.00:1   (was .18 -> 1.59-1.67:1; see below re: .46 -> .48)
+    //   ghost     .48 -> 4.95-5.00:1   (was .18 -> 1.59-1.73:1; see below re: .46 -> .48)
     // Same precedent as the af.textTertiary bump in afTokens.ts:50-52 —
     // a11y over the exact prior value. Visual-QA note: secondary/muted-role
     // text app-wide reads slightly brighter as a result; see PR body.

@@ -44,6 +44,15 @@ describe('ProfileScreenV2 — Apple Health fetch failure is no longer silent', (
     const occurrences = CODE.split('onRetry={() => { void refreshAppleSnapshot(); }}').length - 1;
     expect(occurrences).toBeGreaterThanOrEqual(1);
   });
+
+  it('the with-snapshot and no-snapshot error rows use distinct testIDs (RC-1 Wave-2 r2 dedupe — they are mutually exclusive branches but must not share a testID)', () => {
+    expect(CODE).toContain('testID="profile-apple-fetch-error"');
+    expect(CODE).toContain('testID="profile-apple-fetch-error-no-snapshot"');
+    const genericOccurrences = CODE.split('testID="profile-apple-fetch-error"').length - 1;
+    // Exactly one exact match of the base testID (the with-snapshot row); the
+    // no-snapshot row's suffixed testID must not also count as a match here.
+    expect(genericOccurrences).toBe(1);
+  });
 });
 
 describe('ProfileScreenV2 — WHOOP status-check failure is no longer silent', () => {

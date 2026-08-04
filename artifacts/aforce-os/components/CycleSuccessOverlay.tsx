@@ -57,9 +57,10 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     }
 
-    // Enter — afMotion pattern #6 (CELEBRATE), the hero reveal beat.
-    // ENTER (afMotion pattern #1 opacity beat): durations.standard +
-    // easing.standardOut, was 240ms/Easing.out(quad) — diff 20ms.
+    // ENTER (afMotion pattern #1, opacity beat): durations.standard +
+    // easing.standardOut, was 240ms/Easing.out(quad) — diff 20ms. The ripple
+    // + count-up below are this overlay's CELEBRATE (pattern #6) beat —
+    // afTokens.ts's own pattern-#6 reference cites this exact file for that.
     opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
     // Card pop spring is a bespoke celebration tune (damping:14, stiffness:180)
     // — not the dominant sheet spring; left as-is (see PR body holdout list).
@@ -71,12 +72,12 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
       withSpring(1, { damping: 12, stiffness: 200 }),
     ));
 
-    // Ripples — staggered
+    // Ripples — staggered (CELEBRATE, pattern #6 — see the ENTER comment above)
     ring1.value = withDelay(60,  withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
     ring2.value = withDelay(260, withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
     ring3.value = withDelay(460, withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) }));
 
-    // Animated count-up
+    // Animated count-up (CELEBRATE, pattern #6 — see the ENTER comment above)
     counter.value = withDelay(220, withTiming(result.scoreAfter, {
       duration: 900, easing: Easing.out(Easing.cubic),
     }));

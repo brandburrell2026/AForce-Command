@@ -107,15 +107,15 @@ export function WaterCycleBar({ unitsConsumed, dailyTarget, performanceState }: 
   const caretOpacity = useSharedValue(0);
   // RC-1 Wave-2A gating fix: the vertical "breathe" loop below was an
   // ungated `withRepeat(..., -1)` with no reduced-motion check and no
-  // unmount cleanup. Pattern mirrors components/WhoopSnapshotCard.tsx:126-168
-  // — hold a static frame under reduced motion, cancelAnimation always on
-  // unmount/re-run.
+  // unmount cleanup. Pattern mirrors WhoopSnapshotCard's connection-dot
+  // gate — hold a static frame under reduced motion, cancelAnimation always
+  // on unmount/re-run.
   const reducedMotion = useReducedMotion();
   useEffect(() => {
     if (nextIdx < 0) {
       cancelAnimation(caretY);
       caretOpacity.value = withTiming(0, { duration: 300 });
-      return;
+      return () => cancelAnimation(caretY);
     }
     if (reducedMotion) {
       cancelAnimation(caretY);
