@@ -24,10 +24,12 @@ import {
   AFListRow,
   AFStatusBadge,
   AFEmptyState,
+  AFOfflineBanner,
 } from '@/components/ui';
 import { af, afType } from '@/theme';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
+import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import { formatTimeAgo } from '@/data/mockData';
 import type { FluidType, IntakeEvent } from '@/types';
@@ -53,8 +55,17 @@ export function HydrationScreenV2() {
   const router = useRouter();
   const { state } = useAppStore();
   const engine = useEngineSlice();
+  const flags = useFeatureFlags();
   const { logIntake } = useActionsSlice<HydrationActions>();
   const { userState } = state;
+
+  // RC-1 Wave-2B (item 1) — offline intake outbox visibility. Flag-gated:
+  // while `offline_intake_outbox_enabled` is off the outbox is never
+  // hydrated/written (see `services/intakeOutbox.ts`), so this stays at its
+  // inert 0/false default and `AFOfflineBanner` renders nothing.
+  const outboxState = useIntakeOutboxStore();
+  const outboxPendingCount = flags.offline_intake_outbox_enabled ? selectPendingCount(outboxState) : 0;
+  const outboxHasFailedItem = flags.offline_intake_outbox_enabled ? selectHasFailedItem(outboxState) : false;
 
   const pct =
     userState.ozTarget > 0
@@ -96,6 +107,9 @@ export function HydrationScreenV2() {
   return (
     <AFScreen scroll>
       <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
+
+      {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
+      <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
       {/* Intake ring + stats */}
       <AFCard variant="raised" style={styles.mainCard}>

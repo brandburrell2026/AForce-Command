@@ -41,4 +41,8 @@ export {
   type AFSegment,
 } from './AFSegmentedControl';
 
+// RC-1 Wave-2B · state-matrix — honest offline visibility + inline retry
+export { AFOfflineBanner, type AFOfflineBannerProps } from './AFOfflineBanner';
+export { AFInlineErrorRow, type AFInlineErrorRowProps } from './AFInlineErrorRow';
+
 export * from './afPrimitives.logic';

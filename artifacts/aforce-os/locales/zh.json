@@ -17,7 +17,13 @@
     "today": "today",
     "now": "now",
     "remove": "Remove",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "offline_banner": {
+      "queued_one": "1 intake queued — not yet synced. It'll send automatically once you're back online.",
+      "queued_other": "{{count}} intakes queued — not yet synced. They'll send automatically once you're back online.",
+      "failed_one": "1 intake queued — the last sync attempt failed. AForce will keep retrying automatically.",
+      "failed_other": "{{count}} intakes queued — the last sync attempt failed. AForce will keep retrying automatically."
+    }
   },
   "tabs": {
     "hydration": "水分",
@@ -500,7 +506,9 @@
       "approval_pending": "APPROVAL PENDING",
       "coming_soon": "COMING SOON",
       "via_health_connect": "VIA HEALTH CONNECT",
-      "unsupported": "Unsupported on this device"
+      "unsupported": "Unsupported on this device",
+      "apple_fetch_failed": "Couldn't refresh Apple Health data.",
+      "whoop_status_failed": "Couldn't check WHOOP connection status."
     }
   },
   "settings": {

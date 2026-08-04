@@ -181,6 +181,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // AsyncStorage on first effect; persisted on every setter call.
   const [voiceIntensity, setVoiceIntensityState] = React.useState<VoiceIntensity>('standard');
   const [voiceScope, setVoiceScopeState] = React.useState<VoiceScope>('all');
+  // RC-1 Wave-2B (state-matrix audit, item 2a) — first-paint hydration
+  // signal. `initialState` above is a LOCAL, synchronous guess (mock data run
+  // through the scoring engine once, before any network round-trip) so a
+  // screen can render on the very first frame; it is not yet the live server
+  // state. `isHydrated` flips true once the mount-time `/v1/home` fetch below
+  // (the "Periodic /state refresh" effect's first pass) has settled — success
+  // OR failure, since either way we've made our one real attempt and should
+  // stop presenting the local guess as if it were still loading. Screens that
+  // want to skeleton the arc/command/tiles instead of flashing default/mock
+  // values read this (see `HomeScreenV2`). Never reset back to false —
+  // monotonic for the lifetime of the provider.
+  const [isHydrated, setIsHydrated] = React.useState<boolean>(false);
   // Investor Demo overlay — purely transient UI flag. Never persisted
   // (every demo run starts fresh) and never reads/writes engine state.
   const [isInvestorDemoActive, setInvestorDemoActiveState] = React.useState<boolean>(false);
@@ -421,6 +433,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         void flushOutboxRef.current();
       } catch {
         // swallow — UI keeps last known engineOutput
+      } finally {
+        // First pass (success or failure) ends the pre-hydration window.
+        // Cheap to call again on every 30s tick — React bails out a
+        // no-op `setState(true)` once already true (Object.is same-value).
+        if (!cancelled) setIsHydrated(true);
       }
     };
     refresh();
@@ -1040,7 +1057,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [state.userState.language]);
 
   const value = useMemo<AppContextValue>(() => ({
-    state, logIntake, completeCycle, snooze, dismissSuccess,
+    state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
@@ -1054,7 +1071,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     notificationSettings: state.notificationSettings, setNotificationSetting,
     unitPreferences: state.unitPreferences, setUnitPreference,
     profileIdentity: state.profileIdentity, setProfileIdentity,
-  }), [state, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+  }), [state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when

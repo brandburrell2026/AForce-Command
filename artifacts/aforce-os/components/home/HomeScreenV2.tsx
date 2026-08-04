@@ -57,11 +57,14 @@ import {
   AFReadinessArc,
   AFCommandCard,
   AFSectionLabel,
+  AFOfflineBanner,
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
 import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice } from '@/store/slices';
+import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
+import { HomeSkeleton } from './HomeSkeleton';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import {
   resolveHomePresentation,
@@ -145,13 +148,21 @@ function EliteScoreNumber({
 
 export function HomeScreenV2() {
   const { t } = useTranslation();
-  const { state, selectedVoiceId } = useAppStore();
+  const { state, selectedVoiceId, isHydrated } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const { logIntake } = useActionsSlice<HomeActions>();
   const clerkUser = useUser().user;
   const router = useRouter();
   const reducedMotion = useReducedMotion();
+
+  // RC-1 Wave-2B (item 1) — offline intake outbox visibility. Flag-gated:
+  // while `offline_intake_outbox_enabled` is off the outbox is never
+  // hydrated/written (see `services/intakeOutbox.ts`), so this stays at its
+  // inert 0/false default and `AFOfflineBanner` renders nothing.
+  const outboxState = useIntakeOutboxStore();
+  const outboxPendingCount = flags.offline_intake_outbox_enabled ? selectPendingCount(outboxState) : 0;
+  const outboxHasFailedItem = flags.offline_intake_outbox_enabled ? selectHasFailedItem(outboxState) : false;
 
   const { userState } = state;
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
@@ -222,76 +233,85 @@ export function HomeScreenV2() {
         <Text style={styles.freshness}>{t('home.v2.freshness')}</Text>
       </Animated.View>
 
-      {/* Dominant readiness value + thin arc (tap → insights) */}
-      <Animated.View entering={reveal(1)}>
-        <Pressable
-          style={styles.arcWrap}
-          onPress={() => router.push('/weekly-report')}
-          accessibilityRole="button"
-          accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
-          testID="home-readiness-arc"
-        >
-          <AFReadinessArc score={score} size={240} color={accent} animate={arcPlan.animateRing} alive={elite}>
-            {elite ? (
-              <EliteScoreNumber
-                score={score}
-                fromScore={arcPlan.fromScore}
-                countUp={arcPlan.countUp}
-                style={styles.score}
-              />
-            ) : (
-              <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
-            )}
-            <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
-            {elite ? (
-              <View style={[styles.statePill, { borderColor: accent }]}>
-                <Text style={[styles.statePillText, { color: accent }]}>
-                  {engine.performanceState.level}
-                </Text>
-              </View>
-            ) : (
-              <Text style={styles.stateLabel}>{engine.performanceState.level}</Text>
-            )}
-          </AFReadinessArc>
-        </Pressable>
-        <LiveStatusLine
-          direction={trend.direction}
-          delta={trend.delta}
-          ageSec={trend.ageSec}
-          verb={statusVerb}
-          accent={accent}
-          testID="home-v2-live-status-line"
-        />
-      </Animated.View>
+      {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
+      <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
-      {/* One command */}
-      <Animated.View entering={reveal(2)}>
-        <AFCommandCard
-          eyebrow={commandEyebrow}
-          title={title || t('home.v2.default_command_title')}
-          instruction={commandInstruction}
-          primaryLabel={t('home.v2.log_water')}
-          onPrimary={() => {
-            void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
-          }}
-          rationale={engine.command.explanation || undefined}
-        />
-        {voiceElite && (
-          <Text style={styles.trust} testID="home-coach-trust">
-            {t('coach.trust_line')}
-          </Text>
-        )}
-      </Animated.View>
+      {!isHydrated ? (
+        <HomeSkeleton />
+      ) : (
+        <>
+          {/* Dominant readiness value + thin arc (tap → insights) */}
+          <Animated.View entering={reveal(1)}>
+            <Pressable
+              style={styles.arcWrap}
+              onPress={() => router.push('/weekly-report')}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
+              testID="home-readiness-arc"
+            >
+              <AFReadinessArc score={score} size={240} color={accent} animate={arcPlan.animateRing} alive={elite}>
+                {elite ? (
+                  <EliteScoreNumber
+                    score={score}
+                    fromScore={arcPlan.fromScore}
+                    countUp={arcPlan.countUp}
+                    style={styles.score}
+                  />
+                ) : (
+                  <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
+                )}
+                <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
+                {elite ? (
+                  <View style={[styles.statePill, { borderColor: accent }]}>
+                    <Text style={[styles.statePillText, { color: accent }]}>
+                      {engine.performanceState.level}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.stateLabel}>{engine.performanceState.level}</Text>
+                )}
+              </AFReadinessArc>
+            </Pressable>
+            <LiveStatusLine
+              direction={trend.direction}
+              delta={trend.delta}
+              ageSec={trend.ageSec}
+              verb={statusVerb}
+              accent={accent}
+              testID="home-v2-live-status-line"
+            />
+          </Animated.View>
 
-      {/* Three quiet signals */}
-      <Animated.View entering={reveal(3)} style={styles.signalsSection}>
-        <AFSectionLabel label={t('home.v2.signals_label')} />
-        <View style={styles.signals}>
-          {signalOrder.map((key) => (
-            <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
-          ))}
-        </View>
-      </Animated.View>
+          {/* One command */}
+          <Animated.View entering={reveal(2)}>
+            <AFCommandCard
+              eyebrow={commandEyebrow}
+              title={title || t('home.v2.default_command_title')}
+              instruction={commandInstruction}
+              primaryLabel={t('home.v2.log_water')}
+              onPrimary={() => {
+                void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
+              }}
+              rationale={engine.command.explanation || undefined}
+            />
+            {voiceElite && (
+              <Text style={styles.trust} testID="home-coach-trust">
+                {t('coach.trust_line')}
+              </Text>
+            )}
+          </Animated.View>
+
+          {/* Three quiet signals */}
+          <Animated.View entering={reveal(3)} style={styles.signalsSection}>
+            <AFSectionLabel label={t('home.v2.signals_label')} />
+            <View style={styles.signals}>
+              {signalOrder.map((key) => (
+                <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
+              ))}
+            </View>
+          </Animated.View>
+        </>
+      )}
 
       <View style={{ height: 40 }} />
     </AFScreen>

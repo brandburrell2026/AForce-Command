@@ -66,6 +66,11 @@ const asyncNoop = async (): Promise<void> => {};
 function buildDemoContextValue(state: StoreAppState): AppContextValue {
   return {
     state,
+    // The gallery's fixtures ARE the "loaded" state by construction (no real
+    // network round-trip ever runs here) — always hydrated so screens render
+    // their real content for visual inspection instead of a permanent
+    // pre-hydration skeleton.
+    isHydrated: true,
     logIntake: asyncNoop,
     completeCycle: asyncNoop,
     snooze: noop,

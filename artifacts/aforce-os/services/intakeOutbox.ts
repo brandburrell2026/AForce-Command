@@ -278,6 +278,16 @@ export function selectPendingCount(state: IntakeOutboxState): number {
   return countPending(state.items);
 }
 
+/**
+ * True when at least one queued item's most recent send attempt failed (it is
+ * still queued — `markIntakeFailed` schedules a backoff retry, it never drops
+ * the item). Drives `AFOfflineBanner`'s distinct "last attempt failed, still
+ * retrying" copy vs. its plainer "queued, not yet synced" copy.
+ */
+export function selectHasFailedItem(state: IntakeOutboxState): boolean {
+  return state.items.some((item) => item.status === 'failed');
+}
+
 // ─── Subscribe / hook ─────────────────────────────────────────────────
 
 export function subscribeIntakeOutbox(l: () => void): () => void {

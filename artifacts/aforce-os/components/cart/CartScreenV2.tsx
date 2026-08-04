@@ -17,7 +17,6 @@ import {
   Pressable,
   Image,
   Platform,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,6 +30,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { GradientBackground } from "@/components/GradientBackground";
 import { ZoomableProductImage } from "@/components/ZoomableProductImage";
 import { af } from '@/theme';
+import { AFInlineErrorRow } from '@/components/ui';
 import { formatPrice } from "@/data/pricing";
 import { PRODUCT_FLAVORS } from "@/data/products";
 import { useCart } from "@/store/useCartStore";
@@ -46,6 +46,11 @@ export function CartScreenV2() {
   const layout = useResponsiveLayout();
   const { resolvedLines, itemCount, subtotalCents, setQty, remove, clear } = useCart();
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+  // RC-1 Wave-2B (item 4, audit P1-7) — the checkout-session-creation
+  // failure used to pop a native Alert.alert. In-brand inline treatment
+  // instead: an AFInlineErrorRow with a Retry affordance that re-invokes the
+  // EXACT SAME onCheckout the primary button calls (no new retry logic).
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const shippingCents = subtotalCents >= SHIPPING_THRESHOLD_CENTS || subtotalCents === 0 ? 0 : 599;
@@ -57,6 +62,7 @@ export function CartScreenV2() {
     if (itemCount === 0 || pending) return;
     setPending(true);
     setCheckoutNotice(null);
+    setCheckoutError(null);
     try {
       const items = resolvedLines.map((l) => ({ skuId: l.skuId, qty: l.qty }));
       const returnUrl = Linking.createURL("/cart", { queryParams: {} });
@@ -66,7 +72,7 @@ export function CartScreenV2() {
         session = await createCartCheckoutSession({ items, returnUrl });
       } catch (err) {
         const msg = err instanceof Error ? err.message : t('cart.v2.checkout_could_not_start');
-        Alert.alert(t('cart.v2.checkout_unavailable_title'), msg);
+        setCheckoutError(msg);
         return;
       }
 
@@ -294,6 +300,17 @@ export function CartScreenV2() {
                 </View>
               )}
 
+              {checkoutError && (
+                <View style={styles.checkoutErrorWrap}>
+                  <AFInlineErrorRow
+                    message={checkoutError}
+                    onRetry={() => { void onCheckout(); }}
+                    retryLabel={t('common.retry')}
+                    testID="cart-checkout-error"
+                  />
+                </View>
+              )}
+
               <Pressable
                 onPress={onCheckout}
                 disabled={pending}
@@ -409,6 +426,7 @@ const styles = StyleSheet.create({
     backgroundColor: af.surface,
   },
   noticeText: { flex: 1, fontSize: 12, color: af.textPrimary, lineHeight: 17 },
+  checkoutErrorWrap: { marginTop: 12 },
 
   checkoutBtn: {
     marginTop: 14, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,

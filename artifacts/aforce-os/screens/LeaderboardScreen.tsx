@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Icon } from '@/components/Icon';
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme';
 import { useGetReferralLeaderboard } from '@workspace/api-client-react';
 
 export function LeaderboardScreen() {
@@ -53,7 +54,9 @@ export function LeaderboardScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor={Colors.text.primary}
+              tintColor={af.textPrimary}
+              colors={[af.textPrimary]}
+              progressBackgroundColor={af.surface}
             />
           }
           showsVerticalScrollIndicator={false}

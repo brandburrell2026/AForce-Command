@@ -56,6 +56,8 @@ export function LeaderboardScreenV2() {
               refreshing={refreshing}
               onRefresh={onRefresh}
               tintColor={af.textPrimary}
+              colors={[af.textPrimary]}
+              progressBackgroundColor={af.surface}
             />
           }
           showsVerticalScrollIndicator={false}

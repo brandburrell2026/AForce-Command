@@ -62,3 +62,28 @@ describe('ReadinessInsightsV2 — AFTopBar back + share wiring (RC-1 P0)', () =>
     expect(CODE).toMatch(/getAnalyticsSnapshot\(\)\s*\.then\([\s\S]*?\)\s*\.catch\(/);
   });
 });
+
+describe('ReadinessInsightsV2 — loading skeleton vs. honest empty state (RC-1 Wave-2B, item 2c)', () => {
+  it('imports the store-free ReadinessInsightsSkeleton', () => {
+    expect(CODE).toContain("import { ReadinessInsightsSkeleton } from './ReadinessInsightsSkeleton';");
+  });
+
+  it('tracks analyticsLoading, defaulting true, and clears it on EITHER fetch outcome via .finally', () => {
+    expect(CODE).toContain('const [analyticsLoading, setAnalyticsLoading] = React.useState(true);');
+    expect(CODE).toMatch(/getAnalyticsSnapshot\(\)[\s\S]*?\.finally\(\(\)\s*=>\s*\{\s*if\s*\(!cancelled\)\s*setAnalyticsLoading\(false\);/);
+  });
+
+  it('shows the skeleton only while short-history AND still loading; the honest empty state is untouched once settled', () => {
+    expect(CODE).toMatch(/scores\.length\s*<\s*2\s*&&\s*analyticsLoading\s*\?\s*\(\s*<ReadinessInsightsSkeleton\s*\/>\s*\)\s*:\s*scores\.length\s*<\s*2\s*\?\s*\(/);
+    // The pre-existing empty-state copy/props are byte-identical — this fix
+    // only inserted a branch BEFORE it, never edited it.
+    expect(CODE).toContain("icon=\"activity\"");
+    expect(CODE).toContain("title={t('reports.v2.empty_title')}");
+    expect(CODE).toContain("message={t('reports.v2.empty_message')}");
+  });
+
+  it('analyticsLoading is referenced exactly where expected: the state declaration and the one render condition (no stray second gate)', () => {
+    const occurrences = CODE.split('analyticsLoading').length - 1;
+    expect(occurrences).toBe(2);
+  });
+});

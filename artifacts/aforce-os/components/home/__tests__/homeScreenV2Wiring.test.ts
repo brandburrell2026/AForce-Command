@@ -46,6 +46,51 @@ describe('HomeScreenV2 — LiveStatusLine momentum wiring (RC-1 P0)', () => {
   });
 });
 
+describe('HomeScreenV2 — pre-hydration skeleton wiring (RC-1 Wave-2B, item 2a)', () => {
+  it('imports the store-free HomeSkeleton, not a redeclared inline copy', () => {
+    expect(CODE).toContain("import { HomeSkeleton } from './HomeSkeleton';");
+  });
+
+  it('reads isHydrated off useAppStore()', () => {
+    expect(CODE).toMatch(/const\s*\{\s*state,\s*selectedVoiceId,\s*isHydrated\s*\}\s*=\s*useAppStore\(\);/);
+  });
+
+  it('renders <HomeSkeleton /> when NOT hydrated, and the real arc/command/tiles otherwise (mutually exclusive)', () => {
+    expect(CODE).toMatch(/!isHydrated\s*\?\s*\(\s*<HomeSkeleton\s*\/>\s*\)\s*:\s*\(/);
+    // The real content branch still contains the arc + command card + signals
+    // section, i.e. the skeleton did not silently replace them outright.
+    const skeletonBranch = CODE.slice(CODE.indexOf('!isHydrated'));
+    expect(skeletonBranch).toContain('AFReadinessArc');
+    expect(skeletonBranch).toContain('AFCommandCard');
+    expect(skeletonBranch).toContain('signalOrder.map');
+  });
+});
+
+describe('HomeScreenV2 — offline intake outbox visibility (RC-1 Wave-2B, item 1)', () => {
+  it('imports AFOfflineBanner and the honest outbox selectors', () => {
+    expect(CODE).toMatch(/AFOfflineBanner/);
+    expect(CODE).toContain(
+      "import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';",
+    );
+  });
+
+  it('gates the outbox signal on the offline_intake_outbox_enabled flag (flag-off stays byte-identical/inert)', () => {
+    expect(CODE).toMatch(/flags\.offline_intake_outbox_enabled\s*\?\s*selectPendingCount\(outboxState\)\s*:\s*0/);
+    expect(CODE).toMatch(/flags\.offline_intake_outbox_enabled\s*\?\s*selectHasFailedItem\(outboxState\)\s*:\s*false/);
+  });
+
+  it('mounts <AFOfflineBanner> wired to those exact two computed values', () => {
+    expect(CODE).toMatch(
+      /<AFOfflineBanner\s+pendingCount=\{outboxPendingCount\}\s+hasFailedItem=\{outboxHasFailedItem\}\s*\/>/,
+    );
+  });
+
+  it('mounts the banner above the fold — after the header, before the hydration-gated content', () => {
+    const headerToSkeleton = CODE.slice(CODE.indexOf("t('home.v2.freshness')"), CODE.indexOf('!isHydrated'));
+    expect(headerToSkeleton).toContain('<AFOfflineBanner');
+  });
+});
+
 describe('HomeScreenV2 — doc-comment honesty guard (RC-1 P0)', () => {
   it('the file header no longer claims the legacy detail zones were relocated with "nothing missing"', () => {
     expect(SOURCE).not.toMatch(/now live[\s\S]{0,40}founder ruling: relocate, never delete/);
