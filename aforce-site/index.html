@@ -312,7 +312,7 @@
   .os-visual img{ position:relative; z-index:1; width:100%; height:auto; display:block; }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
-  .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0; }
+  .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0 0; }
   .universal-intro{ padding:0 clamp(20px,6vw,72px); }
   .universal-intro .section-title{ margin-top:18px; }
   .universal-sub{ margin-top:38px; font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(21px,2.9vw,38px); line-height:1.16; color:var(--ink); }
@@ -320,20 +320,9 @@
   .universal-body p{ font-family:'Inter',sans-serif; font-size:clamp(15px,1.5vw,18px); line-height:1.75; color:#54575E; }
   .universal-film{ margin-top:clamp(44px,6vw,84px); width:100%; overflow:hidden; background:var(--ink); line-height:0; }
   .universal-video{ display:block; width:100%; height:clamp(420px,74vh,800px); object-fit:cover; object-position:center; }
-  /* Editorial close — eyebrow + oversized ink/mute statement + rule + spread ritual */
-  .universal-close{ padding:clamp(56px,8vw,116px) clamp(20px,6vw,72px) clamp(52px,6vw,80px); text-align:left; max-width:1360px; margin:0 auto; }
-  .universal-close .uc-eyebrow{ margin:0; font-family:'Inter',sans-serif; font-weight:400; font-size:clamp(19px,2.4vw,30px); line-height:1.28; color:rgba(13,13,13,0.42); }
-  .universal-close .uc-headline{ margin:clamp(26px,4vw,54px) 0 0; display:flex; flex-direction:column; font-family:'Inter',sans-serif; font-weight:600; font-size:clamp(44px,7.4vw,104px); line-height:1.0; letter-spacing:-0.022em; }
-  .universal-close .uc-headline .uc-ink, .universal-close .uc-headline .uc-mute{ white-space:nowrap; }
-  .universal-close .uc-headline .uc-ink{ color:var(--ink); }
-  .universal-close .uc-headline .uc-mute{ color:rgba(13,13,13,0.34); }
-  .universal-close .uc-headline .uc-mute .flip-n{ color:var(--red); }   /* mirrored И stays Signal Red */
-  .universal-close .uc-rule{ height:1px; width:100%; background:rgba(13,13,13,0.14); margin:clamp(40px,6vw,76px) 0 clamp(22px,3vw,34px); }
-  .uc-ritual{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px 28px; }
-  .uc-ritual span{ font-family:'Inter',sans-serif; font-weight:700; font-size:clamp(12px,1.4vw,16px); letter-spacing:0.18em; text-transform:uppercase; color:var(--ink); }
 
   /* ---------- FOUNDING 250 ---------- */
-  .founding{ background:var(--canvas); color:var(--ink); text-align:center; }
+  .founding{ background:var(--canvas); color:var(--ink); text-align:center; padding:clamp(44px,6vh,64px) clamp(20px,6vw,72px); }
   .founding .section-title{ margin:0 auto 20px; color:var(--ink); }
   .founding p.sub{ max-width:520px; margin:0 auto 36px; color:rgba(13,13,13,0.65); font-size:15px; line-height:1.7; opacity:0; transform:translateY(10px); }
   .founding .benefits{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:640px; margin:0 auto 40px; opacity:0; transform:translateY(10px); }
@@ -346,13 +335,10 @@
   .founding .fine{ margin-top:20px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; color:rgba(13,13,13,0.35); text-transform:uppercase; opacity:0; }
 
   /* ---------- FINAL ---------- */
-  .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(72px,10vh,120px) clamp(20px,6vw,72px); }
+  .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(48px,6vh,72px) clamp(20px,6vw,72px); }
   .final .final-line{ font-family:'Archivo Black',serif; font-weight:400; font-size:clamp(30px,4.4vw,58px); line-height:1.04; letter-spacing:-0.01em; color:var(--ink); opacity:0; transform:translateY(10px); }
   .final .final-line.top{ margin-bottom:clamp(28px,3.6vw,44px); }
   .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); color:var(--red); }
-  .universal-close .glyphs{ display:flex; align-items:baseline; justify-content:center; gap:21px; font-family:'Archivo Black', serif; font-size:clamp(78px,12.5vw,156px); line-height:0.9; opacity:0; transform:translateY(10px); margin:clamp(48px,7vw,72px) 0 18px; }
-  .universal-close .glyphs .n{ color: var(--red); } .universal-close .glyphs .dash{ align-self:center; display:inline-block; width:.4em; height:.12em; background:var(--red); border-radius:1px; } .universal-close .glyphs .mirror{ display:inline-block; transform: scaleX(-1); color:var(--red); }
-  .universal-close .caption{ font-family:'Inter', sans-serif; font-weight:700; font-size:12px; letter-spacing:0.26em; text-transform:uppercase; color: rgba(13,13,13,0.65); opacity:0; transform:translateY(10px); margin-bottom:0; }
   .final .btn{ opacity:0; transform:translateY(10px); }
 
   footer{ background:var(--canvas); color:rgba(13,13,13,0.55); padding:clamp(40px,6vh,60px) clamp(20px,6vw,72px) 40px; }
@@ -592,17 +578,6 @@
     </video>
   </div>
 
-  <div class="universal-close fade-in">
-    <p class="uc-eyebrow">Performance is Universal.<br>Preparation is a Choice.</p>
-    <h2 class="uc-headline">
-      <span class="uc-ink">Performance Is</span>
-      <span class="uc-mute">Non&#8209;<span class="flip-n">N</span>egotiable.</span>
-    </h2>
-    <div class="uc-rule"></div>
-    <div class="uc-ritual">
-      <span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span>
-    </div>
-  </div>
 </section>
 
 <section class="founding" id="founding">
