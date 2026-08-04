@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, AccessibilityInfo, Platform } from 'react-native';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
 import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
@@ -40,6 +40,43 @@ export function RiskTimerDisplay({ timerSeconds, performanceState }: Props) {
   const composedLabel = isUrgent
     ? `${timerLabel}. ${display}. URGENT.`
     : `${timerLabel}. ${display}.`;
+
+  // RC-1 verdict-pass follow-up: `accessibilityLiveRegion` is Android-only
+  // (RN's own docs mark it `@platform android` — VoiceOver on iOS never
+  // reads it, so this safety-adjacent countdown was silent for iOS
+  // screen-reader users the whole time). Android's polite live region is
+  // left exactly as-is above; this adds the iOS equivalent via
+  // `AccessibilityInfo.announceForAccessibility`, fired ONLY when the
+  // display crosses one of the component's existing urgency thresholds —
+  // never per second, which the comment above already established would be
+  // unusable. Those thresholds are the four `level` bands (PEAK / BALANCED /
+  // RECOVERING / DEPLETED) and the `isUrgent` boundary computed above
+  // (DEPLETED, or RECOVERING with < 5 minutes left) — both captured in
+  // `transitionKey` so a re-render that only changes `display` (i.e. every
+  // second) does not re-trigger the effect at all.
+  const transitionKey = `${level}:${isUrgent}`;
+  const hasMountedRef = React.useRef(false);
+  const lastAnnouncedKeyRef = React.useRef<string | null>(null);
+  // Ref (not a dep) so the effect below only re-runs when `transitionKey`
+  // changes — i.e. on an urgency-band crossing — never on the per-second
+  // `display` tick that also changes `composedLabel`.
+  const composedLabelRef = React.useRef(composedLabel);
+  composedLabelRef.current = composedLabel;
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    if (!hasMountedRef.current) {
+      // Don't announce on first mount — VoiceOver already reads the
+      // composed accessibilityLabel when focus lands on the group; an
+      // extra announce here would double-speak the initial state.
+      hasMountedRef.current = true;
+      lastAnnouncedKeyRef.current = transitionKey;
+      return;
+    }
+    if (lastAnnouncedKeyRef.current === transitionKey) return;
+    lastAnnouncedKeyRef.current = transitionKey;
+    AccessibilityInfo.announceForAccessibility(composedLabelRef.current);
+  }, [transitionKey]);
 
   return (
     <View
