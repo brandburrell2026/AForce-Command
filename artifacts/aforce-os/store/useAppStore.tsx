@@ -82,6 +82,7 @@ import {
   markIntakeSynced,
   markIntakeFailed,
   pruneSyncedIntakes,
+  runExclusiveFlush,
 } from '../services/intakeOutbox';
 import {
   deriveRecoverySnapshot,
@@ -389,12 +390,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // queue is fully drained; while any item is still unsynced we keep the
   // optimistic state so a pending intake is never dropped (nor double-applied,
   // since `applyServerUserState` REPLACES rather than increments).
-  const flushInFlightRef = useRef(false);
+  // RC-1 W3P2 carried follow-up (#547 code review — should-fix c): the
+  // single-flight guard used to be a plain `useRef` here — correct only as
+  // long as `AppProvider` stays this outbox's one call site. That guarantee
+  // now lives in `services/intakeOutbox.ts`'s `runExclusiveFlush` (a
+  // module-level in-flight promise), so re-entrancy is safe regardless of
+  // how many callers or `AppProvider` instances exist.
   const flushOutbox = useCallback(async () => {
     if (!offlineOutboxEnabledRef.current) return; // flag OFF → fully inert
-    if (flushInFlightRef.current) return;          // single-flight guard
-    flushInFlightRef.current = true;
-    try {
+    await runExclusiveFlush(async () => {
       await hydrateIntakeOutbox();
       const due = selectDueIntakes(getIntakeOutboxState(), Date.now());
       if (due.length === 0) return;
@@ -422,9 +426,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // offline again — keep last known state; the next trigger reconciles.
         }
       }
-    } finally {
-      flushInFlightRef.current = false;
-    }
+    });
   }, [applyServerUserState]);
   const flushOutboxRef = useRef(flushOutbox);
   useEffect(() => { flushOutboxRef.current = flushOutbox; }, [flushOutbox]);
@@ -467,16 +469,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       } else {
         dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
       }
-      // We just reached the server successfully — a good moment to drain any
-      // intakes queued while offline. No-op (returns immediately) when the
-      // flag is off or the queue is empty. THE single flush call site (RC-1
-      // fix-forward, should-fix 4) — a duplicate standalone 'active'
-      // listener that ALSO called this was removed; see the comment above
-      // the 30s gated interval below for why.
-      void flushOutboxRef.current();
     } catch {
       // swallow — UI keeps last known engineOutput
     } finally {
+      // RC-1 W3P2 carried follow-up (#547 code review — should-fix 5a): this
+      // flush call used to live at the end of the `try`, after a successful
+      // `fetchHome` — so a foreground return that hit a network failure (or
+      // returned via the mounted-guard above) silently skipped draining any
+      // intakes queued while offline. Moved to `finally` so every
+      // foreground-return / 30s tick attempts the flush exactly once,
+      // regardless of whether this refresh itself succeeded — restoring the
+      // original unconditional-on-foreground parity. `flushOutbox` stays a
+      // safe no-op when the flag is off or the queue is empty, and its own
+      // in-flight guard (plus `intakeOutbox.ts`'s own module-level guard, see
+      // that file) prevents overlap with a concurrent call.
+      void flushOutboxRef.current();
       // First pass (success or failure) ends the pre-hydration window.
       // Cheap to call again on every 30s tick — React bails out a
       // no-op `setState(true)` once already true (Object.is same-value).
@@ -1154,6 +1161,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
   // unrelated state mutates.
+  //
+  // RC-1 W3P2: `setVoiceCoachEnabled` / `setSelectedVoiceId` / `setVoiceIntensity`
+  // / `setVoiceScope` / `setInvestorDemoActive` are added here so
+  // ProfileScreenV2 (their only caller) can reach them via `useActionsSlice`
+  // instead of the full `useAppStore()` facade. All five are already
+  // `useCallback`-stable with empty/near-empty deps (declared above), so
+  // adding them doesn't change how often this memo's identity changes.
   const actions = useMemo<ActionsSlice>(() => ({
     logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
@@ -1164,11 +1178,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setNotificationSetting,
     setUnitPreference,
     setProfileIdentity,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+    setVoiceCoachEnabled,
+    setSelectedVoiceId,
+    setVoiceIntensity,
+    setVoiceScope,
+    setInvestorDemoActive,
+  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity, setVoiceCoachEnabled, setSelectedVoiceId, setVoiceIntensity, setVoiceScope, setInvestorDemoActive]);
 
   return (
     <AppContext.Provider value={value}>
-      <SliceProvider state={state} actions={actions}>
+      <SliceProvider
+        state={state}
+        actions={actions}
+        isHydrated={isHydrated}
+        selectedVoiceId={selectedVoiceId}
+        voiceCoachEnabled={voiceCoachEnabled}
+        voiceIntensity={voiceIntensity}
+        voiceScope={voiceScope}
+      >
         {children}
       </SliceProvider>
     </AppContext.Provider>
@@ -1200,6 +1227,9 @@ export {
   useSweatAutopilotSlice,
   useUnitPreferencesSlice,
   useProfileIdentitySlice,
+  useHistorySlice,
+  useBootstrapSlice,
+  useVoiceSettingsSlice,
   useActionsSlice,
 } from './slices';
 
