@@ -90,8 +90,11 @@ already-known and move on.
   the moment of the HTTP call, not by Oura). `ProviderSnapshot`
   (`lib/health-core/src/contracts.ts`) carries only `fetchedAt` — there is
   no per-metric observation timestamp on this snapshot plane. A 3-day-old
-  readiness score synced 10 minutes ago presents as fresh/live; that is
-  shipped behavior, not a bug. Observation-time freshness
+  readiness score synced 10 minutes ago presents as fresh/live; this is
+  shipped behavior, product ruling PENDING (founder memo open) on whether
+  sync-recency-as-freshness is the intended long-term behavior. Validators
+  record the observed fresh/stale value here — they do not adjudicate
+  whether that value is "correct." Observation-time freshness
   (`CanonicalHealthRecord.observedAt`, distinct from `syncedAt`/`fetchedAt`)
   exists only on the canonical-record plane, which Oura's shipped path
   (`ouraFetchWorker.ts` → the `biometrics.oura` blob) never populates.
