@@ -197,7 +197,7 @@ export function ReadinessInsightsV2() {
       <AFTopBar
         eyebrow={t('reports.v2.eyebrow')}
         title={t('reports.v2.title')}
-        onBack={() => router.back()}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         actions={[{ icon: 'share', onPress: onShare, label: t('reports.share_a11y') }]}
       />
 
