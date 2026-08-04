@@ -117,15 +117,34 @@ already-known and move on.
 - **Incremental sync re-requests the identical last-10 query every time.**
   There is no cursor, no `since` param, no persisted state between sweeps.
   "Incremental" here means only: within the fixed limit-10 window, the
-  freshest `SCORED` record is re-selected each time (see the
-  "parity-fixture-constrained" section above on the OR-predicate and
-  array-first selection) — not that fewer records are fetched on a later
-  call.
-- **Pagination is N/A by construction, not by observation.** Each endpoint
+  first array-order record satisfying the OR-predicate (SCORED or score
+  present) is re-selected each time (see the "parity-fixture-constrained"
+  section above on the OR-predicate and array-first selection — this is
+  NOT "freshest," despite `whoopSnapshot.ts`'s own comment using that word;
+  array order determines the result, not a timestamp comparison) — not
+  that fewer records are fetched on a later call.
+- **Pagination has a real, testable blind spot — not N/A.** Each endpoint
   is a single request for the first (and only) page, `limit=10`, no
-  `next`/cursor param in the request and none read from the response. There
-  is no page loop to verify — record this as N/A with the reason above,
-  don't attempt to induce a second page.
+  `next`/cursor param in the request and none read from the response. A
+  record satisfying the OR-predicate that exists at overall array position
+  11 or later — outside the fetched window — is invisible to
+  `scoreSourceOf` no matter how recent it is: an account whose ten
+  most-recent records are all non-matching (no `score` and not `SCORED`)
+  would show no data even if an 11th-ranked record has a real score. This
+  is satisfiable, not N/A: seed or find a real account exhibiting that
+  layout and verify the app honestly shows no data rather than fabricating
+  from outside the window; if the current test account's OR-predicate
+  match already falls within the first 10 records, record this checkbox as
+  "not exercisable this cycle" with that reason, don't mark it N/A.
+- **Flagged, not fixed — in-source comment drift on request limit.**
+  `whoopSnapshot.ts:18-20`'s doc comment still describes `GET
+  /recovery?limit=1`, `GET /cycle?limit=1`, `GET /activity/sleep?limit=1`;
+  the code at `whoopSnapshot.ts:145,151,157` actually sends `limit=10` for
+  all three, and every reference to request behavior in this runbook is
+  verified against that code, not the stale comment. The comment fix is a
+  separate code-hygiene item for the owning engineer — this docs-only PR
+  does not touch source, so it is recorded here rather than silently left
+  ambiguous.
 - **There is no per-record dedup on this path.** WHOOP's fetch worker
   writes exactly one JSON blob per user under `biometrics.whoop`
   (`mergeWhoopIntoBiometrics`, `whoopSnapshot.ts:221-228` — a full-object
@@ -141,10 +160,13 @@ already-known and move on.
   moment of the HTTP call, not derived from WHOOP's own record timestamps.
   `ProviderSnapshot` carries only `fetchedAt` — no per-metric observation
   timestamp on this snapshot plane. A 5-day-old recovery score synced 10
-  minutes ago presents as fresh/live; that is shipped behavior, not a bug.
-  Observation-time freshness (`CanonicalHealthRecord.observedAt`) exists
-  only on the canonical-record plane, which WHOOP's shipped path never
-  populates.
+  minutes ago presents as fresh/live; this is shipped behavior, product
+  ruling PENDING (founder memo open) on whether sync-recency-as-freshness
+  is the intended long-term behavior. Validators record the observed
+  fresh/stale value here — they do not adjudicate whether that value is
+  "correct." Observation-time freshness (`CanonicalHealthRecord.observedAt`)
+  exists only on the canonical-record plane, which WHOOP's shipped path
+  never populates.
 
 ## Step-by-step validation flow
 
@@ -207,11 +229,16 @@ already-known and move on.
       behavior; a bare `limit=10` fetch is the correct, passing observation.
 - [ ] **Incremental sync** — verify a second sync shortly after the first
       re-issues the IDENTICAL `limit=10` requests (no `since`/cursor param
-      appears), and that the freshest-`SCORED`-record selection (see hard
-      rules) re-runs over that same fixed window each time.
-- [ ] **Pagination** — N/A by construction: each endpoint is a single
-      `limit=10` request with no `next`/cursor param sent or read. Record as
-      N/A with this reason rather than attempting to induce a second page.
+      appears), and that the first-array-order OR-predicate selection (see
+      hard rules — not "freshest") re-runs over that same fixed window each
+      time.
+- [ ] **Pagination** — verify the limit=10, no-pagination blind spot (see
+      known gaps above): if the test account's window has no record
+      satisfying the OR-predicate within the first 10 array positions,
+      verify the app honestly shows no data rather than fabricating from a
+      record outside the window. Seed or find an account where this occurs;
+      if the current account's match already falls within the first 10,
+      record as "not exercisable this cycle" rather than N/A.
 - [ ] **Interrupted sync** — force-quit/background mid-sync; verify clean
       recovery on next sync.
 - [ ] **Retry** — transient per-endpoint failure results in that

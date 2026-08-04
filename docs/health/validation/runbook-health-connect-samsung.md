@@ -28,9 +28,16 @@ Verified against the shipped code, not a projection: **neither
   conflating them). The Health Connect PERMISSION REQUEST flow itself has no
   client entry point to trigger it.
 - The api-server has ZERO routes referencing `google_health` or
-  `samsung_health` (grepped — no matches under `artifacts/api-server/src`).
-  These are exclusively device-native/client concepts today, and the client
-  side isn't wired either.
+  `samsung_health` — verified via `git grep` scoped to
+  `artifacts/api-server/src/routes`, which returns no matches for either
+  term. (The broader `artifacts/api-server/src` tree is NOT clean of the
+  string: `samsung_health` appears 18 times, entirely in test fixtures
+  under `__tests__/` directories — `adminDemandFromState.test.ts`,
+  `whoopFetchWorker.drizzle.test.ts`, `whoopFetchWorker.test.ts`,
+  `whoopSnapshot.test.ts`, `hydrationDemandStateAdapter.test.ts` — none of
+  them in `src/routes`, none wiring an actual endpoint. `google_health` has
+  zero hits anywhere under `src`.) These are exclusively device-native/
+  client concepts today, and the client side isn't wired either.
 - The real engine this runbook describes —
   `artifacts/aforce-os/services/health/healthConnect/sync.ts`'s
   `runHealthConnectSync` — has zero non-test callers (`git grep` for
