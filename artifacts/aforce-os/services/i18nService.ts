@@ -15,17 +15,15 @@ import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import { I18nManager } from 'react-native';
 
+// RC-1 Wave-3 P1 perf fix (audit P1-4): `en` is the only locale statically
+// (eagerly) imported here. `utils/scoringEngine.ts` calls `i18n.t()`
+// synchronously at ITS OWN module-eval time (see the self-init note near the
+// bottom of this file), so English must always be resolvable with zero async
+// work. Every other locale — the 5 other real ones (es/fr/de/pt/it) and the
+// 5 hidden Rule #16 placeholders (ar/zh/ja/ko/hi) — is loaded on demand by
+// `requireRealSecondaryLocale` / `ensureLanguageLoaded` below instead of
+// being imported here.
 import en from '../locales/en.json';
-import es from '../locales/es.json';
-import fr from '../locales/fr.json';
-import de from '../locales/de.json';
-import pt from '../locales/pt.json';
-import it from '../locales/it.json';
-import ar from '../locales/ar.json';
-import zh from '../locales/zh.json';
-import ja from '../locales/ja.json';
-import ko from '../locales/ko.json';
-import hi from '../locales/hi.json';
 
 export const SUPPORTED_LANGUAGES = ['en', 'es', 'fr', 'de', 'pt', 'it'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -86,20 +84,6 @@ export const VOICE_LOCALES: Record<AnyLanguage, string> = {
   hi: 'hi-IN',
 };
 
-const RESOURCES = {
-  en: { translation: en },
-  es: { translation: es },
-  fr: { translation: fr },
-  de: { translation: de },
-  pt: { translation: pt },
-  it: { translation: it },
-  ar: { translation: ar },
-  zh: { translation: zh },
-  ja: { translation: ja },
-  ko: { translation: ko },
-  hi: { translation: hi },
-} as const;
-
 /** Locales that render right-to-left. */
 const RTL_LANGUAGES: ReadonlySet<AnyLanguage> = new Set(['ar']);
 
@@ -123,6 +107,96 @@ export function detectDeviceLanguage(): SupportedLanguage {
   return 'en';
 }
 
+// Computed once, reused both to decide the eager secondary import below AND
+// as `initI18n`'s default `lng` — so "what we loaded eagerly" and "what we
+// booted into" can never disagree.
+const DEVICE_LANGUAGE: SupportedLanguage = detectDeviceLanguage();
+
+const REAL_SECONDARY_LOCALES = ['es', 'fr', 'de', 'pt', 'it'] as const;
+type RealSecondaryLocale = (typeof REAL_SECONDARY_LOCALES)[number];
+
+function isRealSecondaryLocale(lang: string): lang is RealSecondaryLocale {
+  return (REAL_SECONDARY_LOCALES as readonly string[]).includes(lang);
+}
+
+// Synchronous — `require()`, not `import()` — because this must be ready
+// before `initI18n()`'s first (synchronous) `.init()` call. A `switch` over
+// literal strings (rather than a computed `require(`../locales/${lang}.json`)`)
+// so Metro's static analyzer can see every possible module at bundle time;
+// only the ONE branch that actually matches the device locale ever executes.
+function requireRealSecondaryLocale(lang: RealSecondaryLocale): Record<string, unknown> {
+  switch (lang) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    case 'es': return require('../locales/es.json');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    case 'fr': return require('../locales/fr.json');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    case 'de': return require('../locales/de.json');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    case 'pt': return require('../locales/pt.json');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    case 'it': return require('../locales/it.json');
+  }
+}
+
+// If the device's own locale is one of the 5 non-English real locales, load
+// it synchronously alongside `en` so a non-English device still boots
+// pre-translated on the very first frame (no flash of English → device
+// language while a dynamic import resolves). Otherwise nothing extra loads.
+const EAGER_SECONDARY: { lang: RealSecondaryLocale; resource: Record<string, unknown> } | null =
+  isRealSecondaryLocale(DEVICE_LANGUAGE)
+    ? { lang: DEVICE_LANGUAGE, resource: requireRealSecondaryLocale(DEVICE_LANGUAGE) }
+    : null;
+
+const INITIAL_RESOURCES: Record<string, { translation: Record<string, unknown> }> = {
+  en: { translation: en },
+};
+if (EAGER_SECONDARY) {
+  INITIAL_RESOURCES[EAGER_SECONDARY.lang] = { translation: EAGER_SECONDARY.resource };
+}
+
+// Every language i18next already has a resource bundle for — seeded with
+// whatever `INITIAL_RESOURCES` above actually loaded — so
+// `ensureLanguageLoaded` never re-fetches/re-registers one it already has.
+const loadedLanguages = new Set<AnyLanguage>([
+  'en',
+  ...(EAGER_SECONDARY ? [EAGER_SECONDARY.lang] : []),
+]);
+
+// Dynamic `import()` (Metro defers this module's parse/eval cost until the
+// call actually happens) for every locale NOT already loaded above —
+// the 4 remaining real locales plus all 5 hidden Rule #16 placeholders.
+// Same literal-switch shape as `requireRealSecondaryLocale` for the same
+// Metro-static-analysis reason.
+function importLocale(lang: AnyLanguage) {
+  switch (lang) {
+    case 'en': return Promise.resolve({ default: en });
+    case 'es': return import('../locales/es.json');
+    case 'fr': return import('../locales/fr.json');
+    case 'de': return import('../locales/de.json');
+    case 'pt': return import('../locales/pt.json');
+    case 'it': return import('../locales/it.json');
+    case 'ar': return import('../locales/ar.json');
+    case 'zh': return import('../locales/zh.json');
+    case 'ja': return import('../locales/ja.json');
+    case 'ko': return import('../locales/ko.json');
+    case 'hi': return import('../locales/hi.json');
+  }
+}
+
+// Registers a locale's resource bundle with i18next on first use. No-op if
+// already loaded (covers `en` and a matched `EAGER_SECONDARY` immediately;
+// covers everything else after its first `setLanguage()` call). This is the
+// ONLY place a locale other than `en`/the device match gets its JSON parsed
+// and evaluated — deferred to the moment the user actually switches to it,
+// including the 5 hidden placeholders once a future release exposes them.
+async function ensureLanguageLoaded(lang: AnyLanguage): Promise<void> {
+  if (loadedLanguages.has(lang)) return;
+  const mod = await importLocale(lang);
+  i18n.addResourceBundle(lang, 'translation', mod.default, true, true);
+  loadedLanguages.add(lang);
+}
+
 let initialized = false;
 export function initI18n(initial?: AnyLanguage): typeof i18n {
   if (initialized) return i18n;
@@ -134,8 +208,8 @@ export function initI18n(initial?: AnyLanguage): typeof i18n {
   i18n
     .use(initReactI18next)
     .init({
-      resources: RESOURCES,
-      lng: initial ?? detectDeviceLanguage(),
+      resources: INITIAL_RESOURCES,
+      lng: initial ?? DEVICE_LANGUAGE,
       fallbackLng: 'en',
       interpolation: { escapeValue: false },
       returnNull: false,
@@ -149,6 +223,10 @@ export function initI18n(initial?: AnyLanguage): typeof i18n {
 
 export async function setLanguage(lang: AnyLanguage): Promise<void> {
   if (!initialized) initI18n(lang);
+  // Make sure the resource bundle exists BEFORE switching i18next's active
+  // language, so lookups resolve immediately instead of flashing raw keys /
+  // the English fallback while the dynamic import is still in flight.
+  await ensureLanguageLoaded(lang);
   if (i18n.language !== lang) {
     await i18n.changeLanguage(lang);
   }
