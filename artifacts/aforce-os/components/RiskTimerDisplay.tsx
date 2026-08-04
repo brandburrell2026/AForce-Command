@@ -6,6 +6,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { PerformanceState } from '../types';
 import { Colors } from '../theme/colors';
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 
 interface Props {
   timerSeconds: number;
@@ -28,15 +29,36 @@ export function RiskTimerDisplay({ timerSeconds, performanceState }: Props) {
 
   const isUrgent = level === 'DEPLETED' || (level === 'RECOVERING' && minutes < 5);
 
+  // RC-1 fix (P0 a11y, safety surface): this countdown had no accessible
+  // grouping at all — a screen reader read the label, the digits, and the
+  // "URGENT" badge as three disconnected fragments, and a live countdown
+  // updating every second was never announced. Composed label + a polite
+  // live region on the group (not assertive — a per-second announcement
+  // would be unusable) let a screen-reader user hear the current state
+  // without altering the visible timer logic or copy below.
+  const timerLabel = urgencyLabels[level] ?? 'NEXT CHECK';
+  const composedLabel = isUrgent
+    ? `${timerLabel}. ${display}. URGENT.`
+    : `${timerLabel}. ${display}.`;
+
   return (
-    <View style={[styles.container, { borderColor: `${color}22` }]}>
+    <View
+      style={[styles.container, { borderColor: `${color}22` }]}
+      accessible
+      accessibilityLabel={composedLabel}
+      accessibilityLiveRegion="polite"
+      testID="risk-timer-display"
+    >
       <Text style={[styles.label, { color: Colors.text.muted }]}>
         {urgencyLabels[level] ?? 'NEXT CHECK'}
       </Text>
-      <Text style={[
-        styles.timerText,
-        { color: isUrgent ? color : Colors.text.primary },
-      ]}>
+      <Text
+        style={[
+          styles.timerText,
+          { color: isUrgent ? color : Colors.text.primary },
+        ]}
+        maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+      >
         {display}
       </Text>
       {isUrgent && (
