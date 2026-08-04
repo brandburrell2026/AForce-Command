@@ -166,7 +166,7 @@ export const afLayout = {
 // A `withRepeat` ambient loop (a pulse, a breathing ring, a Ken-Burns pan) is
 // not a seventh pattern — it is PROGRESS or EMPHASIZE running unbounded, and
 // is held to the same two non-negotiable rules above. Reference for the
-// gate+cleanup shape: components/WhoopSnapshotCard.tsx:126-168.
+// gate+cleanup shape: WhoopSnapshotCard's connection-dot gate.
 export const afMotion = {
   durations: {
     fast: 120, //        120ms — press-scale, tab dot; the quickest register
