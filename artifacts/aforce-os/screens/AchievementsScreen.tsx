@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme';
 import {
   ACHIEVEMENTS,
   type AchievementUnlockState,
@@ -53,7 +54,15 @@ export function AchievementsScreen() {
       <GradientBackground>
         <ScrollView
           contentContainerStyle={[styles.content, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} tintColor={Colors.text.primary} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={load}
+              tintColor={af.textPrimary}
+              colors={[af.textPrimary]}
+              progressBackgroundColor={af.surface}
+            />
+          }
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>

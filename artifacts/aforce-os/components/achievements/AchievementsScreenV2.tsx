@@ -55,7 +55,15 @@ export function AchievementsScreenV2() {
       <GradientBackground>
         <ScrollView
           contentContainerStyle={[styles.content, { paddingTop: topPadding, paddingBottom: bottomPadding }]}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} tintColor={af.textPrimary} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={load}
+              tintColor={af.textPrimary}
+              colors={[af.textPrimary]}
+              progressBackgroundColor={af.surface}
+            />
+          }
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
