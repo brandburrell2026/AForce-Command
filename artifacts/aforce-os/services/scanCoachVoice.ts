@@ -89,7 +89,7 @@ export function buildScanCoachScript(
       headline: `${scanned.productName} is locked in for your ${state} state.`,
       transcript:
         `${scanned.productName} is locked in for your ${state} state. ` +
-        `Fit score ${fit}, hydrating at ${eff} efficiency. ` +
+        `This is a strong match — stay with it. ` +
         `Take 1 with 16 ounces water and recheck in 20 minutes.`,
       bullets: [],
       hasComparison: false,
@@ -139,7 +139,8 @@ export function buildScanCoachScript(
     return {
       headline: `${scanned.productName} fits your ${state} state.`,
       transcript:
-        `${scanned.productName} fits your ${state} state at ${fit} fit, ${eff} efficiency. ` +
+        `${scanned.productName} fits your ${state} state. ` +
+        `A solid choice right now. ` +
         `Take 1 with 16 ounces water and recheck in 20 minutes.`,
       bullets: [],
       hasComparison: false,
@@ -166,7 +167,7 @@ export function buildScanCoachScript(
     headline: `${scanned.productName} is not optimal for your ${state} state.`,
     transcript:
       `${scanned.productName} is not optimal for your ${state} state. ` +
-      `Fit score ${fit}, ${eff} efficiency. ` +
+      `Water alone is the safer move here. ` +
       `Take 16 ounces water now and recheck in 20 minutes.`,
     bullets: [],
     hasComparison: false,

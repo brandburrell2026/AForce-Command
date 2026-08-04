@@ -609,11 +609,11 @@
     "confidence_medium": "BOA CONFIANÇA",
     "confidence_low": "CALIBRANDO",
     "morning_action": "Beba {{oz}} ounces agora. Verifique novamente em 25 minutos. Você começa em déficit.",
-    "morning_explanation": "Perda noturna: {{oz}} ounces. Restabeleça sua base antes de treinar.",
+    "morning_explanation": "Overnight took {{oz}} oz out of you. Reset your baseline before training starts.",
     "peak_action": "Pontuação {{score}}. Pico. Beba 8 ounces antes da próxima sessão. Mantenha o ritmo.",
-    "peak_explanation": "Mantenha o ritmo. Use um stick se o calor ou esforço subir.",
+    "peak_explanation": "You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up.",
     "balanced_action": "Pontuação {{score}}. Equilibrado. Beba 12 ounces agora. Verifique novamente em 45 minutos.",
-    "balanced_explanation": "Você está no ritmo. Antecipe-se à próxima queda.",
+    "balanced_explanation": "You're holding steady. Staying a step ahead of your next drink keeps it that way.",
     "recovering_action": "Pontuação {{score}}. Recuperando. Tome 1 stick com 16 ounces agora. Verifique novamente em 20 minutos.",
     "recovering_explanation": "Você está caindo. Reverta a curva antes que acelere.",
     "depleted_action": "Pontuação {{score}}. Esgotado. Beba 20 ounces e tome 2 sticks agora. Verifique novamente em 10 minutos.",
@@ -621,7 +621,7 @@
     "social_drink_water_action": "Beba 12 ounces de água agora. Espace o próximo drink em 30 minutos.",
     "social_drink_water_explanation": "Hidratar após um drink protege amanhã. Um copo agora reinicia a curva.",
     "social_take_rtd_action": "Tome 1 RTD agora. Beba 16 ounces de água antes da próxima rodada.",
-    "social_take_rtd_explanation": "O risco de ressaca está subindo ({{score}}/100). Eletrólitos agora deixam a manhã mais leve.",
+    "social_take_rtd_explanation": "Recovery window opening. Electrolytes now make tomorrow morning easier.",
     "social_slow_intake_action": "Beba água entre os drinks. Você está em {{count}} — dite o ritmo.",
     "social_slow_intake_explanation": "Espaçar drinks por 30+ minutos mantém a pontuação firme e a manhã limpa.",
     "social_recovery_action": "Beba 20 ounces de água e tome 1 RTD antes de dormir.",
@@ -650,7 +650,10 @@
       "log_oz_a11y": "Log {{oz}} ounces",
       "dose_oz": "{{oz}} oz",
       "dismiss": "Dismiss"
-    }
+    },
+    "consequence_drop": "Skip this and you're likely to land near {{projected}} in the next {{minutes}} min.",
+    "context_late_night": "It's late, and this window sets up your tomorrow.",
+    "pattern_streak": "{{count}} days strong — that consistency is paying off."
   },
   "social": {
     "title": "MODO SOCIAL",
@@ -1216,7 +1219,7 @@
         "title": "Comando principal da semana",
         "value": "{{label}}",
         "detail": "Usado {{count}} vezes esta semana.",
-        "awaiting": "Seu comando mais usado aparece quando o rastreamento estiver ativo."
+        "awaiting": "Keep logging — your most-used move shows up here next week."
       },
       "nextWeekFocus": {
         "title": "Foco da próxima semana",

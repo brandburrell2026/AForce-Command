@@ -29,6 +29,14 @@ considered done in that locale.
 | `home.live_status.a11y_label` | `components/home/LiveStatusLine.tsx` (RC-1 Wave-1 r2, item 5) | `"Trend {{verb}}"` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Accessibility label composed from the verb above. |
 | `profile.v2.apple_fetch_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't refresh Apple Health data."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | New key for the Apple Health fetch-failure inline error row. `profile.v2.*` is, like `home.v2.*`, already English-only across all 10 non-English locales (confirmed: 268–273 of 281 `profile.v2` keys are byte-identical to the English source in de/es/fr/it/pt) — no existing equivalent phrase to carry over, so all 10 are listed here rather than just the 5-locale set. |
 | `profile.v2.whoop_status_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't check WHOOP connection status."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same as above — WHOOP status-check failure inline error row. |
+| `coach.balanced_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"You're holding steady. Staying a step ahead of your next drink keeps it that way."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Voice-spec rewrite of a "worst-10" coach line (was syslog-style "Recovery stable."). `de`/`es`/`fr`/`it`/`pt` previously carried real human translations of the OLD English text — those are now stale (they translate wording that no longer exists) and have been overwritten with the NEW English source per house rule, rather than risk shipping a translation of a sentence that was never reviewed against the voice spec (acknowledge→insight structure, no syslog "active", no forbidden §59/§64 stems) in that language. All 10 non-English locales need a fresh human translation of the NEW copy. |
+| `coach.peak_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same rewrite pass — was "Flow state active." (syslog "X active", the exact pattern the voice spec calls out for streaks/wins). Same stale-translation reasoning as `coach.balanced_explanation` above. |
+| `coach.morning_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"Overnight took {{oz}} oz out of you. Reset your baseline before training starts."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was a "Label: value" data-readout ("Overnight recovery window: {{oz}} oz."), not a sentence a coach would say. `{{oz}}` interpolation preserved. Same stale-translation reasoning. |
+| `coach.consequence_drop` | `utils/scoring/copy.ts` `composeExplanation` (RC-1 Wave-4, item 1) | `"Skip this and you're likely to land near {{projected}} in the next {{minutes}} min."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Without action: score drifts to {{projected}} in {{minutes}} min." — report-label format, not coach speech. `{{projected}}`/`{{minutes}}` interpolation preserved. Previously MISSING (relying on `fallbackLng: 'en'`) in `de`/`es`/`fr`/`it`/`pt`; now present literally in all 10, same as the other rows here. |
+| `coach.context_late_night` | `utils/scoring/copy.ts` `composeExplanation` (RC-1 Wave-4, item 1) | `"It's late, and this window sets up your tomorrow."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Late-night recovery window active." (syslog "X active"). Previously MISSING in `de`/`es`/`fr`/`it`/`pt`; now present literally in all 10. |
+| `coach.pattern_streak` | `utils/scoring/copy.ts` `composeExplanation` (RC-1 Wave-4, item 1) | `"{{count}} days strong — that consistency is paying off."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "{{count}}-day recovery streak active." (syslog "X active" on a win — the voice spec's named example of what NOT to do to a streak/win line). Rewrite is also constrained by the Section 63 streak-copy guard (`utils/__tests__/streakCopy.test.ts`) — no "keep/save/protect...streak" preservation-urgency framing. `{{count}}` interpolation preserved. Previously MISSING in `de`/`es`/`fr`/`it`/`pt`; now present literally in all 10. |
+| `coach.social_take_rtd_explanation` | `utils/scoring/copy.ts` `generateSocialCommand` (RC-1 Wave-4, item 1) | `"Recovery window opening. Electrolytes now make tomorrow morning easier."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Recovery window opening ({{score}}/100). Electrolytes now make morning easier." — the exact "raw number in parentheses mid-sentence" pattern the voice spec forbids; the hangover-risk score stays available on-screen via the existing risk meter, just not spoken. `{{score}}` interpolation param is still passed at the call site but is intentionally unused in the new copy. Same stale-translation reasoning as the rows above. |
+| `reports.sections.topCommand.awaiting` | `app/weekly-report.tsx` / `utils/weeklyReport.ts` (RC-1 Wave-4, item 1) | `"Keep logging — your most-used move shows up here next week."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Your most-used command appears once command tracking is on." — exposed the internal instrumentation term "command tracking" to the user. Rewrite matches the sibling `reports.sections.improved.collecting` voice ("Keep logging — your wins show up here next week."). Same stale-translation reasoning. |
 
 ## Convention this table follows
 
@@ -45,6 +53,20 @@ still English-only in all 10 non-English locale files, predating this fix)
 5-locale "no real translation available" set. `services/i18nService.ts`'s
 `fallbackLng: 'en'` is unrelated — every locale file still carries every
 key, just with an English value for the untranslated ones.
+
+For the 8 RC-1 Wave-4 `coach.*` / `reports.sections.topCommand.awaiting`
+rows, all 10 non-English locales are listed for a different reason than
+`home.live_status.*`: `de`/`es`/`fr`/`it`/`pt` DID have real human
+translations, but of the OLD English wording this wave rewrote for voice-spec
+compliance (acknowledge→insight structure, no syslog "X active" on wins/
+streaks, no raw numbers in parentheses, no exposed instrumentation terms).
+Carrying those stale translations forward would ship copy that was never
+reviewed against the new English source or the new voice constraints in that
+language, and an AI-agent-authored ad-hoc translation risks silently
+reintroducing the same violations in another language without native review
+— worse than just being untranslated. So every non-English locale carries the
+new English source verbatim for these 8 keys pending real human translation,
+per the house rule.
 
 **Maintenance:** when a row's locale gets a real human translation, update
 the locale JSON and delete the row (or move it to a "resolved" section if a

@@ -609,11 +609,11 @@
     "confidence_medium": "BUONA AFFIDABILITÀ",
     "confidence_low": "IN CALIBRAZIONE",
     "morning_action": "Bevi {{oz}} ounces adesso. Ricontrolla tra 25 minuti. Inizi in deficit.",
-    "morning_explanation": "Perdita notturna: {{oz}} ounces. Ripristina la base prima dell'allenamento.",
+    "morning_explanation": "Overnight took {{oz}} oz out of you. Reset your baseline before training starts.",
     "peak_action": "Punteggio {{score}}. Picco. Bevi 8 ounces prima della prossima sessione. Tieni la linea.",
-    "peak_explanation": "Mantieni il ritmo. Stick durante lo sforzo se calore o output salgono.",
+    "peak_explanation": "You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up.",
     "balanced_action": "Punteggio {{score}}. Bilanciato. Bevi 12 ounces adesso. Ricontrolla tra 45 minuti.",
-    "balanced_explanation": "Sei in pace. Anticipa la prossima finestra di deficit.",
+    "balanced_explanation": "You're holding steady. Staying a step ahead of your next drink keeps it that way.",
     "recovering_action": "Punteggio {{score}}. Recupero. Prendi 1 stick con 16 ounces adesso. Ricontrolla tra 20 minuti.",
     "recovering_explanation": "Stai calando. Inverti la curva prima che acceleri.",
     "depleted_action": "Punteggio {{score}}. Esaurito. Bevi 20 ounces e prendi 2 stick adesso. Ricontrolla tra 10 minuti.",
@@ -621,7 +621,7 @@
     "social_drink_water_action": "Bevi 12 ounces d'acqua adesso. Distanzia il prossimo drink di 30 minuti.",
     "social_drink_water_explanation": "Idratarsi dopo un drink protegge domani. Un bicchiere ora resetta la curva.",
     "social_take_rtd_action": "Prendi 1 RTD adesso. Bevi 16 ounces d'acqua prima del prossimo giro.",
-    "social_take_rtd_explanation": "Il rischio postumi sale ({{score}}/100). Elettroliti adesso rendono la mattina più leggera.",
+    "social_take_rtd_explanation": "Recovery window opening. Electrolytes now make tomorrow morning easier.",
     "social_slow_intake_action": "Bevi acqua tra i drink. Sei a {{count}} — detta il ritmo.",
     "social_slow_intake_explanation": "Distanziare i drink di 30+ minuti tiene il punteggio stabile e la mattina pulita.",
     "social_recovery_action": "Bevi 20 ounces d'acqua e prendi 1 RTD prima di dormire.",
@@ -650,7 +650,10 @@
       "log_oz_a11y": "Log {{oz}} ounces",
       "dose_oz": "{{oz}} oz",
       "dismiss": "Dismiss"
-    }
+    },
+    "consequence_drop": "Skip this and you're likely to land near {{projected}} in the next {{minutes}} min.",
+    "context_late_night": "It's late, and this window sets up your tomorrow.",
+    "pattern_streak": "{{count}} days strong — that consistency is paying off."
   },
   "social": {
     "title": "MODALITÀ SOCIAL",
@@ -1216,7 +1219,7 @@
         "title": "Comando principale della settimana",
         "value": "{{label}}",
         "detail": "Usato {{count}} volte questa settimana.",
-        "awaiting": "Il tuo comando più usato appare quando il tracciamento è attivo."
+        "awaiting": "Keep logging — your most-used move shows up here next week."
       },
       "nextWeekFocus": {
         "title": "Focus della prossima settimana",
