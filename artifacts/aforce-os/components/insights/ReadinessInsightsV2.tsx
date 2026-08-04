@@ -27,6 +27,7 @@ import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice } from '@/store/slices';
 import { EliteWeeklyEditorial } from './EliteWeeklyEditorial';
+import { ReadinessInsightsSkeleton } from './ReadinessInsightsSkeleton';
 import type { AnalyticsEvent } from '@/utils/analytics/metrics';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import {
@@ -108,6 +109,14 @@ export function ReadinessInsightsV2() {
   const shareWeek = React.useMemo(() => lastCompletedWeek(shareNowISO), [shareNowISO]);
 
   const [shareEvents, setShareEvents] = React.useState<AnalyticsEvent[]>([]);
+  // RC-1 Wave-2B (item 2c) — the #531 analytics fetch above never tracked a
+  // loading flag; this screen's short-history branch went straight to the
+  // honest "not enough data yet" empty state even on the very first frame,
+  // before the fetch had a chance to settle. `analyticsLoading` distinguishes
+  // that brief real-loading window from the settled, honest-empty state —
+  // it flips false on EITHER outcome (success or failure) since either way
+  // the one fetch attempt has completed.
+  const [analyticsLoading, setAnalyticsLoading] = React.useState(true);
   React.useEffect(() => {
     let cancelled = false;
     getAnalyticsSnapshot()
@@ -118,6 +127,9 @@ export function ReadinessInsightsV2() {
         // Best-effort — a failed snapshot fetch leaves shareEvents at its
         // honest empty default; the shared report's sections simply read
         // "collecting"/"awaiting" (Score-Protection), never a crash.
+      })
+      .finally(() => {
+        if (!cancelled) setAnalyticsLoading(false);
       });
     return () => {
       cancelled = true;
@@ -201,7 +213,9 @@ export function ReadinessInsightsV2() {
         actions={[{ icon: 'share', onPress: onShare, label: t('reports.share_a11y') }]}
       />
 
-      {scores.length < 2 ? (
+      {scores.length < 2 && analyticsLoading ? (
+        <ReadinessInsightsSkeleton />
+      ) : scores.length < 2 ? (
         <AFEmptyState
           icon="activity"
           title={t('reports.v2.empty_title')}
