@@ -18,7 +18,12 @@ import { af } from '@/theme';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
-import { deriveProviderRowStatus, healthFlagsFromFeatureFlags } from '@/utils/health/providerRowStatus';
+import {
+  deriveProviderRowStatus,
+  healthFlagsFromFeatureFlags,
+  providerRowA11yKind,
+  PROVIDER_ROW_A11Y_I18N_KEY,
+} from '@/utils/health/providerRowStatus';
 import {
   isAppleHealthSupported,
   requestAppleHealthPermissions,
@@ -1203,6 +1208,16 @@ export function ProfileScreenV2() {
                     });
                     const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
                     const linked = row.live || demoLinked;
+                    // A11y fix (Squad-F HIGH #3): the announced label used to be
+                    // a blind Connect/Disconnect off `linked` alone, so states
+                    // like Approval Pending / Coming Soon / Unsupported / Needs
+                    // Attention were inaudible and a screen reader could hear
+                    // "Connect WHOOP" on a row where connecting was impossible.
+                    // `providerRowA11yKind` mirrors the pill branches below
+                    // exactly, so the announced state can never drift from the
+                    // rendered one.
+                    const rowA11yKind = providerRowA11yKind({ demoLinked, live: row.live, status: row.status });
+                    const rowA11yLabel = t(PROVIDER_ROW_A11Y_I18N_KEY[rowA11yKind], { name: p.name });
                     return (
                       <React.Fragment key={p.id}>
                         <Pressable
@@ -1218,11 +1233,7 @@ export function ProfileScreenV2() {
                             pressed && { backgroundColor: `${p.brand}10` },
                           ]}
                           accessibilityRole="button"
-                          accessibilityLabel={
-                            linked
-                              ? t('profile.v2.disconnect_a11y', { name: p.name })
-                              : t('profile.v2.connect_a11y', { name: p.name })
-                          }
+                          accessibilityLabel={rowA11yLabel}
                           testID={`provider-${p.id}`}
                         >
                           <View
@@ -1268,20 +1279,26 @@ export function ProfileScreenV2() {
                               {t('profile.v2.needs_attention')}
                             </Text>
                           ) : row.status === 'approval_pending' ? (
+                            // Contrast fix (Squad-F HIGH #6): `${p.brand}AA` text on
+                            // the dark surface computed as low as ~1.6:1 for brands
+                            // like Samsung blue. Brand color stays on the border
+                            // (a non-text, decorative affordance); the label itself
+                            // renders in af.textSecondary, which is ~7.4:1 on
+                            // af.surface for every provider regardless of brand hue.
                             <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
-                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                              <Text style={[styles.connectPillText, { color: af.textSecondary }]}>
                                 {t('profile.v2.approval_pending')}
                               </Text>
                             </View>
                           ) : row.status === 'coming_soon' ? (
                             <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
-                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                              <Text style={[styles.connectPillText, { color: af.textSecondary }]}>
                                 {t('profile.v2.coming_soon')}
                               </Text>
                             </View>
                           ) : row.status === 'available_through_health_connect' ? (
                             <View style={[styles.connectPill, { borderColor: `${p.brand}55` }]}>
-                              <Text style={[styles.connectPillText, { color: `${p.brand}AA` }]}>
+                              <Text style={[styles.connectPillText, { color: af.textSecondary }]}>
                                 {t('profile.v2.via_health_connect')}
                               </Text>
                             </View>
@@ -1296,7 +1313,7 @@ export function ProfileScreenV2() {
                                 { borderColor: `${p.brand}88` },
                               ]}
                             >
-                              <Text style={[styles.connectPillText, { color: p.brand }]}>
+                              <Text style={[styles.connectPillText, { color: af.textSecondary }]}>
                                 {t('profile.v2.connect_pill')}
                               </Text>
                             </View>

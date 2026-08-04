@@ -1190,7 +1190,20 @@ export function ProfileLegacy() {
                           ]}
                           accessibilityRole="button"
                           accessibilityLabel={
-                            linked ? `Disconnect ${p.name}` : `Connect ${p.name}`
+                            // A11y fix (Squad-F HIGH #3): this legacy screen has
+                            // only three real states (demo / live / connect — it
+                            // doesn't run the honest §26 status resolver ProfileScreenV2
+                            // does), but it still announced a blind Connect/Disconnect
+                            // that never mentioned demo mode. This section has no
+                            // existing t() usage (unlike the rest of the file), so it
+                            // keeps English-only strings for parity with its sibling
+                            // pill text (DEMO/LIVE/CONNECT) rather than introducing new
+                            // i18n plumbing here alone.
+                            garminDemo
+                              ? `${p.name}, demo mode, double tap to disconnect`
+                              : linked
+                                ? `${p.name}, connected, double tap to disconnect`
+                                : `Connect ${p.name}`
                           }
                           testID={`provider-${p.id}`}
                         >
@@ -1237,7 +1250,13 @@ export function ProfileLegacy() {
                                 { borderColor: `${p.brand}88` },
                               ]}
                             >
-                              <Text style={[styles.connectPillText, { color: p.brand }]}>
+                              {/* Contrast fix (Squad-F HIGH #6): p.brand text on the
+                                  dark surface computed as low as ~1.6:1 for brands
+                                  like Samsung blue. Brand color stays on the pill
+                                  border (decorative, non-text); the label renders in
+                                  Colors.text.secondary, ~6.1:1 on this surface for
+                                  every provider regardless of brand hue. */}
+                              <Text style={[styles.connectPillText, { color: Colors.text.secondary }]}>
                                 CONNECT
                               </Text>
                             </View>

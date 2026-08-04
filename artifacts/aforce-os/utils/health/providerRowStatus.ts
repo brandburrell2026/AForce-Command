@@ -23,6 +23,7 @@ import {
   type HealthPlatform,
   type HealthLinkState,
   type HealthProviderStatus,
+  type HealthProviderUiStatus,
 } from './healthProviderStatus';
 import type { HealthProviderId } from '@/data/healthProviders';
 import type { FeatureFlags } from '@/types';
@@ -161,4 +162,65 @@ export function deriveProviderRowStatus(f: ProviderRowFacts): HealthProviderStat
     link,
     demoOptIn,
   });
+}
+
+/**
+ * Provider-row accessibility state (Squad-F HIGH #3): the announced
+ * affordance for the Profile "HEALTH PLATFORMS" row. Previously the row's
+ * `accessibilityLabel` was `Connect {name}` / `Disconnect {name}` purely off
+ * `linked`, so a screen reader would announce "Connect WHOOP" on a row that
+ * was actually Approval Pending, Coming Soon, or Unsupported — an action
+ * that was never available. This mirrors the render branch order in
+ * ProfileScreenV2 exactly (demo → live[+syncing/partial] → needs_attention →
+ * approval_pending → coming_soon → via_health_connect → unsupported →
+ * connect) so the announced state can never drift from the visual pill, and
+ * "Connect"/"Disconnect" are only ever announced when that tap is the real
+ * one the row performs.
+ */
+export type ProviderRowA11yKind =
+  | 'demo'
+  | 'live'
+  | 'syncing'
+  | 'partially_authorized'
+  | 'needs_attention'
+  | 'approval_pending'
+  | 'coming_soon'
+  | 'via_health_connect'
+  | 'unsupported'
+  | 'connect';
+
+/** i18n key (under `profile.v2.`) carrying `{{name}}` for each announced state. */
+export const PROVIDER_ROW_A11Y_I18N_KEY: Record<ProviderRowA11yKind, string> = {
+  demo: 'profile.v2.row_a11y_demo',
+  live: 'profile.v2.row_a11y_connected',
+  syncing: 'profile.v2.row_a11y_syncing',
+  partially_authorized: 'profile.v2.row_a11y_partial',
+  needs_attention: 'profile.v2.row_a11y_needs_attention',
+  approval_pending: 'profile.v2.row_a11y_approval_pending',
+  coming_soon: 'profile.v2.row_a11y_coming_soon',
+  via_health_connect: 'profile.v2.row_a11y_via_health_connect',
+  unsupported: 'profile.v2.row_a11y_unsupported',
+  connect: 'profile.v2.connect_a11y',
+};
+
+export function providerRowA11yKind(params: {
+  /** The row shows the labeled DEMO pill (display-only, never a real link). */
+  demoLinked: boolean;
+  /** `HealthProviderStatus.live` — a real, verified connection. */
+  live: boolean;
+  status: HealthProviderUiStatus;
+}): ProviderRowA11yKind {
+  const { demoLinked, live, status } = params;
+  if (demoLinked && !live) return 'demo';
+  if (live) {
+    if (status === 'syncing') return 'syncing';
+    if (status === 'partially_authorized') return 'partially_authorized';
+    return 'live';
+  }
+  if (status === 'needs_attention') return 'needs_attention';
+  if (status === 'approval_pending') return 'approval_pending';
+  if (status === 'coming_soon') return 'coming_soon';
+  if (status === 'available_through_health_connect') return 'via_health_connect';
+  if (status === 'unsupported') return 'unsupported';
+  return 'connect';
 }
