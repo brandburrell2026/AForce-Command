@@ -78,24 +78,29 @@
   .stagger > *{ transition-delay:calc(var(--i,0) * 90ms); }
 
   /* Hero — cinematic sunrise over Fort Lauderdale Beach */
-  .hero{ position:relative; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding-top:clamp(120px,18vh,200px); padding-bottom:clamp(56px,9vh,104px); overflow:hidden; }
+  .hero{ position:relative; min-height:78vh; display:flex; flex-direction:column; justify-content:center; padding-top:clamp(88px,10vh,120px); padding-bottom:clamp(44px,6vh,76px); overflow:hidden; }
   .hero-sky{ position:absolute; inset:0; z-index:0; background:
-      radial-gradient(150% 92% at 80% 54%, rgba(193,40,27,0.18), rgba(193,40,27,0) 58%),
+      radial-gradient(150% 92% at 82% 60%, rgba(193,40,27,0.16), rgba(193,40,27,0) 56%),
       linear-gradient(180deg, #ECEAE3 0%, #EEE7DB 44%, #D9D3C9 53%, #BFCCD3 62%, #A6BCC8 100%); }
-  .hero-sun{ position:absolute; right:-6%; top:54%; transform:translateY(-50%); width:clamp(200px,30vw,460px); height:clamp(200px,30vw,460px); border-radius:50%; background:radial-gradient(circle at 50% 42%, #DA3A2B, var(--red) 72%); box-shadow:0 0 130px 24px rgba(193,40,27,0.26); }
-  .hero-horizon{ position:absolute; left:0; right:0; top:54%; height:1px; background:linear-gradient(90deg, rgba(13,13,13,0) 0%, rgba(13,13,13,0.22) 28%, rgba(13,13,13,0.22) 72%, rgba(13,13,13,0) 100%); }
+  .hero-sun{ position:absolute; right:-9%; top:60%; transform:translateY(-50%); width:clamp(170px,24vw,380px); height:clamp(170px,24vw,380px); border-radius:50%; background:radial-gradient(circle at 50% 42%, #DA3A2B, var(--red) 72%); box-shadow:0 0 120px 22px rgba(193,40,27,0.24); }
+  .hero-horizon{ position:absolute; left:0; right:0; top:60%; height:1px; background:linear-gradient(90deg, rgba(13,13,13,0) 0%, rgba(13,13,13,0.22) 28%, rgba(13,13,13,0.22) 72%, rgba(13,13,13,0) 100%); }
   .hero .wrap{ position:relative; z-index:2; }
   .hero .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:var(--red); font-weight:600; }
   .hero .place{ font-family:var(--mono); font-size:12px; letter-spacing:0.28em; text-transform:uppercase; color:var(--mute); margin-top:10px; }
   .hero .place .sep{ color:var(--faint); margin:0 .55em; }
   .hero .hlabel{ font-family:var(--mono); font-size:clamp(12px,1.3vw,15px); letter-spacing:0.22em; text-transform:uppercase; color:var(--ink); font-weight:600; margin-top:clamp(30px,5vw,56px); }
-  .hero-statement{ margin-top:18px; display:flex; flex-direction:column; font-size:clamp(52px,10vw,132px); font-weight:800; letter-spacing:-0.04em; line-height:0.92; }
+  .hero-statement{ margin-top:18px; display:flex; flex-direction:column; font-size:clamp(46px,7.6vw,108px); font-weight:800; letter-spacing:-0.04em; line-height:0.92; max-width:min(100%,720px); }
   .hero-statement .l1{ color:var(--ink); }
   .hero-statement .l2{ color:rgba(13,13,13,0.34); }
   .hero .sub2{ margin-top:clamp(24px,3vw,36px); color:var(--mute); max-width:46ch; font-size:clamp(16px,1.35vw,20px); }
   .enter{ margin-top:clamp(38px,6vw,60px); display:inline-flex; align-items:center; gap:12px; font-family:var(--mono); font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink); text-decoration:none; }
   .enter .dot{ width:34px; height:34px; border:1px solid var(--line); border-radius:50%; display:grid; place-items:center; transition:border-color .3s, transform .3s; }
   .enter:hover .dot{ border-color:var(--red); transform:translateY(3px); }
+  /* Small screens — the statement is full-width, so drop the sun to the lower-right corner, clear of the text */
+  @media (max-width:820px){
+    .hero-sun{ top:auto; bottom:5%; right:-14%; transform:none; width:clamp(140px,22vw,190px); height:clamp(140px,22vw,190px); }
+    .hero-horizon{ top:auto; bottom:calc(5% + 90px); }
+  }
 
   /* Dark sections — the alternating cinematic rhythm */
   .sec.dark{ background:var(--ink); color:var(--bone); border-top-color:rgba(245,240,232,0.10); }
