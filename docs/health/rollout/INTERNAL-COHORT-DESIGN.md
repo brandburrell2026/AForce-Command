@@ -11,10 +11,63 @@
 `statusColor.ts`, `config/hydroStateModel.ts` thresholds, or the camera/HydroState
 visual surface.
 
-**Revision — 2026-08-03.** Resolves seven coherence notes from the independent
-review of PR #503, plus four factual nits. Every seam cited below was re-verified
-against `main` at `62cb59bc` at revision time; line numbers in this document refer
-to that commit. The substantive changes:
+**Revision r2 — 2026-08-03 (second pass).** Corrects six defects confirmed
+against `main` at `480e2393` during the independent review of PR #515. The first
+is a **correction, not a refinement**: r1 claimed a cohort grant moves
+`apple_health`. It does not, and cannot, in any binary shipped today.
+
+| # | Defect | Where corrected |
+|---|---|---|
+| 1 | **Provider movability was wrong.** `apple_health` was presented as grant-movable ("iOS, native ready"). Its `integrationReady` comes from `isAppleHealthSupported()`, which reads the **compile-time** `DEFAULT_FLAGS.healthkit_native_enabled` constant — the overlay cannot reach it. A grant moves **zero** providers today. | §4.5, §4.5.2, §4.5.3, §5.1, §10.2 (PR 6), new decision **D-6** |
+| 2 | Front matter said four blocked decisions; §13 listed five | this block and §13 — now **six** (D-1…D-6); §13 is the only authoritative count |
+| 3 | Decision IDs were silently renumbered between r0 and r1 | **ID-stability table** below; renumbering is now forbidden |
+| 4 | §10.2's PR-4 row carried no 🚫 despite §5.3 and §13 blocking it; §13 and the closing paragraph disagreed on whether D-5 blocks PR 1 | §10.2 (PR 4 row), §13 (the D-5 row is now the single statement) |
+| 5 | §4.5.2's predicate was named `connectable(...)`, colliding with the real `HealthProviderStatus.connectable` field, which is `true` for four further statuses | §4.5.2 — renamed `offersConnect(...)` |
+| 6 | `providerRowStatus.ts` line citations were pinned to `62cb59bc` and had drifted `+1` | §4.5, §4.5.2, §4.5.3, §12 — now **symbol-anchored** |
+
+**Citation provenance, stated precisely.** Citations to
+`utils/health/providerRowStatus.ts`, `utils/health/healthProviderStatus.ts`,
+`services/appleHealth.ts`, `featureFlags/flags.ts`, and
+`components/profile/ProfileScreenV2.tsx` were re-verified against `main` at
+**`480e2393`** during r2 and are anchored to **symbols** (function, `case` arm,
+field) rather than line numbers, so they cannot drift again. Every other citation
+in this document still refers to `62cb59bc`, the r1 pin, and was **not**
+re-verified in r2 — do not read it as re-confirmed.
+
+#### Decision ID stability — normative
+
+Decision IDs were renumbered exactly once, between r0 (`7a83a1b3`) and r1
+(`89f95194`): `D-4` silently changed subject. An external reference to "D-4"
+written before r1 does not mean what "D-4" means now. Resolve it here:
+
+| Reference as written in r0 | Current ID | Subject |
+|---|---|---|
+| D-1 | **D-1** | Audit-row retention duration (counsel) |
+| D-2 | **D-2** | Night Out `internalPreview` widening (founder) |
+| D-3 | **D-3** | Production `FOUNDER_EMAILS` |
+| **D-4** | **D-5** | `health_canonical_consumers` on the overlay allow-list |
+| — (introduced in r1) | **D-4** | Production `CORS_ALLOWED_ORIGINS` |
+| — (introduced in r2) | **D-6** | `appleHealth.ts` effective-flags refactor |
+
+> **Normative: decision IDs are permanent and are never reused or renumbered.**
+> A decision that is resolved, withdrawn, or superseded keeps its ID and is
+> marked as such in §13. A new decision takes the next unused number. Adding a
+> row to the table above is the only correct response to a change in the
+> decision set.
+
+**Six decisions remain 🚫 BLOCKED and are deliberately *not* resolved here:**
+D-1 (audit retention, counsel), D-2 (Night Out widening, founder), D-3
+(production `FOUNDER_EMAILS`), D-4 (production `CORS_ALLOWED_ORIGINS`), D-5
+(`health_canonical_consumers` on the allow-list), and D-6 (`appleHealth.ts`
+effective-flags refactor). **§13 is the single index; if this sentence and §13
+ever disagree, §13 governs.**
+
+<details>
+<summary><strong>Revision r1 — 2026-08-03 (first pass). Retained for history.</strong></summary>
+
+Resolved seven coherence notes from the independent review of PR #503, plus four
+factual nits. Seams were verified against `main` at `62cb59bc`; except where r2
+re-pinned them (above), line numbers in this document refer to that commit.
 
 | Note | Where |
 |---|---|
@@ -22,14 +75,11 @@ to that commit. The substantive changes:
 | Overlay must return `base` by reference | §6.1.1 (normative contract + the test that locks it) |
 | TTL expiry had no trigger | §6.4.1 (timer at `expiresAtMs` + synchronous foreground re-check) |
 | `providerStages` contract incoherence | §4.5.1 (single authoritative contract: server-side clamp; field removed from the member-facing wire) |
-| Connectability formula omitted `integrationReady` | §4.5.2, §4.5.3 (full formula; a grant moves only `apple_health` and `garmin`) |
+| Connectability formula omitted `integrationReady` | §4.5.2, §4.5.3 — **superseded by r2 defect 1**: r1's conclusion that "a grant moves only `apple_health` and `garmin`" was itself wrong about `apple_health` |
 | §7 vs §10.2 contradiction on Night Out | §7, §10.2 (resolved in favour of §10.2 — Night Out is PR 7 only) |
 | CI guard needed a baseline backfill | §9.1 (all 32 existing tables classified; scoped into PR 2) |
 
-**Four decisions remain 🚫 BLOCKED and are deliberately *not* resolved here:**
-audit-row retention duration (D-1, counsel), Night Out `internalPreview` widening
-(D-2, founder), production `FOUNDER_EMAILS` (D-3), production
-`CORS_ALLOWED_ORIGINS` (D-4). See §13.
+</details>
 
 ---
 
@@ -282,8 +332,12 @@ Retention and the deletion question: §9.
 This is the table that keeps a cohort grant honest. Provider readiness is a
 **product/legal fact about the world**, not a fact about a user: Garmin's Health
 API requires partner approval; Oura, Strava and Google Health have server
-adapters but no client OAuth wiring (`utils/health/providerRowStatus.ts:123-133`).
-No cohort membership can change any of that.
+adapters but no client OAuth wiring (the `case 'oura' / case 'strava'` and
+`case 'google_health'` arms of `deriveProviderRowStatus` in
+`utils/health/providerRowStatus.ts` hardcode `integrationReady = false`); and
+Apple Health's availability is decided by a **compile-time constant**, not by
+any runtime flag the overlay can reach (§4.5.3). No cohort membership can change
+any of that.
 
 | Column | Type | Notes |
 |---|---|---|
@@ -352,7 +406,7 @@ member-facing wire is removed.
 #### 4.5.2 Effective connectability — the full formula
 
 The stage/grant computation yields the `enabled` **input** to
-`resolveHealthProviderStatus`, which is not the same thing as connectability.
+`resolveHealthProviderStatus`, which is not the same thing as an offered Connect.
 Stating only the first half is what produced this design's misleading lead
 example. Both halves:
 
@@ -361,57 +415,136 @@ enabledFlag(provider, user) =            // the `enabled` INPUT, nothing more
     stage(provider) == 'ga'
   ∨ (stage(provider) ∈ {'internal','beta'} ∧ userHasLiveGrant(healthFlagFor(provider)))
 
-connectable(provider, user, device) =
+offersConnect(provider, user, device) =  // resolves to status == 'connect'
     onPlatform(provider, device)
   ∧ link == 'none'
   ∧ enabledFlag(provider, user)
-  ∧ integrationReady(provider, device)     ← omitted from the earlier draft
+  ∧ integrationReady(provider, device)   ← omitted from r0; see §4.5.3 for where it comes from
   ∧ approvalOk(provider)
 ```
 
-Verified against source: `utils/health/healthProviderStatus.ts:155-158` gates the
-`connect` return on `input.enabled && input.integrationReady && approvalOk`, where
-`approvalOk = !cap.requiresExternalApproval || input.approvalGranted` (line 155).
-Anything failing that conjunction falls to line 162 (`approval_pending`) or line
-165 (`coming_soon`) — `connectable: false` in both.
+> **Naming, deliberately: the predicate is `offersConnect`, not `connectable`.**
+> r1 called it `connectable(...)`, which collides with the real field
+> `HealthProviderStatus.connectable` in
+> `utils/health/healthProviderStatus.ts` — and that field is **not** this
+> predicate. `connectable` is `true` for `connect` **and for four further
+> statuses**: `connected`, `syncing`, `partially_authorized`, and
+> `needs_attention` (it means "an actionable Connect **or Reconnect** tap is
+> offered"). An implementer who read the r1 formula as a specification of
+> `HealthProviderStatus.connectable` would have coded the wrong thing. Nothing
+> in this document redefines that field; `offersConnect` names only the
+> `status === 'connect'` case.
 
-`healthFlagFor` is the existing `HEALTH_FLAG_BY_PROVIDER` map
-(`utils/health/providerRowStatus.ts:55`).
+Verified against source (`480e2393`): `resolveHealthProviderStatus` gates its
+`connect` return on `input.enabled && input.integrationReady && approvalOk`,
+where `approvalOk = !cap.requiresExternalApproval || input.approvalGranted`.
+Anything failing that conjunction falls through to the `approval_pending` return
+(when the provider requires external approval and lacks it) or the terminal
+`coming_soon` return — `connectable: false`, `live: false`, in both.
+
+`healthFlagFor` is the existing `HEALTH_FLAG_BY_PROVIDER` map exported from
+`utils/health/providerRowStatus.ts`.
 
 #### 4.5.3 What a cohort grant actually delivers today — read this before PR 6
 
-**A cohort grant delivers no connectability for `oura`, `strava`, or
-`google_health`, and will not until client OAuth wiring lands.**
-`deriveProviderRowStatus` hardcodes `integrationReady = false` for all three
-(`utils/health/providerRowStatus.ts:123-133`), with the comment: real server
-adapters exist, but there is no client OAuth wiring, so "these can never be live
-from this screen." Granting `health_oura_enabled` therefore yields
-`enabled = true, integrationReady = false, approvalOk = true` → line 165 →
-`coming_soon`, `connectable: false`. The row is flag-enabled and looks **exactly
-as it does today**. That client OAuth wiring is separate work and is itself
-activation-gated; nothing in this document schedules or authorises it.
+> **A cohort grant moves ZERO providers today.** With Garmin server credentials
+> configured it moves **one** (`garmin`). `apple_health` is **not** movable and
+> does not become movable until decision **D-6** (§13) is taken and the refactor
+> it scopes is built. This corrects r1, which asserted `apple_health` was
+> "iOS, native ready" and grant-movable. It is not, in any binary shipped today.
+
+The overlay reaches exactly one input of `resolveHealthProviderStatus`:
+`enabled`. It reaches it through `healthFlagsFromFeatureFlags(...)` at the
+`deriveProviderRowStatus` call site in `components/profile/ProfileScreenV2.tsx`,
+which PR 6 migrates from `state.featureFlags` to `effectiveFlags`. It does
+**not** reach `integrationReady`, `approvalGranted`, or `link` — those are
+computed from runtime facts inside `deriveProviderRowStatus`, and per §4.5.2
+`enabled` alone is never sufficient.
+
+**Why `apple_health` is unreachable.** In `deriveProviderRowStatus`, the
+`case 'apple_health'` arm sets `integrationReady = !!f.appleNativeReady`. The
+Profile screen supplies that value as `isAppleHealthSupported()`
+(`components/profile/ProfileScreenV2.tsx`, the `deriveProviderRowStatus({...})`
+call). And `isAppleHealthSupported()` in `services/appleHealth.ts` is:
+
+```ts
+export function isAppleHealthSupported(): boolean {
+  return DEFAULT_FLAGS.healthkit_native_enabled && Platform.OS === 'ios';
+}
+```
+
+It reads the **module-level `DEFAULT_FLAGS` constant imported from
+`featureFlags/flags.ts`** — not the store, not the effective flags, not any
+overlay. `DEFAULT_FLAGS.healthkit_native_enabled` is `false`, and it is `false`
+in the `DEMO_ALL_ON` profile too. There is no code path by which a server grant,
+a developer unlock, or `SET_FLAGS` can change what that function returns.
+Therefore `integrationReady === false` for `apple_health` in **every shipped
+binary**, a grant of `health_apple_enabled` yields
+`enabled = true, integrationReady = false, approvalOk = true`, and the resolver
+returns `coming_soon` / `connectable: false`. The row looks **exactly as it does
+today**.
+
+Note also that `healthkit_native_enabled` is **not** on the §6.2 allow-list and
+is not proposed for it here — see D-6 for why that is a decision and not an
+oversight.
 
 Traced across all seven providers, a grant changes the resolved status for
-**two**:
+**zero** providers unconditionally, and for **one** conditionally:
 
-| Provider | `integrationReady` source | Effect of a grant |
+| Provider | `integrationReady` source (symbol-anchored) | Effect of a grant |
 |---|---|---|
-| `apple_health` | `!!appleNativeReady` (line 136) | **Real.** On iOS with the native module ready → `connect`. |
-| `garmin` | `!garminCredentialsMissing` (line 119), same value drives `approvalGranted` (line 120) | **Real, conditional.** With server credentials present → `connect`; without → `approval_pending` regardless of the grant. |
-| `oura` | hardcoded `false` (line 127) | None — `coming_soon`. |
-| `strava` | hardcoded `false` (line 127) | None — `coming_soon`. |
-| `google_health` | hardcoded `false` (line 131) | None — `coming_soon`. |
-| `samsung_health` | n/a | None — short-circuited at `healthProviderStatus.ts:121-126` before `enabled` is read. |
-| `whoop` | `whoopState !== 'credentials_missing'` (line 115) | None — `enabled` is hardcoded `true` (line 153, carve-out). |
+| `apple_health` | `!!f.appleNativeReady`, supplied as `isAppleHealthSupported()` ⇒ **compile-time** `DEFAULT_FLAGS.healthkit_native_enabled && Platform.OS === 'ios'` | **None today.** Always `false` in a shipped binary ⇒ `coming_soon`. Movable only after **D-6**. |
+| `garmin` | `!f.garminCredentialsMissing`, from the server state probe (`garminState === 'credentials_missing'`); the same value drives `approvalGranted` | **Real, conditional.** With server credentials configured → `connect`; without → `approval_pending` regardless of the grant. **The only provider a grant can move.** |
+| `oura` | hardcoded `false` in the `case 'oura'` arm | None — `coming_soon`. |
+| `strava` | hardcoded `false` in the `case 'strava'` arm | None — `coming_soon`. |
+| `google_health` | hardcoded `false` in the `case 'google_health'` arm | None — `coming_soon`. |
+| `samsung_health` | n/a | None — `resolveHealthProviderStatus` short-circuits on `method === 'via_health_connect'` before `enabled` is read. |
+| `whoop` | `f.whoopState !== 'credentials_missing'` | None — `enabled` is forced `true` for WHOOP by the documented carve-out, so the flag (and therefore the grant) is not read at all. |
 
-This recalibrates PR 6. Its user-visible blast radius is not "cohort members can
-connect seven providers"; it is "cohort members on iOS may see a working Apple
-Health connect path, and — if Garmin credentials are configured — a Garmin one."
-Everything else is a no-op the grant cannot fix. **Do not use Oura or Strava as
-the demonstration case for this mechanism**; they are the two that prove nothing.
+**`oura`, `strava`, and `google_health` will not move until client OAuth wiring
+lands.** The source comment on those arms is explicit: real server adapters
+exist, but there is no client OAuth wiring, so "these can never be live from
+this screen." That wiring is separate work, is itself activation-gated, and
+nothing in this document schedules or authorises it.
 
-The WHOOP carve-out at line 153 is **not** removed by this design; it is removed
-by the provider-kit cutover the comment already references. Until then WHOOP's
+This recalibrates PR 6. Its user-visible blast radius is **not** "cohort members
+can connect seven providers", and it is not r1's "Apple Health plus maybe
+Garmin". It is: **if — and only if — Garmin server credentials are configured, a
+cohort member at stage `internal`/`beta` sees a working Garmin connect path.
+Otherwise PR 6 changes nothing a user can see, beyond the polling delta of
+§7.1.1.** Everything else is a no-op the grant cannot fix.
+
+**Do not use Oura, Strava, or Apple Health as the demonstration case for this
+mechanism**; all three resolve to `coming_soon` and prove nothing. If Garmin
+credentials are not configured, this mechanism currently has **no**
+demonstrable user-visible effect at all, and that fact should be stated plainly
+when PR 6 is proposed rather than discovered in review.
+
+**Sequencing implication — this is the load-bearing consequence.** The rollout
+order in §10.2 is unchanged, but what PR 6 *demonstrates* is not. Three options,
+and the recommendation:
+
+- **(a) Ship PRs 1–6 as ordered and demonstrate on `garmin`.** Requires the
+  Garmin server-credential precondition to be confirmed first — the same class
+  of environment observation as D-3(a)/D-4, and equally not resolvable from this
+  document.
+- **(b) Ship PRs 1–6 and accept that the mechanism is demonstrated by the
+  founder admin surface and the audit trail, not by a moved provider row.**
+- **(c) Take D-6 first, then demonstrate on `apple_health`.** Largest scope,
+  and it is gated on a founder/architecture decision this document does not make.
+
+**Recommendation: (b), then (a) when Garmin credentials are confirmed.** The
+strongest argument against is that shipping a six-PR mechanism whose
+user-visible effect is nil looks like building an unused abstraction, and that
+is a real cost. It loses because the alternative — sequencing D-6 ahead of the
+mechanism so there is something to show — inverts the dependency: D-6 is a
+change to how a native-capability gate is read, and doing it *in order to have a
+demo* is precisely the pressure under which a capability gate gets loosened for
+the wrong reason. Build the mechanism, prove it with the audit trail, and let
+provider movability arrive on its own schedule.
+
+The WHOOP carve-out is **not** removed by this design; it is removed by the
+provider-kit cutover the source comment already references. Until then WHOOP's
 stage row exists and is audited but does not gate the row status.
 
 ---
@@ -445,13 +578,25 @@ existing house convention (`{ error: "forbidden" }`, `{ error: "rate_limited", s
   "issuedAt": "2026-08-03T17:02:11.482Z",
   "expiresAt": "2026-08-03T17:17:11.482Z",
   "cohorts": ["health-providers-internal"],
-  "grants": ["health_apple_enabled", "health_garmin_enabled"]
+  "grants": ["health_garmin_enabled"]
 }
 ```
 
-The example deliberately uses `apple_health` and `garmin` — per §4.5.3 they are
-the only two providers for which a grant currently changes anything. An example
-built on `health_oura_enabled` would depict a grant that resolves to `coming_soon`.
+**The single-element `grants` list is not a formatting shortcut — it is the
+honest maximum today.** Per §4.5.3, `health_garmin_enabled` is the *only* grant
+that can change a resolved provider status, and only when Garmin server
+credentials are configured. r1's example listed `health_apple_enabled` alongside
+it; that has been removed, because a grant of `health_apple_enabled` resolves to
+`coming_soon` in every shipped binary (its `integrationReady` comes from a
+compile-time constant the overlay cannot reach — D-6). An example built on
+`health_oura_enabled`, `health_strava_enabled`, or
+`health_google_connect_enabled` would depict the same dead end.
+
+Granting a currently-inert flag is legal and is not an error: the grant is
+recorded, audited, and appears on the wire; it simply resolves to `coming_soon`
+until the provider's own blocker clears. The wire format is a list, so
+multi-element responses are well-formed and must be handled — this example is
+narrow about *effect*, not about *shape*.
 
 Non-member / no live grants:
 
@@ -1048,9 +1193,12 @@ Any surface gated on an overlay flag must satisfy:
 
 For the health-provider rows this is already satisfied: `deriveProviderRowStatus`
 returns an honest status for `enabled === false` and the resolver's ordering rule
-is that *a real existing link always wins* — so if a cohort member connects Oura
-during a preview and the grant later lapses, the connected state is not erased by
-the flag going off. Verify this per-surface before adding it to the allow-list.
+is that *a real existing link always wins* — so if a cohort member connects
+Garmin during a preview and the grant later lapses, the connected state is not
+erased by the flag going off. (The example is Garmin deliberately: per §4.5.3 it
+is the only provider a grant can currently move, so it is the only one for which
+this lapse is reachable at all.) Verify this per-surface before adding it to the
+allow-list.
 
 ---
 
@@ -1203,9 +1351,9 @@ database from the personal Neon account. Before any push:
 | **1** | Pure contract module `featureFlags/internalPreviewOverlay.ts`: types, `INTERNAL_PREVIEW_OVERLAYABLE_FLAGS`, `applyInternalPreviewOverlay`, TTL + version semantics, stage clamp. Unit tests including the `INTERNAL_PREVIEW_RESTRICTED_FLAGS` interaction pin (§6.2). **No imports from it anywhere.** | None. Dead code by design. | Delete one file |
 | **2** | Schema: five tables in `lib/db/src/schema/aforce.ts` + repo module + `USER_SCOPED_TABLES` registry, its CI guard, **and the baseline backfill of all 32 existing tables** — 24 literal `user_id`, 6 aliased, 2 exempt (§9.1). Detector must match `%_user_id`. Seed all seven providers at `blocked`. **🚫 Gated on D-1 (§9.2).** | None. Tables unread; registry declares dispositions without implementing them. | `DROP TABLE` ×5 + drop registry |
 | **3** | `GET /api/internal-preview/overlay` + `internalPreviewLimiter` + route tests. No cohorts exist, so it returns the empty overlay for everyone. | None (nothing calls it). | Unmount router |
-| **4** | Founder admin router: cohorts, members, flag grants, audit read. `requireFounder` + `destructiveGuards`. Adversarial tests: non-founder 403, cross-origin 403, limiter 429, non-overlayable flag 422, audit-write-fails ⇒ mutation-fails. | None for users. Founders can now create cohorts that nothing reads. | Unmount router |
+| **4** | Founder admin router: cohorts, members, flag grants, audit read. `requireFounder` + `destructiveGuards`. Adversarial tests: non-founder 403, cross-origin 403, limiter 429, non-overlayable flag 422, audit-write-fails ⇒ mutation-fails. **🚫 Gated on D-3 and D-4 (§5.3, §13)** — both are production-environment observations that have not been made; PR 4 does not ship until each is confirmed. | None for users. Founders can now create cohorts that nothing reads. | Unmount router |
 | **5** | `aforce_provider_rollout_stages` read/write + stage clamp wired into the read endpoint, **server-side only** (§4.5.1). Stages still all `blocked`, so `grants` is still always empty on the wire. `providerStages` is not added to the member-facing response in this PR or any later one. | None. | Revert clamp; stages unread |
-| **6** | Client wiring: `hooks/useInternalPreviewOverlay.ts`, `InternalPreviewState`, `effectiveFlags` exposed from `useAppStore`, **only** `providerRowStatus.ts` callers migrated. Expiry timer + foreground re-check (§6.4.1). Reference-identity tests (§6.1.1). Profile readout showing cohort + expiry countdown for members. Dedicated fetch path — the 30s drift-gated poll and the WS subscription are untouched, pinned by test. **Does not touch Night Out.** | **First user-visible change.** Scope it honestly (§4.5.3): for cohort members at stage `internal`/`beta`, a real connect path appears for **`apple_health`** (iOS, native ready) and **`garmin`** (only if server credentials are configured). Oura, Strava, Google Health, Samsung, and WHOOP are unchanged — `integrationReady`, a short-circuit, or a carve-out blocks each. Plus the polling delta of §7.1.1 for all signed-in users. | Revert one hook + one selector; base flags unchanged |
+| **6** | Client wiring: `hooks/useInternalPreviewOverlay.ts`, `InternalPreviewState`, `effectiveFlags` exposed from `useAppStore`, **only** `providerRowStatus.ts` callers migrated. Expiry timer + foreground re-check (§6.4.1). Reference-identity tests (§6.1.1). Profile readout showing cohort + expiry countdown for members. Dedicated fetch path — the 30s drift-gated poll and the WS subscription are untouched, pinned by test. **Does not touch Night Out.** | **First user-visible change — and it may be none.** Scope it honestly (§4.5.3): a grant moves **zero** providers, except **`garmin`**, which moves to a real connect path for cohort members at stage `internal`/`beta` **if and only if** Garmin server credentials are configured. **`apple_health` does NOT move** — its `integrationReady` derives from the compile-time `DEFAULT_FLAGS.healthkit_native_enabled` constant, which no overlay can reach (🚫 **D-6**). Oura, Strava, Google Health, Samsung, and WHOOP are likewise unchanged — a hardcoded `integrationReady`, a `via_health_connect` short-circuit, or the WHOOP carve-out blocks each. What ships unconditionally is the polling delta of §7.1.1 for all signed-in users. | Revert one hook + one selector; base flags unchanged |
 | **7** | `services/nightOut/access.ts`: `internalPreview = DEMO_MODE \|\| overlayGrantsNightOut`. Unblocks Night Out Tier-3 without cutting a build. Governance record updated in `governance/AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md` §21 (third row filled). **🚫 BLOCKED — D-2, founder sign-off.** | Night Out reachable for cohort members in a normal build. | Revert one predicate |
 
 > ## 🚫 BLOCKED — decision D-2, founder. Blocks PR 7 only.
@@ -1306,7 +1454,13 @@ Named so nobody builds them by accident:
 9. **Not the camera/HydroState visual surface**, which stays design-only pending
    legal.
 10. **Not a WHOOP gating change.** The WHOOP carve-out in
-    `providerRowStatus.ts:152` is removed by the provider-kit cutover, not here.
+    `deriveProviderRowStatus` (`utils/health/providerRowStatus.ts`, the
+    `const enabled = f.provider === 'whoop' ? true : …` expression) is removed by
+    the provider-kit cutover, not here.
+11. **Not an `appleHealth.ts` refactor.** Making `isAppleHealthSupported()` read
+    effective flags instead of the `DEFAULT_FLAGS` constant is decision **D-6**
+    (§13) and is out of scope for PRs 1–7. No PR in this design may modify
+    `services/appleHealth.ts`.
 
 ---
 
@@ -1324,7 +1478,8 @@ review, or by reading a recommendation as an approval.**
 | **D-2** | **Night Out `internalPreview` widening.** An amendment to founder decisions NO-a.1 / NO-10. Not recommended here in either direction. | **Founder** | PR 7 only | §10.2 |
 | **D-3** | **Production `FOUNDER_EMAILS`.** Two parts: (a) *confirm the variable is set in production* — unset means any `super_admin` can grant capabilities; (b) the roster contents. | **Founder** + whoever holds Railway env access | PR 4 | §5.3 |
 | **D-4** | **Production `CORS_ALLOWED_ORIGINS` confirmation.** Unconfirmed. Unset in production degrades `enforceAllowedOrigin` to a `Host`-header comparison, which is only trustworthy behind a `Host`-pinning proxy. | Whoever holds Railway env access | PR 4 | §5.3 |
-| **D-5** | Whether `health_canonical_consumers` belongs on the allow-list — it changes which signals downstream surfaces read, so it is closer to a behaviour flag than a presentation flag. | **Founder** | PR 1 | §6.2 |
+| **D-5** | Whether `health_canonical_consumers` belongs on the allow-list — it changes which signals downstream surfaces read, so it is closer to a behaviour flag than a presentation flag. | **Founder** | **The allow-list entry only — NOT PR 1.** PR 1 ships with the key omitted; adding it later is not a contract-version bump (§6.3). This row is the single authoritative statement of D-5's blast radius. | §6.2 |
+| **D-6** | **`appleHealth.ts` effective-flags refactor.** Whether `isAppleHealthSupported()` should read effective (store/overlay-composed) flags instead of the compile-time `DEFAULT_FLAGS` constant — and, separately, whether `healthkit_native_enabled` belongs on the §6.2 allow-list at all. Until this is taken, a cohort grant cannot move `apple_health` (§4.5.3). | **Founder** + **CTO** (it changes how a native-capability gate is read) | `apple_health` movability. Blocks **no PR** in §10.2 — PRs 1–7 ship without it; it only bounds what PR 6 can demonstrate. | §13.1 |
 
 **Verification note for D-3(a) and D-4:** these are *observations that have not
 been made*, not opinions. Nothing in this document verified either variable, and
@@ -1332,6 +1487,70 @@ no value is to be printed, logged, copied, or recorded here or in any PR —
 confirming that a variable is non-empty is sufficient and is the only thing asked
 for.
 
-Nothing in PRs 1, 3, 5, or 6 is blocked on a founder decision. PR 1 ships
-regardless of D-5 by omitting `health_canonical_consumers` from the initial
-allow-list; adding it later is not a contract-version bump (§6.3).
+Nothing in PRs 1, 3, 5, or 6 is blocked. PR 2 is blocked on D-1, PR 4 on D-3 and
+D-4, and PR 7 on D-2; D-5 and D-6 block no PR — see their rows above for exactly
+what each does bound.
+
+### 13.1 D-6 — scope only, not a design
+
+**This section scopes D-6 so it can be estimated and ruled on. It is deliberately
+not a design, and nothing here authorises the work.** `services/appleHealth.ts`
+is not off-limits under `CLAUDE.md`, but it is the linkage point for a native
+capability and the change below must not be made as a side effect of building
+this mechanism (§12 non-goal 11).
+
+**The defect, precisely.** `isAppleHealthSupported()` returns
+`DEFAULT_FLAGS.healthkit_native_enabled && Platform.OS === 'ios'`. `DEFAULT_FLAGS`
+is a module-level constant imported from `featureFlags/flags.ts`. The function is
+therefore a **compile-time** predicate wearing a runtime signature: it ignores
+`state.featureFlags`, ignores `SET_FLAGS`, ignores the developer unlock, ignores
+the `DEMO_ALL_ON` profile (where the flag is also `false`), and would ignore the
+overlay. `loadHealthKit()` re-reads the same constant a second time.
+
+**Scope of the refactor, if taken:**
+
+- **One function's flag source.** Read the flag from the effective-flags layer
+  rather than the module constant. Both plausible shapes have a cost the decision
+  must weigh: threading a `flags` argument through the public API changes every
+  caller's signature; a module-level registry the store writes on flag change
+  keeps signatures intact but introduces a **cold-start ordering hazard** (the
+  first call can precede the first write) that must resolve to `false`, not to
+  `undefined`-as-truthy.
+- **Six non-test call sites** to review, in five files:
+  `components/profile/ProfileScreenV2.tsx` (three — two guards plus the
+  `appleNativeReady` argument to `deriveProviderRowStatus`),
+  `components/profile/ProfileLegacy.tsx` (two),
+  `components/health/ConnectedHealthContainer.tsx` (one, memoized with an empty
+  dependency array — **that memo becomes wrong** the moment the value can change
+  at runtime), plus the indirection in
+  `services/healthConnection.bindings.ts` and the internal call in
+  `loadHealthKit()`.
+- **Invariants that must survive:** the non-iOS "unavailable" shape; the
+  `loadHealthKit()` dynamic-import guard that keeps Metro from resolving the
+  native module on web/Android; and the rule that this function never fabricates
+  data.
+- **Documentation:** `artifacts/aforce-os/docs/HEALTHKIT_NATIVE_LINKAGE.md`
+  describes the current constant-based gate and would need updating.
+
+**The hazard that makes this a decision and not a chore.** Flipping the flag does
+**not** link the native module. `@kingstinct/react-native-healthkit` and
+`react-native-nitro-modules` are present in `artifacts/aforce-os/package.json`,
+but the source comment in `appleHealth.ts` states that native activation
+(pod install / native build) is "a separate, deliberately un-taken step" — and
+the comment above `healthkit_native_enabled` in `featureFlags/flags.ts` still
+says the deps are *removed* from `package.json`, which is stale. **Those two
+comments disagree, and D-6 cannot be ruled on until someone establishes which
+describes the shipped binary.** If the native side is not linked and the flag
+becomes remotely flippable, `isAppleHealthSupported()` returns `true`,
+`integrationReady` becomes `true`, the resolver returns `connect` — and the
+dynamic import fails at tap time. That is a **Connect button that fails after
+the tap**, the exact outcome rule 3 of `healthProviderStatus.ts` exists to
+prevent. Any resolution of D-6 must therefore answer both halves:
+
+1. Does `isAppleHealthSupported()` read effective flags? (the refactor)
+2. Is `healthkit_native_enabled` allowed on the §6.2 overlay allow-list, given
+   that it gates a *native capability* and not a presentation? (the policy)
+
+A "yes" to (1) with a "no" to (2) leaves `apple_health` exactly as immovable as
+it is today, and is a coherent answer. A "yes" to (2) without confirmed native
+linkage is not.
