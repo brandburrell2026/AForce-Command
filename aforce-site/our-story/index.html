@@ -78,14 +78,44 @@
   .reveal.in{ opacity:1; transform:none; }
   .stagger > *{ transition-delay:calc(var(--i,0) * 90ms); }
 
-  /* Hero */
-  .hero{ min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding-top:clamp(120px,18vh,200px); padding-bottom:clamp(60px,9vh,110px); position:relative; }
-  .hero .display{ margin-top:22px; max-width:16ch; }
-  .hero .sub{ margin-top:28px; font-size:clamp(20px,2.2vw,28px); color:var(--ink); }
-  .hero .sub2{ margin-top:16px; color:var(--mute); max-width:44ch; font-size:clamp(16px,1.3vw,19px); }
-  .enter{ margin-top:clamp(40px,6vw,64px); display:inline-flex; align-items:center; gap:12px; font-family:var(--mono); font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink); text-decoration:none; }
+  /* Hero — cinematic sunrise over Fort Lauderdale Beach */
+  .hero{ position:relative; min-height:100vh; display:flex; flex-direction:column; justify-content:center; padding-top:clamp(120px,18vh,200px); padding-bottom:clamp(56px,9vh,104px); overflow:hidden; }
+  .hero-sky{ position:absolute; inset:0; z-index:0; background:
+      radial-gradient(150% 92% at 80% 54%, rgba(193,40,27,0.18), rgba(193,40,27,0) 58%),
+      linear-gradient(180deg, #ECEAE3 0%, #EEE7DB 44%, #D9D3C9 53%, #BFCCD3 62%, #A6BCC8 100%); }
+  .hero-sun{ position:absolute; right:-6%; top:54%; transform:translateY(-50%); width:clamp(200px,30vw,460px); height:clamp(200px,30vw,460px); border-radius:50%; background:radial-gradient(circle at 50% 42%, #DA3A2B, var(--red) 72%); box-shadow:0 0 130px 24px rgba(193,40,27,0.26); }
+  .hero-horizon{ position:absolute; left:0; right:0; top:54%; height:1px; background:linear-gradient(90deg, rgba(13,13,13,0) 0%, rgba(13,13,13,0.22) 28%, rgba(13,13,13,0.22) 72%, rgba(13,13,13,0) 100%); }
+  .hero .wrap{ position:relative; z-index:2; }
+  .hero .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:var(--red); font-weight:600; }
+  .hero .place{ font-family:var(--mono); font-size:12px; letter-spacing:0.28em; text-transform:uppercase; color:var(--mute); margin-top:10px; }
+  .hero .place .sep{ color:var(--faint); margin:0 .55em; }
+  .hero .hlabel{ font-family:var(--mono); font-size:clamp(12px,1.3vw,15px); letter-spacing:0.22em; text-transform:uppercase; color:var(--ink); font-weight:600; margin-top:clamp(30px,5vw,56px); }
+  .hero-statement{ margin-top:18px; display:flex; flex-direction:column; font-size:clamp(52px,10vw,132px); font-weight:800; letter-spacing:-0.04em; line-height:0.92; }
+  .hero-statement .l1{ color:var(--ink); }
+  .hero-statement .l2{ color:rgba(13,13,13,0.34); }
+  .hero .sub2{ margin-top:clamp(24px,3vw,36px); color:var(--mute); max-width:46ch; font-size:clamp(16px,1.35vw,20px); }
+  .enter{ margin-top:clamp(38px,6vw,60px); display:inline-flex; align-items:center; gap:12px; font-family:var(--mono); font-size:12px; letter-spacing:0.2em; text-transform:uppercase; color:var(--ink); text-decoration:none; }
   .enter .dot{ width:34px; height:34px; border:1px solid var(--line); border-radius:50%; display:grid; place-items:center; transition:border-color .3s, transform .3s; }
   .enter:hover .dot{ border-color:var(--red); transform:translateY(3px); }
+
+  /* Dark sections — the alternating cinematic rhythm */
+  .sec.dark{ background:var(--ink); color:var(--bone); border-top-color:rgba(245,240,232,0.10); }
+  .sec.dark h1, .sec.dark h2, .sec.dark h3, .sec.dark .display, .sec.dark .h-lg, .sec.dark .h-md,
+  .sec.dark .lead, .sec.dark .stamp, .sec.dark .qmark, .sec.dark .quote, .sec.dark .oneline,
+  .sec.dark .callout, .sec.dark .endline, .sec.dark .role .name, .sec.dark .specs .v,
+  .sec.dark .prog .p .pk, .sec.dark .moments .m .mt, .sec.dark .pillar .ph, .sec.dark .ritual span,
+  .sec.dark .credits b{ color:var(--bone); }
+  .sec.dark .kicker, .sec.dark .stamp small, .sec.dark .role .who, .sec.dark .specs .k,
+  .sec.dark .moments .m .ms, .sec.dark .statement{ color:rgba(245,240,232,0.44); }
+  .sec.dark .prose, .sec.dark .role .desc, .sec.dark .prog .p .pv, .sec.dark .pillar .pp,
+  .sec.dark .credits, .sec.dark .portrait figcaption{ color:rgba(245,240,232,0.62); }
+  .sec.dark .beats li{ color:var(--bone); border-color:rgba(245,240,232,0.14); }
+  .sec.dark .steps span, .sec.dark .pillar, .sec.dark .role{ border-color:rgba(245,240,232,0.14); }
+  .sec.dark .steps span{ color:rgba(245,240,232,0.62); }
+  .sec.dark .role{ background:linear-gradient(180deg, rgba(245,240,232,0.05), rgba(245,240,232,0)); }
+  .sec.dark .specs, .sec.dark .moments{ background:rgba(245,240,232,0.14); border-color:rgba(245,240,232,0.14); }
+  .sec.dark .specs .cell, .sec.dark .moments .m{ background:#141414; }
+  .sec.dark .portrait{ background:#141414; border-color:rgba(245,240,232,0.14); }
 
   /* Film / media */
   .film{ position:relative; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:#000; }
@@ -235,17 +265,22 @@
 
 <!-- ============ 00 · HERO ============ -->
 <header class="hero" id="top">
+  <div class="hero-sky" aria-hidden="true">
+    <span class="hero-sun"></span>
+    <span class="hero-horizon"></span>
+  </div>
   <div class="wrap">
-    <div class="label reveal in">Our Story<span class="sep">—</span>Fort Lauderdale Beach<span class="sep">—</span>Before Sunrise</div>
-    <h1 class="display reveal in">Before AFORCE had a name, it had a ritual.</h1>
-    <p class="sub reveal in">It began with a pause.</p>
+    <div class="eyebrow reveal in">Our Story</div>
+    <div class="place reveal in">Fort Lauderdale Beach <span class="sep">/</span> Before Sunrise</div>
+    <div class="hlabel reveal in">Before AFORCE had a name, it had a ritual.</div>
+    <h1 class="hero-statement reveal in"><span class="l1">It began</span><span class="l2">with a pause.</span></h1>
     <p class="sub2 reveal in">Two brothers. Two moments of stillness. One standard for how people prepare.</p>
     <a class="enter reveal in" href="#founders">Enter the story <span class="dot">↓</span></a>
   </div>
 </header>
 
 <!-- ============ 00 · THE FOUNDERS ============ -->
-<section class="sec" id="founders" aria-label="The founders">
+<section class="sec dark" id="founders" aria-label="The founders">
   <div class="wrap">
     <div class="label reveal">The Founders<span class="sep">—</span>From the Beginning</div>
     <h2 class="h-lg reveal mt-m">Before the story was told.<br>Two brothers. One frame.</h2>
@@ -281,7 +316,7 @@
 </section>
 
 <!-- ============ 02 · THE CALL ============ -->
-<section class="sec" aria-label="The call">
+<section class="sec dark" aria-label="The call">
   <div class="wrap">
     <div class="label reveal">02<span class="sep">—</span>The Call<span class="sep">—</span>One Call, Two Brothers</div>
     <p class="lead reveal mt-m">Brandon stopped walking and called Julius.</p>
@@ -320,7 +355,7 @@
 </section>
 
 <!-- ============ 04 · THE NAME IN THE FILE ============ -->
-<section class="sec" aria-label="The name in the file">
+<section class="sec dark" aria-label="The name in the file">
   <div class="wrap">
     <div class="label reveal">04<span class="sep">—</span>The Name in the File<span class="sep">—</span>Old File, Found</div>
     <div class="kicker reveal mt-s">pH Science</div>
@@ -364,7 +399,7 @@
 </section>
 
 <!-- ============ 06 · THE SECOND VISION ============ -->
-<section class="sec" aria-label="The second vision">
+<section class="sec dark" aria-label="The second vision">
   <div class="wrap">
     <div class="label reveal">06<span class="sep">—</span>The Second Vision</div>
     <h2 class="h-lg reveal mt-m">Then the vision widened.</h2>
@@ -416,7 +451,7 @@
 </section>
 
 <!-- ============ 08 · WHAT AFORCE IS BECOMING ============ -->
-<section class="sec" aria-label="What AFORCE is becoming">
+<section class="sec dark" aria-label="What AFORCE is becoming">
   <div class="wrap">
     <div class="label reveal">08<span class="sep">—</span>What AFORCE Is Becoming<span class="sep">—</span>More Than a Beverage</div>
     <h2 class="display reveal mt-m">A readiness company.</h2>
