@@ -38,13 +38,18 @@ import type { HealthProviderId } from '@workspace/health-core';
 
 import {
   buildWeeklyReport,
+  lastCompletedWeek,
   type WeeklyReport,
   type WeeklyReportSection,
   type WeeklyReportSectionKey,
 } from '@/utils/weeklyReport';
+import type { AnalyticsEvent } from '@/utils/analytics/metrics';
 import { sectionSummary } from '@/components/insights/weeklyReportCopy';
 import { buildWeeklyHealthAggregates } from '@/services/health/weeklyHealthAggregates';
 import { mkRecord, dayMidMs, FIXED_NOW, DAYS, UTC_OFFSET_MIN } from '@/services/health/weeklyHealthAggregatesFixtures';
+
+const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 
 // Verbatim copy of ReadinessInsightsV2.tsx's SHARE_SECTION_ORDER — that file
 // documents it as itself a verbatim duplicate of the legacy screen's order,
@@ -96,6 +101,45 @@ const RICH_PROVIDER_RECORDS = [
 
 const RICH_PROVIDER_IDS = new Set<HealthProviderId>(['whoop', 'oura', 'apple_health', 'garmin']);
 
+// ─── Rich, params-bearing analytics fixture (review fix) ─────────────────
+// The PROHIBITED_PATTERNS scan below is only a meaningful guard if the
+// composed text can actually carry INTERPOLATED runtime data — params are
+// the one channel a leak could travel through. An empty `analyticsEvents`
+// log leaves every section at its param-less `collecting`/`awaiting`/
+// `steady` branch (see utils/weeklyReport.ts: `noWeekData` short-circuits
+// habitVelocity straight to `t(base.collecting)`, no `s.params` passed),
+// which made the original version of this test vacuous: a reviewer proved
+// an injected leak (`JSON.stringify(input.health)` spliced into
+// `habitParams` upstream in `buildWeeklyReport`) passed unnoticed because
+// the composer never reached a branch that would render it.
+//
+// Six real, distinct active days in the report week (Mon–Sat, `dayOffset`
+// 1–6 relative to `weekStartISO`'s Sunday) plus one active day the week
+// before gives `activeDaysDelta = 6 - 1 = +5`, which drives BOTH:
+//   - the top-level `improved` section into its findings-with-params branch
+//     (`streak` >= 3 and `active_days_up`, both param-bearing), and
+//   - `habitVelocity` into its `improved` branch, which — unlike its
+//     `collecting` default — DOES pass `s.params` to `t()`.
+// This is deliberately the same recipe the reviewing pass verified
+// (6 days of `session_open` + `log_action`) so this fixture is proven,
+// not merely plausible.
+function atOffset(baseISO: string, dayOffset: number, hour: number): string {
+  return new Date(Date.parse(baseISO) + dayOffset * DAY_MS + hour * HOUR_MS).toISOString();
+}
+
+const SHARE_NOW_ISO = new Date(FIXED_NOW).toISOString();
+const SHARE_WEEK = lastCompletedWeek(SHARE_NOW_ISO);
+const CURRENT_WEEK_ACTIVE_DAY_OFFSETS = [1, 2, 3, 4, 5, 6] as const;
+
+const RICH_ANALYTICS_EVENTS: AnalyticsEvent[] = [
+  ...CURRENT_WEEK_ACTIVE_DAY_OFFSETS.flatMap((dayOffset): AnalyticsEvent[] => [
+    { type: 'session_open', at: atOffset(SHARE_WEEK.weekStartISO, dayOffset, 9) },
+    { type: 'log_action', at: atOffset(SHARE_WEEK.weekStartISO, dayOffset, 9.25), meta: { ttlMs: 1500 } },
+  ]),
+  // Prior week: exactly one active day, so activeDaysDelta is unambiguously +5.
+  { type: 'session_open', at: atOffset(SHARE_WEEK.priorWeekStartISO, 2, 9) },
+];
+
 /** Marker substrings that must NEVER appear in composed share text. */
 const PROHIBITED_PATTERNS: RegExp[] = [
   /whoop/i,
@@ -124,6 +168,19 @@ function buildRichHealthAggregate() {
   });
 }
 
+/** Builds the report exactly as onShare's `shareReport` memo does — rich health aggregate + rich analytics, both real. */
+function buildRichReport(health: ReturnType<typeof buildRichHealthAggregate>): WeeklyReport {
+  return buildWeeklyReport({
+    nowISO: SHARE_NOW_ISO,
+    weekStartISO: SHARE_WEEK.weekStartISO,
+    weekEndISO: SHARE_WEEK.weekEndISO,
+    priorWeekStartISO: SHARE_WEEK.priorWeekStartISO,
+    priorWeekEndISO: SHARE_WEEK.priorWeekEndISO,
+    analyticsEvents: RICH_ANALYTICS_EVENTS,
+    health,
+  });
+}
+
 /** Reproduces onShare's exact composition (ReadinessInsightsV2.tsx:209-217). */
 function composeShareText(report: WeeklyReport): string {
   const shareSections = SHARE_SECTION_ORDER.map((key) =>
@@ -141,6 +198,8 @@ function composeShareText(report: WeeklyReport): string {
 
 describe('RC-2 Ruling J — Weekly Report share payload never leaks raw health data', () => {
   const health = buildRichHealthAggregate();
+  const report = buildRichReport(health);
+  const composed = composeShareText(report);
 
   it('sanity: the fixture actually produced a populated, provider-attributed aggregate (the leak this test guards against is real, not vacuous)', () => {
     expect(health).toBeTruthy();
@@ -150,31 +209,30 @@ describe('RC-2 Ruling J — Weekly Report share payload never leaks raw health d
     expect(serialized).toMatch(/whoop|oura|apple_health|garmin/i);
   });
 
+  it('sanity: the analytics fixture actually drives real sections past their param-less default (proves this lock is not testing a vacuous, always-collecting payload)', () => {
+    // habitVelocity must have left 'collecting' — it is the section the
+    // review's leak-mutation targeted specifically because 'collecting' is
+    // param-less and would hide an upstream params leak.
+    const habitVelocity = report.sections.find((s) => s.key === 'habitVelocity');
+    expect(habitVelocity?.status).toBe('improved');
+    expect(habitVelocity?.params).toMatchObject({ activeDays: 6, priorActiveDays: 1 });
+  });
+
+  it('the composed share payload demonstrably contains at least one interpolated params payload — not just bare i18n keys (review fix: a payload with zero interpolation cannot prove a params-borne leak is caught)', () => {
+    // Structural, not brittle: matches fakeT's own `key:{"param":...}`
+    // serialization contract for ANY interpolated key, without pinning to
+    // a specific key name or fixture value that would make this assertion
+    // fragile to unrelated copy/fixture changes.
+    expect(composed).toMatch(/:\{"[A-Za-z0-9_]+":/);
+  });
+
   it('the composed share payload contains no raw biometric value, provider identifier, or record-level field from the rich fixture', () => {
-    const report = buildWeeklyReport({
-      nowISO: new Date(FIXED_NOW).toISOString(),
-      weekStartISO: new Date(FIXED_NOW - 7 * 86_400_000).toISOString(),
-      weekEndISO: new Date(FIXED_NOW).toISOString(),
-      analyticsEvents: [],
-      health,
-    });
-
-    const composed = composeShareText(report);
-
     for (const pattern of PROHIBITED_PATTERNS) {
       expect(composed).not.toMatch(pattern);
     }
   });
 
   it('the composed share payload contains ONLY the derived section lines (title[: summary] per section, in order) — no stray content', () => {
-    const report = buildWeeklyReport({
-      nowISO: new Date(FIXED_NOW).toISOString(),
-      weekStartISO: new Date(FIXED_NOW - 7 * 86_400_000).toISOString(),
-      weekEndISO: new Date(FIXED_NOW).toISOString(),
-      analyticsEvents: [],
-      health,
-    });
-    const composed = composeShareText(report);
     const lines = composed.split('\n');
 
     // Header (title, week-range, blank) + exactly one line per SHARE_SECTION_ORDER entry.
@@ -185,13 +243,6 @@ describe('RC-2 Ruling J — Weekly Report share payload never leaks raw health d
   });
 
   it('WeeklyReport.health carries the rich aggregate (pass-through is intact) even though onShare never reads it', () => {
-    const report = buildWeeklyReport({
-      nowISO: new Date(FIXED_NOW).toISOString(),
-      weekStartISO: new Date(FIXED_NOW - 7 * 86_400_000).toISOString(),
-      weekEndISO: new Date(FIXED_NOW).toISOString(),
-      analyticsEvents: [],
-      health,
-    });
     expect(report.health).toBe(health);
   });
 });
