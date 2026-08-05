@@ -30,6 +30,7 @@ import {
   useCountRenders,
   type HarnessControls,
 } from '@/store/__tests__/_renderCountHarness';
+import { extractCalledSliceHooks } from '@/store/__tests__/_actionsSourceScan';
 import {
   useUserSlice,
   useFlagsSlice,
@@ -42,6 +43,20 @@ import {
 
 const SOURCE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8');
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
+
+/** The exact slice-hook set `ProfileMainSliceProbe` exercises. */
+const MAIN_PROBE_HOOKS = [
+  'useUserSlice',
+  'useFlagsSlice',
+  'useUnitPreferencesSlice',
+  'useProfileIdentitySlice',
+  'useVoiceSettingsSlice',
+  'useActionsSlice',
+];
+/** The exact slice-hook set `SubscriptionPanelProbe` exercises. */
+const SUBSCRIPTION_PROBE_HOOKS = ['useSubscriptionSlice'];
+/** Union of every probe mounted for this screen — what the bidirectional guard below diffs against the whole file. */
+const ALL_PROBE_HOOKS = [...MAIN_PROBE_HOOKS, ...SUBSCRIPTION_PROBE_HOOKS];
 
 const TICKS = 20;
 
@@ -142,14 +157,8 @@ describe('ProfileScreenV2 slice migration — render count on a TICK_TIMER burst
 
 describe('ProfileScreenV2 — render-count probe hook list matches the real screen (drift guard)', () => {
   it('the main component calls every slice hook the main-screen probe exercises', () => {
-    for (const hook of [
-      'useUserSlice',
-      'useFlagsSlice',
-      'useUnitPreferencesSlice',
-      'useProfileIdentitySlice',
-      'useVoiceSettingsSlice',
-      'useActionsSlice', // called as `useActionsSlice<Pick<AppContextValue, ...>>()` — a multi-line generic
-    ]) {
+    for (const hook of MAIN_PROBE_HOOKS) {
+      // `useActionsSlice` is called as `useActionsSlice<Pick<AppContextValue, ...>>()` — a multi-line generic.
       expect(CODE).toMatch(new RegExp(`${hook}\\s*(<[\\s\\S]*?>)?\\s*\\(`));
     }
   });
@@ -161,5 +170,23 @@ describe('ProfileScreenV2 — render-count probe hook list matches the real scre
     );
     expect(panelBody).toContain('useSubscriptionSlice()');
     expect(panelBody).not.toMatch(/useAppStore\(/);
+  });
+
+  // RC-1 W3 r2 hardening (#551 should-fix 2): bidirectional — see
+  // `homeScreenV2RenderCount.render.test.tsx`'s identical guard for the full
+  // rationale. ProfileScreenV2.tsx has TWO probes (main screen +
+  // `SubscriptionPanel`), so the comparison is against their UNION —
+  // `ALL_PROBE_HOOKS` — scanned across the whole file (both components live
+  // in this one source file).
+  it('ALL_PROBE_HOOKS (main + subscription-panel probes) is EXACTLY the set of slice hooks the real file calls — not just a subset (bidirectional drift guard)', () => {
+    const actualHooks = [...extractCalledSliceHooks(SOURCE)].sort();
+    expect(actualHooks).toEqual([...ALL_PROBE_HOOKS].sort());
+  });
+
+  it('mutation-verify: a hook call the real file adds but no probe list omits is caught', () => {
+    const mutatedSource = `${SOURCE}\n  useCycleSlice();\n`;
+    const actualHooks = [...extractCalledSliceHooks(mutatedSource)].sort();
+    expect(actualHooks).not.toEqual([...ALL_PROBE_HOOKS].sort());
+    expect(actualHooks).toContain('useCycleSlice');
   });
 });

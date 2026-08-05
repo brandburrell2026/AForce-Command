@@ -28,6 +28,7 @@ import {
   useCountRenders,
   type HarnessControls,
 } from '@/store/__tests__/_renderCountHarness';
+import { extractCalledSliceHooks } from '@/store/__tests__/_actionsSourceScan';
 import {
   useUserSlice,
   useVoiceSettingsSlice,
@@ -39,6 +40,16 @@ import {
 
 const SOURCE = readFileSync(join(__dirname, '..', 'HomeScreenV2.tsx'), 'utf8');
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
+
+/** The exact slice-hook set `HomeSliceProbe` below exercises — kept as one list so the drift guard can diff against it. */
+const PROBE_HOOKS = [
+  'useUserSlice',
+  'useVoiceSettingsSlice',
+  'useBootstrapSlice',
+  'useEngineSlice',
+  'useFeatureFlags', // called in the real screen as `useFeatureFlags()`, re-exported from `useFlagsSlice`
+  'useActionsSlice',
+];
 
 const TICKS = 20;
 
@@ -129,18 +140,43 @@ describe('HomeScreenV2 slice migration — render count on a TICK_TIMER burst (R
 
 describe('HomeScreenV2 — render-count probe hook list matches the real screen (drift guard)', () => {
   it('the real screen calls every slice hook this probe exercises', () => {
-    for (const hook of [
-      'useUserSlice',
-      'useVoiceSettingsSlice',
-      'useBootstrapSlice',
-      'useEngineSlice',
-      'useActionsSlice', // called as `useActionsSlice<HomeActions>()` — generic-tolerant below
-    ]) {
+    for (const hook of PROBE_HOOKS) {
+      if (hook === 'useFeatureFlags') {
+        // The real screen imports this as `useFeatureFlags` (re-exported
+        // from `store/useAppStore.tsx`, which re-exports `useFlagsSlice`) —
+        // same underlying context, different name at the call site, so it
+        // doesn't match the `use*Slice` shape the loop below checks.
+        expect(CODE).toContain('useFeatureFlags()');
+        continue;
+      }
       expect(CODE).toMatch(new RegExp(`${hook}\\s*(<[^>]*>)?\\s*\\(`));
     }
-    // The real screen imports this as `useFeatureFlags` (re-exported from
-    // `store/useAppStore.tsx`, which re-exports `useFlagsSlice`) — same
-    // underlying context, different name at the call site.
-    expect(CODE).toContain('useFeatureFlags()');
+  });
+
+  // RC-1 W3 r2 hardening (#551 should-fix 2): the check above is
+  // one-directional — it proves the probe's hooks are all present in the
+  // real screen, but says nothing if the real screen starts calling an
+  // ADDITIONAL slice hook the probe doesn't exercise. That gap lets the
+  // render-count evidence above go silently stale: a screen that grows a
+  // new `use*Slice()`/`useFeatureFlags()` subscription (e.g. `useCycleSlice`
+  // for a new feature) would keep re-rendering on ticks that touch that
+  // slice, with no test catching that the "zero re-renders" proof no longer
+  // reflects the real screen. This test closes the loop: it source-scans
+  // HomeScreenV2.tsx for the actual SET of slice hooks it calls and asserts
+  // that set is EXACTLY `PROBE_HOOKS` — not a subset, not a superset.
+  it("PROBE_HOOKS is EXACTLY the set of slice hooks the real screen calls — not just a subset (bidirectional drift guard)", () => {
+    const actualHooks = [...extractCalledSliceHooks(SOURCE)].sort();
+    expect(actualHooks).toEqual([...PROBE_HOOKS].sort());
+  });
+
+  it('mutation-verify: a hook call the real screen adds but the probe list omits is caught', () => {
+    // Simulates the exact regression the bidirectional check above exists
+    // for — HomeScreenV2.tsx growing a new slice-hook call that
+    // `HomeSliceProbe` never picks up, so its zero-render proof stops
+    // covering the real screen's actual subscription set.
+    const mutatedSource = `${SOURCE}\n  useCycleSlice();\n`;
+    const actualHooks = [...extractCalledSliceHooks(mutatedSource)].sort();
+    expect(actualHooks).not.toEqual([...PROBE_HOOKS].sort());
+    expect(actualHooks).toContain('useCycleSlice');
   });
 });
