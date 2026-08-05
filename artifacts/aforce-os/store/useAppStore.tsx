@@ -483,7 +483,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // safe no-op when the flag is off or the queue is empty, and its own
       // in-flight guard (plus `intakeOutbox.ts`'s own module-level guard, see
       // that file) prevents overlap with a concurrent call.
-      void flushOutboxRef.current();
+      // RC-1 W3 r2 hardening (#551 nit 4): gated on the mounted ref — this
+      // `finally` can still run after unmount (an in-flight `fetchHome`
+      // resolving late), and there's no reason to keep draining the outbox
+      // via a component instance that's no longer mounted.
+      if (stateRefreshMountedRef.current) void flushOutboxRef.current();
       // First pass (success or failure) ends the pre-hydration window.
       // Cheap to call again on every 30s tick — React bails out a
       // no-op `setState(true)` once already true (Object.is same-value).

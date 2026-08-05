@@ -94,3 +94,31 @@ describe('useAppStore.tsx — single outbox-flush path (RC-1 fix-forward, should
     );
   });
 });
+
+describe('useAppStore.tsx — refreshState finally-block flush is mounted-guarded (RC-1 W3 r2 hardening, #551 nit 4)', () => {
+  // `refreshState`'s `finally` block can still run after `AppProvider`
+  // unmounts (an in-flight `fetchHome()` call resolving after unmount, e.g.
+  // during a fast screen transition or test teardown) — there's no reason
+  // to keep draining the offline outbox via a component instance that's no
+  // longer mounted. This pins the fix: the flush call must be gated on
+  // `stateRefreshMountedRef.current`, same as the `setIsHydrated(true)` call
+  // immediately below it already was.
+  it('gates the finally-block outbox flush on stateRefreshMountedRef.current', () => {
+    expect(CODE).toMatch(
+      /if\s*\(\s*stateRefreshMountedRef\.current\s*\)\s*void flushOutboxRef\.current\(\)/,
+    );
+  });
+
+  it('mutation-verify: an unconditional (unguarded) flush call in the finally block is caught', () => {
+    // Simulates the exact regression this guard exists for — reverting the
+    // gate and calling the flush unconditionally, same as `setIsHydrated`
+    // just above it would be without ITS guard.
+    const regressed = CODE.replace(
+      /if\s*\(\s*stateRefreshMountedRef\.current\s*\)\s*void flushOutboxRef\.current\(\);/,
+      'void flushOutboxRef.current();',
+    );
+    expect(regressed).not.toMatch(
+      /if\s*\(\s*stateRefreshMountedRef\.current\s*\)\s*void flushOutboxRef\.current\(\)/,
+    );
+  });
+});
