@@ -91,6 +91,12 @@ export function normalizeProviderSnapshot(
   const hrvRmssdMs = method === 'rmssd' ? rawHrv : null;
   const hrvSdnnMs = method === 'sdnn' ? rawHrv : null;
 
+  // Observation freshness (Founder Ruling I, RC-2): pass through only when
+  // present and finite on the raw blob. Never fabricated here — a provider
+  // populator that has no usable observation timestamp simply omits the
+  // field, and it stays absent all the way through.
+  const latestObservedAtMs = finiteOrNull(r.latestObservedAtMs);
+
   return {
     providerId: provider,
     restingHeartRate: finiteOrNull(r.restingHeartRate),
@@ -108,6 +114,7 @@ export function normalizeProviderSnapshot(
     stressScore,
     trainingLoad: finiteOrNull(r.trainingLoad),
     fetchedAt: r.fetchedAt,
+    ...(latestObservedAtMs != null ? { latestObservedAtMs } : {}),
     schemaVersion: HEALTH_RECORD_SCHEMA_VERSION,
   };
 }

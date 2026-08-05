@@ -42,6 +42,13 @@ export interface WhoopSnapshot {
   hrvSdnn: number | null;
   restingHeartRate: number | null;
   sleepHoursLastNight: number | null;
+  /**
+   * Epoch ms of the newest `created_at` among the recovery/cycle/sleep
+   * records that actually contributed a metric above (Founder Ruling I,
+   * RC-2). OPTIONAL: absent whenever none of the selected records carried a
+   * parseable `created_at` — never fabricated or backfilled from `fetchedAt`.
+   */
+  latestObservedAtMs?: number;
 }
 
 export const EMPTY_WHOOP_SNAPSHOT: WhoopSnapshot = {
@@ -92,6 +99,33 @@ function scoreSourceOf(
     if (scored) return (r.score ?? r) as Record<string, unknown>;
   }
   return null;
+}
+
+/**
+ * The SAME selection predicate as `scoreSourceOf` above (kept as a literal
+ * duplicate, not a refactor of that pinned function, so its parity-tested
+ * behavior at whoopSnapshot.ts:91 stays untouched) — but returns the RECORD
+ * itself rather than its score source. `created_at` (WHOOP v2's record-level
+ * observation timestamp) lives on the record, not inside the nested `score`
+ * object, so deriving `latestObservedAtMs` needs the record, not the value
+ * `scoreSourceOf` already extracted for the metric fields.
+ */
+function selectedRecordOf(records: WhoopRecord[] | undefined): WhoopRecord | null {
+  if (!records) return null;
+  for (const r of records) {
+    if (!r) continue;
+    const scored = r.score_state === "SCORED" || r.score != null;
+    if (scored) return r;
+  }
+  return null;
+}
+
+/** Parse a WHOOP `created_at` (ISO-8601 string) into epoch ms. Anything
+ *  non-string or unparseable -> null; never guesses. */
+function parseWhoopTimestamp(v: unknown): number | null {
+  if (typeof v !== "string" || v.length === 0) return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
 }
 
 async function getJson<T>(
@@ -174,12 +208,45 @@ export async function fetchWhoopSnapshot(
     sleepHoursLastNight = Math.max(0, inBed - awake) / (1000 * 60 * 60);
   }
 
+  const recoveryPct = num(rec?.["recovery_score"]);
+  const strain = num(cyc?.["strain"]);
+  const hrvSdnn = num(rec?.["hrv_rmssd_milli"]);
+  const restingHeartRate = num(rec?.["resting_heart_rate"]);
+
+  // Observation freshness (Founder Ruling I, RC-2): only count a record's
+  // `created_at` toward the max when that record actually contributed a
+  // metric above — mirrors "the metrics that populate the blob", not every
+  // record WHOOP happened to return.
+  const recoveryContributed =
+    recoveryPct !== null || hrvSdnn !== null || restingHeartRate !== null;
+  const cycleContributed = strain !== null;
+  const sleepContributed = sleepHoursLastNight !== null;
+
+  const recoveryObservedAtMs = recoveryContributed
+    ? parseWhoopTimestamp(selectedRecordOf(recovery?.records)?.["created_at"])
+    : null;
+  const cycleObservedAtMs = cycleContributed
+    ? parseWhoopTimestamp(selectedRecordOf(cycle?.records)?.["created_at"])
+    : null;
+  const sleepObservedAtMs = sleepContributed
+    ? parseWhoopTimestamp(selectedRecordOf(sleep?.records)?.["created_at"])
+    : null;
+
+  const observedCandidates = [
+    recoveryObservedAtMs,
+    cycleObservedAtMs,
+    sleepObservedAtMs,
+  ].filter((v): v is number => v != null);
+  const latestObservedAtMs =
+    observedCandidates.length > 0 ? Math.max(...observedCandidates) : undefined;
+
   return {
-    recoveryPct: num(rec?.["recovery_score"]),
-    strain: num(cyc?.["strain"]),
-    hrvSdnn: num(rec?.["hrv_rmssd_milli"]),
-    restingHeartRate: num(rec?.["resting_heart_rate"]),
+    recoveryPct,
+    strain,
+    hrvSdnn,
+    restingHeartRate,
     sleepHoursLastNight,
+    ...(latestObservedAtMs != null ? { latestObservedAtMs } : {}),
   };
 }
 
@@ -194,6 +261,12 @@ export interface WhoopProviderBlob {
   strain: number | null;
   recoveryPct: number | null;
   fetchedAt: number;
+  /**
+   * Epoch ms of the newest underlying WHOOP `created_at` this blob's metrics
+   * came from (Founder Ruling I, RC-2) — see `WhoopSnapshot.latestObservedAtMs`.
+   * OPTIONAL and additive: absent whenever the snapshot carried none.
+   */
+  latestObservedAtMs?: number;
 }
 
 /** Pure: lift a WhoopSnapshot into the persisted biometrics-blob entry. */
@@ -209,6 +282,9 @@ export function whoopSnapshotToProviderBlob(
     strain: s.strain,
     recoveryPct: s.recoveryPct,
     fetchedAt,
+    ...(s.latestObservedAtMs != null
+      ? { latestObservedAtMs: s.latestObservedAtMs }
+      : {}),
   };
 }
 

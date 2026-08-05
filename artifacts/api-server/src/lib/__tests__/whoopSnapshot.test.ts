@@ -291,6 +291,78 @@ describe("fetchWhoopSnapshot", () => {
   });
 });
 
+describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
+  it("derives the MAX created_at across recovery/cycle/sleep when all three carry it", async () => {
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              created_at: "2026-08-01T06:00:00.000Z",
+              score: { recovery_score: 70, hrv_rmssd_milli: 50, resting_heart_rate: 55 },
+            },
+          ],
+        }),
+      [CYCLE_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              created_at: "2026-08-02T09:00:00.000Z", // latest of the three
+              score: { strain: 12 },
+            },
+          ],
+        }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              created_at: "2026-08-01T22:00:00.000Z",
+              score: {
+                stage_summary: { total_in_bed_time_milli: 8 * 3600 * 1000, total_awake_time_milli: 0 },
+              },
+            },
+          ],
+        }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-02T09:00:00.000Z"));
+  });
+
+  it("is absent when no selected record carries a created_at (the golden-fixture shape)", async () => {
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () =>
+        jsonResponse({ records: [{ score_state: "SCORED", score: { recovery_score: 70 } }] }),
+      [CYCLE_URL]: () =>
+        jsonResponse({ records: [{ score_state: "SCORED", score: { strain: 12 } }] }),
+      [SLEEP_URL]: () => jsonResponse({ records: [] }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBeUndefined();
+    expect("latestObservedAtMs" in snap).toBe(false);
+  });
+
+  it("only counts a collection's created_at when it actually contributed a metric — a failed/empty endpoint's timestamp (if any) never counts", async () => {
+    const { fn } = makeFetch({
+      // Recovery fails outright -> contributes nothing, even though this
+      // branch can never actually carry a created_at (there's no body).
+      [RECOVERY_URL]: () => new Response("err", { status: 500 }),
+      [CYCLE_URL]: () =>
+        jsonResponse({
+          records: [
+            { score_state: "SCORED", created_at: "2026-08-01T00:00:00.000Z", score: { strain: 9 } },
+          ],
+        }),
+      [SLEEP_URL]: () => jsonResponse({ records: [] }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.recoveryPct).toBeNull();
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-01T00:00:00.000Z"));
+  });
+});
+
 describe("whoopSnapshotToProviderBlob", () => {
   it("stamps providerId='whoop' and the given fetchedAt", () => {
     const blob = whoopSnapshotToProviderBlob(
@@ -312,6 +384,29 @@ describe("whoopSnapshotToProviderBlob", () => {
       recoveryPct: 80,
       fetchedAt: 123_456,
     });
+  });
+
+  it("passes through latestObservedAtMs when the snapshot carries it (Founder Ruling I, RC-2)", () => {
+    const blob = whoopSnapshotToProviderBlob(
+      {
+        recoveryPct: 80,
+        strain: 10,
+        hrvSdnn: 45,
+        restingHeartRate: 60,
+        sleepHoursLastNight: 7,
+        latestObservedAtMs: 999,
+      },
+      123_456,
+    );
+    expect(blob.latestObservedAtMs).toBe(999);
+  });
+
+  it("omits latestObservedAtMs entirely (not undefined-valued) when the snapshot lacks it", () => {
+    const blob = whoopSnapshotToProviderBlob(
+      { recoveryPct: 80, strain: 10, hrvSdnn: 45, restingHeartRate: 60, sleepHoursLastNight: 7 },
+      123_456,
+    );
+    expect("latestObservedAtMs" in blob).toBe(false);
   });
 });
 

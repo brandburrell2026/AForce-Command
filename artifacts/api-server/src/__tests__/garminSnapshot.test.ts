@@ -159,6 +159,56 @@ describe("fetchGarminSnapshot", () => {
   });
 });
 
+describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
+  it("derives the MAX calendarDate across dailies/sleeps/hrv when they differ", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/dailies"))
+        return jsonResponse([
+          { restingHeartRateInBeatsPerMinute: 52, calendarDate: "2026-08-01" },
+        ]);
+      if (url.includes("/sleeps"))
+        return jsonResponse([
+          { sleepTimeInSeconds: 7 * 3600, calendarDate: "2026-08-03" }, // latest
+        ]);
+      if (url.includes("/hrv"))
+        return jsonResponse([{ lastNightAvg: 64, calendarDate: "2026-08-02" }]);
+      throw new Error("unexpected url " + url);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-03T00:00:00.000Z"));
+  });
+
+  it("is absent when no summary carries a calendarDate", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/dailies")) return jsonResponse([{ restingHeartRateInBeatsPerMinute: 52 }]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.latestObservedAtMs).toBeUndefined();
+    expect("latestObservedAtMs" in snap).toBe(false);
+  });
+
+  it("only counts a summary's calendarDate when it actually contributed a metric — a failed dailies endpoint's date (if any) never counts", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/dailies")) return jsonResponse({}, 500);
+      if (url.includes("/hrv")) return jsonResponse([{ lastNightAvg: 50, calendarDate: "2026-08-01" }]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.restingHeartRate).toBeNull();
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-01T00:00:00.000Z"));
+  });
+});
+
 describe("garminSnapshotToProviderBlob", () => {
   it("lifts a snapshot into a provider blob tagged garmin + fetchedAt", () => {
     const snap: GarminSnapshot = {
@@ -179,6 +229,18 @@ describe("garminSnapshotToProviderBlob", () => {
     });
   });
 
+  it("passes through latestObservedAtMs when the snapshot carries it (Founder Ruling I, RC-2)", () => {
+    const snap: GarminSnapshot = {
+      restingHeartRate: 55,
+      hrvMs: 70,
+      sleepHoursLastNight: 7.5,
+      stress: 28,
+      steps: 10000,
+      latestObservedAtMs: 777,
+    };
+    expect(garminSnapshotToProviderBlob(snap, FIXED_NOW).latestObservedAtMs).toBe(777);
+  });
+
   it("preserves null fields without fabricating values", () => {
     const blob = garminSnapshotToProviderBlob(EMPTY_GARMIN_SNAPSHOT, FIXED_NOW);
     expect(blob.restingHeartRate).toBeNull();
@@ -187,6 +249,7 @@ describe("garminSnapshotToProviderBlob", () => {
     expect(blob.stress).toBeNull();
     expect(blob.steps).toBeNull();
     expect(blob.fetchedAt).toBe(FIXED_NOW);
+    expect("latestObservedAtMs" in blob).toBe(false);
   });
 });
 

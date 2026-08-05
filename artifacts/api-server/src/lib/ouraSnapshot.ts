@@ -70,6 +70,15 @@ export interface OuraSnapshot {
   restingHeartRate: number | null;
   stepsToday: number | null;
   workoutMinutesToday: number | null;
+  /**
+   * Epoch ms of the newest observation timestamp among the readiness/sleep/
+   * activity/workout records that actually contributed a metric above
+   * (Founder Ruling I, RC-2): sleep prefers `bedtime_end` (full instant),
+   * everything else falls back to the endpoint's `day` (date-only, so the
+   * derived ms lands at UTC midnight of that day — coarser, never fabricated
+   * finer than the source). OPTIONAL: absent when nothing usable was found.
+   */
+  latestObservedAtMs?: number;
 }
 
 export const EMPTY_OURA_SNAPSHOT: OuraSnapshot = {
@@ -163,6 +172,15 @@ function isoDate(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
 }
 
+/** Parse an Oura `day` (date-only, "YYYY-MM-DD") or full ISO datetime
+ *  (`bedtime_end`, `start_datetime`, `end_datetime`) into epoch ms. Anything
+ *  non-string, empty, or unparseable -> null; never guesses. */
+function parseObservationMs(v: unknown): number | null {
+  if (typeof v !== "string" || v.length === 0) return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
+}
+
 /**
  * Pull a snapshot of the Oura metrics AForce consumes. Returns the
  * empty snapshot when no access token is available — never fabricates.
@@ -203,6 +221,7 @@ export async function fetchOuraSnapshot(
   const activityRec = latest(activity?.data);
 
   let workoutMinutesToday: number | null = null;
+  let workoutObservedAtMs: number | null = null;
   const workoutRecords = workouts?.data;
   if (workoutRecords && workoutRecords.length > 0) {
     let totalMs = 0;
@@ -216,6 +235,10 @@ export async function fetchOuraSnapshot(
       if (durationMs <= 0) continue;
       totalMs += durationMs;
       sawValid = true;
+      const endMs = parseObservationMs(w.end_datetime);
+      if (endMs != null && (workoutObservedAtMs == null || endMs > workoutObservedAtMs)) {
+        workoutObservedAtMs = endMs;
+      }
     }
     if (sawValid) workoutMinutesToday = totalMs / (1000 * 60);
   }
@@ -226,13 +249,40 @@ export async function fetchOuraSnapshot(
     sleepHoursLastNight = Math.max(0, sleepSec) / 3600;
   }
 
+  const readinessScore = num(readinessRec?.score);
+  const hrvSdnn = num(sleepRec?.average_hrv);
+  const restingHeartRate = num(sleepRec?.lowest_heart_rate);
+  const stepsToday = num(activityRec?.steps);
+
+  // Observation freshness (Founder Ruling I, RC-2): only count a record's
+  // timestamp toward the max when it actually contributed a metric above.
+  const readinessObservedAtMs =
+    readinessScore !== null ? parseObservationMs(readinessRec?.day) : null;
+  const sleepContributed =
+    sleepHoursLastNight !== null || hrvSdnn !== null || restingHeartRate !== null;
+  const sleepObservedAtMs = sleepContributed
+    ? (parseObservationMs(sleepRec?.bedtime_end) ?? parseObservationMs(sleepRec?.day))
+    : null;
+  const activityObservedAtMs =
+    stepsToday !== null ? parseObservationMs(activityRec?.day) : null;
+
+  const observedCandidates = [
+    readinessObservedAtMs,
+    sleepObservedAtMs,
+    activityObservedAtMs,
+    workoutMinutesToday !== null ? workoutObservedAtMs : null,
+  ].filter((v): v is number => v != null);
+  const latestObservedAtMs =
+    observedCandidates.length > 0 ? Math.max(...observedCandidates) : undefined;
+
   return {
-    readinessScore: num(readinessRec?.score),
+    readinessScore,
     sleepHoursLastNight,
-    hrvSdnn: num(sleepRec?.average_hrv),
-    restingHeartRate: num(sleepRec?.lowest_heart_rate),
-    stepsToday: num(activityRec?.steps),
+    hrvSdnn,
+    restingHeartRate,
+    stepsToday,
     workoutMinutesToday,
+    ...(latestObservedAtMs != null ? { latestObservedAtMs } : {}),
   };
 }
 
@@ -248,6 +298,12 @@ export interface OuraProviderBlob {
   stepsToday: number | null;
   workoutMinutesToday: number | null;
   fetchedAt: number;
+  /**
+   * Epoch ms of the newest underlying Oura observation this blob's metrics
+   * came from (Founder Ruling I, RC-2) — see `OuraSnapshot.latestObservedAtMs`.
+   * OPTIONAL and additive: absent whenever the snapshot carried none.
+   */
+  latestObservedAtMs?: number;
 }
 
 /** Pure: lift an OuraSnapshot into the persisted biometrics-blob entry. */
@@ -264,6 +320,9 @@ export function ouraSnapshotToProviderBlob(
     stepsToday: s.stepsToday,
     workoutMinutesToday: s.workoutMinutesToday,
     fetchedAt,
+    ...(s.latestObservedAtMs != null
+      ? { latestObservedAtMs: s.latestObservedAtMs }
+      : {}),
   };
 }
 

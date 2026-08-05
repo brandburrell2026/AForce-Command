@@ -289,6 +289,18 @@ export interface ProviderSnapshot {
   trainingLoad?: number | null;
   /** When this snapshot was last refreshed (epoch ms). */
   fetchedAt: number;
+  /**
+   * Epoch ms of the newest underlying OBSERVATION captured in this snapshot
+   * — e.g. the timestamp of the WHOOP recovery/cycle record, the Oura day
+   * summary, or the Garmin metric read — as opposed to `fetchedAt`, which is
+   * when AForce SYNCED that data. The two can diverge widely (a provider sync
+   * can return an observation from hours or days earlier). OPTIONAL and
+   * ADDITIVE (Founder Ruling I, RC-2): absent on legacy blobs and on any
+   * payload where the provider did not carry a usable observation timestamp.
+   * Consumers MUST fall back to `fetchedAt`-only behavior when this is
+   * undefined — never fabricate or backfill it.
+   */
+  latestObservedAtMs?: number;
   /** Stamped by the normalization boundary; absent on raw legacy blobs. */
   schemaVersion?: number;
 }
