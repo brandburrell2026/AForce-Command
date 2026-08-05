@@ -18,6 +18,7 @@
 import { Platform } from 'react-native';
 
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '../featureFlags/internalTestflightOverlay';
 
 export interface AppleHealthSnapshot {
   /** Most recent resting heart rate sample (bpm). */
@@ -38,10 +39,26 @@ const EMPTY_SNAPSHOT: AppleHealthSnapshot = {
 };
 
 export function isAppleHealthSupported(): boolean {
-  // ISOLATION BUILD: gated behind healthkit_native_enabled. When the flag is
-  // false the native module is absent from the bundle, so we report
-  // "unavailable" — the same shape an Android user already gets — even on iOS.
-  return DEFAULT_FLAGS.healthkit_native_enabled && Platform.OS === 'ios';
+  // RC-2 Track-A — internal-TestFlight HealthKit enablement.
+  //
+  // Available on iOS when EITHER:
+  //   - this is an internal-TestFlight build. `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`
+  //     (featureFlags/internalTestflightOverlay.ts) reads
+  //     EXPO_PUBLIC_INTERNAL_TESTFLIGHT, inlined at build time by
+  //     babel-preset-expo — the same reachable, non-React-store env gate
+  //     Ruling A already proved for the elite_* flag overlay. Reused here
+  //     rather than re-reading the env var, so there is exactly one seam
+  //     that knows what "internal TestFlight" means, OR
+  //   - DEFAULT_FLAGS.healthkit_native_enabled is true — the general-
+  //     availability switch for a future production rollout. It stays
+  //     `false` in DEFAULT_FLAGS and DEMO_ALL_ON today (unchanged by this
+  //     gate), so it contributes nothing until a separate, deliberate
+  //     ruling flips it.
+  //
+  // Production and ordinary preview builds set neither, so they report
+  // "unavailable" — the same shape an Android or web user already gets —
+  // exactly as before this change.
+  return Platform.OS === 'ios' && (INTERNAL_TESTFLIGHT_OVERLAY_ENABLED || DEFAULT_FLAGS.healthkit_native_enabled);
 }
 
 /**
@@ -50,17 +67,21 @@ export function isAppleHealthSupported(): boolean {
  * Nitro module isn't linked.
  *
  * RE-ENABLE STATUS: @kingstinct/react-native-healthkit + react-native-nitro-modules
- * are back in package.json (dependency step of the HealthKit bridge re-enable),
- * so the dynamic import below is live again. It still only executes when
- * isAppleHealthSupported() is true AND healthkit_native_enabled is true — both
- * default OFF in DEFAULT_FLAGS — so non-iOS/flag-off builds never reach the
- * import and Metro never needs to resolve the native module for them.
- * Native activation (pod install / native build / flag flip) is a separate,
- * deliberately un-taken step.
+ * are back in package.json, the config plugin is registered in app.json (RC-2
+ * Track-A), and the dynamic import below is live. It only executes when
+ * isAppleHealthSupported() is true — i.e. iOS AND (internal-TestFlight build
+ * OR healthkit_native_enabled) — so production/preview builds and every
+ * non-iOS platform never reach the import and Metro never needs to resolve
+ * the native module for them. There is deliberately only ONE gate here now
+ * (isAppleHealthSupported() itself): a second, independent
+ * `healthkit_native_enabled` check used to live in this function too, but
+ * that made it a second source of truth that would have silently re-blocked
+ * the internal-TestFlight path this change exists to open. General
+ * production availability (flipping `healthkit_native_enabled` on) is a
+ * separate, deliberately un-taken step.
  */
 async function loadHealthKit(): Promise<any | null> {
   if (!isAppleHealthSupported()) return null;
-  if (!DEFAULT_FLAGS.healthkit_native_enabled) return null;
   try {
     const mod = await import('@kingstinct/react-native-healthkit');
     return mod;
