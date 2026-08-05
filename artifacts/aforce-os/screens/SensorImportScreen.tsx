@@ -157,6 +157,7 @@ export function SensorImportScreen() {
               <Pressable
                 onPress={onPickFile}
                 style={styles.rowLeft}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 0 }}
                 testID="sensor-pick-file"
                 accessibilityRole="button"
                 accessibilityLabel={pickedFileName ?? 'Pick a CSV or JSON file'}
