@@ -56,3 +56,120 @@ describe('vocabulary mapping to canonical presentation states', () => {
     expect(resolveProviderPresentation({ status: viaHc, latestFetchedAtMs: null, nowMs: NOW }).state).toBe('via_health_connect');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// Founder Ruling I (RC-2, part 2): "Observation freshness and sync
+// freshness must be displayed separately and truthfully." Part 1 (#562)
+// added the optional, additive `ProviderSnapshot.latestObservedAtMs`; this
+// suite pins how THIS layer consumes it — conservative (staler-wins)
+// selection for STATE, plus the absent-field parity contract that makes
+// every test above still valid unmodified.
+// ─────────────────────────────────────────────────────────────────────────
+describe('Ruling I — observation freshness axis (optional, additive)', () => {
+  it('PARITY (mutation-verify): an absent latestObservedAtMs produces an object with EXACTLY the pre-Ruling-I keys', () => {
+    const p = resolveProviderPresentation({ status: connected, latestFetchedAtMs: NOW - 6 * H, nowMs: NOW });
+    // A toEqual against the 3-key shape (as every pre-existing test above
+    // already does) would silently pass even if extra `undefined`-valued
+    // keys leaked in under some JS engines' enumeration quirks; this
+    // explicit key-set assertion is the one that actually fails if
+    // `withObservationAxis` is ever changed to always attach the extra
+    // fields instead of omitting them for an absent axis.
+    expect(Object.keys(p).sort()).toEqual(['dataAgeMs', 'live', 'state']);
+    expect(p).toEqual({ state: 'connected', live: true, dataAgeMs: 6 * H });
+  });
+
+  it('PARITY: null and non-finite latestObservedAtMs are treated identically to absent — never fabricated', () => {
+    const withNull = resolveProviderPresentation({ status: connected, latestFetchedAtMs: NOW - 6 * H, latestObservedAtMs: null, nowMs: NOW });
+    const withNaN = resolveProviderPresentation({ status: connected, latestFetchedAtMs: NOW - 6 * H, latestObservedAtMs: NaN, nowMs: NOW });
+    expect(Object.keys(withNull).sort()).toEqual(['dataAgeMs', 'live', 'state']);
+    expect(Object.keys(withNaN).sort()).toEqual(['dataAgeMs', 'live', 'state']);
+  });
+
+  it('DELAYED-SYNC SCENARIO: fresh sync + old observation ⇒ the STALER (observation) axis wins — never presents fresh', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 10 * 60_000, // synced 10 minutes ago
+      latestObservedAtMs: NOW - 30 * H,     // but the underlying observation is 30h old
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('stale');
+    expect(p.live).toBe(false);
+    expect(p.dataAgeMs).toBe(30 * H); // conservative (staler) age drives the state
+    expect(p.observedAgeMs).toBe(30 * H);
+    expect(p.showBothFreshnessAxes).toBe(true); // 10m (live bucket) vs 30h (stale bucket) genuinely differ
+  });
+
+  it('DELAYED-SYNC SCENARIO, expired: fresh sync + expired observation ⇒ no_recent_data, never fresh', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 5 * 60_000,
+      latestObservedAtMs: NOW - 100 * H,
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('no_recent_data');
+    expect(p.live).toBe(false);
+    expect(p.dataAgeMs).toBe(100 * H);
+  });
+
+  it('symmetry boundary: an old sync age still wins over a fresher observation age (true max(), not axis-order bias)', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 30 * H,
+      latestObservedAtMs: NOW - 10 * 60_000,
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('stale');
+    expect(p.dataAgeMs).toBe(30 * H);
+    expect(p.showBothFreshnessAxes).toBe(true);
+  });
+
+  it('DISPLAY THRESHOLD: both axes in the same §53 bucket ⇒ showBothFreshnessAxes is false (no clutter)', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 5 * 60_000,
+      latestObservedAtMs: NOW - 10 * 60_000,
+      nowMs: NOW,
+    });
+    expect(p.showBothFreshnessAxes).toBe(false);
+    expect(p.state).toBe('connected');
+    expect(p.live).toBe(true);
+  });
+
+  it('DISPLAY THRESHOLD: both axes stale-bucket together ⇒ showBothFreshnessAxes is false even though state is stale', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 25 * H,
+      latestObservedAtMs: NOW - 26 * H,
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('stale');
+    expect(p.showBothFreshnessAxes).toBe(false);
+  });
+
+  it('a non-live base status still carries the observation axis (informational), never upgrading liveness', () => {
+    const p = resolveProviderPresentation({
+      status: disconnected,
+      latestFetchedAtMs: NOW - 1 * H,
+      latestObservedAtMs: NOW - 40 * H,
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('disconnected');
+    expect(p.live).toBe(false);
+    expect(p.observedAgeMs).toBe(40 * H);
+    expect(p.showBothFreshnessAxes).toBe(true);
+  });
+
+  it('observation axis present but sync axis null (never synced) ⇒ observation age alone is the conservative age', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: null,
+      latestObservedAtMs: NOW - 50 * H,
+      nowMs: NOW,
+    });
+    expect(p.dataAgeMs).toBe(50 * H);
+    expect(p.state).toBe('stale');
+    // syncAgeMs is null here, so there is nothing to meaningfully "differ"
+    // against — showBothFreshnessAxes requires BOTH axes known.
+    expect(p.showBothFreshnessAxes).toBe(false);
+  });
+});

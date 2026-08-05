@@ -2074,6 +2074,7 @@
     "loading": "Checking your connected sources…",
     "empty": "No health sources configured yet.",
     "status_a11y": "Status: {{label}}",
+    "freshness_a11y": "Data freshness: {{label}}",
     "disconnect": "Disconnect",
     "disconnect_a11y": "Disconnect {{name}}",
     "pull_chip_a11y": "{{label}}, {{status}}",
@@ -2146,7 +2147,8 @@
       "minutes_ago": "Synced {{count}}m ago",
       "hours_ago": "Synced {{count}}h ago",
       "days_ago": "Synced {{count}}d ago",
-      "literal": "{{text}}"
+      "literal": "{{text}}",
+      "observed_on": "· data from {{date}}"
     },
     "footer": {
       "title": "HOW YOUR DATA IS USED",

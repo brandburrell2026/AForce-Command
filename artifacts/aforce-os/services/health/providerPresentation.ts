@@ -18,6 +18,22 @@
  *     (a disconnected provider with a fresh leftover snapshot is still
  *     disconnected — that leftover is PR 1B's deletion-semantics problem).
  *
+ * FOUNDER RULING I (RC-2, part 2 — this PR): "Observation freshness and
+ * sync freshness must be displayed separately and truthfully." Part 1 (PR
+ * #562) added `ProviderSnapshot.latestObservedAtMs` — optional, additive,
+ * epoch ms of the newest underlying OBSERVATION, distinct from `fetchedAt`
+ * (when AForce synced it). This layer is the FIRST consumer: when the
+ * caller supplies `latestObservedAtMs`, presentation STATE is gated on
+ * whichever axis is STALER (the conservative choice — a fresh sync of an
+ * old observation must never present as fresh). `dataAgeMs` reflects that
+ * same conservative age. `observedAgeMs` / `showBothFreshnessAxes` are
+ * appended to the result ONLY when a real observation age was supplied —
+ * never as `null` placeholders — so a caller that omits the field gets a
+ * presentation object structurally IDENTICAL to pre-Ruling-I output. This is
+ * a pinned parity contract; see providerPresentation.test.ts's dedicated
+ * suite (including a mutation-verify key-set assertion that fails if this
+ * omission discipline is ever broken).
+ *
  * Pure: clock injected, no store, no I/O.
  */
 
@@ -33,6 +49,15 @@ export interface ProviderPresentationInput {
   status: HealthProviderStatus;
   /** fetchedAt (epoch ms) of this provider's newest snapshot; null when none. */
   latestFetchedAtMs: number | null;
+  /**
+   * Epoch ms of the newest OBSERVATION (Founder Ruling I, RC-2) — OPTIONAL
+   * and ADDITIVE, mirrors `ProviderSnapshot.latestObservedAtMs` verbatim.
+   * When present and finite, presentation state is gated on whichever axis
+   * is STALER (see file header). Absent / null / non-finite ⇒ presentation
+   * is byte-identical to pre-Ruling-I behavior — never fabricated, never
+   * guessed from `latestFetchedAtMs`.
+   */
+  latestObservedAtMs?: number | null;
   nowMs: number;
 }
 
@@ -40,8 +65,30 @@ export interface ProviderPresentation {
   state: ProviderPresentationState;
   /** True ONLY for a real link with non-stale data. */
   live: boolean;
-  /** Data age in ms when known. */
+  /**
+   * Data age in ms when known — the CONSERVATIVE (staler) of sync-age and
+   * observation-age once `latestObservedAtMs` was supplied; sync-age alone
+   * otherwise (see `ProviderPresentationInput.latestObservedAtMs`).
+   */
   dataAgeMs: number | null;
+  /**
+   * Observation-axis age alone, in ms — present ONLY when the input carried
+   * a finite `latestObservedAtMs` (never `null`; simply absent otherwise —
+   * see the parity contract in the file header). Diagnostic/composition
+   * field: display copy is built from the raw `observedAtMs` timestamp
+   * elsewhere (`connectedHealthContainerModel.ts` / `connectedHealthView.ts`),
+   * never from this age.
+   */
+  observedAgeMs?: number;
+  /**
+   * True when sync-age and observation-age fall into genuinely different
+   * §53 freshness buckets (live / stale / expired) — i.e. showing both axes
+   * separately would say something a single "Synced …" line would not.
+   * Present ONLY alongside `observedAgeMs` (both axes known); absent
+   * whenever there is nothing extra worth saying (Ruling I's "keep the
+   * existing single line — don't clutter" case).
+   */
+  showBothFreshnessAxes?: boolean;
 }
 
 /** §26 UI status → canonical presentation vocabulary (health-core). */
@@ -64,35 +111,79 @@ const LIVE_BASE: ReadonlySet<HealthProviderUiStatus> = new Set([
 
 /**
  * Compose connection status with data freshness (§53 `wearable_sync`
- * windows: fresh ≤6h, stale >24h, expired >72h).
+ * windows: fresh ≤6h, stale >24h, expired >72h). Ruling I (see file header):
+ * when `latestObservedAtMs` is supplied, the STALER of sync-age/
+ * observation-age drives state — never the more flattering one.
  */
 export function resolveProviderPresentation(input: ProviderPresentationInput): ProviderPresentation {
   const base = BASE_STATE[input.status.status];
   const isLiveBase = LIVE_BASE.has(input.status.status) && input.status.live;
 
+  const syncAgeMs = rawAgeMs(input.latestFetchedAtMs, input.nowMs);
+  const observedAgeMs = rawAgeMs(input.latestObservedAtMs, input.nowMs);
+  // Parity contract: when observedAgeMs is unknown, this collapses to
+  // syncAgeMs exactly — nothing downstream can tell a second axis was ever
+  // considered.
+  const conservativeAgeMs =
+    observedAgeMs == null ? syncAgeMs : syncAgeMs == null ? observedAgeMs : Math.max(syncAgeMs, observedAgeMs);
+
   if (!isLiveBase) {
-    return { state: base, live: false, dataAgeMs: ageOf(input) };
+    return withObservationAxis({ state: base, live: false, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
   }
 
   // Real link — now gate "live" on data freshness. No snapshot at all is the
   // syncing/first-pull case, which stays honest ('syncing' already says so).
-  const age = ageOf(input);
-  if (age == null) {
-    return { state: base, live: input.status.status === 'syncing', dataAgeMs: null };
+  if (conservativeAgeMs == null) {
+    return withObservationAxis(
+      { state: base, live: input.status.status === 'syncing', dataAgeMs: null },
+      syncAgeMs,
+      observedAgeMs,
+    );
   }
 
   const w = FRESHNESS_WINDOWS.wearable_sync;
-  if (w.expireAfterMs != null && age > w.expireAfterMs) {
+  if (w.expireAfterMs != null && conservativeAgeMs > w.expireAfterMs) {
     // Stream is dark: connected credentials, no usable data. Not live.
-    return { state: 'no_recent_data', live: false, dataAgeMs: age };
+    return withObservationAxis(
+      { state: 'no_recent_data', live: false, dataAgeMs: conservativeAgeMs },
+      syncAgeMs,
+      observedAgeMs,
+    );
   }
-  if (age > w.staleAfterMs) {
-    return { state: 'stale', live: false, dataAgeMs: age };
+  if (conservativeAgeMs > w.staleAfterMs) {
+    return withObservationAxis({ state: 'stale', live: false, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
   }
-  return { state: base, live: true, dataAgeMs: age };
+  return withObservationAxis({ state: base, live: true, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
 }
 
-function ageOf(input: ProviderPresentationInput): number | null {
-  if (input.latestFetchedAtMs == null || !Number.isFinite(input.latestFetchedAtMs)) return null;
-  return Math.max(0, input.nowMs - input.latestFetchedAtMs);
+function rawAgeMs(atMs: number | null | undefined, nowMs: number): number | null {
+  if (atMs == null || !Number.isFinite(atMs)) return null;
+  return Math.max(0, nowMs - atMs);
+}
+
+/** §53 freshness bucket for a single age value — 0 live/fresh-enough, 1
+ *  stale, 2 expired. Shared by the conservative selection above and the
+ *  "do the two axes actually disagree" check below, so both always agree
+ *  on where the boundaries are. */
+function freshnessBucket(ageMs: number): 0 | 1 | 2 {
+  const w = FRESHNESS_WINDOWS.wearable_sync;
+  if (w.expireAfterMs != null && ageMs > w.expireAfterMs) return 2;
+  if (ageMs > w.staleAfterMs) return 1;
+  return 0;
+}
+
+/**
+ * Append the observation-axis fields ONLY when a real observation age was
+ * supplied — omitted (never written as `null`) otherwise, so an absent
+ * `latestObservedAtMs` produces an object structurally IDENTICAL to
+ * pre-Ruling-I output (see file header + providerPresentation.test.ts).
+ */
+function withObservationAxis(
+  base: { state: ProviderPresentationState; live: boolean; dataAgeMs: number | null },
+  syncAgeMs: number | null,
+  observedAgeMs: number | null,
+): ProviderPresentation {
+  if (observedAgeMs == null) return base;
+  const showBothFreshnessAxes = syncAgeMs != null && freshnessBucket(syncAgeMs) !== freshnessBucket(observedAgeMs);
+  return { ...base, observedAgeMs, showBothFreshnessAxes };
 }

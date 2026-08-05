@@ -298,3 +298,48 @@ describe('accessibility + honesty invariants at render time', () => {
     expect(freshMatches.length).toBeGreaterThan(0);
   });
 });
+
+describe('Founder Ruling I — observation freshness axis renders and announces truthfully', () => {
+  /** A 'connected' row (recent lastSyncAtMs) with the observation axis
+   *  forced to differ meaningfully, exactly as `resolveProviderPresentation`
+   *  would produce for the #562 delayed-sync scenario. */
+  function screenWithDivergedAxes(observedAtMs: number): ConnectedHealthInput {
+    const base = PROVIDER_ROW_FIXTURES.connected;
+    return {
+      now: CONNECTED_HEALTH_FIXTURES.mixed.now,
+      mode: 'ready',
+      platform: 'ios',
+      providers: [{
+        ...base,
+        presentation: { ...base.presentation, showBothFreshnessAxes: true },
+        observedAtMs,
+      }],
+    };
+  }
+
+  it('renders the composed "Synced … · data from …" line when the axes meaningfully differ', () => {
+    const threeDaysAgo = CONNECTED_HEALTH_FIXTURES.mixed.now - 3 * 24 * 60 * 60_000;
+    const view = renderView(screenWithDivergedAxes(threeDaysAgo));
+    const freshnessNode = q(`[data-testid="ch-freshness-${view.rows[0].providerId}"]`);
+    expect(freshnessNode).not.toBeNull();
+    expect(freshnessNode?.textContent).toMatch(/^Synced .* ago · data from /);
+  });
+
+  it('the composed accessibility label carries BOTH axes, extending the status_a11y pattern', () => {
+    const threeDaysAgo = CONNECTED_HEALTH_FIXTURES.mixed.now - 3 * 24 * 60 * 60_000;
+    const view = renderView(screenWithDivergedAxes(threeDaysAgo));
+    const freshnessNode = q(`[data-testid="ch-freshness-${view.rows[0].providerId}"]`);
+    const label = freshnessNode?.getAttribute('aria-label') ?? '';
+    expect(label.startsWith('Data freshness: ')).toBe(true); // mirrors "Status: {{label}}"
+    expect(label).toMatch(/Synced .* ago/); // sync axis present
+    expect(label).toMatch(/data from /); // observation axis present
+  });
+
+  it('a single-axis row (axes close, or no observation timestamp) announces only the sync axis — no fabricated date', () => {
+    renderState('connected'); // PROVIDER_ROW_FIXTURES.connected carries no observedAtMs
+    const freshnessNode = q('[data-testid^="ch-freshness-"]');
+    const label = freshnessNode?.getAttribute('aria-label') ?? '';
+    expect(label).toBe('Data freshness: Synced 5m ago');
+    expect(label).not.toMatch(/data from/);
+  });
+});

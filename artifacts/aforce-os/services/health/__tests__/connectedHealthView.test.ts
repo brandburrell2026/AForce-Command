@@ -192,6 +192,63 @@ describe('honesty — never-synced never fabricates a time', () => {
   });
 });
 
+describe('display separation — Founder Ruling I (observation vs sync freshness)', () => {
+  const NOW_MS = CONNECTED_HEALTH_FIXTURES.mixed.now;
+  const MIN = 60_000;
+  const DAY = 24 * 60 * MIN;
+
+  /** Builds a row on top of the 'connected' fixture (recent lastSyncAtMs),
+   *  overriding just the observation-axis fields this suite exercises. */
+  function rowWithAxes(showBothFreshnessAxes: boolean, observedAtMs: number | null) {
+    const base = PROVIDER_ROW_FIXTURES.connected;
+    return {
+      ...base,
+      presentation: { ...base.presentation, showBothFreshnessAxes },
+      observedAtMs,
+    };
+  }
+
+  it('presentation says the axes meaningfully differ ⇒ observedAtMs passes through to the row for display', () => {
+    const oldObserved = NOW_MS - 3 * DAY;
+    const input: ConnectedHealthInput = {
+      now: NOW_MS, mode: 'ready', platform: 'ios',
+      providers: [rowWithAxes(true, oldObserved)],
+    };
+    const view = resolveConnectedHealthView(input);
+    // The sync-axis line is completely unchanged — this is additive, not a
+    // replacement of the existing single-line freshness copy.
+    expect(view.rows[0].freshness).toEqual({ key: 'connected_health.freshness.minutes_ago', params: { count: 5 } });
+    expect(view.rows[0].observedAtMs).toBe(oldObserved);
+  });
+
+  it('presentation says the axes are close (same bucket) ⇒ observedAtMs is suppressed, single line stays — no clutter', () => {
+    const input: ConnectedHealthInput = {
+      now: NOW_MS, mode: 'ready', platform: 'ios',
+      providers: [rowWithAxes(false, NOW_MS - 8 * MIN)],
+    };
+    const view = resolveConnectedHealthView(input);
+    expect(view.rows[0].observedAtMs).toBeNull();
+  });
+
+  it('showBothFreshnessAxes true but observedAtMs missing ⇒ never fabricates a date', () => {
+    const input: ConnectedHealthInput = {
+      now: NOW_MS, mode: 'ready', platform: 'ios',
+      providers: [rowWithAxes(true, null)],
+    };
+    const view = resolveConnectedHealthView(input);
+    expect(view.rows[0].observedAtMs).toBeNull();
+  });
+
+  it('showBothFreshnessAxes true but observedAtMs is non-finite ⇒ never fabricates a date', () => {
+    const input: ConnectedHealthInput = {
+      now: NOW_MS, mode: 'ready', platform: 'ios',
+      providers: [rowWithAxes(true, NaN)],
+    };
+    const view = resolveConnectedHealthView(input);
+    expect(view.rows[0].observedAtMs).toBeNull();
+  });
+});
+
 describe('honesty — pull chips never claim a denied grant', () => {
   it('connected_limited (Apple, sleep denied) marks sleep as denied, others granted', () => {
     const view = resolveConnectedHealthView(screenWith(['connected_limited']));

@@ -245,9 +245,16 @@ export function buildConnectedHealthInput(input: ConnectedHealthContainerModelIn
     const rowFacts = buildProviderRowFacts(p.id, input);
     const status = deriveProviderRowStatus(rowFacts);
     const lastSyncAtMs = input.biometrics?.[p.id]?.fetchedAt ?? null;
+    // Founder Ruling I (RC-2 part 2): pass the snapshot's own observation
+    // timestamp straight through — absent on legacy blobs and on providers
+    // part 1 (#562) never wired server-side derivation for (Apple Health /
+    // Health Connect today), never fabricated here. `resolveProviderPresentation`
+    // treats an absent value as byte-identical to pre-Ruling-I behavior.
+    const observedAtMs = input.biometrics?.[p.id]?.latestObservedAtMs ?? null;
     const presentation = resolveProviderPresentation({
       status,
       latestFetchedAtMs: lastSyncAtMs,
+      latestObservedAtMs: observedAtMs,
       nowMs: input.nowMs,
     });
 
@@ -255,6 +262,7 @@ export function buildConnectedHealthInput(input: ConnectedHealthContainerModelIn
       providerId: p.id,
       presentation,
       lastSyncAtMs,
+      observedAtMs,
       grantedTypes: EMPTY_METRIC_TYPES,
       deniedTypes: EMPTY_METRIC_TYPES,
       errorKind: null,

@@ -101,6 +101,16 @@ export interface ConnectedHealthProviderInput {
   presentation: ProviderPresentation;
   /** Epoch ms of the newest real snapshot, or null when never synced. */
   lastSyncAtMs: number | null;
+  /**
+   * Epoch ms of the newest OBSERVATION (Founder Ruling I, RC-2) for this
+   * provider — mirrors `ProviderSnapshot.latestObservedAtMs` verbatim.
+   * OPTIONAL/ADDITIVE: null (or omitted) whenever the snapshot carries no
+   * usable observation timestamp (legacy blob, or a provider part 1 (#562)
+   * never wired server-side derivation for). Only ever DISPLAYED as a
+   * second axis when `presentation.showBothFreshnessAxes` is also true —
+   * see `resolveProviderRow`'s `observedAtMs` derivation below.
+   */
+  observedAtMs?: number | null;
   /** Record types the user has actually granted (subset of the capability's recordTypes). */
   grantedTypes: readonly CanonicalHealthMetricType[];
   /** Record types the user has actually denied (subset of the capability's recordTypes). */
@@ -149,6 +159,19 @@ export interface ConnectedHealthRowView {
   statusPill: ConnectedHealthStatusPill;
   /** "Synced 2h ago" | "Never synced" — always present, never fabricated. */
   freshness: I18nText;
+  /**
+   * Epoch ms of the newest OBSERVATION (Founder Ruling I, RC-2) — non-null
+   * ONLY when the sync-axis and observation-axis meaningfully differ
+   * (`presentation.showBothFreshnessAxes`) AND a real observation timestamp
+   * exists; null whenever there is nothing extra worth saying, per Ruling
+   * I's "keep the existing single line — don't clutter" case. Kept as a raw
+   * timestamp (not `I18nText`) because rendering it correctly is inherently
+   * locale-DATE-formatting work (`Intl.DateTimeFormat`), not translation-key
+   * work — the presentational component formats it, mirroring every other
+   * on-screen date in this app (e.g. `JournalDayCard.tsx`,
+   * `PerformanceIdentityCard.tsx`) rather than inventing a second pattern.
+   */
+  observedAtMs: number | null;
   /** Empty for gated rows (dormant / requires_external_approval / unavailable) — no real link exists. */
   pulls: readonly ConnectedHealthPullChip[];
   subCopy: I18nText;
@@ -419,6 +442,15 @@ function resolveProviderRow(
     ? { key: `connected_health.sub_copy.error.${ERROR_SUB_COPY_KEY[p.errorKind ?? 'unknown']}` }
     : { key: `connected_health.sub_copy.${SUB_COPY_KEY[state as NonErrorState]}` };
 
+  // Founder Ruling I (RC-2 part 2): only surface the observation axis when
+  // it would say something the sync line alone would not (per
+  // `resolveProviderPresentation`'s bucket comparison) AND a real timestamp
+  // actually exists — never fabricated from a boolean alone.
+  const observedAtMs =
+    p.presentation.showBothFreshnessAxes && p.observedAtMs != null && Number.isFinite(p.observedAtMs)
+      ? p.observedAtMs
+      : null;
+
   return {
     providerId: p.providerId,
     displayName: DISPLAY_NAME_BY_ID[p.providerId] ?? p.providerId,
@@ -429,6 +461,7 @@ function resolveProviderRow(
       tone: STATE_TONE[state],
     },
     freshness: freshnessFor(now, p.lastSyncAtMs, p.ageLabel),
+    observedAtMs,
     // Review #460 item 6: gated rows have no real link — never claim a pull.
     pulls: group === 'gated'
       ? []
