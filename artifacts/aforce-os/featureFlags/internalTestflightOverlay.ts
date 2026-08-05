@@ -28,7 +28,7 @@
  *
  * The env var itself, and the EAS build profile that sets it, are NOT part of
  * this module's authority — `eas.json` is flag-first per standing founder
- * rule (see PR body for the proposed, unapplied diff). This module only
+ * rule (the profile landed via founder-approved PR #567). This module only
  * defines what happens IF that env var is ever set to `'true'`.
  */
 import type { FeatureFlags } from '../types';
@@ -51,7 +51,7 @@ export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERL
 /**
  * CONTROLLED BY BUILD ENV — never hardcoded, mirroring `DEMO_MODE`. `true`
  * only when a build sets `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true` (the proposed
- * `internal` EAS profile — see PR body; NOT yet applied to `eas.json`). Every
+ * `internal` EAS profile — applied to `eas.json` in PR #567). Every
  * other build (`development`, `preview`, `demo`, `production`) leaves the env
  * unset, so this is `false` and `resolveFeatureFlags` is a byte-identical
  * pass-through of `base`.
