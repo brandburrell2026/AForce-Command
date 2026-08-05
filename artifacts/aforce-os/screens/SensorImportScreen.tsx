@@ -168,7 +168,7 @@ export function SensorImportScreen() {
               {pickedFileName && (
                 <Pressable
                   onPress={onClearPick}
-                  hitSlop={8}
+                  hitSlop={15}
                   testID="sensor-clear-pick"
                   accessibilityRole="button"
                   accessibilityLabel="Clear picked file"
