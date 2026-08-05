@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   body: { flex: 1 },
-  numRow: { flexDirection: 'row', alignItems: 'baseline' },
+  numRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'flex-start' },
   num: {
     fontFamily: 'Inter_700Bold',
     fontSize: 34,
