@@ -121,3 +121,27 @@ describe('RC-2 Ruling H — no HealthKit write call exists anywhere in the app (
     });
   }
 });
+
+// Build-43 TestFlight rejection (2026-08-05): Apple's validator REQUIRES
+// NSHealthUpdateUsageDescription whenever the HealthKit framework is linked,
+// even with zero write scopes requested. The key must therefore exist — but
+// it must never regress to the pre-ruling-H FALSE claim ("writes hydration
+// logs"). This pins both: present, and truthful about not writing.
+describe('NSHealthUpdateUsageDescription (required by Apple, truthful by ruling H)', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { readFileSync } = require('node:fs');
+  const { join } = require('node:path');
+  const appJson = JSON.parse(readFileSync(join(__dirname, '..', '..', 'app.json'), 'utf8'));
+  const s: string = appJson.expo.ios.infoPlist.NSHealthUpdateUsageDescription;
+
+  it('exists (Apple validator requirement — build 43 was rejected without it)', () => {
+    expect(typeof s).toBe('string');
+    expect(s.length).toBeGreaterThan(20);
+  });
+  it('states truthfully that the app does not currently write', () => {
+    expect(s).toMatch(/does not currently write/i);
+  });
+  it('never claims an active write path (the pre-ruling-H false claim)', () => {
+    expect(s).not.toMatch(/writes hydration logs/i);
+  });
+});
