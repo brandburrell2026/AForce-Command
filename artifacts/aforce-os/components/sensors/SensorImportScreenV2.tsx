@@ -168,7 +168,7 @@ export function SensorImportScreenV2() {
                 <Text style={styles.rowLabel}>{pickedFileName ?? t('sensors.v2.pick_file')}</Text>
               </Pressable>
               {pickedFileName && (
-                <Pressable onPress={onClearPick} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('sensors.v2.remove_file_a11y')} testID="sensor-clear-pick">
+                <Pressable onPress={onClearPick} hitSlop={15} accessibilityRole="button" accessibilityLabel={t('sensors.v2.remove_file_a11y')} testID="sensor-clear-pick">
                   <Icon name="x" size={14} color={af.textTertiary} />
                 </Pressable>
               )}

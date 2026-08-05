@@ -611,7 +611,7 @@
     "morning_action": "Bebe {{oz}} ounces ahora. Vuelve a comprobar en 25 minutos. Empiezas en déficit.",
     "morning_explanation": "Overnight took {{oz}} oz out of you. Reset your baseline before training starts.",
     "peak_action": "Puntaje {{score}}. Pico. Bebe 8 ounces antes de la próxima sesión. Mantén el ritmo.",
-    "peak_explanation": "You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up.",
+    "peak_explanation": "You're locked in — notice what peak feels like. Add a stick if the heat or your effort ramps up.",
     "peak_explanation_heat": "You're locked in, and the heat's pulling harder than usual — don't let your guard down.",
     "peak_explanation_sleep": "You're locked in even on a short night — nice work. Keep the intake steady so it holds.",
     "peak_explanation_streak": "You're locked in and riding a real streak — this is what consistency builds.",

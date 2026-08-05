@@ -89,6 +89,19 @@ describe('AFModal — reduced-motion gate + modal-region marking (RC-1 Wave-5)',
     expect(isAnimated()).toBe(true);
   });
 
+  it('no animationType prop, reduced motion OFF: default pins to "none", matching RN\'s own default (mutation-verified)', async () => {
+    useReducedMotionMock.mockReturnValue(false);
+    renderModal();
+    await tick();
+    expect(document.body.textContent).toContain('modal body');
+    // The default-parameter value itself is the thing under test here — a
+    // mutant that changes `animationType = 'none'` to any other default
+    // (e.g. 'fade') would still pass every other test in this file, since
+    // they all pass an explicit animationType. Reduced motion is OFF, so a
+    // regression to a 'fade' default would make this render animated.
+    expect(isAnimated()).toBe(false);
+  });
+
   it('reduced motion ON: a "fade" animationType collapses to "none" — content still renders, transition is gone (mutation-verified)', async () => {
     useReducedMotionMock.mockReturnValue(true);
     renderModal({ animationType: 'fade' });
