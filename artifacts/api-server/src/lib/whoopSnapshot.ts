@@ -43,10 +43,10 @@ export interface WhoopSnapshot {
   restingHeartRate: number | null;
   sleepHoursLastNight: number | null;
   /**
-   * Epoch ms of the newest `created_at` among the recovery/cycle/sleep
+   * Epoch ms of the newest observation among the recovery/cycle/sleep
    * records that actually contributed a metric above (Founder Ruling I,
    * RC-2). OPTIONAL: absent whenever none of the selected records carried a
-   * parseable `created_at` — never fabricated or backfilled from `fetchedAt`.
+   * parseable timestamp — never fabricated or backfilled from `fetchedAt`.
    */
   latestObservedAtMs?: number;
 }
@@ -105,10 +105,11 @@ function scoreSourceOf(
  * The SAME selection predicate as `scoreSourceOf` above (kept as a literal
  * duplicate, not a refactor of that pinned function, so its parity-tested
  * behavior at whoopSnapshot.ts:91 stays untouched) — but returns the RECORD
- * itself rather than its score source. `created_at` (WHOOP v2's record-level
- * observation timestamp) lives on the record, not inside the nested `score`
- * object, so deriving `latestObservedAtMs` needs the record, not the value
- * `scoreSourceOf` already extracted for the metric fields.
+ * itself rather than its score source. The timestamps used to derive
+ * `latestObservedAtMs` (`end`/`start` phenomenon times, `created_at`
+ * record-creation fallback) live on the record, not inside the nested
+ * `score` object, so this needs the record, not the value `scoreSourceOf`
+ * already extracted for the metric fields.
  */
 function selectedRecordOf(records: WhoopRecord[] | undefined): WhoopRecord | null {
   if (!records) return null;
@@ -120,7 +121,7 @@ function selectedRecordOf(records: WhoopRecord[] | undefined): WhoopRecord | nul
   return null;
 }
 
-/** Parse a WHOOP `created_at` (ISO-8601 string) into epoch ms. Anything
+/** Parse a WHOOP ISO-8601 timestamp string into epoch ms. Anything
  *  non-string or unparseable -> null; never guesses. */
 function parseWhoopTimestamp(v: unknown): number | null {
   if (typeof v !== "string" || v.length === 0) return null;
@@ -222,14 +223,29 @@ export async function fetchWhoopSnapshot(
   const cycleContributed = strain !== null;
   const sleepContributed = sleepHoursLastNight !== null;
 
+  // #562 verdict B1: prefer the record's PHENOMENON time (`end`, else
+  // `start`) over `created_at`. `created_at` is when WHOOP's server created
+  // the record — after a delayed strap sync it reads days YOUNGER than the
+  // sleep/cycle it describes, which is exactly the stale-reads-fresh
+  // direction §53 forbids. Recovery records carry no phenomenon timestamp
+  // of their own, so `created_at` (record-creation time, inheriting the
+  // sleep's sync delay) is the only available — and last-resort — proxy.
+  const observedAtOf = (r: WhoopRecord | null): number | null => {
+    if (!r) return null;
+    return (
+      parseWhoopTimestamp(r["end"]) ??
+      parseWhoopTimestamp(r["start"]) ??
+      parseWhoopTimestamp(r["created_at"])
+    );
+  };
   const recoveryObservedAtMs = recoveryContributed
-    ? parseWhoopTimestamp(selectedRecordOf(recovery?.records)?.["created_at"])
+    ? observedAtOf(selectedRecordOf(recovery?.records))
     : null;
   const cycleObservedAtMs = cycleContributed
-    ? parseWhoopTimestamp(selectedRecordOf(cycle?.records)?.["created_at"])
+    ? observedAtOf(selectedRecordOf(cycle?.records))
     : null;
   const sleepObservedAtMs = sleepContributed
-    ? parseWhoopTimestamp(selectedRecordOf(sleep?.records)?.["created_at"])
+    ? observedAtOf(selectedRecordOf(sleep?.records))
     : null;
 
   const observedCandidates = [

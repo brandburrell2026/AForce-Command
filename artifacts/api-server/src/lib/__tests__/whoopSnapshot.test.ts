@@ -344,6 +344,53 @@ describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
     expect("latestObservedAtMs" in snap).toBe(false);
   });
 
+  it("prefers phenomenon time over created_at — a delayed strap sync must NOT read fresh (#562 B1, §53)", async () => {
+    // Sleep ended two days before WHOOP created the record (delayed sync).
+    // Deriving from created_at would present 2-day-old sleep as observed-now
+    // — the stale-reads-fresh inversion ruling I forbids.
+    const sleepEnd = "2026-08-03T06:30:00.000Z";
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () => jsonResponse({ records: [] }),
+      [CYCLE_URL]: () => jsonResponse({ records: [] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              created_at: "2026-08-05T15:00:00.000Z",
+              start: "2026-08-02T22:00:00.000Z",
+              end: sleepEnd,
+              score: {
+                stage_summary: { total_in_bed_time_milli: 8 * 3600 * 1000, total_awake_time_milli: 0 },
+              },
+            },
+          ],
+        }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBe(Date.parse(sleepEnd));
+  });
+
+  it("falls back to created_at only when the record carries neither end nor start", async () => {
+    const created = "2026-08-01T12:00:00.000Z";
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              created_at: created,
+              score: { recovery_score: 55, hrv_rmssd_milli: 40, resting_heart_rate: 52 },
+            },
+          ],
+        }),
+      [CYCLE_URL]: () => jsonResponse({ records: [] }),
+      [SLEEP_URL]: () => jsonResponse({ records: [] }),
+    });
+    const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBe(Date.parse(created));
+  });
+
   it("only counts a collection's created_at when it actually contributed a metric — a failed/empty endpoint's timestamp (if any) never counts", async () => {
     const { fn } = makeFetch({
       // Recovery fails outright -> contributes nothing, even though this

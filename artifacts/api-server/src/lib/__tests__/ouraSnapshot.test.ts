@@ -333,7 +333,7 @@ describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
     });
     const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
     expect(snap.readinessScore).toBeNull();
-    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-01"));
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-01T00:00:00.000Z"));
   });
 });
 
