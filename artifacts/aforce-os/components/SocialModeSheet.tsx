@@ -33,7 +33,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Colors } from '../theme/colors';
-import { afMotion } from '../theme/afTokens';
+import { af, afMotion } from '../theme/afTokens';
 import { Icon, type IconName } from './Icon';
 import { PulseRing } from './PulseRing';
 import { RecoveryCapacityCard } from './RecoveryCapacityCard';
@@ -121,7 +121,7 @@ interface Props {
   onActivateShield: () => void;
 }
 
-const AMBER = '#F4B23F';
+const AMBER = af.amber; // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
 const TEAL  = '#19E5C6';
 
 export function SocialModeSheet({

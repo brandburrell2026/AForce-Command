@@ -16,6 +16,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
 import { AFStatPair } from '@/components/ui';
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
@@ -1472,13 +1473,13 @@ export function ProfileLegacy() {
                     style={[
                       styles.demoMaster,
                       {
-                        borderColor: inRecovery ? '#F4B23F' : Colors.border.medium,
+                        borderColor: inRecovery ? af.amber : Colors.border.medium,
                         opacity: demoBusy && demoBusy !== 'recovery' ? 0.5 : 1,
                       },
                     ]}
                   >
-                    <Icon name="sun" size={14} color={inRecovery ? '#F4B23F' : Colors.text.secondary} />
-                    <Text style={[styles.demoMasterText, { color: inRecovery ? '#F4B23F' : Colors.text.primary }]}>
+                    <Icon name="sun" size={14} color={inRecovery ? af.amber : Colors.text.secondary} />
+                    <Text style={[styles.demoMasterText, { color: inRecovery ? af.amber : Colors.text.primary }]}>
                       {demoBusy === 'recovery'
                         ? t('profile.demo_modes.entering_recovery')
                         : inRecovery

@@ -11,6 +11,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { af } from '../theme';
 import type { ImpairmentRiskLevel, ImpairmentRiskState } from '../types';
 
 interface Props {
@@ -21,7 +22,7 @@ interface Props {
 const COLOR: Record<ImpairmentRiskLevel, string> = {
   LOW:      '#7CFB9D',
   ELEVATED: '#9DD6FB',
-  MODERATE: '#F4B23F',
+  MODERATE: af.amber, // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
   HIGH:     '#FB7C7C',
   CRITICAL: '#E63946',
 };

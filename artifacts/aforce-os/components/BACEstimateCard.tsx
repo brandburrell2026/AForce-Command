@@ -17,6 +17,7 @@ import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
+import { af } from '../theme';
 import type { BACEstimate } from '../types';
 
 interface Props {
@@ -30,7 +31,7 @@ const TREND_ICON: Record<BACEstimate['trend'], IconName> = {
 };
 
 const TREND_COLOR: Record<BACEstimate['trend'], string> = {
-  rising: '#F4B23F',
+  rising: af.amber, // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
   steady: 'rgba(255,255,255,0.55)',
   falling: '#7CFB9D',
 };

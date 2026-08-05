@@ -57,8 +57,28 @@ describe('af.* brand fidelity', () => {
       'textPrimary', 'textSecondary', 'textTertiary', 'textDisabled',
       'divider', 'border', 'borderStrong',
       'red', 'onRed', 'redDim', 'redHairline', 'green', 'amber', 'cyan',
+      'guardian', 'guardianDim', 'guardianTint', 'guardianHairline',
     ] as const;
     for (const key of required) expect(af).toHaveProperty(key);
+  });
+
+  it('guardian is the ratified #8B5CF6 (RC-2 Ruling E), bound to Colors.guardian.primary', () => {
+    expect(af.guardian.toUpperCase()).toBe('#8B5CF6');
+    expect(af.guardian).toBe(Colors.guardian.primary);
+  });
+
+  it('guardian alpha variants reproduce the exact original hex-suffix byte (RC-2 Ruling E)', () => {
+    // Each call site previously built `${'#8B5CF6'}XX` — assert the rgba
+    // decimal round-trips to the identical alpha byte, i.e. the migration to
+    // a named token changed zero rendered pixels.
+    const alphaByte = (rgba: string): number => {
+      const m = /rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/.exec(rgba);
+      if (!m) throw new Error(`not an rgba() string: ${rgba}`);
+      return Math.round(parseFloat(m[1]) * 255);
+    };
+    expect(alphaByte(af.guardianDim)).toBe(0x1a);
+    expect(alphaByte(af.guardianTint)).toBe(0x22);
+    expect(alphaByte(af.guardianHairline)).toBe(0x55);
   });
 });
 

@@ -7,6 +7,7 @@
  */
 
 import type { PerformanceLevel, ProductFlavor } from '../types';
+import { af } from '../theme';
 
 export interface FlavorVariant {
   id: string;
@@ -53,7 +54,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
     ],
     stateAlignment: ['BALANCED', 'PEAK'],
     aiCommand: 'Take 1 Berry Blast now. Maintain your current state.',
-    accent: '#8B5CF6',
+    accent: af.guardian,
   },
   {
     id: 'watermelon_surge_chlorella',

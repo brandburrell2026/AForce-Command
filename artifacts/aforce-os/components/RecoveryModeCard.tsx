@@ -12,6 +12,7 @@ import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
+import { af } from '../theme';
 
 interface Props {
   /**
@@ -29,7 +30,7 @@ const STEPS: { key: string; icon: IconName }[] = [
   { key: 'social.recovery_step_sleep', icon: 'moon' },
 ];
 
-const AMBER = '#F4B23F';
+const AMBER = af.amber; // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
 const TEAL = '#7CD3E5';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
