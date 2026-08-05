@@ -18,8 +18,18 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 
 const STORAGE_KEY = '@aforce/performance-memory-capture';
 // The service prunes against the real Date.now(), so signals must be fresh
-// (inside the 180-day retention window) — anchor the fixture to the live clock.
-const NOW = Date.now();
+// (inside the 180-day retention window) — but a bare `Date.now()` made this
+// suite WALL-CLOCK FLAKY: several cases add an hour and call it "same UTC
+// day", which is false for any run inside the 23:00–00:00 UTC hour (ids are
+// UTC-day-keyed via `utcDayIndex = floor(ms / 86_400_000)`, so +1h rolled the
+// key and the dedupe assertion saw 2 entries). Observed failing CI run at
+// 23:29 UTC blocked PR #570 on a bug it did not contain.
+// Anchor instead to 01:00 UTC of the PREVIOUS UTC day: always in the past
+// (25–49h ago, far inside the 180-day window) and always ≥22h from the next
+// UTC-day boundary, so `NOW + 1h` is provably the same UTC day at every hour
+// of every run.
+const UTC_DAY_MS = 86_400_000;
+const NOW = (Math.floor(Date.now() / UTC_DAY_MS) - 1) * UTC_DAY_MS + 3_600_000;
 
 async function freshService() {
   vi.resetModules();
