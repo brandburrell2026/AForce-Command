@@ -141,19 +141,27 @@ export function resolveProviderPresentation(input: ProviderPresentationInput): P
     );
   }
 
-  const w = FRESHNESS_WINDOWS.wearable_sync;
-  if (w.expireAfterMs != null && conservativeAgeMs > w.expireAfterMs) {
-    // Stream is dark: connected credentials, no usable data. Not live.
-    return withObservationAxis(
-      { state: 'no_recent_data', live: false, dataAgeMs: conservativeAgeMs },
-      syncAgeMs,
-      observedAgeMs,
-    );
+  // #565 verdict SF-2: gate on the SAME `freshnessBucket` the axis-agreement
+  // check below already uses, instead of re-deriving the §53 boundaries
+  // inline. `conservativeAgeMs` is non-null here (the null case returned
+  // above), so this is a direct 2/1/0 switch — behavior is byte-identical to
+  // the prior inline comparisons (both read `FRESHNESS_WINDOWS.wearable_sync`
+  // the same way), but now there is exactly one place that knows where the
+  // §53 boundaries are, making the file header's "shared by both" comment
+  // literally true.
+  switch (freshnessBucket(conservativeAgeMs)) {
+    case 2:
+      // Stream is dark: connected credentials, no usable data. Not live.
+      return withObservationAxis(
+        { state: 'no_recent_data', live: false, dataAgeMs: conservativeAgeMs },
+        syncAgeMs,
+        observedAgeMs,
+      );
+    case 1:
+      return withObservationAxis({ state: 'stale', live: false, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
+    case 0:
+      return withObservationAxis({ state: base, live: true, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
   }
-  if (conservativeAgeMs > w.staleAfterMs) {
-    return withObservationAxis({ state: 'stale', live: false, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
-  }
-  return withObservationAxis({ state: base, live: true, dataAgeMs: conservativeAgeMs }, syncAgeMs, observedAgeMs);
 }
 
 function rawAgeMs(atMs: number | null | undefined, nowMs: number): number | null {

@@ -127,8 +127,25 @@ function ProviderRow({
   // data from Aug 1". Date formatting (not translation) is intentionally
   // done here, via `Intl.DateTimeFormat` on the device locale, mirroring
   // every other on-screen date in this app.
-  const observedDate = row.observedAtMs != null
-    ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(row.observedAtMs))
+  //
+  // #565 verdict SF-3 (truthfulness): the short "Aug 1" form is only honest
+  // when the observation fell in the CURRENT device-local year. A prior-year
+  // observation (e.g. an unresynced provider carrying a February 2025
+  // timestamp) rendered as bare "data from Feb 3" reads as "this year" —
+  // silently misleading. Compare device-local years (both `Date` objects
+  // read via the device clock, same axis the rest of this file already
+  // trusts) and only then add `year: 'numeric'`; the common same-year case
+  // keeps the terser, already-approved form unchanged.
+  const observedDateObj = row.observedAtMs != null ? new Date(row.observedAtMs) : null;
+  const isPriorYearObservation = observedDateObj != null
+    && observedDateObj.getFullYear() !== new Date().getFullYear();
+  const observedDate = observedDateObj != null
+    ? new Intl.DateTimeFormat(
+        undefined,
+        isPriorYearObservation
+          ? { year: 'numeric', month: 'short', day: 'numeric' }
+          : { month: 'short', day: 'numeric' },
+      ).format(observedDateObj)
     : null;
   const freshnessText = observedDate != null
     ? `${tt(row.freshness)} ${t('connected_health.freshness.observed_on', { date: observedDate })}`

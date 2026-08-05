@@ -343,3 +343,55 @@ describe('Founder Ruling I — observation freshness axis renders and announces 
     expect(label).not.toMatch(/data from/);
   });
 });
+
+describe('#565 verdict SF-3 — observation date truthfully includes the year across a year boundary', () => {
+  // The component formats `observedAtMs` at render time via the device
+  // clock (`new Date()`), not the resolver's injected `now` — mirroring
+  // every other on-screen date in this app (see the component's own file
+  // comment). Pin the device clock to the same instant the rest of this
+  // fixture set treats as "today" (FIXED_NOW, 2026-04-22) so "current year"
+  // vs. "prior year" is deterministic here too.
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(CONNECTED_HEALTH_FIXTURES.mixed.now); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  function screenWithObservedDate(observedAtMs: number): ConnectedHealthInput {
+    const base = PROVIDER_ROW_FIXTURES.connected;
+    return {
+      now: CONNECTED_HEALTH_FIXTURES.mixed.now,
+      mode: 'ready',
+      platform: 'ios',
+      providers: [{
+        ...base,
+        presentation: { ...base.presentation, showBothFreshnessAxes: true },
+        observedAtMs,
+      }],
+    };
+  }
+
+  it('a same-device-local-year observation renders the short "Mon D" form — no year, reads as current', () => {
+    // 2026-02-03 — same device-local year as the pinned clock (2026-04-22).
+    const sameYear = new Date('2026-02-03T12:00:00Z').getTime();
+    const view = renderView(screenWithObservedDate(sameYear));
+    const freshnessNode = q(`[data-testid="ch-freshness-${view.rows[0].providerId}"]`);
+    expect(freshnessNode?.textContent).toContain('data from Feb 3');
+    expect(freshnessNode?.textContent).not.toMatch(/data from Feb 3,\s*\d{4}/);
+  });
+
+  it('a PRIOR-device-local-year observation renders WITH the year — never silently reads as current-year', () => {
+    // 2025-02-03 — one device-local year behind the pinned clock (2026).
+    // Pre-fix this rendered bare "data from Feb 3", indistinguishable from
+    // a same-year date — exactly the truthfulness gap SF-3 flagged.
+    const priorYear = new Date('2025-02-03T12:00:00Z').getTime();
+    const view = renderView(screenWithObservedDate(priorYear));
+    const freshnessNode = q(`[data-testid="ch-freshness-${view.rows[0].providerId}"]`);
+    expect(freshnessNode?.textContent).toContain('data from Feb 3, 2025');
+  });
+
+  it('the accessibility label carries the same prior-year-qualified date as the visible text', () => {
+    const priorYear = new Date('2025-02-03T12:00:00Z').getTime();
+    const view = renderView(screenWithObservedDate(priorYear));
+    const freshnessNode = q(`[data-testid="ch-freshness-${view.rows[0].providerId}"]`);
+    const label = freshnessNode?.getAttribute('aria-label') ?? '';
+    expect(label).toContain('data from Feb 3, 2025');
+  });
+});

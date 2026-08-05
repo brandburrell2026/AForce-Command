@@ -146,6 +146,32 @@ describe('Ruling I — observation freshness axis (optional, additive)', () => {
     expect(p.showBothFreshnessAxes).toBe(false);
   });
 
+  // #565 verdict SF-1: pins the fresh/stale BOUNDARY itself, not just "same
+  // bucket" in general. Every existing "same bucket" case above (5m vs 10m;
+  // 25h vs 26h) keeps both ages on the SAME side of `freshUntilMs` (6h) too,
+  // so a mutant that swapped `freshnessBucket`'s comparison from
+  // `staleAfterMs` (24h) to `freshUntilMs` (6h) would still pass all of
+  // them — it only shows up once one age sits on each side of 6h while both
+  // stay under 24h. 1h and 10h are exactly that pair: genuinely different
+  // relative to `freshUntilMs`, genuinely the SAME §53 bucket (0 — live/
+  // fresh-enough, since the state-gating boundary is `staleAfterMs`, not
+  // `freshUntilMs`) relative to the boundary this function actually gates
+  // on. Correct behavior: showBothFreshnessAxes === false. A
+  // staleAfterMs→freshUntilMs mutation flips this to true.
+  it('BOUNDARY PIN (mutation-verify): 1h sync + 10h observed straddle freshUntilMs (6h) but share the staleAfterMs (24h) bucket ⇒ showBothFreshnessAxes is false', () => {
+    const p = resolveProviderPresentation({
+      status: connected,
+      latestFetchedAtMs: NOW - 1 * H,
+      latestObservedAtMs: NOW - 10 * H,
+      nowMs: NOW,
+    });
+    expect(p.state).toBe('connected');
+    expect(p.live).toBe(true);
+    expect(p.dataAgeMs).toBe(10 * H); // conservative (staler) axis still wins for the age itself
+    expect(p.observedAgeMs).toBe(10 * H);
+    expect(p.showBothFreshnessAxes).toBe(false);
+  });
+
   it('a non-live base status still carries the observation axis (informational), never upgrading liveness', () => {
     const p = resolveProviderPresentation({
       status: disconnected,
