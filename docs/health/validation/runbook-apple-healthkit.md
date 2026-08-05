@@ -64,33 +64,33 @@ from real-device evidence is not a FAIL.
 
 - **Required metrics only — but the WIRED request set is narrower than the
   DECLARED set, and that is expected, not a bug.** The actual
-  `requestAuthorization` call (`appleHealth.ts:83-93`) requests exactly:
+  `requestAuthorization` call (`appleHealth.ts:83-98`) requests exactly:
   `HKQuantityTypeIdentifierHeartRate`,
   `HKQuantityTypeIdentifierRestingHeartRate`,
   `HKQuantityTypeIdentifierHeartRateVariabilitySDNN`,
   `HKQuantityTypeIdentifierStepCount`,
   `HKCategoryTypeIdentifierSleepAnalysis`, `HKWorkoutTypeIdentifier` to
-  READ, plus `HKQuantityTypeIdentifierDietaryWater` to SHARE (write).
+  READ, and `toShare: []` — **no write scope at all.**
   `HEALTH_PROVIDER_CAPABILITIES.apple_health.recordTypes`
   (`lib/health-core/src/contracts.ts`) additionally declares
   `active_energy` and `respiratory_rate` — NEITHER is requested by the
   wired path. Verify the permission sheet shows exactly the six read
-  categories above (never reproductive health, nutrition, or anything else
-  outside this list) — active energy/respiratory absence is the declared
-  set getting ahead of the implementation, not a leak; do not fail on it.
-  The `DietaryWater` WRITE request is an UNUSED write scope requested at
-  authorization — over-collection, not a shipped feature. `git grep` for
-  `DietaryWater` across the non-test codebase returns exactly ONE hit, the
-  `toShare: ['HKQuantityTypeIdentifierDietaryWater']` array itself
-  (`appleHealth.ts:92`); no code path anywhere calls a HealthKit save/write
-  API for it. Do not describe this as "AForce's own hydration-logging
-  write" — no such write exists to describe. **Founder decision memo
-  open:** either remove the scope from the authorization request or ship
-  the write feature that would justify asking for it. Until resolved, the
-  runbook should list the permission-sheet WRITE grant explicitly as
-  observed, distinct from the read permissions, rather than let it
-  silently trip the "no unrelated-category" rule — but validators should
-  not describe it as a working feature.
+  categories above and **no write/share grant of any kind** (never
+  reproductive health, nutrition, or anything else outside this list) —
+  active energy/respiratory absence is the declared set getting ahead of
+  the implementation, not a leak; do not fail on it.
+  **RULING H (RC-2, resolved):** the authorization request previously also
+  asked for `HKQuantityTypeIdentifierDietaryWater` to SHARE (write) — an
+  UNUSED write scope, over-collection with no shipped feature behind it.
+  `git grep` for `DietaryWater` across the non-test codebase now returns
+  only the historical note in `appleHealth.ts`'s comment explaining why the
+  scope was removed — no live reference to it as a requested scope remains
+  anywhere. The founder-decision memo that was open on this (remove the
+  scope vs. ship the write feature) is resolved as **REMOVE** —
+  `toShare` is now the empty-array literal, locked by
+  `services/__tests__/appleHealth.healthKitScopes.test.ts`. Do not expect
+  or describe a WRITE grant in the permission sheet for this provider; if
+  one ever reappears, that is a regression, not an intentional feature.
 - **HRV is SDNN, not RMSSD.** Apple's `HKQuantityTypeIdentifierHeartRateVariabilitySDNN`
   is true SDNN (`HRV_METHOD_BY_PROVIDER.apple_health === 'sdnn'` in
   `lib/health-core/src/normalize.ts`) — the only provider in this program

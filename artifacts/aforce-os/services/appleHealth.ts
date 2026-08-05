@@ -89,7 +89,13 @@ export async function requestAppleHealthPermissions(): Promise<boolean> {
         'HKCategoryTypeIdentifierSleepAnalysis',
         'HKWorkoutTypeIdentifier',
       ],
-      toShare: ['HKQuantityTypeIdentifierDietaryWater'],
+      // RULING H (RC-2): no write (toShare) scopes. AForce never writes to
+      // HealthKit — DietaryWater write access was requested but never used
+      // (zero HKQuantitySample-write calls exist in this codebase). See
+      // services/__tests__/appleHealth.healthKitScopes.test.ts for the
+      // regression lock: a future legitimate write feature must touch that
+      // test consciously, not silently reintroduce a write scope here.
+      toShare: [],
     });
     return true;
   } catch (err) {
