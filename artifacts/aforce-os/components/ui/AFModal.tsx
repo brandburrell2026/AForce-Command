@@ -38,7 +38,7 @@ export interface AFModalProps extends ModalProps {
 }
 
 export function AFModal({
-  animationType = 'fade',
+  animationType = 'none',
   accessibilityViewIsModal = true,
   children,
   ...rest

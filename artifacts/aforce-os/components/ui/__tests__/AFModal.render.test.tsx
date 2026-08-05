@@ -45,6 +45,27 @@ function renderModal(props: Partial<React.ComponentProps<typeof AFModal>> = {}) 
   );
 }
 
+/**
+ * react-native-web's ModalAnimation only attaches CSS animation classes
+ * (`r-animationDuration-*` / `r-animationKeyframes-*`) to the modal's root
+ * div when the *effective* animationType is 'slide' or 'fade' — 'none'
+ * renders the same container with no animation classes at all (see
+ * react-native-web/src/exports/Modal/ModalAnimation.js `getAnimationStyle`).
+ * That CSS-class presence is the only DOM-observable signal of the actual
+ * (post-reduced-motion-gate) animationType RN's <Modal> received, since
+ * `animationType` itself is not reflected as a DOM attribute. The animation
+ * state only appears after ModalAnimation's mount effect flips
+ * `isRendering`, which — unlike the synchronous `flushSync` render above —
+ * runs as a passive effect, hence the tick wait before asserting.
+ */
+function isAnimated(): boolean {
+  return document.body.querySelector('[class*="r-animationDuration-"]') !== null;
+}
+
+function tick(ms = 10): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 beforeEach(() => {
   host = document.createElement('div');
   document.body.appendChild(host);
@@ -58,17 +79,28 @@ afterEach(() => {
 });
 
 describe('AFModal — reduced-motion gate + modal-region marking (RC-1 Wave-5)', () => {
-  it('reduced motion OFF: a "fade" animationType passes through unchanged (renders visibly)', () => {
+  it('reduced motion OFF: a "fade" animationType passes through unchanged (renders visibly, actually animated)', async () => {
     useReducedMotionMock.mockReturnValue(false);
     renderModal({ animationType: 'fade' });
+    await tick();
     expect(document.body.textContent).toContain('modal body');
+    // Proves the gate is a no-op when reduced motion is OFF: the underlying
+    // <Modal> really receives 'fade', not silently 'none'.
+    expect(isAnimated()).toBe(true);
   });
 
-  it('reduced motion ON: a "fade" animationType still renders — the gate swaps the transition, not visibility (mutation-verified)', () => {
+  it('reduced motion ON: a "fade" animationType collapses to "none" — content still renders, transition is gone (mutation-verified)', async () => {
     useReducedMotionMock.mockReturnValue(true);
     renderModal({ animationType: 'fade' });
+    await tick();
     expect(document.body.textContent).toContain('modal body');
     expect(useReducedMotionMock).toHaveBeenCalled();
+    // The actual assertion the gate exists for: the underlying <Modal> must
+    // receive animationType 'none', not 'fade', once reduce-motion is on.
+    // A mutant that deletes the `reduceMotion && animationType === 'fade'`
+    // check (or short-circuits it to always pass 'fade' through) would still
+    // pass the textContent check above but fail this one.
+    expect(isAnimated()).toBe(false);
   });
 
   it('the reduced-motion signal is re-read per render, not cached at import time (mutation-verified)', () => {
@@ -94,10 +126,16 @@ describe('AFModal — reduced-motion gate + modal-region marking (RC-1 Wave-5)',
     expect(useReducedMotionMock.mock.calls.length).toBeGreaterThan(firstCallCount);
   });
 
-  it('reduced motion ON: a "slide" animationType is left as authored (position carries meaning)', () => {
+  it('reduced motion ON: a "slide" animationType is left as authored (position carries meaning)', async () => {
     useReducedMotionMock.mockReturnValue(true);
     renderModal({ animationType: 'slide' });
+    await tick();
     expect(document.body.textContent).toContain('modal body');
+    // The gate is scoped to 'fade' only — 'slide' must still reach RN's
+    // <Modal> as 'slide' (animated), even with reduced motion on. A mutant
+    // that widened the gate's condition to `reduceMotion` alone (dropping
+    // the `animationType === 'fade'` scoping) would fail this.
+    expect(isAnimated()).toBe(true);
   });
 
   it('the ported content carries aria-modal (accessibility-modal region)', () => {
