@@ -29,7 +29,6 @@
 import React from 'react';
 import {
   Dimensions,
-  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -37,6 +36,7 @@ import {
   View,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { AFModal } from '@/components/ui/AFModal';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -510,7 +510,7 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
   /* --------------------------- render --------------------------- */
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="fade"
       transparent={false}
@@ -552,7 +552,7 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
           <Text style={styles.skipHint}>TAP ANYWHERE TO SKIP</Text>
         </View>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

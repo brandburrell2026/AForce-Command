@@ -11,7 +11,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -21,6 +20,7 @@ import {
 import { Icon, type IconName } from './Icon';
 
 import { Colors } from "@/theme/colors";
+import { AFModal } from "@/components/ui/AFModal";
 
 export type CameraScanResult = {
   type: string;
@@ -51,7 +51,7 @@ export function CameraScanModal({ visible, onClose, onScan }: Props) {
   if (Platform.OS === "web") return null;
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="slide"
       onRequestClose={onClose}
@@ -60,7 +60,7 @@ export function CameraScanModal({ visible, onClose, onScan }: Props) {
       {/* Mount body ONLY while visible so the camera unmounts between sessions
           and we get a fresh `armed` + permission state on every open. */}
       {visible ? <CameraScanBody onClose={onClose} onScan={onScan} /> : null}
-    </Modal>
+    </AFModal>
   );
 }
 
@@ -167,7 +167,11 @@ function CameraScanBody({
       </View>
 
       {!armed && (
-        <Pressable style={styles.rescanBtn} onPress={reArm}>
+        // RC-1 fix: paddingVertical 12 + an 11pt label was a ~38pt-tall
+        // pill — under the 44pt minimum. hitSlop 6 brings the effective
+        // target to ~44-50pt without resizing the visible pill (no color
+        // or copy touched — camera surface is dark-pending-legal).
+        <Pressable style={styles.rescanBtn} onPress={reArm} hitSlop={6}>
           <Icon name="refresh-cw" size={14} color={Colors.text.primary} />
           <Text style={styles.rescanBtnText}>SCAN AGAIN</Text>
         </Pressable>

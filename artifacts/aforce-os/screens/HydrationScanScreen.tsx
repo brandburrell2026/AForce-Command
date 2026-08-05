@@ -12,9 +12,10 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput, Modal,
+  View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AFModal } from '@/components/ui/AFModal';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -612,7 +613,7 @@ export default function HydrationScanScreen() {
           </View>
 
           {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
-          <Modal
+          <AFModal
             visible={aforcePickerOpen}
             transparent
             animationType="fade"
@@ -654,7 +655,7 @@ export default function HydrationScanScreen() {
                 </ScrollView>
               </Pressable>
             </Pressable>
-          </Modal>
+          </AFModal>
 
           {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>

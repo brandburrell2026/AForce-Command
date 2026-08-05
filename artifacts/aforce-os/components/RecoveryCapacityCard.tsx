@@ -21,6 +21,7 @@ import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import type { RecoveryCapacityScore } from '../services/recoveryCapacity';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { AFStatPair } from './ui/AFStatPair';
 
 interface Props {
   recovery: RecoveryCapacityScore;
@@ -159,11 +160,16 @@ function Breakdown({
   return (
     <View style={styles.breakdownItem}>
       <Icon name={icon} size="xs" color="rgba(255,255,255,0.92)" />
-      <Text style={styles.breakdownLabel}>{label}</Text>
-      <Text style={styles.breakdownValue}>
-        {value}
-        <Text style={styles.breakdownMax}> / {max}</Text>
-      </Text>
+      <AFStatPair
+        label={label}
+        value={value}
+        unit={`/ ${max}`}
+        direction="column"
+        style={styles.breakdownStat}
+        labelStyle={styles.breakdownLabel}
+        valueStyle={styles.breakdownValue}
+        unitStyle={styles.breakdownMax}
+      />
     </View>
   );
 }
@@ -234,6 +240,9 @@ const styles = StyleSheet.create({
   breakdownItem: {
     flex: 1,
     alignItems: 'flex-start',
+    gap: 4,
+  },
+  breakdownStat: {
     gap: 4,
   },
   breakdownLabel: {

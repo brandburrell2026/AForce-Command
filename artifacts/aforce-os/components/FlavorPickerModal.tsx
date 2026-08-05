@@ -14,7 +14,8 @@
  */
 
 import React, { useState } from 'react';
-import { Modal, View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
@@ -186,7 +187,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
   const formatOptions = formatOptionsFor(format);
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="fade"
       transparent
@@ -285,7 +286,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
           </ScrollView>
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

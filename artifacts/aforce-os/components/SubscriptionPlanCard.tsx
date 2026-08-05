@@ -123,6 +123,9 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
           onSelect(plan.id);
         }}
         disabled={isCurrent || isProcessing}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isCurrent, disabled: isCurrent || isProcessing, busy: isProcessing === true }}
+        accessibilityLabel={`${plan.name}, ${plan.priceLabel}, ${isProcessing ? 'updating' : isCurrent ? 'current plan, selected' : plan.ctaLabel}`}
         style={({ pressed }) => [
           styles.cta,
           {

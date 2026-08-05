@@ -23,7 +23,6 @@
 
 import React, { useMemo, useState } from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -33,6 +32,7 @@ import {
   Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { AFModal } from '@/components/ui/AFModal';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
@@ -182,7 +182,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
   };
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="slide"
       transparent
@@ -255,7 +255,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
           )}
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

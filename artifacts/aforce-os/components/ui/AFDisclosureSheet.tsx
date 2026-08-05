@@ -4,10 +4,11 @@
  * a clear drag affordance, and a single close control (spec §3.5).
  */
 import React from 'react';
-import { Modal, View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../Icon';
 import { af, afType, afLayout } from '@/theme';
+import { AFModal } from './AFModal';
 
 export interface AFDisclosureSheetProps {
   visible: boolean;
@@ -20,7 +21,7 @@ export interface AFDisclosureSheetProps {
 export function AFDisclosureSheet({ visible, onClose, title, children, testID }: AFDisclosureSheetProps) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} testID={testID}>
+    <AFModal visible={visible} transparent animationType="slide" onRequestClose={onClose} testID={testID}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button" accessibilityLabel="Dismiss" />
       <View style={[styles.panel, { paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.grabber} />
@@ -34,7 +35,7 @@ export function AFDisclosureSheet({ visible, onClose, title, children, testID }:
         </View>
         <ScrollView showsVerticalScrollIndicator={false}>{children}</ScrollView>
       </View>
-    </Modal>
+    </AFModal>
   );
 }
 

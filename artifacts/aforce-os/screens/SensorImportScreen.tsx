@@ -148,17 +148,35 @@ export function SensorImportScreen() {
           {/* File picker */}
           <SectionHeader label="FILE" hint="CSV with timestamp + sweat_loss columns" />
           <View style={styles.card}>
-            <Pressable onPress={onPickFile} style={styles.row} testID="sensor-pick-file">
-              <View style={styles.rowLeft}>
+            {/* RC-1 fix: the clear button was a Pressable NESTED inside the
+                pick-file Pressable — nested touchables are an a11y
+                anti-pattern (ambiguous VoiceOver/TalkBack focus + hit-testing,
+                and the outer responder can swallow taps meant for the inner
+                one). Un-nested to siblings inside a shared row View. */}
+            <View style={styles.row}>
+              <Pressable
+                onPress={onPickFile}
+                style={styles.rowLeft}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 0 }}
+                testID="sensor-pick-file"
+                accessibilityRole="button"
+                accessibilityLabel={pickedFileName ?? 'Pick a CSV or JSON file'}
+              >
                 <Icon name="file-plus" size={16} color={Colors.states.BALANCED.primary} />
                 <Text style={styles.rowLabel}>{pickedFileName ?? 'Pick a CSV / JSON file'}</Text>
-              </View>
+              </Pressable>
               {pickedFileName && (
-                <Pressable onPress={onClearPick} hitSlop={8} testID="sensor-clear-pick">
+                <Pressable
+                  onPress={onClearPick}
+                  hitSlop={8}
+                  testID="sensor-clear-pick"
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear picked file"
+                >
                   <Icon name="x" size={14} color={Colors.text.muted} />
                 </Pressable>
               )}
-            </Pressable>
+            </View>
           </View>
 
           {/* Paste fallback */}
@@ -174,6 +192,8 @@ export function SensorImportScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               testID="sensor-paste-input"
+              accessibilityLabel="Paste CSV or JSON sensor data"
+              accessibilityHint="Overrides the picked file when filled in"
             />
           </View>
 

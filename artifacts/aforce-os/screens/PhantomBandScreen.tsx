@@ -245,7 +245,10 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function PrimaryButton({ label, icon, onPress, testID }: { label: string; icon: IconName; onPress: () => void; testID?: string }) {
   return (
-    <Pressable onPress={onPress} style={styles.primaryButton} testID={testID}>
+    // RC-1 fix: paddingVertical 12 + an 11pt label was a ~38pt-tall button —
+    // under the 44pt minimum. hitSlop 6 brings the effective target to
+    // ~44-50pt without resizing the visible pill.
+    <Pressable onPress={onPress} style={styles.primaryButton} hitSlop={6} testID={testID}>
       <Icon name={icon} size={14} color={Colors.background.primary} />
       <Text style={styles.primaryButtonLabel}>{label}</Text>
     </Pressable>
@@ -254,7 +257,7 @@ function PrimaryButton({ label, icon, onPress, testID }: { label: string; icon: 
 
 function SecondaryButton({ label, icon, onPress, testID }: { label: string; icon: IconName; onPress: () => void; testID?: string }) {
   return (
-    <Pressable onPress={onPress} style={styles.secondaryButton} testID={testID}>
+    <Pressable onPress={onPress} style={styles.secondaryButton} hitSlop={6} testID={testID}>
       <Icon name={icon} size={14} color={Colors.text.primary} />
       <Text style={styles.secondaryButtonLabel}>{label}</Text>
     </Pressable>

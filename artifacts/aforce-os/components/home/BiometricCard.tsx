@@ -12,6 +12,7 @@ import React from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
 import { Icon, type IconName } from '../Icon';
 import { Colors } from '../../theme/colors';
+import { AFStatPair } from '../ui/AFStatPair';
 
 export interface BiometricFooterMetric {
   label: string;
@@ -77,12 +78,14 @@ function BiometricCardImpl({
           {metrics.map((m, idx) => (
             <React.Fragment key={m.label}>
               {idx > 0 ? <View style={styles.footerDivider} /> : null}
-              <View style={styles.footerCell}>
-                <Text style={styles.footerLabel}>{m.label}</Text>
-                <Text style={[styles.footerValue, m.valueColor ? { color: m.valueColor } : null]}>
-                  {m.value}
-                </Text>
-              </View>
+              <AFStatPair
+                label={m.label}
+                value={m.value}
+                direction="column"
+                style={styles.footerCell}
+                labelStyle={styles.footerLabel}
+                valueStyle={[styles.footerValue, m.valueColor ? { color: m.valueColor } : null]}
+              />
             </React.Fragment>
           ))}
         </View>

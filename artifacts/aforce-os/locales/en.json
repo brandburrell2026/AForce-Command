@@ -2163,5 +2163,24 @@
       "unsupported": "{{name}} can't be disconnected from here yet. Manage it in its own app or device settings.",
       "skipped_not_connected": "{{name}} wasn't actually connected — nothing to disconnect."
     }
+  },
+  "welcome": {
+    "eyebrow": "PERFORMANCE IS NON-NEGOTIABLE",
+    "tagline": "BUILT FOR PEOPLE\nWHO DON'T GET TO BE OFF",
+    "get_started": "GET STARTED",
+    "sign_in": "SIGN IN"
+  },
+  "opening": {
+    "brand_eyebrow": "PERFORMANCE IS",
+    "brand_caption": "NON — NEGOTIABLE",
+    "ritual_pause": "PAUSE",
+    "ritual_hydrate": "HYDRATE",
+    "ritual_lock_in": "LOCK IN",
+    "ritual_perform": "PERFORM",
+    "ritual_footnote": "Your Readiness Ritual Starts Now",
+    "readiness_eyebrow": "TODAY'S READINESS",
+    "readiness_default_status": "READY TO PERFORM",
+    "tap_to_skip": "TAP TO SKIP",
+    "skip_a11y": "Skip the opening sequence"
   }
 }

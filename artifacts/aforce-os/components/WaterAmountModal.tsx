@@ -11,7 +11,8 @@
  */
 
 import React from 'react';
-import { Modal, View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '../theme/colors';
@@ -53,7 +54,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
   };
 
   return (
-    <Modal
+    <AFModal
       visible={visible}
       animationType="fade"
       transparent
@@ -140,7 +141,7 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
           </Pressable>
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

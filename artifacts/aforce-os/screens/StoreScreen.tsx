@@ -22,6 +22,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -85,6 +86,7 @@ function protocolRoleLabel(role: StoreSKU["protocolRole"]): string {
 }
 
 export default function StoreScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
@@ -419,12 +421,27 @@ export default function StoreScreen() {
                           </View>
                         ) : null}
 
-                        {/* Price row */}
+                        {/* Price row — current + compare-at composed as ONE
+                            announcement (mirrors AFPrice's composed-label
+                            fix; see components/ui/AFPrice.tsx's doc-comment
+                            for why two separately accessibilityLabel'd Text
+                            nodes read as two disconnected VoiceOver swipes). */}
                         <View style={styles.priceRow}>
-                          <Text style={styles.priceMain}>{formatPrice(bigPriceCents)}</Text>
-                          {compareCents != null && compareCents > bigPriceCents ? (
-                            <Text style={styles.priceCompare}>{formatPrice(compareCents)}</Text>
-                          ) : null}
+                          <View
+                            style={styles.priceGroup}
+                            accessible
+                            accessibilityRole="text"
+                            accessibilityLabel={
+                              compareCents != null && compareCents > bigPriceCents
+                                ? `${formatPrice(bigPriceCents)}, ${t('common.was')} ${formatPrice(compareCents)}`
+                                : formatPrice(bigPriceCents)
+                            }
+                          >
+                            <Text style={styles.priceMain}>{formatPrice(bigPriceCents)}</Text>
+                            {compareCents != null && compareCents > bigPriceCents ? (
+                              <Text style={styles.priceCompare}>{formatPrice(compareCents)}</Text>
+                            ) : null}
+                          </View>
                           {!selectedBundle ? (
                             <Text style={styles.pricePerServing}>
                               · {formatPrice(perServing)}/serving
@@ -627,6 +644,9 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: "row", alignItems: "baseline", gap: 6,
     flexWrap: "wrap",
+  },
+  priceGroup: {
+    flexDirection: "row", alignItems: "baseline", gap: 6,
   },
   priceMain: { fontSize: 19, fontWeight: "700", color: Colors.text.primary },
   priceCompare: {

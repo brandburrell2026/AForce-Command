@@ -8,6 +8,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { AFStatPair } from '@/components/ui/AFStatPair';
 
 const BRAND = Colors.accent.brand;
 
@@ -25,10 +26,15 @@ export function StreakCard({ streakDays }: Props) {
         <Icon name="zap" size={20} color={BRAND} />
       </View>
       <View style={styles.body}>
-        <View style={styles.numRow}>
-          <Text style={styles.num}>{days}</Text>
-          <Text style={styles.unit}>DAY STREAK</Text>
-        </View>
+        <AFStatPair
+          value={days}
+          label="DAY STREAK"
+          reverseOrder
+          style={styles.numRow}
+          valueStyle={styles.num}
+          labelStyle={styles.unit}
+          testID="streak-days"
+        />
         <Text style={styles.caption}>{caption}</Text>
       </View>
     </View>
@@ -59,7 +65,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   body: { flex: 1 },
-  numRow: { flexDirection: 'row', alignItems: 'baseline' },
+  numRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'flex-start' },
   num: {
     fontFamily: 'Inter_700Bold',
     fontSize: 34,

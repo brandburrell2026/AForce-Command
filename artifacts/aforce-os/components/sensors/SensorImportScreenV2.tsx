@@ -150,17 +150,29 @@ export function SensorImportScreenV2() {
           {/* File picker */}
           <SectionHeader label={t('sensors.v2.file_label')} hint={t('sensors.v2.file_hint')} />
           <View style={styles.card}>
-            <Pressable onPress={onPickFile} style={styles.row} accessibilityRole="button" testID="sensor-pick-file">
-              <View style={styles.rowLeft}>
+            {/* RC-1 fix: the clear button was a Pressable NESTED inside the
+                pick-file Pressable — nested touchables are an a11y
+                anti-pattern (ambiguous VoiceOver/TalkBack focus + hit-testing,
+                and the outer responder can swallow taps meant for the inner
+                one). Un-nested to siblings inside a shared row View. */}
+            <View style={styles.row}>
+              <Pressable
+                onPress={onPickFile}
+                style={styles.rowLeft}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 0 }}
+                accessibilityRole="button"
+                accessibilityLabel={pickedFileName ?? t('sensors.v2.pick_file')}
+                testID="sensor-pick-file"
+              >
                 <Icon name="file-plus" size={16} color={af.cyan} />
                 <Text style={styles.rowLabel}>{pickedFileName ?? t('sensors.v2.pick_file')}</Text>
-              </View>
+              </Pressable>
               {pickedFileName && (
                 <Pressable onPress={onClearPick} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('sensors.v2.remove_file_a11y')} testID="sensor-clear-pick">
                   <Icon name="x" size={14} color={af.textTertiary} />
                 </Pressable>
               )}
-            </Pressable>
+            </View>
           </View>
 
           {/* Paste fallback */}
@@ -176,6 +188,8 @@ export function SensorImportScreenV2() {
               autoCapitalize="none"
               autoCorrect={false}
               testID="sensor-paste-input"
+              accessibilityLabel={t('sensors.v2.paste_label')}
+              accessibilityHint={t('sensors.v2.paste_hint')}
             />
           </View>
 

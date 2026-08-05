@@ -8,9 +8,10 @@
 
 import React from 'react';
 import {
-  Modal, View, Text, StyleSheet, Pressable, Platform,
+  View, Text, StyleSheet, Pressable, Platform,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
@@ -47,7 +48,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
   const accent = PLAN_ACCENT[planId];
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
+    <AFModal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
       <Pressable style={styles.scrim} onPress={onDismiss}>
         <Pressable style={[styles.sheet, { borderColor: `${accent}55` }]} onPress={() => {}}>
           <View style={[styles.iconWrap, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
@@ -84,7 +85,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
           </Pressable>
         </Pressable>
       </Pressable>
-    </Modal>
+    </AFModal>
   );
 }
 

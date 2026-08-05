@@ -51,7 +51,21 @@ export function LiveStatusStrip({ performanceState, unitsToday, dailyTarget }: P
   }, []);
 
   return (
-    <View style={styles.container}>
+    // RC-1 fix: the strip re-polls climate (every 10 min) and re-renders on
+    // every parent tick, but none of that reached assistive tech — a screen
+    // reader user had no way to know the temp/humidity/insight line had
+    // changed short of re-exploring the whole screen. accessibilityLiveRegion
+    // is Android-only (TalkBack); iOS ignores it and needs an explicit
+    // AccessibilityInfo.announceForAccessibility(...) call instead. That call
+    // is deliberately NOT added here: this component has no significance
+    // threshold of its own (unlike e.g. LiveStatusLine's banded StatusVerb,
+    // which transitions ASCENDING → CRITICAL etc. at real state boundaries) —
+    // every climate poll ticks tempF/humidityPct by small, mostly trivial
+    // amounts, so firing an iOS announcement on every change would just be
+    // announcement noise rather than a meaningful update. If a real
+    // significance boundary is defined here later (e.g. only announce when
+    // `climate.hydrationInsight` itself changes), wire the iOS call to that.
+    <View style={styles.container} accessibilityLiveRegion="polite">
       {/* Line 1 — outside temp · outside humidity · city */}
       <View style={styles.row}>
         <View style={styles.metric}>

@@ -17,8 +17,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, Pressable, Platform,
+  View, Text, StyleSheet, Pressable, Platform,
 } from 'react-native';
+import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import { useRouter } from 'expo-router';
 
@@ -289,7 +290,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
   const accent = ACCENT_BY_STATE[voiceState];
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <AFModal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="voice-overlay">
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
@@ -357,7 +358,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </AFModal>
   );
 }
 

@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
+import { AFStatPair } from '@/components/ui';
 import { Colors } from '@/theme/colors';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
@@ -1325,7 +1326,11 @@ export function ProfileLegacy() {
                               <Text style={styles.snapshotLabel}>LIVE FROM APPLE HEALTH</Text>
                               <Pressable
                                 onPress={() => refreshAppleSnapshot()}
-                                hitSlop={10}
+                                // RC-1 fix: 12pt icon + hitSlop 10 was a ~32pt
+                                // effective target — under the 44pt minimum.
+                                // hitSlop 16 brings it to ~44pt without
+                                // touching the visible icon size.
+                                hitSlop={16}
                                 accessibilityRole="button"
                                 accessibilityLabel="Refresh Apple Health"
                               >
@@ -1932,6 +1937,12 @@ export function ProfileLegacy() {
                       <Pressable
                         onPress={() => { void refreshEncStatus(); }}
                         style={styles.encRefreshBtn}
+                        // RC-1 fix: paddingVertical 6 + a 10pt label was a
+                        // ~24pt-tall pill — under the 44pt minimum. hitSlop
+                        // 10 brings the effective target to ~44pt without
+                        // resizing the visible pill.
+                        hitSlop={10}
+                        accessibilityRole="button"
                         accessibilityLabel="Refresh encryption status"
                         testID="profile-whoop-encryption-refresh"
                       >
@@ -2296,10 +2307,14 @@ function ProfileTabBar({
 
 function SnapshotCell({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.snapshotCell}>
-      <Text style={styles.snapshotCellLabel}>{label}</Text>
-      <Text style={styles.snapshotCellValue}>{value}</Text>
-    </View>
+    <AFStatPair
+      label={label}
+      value={value}
+      direction="column"
+      style={styles.snapshotCell}
+      labelStyle={styles.snapshotCellLabel}
+      valueStyle={styles.snapshotCellValue}
+    />
   );
 }
 
@@ -2913,7 +2928,7 @@ const styles = StyleSheet.create({
     width: '50%', paddingVertical: 4, gap: 2,
   },
   snapshotCellLabel: {
-    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted, letterSpacing: 1.6,
   },
   snapshotCellValue: {
     fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.text.primary,

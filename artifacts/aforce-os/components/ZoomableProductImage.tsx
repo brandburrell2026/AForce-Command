@@ -22,7 +22,6 @@ import React, { useState, useCallback } from 'react';
 import {
   Pressable,
   Image,
-  Modal,
   View,
   Text,
   StyleSheet,
@@ -44,6 +43,7 @@ import { Icon } from './Icon';
 import * as Haptics from 'expo-haptics';
 
 import { Colors } from '@/theme/colors';
+import { AFModal } from '@/components/ui/AFModal';
 import { afMotion } from '@/theme/afTokens';
 
 interface Props {
@@ -153,7 +153,7 @@ export function ZoomableProductImage({
         </Animated.View>
       </Pressable>
 
-      <Modal
+      <AFModal
         visible={open}
         transparent
         animationType="none"
@@ -213,7 +213,7 @@ export function ZoomableProductImage({
             </Pressable>
           </Animated.View>
         </Animated.View>
-      </Modal>
+      </AFModal>
     </>
   );
 }
