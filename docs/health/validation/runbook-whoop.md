@@ -160,10 +160,19 @@ already-known and move on.
   - **Part 1 (#562, merged to main as `7a6f7990`):**
     `ProviderSnapshot.latestObservedAtMs` (`lib/health-core/src/contracts.ts`)
     — optional, additive epoch-ms field. For WHOOP specifically, the
-    api-server derives it from the recovery/cycle/sleep payload's own
-    `created_at`, counting a collection's timestamp only when it actually
-    contributed a metric and taking the max across contributors; absent
-    (never guessed) when a sync's payload carries no usable timestamp.
+    api-server derives it PER-COLLECTION by preferring the record's own
+    PHENOMENON time — `end`, else `start` — and falling back to
+    `created_at` only as a last resort (`observedAtOf`,
+    `whoopSnapshot.ts:233-240`, #562 verdict B1): `created_at` is when
+    WHOOP's server created the record, which after a delayed strap sync
+    reads days YOUNGER than the sleep/cycle it actually describes — exactly
+    the stale-reads-fresh direction §53 forbids, which is why `end`/`start`
+    are tried first. Recovery records carry no phenomenon timestamp of
+    their own, so `created_at` is their only available proxy. A
+    collection's timestamp counts toward the max only when it actually
+    contributed a metric (see `recoveryContributed` / `cycleContributed` /
+    `sleepContributed`); absent (never guessed) when a sync's payload
+    carries no usable timestamp at all.
   - **Part 2 (this branch):** `resolveProviderPresentation`
     (`artifacts/aforce-os/services/health/providerPresentation.ts`) now
     computes `syncAgeMs = nowMs - fetchedAt` AND, when
