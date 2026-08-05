@@ -30,7 +30,17 @@ considered done in that locale.
 | `profile.v2.apple_fetch_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't refresh Apple Health data."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | New key for the Apple Health fetch-failure inline error row. `profile.v2.*` is, like `home.v2.*`, already English-only across all 10 non-English locales (confirmed: 268–273 of 281 `profile.v2` keys are byte-identical to the English source in de/es/fr/it/pt) — no existing equivalent phrase to carry over, so all 10 are listed here rather than just the 5-locale set. |
 | `profile.v2.whoop_status_failed` | `components/profile/ProfileScreenV2.tsx` (RC-1 Wave-2B, item 4) | `"Couldn't check WHOOP connection status."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same as above — WHOOP status-check failure inline error row. |
 | `coach.balanced_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"You're holding steady. Staying a step ahead of your next drink keeps it that way."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Voice-spec rewrite of a "worst-10" coach line (was syslog-style "Recovery stable."). `de`/`es`/`fr`/`it`/`pt` previously carried real human translations of the OLD English text — those are now stale (they translate wording that no longer exists) and have been overwritten with the NEW English source per house rule, rather than risk shipping a translation of a sentence that was never reviewed against the voice spec (acknowledge→insight structure, no syslog "active", no forbidden §59/§64 stems) in that language. All 10 non-English locales need a fresh human translation of the NEW copy. |
-| `coach.peak_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same rewrite pass — was "Flow state active." (syslog "X active", the exact pattern the voice spec calls out for streaks/wins). Same stale-translation reasoning as `coach.balanced_explanation` above. |
+| `coach.peak_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"You're locked in — notice what peak feels like. Add a stick if the heat or your effort ramps up."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Rewrite pass — was "Flow state active." (syslog "X active", the exact pattern the voice spec calls out for streaks/wins), first fixed to "this is what peak feels like." A second RC-1 closing-follow-ups pass (item 3) reworded that to "notice what peak feels like" — an assertion about what the user feels reframed into an invitation, per Constitution §5. All 10 non-English locale files were carrying the first-fix English placeholder and have been synced to this newest en source value (RC-1 final fold-in item 1). Same stale-translation reasoning as `coach.balanced_explanation` above applies to the underlying phrase. |
+| `coach.peak_explanation_heat` | `utils/scoring/copy.ts` `buildExplanation` (RC-1 Wave-4, item 2) | `"You're locked in, and the heat's pulling harder than usual — don't let your guard down."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | New context-variant key (`selectExplanationContext()`); no prior equivalent phrase to carry over in any locale. No `{{...}}` interpolation. |
+| `coach.peak_explanation_sleep` | same | `"You're locked in even on a short night — nice work. Keep the intake steady so it holds."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.peak_explanation_streak` | same | `"You're locked in and riding a real streak — this is what consistency builds."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.balanced_explanation_heat` | same | `"You're holding steady, but the heat's raising the bar — stay a step ahead of it."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.balanced_explanation_sleep` | same | `"You're holding steady after under 6 hours of sleep — staying a step ahead of your next drink keeps it that way."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Value reflects the RC-1 closing-follow-ups item-3 rewrite (Constitution §5 narrowing — the original PR #552 wording, "your body's working a little harder for it," asserted an unobservable internal state and was replaced with an observation of the sleep threshold itself plus the action, before this key was ever propagated to non-English locales). |
+| `coach.balanced_explanation_streak` | same | `"You're holding steady and stacking days — that consistency is doing the work."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.recovering_explanation_heat` | same | `"Recovery window opening, and the heat's speeding it up — a water cycle now matters more."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.recovering_explanation_sleep` | same | `"Recovery window opening after a short night — a water cycle now helps you catch up."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.depleted_explanation_heat` | same | `"Deep recovery window, and the heat is pulling harder than usual. Electrolytes now are the priority."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
+| `coach.depleted_explanation_sleep` | same | `"Deep recovery window after a short night. Electrolytes now help you catch up."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Same. |
 | `coach.morning_explanation` | `services/scoringEngine.ts` → `utils/scoring/copy.ts` (RC-1 Wave-4, item 1) | `"Overnight took {{oz}} oz out of you. Reset your baseline before training starts."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was a "Label: value" data-readout ("Overnight recovery window: {{oz}} oz."), not a sentence a coach would say. `{{oz}}` interpolation preserved. Same stale-translation reasoning. |
 | `coach.consequence_drop` | `utils/scoring/copy.ts` `composeExplanation` (RC-1 Wave-4, item 1) | `"Skip this and you're likely to land near {{projected}} in the next {{minutes}} min."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Without action: score drifts to {{projected}} in {{minutes}} min." — report-label format, not coach speech. `{{projected}}`/`{{minutes}}` interpolation preserved. Previously MISSING (relying on `fallbackLng: 'en'`) in `de`/`es`/`fr`/`it`/`pt`; now present literally in all 10, same as the other rows here. |
 | `coach.context_late_night` | `utils/scoring/copy.ts` `composeExplanation` (RC-1 Wave-4, item 1) | `"It's late, and this window sets up your tomorrow."` | de, es, fr, it, pt, ar, hi, ja, ko, zh | Was "Late-night recovery window active." (syslog "X active"). Previously MISSING in `de`/`es`/`fr`/`it`/`pt`; now present literally in all 10. |
@@ -82,6 +92,21 @@ reintroducing the same violations in another language without native review
 — worse than just being untranslated. So every non-English locale carries the
 new English source verbatim for these 8 keys pending real human translation,
 per the house rule.
+
+For the 10 `coach.<band>_explanation_<context>` rows (RC-1 Wave-4 item 2,
+`selectExplanationContext()` in `utils/scoring/copy.ts`), all 10 non-English
+locales are listed for a third reason, distinct from both groups above:
+these are brand-new keys with no prior key anywhere to carry a translation
+over from (unlike `common.was`) and no prior English wording to have been
+stale-translated (unlike the 8-row `coach.*` rewrite group) — the base
+`coach.<band>_explanation` keys they sit beside are themselves still English
+placeholders in most of these files. So all 10 non-English locales carry the
+English source for all 10 rows, matching how the 8-row `coach.*` rewrite
+group above was handled. These 10 rows, plus the `coach.peak_explanation`
+en-source-value update above, were folded in from a temporary holding doc
+(`docs/i18n/PENDING-COACH-VARIANTS.md`, now deleted) that existed only to
+avoid a merge conflict with PR #553 on this same file; see RC-1 final
+fold-in item 2.
 
 **Maintenance:** when a row's locale gets a real human translation, update
 the locale JSON and delete the row (or move it to a "resolved" section if a
