@@ -278,7 +278,7 @@ export interface WhoopProviderBlob {
   recoveryPct: number | null;
   fetchedAt: number;
   /**
-   * Epoch ms of the newest underlying WHOOP `created_at` this blob's metrics
+   * Epoch ms of the newest underlying WHOOP observation this blob's metrics
    * came from (Founder Ruling I, RC-2) — see `WhoopSnapshot.latestObservedAtMs`.
    * OPTIONAL and additive: absent whenever the snapshot carried none.
    */
