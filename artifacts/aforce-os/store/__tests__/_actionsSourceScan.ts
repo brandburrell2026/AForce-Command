@@ -21,7 +21,22 @@
  * of which directory imports it.
  */
 
-/** Strips block and line comments so regexes can't accidentally match documentation prose. */
+/**
+ * Strips block and line comments so regexes can't accidentally match
+ * documentation prose.
+ *
+ * RC-1 closing follow-ups (#552 review, nit 5): this is a regex
+ * approximation, not a real JS/TS tokenizer. `/\/\/.*$/gm` truncates a line
+ * at the FIRST `//` it finds, even when that `//` sits inside a string
+ * literal rather than starting an actual comment — e.g. a line containing
+ * `"see https://example.com"` would have everything from `//` onward
+ * discarded, comment or not. Safe here only because every caller feeds this
+ * function this repo's own `useAppStore.tsx` / screen source files (see the
+ * file header), and the specific slices this scan parses — the actions memo
+ * object literal and `useActionsSlice<T>()` destructuring lines — never
+ * embed a `//`-containing string literal. Do not reuse this helper as a
+ * general-purpose comment stripper for arbitrary source.
+ */
 export function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 }
