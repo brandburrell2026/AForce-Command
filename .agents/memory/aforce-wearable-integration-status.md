@@ -11,7 +11,9 @@ connect flow; real data wiring is per-service and very uneven.
 ## What is real vs not (as of the audit)
 - **Apple HealthKit — REAL.** The ONLY installed wearable native module is
   `@kingstinct/react-native-healthkit`. `services/appleHealth.ts` requests HR /
-  RestingHR / HRV-SDNN / StepCount / SleepAnalysis and writes DietaryWater;
+  RestingHR / HRV-SDNN / StepCount / SleepAnalysis (READ only — RC-2 Ruling H
+  removed the unused DietaryWater WRITE scope; `toShare: []`, no write path
+  exists anywhere in the app);
   app.json carries the HealthKit entitlement + usage strings. Apple Watch, Oura,
   and any HealthKit device arrive via Apple-Health passthrough (no per-device
   code). Only runs in a real iOS native/EAS build — never in Replit web preview.

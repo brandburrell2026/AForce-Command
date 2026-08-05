@@ -282,12 +282,20 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   performance_identity_enabled: false,
 
   // HealthKit native module gate — OFF in the production binary for the iOS
-  // launch-crash isolation build. The @kingstinct/react-native-healthkit +
-  // react-native-nitro-modules deps are removed from package.json, so the
-  // native module is not in this build; the Apple Health wrapper returns the
-  // same "unavailable" shape an Android user gets. Re-enable = re-add both
-  // deps, flip this true, and uncomment the dynamic import in
-  // services/appleHealth.ts. Independent of metabolic_readiness_enabled.
+  // launch-crash isolation build. RULING B PREREQUISITE (RC-2) fixed this
+  // comment's stale claim: @kingstinct/react-native-healthkit (package.json:83)
+  // and react-native-nitro-modules (package.json:101) ARE present as JS
+  // dependencies — they were re-added as the first step of the HealthKit
+  // bridge re-enable (see services/appleHealth.ts's loadHealthKit() header).
+  // What's still true is that the NATIVE side is unlinked in shipped
+  // binaries: no pod install / native build has wired the Nitro module into
+  // a production binary, so even with the deps present, the dynamic import
+  // in appleHealth.ts never resolves unless a native build actually links
+  // them. `healthkit_native_enabled` is the compile-time/runtime gate that
+  // keeps this OFF regardless of dep presence. Native linking + activation
+  // is tracked separately as D-6 (pending) — flipping this flag alone is
+  // not sufficient; a native build with the module actually linked is
+  // required first. Independent of metabolic_readiness_enabled.
   healthkit_native_enabled: false,
 
   // Health-platform integration gates — all OFF in the production binary until
@@ -480,9 +488,15 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // Phase 10 — Investor Demo overlay is ON in the internal/pitch profile.
   demo_mode_enabled: true,
 
-  // Stays OFF even in the demo profile for this isolation build: the native
-  // HealthKit/Nitro deps are removed from package.json, so the module is not
-  // in the bundle and cannot be loaded regardless of profile.
+  // Stays OFF even in the demo profile for this isolation build. RULING B
+  // PREREQUISITE (RC-2) fixed this comment's stale claim: the HealthKit/Nitro
+  // deps are NOT removed from package.json — @kingstinct/react-native-healthkit
+  // (package.json:83) and react-native-nitro-modules (package.json:101) are
+  // both present. The native side is unlinked in shipped binaries (no native
+  // build has wired the module in), which is what actually keeps this
+  // inert regardless of profile; `healthkit_native_enabled` is the
+  // compile-time/runtime gate on top of that. Native linking + activation is
+  // tracked separately as D-6 (pending).
   healthkit_native_enabled: false,
 
   // Health-platform gates in the investor/demo build: the per-provider ENABLE
