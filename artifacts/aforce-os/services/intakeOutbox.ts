@@ -331,7 +331,23 @@ export function runExclusiveFlush(task: () => Promise<void>): Promise<void> {
     flushInFlight = null;
   });
   flushInFlight = run;
-  resolveGate(task());
+  // RC-1 closing follow-ups (#552 review item 4): if `task()` throws
+  // SYNCHRONOUSLY (before returning a promise), that exception used to
+  // propagate straight out of `runExclusiveFlush` itself, skipping
+  // `resolveGate` entirely — `gate` never settles, so its `.finally` never
+  // runs, so `flushInFlight` is never cleared. Every flush attempt after
+  // that first synchronous throw sees a permanently-stuck `flushInFlight`
+  // and coalesces onto a promise that will never resolve — the outbox is
+  // wedged for the rest of the session. Catching the throw and feeding it
+  // into `resolveGate` as a rejected promise keeps the exact same
+  // coalescing/rejection-propagation semantics as the async-throw path
+  // (every caller of `run` still sees the rejection) while guaranteeing the
+  // guard clears so the next flush can run.
+  try {
+    resolveGate(task());
+  } catch (err) {
+    resolveGate(Promise.reject(err));
+  }
   return run;
 }
 
