@@ -109,6 +109,13 @@ describe("fetchOuraSnapshot", () => {
       fetchImpl: fn,
       nowMs: () => FIXED_NOW,
     });
+    // RC-2 / Founder Ruling I ADDITIVE FIELD: `latestObservedAtMs` joins this
+    // expectation. Every OTHER field/value below is byte-unchanged from
+    // before this change (see the PR body's parity-diff disclosure). The
+    // fixtures above carry readiness/sleep/activity `day: "2023-11-14"`
+    // (midnight UTC) and a workout `end_datetime` of
+    // "2023-11-14T10:30:00.000+00:00" — later the same day, so it wins the
+    // max.
     expect(snap).toEqual<OuraSnapshot>({
       readinessScore: 72,
       sleepHoursLastNight: 7.5,
@@ -116,6 +123,7 @@ describe("fetchOuraSnapshot", () => {
       restingHeartRate: 52,
       stepsToday: 8421,
       workoutMinutesToday: 30,
+      latestObservedAtMs: Date.parse("2023-11-14T10:30:00.000+00:00"),
     });
   });
 
@@ -282,6 +290,53 @@ describe("fetchOuraSnapshot", () => {
   });
 });
 
+describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
+  it("is absent when no contributing record carries a day/bedtime_end/datetime", async () => {
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => jsonResponse({ data: [{ score: 70 }] }),
+      [SLEEP_URL]: () => jsonResponse({ data: [] }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBeUndefined();
+    expect("latestObservedAtMs" in snap).toBe(false);
+  });
+
+  it("prefers sleep's bedtime_end (full instant) over its day (date-only) when both are present", async () => {
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => jsonResponse({ data: [] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          data: [
+            {
+              day: "2026-08-01",
+              bedtime_end: "2026-08-02T06:15:00.000Z",
+              total_sleep_duration: 7 * 3600,
+            },
+          ],
+        }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-02T06:15:00.000Z"));
+  });
+
+  it("only counts a record's timestamp when it actually contributed a metric — a failed readiness endpoint's day (if any) never counts", async () => {
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => new Response("err", { status: 500 }),
+      [SLEEP_URL]: () =>
+        jsonResponse({ data: [{ day: "2026-08-01", total_sleep_duration: 7 * 3600 }] }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.readinessScore).toBeNull();
+    expect(snap.latestObservedAtMs).toBe(Date.parse("2026-08-01T00:00:00.000Z"));
+  });
+});
+
 describe("ouraSnapshotToProviderBlob", () => {
   it("stamps providerId='oura' and the given fetchedAt", () => {
     const blob = ouraSnapshotToProviderBlob(
@@ -305,6 +360,22 @@ describe("ouraSnapshotToProviderBlob", () => {
       workoutMinutesToday: 20,
       fetchedAt: 123_456,
     });
+  });
+
+  it("passes through latestObservedAtMs when the snapshot carries it (Founder Ruling I, RC-2)", () => {
+    const blob = ouraSnapshotToProviderBlob(
+      {
+        readinessScore: 80,
+        sleepHoursLastNight: 7,
+        hrvSdnn: 45,
+        restingHeartRate: 55,
+        stepsToday: 9000,
+        workoutMinutesToday: 20,
+        latestObservedAtMs: 555,
+      },
+      123_456,
+    );
+    expect(blob.latestObservedAtMs).toBe(555);
   });
 
   it("preserves null fields without fabricating values", () => {

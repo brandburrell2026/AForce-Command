@@ -92,6 +92,9 @@ export const aforceUserState = pgTable("aforce_user_state", {
     stressScore?: number | null;
     trainingLoad?: number | null;
     fetchedAt: number;
+    /** Epoch ms of the newest underlying OBSERVATION (ruling I, #562);
+     *  distinct from fetchedAt (sync time). Absent on legacy blobs. */
+    latestObservedAtMs?: number;
   }> | null>(),
   // Confirmation loop (T2)
   confirmationDelta: integer("confirmation_delta"),

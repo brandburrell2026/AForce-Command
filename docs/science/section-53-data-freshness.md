@@ -34,6 +34,12 @@ Vocabulary `fresh | aging | stale | expired`, a pure function of AGE:
 | camera_baseline | 30d | 90d | — | optical calibration drifts over weeks; stale → recalibration nudge |
 | wearable_sync | 6h | 24h | 72h | last biometric pull; >72h stream is dark → phone/manual fallback |
 
+  (Note — RC-2 ruling I, PR #562: a second, OBSERVATION-side axis now exists
+  on the snapshot blob as `latestObservedAtMs` — phenomenon time, distinct
+  from this sync-side axis. It is not yet wired into the freshness rating;
+  wiring it is part 2 and trips the performance-scientist sign-off and
+  cybersecurity handling checks recorded below.)
+
 Hard `expireAfter` only where a truly-old value is worse than none (weather,
 HydroScan, wearable sync). Slowly-changing context degrades to `stale` and stays.
 

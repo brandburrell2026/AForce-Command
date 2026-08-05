@@ -46,6 +46,14 @@ export interface GarminSnapshot {
   stress: number | null;
   /** Daily step count. */
   steps: number | null;
+  /**
+   * Epoch ms of the newest `calendarDate` among the dailies/sleeps/hrv
+   * summaries that actually contributed a metric above (Founder Ruling I,
+   * RC-2). Garmin's summary types carry no finer-grained instant than the
+   * calendar day, so this lands at UTC midnight of that date. OPTIONAL:
+   * absent when nothing usable was found — never fabricated.
+   */
+  latestObservedAtMs?: number;
 }
 
 export const EMPTY_GARMIN_SNAPSHOT: GarminSnapshot = {
@@ -73,6 +81,9 @@ interface GarminDailyRecord {
   restingHeartRateInBeatsPerMinute?: number | null;
   steps?: number | null;
   averageStressLevel?: number | null;
+  /** Date (YYYY-MM-DD) this summary covers — every Garmin wellness summary
+   *  type documents this field. Observation-freshness source (below). */
+  calendarDate?: string;
 }
 
 /** Garmin "sleeps" summary record (subset). */
@@ -81,11 +92,15 @@ interface GarminSleepRecord {
   sleepTimeInSeconds?: number | null;
   /** Alternative field some summaries use. */
   durationInSeconds?: number | null;
+  /** Date (YYYY-MM-DD) this summary covers. */
+  calendarDate?: string;
 }
 
 /** Garmin "hrv" summary record (subset). */
 interface GarminHrvRecord {
   lastNightAvg?: number | null;
+  /** Date (YYYY-MM-DD) this summary covers. */
+  calendarDate?: string;
 }
 
 async function getJsonArray<T>(
@@ -117,6 +132,16 @@ async function getJsonArray<T>(
  *  biometrics blob. */
 function num(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** Parse a Garmin `calendarDate` ("YYYY-MM-DD") into epoch ms (UTC midnight
+ *  of that date — Garmin's summary types don't expose a finer-grained
+ *  observation instant). Anything non-string/empty/unparseable -> null;
+ *  never guesses. */
+function dateOnlyMs(v: unknown): number | null {
+  if (typeof v !== "string" || v.length === 0) return null;
+  const ms = Date.parse(v);
+  return Number.isFinite(ms) ? ms : null;
 }
 
 /**
@@ -169,12 +194,31 @@ export async function fetchGarminSnapshot(
     sleepHoursLastNight = Math.max(0, sleepSec) / 3600;
   }
 
+  const restingHeartRate = num(daily?.restingHeartRateInBeatsPerMinute);
+  const stress = num(daily?.averageStressLevel);
+  const steps = num(daily?.steps);
+  const hrvMs = num(hrvRec?.lastNightAvg);
+
+  // Observation freshness (Founder Ruling I, RC-2): only count a summary's
+  // `calendarDate` toward the max when it actually contributed a metric.
+  const dailyContributed = restingHeartRate !== null || stress !== null || steps !== null;
+  const dailyObservedAtMs = dailyContributed ? dateOnlyMs(daily?.calendarDate) : null;
+  const sleepObservedAtMs = sleepHoursLastNight !== null ? dateOnlyMs(sleep?.calendarDate) : null;
+  const hrvObservedAtMs = hrvMs !== null ? dateOnlyMs(hrvRec?.calendarDate) : null;
+
+  const observedCandidates = [dailyObservedAtMs, sleepObservedAtMs, hrvObservedAtMs].filter(
+    (v): v is number => v != null,
+  );
+  const latestObservedAtMs =
+    observedCandidates.length > 0 ? Math.max(...observedCandidates) : undefined;
+
   return {
-    restingHeartRate: num(daily?.restingHeartRateInBeatsPerMinute),
-    hrvMs: num(hrvRec?.lastNightAvg),
+    restingHeartRate,
+    hrvMs,
     sleepHoursLastNight,
-    stress: num(daily?.averageStressLevel),
-    steps: num(daily?.steps),
+    stress,
+    steps,
+    ...(latestObservedAtMs != null ? { latestObservedAtMs } : {}),
   };
 }
 
@@ -188,6 +232,13 @@ export interface GarminProviderBlob {
   stress: number | null;
   steps: number | null;
   fetchedAt: number;
+  /**
+   * Epoch ms of the newest underlying Garmin observation this blob's
+   * metrics came from (Founder Ruling I, RC-2) — see
+   * `GarminSnapshot.latestObservedAtMs`. OPTIONAL and additive: absent
+   * whenever the snapshot carried none.
+   */
+  latestObservedAtMs?: number;
 }
 
 /** Pure: lift a GarminSnapshot into the persisted biometrics-blob entry. */
@@ -203,6 +254,9 @@ export function garminSnapshotToProviderBlob(
     stress: s.stress,
     steps: s.steps,
     fetchedAt,
+    ...(s.latestObservedAtMs != null
+      ? { latestObservedAtMs: s.latestObservedAtMs }
+      : {}),
   };
 }
 

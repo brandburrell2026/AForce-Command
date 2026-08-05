@@ -90,6 +90,46 @@ describe('shipped shape drift is resolved at the boundary', () => {
   });
 });
 
+describe('latestObservedAtMs passthrough (Founder Ruling I, RC-2)', () => {
+  it('passes through when present and finite on the raw blob', () => {
+    const s = normalizeProviderSnapshot('whoop', {
+      fetchedAt: T,
+      latestObservedAtMs: T - 60_000,
+    })!;
+    expect(s.latestObservedAtMs).toBe(T - 60_000);
+  });
+
+  it('is absent (not null, not fabricated from fetchedAt) when missing on the raw blob — legacy-blob fallback case', () => {
+    const s = normalizeProviderSnapshot('whoop', { fetchedAt: T })!;
+    expect(s.latestObservedAtMs).toBeUndefined();
+    expect('latestObservedAtMs' in s).toBe(false);
+  });
+
+  it('non-finite raw values (NaN, string, null) normalize to absent, never leak through', () => {
+    expect(
+      normalizeProviderSnapshot('whoop', { fetchedAt: T, latestObservedAtMs: Number.NaN })!
+        .latestObservedAtMs,
+    ).toBeUndefined();
+    expect(
+      normalizeProviderSnapshot('whoop', {
+        fetchedAt: T,
+        latestObservedAtMs: '1754000000000' as unknown as number,
+      })!.latestObservedAtMs,
+    ).toBeUndefined();
+  });
+
+  it('does not require latestObservedAtMs to equal or precede fetchedAt — normalize never cross-validates the two', () => {
+    // The contract's job is passthrough, not sanity-checking provider clocks;
+    // any provider-side skew is a data-quality question for the caller, not
+    // something this boundary silently "fixes" by clamping or dropping.
+    const s = normalizeProviderSnapshot('oura', {
+      fetchedAt: T,
+      latestObservedAtMs: T + 1_000,
+    })!;
+    expect(s.latestObservedAtMs).toBe(T + 1_000);
+  });
+});
+
 describe('resolveHrv — the one legacy-compatible HRV read path', () => {
   it('prefers canonical fields and reports no translation', () => {
     const r = resolveHrv({ providerId: 'whoop', hrvRmssdMs: 58, hrvSdnn: 999, fetchedAt: T });

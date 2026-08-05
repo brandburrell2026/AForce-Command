@@ -59,6 +59,12 @@ export const GARMIN_HRV_FIXTURE = [
  * biometrics-blob schema's `hrvSdnn` / `stressScore` naming — the exact
  * mismatch `@workspace/health-core`'s `normalizeProviderSnapshot` exists to
  * absorb (see `lib/health-core/src/normalize.ts`'s module docstring).
+ *
+ * RC-2 / Founder Ruling I ADDITIVE FIELD: `latestObservedAtMs` is now also
+ * part of this expectation. All three fixtures above share
+ * `calendarDate: "2026-08-02"`, so the max is that single date at UTC
+ * midnight — every other field on this object is byte-unchanged from
+ * before this change (see the PR body's parity-diff disclosure).
  */
 export const GARMIN_EXPECTED_DRIFTED_SNAPSHOT = {
   restingHeartRate: 54,
@@ -66,4 +72,5 @@ export const GARMIN_EXPECTED_DRIFTED_SNAPSHOT = {
   sleepHoursLastNight: 7 + 10 / 60,
   stress: 37,
   steps: 9184,
+  latestObservedAtMs: Date.parse("2026-08-02T00:00:00.000Z"),
 };
