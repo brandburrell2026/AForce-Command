@@ -308,13 +308,30 @@ let flushInFlight: Promise<void> | null = null;
  * while a still-draining flush from the previous trigger hasn't finished.
  * Callers should route every flush attempt through here rather than
  * guarding re-entrancy themselves.
+ *
+ * RC-1 W3 r2 hardening (#551 nit 3): the guard used to be assigned to
+ * `flushInFlight` AFTER calling `task()` (`const run = task().finally(...);
+ * flushInFlight = run;`) — so a task whose SYNCHRONOUS prefix (the code
+ * before its first `await`) re-entrantly called `runExclusiveFlush` again
+ * would still see `flushInFlight === null` at that point and start a
+ * second, overlapping flush instead of coalescing onto this one. `gate`
+ * claims the guard synchronously, before `task()` is ever invoked;
+ * `task()`'s result is then fed into `gate` via `resolveGate`. Coalescing
+ * semantics are identical to before (one shared promise, cleared via
+ * `finally`, rejection propagates to every coalesced caller) — only the
+ * ordering of "claim the guard" vs. "invoke task()" changed.
  */
 export function runExclusiveFlush(task: () => Promise<void>): Promise<void> {
   if (flushInFlight) return flushInFlight;
-  const run = task().finally(() => {
+  let resolveGate!: (value: Promise<void>) => void;
+  const gate = new Promise<void>((resolve) => {
+    resolveGate = resolve;
+  });
+  const run = gate.finally(() => {
     flushInFlight = null;
   });
   flushInFlight = run;
+  resolveGate(task());
   return run;
 }
 

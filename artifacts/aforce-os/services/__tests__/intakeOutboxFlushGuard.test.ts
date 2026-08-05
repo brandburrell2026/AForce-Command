@@ -74,4 +74,40 @@ describe('runExclusiveFlush', () => {
     await expect(first).rejects.toThrow('boom');
     await expect(second).rejects.toThrow('boom');
   });
+
+  // RC-1 W3 r2 hardening (#551 nit 3): the guard used to be assigned to
+  // `flushInFlight` only AFTER `task()` had already been invoked
+  // (`const run = task().finally(...); flushInFlight = run;`). The two
+  // tests above call `runExclusiveFlush` twice back-to-back from the TEST
+  // body, which doesn't exercise that ordering bug — by the time the test's
+  // second call runs, the first call's synchronous statements (including
+  // the old post-hoc `flushInFlight = run` assignment) have already
+  // finished executing. The bug only surfaces when the RE-ENTRANT call
+  // happens from INSIDE `task`'s own synchronous prefix — i.e. before
+  // `task()`'s call expression has even finished evaluating — which is
+  // exactly what this test drives.
+  it('a task whose synchronous prefix re-enters runExclusiveFlush coalesces onto the SAME in-flight promise instead of starting a second, overlapping flush', async () => {
+    const inner = vi.fn(async () => {});
+    let reentrant: Promise<void> | null = null;
+    const outer = vi.fn((): Promise<void> => {
+      // Synchronous prefix of `outer` — runs as part of evaluating
+      // `outer()` inside `runExclusiveFlush`, before `outer` reaches (or
+      // even has) an `await`. Under the old implementation,
+      // `flushInFlight` was still `null` at this exact point.
+      reentrant = runExclusiveFlush(inner);
+      return Promise.resolve();
+    });
+
+    const first = runExclusiveFlush(outer);
+
+    expect(outer).toHaveBeenCalledTimes(1);
+    // The re-entrant call from inside `outer`'s synchronous prefix must
+    // coalesce onto the SAME in-flight promise `runExclusiveFlush(outer)`
+    // returned...
+    expect(reentrant).toBe(first);
+    // ...meaning `inner` is never started as a second, overlapping flush.
+    expect(inner).not.toHaveBeenCalled();
+
+    await first;
+  });
 });
