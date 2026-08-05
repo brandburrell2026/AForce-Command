@@ -48,6 +48,7 @@ import {
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
 import { getCommandLedgerState } from '../services/commandLedger';
 import { adaptEngineOutputForRecheck } from '../utils/intelligence/adaptEngineOutput';
 import {
@@ -142,7 +143,12 @@ const initialState: AppState = {
   showCycleSuccess: false,
   timerSeconds: initialEngineOutput.riskTimer.minutes * 60,
   pendingConfirmation: false,
-  featureFlags: DEFAULT_FLAGS,
+  // RC-2 Ruling A: byte-identical to DEFAULT_FLAGS on every build except an
+  // internal-TestFlight build with EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true (see
+  // featureFlags/internalTestflightOverlay.ts). Production/App-Store builds
+  // never set that env, so `resolveInitialFeatureFlags` returns DEFAULT_FLAGS
+  // by reference here.
+  featureFlags: resolveInitialFeatureFlags(DEFAULT_FLAGS),
   subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
