@@ -675,7 +675,7 @@
     "morning_action": "Open a water cycle: 16 oz water + 1 stick. Recheck in 25 min.",
     "morning_explanation": "Overnight took {{oz}} oz out of you. Reset your baseline before training starts.",
     "peak_action": "Maintain. Sip 8 oz of water before your next session.",
-    "peak_explanation": "You're locked in — this is what peak feels like. Add a stick if the heat or your effort ramps up.",
+    "peak_explanation": "You're locked in — notice what peak feels like. Add a stick if the heat or your effort ramps up.",
     "peak_explanation_heat": "You're locked in, and the heat's pulling harder than usual — don't let your guard down.",
     "peak_explanation_sleep": "You're locked in even on a short night — nice work. Keep the intake steady so it holds.",
     "peak_explanation_streak": "You're locked in and riding a real streak — this is what consistency builds.",
