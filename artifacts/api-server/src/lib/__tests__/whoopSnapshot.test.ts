@@ -292,7 +292,7 @@ describe("fetchWhoopSnapshot", () => {
 });
 
 describe("latestObservedAtMs derivation (Founder Ruling I, RC-2)", () => {
-  it("derives the MAX created_at across recovery/cycle/sleep when all three carry it", async () => {
+  it("derives the MAX observation timestamp across recovery/cycle/sleep (here via the created_at fallback)", async () => {
     const { fn } = makeFetch({
       [RECOVERY_URL]: () =>
         jsonResponse({

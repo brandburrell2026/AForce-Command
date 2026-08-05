@@ -215,7 +215,7 @@ export async function fetchWhoopSnapshot(
   const restingHeartRate = num(rec?.["resting_heart_rate"]);
 
   // Observation freshness (Founder Ruling I, RC-2): only count a record's
-  // `created_at` toward the max when that record actually contributed a
+  // observation timestamp toward the max when that record actually contributed a
   // metric above — mirrors "the metrics that populate the blob", not every
   // record WHOOP happened to return.
   const recoveryContributed =
