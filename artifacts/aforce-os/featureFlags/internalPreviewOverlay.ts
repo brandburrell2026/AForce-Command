@@ -56,13 +56,13 @@ export const INTERNAL_PREVIEW_OVERLAYABLE_FLAGS = [
   'health_garmin_enabled',
   'health_samsung_direct_enabled',
   'night_out_enabled',
-] as const;
+] as const satisfies readonly (keyof import('../types').FeatureFlags)[];
 
 export type OverlayableFlagKey = (typeof INTERNAL_PREVIEW_OVERLAYABLE_FLAGS)[number];
 
 const OVERLAYABLE_FLAG_SET: ReadonlySet<string> = new Set(INTERNAL_PREVIEW_OVERLAYABLE_FLAGS);
 
-/** One of the seven provider readiness stages a provider can be in (§4.5). */
+/** One of the four provider readiness stages a provider can be in (§4.5). */
 export type ProviderStage = 'blocked' | 'internal' | 'beta' | 'ga';
 
 /**
@@ -151,8 +151,13 @@ export function applyInternalPreviewOverlay(
   overlay: InternalPreviewOverlay | null,
   nowMs: number,
 ): FeatureFlags {
-  if (overlay === null) return base;
+  // Fail CLOSED on out-of-contract input (§8.2 "never throw") and on any
+  // non-finite clock value (§6.4.1): a raw ISO string or NaN reaching either
+  // operand must revoke the overlay, never silently disable the TTL check
+  // (verdict S1: `NaN >= x` is false, which would treat the overlay as live).
+  if (!overlay || !Array.isArray(overlay.grants)) return base;
   if (overlay.contractVersion !== OVERLAY_CONTRACT_VERSION) return base;
+  if (!Number.isFinite(overlay.expiresAtMs) || !Number.isFinite(nowMs)) return base;
   if (nowMs >= overlay.expiresAtMs) return base;
 
   const toFlip = surviving(base, overlay);

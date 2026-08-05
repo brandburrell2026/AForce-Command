@@ -256,3 +256,40 @@ describe('isProviderGrantHonoured — stage clamp predicate (§4.5, §4.5.1, §4
     expect(isProviderGrantHonoured('ga', false)).toBe(true);
   });
 });
+
+// Verdict S2 (#558 review): malformed / out-of-contract overlays must fail
+// CLOSED — every case below previously either threw or failed OPEN (probes
+// P1-P3, P8-P10). All must return base BY REFERENCE.
+describe('malformed overlays fail closed (verdict S1/S2)', () => {
+  const base = { ...DEFAULT_FLAGS };
+  const NOW = 1_754_000_000_000;
+  const valid: InternalPreviewOverlay = {
+    contractVersion: OVERLAY_CONTRACT_VERSION,
+    grants: ['health_oura_enabled'],
+    expiresAtMs: NOW + 60_000,
+    receivedAtMs: NOW - 1_000,
+    cohorts: [],
+  };
+
+  it('missing expiresAtMs (P1) → base by reference', () => {
+    const { expiresAtMs: _omit, ...noTtl } = valid;
+    expect(applyInternalPreviewOverlay(base, noTtl as never, NOW)).toBe(base);
+  });
+  it('NaN expiresAtMs (P2) → base by reference', () => {
+    expect(applyInternalPreviewOverlay(base, { ...valid, expiresAtMs: Number.NaN }, NOW)).toBe(base);
+  });
+  it('raw ISO-string expiresAtMs (P3 — the anticipated parser mistake) → base', () => {
+    expect(
+      applyInternalPreviewOverlay(base, { ...valid, expiresAtMs: '2026-08-05T12:00:00Z' as never }, NOW),
+    ).toBe(base);
+  });
+  it('NaN nowMs (P10) → base by reference', () => {
+    expect(applyInternalPreviewOverlay(base, valid, Number.NaN)).toBe(base);
+  });
+  it('undefined overlay (P8, out-of-contract) → base, never throws', () => {
+    expect(applyInternalPreviewOverlay(base, undefined as never, NOW)).toBe(base);
+  });
+  it('non-array grants (P9) → base, never throws', () => {
+    expect(applyInternalPreviewOverlay(base, { ...valid, grants: 'health_oura_enabled' as never }, NOW)).toBe(base);
+  });
+});
