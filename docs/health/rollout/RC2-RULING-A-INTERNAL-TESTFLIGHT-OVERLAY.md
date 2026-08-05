@@ -122,3 +122,25 @@ passing):
   the PR body only; `eas.json` on this branch is byte-identical to `main`.
 - **Any change to `DEFAULT_FLAGS` or `DEMO_ALL_ON_FLAGS` values.** Confirmed
   unchanged by this PR (git diff shows zero lines touched in `flags.ts`).
+
+## Deviation register — a DIFFERENT ruling, noted here so status isn't conflated
+
+This doc's own scope note above ("Status: Built.") is about Ruling A only
+(the TestFlight elite-flag overlay) — it says nothing about Founder Ruling I
+(RC-2, part 2: "observation freshness and sync freshness must be displayed
+separately and truthfully"), a separate ruling from the same RC-2 program.
+Recorded here anyway, since this is a rollout-status doc a reader might
+otherwise scan for "what's done in RC-2":
+
+**Ruling I is PARTIALLY satisfied at ship.** WHOOP, Oura, and Garmin
+correctly display both freshness axes (server-side `latestObservedAtMs`
+derivation feeds `resolveProviderPresentation`'s dual-axis support).
+`apple_health` (client-wired, actively syncing) and `samsung_health`
+(Health Connect, not yet client-wired) both remain sync-recency-only —
+neither has a server-side observation-axis derivation path. This is one
+disclosed, named engineering gap (owner: react-native-engineer; trigger:
+Track A device work — see `docs/health/validation/
+runbook-apple-healthkit.md`'s "Known gaps" section), not a product-policy
+exception. Do not read "Ruling I done" from Ruling A's "Built" status
+above, or from either ruling's presence in the same RC-2 program — they
+are independent, and only Ruling A is fully shipped by this doc's scope.
