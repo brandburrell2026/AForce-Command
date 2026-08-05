@@ -173,7 +173,7 @@ jobs:
           // Used solely if the doc's table can't be parsed at runtime (e.g. its
           // format changed). If you touch this number, update the doc too, or
           // better: fix the doc so the runtime parse succeeds again.
-          const FALLBACK_FAILED_FILES = 46;
+          const FALLBACK_FAILED_FILES = 45;
           const FALLBACK_FAILED_TESTS = 18;
 
           // target-baseline.md is the TARGET branch's copy (see the

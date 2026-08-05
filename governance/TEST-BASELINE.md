@@ -47,10 +47,10 @@ npx vitest run artifacts/aforce-os/utils artifacts/aforce-os/featureFlags artifa
 |---|---|---|
 | **Test files — total** | 255 | **366** |
 | Test files — passed | 209 | **321** |
-| **Test files — failed** | **46** | **45** |
+| **Test files — failed** | **45** | 46 (pre-RC-1 historical) |
 | **Tests — total** | 2614 | **4644** |
 | Tests — passed | 2596 | **4626** |
-| **Tests — failed** | **18** | **18** (unchanged) |
+| **Tests — failed** | **18** | 18 (unchanged) |
 | Typecheck (`aforce-os`) | ✅ exit 0 | ✅ exit 0 |
 | Pure-runner subset | ✅ 104 files / 1440 tests, all passing | ✅ 114 files / 2016 tests, all passing |
 | Governance drift | ✅ passes | ✅ passes |
