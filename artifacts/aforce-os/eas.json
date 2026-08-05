@@ -35,6 +35,13 @@
       },
       "node": "22.13.0"
     },
+    "internal": {
+      "extends": "production",
+      "channel": "internal",
+      "env": {
+        "EXPO_PUBLIC_INTERNAL_TESTFLIGHT": "true"
+      }
+    },
     "production": {
       "channel": "production",
       "autoIncrement": true,
