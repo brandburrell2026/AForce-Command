@@ -26,6 +26,7 @@
         "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes.",
         "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations.",
         "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
+        "NSHealthUpdateUsageDescription": "AForce OS does not currently write any data to Apple Health. iOS requires this notice because the app includes Apple Health integration; if saving hydration logs to Apple Health is offered in the future, iOS will ask for your permission first.",
         "NSMicrophoneUsageDescription": "AForce OS uses your microphone for voice coaching and audio interactions."
       }
     },

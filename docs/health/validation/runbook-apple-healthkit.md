@@ -139,7 +139,15 @@ from real-device evidence is not a FAIL.
   server-side or via a remote-config flip against a build already
   installed on the test device.
 
-## Known gaps — read before scoring Sync / Data truthfulness
+## Known gaps
+
+> **Build-43 lesson (2026-08-05):** Apple's upload validator requires
+> `NSHealthUpdateUsageDescription` to EXIST whenever the HealthKit framework
+> is linked — independent of runtime write scopes. The key is present with a
+> truthful "does not currently write" string (pinned by the healthKitScopes
+> lock). The REAL write-scope check for validators is unchanged: the
+> permission sheet must show NO write/share toggles (toShare is empty).
+ — read before scoring Sync / Data truthfulness
 
 These are verified facts about the shipped code, not open questions. A
 checkbox below that appears to fail ONLY because it observed one of these
