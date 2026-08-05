@@ -110,4 +110,27 @@ describe('runExclusiveFlush', () => {
 
     await first;
   });
+
+  // RC-1 closing follow-ups (#552 review item 4): `task()` can throw
+  // SYNCHRONOUSLY — before returning a promise at all — e.g. a validation
+  // check at the top of the flush loop. The old
+  // `resolveGate(task())` call had no try/catch, so that throw propagated
+  // straight out of `runExclusiveFlush` itself, skipping `resolveGate`
+  // entirely: `gate` never settles, its `.finally` never fires, and
+  // `flushInFlight` is never cleared — every later flush attempt coalesces
+  // onto a promise that will never resolve, wedging the outbox for the
+  // rest of the session. This drives that exact synchronous-throw path and
+  // proves (a) the throw still propagates to the caller as a rejection and
+  // (b) the guard clears so a second, later flush can run.
+  it('clears the in-flight guard even when the task throws SYNCHRONOUSLY (before returning a promise), so a later flush can retry', async () => {
+    const syncThrowing = vi.fn((): Promise<void> => {
+      throw new Error('sync boom');
+    });
+    await expect(runExclusiveFlush(syncThrowing)).rejects.toThrow('sync boom');
+
+    const succeeding = vi.fn(async () => {});
+    await runExclusiveFlush(succeeding);
+
+    expect(succeeding).toHaveBeenCalledTimes(1);
+  });
 });

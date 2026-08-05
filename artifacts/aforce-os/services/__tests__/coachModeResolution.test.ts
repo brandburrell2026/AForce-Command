@@ -1,4 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// `services/coachMode.ts` also exports `useCoachMode()` / `useCoachModeSetting()`,
+// which pull in `@react-native-async-storage/async-storage` and
+// `@/store/useAppStore` at module scope. Both transitively reach RN/Expo
+// native modules that fail to load under Vitest's Node environment (see
+// governance/TEST-BASELINE.md §3, Cause A — the 13 documented
+// `__DEV__` module-load-failure files, of which `coachMode.test.ts` is one).
+//
+// `resolveEffectiveCoachMode()` is a pure function with none of those
+// dependencies, so — mirroring the mock-the-RN-touching-deps shape
+// `textToSpeech.test.ts` uses to test `speak()` in isolation — stub both
+// modules before importing, and test the pure formula in a file that
+// actually executes.
+vi.mock('@react-native-async-storage/async-storage', () => ({
+  default: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },
+}));
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   COACH_MICROCOPY,
   COACH_MODES,
