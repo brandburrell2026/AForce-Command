@@ -10,9 +10,9 @@ Brandon's PR approval is the final gate.
 byte-identical to `main` (this doc's overlay module is additive, and the one
 call site it patches — `store/useAppStore.tsx`'s `initialState.featureFlags`
 — is proven a no-op reference pass-through when the gating env is unset; see
-Proof below). `eas.json` is untouched in this PR — the profile that would set
-the gating env is a **proposed diff only**, reproduced in full in the PR body,
-pending Brandon's explicit approval of that exact diff.
+Proof below). `eas.json` gained the `internal` profile in PR #567 (founder-approved
+diff, committed verbatim after the original proposal was corrected — the
+first draft extended `preview`, which would never have reached TestFlight).
 
 ## The five flags
 
@@ -58,8 +58,10 @@ Investigated before building (per the ruling's instruction):
   allow-list/TTL/contract machinery for a static, build-time, all-users
   overlay would be over-engineering for what this ruling actually asks for.
 - `eas.json` has `development`, `preview`, `demo` (extends `preview`, sets
-  `EXPO_PUBLIC_DEMO_MODE=true`), and `production` build profiles. There is no
-  `internal` profile today — see the PR body for the proposed one.
+  `EXPO_PUBLIC_DEMO_MODE=true`), `internal` (PR #567: extends `production`,
+  channel `internal`, sets the gating env — the #567 verdict PROVED via the
+  eas-cli resolver that `env` deep-merges, so internal builds inherit the
+  production API-base keys plus the overlay key), and `production`.
 
 ## What was built
 
@@ -119,7 +121,8 @@ passing):
   path is the rollback: unset the env, next build is byte-identical to today).
 - **`eas.json` edit.** Flag-first per standing founder rule. The profile that
   would set `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true` is proposed as a diff in
-  the PR body only; `eas.json` on this branch is byte-identical to `main`.
+  the PR body of #563; the profile itself landed via #567 after founder
+  approval of the corrected diff.
 - **Any change to `DEFAULT_FLAGS` or `DEMO_ALL_ON_FLAGS` values.** Confirmed
   unchanged by this PR (git diff shows zero lines touched in `flags.ts`).
 
@@ -144,3 +147,24 @@ runbook-apple-healthkit.md`'s "Known gaps" section), not a product-policy
 exception. Do not read "Ruling I done" from Ruling A's "Built" status
 above, or from either ruling's presence in the same RC-2 program — they
 are independent, and only Ruling A is fully shipped by this doc's scope.
+
+## OTA-update hazard (from the #567 verdict — read before the first `eas update`)
+
+The first `eas build --profile internal` auto-creates EAS channel `internal`
+linked to a same-name (empty) branch — internal builds receive no updates
+because that branch is EMPTY AND ISOLATED, not because the channel is
+unmapped. Two footguns:
+
+1. **Never run `eas update --auto`, and never run `eas update` without an
+   explicit `--branch`.** `--auto` uses the current GIT branch name; a git
+   branch literally named `internal` would publish to the internal builds'
+   update branch. An update bundle is built OUTSIDE `eas.json`'s `build.*`
+   env, so it would almost certainly carry the overlay env UNSET — silently
+   switching the five elite flags OFF in internal TestFlight. Verify the
+   env-inlining behavior of `eas update` before ever cutting an internal OTA.
+2. **Never submit with `--latest` while an internal build may top the list.**
+   `eas submit --latest` has no profile filter; after cutting an internal
+   build, `pnpm eas:submit:ios` would ship the INTERNAL binary (five elite
+   flags ON) to the store path. Submit internal builds by `--id <buildId>`
+   (or `pnpm eas:submit:ios:internal`); prefer `--id` for store submissions
+   whenever both profiles have recent builds.
