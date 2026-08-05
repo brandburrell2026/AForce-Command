@@ -122,7 +122,20 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   column: { flexDirection: 'column', alignItems: 'flex-start' },
   valueGroup: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  value: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  unit: { ...afType.secondary, color: af.textTertiary },
-  label: { ...afType.eyebrow, color: af.textTertiary },
+  value: {
+    fontFamily: afType.title3.fontFamily,
+    fontSize: afType.title3.fontSize,
+    color: af.textPrimary,
+    fontVariant: ['tabular-nums'],
+  },
+  unit: {
+    fontFamily: afType.secondary.fontFamily,
+    fontSize: afType.secondary.fontSize,
+    color: af.textTertiary,
+  },
+  label: {
+    fontFamily: afType.eyebrow.fontFamily,
+    fontSize: afType.eyebrow.fontSize,
+    color: af.textTertiary,
+  },
 });
