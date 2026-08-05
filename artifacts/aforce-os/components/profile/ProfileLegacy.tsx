@@ -2928,7 +2928,7 @@ const styles = StyleSheet.create({
     width: '50%', paddingVertical: 4, gap: 2,
   },
   snapshotCellLabel: {
-    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted,
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.text.muted, letterSpacing: 1.6,
   },
   snapshotCellValue: {
     fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.text.primary,

@@ -165,6 +165,7 @@ function Breakdown({
         value={value}
         unit={`/ ${max}`}
         direction="column"
+        style={styles.breakdownStat}
         labelStyle={styles.breakdownLabel}
         valueStyle={styles.breakdownValue}
         unitStyle={styles.breakdownMax}
@@ -239,6 +240,9 @@ const styles = StyleSheet.create({
   breakdownItem: {
     flex: 1,
     alignItems: 'flex-start',
+    gap: 4,
+  },
+  breakdownStat: {
     gap: 4,
   },
   breakdownLabel: {
