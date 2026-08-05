@@ -47,6 +47,7 @@ import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '@/featureFlags/flags';
+import { resolveInitialFeatureFlags } from '@/featureFlags/internalTestflightOverlay';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { LanguageSelector } from '@/components/LanguageSelector';
@@ -1601,7 +1602,7 @@ export function ProfileScreenV2() {
                 <SectionHeader label={t('profile.v2.demo_access_label')} hint={t('profile.v2.demo_access_hint')} />
                 <View style={styles.card}>
                   <Pressable
-                    onPress={() => setFeatureFlags(allOn ? DEFAULT_FLAGS : demoUnlockPayload)}
+                    onPress={() => setFeatureFlags(allOn ? resolveInitialFeatureFlags(DEFAULT_FLAGS) : demoUnlockPayload)}
                     style={[styles.demoMaster, { borderColor: allOn ? af.green : af.border }]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: allOn }}

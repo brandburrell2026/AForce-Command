@@ -120,3 +120,20 @@ describe('applyInternalTestflightOverlay — exactly five when on (internal Test
     expect(DEMO_ALL_ON_FLAGS).toEqual(snapshot);
   });
 });
+
+// #563 verdict SF-3: the single-env gate's real defense is that the
+// PRODUCTION eas profile never sets the key. Pin it here so a mistaken
+// prod-profile env addition fails a test instead of shipping the overlay
+// to the App Store build.
+describe('eas.json production profile never sets the overlay env (SF-3 guard)', () => {
+  it('production profile lacks EXPO_PUBLIC_INTERNAL_TESTFLIGHT', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { readFileSync } = require('node:fs');
+    const { join } = require('node:path');
+    const eas = JSON.parse(
+      readFileSync(join(__dirname, '..', '..', 'eas.json'), 'utf8'),
+    );
+    const prodEnv = eas.build?.production?.env ?? {};
+    expect(Object.keys(prodEnv)).not.toContain('EXPO_PUBLIC_INTERNAL_TESTFLIGHT');
+  });
+});
