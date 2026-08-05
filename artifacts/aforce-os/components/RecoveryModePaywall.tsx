@@ -16,13 +16,14 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
 import { Colors } from '../theme/colors';
+import { af } from '../theme';
 import { LAUNCHED_PLAN_IDS } from '../data/subscriptionPlans';
 import { createCheckoutSession, fetchCheckoutSession } from '../lib/api';
 import { refreshEntitlement } from '../hooks/useEntitlement';
 import { recordSubscriptionStarted, revenueForPlan } from '../analytics/subscription_tracker';
 
 const TEAL = '#7CD3E5';
-const AMBER = '#F4B23F';
+const AMBER = af.amber; // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
 
 const FEATURES: { key: string; icon: IconName }[] = [
   { key: 'social.recovery_paywall_feat_morning', icon: 'sunrise' },

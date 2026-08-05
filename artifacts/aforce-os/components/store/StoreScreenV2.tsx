@@ -253,15 +253,15 @@ export function StoreScreenV2() {
                                   style={[
                                     styles.badgeChip,
                                     {
-                                      borderColor: '#8B5CF6',
-                                      backgroundColor: `${'#8B5CF6'}22`,
+                                      borderColor: af.guardian,
+                                      backgroundColor: af.guardianTint,
                                     },
                                   ]}
                                 >
                                   <Text
                                     style={[
                                       styles.badgeChipText,
-                                      { color: '#8B5CF6' },
+                                      { color: af.guardian },
                                     ]}
                                   >
                                     {t('store.v2.performance_bundle')}

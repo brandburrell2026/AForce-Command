@@ -289,7 +289,7 @@ export function SubscriptionScreenV2() {
 
               {/* Guardian sub-section */}
               <SubGroupHeader
-                accent={'#8B5CF6'}
+                accent={af.guardian}
                 eyebrow={t('subscription.v2.guardian_eyebrow')}
                 title={t('subscription.v2.guardian_title')}
                 hint={t('subscription.v2.guardian_hint')}

@@ -4,6 +4,7 @@
  */
 
 import type { ProductType, FluidType } from '../types';
+import { af } from '../theme';
 
 export const PRODUCTS: Record<FluidType, ProductType> = {
   water: {
@@ -68,7 +69,7 @@ export const PRODUCT_FLAVORS = {
   },
   berry: {
     label: 'Berry Blast + Dulse',
-    accent: '#8B5CF6',
+    accent: af.guardian,
     stick: require('../assets/images/products/stick_berry.png'),
     can: require('../assets/images/products/can_berry_v2.png'),
     jar: require('../assets/images/products/jar_berry.png'),

@@ -70,6 +70,30 @@ export const af = {
   redDim: 'rgba(193,40,27,0.16)', //      red atmosphere / selected background
   redHairline: 'rgba(193,40,27,0.34)', // progress + ambient rings
 
+  // Guardian — #8B5CF6 (rgb 139,92,246). RATIFIED as a named af.* brand token
+  // per founder Ruling E (RC-2, 2026-08-05): the value already shipped as the
+  // Guardian tier/feature accent (subscription plan cards, Profile's Guardian
+  // flag rows + phase card, Store's Guardian flavor tint, flavor/product data)
+  // via a repeated raw literal at 8+ call sites — this gives it one source of
+  // truth instead. Bound to the pre-existing `Colors.guardian.primary` so
+  // there is still a single canonical definition, matching the
+  // `red: Colors.accent.primary` pattern above. NOT a semantic status color
+  // (see green/amber/cyan below) — like `red`, it names a specific brand
+  // feature (Guardian), not a hydration state.
+  guardian: Colors.guardian.primary, //   #8B5CF6 — Guardian tier/feature accent
+  // The three alpha variants below replace call-site `${'#8B5CF6'}XX` hex-
+  // suffix concatenation hacks BYTE-FOR-BYTE (RC-2 Ruling E requires
+  // byte-identical rendered color — no new dim/hairline design here, just
+  // the three distinct alphas that had already shipped, precomputed so nothing
+  // renders differently). Each decimal is chosen so the RN/CSS color parser's
+  // Math.round(alpha*255) reproduces the exact original hex-suffix byte:
+  //   guardianDim       0.1020 -> round(26.01) = 26 (0x1A) — icon-tint bg
+  //   guardianTint      0.1333 -> round(33.99) = 34 (0x22) — selected bg
+  //   guardianHairline  0.3333 -> round(84.99) = 85 (0x55) — border
+  guardianDim: 'rgba(139,92,246,0.1020)', //      icon-tint background (was `${'#8B5CF6'}1A`)
+  guardianTint: 'rgba(139,92,246,0.1333)', //     selected/active background (was `${'#8B5CF6'}22`)
+  guardianHairline: 'rgba(139,92,246,0.3333)', // border emphasis (was `${'#8B5CF6'}55`)
+
   // Semantic status — bound to the brand state palette. Pair every use with
   // text/icon/shape, never color alone (spec §3.1).
   green: Colors.states.PEAK.primary, //      #1FA35A — verified positive / connected

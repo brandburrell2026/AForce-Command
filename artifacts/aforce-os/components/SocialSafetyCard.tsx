@@ -18,6 +18,7 @@ import { Icon, type IconName } from './Icon';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../theme/colors';
+import { af } from '../theme';
 import type { TransportationSafetyPrompt, TransportationSeverity } from '../types';
 
 interface Props {
@@ -26,7 +27,7 @@ interface Props {
 
 const ACCENT: Record<TransportationSeverity, string> = {
   info:     '#9D7CFB',
-  caution:  '#F4B23F',
+  caution:  af.amber, // RC-2 Ruling E: #F4B23F retired to the approved af.amber (#FFA01E)
   warning:  '#FB7C7C',
   critical: '#E63946',
 };

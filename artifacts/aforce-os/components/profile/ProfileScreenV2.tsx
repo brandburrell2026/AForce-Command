@@ -125,8 +125,8 @@ const TIER_LABELS: Record<string, { color: string }> = {
   clutch_starter: { color: af.cyan },
   clutch_pro:     { color: af.cyan },
   clutch_elite:   { color: af.cyan },
-  guardian_core:  { color: '#8B5CF6' },
-  guardian_elite: { color: '#8B5CF6' },
+  guardian_core:  { color: af.guardian },
+  guardian_elite: { color: af.guardian },
   all_access:     { color: af.green },
 };
 
@@ -1636,9 +1636,9 @@ export function ProfileScreenV2() {
                   <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
                   <FlagRow flag="clutch_clip_enabled" label={t('profile.v2.flag_clip_label')} desc={t('profile.v2.flag_clip_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
 
-                  <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
-                  <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={'#8B5CF6'} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
+                  <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
 
                   <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
                 </View>
@@ -1686,13 +1686,13 @@ export function ProfileScreenV2() {
                     style={[
                       styles.demoMaster,
                       {
-                        borderColor: inRecovery ? '#F4B23F' : af.border,
+                        borderColor: inRecovery ? af.amber : af.border,
                         opacity: demoBusy && demoBusy !== 'recovery' ? 0.5 : 1,
                       },
                     ]}
                   >
-                    <Icon name="sun" size={14} color={inRecovery ? '#F4B23F' : af.textSecondary} />
-                    <Text style={[styles.demoMasterText, { color: inRecovery ? '#F4B23F' : af.textPrimary }]}>
+                    <Icon name="sun" size={14} color={inRecovery ? af.amber : af.textSecondary} />
+                    <Text style={[styles.demoMasterText, { color: inRecovery ? af.amber : af.textPrimary }]}>
                       {demoBusy === 'recovery'
                         ? t('profile.demo_modes.entering_recovery')
                         : inRecovery
@@ -1992,14 +1992,14 @@ export function ProfileScreenV2() {
                 {showGuardianEntry ? (
                   <Pressable
                     onPress={() => router.push('/guardian')}
-                    style={[styles.phaseCard, { borderColor: `${'#8B5CF6'}55` }]}
+                    style={[styles.phaseCard, { borderColor: af.guardianHairline }]}
                     accessibilityRole="button"
                     accessibilityLabel={t('profile.v2.phase_guardian_title')}
                   >
-                    <View style={[styles.phaseIcon, { backgroundColor: `${'#8B5CF6'}1A` }]}>
-                      <Icon name="shield" size={20} color={'#8B5CF6'} />
+                    <View style={[styles.phaseIcon, { backgroundColor: af.guardianDim }]}>
+                      <Icon name="shield" size={20} color={af.guardian} />
                     </View>
-                    <Text style={[styles.phaseTitle, { color: '#8B5CF6' }]}>{t('profile.v2.phase_guardian_title')}</Text>
+                    <Text style={[styles.phaseTitle, { color: af.guardian }]}>{t('profile.v2.phase_guardian_title')}</Text>
                     <Text style={styles.phaseDesc}>{t('profile.v2.phase_guardian_desc')}</Text>
                   </Pressable>
                 ) : null}
@@ -2738,7 +2738,7 @@ function SubscriptionPanel() {
 
   const planName = TIER_LABELS[sub.planId] ? t(`profile.v2.tier_${sub.planId}_label`) : t('profile.v2.tier_fallback');
   const accent =
-    sub.planId.startsWith('guardian') ? '#8B5CF6' :
+    sub.planId.startsWith('guardian') ? af.guardian :
     sub.planId.startsWith('clutch')   ? af.cyan :
     sub.planId === 'system' || sub.planId === 'athlete' ? af.green :
     af.cyan;
