@@ -119,6 +119,21 @@ function ProviderRow({
   const hasAction = row.troubleshoot.kind !== 'none' && row.troubleshoot.label != null;
   const statusLabel = tt(row.statusPill.label);
 
+  // Founder Ruling I (RC-2 part 2): the resolver only ever populates
+  // `observedAtMs` when the sync/observation axes meaningfully differ (see
+  // connectedHealthView.ts's `resolveProviderRow`) — this component's only
+  // job is formatting that raw timestamp into a date and composing it onto
+  // the existing sync line, exactly the approved pattern: "Synced 10m ago ·
+  // data from Aug 1". Date formatting (not translation) is intentionally
+  // done here, via `Intl.DateTimeFormat` on the device locale, mirroring
+  // every other on-screen date in this app.
+  const observedDate = row.observedAtMs != null
+    ? new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(new Date(row.observedAtMs))
+    : null;
+  const freshnessText = observedDate != null
+    ? `${tt(row.freshness)} ${t('connected_health.freshness.observed_on', { date: observedDate })}`
+    : tt(row.freshness);
+
   return (
     <View style={styles.card} testID={`ch-row-${row.providerId}`}>
       <View style={styles.cardTopRow}>
@@ -138,7 +153,13 @@ function ProviderRow({
       </View>
 
       <Text style={styles.subCopy}>{tt(row.subCopy)}</Text>
-      <Text style={styles.freshness}>{tt(row.freshness)}</Text>
+      <View
+        accessible
+        accessibilityLabel={t('connected_health.freshness_a11y', { label: freshnessText })}
+        testID={`ch-freshness-${row.providerId}`}
+      >
+        <Text style={styles.freshness}>{freshnessText}</Text>
+      </View>
 
       {row.pulls.length > 0 ? (
         // Review #460 item 3: no container-level accessibilityLabel. A denied

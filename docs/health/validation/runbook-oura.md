@@ -82,22 +82,42 @@ already-known and move on.
   is a DECLARED CAPABILITY the contract reserves for a future
   implementation — it is not wired to anything Oura's fetcher does today.
   Its absence in observed behavior is not a validation failure.
-- **Freshness measures sync recency, not observation recency.**
-  `resolveProviderPresentation` (`artifacts/aforce-os/services/health/providerPresentation.ts:79-92`)
-  computes `age = nowMs - latestFetchedAtMs`, where `latestFetchedAtMs` is
-  the biometrics blob's `fetchedAt` (`ouraSnapshot.ts`'s
-  `OuraProviderBlob.fetchedAt` — stamped by `providerKit/fetchWorker.ts` at
-  the moment of the HTTP call, not by Oura). `ProviderSnapshot`
-  (`lib/health-core/src/contracts.ts`) carries only `fetchedAt` — there is
-  no per-metric observation timestamp on this snapshot plane. A 3-day-old
-  readiness score synced 10 minutes ago presents as fresh/live; this is
-  shipped behavior, product ruling PENDING (founder memo open) on whether
-  sync-recency-as-freshness is the intended long-term behavior. Validators
-  record the observed fresh/stale value here — they do not adjudicate
-  whether that value is "correct." Observation-time freshness
-  (`CanonicalHealthRecord.observedAt`, distinct from `syncedAt`/`fetchedAt`)
-  exists only on the canonical-record plane, which Oura's shipped path
-  (`ouraFetchWorker.ts` → the `biometrics.oura` blob) never populates.
+- **Freshness now measures BOTH sync recency and observation recency —
+  RULED (Founder Ruling I, RC-2).** The "product ruling PENDING" note that
+  used to live here is resolved: "observation freshness and sync freshness
+  must be displayed separately and truthfully." Two PRs implement it:
+  - **Part 1 (#562, merged to main as `7a6f7990`):**
+    `ProviderSnapshot.latestObservedAtMs` (`lib/health-core/src/contracts.ts`)
+    — optional, additive epoch-ms field. For Oura specifically, the
+    api-server derives it from the day-summary payload's own `bedtime_end`/
+    `day` fields, counting a collection's timestamp only when it actually
+    contributed a metric and taking the max across contributors; absent
+    (never guessed) when a sync's payload carries no usable timestamp.
+  - **Part 2 (this branch):** `resolveProviderPresentation`
+    (`artifacts/aforce-os/services/health/providerPresentation.ts`) now
+    computes `syncAgeMs = nowMs - fetchedAt` AND, when
+    `latestObservedAtMs` is present, `observedAgeMs = nowMs -
+    latestObservedAtMs` — and gates presentation STATE on whichever axis is
+    STALER (conservative selection: a fresh sync of an old Oura readiness
+    score must never present as fresh). `connectedHealthView.ts` /
+    `ConnectedHealthView.tsx` display BOTH axes separately when they fall
+    into genuinely different §53 freshness buckets ("Synced 10m ago · data
+    from Aug 1"); when the axes are close, the existing single "Synced …"
+    line is unchanged — no clutter.
+  - **Parity:** an Oura sync whose payload carries no usable `bedtime_end`/
+    `day` (any historical/legacy blob, or a future payload shape that
+    regresses) still presents exactly as it did before this ruling —
+    `latestObservedAtMs` absent ⇒ byte-identical output, pinned by
+    dedicated parity tests at both layers (`providerPresentation.test.ts`,
+    `connectedHealthContainerModel.test.ts`).
+  - **Validators:** verify BOTH axes render truthfully on a real device —
+    (1) a normal, fully fresh Oura account shows the single-line "Synced …"
+    text (axes agree, no clutter); (2) Oura's known ~2-day pull window (see
+    the no-backfill gap above) makes a meaningfully stale readiness score
+    with a fresh sync more plausible here than on WHOOP — if the test
+    account's real data exercises this, confirm the composed two-axis line
+    appears and both timestamps read truthfully. Record "not exercisable
+    this cycle" if it doesn't, rather than failing the checkbox.
 - **There is no per-record dedup on this path.** `ouraFetchWorker.ts`
   writes exactly one JSON blob per user under `biometrics.oura` via
   `writeProviderEntry` (`providerKit/fetchWorker.ts:164-168` — a `jsonb_set`
@@ -220,13 +240,24 @@ already-known and move on.
       the window; shown as unavailable, not zero/fabricated.
 - [ ] **Missing device** — account-only (no ring) test setup; verify
       graceful absence for all ring-derived metrics, not an error state.
-- [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the blob's
-      last-sync timestamp) exceeds 24h. This is sync recency, not the age of
-      the underlying Oura record — see the freshness known gap above. Do not
-      fail this checkbox for measuring sync time instead of the readiness/
-      sleep/activity record's own date; that is shipped behavior.
-- [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
-      `no_recent_data`. Same sync-recency caveat as Stale applies.
+- [ ] **Stale** — verify `stale` appears when EITHER `now - fetchedAt`
+      (sync age) OR, when the payload carried `bedtime_end`/`day` and
+      `latestObservedAtMs` is present, `now - latestObservedAtMs`
+      (observation age) exceeds 24h — whichever is STALER wins (Ruling I
+      conservative selection, see the freshness section above). Only fail
+      this checkbox if a genuinely stale observation with a fresh sync
+      fails to present as `stale`.
+- [ ] **No recent data** — same conservative, either-axis-exceeding-72h
+      check shows `no_recent_data`. Same either-axis caveat as Stale
+      applies.
+- [ ] **Both freshness axes display truthfully** — when the test account's
+      Oura readiness/sleep record is meaningfully older than the last sync
+      (plausible here given the ~2-day pull window), verify the row shows
+      the composed line ("Synced Xm ago · data from <date>") with both
+      timestamps reading correctly, and that VoiceOver/TalkBack announces
+      both axes. When the axes are close, verify the row shows only the
+      single "Synced …" line. Record "not exercisable this cycle" if the
+      account's data never diverges enough to exercise the dual-axis case.
 - [ ] **Malformed record** — a record missing a required field or with a
       non-finite value is dropped, not passed through (per `num()`-style
       coercion in the snapshot mapping).

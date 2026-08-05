@@ -223,6 +223,80 @@ describe('freshness — real fetchedAt drives lastSyncAtMs, never fabricated', (
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────
+// Founder Ruling I (RC-2, part 2): "Observation freshness and sync
+// freshness must be displayed separately and truthfully." This model is
+// the wiring point between the raw `ProviderSnapshot.latestObservedAtMs`
+// blob field (#562, part 1 — optional/additive) and
+// `resolveProviderPresentation`'s conservative-selection consumer (part 2,
+// providerPresentation.ts). These tests exercise it end-to-end at the UI
+// model layer, including the exact #562 "delayed sync" scenario the field's
+// own doc comment names: "a provider sync can return an observation from
+// hours or days earlier."
+// ─────────────────────────────────────────────────────────────────────────
+describe('observation freshness — Founder Ruling I (RC-2 part 2)', () => {
+  it('PARITY (mutation-verify): absent latestObservedAtMs ⇒ presentation has EXACTLY the pre-Ruling-I keys, and observedAtMs is null', () => {
+    const input = baseInput({
+      cloud: { whoop: CONFIGURED_CONNECTED },
+      biometrics: { whoop: { fetchedAt: NOW - 5 * MIN } as never },
+    });
+    const row = modelRow(input, 'whoop');
+    // Key-set assertion (not just toEqual) so this test actually fails if
+    // the conservative path were ever forced to fire unconditionally.
+    expect(Object.keys(row.presentation).sort()).toEqual(['dataAgeMs', 'live', 'state']);
+    expect(row.presentation).toEqual({ state: 'connected', live: true, dataAgeMs: 5 * MIN });
+    expect(row.observedAtMs).toBeNull();
+  });
+
+  it('DELAYED-SYNC SCENARIO (#562\'s own example): fresh fetchedAt + old latestObservedAtMs ⇒ conservative (staler) presentation wins end-to-end', () => {
+    const fetchedAt = NOW - 5 * MIN; // synced 5 minutes ago
+    const latestObservedAtMs = NOW - 30 * HOUR; // but the actual recovery record is 30h old
+    const input = baseInput({
+      cloud: { whoop: CONFIGURED_CONNECTED },
+      biometrics: { whoop: { fetchedAt, latestObservedAtMs } as never },
+    });
+
+    const model = modelRow(input, 'whoop');
+    expect(model.presentation.state).toBe('stale');
+    expect(model.presentation.live).toBe(false);
+    expect(model.presentation.showBothFreshnessAxes).toBe(true);
+    expect(model.observedAtMs).toBe(latestObservedAtMs);
+    expect(model.lastSyncAtMs).toBe(fetchedAt); // the sync axis stays honestly, separately available
+
+    // End-to-end through the resolved view: the row never claims "connected"
+    // despite the 5-minute-old sync, and both raw timestamps reach the view
+    // layer ready to be displayed separately.
+    const view = viewRow(input, 'whoop');
+    expect(view.statusPill.state).toBe('stale');
+    expect(view.observedAtMs).toBe(latestObservedAtMs);
+  });
+
+  it('DISPLAY THRESHOLD: axes close (same §53 bucket) ⇒ the view suppresses the second axis, single line stays', () => {
+    const input = baseInput({
+      cloud: { whoop: CONFIGURED_CONNECTED },
+      biometrics: { whoop: { fetchedAt: NOW - 5 * MIN, latestObservedAtMs: NOW - 8 * MIN } as never },
+    });
+    const model = modelRow(input, 'whoop');
+    expect(model.presentation.showBothFreshnessAxes).toBe(false);
+
+    const view = viewRow(input, 'whoop');
+    expect(view.observedAtMs).toBeNull(); // suppressed — nothing extra worth saying
+  });
+
+  it('a provider that never wires latestObservedAtMs server-side (e.g. Apple Health today) behaves exactly as before', () => {
+    const input = baseInput({
+      platform: 'ios',
+      appleHealthNativeReady: true,
+      appleHealthLinked: true,
+      biometrics: { apple_health: { fetchedAt: NOW - 40 * HOUR } as never }, // no latestObservedAtMs key at all
+    });
+    const model = modelRow(input, 'apple_health');
+    expect(model.presentation.state).toBe('stale'); // unchanged pre-Ruling-I behavior
+    expect(Object.keys(model.presentation).sort()).toEqual(['dataAgeMs', 'live', 'state']);
+    expect(model.observedAtMs).toBeNull();
+  });
+});
+
 describe('WHOOP expiry mapping', () => {
   it('an expired cloud link renders action_required ("Needs Attention"), never a fabricated live state', () => {
     const input = baseInput({ cloud: { whoop: CONFIGURED_EXPIRED }, biometrics: { whoop: { fetchedAt: NOW - HOUR } as never } });

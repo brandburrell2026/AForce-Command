@@ -111,19 +111,30 @@ observations, until the wiring work lands.
 
 ## Known gaps — read before scoring Sync / Data truthfulness (engine-level; applies once client wiring lands)
 
-- **Freshness measures sync recency, not observation recency.**
-  `resolveProviderPresentation` (`artifacts/aforce-os/services/health/providerPresentation.ts:79-92`)
-  computes `age = nowMs - latestFetchedAtMs`, where `latestFetchedAtMs` is
-  the snapshot's write time, not a per-record observation timestamp.
-  `ProviderSnapshot` (`lib/health-core/src/contracts.ts`) carries only
-  `fetchedAt`. This is the SAME class of gap documented in the Oura/WHOOP/
-  Apple runbooks — it is not specific to Health Connect. Observation-time
-  freshness (`CanonicalHealthRecord.observedAt`) exists only on the
-  canonical-record plane, which is what `healthConnect/sync.ts` actually
-  produces (unlike Oura/WHOOP/wired-Apple) — so once this engine is wired,
-  Health Connect/Samsung would be the FIRST provider capable of true
-  observation-time freshness. Until wiring lands, there is no shipped path
-  at all to observe freshness against for these two providers.
+- **Freshness now measures BOTH sync recency and observation recency for
+  WHOOP/Oura/Garmin — RULED (Founder Ruling I, RC-2) — but Health
+  Connect/Samsung has NO shipped path either way yet.** The product
+  question this section used to flag as PENDING is now resolved:
+  "observation freshness and sync freshness must be displayed separately
+  and truthfully." `ProviderSnapshot.latestObservedAtMs`
+  (`lib/health-core/src/contracts.ts`, RC-2 part 1, #562) and the
+  conservative-selection consumer (`resolveProviderPresentation`,
+  `artifacts/aforce-os/services/health/providerPresentation.ts`, RC-2 part
+  2, this branch — computes `syncAgeMs`/`observedAgeMs` and gates state on
+  whichever is STALER when both are present) now exist and are wired
+  server-side for WHOOP/Oura/Garmin. Health Connect/Samsung is unaffected
+  either way: `healthConnect/sync.ts` has no client wiring at all yet (see
+  "BLOCKED PENDING CLIENT WIRING" throughout this runbook), so there is no
+  `biometrics.samsung_health` blob for `latestObservedAtMs` to be absent
+  OR present on — `resolveProviderPresentation`'s absent-field parity
+  contract applies trivially. The forward-looking opportunity noted here
+  previously still holds: `healthConnect/sync.ts` is the one provider path
+  that already produces `CanonicalHealthRecord.observedAt`
+  (`lib/health-core/src/contracts.ts`) on the canonical-record plane, so
+  once client wiring lands, deriving `latestObservedAtMs` for Health
+  Connect/Samsung should be more direct than the per-provider payload
+  parsing WHOOP/Oura/Garmin needed — a follow-up for the wiring PR, not
+  something to test here.
 - **No 30-day (or any) bound on the record read.**
   `sync.ts:388`'s `fullRead()` calls
   `client.readRecords<unknown>(config.hcRecordType, {})` — an empty options
@@ -239,13 +250,18 @@ observations, until the wiring work lands.
       as unavailable, not zero/fabricated.
 - [ ] **Missing device** — no wearable paired for HR/HRV; graceful absence.
 - [ ] **Stale** — BLOCKED PENDING CLIENT WIRING for a device observation.
-      For when wiring lands: `stale` triggers on `now - fetchedAt`
-      (snapshot write time) exceeding 24h — see the freshness known gap
-      above. This is the sync-recency caveat shared with every other
-      provider on the snapshot plane; Health Connect/Samsung's
-      canonical-record path is the one that COULD carry true
-      observation-time freshness once wired (see known gap above), but the
-      snapshot-plane presentation logic reviewed here does not use it.
+      For when wiring lands: `stale` now triggers when EITHER `now -
+      fetchedAt` (sync age) OR, if the wiring PR also derives
+      `latestObservedAtMs` from the canonical-record plane's `observedAt`
+      (see the freshness section above — this is the one provider where
+      that derivation should be the most direct, since `observedAt` already
+      exists there), `now - latestObservedAtMs` (observation age) exceeds
+      24h — whichever is STALER wins, per Founder Ruling I's conservative
+      selection (`resolveProviderPresentation`, RC-2 part 2). If the wiring
+      PR does NOT derive `latestObservedAtMs` for this provider, the
+      absent-field parity contract applies and this collapses to the
+      pre-Ruling-I sync-only check — either way, this checkbox stays
+      correct without edits once client wiring actually lands.
 - [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h;
       same caveat as Stale.
 - [ ] **Malformed record** — a record missing a required field or with a

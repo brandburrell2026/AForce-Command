@@ -231,17 +231,30 @@ from real-device evidence is not a FAIL.
 - [ ] **Missing device** — no Watch/paired device for HR/HRV; verify
       graceful absence, not an error state.
 - [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the last
-      successful sync's timestamp) exceeds 24h. This is sync recency, not
-      the age of the underlying HealthKit sample — `appleHealth.ts`'s
-      snapshot carries only a `fetchedAt`-equivalent write time, no
-      per-metric observation timestamp survives onto the snapshot plane
-      (`ProviderSnapshot`, `lib/health-core/src/contracts.ts`). A 5-day-old
-      resting-HR sample synced 10 minutes ago presents as fresh/live; this
-      is shipped behavior across every provider on this plane, product
-      ruling PENDING (founder memo open) on whether sync-recency-as-
-      freshness is the intended long-term behavior — not something specific
-      to Apple. Validators record the observed fresh/stale value here; they
-      do not adjudicate whether that value is "correct."
+      successful sync's timestamp) exceeds 24h. **The product question this
+      used to flag as PENDING is now RULED (Founder Ruling I, RC-2):
+      "observation freshness and sync freshness must be displayed
+      separately and truthfully" — sync-recency-only display is NOT the
+      accepted long-term behavior.** What remains open for Apple
+      specifically is an ENGINEERING gap, not a product-policy one:
+      `ProviderSnapshot.latestObservedAtMs` (`lib/health-core/src/contracts.ts`,
+      RC-2 part 1, #562) is wired server-side for WHOOP/Oura/Garmin (each
+      derives it from that provider's own payload timestamps), but
+      HealthKit sync is client-only (`appleHealth.ts`/`appleHealthSync.ts`)
+      — no api-server derivation path touches it, so `apple_health` blobs
+      do not populate the field today. `resolveProviderPresentation`
+      (`artifacts/aforce-os/services/health/providerPresentation.ts`, RC-2
+      part 2, this branch) already knows how to consume it — an absent
+      field is its documented, tested parity contract, not a missing
+      feature — so Apple Health correctly falls back to sync-recency-only
+      exactly as every other provider does when the field is absent. A
+      5-day-old resting-HR sample synced 10 minutes ago still presents as
+      fresh/live for Apple specifically, pending a follow-up pass that
+      wires an observation timestamp from `CanonicalHealthRecord.observedAt`
+      (which the engine-level HealthKit path already produces, per the note
+      below) onto the `apple_health` snapshot blob. Do not fail this
+      checkbox over that gap — it is a known, tracked follow-up, not a
+      regression.
 - [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
       `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — inject (via test harness / simulated HealthKit
