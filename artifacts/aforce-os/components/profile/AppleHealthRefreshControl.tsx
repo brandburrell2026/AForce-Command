@@ -22,14 +22,25 @@
  *     guard itself is `appleRefreshGuard.ts`, owned by the caller
  *     (`ProfileScreenV2.tsx`); this component only reflects `isRefreshing`.
  *  3. Completion feedback that fires even on byte-identical data — a
- *     fixed-height "Updated just now" row that fades via opacity. It is
+ *     fixed-height "Checked just now" row that fades via opacity. It is
  *     NEVER added to or removed from layout, so it can never shift the
- *     card (zero layout shift on data arrival).
+ *     card (zero layout shift on data arrival). `accessibilityLiveRegion`
+ *     is Android-only (RN docs mark it `@platform android`), so build 47
+ *     added the iOS equivalent below via
+ *     `AccessibilityInfo.announceForAccessibility`, mirroring the
+ *     established pattern in `RiskTimerDisplay.tsx` (~:44-79): fired only
+ *     on the false→true transition, never on first mount (VoiceOver
+ *     already reads the row when focus lands there).
  *  4. Pressed-state feedback via the house `AFMotionPressable` primitive
- *     (`afMotion.scale`), reduced-motion-safe by construction.
+ *     (`afMotion.scale`), reduced-motion-safe by construction. The elite
+ *     scale itself is gated behind caller-supplied `motionEnabled` (build
+ *     47 — previously hardcoded on, making this the app's only live elite
+ *     press-scale outside the `elite_motion_enabled` kill switch); ordinary
+ *     `pressedStyle` opacity feedback is NOT gated by this and always
+ *     applies (see `AFMotionPressable`'s `pressed ? pressedStyle : null`).
  */
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, AccessibilityInfo, Platform } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { af, afType } from '@/theme';
 import { AFMotionPressable } from '@/components/ui/AFMotionPressable';
@@ -40,6 +51,8 @@ export interface AppleHealthRefreshControlProps {
   onPress: () => void;
   accessibilityLabel: string;
   updatedLabel: string;
+  /** Elite motion on/off (usually `flags.elite_motion_enabled`). Default false → static press. */
+  motionEnabled?: boolean;
   testID?: string;
 }
 
@@ -49,14 +62,39 @@ export function AppleHealthRefreshControl({
   onPress,
   accessibilityLabel,
   updatedLabel,
+  motionEnabled = false,
   testID = 'profile-apple-refresh',
 }: AppleHealthRefreshControlProps) {
+  // iOS VoiceOver announcement for the completion confirmation — mirrors
+  // `RiskTimerDisplay.tsx`'s ~:44-79 pattern exactly: Android's
+  // `accessibilityLiveRegion="polite"` below is untouched (it already
+  // works there); this is purely the iOS-only equivalent, fired on the
+  // false→true transition only, never on first mount.
+  const hasMountedRef = React.useRef(false);
+  const wasVisibleRef = React.useRef(showUpdatedConfirmation);
+  const updatedLabelRef = React.useRef(updatedLabel);
+  updatedLabelRef.current = updatedLabel;
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      wasVisibleRef.current = showUpdatedConfirmation;
+      return;
+    }
+    if (!wasVisibleRef.current && showUpdatedConfirmation) {
+      AccessibilityInfo.announceForAccessibility(updatedLabelRef.current);
+    }
+    wasVisibleRef.current = showUpdatedConfirmation;
+  }, [showUpdatedConfirmation]);
+
   return (
     <View style={styles.wrap}>
       <View style={styles.confirmationSlot} pointerEvents="none">
         <Text
           style={[styles.confirmationText, { opacity: showUpdatedConfirmation ? 1 : 0 }]}
           accessibilityLiveRegion="polite"
+          accessibilityElementsHidden={!showUpdatedConfirmation}
           importantForAccessibility={showUpdatedConfirmation ? 'yes' : 'no-hide-descendants'}
           testID={`${testID}-confirmation`}
         >
@@ -66,7 +104,7 @@ export function AppleHealthRefreshControl({
       <AFMotionPressable
         onPress={onPress}
         disabled={isRefreshing}
-        motionEnabled
+        motionEnabled={motionEnabled}
         style={styles.hit}
         pressedStyle={styles.pressed}
         hitSlop={16}
