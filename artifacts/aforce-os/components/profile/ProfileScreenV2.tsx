@@ -17,6 +17,8 @@ import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
 import { af } from '@/theme';
 import { AFInlineErrorRow, AFStatPair } from '@/components/ui';
 import { ProviderSectionSkeleton } from './ProviderSectionSkeleton';
+import { AppleHealthRefreshControl } from './AppleHealthRefreshControl';
+import { createAppleRefreshGuard } from './appleRefreshGuard';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
@@ -111,6 +113,10 @@ import type { ProviderSnapshot } from '@/types/biometrics';
 const hapticSelection = () => {
   import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
 };
+
+// RC-2 — how long the "Updated just now" Apple Health confirmation stays
+// visible after a successful refresh before fading back out.
+const APPLE_REFRESH_CONFIRMATION_MS = 2500;
 
 // Per-tier accent colours only. Human-readable label/desc live in the
 // `profile.v2.tier_*` locale namespace and are resolved at the render
@@ -327,9 +333,37 @@ export function ProfileScreenV2() {
   // chain. Caught here now; the existing refresh icon (below, in the JSX)
   // IS the retry affordance this reuses.
   const [appleFetchError, setAppleFetchError] = useState<string | null>(null);
+  // RC-2 (TestFlight build 45, founder-reported) — the refresh icon was
+  // correctly wired (44pt hit target, RC-1 fix) but gave NO visible
+  // feedback: the HealthKit read completes in well under a second and
+  // usually returns byte-identical values, so a tap looked like nothing
+  // happened. `isRefreshingApple` drives the visible in-flight state (icon
+  // → spinner, Pressable disabled+dimmed) in `AppleHealthRefreshControl`.
+  const [isRefreshingApple, setIsRefreshingApple] = useState(false);
+  // Transient completion feedback — fires on EVERY successful re-read,
+  // even when the returned values are byte-identical to what's already on
+  // screen. It states that a re-read succeeded, never that new data
+  // arrived (truthfulness rule).
+  const [appleUpdatedConfirmationVisible, setAppleUpdatedConfirmationVisible] = useState(false);
+  // Synchronous duplicate-tap guard (see appleRefreshGuard.ts's header for
+  // why a `useState` boolean alone can't do this: two rapid taps can both
+  // read the same stale `false` before React commits the first update).
+  // Held in a ref so it survives re-renders without itself being reactive.
+  const appleRefreshGuardRef = React.useRef(createAppleRefreshGuard());
+  const appleConfirmationTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (appleConfirmationTimeoutRef.current) clearTimeout(appleConfirmationTimeoutRef.current);
+    };
+  }, []);
 
   const refreshAppleSnapshot = React.useCallback(async () => {
     if (!isAppleHealthSupported()) return;
+    // Exactly ONE fetch may be in flight at a time — a second tap while
+    // one is already running is a no-op, not a queued second fetch.
+    if (!appleRefreshGuardRef.current.acquire()) return;
+    setIsRefreshingApple(true);
     try {
       const snap = await fetchAppleHealthSnapshot();
       setAppleFetchError(null);
@@ -338,8 +372,22 @@ export function ProfileScreenV2() {
       // and show up in the score breakdown. We tag it with fetchedAt so
       // downstream consumers can decide whether to trust it.
       setAppleHealthSnapshot({ ...snap, fetchedAt: Date.now() });
+      // Completion feedback — unconditional on success, so it still fires
+      // when `snap` is identical to the previous read (the core defect:
+      // without this, a no-op-looking successful refresh was
+      // indistinguishable from a dead button).
+      setAppleUpdatedConfirmationVisible(true);
+      if (appleConfirmationTimeoutRef.current) clearTimeout(appleConfirmationTimeoutRef.current);
+      appleConfirmationTimeoutRef.current = setTimeout(() => {
+        setAppleUpdatedConfirmationVisible(false);
+      }, APPLE_REFRESH_CONFIRMATION_MS);
     } catch (err) {
       setAppleFetchError(err instanceof Error ? err.message : t('profile.v2.apple_fetch_failed'));
+    } finally {
+      // Always releases — on success AND on failure — so the loading state
+      // clears and retry can fire a fresh fetch either way.
+      appleRefreshGuardRef.current.release();
+      setIsRefreshingApple(false);
     }
   }, [setAppleHealthSnapshot, t]);
 
@@ -1510,22 +1558,22 @@ export function ProfileScreenV2() {
                           <View style={styles.snapshotBlock}>
                             <View style={styles.snapshotHeader}>
                               <Text style={styles.snapshotLabel}>{t('profile.v2.live_apple')}</Text>
-                              <Pressable
-                                onPress={() => refreshAppleSnapshot()}
-                                // RC-1 fix: 12pt icon + hitSlop 10 was a ~32pt
-                                // effective target — under the 44pt minimum.
-                                // hitSlop 16 brings it to ~44pt without
-                                // touching the visible icon size.
-                                hitSlop={16}
-                                accessibilityRole="button"
+                              {/* RC-2 (TestFlight build 45) — the icon was
+                                  correctly wired (44pt hit target via
+                                  hitSlop, the RC-1 fix above) but gave no
+                                  visible feedback. AppleHealthRefreshControl
+                                  adds the in-flight spinner, duplicate-tap
+                                  guard reflection, completion confirmation,
+                                  and press-state feedback; the guard itself
+                                  lives in refreshAppleSnapshot. */}
+                              <AppleHealthRefreshControl
+                                isRefreshing={isRefreshingApple}
+                                showUpdatedConfirmation={appleUpdatedConfirmationVisible}
+                                onPress={() => { void refreshAppleSnapshot(); }}
                                 accessibilityLabel={t('profile.v2.refresh_apple_a11y')}
-                              >
-                                <Icon
-                                  name="refresh-cw"
-                                  size={12}
-                                  color={af.textSecondary}
-                                />
-                              </Pressable>
+                                updatedLabel={t('profile.v2.apple_updated_confirmation')}
+                                testID="profile-apple-refresh"
+                              />
                             </View>
                             <View style={styles.snapshotGrid}>
                               <SnapshotCell
