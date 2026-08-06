@@ -360,10 +360,22 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     // user who has real step samples for the day. Treat a zero-length
     // bucket array, when raw samples actually exist, as the same fallback
     // trigger a thrown error already is.
-    if (buckets.length === 0 && (stepsRawSampleSum ?? 0) > 0) {
+    stepsBucketedMax = reduceStepsByBucketMax(buckets);
+    // SF-2 (RC-2 independent-verdict review, second pass — supersedes the
+    // empty-array-only guard above): an empty bucket array was not the only
+    // reachable silent-zero path. `mapStatsToBuckets` coerces a missing
+    // `sumQuantity` to `0` (see its `entry.sumQuantity?.quantity ?? 0`), so a
+    // NON-empty bucket array whose entries are all zero-quantity also makes
+    // `reduceStepsByBucketMax` return `0` without the array ever being
+    // empty — the length check above never fired for that case. Checking the
+    // REDUCED total instead of the array length subsumes the original
+    // empty-array case (reduceStepsByBucketMax([]) === 0 too) while also
+    // catching the all-zero-bucket case. See
+    // `appleHealth.stepsSelection.test.ts` for both the original B1.3
+    // (empty-array) regression fixture and the new all-zero-bucket fixture.
+    if ((stepsBucketedMax ?? 0) === 0 && (stepsRawSampleSum ?? 0) > 0) {
       stepsUsedFallback = true;
     }
-    stepsBucketedMax = reduceStepsByBucketMax(buckets);
   } catch (err) {
     console.warn('[AppleHealth] bucketed step aggregation failed, falling back to raw sum', err);
     stepsUsedFallback = true;
@@ -375,14 +387,27 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // to derive from — see the file header's B1 correction for the citation
   // and why this is captured for on-device comparison rather than treated
   // as proven from source alone.
-  const stepsNativeMerged = await safe(async () => {
-    const stats = await HK.queryStatisticsForQuantity(
-      'HKQuantityTypeIdentifierStepCount',
-      ['cumulativeSum'],
-      { unit: 'count', filter: { date: { startDate: startOfDay, endDate: now } } },
-    );
-    return stats?.sumQuantity?.quantity ?? null;
-  });
+  // SF-1 (RC-2 independent-verdict review): this query's ONLY consumer is
+  // `nativeMergedTotal` in the diagnostics block below, which is itself
+  // gated on `diagnosticsEnabled`. Before this fix the query ran
+  // unconditionally, so every production snapshot fetch paid an extra
+  // HealthKit statistics round-trip whose result was always discarded —
+  // contradicting the "zero extra HealthKit query cost" claim made a few
+  // lines down and in docs/health/validation/APPLE-PIPELINE-AUDIT.md §11.
+  // Gating it here on the same `diagnosticsEnabled` flag that gates its only
+  // consumer makes that claim true. NOTE: when the B1.2 selection below
+  // flips to use `stepsNativeMerged` on build-48 evidence, this must be
+  // ungated as part of that change — it will no longer be diagnostics-only.
+  const stepsNativeMerged = diagnosticsEnabled
+    ? await safe(async () => {
+        const stats = await HK.queryStatisticsForQuantity(
+          'HKQuantityTypeIdentifierStepCount',
+          ['cumulativeSum'],
+          { unit: 'count', filter: { date: { startDate: startOfDay, endDate: now } } },
+        );
+        return stats?.sumQuantity?.quantity ?? null;
+      })
+    : null;
 
   // B1.2 (RC-2 independent-verdict review — deliberate founder-level
   // sequencing decision, NOT an oversight): `stepsNativeMerged` above is

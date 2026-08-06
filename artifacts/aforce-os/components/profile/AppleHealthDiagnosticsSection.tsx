@@ -40,6 +40,21 @@ export function AppleHealthDiagnosticsSection({
   const engineOutput = useEngineSlice();
   const recoveryRow = engineOutput.breakdown.find((c) => c.id === 'health_signals') ?? null;
 
+  // N-a (RC-2 independent-verdict review, second pass): the memo below
+  // originally depended on `recoveryRow` itself. `recoveryRow` is a fresh
+  // object every render — `engineOutput.breakdown` is rebuilt from scratch
+  // on every `TICK_TIMER` tick (per this file's own header), so `.find()`
+  // above returns a new object reference each time even when its fields
+  // (`id`/`label`/`delta`/`hint`) are unchanged. A `useMemo` keyed on that
+  // reference recomputes every tick regardless — the exact churn the N2 fix
+  // below was meant to prevent, silently inert. Depending on the row's
+  // primitive fields instead (not the row object) is what actually makes
+  // the memo hold across ticks whose recovery contribution hasn't changed.
+  const recoveryId = recoveryRow?.id ?? null;
+  const recoveryLabel = recoveryRow?.label ?? null;
+  const recoveryDelta = recoveryRow?.delta ?? null;
+  const recoveryHint = recoveryRow?.hint ?? null;
+
   // N2 (RC-2 independent-verdict review): memoized so this object identity
   // only changes when one of its actual inputs does, rather than on every
   // render of this component (which — per this file's own header — happens
@@ -58,16 +73,16 @@ export function AppleHealthDiagnosticsSection({
             fetchedAt: biometricsEntry.fetchedAt,
           }
         : null,
-      recoveryContribution: recoveryRow
+      recoveryContribution: recoveryId !== null
         ? {
-            id: recoveryRow.id,
-            label: recoveryRow.label,
-            delta: recoveryRow.delta,
-            hint: recoveryRow.hint,
+            id: recoveryId,
+            label: recoveryLabel as string,
+            delta: recoveryDelta as number,
+            hint: recoveryHint as string,
           }
         : null,
     }),
-    [biometricsEntry, recoveryRow],
+    [biometricsEntry, recoveryId, recoveryLabel, recoveryDelta, recoveryHint],
   );
 
   return (
