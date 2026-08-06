@@ -15,6 +15,7 @@ import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
+import { withAlpha } from '@/theme/afTokens';
 import type { GateCheck, SubscriptionPlanId } from '@/types/subscription';
 import { PLAN_BY_ID } from '@/data/subscriptionPlans';
 
@@ -92,7 +93,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
 const styles = StyleSheet.create({
   scrim: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.72)',
+    backgroundColor: withAlpha(Colors.text.inverse, 0.72),
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     width: '100%', paddingVertical: 14, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center', marginTop: 8,
   },
-  ctaText: { fontSize: 12, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 1.4 },
+  ctaText: { fontSize: 12, fontFamily: 'Inter_700Bold', color: Colors.text.inverse, letterSpacing: 1.4 },
   dismiss: { paddingVertical: 6 },
   dismissText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.text.muted },
 });

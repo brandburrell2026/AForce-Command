@@ -10,6 +10,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { withAlpha } from '@/theme/afTokens';
 
 interface KPI {
   label: string;
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.012)',
+    backgroundColor: withAlpha(Colors.text.primary, 0.012),
     overflow: 'hidden',
   },
   glow: {
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     top: -60,
   },
   label: {
-    color: 'rgba(255,255,255,0.45)',
+    color: withAlpha(Colors.text.primary, 0.45),
     fontFamily: 'Inter_500Medium',
     fontSize: 11,
     letterSpacing: 0.2,

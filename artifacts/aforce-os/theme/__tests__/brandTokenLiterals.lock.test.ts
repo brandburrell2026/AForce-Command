@@ -30,7 +30,7 @@
  *   - `*Fixtures.ts` files (hand-built mock data, not runtime/consumer code)
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, extname, relative } from 'node:path';
 
 const ROOT = join(__dirname, '..', '..'); // artifacts/aforce-os
@@ -135,5 +135,129 @@ describe('RC-2 Ruling E: #8B5CF6 and #F4B23F are retired outside theme/', () => 
 
   it('self-test: the af.amber value itself (#FFA01E) never matches the banned #F4B23F pattern', () => {
     expect(BANNED[1].pattern.test('#FFA01E')).toBe(false);
+  });
+});
+
+/**
+ * VS 3.0 FOUNDATION — RAW-COLOR DRIFT RATCHET.
+ *
+ * Beyond the two retired literals above, this freezes the CURRENT per-file count
+ * of raw color literals (`#rgb` / `#rrggbb` / `#rrggbbaa` and `rgb()`/`rgba()`)
+ * and stops the tree drifting further from the af.* token layer. It is a BASELINE
+ * ratchet, NOT a global ban — the codebase still carries known color debt,
+ * recorded in `rawColorBaseline.json`. The suite fails when:
+ *   1. a file EXCEEDS its baseline count            → a regression / increase
+ *   2. a NEW file introduces raw color (baseline 0)  → new raw-color file
+ *   3. a baseline entry is STALE — its file was deleted OR its count dropped
+ *      below the recorded number → the baseline must ratchet DOWN to reality so
+ *      it can never silently re-absorb a regression.
+ * Raising a baseline number is only possible by editing `rawColorBaseline.json`,
+ * which appears in the PR diff = explicit review authorization. After an
+ * authorized change, regenerate deterministically with:
+ *   UPDATE_RAW_COLOR_BASELINE=1 npx vitest run theme/__tests__/brandTokenLiterals.lock.test.ts
+ * Exclusions are IDENTICAL to the literal lock above (node_modules, theme/,
+ * __tests__/, *.test.*, *Fixtures.ts) — reusing walk()/stripComments(). Narrow
+ * and documented; not broadened.
+ */
+const BASELINE_PATH = join(__dirname, 'rawColorBaseline.json');
+const RAW_COLOR_RE = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)/g;
+
+function countRawColors(absPath: string): number {
+  const src = stripComments(readFileSync(absPath, 'utf8'));
+  const matches = src.match(RAW_COLOR_RE);
+  return matches ? matches.length : 0;
+}
+
+function currentRawColorCounts(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const abs of allScannedFiles()) {
+    const rel = relative(ROOT, abs).split('\\').join('/');
+    const n = countRawColors(abs);
+    if (n > 0) out[rel] = n;
+  }
+  return out;
+}
+
+// Canonical serialization: keys sorted, repo-relative POSIX paths, 2-space
+// indent, trailing newline — so the committed baseline is deterministic and any
+// hand-edit produces a minimal, reviewable diff.
+function serializeBaseline(counts: Record<string, number>): string {
+  const keys = Object.keys(counts).sort();
+  const body = keys.map((k) => `  ${JSON.stringify(k)}: ${counts[k]}`).join(',\n');
+  return keys.length ? `{\n${body}\n}\n` : '{}\n';
+}
+
+describe('VS 3.0: raw-color drift ratchet (baseline)', () => {
+  const current = currentRawColorCounts();
+
+  if (process.env.UPDATE_RAW_COLOR_BASELINE) {
+    writeFileSync(BASELINE_PATH, serializeBaseline(current), 'utf8');
+  }
+
+  it('rawColorBaseline.json exists (seed with UPDATE_RAW_COLOR_BASELINE=1)', () => {
+    expect(existsSync(BASELINE_PATH)).toBe(true);
+  });
+
+  const baseline: Record<string, number> = existsSync(BASELINE_PATH)
+    ? (JSON.parse(readFileSync(BASELINE_PATH, 'utf8')) as Record<string, number>)
+    : {};
+
+  it('baseline is canonically sorted + normalized (deterministic, reviewable diffs)', () => {
+    if (!existsSync(BASELINE_PATH)) return;
+    expect(readFileSync(BASELINE_PATH, 'utf8')).toBe(serializeBaseline(baseline));
+  });
+
+  it('no file exceeds its baseline (no regressions, no new raw-color files)', () => {
+    const violations: string[] = [];
+    for (const [file, n] of Object.entries(current)) {
+      const cap = baseline[file] ?? 0;
+      if (n > cap) {
+        violations.push(
+          `  ${file}: ${n} raw colors (baseline ${cap})` +
+            (cap === 0
+              ? ' — NEW raw-color file; use af.* tokens / withAlpha()'
+              : ' — increased; migrate the added literals'),
+        );
+      }
+    }
+    if (violations.length) {
+      throw new Error(
+        'Raw-color drift increased — migrate to af.* / withAlpha(). Raising a ' +
+          'baseline requires an explicit, reviewed edit to rawColorBaseline.json:\n' +
+          violations.join('\n'),
+      );
+    }
+    expect(violations).toEqual([]);
+  });
+
+  it('no stale baseline entries (deleted files, or counts that dropped below baseline)', () => {
+    const stale: string[] = [];
+    for (const [file, cap] of Object.entries(baseline)) {
+      const n = current[file] ?? 0;
+      if (n < cap) {
+        stale.push(
+          `  ${file}: baseline ${cap}, actual ${n}` +
+            (n === 0
+              ? ' — file deleted or fully migrated; remove the entry'
+              : ` — improved; lower the entry to ${n}`),
+        );
+      }
+    }
+    if (stale.length) {
+      throw new Error(
+        'rawColorBaseline.json is stale — it must ratchet DOWN to reality so it ' +
+          'can never hide a future regression. Regenerate with ' +
+          'UPDATE_RAW_COLOR_BASELINE=1:\n' +
+          stale.join('\n'),
+      );
+    }
+    expect(stale).toEqual([]);
+  });
+
+  it('self-test: scanner counts hex + rgba, ignores comments', () => {
+    const sample =
+      "const a='#0D0D0D'; const b='rgba(0,0,0,0.5)';\n// #FFFFFF comment\n/* rgba(1,2,3,1) */";
+    const matches = stripComments(sample).match(RAW_COLOR_RE) || [];
+    expect(matches.length).toBe(2);
   });
 });

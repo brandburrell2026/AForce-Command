@@ -29,7 +29,7 @@
  */
 import { Colors } from './colors';
 import { Typography } from './typography';
-import { Spacing, Radii } from './spacing';
+import { Spacing, Radii, Shadows } from './spacing';
 
 // ─── Color (spec §3.1) ───────────────────────────────────────────────────────
 // Surfaces ascend in lightness: canvas (root) → surface (cards) → raised
@@ -142,6 +142,91 @@ export const afLayout = {
   radiusPill: Radii.full, //              9999 — compact filters / statuses only
   hairline: 1, //                         1pt borders
   maxContentWidth: 640, //                tablet operational column max width
+} as const;
+
+// ─── Opacity scale (spec §3.1) ───────────────────────────────────────────────
+// Canonical alphas for translucent fills/borders/atmospheres. These replace the
+// call-site `${color}NN` hex-suffix concatenation anti-pattern: instead of
+// `${af.green}55`, write `withAlpha(af.green, afAlpha.a34)`. Numeric alphas are
+// not color literals, so they are outside the raw-color drift ratchet.
+export const afAlpha = {
+  a06: 0.06,
+  a08: 0.08,
+  a12: 0.12,
+  a16: 0.16,
+  a24: 0.24,
+  a34: 0.34,
+  a50: 0.5,
+  a67: 0.67,
+} as const;
+
+/**
+ * withAlpha(hexColor, alpha) → 'rgba(r,g,b,alpha)'.
+ *
+ * STRICT, PREDICTABLE INPUT CONTRACT (fails loudly on misuse — inputs are
+ * compile-time token constants, so a throw only ever fires in dev/test):
+ *   - `hexColor` MUST be a solid `#RGB` or `#RRGGBB` hex literal (a theme
+ *     token). An already-translucent `rgba()`, an `#RRGGBBAA`, a named color,
+ *     or any non-string throws a TypeError — this helper adds alpha to an
+ *     opaque color, it does not re-alpha an existing one.
+ *   - `alpha` MUST be a finite number in the inclusive range [0, 1]. Anything
+ *     else (NaN, Infinity, <0, >1, non-number) throws a RangeError. Out-of-range
+ *     is NOT clamped: silent degradation would hide the bug.
+ */
+export function withAlpha(hexColor: string, alpha: number): string {
+  if (
+    typeof hexColor !== 'string' ||
+    !/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(hexColor)
+  ) {
+    throw new TypeError(
+      `withAlpha: expected a solid #RGB or #RRGGBB hex color, received ${JSON.stringify(hexColor)}`,
+    );
+  }
+  if (typeof alpha !== 'number' || !Number.isFinite(alpha) || alpha < 0 || alpha > 1) {
+    throw new RangeError(
+      `withAlpha: alpha must be a finite number in [0,1], received ${JSON.stringify(alpha)}`,
+    );
+  }
+  let h = hexColor.slice(1);
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ─── Elevation (spec §3.3) ───────────────────────────────────────────────────
+// Directly-spreadable RN ViewStyle fragments that pair a surface + hairline
+// border + a NEUTRAL (black) cross-platform shadow. Every key below is a valid
+// RN ViewStyle property on BOTH platforms: `backgroundColor` / `borderColor` /
+// `borderWidth` are universal; the spread `Shadows.card` supplies iOS
+// `shadow{Color,Offset,Opacity,Radius}` AND Android `elevation`, so a raised
+// recipe casts a shadow on both. `flat` is intentionally shadowless (surface +
+// hairline only). Usage: `<View style={afElev.raised} />`.
+export const afElev = {
+  flat: {
+    backgroundColor: af.surface,
+    borderColor: af.divider,
+    borderWidth: afLayout.hairline,
+  },
+  raised: {
+    backgroundColor: af.surfaceRaised,
+    borderColor: af.border,
+    borderWidth: afLayout.hairline,
+    ...Shadows.card,
+  },
+  sheet: {
+    backgroundColor: af.canvasElevated,
+    borderColor: af.borderStrong,
+    borderWidth: afLayout.hairline,
+    ...Shadows.card,
+  },
+  modal: {
+    backgroundColor: af.surface,
+    borderColor: af.borderStrong,
+    borderWidth: afLayout.hairline,
+    ...Shadows.card,
+  },
 } as const;
 
 // ─── Motion (spec §12) ───────────────────────────────────────────────────────
