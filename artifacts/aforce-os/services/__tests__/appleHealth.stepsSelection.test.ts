@@ -84,11 +84,33 @@ async function loadAppleHealthWithHK(fakeHK: FakeHK) {
   return { appleHealth, diagnostics };
 }
 
+/**
+ * SF-1 (RC-2 independent-verdict review, second pass): reaches
+ * `isAppleHealthSupported() === true` WITHOUT the internal-TestFlight env
+ * var, via the OTHER half of that function's OR (`DEFAULT_FLAGS.
+ * healthkit_native_enabled`) — mocked true here for this test only, never
+ * touched in source. This is deliberately the one way to get HealthKit
+ * "supported" while diagnostics stay OFF, since
+ * `isAppleHealthDiagnosticsEnabled()` is driven by the SAME
+ * `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED` the testflight env var controls —
+ * leaving that env var unset is what keeps diagnostics off here.
+ */
+async function loadAppleHealthWithHKDiagnosticsOff(fakeHK: FakeHK) {
+  vi.resetModules();
+  vi.doMock('react-native', () => ({ Platform: { OS: 'ios' } }));
+  vi.doMock('@kingstinct/react-native-healthkit', () => fakeHK);
+  vi.doMock('../../featureFlags/flags', () => ({ DEFAULT_FLAGS: { healthkit_native_enabled: true } }));
+  const appleHealth = await import('../appleHealth');
+  const diagnostics = await import('../appleHealthDiagnostics');
+  return { appleHealth, diagnostics };
+}
+
 afterEach(() => {
   vi.unstubAllEnvs();
   delete process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT;
   vi.doUnmock('react-native');
   vi.doUnmock('@kingstinct/react-native-healthkit');
+  vi.doUnmock('../../featureFlags/flags');
   vi.resetModules();
 });
 
@@ -197,5 +219,53 @@ describe('fetchAppleHealthSnapshot — steps selection chain', () => {
     // The precise condition is "empty buckets AND raw samples > 0" — a
     // genuine zero-step day must not be misreported as a fallback.
     expect(diag?.steps.usedFallback).toBe(false);
+  });
+
+  it('SF-2: a NON-empty bucket array whose entries are all zero-quantity (mapStatsToBuckets coerces a missing sumQuantity to 0) falls back to the raw sum instead of silently reporting 0', async () => {
+    const fakeHK = makeFakeHK({
+      stepsRawTotal: 6200, // real samples exist for the day
+      // Non-empty — the OLD `buckets.length === 0` guard would NOT fire here
+      // — but every entry's `sumQuantity` is missing, which
+      // `mapStatsToBuckets` coerces to `quantity: 0`, so
+      // `reduceStepsByBucketMax` still returns 0.
+      bucketedEntries: [
+        { source: { name: 'iPhone' }, sumQuantity: undefined, startDate: new Date('2026-08-05T09:00:00.000Z') },
+        { source: { name: "Brandon's Apple Watch" }, sumQuantity: undefined, startDate: new Date('2026-08-05T10:00:00.000Z') },
+      ],
+    });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    // Without the SF-2 fix: reduceStepsByBucketMax(buckets) === 0 (buckets
+    // is non-empty, so the old length-only guard never fires), usedFallback
+    // stays false, and this would be 0 — a hard "0 steps" shown to a user
+    // who has 6,200 real raw samples for the day.
+    expect(snapshot.stepsToday).toBe(6200);
+
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.steps.usedFallback).toBe(true);
+    expect(diag?.steps.bucketedMaxTotal).toBe(0);
+  });
+
+  it('SF-1: with diagnostics OFF (healthkit_native_enabled path, no internal-TestFlight env), the native-merged statistics query is NEVER issued — its only consumer is diagnostics-gated', async () => {
+    const fakeHK = makeFakeHK({
+      stepsRawTotal: 2650,
+      bucketedEntries: [
+        { source: { name: 'iPhone' }, sumQuantity: { unit: 'count', quantity: 400 }, startDate: new Date('2026-08-05T09:00:00.000Z') },
+      ],
+      nativeMergedQuantity: 999,
+    });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHKDiagnosticsOff(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    // The rest of the pipeline is unaffected by diagnostics being off.
+    expect(snapshot.stepsToday).toBe(400);
+
+    // The assertion that actually proves SF-1: the query whose only
+    // consumer is the (now-skipped) diagnostics block was never issued.
+    expect(fakeHK.queryStatisticsForQuantity).not.toHaveBeenCalled();
+
+    // And, consistently, nothing was captured to read back.
+    expect(diagnostics.getLastAppleHealthDiagnostics()).toBeNull();
   });
 });
