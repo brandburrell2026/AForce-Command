@@ -57,9 +57,9 @@ import {
 } from '@/utils/intentCapture';
 import { useIntentCapture } from '@/hooks/useIntentCapture';
 import { useFlagsSlice } from '@/store/slices';
-import { afMotion } from '@/theme/afTokens';
+import { af, afMotion, withAlpha } from '@/theme/afTokens';
 
-const BG = '#0D0D0D';
+const BG = af.canvas;
 const WHITE = Colors.text.primary;
 const DIM = Colors.text.secondary;
 const MUTED = Colors.text.muted;
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 3,
     borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: Colors.border.strong,
   },
   progressPipOn: { backgroundColor: BRAND },
   progressLabel: {
@@ -672,12 +672,12 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: af.divider,
+    backgroundColor: withAlpha(Colors.text.primary, 0.03),
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scalePillOn: { borderColor: BRAND, backgroundColor: 'rgba(193,40,27,0.10)' },
+  scalePillOn: { borderColor: BRAND, backgroundColor: withAlpha(af.red, 0.1) },
   scalePillPressed: { opacity: 0.7 },
   scaleNum: {
     fontFamily: FONT_BOLD,
@@ -696,8 +696,8 @@ const styles = StyleSheet.create({
     paddingVertical: 22,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: af.divider,
+    backgroundColor: withAlpha(Colors.text.primary, 0.03),
     alignItems: 'center',
   },
   goalChipPressed: { opacity: 0.7, borderColor: BRAND },
@@ -717,8 +717,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: af.divider,
+    backgroundColor: withAlpha(Colors.text.primary, 0.03),
   },
   intentChipPressed: { opacity: 0.7, borderColor: BRAND },
   intentChipLabel: {
@@ -765,6 +765,6 @@ const styles = StyleSheet.create({
     fontFamily: FONT_EXTRABOLD,
     fontSize: 14,
     letterSpacing: 2,
-    color: '#000000',
+    color: Colors.text.inverse,
   },
 });

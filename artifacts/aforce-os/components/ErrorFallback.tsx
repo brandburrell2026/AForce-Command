@@ -11,7 +11,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useColors } from "@/hooks/useColors";
+// VS 3.0 foundation: retired the navy/lime scaffold palette (useColors →
+// constants/colors) for brand af.* tokens, mapped by role. The "Try Again"
+// button is a filled primary action → af.red fill + af.onRed label; body copy
+// → textSecondary; surfaces → canvas/surface; the modal scrim + button shadow
+// keep pure black via Colors.text.inverse (byte-identical to the prior values).
+import { af, withAlpha } from "@/theme/afTokens";
+import { Colors } from "@/theme/colors";
 import { AFModal } from "@/components/ui/AFModal";
 
 export type ErrorFallbackProps = {
@@ -20,7 +26,6 @@ export type ErrorFallbackProps = {
 };
 
 export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
-  const colors = useColors();
   const insets = useSafeAreaInsets();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -49,7 +54,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: af.canvas }]}>
       {__DEV__ ? (
         <Pressable
           onPress={() => setIsModalVisible(true)}
@@ -59,21 +64,21 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             styles.topButton,
             {
               top: insets.top + 16,
-              backgroundColor: colors.card,
+              backgroundColor: af.surface,
               opacity: pressed ? 0.8 : 1,
             },
           ]}
         >
-          <Icon name="alert-circle" size={20} color={colors.foreground} />
+          <Icon name="alert-circle" size={20} color={af.textPrimary} />
         </Pressable>
       ) : null}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.foreground }]}>
+        <Text style={[styles.title, { color: af.textPrimary }]}>
           Something went wrong
         </Text>
 
-        <Text style={[styles.message, { color: colors.mutedForeground }]}>
+        <Text style={[styles.message, { color: af.textSecondary }]}>
           Please reload the app to continue.
         </Text>
 
@@ -82,7 +87,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           style={({ pressed }) => [
             styles.button,
             {
-              backgroundColor: colors.primary,
+              backgroundColor: af.red,
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },
@@ -91,7 +96,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           <Text
             style={[
               styles.buttonText,
-              { color: colors.primaryForeground },
+              { color: af.onRed },
             ]}
           >
             Try Again
@@ -110,16 +115,16 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
             <View
               style={[
                 styles.modalContainer,
-                { backgroundColor: colors.background },
+                { backgroundColor: af.canvas },
               ]}
             >
               <View
                 style={[
                   styles.modalHeader,
-                  { borderBottomColor: colors.border },
+                  { borderBottomColor: af.border },
                 ]}
               >
-                <Text style={[styles.modalTitle, { color: colors.foreground }]}>
+                <Text style={[styles.modalTitle, { color: af.textPrimary }]}>
                   Error Details
                 </Text>
                 <Pressable
@@ -131,7 +136,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                     { opacity: pressed ? 0.6 : 1 },
                   ]}
                 >
-                  <Icon name="x" size={24} color={colors.foreground} />
+                  <Icon name="x" size={24} color={af.textPrimary} />
                 </Pressable>
               </View>
 
@@ -146,14 +151,14 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
                 <View
                   style={[
                     styles.errorContainer,
-                    { backgroundColor: colors.card },
+                    { backgroundColor: af.surface },
                   ]}
                 >
                   <Text
                     style={[
                       styles.errorText,
                       {
-                        color: colors.foreground,
+                        color: af.textPrimary,
                         fontFamily: monoFont,
                       },
                     ]}
@@ -214,7 +219,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 24,
     minWidth: 200,
-    shadowColor: "#000",
+    shadowColor: Colors.text.inverse,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -230,7 +235,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: withAlpha(Colors.text.inverse, 0.5),
     justifyContent: "flex-end",
   },
   modalContainer: {

@@ -10,7 +10,7 @@
  *      rather than on a user's screen.
  */
 import { describe, it, expect } from 'vitest';
-import { af, afType, afLayout, afMotion } from '../afTokens';
+import { af, afType, afLayout, afMotion, afAlpha, afElev, withAlpha } from '../afTokens';
 import { Colors } from '../colors';
 
 // ── WCAG relative-luminance contrast (solid hex only) ──
@@ -125,5 +125,84 @@ describe('af.* type + layout + motion structure', () => {
     expect(afMotion.durations.entrance).toBeGreaterThanOrEqual(220);
     expect(afMotion.durations.entrance).toBeLessThanOrEqual(320);
     expect(afMotion.easing.standardOut).toHaveLength(4);
+  });
+});
+
+// ─── VS 3.0 foundation: opacity scale + withAlpha + elevation ────────────────
+describe('afAlpha opacity scale', () => {
+  it('is an ascending set of alphas in (0,1]', () => {
+    const vals = Object.values(afAlpha);
+    expect(vals.length).toBeGreaterThan(0);
+    for (const a of vals) {
+      expect(typeof a).toBe('number');
+      expect(a).toBeGreaterThan(0);
+      expect(a).toBeLessThanOrEqual(1);
+    }
+    expect([...vals]).toEqual([...vals].sort((x, y) => x - y));
+  });
+});
+
+describe('withAlpha — accepted input contract (safeguard #4)', () => {
+  it('adds alpha to a solid #RRGGBB, byte-exact', () => {
+    expect(withAlpha(af.red, 0.16)).toBe('rgba(193,40,27,0.16)'); // #C1281B
+    expect(withAlpha(Colors.text.primary, 0.03)).toBe('rgba(255,255,255,0.03)'); // #FFFFFF
+    expect(withAlpha(Colors.text.inverse, 0.5)).toBe('rgba(0,0,0,0.5)'); // #000000
+  });
+  it('expands #RGB shorthand', () => {
+    expect(withAlpha('#abc', 0.5)).toBe('rgba(170,187,204,0.5)');
+    expect(withAlpha('#FFF', 0.24)).toBe('rgba(255,255,255,0.24)');
+  });
+  it('accepts the inclusive alpha bounds 0 and 1', () => {
+    expect(withAlpha(af.red, 0)).toBe('rgba(193,40,27,0)');
+    expect(withAlpha(af.red, 1)).toBe('rgba(193,40,27,1)');
+  });
+  it('rejects malformed color inputs with TypeError', () => {
+    for (const bad of ['C1281B', '#12', '#GGGGGG', '#1234567', 'rgba(0,0,0,1)', 'red', '', 123 as unknown as string, null as unknown as string]) {
+      expect(() => withAlpha(bad, 0.5)).toThrow(TypeError);
+    }
+  });
+  it('rejects out-of-range / non-finite / non-number alpha with RangeError', () => {
+    for (const bad of [-0.01, 1.01, NaN, Infinity, -Infinity, '0.5' as unknown as number, null as unknown as number]) {
+      expect(() => withAlpha(af.red, bad)).toThrow(RangeError);
+    }
+  });
+});
+
+describe('afElev — valid cross-platform RN ViewStyle recipes (safeguard #5)', () => {
+  // The complete set of RN ViewStyle keys afElev is allowed to emit. All are
+  // valid on BOTH platforms: layout/color keys are universal; shadow* apply on
+  // iOS (ignored, not errored, on Android); elevation applies on Android
+  // (ignored, not errored, on iOS).
+  const ALLOWED = new Set([
+    'backgroundColor', 'borderColor', 'borderWidth',
+    'shadowColor', 'shadowOffset', 'shadowOpacity', 'shadowRadius', 'elevation',
+  ]);
+  const SHADOWED = ['raised', 'sheet', 'modal'] as const;
+
+  it('every recipe emits only valid RN ViewStyle keys', () => {
+    for (const recipe of Object.values(afElev)) {
+      for (const key of Object.keys(recipe)) expect(ALLOWED.has(key)).toBe(true);
+    }
+  });
+  it('every recipe has a surface + hairline border with the right types', () => {
+    for (const recipe of Object.values(afElev)) {
+      expect(typeof recipe.backgroundColor).toBe('string');
+      expect(typeof recipe.borderColor).toBe('string');
+      expect(recipe.borderWidth).toBe(afLayout.hairline);
+    }
+  });
+  it('shadowed recipes carry BOTH an iOS shadow AND an Android elevation', () => {
+    for (const name of SHADOWED) {
+      const r = afElev[name] as Record<string, unknown>;
+      expect(typeof r.shadowColor).toBe('string');
+      expect(typeof r.shadowOpacity).toBe('number');
+      expect(typeof r.shadowRadius).toBe('number');
+      expect(r.shadowOffset).toMatchObject({ width: expect.any(Number), height: expect.any(Number) });
+      expect(typeof r.elevation).toBe('number'); // Android
+    }
+  });
+  it('flat is intentionally shadowless', () => {
+    expect('shadowColor' in afElev.flat).toBe(false);
+    expect('elevation' in afElev.flat).toBe(false);
   });
 });
