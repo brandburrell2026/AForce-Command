@@ -372,8 +372,22 @@
   /* Science redesign components — built on the page's existing tokens (Inter, --canvas/--c/--red) */
   .sr-wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--gutter); }
   .sr-sec{ padding:clamp(64px,10vh,128px) 0; border-top:1px solid var(--c14); }
-  .sr-hero{ min-height:84vh; display:flex; flex-direction:column; justify-content:center; padding:clamp(122px,18vh,200px) 0 clamp(52px,8vh,92px); }
+  .sr-hero{ position:relative; min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding:clamp(122px,18vh,200px) 0 clamp(52px,8vh,92px); background:var(--ink); color:#F5F0E8; overflow:hidden; }
   .sr-hero .h-display{ text-transform:none; margin-top:20px; max-width:15ch; }
+  /* Cinematic video hero (the former homepage film) */
+  .sr-hero-media{ position:absolute; inset:0; z-index:0; background:#0B0D12 url('/assets/science-hero-poster.jpg') center/cover no-repeat; }
+  .sr-hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+  .sr-hero-scrim{ position:absolute; inset:0; background:
+     linear-gradient(90deg, rgba(11,13,18,0.84) 0%, rgba(11,13,18,0.58) 24%, rgba(11,13,18,0.22) 44%, rgba(11,13,18,0) 62%),
+     linear-gradient(180deg, rgba(11,13,18,0.42) 0%, rgba(11,13,18,0) 26%, rgba(11,13,18,0) 66%, rgba(11,13,18,0.72) 100%); }
+  .sr-hero > .sr-wrap{ position:relative; z-index:2; }
+  .sr-hero .h-display{ color:#F5F0E8; }
+  .sr-hero .sr-serif{ color:rgba(245,240,232,0.86); }
+  .sr-hero .sr-lead{ color:rgba(245,240,232,0.74); }
+  .sr-hero .sr-eyebrow .s{ color:rgba(245,240,232,0.42); }
+  .sr-hero .sr-btn.ghost{ border-color:rgba(245,240,232,0.42); color:#F5F0E8; }
+  .sr-hero .sr-btn.ghost:hover{ border-color:#F5F0E8; }
+  @media (prefers-reduced-motion:reduce){ .sr-hero-video{ display:none; } }
   .sr-kicker{ font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--c40); }
   .sr-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--red); }
   .sr-eyebrow .s{ color:var(--c25); margin:0 .6em; }
@@ -481,6 +495,13 @@
 
 <!-- HERO -->
 <header class="sr-hero" id="top">
+  <div class="sr-hero-media" aria-hidden="true">
+    <video class="sr-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/science-hero-poster.jpg">
+      <source src="/assets/science-hero.webm" type="video/webm">
+      <source src="/assets/science-hero.mp4" type="video/mp4">
+    </video>
+    <div class="sr-hero-scrim"></div>
+  </div>
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal in">The Science<span class="s">—</span>Before Performance Is Visible</div>
     <h1 class="h-display reveal in" style="text-transform:none;">The science of before.</h1>
