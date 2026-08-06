@@ -261,3 +261,144 @@ describe('VS 3.0: raw-color drift ratchet (baseline)', () => {
     expect(matches.length).toBe(2);
   });
 });
+
+/**
+ * VS 3.0 PR 1b — TYPE-SCALE / SPACING-GRID / RADIUS DRIFT RATCHETS.
+ *
+ * Same baseline-ratchet mechanism as the raw-color ratchet above, extended to
+ * the three numeric drift dimensions the audit quantified. These are OFF-SCALE
+ * ONLY: a literal is counted only when its value is NOT on the sanctioned scale
+ * (values that are on-system pass, even when written as a literal rather than a
+ * token reference). Ratchet-ONLY — no production file is changed by PR 1b;
+ * conforming screens to the scale (which moves pixels) is later, per-screen,
+ * design-reviewed work.
+ *
+ * Props-aware, comment-stripped, IDENTICAL exclusions to the ratchets above
+ * (reuses allScannedFiles()/stripComments()/serializeBaseline()). Regenerate all
+ * VS-3.0 drift baselines together with:
+ *   UPDATE_RAW_COLOR_BASELINE=1 npx vitest run theme/__tests__/brandTokenLiterals.lock.test.ts
+ */
+const TYPE_SCALE = new Set([11, 13, 15, 17, 21, 26, 32, 44, 76]);
+const SPACING_GRID = new Set([0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96]);
+// Radii scale (theme/spacing.ts) + the two afLayout semantic literals (card 18, button 16).
+const RADIUS_TOKENS = new Set([0, 8, 12, 16, 18, 20, 24, 32, 9999]);
+
+function countOffScaleFontSize(src: string): number {
+  let n = 0;
+  const re = /\bfontSize:\s*(\d+(?:\.\d+)?)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) if (!TYPE_SCALE.has(Number(m[1]))) n++;
+  return n;
+}
+
+function countOffGridSpacing(src: string): number {
+  let n = 0;
+  const re =
+    /\b(?:padding(?:Horizontal|Vertical|Top|Right|Bottom|Left|Start|End)?|margin(?:Horizontal|Vertical|Top|Right|Bottom|Left|Start|End)?|gap|rowGap|columnGap):\s*(-?\d+)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) if (!SPACING_GRID.has(Math.abs(Number(m[1])))) n++;
+  return n;
+}
+
+function countOffTokenRadius(src: string): number {
+  let n = 0;
+  const re = /\bborder[A-Za-z]*Radius:\s*(\d+)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) if (!RADIUS_TOKENS.has(Number(m[1]))) n++;
+  return n;
+}
+
+/** Registers a full off-scale ratchet (exists/sorted/no-increase/no-stale) for one dimension. */
+function defineNumericDriftRatchet(
+  title: string,
+  baselineFile: string,
+  scan: (strippedSrc: string) => number,
+) {
+  const BASE = join(__dirname, baselineFile);
+  const current: Record<string, number> = {};
+  for (const abs of allScannedFiles()) {
+    const rel = relative(ROOT, abs).split('\\').join('/');
+    const n = scan(stripComments(readFileSync(abs, 'utf8')));
+    if (n > 0) current[rel] = n;
+  }
+
+  describe(title, () => {
+    if (process.env.UPDATE_RAW_COLOR_BASELINE) {
+      writeFileSync(BASE, serializeBaseline(current), 'utf8');
+    }
+    const baseline: Record<string, number> = existsSync(BASE)
+      ? (JSON.parse(readFileSync(BASE, 'utf8')) as Record<string, number>)
+      : {};
+
+    it(`${baselineFile} exists (seed with UPDATE_RAW_COLOR_BASELINE=1)`, () => {
+      expect(existsSync(BASE)).toBe(true);
+    });
+
+    it('baseline is canonically sorted + normalized', () => {
+      if (existsSync(BASE)) expect(readFileSync(BASE, 'utf8')).toBe(serializeBaseline(baseline));
+    });
+
+    it('no file exceeds its baseline (no regressions, no new off-scale files)', () => {
+      const v: string[] = [];
+      for (const [file, n] of Object.entries(current)) {
+        const cap = baseline[file] ?? 0;
+        if (n > cap) v.push(`  ${file}: ${n} (baseline ${cap})`);
+      }
+      if (v.length) {
+        throw new Error(
+          `${title}: off-scale literals increased. Use the sanctioned scale / afType / ` +
+            `afLayout / Spacing / Radii. Raising a baseline requires a reviewed edit to ` +
+            `${baselineFile}:\n${v.join('\n')}`,
+        );
+      }
+      expect(v).toEqual([]);
+    });
+
+    it('no stale baseline entries (deleted or dropped below baseline)', () => {
+      const stale: string[] = [];
+      for (const [file, cap] of Object.entries(baseline)) {
+        const n = current[file] ?? 0;
+        if (n < cap) stale.push(`  ${file}: baseline ${cap}, actual ${n}`);
+      }
+      if (stale.length) {
+        throw new Error(
+          `${title}: ${baselineFile} is stale — ratchet it DOWN (UPDATE_RAW_COLOR_BASELINE=1):\n` +
+            stale.join('\n'),
+        );
+      }
+      expect(stale).toEqual([]);
+    });
+  });
+}
+
+describe('VS 3.0 PR 1b: off-scale numeric-drift ratchets', () => {
+  it('self-test: type-scale scanner counts only off-scale fontSize', () => {
+    // 12 off-scale, 17 on-scale, token ref ignored.
+    const src = 'a: { fontSize: 12 }, b: { fontSize: 17 }, c: { fontSize: Typography.sizes.md }';
+    expect(countOffScaleFontSize(src)).toBe(1);
+  });
+  it('self-test: spacing scanner counts off-grid (incl. negative), skips token refs', () => {
+    const src = 'padding: 10, marginTop: -8, gap: 16, paddingLeft: Spacing[5]';
+    expect(countOffGridSpacing(src)).toBe(1); // 10 off-grid; -8 on-grid; 16 on-grid; token skipped
+  });
+  it('self-test: radius scanner counts off-token borderRadius variants', () => {
+    const src = 'borderRadius: 14, borderTopLeftRadius: 16, borderRadius: 100';
+    expect(countOffTokenRadius(src)).toBe(2); // 14 + 100 off-token; 16 on-token
+  });
+});
+
+defineNumericDriftRatchet(
+  'VS 3.0 PR 1b: type-scale drift ratchet',
+  'typeScaleBaseline.json',
+  countOffScaleFontSize,
+);
+defineNumericDriftRatchet(
+  'VS 3.0 PR 1b: spacing-grid drift ratchet',
+  'spacingGridBaseline.json',
+  countOffGridSpacing,
+);
+defineNumericDriftRatchet(
+  'VS 3.0 PR 1b: radius-token drift ratchet',
+  'radiusBaseline.json',
+  countOffTokenRadius,
+);
