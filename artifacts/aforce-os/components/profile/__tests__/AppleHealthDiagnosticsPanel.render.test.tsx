@@ -63,6 +63,7 @@ const FIXTURE: AppleHealthDiagnosticsSnapshot = {
     queried: true,
     rawSampleSum: 12000,
     bucketedMaxTotal: 7200,
+    nativeMergedTotal: 7300,
     perSourceTotals: [
       { sourceName: 'iPhone', total: 4800 },
       { sourceName: "Brandon's Apple Watch", total: 7200 },
@@ -161,6 +162,25 @@ describe('AppleHealthDiagnosticsPanel — old vs. new steps comparison (the foun
     expect(q('[data-testid="apple-health-diagnostics-panel-steps-used"]')?.textContent).toBe('7200');
     expect(host.textContent).toContain('iPhone');
     expect(host.textContent).toContain("Brandon's Apple Watch");
+  });
+
+  it('B1: shows HealthKit\'s own native-merged total as a third row, side by side with raw-sum and bucketed-max', () => {
+    renderPanel();
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-steps-native-merged"]')?.textContent).toBe('7300');
+  });
+
+  it('B1: renders an em dash for native-merged when the capture returned null (e.g. platform without support)', () => {
+    renderPanel({
+      diagnostics: {
+        ...FIXTURE,
+        steps: { ...FIXTURE.steps, nativeMergedTotal: null },
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-steps-native-merged"]')?.textContent).toBe('—');
   });
 
   it('flags a fallback explicitly in the "value used" row when the bucketed query failed', () => {

@@ -140,31 +140,58 @@ export async function requestAppleHealthPermissions(): Promise<boolean> {
 // a resilience fallback) summed every raw `HKQuantitySample` for the day
 // across every recording source. When a user wears an Apple Watch paired to
 // their iPhone, BOTH devices can independently record steps for the same
-// walking — HealthKit does not silently deduplicate that for you, and
-// neither `queryQuantitySamples` nor a plain `queryStatisticsForQuantity`
-// cumulativeSum removes the overlap (both simply add up every matching
-// sample regardless of source). Apple's own Health app avoids the double
-// count by reconciling per-source, per-time-window, not by a magic
-// aggregation call.
+// walking — a raw sample sum does not deduplicate that; it simply adds up
+// every matching sample regardless of source.
 //
-// `reduceStepsByBucketMax` is the client-side approximation of that
-// reconciliation: bucket the day into hours, and for each hour take the
-// MAX across sources rather than the sum. Rationale — within any given
-// hour, whichever device was actually being worn/carried captured that
-// hour's real activity most completely; the other device's overlapping
-// count for the same hour is the double-counted portion, not additional
-// real steps. Hours where only one source reported are unaffected (max of
-// one value is that value), so a device the user didn't wear for part of
-// the day never loses real steps the other device caught.
+// `reduceStepsByBucketMax` is this codebase's client-side approximation of
+// HealthKit's own cross-source reconciliation: bucket the day into hours,
+// and for each hour take the MAX across sources rather than the sum.
+// Rationale — within any given hour, whichever device was actually being
+// worn/carried captured that hour's real activity most completely; the
+// other device's overlapping count for the same hour is the double-counted
+// portion, not additional real steps. Hours where only one source reported
+// are unaffected (max of one value is that value), so a device the user
+// didn't wear for part of the day never loses real steps the other device
+// caught.
+//
+// CORRECTION (RC-2 independent-verdict review, B1): an earlier version of
+// this comment claimed the native Swift implementation had been "read" to
+// confirm that neither a raw sample sum nor a plain
+// `queryStatisticsForQuantity` cumulativeSum removes cross-source overlap.
+// That was a category error — reading @kingstinct/react-native-healthkit's
+// Swift wrapper (which forwards to `HKStatisticsQuery`) cannot by itself
+// tell you what HealthKit's OWN internal statistics-merge behavior does at
+// runtime; that is Apple's framework internals, not this wrapper's source.
+// Per an Apple Frameworks Engineer
+// (developer.apple.com/forums/thread/710937, Jul 2022, paraphrased): a
+// statistics(-collection) query has HealthKit perform its own cross-source
+// merge — the same merge the Health app's displayed total reflects —
+// whereas hand-rolling a merge from sample queries is unlikely to match it.
+// `stepsNativeMerged` below captures that number (via plain
+// `queryStatisticsForQuantity`, not the `...SeparateBySource` variant this
+// file otherwise uses) so it can be compared on-device against the Health
+// app and against the two numbers below — see the comment on `stepsToday`'s
+// assignment for why it is captured, not yet selected, and
+// docs/health/validation/APPLE-PIPELINE-AUDIT.md §3 for the full record of
+// that decision.
+//
+// KNOWN FAILURE CASE for max-per-hour (named so it isn't mistaken for
+// untested confidence, not yet observed on a real device): if two sources
+// report DISJOINT activity within the same clock hour — e.g. the Watch worn
+// 08:00–08:30 (phone left at home) then the phone carried 08:30–09:00
+// (watch removed) — the max-across-sources reduction counts only the larger
+// of the two half-hour totals for that hour, silently dropping the other
+// half-hour's real steps. This is a real, named limit of hourly
+// granularity, not a hypothetical edge case.
 //
 // This is a client-side APPROXIMATION, not a guarantee of matching the
 // Health app's own total exactly — see
 // docs/health/validation/APPLE-PIPELINE-AUDIT.md for the full reasoning and
 // why this needs device confirmation. The diagnostics panel below (gated on
-// `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`) surfaces the OLD raw-sum value,
-// the NEW bucketed-max value, and each source's whole-day total side by
-// side specifically so that comparison can happen on-device against the
-// Health app's displayed total.
+// `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`) surfaces the OLD raw-sum value, the
+// NEW bucketed-max value, HealthKit's own native-merged value, and each
+// source's whole-day total side by side specifically so that comparison can
+// happen on-device against the Health app's displayed total.
 
 export interface StepsSourceBucket {
   /** HealthKit source name, e.g. "iPhone" or "Brandon's Apple Watch". Diagnostic only — not used by the reduction itself. */
@@ -192,6 +219,35 @@ export function reduceStepsByBucketMax(buckets: readonly StepsSourceBucket[]): n
   let total = 0;
   for (const v of bucketMax.values()) total += v;
   return total;
+}
+
+/**
+ * Pure adapter: HealthKit's raw per-source statistics-collection response
+ * (`QueryStatisticsResponseFromSingleSource[]` — see the installed
+ * `@kingstinct/react-native-healthkit@14.0.2` type at
+ * `src/types/QuantityType.ts`) → `StepsSourceBucket[]`, the shape
+ * `reduceStepsByBucketMax` consumes.
+ *
+ * RC-2 independent-verdict review (S2): extracted from an inline
+ * `.filter().map()` in `fetchAppleHealthSnapshot` because this — not
+ * `reduceStepsByBucketMax`'s pure bucket-math — is where a real device bug
+ * actually lives: a wrong optional-chain (`entry.sumQuantity?.quantity`,
+ * `entry.source?.name`), an unexpected non-array response, or a missing
+ * `startDate` all originate at this boundary, and none of them were under
+ * test before this fix. Accepts `unknown` (not the typed HealthKit
+ * response) so it can be exercised directly against malformed/partial
+ * fixtures without needing to mock the native module — see
+ * `services/__tests__/appleHealth.stepsAdapter.test.ts`.
+ */
+export function mapStatsToBuckets(entries: unknown): StepsSourceBucket[] {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .filter((entry: any) => entry?.startDate)
+    .map((entry: any) => ({
+      sourceName: entry.source?.name ?? 'unknown',
+      startDate: new Date(entry.startDate).toISOString(),
+      quantity: entry.sumQuantity?.quantity ?? 0,
+    }));
 }
 
 function sumRawQuantitySamples(samples: unknown): number | null {
@@ -263,6 +319,12 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   const hrvSdnn = hrvSdnnSample?.quantity ?? null;
 
   // ── Steps: raw sum (OLD, kept for fallback + diagnostics) ──────────────
+  // N3 (RC-2 independent-verdict review): the sample array's length is
+  // captured here, alongside the sum, so the diagnostics block below (if
+  // enabled) can reuse it instead of re-issuing the identical
+  // day-window `queryQuantitySamples` call a second time purely to count
+  // its results.
+  let stepsRawSampleCount: number | null = null;
   const stepsRawSampleSum = await safe(async () => {
     const samples = await HK.queryQuantitySamples('HKQuantityTypeIdentifierStepCount', {
       ascending: true,
@@ -270,6 +332,7 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
       unit: 'count',
       filter: { date: { startDate: startOfDay, endDate: now } },
     });
+    stepsRawSampleCount = Array.isArray(samples) ? samples.length : null;
     return sumRawQuantitySamples(samples);
   });
 
@@ -284,21 +347,62 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
       { hour: 1 },
       { unit: 'count', filter: { date: { startDate: startOfDay, endDate: now } } },
     );
-    const buckets: StepsSourceBucket[] = Array.isArray(perSourceHourly)
-      ? perSourceHourly
-          .filter((entry: any) => entry?.startDate)
-          .map((entry: any) => ({
-            sourceName: entry.source?.name ?? 'unknown',
-            startDate: new Date(entry.startDate).toISOString(),
-            quantity: entry.sumQuantity?.quantity ?? 0,
-          }))
-      : [];
+    const buckets = mapStatsToBuckets(perSourceHourly);
+    // B1.3 (RC-2 independent-verdict review — BLOCKING): the native
+    // `handleHKNoDataOrThrow` path (ios/QuantityTypeModule.swift) RESOLVES
+    // with an empty array on HealthKit's `errorNoData`, it does not throw —
+    // verified by reading the Swift source, which is the correct kind of
+    // claim to make about a wrapper (this is what the wrapper itself does,
+    // not a claim about HealthKit's internal merge behavior). Before this
+    // fix, only the `catch` block below ever set `stepsUsedFallback`, so a
+    // legitimate empty-bucket response (not a thrown error) silently made
+    // `reduceStepsByBucketMax([])` return `0` — a hard "0 steps" shown to a
+    // user who has real step samples for the day. Treat a zero-length
+    // bucket array, when raw samples actually exist, as the same fallback
+    // trigger a thrown error already is.
+    if (buckets.length === 0 && (stepsRawSampleSum ?? 0) > 0) {
+      stepsUsedFallback = true;
+    }
     stepsBucketedMax = reduceStepsByBucketMax(buckets);
   } catch (err) {
     console.warn('[AppleHealth] bucketed step aggregation failed, falling back to raw sum', err);
     stepsUsedFallback = true;
   }
 
+  // ── Steps: HealthKit's OWN merged total (B1, CAPTURE ONLY — see below) ──
+  // Uses plain `queryStatisticsForQuantity` (no "...SeparateBySource"),
+  // requesting the exact statistic Apple's own Health app total is believed
+  // to derive from — see the file header's B1 correction for the citation
+  // and why this is captured for on-device comparison rather than treated
+  // as proven from source alone.
+  const stepsNativeMerged = await safe(async () => {
+    const stats = await HK.queryStatisticsForQuantity(
+      'HKQuantityTypeIdentifierStepCount',
+      ['cumulativeSum'],
+      { unit: 'count', filter: { date: { startDate: startOfDay, endDate: now } } },
+    );
+    return stats?.sumQuantity?.quantity ?? null;
+  });
+
+  // B1.2 (RC-2 independent-verdict review — deliberate founder-level
+  // sequencing decision, NOT an oversight): `stepsNativeMerged` above is
+  // captured for comparison but intentionally NOT selected here.
+  // `buildStatisticsOptions` (ios/Helpers.swift) unconditionally inserts
+  // `.separateBySource` into every statistics query this library issues,
+  // including the plain (non-"SeparateBySource") call used above — verified
+  // by reading that Swift source. What is NOT verifiable from source alone
+  // is whether `HKStatistics.sumQuantity()` (no per-source argument), under
+  // `.separateBySource`, still returns HealthKit's true cross-source-merged
+  // aggregate, or whether it degrades to the same per-source-summed total
+  // the bucketed-max reduction above exists to avoid — that is Apple
+  // framework runtime behavior, not this wrapper's code. If it is the
+  // latter, selecting `stepsNativeMerged` here would silently make
+  // `stepsToday` the WORST of the three numbers, not the best. Build 48
+  // exists to measure all three (raw sum / bucketed max / native merged)
+  // against the Health app's own displayed total on a real device; the
+  // selection flip is then a one-line change made on evidence, not a guess.
+  // See docs/health/validation/APPLE-PIPELINE-AUDIT.md §3 for the full
+  // record of this decision and what build 48 must report.
   const stepsToday = stepsUsedFallback ? stepsRawSampleSum : stepsBucketedMax;
 
   let sleepSampleCount: number | null = null;
@@ -375,28 +479,23 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
         valueUsed: hrvSdnn,
       };
 
-      const stepsSampleCountForDiagnostics = await safe(async () => {
-        const samples = await HK.queryQuantitySamples('HKQuantityTypeIdentifierStepCount', {
-          ascending: true,
-          limit: 0,
-          unit: 'count',
-          filter: { date: { startDate: startOfDay, endDate: now } },
-        });
-        return Array.isArray(samples) ? samples.length : null;
-      });
-
+      // N3 (RC-2 independent-verdict review): reuse the sample count already
+      // captured by the `stepsRawSampleSum` query above rather than
+      // re-issuing the identical day-window `queryQuantitySamples` call a
+      // second time purely to count its results.
       const stepsDiag: AppleHealthStepsDiagnostic = {
         identifier: 'HKQuantityTypeIdentifierStepCount',
         queried: true,
         rawSampleSum: stepsRawSampleSum,
         bucketedMaxTotal: stepsBucketedMax,
+        nativeMergedTotal: stepsNativeMerged,
         perSourceTotals: Array.isArray(perSourceTotalsRaw)
           ? perSourceTotalsRaw.map((entry: any) => ({
               sourceName: entry.source?.name ?? 'unknown',
               total: entry.sumQuantity?.quantity ?? 0,
             }))
           : [],
-        sampleCount: stepsSampleCountForDiagnostics,
+        sampleCount: stepsRawSampleCount,
         valueUsed: stepsToday,
         usedFallback: stepsUsedFallback,
       };

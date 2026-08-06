@@ -47,21 +47,32 @@ The coordinator flagged this as a suspect, not a confirmed bug, and asked for ve
 
 ## 3. SUSPECT 1 (steps double-count) — CONFIRMED BUG, FIXED THIS PR
 
-**Root cause.** `services/appleHealth.ts`'s old `stepsToday` computation summed every raw `HKQuantitySample` for the day across every recording source (`queryQuantitySamples`, plain `.reduce`). When an iPhone and a paired Apple Watch (the founder's device configuration, confirmed in devicectl) both independently record steps for the same walking, **HealthKit does not deduplicate that for you** — neither a raw sample sum nor a plain `queryStatisticsForQuantity` cumulativeSum removes cross-source overlap; both simply add every matching sample regardless of source (`ios/QuantityTypeModule.swift`'s `queryStatisticsForQuantityInternal` builds one `HKStatisticsQuery` over the full predicate with no per-source dedup logic — verified by reading the native implementation, not assumed).
+**Root cause.** `services/appleHealth.ts`'s old `stepsToday` computation summed every raw `HKQuantitySample` for the day across every recording source (`queryQuantitySamples`, plain `.reduce`). When an iPhone and a paired Apple Watch (the founder's device configuration, confirmed in devicectl) both independently record steps for the same walking, a raw sample sum does not deduplicate that — it simply adds every matching sample regardless of source.
+
+**CORRECTION (RC-2 independent-verdict review, B1 — closing a category error in the original audit).** The sentence above used to also claim, about a plain (non-`SeparateBySource`) `queryStatisticsForQuantity` cumulativeSum, that it "does not remove cross-source overlap," "verified by reading the native implementation." That verification claim was a category error: reading `@kingstinct/react-native-healthkit`'s Swift wrapper (`ios/QuantityTypeModule.swift`) can only tell you that the wrapper forwards to `HKStatisticsQuery` — it cannot tell you what `HKStatisticsQuery` does *inside* HealthKit at runtime, which is Apple's own framework internals, not this repo's or this library's code. Per an Apple Frameworks Engineer (developer.apple.com/forums/thread/710937, Jul 2022, paraphrased): a statistics(-collection) query has HealthKit perform its own cross-source merge — the same merge the Health app's displayed total reflects — whereas hand-rolling a merge from sample queries is unlikely to match it correctly. This PR does not select the plain-`queryStatisticsForQuantity` number for scoring (see the addition to this section below) — it corrects the false verification claim and adds the number as a captured, compared value instead.
+
+**What WAS independently verified by reading the Swift source in this PR:** `ios/Helpers.swift`'s `buildStatisticsOptions` unconditionally inserts `.separateBySource` into every statistics query the library issues, INCLUDING the plain `queryStatisticsForQuantity` call this PR adds (`ios/QuantityTypeModule.swift`'s non-`SeparateBySource` `queryStatisticsForQuantity` and the `SeparateBySource` variant both route through the shared `queryStatisticsForQuantityInternal`). Also verified: `serializeStatistics` (used only by the plain call) reads `gottenStats.sumQuantity()` with no per-source argument — which, per Apple's own `HKStatistics` API, is documented as the combined/overall statistic, distinct from the per-source `sumQuantity(for:)` the `SeparateBySource` variant additionally exposes. This is consistent with — but does not prove — the Frameworks Engineer's claim, because whether `.separateBySource` being present in the query options changes what the argument-less `sumQuantity()` accessor returns at runtime is Apple's framework behavior, unverifiable from source alone. See the new `stepsNativeMerged` capture below and B1.2 in `services/appleHealth.ts` for how this PR handles that residual uncertainty (captured for comparison, not selected).
 
 **Fix implemented (`services/appleHealth.ts`):**
 - `reduceStepsByBucketMax(buckets)` — a new, pure, exported function. Buckets the day into hours via `queryStatisticsCollectionForQuantitySeparateBySource` (`['cumulativeSum']`, `{ hour: 1 }`, per-source), then for each hour bucket takes the **max across sources** rather than the sum, then sums the bucket maxes.
 - **Rationale:** within any given hour, whichever device was actually worn/carried captured that hour's real activity most completely; the other device's overlapping count for the same hour is the double-counted portion, not additional real steps. An hour where only one source reported is unaffected (max of one value is that value), so a device the user didn't wear for part of the day never loses real steps the other device caught.
 - **Resilience:** if the bucketed query throws (older HealthKit versions, transient failure), the code falls back to the old raw-sum method rather than returning `null` — a refresh never regresses to "no step data" because of this fix.
-- **Tests:** `services/__tests__/appleHealth.stepsAggregation.test.ts` — 6 fixtures, including the exact "iPhone 400 + Watch 420, same hour" case, proving the reduction returns 420 (max), not 820 (sum).
+- **B1.3 fix (RC-2 independent-verdict review, BLOCKING):** the native `handleHKNoDataOrThrow` path (`ios/QuantityTypeModule.swift`, both the single-statistics and statistics-collection variants) RESOLVES with `nil`/an empty collection on HealthKit's `errorNoData` — it does **not** throw. Before this fix, only the `catch` block triggered the raw-sum fallback, so a legitimate empty-bucket response (not a query failure) made `reduceStepsByBucketMax([])` return `0`, `stepsUsedFallback` stayed `false`, and a user with real step samples for the day was shown a hard **0 steps**. Fixed: an empty bucket array is now treated as the same fallback trigger a thrown error already is, but ONLY when raw samples actually exist for the day (`buckets.length === 0 && (stepsRawSampleSum ?? 0) > 0`) — a genuine zero-step day is not misreported as a fallback. Test: `services/__tests__/appleHealth.stepsSelection.test.ts` ("the bucketed query resolving to an EMPTY array while raw samples exist falls back...") fails without this line — see the mutation-verification table in this PR's description.
+- **B1.1 addition (capture only):** `stepsNativeMerged` — HealthKit's own merged total via plain `queryStatisticsForQuantity` (not the `...SeparateBySource` variant) — is now also captured per refresh, for on-device comparison. **Not selected** — see B1.2 below and the code comment on `stepsToday`'s assignment in `services/appleHealth.ts`.
+- **Tests:** `services/__tests__/appleHealth.stepsAggregation.test.ts` — 6 fixtures on the pure reduction. `services/__tests__/appleHealth.stepsAdapter.test.ts` — 11 fixtures on the extracted `mapStatsToBuckets` adapter (malformed/missing fields, non-array input, missing source name — the boundary a real device bug actually lives at, not the reduction math). `services/__tests__/appleHealth.stepsSelection.test.ts` — 6 fixtures on the full selection chain (normal path, the N3 duplicate-query lock, native-merged capture-without-selection, throw-fallback, the B1.3 empty-bucket fallback, and the genuine-zero-day non-fallback case), mocking the native module's dynamic import.
 
 **Honesty about this fix's limits — must be confirmed on-device, not assumed.** Per the coordinator's explicit instruction, this is a client-side **approximation** of Apple Health's own per-source reconciliation, not a proven byte-identical match. The diagnostics panel (§6) surfaces, side by side, for direct comparison against the Health app's displayed total:
 1. the OLD raw-sample-sum value,
 2. the NEW bucketed-max value,
-3. each source's whole-day total with its `sourceName`,
-4. the raw sample count.
+3. HealthKit's own native-merged value (B1, capture-only),
+4. each source's whole-day total with its `sourceName`,
+5. the raw sample count.
 
-**Expectation:** the NEW (bucketed-max) value should track the Health app's displayed total far more closely than the OLD value, and should sit between "the single highest-reporting source's total" and "the sum of all sources" — closer to the former. If device evidence shows the NEW value still overshoots meaningfully, the likely next refinement is a finer bucket size (e.g. 15-minute buckets) or true interval-overlap reconciliation rather than per-hour granularity; that is a follow-up decision, not something to guess at further in this PR.
+**Expectation:** the NEW (bucketed-max) value should track the Health app's displayed total far more closely than the OLD value, and should sit between "the single highest-reporting source's total" and "the sum of all sources" — closer to the former.
+
+**Confirmed failure case for max-per-hour (RC-2 independent-verdict review — named, not hypothetical):** if two sources report DISJOINT activity within the same clock hour — e.g. the Watch worn 08:00–08:30 (phone left at home) then the phone carried 08:30–09:00 (watch removed) — the max-across-sources reduction counts only the larger of the two half-hour totals for that hour, silently dropping the other half-hour's real steps. This is a real, structural limit of hourly granularity that no amount of device testing on a "normal" day will surface — it needs to be named, not discovered by accident.
+
+**B1 — open measurement for build 48 (not an open bug):** whether `stepsNativeMerged` is HealthKit's true cross-source-merged total, or degrades to the same per-source-summed total the bucketed-max reduction exists to avoid, is Apple framework runtime behavior that cannot be determined from source review — it can only be measured against the Health app's own displayed total on a real device. Build 48 must report, for the same day, side by side: (a) the raw-sample-sum, (b) the bucketed-max value, (c) the native-merged value, and (d) the Health app's own displayed total. If (c) matches (d) more closely than (b) does, the one-line change to select `stepsNativeMerged` instead of the bucketed-max value is made on that evidence. If (c) matches (b) (i.e. it turns out to be the same per-source-summed total), (b) remains the better approximation and (c) is retained only as a diagnostic cross-check, not promoted.
 
 ---
 
@@ -114,6 +125,17 @@ The plumbing genuinely works: Apple Health data flows unconditionally (no flag g
 
 None of these three are "definite bugs to fix here" per the coordinator's original brief (RHR-unused and workouts-not-queried are scope questions, not bugs; the hrvSdnn/hrvSdnnMs mislabeling is cosmetic/honesty debt) — they're named so the founder can rule on which, if any, warrant a follow-up PR.
 
+### 5.4 The founder's actual symptom: of four Apple metrics, only two can ever move the `health_signals` row (RC-2 independent-verdict review)
+
+§5.2 concludes "the plumbing is real," which risks being read as "look elsewhere." An independent post-merge review traced the same path again and agrees: no flag, freshness window, provider-priority rule, or clamp gates Apple out. But of the four Apple metrics `fetchAppleHealthSnapshot` captures (`restingHeartRate`, `hrvSdnn`, `stepsToday`, `sleepHoursLastNight`), only **two** can ever move the `health_signals` breakdown row the founder is looking for. Verified against the current files, file:line:
+
+- **`restingHeartRate` is never read by `aggregateBiometrics`.** `utils/biometricsAggregator.ts:163-167` reads exactly `hrvSdnn`, `sleepHoursLastNight`, `readinessScore`, `recoveryPct`, `stressScore` via `freshestNonNull` — `restingHeartRate` is not among them. (Already named in §5.3; repeated here because it's one of the two reasons the row can look "dead.")
+- **`stepsToday` touches the `health_signals` row not at all.** Its only effect anywhere in scoring is as a FLOOR inside `computeDecayPerMinute` (`utils/scoring/breakdown.ts:171-207`, the floor logic at ~176-188), and only when `aggregateBiometrics(state.biometrics).inferredActivityLevel > state.activityLevel`. With the default activity slider at 5, `activityFromSteps` (`utils/biometricsAggregator.ts:61-69`) crosses the raw value 5.0 at exactly 7,500 steps, but `aggregateBiometrics` rounds `inferredActivityLevel` to one decimal (`Math.round(activity * 10) / 10`, line 158) before the `>` comparison — verified by direct computation, the rounded value does not exceed 5.0 until **7,563 steps** (7,562 rounds to 5.0; 7,563 is the first integer step count that rounds to 5.1). Below that, the inferred value is silently discarded by the `>` comparison. The visible `context` breakdown row (`utils/scoring/breakdown.ts:71-77`) reads the raw manual `state.activityLevel` directly and never sees the floored value at all.
+- **That leaves HRV and sleep as the only two levers.** `aggregateBiometrics`'s `hint` is `'No platforms connected'` (no `apple_health` entry at all — `utils/biometricsAggregator.ts:121-137`) or, when a provider IS connected but contributes no scoring metric, `'1 platform · awaiting data'` (`utils/biometricsAggregator.ts:205-208`, `parts.length === 0`). **Correction to the reviewer's original framing:** the trigger for `'awaiting data'` is not "if EITHER HRV or sleep is null" — verified against `utils/biometricsAggregator.ts:163-167` (the five `freshestNonNull` reads) and `169-200` (the delta computation), `parts.length` only reaches `0` when **every** one of the five metrics (`hrv`, `sleep`, `readiness`, `recoveryPct`, `stress`) is null. For an Apple-Health-only connection, Apple never populates `readinessScore`/`recoveryPct`/`stressScore`, so in practice this reduces to "both HRV and sleep null on that device-day," not "either." When that happens the row renders `delta: 0` with hint `"1 platform · awaiting data"` — indistinguishable to the founder from "never reflects Apple Health," even though the plumbing is intact and the row genuinely would move on a day either metric is present.
+- **Second, independent reason the founder may never see an "Apple Health" row: the label doesn't say that.** On the multi-provider branch (`utils/scoring/breakdown.ts:290-292`), the label is `'Health platform (HRV / sleep / strain)'` when exactly one provider is connected, or `` `Health platforms (${n} connected)` `` for more than one. The literal string `'Apple Health'` appears only on the LEGACY fallback path's two data-present returns (`utils/scoring/breakdown.ts:325-326`, `label: 'Apple Health (HRV + sleep)'`, reading the pre-multi-provider `state.appleHealth` field) — the no-snapshot case on that same legacy path (line 302) says `'Health platforms (none connected)'`, not "Apple Health" either. None of this is reachable once `store/app/actions.ts` populates `state.biometrics.apple_health` (confirmed at §5.1, stage 3), which is the path every real Apple Health connection takes. A founder scanning the breakdown sheet for a row that says "Apple Health" will not find one even on a day the delta is genuinely non-zero.
+
+**Disposition:** not a bug in the sense of broken code — the aggregation and clamp math are correct and intentional (RHR-unused is a known, named, cross-provider gap per §5.3; steps-as-activity-floor-only is a deliberate design choice, not an oversight). It is a **legibility gap**: the founder's mental model ("Apple Health should show up as itself, and everything it measures should move the score") does not match what the pipeline actually does (two of four metrics score; the row is generically labeled). Named here so the founder can rule on whether the label/scope should change, separately from any of the fixes in this PR.
+
 ---
 
 ## 6. Deliverable B — the diagnostics panel (what it captures and where)
@@ -136,7 +158,7 @@ None of these three are "definite bugs to fix here" per the coordinator's origin
 **Architecture notes:**
 - `services/appleHealth.ts` stays store-free by design (its own header). The diagnostics module (`services/appleHealthDiagnostics.ts`) mirrors that — it holds no `scoringInput`; that half is assembled by `components/profile/AppleHealthDiagnosticsSection.tsx`, a small connected wrapper that calls `useEngineSlice()`.
 - That subscription is **deliberately isolated to its own leaf component**, not added to `ProfileScreenV2`'s top-level hooks, so it cannot regress the whole-screen re-render optimization RC-1 W3P2 already fought for (`ProfileScreenV2.tsx`'s own header: "every 1s TICK_TIMER re-rendered this entire 3000+ line screen"). In production, the wrapper is never mounted at all, so the subscription never exists there.
-- **Location:** the diagnostics module lives at `services/appleHealthDiagnostics.ts` (sibling to `services/appleHealth.ts`), not under `services/health/`, because the latter is scanned by `services/health/__tests__/hardcodedHealthCopy.test.ts` — a lock intended for the permanent, localized Connected Health product surface. This module's English debug text is temporary internal scaffolding, not product copy; allowlisting dozens of debug strings there would misrepresent them as tracked localization debt.
+- **Location (S3, RC-2 independent-verdict review — rationale rewritten to lead with the real reason):** the diagnostics module lives at `services/appleHealthDiagnostics.ts`, colocated as a direct sibling of the module it instruments (`services/appleHealth.ts`) and of `components/profile/AppleHealthRefreshControl.tsx` — the same directory shape this codebase already uses for a service and its adjacent presentational/diagnostic components. It does not live under `services/health/` for a second, independent reason: that directory is scanned by `services/health/__tests__/hardcodedHealthCopy.test.ts`, a lock intended for the permanent, localized Connected Health product surface, and this module's English debug text is temporary internal scaffolding, not product copy — allowlisting dozens of debug strings there would misrepresent them as tracked localization debt. Colocation is the placement's justification; staying outside the lint's scope is a consequence of that placement, not the reason for it.
 - **Privacy:** in-memory only (a module-level variable, cleared on JS reload/app restart) — no `AsyncStorage`, no network call. Only HealthKit source **names** are captured (e.g. "iPhone", "Brandon's Apple Watch") — the same names the Health app's own "Data Sources" screen already shows the user — never a device identifier, token, or anything transmitted anywhere.
 
 **Files:**
@@ -167,10 +189,11 @@ Combined with §4's staleness finding, this most likely fully explains the found
 | 5 | `restingHeartRate` captured/displayed but unused by scoring (all providers, not just Apple) | **NO** — pre-existing, cross-provider, out of this PR's scope | Named for founder awareness. |
 | 6 | Apple writes the deprecated `hrvSdnn` field instead of the honest `hrvSdnnMs` | **NO** — cosmetic/honesty debt, no functional score impact today | Named for founder awareness. |
 | 7 | No `latestObservedAtMs` for Apple (freshness axis) | **NO** — pre-existing, registered gap (#562 follow-up) | Confirmed still open; likely explains "freshness is incorrect" combined with #3. |
+| 8 | Empty bucketed-statistics response (`handleHKNoDataOrThrow` resolving `[]`, not throwing) silently reported `0 steps` despite real raw samples existing | **YES (RC-2 independent-verdict review, B1.3)** | Empty bucket array + non-zero raw sample sum now triggers the same fallback a thrown error already did. Tested; fails without the fix (see mutation-verification evidence in this PR). |
 
 ---
 
-## 9. Validation run for this PR
+## 9. Validation run for PR #576 (original, pre-verdict)
 
 ```
 npx tsc --noEmit -p artifacts/aforce-os/tsconfig.json         → 0 errors
@@ -185,3 +208,62 @@ node scripts/src/check-secrets.mjs                              → passed (trac
 ```
 
 New test files: `services/__tests__/appleHealth.stepsAggregation.test.ts` (6), `services/__tests__/appleHealthDiagnostics.test.ts` (10), `components/profile/__tests__/AppleHealthDiagnosticsPanel.render.test.tsx` (10) — 26 new tests, all passing.
+
+See §10 for the RC-2 independent-verdict closure that follows this PR, and §11 for its own validation run.
+
+---
+
+## 10. RC-2 independent-verdict closure (follow-up PR, post-merge)
+
+This PR was BLOCKED post-merge by an independent reviewer of PR #576 (the PR this document originally shipped with). Findings and disposition:
+
+| Finding | Disposition |
+|---|---|
+| **B1** — §3's "verified by reading the native implementation" claim about `queryStatisticsForQuantity` was a category error (reading a wrapper cannot verify HealthKit's internal runtime merge behavior) | **Corrected.** §3 now states plainly what was and was not verified, cites the Apple Frameworks Engineer forum source, and captures `stepsNativeMerged` (plain `queryStatisticsForQuantity`) for on-device comparison — deliberately NOT selected for scoring yet (see §3's "open measurement for build 48"). |
+| **B1 (silent-zero, blocking)** — the native no-data path resolves `[]` rather than throwing, so an empty bucket response with real raw samples present produced a hard `0 steps` | **Fixed.** See bug #8 above. Test added, verified to fail without the fix. |
+| **S1** — §5 risked reading as "look elsewhere" when in fact only 2 of 4 Apple metrics can ever move the score | **Addressed.** New §5.4, with one correction to the reviewer's own framing (the `'awaiting data'` hint requires BOTH HRV and sleep to be null, not either — verified against the actual `parts.length === 0` condition, which depends on all five aggregator inputs, not two). |
+| **S2** — only the pure `reduceStepsByBucketMax` reduction was tested; the adapter (source-name/quantity extraction, non-array handling, the fallback-selection chain) was not | **Addressed.** `mapStatsToBuckets` extracted as its own pure, exported, tested function (`appleHealth.stepsAdapter.test.ts`, 11 fixtures against the real `QueryStatisticsResponseFromSingleSource` shape). Full selection chain tested end-to-end against a mocked native module (`appleHealth.stepsSelection.test.ts`, 6 fixtures). |
+| **S3** — the diagnostics-file placement rationale led with "dodges a lint," misrepresenting the reason for the record | **Rewritten.** §6's Location bullet now leads with colocation; the lint-avoidance is named as a consequence, not the justification. |
+| **N1** — `ProfileScreenV2.tsx` comment cited a stale module path (`services/health/appleHealthDiagnostics.ts`) | **Fixed** — corrected to `services/appleHealthDiagnostics.ts`. |
+| **N2** — `AppleHealthDiagnosticsSection`'s `scoringInput` object was rebuilt on every render | **Fixed** — wrapped in `useMemo`. |
+| **N3** — the diagnostics block re-issued an identical `queryQuantitySamples` call already made for `stepsRawSampleSum`, purely to count results | **Fixed** — the sample count is now captured alongside the sum in a single query and reused. |
+
+**What was found WRONG in the verdict and NOT implemented as originally worded:** the S1 finding's claim that "if either [HRV or sleep] is null... the row renders delta: 0" is imprecise — verified against `utils/biometricsAggregator.ts:169-208`, the `'awaiting data'` hint requires ALL FIVE aggregator inputs (`hrv`, `sleep`, `readiness`, `recoveryPct`, `stress`) to be null, not just one of the two Apple-relevant ones. §5.4 states the corrected condition rather than transcribing the original wording. This does not change the finding's substance (Apple-only connections in practice do collapse to "both HRV and sleep null" since Apple never populates the other three inputs) — it corrects the stated mechanism.
+
+**What build 48 (device validation) must measure**, per §3's B1 open-measurement note: for the same real day, capture and compare all three step numbers against the Health app's own displayed total —
+1. **raw sample sum** (`rawSampleSum` — double-counts iPhone+Watch, this PR's OLD method),
+2. **bucketed max-per-hour** (`bucketedMaxTotal` — this codebase's approximation, currently `stepsToday`'s selected value),
+3. **native merged** (`nativeMergedTotal` — HealthKit's own `queryStatisticsForQuantity` total, captured but NOT currently selected).
+
+If (3) tracks the Health app's total more closely than (2), flipping `stepsToday`'s selection to `stepsNativeMerged` is a one-line change in `services/appleHealth.ts` (the `stepsToday` assignment), made on that evidence — not before.
+
+---
+
+## 11. Validation run for this follow-up PR (RC-2 verdict closure)
+
+```
+npx tsc --noEmit -p artifacts/aforce-os/tsconfig.json         → 0 errors
+npx vitest run (full monorepo, canonical command)              → 5511 passed, 18 failed
+                                                                   (380 files: 335 passed, 45 failed)
+                                                                   Exact match to
+                                                                   governance/TEST-BASELINE.md's
+                                                                   recorded 45-failed-file /
+                                                                   18-failed-test ceiling — 12 files
+                                                                   Cause A (`__DEV__ is not
+                                                                   defined`, expo-modules-core
+                                                                   collection wall) + 33 files
+                                                                   Cause B (`DATABASE_URL` not
+                                                                   provisioned locally), same file
+                                                                   sets, same two files
+                                                                   (whoopOAuthMount.test.ts,
+                                                                   whoopAdminMount.test.ts)
+                                                                   carrying all 18 failing tests.
+                                                                   ZERO new failures, zero new
+                                                                   failing files.
+node scripts/src/check-governance-drift.mjs                    → passed
+node scripts/src/check-secrets.mjs                              → passed (2153/2153 tracked files)
+```
+
+New/changed test files: `services/__tests__/appleHealth.stepsAdapter.test.ts` (new, 11 tests), `services/__tests__/appleHealth.stepsSelection.test.ts` (new, 6 tests), `services/__tests__/appleHealthDiagnostics.test.ts` (updated fixtures + 1 new assertion), `components/profile/__tests__/AppleHealthDiagnosticsPanel.render.test.tsx` (updated fixture + 2 new tests) — 19 new tests, all passing.
+
+**Mutation verification** (every new/changed assertion reverted and reconfirmed to fail — see this PR's description for the full table): B1.3's silent-zero fix, B1.2's capture-without-select guard, the `mapStatsToBuckets` adapter's five fallback/guard branches, N3's duplicate-query elimination, and B1's panel row + summary-line additions were each independently reverted and each broke exactly the test(s) written to catch that specific regression — no vacuous tests found.

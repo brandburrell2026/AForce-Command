@@ -66,6 +66,7 @@ function buildFixture(overrides: Record<string, unknown> = {}) {
       queried: true as const,
       rawSampleSum: 12000,
       bucketedMaxTotal: 7200,
+      nativeMergedTotal: 7300,
       perSourceTotals: [
         { sourceName: 'iPhone', total: 4800 },
         { sourceName: "Brandon's Apple Watch", total: 7200 },
@@ -138,6 +139,7 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
     const text = formatAppleHealthDiagnosticsSummary(fixtureSnapshot() as any);
     expect(text).toContain('raw sample sum (old method): 12000');
     expect(text).toContain('bucketed max-per-hour (new method): 7200');
+    expect(text).toContain("native merged (HealthKit's own, capture-only): 7300");
     expect(text).toContain('iPhone: 4800');
     expect(text).toContain("Brandon's Apple Watch: 7200");
   });
@@ -150,6 +152,7 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
         queried: true as const,
         rawSampleSum: 12000,
         bucketedMaxTotal: null,
+        nativeMergedTotal: null,
         perSourceTotals: [],
         sampleCount: 240,
         valueUsed: 12000,

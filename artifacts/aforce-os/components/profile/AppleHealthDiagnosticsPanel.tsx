@@ -117,6 +117,11 @@ export function AppleHealthDiagnosticsPanel({
             testID={`${testID}-steps-bucketed`}
           />
           <Row
+            label="native merged (HK's own)"
+            value={String(diagnostics.steps.nativeMergedTotal ?? '—')}
+            testID={`${testID}-steps-native-merged`}
+          />
+          <Row
             label="value used"
             value={`${diagnostics.steps.valueUsed ?? '—'}${diagnostics.steps.usedFallback ? ' (fallback → raw sum)' : ''}`}
             testID={`${testID}-steps-used`}

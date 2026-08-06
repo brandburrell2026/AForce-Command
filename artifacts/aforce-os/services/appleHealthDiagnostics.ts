@@ -72,6 +72,16 @@ export interface AppleHealthStepsDiagnostic {
   rawSampleSum: number | null;
   /** NEW method: per-hour bucket, max across sources, summed across the day. See `reduceStepsByBucketMax`. */
   bucketedMaxTotal: number | null;
+  /**
+   * B1 (RC-2 independent-verdict review): HealthKit's OWN merged total, via
+   * plain `queryStatisticsForQuantity` (not the `...SeparateBySource`
+   * variant). CAPTURE-ONLY — not yet selected as `valueUsed`; see
+   * `services/appleHealth.ts`'s comment on `stepsToday`'s assignment for why,
+   * and `docs/health/validation/APPLE-PIPELINE-AUDIT.md` §3 for the record.
+   * Compare this against `rawSampleSum` and `bucketedMaxTotal` on-device
+   * against the Health app's displayed total.
+   */
+  nativeMergedTotal: number | null;
   /** Whole-day total per source (`queryStatisticsForQuantitySeparateBySource`), for side-by-side comparison against the Health app's per-source breakdown. */
   perSourceTotals: readonly AppleHealthStepsSourceTotal[];
   /** Raw sample count for the day (same query the old method summed). */
@@ -198,6 +208,7 @@ export function formatAppleHealthDiagnosticsSummary(
   lines.push(`Steps today: used ${snapshot.steps.valueUsed ?? '—'}${snapshot.steps.usedFallback ? ' (FALLBACK to raw sum — bucketed query failed)' : ''}`);
   lines.push(`  raw sample sum (old method): ${snapshot.steps.rawSampleSum ?? '—'}`);
   lines.push(`  bucketed max-per-hour (new method): ${snapshot.steps.bucketedMaxTotal ?? '—'}`);
+  lines.push(`  native merged (HealthKit's own, capture-only): ${snapshot.steps.nativeMergedTotal ?? '—'}`);
   lines.push(`  sample count: ${snapshot.steps.sampleCount ?? '—'}`);
   if (snapshot.steps.perSourceTotals.length === 0) {
     lines.push('  per-source totals: none');

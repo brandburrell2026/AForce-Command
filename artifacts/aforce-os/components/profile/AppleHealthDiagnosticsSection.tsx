@@ -17,7 +17,7 @@
  * component at all — so this `useEngineSlice()` subscription doesn't merely
  * render nothing there, it never runs. Zero cost off-gate.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AppleHealthDiagnosticsPanel } from './AppleHealthDiagnosticsPanel';
 import { useEngineSlice } from '@/store/slices';
 import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '@/featureFlags/internalTestflightOverlay';
@@ -40,25 +40,35 @@ export function AppleHealthDiagnosticsSection({
   const engineOutput = useEngineSlice();
   const recoveryRow = engineOutput.breakdown.find((c) => c.id === 'health_signals') ?? null;
 
-  const scoringInput: AppleHealthScoringInputSnapshot = {
-    biometricsEntry: biometricsEntry
-      ? {
-          restingHeartRate: biometricsEntry.restingHeartRate ?? null,
-          hrvSdnn: biometricsEntry.hrvSdnn ?? null,
-          sleepHoursLastNight: biometricsEntry.sleepHoursLastNight ?? null,
-          stepsToday: biometricsEntry.stepsToday ?? null,
-          fetchedAt: biometricsEntry.fetchedAt,
-        }
-      : null,
-    recoveryContribution: recoveryRow
-      ? {
-          id: recoveryRow.id,
-          label: recoveryRow.label,
-          delta: recoveryRow.delta,
-          hint: recoveryRow.hint,
-        }
-      : null,
-  };
+  // N2 (RC-2 independent-verdict review): memoized so this object identity
+  // only changes when one of its actual inputs does, rather than on every
+  // render of this component (which — per this file's own header — happens
+  // on every `engineOutput` tick while the diagnostics panel is mounted).
+  // `AppleHealthDiagnosticsPanel` doesn't currently rely on referential
+  // stability, but a fresh object every second is needless churn for a
+  // debug-only subtree and cheap to avoid.
+  const scoringInput: AppleHealthScoringInputSnapshot = useMemo(
+    () => ({
+      biometricsEntry: biometricsEntry
+        ? {
+            restingHeartRate: biometricsEntry.restingHeartRate ?? null,
+            hrvSdnn: biometricsEntry.hrvSdnn ?? null,
+            sleepHoursLastNight: biometricsEntry.sleepHoursLastNight ?? null,
+            stepsToday: biometricsEntry.stepsToday ?? null,
+            fetchedAt: biometricsEntry.fetchedAt,
+          }
+        : null,
+      recoveryContribution: recoveryRow
+        ? {
+            id: recoveryRow.id,
+            label: recoveryRow.label,
+            delta: recoveryRow.delta,
+            hint: recoveryRow.hint,
+          }
+        : null,
+    }),
+    [biometricsEntry, recoveryRow],
+  );
 
   return (
     <AppleHealthDiagnosticsPanel
