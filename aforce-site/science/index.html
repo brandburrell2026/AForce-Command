@@ -380,10 +380,12 @@
   .sr-hero-scrim{ position:absolute; inset:0; background:
      linear-gradient(90deg, rgba(11,13,18,0.84) 0%, rgba(11,13,18,0.58) 24%, rgba(11,13,18,0.22) 44%, rgba(11,13,18,0) 62%),
      linear-gradient(180deg, rgba(11,13,18,0.42) 0%, rgba(11,13,18,0) 26%, rgba(11,13,18,0) 66%, rgba(11,13,18,0.72) 100%); }
-  .sr-hero > .sr-wrap{ position:relative; z-index:2; }
-  .sr-hero .h-display{ color:#F5F0E8; }
-  .sr-hero .sr-serif{ color:rgba(245,240,232,0.86); }
-  .sr-hero .sr-lead{ color:rgba(245,240,232,0.74); }
+  .sr-hero > .sr-wrap{ position:relative; z-index:2; width:100%; }
+  /* Keep the copy in a tight left column so it never covers the middle of the film */
+  .sr-hero .h-display{ color:#F5F0E8; max-width:11ch; font-size:clamp(32px,4.6vw,64px); }
+  .sr-hero .sr-serif{ color:rgba(245,240,232,0.86); max-width:18ch; }
+  .sr-hero .sr-lead{ color:rgba(245,240,232,0.74); max-width:34ch; }
+  .sr-hero .sr-eyebrow{ max-width:30ch; }
   .sr-hero .sr-eyebrow .s{ color:rgba(245,240,232,0.42); }
   .sr-hero .sr-btn.ghost{ border-color:rgba(245,240,232,0.42); color:#F5F0E8; }
   .sr-hero .sr-btn.ghost:hover{ border-color:#F5F0E8; }
