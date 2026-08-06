@@ -1,0 +1,225 @@
+/**
+ * AppleHealthDiagnosticsPanel — TEMPORARY, INTERNAL-TESTFLIGHT-ONLY.
+ *
+ * RC-2 P0 device-validation audit (fix/rc2-apple-pipeline-diagnostics).
+ * Renders, in the "Live from Apple Health" panel area, exactly what one
+ * refresh cycle did: the raw samples HealthKit returned per metric, the
+ * mapped snapshot, the value on the card above, and the value that reached
+ * the scoring input — so the founder can compare AForce's numbers against
+ * the Health app on-device without reading a console log.
+ *
+ * Pure presentation, driven entirely by props — no store, router, or the
+ * Apple Health service module — same convention as
+ * `AppleHealthRefreshControl.tsx` (see its header). `enabled` is passed in
+ * by the caller (`ProfileScreenV2.tsx`, from
+ * `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`) rather than read here, so this
+ * component carries zero feature-flag knowledge of its own and is fully
+ * testable with a plain boolean.
+ *
+ * Renders NOTHING (`null`) unless `enabled` AND `diagnostics` are both
+ * present — a production build, where `enabled` is always `false`, never
+ * mounts so much as an empty wrapper `View`.
+ *
+ * TEMPORARY: this component ships for RC-2 device validation only. It is
+ * not a permanent diagnostics surface and carries no brand-system
+ * obligation beyond "never visible outside internal TestFlight" — see
+ * CLAUDE.md's brand law, which this intentionally does not attempt to
+ * satisfy (mono data font aside), because it must never be seen by a real
+ * user.
+ */
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Icon } from '@/components/Icon';
+import { af } from '@/theme';
+import { Typography } from '@/theme/typography';
+import type {
+  AppleHealthDiagnosticsSnapshot,
+  AppleHealthScoringInputSnapshot,
+} from '@/services/appleHealthDiagnostics';
+
+export interface AppleHealthDiagnosticsPanelProps {
+  /** Pass `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED` from the caller — this component never reads the flag itself. */
+  enabled: boolean;
+  /** Result of the last `fetchAppleHealthSnapshot()` call, or `null` before the first refresh. */
+  diagnostics: AppleHealthDiagnosticsSnapshot | null;
+  /** Read back from store state by the caller — never recomputed here. */
+  scoringInput: AppleHealthScoringInputSnapshot | null;
+  testID?: string;
+}
+
+function Row({ label, value, testID }: { label: string; value: string; testID?: string }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue} testID={testID}>{value}</Text>
+    </View>
+  );
+}
+
+function SectionHeading({ children }: { children: string }) {
+  return <Text style={styles.sectionHeading}>{children}</Text>;
+}
+
+function formatSampleLine(sample: AppleHealthDiagnosticsSnapshot['restingHeartRate']['newest']): string {
+  if (!sample) return 'no samples found';
+  return `${sample.quantity} ${sample.unit} · ${sample.sourceName} · ${sample.startDate}`;
+}
+
+export function AppleHealthDiagnosticsPanel({
+  enabled,
+  diagnostics,
+  scoringInput,
+  testID = 'apple-health-diagnostics-panel',
+}: AppleHealthDiagnosticsPanelProps) {
+  const [open, setOpen] = useState(false);
+
+  if (!enabled || !diagnostics) return null;
+
+  return (
+    <View style={styles.wrap} testID={testID}>
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={styles.header}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel="Internal diagnostics — Apple Health pipeline"
+        testID={`${testID}-toggle`}
+      >
+        <Text style={styles.headerLabel}>INTERNAL DIAGNOSTICS · APPLE HEALTH</Text>
+        <Icon name={open ? 'chevron-up' : 'chevron-down'} size={14} color={af.textTertiary} />
+      </Pressable>
+
+      {open && (
+        <View style={styles.body} testID={`${testID}-body`}>
+          <Text style={styles.captured}>
+            Captured {new Date(diagnostics.capturedAt).toLocaleTimeString()}
+          </Text>
+
+          <SectionHeading>Resting heart rate</SectionHeading>
+          <Row label="value used" value={`${diagnostics.restingHeartRate.valueUsed ?? '—'} bpm`} testID={`${testID}-rhr-value`} />
+          <Row label="newest sample" value={formatSampleLine(diagnostics.restingHeartRate.newest)} />
+          <Row label="samples / 24h" value={String(diagnostics.restingHeartRate.sampleCount24h ?? '—')} />
+
+          <SectionHeading>HRV (SDNN)</SectionHeading>
+          <Row label="value used" value={`${diagnostics.hrv.valueUsed ?? '—'} ms`} testID={`${testID}-hrv-value`} />
+          <Row label="newest sample" value={formatSampleLine(diagnostics.hrv.newest)} />
+          <Row label="samples / 24h" value={String(diagnostics.hrv.sampleCount24h ?? '—')} />
+
+          <SectionHeading>Steps today — old vs. new aggregation</SectionHeading>
+          <Row
+            label="raw sum (old)"
+            value={String(diagnostics.steps.rawSampleSum ?? '—')}
+            testID={`${testID}-steps-raw`}
+          />
+          <Row
+            label="bucketed max (new)"
+            value={String(diagnostics.steps.bucketedMaxTotal ?? '—')}
+            testID={`${testID}-steps-bucketed`}
+          />
+          <Row
+            label="value used"
+            value={`${diagnostics.steps.valueUsed ?? '—'}${diagnostics.steps.usedFallback ? ' (fallback → raw sum)' : ''}`}
+            testID={`${testID}-steps-used`}
+          />
+          <Row label="sample count" value={String(diagnostics.steps.sampleCount ?? '—')} />
+          {diagnostics.steps.perSourceTotals.length === 0 ? (
+            <Row label="per-source totals" value="none" />
+          ) : (
+            diagnostics.steps.perSourceTotals.map((s) => (
+              <Row key={s.sourceName} label={`  source: ${s.sourceName}`} value={String(s.total)} />
+            ))
+          )}
+
+          <SectionHeading>Sleep last night</SectionHeading>
+          <Row label="value used" value={`${diagnostics.sleep.valueUsed ?? '—'} h`} />
+          <Row label="sample count" value={String(diagnostics.sleep.sampleCount ?? '—')} />
+
+          <SectionHeading>Workouts</SectionHeading>
+          <Row label="status" value="NOT QUERIED" />
+
+          <SectionHeading>Scoring input (read from app state)</SectionHeading>
+          {scoringInput?.biometricsEntry ? (
+            <>
+              <Row
+                label="biometrics.apple_health"
+                value={`RHR=${scoringInput.biometricsEntry.restingHeartRate ?? '—'} HRV=${scoringInput.biometricsEntry.hrvSdnn ?? '—'} sleep=${scoringInput.biometricsEntry.sleepHoursLastNight ?? '—'} steps=${scoringInput.biometricsEntry.stepsToday ?? '—'}`}
+                testID={`${testID}-scoring-biometrics`}
+              />
+            </>
+          ) : (
+            <Row label="biometrics.apple_health" value="not set" />
+          )}
+          {scoringInput?.recoveryContribution ? (
+            <Row
+              label="breakdown row"
+              value={`${scoringInput.recoveryContribution.label} · delta ${scoringInput.recoveryContribution.delta} · ${scoringInput.recoveryContribution.hint}`}
+              testID={`${testID}-scoring-breakdown`}
+            />
+          ) : (
+            <Row label="breakdown row" value="none found" />
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: {
+    marginTop: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: af.border,
+    backgroundColor: af.surface,
+    overflow: 'hidden',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  headerLabel: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    color: af.textTertiary,
+  },
+  body: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    gap: 4,
+  },
+  captured: {
+    fontFamily: Typography.fonts.mono,
+    fontSize: 10,
+    color: af.textTertiary,
+    marginBottom: 4,
+  },
+  sectionHeading: {
+    fontFamily: Typography.fonts.medium,
+    fontSize: 11,
+    color: af.textSecondary,
+    marginTop: 10,
+    marginBottom: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  rowLabel: {
+    fontFamily: Typography.fonts.mono,
+    fontSize: 10,
+    color: af.textTertiary,
+    flexShrink: 0,
+  },
+  rowValue: {
+    fontFamily: Typography.fonts.mono,
+    fontSize: 10,
+    color: af.textPrimary,
+    flexShrink: 1,
+    textAlign: 'right',
+  },
+});
