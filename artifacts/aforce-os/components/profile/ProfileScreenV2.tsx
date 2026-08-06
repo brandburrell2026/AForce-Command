@@ -114,7 +114,7 @@ const hapticSelection = () => {
   import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
 };
 
-// RC-2 — how long the "Updated just now" Apple Health confirmation stays
+// RC-2 — how long the "Checked just now" Apple Health confirmation stays
 // visible after a successful refresh before fading back out.
 const APPLE_REFRESH_CONFIRMATION_MS = 2500;
 
@@ -1572,6 +1572,7 @@ export function ProfileScreenV2() {
                                 onPress={() => { void refreshAppleSnapshot(); }}
                                 accessibilityLabel={t('profile.v2.refresh_apple_a11y')}
                                 updatedLabel={t('profile.v2.apple_updated_confirmation')}
+                                motionEnabled={flags.elite_motion_enabled}
                                 testID="profile-apple-refresh"
                               />
                             </View>

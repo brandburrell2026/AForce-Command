@@ -64,6 +64,29 @@ describe('ProfileScreenV2 — Apple Health refresh: exactly one fetch per tap (f
   });
 });
 
+describe('ProfileScreenV2 — Apple Health refresh: guard-ordering regression lock (RC-2 build 47 follow-up)', () => {
+  // The worst failure mode here is unprotected today: if the
+  // `isAppleHealthSupported()` early return were ever moved BELOW
+  // `appleRefreshGuardRef.current.acquire()`, the guard would be acquired
+  // and never released on an unsupported device (there is no matching
+  // `release()` before that early `return`), permanently bricking the
+  // refresh button for that user — and every OTHER test in this file would
+  // still pass, because they only assert relative order against
+  // `fetchAppleHealthSnapshot()`, not against the support check. This test
+  // is the source-guard lock against exactly that regression.
+  it('isAppleHealthSupported() is checked BEFORE the guard is acquired, so an unsupported device never leaves the guard permanently held', () => {
+    const fnBody = refreshAppleSnapshotBody();
+    const supportedIdx = fnBody.indexOf('isAppleHealthSupported()');
+    const acquireIdx = fnBody.indexOf('appleRefreshGuardRef.current.acquire()');
+    expect(supportedIdx).toBeGreaterThan(-1);
+    expect(acquireIdx).toBeGreaterThan(-1);
+    expect(supportedIdx).toBeLessThan(acquireIdx);
+    // Must specifically be the early-return guard clause, not merely
+    // referenced somewhere earlier in the function body.
+    expect(fnBody).toMatch(/if\s*\(!isAppleHealthSupported\(\)\)\s*return;/);
+  });
+});
+
 describe('ProfileScreenV2 — Apple Health refresh: visible loading state (founder item 1)', () => {
   it('declares isRefreshingApple state and passes it to AppleHealthRefreshControl', () => {
     expect(CODE).toContain('const [isRefreshingApple, setIsRefreshingApple] = useState(false);');
