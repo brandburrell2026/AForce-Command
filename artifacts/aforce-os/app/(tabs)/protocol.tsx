@@ -19,6 +19,7 @@ import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants
 import { RecoveryCircleChip } from '@/components/protocol/RecoveryCircleChip';
 import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 import { ProtocolScreenV2 } from '@/components/protocol/ProtocolScreenV2';
+import { ScreenErrorBoundary } from '@/components/ui/ScreenErrorBoundary';
 
 /**
  * Protocol route — renders the Phase 2 redesign when `spec_protocol` is on,
@@ -27,7 +28,11 @@ import { ProtocolScreenV2 } from '@/components/protocol/ProtocolScreenV2';
  */
 export default function ProtocolScreen() {
   const { state } = useAppStore();
-  return state.featureFlags.spec_protocol ? <ProtocolScreenV2 /> : <ProtocolScreenLegacy />;
+  return (
+    <ScreenErrorBoundary>
+      {state.featureFlags.spec_protocol ? <ProtocolScreenV2 /> : <ProtocolScreenLegacy />}
+    </ScreenErrorBoundary>
+  );
 }
 
 function ProtocolScreenLegacy() {

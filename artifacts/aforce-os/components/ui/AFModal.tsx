@@ -27,8 +27,8 @@
  * — it already carries its own, more specific accessibility semantics from
  * #513 and re-wrapping it here would be a regression risk for no gain.
  */
-import React from 'react';
-import { Modal, View, StyleSheet, type ModalProps } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { AccessibilityInfo, Modal, Platform, View, StyleSheet, findNodeHandle, type ModalProps } from 'react-native';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 export interface AFModalProps extends ModalProps {
@@ -41,15 +41,39 @@ export function AFModal({
   animationType = 'none',
   accessibilityViewIsModal = true,
   children,
+  onShow,
   ...rest
 }: AFModalProps) {
   const reduceMotion = useReducedMotion();
   const effectiveAnimationType =
     reduceMotion && animationType === 'fade' ? 'none' : animationType;
 
+  // VS 3.0 P1a — VoiceOver focus management. On show, move screen-reader focus
+  // INTO the modal content. The audit found `setAccessibilityFocus` used zero
+  // times app-wide: modals marked themselves modal but never pulled focus in,
+  // so VoiceOver stayed on the now-inert screen behind them. Composes (never
+  // drops) any caller-provided `onShow`. Native-guarded — `findNodeHandle`
+  // returns null on web / before mount, in which case focus is left untouched.
+  const fillRef = useRef<React.ElementRef<typeof View>>(null);
+  const handleShow = useCallback(
+    (event: Parameters<NonNullable<ModalProps['onShow']>>[0]) => {
+      // Native only: `findNodeHandle` throws on web ("not supported"), and web
+      // screen readers use DOM focus, not the RN accessibility-focus API. On
+      // iOS/Android, pull VoiceOver/TalkBack focus into the modal content.
+      if (Platform.OS !== 'web') {
+        const node = findNodeHandle(fillRef.current);
+        if (node != null) {
+          AccessibilityInfo.setAccessibilityFocus(node);
+        }
+      }
+      onShow?.(event);
+    },
+    [onShow],
+  );
+
   return (
-    <Modal animationType={effectiveAnimationType} {...rest}>
-      <View style={styles.fill} accessibilityViewIsModal={accessibilityViewIsModal}>
+    <Modal animationType={effectiveAnimationType} {...rest} onShow={handleShow}>
+      <View ref={fillRef} style={styles.fill} accessibilityViewIsModal={accessibilityViewIsModal}>
         {children}
       </View>
     </Modal>

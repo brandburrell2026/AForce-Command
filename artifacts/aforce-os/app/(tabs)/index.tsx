@@ -39,16 +39,21 @@ import React from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { HomeScreenV2 } from '@/components/home/HomeScreenV2';
 import { HomeSkeleton } from '@/components/home/HomeSkeleton';
+import { ScreenErrorBoundary } from '@/components/ui/ScreenErrorBoundary';
 
 const LazyHomeScreenLegacy = React.lazy(() => import('@/components/home/HomeScreenLegacy'));
 
 export default function HomeScreen() {
   const specHome = useAppStore().state.featureFlags.spec_home;
-  return specHome ? (
-    <HomeScreenV2 />
-  ) : (
-    <React.Suspense fallback={<HomeSkeleton />}>
-      <LazyHomeScreenLegacy />
-    </React.Suspense>
+  return (
+    <ScreenErrorBoundary>
+      {specHome ? (
+        <HomeScreenV2 />
+      ) : (
+        <React.Suspense fallback={<HomeSkeleton />}>
+          <LazyHomeScreenLegacy />
+        </React.Suspense>
+      )}
+    </ScreenErrorBoundary>
   );
 }

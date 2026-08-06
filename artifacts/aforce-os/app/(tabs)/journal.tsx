@@ -8,9 +8,14 @@
 import React from 'react';
 import JournalScreen from '@/screens/JournalScreen';
 import { HydrationScreenV2 } from '@/components/hydration/HydrationScreenV2';
+import { ScreenErrorBoundary } from '@/components/ui/ScreenErrorBoundary';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function JournalRoute() {
   const specHydration = useAppStore().state.featureFlags.spec_hydration;
-  return specHydration ? <HydrationScreenV2 /> : <JournalScreen />;
+  return (
+    <ScreenErrorBoundary>
+      {specHydration ? <HydrationScreenV2 /> : <JournalScreen />}
+    </ScreenErrorBoundary>
+  );
 }

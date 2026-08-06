@@ -5,9 +5,14 @@
  */
 import CompetitionScreen from '@/screens/CompetitionScreen';
 import { CompetitionScreenV2 } from '@/components/community/CompetitionScreenV2';
+import { ScreenErrorBoundary } from '@/components/ui/ScreenErrorBoundary';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function CommunityRoute() {
   const specCommunity = useAppStore().state.featureFlags.spec_community;
-  return specCommunity ? <CompetitionScreenV2 /> : <CompetitionScreen />;
+  return (
+    <ScreenErrorBoundary>
+      {specCommunity ? <CompetitionScreenV2 /> : <CompetitionScreen />}
+    </ScreenErrorBoundary>
+  );
 }

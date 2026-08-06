@@ -5,8 +5,14 @@
  */
 import { ProfileLegacy } from '@/components/profile/ProfileLegacy';
 import { ProfileScreenV2 } from '@/components/profile/ProfileScreenV2';
+import { ScreenErrorBoundary } from '@/components/ui/ScreenErrorBoundary';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function ProfileRoute() {
-  return useAppStore().state.featureFlags.spec_profile ? <ProfileScreenV2 /> : <ProfileLegacy />;
+  const specProfile = useAppStore().state.featureFlags.spec_profile;
+  return (
+    <ScreenErrorBoundary>
+      {specProfile ? <ProfileScreenV2 /> : <ProfileLegacy />}
+    </ScreenErrorBoundary>
+  );
 }
