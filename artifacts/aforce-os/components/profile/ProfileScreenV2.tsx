@@ -353,7 +353,7 @@ export function ProfileScreenV2() {
   const [appleUpdatedConfirmationVisible, setAppleUpdatedConfirmationVisible] = useState(false);
   // RC-2 P0 device-validation audit — TEMPORARY, internal-TestFlight-only.
   // `fetchAppleHealthSnapshot()` captures raw-sample diagnostics into a
-  // module-level store (services/health/appleHealthDiagnostics.ts) ONLY
+  // module-level store (services/appleHealthDiagnostics.ts) ONLY
   // when `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`; this local state is just a
   // render trigger so the panel updates after each refresh — the gate
   // itself lives in that module, not here, so this `useState` existing is
