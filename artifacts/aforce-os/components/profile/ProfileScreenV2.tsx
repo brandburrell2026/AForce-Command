@@ -18,7 +18,13 @@ import { af } from '@/theme';
 import { AFInlineErrorRow, AFStatPair } from '@/components/ui';
 import { ProviderSectionSkeleton } from './ProviderSectionSkeleton';
 import { AppleHealthRefreshControl } from './AppleHealthRefreshControl';
+import { AppleHealthDiagnosticsSection } from './AppleHealthDiagnosticsSection';
 import { createAppleRefreshGuard } from './appleRefreshGuard';
+import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '@/featureFlags/internalTestflightOverlay';
+import {
+  getLastAppleHealthDiagnostics,
+  type AppleHealthDiagnosticsSnapshot,
+} from '@/services/appleHealthDiagnostics';
 import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
@@ -345,6 +351,14 @@ export function ProfileScreenV2() {
   // screen. It states that a re-read succeeded, never that new data
   // arrived (truthfulness rule).
   const [appleUpdatedConfirmationVisible, setAppleUpdatedConfirmationVisible] = useState(false);
+  // RC-2 P0 device-validation audit — TEMPORARY, internal-TestFlight-only.
+  // `fetchAppleHealthSnapshot()` captures raw-sample diagnostics into a
+  // module-level store (services/health/appleHealthDiagnostics.ts) ONLY
+  // when `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`; this local state is just a
+  // render trigger so the panel updates after each refresh — the gate
+  // itself lives in that module, not here, so this `useState` existing is
+  // harmless even in builds where it always stays `null`.
+  const [appleDiagnostics, setAppleDiagnostics] = useState<AppleHealthDiagnosticsSnapshot | null>(null);
   // Synchronous duplicate-tap guard (see appleRefreshGuard.ts's header for
   // why a `useState` boolean alone can't do this: two rapid taps can both
   // read the same stale `false` before React commits the first update).
@@ -368,6 +382,14 @@ export function ProfileScreenV2() {
       const snap = await fetchAppleHealthSnapshot();
       setAppleFetchError(null);
       setAppleSnapshot(snap);
+      // RC-2 P0 device-validation audit — reads back whatever
+      // `fetchAppleHealthSnapshot()` just captured into the module-level
+      // diagnostics store (null outside internal TestFlight, since
+      // `getLastAppleHealthDiagnostics()` is itself gated on
+      // `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED` — see that module's header).
+      // This only triggers a re-render of this small piece of state; it
+      // never reads or writes anything beyond what the fetch already did.
+      setAppleDiagnostics(getLastAppleHealthDiagnostics());
       // Push into the global score so HRV / sleep actually move the orb
       // and show up in the score breakdown. We tag it with fetchedAt so
       // downstream consumers can decide whether to trust it.
@@ -1619,6 +1641,19 @@ export function ProfileScreenV2() {
                                   testID="profile-apple-fetch-error"
                                 />
                               </View>
+                            )}
+                            {/* RC-2 P0 device-validation audit — TEMPORARY,
+                                internal-TestFlight-only. Renders nothing at
+                                all (not even an empty View) unless
+                                INTERNAL_TESTFLIGHT_OVERLAY_ENABLED, both
+                                inside AppleHealthDiagnosticsSection's own
+                                gate and here, so a production build never
+                                pays for the mount. */}
+                            {INTERNAL_TESTFLIGHT_OVERLAY_ENABLED && (
+                              <AppleHealthDiagnosticsSection
+                                diagnostics={appleDiagnostics}
+                                biometricsEntry={userState.biometrics?.apple_health}
+                              />
                             )}
                           </View>
                         )}
