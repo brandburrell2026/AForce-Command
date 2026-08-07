@@ -163,7 +163,7 @@
   .os-hero-video, .os-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
   .os-hero-still{ display:none; }
   .os-hero-scrim{ position:absolute; inset:0; z-index:1; background:
-    linear-gradient(90deg, rgba(13,13,13,0.94) 0%, rgba(13,13,13,0.80) 20%, rgba(13,13,13,0.42) 36%, rgba(13,13,13,0.24) 50%, rgba(13,13,13,0.55) 64%, rgba(13,13,13,0.9) 78%, rgba(13,13,13,0.98) 100%),
+    linear-gradient(90deg, rgba(13,13,13,0.92) 0%, rgba(13,13,13,0.78) 22%, rgba(13,13,13,0.40) 40%, rgba(13,13,13,0.06) 54%, rgba(13,13,13,0) 66%),
     linear-gradient(180deg, rgba(13,13,13,0.45) 0%, rgba(13,13,13,0) 24%, rgba(13,13,13,0) 70%, rgba(13,13,13,0.62) 100%); }
   .os-hero-content{ position:relative; z-index:2; width:100%; max-width:520px; margin:0; margin-right:auto; }
   .os-hero .h-display{ font-size:clamp(28px,3.6vw,54px); line-height:1.05; }
@@ -516,63 +516,13 @@
   </video>
   <img class="os-hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async">
   <div class="os-hero-scrim"></div>
-  <div class="os-hero-inner">
-    <div class="os-hero-content reveal in">
-      <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
-      <h1 class="h-display" style="max-width:15ch;">Know exactly where you stand today.</h1>
-      <p class="lead" style="margin-top:clamp(22px,3vw,30px);">Scan the can. Read your state. Follow the one command that keeps you at peak.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
-      </div>
-    </div>
-    <div class="os-hero-device reveal in" aria-hidden="true">
-      <div class="osx-phone">
-        <div class="osx-screen">
-          <div class="osx-island"></div>
-          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
-          <div class="osx-body">
-            <div class="rx-hd"><span class="rx-brand">AForce OS</span><span class="rx-live"><span class="dot"></span>Apple Health · Live</span></div>
-            <div class="rx-fresh">Checked just now · New York, NY</div>
-            <div class="rx-arc">
-              <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="tr" cx="120" cy="120" r="112" pathLength="100"></circle><circle class="fl" cx="120" cy="120" r="112" pathLength="100"></circle></svg>
-              <div class="c"><b>91</b><span class="l">Readiness</span><span class="s">Peak</span></div>
-            </div>
-            <div class="rx-bio"><span>HRV <b>65</b> ms</span><span>RHR <b>51</b></span><span class="up">&#9650; +6 today</span></div>
-            <div class="rx-cmd">
-              <span class="k">Next command</span>
-              <div class="t">Maintain rhythm</div>
-              <div class="row"><span class="btn">Log Water</span><span class="why">Why this</span></div>
-            </div>
-            <div class="osx-sh"><span class="l">Live signals</span><span class="r">Synced</span></div>
-            <div class="osx-mg">
-              <div class="osx-mc"><div class="k">Hydration</div><div class="v">97<em>%</em></div><div class="s">Optimal</div></div>
-              <div class="osx-mc"><div class="k">Recovery</div><div class="v" style="font-family:var(--body);font-size:3.6cqw;">Excellent</div><div class="s">Strong</div></div>
-              <div class="osx-mc"><div class="k">Sleep</div><div class="v">7h 41m</div><div class="s">Recovered</div></div>
-              <div class="osx-mc"><div class="k">HRV</div><div class="v">65<em>ms</em></div><div class="s">Excellent</div></div>
-            </div>
-            <div class="osx-sh"><span class="l">Today&rsquo;s protocol</span><span class="r">3 / 4</span></div>
-            <div class="osx-tlx">
-              <div class="row"><span class="dot"></span><span class="tx">Morning hydration</span><span class="tm">7:20a</span></div>
-              <div class="row"><span class="dot"></span><span class="tx">Recovery protocol</span><span class="tm">9:05a</span></div>
-              <div class="row"><span class="dot"></span><span class="tx">Movement</span><span class="tm">12:30p</span></div>
-              <div class="row"><span class="dot hollow"></span><span class="tx">Evening protocol</span><span class="tm">6:00p</span></div>
-            </div>
-            <div class="osx-sh"><span class="l">This week</span><span class="r">&#9650; Rising</span></div>
-            <div class="osx-stats">
-              <div class="osx-stat"><span class="k">Ritual streak</span><span class="v g">18 days</span></div>
-              <div class="osx-stat"><span class="k">Consistency</span><span class="v">94%</span></div>
-            </div>
-          </div>
-          <div class="osx-nav">
-            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
-          </div>
-        </div>
-      </div>
+  <div class="os-hero-content reveal in">
+    <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
+    <h1 class="h-display" style="max-width:15ch;">Know exactly where you stand today.</h1>
+    <p class="lead" style="margin-top:clamp(22px,3vw,30px);">Scan the can. Read your state. Follow the one command that keeps you at peak.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
+      <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
     </div>
   </div>
   <div class="os-scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
