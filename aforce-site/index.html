@@ -48,7 +48,10 @@
   .mono{font-family:'Inter', sans-serif; letter-spacing:0.08em; text-transform:uppercase;}
   ::selection{ background:var(--canvas); color:var(--ink); }
   /* mirrored N for the "Non-Иegotiable" brand treatment (matches the N|N logo) */
-  .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
+  /* Mirrored brand N. inline-block + scaleX(-1) otherwise absorbs the parent's
+     letter-spacing into its own box and jams the next glyph; reset it and add a
+     small symmetric margin so the mirror sits with even spacing at any tracking. */
+  .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); letter-spacing:0; margin:0 0.06em; }
   a{ color:inherit; } img{ display:block; max-width:100%; } button{ font-family:inherit; }
 
   .grain{ position:fixed; inset:0; z-index:200; pointer-events:none; opacity:0.035; mix-blend-mode:overlay;
@@ -280,7 +283,7 @@
   .ritual{ background:var(--canvas); }
   .ritual-grid{ display:grid; grid-template-columns: 1fr minmax(320px, 50%); gap:clamp(40px,6vw,88px); align-items:stretch; }
   .ritual-media{ height:100%; }
-  .ritual-media img{ display:block; width:100%; height:100%; object-fit:cover; object-position:38% center; }
+  .ritual-media img{ display:block; width:100%; height:100%; object-fit:cover; object-position:60% center; }
   .ritual-line{ margin-top:70px; max-width:720px; position:relative; }
   .ritual-line::before{ content:''; position:absolute; left:28px; top:10px; bottom:10px; width:1px; background:var(--line); }
   .ritual-item{ position:relative; padding-left:76px; margin-bottom:56px; opacity:0; transform:translateY(16px); }
@@ -375,11 +378,55 @@
   .os-hook .step .n{ font-family:'Inter',sans-serif; font-size:12px; color:var(--red); flex-shrink:0; padding-top:2px;}
   .os-hook .step h5{ font-weight:600; font-size:15px; margin-bottom:4px;}
   .os-hook .step p{ font-size:13.5px; color:rgba(13,13,13,0.55); margin:0; }
-  .os-visual{ max-width:480px; margin:0 auto; position:relative; }
+  .os-visual{ width:100%; max-width:480px; margin:0 auto; position:relative; }
   .os-visual::before{ content:''; position:absolute; inset:-10% -8%; z-index:0; pointer-events:none;
     background:radial-gradient(58% 52% at 62% 46%, rgba(31,163,90,0.18), rgba(31,163,90,0.05) 46%, transparent 72%);
     filter:blur(46px); }
   .os-visual img{ position:relative; z-index:1; width:100%; height:auto; display:block; }
+  /* ── AFORCE OS — production phone screens (Home / Readiness + Today's Ritual). Matte
+     black, premium teal; sized in container-query units so both screens scale exactly. ── */
+  .os-phones{ --os-teal:#19E5C6; --os-ink:#F4F2ED; --os-dim:rgba(244,242,237,0.52); --os-faint:rgba(244,242,237,0.3); position:relative; z-index:1; width:100%; max-width:480px; margin:0 auto; aspect-ratio:480/600; font-family:'Inter',sans-serif; }
+  .os-phone{ position:absolute; background:#0a0a0c; border:1px solid rgba(255,255,255,0.07); border-radius:13% / 6.2%; padding:2.4%; box-shadow:0 42px 68px -26px rgba(13,13,13,0.5), 0 10px 26px rgba(13,13,13,0.22); }
+  .os-phone--front{ width:62%; right:0; top:0; z-index:2; }
+  .os-phone--back{ width:58%; left:0; top:11%; transform:rotate(-4.5deg); z-index:1; }
+  .os-screen{ container-type:inline-size; position:relative; border-radius:10.5% / 5.4%; background:linear-gradient(180deg,#111116 0%,#0b0b0e 42%); overflow:hidden; aspect-ratio:9/19.3; color:var(--os-ink); display:flex; flex-direction:column; }
+  .os-status{ display:flex; justify-content:space-between; align-items:center; padding:5cqw 6.5cqw 0; }
+  .os-time{ font-size:3.6cqw; font-weight:600; }
+  .os-ind{ width:7cqw; height:3.2cqw; border-radius:1cqw; background:rgba(244,242,237,0.55); }
+  .os-body{ flex:1; padding:4cqw 6.5cqw 5cqw; display:flex; flex-direction:column; }
+  .os-eyebrow{ font-size:3cqw; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-faint); font-weight:600; }
+  .os-state{ margin-top:1.5cqw; font-size:5.2cqw; font-weight:700; letter-spacing:-0.01em; color:var(--os-teal); }
+  .os-gauge{ position:relative; width:60cqw; aspect-ratio:1; margin:5cqw auto 3cqw; }
+  .os-gauge svg{ width:100%; height:100%; transform:rotate(-90deg); overflow:visible; }
+  .os-ring-track{ fill:none; stroke:rgba(255,255,255,0.08); stroke-width:9; }
+  .os-ring-fill{ fill:none; stroke:var(--os-teal); stroke-width:9; stroke-linecap:round; stroke-dasharray:590.6; stroke-dashoffset:590.6; filter:drop-shadow(0 0 5px rgba(25,229,198,0.5)); transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1); }
+  .os-visual.visible .os-ring-fill{ stroke-dashoffset:106; }
+  .os-gauge-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .os-score{ font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:24cqw; line-height:1; letter-spacing:-0.02em; }
+  .os-score-label{ font-size:3.2cqw; letter-spacing:0.2em; text-transform:uppercase; color:var(--os-dim); margin-top:1.5cqw; }
+  .os-stats{ display:flex; gap:2.4cqw; margin-top:1cqw; }
+  .os-stat{ flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.06); border-radius:4cqw; padding:3cqw 2.6cqw; }
+  .os-stat-l{ display:block; font-size:2.7cqw; letter-spacing:0.08em; text-transform:uppercase; color:var(--os-faint); }
+  .os-stat-v{ display:block; margin-top:1cqw; font-size:3.7cqw; font-weight:600; }
+  .os-action{ margin-top:auto; background:linear-gradient(180deg,rgba(25,229,198,0.1),rgba(25,229,198,0.03)); border:1px solid rgba(25,229,198,0.22); border-radius:5cqw; padding:4cqw; }
+  .os-action-l{ display:block; font-size:2.7cqw; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-teal); }
+  .os-action-t{ display:block; margin-top:1.5cqw; font-size:4cqw; line-height:1.4; }
+  .os-nav{ display:flex; justify-content:space-between; padding:3.2cqw 8cqw 5cqw; border-top:1px solid rgba(255,255,255,0.06); }
+  .os-nav span{ font-size:3cqw; letter-spacing:0.06em; color:var(--os-faint); }
+  .os-nav span.is-on{ color:var(--os-teal); }
+  .os-title{ margin-top:1.5cqw; font-size:6.4cqw; font-weight:800; letter-spacing:-0.01em; }
+  .os-progress{ margin-top:3.5cqw; height:1.4cqw; border-radius:1cqw; background:rgba(255,255,255,0.08); overflow:hidden; }
+  .os-progress-bar{ display:block; height:100%; width:34%; background:var(--os-teal); border-radius:1cqw; }
+  .os-seq{ position:relative; margin-top:5cqw; display:flex; flex-direction:column; gap:4.4cqw; }
+  .os-seq::before{ content:''; position:absolute; left:2.4cqw; top:2cqw; bottom:2cqw; width:1px; background:rgba(255,255,255,0.1); }
+  .os-stage{ position:relative; display:flex; align-items:center; gap:4cqw; }
+  .os-node{ width:5cqw; height:5cqw; border-radius:50%; border:1px solid rgba(255,255,255,0.24); background:#0b0b0e; flex-shrink:0; z-index:1; }
+  .os-stage.is-done .os-node{ background:var(--os-teal); border-color:var(--os-teal); }
+  .os-stage.is-active .os-node{ background:var(--os-teal); border-color:var(--os-teal); box-shadow:0 0 0 2.6cqw rgba(25,229,198,0.16); }
+  .os-stage-name{ flex:1; font-size:4.4cqw; font-weight:600; color:var(--os-faint); }
+  .os-stage.is-done .os-stage-name{ color:var(--os-ink); }
+  .os-stage.is-active .os-stage-name{ color:var(--os-teal); }
+  .os-stage-when{ font-size:3cqw; letter-spacing:0.1em; text-transform:uppercase; color:var(--os-faint); }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
   .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0 0; }
@@ -604,7 +651,7 @@
       </div>
     </div>
     <div class="ritual-media fade-in">
-      <img src="assets/ritual-meditation.jpg" alt="A woman sits in cross-legged meditation on a mat in a calm, minimalist room at golden hour, floor-to-ceiling window behind her" width="2000" height="1125" loading="lazy">
+      <img src="assets/ritual-composure.jpg" alt="A man sits composed in a lounge chair by a floor-to-ceiling window at golden hour, mountains beyond, an AFORCE can, watch and wallet resting on the stone table" width="1200" height="1800" loading="lazy">
     </div>
   </div>
 </section>
@@ -667,17 +714,62 @@
 <section class="os-hook" id="os">
   <div class="copy">
     <div class="eyebrow-label fade-in">The AFORCE OS</div>
-    <h2 class="section-title fade-in">The can begins the ritual. The OS builds the habit.</h2>
-    <p class="fade-in">Every AFORCE purchase includes a free entry point into the OS — scan, enter, and start building the habit. No account wall, no requirement.</p>
+    <h2 class="section-title fade-in">Anyone can rise once.</h2>
+    <p class="fade-in">The prepared rise again — and again. The can begins the ritual. The system turns rituals into habits, and habits into the one thing pressure cannot take from you: readiness that has become who you are.</p>
     <div class="steps">
-      <div class="step fade-in"><span class="n">01</span><div><h5>Readiness</h5><p>Understand your daily performance state.</p></div></div>
-      <div class="step fade-in"><span class="n">02</span><div><h5>Hydration</h5><p>Build a repeatable hydration rhythm.</p></div></div>
-      <div class="step fade-in"><span class="n">03</span><div><h5>Consistency</h5><p>Track rituals, streaks and preparation.</p></div></div>
+      <div class="step fade-in"><span class="n">01</span><div><h5>Readiness</h5><p>Meet the day already knowing where you stand.</p></div></div>
+      <div class="step fade-in"><span class="n">02</span><div><h5>Discipline</h5><p>Hold the standard on the days that don't feel like it.</p></div></div>
+      <div class="step fade-in"><span class="n">03</span><div><h5>Composure</h5><p>Arrive at the moment that matters already prepared for it.</p></div></div>
     </div>
-    <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Explore the AFORCE OS &rarr;</a>
+    <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Enter the AFORCE OS &rarr;</a>
   </div>
   <div class="os-visual fade-in">
-    <img src="assets/os-app-mockup.png" alt="AFORCE OS app — Readiness Score of 79, Performance stable, and the Recovery Coach hydration prompt" width="880" height="1002" loading="lazy">
+    <div class="os-phones" role="img" aria-label="The AFORCE OS app — a Home / Readiness screen showing a readiness score of 82 with hydration, recovery and sleep status, and a Today's Ritual screen showing the day's sequence: Pause, Hydrate, Lock-In, Perform, Recover, Reflect">
+      <div class="os-phone os-phone--back" aria-hidden="true">
+        <div class="os-screen">
+          <div class="os-status"><span class="os-time">9:41</span><span class="os-ind"></span></div>
+          <div class="os-body">
+            <div class="os-eyebrow">Tuesday · Morning</div>
+            <div class="os-title">Today's Ritual</div>
+            <div class="os-progress"><span class="os-progress-bar"></span></div>
+            <div class="os-seq">
+              <div class="os-stage is-done"><span class="os-node"></span><span class="os-stage-name">Pause</span><span class="os-stage-when">Done</span></div>
+              <div class="os-stage is-done"><span class="os-node"></span><span class="os-stage-name">Hydrate</span><span class="os-stage-when">Done</span></div>
+              <div class="os-stage is-active"><span class="os-node"></span><span class="os-stage-name">Lock-In</span><span class="os-stage-when">Now</span></div>
+              <div class="os-stage"><span class="os-node"></span><span class="os-stage-name">Perform</span><span class="os-stage-when">Midday</span></div>
+              <div class="os-stage"><span class="os-node"></span><span class="os-stage-name">Recover</span><span class="os-stage-when">Evening</span></div>
+              <div class="os-stage"><span class="os-node"></span><span class="os-stage-name">Reflect</span><span class="os-stage-when">Night</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="os-phone os-phone--front">
+        <div class="os-screen">
+          <div class="os-status"><span class="os-time">9:41</span><span class="os-ind"></span></div>
+          <div class="os-body">
+            <div class="os-eyebrow">AFORCE OS · New York</div>
+            <div class="os-state">Ready to perform.</div>
+            <div class="os-gauge">
+              <svg viewBox="0 0 220 220" aria-hidden="true">
+                <circle class="os-ring-track" cx="110" cy="110" r="94"></circle>
+                <circle class="os-ring-fill" cx="110" cy="110" r="94"></circle>
+              </svg>
+              <div class="os-gauge-center"><span class="os-score">82</span><span class="os-score-label">Readiness</span></div>
+            </div>
+            <div class="os-stats">
+              <div class="os-stat"><span class="os-stat-l">Hydration</span><span class="os-stat-v">On pace</span></div>
+              <div class="os-stat"><span class="os-stat-l">Recovery</span><span class="os-stat-v">Strong</span></div>
+              <div class="os-stat"><span class="os-stat-l">Sleep</span><span class="os-stat-v">7h 40m</span></div>
+            </div>
+            <div class="os-action">
+              <span class="os-action-l">Today's focus</span>
+              <span class="os-action-t">Hydrate before your 10:00. Recheck at noon.</span>
+            </div>
+          </div>
+          <div class="os-nav"><span class="is-on">Home</span><span>Ritual</span><span>Scan</span><span>Timeline</span></div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
