@@ -38,7 +38,12 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { reduceSleepByIntervalUnion, selectSleepIntervals, type SleepInterval } from '../appleHealth';
+import {
+  reduceSleepByIntervalUnion,
+  reduceSleepByIntervalUnionDetailed,
+  selectSleepIntervals,
+  type SleepInterval,
+} from '../appleHealth';
 
 const HOUR = 60 * 60 * 1000;
 const MIN = 60 * 1000;
@@ -379,5 +384,71 @@ describe('reduceSleepByIntervalUnion — inBed(0)/awake(2) exclusion', () => {
     const { branch } = selectSleepIntervals(intervals);
     expect(branch).toBe('unspecified');
     expect(selectThenUnion(intervals)).toBe(6 * HOUR);
+  });
+});
+
+/**
+ * RC-2 Founder Ruling C (2026-08-06) — `sleepHoursLastNight`'s chosen
+ * observation time: "the end of the LAST merged asleep interval from the
+ * union selection." `reduceSleepByIntervalUnionDetailed` is the exact same
+ * reduction as `reduceSleepByIntervalUnion` (proven identical `totalMs` in
+ * every case below) with the last merged run's end also captured.
+ */
+describe('reduceSleepByIntervalUnionDetailed — lastEndMs (Ruling C)', () => {
+  it('totalMs is byte-identical to reduceSleepByIntervalUnion for the same input', () => {
+    const intervals: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      { startMs: 90 * MIN, endMs: 150 * MIN, value: 3, sourceName: "Brandon's Apple Watch" },
+    ];
+    const detailed = reduceSleepByIntervalUnionDetailed(intervals);
+    expect(detailed.totalMs).toBe(reduceSleepByIntervalUnion(intervals));
+  });
+
+  it('lastEndMs is the end of the LAST (latest-starting) merged run — a genuine gap starts a new run', () => {
+    const intervals: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      // Gap, then a second run ending later — lastEndMs must reflect THIS run's end.
+      { startMs: 90 * MIN, endMs: 150 * MIN, value: 3, sourceName: "Brandon's Apple Watch" },
+    ];
+    expect(reduceSleepByIntervalUnionDetailed(intervals).lastEndMs).toBe(150 * MIN);
+  });
+
+  it('overlapping intervals within the last run extend lastEndMs to the latest end seen in that run', () => {
+    const intervals: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      // Same run (overlaps the first) but a shorter source — must NOT
+      // regress lastEndMs backward.
+      { startMs: 30 * MIN, endMs: 50 * MIN, value: 1, sourceName: 'iPhone' },
+    ];
+    // Stage present -> iPhone's value-1 sample is excluded by selection
+    // entirely, so only the Watch's [0, 60min] survives; lastEndMs = 60min.
+    expect(reduceSleepByIntervalUnionDetailed(intervals).lastEndMs).toBe(HOUR);
+  });
+
+  it('the device-scenario fixture (Watch stages + iPhone unspecified, same night) resolves lastEndMs to the stage total\'s own end', () => {
+    const watchStages: SleepInterval[] = Array.from({ length: 8 }, (_, i) => {
+      const start = Date.UTC(2026, 7, 5, 23, 0, 0) + i * 50 * MIN;
+      return {
+        startMs: start,
+        endMs: start + 50 * MIN,
+        value: (3 + (i % 3)) as 3 | 4 | 5,
+        sourceName: "Brandon's Apple Watch",
+      };
+    });
+    const iPhoneUnspecified: SleepInterval = {
+      startMs: Date.UTC(2026, 7, 5, 23, 0, 0),
+      endMs: Date.UTC(2026, 7, 5, 23, 0, 0) + 396 * MIN,
+      value: 1,
+      sourceName: 'iPhone',
+    };
+    const { lastEndMs } = reduceSleepByIntervalUnionDetailed([...watchStages, iPhoneUnspecified]);
+    // 8 contiguous 50-min stage segments starting 23:00 -> the last one ends at 23:00 + 400min.
+    expect(lastEndMs).toBe(Date.UTC(2026, 7, 5, 23, 0, 0) + 400 * MIN);
+  });
+
+  it('empty / all-excluded input yields totalMs 0 and lastEndMs null, never throws', () => {
+    expect(reduceSleepByIntervalUnionDetailed([])).toEqual({ totalMs: 0, lastEndMs: null });
+    const inBedOnly: SleepInterval[] = [{ startMs: 0, endMs: HOUR, value: 0, sourceName: 'iPhone' }];
+    expect(reduceSleepByIntervalUnionDetailed(inBedOnly)).toEqual({ totalMs: 0, lastEndMs: null });
   });
 });

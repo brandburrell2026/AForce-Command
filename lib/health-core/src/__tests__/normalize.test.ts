@@ -130,6 +130,65 @@ describe('latestObservedAtMs passthrough (Founder Ruling I, RC-2)', () => {
   });
 });
 
+describe('fieldObservedAtMs passthrough (Founder Ruling C, RC-2)', () => {
+  it('passes through known keys with finite values', () => {
+    const s = normalizeProviderSnapshot('apple_health', {
+      fetchedAt: T,
+      fieldObservedAtMs: {
+        hrvSdnn: T - 5_000,
+        restingHeartRate: T - 6_000,
+        sleepHoursLastNight: T - 7_000,
+        stepsToday: T - 8_000,
+      },
+    })!;
+    expect(s.fieldObservedAtMs).toEqual({
+      hrvSdnn: T - 5_000,
+      restingHeartRate: T - 6_000,
+      sleepHoursLastNight: T - 7_000,
+      stepsToday: T - 8_000,
+    });
+  });
+
+  it('is absent (not an empty object) when missing on the raw blob — legacy-blob fallback case', () => {
+    const s = normalizeProviderSnapshot('whoop', { fetchedAt: T })!;
+    expect(s.fieldObservedAtMs).toBeUndefined();
+    expect('fieldObservedAtMs' in s).toBe(false);
+  });
+
+  it('drops unknown keys — an explicit whitelist, not a blind passthrough', () => {
+    const s = normalizeProviderSnapshot('apple_health', {
+      fetchedAt: T,
+      fieldObservedAtMs: { hrvSdnn: T - 1_000, notARealField: T - 2_000, __proto__: 'x' },
+    })!;
+    expect(s.fieldObservedAtMs).toEqual({ hrvSdnn: T - 1_000 });
+  });
+
+  it('drops non-finite per-field values but keeps the well-formed siblings', () => {
+    const s = normalizeProviderSnapshot('apple_health', {
+      fetchedAt: T,
+      fieldObservedAtMs: { hrvSdnn: Number.NaN, stepsToday: T - 1_000, sleepHoursLastNight: 'bad' },
+    })!;
+    expect(s.fieldObservedAtMs).toEqual({ stepsToday: T - 1_000 });
+  });
+
+  it('a non-object fieldObservedAtMs (string, number, null) normalizes to absent, never throws', () => {
+    expect(
+      normalizeProviderSnapshot('apple_health', { fetchedAt: T, fieldObservedAtMs: 'nope' })!.fieldObservedAtMs,
+    ).toBeUndefined();
+    expect(
+      normalizeProviderSnapshot('apple_health', { fetchedAt: T, fieldObservedAtMs: null })!.fieldObservedAtMs,
+    ).toBeUndefined();
+  });
+
+  it('an object with every value non-finite normalizes to absent (not an empty object)', () => {
+    const s = normalizeProviderSnapshot('apple_health', {
+      fetchedAt: T,
+      fieldObservedAtMs: { hrvSdnn: Number.NaN },
+    })!;
+    expect(s.fieldObservedAtMs).toBeUndefined();
+  });
+});
+
 describe('resolveHrv — the one legacy-compatible HRV read path', () => {
   it('prefers canonical fields and reports no translation', () => {
     const r = resolveHrv({ providerId: 'whoop', hrvRmssdMs: 58, hrvSdnn: 999, fetchedAt: T });

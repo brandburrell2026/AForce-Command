@@ -301,6 +301,24 @@ export interface ProviderSnapshot {
    * undefined — never fabricate or backfill it.
    */
   latestObservedAtMs?: number;
+  /**
+   * Per-FIELD observation times (epoch ms), keyed by the ProviderSnapshot
+   * metric field the timestamp belongs to. OPTIONAL and ADDITIVE (Founder
+   * Ruling C, RC-2, 2026-08-06): populated today only by `apple_health`
+   * (artifacts/aforce-os/services/appleHealth.ts is the sole producer) —
+   * every other provider stays snapshot-level-only via `latestObservedAtMs`
+   * above, because a cloud sync/poll returns one observation moment for the
+   * whole payload, not a distinct one per metric. A field missing from this
+   * map is NOT "observed now": consumers MUST fall back to
+   * `latestObservedAtMs`, then `fetchedAt` — see
+   * `utils/biometricsAggregator.ts`'s `resolveComparisonTimestamp`, the one
+   * canonical implementation of that fallback chain. Never fabricated or
+   * backfilled — absent when the producer has no usable per-field moment.
+   */
+  fieldObservedAtMs?: Partial<Record<
+    'restingHeartRate' | 'hrvSdnn' | 'sleepHoursLastNight' | 'stepsToday',
+    number
+  >>;
   /** Stamped by the normalization boundary; absent on raw legacy blobs. */
   schemaVersion?: number;
 }

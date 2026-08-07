@@ -246,10 +246,18 @@ export function buildConnectedHealthInput(input: ConnectedHealthContainerModelIn
     const status = deriveProviderRowStatus(rowFacts);
     const lastSyncAtMs = input.biometrics?.[p.id]?.fetchedAt ?? null;
     // Founder Ruling I (RC-2 part 2): pass the snapshot's own observation
-    // timestamp straight through — absent on legacy blobs and on providers
-    // part 1 (#562) never wired server-side derivation for (Apple Health /
-    // Health Connect today), never fabricated here. `resolveProviderPresentation`
-    // treats an absent value as byte-identical to pre-Ruling-I behavior.
+    // timestamp straight through — never fabricated here.
+    // `resolveProviderPresentation` treats an absent value as byte-identical
+    // to pre-Ruling-I behavior. This line is fully generic across every
+    // `p.id`, `apple_health` included: as of RC-2 Ruling C
+    // (utils/biometricsAggregator.ts's `buildAppleHealthProviderSnapshot`),
+    // `biometrics.apple_health.latestObservedAtMs` IS populated (via a
+    // client-side, not server-side, derivation — #562's server-side
+    // derivation still only covers WHOOP/Oura/Garmin), so this Connected
+    // Health surface now displays Apple's real dual-axis freshness with
+    // zero further wiring. `samsung_health` / Health Connect remains
+    // absent — no client wiring exists for it at all yet, per
+    // `docs/health/validation/runbook-health-connect-samsung.md`.
     const observedAtMs = input.biometrics?.[p.id]?.latestObservedAtMs ?? null;
     const presentation = resolveProviderPresentation({
       status,

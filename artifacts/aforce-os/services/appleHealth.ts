@@ -38,6 +38,31 @@ export interface AppleHealthSnapshot {
   stepsToday: number | null;
   /** Total sleep duration for the prior night (hours). */
   sleepHoursLastNight: number | null;
+  /**
+   * Per-field OBSERVATION times (epoch ms) — RC-2 Founder Ruling C
+   * (2026-08-06). The moment the underlying phenomenon happened, as
+   * distinct from `fetchedAt` (stamped by the caller — see
+   * ProfileScreenV2.tsx/ProfileLegacy.tsx's `{ ...snap, fetchedAt:
+   * Date.now() }`), which is when THIS APP read it from HealthKit. OPTIONAL
+   * and ADDITIVE: undefined whenever the corresponding metric itself is
+   * null (nothing was observed, so there is nothing to timestamp) —
+   * never fabricated. See each field's assignment in
+   * `fetchAppleHealthSnapshot` for exactly how it's derived.
+   */
+  restingHeartRateObservedAtMs?: number;
+  hrvSdnnObservedAtMs?: number;
+  sleepHoursLastNightObservedAtMs?: number;
+  stepsTodayObservedAtMs?: number;
+  /**
+   * max(...the four fields above) — closes, for `apple_health` specifically,
+   * the observation-freshness gap registered by Founder Ruling I / #562 and
+   * tracked in `docs/health/validation/runbook-apple-healthkit.md`'s "Known
+   * gaps" section (see that doc's RC-2 Ruling C update for the closure
+   * note — `samsung_health`'s half of that shared gap bullet is UNCHANGED
+   * and stays open). Undefined only when every per-field time above is also
+   * undefined (nothing observed at all, e.g. permission denied).
+   */
+  latestObservedAtMs?: number;
 }
 
 const EMPTY_SNAPSHOT: AppleHealthSnapshot = {
@@ -222,6 +247,40 @@ export function reduceStepsByBucketMax(buckets: readonly StepsSourceBucket[]): n
   return total;
 }
 
+const STEPS_BUCKET_MS = 60 * 60 * 1000; // buckets are queried at `{ hour: 1 }` granularity
+
+/**
+ * RC-2 Founder Ruling C (observation-time arbitration): `stepsToday`'s
+ * chosen observation moment is the END of the LATEST hour-bucket that
+ * actually contributed to the bucketed-max total (i.e. survived the same
+ * per-bucket MAX reduction `reduceStepsByBucketMax` performs, with
+ * quantity > 0) — an hour-granularity approximation of "the moment the
+ * last real activity this total reflects was recorded," which is the
+ * finest resolution `queryStatisticsCollectionForQuantitySeparateBySource`
+ * exposes (it returns bucket boundaries, not individual sample
+ * timestamps). Buckets are queried at `{ hour: 1 }` granularity elsewhere
+ * in this file, so end = start + 1h. Returns null when every bucket is
+ * empty/zero (nothing to timestamp) — the caller falls back to `now` for
+ * the raw-sum fallback path (steps are a rolling today-aggregate with no
+ * single "last observed" instant in that path, so `now` at fetch is the
+ * most honest available choice; see `fetchAppleHealthSnapshot`).
+ */
+export function lastNonEmptyStepsBucketEndMs(buckets: readonly StepsSourceBucket[]): number | null {
+  const bucketMax = new Map<string, number>();
+  for (const b of buckets) {
+    const prev = bucketMax.get(b.startDate) ?? 0;
+    if (b.quantity > prev) bucketMax.set(b.startDate, b.quantity);
+  }
+  let latestStartMs: number | null = null;
+  for (const [startDate, qty] of bucketMax.entries()) {
+    if (qty <= 0) continue;
+    const startMs = new Date(startDate).getTime();
+    if (!Number.isFinite(startMs)) continue;
+    if (latestStartMs === null || startMs > latestStartMs) latestStartMs = startMs;
+  }
+  return latestStartMs === null ? null : latestStartMs + STEPS_BUCKET_MS;
+}
+
 /**
  * Pure adapter: HealthKit's raw per-source statistics-collection response
  * (`QueryStatisticsResponseFromSingleSource[]` — see the installed
@@ -402,12 +461,27 @@ export function selectSleepIntervals(
     : { branch: 'stages', selected: stageIntervals };
 }
 
+export interface SleepUnionResult {
+  /** Total asleep milliseconds — identical to `reduceSleepByIntervalUnion`'s return value. */
+  totalMs: number;
+  /**
+   * End of the LAST (chronologically latest-starting) merged run — RC-2
+   * Founder Ruling C's chosen `sleepHoursLastNight` observation moment:
+   * "the moment the observed sleep ended." Null only when `selected` is
+   * empty (nothing to timestamp — mirrors `totalMs: 0` in that case).
+   */
+  lastEndMs: number | null;
+}
+
 /**
  * Pure reduction: sort an ALREADY-SELECTED interval set by start and merge
  * overlapping/adjacent intervals before summing — guarding BOTH
  * cross-source overlap (Watch stages + iPhone unspecified for the same
  * night) and same-source overlap (two overlapping samples from one source).
- * Returns milliseconds asleep; an empty input returns 0, never throws.
+ * Returns the total AND the last merged run's end (see `SleepUnionResult`,
+ * RC-2 Founder Ruling C — `lastEndMs` is `sleepHoursLastNight`'s chosen
+ * observation moment: "the moment the observed sleep ended"). An empty
+ * input returns `{ totalMs: 0, lastEndMs: null }`, never throws.
  *
  * RC-2 P0 follow-up (S3, 2026-08-06): this function used to re-run
  * `selectSleepIntervals` internally while its only caller
@@ -415,15 +489,18 @@ export function selectSleepIntervals(
  * selection executed twice per fetch, and this "union" function secretly
  * selected too, contradicting its name. It now does exactly one thing: union
  * whatever interval set it is given. Callers select once, then union that
- * same result. Passing an unfiltered/unselected interval set (e.g. raw
- * inBed/awake samples) will merge them too — filtering is the caller's job.
- * See `services/__tests__/appleHealth.sleepAggregation.test.ts` for the
+ * same result — which is also why `lastEndMs` is trustworthy as "the
+ * moment observed sleep ended": it is computed over the SAME selected set
+ * the returned total was computed over, never over raw/unselected samples.
+ * Passing an unfiltered/unselected interval set (e.g. raw inBed/awake
+ * samples) will merge them too — filtering is the caller's job. See
+ * `services/__tests__/appleHealth.sleepAggregation.test.ts` for the
  * multi-source device-scenario fixture, same-source-overlap fixture, and
  * the adjacent-vs-gap distinction (an awake gap between two stage runs is
  * never bridged into asleep time).
  */
-export function reduceSleepByIntervalUnion(selectedIntervals: readonly SleepInterval[]): number {
-  if (selectedIntervals.length === 0) return 0;
+export function reduceSleepByIntervalUnionDetailed(selectedIntervals: readonly SleepInterval[]): SleepUnionResult {
+  if (selectedIntervals.length === 0) return { totalMs: 0, lastEndMs: null };
 
   const sorted = [...selectedIntervals].sort((a, b) => a.startMs - b.startMs);
   let total = 0;
@@ -445,7 +522,20 @@ export function reduceSleepByIntervalUnion(selectedIntervals: readonly SleepInte
     }
   }
   total += Math.max(0, curEnd - curStart);
-  return total;
+  return { totalMs: total, lastEndMs: curEnd };
+}
+
+/**
+ * Pure reduction: total asleep milliseconds only — see
+ * `reduceSleepByIntervalUnionDetailed` (this function's byte-identical
+ * `totalMs` given the same ALREADY-SELECTED input; extracted so RC-2
+ * Ruling C's `lastEndMs` capture could be added without touching this
+ * function's signature or its existing call sites/tests). Takes an
+ * already-selected interval set — see the detailed version's header for
+ * why (RC-2 P0 follow-up S3: no internal `selectSleepIntervals` call).
+ */
+export function reduceSleepByIntervalUnion(selectedIntervals: readonly SleepInterval[]): number {
+  return reduceSleepByIntervalUnionDetailed(selectedIntervals).totalMs;
 }
 
 /**
@@ -552,6 +642,21 @@ function computeSleepPerSourceTotals(intervals: readonly SleepInterval[]): Apple
   }));
 }
 
+/**
+ * RC-2 Founder Ruling C: a single, defensive date→epoch-ms conversion used
+ * everywhere this file derives a per-field observation time from a raw
+ * HealthKit sample's `endDate` (a `Date`, or an ISO string depending on
+ * which query path produced it — both are valid `Date` constructor input).
+ * Never throws; an unparseable or absent value simply yields `null`, which
+ * every call site treats as "no observation time for this field" — never a
+ * fabricated fallback like `now`.
+ */
+export function toEpochMsOrNull(dateLike: unknown): number | null {
+  if (dateLike == null) return null;
+  const ms = new Date(dateLike as string | number | Date).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
 function toDiagnosticSample(raw: any, unit: string): AppleHealthDiagnosticSample | null {
   if (!raw) return null;
   return {
@@ -606,11 +711,17 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     mostRecentQuantitySample('HKQuantityTypeIdentifierRestingHeartRate', 'count/min'),
   );
   const restingHeartRate = restingHeartRateSample?.quantity ?? null;
+  // RC-2 Ruling C: RHR's observation moment is this sample's own endDate —
+  // the newest reading HealthKit actually has, not when we happened to ask.
+  const restingHeartRateObservedAtMs = toEpochMsOrNull(restingHeartRateSample?.endDate);
 
   const hrvSdnnSample = await safe(() =>
     mostRecentQuantitySample('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', 'ms'),
   );
   const hrvSdnn = hrvSdnnSample?.quantity ?? null;
+  // Same rule for HRV — already captured for diagnostics via
+  // `toDiagnosticSample` below; this is the score-facing counterpart.
+  const hrvSdnnObservedAtMs = toEpochMsOrNull(hrvSdnnSample?.endDate);
 
   // ── Steps: raw sum (OLD, kept for fallback + diagnostics) ──────────────
   // N3 (RC-2 independent-verdict review): the sample array's length is
@@ -633,6 +744,14 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // ── Steps: bucketed max-per-source-per-hour (NEW) ───────────────────────
   let stepsBucketedMax: number | null = null;
   let stepsUsedFallback = false;
+  // RC-2 Ruling C: end of the latest non-empty hour-bucket — see
+  // `lastNonEmptyStepsBucketEndMs`'s header for why hour granularity is the
+  // finest available here. Captured unconditionally alongside
+  // `stepsBucketedMax`; which one the snapshot actually uses is resolved
+  // after `stepsUsedFallback` is finalized below (raw fallback uses `now`
+  // instead — steps are a rolling aggregate with no single bucket boundary
+  // in that path).
+  let stepsBucketedObservedAtMs: number | null = null;
   try {
     const perSourceHourly = await HK.queryStatisticsCollectionForQuantitySeparateBySource(
       'HKQuantityTypeIdentifierStepCount',
@@ -642,6 +761,7 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
       { unit: 'count', filter: { date: { startDate: startOfDay, endDate: now } } },
     );
     const buckets = mapStatsToBuckets(perSourceHourly);
+    stepsBucketedObservedAtMs = lastNonEmptyStepsBucketEndMs(buckets);
     // B1.3 (RC-2 independent-verdict review — BLOCKING): the native
     // `handleHKNoDataOrThrow` path (ios/QuantityTypeModule.swift) RESOLVES
     // with an empty array on HealthKit's `errorNoData`, it does not throw —
@@ -723,6 +843,12 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // See docs/health/validation/APPLE-PIPELINE-AUDIT.md §3 for the full
   // record of this decision and what build 48 must report.
   const stepsToday = stepsUsedFallback ? stepsRawSampleSum : stepsBucketedMax;
+  // RC-2 Ruling C: resolved AFTER `stepsUsedFallback` is final (it can flip
+  // true in either the try block above or the catch below it) — bucketed
+  // path uses the last non-empty bucket's end; raw-fallback path uses `now`
+  // at fetch time (documented choice: a rolling today-aggregate has no
+  // single "last observed" instant to point to in that path).
+  const stepsTodayObservedAtMs = stepsUsedFallback ? now.getTime() : stepsBucketedObservedAtMs;
 
   // ── Sleep: interval-union, source-aware (RC-2 Ruling A) ────────────────
   // See the "Sleep aggregation" section header above `SleepInterval` for the
@@ -738,6 +864,11 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   let sleepRawSumMs: number | null = null;
   let sleepUsedFallback = false;
   let sleepIntervalsForDiagnostics: SleepInterval[] = [];
+  // RC-2 Ruling C: "the moment the observed sleep ended" — set from the
+  // union reduction's own `lastEndMs`. Stays `null` on the S2 unknown-data
+  // path below (the value itself is `null` there too — nothing to
+  // timestamp when the metric is unknown).
+  let sleepHoursLastNightObservedAtMs: number | null = null;
   const sleepHoursLastNight = await safe(async () => {
     const samples = await HK.queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
       ascending: true,
@@ -755,7 +886,12 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     sleepSelectionBranch = branch;
     sleepSummedSampleCount = selected.length;
 
-    const unionMs = reduceSleepByIntervalUnion(selected);
+    // RC-2 Ruling C: `reduceSleepByIntervalUnionDetailed` runs over `selected`
+    // (the POST-selection set), exactly matching what `reduceSleepByIntervalUnion`
+    // itself is given per S3's contract above — `lastEndMs` is therefore the
+    // end of the same merged run the returned total came from, never a raw/
+    // unselected sample's end.
+    const { totalMs: unionMs, lastEndMs } = reduceSleepByIntervalUnionDetailed(selected);
     sleepUnionMs = unionMs;
     const rawMs = sumRawSleepSamples(samples) ?? 0;
     sleepRawSumMs = rawMs;
@@ -792,8 +928,12 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     const adapterDroppedSamples = intervals.length < (sleepTotalSampleCount ?? 0);
     if (unionMs === 0 && adapterDroppedSamples) {
       sleepUsedFallback = true;
+      // RC-2 Ruling C: the value itself is `null` here (S2, above) — there is
+      // nothing to timestamp when the metric is unknown, not a guess.
+      // `sleepHoursLastNightObservedAtMs` stays at its `null` initializer.
       return null;
     }
+    sleepHoursLastNightObservedAtMs = lastEndMs;
     return unionMs / MS_PER_HOUR;
   });
 
@@ -811,6 +951,26 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     // rounds only the value that ships in the returned snapshot.
     stepsToday: stepsToday != null ? Math.round(stepsToday) : null,
     sleepHoursLastNight: sleepHoursLastNight ?? null,
+    // RC-2 Founder Ruling C: per-field observation times, optional/additive
+    // (undefined, never null, matching `ProviderSnapshot.fieldObservedAtMs`'s
+    // convention — see that field's doc comment in
+    // lib/health-core/src/contracts.ts). `latestObservedAtMs` is the max of
+    // whichever of the four below are actually present; undefined only when
+    // every one of them is (nothing observed at all — e.g. every HealthKit
+    // read failed or returned empty).
+    ...(restingHeartRateObservedAtMs != null ? { restingHeartRateObservedAtMs } : {}),
+    ...(hrvSdnnObservedAtMs != null ? { hrvSdnnObservedAtMs } : {}),
+    ...(sleepHoursLastNightObservedAtMs != null ? { sleepHoursLastNightObservedAtMs } : {}),
+    ...(stepsTodayObservedAtMs != null ? { stepsTodayObservedAtMs } : {}),
+    ...(() => {
+      const observed = [
+        restingHeartRateObservedAtMs,
+        hrvSdnnObservedAtMs,
+        sleepHoursLastNightObservedAtMs,
+        stepsTodayObservedAtMs,
+      ].filter((v): v is number => v != null);
+      return observed.length > 0 ? { latestObservedAtMs: Math.max(...observed) } : {};
+    })(),
   };
 
   // ── Diagnostics capture (internal-TestFlight only) ──────────────────────

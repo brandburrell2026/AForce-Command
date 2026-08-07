@@ -22,6 +22,7 @@ import {
   calculateScore as _initialOnly,
 } from '../../utils/scoringEngine';
 import { inferFlavorFromLabel } from '../../utils/inferFlavorFromLabel';
+import { buildAppleHealthProviderSnapshot } from '../../utils/biometricsAggregator';
 import { PRODUCTS } from '../../data/products';
 import { isStimulantCategory } from '../../data/drinkCatalog';
 import { recordCaffeineSignal } from '../../services/performanceMemoryCapture';
@@ -565,14 +566,13 @@ export function useStoreActions({
           appleHealth: snapshot,
           biometrics: {
             ...baseBio,
-            apple_health: {
-              providerId: 'apple_health' as const,
-              restingHeartRate: snapshot.restingHeartRate,
-              hrvSdnn: snapshot.hrvSdnn,
-              sleepHoursLastNight: snapshot.sleepHoursLastNight,
-              stepsToday: snapshot.stepsToday,
-              fetchedAt: snapshot.fetchedAt,
-            },
+            // RC-2 Founder Ruling C: carries the optional per-field
+            // observation times through additively — see
+            // `buildAppleHealthProviderSnapshot`'s header. This mirrors
+            // (and must stay in sync with) the identical mapping in
+            // `SET_APPLE_HEALTH` (store/appStoreReducer.ts) — both now
+            // call the SAME function rather than maintaining two copies.
+            apple_health: buildAppleHealthProviderSnapshot(snapshot),
           },
         }
       : (() => {

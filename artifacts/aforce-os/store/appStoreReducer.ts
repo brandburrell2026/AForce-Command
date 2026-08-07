@@ -10,6 +10,7 @@
 import type { UserState } from '../types';
 import type { AppState, Action } from './appStoreTypes';
 import { mergeBiometrics } from '../utils/biometricsMerge';
+import { buildAppleHealthProviderSnapshot } from '../utils/biometricsAggregator';
 
 /**
  * Canonical default body weight (lb). Matches `mockUserProfile.bodyWeightLbs`
@@ -196,14 +197,10 @@ export function reducer(state: AppState, action: Action): AppState {
           appleHealth: snapshot,
           biometrics: {
             ...baseBio,
-            apple_health: {
-              providerId: 'apple_health',
-              restingHeartRate: snapshot.restingHeartRate,
-              hrvSdnn: snapshot.hrvSdnn,
-              sleepHoursLastNight: snapshot.sleepHoursLastNight,
-              stepsToday: snapshot.stepsToday,
-              fetchedAt: snapshot.fetchedAt,
-            },
+            // RC-2 Founder Ruling C: carries the optional per-field
+            // observation times through additively — see
+            // `buildAppleHealthProviderSnapshot`'s header.
+            apple_health: buildAppleHealthProviderSnapshot(snapshot),
           },
         };
       } else {

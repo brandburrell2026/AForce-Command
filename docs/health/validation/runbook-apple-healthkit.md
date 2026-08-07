@@ -7,30 +7,36 @@ dependency gate) — both OFF in DEFAULT and DEMO flag sets today
 (`artifacts/aforce-os/featureFlags/flags.ts`).
 **Connect method:** `device_native`, iOS only, no external approval required.
 
-> **Deviation register — Founder Ruling I (RC-2, part 2) is PARTIALLY
-> satisfied at ship.** The ruling ("observation freshness and sync
-> freshness must be displayed separately and truthfully") is fully
-> implemented at the presentation layer (`resolveProviderPresentation`,
-> `connectedHealthView.ts`, `ConnectedHealthView.tsx` all support dual-axis
-> display) and fully fed for WHOOP/Oura/Garmin, each of which derives
-> `ProviderSnapshot.latestObservedAtMs` server-side from its own payload.
-> **`apple_health` and `samsung_health` (Health Connect) remain
-> sync-recency-only at ship** — neither has a server-side derivation path
-> for the observation axis (see "Known gaps" below). `apple_health` is
-> client-wired and actively syncing, so this is a live gap today: its
-> blob never populates the field and it falls back to the presentation
-> layer's documented absent-field behavior. `samsung_health` has no client
+> **Deviation register — Founder Ruling I (RC-2, part 2) update: `apple_health`'s
+> half CLOSED 2026-08-06 (Founder Ruling C).** The ruling ("observation
+> freshness and sync freshness must be displayed separately and
+> truthfully") is fully implemented at the presentation layer
+> (`resolveProviderPresentation`, `connectedHealthView.ts`,
+> `ConnectedHealthView.tsx` all support dual-axis display) and fed for
+> WHOOP/Oura/Garmin (server-side `ProviderSnapshot.latestObservedAtMs`
+> derivation, #562) — that part is unchanged by this update. **`apple_health`
+> now feeds the observation axis too, via a CLIENT-side (not server-side)
+> derivation added by Founder Ruling C, RC-2** (2026-08-06,
+> `fix/rc2-observation-time-arbitration`):
+> `services/appleHealth.ts`'s `fetchAppleHealthSnapshot` derives a
+> per-field observation moment for `hrvSdnn` / `restingHeartRate` /
+> `sleepHoursLastNight` / `stepsToday` directly from the underlying
+> HealthKit sample/interval/bucket data (see "Known gaps" below for the
+> full derivation-per-field record), and
+> `utils/biometricsAggregator.ts`'s `buildAppleHealthProviderSnapshot`
+> carries the max of those into `biometrics.apple_health.latestObservedAtMs`.
+> `connectedHealthContainerModel.ts`'s `buildConnectedHealthInput` already
+> read `latestObservedAtMs` fully generically per provider (no apple_health
+> exclusion in that code), so this Connected Health surface now displays
+> Apple's real dual-axis freshness with ZERO further wiring beyond the
+> data now existing. **`samsung_health` (Health Connect) remains
+> sync-recency-only and UNCHANGED by this update** — it has no client
 > wiring at all yet (`healthConnect/sync.ts`, per
-> `runbook-health-connect-samsung.md`), so the same absence applies only
-> trivially today — but the underlying gap (no observation-axis
-> derivation) is real and would surface the identical sync-recency-only
-> behavior the moment client wiring lands, so it is disclosed here
-> alongside Apple's rather than deferred. Both are one disclosed, named
-> engineering gap (owner: react-native-engineer; trigger: Track A device
-> work), not a product-policy exception — do not read "Ruling I done" from
-> the presentation layer's dual-axis capability alone; two of the four
-> active providers do not yet feed it a second axis. The
-> same line appears in `docs/health/rollout/
+> `runbook-health-connect-samsung.md`), so its half of this gap stays
+> open, owned, and disclosed exactly as before. Do not read "Ruling I
+> done" from Apple's closure alone — one of the four active providers
+> (Health Connect) still does not feed the observation axis. The same
+> update appears in `docs/health/rollout/
 > RC2-RULING-A-INTERNAL-TESTFLIGHT-OVERLAY.md` so this status is visible
 > from either doc.
 
@@ -154,41 +160,56 @@ checkbox below that appears to fail ONLY because it observed one of these
 gaps is a false FAIL — do not fail the run on it; record the gap as
 already-known and move on.
 
-- **Observation-freshness axis (Founder Ruling I, RC-2) is unwired for
-  Apple Health specifically — a named, owned engineering gap, not a
-  phantom ticket.** `ProviderSnapshot.latestObservedAtMs`
+- **Observation-freshness axis (Founder Ruling I, RC-2) — Apple Health's
+  half CLOSED 2026-08-06 (Founder Ruling C,
+  `fix/rc2-observation-time-arbitration`).** `ProviderSnapshot.latestObservedAtMs`
   (`lib/health-core/src/contracts.ts`, RC-2 part 1, #562) is derived
   server-side for WHOOP/Oura/Garmin from each provider's own payload
-  timestamps. HealthKit sync is client-only
-  (`artifacts/aforce-os/services/appleHealth.ts` /
-  `artifacts/aforce-os/services/health/appleHealthSync.ts`) — no
-  api-server derivation path touches it, so `apple_health` blobs never
-  populate the field today; `resolveProviderPresentation` correctly falls
-  back to sync-recency-only, exactly its documented absent-field parity
-  contract (see the Stale checkbox below). `samsung_health` / Health
-  Connect shares the identical gap for a different reason today — it has
-  no client wiring at all yet (`healthConnect/sync.ts`, see
-  `runbook-health-connect-samsung.md`'s own "Known gaps"), so its absence
-  is currently moot rather than live, but the same fix (an
-  api-server-side observation-axis derivation) would be needed the moment
-  that wiring lands, so it is disclosed alongside Apple's rather than
-  deferred to a later surprise.
-  - **Owner:** react-native-engineer (the client owns
-    `appleHealth.ts`/`appleHealthSync.ts` and the `CanonicalHealthRecord
-    .observedAt` value that a fix would read from — the engine-level path
-    already produces it, per the framing note at the top of this file).
-  - **Trigger:** Track A device work — wiring this is in scope once Apple
-    HealthKit moves off `appleHealth.ts` (the WIRED four-number path) and
-    onto the anchored `appleHealthSync.ts` engine as part of bringing that
-    engine's device-validated output onto the shipped surface. It is not
-    scheduled independently of that migration.
+  timestamps — that mechanism is unchanged. Apple Health sync is
+  client-only (`artifacts/aforce-os/services/appleHealth.ts`), so instead
+  of a server-side derivation, Ruling C adds a CLIENT-side one at the same
+  seam: `fetchAppleHealthSnapshot` now derives a per-field observation
+  moment for each metric directly from the underlying HealthKit read —
+  `hrvSdnn`/`restingHeartRate` from that sample's own `endDate`,
+  `sleepHoursLastNight` from the union-selected sleep interval's own last
+  merged end (`reduceSleepByIntervalUnionDetailed`'s `lastEndMs`),
+  `stepsToday` from the latest non-empty hour-bucket's end
+  (`lastNonEmptyStepsBucketEndMs`), or `now` on the raw-sum fallback path —
+  and `utils/biometricsAggregator.ts`'s `buildAppleHealthProviderSnapshot`
+  carries `max(...those)` into `biometrics.apple_health.latestObservedAtMs`
+  (plus the per-field values into `fieldObservedAtMs`, which
+  `freshestNonNull` now arbitrates by ahead of the snapshot-level value).
+  `resolveProviderPresentation` needed no change — its generic
+  `latestObservedAtMs` consumption (`connectedHealthContainerModel.ts`'s
+  `buildConnectedHealthInput`, which was already provider-agnostic) picks
+  up Apple's newly-populated field automatically. See
+  `services/__tests__/appleHealth.test.ts` (`toEpochMsOrNull`),
+  `appleHealth.sleepAggregation.test.ts`
+  (`reduceSleepByIntervalUnionDetailed`), `appleHealth.stepsAggregation.test.ts`
+  (`lastNonEmptyStepsBucketEndMs`), and `utils/__tests__/biometricsAggregator.test.ts`
+  ("THE DEVICE SCENARIO" suite) for the device-scenario proof and mutation
+  table. `samsung_health` / Health Connect's half of this gap is
+  UNCHANGED and remains open — it has no client wiring at all yet
+  (`healthConnect/sync.ts`, see `runbook-health-connect-samsung.md`'s own
+  "Known gaps"), so the same kind of client-side derivation this bullet
+  describes for Apple would be needed the moment that wiring lands.
+  - **Owner:** react-native-engineer (unchanged).
+  - **What remains:** device verification. This closure is code-complete
+    and unit-tested (mocked HealthKit fixtures / pure-function coverage,
+    matching this codebase's established convention of testing
+    HealthKit-adjacent logic without mocking the native module — see the
+    file header above) but NOT yet device-verified end-to-end — add a
+    checklist item to the next Apple HealthKit device pass: confirm the
+    Connected Health screen's Apple row shows an observation-age (not just
+    sync-age) that tracks the real HealthKit sample time, using the same
+    build-48-style device comparison this runbook already prescribes
+    elsewhere.
   - **Also registered:** the provider's row in `STAGE-LADDER.md`'s "User-
     facing display" column ("presentation logic tested against mocks
-    only") reflects the same not-yet-device-verified state this gap
-    describes; this bullet is the fuller, owner/trigger-bearing record —
-    STAGE-LADDER.md's table format has no per-gap owner/trigger columns,
-    so it is intentionally not duplicated there beyond the existing rung
-    status.
+    only") reflects the not-yet-device-verified state noted above; this
+    bullet is the fuller record — STAGE-LADDER.md's table format has no
+    per-gap owner/trigger columns, so it is intentionally not duplicated
+    there beyond the existing rung status.
 
 ## Step-by-step validation flow
 
@@ -309,31 +330,37 @@ already-known and move on.
 - [ ] **Missing device** — no Watch/paired device for HR/HRV; verify
       graceful absence, not an error state.
 - [ ] **Stale** — verify `stale` appears when `now - fetchedAt` (the last
-      successful sync's timestamp) exceeds 24h. **The product question this
-      used to flag as PENDING is now RULED (Founder Ruling I, RC-2):
+      successful sync's timestamp) exceeds 24h. **Founder Ruling I, RC-2:
       "observation freshness and sync freshness must be displayed
       separately and truthfully" — sync-recency-only display is NOT the
-      accepted long-term behavior.** What remains open for Apple
-      specifically is an ENGINEERING gap, not a product-policy one:
+      accepted long-term behavior. Apple Health's half of this is now
+      CLOSED (Founder Ruling C, 2026-08-06,
+      `fix/rc2-observation-time-arbitration`).**
       `ProviderSnapshot.latestObservedAtMs` (`lib/health-core/src/contracts.ts`,
       RC-2 part 1, #562) is wired server-side for WHOOP/Oura/Garmin (each
-      derives it from that provider's own payload timestamps), but
-      HealthKit sync is client-only (`appleHealth.ts`/`appleHealthSync.ts`)
-      — no api-server derivation path touches it, so `apple_health` blobs
-      do not populate the field today. `resolveProviderPresentation`
+      derives it from that provider's own payload timestamps); HealthKit
+      sync is client-only (`appleHealth.ts`), so Ruling C wires a
+      CLIENT-side derivation at the same seam instead —
+      `fetchAppleHealthSnapshot` now derives each metric's own observation
+      moment from the underlying HealthKit read (sample `endDate` for
+      RHR/HRV, the union-selected sleep interval's own end for sleep, the
+      latest non-empty hour-bucket's end for steps — see this file's
+      "Known gaps" section above for the full per-field record), and
+      `biometrics.apple_health.latestObservedAtMs` is now populated as
+      `max(...those)`. `resolveProviderPresentation`
       (`artifacts/aforce-os/services/health/providerPresentation.ts`, RC-2
-      part 2, this branch) already knows how to consume it — an absent
-      field is its documented, tested parity contract, not a missing
-      feature — so Apple Health correctly falls back to sync-recency-only
-      exactly as every other provider does when the field is absent. A
-      5-day-old resting-HR sample synced 10 minutes ago still presents as
-      fresh/live for Apple specifically, pending a follow-up pass that
-      wires an observation timestamp from `CanonicalHealthRecord.observedAt`
-      (which the engine-level HealthKit path already produces, per the note
-      below) onto the `apple_health` snapshot blob. Do not fail this
-      checkbox over that gap — it is a named, owned follow-up (see "Known
-      gaps" above: owner react-native-engineer, trigger Track A device
-      work), not a regression.
+      part 2) needed no change — it already consumed `latestObservedAtMs`
+      generically per provider, so Apple's newly-populated field is picked
+      up automatically. **What THIS CHECKBOX still needs:** device
+      verification that a real stale-but-recently-synced Apple reading (the
+      "5-day-old resting-HR sample synced 10 minutes ago" case this
+      checkbox names) now correctly presents as observation-stale despite
+      a fresh sync — the closure is code-complete and unit-tested (mocked
+      HealthKit fixtures) but not yet confirmed against a real device. Do
+      not fail this checkbox solely for "not yet device-verified" — record
+      it as the remaining follow-up (owner react-native-engineer, trigger:
+      next Apple HealthKit device pass), not a regression. `samsung_health`
+      keeps the ORIGINAL gap unchanged (no client wiring at all yet).
 - [ ] **No recent data** — same `fetchedAt`-based age exceeding 72h shows
       `no_recent_data`. Same sync-recency caveat as Stale applies.
 - [ ] **Malformed record** — inject (via test harness / simulated HealthKit

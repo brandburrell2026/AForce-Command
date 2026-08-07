@@ -63,6 +63,36 @@ function finiteOrNull(v: unknown): number | null {
 }
 
 /**
+ * The only keys `ProviderSnapshot.fieldObservedAtMs` may carry — an
+ * explicit whitelist (not a blind passthrough of whatever keys the raw
+ * blob happens to have) so a malformed or unrelated key can never ride
+ * through the normalization boundary. See contracts.ts for why only these
+ * four metric fields (and only apple_health, today) get per-field
+ * observation times.
+ */
+const FIELD_OBSERVED_AT_KEYS = [
+  'restingHeartRate', 'hrvSdnn', 'sleepHoursLastNight', 'stepsToday',
+] as const;
+
+/**
+ * Normalize the optional per-field observation-time map (Founder Ruling C,
+ * RC-2): pass through only known keys with a finite numeric value. Mirrors
+ * `latestObservedAtMs`'s finite-or-drop treatment just below, extended to a
+ * nested map. Returns undefined (never an empty object) when nothing
+ * usable survives, matching this file's "absent, not empty" convention.
+ */
+function normalizeFieldObservedAtMs(raw: unknown): ProviderSnapshot['fieldObservedAtMs'] {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
+  const out: NonNullable<ProviderSnapshot['fieldObservedAtMs']> = {};
+  for (const key of FIELD_OBSERVED_AT_KEYS) {
+    const v = finiteOrNull(r[key]);
+    if (v != null) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/**
  * Normalize ONE raw provider blob entry into a canonical ProviderSnapshot.
  * Returns null for malformed entries (unknown provider key or missing
  * numeric fetchedAt) — the caller drops them, matching shipped behavior.
@@ -96,6 +126,7 @@ export function normalizeProviderSnapshot(
   // populator that has no usable observation timestamp simply omits the
   // field, and it stays absent all the way through.
   const latestObservedAtMs = finiteOrNull(r.latestObservedAtMs);
+  const fieldObservedAtMs = normalizeFieldObservedAtMs(r.fieldObservedAtMs);
 
   return {
     providerId: provider,
@@ -115,6 +146,7 @@ export function normalizeProviderSnapshot(
     trainingLoad: finiteOrNull(r.trainingLoad),
     fetchedAt: r.fetchedAt,
     ...(latestObservedAtMs != null ? { latestObservedAtMs } : {}),
+    ...(fieldObservedAtMs ? { fieldObservedAtMs } : {}),
     schemaVersion: HEALTH_RECORD_SCHEMA_VERSION,
   };
 }
