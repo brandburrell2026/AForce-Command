@@ -473,6 +473,16 @@
   .os-cmdhist{ margin-top:3.4cqw; display:flex; justify-content:space-between; align-items:baseline; }
   .os-cmdhist-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); }
   .os-cmdhist-trend{ font-size:2.6cqw; color:var(--os-green); }
+  .os-chlist{ margin-top:2.4cqw; display:flex; flex-direction:column; }
+  .os-ch-row{ display:flex; align-items:center; justify-content:space-between; gap:3cqw; padding:2.2cqw 0; border-top:1px solid rgba(255,255,255,0.06); }
+  .os-ch-row:first-child{ border-top:none; }
+  .os-ch-txt{ display:flex; flex-direction:column; gap:0.5cqw; min-width:0; }
+  .os-ch-a{ font-size:3.1cqw; color:var(--os-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .os-ch-t{ font-size:2.4cqw; color:var(--os-faint); }
+  .os-ch-s{ font-family:'IBM Plex Mono',monospace; font-size:3.4cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; flex-shrink:0; }
+  .os-ch-green{ color:var(--os-green); }
+  .os-ch-red{ color:var(--os-redtext); }
+  .os-ch-amber{ color:#FFA01E; }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
   .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0 0; }
@@ -806,6 +816,15 @@
               <div class="os-sumcard"><span class="os-sum-l">Streak</span><span class="os-sum-v os-sum-green">5d</span></div>
             </div>
             <div class="os-cmdhist"><span class="os-cmdhist-l">Command history</span><span class="os-cmdhist-trend">Recovery trending upward</span></div>
+            <div class="os-chlist">
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 16 ounces now</span><span class="os-ch-t">52m ago · Balanced</span></div><span class="os-ch-s">78</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 8 ounces before your session</span><span class="os-ch-t">3h ago · Peak</span></div><span class="os-ch-s os-ch-green">91</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recovery mode recommended</span><span class="os-ch-t">4h ago · Depleted</span></div><span class="os-ch-s os-ch-red">55</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 12 ounces now. Maintain rhythm.</span><span class="os-ch-t">5h ago · Balanced</span></div><span class="os-ch-s">84</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recommended next action</span><span class="os-ch-t">6h ago · Recovering</span></div><span class="os-ch-s os-ch-amber">65</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Confirmed status · on pace</span><span class="os-ch-t">7h ago · Balanced</span></div><span class="os-ch-s">80</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recheck complete</span><span class="os-ch-t">8h ago · Peak</span></div><span class="os-ch-s os-ch-green">88</span></div>
+            </div>
           </div>
         </div>
       </div>
