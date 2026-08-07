@@ -14,7 +14,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '../Icon';
-import { Colors } from '@/theme/colors';
+import { af, afType, afAlpha, withAlpha, Typography } from '@/theme';
 import type {
   SectionSummary,
   WinMoment,
@@ -46,12 +46,12 @@ export default function PerformanceSections({ sections, winMoments }: Props) {
       {winMoments.length > 0 && (
         <View style={styles.winsCard}>
           <View style={styles.winsHeader}>
-            <Icon name="award" size={14} color="#C1281B" />
+            <Icon name="award" size={14} color={af.redText} />
             <Text style={styles.winsTitle}>WIN MOMENTS</Text>
           </View>
           {winMoments.map((m) => (
             <View key={m.id} style={styles.winRow}>
-              <Icon name={m.icon} size={13} color="#C1281B" />
+              <Icon name={m.icon} size={13} color={af.redText} />
               <Text style={styles.winText}>{m.text}</Text>
             </View>
           ))}
@@ -71,40 +71,38 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: 116,
-    backgroundColor: Colors.background.card,
+    backgroundColor: af.surface,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: af.divider,
   },
   tileLabel: {
-    color: '#9CA3AF',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 9,
+    ...afType.microLabel,
+    color: af.textSecondary,
     letterSpacing: 1,
   },
   tileValue: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter_700Bold',
-    fontSize: 20,
+    ...afType.title3,
+    fontFamily: Typography.fonts.bold,
+    color: af.textPrimary,
     marginTop: 6,
   },
   tileHint: {
-    color: '#5C6275',
-    fontFamily: 'Inter_400Regular',
-    fontSize: 10,
+    ...afType.caption,
+    color: af.textTertiary,
     marginTop: 2,
     letterSpacing: 0.3,
   },
   winsCard: {
     marginTop: 14,
-    backgroundColor: 'rgba(193,40,27,0.05)',
+    backgroundColor: withAlpha(af.red, afAlpha.a06),
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: 'rgba(193,40,27,0.18)',
+    borderColor: withAlpha(af.red, afAlpha.a16),
   },
   winsHeader: {
     flexDirection: 'row',
@@ -113,9 +111,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   winsTitle: {
-    color: '#C1281B',
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
+    ...afType.eyebrow,
+    color: af.redText,
     letterSpacing: 1.2,
   },
   winRow: {
@@ -125,10 +122,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   winText: {
+    ...afType.caption,
+    fontFamily: Typography.fonts.medium,
     flex: 1,
-    color: '#E8FFC2',
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    lineHeight: 18,
+    color: af.textPrimary,
   },
 });

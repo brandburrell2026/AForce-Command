@@ -38,6 +38,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/cruise/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/health/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/sleep/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
@@ -74,6 +75,8 @@ export default defineConfig({
       // convention documented in homeScreenV2Wiring.test.ts).
       ['artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // VS 3.0 P2 — Journal summary-widget render harnesses render to a DOM.
+      ['artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx', 'happy-dom'],
     ],
     reporters: 'default',
   },
