@@ -9,8 +9,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
-import { Colors } from '@/theme/colors';
-import { withAlpha } from '@/theme/afTokens';
+import { af, afType, afAlpha, withAlpha, Typography } from '@/theme';
 
 interface KPI {
   label: string;
@@ -42,18 +41,18 @@ function KPICard({ kpi }: { kpi: KPI }) {
   const trend = delta == null || delta === 0 ? null : delta > 0 ? 'up' : 'down';
   const trendColor =
     trend === 'up'
-      ? Colors.states.PEAK.primary
+      ? af.green // byte-identical: af.green === Colors.states.PEAK.primary
       : trend === 'down'
-        ? Colors.states.RECOVERING.primary
-        : Colors.text.muted;
+        ? af.amber // byte-identical: af.amber === Colors.states.RECOVERING.primary
+        : af.textTertiary;
   return (
-    <View style={[styles.card, { borderColor: `${accent}08` }]}>
-      <View style={[styles.glow, { backgroundColor: `${accent}03` }]} />
+    <View style={[styles.card, { borderColor: withAlpha(accent, 0.03) }]}>
+      <View style={[styles.glow, { backgroundColor: withAlpha(accent, 0.012) }]} />
       <Text style={styles.label}>{label}</Text>
       <View style={styles.valueRow}>
         <Text style={[styles.value, { color: accent }]}>{value}</Text>
         {trend && delta != null && (
-          <View style={[styles.trendChip, { borderColor: `${trendColor}40` }]}>
+          <View style={[styles.trendChip, { borderColor: withAlpha(trendColor, afAlpha.a24) }]}>
             <Icon
               name={trend === 'up' ? 'trending-up' : 'trending-down'}
               size={10}
@@ -81,7 +80,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    backgroundColor: withAlpha(Colors.text.primary, 0.012),
+    backgroundColor: withAlpha(af.textPrimary, 0.012),
     overflow: 'hidden',
   },
   glow: {
@@ -93,9 +92,8 @@ const styles = StyleSheet.create({
     top: -60,
   },
   label: {
-    color: withAlpha(Colors.text.primary, 0.45),
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
+    ...afType.tab,
+    color: af.textTertiary,
     letterSpacing: 0.2,
     marginBottom: 8,
   },
@@ -106,8 +104,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   value: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 22,
+    ...afType.title3,
+    fontFamily: Typography.fonts.bold,
     letterSpacing: -0.6,
   },
   trendChip: {
@@ -120,8 +118,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   trendText: {
-    fontSize: 10,
-    fontFamily: 'Inter_500Medium',
+    ...afType.tab,
     letterSpacing: -0.1,
   },
 });

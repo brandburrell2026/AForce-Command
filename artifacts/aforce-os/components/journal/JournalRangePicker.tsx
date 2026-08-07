@@ -6,7 +6,7 @@ import React, { useCallback } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '@/theme/colors';
+import { af, afType, Typography } from '@/theme';
 
 export type JournalRange = 7 | 30 | 90;
 
@@ -56,11 +56,11 @@ export default function JournalRangePicker({ value, onChange }: Props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: Colors.background.card,
+    backgroundColor: af.surface,
     borderRadius: 999,
     padding: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: af.divider,
     alignSelf: 'flex-start',
   },
   cell: {
@@ -71,15 +71,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cellActive: {
-    backgroundColor: '#C1281B',
+    backgroundColor: af.red,
   },
   label: {
-    color: '#9CA3AF',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 13,
+    ...afType.caption,
+    fontFamily: Typography.fonts.semibold,
+    color: af.textTertiary,
     letterSpacing: 0.6,
   },
   labelActive: {
-    color: '#0A0A1E',
+    // Dark ink on the Signal-Red active pill (preserves the inverted-chip look).
+    color: af.canvas,
   },
 });

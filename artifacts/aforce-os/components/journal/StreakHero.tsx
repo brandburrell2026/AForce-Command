@@ -15,10 +15,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Icon } from '@/components/Icon';
-import { Colors } from '@/theme/colors';
+import { af, afType, afAlpha, withAlpha } from '@/theme';
 import { streakHeroHeadline, streakHeroSub } from '@/utils/streak/streakCopy';
 
-const LIME = Colors.states.PEAK.primary;
+// PEAK accent (byte-identical: af.green === Colors.states.PEAK.primary).
+const LIME = af.green;
 
 interface Props {
   streakDays: number;
@@ -66,8 +67,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: `${LIME}26`,
-    backgroundColor: 'rgba(193,40,27,0.04)',
+    borderColor: withAlpha(LIME, afAlpha.a16),
+    backgroundColor: withAlpha(af.red, afAlpha.a06),
     overflow: 'hidden',
     marginBottom: 16,
   },
@@ -87,20 +88,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: `${LIME}1A`,
+    backgroundColor: withAlpha(LIME, afAlpha.a12),
     borderWidth: 1,
-    borderColor: `${LIME}33`,
+    borderColor: withAlpha(LIME, afAlpha.a24),
   },
   headline: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 16,
+    ...afType.bodyStrong,
+    color: af.textPrimary,
     letterSpacing: -0.2,
   },
   sub: {
-    color: 'rgba(255,255,255,0.55)',
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
+    ...afType.caption,
+    color: af.textTertiary,
     marginTop: 2,
     letterSpacing: 0.1,
   },
