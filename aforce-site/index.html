@@ -176,12 +176,13 @@
   .clarity-mark .ritual-row.visible span:nth-child(3){ transition-delay:.44s; }
   .clarity-mark .ritual-row.visible span:nth-child(4){ transition-delay:.62s; }
   .clarity-mark .mark-stage{ position:relative; display:flex; align-items:center; justify-content:center; gap:clamp(4px,2vw,30px); margin-bottom:clamp(26px,3.4vw,44px); opacity:0; transform:translateY(12px); }
-  .clarity-mark .glyphs{ display:flex; align-items:center; justify-content:center; gap:clamp(10px,1.4vw,18px); font-family:'Archivo Black',sans-serif; font-weight:400; font-size:clamp(50px,7vw,116px); line-height:0.9; }
+  .clarity-mark .glyphs{ display:flex; align-items:center; justify-content:center; gap:0.14em; font-family:'Archivo Black',sans-serif; font-weight:400; font-size:clamp(13px,1.45vw,23px); line-height:0.9; }
   .clarity-mark .glyphs .n{ color:var(--red); } .clarity-mark .glyphs .dash{ align-self:center; display:inline-block; width:.44em; height:.16em; background:var(--red); border-radius:0; } .clarity-mark .glyphs .mirror{ display:inline-block; transform:scaleX(-1); color:var(--red); }
   .clarity-can{ height:clamp(188px,25vw,352px); width:auto; display:block; flex-shrink:0; filter:drop-shadow(0 28px 42px rgba(13,13,13,0.28)) drop-shadow(0 6px 12px rgba(13,13,13,0.14)); animation:clarity-float 6s ease-in-out infinite; will-change:transform; }
   .clarity-can:hover{ animation-play-state:paused; }
   @keyframes clarity-float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
-  .clarity-mark .mark-caption{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(12px,1.3vw,15px); letter-spacing:0.26em; text-transform:uppercase; color:var(--red); opacity:0; transform:translateY(12px); }
+  .clarity-mark .mark-caption{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(12px,1.3vw,15px); letter-spacing:0.26em; text-transform:uppercase; color:var(--ink); opacity:0; transform:translateY(12px); }
+  .clarity-mark .mark-caption .cap-red{ color:var(--red); }
   @media (prefers-reduced-motion: reduce){
     .clarity-can{ animation:none; }
     .clarity-mark .ritual-row span{ transition:none; }
@@ -513,12 +514,12 @@
       </div>
     </div>
     <div class="clarity-mark">
-      <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span>Lock In.</span><span>Perform.</span></div>
+      <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span style="color:var(--red)">Lock-In.</span><span>Perform.</span></div>
       <div class="mark-stage fade-in">
         <div class="glyphs"><span class="n">N</span><span class="dash"></span><span class="mirror">N</span></div>
         <img class="clarity-can" src="assets/can-red.png" width="498" height="1281" alt="The AFORCE silver aluminium can — the physical entry point into the ritual" loading="lazy">
       </div>
-      <div class="mark-caption fade-in">Performance Is<br>Non&#8209;<span class="flip-n">N</span>egotiable</div>
+      <div class="mark-caption fade-in">Performance Is<br><span class="cap-red">Non&#8209;<span class="flip-n">N</span>egotiable</span></div>
     </div>
   </div>
 </section>
@@ -556,7 +557,7 @@
       <div class="ritual-line">
         <div class="ritual-item fade-in"><span class="num">01</span><h3>Pause</h3><p>The moment before execution. The one every other brand skips past.</p></div>
         <div class="ritual-item fade-in"><span class="num">02</span><h3>Hydrate</h3><p>pH 8.8 alkaline hydration, electrolytes and minerals, built for the body under load.</p></div>
-        <div class="ritual-item fade-in"><span class="num">03</span><h3>Lock In</h3><p>Readiness becomes intention. The AFORCE OS reads it, tracks it, holds you to it.</p></div>
+        <div class="ritual-item fade-in"><span class="num">03</span><h3><span style="color:var(--red)">Lock-In</span></h3><p>Readiness becomes intention. The AFORCE OS reads it, tracks it, holds you to it.</p></div>
         <div class="ritual-item fade-in"><span class="num">04</span><h3>Perform</h3><p>Composure carried into the moment that actually mattered.</p></div>
       </div>
     </div>
