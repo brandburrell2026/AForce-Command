@@ -402,6 +402,73 @@ describe('aggregateBiometrics — precedence tier lock (own per-field observedAt
   });
 });
 
+// PR #617 follow-up review, S1: the characterization suite was borrowing its
+// ordering guarantee from `biometricsAggregator.explainFieldArbitration.test.ts`
+// — a tier-1 off-by-one inside `resolveComparisonAxis`
+// (`Math.min(fieldObservedAt, now) - 1`) flips a real arbitration winner while
+// every test above stays green, because none of them puts a tier-1 candidate
+// and a tier-2 candidate exactly 1ms apart. These two tests close that gap
+// directly through `aggregateBiometrics`'s own observable output (hint +
+// recoveryDelta), so the scoring path locks its own cross-tier ordering
+// instead of depending on the diagnostics explainer suite to catch a
+// regression here.
+//
+// Both fixtures list the PRE-mutation LOSER first in the object literal on
+// purpose: `freshestNonNull`'s tie rule keeps whichever candidate it meets
+// FIRST when two comparison timestamps end up equal. The `-1` mutation drags
+// the tier-1 (or tier-2) winner's timestamp down to exactly tie the other
+// candidate's — so if the mutation lands, the tie-break silently hands the
+// win to the first-listed (correctly-losing) candidate instead of raising an
+// error, which is exactly why an assertion on the OUTCOME (not merely "some
+// value changed") is required to catch it.
+describe('aggregateBiometrics — cross-tier 1ms boundary lock (PR #617 follow-up, S1)', () => {
+  it('a tier-1 fieldObservedAt exactly 1ms fresher than a competing tier-2 latestObservedAt still wins', () => {
+    const T = 1_700_000_000_000;
+    const now = T + 10_000;
+    const r = aggregateBiometrics(
+      {
+        // Listed FIRST: tier-2 candidate, genuinely 1ms staler, must lose.
+        garmin: {
+          providerId: 'garmin',
+          sleepHoursLastNight: 3.5, // deficit band -> -5, distinguishable from apple_health's value/band
+          fetchedAt: T,
+          latestObservedAtMs: T - 1,
+        },
+        // Listed SECOND: tier-1 candidate, genuinely 1ms fresher, must win.
+        apple_health: {
+          providerId: 'apple_health',
+          sleepHoursLastNight: 8, // good-sleep band -> +5
+          fetchedAt: T,
+          fieldObservedAtMs: { sleepHoursLastNight: T },
+        },
+      },
+      now,
+    );
+    // apple_health's tier-1 T beats garmin's tier-2 T-1 by exactly 1ms.
+    expect(r.hint).toContain('Sleep 8.0 h');
+    expect(r.hint).not.toContain('Sleep 3.5');
+    expect(r.recoveryDelta).toBe(5);
+  });
+
+  it('a tier-2 latestObservedAt exactly 1ms fresher than a competing tier-3 fetchedAt still wins', () => {
+    const T = 1_700_000_000_000;
+    const now = T + 10_000;
+    const r = aggregateBiometrics(
+      {
+        // Listed FIRST: tier-3 (fetchedAt-only) candidate, 1ms staler, must lose.
+        oura: { providerId: 'oura', hrvSdnn: 20, fetchedAt: T - 1 }, // low HRV -> -5
+        // Listed SECOND: tier-2 candidate, 1ms fresher, must win.
+        whoop: { providerId: 'whoop', hrvSdnn: 65, fetchedAt: T, latestObservedAtMs: T }, // high HRV -> +5
+      },
+      now,
+    );
+    // whoop's tier-2 T beats oura's tier-3 T-1 by exactly 1ms.
+    expect(r.hint).toContain('HRV 65 ms (high)');
+    expect(r.hint).not.toContain('HRV 20');
+    expect(r.recoveryDelta).toBe(5);
+  });
+});
+
 describe('aggregateBiometrics — per-field split is preserved, never winner-takes-all', () => {
   it('provider A wins one field via observedAt while provider B keeps the other field it alone reports', () => {
     const now = 2_000_000;
