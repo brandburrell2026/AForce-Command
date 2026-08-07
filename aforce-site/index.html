@@ -392,48 +392,57 @@
      IBM Plex Mono metrics; sized in container-query units so both screens scale. ── */
   .os-phones{ --os-canvas:#0D0D0D; --os-surface:#141420; --os-ink:#F4F2ED; --os-dim:#A6A5A1; --os-faint:#85868C; --os-red:#C1281B; --os-redtext:#E4564A; --os-green:#1FA35A; --os-cyan:#00E5C8; position:relative; z-index:1; width:100%; max-width:480px; margin:0 auto; aspect-ratio:480/600; font-family:'Inter',sans-serif; }
   .os-phone{ position:absolute; background:#050506; border:1px solid rgba(255,255,255,0.07); border-radius:13% / 6.2%; padding:2.4%; box-shadow:0 42px 68px -26px rgba(13,13,13,0.5), 0 10px 26px rgba(13,13,13,0.22); }
-  .os-phone--front{ width:67%; right:0; top:0; z-index:2; }
-  .os-phone--back{ width:63%; left:0; top:10%; transform:rotate(-5deg); z-index:1; }
+  .os-phone--front{ width:64%; right:0; top:0; z-index:2; }
+  .os-phone--back{ width:53%; left:0; top:9%; transform:rotate(-5deg); z-index:1; }
   .os-screen{ container-type:inline-size; position:relative; border-radius:10.5% / 5.4%; background:linear-gradient(180deg,#101018 0%,#0D0D0D 38%); overflow:hidden; aspect-ratio:9/19.3; color:var(--os-ink); display:flex; flex-direction:column; }
   .os-status{ display:flex; justify-content:space-between; align-items:center; padding:5cqw 6.5cqw 0; }
   .os-time{ font-size:3.6cqw; font-weight:600; }
   .os-ind{ width:7cqw; height:3.2cqw; border-radius:1cqw; background:rgba(244,242,237,0.55); }
-  .os-body{ flex:1; padding:3.6cqw 6cqw 4cqw; display:flex; flex-direction:column; }
+  .os-body{ flex:1; padding:3.2cqw 5.4cqw 3.4cqw; display:flex; flex-direction:column; overflow:hidden; }
   /* Home / Readiness */
-  .os-hdr{ display:flex; flex-direction:column; gap:0.7cqw; }
-  .os-welcome{ font-size:3cqw; font-weight:500; color:var(--os-dim); }
-  .os-brand{ font-size:6.6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
-  .os-fresh{ font-size:2.8cqw; color:var(--os-faint); }
-  .os-arc{ position:relative; width:55cqw; aspect-ratio:1; margin:3.4cqw auto 1.5cqw; }
+  .os-hdr{ display:flex; flex-direction:column; gap:0.5cqw; }
+  .os-welcome{ font-size:2.9cqw; font-weight:500; color:var(--os-dim); }
+  .os-brand{ font-size:6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
+  .os-fresh{ font-size:2.6cqw; color:var(--os-faint); margin-top:0.4cqw; }
+  .os-sync{ display:flex; align-items:center; gap:1.4cqw; font-size:2.5cqw; color:var(--os-faint); margin-top:0.6cqw; }
+  .os-sync-dot{ width:2cqw; height:2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
+  .os-arc{ position:relative; width:41cqw; aspect-ratio:1; margin:2cqw auto 1cqw; }
   .os-arc svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
   .os-arc-track{ fill:none; stroke:rgba(255,255,255,0.10); stroke-width:6; stroke-linecap:round; stroke-dasharray:75 25; }
-  .os-arc-fill{ fill:none; stroke:var(--os-red); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
-  .os-visual.visible .os-arc-fill{ stroke-dasharray:57 43; }
+  .os-arc-fill{ fill:none; stroke:var(--os-green); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 5px rgba(31,163,90,0.6)) drop-shadow(0 0 2px rgba(31,163,90,0.85)); transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
+  .os-visual.visible .os-arc-fill{ stroke-dasharray:68 32; }
   .os-arc-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .os-score{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:21cqw; line-height:1; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
-  .os-score-label{ font-family:'IBM Plex Mono',monospace; font-size:2.8cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-dim); margin-top:1.6cqw; }
-  .os-band{ font-size:3cqw; font-weight:600; letter-spacing:0.01em; color:var(--os-redtext); margin-top:1cqw; }
-  .os-live{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:2.6cqw; letter-spacing:0.06em; color:var(--os-green); }
-  .os-cmd{ margin-top:3cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.10); border-radius:4.5cqw; padding:3.8cqw; display:flex; flex-direction:column; }
-  .os-cmd-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-faint); }
-  .os-cmd-title{ margin-top:1.6cqw; font-size:4.6cqw; font-weight:600; letter-spacing:-0.01em; color:var(--os-ink); }
-  .os-cmd-body{ margin-top:1.4cqw; font-size:3.2cqw; line-height:1.35; color:var(--os-dim); }
-  .os-cmd-btn{ margin-top:2.8cqw; align-self:flex-start; background:var(--os-red); color:#fff; font-size:3.3cqw; font-weight:600; padding:2.3cqw 5cqw; border-radius:2.6cqw; }
-  .os-cmd-why{ margin-top:2.6cqw; display:flex; align-items:center; gap:1.2cqw; font-size:2.9cqw; font-weight:500; color:var(--os-dim); }
-  .os-chev{ font-style:normal; font-size:2.6cqw; color:var(--os-faint); }
-  .os-signals{ margin-top:3cqw; }
-  .os-sig-label{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:2cqw; }
-  .os-sig-row{ display:flex; gap:2.2cqw; }
-  .os-sig{ flex:1; background:rgba(255,255,255,0.04); border-radius:3.2cqw; padding:2.7cqw 2.6cqw; display:flex; flex-direction:column; gap:0.9cqw; }
-  .os-sig-l{ font-size:2.4cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-sig-v{ font-size:3.8cqw; font-weight:600; color:var(--os-ink); }
-  .os-today{ margin-top:auto; padding-top:3.4cqw; }
-  .os-today-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.6cqw; }
-  .os-today-row{ display:flex; align-items:center; gap:3cqw; padding:1.5cqw 0; }
-  .os-today-when{ width:15cqw; font-size:2.5cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-today-name{ flex:1; font-size:3.4cqw; font-weight:500; color:var(--os-ink); }
-  .os-check{ width:4.2cqw; height:4.2cqw; border-radius:50%; border:1.4px solid rgba(255,255,255,0.22); flex-shrink:0; }
-  .os-check.is-done{ background:var(--os-red); border-color:var(--os-red); }
+  .os-score{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:16cqw; line-height:1; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
+  .os-score-label{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-dim); margin-top:1.2cqw; }
+  .os-band{ font-size:2.7cqw; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--os-green); margin-top:0.9cqw; }
+  .os-live{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; letter-spacing:0.06em; color:var(--os-green); margin-top:0.6cqw; }
+  .os-cmd{ margin-top:2.6cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.10); border-radius:4cqw; padding:3.2cqw; display:flex; flex-direction:column; }
+  .os-cmd-done{ display:flex; align-items:center; gap:1.6cqw; font-size:2.5cqw; color:var(--os-green); padding-bottom:2.2cqw; margin-bottom:2.4cqw; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .os-done-ck{ width:3.4cqw; height:3.4cqw; border-radius:50%; background:var(--os-green); position:relative; flex-shrink:0; }
+  .os-done-ck::after{ content:''; position:absolute; left:1.2cqw; top:0.8cqw; width:1cqw; height:1.7cqw; border:solid #0D0D0D; border-width:0 0.6cqw 0.6cqw 0; transform:rotate(43deg); }
+  .os-cmd-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-faint); }
+  .os-cmd-title{ margin-top:1.4cqw; font-size:4.2cqw; font-weight:600; letter-spacing:-0.01em; line-height:1.2; color:var(--os-ink); }
+  .os-cmd-btn{ margin-top:2.6cqw; align-self:flex-start; background:var(--os-red); color:#fff; font-size:3.2cqw; font-weight:600; padding:2.1cqw 4.6cqw; border-radius:2.4cqw; }
+  .os-cmd-why{ margin-top:2.4cqw; display:flex; align-items:center; gap:1.2cqw; font-size:2.7cqw; font-weight:500; color:var(--os-dim); }
+  .os-chev{ font-style:normal; font-size:2.5cqw; color:var(--os-faint); }
+  .os-signals{ margin-top:2.6cqw; }
+  .os-sig-label{ font-size:2.7cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.6cqw; }
+  .os-sig-row{ display:flex; gap:2cqw; }
+  .os-sig{ flex:1; background:rgba(255,255,255,0.04); border-radius:3cqw; padding:2.4cqw 2.4cqw; display:flex; flex-direction:column; gap:0.8cqw; }
+  .os-sig-l{ font-size:2.3cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
+  .os-sig-v{ font-size:3.5cqw; font-weight:600; color:var(--os-ink); }
+  .os-today{ margin-top:2cqw; }
+  .os-today-l{ font-size:2.7cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.2cqw; }
+  .os-today-row{ display:flex; align-items:center; gap:2.6cqw; padding:1.1cqw 0; }
+  .os-today-name{ flex:1; font-size:3.2cqw; font-weight:500; color:var(--os-ink); }
+  .os-check{ width:4cqw; height:4cqw; border-radius:50%; border:1.4px solid rgba(255,255,255,0.24); flex-shrink:0; position:relative; }
+  .os-check.is-done{ background:var(--os-green); border-color:var(--os-green); }
+  .os-check.is-done::after{ content:''; position:absolute; left:1.4cqw; top:0.95cqw; width:1.1cqw; height:1.9cqw; border:solid #0D0D0D; border-width:0 0.62cqw 0.62cqw 0; transform:rotate(43deg); }
+  .os-widgets{ margin-top:auto; padding-top:2cqw; display:grid; grid-template-columns:1fr 1fr; gap:1.7cqw; }
+  .os-widget{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:3cqw; padding:2.1cqw 2.6cqw; display:flex; flex-direction:column; gap:0.4cqw; }
+  .os-w-v{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; }
+  .os-w-v.os-w-up{ color:var(--os-green); font-size:3.4cqw; }
+  .os-w-l{ font-size:2.3cqw; letter-spacing:0.03em; color:var(--os-faint); }
   .os-nav{ display:flex; justify-content:space-between; padding:3cqw 5cqw 5cqw; border-top:1px solid rgba(255,255,255,0.08); }
   .os-nav span{ font-size:2.6cqw; letter-spacing:0.01em; color:var(--os-faint); }
   .os-nav span.is-on{ color:var(--os-red); font-weight:600; }
@@ -835,36 +844,43 @@
             <div class="os-hdr">
               <span class="os-welcome">Welcome, Brandon</span>
               <span class="os-brand">AForce OS</span>
-              <span class="os-fresh">Checked just now</span>
+              <span class="os-fresh">Checked 2 min ago · New York, NY</span>
+              <span class="os-sync"><span class="os-sync-dot"></span>Synced with Apple Health</span>
             </div>
             <div class="os-arc">
               <svg viewBox="0 0 240 240" aria-hidden="true">
                 <circle class="os-arc-track" cx="120" cy="120" r="117" pathLength="100"></circle>
                 <circle class="os-arc-fill" cx="120" cy="120" r="117" pathLength="100"></circle>
               </svg>
-              <div class="os-arc-center"><span class="os-score">76</span><span class="os-score-label">Readiness</span><span class="os-band">Balanced</span></div>
+              <div class="os-arc-center"><span class="os-score">91</span><span class="os-score-label">Readiness</span><span class="os-band">Peak</span></div>
             </div>
-            <div class="os-live">&#9650; +3 pts · LAST 12s · HOLDING</div>
+            <div class="os-live">&#9650; +6 pts · LAST 2m · PEAK</div>
             <div class="os-cmd">
+              <span class="os-cmd-done"><span class="os-done-ck"></span>Electrolytes logged · 17 min ago</span>
               <span class="os-cmd-eyebrow">Your next move</span>
-              <span class="os-cmd-title">Drink 16 ounces now</span>
-              <span class="os-cmd-body">Stay ahead of your next session.</span>
-              <span class="os-cmd-btn">Log water</span>
+              <span class="os-cmd-title">Hydrate before your 3:00 PM meeting.</span>
+              <span class="os-cmd-btn">Log Water</span>
               <span class="os-cmd-why">Why this command <em class="os-chev">&#8964;</em></span>
             </div>
             <div class="os-signals">
               <div class="os-sig-label">Signals</div>
               <div class="os-sig-row">
-                <div class="os-sig"><span class="os-sig-l">Hydration</span><span class="os-sig-v">63%</span></div>
-                <div class="os-sig"><span class="os-sig-l">Heat</span><span class="os-sig-v">Low</span></div>
-                <div class="os-sig"><span class="os-sig-l">Recovery</span><span class="os-sig-v">Balanced</span></div>
+                <div class="os-sig"><span class="os-sig-l">Hydration</span><span class="os-sig-v">96%</span></div>
+                <div class="os-sig"><span class="os-sig-l">Recovery</span><span class="os-sig-v">Strong</span></div>
+                <div class="os-sig"><span class="os-sig-l">Sleep</span><span class="os-sig-v">7h 41m</span></div>
               </div>
             </div>
             <div class="os-today">
-              <div class="os-today-l">Today's protocol</div>
-              <div class="os-today-row"><span class="os-today-when">Morning</span><span class="os-today-name">Hydration Stick</span><span class="os-check is-done"></span></div>
-              <div class="os-today-row"><span class="os-today-when">Midday</span><span class="os-today-name">AForce Can</span><span class="os-check is-done"></span></div>
-              <div class="os-today-row"><span class="os-today-when">Evening</span><span class="os-today-name">Recovery Protocol</span><span class="os-check"></span></div>
+              <div class="os-today-l">Today&rsquo;s timeline</div>
+              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Morning Hydration</span></div>
+              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">AFORCE Can</span></div>
+              <div class="os-today-row"><span class="os-check"></span><span class="os-today-name">Evening Recovery</span></div>
+            </div>
+            <div class="os-widgets">
+              <div class="os-widget"><span class="os-w-v">18</span><span class="os-w-l">Day ritual streak</span></div>
+              <div class="os-widget"><span class="os-w-v os-w-up">&#9650; Rising</span><span class="os-w-l">Recovery trend</span></div>
+              <div class="os-widget"><span class="os-w-v os-w-up">+6</span><span class="os-w-l">Today&rsquo;s score</span></div>
+              <div class="os-widget"><span class="os-w-v">94%</span><span class="os-w-l">Command success</span></div>
             </div>
           </div>
           <div class="os-nav"><span class="is-on">Home</span><span>Hydration</span><span>Protocol</span><span>Circle</span><span>Profile</span></div>
