@@ -61,7 +61,7 @@ import {
   AFOfflineBanner,
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
-import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
@@ -72,6 +72,7 @@ import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCom
 import {
   resolveHomePresentation,
   resolveArcAnimation,
+  resolveArcDimensions,
   type SignalKey,
 } from './homePresentation';
 import { findVoice } from '@/services/voiceCatalog';
@@ -195,6 +196,11 @@ export function HomeScreenV2() {
   const reveal = (idx: number) =>
     elite && !reducedMotion ? FadeInDown.duration(420).delay(idx * 90) : undefined;
 
+  // Premium arc hero (elite): a larger, bolder, band-glowing readiness gauge so
+  // it reads as the single instrument. Flag-off keeps the shipped 240/6 arc
+  // byte-for-byte. Decision lives in the pure, tested homePresentation module.
+  const arcDims = resolveArcDimensions(elite);
+
   // RC-1 fix (P0 vs founder's 3-second brief): momentum was missing from
   // Home — the tested, existing `LiveStatusLine` (trend arrow + delta
   // window + status verb) lived only on the legacy Home. Same hook/service
@@ -229,7 +235,7 @@ export function HomeScreenV2() {
     : ['hydration', 'heat', 'recovery'];
 
   return (
-    <AFScreen scroll>
+    <AFScreen scroll contentContainerStyle={styles.scrollContent}>
       {/* Wordmark + freshness */}
       <Animated.View entering={reveal(0)} style={styles.header}>
         <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
@@ -251,13 +257,13 @@ export function HomeScreenV2() {
           {/* Dominant readiness value + thin arc (tap → insights) */}
           <Animated.View entering={reveal(1)}>
             <Pressable
-              style={styles.arcWrap}
+              style={[styles.arcWrap, elite && styles.arcWrapPremium]}
               onPress={() => router.push('/weekly-report')}
               accessibilityRole="button"
               accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
               testID="home-readiness-arc"
             >
-              <AFReadinessArc score={score} size={240} color={accent} animate={arcPlan.animateRing} alive={elite}>
+              <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite}>
                 {elite ? (
                   <EliteScoreNumber
                     score={score}
@@ -320,18 +326,20 @@ export function HomeScreenV2() {
           </Animated.View>
         </>
       )}
-
-      <View style={{ height: 40 }} />
     </AFScreen>
   );
 }
 
 const styles = StyleSheet.create({
+  // Tokenized bottom breathing room (replaces a trailing <View height:40/> spacer).
+  scrollContent: { paddingBottom: Spacing[10] },
   header: { marginTop: 8, marginBottom: 8 },
   welcome: { ...afType.secondary, color: af.textTertiary },
   brand: { ...afType.title1, color: af.textPrimary },
   freshness: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
   arcWrap: { alignItems: 'center', marginVertical: 24 },
+  // Premium arc hero gets more vertical presence (elite path only).
+  arcWrapPremium: { marginVertical: Spacing[8] },
   score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   scoreLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
   stateLabel: { ...afType.caption, color: af.redText, marginTop: 6 },

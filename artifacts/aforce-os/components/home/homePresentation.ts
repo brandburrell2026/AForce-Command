@@ -95,3 +95,20 @@ export function resolveArcAnimation(i: ArcAnimationInput): ArcAnimationPlan {
     fromScore: hasRealPrev ? (i.prevScore as number) : i.score,
   };
 }
+
+export interface ArcDimensions {
+  /** Diameter of the readiness gauge, in pt. */
+  size: number;
+  /** Progress-stroke width, in pt. */
+  stroke: number;
+}
+
+/**
+ * Premium arc hero sizing (E1). The elevated Home makes the readiness gauge the
+ * single instrument: a larger, bolder ring. The standard Home keeps the shipped
+ * 240/6 arc byte-for-byte, so a flag-off render is unchanged. Presentation-only —
+ * the score/fraction drawn is the engine's, untouched.
+ */
+export function resolveArcDimensions(elite: boolean): ArcDimensions {
+  return elite ? { size: 268, stroke: 8 } : { size: 240, stroke: 6 };
+}
