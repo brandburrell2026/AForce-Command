@@ -60,9 +60,6 @@
  * `ProviderBiometrics` key order) keeps a tie rather than losing to a
  * later, equally-fresh candidate — unchanged from the pre-Ruling-C
  * comparator's strict `>`.
- * FIRST snapshot encountered (stable `ProviderBiometrics` key order)
- * keeps a tie rather than losing to a later, equally-fresh candidate —
- * unchanged from the pre-Ruling-C comparator's strict `>`.
  *
  * Activity uses MAX across providers, on the principle that whichever
  * tracker recorded the highest workout/strain/steps captured the most
