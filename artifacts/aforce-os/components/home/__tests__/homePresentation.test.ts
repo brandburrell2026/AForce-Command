@@ -4,6 +4,7 @@ import {
   normalizeBand,
   resolveHomePresentation,
   resolveArcAnimation,
+  resolveArcDimensions,
 } from '../homePresentation';
 
 describe('normalizeBand', () => {
@@ -81,5 +82,22 @@ describe('resolveArcAnimation — motion decisions', () => {
   it('does not count up when the score is unchanged', () => {
     const plan = resolveArcAnimation({ ...base, prevScore: 76 });
     expect(plan.countUp).toBe(false);
+  });
+});
+
+describe('resolveArcDimensions', () => {
+  it('elevates the premium (elite) arc to a larger, bolder gauge', () => {
+    expect(resolveArcDimensions(true)).toEqual({ size: 268, stroke: 8 });
+  });
+
+  it('keeps the standard arc byte-for-byte with the shipped Home (240/6)', () => {
+    expect(resolveArcDimensions(false)).toEqual({ size: 240, stroke: 6 });
+  });
+
+  it('premium is strictly larger + bolder than standard', () => {
+    const premium = resolveArcDimensions(true);
+    const standard = resolveArcDimensions(false);
+    expect(premium.size).toBeGreaterThan(standard.size);
+    expect(premium.stroke).toBeGreaterThan(standard.stroke);
   });
 });
