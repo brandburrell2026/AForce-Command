@@ -438,38 +438,43 @@
   /* Protocol */
   .os-kick{ font-family:'IBM Plex Mono',monospace; font-size:2.8cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-faint); }
   .os-h1{ margin-top:1.3cqw; font-size:6.6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
-  .os-plan{ margin-top:4cqw; }
+  .os-stagechip{ align-self:flex-start; display:inline-flex; align-items:center; gap:1.8cqw; margin-top:2.4cqw; padding:1.5cqw 3cqw; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:6cqw; font-size:2.9cqw; font-weight:600; color:var(--os-ink); }
+  .os-stagechip-dot{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
+  .os-stagechip-sub{ font-weight:400; color:var(--os-faint); }
+  .os-plan{ margin-top:3cqw; }
   .os-plan-top{ display:flex; justify-content:space-between; align-items:center; }
   .os-plan-l{ font-size:3.2cqw; font-weight:600; color:var(--os-dim); }
   .os-plan-badge{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.03em; color:var(--os-green); background:rgba(31,163,90,0.12); padding:1cqw 2.4cqw; border-radius:2cqw; }
   .os-plan-count{ margin-top:2cqw; font-size:3cqw; color:var(--os-faint); }
   .os-bar{ margin-top:2.2cqw; height:1.6cqw; border-radius:1cqw; background:rgba(255,255,255,0.08); overflow:hidden; }
   .os-bar-fill{ display:block; height:100%; width:25%; background:var(--os-red); border-radius:1cqw; }
-  .os-step{ margin-top:4.4cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.12); border-radius:4.5cqw; padding:4cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
+  .os-step{ margin-top:3.4cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.12); border-radius:4.5cqw; padding:3.6cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
   .os-step-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-redtext); }
   .os-step-title{ margin-top:1.7cqw; font-size:4.8cqw; font-weight:600; letter-spacing:-0.01em; color:var(--os-ink); }
   .os-step-window{ margin-top:1.2cqw; font-size:3.2cqw; color:var(--os-dim); }
   .os-step-foot{ margin-top:3.2cqw; padding-top:2.8cqw; border-top:1px solid rgba(255,255,255,0.10); display:flex; justify-content:space-between; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:2.6cqw; letter-spacing:0.1em; text-transform:uppercase; color:var(--os-faint); }
   .os-step-min{ color:var(--os-ink); font-weight:600; }
-  .os-next{ margin-top:4cqw; }
-  .os-next-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:2.6cqw; }
+  .os-next{ margin-top:3cqw; }
+  .os-next-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:2.4cqw; }
   .os-tl{ position:relative; display:flex; flex-direction:column; gap:3.4cqw; }
   .os-tl::before{ content:''; position:absolute; left:1.9cqw; top:2cqw; bottom:2cqw; width:1px; background:rgba(255,255,255,0.10); }
   .os-tl-row{ position:relative; display:flex; align-items:center; gap:3.4cqw; }
   .os-tl-dot{ width:4cqw; height:4cqw; border-radius:50%; border:1px solid rgba(255,255,255,0.24); background:var(--os-canvas); flex-shrink:0; z-index:1; }
   .os-tl-name{ flex:1; font-size:3.5cqw; font-weight:500; color:var(--os-dim); }
   .os-tl-when{ font-size:2.6cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-metrics{ margin-top:4cqw; display:flex; gap:2.4cqw; }
-  .os-metric{ flex:1; background:rgba(255,255,255,0.04); border-radius:3.2cqw; padding:3cqw 2.6cqw; display:flex; flex-direction:column; gap:0.8cqw; }
+  .os-metrics{ margin-top:3cqw; display:flex; gap:2.4cqw; }
+  .os-metric{ flex:1; background:rgba(255,255,255,0.04); border-radius:3.2cqw; padding:2.8cqw 2.6cqw; display:flex; flex-direction:column; gap:0.7cqw; }
   .os-metric-v{ font-family:'IBM Plex Mono',monospace; font-size:5cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:1cqw; }
   .os-metric-v em{ font-style:normal; font-family:'Inter',sans-serif; font-size:2.5cqw; font-weight:500; color:var(--os-faint); }
   .os-metric-l{ font-size:2.5cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-recent{ margin-top:auto; padding-top:4cqw; }
-  .os-recent-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.4cqw; }
-  .os-recent-row{ display:flex; align-items:center; justify-content:space-between; gap:3cqw; padding:1.7cqw 0; border-top:1px solid rgba(255,255,255,0.06); }
+  .os-recent{ margin-top:3cqw; }
+  .os-recent-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:1cqw; }
+  .os-recent-row{ display:flex; align-items:center; gap:2.6cqw; padding:1.5cqw 0; border-top:1px solid rgba(255,255,255,0.06); }
   .os-recent-row:first-of-type{ border-top:none; }
   .os-recent-a{ flex:1; font-size:3.1cqw; color:var(--os-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .os-recent-s{ font-family:'IBM Plex Mono',monospace; font-size:3.3cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; }
+  .os-recent-when{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--os-faint); font-variant-numeric:tabular-nums; }
+  .os-recent-s{ font-family:'IBM Plex Mono',monospace; font-size:3.3cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; min-width:6cqw; text-align:right; }
+  .os-why{ margin-top:auto; padding-top:3cqw; display:flex; align-items:center; gap:1.2cqw; font-size:2.9cqw; font-weight:500; color:var(--os-dim); }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
   .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0 0; }
@@ -781,6 +786,7 @@
           <div class="os-body">
             <div class="os-kick">Today</div>
             <div class="os-h1">Protocol</div>
+            <div class="os-stagechip"><span class="os-stagechip-dot"></span>Maintain<span class="os-stagechip-sub">· Hold rhythm</span></div>
             <div class="os-plan">
               <div class="os-plan-top"><span class="os-plan-l">Recovery plan</span><span class="os-plan-badge">82% consistency</span></div>
               <div class="os-plan-count">1 of 4 complete</div>
@@ -806,9 +812,11 @@
             </div>
             <div class="os-recent">
               <div class="os-recent-l">Recent activity</div>
-              <div class="os-recent-row"><span class="os-recent-a">Drink 16 ounces now</span><span class="os-recent-s">78</span></div>
-              <div class="os-recent-row"><span class="os-recent-a">Drink 8 ounces before your session</span><span class="os-recent-s">91</span></div>
+              <div class="os-recent-row"><span class="os-recent-a">Drink 16 ounces now</span><span class="os-recent-when">52m</span><span class="os-recent-s">78</span></div>
+              <div class="os-recent-row"><span class="os-recent-a">Drink 8 ounces before your session</span><span class="os-recent-when">3h</span><span class="os-recent-s">91</span></div>
+              <div class="os-recent-row"><span class="os-recent-a">Drink 12 ounces now. Maintain rhythm.</span><span class="os-recent-when">5h</span><span class="os-recent-s">84</span></div>
             </div>
+            <div class="os-why">Why this plan <em class="os-chev">&#8964;</em></div>
           </div>
         </div>
       </div>
