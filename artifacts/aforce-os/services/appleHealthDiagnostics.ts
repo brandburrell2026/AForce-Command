@@ -37,7 +37,7 @@
  * app already computed (the score breakdown row), never recomputed.
  */
 import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '../featureFlags/internalTestflightOverlay';
-import type { AppleHealthSnapshot } from './appleHealth';
+import type { AppleHealthSnapshot, SleepSelectionBranch } from './appleHealth';
 
 /** One HealthKit sample's identifying facts — never anything beyond this. */
 export interface AppleHealthDiagnosticSample {
@@ -92,11 +92,41 @@ export interface AppleHealthStepsDiagnostic {
   usedFallback: boolean;
 }
 
+export interface AppleHealthSleepSourceTotal {
+  sourceName: string;
+  /** 'stage' = value 3/4/5 (core/deep/REM) combined; 'unspecified' = value 1. Raw per-source sum, NOT union-deduplicated — for on-device comparison against the Health app's per-source breakdown, same purpose as steps' `AppleHealthStepsSourceTotal`. */
+  valueClass: 'stage' | 'unspecified';
+  totalHours: number;
+}
+
 export interface AppleHealthSleepDiagnostic {
   identifier: 'HKCategoryTypeIdentifierSleepAnalysis';
   queried: true;
-  sampleCount: number | null;
+  /**
+   * Every `HKCategorySample` HealthKit returned for the window, INCLUDING
+   * excluded inBed(0)/awake(2) rows. RC-2 Ruling A item 5: this used to be
+   * conflated with `summedSampleCount` below under one ambiguous
+   * `sampleCount` field.
+   */
+  totalSampleCount: number | null;
+  /**
+   * Count of samples in the branch `selectSleepIntervals` actually chose
+   * (stage samples, or the value-1 fallback set) — the subset that fed
+   * `unionHours`.
+   */
+  summedSampleCount: number | null;
+  /** Which selection branch fired. 'none' means neither a stage sample nor a value-1 sample existed in the window. */
+  selectionBranch: SleepSelectionBranch;
+  /** OLD method: flat sum of every asleep sample's duration, no dedup — the exact computation behind the 13.33h/49-sample device evidence (Ruling A). */
+  rawSumHours: number | null;
+  /** NEW method: `reduceSleepByIntervalUnion`'s raw result, in hours — captured even when 0 and the fallback below fired. */
+  unionHours: number | null;
+  /** Per-source, per-value-class flat sums (NOT union-deduplicated) — for on-device comparison against the Health app's per-source breakdown. */
+  perSourceTotals: readonly AppleHealthSleepSourceTotal[];
+  /** The number `fetchAppleHealthSnapshot()` actually returned. */
   valueUsed: number | null;
+  /** `true` if the interval-union selection resolved to 0h despite real raw samples existing, and the raw flat sum was used as a resilience fallback. */
+  usedFallback: boolean;
 }
 
 export interface AppleHealthWorkoutDiagnostic {
@@ -219,7 +249,23 @@ export function formatAppleHealthDiagnosticsSummary(
     }
   }
   lines.push('');
-  lines.push(`Sleep last night: used ${snapshot.sleep.valueUsed ?? '—'} h (${snapshot.sleep.sampleCount ?? '—'} samples)`);
+  lines.push(
+    `Sleep last night: used ${snapshot.sleep.valueUsed ?? '—'} h${
+      snapshot.sleep.usedFallback ? ' (FALLBACK to raw sum — interval-union selection was empty)' : ''
+    }`,
+  );
+  lines.push(`  raw sum (old method, no dedup): ${snapshot.sleep.rawSumHours ?? '—'} h`);
+  lines.push(`  interval union (new method): ${snapshot.sleep.unionHours ?? '—'} h`);
+  lines.push(`  selection branch: ${snapshot.sleep.selectionBranch}`);
+  lines.push(`  samples used: ${snapshot.sleep.summedSampleCount ?? '—'} of ${snapshot.sleep.totalSampleCount ?? '—'} returned`);
+  if (snapshot.sleep.perSourceTotals.length === 0) {
+    lines.push('  per-source totals: none');
+  } else {
+    lines.push('  per-source totals:');
+    for (const s of snapshot.sleep.perSourceTotals) {
+      lines.push(`    ${s.sourceName} (${s.valueClass}): ${s.totalHours.toFixed(2)}h`);
+    }
+  }
   lines.push('');
   lines.push(`Workouts: NOT QUERIED — ${snapshot.workout.reason}`);
   lines.push('');

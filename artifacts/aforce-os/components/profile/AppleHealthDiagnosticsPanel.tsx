@@ -135,9 +135,38 @@ export function AppleHealthDiagnosticsPanel({
             ))
           )}
 
-          <SectionHeading>Sleep last night</SectionHeading>
-          <Row label="value used" value={`${diagnostics.sleep.valueUsed ?? '—'} h`} />
-          <Row label="sample count" value={String(diagnostics.sleep.sampleCount ?? '—')} />
+          <SectionHeading>Sleep last night — old vs. new aggregation</SectionHeading>
+          <Row
+            label="raw sum (old)"
+            value={`${diagnostics.sleep.rawSumHours ?? '—'} h`}
+            testID={`${testID}-sleep-raw`}
+          />
+          <Row
+            label="interval union (new)"
+            value={`${diagnostics.sleep.unionHours ?? '—'} h`}
+            testID={`${testID}-sleep-union`}
+          />
+          <Row
+            label="value used"
+            value={`${diagnostics.sleep.valueUsed ?? '—'} h${diagnostics.sleep.usedFallback ? ' (fallback → raw sum)' : ''}`}
+            testID={`${testID}-sleep-used`}
+          />
+          <Row label="selection branch" value={diagnostics.sleep.selectionBranch} testID={`${testID}-sleep-branch`} />
+          <Row
+            label="samples used / returned"
+            value={`${diagnostics.sleep.summedSampleCount ?? '—'} / ${diagnostics.sleep.totalSampleCount ?? '—'}`}
+          />
+          {diagnostics.sleep.perSourceTotals.length === 0 ? (
+            <Row label="per-source totals" value="none" />
+          ) : (
+            diagnostics.sleep.perSourceTotals.map((s) => (
+              <Row
+                key={`${s.sourceName}-${s.valueClass}`}
+                label={`  source: ${s.sourceName} (${s.valueClass})`}
+                value={`${s.totalHours.toFixed(2)}h`}
+              />
+            ))
+          )}
 
           <SectionHeading>Workouts</SectionHeading>
           <Row label="status" value="NOT QUERIED" />

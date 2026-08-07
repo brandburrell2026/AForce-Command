@@ -78,8 +78,17 @@ function buildFixture(overrides: Record<string, unknown> = {}) {
     sleep: {
       identifier: 'HKCategoryTypeIdentifierSleepAnalysis' as const,
       queried: true as const,
-      sampleCount: 14,
+      totalSampleCount: 49,
+      summedSampleCount: 45,
+      selectionBranch: 'stages' as const,
+      rawSumHours: 13.33,
+      unionHours: 7.2,
+      perSourceTotals: [
+        { sourceName: 'iPhone', valueClass: 'unspecified' as const, totalHours: 6.6 },
+        { sourceName: "Brandon's Apple Watch", valueClass: 'stage' as const, totalHours: 6.7 },
+      ],
       valueUsed: 7.2,
+      usedFallback: false,
     },
     workout: {
       identifier: 'HKWorkoutTypeIdentifier' as const,
@@ -142,6 +151,37 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
     expect(text).toContain("native merged (HealthKit's own, capture-only): 7300");
     expect(text).toContain('iPhone: 4800');
     expect(text).toContain("Brandon's Apple Watch: 7200");
+  });
+
+  it('renders the old-vs-new sleep comparison, selection branch, sample counts, and per-source totals', async () => {
+    const { formatAppleHealthDiagnosticsSummary } = await loadDiagnosticsModule(undefined);
+    const text = formatAppleHealthDiagnosticsSummary(fixtureSnapshot() as any);
+    expect(text).toContain('raw sum (old method, no dedup): 13.33 h');
+    expect(text).toContain('interval union (new method): 7.2 h');
+    expect(text).toContain('selection branch: stages');
+    expect(text).toContain('samples used: 45 of 49 returned');
+    expect(text).toContain('iPhone (unspecified): 6.60h');
+    expect(text).toContain("Brandon's Apple Watch (stage): 6.70h");
+  });
+
+  it('flags a sleep fallback explicitly when the interval-union selection was empty', async () => {
+    const { formatAppleHealthDiagnosticsSummary } = await loadDiagnosticsModule(undefined);
+    const snap = fixtureSnapshot({
+      sleep: {
+        identifier: 'HKCategoryTypeIdentifierSleepAnalysis' as const,
+        queried: true as const,
+        totalSampleCount: 6,
+        summedSampleCount: 0,
+        selectionBranch: 'none' as const,
+        rawSumHours: 6.2,
+        unionHours: 0,
+        perSourceTotals: [],
+        valueUsed: 6.2,
+        usedFallback: true,
+      },
+    });
+    const text = formatAppleHealthDiagnosticsSummary(snap as any);
+    expect(text).toMatch(/FALLBACK to raw sum — interval-union selection was empty/);
   });
 
   it('flags a fallback explicitly when the bucketed query failed', async () => {

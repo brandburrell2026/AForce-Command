@@ -25,6 +25,7 @@ import {
   type AppleHealthDiagnosticSample,
   type AppleHealthDiagnosticsSnapshot,
   type AppleHealthQuantityMetricDiagnostic,
+  type AppleHealthSleepSourceTotal,
   type AppleHealthStepsDiagnostic,
 } from './appleHealthDiagnostics';
 
@@ -258,6 +259,223 @@ function sumRawQuantitySamples(samples: unknown): number | null {
   );
 }
 
+// ─── Sleep aggregation ────────────────────────────────────────────────────
+//
+// Founder Ruling A (2026-08-06), device-confirmed on build 48: the Home
+// score reported 13.332682222222223h of sleep from 49 samples for a real
+// ~7.5h night. 13.33 / 2 ≈ 6.67h — textbook Apple Watch "time asleep" for
+// that night. The OLD method (kept below as `sumRawSleepSamples`, used for
+// the diagnostics comparison and as a resilience fallback) took every
+// `HKCategorySample` with an "asleep" value (1 = ASLEEP_UNSPECIFIED, 3/4/5 =
+// ASLEEP_CORE/DEEP/REM) across the whole [now-18h, now] window (`lastNightStart`
+// below) and summed their durations with a flat `reduce` — no cross-source or
+// same-source deduplication at all. When an Apple Watch writes per-stage
+// samples (core/deep/REM) for a night AND the paired iPhone independently
+// writes an `asleepUnspecified` (value 1) layer for the SAME night — exactly
+// what a stage-capable Watch pairing does — the flat sum adds both layers
+// together, doubling the real total.
+//
+// `reduceSleepByIntervalUnion` (mirroring `reduceStepsByBucketMax`'s role for
+// the steps fix) fixes this with two independent guards:
+//
+//   1. SOURCE-CLASS PREFERENCE (`selectSleepIntervals`): if ANY stage sample
+//      (value 3/4/5) exists in the window, use ONLY stage samples — a
+//      concurrent value-1 layer is, by construction, the double-counting
+//      iPhone summary of the same night the Watch already reported in finer
+//      detail, not additional real sleep. Only when NO stage sample exists
+//      at all does the reduction fall back to value-1 samples. This mirrors
+//      the Health app's own "Time Asleep" behavior, which prefers the
+//      stage-capable source.
+//   2. INTERVAL UNION: within the selected set, sort by start time and merge
+//      overlapping/adjacent intervals before summing — this guards
+//      SAME-source overlap too (two overlapping samples from one source
+//      count once, not twice), not just cross-source.
+//
+// inBed (value 0) and awake (value 2) samples are never part of either
+// selection branch, so they are excluded by construction.
+//
+// This is a client-side reconstruction of a preferred-source sleep total,
+// not a call into a native cross-source merge API — see
+// `services/__tests__/appleHealth.sleepAggregation.test.ts`'s device-scenario
+// fixture (Watch stages ~6.7h across ~45 segments + iPhone unspecified ~6.6h
+// overlapping) for the regression proof that this collapses to ~6.7h, not
+// ~13.3h.
+
+/** Raw `HKCategoryValueSleepAnalysis` values this file cares about. */
+const SLEEP_STAGE_VALUES: ReadonlySet<number> = new Set([3, 4, 5]); // core, deep, REM
+const SLEEP_UNSPECIFIED_VALUE = 1; // asleepUnspecified
+const MS_PER_HOUR = 60 * 60 * 1000;
+
+export interface SleepInterval {
+  /** Interval start, epoch ms. */
+  startMs: number;
+  /** Interval end, epoch ms. */
+  endMs: number;
+  /** Raw HKCategoryValueSleepAnalysis: 0=inBed, 1=asleepUnspecified, 2=awake, 3=core, 4=deep, 5=rem. */
+  value: number;
+  /**
+   * HealthKit source name, e.g. "iPhone" or "Brandon's Apple Watch".
+   * Diagnostic only — the union merges across sources by design, so this
+   * field is never used to group or filter the reduction itself.
+   */
+  sourceName: string;
+}
+
+export type SleepSelectionBranch = 'stages' | 'unspecified' | 'none';
+
+/**
+ * Pure selection: which sample class becomes the union reduction's input.
+ * Exported separately from `reduceSleepByIntervalUnion` so the branch that
+ * fired can be surfaced in diagnostics (`appleHealthDiagnostics.ts`) without
+ * re-deriving it from the final number, and so the stage-preference /
+ * fallback behavior is independently unit-testable — see
+ * `services/__tests__/appleHealth.sleepAggregation.test.ts`.
+ */
+export function selectSleepIntervals(
+  intervals: readonly SleepInterval[],
+): { branch: SleepSelectionBranch; selected: SleepInterval[] } {
+  const stageIntervals = intervals.filter((i) => SLEEP_STAGE_VALUES.has(i.value));
+  if (stageIntervals.length > 0) {
+    return { branch: 'stages', selected: stageIntervals };
+  }
+  const unspecifiedIntervals = intervals.filter((i) => i.value === SLEEP_UNSPECIFIED_VALUE);
+  if (unspecifiedIntervals.length > 0) {
+    return { branch: 'unspecified', selected: unspecifiedIntervals };
+  }
+  return { branch: 'none', selected: [] };
+}
+
+/**
+ * Pure reduction: `selectSleepIntervals` the input, then sort by start and
+ * merge overlapping/adjacent intervals before summing — guarding BOTH
+ * cross-source overlap (Watch stages + iPhone unspecified for the same
+ * night) and same-source overlap (two overlapping samples from one source).
+ * Returns milliseconds asleep; an empty or all-excluded input returns 0,
+ * never throws. See
+ * `services/__tests__/appleHealth.sleepAggregation.test.ts` for the
+ * multi-source device-scenario fixture, same-source-overlap fixture, and
+ * the adjacent-vs-gap distinction (an awake gap between two stage runs is
+ * never bridged into asleep time).
+ */
+export function reduceSleepByIntervalUnion(intervals: readonly SleepInterval[]): number {
+  const { selected } = selectSleepIntervals(intervals);
+  if (selected.length === 0) return 0;
+
+  const sorted = [...selected].sort((a, b) => a.startMs - b.startMs);
+  let total = 0;
+  let curStart = sorted[0].startMs;
+  let curEnd = sorted[0].endMs;
+  for (let i = 1; i < sorted.length; i++) {
+    const next = sorted[i];
+    if (next.startMs <= curEnd) {
+      // Overlapping or exactly adjacent — extend the current run rather
+      // than starting a new one. A genuine gap (next.startMs > curEnd, e.g.
+      // an awake period between two sleep stages) is NOT bridged: it simply
+      // closes the current run and starts a new one, so the gap itself is
+      // never counted as asleep time.
+      if (next.endMs > curEnd) curEnd = next.endMs;
+    } else {
+      total += Math.max(0, curEnd - curStart);
+      curStart = next.startMs;
+      curEnd = next.endMs;
+    }
+  }
+  total += Math.max(0, curEnd - curStart);
+  return total;
+}
+
+/**
+ * Pure adapter: raw `HKCategorySample[]` (the installed
+ * `@kingstinct/react-native-healthkit@14.0.2` `CategorySample` shape —
+ * `{ startDate, endDate, value, sourceRevision: { source: { name } } }`,
+ * the same `sourceRevision` path `toDiagnosticSample` below already reads
+ * for quantity samples) → `SleepInterval[]`.
+ *
+ * Defensive by the same S2 lesson the steps adapter (`mapStatsToBuckets`)
+ * was extracted for: a wrong optional chain or a malformed/missing field
+ * here silently produces a wrong sleep total with the pure reduction never
+ * seeing anything wrong. Samples missing `startDate`/`endDate`, or with a
+ * non-numeric `value`, are dropped entirely — they cannot be classified
+ * safely, and defaulting them to a real HealthKit value (e.g. 0/inBed)
+ * would misrepresent malformed data as a genuine reading. See
+ * `services/__tests__/appleHealth.sleepAdapter.test.ts`.
+ */
+export function mapCategorySamplesToSleepIntervals(samples: unknown): SleepInterval[] {
+  if (!Array.isArray(samples)) return [];
+  return samples
+    .filter(
+      (s: any) => s?.startDate != null && s?.endDate != null && typeof s?.value === 'number',
+    )
+    .map((s: any) => ({
+      startMs: new Date(s.startDate).getTime(),
+      endMs: new Date(s.endDate).getTime(),
+      value: s.value,
+      sourceName: s.sourceRevision?.source?.name ?? 'unknown',
+    }))
+    .filter((i: { startMs: number; endMs: number }) => Number.isFinite(i.startMs) && Number.isFinite(i.endMs));
+}
+
+/**
+ * OLD method (pre-Ruling-A): flat sum of every "asleep" sample's duration —
+ * value 1 (unspecified) OR 3/4/5 (stage) — across every source, with NO
+ * deduplication. This is the exact computation that produced the 13.33h
+ * device evidence. Kept, unchanged, for two reasons: the diagnostics panel
+ * shows it side by side with the union total (exactly as
+ * `sumRawQuantitySamples` is kept for steps), and it is the resilience
+ * fallback when the interval selection above comes back empty despite real
+ * raw samples existing — see the empty-selection guard in
+ * `fetchAppleHealthSnapshot`. Returns milliseconds, matching
+ * `reduceSleepByIntervalUnion`'s unit.
+ */
+function sumRawSleepSamples(samples: unknown): number | null {
+  if (!Array.isArray(samples)) return null;
+  return samples.reduce(
+    (sum: number, s: { startDate: string | Date; endDate: string | Date; value: number }) => {
+      const isAsleep = s.value === 1 || s.value === 3 || s.value === 4 || s.value === 5;
+      if (!isAsleep) return sum;
+      const start = new Date(s.startDate).getTime();
+      const end = new Date(s.endDate).getTime();
+      return sum + Math.max(0, end - start);
+    },
+    0,
+  );
+}
+
+/**
+ * Diagnostics-only: per-source, per-value-class flat sums — NOT
+ * union-deduplicated, deliberately, so the panel can show the raw
+ * per-device picture next to the deduplicated union total. Mirrors steps'
+ * `perSourceTotals` role. inBed(0)/awake(2) samples contribute to neither
+ * class and are excluded, same as everywhere else in this file.
+ */
+function computeSleepPerSourceTotals(intervals: readonly SleepInterval[]): AppleHealthSleepSourceTotal[] {
+  // Keyed on sourceName+valueClass directly (never joined into, then split
+  // back out of, a delimited string) — source names are free text (e.g.
+  // "Brandon's Apple Watch") and may contain any character at all.
+  const totals = new Map<string, { sourceName: string; valueClass: 'stage' | 'unspecified'; ms: number }>();
+  for (const iv of intervals) {
+    const valueClass: 'stage' | 'unspecified' | null = SLEEP_STAGE_VALUES.has(iv.value)
+      ? 'stage'
+      : iv.value === SLEEP_UNSPECIFIED_VALUE
+        ? 'unspecified'
+        : null;
+    if (!valueClass) continue;
+    const key = `${valueClass}:${iv.sourceName}`;
+    const durationMs = Math.max(0, iv.endMs - iv.startMs);
+    const existing = totals.get(key);
+    if (existing) {
+      existing.ms += durationMs;
+    } else {
+      totals.set(key, { sourceName: iv.sourceName, valueClass, ms: durationMs });
+    }
+  }
+  return Array.from(totals.values()).map(({ sourceName, valueClass, ms }) => ({
+    sourceName,
+    valueClass,
+    totalHours: ms / MS_PER_HOUR,
+  }));
+}
+
 function toDiagnosticSample(raw: any, unit: string): AppleHealthDiagnosticSample | null {
   if (!raw) return null;
   return {
@@ -430,7 +648,20 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // record of this decision and what build 48 must report.
   const stepsToday = stepsUsedFallback ? stepsRawSampleSum : stepsBucketedMax;
 
-  let sleepSampleCount: number | null = null;
+  // ── Sleep: interval-union, source-aware (RC-2 Ruling A) ────────────────
+  // See the "Sleep aggregation" section header above `SleepInterval` for the
+  // full device-evidence writeup. `sleepTotalSampleCount` is EVERY sample
+  // HealthKit returned (including excluded inBed(0)/awake(2) rows);
+  // `sleepSummedSampleCount` is only the subset `selectSleepIntervals` chose
+  // (stage samples, or the value-1 fallback set) — these were previously
+  // conflated under one ambiguous `sleepSampleCount` field (item 5, Ruling A).
+  let sleepTotalSampleCount: number | null = null;
+  let sleepSummedSampleCount: number | null = null;
+  let sleepSelectionBranch: SleepSelectionBranch = 'none';
+  let sleepUnionMs: number | null = null;
+  let sleepRawSumMs: number | null = null;
+  let sleepUsedFallback = false;
+  let sleepIntervalsForDiagnostics: SleepInterval[] = [];
   const sleepHoursLastNight = await safe(async () => {
     const samples = await HK.queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
       ascending: true,
@@ -438,19 +669,33 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
       filter: { date: { startDate: lastNightStart, endDate: now } },
     });
     if (!Array.isArray(samples)) return null;
-    sleepSampleCount = samples.length;
-    const ms = samples.reduce(
-      (sum: number, s: { startDate: string | Date; endDate: string | Date; value: number }) => {
-        // value 0 = INBED, 1 = ASLEEP_UNSPECIFIED, 3..5 = ASLEEP_CORE/DEEP/REM, 2 = AWAKE.
-        const isAsleep = s.value === 1 || s.value === 3 || s.value === 4 || s.value === 5;
-        if (!isAsleep) return sum;
-        const start = new Date(s.startDate).getTime();
-        const end = new Date(s.endDate).getTime();
-        return sum + Math.max(0, end - start);
-      },
-      0,
-    );
-    return ms / (1000 * 60 * 60);
+    sleepTotalSampleCount = samples.length;
+
+    const intervals = mapCategorySamplesToSleepIntervals(samples);
+    sleepIntervalsForDiagnostics = intervals;
+    const { branch, selected } = selectSleepIntervals(intervals);
+    sleepSelectionBranch = branch;
+    sleepSummedSampleCount = selected.length;
+
+    const unionMs = reduceSleepByIntervalUnion(intervals);
+    sleepUnionMs = unionMs;
+    const rawMs = sumRawSleepSamples(samples) ?? 0;
+    sleepRawSumMs = rawMs;
+
+    // Empty-selection guard (the steps fix's SF-2 lesson, applied here): if
+    // the interval selection produced NOTHING despite real raw samples
+    // existing — e.g. every returned sample failed the adapter's defensive
+    // field checks — silently reporting 0h would show "no sleep last night"
+    // to a user who has real sleep data for the window. Fall back to the
+    // raw flat sum instead, exactly as the steps fix falls back to
+    // `stepsRawSampleSum` when the bucketed reduction comes back empty/zero
+    // with real samples present. A genuine zero-sleep window (rawMs also 0)
+    // is deliberately NOT treated as a fallback trigger.
+    if (unionMs === 0 && rawMs > 0) {
+      sleepUsedFallback = true;
+      return rawMs / MS_PER_HOUR;
+    }
+    return unionMs / MS_PER_HOUR;
   });
 
   const snapshot: AppleHealthSnapshot = {
@@ -533,8 +778,14 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
         sleep: {
           identifier: 'HKCategoryTypeIdentifierSleepAnalysis',
           queried: true,
-          sampleCount: sleepSampleCount,
+          totalSampleCount: sleepTotalSampleCount,
+          summedSampleCount: sleepSummedSampleCount,
+          selectionBranch: sleepSelectionBranch,
+          rawSumHours: sleepRawSumMs === null ? null : sleepRawSumMs / MS_PER_HOUR,
+          unionHours: sleepUnionMs === null ? null : sleepUnionMs / MS_PER_HOUR,
+          perSourceTotals: computeSleepPerSourceTotals(sleepIntervalsForDiagnostics),
           valueUsed: sleepHoursLastNight,
+          usedFallback: sleepUsedFallback,
         },
         workout: {
           identifier: 'HKWorkoutTypeIdentifier',
