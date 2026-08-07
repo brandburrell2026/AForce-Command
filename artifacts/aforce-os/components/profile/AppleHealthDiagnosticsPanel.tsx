@@ -113,6 +113,7 @@ function ArbitrationRows({
                 key={c.providerId}
                 label={`  lost: ${c.providerId}`}
                 value={formatCandidateLine(c)}
+                testID={`${testID}-lost-${c.providerId}`}
               />
             ))}
         </>

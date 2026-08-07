@@ -28,8 +28,10 @@
  *
  * "Freshest" (RC-2 Founder Ruling C, 2026-08-06 — supersedes the
  * pre-Ruling-C `fetchedAt`-only definition) is resolved by
- * `resolveComparisonTimestamp` on ONE axis per candidate, no branching
- * matrix:
+ * `resolveComparisonAxis` on ONE axis per candidate, no branching matrix
+ * (`resolveComparisonTimestamp` is a thin wrapper over its `.ms` for the
+ * scoring path below; the diagnostics explainer reads `.tier` from the
+ * same call — one calculation, two consumers):
  *
  *   1. per-field observedAt  (`snapshot.fieldObservedAtMs[field]`) —
  *      when THIS provider supplied one for THIS field. Today only
@@ -151,22 +153,60 @@ function activityFromStrain(strain: number): number {
 type ObservedFieldKey = keyof NonNullable<ProviderSnapshot['fieldObservedAtMs']>;
 
 /**
- * RC-2 Founder Ruling C: the ONE comparator every freshness decision in
- * this file (and, for the whole-entry case, `utils/biometricsMerge.ts`)
- * reduces to before comparing two candidates. See this file's header
- * comment for the full three-tier precedence and the clock-skew
- * rationale. `now` is REQUIRED here (not defaulted) — the one default
- * lives on `aggregateBiometrics` itself, so every internal call site is
- * forced to thread the same `now` rather than each reaching for its own.
+ * Which raw axis a comparison drew from for one (snapshot, field) pair —
+ * see `resolveComparisonAxis`'s three-tier precedence directly below.
+ */
+export type FieldArbitrationTier = 'fieldObservedAt' | 'latestObservedAt' | 'fetchedAt';
+
+/**
+ * RC-2 Founder Ruling C: the ONE place the three-tier freshness precedence
+ * lives — the single comparator every freshness decision in this file (and,
+ * for the whole-entry case, `utils/biometricsMerge.ts`) reduces to before
+ * comparing two candidates. See this file's header comment for the full
+ * precedence and the clock-skew rationale. `now` is REQUIRED here (not
+ * defaulted) — the one default lives on `aggregateBiometrics` itself, so
+ * every internal call site is forced to thread the same `now` rather than
+ * each reaching for its own.
+ *
+ * Returns BOTH the resolved (clamped) timestamp and which tier produced
+ * it, so a caller that only needs the number (`resolveComparisonTimestamp`
+ * below, the scoring path via `freshestNonNull`) and a caller that also
+ * needs to explain itself (`explainFieldArbitration`, the diagnostics path)
+ * share one calculation instead of two independently-maintained ones.
+ * Pre-unification, the diagnostics path derived its tier label from a
+ * hand-maintained mirror (`tierOf`) of this exact precedence with no shared
+ * implementation to keep the two in sync — see the PR #612 follow-up review
+ * this unification answers, and this module's mutation-verified lock test
+ * (`utils/__tests__/biometricsAggregator.explainFieldArbitration.test.ts`)
+ * proving a single mutation here now trips both the scoring-path parity
+ * tests AND the tier-classification tests, where previously it tripped
+ * neither.
+ */
+function resolveComparisonAxis<K extends keyof ProviderSnapshot>(
+  snap: ProviderSnapshot,
+  key: K,
+  now: number,
+): { ms: number; tier: FieldArbitrationTier } {
+  const fieldKey = key as unknown as ObservedFieldKey;
+  const fieldObservedAt = snap.fieldObservedAtMs?.[fieldKey];
+  if (fieldObservedAt != null) return { ms: Math.min(fieldObservedAt, now), tier: 'fieldObservedAt' };
+  if (snap.latestObservedAtMs != null) return { ms: Math.min(snap.latestObservedAtMs, now), tier: 'latestObservedAt' };
+  return { ms: Math.min(snap.fetchedAt, now), tier: 'fetchedAt' };
+}
+
+/**
+ * Thin wrapper over `resolveComparisonAxis` for callers that only need the
+ * resolved timestamp, not which tier produced it — every scoring-path call
+ * site (`freshestNonNull` below). Byte-equivalent to the pre-unification
+ * implementation: same precedence, same clamp, same fallback chain, just
+ * read off `.ms` instead of re-deriving it.
  */
 function resolveComparisonTimestamp<K extends keyof ProviderSnapshot>(
   snap: ProviderSnapshot,
   key: K,
   now: number,
 ): number {
-  const fieldKey = key as unknown as ObservedFieldKey;
-  const raw = snap.fieldObservedAtMs?.[fieldKey] ?? snap.latestObservedAtMs ?? snap.fetchedAt;
-  return Math.min(raw, now);
+  return resolveComparisonAxis(snap, key, now).ms;
 }
 
 /**
@@ -193,14 +233,7 @@ function freshestNonNull<K extends keyof ProviderSnapshot>(
   return best ? best.value : null;
 }
 
-/**
- * Which raw axis `resolveComparisonTimestamp` drew from for one
- * (snapshot, field) pair — see that function's three-tier precedence in
- * this file's header comment.
- */
-export type FieldArbitrationTier = 'fieldObservedAt' | 'latestObservedAt' | 'fetchedAt';
-
-/** One provider's contribution to a per-field arbitration — read-only, mirrors `resolveComparisonTimestamp`'s inputs verbatim. */
+/** One provider's contribution to a per-field arbitration — read-only, mirrors `resolveComparisonAxis`'s inputs verbatim. */
 export interface FieldArbitrationCandidate<K extends keyof ProviderSnapshot = keyof ProviderSnapshot> {
   providerId: HealthProviderId;
   value: NonNullable<ProviderSnapshot[K]>;
@@ -215,19 +248,6 @@ export interface FieldArbitrationResult<K extends keyof ProviderSnapshot = keyof
 }
 
 /**
- * Classify which axis `resolveComparisonTimestamp` drew from for this
- * (snapshot, field) pair, using the SAME optional-chain precedence as that
- * function's `raw` expression — never re-deriving the timestamp itself,
- * only labeling which branch of it fired.
- */
-function tierOf<K extends keyof ProviderSnapshot>(snap: ProviderSnapshot, key: K): FieldArbitrationTier {
-  const fieldKey = key as unknown as ObservedFieldKey;
-  if (snap.fieldObservedAtMs?.[fieldKey] != null) return 'fieldObservedAt';
-  if (snap.latestObservedAtMs != null) return 'latestObservedAt';
-  return 'fetchedAt';
-}
-
-/**
  * RC-2 founder logging order (build-49 device finding, 2026-08-07):
  * read-only introspection into per-field arbitration — the one stage of the
  * biometrics chain `freshestNonNull` makes completely unobservable today. It
@@ -237,14 +257,19 @@ function tierOf<K extends keyof ProviderSnapshot>(snap: ProviderSnapshot, key: K
  * breakdown number turned out to be WHOOP winning per-field arbitration
  * against Apple, not a corrupted Apple value.
  *
- * PURE AND BEHAVIOR-NEUTRAL: reuses `resolveComparisonTimestamp` verbatim
- * (never re-derives its clamp or fallback-chain logic) and mirrors
- * `freshestNonNull`'s own winner-selection loop exactly — same candidate
- * order (`Object.entries(biometrics)`, matching `aggregateBiometrics`'s own
- * iteration), same null-skip, same strict `>` tie rule (first candidate
- * encountered keeps a tie). This function does not run from any scoring
- * call site — only from the gated `AppleHealthDiagnosticsSection` readback —
- * and changes nothing about `freshestNonNull`, `aggregateBiometrics`, or any
+ * PURE AND BEHAVIOR-NEUTRAL: calls `resolveComparisonAxis` once per
+ * candidate — the SAME function `resolveComparisonTimestamp` (the scoring
+ * path, via `freshestNonNull`) wraps for its `.ms` — so the winning
+ * candidate's timestamp and its tier label always come from one
+ * calculation, never two independently-maintained ones (see
+ * `resolveComparisonAxis`'s own doc comment for the unification this
+ * replaced). Mirrors `freshestNonNull`'s own winner-selection loop exactly —
+ * same candidate order (`Object.entries(biometrics)`, matching
+ * `aggregateBiometrics`'s own iteration), same null-skip, same strict `>`
+ * tie rule (first candidate encountered keeps a tie). This function does
+ * not run from any scoring call site — only from the gated
+ * `AppleHealthDiagnosticsSection` readback — and changes nothing about
+ * `freshestNonNull`, `aggregateBiometrics`, or any
  * score. See this module's parity test suite
  * (`utils/__tests__/biometricsAggregator.explainFieldArbitration.test.ts`)
  * for the proof that its winner always agrees with `freshestNonNull`'s.
@@ -261,11 +286,12 @@ export function explainFieldArbitration<K extends keyof ProviderSnapshot>(
     if (!snap) continue;
     const value = snap[fieldKey];
     if (value == null) continue;
+    const axis = resolveComparisonAxis(snap, fieldKey, now);
     candidates.push({
       providerId: id,
       value: value as NonNullable<ProviderSnapshot[K]>,
-      comparisonTimestampMs: resolveComparisonTimestamp(snap, fieldKey, now),
-      tier: tierOf(snap, fieldKey),
+      comparisonTimestampMs: axis.ms,
+      tier: axis.tier,
     });
   }
 

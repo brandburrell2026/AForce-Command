@@ -113,10 +113,13 @@ export function AppleHealthDiagnosticsSection({
   // production call sites, which likewise resolve `now` once at computation
   // time rather than continuously re-clamping against a ticking clock.
   const arbitration = useMemo(
-    () => ({
-      sleep: explainFieldArbitration(biometrics, 'sleepHoursLastNight', Date.now()),
-      hrv: explainFieldArbitration(biometrics, 'hrvSdnn', Date.now()),
-    }),
+    () => {
+      const now = Date.now();
+      return {
+        sleep: explainFieldArbitration(biometrics, 'sleepHoursLastNight', now),
+        hrv: explainFieldArbitration(biometrics, 'hrvSdnn', now),
+      };
+    },
     [biometrics],
   );
 

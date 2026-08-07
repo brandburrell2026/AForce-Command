@@ -169,6 +169,42 @@ describe('explainFieldArbitration — tier classification', () => {
     expect(result.winner?.comparisonTimestampMs).toBe(now);
     expect(result.winner?.tier).toBe('latestObservedAt');
   });
+
+  // LIVE APPLE SHAPE (mutation-verified, PR #612 follow-up review): every
+  // fixture above that exercises 'fieldObservedAt' queries a field that IS a
+  // key in fieldObservedAtMs. But buildAppleHealthProviderSnapshot
+  // (utils/biometricsAggregator.ts) sets fieldObservedAtMs keys individually
+  // per input field — so a REAL apple_health snapshot routinely has the
+  // fieldObservedAtMs object present while missing the specific key being
+  // queried right now (e.g. only sleepHoursLastNightObservedAtMs was
+  // supplied, and this call is arbitrating hrvSdnn). A tier classifier that
+  // checks merely `fieldObservedAtMs != null` (object exists) instead of
+  // `fieldObservedAtMs?.[fieldKey] != null` (THIS field's key exists) would
+  // misreport tier as 'fieldObservedAt' here — and would do so silently,
+  // because the winning VALUE and comparisonTimestampMs still come out
+  // correct via `resolveComparisonTimestamp`'s own optional-chained lookup;
+  // only the tier LABEL lies. That is exactly why the PARITY tests above
+  // (which observe correctness only through the winning value/hint) don't
+  // catch it: this test asserts on `.tier` directly instead.
+  it('tier falls through to latestObservedAt when fieldObservedAtMs exists but lacks the queried key', () => {
+    const now = 2_000_000;
+    const r = explainFieldArbitration(
+      {
+        apple_health: {
+          providerId: 'apple_health',
+          hrvSdnn: 65,
+          sleepHoursLastNight: 7.2,
+          fetchedAt: now,
+          fieldObservedAtMs: { sleepHoursLastNight: now - 100 },
+          latestObservedAtMs: now - 50_000,
+        },
+      },
+      'hrvSdnn',
+      now,
+    );
+    expect(r.winner?.tier).toBe('latestObservedAt');
+    expect(r.winner?.comparisonTimestampMs).toBe(now - 50_000);
+  });
 });
 
 describe('explainFieldArbitration — candidates list completeness', () => {
