@@ -36,6 +36,7 @@ import type {
   AppleHealthDiagnosticsSnapshot,
   AppleHealthScoringInputSnapshot,
 } from '@/services/appleHealthDiagnostics';
+import type { FieldArbitrationResult } from '@/utils/biometricsAggregator';
 
 export interface AppleHealthDiagnosticsPanelProps {
   /** Pass `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED` from the caller — this component never reads the flag itself. */
@@ -44,6 +45,17 @@ export interface AppleHealthDiagnosticsPanelProps {
   diagnostics: AppleHealthDiagnosticsSnapshot | null;
   /** Read back from store state by the caller — never recomputed here. */
   scoringInput: AppleHealthScoringInputSnapshot | null;
+  /**
+   * RC-2 founder logging order (build-49 device finding, 2026-08-07): the
+   * `explainFieldArbitration` readback for `sleepHoursLastNight` and
+   * `hrvSdnn` — computed by the caller (`AppleHealthDiagnosticsSection`),
+   * never here, matching this component's "driven entirely by props"
+   * convention.
+   */
+  arbitration: {
+    sleep: FieldArbitrationResult<'sleepHoursLastNight'>;
+    hrv: FieldArbitrationResult<'hrvSdnn'>;
+  };
   testID?: string;
 }
 
@@ -65,10 +77,57 @@ function formatSampleLine(sample: AppleHealthDiagnosticsSnapshot['restingHeartRa
   return `${sample.quantity} ${sample.unit} · ${sample.sourceName} · ${sample.startDate}`;
 }
 
+function formatCandidateLine(c: { value: number; tier: string; comparisonTimestampMs: number }): string {
+  return `${c.value} · ${c.tier} @ ${new Date(c.comparisonTimestampMs).toISOString()}`;
+}
+
+/**
+ * RC-2 founder logging order: one field's arbitration readback — winning
+ * provider, value, tier, timestamp, plus every losing candidate's
+ * value/tier/timestamp. Renders "no provider reports this field" when
+ * `candidates` is empty (nothing connected reports this metric at all).
+ */
+function ArbitrationRows({
+  title,
+  result,
+  testID,
+}: {
+  title: string;
+  result: FieldArbitrationResult<'sleepHoursLastNight'> | FieldArbitrationResult<'hrvSdnn'>;
+  testID: string;
+}) {
+  return (
+    <>
+      <SectionHeading>{title}</SectionHeading>
+      {result.winner ? (
+        <>
+          <Row
+            label="winner"
+            value={`${result.winner.providerId} · ${formatCandidateLine(result.winner)}`}
+            testID={`${testID}-winner`}
+          />
+          {result.candidates
+            .filter((c) => c.providerId !== result.winner!.providerId)
+            .map((c) => (
+              <Row
+                key={c.providerId}
+                label={`  lost: ${c.providerId}`}
+                value={formatCandidateLine(c)}
+              />
+            ))}
+        </>
+      ) : (
+        <Row label="winner" value="no provider reports this field" testID={`${testID}-winner`} />
+      )}
+    </>
+  );
+}
+
 export function AppleHealthDiagnosticsPanel({
   enabled,
   diagnostics,
   scoringInput,
+  arbitration,
   testID = 'apple-health-diagnostics-panel',
 }: AppleHealthDiagnosticsPanelProps) {
   const [open, setOpen] = useState(false);
@@ -137,6 +196,11 @@ export function AppleHealthDiagnosticsPanel({
 
           <SectionHeading>Sleep last night — old vs. new aggregation</SectionHeading>
           <Row
+            label="query window"
+            value={`${diagnostics.sleep.queryWindowStartIso} → ${diagnostics.sleep.queryWindowEndIso}`}
+            testID={`${testID}-sleep-window`}
+          />
+          <Row
             label="raw sum (old)"
             value={`${diagnostics.sleep.rawSumHours ?? '—'} h`}
             testID={`${testID}-sleep-raw`}
@@ -145,6 +209,11 @@ export function AppleHealthDiagnosticsPanel({
             label="interval union (new)"
             value={`${diagnostics.sleep.unionHours ?? '—'} h`}
             testID={`${testID}-sleep-union`}
+          />
+          <Row
+            label="union last-end (raw)"
+            value={diagnostics.sleep.unionLastEndMs == null ? '—' : new Date(diagnostics.sleep.unionLastEndMs).toISOString()}
+            testID={`${testID}-sleep-union-last-end`}
           />
           <Row
             label="value used"
@@ -179,6 +248,24 @@ export function AppleHealthDiagnosticsPanel({
                 value={`RHR=${scoringInput.biometricsEntry.restingHeartRate ?? '—'} HRV=${scoringInput.biometricsEntry.hrvSdnn ?? '—'} sleep=${scoringInput.biometricsEntry.sleepHoursLastNight ?? '—'} steps=${scoringInput.biometricsEntry.stepsToday ?? '—'}`}
                 testID={`${testID}-scoring-biometrics`}
               />
+              <Row
+                label="sleep observed at"
+                value={
+                  scoringInput.biometricsEntry.sleepObservedAtMs != null
+                    ? new Date(scoringInput.biometricsEntry.sleepObservedAtMs).toISOString()
+                    : '—'
+                }
+                testID={`${testID}-scoring-sleep-observed-at`}
+              />
+              <Row
+                label="latest observed at"
+                value={
+                  scoringInput.biometricsEntry.latestObservedAtMs != null
+                    ? new Date(scoringInput.biometricsEntry.latestObservedAtMs).toISOString()
+                    : '—'
+                }
+                testID={`${testID}-scoring-latest-observed-at`}
+              />
             </>
           ) : (
             <Row label="biometrics.apple_health" value="not set" />
@@ -192,6 +279,17 @@ export function AppleHealthDiagnosticsPanel({
           ) : (
             <Row label="breakdown row" value="none found" />
           )}
+
+          <ArbitrationRows
+            title="Arbitration — sleepHoursLastNight (which provider won, and why)"
+            result={arbitration.sleep}
+            testID={`${testID}-arbitration-sleep`}
+          />
+          <ArbitrationRows
+            title="Arbitration — hrvSdnn (which provider won, and why)"
+            result={arbitration.hrv}
+            testID={`${testID}-arbitration-hrv`}
+          />
         </View>
       )}
     </View>

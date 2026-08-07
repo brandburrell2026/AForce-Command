@@ -103,6 +103,20 @@ export interface AppleHealthSleepDiagnostic {
   identifier: 'HKCategoryTypeIdentifierSleepAnalysis';
   queried: true;
   /**
+   * RC-2 founder logging order (build-49 device finding, 2026-08-07): the
+   * `[now−18h, now]` window bounds actually passed to `queryCategorySamples`'s
+   * `filter.date` (`services/appleHealth.ts`'s `lastNightStart`/`now`), as
+   * ISO strings. Captured unconditionally — even when the query itself
+   * throws or returns nothing — because these are the bounds that were
+   * REQUESTED, independent of what came back. Lets a reader line this
+   * window up against the Health app's own per-sample list and see exactly
+   * which segments of the night fell outside it (the trace behind the
+   * founder's 5.6h-vs-4.696h report: the 18h window clipping the front of
+   * the night).
+   */
+  queryWindowStartIso: string;
+  queryWindowEndIso: string;
+  /**
    * Every `HKCategorySample` HealthKit returned for the window, INCLUDING
    * excluded inBed(0)/awake(2) rows. RC-2 Ruling A item 5: this used to be
    * conflated with `summedSampleCount` below under one ambiguous
@@ -129,6 +143,20 @@ export interface AppleHealthSleepDiagnostic {
   rawSumHours: number | null;
   /** NEW method: `reduceSleepByIntervalUnion`'s raw result, in hours — captured even when 0 and `sleepValueUnknown` below is set. */
   unionHours: number | null;
+  /**
+   * RC-2 founder logging order: `reduceSleepByIntervalUnionDetailed`'s own
+   * `lastEndMs` (`services/appleHealth.ts:~1161`) for THIS refresh's
+   * selected interval set — captured unconditionally, the same way
+   * `unionHours` above is. This is the exact source Apple's
+   * `sleepHoursLastNightObservedAtMs` / `fieldObservedAtMs.sleepHoursLastNight`
+   * gets set from on the success path (RC-2 Founder Ruling C); `null` only
+   * when the selected interval set itself was empty. Distinct from that
+   * field-observed-at value: this is captured even in the `sleepValueUnknown`
+   * branch, where the accepted observation time stays `null` by design (see
+   * that field's own doc comment) but this raw union output is still worth
+   * showing for diagnosis.
+   */
+  unionLastEndMs: number | null;
   /** Per-source, per-value-class flat sums (NOT union-deduplicated) — for on-device comparison against the Health app's per-source breakdown. */
   perSourceTotals: readonly AppleHealthSleepSourceTotal[];
   /** The number `fetchAppleHealthSnapshot()` actually returned. `null` when `sleepValueUnknown` is `true`. */
@@ -168,6 +196,18 @@ export interface AppleHealthScoringInputSnapshot {
     sleepHoursLastNight: number | null;
     stepsToday: number | null;
     fetchedAt: number;
+    /**
+     * RC-2 founder logging order (build-49 device finding, 2026-08-07): the
+     * observation axes read back from the store mirror, additive/optional
+     * exactly like `ProviderSnapshot`'s own fields (see
+     * `fieldObservedAtMs.sleepHoursLastNight` / `latestObservedAtMs` in
+     * `lib/health-core/src/contracts.ts`). Lets the panel show WHEN this
+     * refresh's sleep value was actually observed — not merely when it was
+     * fetched — completing the founder's requested chain: raw HK value →
+     * aggregated value → snapshot value → scoring input → UI value.
+     */
+    sleepObservedAtMs?: number;
+    latestObservedAtMs?: number;
   } | null;
   /** The `health_signals` row from `ScoreEngineOutput.breakdown`, if present. */
   recoveryContribution: { id: string; label: string; delta: number; hint: string } | null;

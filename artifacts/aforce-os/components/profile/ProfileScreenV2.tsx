@@ -1656,6 +1656,7 @@ export function ProfileScreenV2() {
                               <AppleHealthDiagnosticsSection
                                 diagnostics={appleDiagnostics}
                                 biometricsEntry={userState.biometrics?.apple_health}
+                                biometrics={userState.biometrics}
                               />
                             )}
                           </View>

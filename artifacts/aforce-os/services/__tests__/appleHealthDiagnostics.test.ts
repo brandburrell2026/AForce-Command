@@ -78,11 +78,14 @@ function buildFixture(overrides: Record<string, unknown> = {}) {
     sleep: {
       identifier: 'HKCategoryTypeIdentifierSleepAnalysis' as const,
       queried: true as const,
+      queryWindowStartIso: '2026-08-05T15:00:00.000Z',
+      queryWindowEndIso: '2026-08-06T09:00:00.000Z',
       totalSampleCount: 49,
       summedSampleCount: 45,
       selectionBranch: 'stages' as const,
       rawSumHours: 13.33,
       unionHours: 7.2,
+      unionLastEndMs: 1_754_470_800_000,
       perSourceTotals: [
         { sourceName: 'iPhone', valueClass: 'unspecified' as const, totalHours: 6.6 },
         { sourceName: "Brandon's Apple Watch", valueClass: 'stage' as const, totalHours: 6.7 },

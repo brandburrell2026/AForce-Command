@@ -21,21 +21,32 @@ import React, { useMemo } from 'react';
 import { AppleHealthDiagnosticsPanel } from './AppleHealthDiagnosticsPanel';
 import { useEngineSlice } from '@/store/slices';
 import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '@/featureFlags/internalTestflightOverlay';
+import { explainFieldArbitration } from '@/utils/biometricsAggregator';
 import type {
   AppleHealthDiagnosticsSnapshot,
   AppleHealthScoringInputSnapshot,
 } from '@/services/appleHealthDiagnostics';
-import type { ProviderSnapshot } from '@/types';
+import type { ProviderBiometrics, ProviderSnapshot } from '@/types';
 
 export interface AppleHealthDiagnosticsSectionProps {
   diagnostics: AppleHealthDiagnosticsSnapshot | null;
   /** `state.userState.biometrics?.apple_health` — already subscribed at the screen level via `useUserSlice()`, so passing it down costs nothing extra. */
   biometricsEntry: ProviderSnapshot | null | undefined;
+  /**
+   * RC-2 founder logging order (build-49 device finding, 2026-08-07): the
+   * FULL cross-provider record — `state.userState.biometrics` — needed for
+   * `explainFieldArbitration`'s per-field readback (WHICH provider won
+   * `sleepHoursLastNight`/`hrvSdnn` arbitration and why), as distinct from
+   * `biometricsEntry` above, which is Apple's slice alone. Already
+   * subscribed at the screen level, so passing it down costs nothing extra.
+   */
+  biometrics: ProviderBiometrics | undefined;
 }
 
 export function AppleHealthDiagnosticsSection({
   diagnostics,
   biometricsEntry,
+  biometrics,
 }: AppleHealthDiagnosticsSectionProps) {
   const engineOutput = useEngineSlice();
   const recoveryRow = engineOutput.breakdown.find((c) => c.id === 'health_signals') ?? null;
@@ -71,6 +82,16 @@ export function AppleHealthDiagnosticsSection({
             sleepHoursLastNight: biometricsEntry.sleepHoursLastNight ?? null,
             stepsToday: biometricsEntry.stepsToday ?? null,
             fetchedAt: biometricsEntry.fetchedAt,
+            // RC-2 founder logging order: the observation axes, read back
+            // verbatim from the store mirror — undefined (never null,
+            // matching `ProviderSnapshot`'s own convention) when the
+            // producer never populated them.
+            ...(biometricsEntry.fieldObservedAtMs?.sleepHoursLastNight != null
+              ? { sleepObservedAtMs: biometricsEntry.fieldObservedAtMs.sleepHoursLastNight }
+              : {}),
+            ...(biometricsEntry.latestObservedAtMs != null
+              ? { latestObservedAtMs: biometricsEntry.latestObservedAtMs }
+              : {}),
           }
         : null,
       recoveryContribution: recoveryId !== null
@@ -85,11 +106,26 @@ export function AppleHealthDiagnosticsSection({
     [biometricsEntry, recoveryId, recoveryLabel, recoveryDelta, recoveryHint],
   );
 
+  // RC-2 founder logging order (build-49 device finding, 2026-08-07): the
+  // arbitration readback — WHICH provider won each field and why. Memoized
+  // on `biometrics` alone (its reference only changes when a fetch/merge
+  // actually updates the record), mirroring `aggregateBiometrics`'s own
+  // production call sites, which likewise resolve `now` once at computation
+  // time rather than continuously re-clamping against a ticking clock.
+  const arbitration = useMemo(
+    () => ({
+      sleep: explainFieldArbitration(biometrics, 'sleepHoursLastNight', Date.now()),
+      hrv: explainFieldArbitration(biometrics, 'hrvSdnn', Date.now()),
+    }),
+    [biometrics],
+  );
+
   return (
     <AppleHealthDiagnosticsPanel
       enabled={INTERNAL_TESTFLIGHT_OVERLAY_ENABLED}
       diagnostics={diagnostics}
       scoringInput={scoringInput}
+      arbitration={arbitration}
     />
   );
 }
