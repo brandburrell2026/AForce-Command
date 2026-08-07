@@ -18,6 +18,11 @@
  *   - concurrent writes for two different providers do not clobber
  *     each other (the original lost-update bug) — both end up in
  *     the final blob
+ *   - readProviderEntry (Founder Ruling C, RC-2 arbitration freshness,
+ *     2026-08-06): null on a missing row, null on a row with no entry
+ *     for that key yet, and the exact stored entry once one exists —
+ *     proven against real Postgres jsonb `->`, not just the in-memory
+ *     fakes the fetch-worker unit tests use.
  */
 import { describe, it, expect, beforeEach, afterAll } from "vitest";
 import { eq, inArray } from "drizzle-orm";
@@ -32,6 +37,10 @@ const SEED = [
   user("other_only"),
   user("race"),
   user("weird_key"),
+  user("read_none"),
+  user("read_null_blob"),
+  user("read_other_only"),
+  user("read_roundtrip"),
 ];
 
 const repo = createDrizzleUserStateRepo(db);
@@ -179,6 +188,80 @@ describe("createDrizzleUserStateRepo.writeProviderEntry", () => {
     const row = await readBlob(user("weird_key"));
     expect(row?.biometrics).toEqual({
       [weird]: { providerId: weird, fetchedAt: 1 },
+    });
+  });
+});
+
+describe("createDrizzleUserStateRepo.readProviderEntry (Founder Ruling C, RC-2)", () => {
+  it("returns null when no state row exists for the user", async () => {
+    const entry = await repo.readProviderEntry(user("read_none"), "whoop");
+    expect(entry).toBeNull();
+  });
+
+  it("returns null when the row exists but biometrics is NULL", async () => {
+    await db.insert(aforceUserState).values({ userId: user("read_null_blob") });
+    const entry = await repo.readProviderEntry(
+      user("read_null_blob"),
+      "whoop",
+    );
+    expect(entry).toBeNull();
+  });
+
+  it("returns null when biometrics exists but has no entry for this provider key", async () => {
+    await db.insert(aforceUserState).values({
+      userId: user("read_other_only"),
+      biometrics: {
+        samsung_health: { providerId: "samsung_health", fetchedAt: 1 },
+      } as never,
+    });
+    const entry = await repo.readProviderEntry(
+      user("read_other_only"),
+      "whoop",
+    );
+    expect(entry).toBeNull();
+  });
+
+  it("returns the exact stored entry once one exists, and reflects the LATEST write (round-trip with writeProviderEntry)", async () => {
+    await db.insert(aforceUserState).values({ userId: user("read_roundtrip") });
+
+    const beforeWrite = await repo.readProviderEntry(
+      user("read_roundtrip"),
+      "whoop",
+    );
+    expect(beforeWrite).toBeNull();
+
+    await repo.writeProviderEntry(user("read_roundtrip"), "whoop", {
+      providerId: "whoop",
+      fetchedAt: 1_000,
+      recoveryPct: 80,
+    });
+    const afterFirstWrite = await repo.readProviderEntry(
+      user("read_roundtrip"),
+      "whoop",
+    );
+    expect(afterFirstWrite).toEqual({
+      providerId: "whoop",
+      fetchedAt: 1_000,
+      recoveryPct: 80,
+    });
+
+    // This is the exact read-before-write sequence
+    // `providerKit/fetchWorker.ts`'s `runOnce` performs every sweep —
+    // proving it against real Postgres (jsonb `->`, not the in-memory
+    // fakes) closes the gap the unit tests can't reach.
+    await repo.writeProviderEntry(user("read_roundtrip"), "whoop", {
+      providerId: "whoop",
+      fetchedAt: 2_000,
+      recoveryPct: 55,
+    });
+    const afterSecondWrite = await repo.readProviderEntry(
+      user("read_roundtrip"),
+      "whoop",
+    );
+    expect(afterSecondWrite).toEqual({
+      providerId: "whoop",
+      fetchedAt: 2_000,
+      recoveryPct: 55,
     });
   });
 });

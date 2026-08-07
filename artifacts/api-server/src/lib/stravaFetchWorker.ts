@@ -47,6 +47,7 @@ import {
   createDrizzleUserStateRepo,
   type UserStateRepo,
 } from "./whoopFetchWorker";
+import { resolveProviderFetchedAt } from "./providerKit/fetchWorker";
 
 /** Pluggable HTTP fetcher seam — keeps tests offline. */
 export type StravaSnapshotFetcher = (
@@ -132,11 +133,36 @@ export async function runStravaFetchOnce(
     return { userId, status: "error", error: errMessage(err) };
   }
 
-  const fetchedAt = now();
-  const blob: StravaProviderBlob = stravaSnapshotToProviderBlob(
+  const candidateFetchedAt = now();
+  const candidateBlob = stravaSnapshotToProviderBlob(
     snapshot,
-    fetchedAt,
+    candidateFetchedAt,
+  ) as unknown as Record<string, unknown>;
+
+  // Founder Ruling C (RC-2 arbitration freshness, 2026-08-06): read the
+  // stored entry BEFORE deciding fetchedAt, and preserve it when the
+  // new content is unchanged — see `providerKit/fetchWorker.ts`'s
+  // `resolveProviderFetchedAt` for the full rationale. A read failure
+  // fails OPEN to a fresh timestamp (never silently freezes fetchedAt).
+  let existingEntry: Record<string, unknown> | null = null;
+  try {
+    existingEntry = await deps.stateRepo.readProviderEntry(userId, "strava");
+  } catch (err) {
+    log?.warn(
+      { userId, err: errMessage(err) },
+      "stravaFetchWorker:read-before-write threw — restamping",
+    );
+  }
+
+  const fetchedAt = resolveProviderFetchedAt(
+    existingEntry,
+    candidateBlob,
+    candidateFetchedAt,
   );
+  const restamped = fetchedAt === candidateFetchedAt;
+  const blob: StravaProviderBlob = (
+    restamped ? candidateBlob : { ...candidateBlob, fetchedAt }
+  ) as unknown as StravaProviderBlob;
 
   try {
     const updated = await deps.stateRepo.writeProviderEntry(
@@ -157,7 +183,7 @@ export async function runStravaFetchOnce(
     return { userId, status: "error", error: errMessage(err) };
   }
 
-  log?.info({ userId, fetchedAt }, "stravaFetchWorker:ok");
+  log?.info({ userId, fetchedAt, restamped }, "stravaFetchWorker:ok");
   return { userId, status: "ok", snapshot, fetchedAt };
 }
 

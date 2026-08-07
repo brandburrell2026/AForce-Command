@@ -41,6 +41,14 @@ function inMemoryStateRepo(initial: Map<string, FakeRow>): UserStateRepo & {
   return {
     writes,
     rows: initial,
+    async readProviderEntry(userId, providerKey) {
+      const row = initial.get(userId);
+      if (!row || !row.biometrics) return null;
+      return (
+        (row.biometrics[providerKey] as Record<string, unknown> | undefined) ??
+        null
+      );
+    },
     async writeProviderEntry(userId, providerKey, entry) {
       const row = initial.get(userId);
       if (!row) return false;
@@ -172,6 +180,9 @@ describe("runWhoopFetchOnce", () => {
 
   it("writer throw -> 'error' with sanitized message", async () => {
     const repo: UserStateRepo = {
+      async readProviderEntry() {
+        return null;
+      },
       async writeProviderEntry() {
         throw new TypeError("db down");
       },
@@ -193,5 +204,89 @@ describe("runWhoopFetchOnce", () => {
     });
     expect(out.status).toBe("skipped_no_token");
     expect(repo.writes).toHaveLength(0);
+  });
+
+  describe("Founder Ruling C (RC-2 arbitration freshness, 2026-08-06)", () => {
+    it("identical WHOOP content across repeated sweeps -> stored fetchedAt is PRESERVED", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                whoop: { providerId: "whoop", fetchedAt: 1_000, ...SAMPLE_SNAPSHOT },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await runWhoopFetchOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE_SNAPSHOT,
+        nowMs: () => 31_000, // ~30s later, per the real sweep cadence
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(1_000);
+      expect(repo.writes[0]!.entry).toMatchObject({ fetchedAt: 1_000 });
+    });
+
+    it("a changed WHOOP field -> fetchedAt advances to now", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                whoop: {
+                  providerId: "whoop",
+                  fetchedAt: 1_000,
+                  ...SAMPLE_SNAPSHOT,
+                  recoveryPct: 50, // stored value differs from the incoming fetch
+                },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await runWhoopFetchOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE_SNAPSHOT, // recoveryPct: 80
+        nowMs: () => 31_000,
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(31_000);
+    });
+
+    it("device-proven scenario: WHOOP fetchedAt never leapfrogs a fresher provider across 3 unchanged sweeps", async () => {
+      // Mirrors the founder's build-48 report: WHOOP restamped every sweep
+      // regardless of whether the underlying observation changed, so its
+      // fetchedAt could permanently outrank a just-synced Apple Health
+      // snapshot on every field WHOOP carries. This proves the WHOOP side
+      // of that: three sweeps, identical payload, fetchedAt pinned at the
+      // first sweep's timestamp throughout.
+      const repo = inMemoryStateRepo(new Map([["u1", { biometrics: null }]]));
+      const sweepAt = async (nowMs: number) =>
+        runWhoopFetchOnce("u1", {
+          tokenManager: fakeTokenManager("AT"),
+          stateRepo: repo,
+          snapshotFetcher: async () => SAMPLE_SNAPSHOT,
+          nowMs: () => nowMs,
+        });
+
+      const first = await sweepAt(1_000);
+      expect(first.fetchedAt).toBe(1_000);
+
+      const second = await sweepAt(31_000);
+      expect(second.fetchedAt).toBe(1_000);
+
+      const third = await sweepAt(61_000);
+      expect(third.fetchedAt).toBe(1_000);
+
+      expect(repo.rows.get("u1")!.biometrics).toMatchObject({
+        whoop: { providerId: "whoop", fetchedAt: 1_000 },
+      });
+    });
   });
 });

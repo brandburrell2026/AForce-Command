@@ -26,6 +26,14 @@ function inMemoryStateRepo(initial: Map<string, FakeRow>): UserStateRepo & {
   return {
     writes,
     rows: initial,
+    async readProviderEntry(userId, providerKey) {
+      const row = initial.get(userId);
+      if (!row || !row.biometrics) return null;
+      return (
+        (row.biometrics[providerKey] as Record<string, unknown> | undefined) ??
+        null
+      );
+    },
     async writeProviderEntry(userId, providerKey, entry) {
       const row = initial.get(userId);
       if (!row) return false;
@@ -153,6 +161,9 @@ describe("createProviderFetchWorker.runOnce", () => {
 
   it("writer throw -> 'error' with sanitized message", async () => {
     const repo: UserStateRepo = {
+      async readProviderEntry() {
+        return null;
+      },
       async writeProviderEntry() {
         throw new TypeError("db down");
       },
@@ -205,5 +216,137 @@ describe("createProviderFetchWorker.runOnce", () => {
     });
     expect(out.status).toBe("ok");
     expect(repo.writes[0]!.providerKey).toBe("strava");
+  });
+
+  describe("Founder Ruling C (RC-2 arbitration freshness, 2026-08-06)", () => {
+    it("identical content across sweeps -> stored fetchedAt is PRESERVED, not restamped", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                garmin: { providerId: "garmin", fetchedAt: 1_000, readinessScore: 82 },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await makeWorker().runOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE, // same { readinessScore: 82 }
+        nowMs: () => 9_999,
+      });
+      expect(out.status).toBe("ok");
+      // The sweep ran "now" but the content is byte-identical to what's
+      // stored — fetchedAt must stay at the ORIGINAL value, not jump to 9999.
+      expect(out.fetchedAt).toBe(1_000);
+      expect(repo.writes[0]!.entry).toEqual({
+        providerId: "garmin",
+        fetchedAt: 1_000,
+        readinessScore: 82,
+      });
+    });
+
+    it("changed content -> fetchedAt ADVANCES to now", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                garmin: { providerId: "garmin", fetchedAt: 1_000, readinessScore: 40 },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await makeWorker().runOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE, // { readinessScore: 82 } — different
+        nowMs: () => 9_999,
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(9_999);
+      expect(repo.writes[0]!.entry).toEqual({
+        providerId: "garmin",
+        fetchedAt: 9_999,
+        readinessScore: 82,
+      });
+    });
+
+    it("first-ever write for a provider key (nothing stored) -> stamps now, no preserve", async () => {
+      const repo = inMemoryStateRepo(new Map([["u1", { biometrics: null }]]));
+      const out = await makeWorker().runOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE,
+        nowMs: () => 9_999,
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(9_999);
+    });
+
+    it("a read-before-write throw fails OPEN to a fresh timestamp (never freezes fetchedAt)", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                garmin: { providerId: "garmin", fetchedAt: 1_000, readinessScore: 82 },
+              },
+            },
+          ],
+        ]),
+      );
+      repo.readProviderEntry = async () => {
+        throw new Error("read boom");
+      };
+      const out = await makeWorker().runOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE, // identical content to stored
+        nowMs: () => 9_999,
+      });
+      expect(out.status).toBe("ok");
+      // Even though content is identical, the read threw -> fail open to "now".
+      expect(out.fetchedAt).toBe(9_999);
+    });
+
+    it("three sweeps with unchanged content preserve the ORIGINAL fetchedAt across all three (whoop-vs-apple device scenario)", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([["u1", { biometrics: null }]]),
+      );
+      const worker = createProviderFetchWorker<Snapshot>({
+        provider: "Whoop",
+        toBlob: (s, fetchedAt) => ({ providerId: "whoop", fetchedAt, ...s }),
+      });
+      const sweep = (nowMs: number) =>
+        worker.runOnce("u1", {
+          tokenManager: fakeTokenManager("AT"),
+          stateRepo: repo,
+          snapshotFetcher: async () => SAMPLE,
+          nowMs: () => nowMs,
+        });
+
+      const first = await sweep(1_000); // initial connect / first sweep
+      expect(first.fetchedAt).toBe(1_000);
+
+      const second = await sweep(31_000); // ~30s later, WHOOP data unchanged
+      expect(second.fetchedAt).toBe(1_000);
+
+      const third = await sweep(61_000); // another ~30s, still unchanged
+      expect(third.fetchedAt).toBe(1_000);
+
+      // A same-key second-provider write (e.g. Apple Health, written by a
+      // different path entirely) is out of scope for this worker — the
+      // regression this proves is narrower and sufficient: WHOOP's own
+      // restamped fetchedAt never leapfrogs forward on unchanged polls,
+      // which is the precondition for the client aggregator to be able to
+      // compare it fairly against a freshly-synced Apple Health fetchedAt.
+    });
   });
 });

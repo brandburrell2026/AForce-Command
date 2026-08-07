@@ -41,6 +41,14 @@ function inMemoryStateRepo(initial: Map<string, FakeRow>): UserStateRepo & {
   return {
     writes,
     rows: initial,
+    async readProviderEntry(userId, providerKey) {
+      const row = initial.get(userId);
+      if (!row || !row.biometrics) return null;
+      return (
+        (row.biometrics[providerKey] as Record<string, unknown> | undefined) ??
+        null
+      );
+    },
     async writeProviderEntry(userId, providerKey, entry) {
       const row = initial.get(userId);
       if (!row) return false;
@@ -166,6 +174,9 @@ describe("runStravaFetchOnce", () => {
 
   it("writer throw -> 'error' with sanitized message", async () => {
     const repo: UserStateRepo = {
+      async readProviderEntry() {
+        return null;
+      },
       async writeProviderEntry() {
         throw new TypeError("db down");
       },
@@ -187,5 +198,58 @@ describe("runStravaFetchOnce", () => {
     });
     expect(out.status).toBe("skipped_no_token");
     expect(repo.writes).toHaveLength(0);
+  });
+
+  describe("Founder Ruling C (RC-2 arbitration freshness, 2026-08-06)", () => {
+    it("identical Strava content across repeated sweeps -> stored fetchedAt is PRESERVED", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                strava: { providerId: "strava", fetchedAt: 1_000, ...SAMPLE_SNAPSHOT },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await runStravaFetchOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE_SNAPSHOT,
+        nowMs: () => 31_000,
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(1_000);
+    });
+
+    it("a changed Strava field -> fetchedAt advances to now", async () => {
+      const repo = inMemoryStateRepo(
+        new Map([
+          [
+            "u1",
+            {
+              biometrics: {
+                strava: {
+                  providerId: "strava",
+                  fetchedAt: 1_000,
+                  ...SAMPLE_SNAPSHOT,
+                  trainingLoad: 10,
+                },
+              },
+            },
+          ],
+        ]),
+      );
+      const out = await runStravaFetchOnce("u1", {
+        tokenManager: fakeTokenManager("AT"),
+        stateRepo: repo,
+        snapshotFetcher: async () => SAMPLE_SNAPSHOT, // trainingLoad: 55
+        nowMs: () => 31_000,
+      });
+      expect(out.status).toBe("ok");
+      expect(out.fetchedAt).toBe(31_000);
+    });
   });
 });
