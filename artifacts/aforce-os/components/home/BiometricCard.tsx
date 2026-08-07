@@ -11,7 +11,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, type ViewStyle } from 'react-native';
 import { Icon, type IconName } from '../Icon';
-import { Colors } from '../../theme/colors';
+import { af, afType, Typography } from '../../theme';
 import { AFStatPair } from '../ui/AFStatPair';
 
 export interface BiometricFooterMetric {
@@ -23,7 +23,7 @@ export interface BiometricFooterMetric {
 
 interface Props {
   eyebrow: string;
-  /** Status dot + heroValue tint. Use one of Colors.states.* primary. */
+  /** Status dot + heroValue tint. Use an af.* state accent (af.green/cyan/amber/red). */
   accent: string;
   icon: IconName;
   /** Big hero metric — e.g. "82 oz" or "84 ↑". */
@@ -98,10 +98,10 @@ export const BiometricCard = React.memo(BiometricCardImpl);
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.background.card,
+    backgroundColor: af.surface,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border.medium,
+    borderColor: af.divider,
     paddingHorizontal: 18,
     paddingTop: 16,
     paddingBottom: 14,
@@ -117,44 +117,39 @@ const styles = StyleSheet.create({
   dot: { width: 6, height: 6, borderRadius: 3 },
   eyebrowText: {
     flex: 1,
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    letterSpacing: 2.2,
+    ...afType.eyebrow,
   },
   estBadge: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
+    ...afType.microLabel,
     letterSpacing: 1.8,
-    color: Colors.text.muted,
+    color: af.textTertiary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.border.medium,
+    borderColor: af.divider,
   },
 
   heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   heroValue: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 34,
+    ...afType.title1,
+    fontFamily: Typography.fonts.bold,
     letterSpacing: -1.2,
-    lineHeight: 38,
   },
   heroLabel: {
     flex: 1,
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.78)',
+    ...afType.caption,
+    fontFamily: Typography.fonts.medium,
     letterSpacing: 0.1,
+    color: af.textSecondary,
   },
 
   subline: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.70)',
+    ...afType.caption,
+    fontFamily: Typography.fonts.medium,
     letterSpacing: 0.1,
+    color: af.textSecondary,
     marginTop: 10,
-    lineHeight: 18,
   },
 
   footer: {
@@ -163,26 +158,25 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border.subtle,
+    borderTopColor: af.divider,
   },
   footerCell: { flex: 1 },
   footerDivider: {
     width: StyleSheet.hairlineWidth,
     height: 26,
-    backgroundColor: Colors.border.subtle,
+    backgroundColor: af.divider,
     marginHorizontal: 10,
   },
   footerLabel: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 10,
-    color: Colors.text.secondary,
+    ...afType.tab,
     letterSpacing: 1.4,
+    color: af.textSecondary,
     marginBottom: 3,
   },
   footerValue: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 14,
-    color: Colors.text.primary,
+    ...afType.caption,
+    fontFamily: Typography.fonts.semibold,
     letterSpacing: -0.1,
+    color: af.textPrimary,
   },
 });
