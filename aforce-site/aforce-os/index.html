@@ -354,6 +354,47 @@
   .cm-sc{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; flex-shrink:0; }
   .cm-mv{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; width:7cqw; text-align:right; flex-shrink:0; }
   .mv-up{ color:var(--xgreen); } .mv-dn{ color:var(--xredt); } .mv-fl{ color:var(--xfaint); }
+  /* ---- shared continuation sections (fill each screen to the nav) ---- */
+  .osx-sh{ margin-top:3.4cqw; display:flex; align-items:baseline; justify-content:space-between; }
+  .osx-sh .l{ font-size:2.9cqw; font-weight:600; color:var(--xdim); }
+  .osx-sh .r{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; color:var(--xgreen); }
+  .osx-mg{ margin-top:2.2cqw; display:grid; grid-template-columns:1fr 1fr; gap:2.2cqw; }
+  .osx-mc{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:2.6cqw 3cqw; }
+  .osx-mc .k{ font-size:2.3cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
+  .osx-mc .v{ margin-top:0.9cqw; font-family:'IBM Plex Mono',monospace; font-size:4.2cqw; font-weight:600; color:#F4F2ED; }
+  .osx-mc .v em{ font-style:normal; font-family:var(--body); font-size:2.4cqw; font-weight:500; color:var(--xfaint); }
+  .osx-mc .s{ margin-top:0.5cqw; font-size:2.35cqw; color:var(--xgreen); }
+  .osx-mc .s.amber{ color:var(--xamber); }
+  .osx-tlx{ margin-top:2.4cqw; position:relative; display:flex; flex-direction:column; gap:2.6cqw; }
+  .osx-tlx::before{ content:''; position:absolute; left:1.9cqw; top:2cqw; bottom:2cqw; width:1px; background:rgba(255,255,255,.10); }
+  .osx-tlx .row{ position:relative; display:flex; align-items:center; gap:3cqw; }
+  .osx-tlx .dot{ width:4cqw; height:4cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; z-index:1; }
+  .osx-tlx .dot.hollow{ background:var(--xsurf); border:1.4px solid rgba(255,255,255,.24); }
+  .osx-tlx .tx{ flex:1; font-size:3cqw; color:#F4F2ED; }
+  .osx-tlx .tm{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; color:var(--xfaint); }
+  .osx-tlx .tm.up{ color:var(--xgreen); }
+  .osx-badges{ margin-top:2.4cqw; display:flex; flex-wrap:wrap; gap:1.8cqw; }
+  .osx-badge{ display:inline-flex; align-items:center; gap:1.6cqw; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:5cqw; padding:1.5cqw 2.8cqw; font-size:2.55cqw; font-weight:500; }
+  .osx-badge .ic{ width:3.6cqw; height:3.6cqw; border-radius:50%; background:rgba(31,163,90,.2); flex-shrink:0; position:relative; }
+  .osx-badge .ic::after{ content:''; position:absolute; left:1.2cqw; top:0.85cqw; width:0.9cqw; height:1.6cqw; border:solid var(--xgreen); border-width:0 0.55cqw 0.55cqw 0; transform:rotate(43deg); }
+  .osx-stats{ margin-top:2.4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:0.6cqw 3.2cqw; }
+  .osx-stat{ display:flex; align-items:center; justify-content:space-between; padding:2.1cqw 0; border-top:1px solid rgba(255,255,255,.06); }
+  .osx-stat:first-child{ border-top:none; }
+  .osx-stat .k{ font-size:2.8cqw; color:var(--xdim); }
+  .osx-stat .v{ font-family:'IBM Plex Mono',monospace; font-size:3.1cqw; font-weight:600; color:#F4F2ED; }
+  .osx-stat .v.g{ color:var(--xgreen); }
+  .osx-pb{ margin-top:2.4cqw; display:flex; flex-direction:column; gap:2.4cqw; }
+  .osx-pb .top{ display:flex; justify-content:space-between; font-size:2.7cqw; margin-bottom:1.2cqw; }
+  .osx-pb .top .k{ color:var(--xdim); } .osx-pb .top .v{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:#F4F2ED; }
+  .osx-pb .bar{ height:1.6cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
+  .osx-pb .bar i{ display:block; height:100%; border-radius:1cqw; background:linear-gradient(90deg,var(--xgreen),var(--xcyan)); }
+  .osx-week{ margin-top:2.4cqw; display:flex; gap:1.4cqw; }
+  .osx-day{ flex:1; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:2.6cqw; padding:2.2cqw 0 2cqw; display:flex; flex-direction:column; align-items:center; gap:1.4cqw; }
+  .osx-day .d{ font-size:2.1cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
+  .osx-day .bar{ width:2.6cqw; height:10cqw; border-radius:1.4cqw; background:rgba(255,255,255,.10); display:flex; align-items:flex-end; overflow:hidden; }
+  .osx-day .bar i{ width:100%; border-radius:1.4cqw; background:var(--xgreen); }
+  .osx-day .bar i.amber{ background:var(--xamber); }
+  .osx-day .n{ font-family:'IBM Plex Mono',monospace; font-size:2.15cqw; font-weight:600; color:#F4F2ED; }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
   .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
@@ -466,6 +507,35 @@
               <div class="row"><span class="d"></span><span class="tx">Recheck signal &mdash; readiness held</span><span class="tm">4h ago</span></div>
               <div class="row"><span class="d"></span><span class="tx">Morning hydration confirmed</span><span class="tm">6h ago</span></div>
             </div>
+            <div class="osx-sh"><span class="l">Recovery signals</span><span class="r">Live</span></div>
+            <div class="osx-mg">
+              <div class="osx-mc"><div class="k">Heart rate</div><div class="v">58<em>bpm</em></div><div class="s">Stable</div></div>
+              <div class="osx-mc"><div class="k">HRV</div><div class="v">66<em>ms</em></div><div class="s">Excellent</div></div>
+              <div class="osx-mc"><div class="k">Hydration</div><div class="v">92<em>%</em></div><div class="s">Optimal</div></div>
+              <div class="osx-mc"><div class="k">Sleep</div><div class="v">7h 41m</div><div class="s">Recovered</div></div>
+            </div>
+            <div class="osx-sh"><span class="l">Recovery timeline</span></div>
+            <div class="osx-tlx">
+              <div class="row"><span class="dot"></span><span class="tx">Morning hydration complete</span><span class="tm">7:20a</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Electrolytes logged</span><span class="tm">9:05a</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Recovery improved</span><span class="tm up">&#9650; 8%</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">HRV increased</span><span class="tm up">&#9650; 4 ms</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Afternoon protocol complete</span><span class="tm">12:30p</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Performance trend</span><span class="r">&#9650; Climbing</span></div>
+            <div class="osx-mg">
+              <div class="osx-mc"><div class="k">Readiness · 7d</div><div class="v">86</div><div class="s">&#9650; Recovery climbing</div></div>
+              <div class="osx-mc"><div class="k">Tomorrow est.</div><div class="v">92</div><div class="s">Projected peak</div></div>
+            </div>
+            <div class="osx-sh"><span class="l">Achievements</span></div>
+            <div class="osx-badges">
+              <span class="osx-badge"><span class="ic"></span>14-Day Recovery Streak</span>
+              <span class="osx-badge"><span class="ic"></span>Morning Protocol Complete</span>
+              <span class="osx-badge"><span class="ic"></span>Hydration Goal Achieved</span>
+              <span class="osx-badge"><span class="ic"></span>Perfect Recovery Day</span>
+            </div>
+            <div class="osx-sh"><span class="l">Upcoming command</span><span class="r">42 min</span></div>
+            <div class="osx-mc" style="margin-top:2.2cqw;"><div class="k">Next protocol</div><div class="v" style="font-family:var(--body);font-size:3.4cqw;">Recovery check</div><div class="s">In 42 minutes &middot; 2:30 PM</div></div>
           </div>
           <div class="osx-nav">
             <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
@@ -551,6 +621,34 @@
               </div>
               <span class="ch-score is-peak">89</span>
             </div>
+            <div class="osx-sh"><span class="l">Weekly averages</span><span class="r">Last 7 days</span></div>
+            <div class="osx-stats">
+              <div class="osx-stat"><span class="k">Recovery</span><span class="v g">89%</span></div>
+              <div class="osx-stat"><span class="k">Hydration</span><span class="v">94%</span></div>
+              <div class="osx-stat"><span class="k">Protocol completion</span><span class="v g">92%</span></div>
+              <div class="osx-stat"><span class="k">Average readiness</span><span class="v">84</span></div>
+              <div class="osx-stat"><span class="k">Command accuracy</span><span class="v g">96%</span></div>
+              <div class="osx-stat"><span class="k">Avg recovery time</span><span class="v">41 min</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Streaks &amp; peaks</span></div>
+            <div class="osx-mg">
+              <div class="osx-mc"><div class="k">Current streak</div><div class="v">18<em>d</em></div><div class="s">Active</div></div>
+              <div class="osx-mc"><div class="k">Best streak</div><div class="v">24<em>d</em></div><div class="s">Personal best</div></div>
+              <div class="osx-mc"><div class="k">Peak days</div><div class="v">12</div><div class="s">This month</div></div>
+              <div class="osx-mc"><div class="k">Best window</div><div class="v" style="font-family:var(--body);font-size:3.4cqw;">6&ndash;9 AM</div><div class="s">Top readiness</div></div>
+            </div>
+            <div class="osx-sh"><span class="l">Monthly trend</span><span class="r">&#9650; 11%</span></div>
+            <div class="ch-summary" style="margin-top:2.2cqw;">
+              <div class="big"><b>87</b><span>30-day avg</span></div>
+              <div class="spark"><i class="lo" style="height:44%"></i><i class="mid" style="height:58%"></i><i class="mid" style="height:52%"></i><i class="hi" style="height:70%"></i><i class="lo" style="height:48%"></i><i class="hi" style="height:80%"></i><i class="hi" style="height:92%"></i></div>
+            </div>
+            <div class="osx-sh"><span class="l">Badges earned</span></div>
+            <div class="osx-badges">
+              <span class="osx-badge"><span class="ic"></span>Perfect Week</span>
+              <span class="osx-badge"><span class="ic"></span>Hydration Master</span>
+              <span class="osx-badge"><span class="ic"></span>18-Day Streak</span>
+              <span class="osx-badge"><span class="ic"></span>Recovery Pro</span>
+            </div>
           </div>
           <div class="osx-nav">
             <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
@@ -615,6 +713,39 @@
             </div>
             <div class="wr-top"><div class="ic">&#9650;</div><div><div class="k">Top command</div><div class="v">Hydrate before 10 AM</div></div></div>
             <div class="wr-top" style="background:linear-gradient(90deg,rgba(31,163,90,.14),rgba(31,163,90,.03));border-color:rgba(31,163,90,.26);"><div class="ic" style="background:rgba(31,163,90,.16);color:var(--xgreen);">&#9679;</div><div><div class="k" style="color:var(--xgreen);">Next week focus</div><div class="v">Protect the morning window</div></div></div>
+            <div class="osx-sh"><span class="l">Weekly timeline</span><span class="r">Readiness</span></div>
+            <div class="osx-week">
+              <div class="osx-day"><span class="d">Mon</span><span class="bar"><i style="height:72%"></i></span><span class="n">81</span></div>
+              <div class="osx-day"><span class="d">Tue</span><span class="bar"><i class="amber" style="height:56%"></i></span><span class="n">74</span></div>
+              <div class="osx-day"><span class="d">Wed</span><span class="bar"><i style="height:80%"></i></span><span class="n">85</span></div>
+              <div class="osx-day"><span class="d">Thu</span><span class="bar"><i style="height:90%"></i></span><span class="n">89</span></div>
+              <div class="osx-day"><span class="d">Fri</span><span class="bar"><i style="height:78%"></i></span><span class="n">83</span></div>
+              <div class="osx-day"><span class="d">Sat</span><span class="bar"><i style="height:88%"></i></span><span class="n">88</span></div>
+              <div class="osx-day"><span class="d">Sun</span><span class="bar"><i style="height:96%"></i></span><span class="n">91</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Performance breakdown</span></div>
+            <div class="osx-pb">
+              <div><div class="top"><span class="k">Hydration</span><span class="v">95%</span></div><div class="bar"><i style="width:95%"></i></div></div>
+              <div><div class="top"><span class="k">Recovery</span><span class="v">91%</span></div><div class="bar"><i style="width:91%"></i></div></div>
+              <div><div class="top"><span class="k">Sleep</span><span class="v">87%</span></div><div class="bar"><i style="width:87%"></i></div></div>
+              <div><div class="top"><span class="k">Consistency</span><span class="v">96%</span></div><div class="bar"><i style="width:96%"></i></div></div>
+              <div><div class="top"><span class="k">Protocol</span><span class="v">93%</span></div><div class="bar"><i style="width:93%"></i></div></div>
+            </div>
+            <div class="osx-sh"><span class="l">Achievements</span></div>
+            <div class="osx-badges">
+              <span class="osx-badge"><span class="ic"></span>7-Day Streak</span>
+              <span class="osx-badge"><span class="ic"></span>Recovery Improved</span>
+              <span class="osx-badge"><span class="ic"></span>Performance Age Down</span>
+              <span class="osx-badge"><span class="ic"></span>Morning Protocol Complete</span>
+              <span class="osx-badge"><span class="ic"></span>No Missed Hydration</span>
+            </div>
+            <div class="osx-sh"><span class="l">Recommendations</span></div>
+            <div class="osx-tlx">
+              <div class="row"><span class="dot hollow"></span><span class="tx">Keep hydration above 120 oz</span></div>
+              <div class="row"><span class="dot hollow"></span><span class="tx">Protect your sleep window</span></div>
+              <div class="row"><span class="dot hollow"></span><span class="tx">Maintain the morning protocol</span></div>
+              <div class="row"><span class="dot hollow"></span><span class="tx">Repeat current routine</span></div>
+            </div>
           </div>
           <div class="osx-nav">
             <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
@@ -680,6 +811,35 @@
               <div class="cm-lr"><span class="cm-rk">5</span><span class="cm-sm" style="background:#1FA35A">CB</span><div class="cm-nm"><b>Cam B.</b><span>Denver, CO · 6-day streak</span></div><span class="cm-sc is-bal">86</span><span class="cm-mv mv-up">&#8593;2</span></div>
               <div class="cm-lr"><span class="cm-rk">6</span><span class="cm-sm" style="background:#E8A13A">DR</span><div class="cm-nm"><b>Devon R.</b><span>New York, NY · 14-day streak</span></div><span class="cm-sc is-rec">78</span><span class="cm-mv mv-dn">&#8595;2</span></div>
               <div class="cm-lr"><span class="cm-rk">7</span><span class="cm-sm" style="background:#5FB0FF">PN</span><div class="cm-nm"><b>Priya N.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Chicago, IL · 5-day streak</span></div><span class="cm-sc is-rec">75</span><span class="cm-mv mv-up">&#8593;4</span></div>
+              <div class="cm-lr"><span class="cm-rk">8</span><span class="cm-sm" style="background:#8C7BFF">TM</span><div class="cm-nm"><b>Tyler M.</b><span>Seattle, WA · 4-day streak</span></div><span class="cm-sc is-rec">73</span><span class="cm-mv mv-dn">&#8595;1</span></div>
+              <div class="cm-lr"><span class="cm-rk">9</span><span class="cm-sm" style="background:#5FB0FF">NK</span><div class="cm-nm"><b>Nina K.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Boston, MA · 11-day streak</span></div><span class="cm-sc is-rec">72</span><span class="cm-mv mv-up">&#8593;2</span></div>
+              <div class="cm-lr"><span class="cm-rk">10</span><span class="cm-sm" style="background:#E8A13A">AL</span><div class="cm-nm"><b>Andre L.</b><span>Houston, TX · 3-day streak</span></div><span class="cm-sc is-rec">70</span><span class="cm-mv mv-fl">&mdash;</span></div>
+              <div class="cm-lr"><span class="cm-rk">11</span><span class="cm-sm" style="background:#1FA35A">SG</span><div class="cm-nm"><b>Sofia G.</b><span>Phoenix, AZ · 8-day streak</span></div><span class="cm-sc is-rec">69</span><span class="cm-mv mv-up">&#8593;5</span></div>
+              <div class="cm-lr"><span class="cm-rk">12</span><span class="cm-sm" style="background:#8C7BFF">BO</span><div class="cm-nm"><b>Ben O.</b><span>Portland, OR · 2-day streak</span></div><span class="cm-sc is-rec">68</span><span class="cm-mv mv-dn">&#8595;3</span></div>
+              <div class="cm-lr"><span class="cm-rk">13</span><span class="cm-sm" style="background:#5FB0FF">MR</span><div class="cm-nm"><b>Maya R.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Atlanta, GA · 15-day streak</span></div><span class="cm-sc is-rec">67</span><span class="cm-mv mv-up">&#8593;1</span></div>
+              <div class="cm-lr"><span class="cm-rk">14</span><span class="cm-sm" style="background:#E8A13A">CT</span><div class="cm-nm"><b>Cole T.</b><span>Dallas, TX · 6-day streak</span></div><span class="cm-sc is-rec">66</span><span class="cm-mv mv-up">&#8593;2</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Trending this week</span></div>
+            <div class="osx-stats">
+              <div class="osx-stat"><span class="k">Biggest weekly climb</span><span class="v g">Priya N. &#9650;4</span></div>
+              <div class="osx-stat"><span class="k">Most consistent</span><span class="v">Alicia R. · 30d</span></div>
+              <div class="osx-stat"><span class="k">Top hydration streak</span><span class="v">Jordan A. · 14d</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Friends online</span><span class="r">6 active</span></div>
+            <div style="margin-top:2.2cqw; display:flex; gap:2cqw;">
+              <span class="cm-sm" style="background:#E8A13A">JA</span>
+              <span class="cm-sm" style="background:#5FB0FF">AR</span>
+              <span class="cm-sm" style="background:#C1281B;color:#F4F2ED">MK</span>
+              <span class="cm-sm" style="background:#8C7BFF">SP</span>
+              <span class="cm-sm" style="background:#1FA35A">CB</span>
+              <span class="cm-sm" style="background:rgba(255,255,255,.1);color:var(--xdim)">+9</span>
+            </div>
+            <div class="osx-sh"><span class="l">Activity feed</span></div>
+            <div class="osx-tlx">
+              <div class="row"><span class="dot"></span><span class="tx">Jordan completed morning protocol</span><span class="tm">12m</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Alicia hit her hydration goal</span><span class="tm">40m</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Marcus logged a recovery scan</span><span class="tm">1h</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Sasha earned Perfect Recovery Day</span><span class="tm">2h</span></div>
             </div>
           </div>
           <div class="osx-nav">
