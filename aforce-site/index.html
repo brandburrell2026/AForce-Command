@@ -860,7 +860,7 @@
                 <circle class="os-arc-track" cx="120" cy="120" r="117" pathLength="100"></circle>
                 <circle class="os-arc-fill" cx="120" cy="120" r="117" pathLength="100"></circle>
               </svg>
-              <div class="os-arc-center"><span class="os-score">91</span><span class="os-score-label">Readiness</span><span class="os-band">Peak</span></div>
+              <div class="os-arc-center"><span class="os-score" data-count="91">91</span><span class="os-score-label">Readiness</span><span class="os-band">Peak</span></div>
             </div>
             <div class="os-live">Updated 28 sec ago · Performance stable</div>
             <div class="os-cmd">
@@ -998,6 +998,29 @@
     entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
   }, {threshold:0.18});
   document.querySelectorAll('.fade-in').forEach(el=> io.observe(el));
+
+  // Signature moment — the Readiness score climbs to Peak as the ring draws in.
+  (function(){
+    var els = document.querySelectorAll('[data-count]');
+    if(!els.length) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    if(reduce || !('IntersectionObserver' in window)){ els.forEach(function(e){ e.textContent = e.getAttribute('data-count'); }); return; }
+    var cio = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting) return;
+        var el = en.target, target = parseInt(el.getAttribute('data-count'),10), start = Math.max(0, target - 33), t0 = null;
+        cio.unobserve(el);
+        var safety = setTimeout(function(){ el.textContent = target; }, 1900);
+        requestAnimationFrame(function step(ts){
+          if(!t0) t0 = ts;
+          var p = Math.min(1, (ts - t0) / 1500), e2 = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(start + (target - start) * e2);
+          if(p < 1){ requestAnimationFrame(step); } else { el.textContent = target; clearTimeout(safety); }
+        });
+      });
+    }, { threshold:0.55 });
+    els.forEach(function(e){ cio.observe(e); });
+  })();
 
   // The Signal — animate once when scrolled into view, light up each state in sequence
   const signalSection = document.getElementById('theSignal');
