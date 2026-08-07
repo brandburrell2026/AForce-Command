@@ -395,46 +395,56 @@
   .os-phone--front{ width:64%; right:0; top:0; z-index:2; }
   .os-phone--back{ width:53%; left:0; top:9%; transform:rotate(-5deg); z-index:1; }
   .os-screen{ container-type:inline-size; position:relative; border-radius:10.5% / 5.4%; background:linear-gradient(180deg,#101018 0%,#0D0D0D 38%); overflow:hidden; aspect-ratio:9/19.3; color:var(--os-ink); display:flex; flex-direction:column; }
-  .os-status{ display:flex; justify-content:space-between; align-items:center; padding:5cqw 6.5cqw 0; }
-  .os-time{ font-size:3.6cqw; font-weight:600; }
-  .os-ind{ width:7cqw; height:3.2cqw; border-radius:1cqw; background:rgba(244,242,237,0.55); }
-  .os-body{ flex:1; padding:3.2cqw 5.4cqw 3.4cqw; display:flex; flex-direction:column; overflow:hidden; }
+  .os-status{ display:flex; justify-content:space-between; align-items:center; padding:4.6cqw 6cqw 0; }
+  .os-time{ font-size:3.4cqw; font-weight:600; }
+  .os-status-r{ display:flex; align-items:center; gap:1.6cqw; }
+  .os-icn-sig{ width:4cqw; height:3cqw; background:rgba(244,242,237,0.9);
+    -webkit-mask:linear-gradient(#000 0 0) 0 100%/22% 45% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 68% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat;
+    mask:linear-gradient(#000 0 0) 0 100%/22% 45% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 68% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat; }
+  .os-icn-wifi{ width:3.8cqw; height:2.7cqw; background:rgba(244,242,237,0.9); border-radius:100% 100% 0 0; -webkit-mask:radial-gradient(circle at 50% 100%, transparent 26%, #000 27%); mask:radial-gradient(circle at 50% 100%, transparent 26%, #000 27%); }
+  .os-ind{ width:6.6cqw; height:3.1cqw; border-radius:1cqw; background:rgba(244,242,237,0.9); }
+  .os-body{ flex:1; padding:2.8cqw 5.2cqw 3.2cqw; display:flex; flex-direction:column; overflow:hidden; }
   /* Home / Readiness */
-  .os-hdr{ display:flex; flex-direction:column; gap:0.5cqw; }
-  .os-welcome{ font-size:2.9cqw; font-weight:500; color:var(--os-dim); }
-  .os-brand{ font-size:6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
-  .os-fresh{ font-size:2.6cqw; color:var(--os-faint); margin-top:0.4cqw; }
-  .os-sync{ display:flex; align-items:center; gap:1.4cqw; font-size:2.5cqw; color:var(--os-faint); margin-top:0.6cqw; }
-  .os-sync-dot{ width:2cqw; height:2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
-  .os-arc{ position:relative; width:41cqw; aspect-ratio:1; margin:2cqw auto 1cqw; }
+  .os-hdr{ display:flex; flex-direction:column; gap:0.7cqw; }
+  .os-hdr-top{ display:flex; align-items:center; justify-content:space-between; gap:2cqw; }
+  .os-brand{ font-size:5.6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
+  .os-live-pill{ display:inline-flex; align-items:center; gap:1.3cqw; font-size:2.25cqw; font-weight:600; letter-spacing:0.02em; color:var(--os-green); background:rgba(31,163,90,0.13); padding:1cqw 2.2cqw; border-radius:4cqw; }
+  .os-live-dot{ width:1.9cqw; height:1.9cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
+  .os-fresh{ font-size:2.55cqw; color:var(--os-faint); }
+  .os-arc{ position:relative; width:37cqw; aspect-ratio:1; margin:1.4cqw auto 0.6cqw; }
   .os-arc svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
   .os-arc-track{ fill:none; stroke:rgba(255,255,255,0.10); stroke-width:6; stroke-linecap:round; stroke-dasharray:75 25; }
   .os-arc-fill{ fill:none; stroke:var(--os-green); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 5px rgba(31,163,90,0.6)) drop-shadow(0 0 2px rgba(31,163,90,0.85)); transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
   .os-visual.visible .os-arc-fill{ stroke-dasharray:68 32; }
   .os-arc-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .os-score{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:16cqw; line-height:1; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
-  .os-score-label{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-dim); margin-top:1.2cqw; }
-  .os-band{ font-size:2.7cqw; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--os-green); margin-top:0.9cqw; }
-  .os-live{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; letter-spacing:0.06em; color:var(--os-green); margin-top:0.6cqw; }
-  .os-cmd{ margin-top:2.6cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.10); border-radius:4cqw; padding:3.2cqw; display:flex; flex-direction:column; }
-  .os-cmd-done{ display:flex; align-items:center; gap:1.6cqw; font-size:2.5cqw; color:var(--os-green); padding-bottom:2.2cqw; margin-bottom:2.4cqw; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .os-score{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:14.5cqw; line-height:1; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
+  .os-score-label{ font-family:'IBM Plex Mono',monospace; font-size:2.2cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-dim); margin-top:1cqw; }
+  .os-band{ font-size:2.5cqw; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--os-green); margin-top:0.7cqw; }
+  .os-live{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; letter-spacing:0.04em; color:var(--os-faint); margin-top:0.7cqw; }
+  .os-cmd{ margin-top:2.2cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.10); border-radius:4cqw; padding:3cqw; display:flex; flex-direction:column; }
+  .os-cmd-done{ display:flex; align-items:center; gap:1.5cqw; font-size:2.4cqw; color:var(--os-green); padding-bottom:2cqw; margin-bottom:2cqw; border-bottom:1px solid rgba(255,255,255,0.08); }
   .os-done-ck{ width:3.4cqw; height:3.4cqw; border-radius:50%; background:var(--os-green); position:relative; flex-shrink:0; }
   .os-done-ck::after{ content:''; position:absolute; left:1.2cqw; top:0.8cqw; width:1cqw; height:1.7cqw; border:solid #0D0D0D; border-width:0 0.6cqw 0.6cqw 0; transform:rotate(43deg); }
-  .os-cmd-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-faint); }
-  .os-cmd-title{ margin-top:1.4cqw; font-size:4.2cqw; font-weight:600; letter-spacing:-0.01em; line-height:1.2; color:var(--os-ink); }
-  .os-cmd-btn{ margin-top:2.6cqw; align-self:flex-start; background:var(--os-red); color:#fff; font-size:3.2cqw; font-weight:600; padding:2.1cqw 4.6cqw; border-radius:2.4cqw; }
-  .os-cmd-why{ margin-top:2.4cqw; display:flex; align-items:center; gap:1.2cqw; font-size:2.7cqw; font-weight:500; color:var(--os-dim); }
+  .os-cmd-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-faint); }
+  .os-cmd-title{ margin-top:1.2cqw; font-size:4.6cqw; font-weight:600; letter-spacing:-0.01em; line-height:1.15; color:var(--os-ink); }
+  .os-cmd-sub{ margin-top:1.2cqw; font-size:2.7cqw; line-height:1.35; color:var(--os-dim); }
+  .os-cmd-actions{ margin-top:2.4cqw; display:flex; align-items:center; gap:3.4cqw; }
+  .os-cmd-btn{ background:var(--os-red); color:#fff; font-size:3.1cqw; font-weight:600; padding:2cqw 4.4cqw; border-radius:2.4cqw; }
+  .os-cmd-why{ display:flex; align-items:center; gap:1.2cqw; font-size:2.7cqw; font-weight:500; color:var(--os-dim); }
   .os-chev{ font-style:normal; font-size:2.5cqw; color:var(--os-faint); }
-  .os-signals{ margin-top:2.6cqw; }
-  .os-sig-label{ font-size:2.7cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.6cqw; }
-  .os-sig-row{ display:flex; gap:2cqw; }
-  .os-sig{ flex:1; background:rgba(255,255,255,0.04); border-radius:3cqw; padding:2.4cqw 2.4cqw; display:flex; flex-direction:column; gap:0.8cqw; }
-  .os-sig-l{ font-size:2.3cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-sig-v{ font-size:3.5cqw; font-weight:600; color:var(--os-ink); }
-  .os-today{ margin-top:2cqw; }
-  .os-today-l{ font-size:2.7cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.2cqw; }
-  .os-today-row{ display:flex; align-items:center; gap:2.6cqw; padding:1.1cqw 0; }
-  .os-today-name{ flex:1; font-size:3.2cqw; font-weight:500; color:var(--os-ink); }
+  .os-signals{ margin-top:2.4cqw; }
+  .os-sig-label{ font-size:2.6cqw; font-weight:600; color:var(--os-dim); margin-bottom:1.4cqw; }
+  .os-sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1.7cqw; }
+  .os-sig{ background:rgba(255,255,255,0.04); border-radius:2.6cqw; padding:2.1cqw 2.8cqw; display:flex; justify-content:space-between; align-items:baseline; gap:2cqw; }
+  .os-sig-l{ font-size:2.4cqw; letter-spacing:0.04em; color:var(--os-faint); }
+  .os-sig-v{ font-size:3.2cqw; font-weight:600; color:var(--os-ink); }
+  .os-sig-v.os-sig-g{ color:var(--os-green); }
+  .os-today{ margin-top:2.2cqw; }
+  .os-today-l{ font-size:2.6cqw; font-weight:600; color:var(--os-dim); margin-bottom:1cqw; }
+  .os-today-row{ display:flex; align-items:center; gap:2.4cqw; padding:0.9cqw 0; }
+  .os-today-name{ flex:1; font-size:3.1cqw; font-weight:500; color:var(--os-ink); }
+  .os-today-t{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; color:var(--os-faint); }
+  .os-today-row:last-child .os-today-name{ color:var(--os-dim); }
   .os-check{ width:4cqw; height:4cqw; border-radius:50%; border:1.4px solid rgba(255,255,255,0.24); flex-shrink:0; position:relative; }
   .os-check.is-done{ background:var(--os-green); border-color:var(--os-green); }
   .os-check.is-done::after{ content:''; position:absolute; left:1.4cqw; top:0.95cqw; width:1.1cqw; height:1.9cqw; border:solid #0D0D0D; border-width:0 0.62cqw 0.62cqw 0; transform:rotate(43deg); }
@@ -799,53 +809,51 @@
     <div class="os-phones" role="img" aria-label="The AFORCE OS app — a Home / Readiness screen showing a readiness score of 76, band Balanced, with Hydration, Heat and Recovery signals and the next command 'Drink 16 ounces now'; and the Protocol screen showing today's recovery plan, one of four steps complete, with the active step 'Log next intake'.">
       <div class="os-phone os-phone--back" aria-hidden="true">
         <div class="os-screen">
-          <div class="os-status"><span class="os-time">9:41</span><span class="os-ind"></span></div>
+          <div class="os-status"><span class="os-time">9:41</span><span class="os-status-r"><i class="os-icn-sig"></i><i class="os-icn-wifi"></i><i class="os-ind"></i></span></div>
           <div class="os-body">
             <div class="os-kick">Today's Protocol</div>
             <div class="os-h1">AForce Protocol</div>
-            <div class="os-checkin"><span class="os-checkin-dot"></span>Day 7 check-in · on rhythm<span class="os-checkin-frac">1/4</span></div>
+            <div class="os-checkin"><span class="os-checkin-dot"></span>Day 18 check-in · on rhythm<span class="os-checkin-frac">3/4</span></div>
             <div class="os-scard">
-              <div class="os-scard-top"><span class="os-scard-l">Stage</span><span class="os-scard-badge">Active</span></div>
+              <div class="os-scard-top"><span class="os-scard-l">Today&rsquo;s protocol</span><span class="os-scard-badge">92% done</span></div>
               <div class="os-scard-name">Maintain</div>
               <div class="os-scard-desc">Drink 8&ndash;12 ounces. Hold rhythm. Recheck 45&ndash;60 min.</div>
               <div class="os-tl">
-                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Confirm hydration signal</span><span class="os-tl-when">Done</span></div></div>
-                <div class="os-tl-row is-active"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Log next intake</span><span class="os-tl-when">Within 20 min</span></div></div>
-                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Recheck performance signals</span><span class="os-tl-when">After intake</span></div></div>
-                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Confirm Status</span><span class="os-tl-when">End of cycle</span></div></div>
+                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Morning hydration</span><span class="os-tl-when">Complete · 7:20a</span></div></div>
+                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Midday electrolytes</span><span class="os-tl-when">Complete · 12:10p</span></div></div>
+                <div class="os-tl-row is-active"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Afternoon performance check</span><span class="os-tl-when">Pending · 2:30p</span></div></div>
+                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Evening recovery</span><span class="os-tl-when">Scheduled · 6:00p</span></div></div>
               </div>
               <div class="os-scard-foot">
-                <div class="os-foot-col"><span class="os-foot-l">Next recheck</span><span class="os-foot-v">20 min</span></div>
-                <div class="os-foot-col"><span class="os-foot-l">Recovery consistency</span><span class="os-foot-v os-foot-green">82%</span></div>
+                <div class="os-foot-col"><span class="os-foot-l">Next check</span><span class="os-foot-v">2:30 PM</span></div>
+                <div class="os-foot-col"><span class="os-foot-l">Recovery</span><span class="os-foot-v os-foot-green">91%</span></div>
               </div>
             </div>
             <div class="os-summary">
-              <div class="os-sumcard"><span class="os-sum-l">Hydration goal</span><span class="os-sum-v">8/8 units</span></div>
-              <div class="os-sumcard"><span class="os-sum-l">Completed</span><span class="os-sum-v">5/8 units</span></div>
-              <div class="os-sumcard"><span class="os-sum-l">Streak</span><span class="os-sum-v os-sum-green">5d</span></div>
+              <div class="os-sumcard"><span class="os-sum-l">Hydration goal</span><span class="os-sum-v">7/8 units</span></div>
+              <div class="os-sumcard"><span class="os-sum-l">Protocol</span><span class="os-sum-v os-sum-green">92%</span></div>
+              <div class="os-sumcard"><span class="os-sum-l">Streak</span><span class="os-sum-v os-sum-green">18 d</span></div>
             </div>
             <div class="os-cmdhist"><span class="os-cmdhist-l">Command history</span><span class="os-cmdhist-trend">Recovery trending upward</span></div>
             <div class="os-chlist">
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 16 ounces now</span><span class="os-ch-t">52m ago · Balanced</span></div><span class="os-ch-s">78</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 8 ounces before your session</span><span class="os-ch-t">3h ago · Peak</span></div><span class="os-ch-s os-ch-green">91</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recovery mode recommended</span><span class="os-ch-t">4h ago · Depleted</span></div><span class="os-ch-s os-ch-red">55</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 12 ounces now. Maintain rhythm.</span><span class="os-ch-t">5h ago · Balanced</span></div><span class="os-ch-s">84</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recommended next action</span><span class="os-ch-t">6h ago · Recovering</span></div><span class="os-ch-s os-ch-amber">65</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Confirmed status · on pace</span><span class="os-ch-t">7h ago · Balanced</span></div><span class="os-ch-s">80</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recheck complete</span><span class="os-ch-t">8h ago · Peak</span></div><span class="os-ch-s os-ch-green">88</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 16 oz</span><span class="os-ch-t">Completed · 42m ago</span></div><span class="os-ch-s os-ch-green">89</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recovery scan</span><span class="os-ch-t">Completed · 1h ago</span></div><span class="os-ch-s os-ch-green">91</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Apple Health sync</span><span class="os-ch-t">Completed · 1h ago</span></div><span class="os-ch-s os-ch-green">91</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Movement logged</span><span class="os-ch-t">Completed · 3h ago</span></div><span class="os-ch-s os-ch-green">90</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Electrolytes logged</span><span class="os-ch-t">Completed · 4h ago</span></div><span class="os-ch-s">87</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Morning hydration</span><span class="os-ch-t">Completed · 6h ago</span></div><span class="os-ch-s">84</span></div>
+              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Check-in confirmed</span><span class="os-ch-t">Completed · 7h ago</span></div><span class="os-ch-s">82</span></div>
             </div>
           </div>
         </div>
       </div>
       <div class="os-phone os-phone--front">
         <div class="os-screen">
-          <div class="os-status"><span class="os-time">9:41</span><span class="os-ind"></span></div>
+          <div class="os-status"><span class="os-time">9:41</span><span class="os-status-r"><i class="os-icn-sig"></i><i class="os-icn-wifi"></i><i class="os-ind"></i></span></div>
           <div class="os-body">
             <div class="os-hdr">
-              <span class="os-welcome">Welcome, Brandon</span>
-              <span class="os-brand">AForce OS</span>
-              <span class="os-fresh">Checked 2 min ago · New York, NY</span>
-              <span class="os-sync"><span class="os-sync-dot"></span>Synced with Apple Health</span>
+              <div class="os-hdr-top"><span class="os-brand">AForce OS</span><span class="os-live-pill"><span class="os-live-dot"></span>Apple Health · Live</span></div>
+              <span class="os-fresh">Checked just now · New York, NY</span>
             </div>
             <div class="os-arc">
               <svg viewBox="0 0 240 240" aria-hidden="true">
@@ -854,33 +862,35 @@
               </svg>
               <div class="os-arc-center"><span class="os-score">91</span><span class="os-score-label">Readiness</span><span class="os-band">Peak</span></div>
             </div>
-            <div class="os-live">&#9650; +6 pts · LAST 2m · PEAK</div>
+            <div class="os-live">Updated 28 sec ago · Performance stable</div>
             <div class="os-cmd">
-              <span class="os-cmd-done"><span class="os-done-ck"></span>Electrolytes logged · 17 min ago</span>
-              <span class="os-cmd-eyebrow">Your next move</span>
-              <span class="os-cmd-title">Hydrate before your 3:00 PM meeting.</span>
-              <span class="os-cmd-btn">Log Water</span>
-              <span class="os-cmd-why">Why this command <em class="os-chev">&#8964;</em></span>
+              <span class="os-cmd-done"><span class="os-done-ck"></span>Recovery scan complete · 19 min ago</span>
+              <span class="os-cmd-eyebrow">Today&rsquo;s command</span>
+              <span class="os-cmd-title">Maintain rhythm</span>
+              <span class="os-cmd-sub">Next check in 18 min &middot; you&rsquo;re ahead of pace.</span>
+              <div class="os-cmd-actions"><span class="os-cmd-btn">Log Water</span><span class="os-cmd-why">Why this <em class="os-chev">&#8964;</em></span></div>
             </div>
             <div class="os-signals">
-              <div class="os-sig-label">Signals</div>
-              <div class="os-sig-row">
-                <div class="os-sig"><span class="os-sig-l">Hydration</span><span class="os-sig-v">96%</span></div>
-                <div class="os-sig"><span class="os-sig-l">Recovery</span><span class="os-sig-v">Strong</span></div>
+              <div class="os-sig-label">Live signals</div>
+              <div class="os-sig-grid">
+                <div class="os-sig"><span class="os-sig-l">Hydration</span><span class="os-sig-v">97%</span></div>
+                <div class="os-sig"><span class="os-sig-l">Recovery</span><span class="os-sig-v os-sig-g">Excellent</span></div>
                 <div class="os-sig"><span class="os-sig-l">Sleep</span><span class="os-sig-v">7h 41m</span></div>
+                <div class="os-sig"><span class="os-sig-l">HRV</span><span class="os-sig-v">65 ms</span></div>
               </div>
             </div>
             <div class="os-today">
-              <div class="os-today-l">Today&rsquo;s timeline</div>
-              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Morning Hydration</span></div>
-              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">AFORCE Can</span></div>
-              <div class="os-today-row"><span class="os-check"></span><span class="os-today-name">Evening Recovery</span></div>
+              <div class="os-today-l">Completed today</div>
+              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Morning hydration</span><span class="os-today-t">7:20a</span></div>
+              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Recovery protocol</span><span class="os-today-t">9:05a</span></div>
+              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Movement</span><span class="os-today-t">12:30p</span></div>
+              <div class="os-today-row"><span class="os-check"></span><span class="os-today-name">Evening protocol</span><span class="os-today-t">6:00p</span></div>
             </div>
             <div class="os-widgets">
-              <div class="os-widget"><span class="os-w-v">18</span><span class="os-w-l">Day ritual streak</span></div>
+              <div class="os-widget"><span class="os-w-v">18</span><span class="os-w-l">Day streak</span></div>
               <div class="os-widget"><span class="os-w-v os-w-up">&#9650; Rising</span><span class="os-w-l">Recovery trend</span></div>
               <div class="os-widget"><span class="os-w-v os-w-up">+6</span><span class="os-w-l">Today&rsquo;s score</span></div>
-              <div class="os-widget"><span class="os-w-v">94%</span><span class="os-w-l">Command success</span></div>
+              <div class="os-widget"><span class="os-w-v">94%</span><span class="os-w-l">Consistency</span></div>
             </div>
           </div>
           <div class="os-nav"><span class="is-on">Home</span><span>Hydration</span><span>Protocol</span><span>Circle</span><span>Profile</span></div>
