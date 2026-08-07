@@ -21,12 +21,14 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
-import { Colors } from '@/theme/colors';
+import { af, afType, afAlpha, withAlpha } from '@/theme';
 import { accentForLevel } from '@/utils/scoreBand';
 import type { MetabolicReadiness } from '@/utils/metabolicScore';
 import { AFStatPair } from '@/components/ui/AFStatPair';
 
-const BRAND = Colors.accent.brand;
+// Brand red splits by role under VS 3.0: AA-clean `af.redText` for text/icons,
+// `af.red` (fills-only) behind `withAlpha` for the badge / CTA surfaces.
+const BRAND_TEXT = af.redText;
 const DISCLAIMER = 'Wellness estimate — not a medical measurement.';
 
 interface Props {
@@ -56,7 +58,7 @@ function MetricRow({
 }) {
   const hasData =
     readiness.hasEnoughData && readiness.score != null && readiness.band != null;
-  const tint = hasData ? accentForLevel(readiness.band!).primary : Colors.text.muted;
+  const tint = hasData ? accentForLevel(readiness.band!).primary : af.textTertiary;
   return (
     <>
       {divider ? <View style={styles.divider} /> : null}
@@ -104,7 +106,7 @@ export function MetabolicReadinessCard({ entitled, muscle, cognitive, onUpgrade 
           testID="home-metabolic-locked"
           style={styles.lockedBtn}
         >
-          <Icon name="lock" size={15} color={BRAND} />
+          <Icon name="lock" size={15} color={BRAND_TEXT} />
           <Text style={styles.lockedText}>UNLOCK WITH ATHLETE</Text>
         </TouchableOpacity>
       )}
@@ -124,8 +126,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.07)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: af.divider,
+    backgroundColor: af.surface,
     paddingVertical: 18,
     paddingHorizontal: 18,
     marginBottom: 14,
@@ -137,24 +139,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   eyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    letterSpacing: 2.5,
-    color: BRAND,
+    ...afType.eyebrow,
+    color: BRAND_TEXT,
   },
   badge: {
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 5,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.accent.brandGlow,
-    backgroundColor: Colors.accent.brandSubtle,
+    borderColor: withAlpha(af.red, afAlpha.a50),
+    backgroundColor: withAlpha(af.red, afAlpha.a06),
   },
   badgeText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
+    ...afType.microLabel,
     letterSpacing: 1.5,
-    color: BRAND,
+    color: BRAND_TEXT,
   },
   metricRow: {
     flexDirection: 'row',
@@ -162,31 +161,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   metricLabel: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 11,
+    ...afType.tab,
     letterSpacing: 0.6,
-    color: Colors.text.muted,
+    color: af.textTertiary,
   },
   metricRight: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   metricScore: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 26,
+    ...afType.title2,
     letterSpacing: -0.8,
   },
   metricBand: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
+    ...afType.microLabel,
     letterSpacing: 1.2,
   },
   metricEmpty: {
-    fontFamily: 'Inter_500Medium',
-    fontSize: 12,
-    letterSpacing: 0.2,
-    color: Colors.text.muted,
+    ...afType.caption,
+    color: af.textTertiary,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: af.divider,
     marginVertical: 13,
   },
   lockedBtn: {
@@ -197,27 +191,22 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: 13,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Colors.accent.brandGlow,
-    backgroundColor: Colors.accent.brandSubtle,
+    borderColor: withAlpha(af.red, afAlpha.a50),
+    backgroundColor: withAlpha(af.red, afAlpha.a06),
   },
   lockedText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 12,
+    ...afType.microLabel,
     letterSpacing: 1.5,
-    color: BRAND,
+    color: BRAND_TEXT,
   },
   teaser: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    lineHeight: 17,
-    color: Colors.text.secondary,
+    ...afType.caption,
+    color: af.textSecondary,
     marginTop: 12,
   },
   disclaimer: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 10,
-    letterSpacing: 0.2,
-    color: Colors.text.muted,
+    ...afType.caption,
+    color: af.textTertiary,
     marginTop: 14,
   },
 });
