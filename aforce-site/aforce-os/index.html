@@ -19,7 +19,7 @@
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-protocol.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Universal header — loaded before the page style so the page's own colours win -->
 <link rel="stylesheet" href="/assets/header.css">
 <style>
@@ -197,11 +197,163 @@
     html{ scroll-behavior:auto; }
     .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
     .stagger .reveal.in{ transition-delay:0s !important; }
-    .phone{ animation:none !important; }
+    .phone, .osx-phone{ animation:none !important; }
     .btn .arw{ transition:none; }
     .os-hero-video{ display:none; }
     .os-hero-still{ display:block; }
   }
+  /* =====================================================================
+     OSX — live app-UI phone mockups (dark, data-rich). Rebuilds the flat
+     PNG screens as real UI so every screen is fully populated. Everything
+     sized in container-query units (cqw) so the screen scales exactly.
+     Tokens mirror the app: canvas #0D0D0D, surface #141420, Signal Red,
+     Soursop Green, Cyan, Amber; Inter body + IBM Plex Mono metrics.
+     ===================================================================== */
+  .osx-phone{ position:relative; width:min(360px,86%); margin:0 auto; aspect-ratio:1179/2556;
+    background:linear-gradient(150deg,#26272b 0%,#0b0b0d 44%); border-radius:15% / 6.9%; padding:2.5%;
+    box-shadow:0 44px 84px -22px rgba(0,0,0,.62), 0 12px 30px rgba(0,0,0,.42), inset 0 0 0 1.4px rgba(255,255,255,.05);
+    animation:float 7s ease-in-out infinite; }
+  .osx-screen{ container-type:inline-size; position:relative; width:100%; height:100%; border-radius:13% / 6.05%;
+    background:#0D0D0D; overflow:hidden; display:flex; flex-direction:column;
+    color:#F4F2ED; font-family:var(--body); line-height:1.32; --xred:#C1281B; --xredt:#E4564A; --xgreen:#1FA35A;
+    --xcyan:#00E5C8; --xamber:#FFA01E; --xdim:#A6A5A1; --xfaint:#85868C; --xsurf:#15161D; --xsurf2:#1B1C24; }
+  .osx-island{ position:absolute; top:3cqw; left:50%; transform:translateX(-50%); width:29cqw; height:8.2cqw; background:#000; border-radius:5cqw; z-index:9; }
+  .osx-status{ display:flex; justify-content:space-between; align-items:center; padding:4.2cqw 6.4cqw 0; font-family:var(--body); }
+  .osx-status .t{ font-size:3.4cqw; font-weight:600; letter-spacing:.02em; }
+  .osx-status .r{ display:flex; align-items:center; gap:1.5cqw; }
+  .osx-status .r i{ display:block; width:4cqw; height:3cqw; border-radius:.7cqw; background:rgba(244,242,237,.85); }
+  .osx-status .r i.sig{ width:4.4cqw; height:3.2cqw; background:none; border-radius:0;
+    -webkit-mask:linear-gradient(#000 0 0) 0 100%/22% 40% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 66% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat;
+    mask:linear-gradient(#000 0 0) 0 100%/22% 40% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 66% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat; }
+  .osx-body{ flex:1; padding:3cqw 5.6cqw 0; display:flex; flex-direction:column; overflow:hidden; }
+  .osx-h1{ margin-top:1.3cqw; }
+  .osx-nav{ margin-top:auto; display:flex; justify-content:space-between; padding:2.8cqw 6cqw 4.4cqw; border-top:1px solid rgba(255,255,255,.08); background:rgba(10,10,12,.6); }
+  .osx-nav .tab{ display:flex; flex-direction:column; align-items:center; gap:1.3cqw; font-size:2.25cqw; font-weight:500; letter-spacing:.02em; color:var(--xfaint); flex:1; }
+  .osx-nav .tab svg{ width:5.2cqw; height:5.2cqw; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .osx-nav .tab.on{ color:var(--xredt); }
+  /* generic building blocks */
+  .osx-ey{ font-family:'IBM Plex Mono',monospace; font-size:2.7cqw; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--xfaint); }
+  .osx-h1{ margin-top:1.3cqw; font-size:6.6cqw; font-weight:700; letter-spacing:-0.02em; }
+  .osx-chip{ align-self:flex-start; display:inline-flex; align-items:center; gap:1.8cqw; margin-top:2.2cqw; padding:1.4cqw 2.8cqw; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.10); border-radius:6cqw; font-size:2.7cqw; font-weight:600; }
+  .osx-chip .dot{ width:2.1cqw; height:2.1cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
+  .osx-chip .mut{ font-weight:400; color:var(--xfaint); }
+  .osx-num{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; }
+  /* PROTOCOL screen */
+  .px-hero{ margin-top:4cqw; display:flex; align-items:center; gap:4.4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:4.6cqw; }
+  .px-ring{ position:relative; width:30cqw; height:30cqw; flex-shrink:0; }
+  .px-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .px-ring .tr{ fill:none; stroke:rgba(255,255,255,.10); stroke-width:7; }
+  .px-ring .fl{ fill:none; stroke:var(--xgreen); stroke-width:7; stroke-linecap:round; stroke-dasharray:100 100; stroke-dashoffset:9; }
+  .px-ring .c{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .px-ring .c b{ font-family:'IBM Plex Mono',monospace; font-size:6.4cqw; font-weight:600; line-height:1; }
+  .px-ring .c span{ font-family:'IBM Plex Mono',monospace; font-size:2.1cqw; letter-spacing:.14em; color:var(--xfaint); margin-top:.8cqw; }
+  .px-herostats{ flex:1; display:flex; flex-direction:column; gap:2.6cqw; }
+  .px-hs{ display:flex; flex-direction:column; gap:.5cqw; }
+  .px-hs .k{ font-size:2.5cqw; letter-spacing:.05em; text-transform:uppercase; color:var(--xfaint); }
+  .px-hs .v{ font-size:4cqw; font-weight:600; }
+  .px-hs .v em{ font-style:normal; font-size:2.6cqw; font-weight:500; color:var(--xdim); }
+  .px-hydro{ margin-top:4.4cqw; }
+  .px-hydro .top{ display:flex; justify-content:space-between; align-items:baseline; }
+  .px-hydro .lbl{ font-size:3cqw; font-weight:600; color:var(--xdim); }
+  .px-hydro .val{ font-family:'IBM Plex Mono',monospace; font-size:3cqw; font-weight:600; }
+  .px-hydro .val em{ font-style:normal; color:var(--xfaint); }
+  .px-bar{ margin-top:2cqw; height:2cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
+  .px-bar i{ display:block; height:100%; width:92%; border-radius:1cqw; background:linear-gradient(90deg,var(--xcyan),#28b6ff); }
+  .px-sec{ margin-top:3.4cqw; display:flex; align-items:center; justify-content:space-between; }
+  .px-sec .l{ font-size:2.9cqw; font-weight:600; color:var(--xdim); }
+  .px-sec .r{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--xgreen); }
+  .px-list{ margin-top:3.4cqw; display:flex; flex-direction:column; gap:4.4cqw; }
+  .px-item{ display:flex; align-items:center; gap:3cqw; }
+  .px-ck{ width:4.6cqw; height:4.6cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; position:relative; }
+  .px-ck::after{ content:''; position:absolute; left:1.5cqw; top:1cqw; width:1.4cqw; height:2.3cqw; border:solid #0D0D0D; border-width:0 .8cqw .8cqw 0; transform:rotate(43deg); }
+  .px-item .nm{ flex:1; display:flex; flex-direction:column; gap:.2cqw; min-width:0; }
+  .px-item .nm b{ font-size:3.3cqw; font-weight:600; }
+  .px-item .nm span{ font-size:2.5cqw; color:var(--xfaint); }
+  .px-item .amt{ font-family:'IBM Plex Mono',monospace; font-size:2.8cqw; color:var(--xdim); }
+  .px-tl{ margin-top:3cqw; padding-top:3cqw; border-top:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:4cqw; }
+  .px-tl .row{ display:flex; align-items:center; gap:2.8cqw; }
+  .px-tl .row .d{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
+  .px-tl .row .tx{ flex:1; font-size:2.9cqw; color:var(--xdim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .px-tl .row .tm{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; color:var(--xfaint); }
+  /* COMMAND HISTORY screen */
+  .ch-summary{ margin-top:3cqw; display:flex; align-items:center; gap:4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:3.6cqw 4cqw; }
+  .ch-summary .big{ display:flex; flex-direction:column; }
+  .ch-summary .big b{ font-family:'IBM Plex Mono',monospace; font-size:8.6cqw; font-weight:600; line-height:1; color:var(--xgreen); }
+  .ch-summary .big span{ font-size:2.5cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xfaint); margin-top:1cqw; }
+  .ch-summary .spark{ flex:1; display:flex; align-items:flex-end; gap:1.4cqw; height:15cqw; }
+  .ch-summary .spark i{ flex:1; border-radius:1cqw .9cqw 0 0; background:rgba(255,255,255,.14); }
+  .ch-summary .spark i.hi{ background:var(--xgreen); } .ch-summary .spark i.mid{ background:var(--xcyan); } .ch-summary .spark i.lo{ background:var(--xamber); }
+  .ch-row{ margin-top:2.8cqw; display:flex; align-items:center; gap:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:4cqw; padding:3.4cqw 3.4cqw; }
+  .ch-acc{ width:1.4cqw; align-self:stretch; border-radius:1cqw; flex-shrink:0; }
+  .ch-main{ flex:1; min-width:0; }
+  .ch-main .top{ display:flex; align-items:center; gap:2cqw; }
+  .ch-main .day{ font-size:3.3cqw; font-weight:600; }
+  .ch-main .date{ font-size:2.5cqw; color:var(--xfaint); }
+  .ch-pill{ margin-left:auto; display:inline-flex; align-items:center; gap:1cqw; font-family:'IBM Plex Mono',monospace; font-size:2.3cqw; font-weight:500; padding:.7cqw 1.9cqw; border-radius:3cqw; }
+  .ch-chips{ margin-top:1.7cqw; display:flex; gap:3.2cqw; }
+  .ch-chips .c{ display:flex; align-items:center; gap:1.1cqw; font-size:2.5cqw; color:var(--xfaint); }
+  .ch-chips .c b{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--xdim); }
+  .ch-chips .c .g{ width:1.9cqw; height:1.9cqw; border-radius:50%; flex-shrink:0; }
+  .ch-score{ font-family:'IBM Plex Mono',monospace; font-size:6.4cqw; font-weight:600; line-height:1; flex-shrink:0; }
+  .is-peak{ color:var(--xgreen); } .is-bal{ color:var(--xcyan); } .is-rec{ color:var(--xamber); } .is-dep{ color:var(--xredt); }
+  .bg-peak{ background:var(--xgreen); } .bg-bal{ background:var(--xcyan); } .bg-rec{ background:var(--xamber); } .bg-dep{ background:var(--xredt); }
+  .pill-peak{ background:rgba(31,163,90,.14); color:var(--xgreen); } .pill-bal{ background:rgba(0,229,200,.13); color:var(--xcyan); }
+  .pill-rec{ background:rgba(255,160,30,.14); color:var(--xamber); } .pill-dep{ background:rgba(228,86,74,.14); color:var(--xredt); }
+  /* WEEKLY REPORT screen */
+  .wr-age{ margin-top:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:3.8cqw; }
+  .wr-age .k{ font-size:2.5cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xfaint); }
+  .wr-age .row{ margin-top:1.6cqw; display:flex; align-items:flex-end; gap:2.6cqw; }
+  .wr-age .from{ font-family:'IBM Plex Mono',monospace; font-size:5cqw; font-weight:500; color:var(--xfaint); text-decoration:line-through; }
+  .wr-age .arw{ font-size:3.6cqw; color:var(--xgreen); margin-bottom:.8cqw; }
+  .wr-age .to{ font-family:'IBM Plex Mono',monospace; font-size:8.6cqw; font-weight:600; color:var(--xgreen); line-height:.85; }
+  .wr-age .badge{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.2cqw; border-radius:3cqw; align-self:center; }
+  .wr-age .spark{ margin-top:3cqw; display:flex; align-items:flex-end; gap:1.4cqw; height:15cqw; }
+  .wr-age .spark i{ flex:1; border-radius:.9cqw .9cqw 0 0; background:rgba(31,163,90,.55); }
+  .wr-grid{ margin-top:2.8cqw; display:grid; grid-template-columns:1fr 1fr; gap:2.8cqw; }
+  .wr-card{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:4cqw; padding:3.6cqw 3.4cqw; }
+  .wr-card .k{ font-size:2.35cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
+  .wr-card .v{ margin-top:1.2cqw; font-family:'IBM Plex Mono',monospace; font-size:4.8cqw; font-weight:600; display:flex; align-items:baseline; gap:1.2cqw; }
+  .wr-card .v small{ font-family:var(--body); font-size:2.5cqw; font-weight:600; }
+  .wr-card .bar{ margin-top:2cqw; height:1.5cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
+  .wr-card .bar i{ display:block; height:100%; border-radius:1cqw; background:var(--xcyan); }
+  .wr-card .dots{ margin-top:2cqw; display:flex; gap:1.1cqw; }
+  .wr-card .dots i{ flex:1; height:2.4cqw; border-radius:.6cqw; background:var(--xgreen); }
+  .wr-card .dots i.off{ background:rgba(255,255,255,.12); }
+  .wr-top{ margin-top:2.8cqw; display:flex; align-items:center; gap:3cqw; background:linear-gradient(90deg,rgba(193,40,27,.15),rgba(193,40,27,.03)); border:1px solid rgba(228,86,74,.26); border-radius:4cqw; padding:3.6cqw 3.6cqw; }
+  .wr-top .ic{ width:8.4cqw; height:8.4cqw; border-radius:2.6cqw; background:rgba(228,86,74,.16); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--xredt); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:3.4cqw; }
+  .wr-top .k{ font-size:2.4cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xredt); }
+  .wr-top .v{ font-size:3.5cqw; font-weight:600; margin-top:.4cqw; }
+  /* COMMUNITY screen */
+  .cm-you{ margin-top:3cqw; background:linear-gradient(135deg,rgba(31,163,90,.16),var(--xsurf) 62%); border:1px solid rgba(31,163,90,.32); border-radius:5cqw; padding:3.6cqw; }
+  .cm-you .top{ display:flex; align-items:center; gap:3cqw; }
+  .cm-av{ width:10cqw; height:10cqw; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3.2cqw; font-weight:700; color:#0D0D0D; flex-shrink:0; }
+  .cm-you .who b{ font-size:3.8cqw; font-weight:700; }
+  .cm-you .who span{ display:block; font-size:2.4cqw; color:var(--xfaint); margin-top:.3cqw; }
+  .cm-you .mv{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:2.7cqw; font-weight:500; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.4cqw; border-radius:3cqw; }
+  .cm-ranks{ margin-top:3.2cqw; padding-top:3cqw; border-top:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; }
+  .cm-ranks .r{ display:flex; flex-direction:column; align-items:center; gap:.8cqw; }
+  .cm-ranks .r b{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; }
+  .cm-ranks .r span{ font-size:2cqw; letter-spacing:.05em; text-transform:uppercase; color:var(--xfaint); }
+  .cm-tabs{ margin-top:3cqw; display:flex; gap:1.8cqw; }
+  .cm-tab{ font-size:2.6cqw; font-weight:600; padding:1.5cqw 2.8cqw; border-radius:5cqw; color:var(--xfaint); background:rgba(255,255,255,.05); }
+  .cm-tab.on{ color:#0D0D0D; background:var(--xredt); }
+  .cm-chal{ margin-top:2.8cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.09); border-radius:4cqw; padding:2.9cqw 3.4cqw; }
+  .cm-chal .top{ display:flex; justify-content:space-between; align-items:baseline; font-size:2.7cqw; }
+  .cm-chal .top b{ font-weight:600; } .cm-chal .top span{ font-family:'IBM Plex Mono',monospace; color:var(--xdim); }
+  .cm-chal .bar{ margin-top:2cqw; height:1.7cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
+  .cm-chal .bar i{ display:block; height:100%; width:72%; border-radius:1cqw; background:linear-gradient(90deg,var(--xred),var(--xamber)); }
+  .cm-lead{ margin-top:2.4cqw; display:flex; flex-direction:column; }
+  .cm-lr{ display:flex; align-items:center; gap:2.6cqw; padding:2.9cqw 0; border-top:1px solid rgba(255,255,255,.07); }
+  .cm-lr:first-child{ border-top:none; }
+  .cm-rk{ font-family:'IBM Plex Mono',monospace; font-size:2.9cqw; color:var(--xfaint); width:3.6cqw; flex-shrink:0; }
+  .cm-sm{ width:8cqw; height:8cqw; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.8cqw; font-weight:700; color:#0D0D0D; flex-shrink:0; }
+  .cm-nm{ flex:1; min-width:0; }
+  .cm-nm b{ font-size:3.1cqw; font-weight:600; display:flex; align-items:center; gap:1.2cqw; }
+  .cm-nm .vf{ width:3.2cqw; height:3.2cqw; flex-shrink:0; }
+  .cm-nm span{ display:block; font-size:2.35cqw; color:var(--xfaint); margin-top:.2cqw; }
+  .cm-sc{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; flex-shrink:0; }
+  .cm-mv{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; width:7cqw; text-align:right; flex-shrink:0; }
+  .mv-up{ color:var(--xgreen); } .mv-dn{ color:var(--xredt); } .mv-fl{ color:var(--xfaint); }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
   .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
@@ -278,7 +430,52 @@
       </div>
     </div>
     <div class="split-media reveal">
-      <div class="phone"><img src="/assets/os-protocol.png" alt="AFORCE OS — Depletion Correction protocol screen with the day's hydration commands: confirm, log, recheck, and confirm status" loading="lazy" decoding="async"></div>
+      <div class="osx-phone" role="img" aria-label="AFORCE OS Protocol screen, Day 24. Recovery stage complete at 91%, 14-day streak, next check in 42 minutes; hydration 118 of 128 ounces; today's protocol steps all done — hydration, electrolytes, movement and breathing.">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="osx-ey">Today&rsquo;s Protocol</div>
+            <div class="osx-h1">Recovery Stage</div>
+            <div class="osx-chip"><span class="dot"></span>Day 24 · check-in<span class="mut">· recovery complete</span></div>
+            <div class="px-hero">
+              <div class="px-ring">
+                <svg viewBox="0 0 100 100"><circle class="tr" cx="50" cy="50" r="43.5"></circle><circle class="fl" cx="50" cy="50" r="43.5" pathLength="100"></circle></svg>
+                <div class="c"><b>91<span style="font-size:.5em">%</span></b><span>Recovery</span></div>
+              </div>
+              <div class="px-herostats">
+                <div class="px-hs"><span class="k">Current streak</span><span class="v"><span class="osx-num">14</span> <em>days</em></span></div>
+                <div class="px-hs"><span class="k">Next check</span><span class="v"><span class="osx-num">42</span> <em>min</em></span></div>
+              </div>
+            </div>
+            <div class="px-hydro">
+              <div class="top"><span class="lbl">Hydration</span><span class="val">118<em> / 128 oz</em></span></div>
+              <div class="px-bar"><i></i></div>
+            </div>
+            <div class="px-sec"><span class="l">Completed today</span><span class="r">4 / 4</span></div>
+            <div class="px-list">
+              <div class="px-item"><span class="px-ck"></span><div class="nm"><b>Drink 20 oz</b><span>Hydration</span></div><span class="amt">20 oz</span></div>
+              <div class="px-item"><span class="px-ck"></span><div class="nm"><b>Sodium logged</b><span>Electrolytes</span></div><span class="amt">480 mg</span></div>
+              <div class="px-item"><span class="px-ck"></span><div class="nm"><b>Walk 12 min</b><span>Movement</span></div><span class="amt">12 min</span></div>
+              <div class="px-item"><span class="px-ck"></span><div class="nm"><b>HR recovered</b><span>Breathing</span></div><span class="amt">58 bpm</span></div>
+            </div>
+            <div class="px-sec" style="margin-top:3cqw;"><span class="l">Recent commands</span><span class="r">Recovery trending up</span></div>
+            <div class="px-tl" style="border-top:none;padding-top:0.4cqw;">
+              <div class="row"><span class="d"></span><span class="tx">Drink 16 oz &mdash; confirmed</span><span class="tm">1h ago</span></div>
+              <div class="row"><span class="d"></span><span class="tx">Sodium + electrolytes logged</span><span class="tm">3h ago</span></div>
+              <div class="row"><span class="d"></span><span class="tx">Recheck signal &mdash; readiness held</span><span class="tm">4h ago</span></div>
+              <div class="row"><span class="d"></span><span class="tx">Morning hydration confirmed</span><span class="tm">6h ago</span></div>
+            </div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -287,7 +484,83 @@
 <section class="block dark" id="history">
   <div class="wrap split reverse">
     <div class="split-media reveal">
-      <div class="phone"><img src="/assets/os-signal.png" alt="AFORCE OS — Performance Signal dashboard: recovery, sodium lost, 7-day hydration total, win moments, and daily average scores" loading="lazy" decoding="async"></div>
+      <div class="osx-phone" role="img" aria-label="AFORCE OS Command History screen: a 7-day average score of 86, with a daily log — Today 88 Peak, Yesterday 82 Balanced, Monday 71 Recovering, Sunday 90 Peak, Saturday 64 Depleted — each showing hydration, recovery, commands completed and streak.">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="osx-ey">Command History</div>
+            <div class="osx-h1">Performance Signal</div>
+            <div class="ch-summary">
+              <div class="big"><b>86</b><span>7-day avg</span></div>
+              <div class="spark"><i class="mid" style="height:58%"></i><i class="lo" style="height:44%"></i><i class="mid" style="height:66%"></i><i class="hi" style="height:82%"></i><i class="lo" style="height:40%"></i><i class="hi" style="height:92%"></i><i class="hi" style="height:78%"></i></div>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-peak"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Today</span><span class="date">Aug 7</span><span class="ch-pill pill-peak">Peak</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>124</b> oz</span><span class="c"><span class="g bg-peak"></span><b>93%</b> rec</span><span class="c"><b>6</b> cmds</span><span class="c"><b>14d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-peak">88</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-bal"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Yesterday</span><span class="date">Aug 6</span><span class="ch-pill pill-bal">Balanced</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>118</b> oz</span><span class="c"><span class="g bg-peak"></span><b>88%</b> rec</span><span class="c"><b>5</b> cmds</span><span class="c"><b>13d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-bal">82</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-rec"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Monday</span><span class="date">Aug 5</span><span class="ch-pill pill-rec">Recovering</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>96</b> oz</span><span class="c"><span class="g bg-rec"></span><b>74%</b> rec</span><span class="c"><b>4</b> cmds</span><span class="c"><b>12d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-rec">71</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-peak"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Sunday</span><span class="date">Aug 4</span><span class="ch-pill pill-peak">Peak</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>130</b> oz</span><span class="c"><span class="g bg-peak"></span><b>95%</b> rec</span><span class="c"><b>7</b> cmds</span><span class="c"><b>11d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-peak">90</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-dep"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Saturday</span><span class="date">Aug 3</span><span class="ch-pill pill-dep">Depleted</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>82</b> oz</span><span class="c"><span class="g bg-dep"></span><b>61%</b> rec</span><span class="c"><b>3</b> cmds</span><span class="c"><b>10d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-dep">64</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-bal"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Friday</span><span class="date">Aug 2</span><span class="ch-pill pill-bal">Balanced</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>112</b> oz</span><span class="c"><span class="g bg-peak"></span><b>86%</b> rec</span><span class="c"><b>5</b> cmds</span><span class="c"><b>9d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-bal">80</span>
+            </div>
+            <div class="ch-row">
+              <span class="ch-acc bg-peak"></span>
+              <div class="ch-main">
+                <div class="top"><span class="day">Thursday</span><span class="date">Aug 1</span><span class="ch-pill pill-peak">Peak</span></div>
+                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>126</b> oz</span><span class="c"><span class="g bg-peak"></span><b>92%</b> rec</span><span class="c"><b>6</b> cmds</span><span class="c"><b>8d</b> streak</span></div>
+              </div>
+              <span class="ch-score is-peak">89</span>
+            </div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div>
       <div class="eyebrow reveal">Command History</div>
@@ -319,7 +592,39 @@
       </div>
     </div>
     <div class="split-media reveal">
-      <div class="phone"><img src="/assets/os-report.png" alt="AFORCE OS — Weekly Performance Report: performance age movement, habit velocity, recovery trend, top command, and next week focus" loading="lazy" decoding="async"></div>
+      <div class="osx-phone" role="img" aria-label="AFORCE OS Weekly Performance Report: performance age improved from 47 to 44, recovery trend up 11 percent, hydration consistency 93 percent, habit velocity excellent, 18-day streak, 5 weekly wins, 6 recovery days, and the top command hydrate before 10 AM.">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="osx-ey">Weekly Report</div>
+            <div class="osx-h1">Week in Review</div>
+            <div class="osx-chip"><span class="dot"></span>Aug 1 &ndash; Aug 7<span class="mut">· generated today</span></div>
+            <div class="wr-age">
+              <div style="display:flex;align-items:center;"><span class="k">Performance Age</span><span class="badge">&#9660; 3 yrs</span></div>
+              <div class="row"><span class="from">47</span><span class="arw">&rarr;</span><span class="to">44</span></div>
+              <div class="spark"><i style="height:38%"></i><i style="height:52%"></i><i style="height:46%"></i><i style="height:64%"></i><i style="height:72%"></i><i style="height:86%"></i><i style="height:100%"></i></div>
+            </div>
+            <div class="wr-grid">
+              <div class="wr-card"><div class="k">Recovery Trend</div><div class="v" style="color:var(--xgreen)">&#9650; 11<small>%</small></div></div>
+              <div class="wr-card"><div class="k">Hydration Consistency</div><div class="v">93<small>%</small></div><div class="bar"><i style="width:93%"></i></div></div>
+              <div class="wr-card"><div class="k">Habit Velocity</div><div class="v" style="font-family:var(--body);font-size:3.6cqw;color:var(--xgreen)">Excellent</div></div>
+              <div class="wr-card"><div class="k">Current Streak</div><div class="v">18<small>days</small></div></div>
+              <div class="wr-card"><div class="k">Weekly Wins</div><div class="v">5</div><div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div></div>
+              <div class="wr-card"><div class="k">Recovery Days</div><div class="v">6</div><div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="off"></i></div></div>
+            </div>
+            <div class="wr-top"><div class="ic">&#9650;</div><div><div class="k">Top command</div><div class="v">Hydrate before 10 AM</div></div></div>
+            <div class="wr-top" style="background:linear-gradient(90deg,rgba(31,163,90,.14),rgba(31,163,90,.03));border-color:rgba(31,163,90,.26);"><div class="ic" style="background:rgba(31,163,90,.16);color:var(--xgreen);">&#9679;</div><div><div class="k" style="color:var(--xgreen);">Next week focus</div><div class="v">Protect the morning window</div></div></div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -341,7 +646,51 @@
 <section class="block dark" id="community">
   <div class="wrap split reverse">
     <div class="split-media reveal">
-      <div class="phone"><img src="/assets/os-community.png" alt="AFORCE OS — Community leaderboard: your global, city, state, and team rank with score, and the individual leaderboard" loading="lazy" decoding="async"></div>
+      <div class="osx-phone" role="img" aria-label="AFORCE OS Community leaderboard: you are ranked #8 global, #2 city, #1 state and team with a score of 92, up 12 spots; weekly hydration challenge at 72 percent; leaderboard led by Jordan A. 95, Alicia R. 93, Marcus K. 90, Sasha P. 88 and Cam B. 86.">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="osx-ey">Sport Mode · Live</div>
+            <div class="osx-h1">Community</div>
+            <div class="cm-you">
+              <div class="top">
+                <span class="cm-av" style="background:var(--xgreen)">YO</span>
+                <div class="who"><b>You</b><span>Miami, FL · Peak</span></div>
+                <span class="mv">&#8593; 12 spots</span>
+              </div>
+              <div class="cm-ranks">
+                <div class="r"><b style="color:var(--xgreen)">#8</b><span>Global</span></div>
+                <div class="r"><b>#2</b><span>City</span></div>
+                <div class="r"><b>#1</b><span>State</span></div>
+                <div class="r"><b>#1</b><span>Team</span></div>
+                <div class="r"><b style="color:var(--xgreen)">92</b><span>Score</span></div>
+              </div>
+            </div>
+            <div class="cm-tabs"><span class="cm-tab on">Rank</span><span class="cm-tab">Cities</span><span class="cm-tab">Friends</span><span class="cm-tab">Challenge</span></div>
+            <div class="cm-chal">
+              <div class="top"><b>Weekly Challenge · Hydration</b><span>72%</span></div>
+              <div class="bar"><i></i></div>
+            </div>
+            <div class="cm-lead">
+              <div class="cm-lr"><span class="cm-rk">1</span><span class="cm-sm" style="background:#E8A13A">JA</span><div class="cm-nm"><b>Jordan A.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Miami, FL · 7-day streak</span></div><span class="cm-sc is-peak">95</span><span class="cm-mv mv-up">&#8593;3</span></div>
+              <div class="cm-lr"><span class="cm-rk">2</span><span class="cm-sm" style="background:#5FB0FF">AR</span><div class="cm-nm"><b>Alicia R.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Perfect Hydration · 30d</span></div><span class="cm-sc is-peak">93</span><span class="cm-mv mv-fl">&mdash;</span></div>
+              <div class="cm-lr"><span class="cm-rk">3</span><span class="cm-sm" style="background:#C1281B;color:#F4F2ED">MK</span><div class="cm-nm"><b>Marcus K.</b><span>Recovery King · 21-day streak</span></div><span class="cm-sc is-peak">90</span><span class="cm-mv mv-up">&#8593;1</span></div>
+              <div class="cm-lr"><span class="cm-rk">4</span><span class="cm-sm" style="background:#8C7BFF">SP</span><div class="cm-nm"><b>Sasha P.</b><span>Austin, TX · 9-day streak</span></div><span class="cm-sc is-bal">88</span><span class="cm-mv mv-dn">&#8595;1</span></div>
+              <div class="cm-lr"><span class="cm-rk">5</span><span class="cm-sm" style="background:#1FA35A">CB</span><div class="cm-nm"><b>Cam B.</b><span>Denver, CO · 6-day streak</span></div><span class="cm-sc is-bal">86</span><span class="cm-mv mv-up">&#8593;2</span></div>
+              <div class="cm-lr"><span class="cm-rk">6</span><span class="cm-sm" style="background:#E8A13A">DR</span><div class="cm-nm"><b>Devon R.</b><span>New York, NY · 14-day streak</span></div><span class="cm-sc is-rec">78</span><span class="cm-mv mv-dn">&#8595;2</span></div>
+              <div class="cm-lr"><span class="cm-rk">7</span><span class="cm-sm" style="background:#5FB0FF">PN</span><div class="cm-nm"><b>Priya N.<svg class="vf" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#00E5C8"/><path d="M7.5 12.2l2.8 2.8 6-6" stroke="#0D0D0D" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></b><span>Chicago, IL · 5-day streak</span></div><span class="cm-sc is-rec">75</span><span class="cm-mv mv-up">&#8593;4</span></div>
+            </div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div>
       <div class="eyebrow reveal">The Community</div>
