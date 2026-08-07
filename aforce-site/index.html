@@ -147,7 +147,7 @@
   .eyebrow-label{ font-family:'Inter', sans-serif; font-weight:700; font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--red); margin-bottom:20px; opacity:0; transform:translateY(10px); }
   .section-title{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(34px, 5vw, 64px); line-height:1.08; max-width:820px; opacity:0; transform:translateY(14px); }
   /* Defensive line-breaking so large display copy (AFORCE OS, NON-Иegotiable, etc.) can never overflow a narrow viewport */
-  .section-title, .hero h1, .clarity h1, .clarity-mark .ritual-row, .universal-sub, .final .final-line{ overflow-wrap:break-word; }
+  .section-title, .hero h1, .clarity h1, .clarity-mark .ritual-row, .universal-sub, .final .final-head{ overflow-wrap:break-word; }
   .fade-in{ transition: opacity 1s ease, transform 1s ease; }
   .fade-in.visible{ opacity:1 !important; transform:none !important; }
 
@@ -397,7 +397,7 @@
   .founding p.sub{ max-width:520px; margin:0 auto 36px; color:rgba(13,13,13,0.65); font-size:15px; line-height:1.7; opacity:0; transform:translateY(10px); }
   .founding .benefits{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:640px; margin:0 auto 40px; opacity:0; transform:translateY(10px); }
   .founding .benefits span{ font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; border:1px solid var(--line-on-dark); padding:9px 14px; color:rgba(13,13,13,0.7); }
-  .founding form{ display:flex; gap:0; max-width:420px; margin:0 auto; opacity:0; transform:translateY(10px); }
+  .founding form{ display:flex; gap:0; max-width:520px; margin:0 auto; opacity:0; transform:translateY(10px); }
   .founding input{ flex:1; background:transparent; border:1px solid var(--line-on-dark); border-right:none; padding:16px 18px; color:var(--ink); font-family:'Inter'; font-size:14px; }
   .founding input::placeholder{ color:rgba(13,13,13,0.4); }
   .founding input:focus{ outline:none; border-color:var(--ink); }
@@ -405,11 +405,14 @@
   .founding .fine{ margin-top:20px; font-family:'Inter',sans-serif; font-size:10px; letter-spacing:0.1em; color:rgba(13,13,13,0.35); text-transform:uppercase; opacity:0; }
 
   /* ---------- FINAL ---------- */
-  .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(48px,6vh,72px) clamp(20px,6vw,72px); }
-  .final .final-line{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(30px,4.4vw,58px); line-height:1.04; letter-spacing:-0.01em; color:var(--ink); opacity:0; transform:translateY(10px); }
-  .final .final-line.top{ margin-bottom:clamp(28px,3.6vw,44px); }
-  .final .final-line.bottom{ margin-top:clamp(28px,3.6vw,44px); color:var(--red); }
-  .final .btn{ opacity:0; transform:translateY(10px); }
+  .final{ background:var(--canvas); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:clamp(56px,8vh,88px) clamp(20px,6vw,72px); }
+  .final .final-head{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(32px,4.8vw,64px); line-height:1.03; letter-spacing:-0.015em; color:var(--ink); opacity:0; transform:translateY(10px); }
+  .final .final-ritual{ margin-top:clamp(20px,2.4vw,30px); font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(12px,1.4vw,16px); letter-spacing:0.16em; text-transform:uppercase; color:var(--ink); opacity:0; transform:translateY(10px); }
+  .final .final-cta{ margin-top:clamp(34px,4vw,48px); display:flex; gap:14px; flex-wrap:wrap; justify-content:center; opacity:0; transform:translateY(10px); }
+  .final .final-cta .arw{ margin-left:8px; display:inline-block; transition:transform .25s ease; }
+  .final .final-cta .btn-primary:hover .arw{ transform:translateX(3px); }
+  .final .final-tertiary{ margin-top:24px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--red); padding-bottom:4px; opacity:0; transform:translateY(10px); transition:color .3s ease; }
+  .final .final-tertiary:hover{ color:var(--red); }
 
   footer{ background:var(--canvas); color:rgba(13,13,13,0.55); padding:clamp(40px,6vh,60px) clamp(20px,6vw,72px) 40px; }
   footer .top{ display:flex; justify-content:space-between; flex-wrap:wrap; gap:40px; border-bottom:1px solid var(--line-on-dark); padding-bottom:56px; margin-bottom:32px; }
@@ -536,7 +539,7 @@
 <section class="clarity">
   <div class="clarity-grid">
     <div class="clarity-copy">
-      <h1 class="clarity-headline fade-in">Performance<br>Is<br><span class="hl-red">Non-Negotiable.</span></h1>
+      <h1 class="clarity-headline fade-in">Performance<br>Is<br><span class="hl-red">Non-<span class="flip-n">N</span>egotiable.</span></h1>
       <p class="clarity-subhead fade-in">Built for the moments you cannot afford to miss.</p>
       <p class="clarity-supporting fade-in">Hydration begins the ritual.<br>The AFORCE OS builds the habit.<br>Performance is the destination.</p>
       <ul class="clarity-list fade-in">
@@ -641,7 +644,7 @@
   <h2 class="section-title fade-in">Different arenas. Same standard.</h2>
   <div class="arena-grid">
     <div class="arena fade-in">
-      <div class="shot"><img src="assets/perf-surgeon.jpg" alt="Surgeon in scrubs and cap in an operating room" width="1200" height="1602" loading="lazy"></div>
+      <div class="shot"><img src="assets/perf-surgeon.jpg" alt="A surgeon in navy scrubs and cap, surgical mask around her neck, arms crossed at a floor-to-ceiling window at golden hour, city skyline beyond" width="1068" height="1602" loading="lazy"></div>
       <div class="cap"><span class="role">Surgeon</span><span class="idx">01</span></div>
       <div class="line">Composure before the first incision.</div>
       <div class="reveal">Precision is a state you enter, not a switch you flip.</div>
@@ -665,11 +668,11 @@
   <div class="copy">
     <div class="eyebrow-label fade-in">The AFORCE OS</div>
     <h2 class="section-title fade-in">The can begins the ritual. The OS builds the habit.</h2>
-    <p class="fade-in">Every AFORCE purchase includes a free entry point into the AFORCE OS. Scan, get your Readiness Score, and start the habit — free. Advanced protocols, coaching voices, and full membership are an upgrade, never a requirement.</p>
+    <p class="fade-in">Every AFORCE purchase includes a free entry point into the OS — scan, enter, and start building the habit. No account wall, no requirement.</p>
     <div class="steps">
-      <div class="step fade-in"><span class="n">01</span><div><h5>The can begins the ritual</h5><p>Scan the receipt or can code — thirty seconds, no account wall.</p></div></div>
-      <div class="step fade-in"><span class="n">02</span><div><h5>The OS builds the habit</h5><p>Hydration tracking, streaks, and Performance Statements, free.</p></div></div>
-      <div class="step fade-in"><span class="n">03</span><div><h5>The community protects the standard</h5><p>Founding 250 members hold each other to the ritual.</p></div></div>
+      <div class="step fade-in"><span class="n">01</span><div><h5>Readiness</h5><p>Understand your daily performance state.</p></div></div>
+      <div class="step fade-in"><span class="n">02</span><div><h5>Hydration</h5><p>Build a repeatable hydration rhythm.</p></div></div>
+      <div class="step fade-in"><span class="n">03</span><div><h5>Consistency</h5><p>Track rituals, streaks and preparation.</p></div></div>
     </div>
     <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Explore the AFORCE OS &rarr;</a>
   </div>
@@ -700,24 +703,28 @@
 
 <section class="founding" id="founding">
   <div class="eyebrow-label fade-in" style="display:inline-block;">Founding 250 · Brickell, Miami</div>
-  <h2 class="section-title fade-in" style="margin:0 auto 20px;">You're not buying a product. You're helping define a movement.</h2>
-  <p class="sub fade-in">250 spots. Not a waitlist — a roster.</p>
+  <h2 class="section-title fade-in" style="margin:0 auto 20px;">The Founding 250.</h2>
+  <p class="sub fade-in">The first 250 members establishing the AFORCE standard. You're not buying a product — you're helping define a movement. Not a waitlist. A roster.</p>
   <div class="benefits fade-in">
     <span>Early Product Access</span><span>AFORCE OS Founding Membership</span><span>Founding 250 Designation</span>
     <span>Miami Launch Invitation</span><span>Product Feedback Access</span><span>Phantom Band Priority Consideration</span>
   </div>
   <form class="fade-in" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Request Received';">
-    <input type="email" placeholder="Email address" required>
-    <button type="submit">Claim Access</button>
+    <input type="email" placeholder="Email address" required aria-label="Email address">
+    <button type="submit">Become a Founding Member</button>
   </form>
   <div class="fine fade-in">No spam. No obligation to purchase. Unsubscribe anytime.</div>
   <a class="fade-in" href="/founding-250" style="display:inline-block; margin-top:28px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Explore Founding 250 &rarr;</a>
 </section>
 
 <section class="final">
-  <div class="final-line top fade-in">Performance Is</div>
-  <a href="/shop" class="btn btn-primary fade-in">Begin Today's Ritual</a>
-  <div class="final-line bottom fade-in">Non&#8209;<span class="flip-n">N</span>egotiable</div>
+  <div class="final-head fade-in">The moment will come.<br>Be ready for it.</div>
+  <div class="final-ritual fade-in">Pause. Hydrate. <span style="color:var(--red)">Lock-In.</span> Perform.</div>
+  <div class="final-cta fade-in">
+    <a href="/shop" class="btn btn-primary">Enter the Ritual <span class="arw">→</span></a>
+    <a href="/shop" class="btn btn-ghost">Shop AFORCE</a>
+  </div>
+  <a href="/aforce-os" class="final-tertiary fade-in">Explore the OS &rarr;</a>
 </section>
 
 <footer>
