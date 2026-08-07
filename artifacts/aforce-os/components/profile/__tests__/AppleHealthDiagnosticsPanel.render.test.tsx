@@ -75,8 +75,17 @@ const FIXTURE: AppleHealthDiagnosticsSnapshot = {
   sleep: {
     identifier: 'HKCategoryTypeIdentifierSleepAnalysis',
     queried: true,
-    sampleCount: 14,
+    totalSampleCount: 49,
+    summedSampleCount: 45,
+    selectionBranch: 'stages',
+    rawSumHours: 13.33,
+    unionHours: 7.2,
+    perSourceTotals: [
+      { sourceName: 'iPhone', valueClass: 'unspecified', totalHours: 6.6 },
+      { sourceName: "Brandon's Apple Watch", valueClass: 'stage', totalHours: 6.7 },
+    ],
     valueUsed: 7.2,
+    usedFallback: false,
   },
   workout: {
     identifier: 'HKWorkoutTypeIdentifier',
@@ -198,6 +207,38 @@ describe('AppleHealthDiagnosticsPanel — old vs. new steps comparison (the foun
     const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
     flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     expect(q('[data-testid="apple-health-diagnostics-panel-steps-used"]')?.textContent).toContain('fallback');
+  });
+});
+
+describe('AppleHealthDiagnosticsPanel — old vs. new sleep comparison (RC-2 Ruling A device evidence)', () => {
+  it('shows the raw-sum (old) and interval-union (new) values side by side, plus selection branch and per-source totals', () => {
+    renderPanel();
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-raw"]')?.textContent).toBe('13.33 h');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-union"]')?.textContent).toBe('7.2 h');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-used"]')?.textContent).toBe('7.2 h');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-branch"]')?.textContent).toBe('stages');
+    expect(host.textContent).toContain('iPhone (unspecified)');
+    expect(host.textContent).toContain("Brandon's Apple Watch (stage)");
+  });
+
+  it('flags a fallback explicitly in the "value used" row when the interval-union selection was empty', () => {
+    renderPanel({
+      diagnostics: {
+        ...FIXTURE,
+        sleep: {
+          ...FIXTURE.sleep,
+          unionHours: 0,
+          selectionBranch: 'none',
+          valueUsed: 6.2,
+          usedFallback: true,
+        },
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-used"]')?.textContent).toContain('fallback');
   });
 });
 
