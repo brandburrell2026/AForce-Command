@@ -432,6 +432,44 @@ function sumRawQuantitySamples(samples: unknown): number | null {
 //      whether a sample exists at all, not what value it holds. See the
 //      separate "unrecorded gap" fixture in the test file for the
 //      fill-behavior this is deliberately preserving.
+//
+//      CORRECTED AGAIN (F2, RC-2 P0 gate for build 49 tail fix,
+//      2026-08-06, post-#598 independent verdict): F1's `covered` spans
+//      were built from ALL of a stage source's own samples INCLUDING that
+//      source's own value-1 (asleepUnspecified) samples, and the residual
+//      loop then skipped any value-1 sample whose source was itself a
+//      stage source outright (`if (stageSources.has(iv.sourceName))
+//      continue;`) — reasoning that subtracting it against `covered` would
+//      "always yield nothing" since it was already inside `covered` by
+//      construction. That reasoning was circular: it was true only because
+//      coverage was DEFINED to include the very sample being deleted, not
+//      because the sample carried no information. A same-source value-1
+//      tail/lead-in immediately outside that source's own stage run — or a
+//      same-source value-1 sample sitting in the genuine gap BETWEEN two of
+//      that source's own stage runs — is real, positive evidence the
+//      device was recording asleepUnspecified somewhere its own stage
+//      classifier wrote nothing; deleting it on sight silently regressed
+//      exactly the undercounting-class defect this coverage design exists
+//      to close (measured: a 7h night reported as 6h). DOCTRINE: coverage
+//      is positive evidence of what the stage-capable device was doing; a
+//      source's own "asleep" reading is evidence OF SLEEP, never coverage
+//      AGAINST itself. Fixed by (1) excluding a stage source's own value-1
+//      samples from `covered` (coverage is now built only from that
+//      source's stage/awake/inBed samples), and (2) removing the
+//      same-source skip entirely — every value-1 sample, same-source or
+//      not, now flows through the identical `subtractCoveredSpans` path.
+//      This still correctly drops a same-source value-1 sample's portion
+//      that overlaps that source's own stage/awake/inBed coverage (a
+//      redundant coarser reading of time the device already classified
+//      more precisely) — it only stops deleting the portion that falls
+//      OUTSIDE that coverage, which is exactly the portion that was never
+//      redundant in the first place. See
+//      `services/__tests__/appleHealth.sleepAggregation.test.ts`'s "F2 —
+//      same-source value-1 self-coverage" describe block (TAIL, LEAD-IN,
+//      MID-GAP, and 'unknown'-fallback-collision fixtures) for the
+//      regression proof and the one pre-existing fixture (the "same-source
+//      overlap" describe block's second test) whose correct total moved
+//      from 70min to 80min under this fix.
 //   2. INTERVAL UNION: within the selected set, sort by start time and merge
 //      overlapping/adjacent intervals before summing — this guards
 //      SAME-source overlap too (two overlapping samples from one source
@@ -469,8 +507,21 @@ export interface SleepInterval {
   value: number;
   /**
    * HealthKit source name, e.g. "iPhone" or "Brandon's Apple Watch".
-   * Diagnostic only — the union merges across sources by design, so this
-   * field is never used to group or filter the reduction itself.
+   * PRIMARY SELECTION KEY as of F1 (RC-2 P0 gate for build 49,
+   * 2026-08-06) — this field is NOT diagnostic-only. `selectSleepIntervals`
+   * groups every interval by `sourceName` to determine which sources wrote
+   * a stage sample ("stage sources") and to build each stage source's own
+   * coverage spans from that source's samples (see the "Sleep aggregation"
+   * file-header comment above for the full design, and its F2 update for
+   * the same-source value-1 self-coverage fix). A HealthKit source that
+   * reports an empty/missing name — defaulted to the literal string
+   * `'unknown'` by this file's adapters (see `entry.source?.name ??
+   * 'unknown'` below) — is therefore indistinguishable from any OTHER
+   * source that also defaults to `'unknown'`: this is a real, documented,
+   * currently-accepted limitation. See the "'unknown'-fallback collision"
+   * test in `services/__tests__/appleHealth.sleepAggregation.test.ts` for
+   * the exact behavior this produces and why no fix is planned without
+   * observed real-world occurrence.
    */
   sourceName: string;
 }
@@ -565,17 +616,22 @@ function subtractCoveredSpans(
  *
  * RC-2 P0 gate for build 49 (F1, 2026-08-06): PER-SOURCE COVERAGE, not a
  * min/max time span. A "stage source" is any HealthKit source that wrote at
- * least one stage sample (value 3/4/5) in the window. Every sample that
- * source wrote — of ANY value, including inBed(0) and awake(2) — is
- * "covered" time. A value-1 sample from a DIFFERENT source is clipped
- * against the covered spans: the covered portion is dropped (the
- * double-counting iPhone summary of time the stage source already
- * accounted for, asleep or not); the uncovered portion — the stage source
- * wrote NOTHING there, of any value — is kept, clipped to exactly that
- * slice. See the "Sleep aggregation" file-header comment above for the full
+ * least one stage sample (value 3/4/5) in the window. That source's own
+ * stage(3/4/5), inBed(0), and awake(2) samples are "covered" time —
+ * positive evidence of what the stage-capable device was doing. A value-1
+ * (asleepUnspecified) sample — from that SAME source or a DIFFERENT one
+ * (F2, 2026-08-06: same-source is no longer special-cased, see below) — is
+ * clipped against the covered spans: the covered portion is dropped (a
+ * redundant coarser reading of time the stage source already accounted
+ * for, asleep or not); the uncovered portion — the stage source wrote
+ * NOTHING there, of any value — is kept, clipped to exactly that slice.
+ * See the "Sleep aggregation" file-header comment above for the full
  * rationale, why this eliminates the B1 (#592) disjoint-cluster limitation
- * with no gap-tolerance threshold, and the awake-tail/inBed-lead-in defect
- * this specifically corrects relative to the prior min/max-envelope rule.
+ * with no gap-tolerance threshold, the awake-tail/inBed-lead-in defect F1
+ * corrected relative to the prior min/max-envelope rule, and F2's fix for
+ * the same-source value-1 self-deletion F1 itself introduced (coverage
+ * doctrine: a source's own "asleep" reading is evidence OF SLEEP, never
+ * coverage against itself).
  */
 export function selectSleepIntervals(
   intervals: readonly SleepInterval[],
@@ -593,18 +649,26 @@ export function selectSleepIntervals(
   }
 
   const stageSources = new Set(stageIntervals.map((i) => i.sourceName));
-  // ALL samples (any value) from a stage source are coverage — not just its
-  // stage-valued ones. This is the exact fix over the prior min/max-stage-
-  // only envelope: an explicit awake(2)/inBed(0) sample from the stage
-  // source now counts as covered too.
-  const covered = mergeIntervalSpans(intervals.filter((i) => stageSources.has(i.sourceName)));
+  // F2 (RC-2 P0 gate for build 49 tail fix, post-#598 verdict): coverage is
+  // built from a stage source's stage(3/4/5)/inBed(0)/awake(2) samples —
+  // ANY value EXCEPT that source's own value-1 (asleepUnspecified). A
+  // source's own "asleep unspecified" reading is evidence OF SLEEP, not
+  // coverage against itself; including it here (the pre-F2 behavior) made
+  // that sample's own residual subtraction always yield nothing, deleting
+  // exactly the same-source tail/lead-in/mid-gap evidence F2 restores.
+  const covered = mergeIntervalSpans(
+    intervals.filter((i) => stageSources.has(i.sourceName) && i.value !== SLEEP_UNSPECIFIED_VALUE),
+  );
 
   const residual: SleepInterval[] = [];
   for (const iv of unspecifiedIntervals) {
-    // A value-1 sample from the stage source itself is, by construction,
-    // already inside `covered` (coverage is built from ALL of that source's
-    // samples) — subtracting would always yield nothing, so skip the work.
-    if (stageSources.has(iv.sourceName)) continue;
+    // F2: every value-1 sample — same-source or not — flows through the
+    // identical subtract-against-coverage path below. There is no
+    // same-source special case: `covered` above already excludes this
+    // source's own value-1 samples, so a same-source value-1 sample is
+    // subtracted only against that source's genuine stage/awake/inBed
+    // evidence, exactly like a different source's value-1 sample is.
+    //
     // S-c (RC-2 P0 gate for build 49): append via a loop, NOT
     // `residual.push(...slices)` — spreading a large slice array into
     // `push`'s argument list is the exact same call-stack-limit hazard as
