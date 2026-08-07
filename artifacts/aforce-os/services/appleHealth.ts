@@ -733,7 +733,15 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   const restingHeartRate = restingHeartRateSample?.quantity ?? null;
   // RC-2 Ruling C: RHR's observation moment is this sample's own endDate —
   // the newest reading HealthKit actually has, not when we happened to ask.
-  const restingHeartRateObservedAtMs = toEpochMsOrNull(restingHeartRateSample?.endDate);
+  // #595 verdict, S3: guarded on `restingHeartRate == null` — a sample can be
+  // PRESENT (non-null `restingHeartRateSample`) while its `.quantity` is
+  // null/undefined (a malformed or unit-mismatched HealthKit row); in that
+  // case `restingHeartRate` above is correctly null, but `endDate` still
+  // resolves to a real timestamp. Without this guard that produces a
+  // timestamped null metric — a real moment attached to a value we never
+  // actually observed.
+  const restingHeartRateObservedAtMs =
+    restingHeartRate == null ? null : toEpochMsOrNull(restingHeartRateSample?.endDate);
 
   const hrvSdnnSample = await safe(() =>
     mostRecentQuantitySample('HKQuantityTypeIdentifierHeartRateVariabilitySDNN', 'ms'),
@@ -741,7 +749,8 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   const hrvSdnn = hrvSdnnSample?.quantity ?? null;
   // Same rule for HRV — already captured for diagnostics via
   // `toDiagnosticSample` below; this is the score-facing counterpart.
-  const hrvSdnnObservedAtMs = toEpochMsOrNull(hrvSdnnSample?.endDate);
+  // #595 verdict, S3: same null-quantity guard as RHR above.
+  const hrvSdnnObservedAtMs = hrvSdnn == null ? null : toEpochMsOrNull(hrvSdnnSample?.endDate);
 
   // ── Steps: raw sum (OLD, kept for fallback + diagnostics) ──────────────
   // N3 (RC-2 independent-verdict review): the sample array's length is
@@ -868,7 +877,16 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // path uses the last non-empty bucket's end; raw-fallback path uses `now`
   // at fetch time (documented choice: a rolling today-aggregate has no
   // single "last observed" instant to point to in that path).
-  const stepsTodayObservedAtMs = stepsUsedFallback ? now.getTime() : stepsBucketedObservedAtMs;
+  // #595 verdict, S3: guarded on `stepsToday == null` FIRST — when both the
+  // bucketed query and the raw fallback come up empty (the ordinary shape of
+  // a denied steps permission), `stepsToday` is null and there is nothing to
+  // timestamp. Without this guard, `stepsUsedFallback` can still be `true`
+  // (set by the bucketed query's `catch`) while `stepsRawSampleSum` is also
+  // null, producing a timestamped null metric that then poisons
+  // `latestObservedAtMs` (max over fields, below) up to `now` — corrupting
+  // Apple's tier-2 fallback for every OTHER field in the same snapshot.
+  const stepsTodayObservedAtMs =
+    stepsToday == null ? null : stepsUsedFallback ? now.getTime() : stepsBucketedObservedAtMs;
 
   // ── Sleep: interval-union, source-aware (RC-2 Ruling A) ────────────────
   // See the "Sleep aggregation" section header above `SleepInterval` for the

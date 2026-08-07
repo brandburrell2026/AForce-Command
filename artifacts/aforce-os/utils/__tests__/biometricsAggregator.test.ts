@@ -360,6 +360,48 @@ describe('aggregateBiometrics — THE DEVICE SCENARIO (Ruling C)', () => {
   });
 });
 
+// #595 verdict, S1: probe G. No prior fixture gave ONE snapshot both a
+// per-field observedAt AND a snapshot-level latestObservedAtMs that
+// disagree with each other — exactly the real Apple Health shape, where
+// `latestObservedAtMs` is the MAX over all of that snapshot's per-field
+// times and so is >= any individual field's own observedAt. Tier 1
+// (per-field observedAt) must be consulted BEFORE tier 2
+// (latestObservedAtMs) in `resolveComparisonTimestamp` — inverting the
+// two lets a snapshot's own fresher latestObservedAtMs (driven by some
+// OTHER field, e.g. steps) mask a genuinely staler observation on THIS
+// field, which is precisely the bug class Ruling C exists to kill (a
+// just-synced axis outvoting a real-but-older reading on a different
+// axis of the SAME snapshot).
+describe('aggregateBiometrics — precedence tier lock (own per-field observedAt beats own latestObservedAtMs)', () => {
+  it("a snapshot's per-field observedAt beats its OWN fresher latestObservedAtMs", () => {
+    const now = 2_000_000;
+    const r = aggregateBiometrics(
+      {
+        apple_health: {
+          providerId: 'apple_health',
+          hrvSdnn: 65,
+          fetchedAt: now,
+          latestObservedAtMs: now, // fresher than WHOOP's below...
+          fieldObservedAtMs: { hrvSdnn: now - 500_000 }, // ...but THIS field's own observation is not
+        },
+        whoop: {
+          providerId: 'whoop',
+          hrvSdnn: 25,
+          fetchedAt: now - 900_000,
+          latestObservedAtMs: now - 1_000,
+        },
+      },
+      now,
+    );
+    // WHOOP wins: its latestObservedAtMs (now - 1_000) is fresher than
+    // Apple's own per-field hrvSdnn observedAt (now - 500_000). Under the
+    // tier inversion, Apple's snapshot-level latestObservedAtMs (now) would
+    // be consulted first and Apple would incorrectly win instead.
+    expect(r.hint).toContain('HRV 25 ms'); // WHOOP wins: Apple's per-field HRV is older
+    expect(r.hint).not.toContain('HRV 65');
+  });
+});
+
 describe('aggregateBiometrics — per-field split is preserved, never winner-takes-all', () => {
   it('provider A wins one field via observedAt while provider B keeps the other field it alone reports', () => {
     const now = 2_000_000;
