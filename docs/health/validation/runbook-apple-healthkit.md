@@ -211,6 +211,49 @@ already-known and move on.
     per-gap owner/trigger columns, so it is intentionally not duplicated
     there beyond the existing rung status.
 
+- **Sleep selection is PER-SOURCE COVERAGE, not a simple sum — read this
+  before classifying any Time-Asleep mismatch as a bug (RC-2 P0 gate for
+  build 49, F1).** `selectSleepIntervals` (`appleHealth.ts`) treats any
+  HealthKit source that wrote a sleep-stage sample (core/deep/REM) as
+  authoritative for every span where THAT source wrote anything at all
+  (asleep, awake, or inBed); a different source's coarser "asleep
+  unspecified" layer only fills the stretches the stage-capable source
+  never touched. Three consequences a tester needs to distinguish, not
+  three symptoms of one bug:
+  1. **Acceptance criterion is the Health app's own "Time Asleep" figure
+     for that specific night, not a fixed target duration.** Apple has not
+     published its own algorithm, so there is no formula to check this
+     app's number against beyond that empirical figure — compare
+     `sleepHoursLastNight` (and the diagnostics panel's "interval union
+     (new method)" row, internal-TestFlight builds only) against the
+     Health app, per night, not against a hardcoded "~7.5h" expectation
+     left over from one incident's measurement.
+  2. **Unrecorded-gap filling is intentional, not a leak.** If the
+     stage-capable device (typically the Watch) recorded literally nothing
+     for a stretch — dead battery, not yet worn, taken off mid-night and
+     put back on later, or a nap earlier in the day followed by a
+     separately-recorded night — and a DIFFERENT source (typically the
+     iPhone) has an overlapping "asleep unspecified" sample there, that
+     stretch is counted as sleep. This is correct and deliberate: it is
+     exactly what recovers real sleep the Watch could not observe. Do not
+     file this as an overcount without first checking whether the Watch
+     genuinely has zero samples (of ANY value, not just stage) for that
+     window in the Health app's own source data.
+  3. **An explicitly Watch-recorded awake(2) or inBed(0) sample is NEVER
+     filled**, even if it sits just before/after a stage run (a
+     just-woke-up tail, a not-yet-asleep lead-in). If a mismatch traces to
+     time the Watch itself marked awake or inBed being counted as asleep,
+     that IS a bug — check whether the sample genuinely has that value in
+     the Health app's raw data (Health app → Browse → Sleep → a specific
+     night → Show All Data) before filing; the two known-limitation cases
+     above look superficially similar but are the opposite of this one.
+  See `services/__tests__/appleHealth.sleepAggregation.test.ts`'s "F1 —
+  per-source coverage" describe block for the exact fixtures (probes
+  g/h/i/j) backing all three points. Three of the four (h/i/j) hit the
+  reviewer-predicted numbers exactly; probe (g) required one documented
+  correction — see that test's comment for why its fully-correct total is
+  435min/7.25h, not the verdict's rounded "420".
+
 ## Step-by-step validation flow
 
 1. Fresh-install (or reset via Settings → General → Transfer or Reset →

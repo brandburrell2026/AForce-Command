@@ -35,6 +35,30 @@
  *     unspecified + inBed/awake) now go through the `selectThenUnion` helper
  *     to exercise the same select-once-then-union pipeline the real
  *     `fetchAppleHealthSnapshot` caller uses.
+ *
+ * RC-2 P0 gate for build 49 (2026-08-06, post-#592 independent verdict) —
+ * F1: `selectSleepIntervals` was rewritten from a min/max STAGE envelope to
+ * PER-SOURCE COVERAGE (see `services/appleHealth.ts`'s "Sleep aggregation"
+ * file header for the full design). Two consequences for THIS file:
+ *   - The S1 flagship fixture's 3 "awake gap" comments described real watch
+ *     behavior (brief night wake-ups) but were coded as bare time gaps with
+ *     no sample of any kind — under per-source coverage that reads as "the
+ *     watch recorded nothing here," which would let the iPhone layer fill
+ *     them and change the fixture's own asserted total. Fixed by adding
+ *     explicit `awake(2)` samples from the Watch in those 3 gaps — this
+ *     preserves the flagship 397min/6.6167h value AND makes the fixture
+ *     faithful to what a real watchOS session actually writes.
+ *   - The "partial watch coverage" (B1) fixture's own comment already
+ *     describes its 00:50-01:10 gap as "a real 20-min watch-detected awake
+ *     gap," but it too was coded as a bare gap. Same fix, same reason: an
+ *     explicit `awake(2)` sample there keeps this fixture's asserted 455min
+ *     total unchanged under the new coverage logic (see that describe block
+ *     for the worked-out reasoning).
+ *   - A new "F1 — per-source coverage" describe block below adds: a
+ *     dedicated unrecorded-gap fixture (the direct contrast to S1's
+ *     recorded-awake-gap case), probes (g)/(h)/(i)/(j) from the #592
+ *     verdict with exact before/after numbers, and a stack-safety
+ *     (S-c) large-N test.
  */
 import { describe, it, expect } from 'vitest';
 
@@ -77,18 +101,34 @@ describe('reduceSleepByIntervalUnion — the device scenario (Ruling A)', () => 
     // union total is 397min/6.6167h once the 3-minute overlap is correctly
     // deduplicated (that 3-minute reduction is itself proof the merge step
     // is doing real work, not just passing data through).
+    //
+    // F1 (RC-2 P0 gate for build 49): the 3 gaps below are now REAL
+    // `awake(2)` samples from the Watch, not bare time gaps. Per-source
+    // coverage (F1) treats "the stage source wrote nothing here" as
+    // uncovered and fillable by the iPhone layer — correct for a watch
+    // that's dead/off-wrist, wrong for a watch that is on-wrist and
+    // explicitly recording AWAKE. A real watchOS sleep session writes
+    // exactly the latter for a brief night wake-up, so this fixture must
+    // model that explicitly or F1 would (correctly, per its own design)
+    // let the iPhone layer fill these gaps and inflate the total — see the
+    // separate "unrecorded gap" fixture below for the case where that fill
+    // SHOULD happen.
     const seg = (startMin: number, durMin: number, value: 3 | 4 | 5): SleepInterval => {
       const start = Date.UTC(2026, 7, 5, 23, 0, 0) + startMin * MIN;
       return { startMs: start, endMs: start + durMin * MIN, value, sourceName: "Brandon's Apple Watch" };
     };
+    const watchAwake = (startMin: number, endMin: number): SleepInterval => {
+      const base = Date.UTC(2026, 7, 5, 23, 0, 0);
+      return { startMs: base + startMin * MIN, endMs: base + endMin * MIN, value: 2, sourceName: "Brandon's Apple Watch" };
+    };
     const watchStages: SleepInterval[] = [
       seg(0, 50, 4),
-      // 15-minute awake gap (65 - 50)
+      watchAwake(50, 65), // 15-minute explicit awake gap
       seg(65, 50, 3),
-      // 20-minute awake gap (135 - 115)
+      watchAwake(115, 135), // 20-minute explicit awake gap
       seg(135, 50, 5),
       seg(182, 50, 4), // starts 3min before the previous segment ends (185) — same-source overlap
-      // 15-minute awake gap (247 - 232)
+      watchAwake(232, 247), // 15-minute explicit awake gap
       seg(247, 50, 3),
       seg(297, 50, 4), // touches (no gap) — merge must not double-count a mere touch either
       seg(347, 50, 5), // touches
@@ -108,7 +148,11 @@ describe('reduceSleepByIntervalUnion — the device scenario (Ruling A)', () => 
 
     const intervals = [...watchStages, iPhoneUnspecified];
     const { branch, selected } = selectSleepIntervals(intervals);
-    expect(branch).toBe('stages'); // iPhone layer fully inside the stage envelope on both ends — no uncovered tail
+    // The Watch's own awake(2) samples now cover the 3 gaps, so the iPhone
+    // layer's residual is empty end to end — branch stays 'stages', and
+    // ONLY the 8 stage segments are selected (the 3 awake samples are
+    // coverage evidence, never asleep time themselves).
+    expect(branch).toBe('stages');
     expect(selected).toHaveLength(8);
 
     const totalMs = reduceSleepByIntervalUnion(selected);
@@ -231,6 +275,21 @@ describe('selectSleepIntervals / reduceSleepByIntervalUnion — partial watch co
       value: 4,
       sourceName: "Brandon's Apple Watch",
     };
+    // F1 (RC-2 P0 gate for build 49): this comment always described
+    // 00:50-01:10 as "a real 20-min watch-detected awake gap," but it used
+    // to be coded as a bare time gap with no sample at all. Under the new
+    // per-source coverage rule, a bare gap reads as "the watch recorded
+    // nothing here" — genuinely fillable by the iPhone layer — which is the
+    // OPPOSITE of "watch-detected awake." Modeled explicitly now so this
+    // fixture's own 455min/7.5833h assertion stays correct under F1 (worked
+    // out below) instead of silently changing to 475min once the watch's
+    // own awake evidence is accounted for.
+    const watchAwakeGap: SleepInterval = {
+      startMs: base + 170 * MIN, // 00:50
+      endMs: base + 190 * MIN, // 01:10
+      value: 2,
+      sourceName: "Brandon's Apple Watch",
+    };
     const watchStage2: SleepInterval = {
       startMs: base + 190 * MIN, // 01:10 (real 20min awake gap after stage1)
       endMs: base + 240 * MIN, // 02:00 (+50min) — the watch dies here
@@ -243,7 +302,7 @@ describe('selectSleepIntervals / reduceSleepByIntervalUnion — partial watch co
       value: 1,
       sourceName: 'iPhone',
     };
-    const intervals = [watchStage1, watchStage2, iPhoneUnspecified];
+    const intervals = [watchStage1, watchAwakeGap, watchStage2, iPhoneUnspecified];
 
     const { branch, selected } = selectSleepIntervals(intervals);
     expect(branch).toBe('stages+uncovered');
@@ -481,5 +540,224 @@ describe('reduceSleepByIntervalUnionDetailed — lastEndMs (Ruling C)', () => {
     const inBedOnly: SleepInterval[] = [{ startMs: 0, endMs: HOUR, value: 0, sourceName: 'iPhone' }];
     expect(selectSleepIntervals(inBedOnly)).toEqual({ branch: 'none', selected: [] });
     expect(selectThenUnionDetailed(inBedOnly)).toEqual({ totalMs: 0, lastEndMs: null });
+  });
+});
+
+describe('F1 — per-source coverage (RC-2 P0 gate for build 49, post-#592 independent verdict)', () => {
+  /**
+   * A frozen copy of the PRE-F1 (#592) `selectSleepIntervals` body — the
+   * min/max STAGE envelope rule — kept ONLY here, as a static comparison
+   * point for the probes below. Deliberately NOT imported from
+   * `services/appleHealth.ts` (that function no longer exists there): this
+   * copy must stay frozen even as the real implementation evolves further,
+   * so "old" always means "what build 49 is being gated against," not
+   * "whatever selectSleepIntervals used to do most recently."
+   */
+  function oldEnvelopeSelect(intervals: readonly SleepInterval[]): SleepInterval[] {
+    const stageIntervals = intervals.filter((i) => i.value === 3 || i.value === 4 || i.value === 5);
+    const unspecifiedIntervals = intervals.filter((i) => i.value === 1);
+    if (stageIntervals.length === 0) return unspecifiedIntervals;
+    if (unspecifiedIntervals.length === 0) return stageIntervals;
+    const envStart = Math.min(...stageIntervals.map((i) => i.startMs));
+    const envEnd = Math.max(...stageIntervals.map((i) => i.endMs));
+    const residual: SleepInterval[] = [];
+    for (const iv of unspecifiedIntervals) {
+      if (iv.startMs < envStart) residual.push({ ...iv, endMs: Math.min(iv.endMs, envStart) });
+      if (iv.endMs > envEnd) residual.push({ ...iv, startMs: Math.max(iv.startMs, envEnd) });
+    }
+    const kept = residual.filter((i) => i.endMs > i.startMs);
+    return [...stageIntervals, ...kept];
+  }
+
+  it('the direct contrast to the S1 fixture above: a genuinely UNRECORDED gap between two stage runs (no watch sample of ANY kind) IS filled by the iPhone layer', () => {
+    const watchRun1: SleepInterval = { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" };
+    // 30-minute gap, HOUR -> 90min: NO sample of any kind from the Watch —
+    // contrast this directly with the S1 fixture's awake(2)-filled gaps
+    // above (recorded evidence -> excluded) and the partial-coverage (B1)
+    // fixture's now-explicit awake gap. This is the OTHER half of the same
+    // distinction: absence of evidence -> filled.
+    const watchRun2: SleepInterval = { startMs: 90 * MIN, endMs: 150 * MIN, value: 3, sourceName: "Brandon's Apple Watch" };
+    const iPhoneUnspecified: SleepInterval = { startMs: 0, endMs: 150 * MIN, value: 1, sourceName: 'iPhone' }; // spans the whole session, including the unrecorded gap
+
+    const { branch, selected } = selectSleepIntervals([watchRun1, watchRun2, iPhoneUnspecified]);
+    expect(branch).toBe('stages+uncovered');
+    const totalMs = reduceSleepByIntervalUnion(selected);
+    // Correct: the 30-minute gap is genuinely recovered (120min stage +
+    // 30min fill = 150min) — NOT silently dropped to 120min, which is what
+    // would happen if "no sample" were (wrongly) treated the same as
+    // "explicit awake sample."
+    expect(totalMs).toBe(150 * MIN);
+    expect(totalMs).not.toBe(120 * MIN);
+  });
+
+  it('probe (g) — awake tail: reproduces the #592 verdict\'s exact old-buggy figure (465min) and eliminates 100% of the watch-scored-AWAKE inclusion (30min); the remaining 15min is a genuinely-unrecorded lead-in this same design correctly fills, so the fully-correct total for THIS fixture is 435min/7.25h, not the verdict\'s rounded "truth 420"', () => {
+    const base = Date.UTC(2026, 7, 5, 22, 0, 0); // 22:00
+    const watchStage: SleepInterval = { startMs: base + HOUR, endMs: base + 8 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" }; // 23:00-06:00, 420min
+    const watchAwakeTail: SleepInterval = { startMs: base + 8 * HOUR, endMs: base + 8 * HOUR + 30 * MIN, value: 2, sourceName: "Brandon's Apple Watch" }; // 06:00-06:30, explicit
+    // 22:45-06:30 — matches the verdict's literal probe bounds exactly.
+    const iPhoneUnspecified: SleepInterval = { startMs: base + 45 * MIN, endMs: base + 8 * HOUR + 30 * MIN, value: 1, sourceName: 'iPhone' };
+    const intervals = [watchStage, watchAwakeTail, iPhoneUnspecified];
+
+    const oldTotalMs = reduceSleepByIntervalUnion(oldEnvelopeSelect(intervals));
+    expect(oldTotalMs).toBe(465 * MIN); // matches the verdict's stated old-buggy figure exactly
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const newTotalMs = reduceSleepByIntervalUnion(selected);
+    expect(oldTotalMs - newTotalMs).toBe(30 * MIN); // 100% of the watch-scored-AWAKE inclusion eliminated
+    expect(newTotalMs).toBe(435 * MIN); // 7.25h — see the file's PR-body note on why this is 435, not the verdict's rounded 420
+  });
+
+  it('probe (g), flush variant — with no confounding lead-in, isolating ONLY the awake-tail defect reaches the verdict\'s literal "truth 420" exactly', () => {
+    const base = Date.UTC(2026, 7, 5, 22, 0, 0);
+    const watchStage: SleepInterval = { startMs: base + HOUR, endMs: base + 8 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" }; // 23:00-06:00
+    const watchAwakeTail: SleepInterval = { startMs: base + 8 * HOUR, endMs: base + 8 * HOUR + 30 * MIN, value: 2, sourceName: "Brandon's Apple Watch" };
+    const iPhoneUnspecified: SleepInterval = { startMs: base + HOUR, endMs: base + 8 * HOUR + 30 * MIN, value: 1, sourceName: 'iPhone' }; // flush with stage start — no lead-in confound
+
+    const intervals = [watchStage, watchAwakeTail, iPhoneUnspecified];
+    const oldTotalMs = reduceSleepByIntervalUnion(oldEnvelopeSelect(intervals));
+    expect(oldTotalMs).toBe(450 * MIN); // 420 stage + 30 tail, no lead-in confound
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages'); // fully covered end to end — no residual at all
+    const newTotalMs = reduceSleepByIntervalUnion(selected);
+    expect(newTotalMs).toBe(420 * MIN); // exactly the watch's stage total
+  });
+
+  it('probe (h) — inBed lead-in: reproduces the verdict\'s exact "480 -> 420", with no discrepancy (the watch\'s own inBed sample fully covers the iPhone\'s pre-sleep layer)', () => {
+    const base = Date.UTC(2026, 7, 5, 22, 0, 0); // 22:00
+    const watchInBed: SleepInterval = { startMs: base, endMs: base + HOUR, value: 0, sourceName: "Brandon's Apple Watch" }; // 22:00-23:00
+    const watchStage: SleepInterval = { startMs: base + HOUR, endMs: base + 8 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" }; // 23:00-06:00, 420min
+    const iPhoneUnspecified: SleepInterval = { startMs: base, endMs: base + 8 * HOUR, value: 1, sourceName: 'iPhone' }; // 22:00-06:00, flush with the watch's combined inBed+stage span
+    const intervals = [watchInBed, watchStage, iPhoneUnspecified];
+
+    const oldTotalMs = reduceSleepByIntervalUnion(oldEnvelopeSelect(intervals));
+    expect(oldTotalMs).toBe(480 * MIN); // matches the verdict exactly — 420 stage + a 60min inBed lead-in the OLD stage-only envelope couldn't see
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages'); // the watch's own inBed sample fully covers the iPhone's lead-in — no residual
+    const newTotalMs = reduceSleepByIntervalUnion(selected);
+    expect(newTotalMs).toBe(420 * MIN); // matches the verdict's stated truth exactly
+  });
+
+  it('probe (i) — nap + night + iPhone-only stretch: two DISJOINT watch clusters no longer collapse into one envelope; reproduces the verdict\'s exact "8.0h -> 9.5h truth"', () => {
+    const day = Date.UTC(2026, 7, 5, 0, 0, 0); // midnight anchor
+    const nap: SleepInterval = { startMs: day + 14 * HOUR, endMs: day + 15 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" }; // 14:00-15:00, 60min
+    const night: SleepInterval = { startMs: day + 23.5 * HOUR, endMs: day + 30.5 * HOUR, value: 3, sourceName: "Brandon's Apple Watch" }; // 23:30 -> +1d 06:30, 420min
+    // The watch recorded NOTHING here (off charging before bed) — a
+    // genuinely separate short pre-bed rest stretch only the iPhone caught.
+    const iPhoneOnly: SleepInterval = { startMs: day + 22 * HOUR, endMs: day + 23.5 * HOUR, value: 1, sourceName: 'iPhone' }; // 22:00-23:30, 90min
+    const intervals = [nap, night, iPhoneOnly];
+
+    const oldTotalMs = reduceSleepByIntervalUnion(oldEnvelopeSelect(intervals));
+    expect(oldTotalMs).toBe(480 * MIN); // 8.0h — the single min/max envelope [14:00, +1d 06:30] swallows the iPhone-only stretch as "inside the envelope," wrongly excluding it entirely
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const newTotalMs = reduceSleepByIntervalUnion(selected);
+    expect(newTotalMs).toBe(570 * MIN); // 9.5h — matches the verdict's stated truth exactly
+  });
+
+  it('probe (j) — watch dies then is re-worn: a genuinely-unrecorded gap BETWEEN two SAME-night stage clusters is filled, reproducing the verdict\'s exact "3.5h -> ~8.5h" (hit exactly, not just approximately)', () => {
+    const base = Date.UTC(2026, 7, 5, 22, 0, 0); // 22:00
+    const beforeDeath: SleepInterval = { startMs: base, endMs: base + 100 * MIN, value: 4, sourceName: "Brandon's Apple Watch" }; // 22:00-23:40, 100min
+    // 300-minute (5h) dead-battery gap, 23:40 -> 04:40: the watch is off the
+    // wrist / charging and writes NOTHING — not even an awake/inBed sample.
+    const afterRewear: SleepInterval = { startMs: base + 400 * MIN, endMs: base + 510 * MIN, value: 3, sourceName: "Brandon's Apple Watch" }; // 04:40-06:30, 110min
+    // Flush with the watch's overall session bounds (22:00-06:30) so the
+    // OLD min/max-envelope computation has no lead-in/tail confound —
+    // isolating this probe to the disjoint-cluster defect alone.
+    const iPhoneUnspecified: SleepInterval = { startMs: base, endMs: base + 510 * MIN, value: 1, sourceName: 'iPhone' };
+    const intervals = [beforeDeath, afterRewear, iPhoneUnspecified];
+
+    const oldTotalMs = reduceSleepByIntervalUnion(oldEnvelopeSelect(intervals));
+    expect(oldTotalMs).toBe(210 * MIN); // 3.5h — matches the verdict exactly: the 5-hour dead gap is silently absorbed as "inside the envelope"
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const newTotalMs = reduceSleepByIntervalUnion(selected);
+    expect(newTotalMs).toBe(510 * MIN); // 8.5h — matches the verdict's stated truth exactly (100 + 110 stage minutes + the 300-minute dead-gap correctly recovered)
+  });
+});
+
+describe('selectSleepIntervals — S-c stack safety (RC-2 P0 gate for build 49)', () => {
+  /**
+   * A frozen copy of the PRE-F1 (#592) envelope calculation ONLY (not the
+   * full selection function) — isolates exactly the
+   * `Math.min(...arr.map())`/`Math.max(...arr.map())` pattern S-c targets,
+   * so this test still proves the defect even after `selectSleepIntervals`
+   * itself has moved on from a min/max envelope entirely.
+   */
+  function oldSpreadEnvelope(stageIntervals: readonly SleepInterval[]): { envStart: number; envEnd: number } {
+    return {
+      envStart: Math.min(...stageIntervals.map((i) => i.startMs)),
+      envEnd: Math.max(...stageIntervals.map((i) => i.endMs)),
+    };
+  }
+
+  it('S-c: the OLD Math.min/max-spread envelope calculation overflows the call stack on a large array; the current implementation does not', () => {
+    // HealthKit's `queryCategorySamples` is called with `limit: 0`
+    // (`fetchAppleHealthSnapshot`, unbounded) — a pathological/misbehaving
+    // response could return a very large sample array. `Math.min(...arr)`/
+    // `Math.max(...arr)` spread every element into a single function call's
+    // argument list, which throws "Maximum call stack size exceeded" well
+    // before a real night's sample count, but easily within what an
+    // unbounded query could return.
+    const N = 150_000;
+    const stageIntervals: SleepInterval[] = [];
+    for (let i = 0; i < N; i++) {
+      stageIntervals.push({ startMs: i, endMs: i + 1, value: 4, sourceName: "Brandon's Apple Watch" });
+    }
+    expect(() => oldSpreadEnvelope(stageIntervals)).toThrow(/call stack/i);
+  });
+
+  it('S-c: selectSleepIntervals handles a large, mostly-contiguous interval array (no spread anywhere in its call graph)', () => {
+    const N = 150_000;
+    const intervals: SleepInterval[] = [];
+    // Overlapping/contiguous by construction (each interval starts before
+    // the previous one ends) so `mergeIntervalSpans` collapses them into
+    // ONE covered span — a large-N case with a SMALL number of covered
+    // spans (the common real-world shape: one continuous sleep session).
+    for (let i = 0; i < N; i++) {
+      intervals.push({ startMs: i, endMs: i + 2, value: 4, sourceName: "Brandon's Apple Watch" });
+    }
+    intervals.push({ startMs: -1000, endMs: N + 1000, value: 1, sourceName: 'iPhone' });
+
+    expect(() => selectSleepIntervals(intervals)).not.toThrow();
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered'); // the iPhone sample's lead-in/tail slices, outside the merged covered span, are kept
+    expect(selected.length).toBe(N + 2); // N stage intervals + 1 lead-in slice + 1 tail slice
+  });
+
+  it('S-c: also holds when the large N produces MANY disjoint covered spans (worst case for both mergeIntervalSpans and subtractCoveredSpans, not just the common contiguous case)', () => {
+    // Regression guard for a SEPARATE spread hazard this engineer found
+    // (not one of the reviewer's named findings) while implementing F1:
+    // `subtractCoveredSpans`'s residual slices used to be appended via
+    // `residual.push(...subtractCoveredSpans(iv, covered))` in
+    // `selectSleepIntervals` — spreading a large return array into `push`'s
+    // argument list is the exact same call-stack-limit hazard as
+    // `Math.min(...arr)`, just relocated. This fixture is the shape that
+    // actually exercises it: every stage interval is separated by a 1ms
+    // gap, so `mergeIntervalSpans` produces N disjoint covered spans, and
+    // the ONE wide value-1 sample below straddles all of them, producing on
+    // the order of N residual slices from a SINGLE `subtractCoveredSpans`
+    // call — precisely the shape that overflowed `push(...)`'s argument
+    // list before the fix (and that a naive per-span "shrink a `remaining`
+    // list" implementation of `subtractCoveredSpans` would also make
+    // quadratic — this one is linear, see its own header comment).
+    const N = 150_000;
+    const intervals: SleepInterval[] = [];
+    for (let i = 0; i < N; i++) {
+      intervals.push({ startMs: i * 2, endMs: i * 2 + 1, value: 4, sourceName: "Brandon's Apple Watch" });
+    }
+    intervals.push({ startMs: 0, endMs: N * 2, value: 1, sourceName: 'iPhone' });
+
+    expect(() => selectSleepIntervals(intervals)).not.toThrow();
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    // N stage intervals + (N - 1) 1ms gap-fill residual slices between them
+    // + 1 final 1ms tail slice after the last stage interval (the iPhone
+    // sample runs to N*2, one ms past the last stage interval's end).
+    expect(selected.length).toBe(N + N);
   });
 });

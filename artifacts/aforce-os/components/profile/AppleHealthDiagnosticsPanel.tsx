@@ -148,13 +148,13 @@ export function AppleHealthDiagnosticsPanel({
           />
           <Row
             label="value used"
-            value={`${diagnostics.sleep.valueUsed ?? '—'} h${diagnostics.sleep.usedFallback ? ' (fallback → raw sum)' : ''}`}
+            value={`${diagnostics.sleep.valueUsed ?? '—'} h${diagnostics.sleep.sleepValueUnknown ? ' (unknown — raw samples dropped)' : ''}`}
             testID={`${testID}-sleep-used`}
           />
           <Row label="selection branch" value={diagnostics.sleep.selectionBranch} testID={`${testID}-sleep-branch`} />
           <Row
-            label="samples used / returned"
-            value={`${diagnostics.sleep.summedSampleCount ?? '—'} / ${diagnostics.sleep.totalSampleCount ?? '—'}`}
+            label="selected slices (from samples)"
+            value={`${diagnostics.sleep.summedSampleCount ?? '—'} (from ${diagnostics.sleep.totalSampleCount ?? '—'})`}
           />
           {diagnostics.sleep.perSourceTotals.length === 0 ? (
             <Row label="per-source totals" value="none" />

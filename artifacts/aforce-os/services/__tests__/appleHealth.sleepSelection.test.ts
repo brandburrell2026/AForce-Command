@@ -107,7 +107,7 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
     expect(diag?.sleep.selectionBranch).toBe('stages');
-    expect(diag?.sleep.usedFallback).toBe(false);
+    expect(diag?.sleep.sleepValueUnknown).toBe(false);
     // Old-method comparison: flat sum of ALL asleep samples (stages + the
     // overlapping unspecified layer) — the number the device evidence
     // actually showed the shape of (~13h class, not ~6.7h).
@@ -182,7 +182,7 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(snapshot.sleepHoursLastNight).toBeNull();
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
-    expect(diag?.sleep.usedFallback).toBe(true);
+    expect(diag?.sleep.sleepValueUnknown).toBe(true);
     expect(diag?.sleep.unionHours).toBe(0);
     expect(diag?.sleep.selectionBranch).toBe('none');
     expect(diag?.sleep.summedSampleCount).toBe(0);
@@ -223,7 +223,7 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(snapshot.sleepHoursLastNight).toBe(0);
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
-    expect(diag?.sleep.usedFallback).toBe(false);
+    expect(diag?.sleep.sleepValueUnknown).toBe(false);
     expect(diag?.sleep.selectionBranch).toBe('none');
   });
 
@@ -238,7 +238,7 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(snapshot.sleepHoursLastNight).toBe(0);
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
-    expect(diag?.sleep.usedFallback).toBe(false);
+    expect(diag?.sleep.sleepValueUnknown).toBe(false);
     expect(diag?.sleep.rawSumHours).toBe(0);
   });
 });
