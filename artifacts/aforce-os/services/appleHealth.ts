@@ -236,14 +236,39 @@ export interface StepsSourceBucket {
  * multi-source fixture proving this does not double-count an overlapping
  * iPhone + Watch hour.
  */
-export function reduceStepsByBucketMax(buckets: readonly StepsSourceBucket[]): number {
+/**
+ * Shared reduction step for both `reduceStepsByBucketMax` (the total) and
+ * `lastNonEmptyStepsBucketEndMs` (the observation time, RC-2 Ruling C):
+ * group by `startDate`, keep only each bucket's MAX `quantity` across
+ * sources. Extracted so both functions share exactly one definition of
+ * "which per-bucket value counts" — previously each had its own
+ * independently-written copy of this loop, which is exactly the kind of
+ * duplication that lets two reductions silently drift apart. A bucket
+ * whose max is 0 (or, defensively, negative) never earns a key here —
+ * `b.quantity > prev`, with `prev` defaulting to 0, excludes non-positive
+ * values by construction — so both callers see "non-empty buckets only"
+ * for free.
+ */
+function buildBucketMax(buckets: readonly StepsSourceBucket[]): Map<string, number> {
   const bucketMax = new Map<string, number>();
   for (const b of buckets) {
     const prev = bucketMax.get(b.startDate) ?? 0;
     if (b.quantity > prev) bucketMax.set(b.startDate, b.quantity);
   }
+  return bucketMax;
+}
+
+/**
+ * Pure reduction: group by `startDate` (the bucket key), take the MAX
+ * `quantity` across sources within each bucket, then sum the per-bucket
+ * maxes. Zero HealthKit/React Native dependency — see
+ * `services/__tests__/appleHealth.stepsAggregation.test.ts` for the
+ * multi-source fixture proving this does not double-count an overlapping
+ * iPhone + Watch hour.
+ */
+export function reduceStepsByBucketMax(buckets: readonly StepsSourceBucket[]): number {
   let total = 0;
-  for (const v of bucketMax.values()) total += v;
+  for (const v of buildBucketMax(buckets).values()) total += v;
   return total;
 }
 
@@ -253,8 +278,9 @@ const STEPS_BUCKET_MS = 60 * 60 * 1000; // buckets are queried at `{ hour: 1 }` 
  * RC-2 Founder Ruling C (observation-time arbitration): `stepsToday`'s
  * chosen observation moment is the END of the LATEST hour-bucket that
  * actually contributed to the bucketed-max total (i.e. survived the same
- * per-bucket MAX reduction `reduceStepsByBucketMax` performs, with
- * quantity > 0) — an hour-granularity approximation of "the moment the
+ * per-bucket MAX reduction `reduceStepsByBucketMax` performs — both now
+ * share `buildBucketMax`, so "survived" is structurally guaranteed, not
+ * just documented) — an hour-granularity approximation of "the moment the
  * last real activity this total reflects was recorded," which is the
  * finest resolution `queryStatisticsCollectionForQuantitySeparateBySource`
  * exposes (it returns bucket boundaries, not individual sample
@@ -266,14 +292,8 @@ const STEPS_BUCKET_MS = 60 * 60 * 1000; // buckets are queried at `{ hour: 1 }` 
  * most honest available choice; see `fetchAppleHealthSnapshot`).
  */
 export function lastNonEmptyStepsBucketEndMs(buckets: readonly StepsSourceBucket[]): number | null {
-  const bucketMax = new Map<string, number>();
-  for (const b of buckets) {
-    const prev = bucketMax.get(b.startDate) ?? 0;
-    if (b.quantity > prev) bucketMax.set(b.startDate, b.quantity);
-  }
   let latestStartMs: number | null = null;
-  for (const [startDate, qty] of bucketMax.entries()) {
-    if (qty <= 0) continue;
+  for (const startDate of buildBucketMax(buckets).keys()) {
     const startMs = new Date(startDate).getTime();
     if (!Number.isFinite(startMs)) continue;
     if (latestStartMs === null || startMs > latestStartMs) latestStartMs = startMs;
