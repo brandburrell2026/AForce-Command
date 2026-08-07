@@ -122,8 +122,16 @@
   /* split section */
   .split{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,5vw,88px); align-items:center; }
   .split.reverse .split-media{ order:-1; }
-  .split-media{ display:flex; justify-content:center; }
+  .split-media{ position:relative; display:flex; justify-content:center; }
   .split-media .phone{ width:min(340px,78%); }
+  /* ambient light behind the device — makes it read as a physical object */
+  .split-media::before{ content:''; position:absolute; z-index:0; inset:4% 6%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(closest-side, rgba(0,0,0,.16), transparent 72%); filter:blur(44px); }
+  .dark .split-media::before{ background:radial-gradient(closest-side, rgba(150,178,214,.26), rgba(31,163,90,.05) 55%, transparent 74%); filter:blur(52px); }
+  .split-media .osx-phone{ position:relative; z-index:1; }
+  .split:not(.reverse) .split-media{ justify-content:flex-end; }
+  .split.reverse .split-media{ justify-content:flex-start; }
+  @media (max-width:900px){ .split-media, .split.reverse .split-media, .split:not(.reverse) .split-media{ justify-content:center; } }
 
   /* feature points */
   .points{ margin-top:clamp(30px,3.5vw,44px); display:flex; flex-direction:column; gap:clamp(20px,2.4vw,30px); }
@@ -174,6 +182,34 @@
   .center-block .lead{ margin:0 auto; }
   .center-block .cta-row{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:8px; }
 
+  /* 30-day transformation */
+  .t30-grid{ margin-top:clamp(40px,5vw,64px); display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(18px,2.4vw,30px); }
+  .t30{ border-top:2px solid var(--ink); padding-top:20px; }
+  .t30-k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--i64); }
+  .t30-row{ margin-top:16px; display:flex; align-items:baseline; gap:9px; }
+  .t30-a{ font-family:var(--display); font-size:clamp(19px,2vw,26px); color:var(--i46); }
+  .t30-arw{ color:var(--i30); font-size:15px; }
+  .t30-b{ font-family:var(--display); font-size:clamp(34px,4vw,52px); line-height:1; letter-spacing:-0.01em; }
+  .t30-green{ color:var(--green); }
+  .t30-bar{ margin-top:16px; height:4px; border-radius:4px; background:var(--i08); overflow:hidden; }
+  .t30-bar i{ display:block; height:100%; border-radius:4px; background:var(--green); width:0; transition:width 1.3s cubic-bezier(.4,0,.2,1); }
+  .t30.in .t30-bar i{ width:var(--w,90%); }
+  .t30-d{ margin-top:13px; font-family:var(--body); font-weight:600; font-size:13px; color:var(--green); }
+  @media (max-width:900px){ .t30-grid{ grid-template-columns:1fr 1fr; gap:24px; } }
+
+  /* cinematic final CTA */
+  .final-cta{ text-align:center; padding-top:clamp(96px,15vh,180px); padding-bottom:clamp(96px,15vh,180px); }
+  .fc-ring{ position:relative; width:clamp(184px,22vw,244px); aspect-ratio:1; margin:0 auto clamp(30px,4vw,46px); }
+  .fc-ring svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
+  .fc-track{ fill:none; stroke:rgba(245,240,232,.12); stroke-width:5; stroke-linecap:round; stroke-dasharray:75 25; }
+  .fc-fill{ fill:none; stroke:var(--green); stroke-width:5; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 9px rgba(31,163,90,.6)) drop-shadow(0 0 3px rgba(31,163,90,.9)); transition:stroke-dasharray 1.8s cubic-bezier(.4,0,.2,1); }
+  .fc-ring.in .fc-fill{ stroke-dasharray:68 32; }
+  .fc-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .fc-score{ font-family:var(--display); font-size:clamp(50px,7vw,86px); line-height:1; letter-spacing:-0.02em; color:var(--bone); font-variant-numeric:tabular-nums; }
+  .fc-state{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--green); margin-top:9px; }
+  .final-cta .fc-ritual{ margin-top:clamp(22px,2.8vw,32px); font-family:var(--body); font-weight:700; font-size:clamp(13px,1.5vw,17px); letter-spacing:.18em; text-transform:uppercase; color:var(--b80); }
+  @media (prefers-reduced-motion:reduce){ .fc-fill{ transition:none; stroke-dasharray:68 32; } .t30-bar i{ transition:none; width:var(--w,90%); } }
+
   /* footer */
   .ft{ background:var(--ink); color:var(--b64); padding:clamp(54px,7vw,88px) var(--gutter) clamp(36px,4vw,54px); border-top:1px solid var(--b08); }
   .ft .f-wrap{ max-width:var(--maxw); margin:0 auto; }
@@ -209,9 +245,9 @@
      Tokens mirror the app: canvas #0D0D0D, surface #141420, Signal Red,
      Soursop Green, Cyan, Amber; Inter body + IBM Plex Mono metrics.
      ===================================================================== */
-  .osx-phone{ position:relative; width:min(360px,86%); margin:0 auto; aspect-ratio:1179/2556;
-    background:linear-gradient(150deg,#26272b 0%,#0b0b0d 44%); border-radius:15% / 6.9%; padding:2.5%;
-    box-shadow:0 44px 84px -22px rgba(0,0,0,.62), 0 12px 30px rgba(0,0,0,.42), inset 0 0 0 1.4px rgba(255,255,255,.05);
+  .osx-phone{ position:relative; width:min(410px,92%); margin:0 auto; aspect-ratio:1179/2556;
+    background:linear-gradient(150deg,#2a2b30 0%,#0a0a0c 46%); border-radius:15% / 6.9%; padding:2.5%;
+    box-shadow:0 60px 110px -30px rgba(0,0,0,.66), 0 20px 44px -12px rgba(0,0,0,.42), inset 0 0 0 1.4px rgba(255,255,255,.06), inset 0 1.5px 1px rgba(255,255,255,.10);
     animation:float 7s ease-in-out infinite; }
   .osx-screen{ container-type:inline-size; position:relative; width:100%; height:100%; border-radius:13% / 6.05%;
     background:#0D0D0D; overflow:hidden; display:flex; flex-direction:column;
@@ -463,7 +499,7 @@
     <div>
       <div class="eyebrow reveal">Depletion Correction</div>
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">When your body is behind, the OS gives you the next command.</h2>
-      <p class="lead reveal" style="margin-top:22px;">The AFORCE OS does not overwhelm users with noise. It gives one clear action at the right moment. When hydration, recovery, or performance signals fall behind, the OS identifies the stage and delivers a simple command: drink, log, recheck, and confirm status.</p>
+      <p class="lead reveal" style="margin-top:22px;">The OS detects depletion before performance drops &mdash; then gives you the one move that fixes it.</p>
       <div class="points stagger">
         <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>Identify the stage</h3><p>The OS recognizes when the user enters a depletion or recovery state.</p></div></div>
         <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Give the next command</h3><p>Instead of generic reminders, the OS provides a specific hydration action.</p></div></div>
@@ -663,7 +699,7 @@
     <div>
       <div class="eyebrow reveal">Command History</div>
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">Your performance summary, in commands.</h2>
-      <p class="lead reveal" style="margin-top:22px;">Every action builds a history. Every check-in builds the habit. AFORCE OS turns hydration into a measurable rhythm &mdash; users can see how their body trends throughout the day, what actions were recommended, and how quickly they returned to balance.</p>
+      <p class="lead reveal" style="margin-top:22px;">Every command leaves a record. The OS remembers what moved you back to peak.</p>
       <div class="cmd-grid stagger">
         <div class="cmd balanced reveal" style="--i:0"><h4>Balanced</h4><p>Maintain rhythm and stay ahead of the next performance window.</p></div>
         <div class="cmd recovering reveal" style="--i:1"><h4>Recovering</h4><p>Take the recommended action before fatigue becomes the standard.</p></div>
@@ -680,7 +716,7 @@
     <div>
       <div class="eyebrow reveal">Weekly Performance Report</div>
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">Daily behavior becomes a weekly performance picture.</h2>
-      <p class="lead reveal" style="margin-top:22px;">The Weekly Performance Report helps users understand how their hydration ritual is affecting consistency, recovery, and readiness over time. It is not about perfection. It is about building visible momentum.</p>
+      <p class="lead reveal" style="margin-top:22px;">Seven days of behavior, resolved into one clear direction.</p>
       <div class="points stagger">
         <div class="point reveal" style="--i:0"><span class="p-idx">—</span><div><h3>Performance Age Movement</h3><p>Tracks how daily behavior begins to influence the user&rsquo;s performance profile.</p></div></div>
         <div class="point reveal" style="--i:1"><span class="p-idx">—</span><div><h3>Habit Velocity</h3><p>Shows whether the user is building consistency or losing rhythm.</p></div></div>
@@ -855,7 +891,7 @@
     <div>
       <div class="eyebrow reveal">The Community</div>
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:14ch;">Performance is earned together.</h2>
-      <p class="lead reveal" style="margin-top:22px;">The AFORCE Community turns consistency into competition. Track your progress, rise through the rankings, challenge friends, and celebrate the discipline that happens long before game day. Every protocol completed, every streak extended, and every recovery decision moves you closer to the top while inspiring everyone around you to raise their own standard.</p>
+      <p class="lead reveal" style="margin-top:22px;">Discipline is private. Standing is not. Every protocol you complete moves you up.</p>
       <div class="reveal" style="margin-top:clamp(28px,3vw,40px);">
         <a class="btn btn-light" href="/founding-250">Join the Founding Community <span class="arw">&rarr;</span></a>
       </div>
@@ -863,13 +899,37 @@
   </div>
 </section>
 
-<!-- ============ 7 · FINAL ============ -->
-<section class="block cream">
+<!-- ============ 7 · 30-DAY TRANSFORMATION ============ -->
+<section class="block cream" id="thirty">
+  <div class="wrap">
+    <div class="eyebrow reveal">30 Days In</div>
+    <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">The same person. A sharper system.</h2>
+    <p class="lead reveal" style="margin-top:22px;">One month of ritual, measured.</p>
+    <div class="t30-grid stagger">
+      <div class="t30 reveal" style="--i:0;--w:91%"><div class="t30-k">Readiness</div><div class="t30-row"><span class="t30-a">58</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green" data-count="91">91</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +33</div></div>
+      <div class="t30 reveal" style="--i:1;--w:92%"><div class="t30-k">Recovery</div><div class="t30-row"><span class="t30-a">61%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">92%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +31 pts</div></div>
+      <div class="t30 reveal" style="--i:2;--w:95%"><div class="t30-k">Hydration consistency</div><div class="t30-row"><span class="t30-a">42%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">95%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +53 pts</div></div>
+      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance age</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
+    </div>
+    <p class="reveal" style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:64ch;">Sample profile shown for illustration. AFORCE OS supports general wellness tracking, is not a medical device, and does not diagnose or treat any condition. Individual results vary.</p>
+  </div>
+</section>
+
+<!-- ============ 8 · FINAL — ENTER AFORCE OS ============ -->
+<section class="block dark final-cta" id="enter">
   <div class="wrap center-block">
-    <h2 class="h-display reveal" style="max-width:16ch;">Performance is not guessed. It is built.</h2>
-    <p class="lead reveal" style="text-align:center;">AFORCE OS gives every user a simple way to turn hydration into action, action into rhythm, and rhythm into performance.</p>
+    <div class="fc-ring reveal">
+      <svg viewBox="0 0 240 240" aria-hidden="true">
+        <circle class="fc-track" cx="120" cy="120" r="110" pathLength="100"></circle>
+        <circle class="fc-fill" cx="120" cy="120" r="110" pathLength="100"></circle>
+      </svg>
+      <div class="fc-center"><span class="fc-score" data-count="91">91</span><span class="fc-state">Peak</span></div>
+    </div>
+    <h2 class="h-display reveal" style="max-width:13ch;">The moment will come.<br>Be ready for it.</h2>
+    <div class="fc-ritual reveal">Pause. &nbsp;Hydrate. &nbsp;<span style="color:var(--red);">Lock-In.</span> &nbsp;Perform.</div>
     <div class="cta-row reveal">
-      <a class="btn btn-ink" href="/shop">Start with AFORCE <span class="arw">&rarr;</span></a>
+      <a class="btn btn-primary" href="/founding-250">Enter AFORCE OS <span class="arw">&rarr;</span></a>
+      <a class="btn btn-outline-light" href="/shop">Shop AFORCE</a>
     </div>
   </div>
 </section>
@@ -907,6 +967,29 @@
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
   }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+  els.forEach(function(e){ io.observe(e); });
+})();
+
+/* count-up on reveal (readiness scores) — respects reduced motion */
+(function(){
+  var els = document.querySelectorAll('[data-count]');
+  if(!els.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce || !('IntersectionObserver' in window)){ els.forEach(function(e){ e.textContent = e.getAttribute('data-count'); }); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      var el = en.target, target = parseInt(el.getAttribute('data-count'),10), start = Math.max(0, target - 22), t0 = null;
+      io.unobserve(el);
+      var safety = setTimeout(function(){ el.textContent = target; }, 1300); /* guarantee final value if rAF is throttled */
+      requestAnimationFrame(function step(ts){
+        if(!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / 1100), e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2;
+        el.textContent = Math.round(start + (target - start) * e);
+        if(p < 1){ requestAnimationFrame(step); } else { el.textContent = target; clearTimeout(safety); }
+      });
+    });
+  }, { threshold:0.55 });
   els.forEach(function(e){ io.observe(e); });
 })();
 
