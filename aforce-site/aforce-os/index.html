@@ -431,6 +431,41 @@
   .osx-day .bar i{ width:100%; border-radius:1.4cqw; background:var(--xgreen); }
   .osx-day .bar i.amber{ background:var(--xamber); }
   .osx-day .n{ font-family:'IBM Plex Mono',monospace; font-size:2.15cqw; font-weight:600; color:#F4F2ED; }
+  /* ---- hero readiness device ---- */
+  .os-hero-inner{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:clamp(28px,5vw,84px); }
+  .os-hero-inner > .os-hero-content{ width:auto; max-width:520px; margin:0; flex:0 1 520px; }
+  .os-hero-device{ position:relative; flex:0 0 auto; width:clamp(228px,25vw,332px); }
+  .os-hero-device::before{ content:''; position:absolute; z-index:0; inset:-6% -16%; border-radius:50%; background:radial-gradient(closest-side, rgba(0,0,0,.60), rgba(31,163,90,.06) 52%, transparent 74%); filter:blur(42px); pointer-events:none; }
+  .os-hero-device .osx-phone{ width:100%; margin:0; position:relative; z-index:1; }
+  @media (max-width:900px){
+    .os-hero{ min-height:auto; }
+    .os-hero-inner{ flex-direction:column; align-items:flex-start; gap:clamp(38px,7vw,56px); }
+    .os-hero-inner > .os-hero-content{ flex:none; }
+    .os-hero-device{ width:min(300px,74%); align-self:center; }
+  }
+  /* ---- READINESS (hero) screen ---- */
+  .rx-hd{ display:flex; align-items:center; justify-content:space-between; gap:2cqw; }
+  .rx-brand{ font-size:5.4cqw; font-weight:700; letter-spacing:-0.02em; color:#F4F2ED; }
+  .rx-live{ display:inline-flex; align-items:center; gap:1.3cqw; font-size:2.2cqw; font-weight:600; letter-spacing:.02em; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.2cqw; border-radius:4cqw; }
+  .rx-live .dot{ width:1.8cqw; height:1.8cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
+  .rx-fresh{ margin-top:0.7cqw; font-size:2.4cqw; color:var(--xfaint); }
+  .rx-arc{ position:relative; width:44cqw; aspect-ratio:1; margin:2.4cqw auto 1.2cqw; }
+  .rx-arc svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
+  .rx-arc .tr{ fill:none; stroke:rgba(255,255,255,.10); stroke-width:6; stroke-linecap:round; stroke-dasharray:75 25; }
+  .rx-arc .fl{ fill:none; stroke:var(--xgreen); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 5px rgba(31,163,90,.6)) drop-shadow(0 0 2px rgba(31,163,90,.85)); transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
+  .reveal.in .rx-arc .fl, .os-hero-device .rx-arc .fl{ stroke-dasharray:68 32; }
+  .rx-arc .c{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .rx-arc .c b{ font-family:'IBM Plex Mono',monospace; font-size:17cqw; font-weight:600; line-height:1; letter-spacing:-.01em; }
+  .rx-arc .c .l{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; letter-spacing:.16em; text-transform:uppercase; color:var(--xdim); margin-top:1.2cqw; }
+  .rx-arc .c .s{ font-size:2.7cqw; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--xgreen); margin-top:0.7cqw; }
+  .rx-bio{ display:flex; justify-content:center; gap:3.8cqw; font-family:'IBM Plex Mono',monospace; font-size:2.45cqw; color:var(--xfaint); }
+  .rx-bio b{ color:#F4F2ED; font-weight:600; } .rx-bio .up{ color:var(--xgreen); }
+  .rx-cmd{ margin-top:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:4cqw; padding:3.2cqw; }
+  .rx-cmd .k{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--xfaint); }
+  .rx-cmd .t{ margin-top:1.3cqw; font-size:4.6cqw; font-weight:600; color:#F4F2ED; }
+  .rx-cmd .row{ margin-top:2.6cqw; display:flex; align-items:center; gap:3.4cqw; }
+  .rx-cmd .btn{ background:var(--xred); color:#fff; font-size:3.1cqw; font-weight:600; padding:2cqw 4.6cqw; border-radius:2.4cqw; }
+  .rx-cmd .why{ font-size:2.7cqw; font-weight:500; color:var(--xdim); }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
   .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
@@ -481,13 +516,63 @@
   </video>
   <img class="os-hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async">
   <div class="os-hero-scrim"></div>
-  <div class="os-hero-content reveal in">
-    <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
-    <h1 class="h-display" style="max-width:15ch;">AFORCE OS turns hydration into a performance ritual.</h1>
-    <p class="lead" style="margin-top:clamp(22px,3vw,30px);">Every AFORCE purchase unlocks a free entry point into the AFORCE OS. Scan the can, receive your Readiness Score, and follow the protocol designed to help you recover, hydrate, and perform with discipline.</p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
-      <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
+  <div class="os-hero-inner">
+    <div class="os-hero-content reveal in">
+      <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
+      <h1 class="h-display" style="max-width:15ch;">Know exactly where you stand today.</h1>
+      <p class="lead" style="margin-top:clamp(22px,3vw,30px);">Scan the can. Read your state. Follow the one command that keeps you at peak.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#depletion">Explore the OS <span class="arw">&rarr;</span></a>
+        <a class="btn btn-outline-light" href="/founding-250">Join the Founding Community</a>
+      </div>
+    </div>
+    <div class="os-hero-device reveal in" aria-hidden="true">
+      <div class="osx-phone">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="rx-hd"><span class="rx-brand">AForce OS</span><span class="rx-live"><span class="dot"></span>Apple Health · Live</span></div>
+            <div class="rx-fresh">Checked just now · New York, NY</div>
+            <div class="rx-arc">
+              <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="tr" cx="120" cy="120" r="112" pathLength="100"></circle><circle class="fl" cx="120" cy="120" r="112" pathLength="100"></circle></svg>
+              <div class="c"><b>91</b><span class="l">Readiness</span><span class="s">Peak</span></div>
+            </div>
+            <div class="rx-bio"><span>HRV <b>65</b> ms</span><span>RHR <b>51</b></span><span class="up">&#9650; +6 today</span></div>
+            <div class="rx-cmd">
+              <span class="k">Next command</span>
+              <div class="t">Maintain rhythm</div>
+              <div class="row"><span class="btn">Log Water</span><span class="why">Why this</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Live signals</span><span class="r">Synced</span></div>
+            <div class="osx-mg">
+              <div class="osx-mc"><div class="k">Hydration</div><div class="v">97<em>%</em></div><div class="s">Optimal</div></div>
+              <div class="osx-mc"><div class="k">Recovery</div><div class="v" style="font-family:var(--body);font-size:3.6cqw;">Excellent</div><div class="s">Strong</div></div>
+              <div class="osx-mc"><div class="k">Sleep</div><div class="v">7h 41m</div><div class="s">Recovered</div></div>
+              <div class="osx-mc"><div class="k">HRV</div><div class="v">65<em>ms</em></div><div class="s">Excellent</div></div>
+            </div>
+            <div class="osx-sh"><span class="l">Today&rsquo;s protocol</span><span class="r">3 / 4</span></div>
+            <div class="osx-tlx">
+              <div class="row"><span class="dot"></span><span class="tx">Morning hydration</span><span class="tm">7:20a</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Recovery protocol</span><span class="tm">9:05a</span></div>
+              <div class="row"><span class="dot"></span><span class="tx">Movement</span><span class="tm">12:30p</span></div>
+              <div class="row"><span class="dot hollow"></span><span class="tx">Evening protocol</span><span class="tm">6:00p</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">This week</span><span class="r">&#9650; Rising</span></div>
+            <div class="osx-stats">
+              <div class="osx-stat"><span class="k">Ritual streak</span><span class="v g">18 days</span></div>
+              <div class="osx-stat"><span class="k">Consistency</span><span class="v">94%</span></div>
+            </div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="os-scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
