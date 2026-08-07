@@ -121,7 +121,10 @@ const hapticSelection = () => {
 };
 
 // RC-2 — how long the "Checked just now" Apple Health confirmation stays
-// visible after a successful refresh before fading back out.
+// visible after a successful refresh before fading back out. (Ruling E,
+// item 1: Home's own freshness copy was unified onto THIS verb — see
+// components/home/homeFreshness.ts's header for why "Checked," not
+// "Updated," is the honest choice for both surfaces.)
 const APPLE_REFRESH_CONFIRMATION_MS = 2500;
 
 // Per-tier accent colours only. Human-readable label/desc live in the

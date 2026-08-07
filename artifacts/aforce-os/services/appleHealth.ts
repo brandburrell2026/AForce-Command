@@ -456,7 +456,16 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   const snapshot: AppleHealthSnapshot = {
     restingHeartRate: restingHeartRate ?? null,
     hrvSdnn: hrvSdnn ?? null,
-    stepsToday: stepsToday ?? null,
+    // Round HERE, at snapshot assembly — NOT at the `stepsToday` local above
+    // (:431). HealthKit statistics split samples across bucket boundaries,
+    // which can leave the selected total fractional (observed on-device:
+    // 11959.287359440914) — a floating-point artifact of summation, not a
+    // real fractional step measurement (steps are inherently integers).
+    // The diagnostics capture below (`valueUsed: stepsToday`, the LOCAL)
+    // deliberately reads the unrounded value — the raw/bucketed/native
+    // three-way comparison must stay exact for device measurement — so this
+    // rounds only the value that ships in the returned snapshot.
+    stepsToday: stepsToday != null ? Math.round(stepsToday) : null,
     sleepHoursLastNight: sleepHoursLastNight ?? null,
   };
 

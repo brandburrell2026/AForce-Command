@@ -426,7 +426,9 @@ function resolveHero(
     description: morningSentence(sleepLastNight, sevenNightAvg),
     ring: {
       kind: sleepLastNight != null ? 'readiness' : 'none',
-      valueLabel: sleepLastNight != null ? `${sleepLastNight.toFixed(1)}h` : '—',
+      // RC-2 ruling E (item 3): unit-spacing sweep — was "7.9h" (no space),
+      // inconsistent with the Apple card's i18n "{{value}} h" convention.
+      valueLabel: sleepLastNight != null ? `${sleepLastNight.toFixed(1)} h` : '—',
       caption: sleepLastNight != null ? 'LAST NIGHT' : 'NO SLEEP SIGNAL',
       progress: sleepLastNight != null ? clamp01(sleepLastNight / 9) : 0,
     },
@@ -460,7 +462,9 @@ function resolveRecovery(
   // Only surface metrics with real values — never a fabricated number.
   const shown: { label: string; value: string; real: boolean }[] = [];
   if (sleepLastNight != null) {
-    shown.push({ label: 'Sleep (last night)', value: `${sleepLastNight.toFixed(1)}h`, real: true });
+    // RC-2 ruling E (item 3): same unit-spacing normalization as the ring
+    // `valueLabel` above.
+    shown.push({ label: 'Sleep (last night)', value: `${sleepLastNight.toFixed(1)} h`, real: true });
   }
   for (const m of realMetrics) {
     shown.push({ label: m.label, value: `${m.value}${m.unit}`, real: true });

@@ -90,7 +90,12 @@ describe('HomeScreenV2 — offline intake outbox visibility (RC-1 Wave-2B, item 
   });
 
   it('mounts the banner above the fold — after the header, before the hydration-gated content', () => {
-    const headerToSkeleton = CODE.slice(CODE.indexOf("t('home.v2.freshness')"), CODE.indexOf('!isHydrated'));
+    // Anchor updated for ruling E (item 1): the freshness line moved from a
+    // static `t('home.v2.freshness')` call to `<HomeFreshnessLabel>` — see
+    // `homeFreshness.test.ts` / `HomeFreshnessLabel.render.test.tsx` for
+    // that change's own coverage. This test only cares that the anchor
+    // still marks the top of the header block.
+    const headerToSkeleton = CODE.slice(CODE.indexOf('<HomeFreshnessLabel'), CODE.indexOf('!isHydrated'));
     expect(headerToSkeleton).toContain('<AFOfflineBanner');
   });
 });

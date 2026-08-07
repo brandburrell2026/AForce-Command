@@ -66,6 +66,8 @@ import { useFeatureFlags } from '@/store/useAppStore';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { HomeSkeleton } from './HomeSkeleton';
+import { HomeFreshnessLabel } from './HomeFreshnessLabel';
+import { freshestBiometricsFetchedAt } from './homeFreshness';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import {
   resolveHomePresentation,
@@ -232,7 +234,11 @@ export function HomeScreenV2() {
       <Animated.View entering={reveal(0)} style={styles.header}>
         <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
         <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
-        <Text style={styles.freshness}>{t('home.v2.freshness')}</Text>
+        <HomeFreshnessLabel
+          fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
+          style={styles.freshness}
+          testID="home-v2-freshness"
+        />
       </Animated.View>
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}

@@ -359,9 +359,11 @@ export default function SleepModeScreenLegacy() {
               <Text style={styles.healthLabel}>
                 {Platform.OS === 'ios' ? 'APPLE HEALTH' : 'GOOGLE HEALTH CONNECT'}
               </Text>
+              {/* RC-2 ruling E (item 3): unit-spacing sweep — was "7.8h last
+                  night" (no space before the unit). */}
               {sleepLastNight != null ? (
                 <Text style={styles.healthValue}>
-                  {`${sleepLastNight.toFixed(1)}h last night`}
+                  {`${sleepLastNight.toFixed(1)} h last night`}
                 </Text>
               ) : (
                 <Pressable
@@ -381,7 +383,7 @@ export default function SleepModeScreenLegacy() {
             {sevenNightAvg != null ? (
               <View style={styles.healthRow}>
                 <Text style={styles.healthLabel}>7-NIGHT AVG</Text>
-                <Text style={styles.healthValue}>{sevenNightAvg.toFixed(1)}h</Text>
+                <Text style={styles.healthValue}>{sevenNightAvg.toFixed(1)} h</Text>
               </View>
             ) : null}
             <Text style={styles.complianceFinePrint}>

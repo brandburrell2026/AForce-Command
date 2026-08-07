@@ -72,7 +72,13 @@
       "mode": "MODE"
     },
     "v2": {
-      "freshness": "Updated just now",
+      "freshness": {
+        "just_now": "Checked just now",
+        "minutes_ago": "Checked {{count}}m ago",
+        "hours_ago": "Checked {{count}}h ago",
+        "days_ago": "Checked {{count}}d ago",
+        "unavailable": "Awaiting first sync"
+      },
       "readiness_label": "READINESS",
       "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
       "default_command_title": "Start with water",

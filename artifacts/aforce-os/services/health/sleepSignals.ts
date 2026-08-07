@@ -123,7 +123,12 @@ export function legacySignals(state: SleepSignalsContainerState): SleepSignalsFo
   const hrv = state.appleHealth?.hrvSdnn;
   const rhr = state.appleHealth?.restingHeartRate;
   if (isFiniteNum(hrv)) {
-    recoveryMetrics.push({ key: 'hrv', label: 'HRV', value: Math.round(hrv), unit: 'ms', real: true });
+    // RC-2 ruling E (item 3): unit-spacing sweep — was 'ms' (no leading
+    // space), rendering "58ms" while the sibling `resting_hr` metric right
+    // below already renders "54 bpm" (unit: ' bpm'). Normalized to the
+    // with-space convention the Apple card's i18n `unit_ms`/`unit_h` keys
+    // already use ("{{value}} ms").
+    recoveryMetrics.push({ key: 'hrv', label: 'HRV', value: Math.round(hrv), unit: ' ms', real: true });
   }
   if (isFiniteNum(rhr)) {
     recoveryMetrics.push({ key: 'resting_hr', label: 'Resting HR', value: Math.round(rhr), unit: ' bpm', real: true });
@@ -187,7 +192,10 @@ export function canonicalSignals(
       key: 'hrv',
       label: hrvMetricLabel(signals.hrv.value.method),
       value: Math.round(signals.hrv.value.valueMs),
-      unit: 'ms',
+      // RC-2 ruling E (item 3): same unit-spacing normalization as
+      // `legacySignals` above — was 'ms', now matches the sibling
+      // `resting_hr` metric's ' bpm' convention.
+      unit: ' ms',
       real: true,
     });
   }

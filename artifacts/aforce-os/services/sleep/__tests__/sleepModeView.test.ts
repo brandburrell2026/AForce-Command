@@ -34,7 +34,7 @@ describe('resolveSleepModeView — state rendering', () => {
   it('morning → uses real last-night sleep in the ring + sentence', () => {
     const v = r('morning');
     expect(v.hero.state).toBe('MORNING');
-    expect(v.hero.ring.valueLabel).toBe('7.9h');
+    expect(v.hero.ring.valueLabel).toBe('7.9 h'); // RC-2 ruling E (item 3): unit-spacing normalization
     expect(v.hero.description).toMatch(/stronger than your recent average/);
   });
 
@@ -131,7 +131,7 @@ describe('recovery readiness — honest posture, no fabricated metrics', () => {
       ...SLEEP_FIXTURES['pre-sleep-ready'],
       sleepLastNight: null,
       recoveryMetrics: [
-        { key: 'hrv', label: 'HRV', value: null, unit: 'ms', real: true },      // no value → drop
+        { key: 'hrv', label: 'HRV', value: null, unit: ' ms', real: true },      // no value → drop
         { key: 'resting_hr', label: 'Resting HR', value: 55, unit: ' bpm', real: false }, // not real → drop
       ],
     };
@@ -143,7 +143,7 @@ describe('recovery readiness — honest posture, no fabricated metrics', () => {
     const labels = v.recovery.metrics.map((m) => m.label);
     expect(labels).toContain('HRV');
     expect(v.recovery.metrics.every((m) => m.real)).toBe(true);
-    expect(v.recovery.metrics.find((m) => m.label === 'HRV')?.value).toBe('58ms');
+    expect(v.recovery.metrics.find((m) => m.label === 'HRV')?.value).toBe('58 ms'); // RC-2 ruling E (item 3): unit-spacing normalization
   });
 });
 

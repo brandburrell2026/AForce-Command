@@ -117,7 +117,7 @@ describe('state-specific structure', () => {
 
   it('morning hero surfaces real last-night hours', () => {
     render('morning');
-    expect(host.textContent).toContain('7.9h');
+    expect(host.textContent).toContain('7.9 h'); // RC-2 ruling E (item 3): unit-spacing normalization
   });
 
   it('loading mode renders a loading shell', () => {
