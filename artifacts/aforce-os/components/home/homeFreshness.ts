@@ -94,7 +94,13 @@ export function freshestBiometricsFetchedAt(
 ): number | null {
   let freshest: number | null = null;
   const consider = (candidate: number | null | undefined) => {
-    if (candidate == null || !Number.isFinite(candidate)) return;
+    // `<= 0` excludes the client-seeded merge-key sentinel (`fetchedAt: 0`,
+    // e.g. ProfileScreenV2's WHOOP placeholder written before the real
+    // server snapshot lands) as well as any negative stamp. Both are
+    // finite, so the old `Number.isFinite`-only guard let them through as
+    // if epoch-0 (1970) were a genuine fetch time — see `resolveHomeFreshness`
+    // below for the matching guard and why this is never a legitimate stamp.
+    if (candidate == null || !Number.isFinite(candidate) || candidate <= 0) return;
     if (freshest == null || candidate > freshest) freshest = candidate;
   };
 
@@ -112,7 +118,11 @@ export function freshestBiometricsFetchedAt(
  * (never `Date.now()`) so this stays deterministic under test.
  */
 export function resolveHomeFreshness(now: number, fetchedAtMs: number | null): HomeFreshness {
-  if (fetchedAtMs == null || !Number.isFinite(fetchedAtMs)) {
+  // `<= 0` catches the same sentinel/negative case as `freshestBiometricsFetchedAt`'s
+  // `consider` guard above — kept here too because callers may pass a raw
+  // provider `fetchedAt` (e.g. a single-provider check) straight into this
+  // resolver without going through the aggregator first.
+  if (fetchedAtMs == null || !Number.isFinite(fetchedAtMs) || fetchedAtMs <= 0) {
     return { key: 'home.v2.freshness.unavailable' };
   }
 
