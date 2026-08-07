@@ -26,6 +26,15 @@ vi.mock('@/components/Icon', () => ({
 
 import { AppleHealthDiagnosticsPanel } from '../AppleHealthDiagnosticsPanel';
 import type { AppleHealthDiagnosticsSnapshot } from '@/services/appleHealthDiagnostics';
+import type { FieldArbitrationResult } from '@/utils/biometricsAggregator';
+
+const EMPTY_ARBITRATION: {
+  sleep: FieldArbitrationResult<'sleepHoursLastNight'>;
+  hrv: FieldArbitrationResult<'hrvSdnn'>;
+} = {
+  sleep: { winner: null, candidates: [] },
+  hrv: { winner: null, candidates: [] },
+};
 
 let host: HTMLElement;
 let root: Root;
@@ -75,11 +84,14 @@ const FIXTURE: AppleHealthDiagnosticsSnapshot = {
   sleep: {
     identifier: 'HKCategoryTypeIdentifierSleepAnalysis',
     queried: true,
+    queryWindowStartIso: '2026-08-05T15:00:00.000Z',
+    queryWindowEndIso: '2026-08-06T09:00:00.000Z',
     totalSampleCount: 49,
     summedSampleCount: 45,
     selectionBranch: 'stages',
     rawSumHours: 13.33,
     unionHours: 7.2,
+    unionLastEndMs: 1_754_470_800_000,
     perSourceTotals: [
       { sourceName: 'iPhone', valueClass: 'unspecified', totalHours: 6.6 },
       { sourceName: "Brandon's Apple Watch", valueClass: 'stage', totalHours: 6.7 },
@@ -105,6 +117,7 @@ function renderPanel(props: Partial<React.ComponentProps<typeof AppleHealthDiagn
     enabled: true,
     diagnostics: FIXTURE,
     scoringInput: null,
+    arbitration: EMPTY_ARBITRATION,
   };
   root = createRoot(host);
   flushSync(() => root.render(React.createElement(AppleHealthDiagnosticsPanel, { ...defaults, ...props })));
@@ -281,5 +294,117 @@ describe('AppleHealthDiagnosticsPanel — scoring input section', () => {
     flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     expect(q('[data-testid="apple-health-diagnostics-panel-scoring-breakdown"]')?.textContent).toContain('Health platform (HRV / sleep / strain)');
     expect(q('[data-testid="apple-health-diagnostics-panel-scoring-biometrics"]')?.textContent).toContain('RHR=58');
+  });
+
+  it('RC-2 founder logging order: shows an em dash for sleep/latest observed-at when the store mirror carries no observation axes', () => {
+    renderPanel({
+      scoringInput: {
+        biometricsEntry: {
+          restingHeartRate: 58,
+          hrvSdnn: 45,
+          sleepHoursLastNight: 7.2,
+          stepsToday: 7200,
+          fetchedAt: 1_700_000_000_000,
+        },
+        recoveryContribution: null,
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-scoring-sleep-observed-at"]')?.textContent).toBe('—');
+    expect(q('[data-testid="apple-health-diagnostics-panel-scoring-latest-observed-at"]')?.textContent).toBe('—');
+  });
+
+  it('RC-2 founder logging order: renders the sleep/latest observed-at timestamps when the store mirror carries them', () => {
+    renderPanel({
+      scoringInput: {
+        biometricsEntry: {
+          restingHeartRate: 58,
+          hrvSdnn: 45,
+          sleepHoursLastNight: 7.2,
+          stepsToday: 7200,
+          fetchedAt: 1_700_000_000_000,
+          sleepObservedAtMs: 1_754_460_000_000,
+          latestObservedAtMs: 1_754_463_600_000,
+        },
+        recoveryContribution: null,
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-scoring-sleep-observed-at"]')?.textContent).toBe(
+      new Date(1_754_460_000_000).toISOString(),
+    );
+    expect(q('[data-testid="apple-health-diagnostics-panel-scoring-latest-observed-at"]')?.textContent).toBe(
+      new Date(1_754_463_600_000).toISOString(),
+    );
+  });
+});
+
+describe('AppleHealthDiagnosticsPanel — sleep window + raw union last-end (RC-2 founder logging order)', () => {
+  it('shows the [now-18h, now] query window bounds and the raw union last-end timestamp', () => {
+    renderPanel();
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-window"]')?.textContent).toBe(
+      '2026-08-05T15:00:00.000Z → 2026-08-06T09:00:00.000Z',
+    );
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-union-last-end"]')?.textContent).toBe(
+      new Date(1_754_470_800_000).toISOString(),
+    );
+  });
+
+  it('renders an em dash for union last-end when the selected interval set was empty', () => {
+    renderPanel({
+      diagnostics: {
+        ...FIXTURE,
+        sleep: { ...FIXTURE.sleep, unionLastEndMs: null },
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-union-last-end"]')?.textContent).toBe('—');
+  });
+});
+
+describe('AppleHealthDiagnosticsPanel — arbitration readback (RC-2 founder logging order, the crown jewel)', () => {
+  it('renders "no provider reports this field" when nobody reports the metric', () => {
+    renderPanel({ arbitration: EMPTY_ARBITRATION });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-arbitration-sleep-winner"]')?.textContent).toBe(
+      'no provider reports this field',
+    );
+    expect(q('[data-testid="apple-health-diagnostics-panel-arbitration-hrv-winner"]')?.textContent).toBe(
+      'no provider reports this field',
+    );
+  });
+
+  it('renders the winning provider/value/tier/timestamp and every losing candidate — the WHOOP-vs-Apple device scenario', () => {
+    renderPanel({
+      arbitration: {
+        sleep: {
+          winner: { providerId: 'whoop', value: 5.4, comparisonTimestampMs: 1_754_463_600_000, tier: 'latestObservedAt' },
+          candidates: [
+            { providerId: 'apple_health', value: 4.696, comparisonTimestampMs: 1_754_460_000_000, tier: 'fieldObservedAt' },
+            { providerId: 'whoop', value: 5.4, comparisonTimestampMs: 1_754_463_600_000, tier: 'latestObservedAt' },
+          ],
+        },
+        hrv: EMPTY_ARBITRATION.hrv,
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    const winnerText = q('[data-testid="apple-health-diagnostics-panel-arbitration-sleep-winner"]')?.textContent;
+    expect(winnerText).toContain('whoop');
+    expect(winnerText).toContain('5.4');
+    expect(winnerText).toContain('latestObservedAt');
+    expect(winnerText).toContain(new Date(1_754_463_600_000).toISOString());
+    // Apple lost — its value/tier/timestamp still render as a losing candidate.
+    expect(host.textContent).toContain('lost: apple_health');
+    expect(host.textContent).toContain('4.696');
+    expect(host.textContent).toContain('fieldObservedAt');
+    // The winner itself is never re-listed as a "lost" row.
+    expect(host.textContent).not.toContain('lost: whoop');
   });
 });

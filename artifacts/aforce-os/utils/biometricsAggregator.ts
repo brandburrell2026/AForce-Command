@@ -194,6 +194,95 @@ function freshestNonNull<K extends keyof ProviderSnapshot>(
 }
 
 /**
+ * Which raw axis `resolveComparisonTimestamp` drew from for one
+ * (snapshot, field) pair — see that function's three-tier precedence in
+ * this file's header comment.
+ */
+export type FieldArbitrationTier = 'fieldObservedAt' | 'latestObservedAt' | 'fetchedAt';
+
+/** One provider's contribution to a per-field arbitration — read-only, mirrors `resolveComparisonTimestamp`'s inputs verbatim. */
+export interface FieldArbitrationCandidate<K extends keyof ProviderSnapshot = keyof ProviderSnapshot> {
+  providerId: HealthProviderId;
+  value: NonNullable<ProviderSnapshot[K]>;
+  comparisonTimestampMs: number;
+  tier: FieldArbitrationTier;
+}
+
+/** `explainFieldArbitration`'s result: the winning candidate (or `null` when nobody reports the field) plus every candidate considered, winner included. */
+export interface FieldArbitrationResult<K extends keyof ProviderSnapshot = keyof ProviderSnapshot> {
+  winner: FieldArbitrationCandidate<K> | null;
+  candidates: FieldArbitrationCandidate<K>[];
+}
+
+/**
+ * Classify which axis `resolveComparisonTimestamp` drew from for this
+ * (snapshot, field) pair, using the SAME optional-chain precedence as that
+ * function's `raw` expression — never re-deriving the timestamp itself,
+ * only labeling which branch of it fired.
+ */
+function tierOf<K extends keyof ProviderSnapshot>(snap: ProviderSnapshot, key: K): FieldArbitrationTier {
+  const fieldKey = key as unknown as ObservedFieldKey;
+  if (snap.fieldObservedAtMs?.[fieldKey] != null) return 'fieldObservedAt';
+  if (snap.latestObservedAtMs != null) return 'latestObservedAt';
+  return 'fetchedAt';
+}
+
+/**
+ * RC-2 founder logging order (build-49 device finding, 2026-08-07):
+ * read-only introspection into per-field arbitration — the one stage of the
+ * biometrics chain `freshestNonNull` makes completely unobservable today. It
+ * returns only the winning VALUE, discarding which provider supplied it and
+ * why — exactly the gap behind the founder's "three sleep values" report
+ * (5.6h Health app / 4.696h panel / 5.4h breakdown), where the 5.4h
+ * breakdown number turned out to be WHOOP winning per-field arbitration
+ * against Apple, not a corrupted Apple value.
+ *
+ * PURE AND BEHAVIOR-NEUTRAL: reuses `resolveComparisonTimestamp` verbatim
+ * (never re-derives its clamp or fallback-chain logic) and mirrors
+ * `freshestNonNull`'s own winner-selection loop exactly — same candidate
+ * order (`Object.entries(biometrics)`, matching `aggregateBiometrics`'s own
+ * iteration), same null-skip, same strict `>` tie rule (first candidate
+ * encountered keeps a tie). This function does not run from any scoring
+ * call site — only from the gated `AppleHealthDiagnosticsSection` readback —
+ * and changes nothing about `freshestNonNull`, `aggregateBiometrics`, or any
+ * score. See this module's parity test suite
+ * (`utils/__tests__/biometricsAggregator.explainFieldArbitration.test.ts`)
+ * for the proof that its winner always agrees with `freshestNonNull`'s.
+ */
+export function explainFieldArbitration<K extends keyof ProviderSnapshot>(
+  biometrics: ProviderBiometrics | undefined,
+  fieldKey: K,
+  now: number,
+): FieldArbitrationResult<K> {
+  if (!biometrics) return { winner: null, candidates: [] };
+
+  const candidates: FieldArbitrationCandidate<K>[] = [];
+  for (const [id, snap] of Object.entries(biometrics) as [HealthProviderId, ProviderSnapshot | undefined][]) {
+    if (!snap) continue;
+    const value = snap[fieldKey];
+    if (value == null) continue;
+    candidates.push({
+      providerId: id,
+      value: value as NonNullable<ProviderSnapshot[K]>,
+      comparisonTimestampMs: resolveComparisonTimestamp(snap, fieldKey, now),
+      tier: tierOf(snap, fieldKey),
+    });
+  }
+
+  // Byte-identical selection rule to `freshestNonNull` above: strict `>`,
+  // so the FIRST candidate encountered keeps a tie rather than losing to a
+  // later, equally-fresh one.
+  let winner: FieldArbitrationCandidate<K> | null = null;
+  for (const c of candidates) {
+    if (winner === null || c.comparisonTimestampMs > winner.comparisonTimestampMs) {
+      winner = c;
+    }
+  }
+
+  return { winner, candidates };
+}
+
+/**
  * Build the `biometrics.apple_health` `ProviderSnapshot` mirror from an
  * `AppleHealthInputs` value — the single mapping both `SET_APPLE_HEALTH`
  * (store/appStoreReducer.ts) and `setAppleHealthSnapshot`

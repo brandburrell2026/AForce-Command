@@ -242,3 +242,95 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(diag?.sleep.rawSumHours).toBe(0);
   });
 });
+
+// RC-2 founder-ordered logging (build-49 device finding, 2026-08-07): "Add
+// logging at every stage showing: raw HK value, aggregated value, snapshot
+// value, scoring input, UI value." These three fields close the Stage 1-3
+// gap for sleep — the [now-18h, now] window actually queried, and the raw
+// union `lastEndMs` — so a founder report can be traced against the Health
+// app's own per-sample list instead of guessed at.
+describe('fetchAppleHealthSnapshot — sleep diagnostics Stage 1-3 additions (RC-2 founder logging order)', () => {
+  it('captures the [now-18h, now] query window bounds actually passed to queryCategorySamples, regardless of what the query returns', async () => {
+    const fixedNow = new Date('2026-08-06T09:00:00.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedNow);
+    try {
+      const fakeHK = makeFakeHK({ sleepSamples: [] });
+      const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+      await appleHealth.fetchAppleHealthSnapshot();
+      const diag = diagnostics.getLastAppleHealthDiagnostics();
+      expect(diag?.sleep.queryWindowEndIso).toBe(fixedNow.toISOString());
+      expect(diag?.sleep.queryWindowStartIso).toBe(
+        new Date(fixedNow.getTime() - 18 * 60 * 60 * 1000).toISOString(),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('captures the query window even when the HealthKit query itself throws — the window was still requested', async () => {
+    const fixedNow = new Date('2026-08-06T09:00:00.000Z');
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedNow);
+    try {
+      const fakeHK = makeFakeHK({ sleepSamples: new Error('HealthKit query failed') });
+      const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+      await appleHealth.fetchAppleHealthSnapshot();
+      const diag = diagnostics.getLastAppleHealthDiagnostics();
+      expect(diag?.sleep.queryWindowEndIso).toBe(fixedNow.toISOString());
+      expect(diag?.sleep.queryWindowStartIso).toBe(
+        new Date(fixedNow.getTime() - 18 * 60 * 60 * 1000).toISOString(),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('captures unionLastEndMs as reduceSleepByIntervalUnionDetailed\'s own lastEndMs on the success path — matching sleepHoursLastNightObservedAtMs on the mapped snapshot', async () => {
+    const samples = [
+      stageSample('2026-08-05T23:00:00.000Z', '2026-08-06T01:00:00.000Z', 3, "Brandon's Apple Watch"),
+      stageSample('2026-08-06T01:00:00.000Z', '2026-08-06T05:40:00.000Z', 4, "Brandon's Apple Watch"),
+    ];
+    const fakeHK = makeFakeHK({ sleepSamples: samples });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    const expectedLastEndMs = new Date('2026-08-06T05:40:00.000Z').getTime();
+    expect(diag?.sleep.unionLastEndMs).toBe(expectedLastEndMs);
+    expect(snapshot.sleepHoursLastNightObservedAtMs).toBe(expectedLastEndMs);
+  });
+
+  it('captures unionLastEndMs as null when the selected interval set was empty (no stage/unspecified samples at all)', async () => {
+    const fakeHK = makeFakeHK({ sleepSamples: [] });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    await appleHealth.fetchAppleHealthSnapshot();
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.sleep.unionLastEndMs).toBeNull();
+  });
+
+  it('S2 regression scenario: unionLastEndMs is captured even when sleepValueUnknown fires (unionMs 0h + a dropped raw sample) — distinct from the accepted (null) observedAt', async () => {
+    // Mirrors the malformed-sample fixture above (null startDate, dropped by
+    // the adapter): `selected` comes back empty here too (nothing to union),
+    // so `lastEndMs` is null exactly like `sleepHoursLastNightObservedAtMs`
+    // in this specific shape — the two axes only diverge when `selected` is
+    // non-empty but the accepted "unknown" branch still fires, which no
+    // known real-world HealthKit shape produces (see this field's own doc
+    // comment in appleHealthDiagnostics.ts).
+    const samples = [
+      { startDate: null, endDate: new Date('2026-08-06T05:30:00.000Z'), value: 1, sourceRevision: { source: { name: 'iPhone' } } },
+    ];
+    const fakeHK = makeFakeHK({ sleepSamples: samples });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    expect(snapshot.sleepHoursLastNight).toBeNull();
+
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.sleep.sleepValueUnknown).toBe(true);
+    expect(diag?.sleep.unionLastEndMs).toBeNull();
+  });
+});

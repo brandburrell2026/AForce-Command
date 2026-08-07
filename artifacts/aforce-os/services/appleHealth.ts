@@ -1122,6 +1122,14 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   let sleepSummedSampleCount: number | null = null;
   let sleepSelectionBranch: SleepSelectionBranch = 'none';
   let sleepUnionMs: number | null = null;
+  // RC-2 founder logging order (build-49 device finding, 2026-08-07):
+  // `reduceSleepByIntervalUnionDetailed`'s own `lastEndMs`, captured
+  // unconditionally alongside `sleepUnionMs` — see
+  // `AppleHealthSleepDiagnostic.unionLastEndMs`'s doc comment for why this
+  // is distinct from `sleepHoursLastNightObservedAtMs` below (that one stays
+  // `null` on the `sleepValueUnknown` path by design; this raw union output
+  // does not).
+  let sleepUnionLastEndMs: number | null = null;
   let sleepRawSumMs: number | null = null;
   // F2 (RC-2 P0 gate for build 49): renamed from `sleepUsedFallback` — post-
   // #592 (S2) this never triggers a raw-sum fallback; it fires exactly when
@@ -1160,6 +1168,10 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     // unselected sample's end.
     const { totalMs: unionMs, lastEndMs } = reduceSleepByIntervalUnionDetailed(selected);
     sleepUnionMs = unionMs;
+    // RC-2 founder logging order: capture unconditionally, before the
+    // sleepValueUnknown branch below can early-return — see
+    // `AppleHealthSleepDiagnostic.unionLastEndMs`'s doc comment.
+    sleepUnionLastEndMs = lastEndMs;
     const rawMs = sumRawSleepSamples(samples) ?? 0;
     sleepRawSumMs = rawMs;
 
@@ -1317,11 +1329,19 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
         sleep: {
           identifier: 'HKCategoryTypeIdentifierSleepAnalysis',
           queried: true,
+          // RC-2 founder logging order (build-49 device finding, 2026-08-07):
+          // the window bounds actually passed to `queryCategorySamples`
+          // above (`lastNightStart`/`now`, both already in scope from this
+          // function's top) — always captured, regardless of whether the
+          // query itself succeeded.
+          queryWindowStartIso: lastNightStart.toISOString(),
+          queryWindowEndIso: now.toISOString(),
           totalSampleCount: sleepTotalSampleCount,
           summedSampleCount: sleepSummedSampleCount,
           selectionBranch: sleepSelectionBranch,
           rawSumHours: sleepRawSumMs === null ? null : sleepRawSumMs / MS_PER_HOUR,
           unionHours: sleepUnionMs === null ? null : sleepUnionMs / MS_PER_HOUR,
+          unionLastEndMs: sleepUnionLastEndMs,
           perSourceTotals: computeSleepPerSourceTotals(sleepIntervalsForDiagnostics),
           valueUsed: sleepHoursLastNight,
           sleepValueUnknown,
