@@ -17,6 +17,19 @@
  * + a fresh dynamic `import('../appleHealth')` per test, so
  * `isAppleHealthSupported()` is genuinely `true` via the
  * `EXPO_PUBLIC_INTERNAL_TESTFLIGHT` seam Ruling A already proved.
+ *
+ * RC-2 P0 follow-up (S2, 2026-08-06, post-#585 independent verdict): the
+ * empty-selection guard here used to fall back to `sumRawSleepSamples` — a
+ * raw, non-deduplicated flat sum — whenever the union came back 0h with
+ * `rawMs > 0`. That guard trusted a number (`rawMs`) that could itself be
+ * silently corrupted: a single malformed raw sample (`startDate: null`)
+ * coerces through `new Date(null).getTime()` to epoch (1970), so a real
+ * `endDate` minus epoch measured ~496,109.5 fallback HOURS on-device-shaped
+ * test data — this file's own fixture previously asserted only
+ * `toBeGreaterThan(0)`, which that bogus value trivially satisfies. The
+ * fallback now returns `null` (honest "unknown"), gated on whether the
+ * adapter had to drop a raw sample at all, not on the (now also hardened,
+ * but no longer trusted as a fallback VALUE) raw sum's magnitude.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -142,13 +155,23 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(snapshot.sleepHoursLastNight).toBeNull();
   });
 
-  it('empty-selection guard: every sample fails the adapter\'s defensive checks (missing startDate) while the raw flat sum still finds real duration — falls back rather than silently reporting 0h', async () => {
+  it('S2 (RC-2 P0 follow-up, 2026-08-06): a malformed raw sample (null startDate) that the adapter drops reports null — NOT the ~496,109.5h epoch-to-now bug, and NOT a silent 0h either', async () => {
     // Synthetic malformed-response fixture (mirrors the steps fix's SF-2
     // `sumQuantity: undefined` fixture in spirit): `mapCategorySamplesToSleepIntervals`
-    // correctly drops this row (no startDate to build an interval from),
-    // while the OLD flat-sum method's looser field access still computes a
-    // nonzero duration from it. This is what an empty selection with real
-    // raw data looks like, not a realistic on-device shape.
+    // correctly drops this row (no startDate to build an interval from), so
+    // the union selection comes back empty. This is the EXACT shape that
+    // produced the measured S2 regression: the OLD fallback guard
+    // (`unionMs === 0 && rawMs > 0`) fell back to `sumRawSleepSamples(samples)`
+    // — which read `s.startDate` directly with no null guard.
+    // `new Date(null).getTime()` is `0` (epoch, NOT `NaN` — the classic JS
+    // `Date` gotcha), so a real 2026 `endDate` minus epoch produced roughly
+    // 496,109.5 HOURS of "sleep" for one malformed row. `sumRawSleepSamples`
+    // is now hardened to skip samples with a null/invalid start or end
+    // (asserted directly below via `rawSumHours`), and the live fallback no
+    // longer trusts a raw sum at all: when the adapter had to drop a raw
+    // sample (`intervals.length < totalSampleCount`) and selection is
+    // empty, the honest answer is `null` (unknown), not a guessed number
+    // and not a silent 0h (which would falsely claim "confirmed no sleep").
     const samples = [
       { startDate: null, endDate: new Date('2026-08-06T05:30:00.000Z'), value: 1, sourceRevision: { source: { name: 'iPhone' } } },
     ];
@@ -156,10 +179,7 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
 
     const snapshot = await appleHealth.fetchAppleHealthSnapshot();
-    // Without the fix: mapCategorySamplesToSleepIntervals(...) === [],
-    // reduceSleepByIntervalUnion(...) === 0, and this would silently report
-    // "0h asleep" for a night with a real (if malformed) raw sample.
-    expect(snapshot.sleepHoursLastNight).toBeGreaterThan(0);
+    expect(snapshot.sleepHoursLastNight).toBeNull();
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
     expect(diag?.sleep.usedFallback).toBe(true);
@@ -167,6 +187,32 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(diag?.sleep.selectionBranch).toBe('none');
     expect(diag?.sleep.summedSampleCount).toBe(0);
     expect(diag?.sleep.totalSampleCount).toBe(1);
+    // The regression proof: without the `sumRawSleepSamples` hardening this
+    // would be ~496109.5 — several orders of magnitude off a plausible
+    // night's sleep. Bounding it here catches either the epoch bug (0
+    // start) or a NaN-propagation bug (unparseable date) reappearing.
+    expect(diag?.sleep.rawSumHours).not.toBeNull();
+    expect(diag?.sleep.rawSumHours as number).toBeLessThan(24);
+    expect(diag?.sleep.rawSumHours).toBe(0);
+  });
+
+  it('a raw sample with a genuinely unparseable date string is also dropped from the raw sum, not turned into NaN', async () => {
+    // Same S2 hardening, the OTHER JS `Date` gotcha: `new Date('not-a-date').getTime()`
+    // is `NaN`, not `0` — unguarded, `sumRawSleepSamples` would propagate
+    // `NaN` through the whole reduction (`sum + NaN` is `NaN` forever after),
+    // corrupting `rawSumHours` in a different way than the epoch bug.
+    const samples = [
+      { startDate: 'not-a-date', endDate: '2026-08-06T05:30:00.000Z', value: 1, sourceRevision: { source: { name: 'iPhone' } } },
+    ];
+    const fakeHK = makeFakeHK({ sleepSamples: samples });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    expect(snapshot.sleepHoursLastNight).toBeNull();
+
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.sleep.rawSumHours).toBe(0);
+    expect(Number.isNaN(diag?.sleep.rawSumHours)).toBe(false);
   });
 
   it('a genuine no-sleep window (zero samples) is NOT treated as a fallback trigger — 0h is reported plainly', async () => {
