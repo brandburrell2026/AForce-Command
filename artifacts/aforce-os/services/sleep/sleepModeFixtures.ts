@@ -43,7 +43,7 @@ export const SLEEP_FIXTURES: Record<string, SleepModeInput> = {
     phase: 'pre_sleep', minutesUntilTarget: 88, completed: [],
     confidence: 'high',
     recoveryMetrics: [
-      { key: 'hrv', label: 'HRV', value: 58, unit: 'ms', real: true },
+      { key: 'hrv', label: 'HRV', value: 58, unit: ' ms', real: true },
       { key: 'resting_hr', label: 'Resting HR', value: 54, unit: ' bpm', real: true },
     ],
     sleepLastNight: 7.4, sevenNightAvg: 7.1,
@@ -53,7 +53,7 @@ export const SLEEP_FIXTURES: Record<string, SleepModeInput> = {
   'pre-sleep-active': base({
     phase: 'pre_sleep', minutesUntilTarget: 72, completed: ['hydrate', 'screens_down', 'dim_lights'],
     confidence: 'high',
-    recoveryMetrics: [{ key: 'hrv', label: 'HRV', value: 61, unit: 'ms', real: true }],
+    recoveryMetrics: [{ key: 'hrv', label: 'HRV', value: 61, unit: ' ms', real: true }],
     sleepLastNight: 7.4, sevenNightAvg: 7.1,
   }),
 

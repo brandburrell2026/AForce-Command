@@ -108,7 +108,7 @@ describe('Sleep consumer (sleepSignals.canonicalSignals) — named combos not ye
     expect(out.providerLabel).toBe('Google Health Connect');
     expect(out.recoveryMetrics).toEqual(
       expect.arrayContaining([
-        { key: 'hrv', label: 'HRV (RMSSD)', value: 30, unit: 'ms', real: true },
+        { key: 'hrv', label: 'HRV (RMSSD)', value: 30, unit: ' ms', real: true }, // RC-2 ruling E (item 3): unit-spacing normalization
         { key: 'resting_hr', label: 'Resting HR', value: 58, unit: ' bpm', real: true },
       ]),
     );

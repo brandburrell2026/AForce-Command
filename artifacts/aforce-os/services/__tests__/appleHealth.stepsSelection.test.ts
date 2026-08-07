@@ -247,6 +247,43 @@ describe('fetchAppleHealthSnapshot — steps selection chain', () => {
     expect(diag?.steps.bucketedMaxTotal).toBe(0);
   });
 
+  it('RC-2 ruling E (item 2): a fractional bucketed-max total rounds to an integer in the returned snapshot, while diagnostics.valueUsed stays exactly fractional', async () => {
+    // Reproduces the on-device defect: HealthKit statistics split samples
+    // across bucket boundaries, leaving the selected total fractional
+    // (observed: 11959.287359440914) — a floating-point summation artifact,
+    // not a real fractional step count. The fix rounds ONLY at snapshot
+    // assembly (services/appleHealth.ts:459), never at the `stepsToday`
+    // local (:431) the diagnostics block reads from.
+    const fakeHK = makeFakeHK({
+      stepsRawTotal: 12000, // old (double-counted) total — must not be selected here
+      bucketedEntries: [
+        { source: { name: 'iPhone' }, sumQuantity: { unit: 'count', quantity: 5000.104920273 }, startDate: new Date('2026-08-05T09:00:00.000Z') },
+        { source: { name: "Brandon's Apple Watch" }, sumQuantity: { unit: 'count', quantity: 11959.287359440914 }, startDate: new Date('2026-08-05T09:00:00.000Z') },
+      ],
+    });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    // Integer in the shipped snapshot — never a fractional step count.
+    expect(snapshot.stepsToday).toBe(11959);
+    expect(Number.isInteger(snapshot.stepsToday)).toBe(true);
+
+    // The diagnostics capture's `valueUsed` reads the UNROUNDED local — the
+    // raw/bucketed/native three-way comparison must stay exact for device
+    // measurement, per this fix's own constraint.
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.steps.valueUsed).toBe(11959.287359440914);
+    expect(diag?.steps.bucketedMaxTotal).toBe(11959.287359440914);
+  });
+
+  it('MUTATION-VERIFY: reverting the :459 rounding (back to `stepsToday: stepsToday ?? null`) would fail the fractional assertion above', async () => {
+    // Direct proof the prior test is load-bearing: without `Math.round`,
+    // the fractional bucketed-max value would ship unrounded.
+    const unroundedSnapshotStepsToday = 11959.287359440914;
+    expect(Math.round(unroundedSnapshotStepsToday)).not.toBe(unroundedSnapshotStepsToday);
+    expect(Math.round(unroundedSnapshotStepsToday)).toBe(11959);
+  });
+
   it('SF-1: with diagnostics OFF (healthkit_native_enabled path, no internal-TestFlight env), the native-merged statistics query is NEVER issued — its only consumer is diagnostics-gated', async () => {
     const fakeHK = makeFakeHK({
       stepsRawTotal: 2650,

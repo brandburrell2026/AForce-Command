@@ -59,7 +59,7 @@ describe('flag OFF — legacy parity', () => {
     expect(out).toEqual({
       sleepLastNight: 7.2,
       recoveryMetrics: [
-        { key: 'hrv', label: 'HRV', value: 42, unit: 'ms', real: true },
+        { key: 'hrv', label: 'HRV', value: 42, unit: ' ms', real: true }, // RC-2 ruling E (item 3): unit-spacing normalization
         { key: 'resting_hr', label: 'Resting HR', value: 54, unit: ' bpm', real: true },
       ],
       chip: 'connected',
@@ -127,7 +127,7 @@ describe('flag ON — canonical selector, multi-provider readings', () => {
     // must label it as SDNN, never a bare/ambiguous "HRV".
     expect(out.recoveryMetrics).toEqual(
       expect.arrayContaining([
-        { key: 'hrv', label: 'HRV (SDNN)', value: 42, unit: 'ms', real: true },
+        { key: 'hrv', label: 'HRV (SDNN)', value: 42, unit: ' ms', real: true }, // RC-2 ruling E (item 3): unit-spacing normalization
         { key: 'resting_hr', label: 'Resting HR', value: 54, unit: ' bpm', real: true },
       ]),
     );
@@ -147,7 +147,7 @@ describe('flag ON — canonical selector, multi-provider readings', () => {
     // DIFFERENT statistic, on a different numeric scale, from Apple's SDNN.
     // Labeling it as bare "HRV" (indistinguishable from the SDNN case above)
     // would imply the two are the same measurement — they are not.
-    expect(out.recoveryMetrics).toEqual([{ key: 'hrv', label: 'HRV (RMSSD)', value: 38, unit: 'ms', real: true }]);
+    expect(out.recoveryMetrics).toEqual([{ key: 'hrv', label: 'HRV (RMSSD)', value: 38, unit: ' ms', real: true }]); // RC-2 ruling E (item 3): unit-spacing normalization
     // WHOOP is connected (activeDirectProviders) but never produced a sleep
     // reading in this fixture — honestly "waiting", never "connected".
     expect(out.sleepLastNight).toBeNull();
