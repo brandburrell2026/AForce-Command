@@ -64,4 +64,49 @@ describe('mergeBiometrics — client owns keys, server fills data', () => {
     expect(out.whoop?.recoveryPct).toBe(28);
     expect(out.apple_health?.restingHeartRate).toBe(60);
   });
+
+  // RC-2 Founder Ruling C (2026-08-06) — VERIFICATION, not a new fix.
+  //
+  // Ruling C's app-half brief asked: "could a client-held apple entry with
+  // observedAt be overwritten by a server GET /state response lacking it?"
+  // Traced end-to-end (api-server/src/lib/aforceState.ts's defaultSeed,
+  // hydrationDemandStateAdapter.ts's `consider("apple_health",
+  // state.appleHealth)`, and every `updateUserState` call site in
+  // api-server/src/routes/**): apple_health is device-native
+  // (`sync: 'push_from_device'`) and the server NEVER writes an
+  // `apple_health` key into the `biometrics` jsonb blob — only server-polled
+  // providers (WHOOP/Oura/Garmin/Strava) land there. `services/realApi.ts`'s
+  // `fetchHome` also preserves the legacy `appleHealth` field unconditionally
+  // (`userState.appleHealth ?? normalized.appleHealth`), never routing it
+  // through this comparator at all.
+  //
+  // So `sv` (the server's biometrics entry for the `apple_health` key) is
+  // always `undefined` today, and `mergeBiometrics`' `sv && ...` short-circuit
+  // already keeps the client's entry whole — including any per-field
+  // `fieldObservedAtMs` / snapshot-level `latestObservedAtMs` it carries
+  // (RC-2 Ruling C, utils/biometricsAggregator.ts). No code change was
+  // needed; this test locks the invariant so a FUTURE change that starts
+  // mirroring apple_health into the server's biometrics blob doesn't
+  // silently reintroduce the drop this ruling was worried about.
+  it("a richer apple_health entry (fieldObservedAtMs + latestObservedAtMs) survives a merge where the server has no key for it — RC-2 Ruling C verification", () => {
+    const richApple: ProviderBiometrics['apple_health'] = {
+      providerId: 'apple_health',
+      hrvSdnn: 64.97,
+      sleepHoursLastNight: 6.7,
+      fetchedAt: 1_700_000_000_000,
+      fieldObservedAtMs: { hrvSdnn: 1_699_999_700_000, sleepHoursLastNight: 1_699_990_000_000 },
+      latestObservedAtMs: 1_699_999_700_000,
+    };
+    const client: ProviderBiometrics = { apple_health: richApple };
+    // Server's biometrics blob genuinely has no apple_health key at all —
+    // the documented, verified real-world shape (see comment above), not a
+    // contrived absence.
+    const out = mergeBiometrics(undefined, client)!;
+    expect(out.apple_health).toEqual(richApple);
+    expect(out.apple_health?.fieldObservedAtMs).toEqual({
+      hrvSdnn: 1_699_999_700_000,
+      sleepHoursLastNight: 1_699_990_000_000,
+    });
+    expect(out.apple_health?.latestObservedAtMs).toBe(1_699_999_700_000);
+  });
 });

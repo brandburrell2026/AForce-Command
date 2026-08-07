@@ -209,6 +209,24 @@ export interface AppleHealthInputs {
   sleepHoursLastNight: number | null;
   /** When the snapshot was last refreshed (epoch ms). */
   fetchedAt: number;
+  /**
+   * Per-field OBSERVATION times (epoch ms) — RC-2 Founder Ruling C
+   * (2026-08-06), mirroring `AppleHealthSnapshot`'s fields of the same name
+   * (services/appleHealth.ts) one-for-one; this is what
+   * `{ ...snap, fetchedAt: Date.now() }` at the two call sites
+   * (ProfileScreenV2.tsx / ProfileLegacy.tsx) actually spreads through.
+   * OPTIONAL and ADDITIVE — undefined when the underlying metric is null.
+   * Carried into `biometrics.apple_health` via
+   * `utils/biometricsAggregator.ts`'s `buildAppleHealthProviderSnapshot` so
+   * `freshestNonNull` can arbitrate Apple's fields by OBSERVATION time, not
+   * merely `fetchedAt` (sync time).
+   */
+  restingHeartRateObservedAtMs?: number;
+  hrvSdnnObservedAtMs?: number;
+  sleepHoursLastNightObservedAtMs?: number;
+  stepsTodayObservedAtMs?: number;
+  /** max(...the four fields above) — see `AppleHealthSnapshot.latestObservedAtMs`. */
+  latestObservedAtMs?: number;
 }
 
 export type { ProviderSnapshot, ProviderBiometrics } from './biometrics';

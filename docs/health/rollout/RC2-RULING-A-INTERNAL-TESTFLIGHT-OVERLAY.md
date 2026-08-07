@@ -135,18 +135,27 @@ separately and truthfully"), a separate ruling from the same RC-2 program.
 Recorded here anyway, since this is a rollout-status doc a reader might
 otherwise scan for "what's done in RC-2":
 
-**Ruling I is PARTIALLY satisfied at ship.** WHOOP, Oura, and Garmin
-correctly display both freshness axes (server-side `latestObservedAtMs`
-derivation feeds `resolveProviderPresentation`'s dual-axis support).
-`apple_health` (client-wired, actively syncing) and `samsung_health`
-(Health Connect, not yet client-wired) both remain sync-recency-only —
-neither has a server-side observation-axis derivation path. This is one
-disclosed, named engineering gap (owner: react-native-engineer; trigger:
-Track A device work — see `docs/health/validation/
-runbook-apple-healthkit.md`'s "Known gaps" section), not a product-policy
-exception. Do not read "Ruling I done" from Ruling A's "Built" status
-above, or from either ruling's presence in the same RC-2 program — they
-are independent, and only Ruling A is fully shipped by this doc's scope.
+**Ruling I update (2026-08-06, Founder Ruling C): `apple_health`'s half is
+now CLOSED.** WHOOP, Oura, and Garmin correctly display both freshness
+axes (server-side `latestObservedAtMs` derivation feeds
+`resolveProviderPresentation`'s dual-axis support) — unchanged. Ruling C
+(`fix/rc2-observation-time-arbitration`) adds a CLIENT-side (not
+server-side) observation-axis derivation for `apple_health` at the same
+seam `services/appleHealth.ts` already occupies, so it now feeds
+`biometrics.apple_health.latestObservedAtMs` too; the generic,
+provider-agnostic read in `connectedHealthContainerModel.ts`'s
+`buildConnectedHealthInput` needed no change to pick it up. Code-complete
+and unit-tested; device verification is the one remaining follow-up (see
+`docs/health/validation/runbook-apple-healthkit.md`'s "Known gaps"
+section for the full record). **`samsung_health` (Health Connect, not yet
+client-wired) remains sync-recency-only, UNCHANGED by this update** — it
+still has no observation-axis derivation path of either kind. This is one
+disclosed, named engineering gap for Health Connect (owner:
+react-native-engineer; trigger: whenever Health Connect client wiring
+lands), not a product-policy exception. Do not read "Ruling I done" from
+Apple's closure alone, from Ruling A's "Built" status above, or from
+either ruling's presence in the same RC-2 program — Health Connect's half
+is still open.
 
 ## OTA-update hazard (from the #567 verdict — read before the first `eas update`)
 

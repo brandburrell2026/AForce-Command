@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { aggregateBiometrics } from '../biometricsAggregator';
+import { aggregateBiometrics, buildAppleHealthProviderSnapshot } from '../biometricsAggregator';
 import type { ProviderBiometrics } from '../../types/biometrics';
+import type { AppleHealthInputs } from '../../types';
 
 const t = 1_700_000_000_000;
 
@@ -33,7 +34,8 @@ describe('aggregateBiometrics — recovery delta per signal', () => {
       garmin: { providerId: 'garmin', hrvSdnn: 65, fetchedAt: t },
     });
     expect(r.recoveryDelta).toBe(5);
-    expect(r.hint).toContain('HRV 65ms');
+    // RC-2 Ruling C, item 3: unit-spacing sweep — 'HRV 65ms' -> 'HRV 65 ms'.
+    expect(r.hint).toContain('HRV 65 ms');
   });
 
   it('penalizes low HRV (<30ms) by -5', () => {
@@ -244,7 +246,8 @@ describe('aggregateBiometrics — sources & hint', () => {
       whoop: { providerId: 'whoop', recoveryPct: 78, sleepHoursLastNight: 7.5, fetchedAt: t },
     });
     expect(r.hint).toContain('Recovery 78%');
-    expect(r.hint).toContain('Sleep 7.5h');
+    // RC-2 Ruling C, item 3: unit-spacing sweep — 'Sleep 7.5h' -> 'Sleep 7.5 h'.
+    expect(r.hint).toContain('Sleep 7.5 h');
   });
 
   it('shows awaiting-data hint when provider connected but no metric values', () => {
@@ -291,5 +294,301 @@ describe('aggregateBiometrics — realistic multi-provider scenarios', () => {
       },
     });
     expect(r.recoveryDelta).toBeLessThan(0);
+  });
+});
+
+// ─── RC-2 Founder Ruling C — observation-time arbitration ──────────────────
+//
+// `freshestNonNull` used to compare candidates by `fetchedAt` (sync time)
+// alone. A provider whose server merely re-polled and re-stamped UNCHANGED
+// data could regain per-field priority purely by having synced more
+// recently — exactly what happened on-device: the founder's WHOOP blob (a
+// real last-night observation) outvoted a just-synced Apple reading because
+// WHOOP's `fetchedAt` had been "restamped" newer, even though WHOOP's own
+// underlying observation was hours older. `resolveComparisonTimestamp` now
+// resolves each candidate through observedAt -> latestObservedAtMs ->
+// fetchedAt before comparing. Every test below passes an explicit `now` as
+// `aggregateBiometrics`' second argument for determinism.
+
+describe('aggregateBiometrics — THE DEVICE SCENARIO (Ruling C)', () => {
+  it('a just-synced Apple reading beats a WHOOP blob merely re-stamped newer — per FIELD, not per provider', () => {
+    const T = 1_700_000_000_000;
+    const now = T + 30_000; // WHOOP's server re-polled and restamped fetchedAt to "just now"
+    const lastNight = T - 8 * 60 * 60 * 1000; // WHOOP's REAL observation: last night
+    const fiveMinAgo = now - 5 * 60 * 1000; // Apple's real HRV observation
+    const thisMorning = T - 2 * 60 * 60 * 1000; // Apple's real sleep-end observation
+
+    const r = aggregateBiometrics(
+      {
+        whoop: {
+          providerId: 'whoop',
+          hrvSdnn: 59,
+          sleepHoursLastNight: 7.8,
+          recoveryPct: 95,
+          fetchedAt: now, // restamped — but this is SYNC time, not observation time
+          latestObservedAtMs: lastNight,
+        },
+        apple_health: {
+          providerId: 'apple_health',
+          hrvSdnn: 64.97,
+          sleepHoursLastNight: 13.33,
+          fetchedAt: T,
+          fieldObservedAtMs: {
+            hrvSdnn: fiveMinAgo,
+            sleepHoursLastNight: thisMorning,
+          },
+        },
+      },
+      now,
+    );
+
+    // Apple wins hrvSdnn AND sleepHoursLastNight (its per-field observedAt
+    // beats WHOOP's snapshot-level latestObservedAtMs on both fields).
+    expect(r.hint).toContain('HRV 65 ms (high)'); // Math.round(64.97)
+    expect(r.hint).toContain('Sleep 13.3 h');
+    expect(r.hint).not.toContain('HRV 59');
+    expect(r.hint).not.toContain('Sleep 7.8');
+
+    // WHOOP keeps recoveryPct — Apple never supplied that field, so there
+    // is no contest on it; per-field arbitration never touches it.
+    expect(r.hint).toContain('Recovery 95%');
+
+    expect(r.sources.sort()).toEqual(['apple_health', 'whoop']);
+    // HRV +5 (>=60) + sleep +2 (13.33 lands in the >=6 band) + recovery +4
+    // (>=75) = +11, clamped to +10.
+    expect(r.recoveryDelta).toBe(10);
+  });
+});
+
+describe('aggregateBiometrics — per-field split is preserved, never winner-takes-all', () => {
+  it('provider A wins one field via observedAt while provider B keeps the other field it alone reports', () => {
+    const now = 2_000_000;
+    const r = aggregateBiometrics(
+      {
+        garmin: {
+          providerId: 'garmin',
+          hrvSdnn: 25, // low -> -5, but should LOSE to oura below
+          stressScore: 80, // high -> -4, garmin is the ONLY source for this field
+          fetchedAt: now,
+          latestObservedAtMs: now - 100_000, // stale real observation
+        },
+        oura: {
+          providerId: 'oura',
+          hrvSdnn: 70, // high -> +5, should WIN via a fresher real observation
+          fetchedAt: now - 500_000, // older sync time...
+          fieldObservedAtMs: { hrvSdnn: now - 1_000 }, // ...but a much fresher observation
+        },
+      },
+      now,
+    );
+    expect(r.hint).toContain('HRV 70 ms (high)');
+    expect(r.hint).not.toContain('HRV 25');
+    expect(r.hint).toContain('Stress 80 (high)');
+  });
+
+  it('a provider fresher on ONE field only wins only that field — the sibling field is untouched', () => {
+    const now = 3_000_000;
+    const r = aggregateBiometrics(
+      {
+        whoop: {
+          providerId: 'whoop',
+          sleepHoursLastNight: 8, // should win: fresher
+          recoveryPct: 20, // WHOOP's only recoveryPct source — always "wins" by default
+          fetchedAt: now,
+          fieldObservedAtMs: { sleepHoursLastNight: now - 10_000 },
+        },
+        oura: {
+          providerId: 'oura',
+          sleepHoursLastNight: 3, // should lose: staler real observation
+          fetchedAt: now, // same fetchedAt as WHOOP — would have tied pre-Ruling-C
+          fieldObservedAtMs: { sleepHoursLastNight: now - 500_000 },
+        },
+      },
+      now,
+    );
+    expect(r.hint).toContain('Sleep 8.0 h');
+    expect(r.hint).not.toContain('Sleep 3.0');
+    expect(r.hint).toContain('Recovery 20%');
+  });
+});
+
+describe('aggregateBiometrics — fallback chain regression lock (no observation data anywhere)', () => {
+  it('behaves EXACTLY as the pre-Ruling-C fetchedAt-only comparator when no snapshot carries observation data', () => {
+    // `now` must be at or after both fetchedAt values, or the clamp itself
+    // would (correctly, but not what this test is isolating) start
+    // affecting the comparison — see the future-timestamp-clamp suite for
+    // that behavior on its own.
+    const now = t + 10_000;
+    // Byte-identical fixture to the pre-existing "older provider loses to
+    // newer provider" test above — neither snapshot has fieldObservedAtMs
+    // or latestObservedAtMs, so resolveComparisonTimestamp's fallback chain
+    // collapses to plain fetchedAt, exactly as before this change.
+    const r = aggregateBiometrics(
+      {
+        whoop: { providerId: 'whoop', sleepHoursLastNight: 4.5, fetchedAt: t },
+        oura: { providerId: 'oura', sleepHoursLastNight: 8, fetchedAt: t + 5000 },
+      },
+      now,
+    );
+    expect(r.recoveryDelta).toBe(5); // Oura (newer fetchedAt) wins -> +5, not WHOOP's -3
+  });
+});
+
+describe('aggregateBiometrics — mixed availability (one candidate has observation data, the other only fetchedAt)', () => {
+  it('a fetchedAt-only candidate beats a candidate whose OWN latestObservedAtMs is staler than that fetchedAt', () => {
+    const now = 5_000_000;
+    const r = aggregateBiometrics(
+      {
+        garmin: { providerId: 'garmin', hrvSdnn: 65, fetchedAt: 4_000_000 }, // no observation fields at all
+        oura: {
+          providerId: 'oura',
+          hrvSdnn: 20,
+          fetchedAt: 4_900_000, // a NEWER raw fetchedAt than garmin's...
+          latestObservedAtMs: 1_000_000, // ...but a much STALER real observation
+        },
+      },
+      now,
+    );
+    // Without Ruling C, Oura's larger fetchedAt (4.9M > 4M) would win.
+    // With it, Oura's comparison timestamp is its OWN latestObservedAtMs
+    // (1M), which loses to Garmin's fetchedAt-only 4M.
+    expect(r.hint).toContain('HRV 65 ms (high)');
+    expect(r.hint).not.toContain('HRV 20');
+  });
+
+  it('a candidate with a fresher latestObservedAtMs beats a fetchedAt-only candidate despite a lower raw fetchedAt', () => {
+    const now = 5_000_000;
+    const r = aggregateBiometrics(
+      {
+        garmin: { providerId: 'garmin', hrvSdnn: 65, fetchedAt: 500_000 }, // no observation fields, genuinely old sync
+        oura: {
+          providerId: 'oura',
+          hrvSdnn: 20,
+          fetchedAt: 100_000, // a LOWER raw fetchedAt than garmin's...
+          latestObservedAtMs: 4_800_000, // ...but a much FRESHER real observation
+        },
+      },
+      now,
+    );
+    expect(r.hint).toContain('HRV 20 ms (low)');
+    expect(r.hint).not.toContain('HRV 65');
+  });
+});
+
+describe('aggregateBiometrics — ties are deterministic (stable provider order)', () => {
+  it('equal comparison timestamps: the FIRST-listed provider wins', () => {
+    const now = 1_000_000;
+    const r = aggregateBiometrics(
+      {
+        garmin: { providerId: 'garmin', hrvSdnn: 70, fetchedAt: now, latestObservedAtMs: 900_000 },
+        oura: { providerId: 'oura', hrvSdnn: 20, fetchedAt: now, latestObservedAtMs: 900_000 },
+      },
+      now,
+    );
+    // Both resolve to the identical comparison timestamp (900_000). Strict
+    // `>` means the first-encountered candidate (garmin, by object key
+    // order) keeps the tie.
+    expect(r.hint).toContain('HRV 70 ms (high)');
+    expect(r.hint).not.toContain('HRV 20');
+  });
+
+  it('reversing insertion order flips which provider wins the same tie — proves it is order, not identity', () => {
+    const now = 1_000_000;
+    const r = aggregateBiometrics(
+      {
+        oura: { providerId: 'oura', hrvSdnn: 20, fetchedAt: now, latestObservedAtMs: 900_000 },
+        garmin: { providerId: 'garmin', hrvSdnn: 70, fetchedAt: now, latestObservedAtMs: 900_000 },
+      },
+      now,
+    );
+    expect(r.hint).toContain('HRV 20 ms (low)');
+    expect(r.hint).not.toContain('HRV 70');
+  });
+});
+
+describe('aggregateBiometrics — future-timestamp clamp', () => {
+  it('a far-future observedAt is clamped to `now` — it ties (not beats) a candidate already at `now`, letting insertion order decide', () => {
+    const now = 1_000_000;
+    // Without the clamp, garmin's raw 900_000_000 timestamp would dwarf
+    // oura's now+1 and win regardless of listing order. With the clamp,
+    // BOTH collapse to exactly `now` (a tie), so the FIRST-listed
+    // candidate (oura) wins — proving the clamp, not raw magnitude,
+    // decided this.
+    const r = aggregateBiometrics(
+      {
+        oura: { providerId: 'oura', hrvSdnn: 20, fetchedAt: now + 1 }, // barely future
+        garmin: { providerId: 'garmin', hrvSdnn: 70, fetchedAt: 900_000_000 }, // wildly future (bogus clock)
+      },
+      now,
+    );
+    expect(r.hint).toContain('HRV 20 ms (low)');
+    expect(r.hint).not.toContain('HRV 70');
+  });
+
+  it('a clamped future timestamp can still tie the freshest genuine reading, but never strictly exceeds `now`', () => {
+    const now = 1_000_000;
+    const r = aggregateBiometrics(
+      {
+        // Bogus far-future latestObservedAtMs clamps to exactly `now`.
+        garmin: { providerId: 'garmin', hrvSdnn: 70, fetchedAt: 1, latestObservedAtMs: 999_999_999 },
+        // A genuinely-fresh-right-now real reading also resolves to `now`.
+        oura: { providerId: 'oura', hrvSdnn: 20, fetchedAt: now },
+      },
+      now,
+    );
+    // Tie (both clamp to `now`) -> first-listed (garmin) wins. This is the
+    // clamp's honest limit: it neutralizes the bogus value's raw-magnitude
+    // ADVANTAGE (it can no longer out-rank a genuine `now` reading by
+    // sheer epoch size), but a persistent clock-skew bug that keeps
+    // re-clamping to a fresh `now` on every call is not detected or
+    // repaired here — see this module's header comment.
+    expect(r.hint).toContain('HRV 70 ms (high)');
+  });
+});
+
+describe('buildAppleHealthProviderSnapshot', () => {
+  const baseInput: AppleHealthInputs = {
+    restingHeartRate: 58,
+    hrvSdnn: 45,
+    sleepHoursLastNight: 7.2,
+    stepsToday: 7200,
+    fetchedAt: 1_700_000_000_000,
+  };
+
+  it('maps the five legacy fields verbatim and omits fieldObservedAtMs/latestObservedAtMs when absent', () => {
+    const snap = buildAppleHealthProviderSnapshot(baseInput);
+    expect(snap).toEqual({
+      providerId: 'apple_health',
+      restingHeartRate: 58,
+      hrvSdnn: 45,
+      sleepHoursLastNight: 7.2,
+      stepsToday: 7200,
+      fetchedAt: 1_700_000_000_000,
+    });
+    expect(snap.fieldObservedAtMs).toBeUndefined();
+    expect(snap.latestObservedAtMs).toBeUndefined();
+  });
+
+  it('carries only the per-field observedAt values that are actually present', () => {
+    const snap = buildAppleHealthProviderSnapshot({
+      ...baseInput,
+      hrvSdnnObservedAtMs: 1_699_999_000_000,
+      sleepHoursLastNightObservedAtMs: 1_699_990_000_000,
+      latestObservedAtMs: 1_699_999_000_000,
+      // restingHeartRateObservedAtMs / stepsTodayObservedAtMs intentionally absent
+    });
+    expect(snap.fieldObservedAtMs).toEqual({
+      hrvSdnn: 1_699_999_000_000,
+      sleepHoursLastNight: 1_699_990_000_000,
+    });
+    expect(snap.fieldObservedAtMs).not.toHaveProperty('restingHeartRate');
+    expect(snap.fieldObservedAtMs).not.toHaveProperty('stepsToday');
+    expect(snap.latestObservedAtMs).toBe(1_699_999_000_000);
+  });
+
+  it('omits fieldObservedAtMs entirely (not an empty object) when every per-field time is absent', () => {
+    const snap = buildAppleHealthProviderSnapshot({ ...baseInput, latestObservedAtMs: 1_699_999_000_000 });
+    expect(snap.fieldObservedAtMs).toBeUndefined();
+    expect(snap.latestObservedAtMs).toBe(1_699_999_000_000);
   });
 });

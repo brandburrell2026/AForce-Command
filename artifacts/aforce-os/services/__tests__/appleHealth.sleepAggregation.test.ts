@@ -38,7 +38,13 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { reduceSleepByIntervalUnion, selectSleepIntervals, type SleepInterval } from '../appleHealth';
+import {
+  reduceSleepByIntervalUnion,
+  reduceSleepByIntervalUnionDetailed,
+  selectSleepIntervals,
+  type SleepInterval,
+  type SleepUnionResult,
+} from '../appleHealth';
 
 const HOUR = 60 * 60 * 1000;
 const MIN = 60 * 1000;
@@ -379,5 +385,101 @@ describe('reduceSleepByIntervalUnion — inBed(0)/awake(2) exclusion', () => {
     const { branch } = selectSleepIntervals(intervals);
     expect(branch).toBe('unspecified');
     expect(selectThenUnion(intervals)).toBe(6 * HOUR);
+  });
+});
+
+/**
+ * S3: the `lastEndMs`-detailed sibling of `selectThenUnion` above — composes
+ * select-then-union-detailed exactly the way `fetchAppleHealthSnapshot` does
+ * (`reduceSleepByIntervalUnionDetailed(selected)`, never over raw/unselected
+ * samples). Used by fixtures below whose INTENT is the full selection+union
+ * pipeline (e.g. "does inBed really get excluded before lastEndMs is
+ * computed"); fixtures whose intent is the merge mechanism ALONE pass an
+ * already-homogeneous pre-selected set directly to
+ * `reduceSleepByIntervalUnionDetailed`, same convention as `selectThenUnion`.
+ */
+function selectThenUnionDetailed(intervals: readonly SleepInterval[]): SleepUnionResult {
+  return reduceSleepByIntervalUnionDetailed(selectSleepIntervals(intervals).selected);
+}
+
+/**
+ * RC-2 Founder Ruling C (2026-08-06) — `sleepHoursLastNight`'s chosen
+ * observation time: "the end of the LAST merged asleep interval from the
+ * union selection." `reduceSleepByIntervalUnionDetailed` is the exact same
+ * reduction as `reduceSleepByIntervalUnion` (proven identical `totalMs` in
+ * every case below) with the last merged run's end also captured. Per S3's
+ * contract (this file's header, item 3), it takes an ALREADY-SELECTED set —
+ * fixtures that need real exclusion behavior (stage-preference, inBed/awake
+ * drop) go through `selectThenUnionDetailed`; fixtures below that pass
+ * pre-selected/homogeneous sets directly are testing the merge mechanism in
+ * isolation, exactly like `reduceSleepByIntervalUnion`'s own tests above.
+ */
+describe('reduceSleepByIntervalUnionDetailed — lastEndMs (Ruling C)', () => {
+  it('totalMs is byte-identical to reduceSleepByIntervalUnion for the same (already-selected) input', () => {
+    const selected: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      { startMs: 90 * MIN, endMs: 150 * MIN, value: 3, sourceName: "Brandon's Apple Watch" },
+    ];
+    const detailed = reduceSleepByIntervalUnionDetailed(selected);
+    expect(detailed.totalMs).toBe(reduceSleepByIntervalUnion(selected));
+  });
+
+  it('lastEndMs is the end of the LAST (latest-starting) merged run — a genuine gap starts a new run', () => {
+    const selected: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      // Gap, then a second run ending later — lastEndMs must reflect THIS run's end.
+      { startMs: 90 * MIN, endMs: 150 * MIN, value: 3, sourceName: "Brandon's Apple Watch" },
+    ];
+    expect(reduceSleepByIntervalUnionDetailed(selected).lastEndMs).toBe(150 * MIN);
+  });
+
+  it('overlapping intervals within the last run extend lastEndMs to the latest end seen in that run — never regresses it backward', () => {
+    const selected: SleepInterval[] = [
+      { startMs: 0, endMs: HOUR, value: 4, sourceName: "Brandon's Apple Watch" },
+      // Same run (overlaps the first) but a shorter, already-selected second
+      // interval — proves the merge takes the MAX end within the run, not
+      // simply the last-processed interval's end.
+      { startMs: 30 * MIN, endMs: 50 * MIN, value: 4, sourceName: "Brandon's Apple Watch" },
+    ];
+    expect(reduceSleepByIntervalUnionDetailed(selected).lastEndMs).toBe(HOUR);
+  });
+
+  it('the device-scenario fixture (Watch stages + iPhone unspecified, same night), through the real select-then-union pipeline, resolves lastEndMs to the stage total\'s own end', () => {
+    const watchStages: SleepInterval[] = Array.from({ length: 8 }, (_, i) => {
+      const start = Date.UTC(2026, 7, 5, 23, 0, 0) + i * 50 * MIN;
+      return {
+        startMs: start,
+        endMs: start + 50 * MIN,
+        value: (3 + (i % 3)) as 3 | 4 | 5,
+        sourceName: "Brandon's Apple Watch",
+      };
+    });
+    const iPhoneUnspecified: SleepInterval = {
+      startMs: Date.UTC(2026, 7, 5, 23, 0, 0),
+      endMs: Date.UTC(2026, 7, 5, 23, 0, 0) + 396 * MIN,
+      value: 1,
+      sourceName: 'iPhone',
+    };
+    // Through selection first (stage-preference excludes the fully-covered
+    // iPhone layer) — exactly what `fetchAppleHealthSnapshot` does.
+    const { lastEndMs } = selectThenUnionDetailed([...watchStages, iPhoneUnspecified]);
+    // 8 contiguous 50-min stage segments starting 23:00 -> the last one ends at 23:00 + 400min.
+    expect(lastEndMs).toBe(Date.UTC(2026, 7, 5, 23, 0, 0) + 400 * MIN);
+  });
+
+  it('empty input yields totalMs 0 and lastEndMs null, never throws', () => {
+    expect(reduceSleepByIntervalUnionDetailed([])).toEqual({ totalMs: 0, lastEndMs: null });
+  });
+
+  it('inBed-only input is excluded by SELECTION (not by the union function itself) — the real pipeline yields totalMs 0 and lastEndMs null', () => {
+    // RC-2 P0 follow-up (S3): `reduceSleepByIntervalUnionDetailed` no longer
+    // filters by value at all — passing an inBed(0) interval directly to it
+    // would merge it in verbatim (filtering is `selectSleepIntervals`'s job
+    // now). This fixture proves the FULL pipeline still yields "nothing to
+    // timestamp" for an inBed-only night, via selection, not via the union
+    // step — see `selectThenUnionDetailed`'s header.
+    const inBedOnly: SleepInterval[] = [{ startMs: 0, endMs: HOUR, value: 0, sourceName: 'iPhone' }];
+    expect(selectSleepIntervals(inBedOnly)).toEqual({ branch: 'none', selected: [] });
+    expect(selectThenUnionDetailed(inBedOnly)).toEqual({ totalMs: 0, lastEndMs: null });
   });
 });

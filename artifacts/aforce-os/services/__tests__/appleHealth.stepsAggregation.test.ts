@@ -12,7 +12,7 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { reduceStepsByBucketMax, type StepsSourceBucket } from '../appleHealth';
+import { reduceStepsByBucketMax, lastNonEmptyStepsBucketEndMs, type StepsSourceBucket } from '../appleHealth';
 
 describe('reduceStepsByBucketMax', () => {
   it('does NOT double-count an hour where iPhone + Watch both recorded overlapping steps — takes the max, not the sum', () => {
@@ -66,5 +66,47 @@ describe('reduceStepsByBucketMax', () => {
       { sourceName: "Brandon's Apple Watch", startDate: '2026-08-05T09:00:00.000Z', quantity: 180 },
     ];
     expect(reduceStepsByBucketMax(buckets)).toBe(180);
+  });
+});
+
+/**
+ * RC-2 Founder Ruling C (2026-08-06) — `stepsToday`'s chosen observation
+ * time: the end of the LATEST hour-bucket that survived the same
+ * per-bucket MAX reduction `reduceStepsByBucketMax` performs (quantity >
+ * 0). Same fixtures as `reduceStepsByBucketMax` above, reused so both
+ * functions are proven against the identical device-shaped data.
+ */
+describe('lastNonEmptyStepsBucketEndMs', () => {
+  it('returns the end (start + 1h) of the single latest non-empty bucket across sources', () => {
+    const buckets: StepsSourceBucket[] = [
+      // Morning: only iPhone.
+      { sourceName: 'iPhone', startDate: '2026-08-05T07:00:00.000Z', quantity: 300 },
+      // Midday: both overlap.
+      { sourceName: 'iPhone', startDate: '2026-08-05T12:00:00.000Z', quantity: 500 },
+      { sourceName: "Brandon's Apple Watch", startDate: '2026-08-05T12:00:00.000Z', quantity: 650 },
+      // Evening: only the Watch — this is the LATEST non-empty bucket.
+      { sourceName: "Brandon's Apple Watch", startDate: '2026-08-05T18:00:00.000Z', quantity: 1200 },
+    ];
+    expect(lastNonEmptyStepsBucketEndMs(buckets)).toBe(Date.parse('2026-08-05T19:00:00.000Z'));
+  });
+
+  it('a later bucket that reduces to zero (all sources zero-quantity) is NOT treated as the latest non-empty one', () => {
+    const buckets: StepsSourceBucket[] = [
+      { sourceName: 'iPhone', startDate: '2026-08-05T09:00:00.000Z', quantity: 400 },
+      // Later bucket exists but every source in it is zero — must be skipped.
+      { sourceName: 'iPhone', startDate: '2026-08-05T20:00:00.000Z', quantity: 0 },
+    ];
+    expect(lastNonEmptyStepsBucketEndMs(buckets)).toBe(Date.parse('2026-08-05T10:00:00.000Z'));
+  });
+
+  it('empty input yields null, never throws', () => {
+    expect(lastNonEmptyStepsBucketEndMs([])).toBeNull();
+  });
+
+  it('all-zero input yields null (nothing to timestamp)', () => {
+    const buckets: StepsSourceBucket[] = [
+      { sourceName: 'iPhone', startDate: '2026-08-05T09:00:00.000Z', quantity: 0 },
+    ];
+    expect(lastNonEmptyStepsBucketEndMs(buckets)).toBeNull();
   });
 });

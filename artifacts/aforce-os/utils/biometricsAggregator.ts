@@ -19,22 +19,68 @@
  *                            the score.
  *
  * Per-metric reduction strategy (when multiple providers report the
- * same field): pick the FRESHEST snapshot's value for that metric.
- * "Freshest" = largest fetchedAt. This avoids double-counting (e.g.
- * Apple + Garmin both reporting HRV would add up to 2× the recovery
- * boost otherwise).
+ * same field): pick the FRESHEST snapshot's value for that metric. This
+ * avoids double-counting (e.g. Apple + Garmin both reporting HRV would
+ * add up to 2× the recovery boost otherwise). PER-FIELD, not
+ * per-provider — WHOOP can win `recoveryPct` while Apple wins `hrvSdnn`
+ * in the same aggregation; nothing about one field's winner constrains
+ * another's.
+ *
+ * "Freshest" (RC-2 Founder Ruling C, 2026-08-06 — supersedes the
+ * pre-Ruling-C `fetchedAt`-only definition) is resolved by
+ * `resolveComparisonTimestamp` on ONE axis per candidate, no branching
+ * matrix:
+ *
+ *   1. per-field observedAt  (`snapshot.fieldObservedAtMs[field]`) —
+ *      when THIS provider supplied one for THIS field. Today only
+ *      apple_health does (services/appleHealth.ts).
+ *   2. snapshot-level latestObservedAtMs — when the provider only
+ *      knows one observation moment for its whole payload (every
+ *      server-polled provider: WHOOP/Oura/Garmin). Accepted
+ *      approximation: a provider's fields don't actually all land in
+ *      the same instant, but a cloud sync only reports one timestamp
+ *      for the payload, so this is the best available.
+ *   3. fetchedAt — final fallback, and the ENTIRE comparison for any
+ *      snapshot with no observation data at all (pre-Ruling-C
+ *      behavior, byte-identical when neither axis is populated).
+ *
+ * A timestamp from any tier is clamped to `now` before comparing (clock
+ * skew / server epoch drift / a malformed future value). This is a
+ * PARITY cap, not decay: a clamped value reads as exactly "as fresh as
+ * this instant" — it can TIE the freshest genuine reading available at
+ * comparison time, but it can never exceed `now` and so can never carry
+ * a permanent, ever-growing raw-magnitude lead over every honest
+ * timestamp the way an un-clamped bogus future epoch would. (A
+ * provider whose clock skew persists across every sync will keep
+ * re-clamping to a fresh `now` on every call — this bounds the damage
+ * to "always looks maximally fresh," never "outranks the universe
+ * forever by a widening margin"; it does not detect or repair the
+ * underlying skew, which is out of this module's scope.) Ties are
+ * deterministic: the FIRST snapshot encountered (stable
+ * `ProviderBiometrics` key order) keeps a tie rather than losing to a
+ * later, equally-fresh candidate — unchanged from the pre-Ruling-C
+ * comparator's strict `>`.
  *
  * Activity uses MAX across providers, on the principle that whichever
  * tracker recorded the highest workout/strain/steps captured the most
  * complete picture — Strava might log a ride that Apple missed, WHOOP
- * might log strain Apple Watch under-counted.
+ * might log strain Apple Watch under-counted. Activity does NOT consult
+ * observation time at all (unchanged by Ruling C) — MAX already picks
+ * the most complete reading regardless of when any source last synced.
  *
- * Pure module — no React Native, no AsyncStorage, no clock side
- * effects beyond what the caller passes in. Easy to unit-test.
+ * Pure module — no React Native, no AsyncStorage, no clock side effects
+ * beyond what the caller passes in: `aggregateBiometrics`'s `now`
+ * parameter (used only for the clock-skew clamp above) defaults to
+ * `Date.now()` for production call sites, which is why every one of
+ * this file's existing callers (utils/scoring/breakdown.ts among them)
+ * needed zero changes — but every test in this module's own suite
+ * passes an explicit `now` so behavior stays fully deterministic under
+ * test.
  */
 
 import type { HealthProviderId } from '../data/healthProviders';
 import type { ProviderBiometrics, ProviderSnapshot } from '../types/biometrics';
+import type { AppleHealthInputs } from '../types';
 
 export interface AggregatedBiometrics {
   /** 0..10 activity level inferred from steps + workouts + strain. */
@@ -97,29 +143,100 @@ function activityFromStrain(strain: number): number {
   return Math.min(10, (strain / 21) * 10);
 }
 
-/** Pick the freshest snapshot for a given metric, return its value or null. */
+/**
+ * Fields `ProviderSnapshot.fieldObservedAtMs` may carry a per-field
+ * observation time for — kept as its own alias (rather than inlining
+ * `keyof NonNullable<...>` at every call site) purely for readability.
+ */
+type ObservedFieldKey = keyof NonNullable<ProviderSnapshot['fieldObservedAtMs']>;
+
+/**
+ * RC-2 Founder Ruling C: the ONE comparator every freshness decision in
+ * this file (and, for the whole-entry case, `utils/biometricsMerge.ts`)
+ * reduces to before comparing two candidates. See this file's header
+ * comment for the full three-tier precedence and the clock-skew
+ * rationale. `now` is REQUIRED here (not defaulted) — the one default
+ * lives on `aggregateBiometrics` itself, so every internal call site is
+ * forced to thread the same `now` rather than each reaching for its own.
+ */
+function resolveComparisonTimestamp<K extends keyof ProviderSnapshot>(
+  snap: ProviderSnapshot,
+  key: K,
+  now: number,
+): number {
+  const fieldKey = key as unknown as ObservedFieldKey;
+  const raw = snap.fieldObservedAtMs?.[fieldKey] ?? snap.latestObservedAtMs ?? snap.fetchedAt;
+  return Math.min(raw, now);
+}
+
+/**
+ * Pick the freshest snapshot for a given metric (by
+ * `resolveComparisonTimestamp`, not raw `fetchedAt` — see this file's
+ * header), return its value or null. Ties keep the FIRST candidate
+ * encountered (strict `>`) — deterministic given `ProviderBiometrics`'
+ * stable key iteration order, unchanged from the pre-Ruling-C comparator.
+ */
 function freshestNonNull<K extends keyof ProviderSnapshot>(
   snaps: ProviderSnapshot[],
   key: K,
+  now: number,
 ): ProviderSnapshot[K] | null {
-  let best: { value: ProviderSnapshot[K]; fetchedAt: number } | null = null;
+  let best: { value: ProviderSnapshot[K]; ts: number } | null = null;
   for (const s of snaps) {
     const v = s[key];
     if (v == null) continue;
-    if (best === null || s.fetchedAt > best.fetchedAt) {
-      best = { value: v, fetchedAt: s.fetchedAt };
+    const ts = resolveComparisonTimestamp(s, key, now);
+    if (best === null || ts > best.ts) {
+      best = { value: v, ts };
     }
   }
   return best ? best.value : null;
 }
 
 /**
+ * Build the `biometrics.apple_health` `ProviderSnapshot` mirror from an
+ * `AppleHealthInputs` value — the single mapping both `SET_APPLE_HEALTH`
+ * (store/appStoreReducer.ts) and `setAppleHealthSnapshot`
+ * (store/app/actions.ts) call, replacing what used to be two
+ * independently-maintained copies of the same field-by-field mapping.
+ * Carries the optional per-field observation times additively (RC-2
+ * Founder Ruling C) so `freshestNonNull` above can arbitrate Apple's
+ * fields against every other provider by OBSERVATION time, not merely
+ * `fetchedAt` (sync time). Pure — no defaults invented, no clock read.
+ */
+export function buildAppleHealthProviderSnapshot(input: AppleHealthInputs): ProviderSnapshot {
+  const fieldObservedAtMs: NonNullable<ProviderSnapshot['fieldObservedAtMs']> = {};
+  if (input.hrvSdnnObservedAtMs != null) fieldObservedAtMs.hrvSdnn = input.hrvSdnnObservedAtMs;
+  if (input.restingHeartRateObservedAtMs != null) fieldObservedAtMs.restingHeartRate = input.restingHeartRateObservedAtMs;
+  if (input.sleepHoursLastNightObservedAtMs != null) fieldObservedAtMs.sleepHoursLastNight = input.sleepHoursLastNightObservedAtMs;
+  if (input.stepsTodayObservedAtMs != null) fieldObservedAtMs.stepsToday = input.stepsTodayObservedAtMs;
+
+  return {
+    providerId: 'apple_health',
+    restingHeartRate: input.restingHeartRate,
+    hrvSdnn: input.hrvSdnn,
+    sleepHoursLastNight: input.sleepHoursLastNight,
+    stepsToday: input.stepsToday,
+    fetchedAt: input.fetchedAt,
+    ...(Object.keys(fieldObservedAtMs).length > 0 ? { fieldObservedAtMs } : {}),
+    ...(input.latestObservedAtMs != null ? { latestObservedAtMs: input.latestObservedAtMs } : {}),
+  };
+}
+
+/**
  * Aggregate per-provider snapshots into the two scalars the score
  * engine consumes. Pass an empty / undefined record to get a no-op
  * result (delta 0, inferredActivityLevel 0, sources []).
+ *
+ * `now` (RC-2 Founder Ruling C) defaults to `Date.now()` so every
+ * existing production call site (utils/scoring/breakdown.ts) needed zero
+ * changes; pass an explicit value from a test for deterministic
+ * clock-skew-clamp behavior. See this file's header comment for the full
+ * freshness precedence this powers.
  */
 export function aggregateBiometrics(
   biometrics: ProviderBiometrics | undefined,
+  now: number = Date.now(),
 ): AggregatedBiometrics {
   if (!biometrics) {
     return { inferredActivityLevel: 0, recoveryDelta: 0, sources: [], hint: 'No platforms connected' };
@@ -160,26 +277,32 @@ export function aggregateBiometrics(
   // ── Recovery delta ────────────────────────────────────────────────
   // Pick the freshest non-null reading per metric so we don't
   // double-count when Apple + Garmin both report HRV.
-  const hrv = freshestNonNull(snaps, 'hrvSdnn');
-  const sleep = freshestNonNull(snaps, 'sleepHoursLastNight');
-  const readiness = freshestNonNull(snaps, 'readinessScore');
-  const recoveryPct = freshestNonNull(snaps, 'recoveryPct');
-  const stress = freshestNonNull(snaps, 'stressScore');
+  const hrv = freshestNonNull(snaps, 'hrvSdnn', now);
+  const sleep = freshestNonNull(snaps, 'sleepHoursLastNight', now);
+  const readiness = freshestNonNull(snaps, 'readinessScore', now);
+  const recoveryPct = freshestNonNull(snaps, 'recoveryPct', now);
+  const stress = freshestNonNull(snaps, 'stressScore', now);
 
   const parts: string[] = [];
   let delta = 0;
 
+  // RC-2 Ruling C, item 3: unit-spacing sweep — was 'ms'/'h' with no
+  // leading space; #586 already normalized every other card/panel unit
+  // (HRV ' ms', RHR ' bpm') to a leading space. These hint templates were
+  // the one place still rendering 'HRV 59ms' / 'Sleep 7.8h'. Normalized to
+  // match; every string assertion in this module's test suite was updated
+  // alongside.
   if (hrv != null) {
-    if (hrv >= 60) { delta += 5; parts.push(`HRV ${Math.round(hrv)}ms (high)`); }
-    else if (hrv >= 40) { delta += 2; parts.push(`HRV ${Math.round(hrv)}ms`); }
-    else if (hrv >= 30) { parts.push(`HRV ${Math.round(hrv)}ms`); }
-    else { delta -= 5; parts.push(`HRV ${Math.round(hrv)}ms (low)`); }
+    if (hrv >= 60) { delta += 5; parts.push(`HRV ${Math.round(hrv)} ms (high)`); }
+    else if (hrv >= 40) { delta += 2; parts.push(`HRV ${Math.round(hrv)} ms`); }
+    else if (hrv >= 30) { parts.push(`HRV ${Math.round(hrv)} ms`); }
+    else { delta -= 5; parts.push(`HRV ${Math.round(hrv)} ms (low)`); }
   }
   if (sleep != null) {
-    if (sleep >= 7 && sleep <= 9) { delta += 5; parts.push(`Sleep ${sleep.toFixed(1)}h`); }
-    else if (sleep >= 6) { delta += 2; parts.push(`Sleep ${sleep.toFixed(1)}h`); }
-    else if (sleep >= 4) { delta -= 3; parts.push(`Sleep ${sleep.toFixed(1)}h (short)`); }
-    else { delta -= 5; parts.push(`Sleep ${sleep.toFixed(1)}h (deficit)`); }
+    if (sleep >= 7 && sleep <= 9) { delta += 5; parts.push(`Sleep ${sleep.toFixed(1)} h`); }
+    else if (sleep >= 6) { delta += 2; parts.push(`Sleep ${sleep.toFixed(1)} h`); }
+    else if (sleep >= 4) { delta -= 3; parts.push(`Sleep ${sleep.toFixed(1)} h (short)`); }
+    else { delta -= 5; parts.push(`Sleep ${sleep.toFixed(1)} h (deficit)`); }
   }
   if (readiness != null) {
     if (readiness >= 85) { delta += 4; parts.push(`Readiness ${Math.round(readiness)}`); }
