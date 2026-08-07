@@ -267,9 +267,13 @@
   .signal-section.visible .signal-track .fill-bar{ width:100%; }
   .signal-section.visible .signal-track .dot{ left:100%; animation: pulse-ring 1.8s ease-out 2.6s 2; }
   @keyframes pulse-ring{ 0%{ box-shadow:0 0 0 0 rgba(31,163,90,0.5);} 100%{ box-shadow:0 0 0 22px rgba(31,163,90,0);} }
-  .signal-states{ display:flex; justify-content:space-between; font-family:'Inter', sans-serif; font-size:clamp(14px,1.7vw,21px); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:rgba(245,240,232,0.5); }
-  .signal-states span{ white-space:nowrap; }
-  .signal-states span.reached{ color:var(--canvas); }
+  .signal-states{ display:flex; justify-content:space-between; gap:18px; }
+  .signal-states .state{ display:flex; flex-direction:column; gap:8px; flex:1; }
+  .signal-states .lbl{ font-family:'Inter', sans-serif; font-size:clamp(14px,1.7vw,21px); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:rgba(245,240,232,0.5); white-space:nowrap; transition:color .6s ease; }
+  /* Behavioral descriptors — this is a readiness posture, never a medical measurement. */
+  .signal-states .desc{ font-family:'Inter', sans-serif; font-weight:400; font-size:clamp(10.5px,1.05vw,12.5px); line-height:1.5; letter-spacing:0.01em; color:rgba(245,240,232,0.32); transition:color .6s ease; }
+  .signal-states .state:has(.reached) .desc{ color:rgba(245,240,232,0.6); }
+  .signal-states .lbl.reached{ color:var(--canvas); }
   .signal-states .s1.reached{ color:#E8756A; } .signal-states .s2.reached{ color:#6E86FF; } .signal-states .s3.reached{ color:#5FC98A; }
 
   /* ---------- RITUAL — vertical connected timeline, not a grid ---------- */
@@ -281,9 +285,15 @@
   .ritual-line::before{ content:''; position:absolute; left:28px; top:10px; bottom:10px; width:1px; background:var(--line); }
   .ritual-item{ position:relative; padding-left:76px; margin-bottom:56px; opacity:0; transform:translateY(16px); }
   .ritual-item:last-child{ margin-bottom:0; }
-  .ritual-item::before{ content:''; position:absolute; left:22px; top:6px; width:13px; height:13px; border-radius:50%; background:var(--canvas); border:1.5px solid var(--red); }
-  .ritual-item .num{ font-family:'Inter',sans-serif; font-weight:800; font-size:10px; color:var(--red); position:absolute; left:0; top:2px; }
-  .ritual-item h3{ font-family:'Inter',sans-serif; font-size:clamp(26px,6.6vw,34px); font-weight:800; margin-bottom:10px;}
+  /* Scroll-activation: each stage lights up as it passes the viewport centre —
+     dot fills, number + heading resolve to full weight. Editorial, not a stepper. */
+  .ritual-item::before{ content:''; position:absolute; left:22px; top:6px; width:13px; height:13px; border-radius:50%; background:var(--canvas); border:1.5px solid var(--red); transition:background .45s ease, transform .45s ease; }
+  .ritual-item.active::before{ background:var(--red); transform:scale(1.18); }
+  .ritual-item.done::before{ background:var(--red); }
+  .ritual-item .num{ font-family:'Inter',sans-serif; font-weight:800; font-size:10px; color:var(--red); position:absolute; left:0; top:2px; opacity:0.4; transition:opacity .45s ease; }
+  .ritual-item.active .num, .ritual-item.done .num{ opacity:1; }
+  .ritual-item h3{ font-family:'Inter',sans-serif; font-size:clamp(26px,6.6vw,34px); font-weight:800; margin-bottom:10px; color:rgba(13,13,13,0.5); transition:color .45s ease; }
+  .ritual-item.active h3, .ritual-item.done h3{ color:var(--ink); }
   .ritual-item p{ font-size:15px; line-height:1.7; color:#54575E; max-width:480px; }
 
   /* ---------- PRODUCTS — asymmetric, one featured ---------- */
@@ -551,9 +561,9 @@
         <div class="dot"></div>
       </div>
       <div class="signal-states">
-        <span class="s1" id="stateDepleted">Depleted</span>
-        <span class="s2" id="stateBalanced">Balanced</span>
-        <span class="s3" id="stateLocked">Locked In</span>
+        <div class="state"><span class="lbl s1" id="stateDepleted">Depleted</span><span class="desc">Reacting, not preparing.</span></div>
+        <div class="state"><span class="lbl s2" id="stateBalanced">Balanced</span><span class="desc">Steady. Holding the line.</span></div>
+        <div class="state"><span class="lbl s3" id="stateLocked">Locked In</span><span class="desc">Prepared. Present. Ready.</span></div>
       </div>
     </div>
   </div>
@@ -565,10 +575,10 @@
       <div class="eyebrow-label fade-in">The Ritual</div>
       <h2 class="section-title fade-in">Not a tagline. A behavioral operating system.</h2>
       <div class="ritual-line">
-        <div class="ritual-item fade-in"><span class="num">01</span><h3>Pause</h3><p>The moment before execution. The one every other brand skips past.</p></div>
-        <div class="ritual-item fade-in"><span class="num">02</span><h3>Hydrate</h3><p>pH 8.8 alkaline hydration, electrolytes and minerals, built for the body under load.</p></div>
-        <div class="ritual-item fade-in"><span class="num">03</span><h3><span style="color:var(--red)">Lock-In</span></h3><p>Readiness becomes intention. The AFORCE OS reads it, tracks it, holds you to it.</p></div>
-        <div class="ritual-item fade-in"><span class="num">04</span><h3>Perform</h3><p>Composure carried into the moment that actually mattered.</p></div>
+        <div class="ritual-item fade-in"><span class="num">01</span><h3>Pause</h3><p>The moment before execution.</p></div>
+        <div class="ritual-item fade-in"><span class="num">02</span><h3>Hydrate</h3><p>Replenish what performance demands.</p></div>
+        <div class="ritual-item fade-in"><span class="num">03</span><h3><span style="color:var(--red)">Lock-In</span></h3><p>Turn readiness into intention.</p></div>
+        <div class="ritual-item fade-in"><span class="num">04</span><h3>Perform</h3><p>Carry composure into the moment that matters.</p></div>
       </div>
     </div>
     <div class="ritual-media fade-in">
@@ -759,6 +769,26 @@
       });
     }, {threshold:0.4});
     signalIO.observe(signalSection);
+  }
+
+  // The Ritual — activate each stage as it crosses the viewport centre (scroll-spy,
+  // rAF-throttled). Cheap: four elements. Purely presentational; reduced-motion users
+  // still get the state (transitions are neutralised globally, no animation).
+  const ritualItems = Array.from(document.querySelectorAll('.ritual .ritual-item'));
+  if(ritualItems.length){
+    let ritualTicking = false;
+    const activateRitual = ()=>{
+      ritualTicking = false;
+      const mid = window.innerHeight * 0.5;
+      let activeIdx = -1;
+      ritualItems.forEach((it,i)=>{ if(it.getBoundingClientRect().top <= mid) activeIdx = i; });
+      ritualItems.forEach((it,i)=>{
+        it.classList.toggle('active', i === activeIdx);
+        it.classList.toggle('done', i < activeIdx);
+      });
+    };
+    window.addEventListener('scroll', ()=>{ if(!ritualTicking){ ritualTicking = true; requestAnimationFrame(activateRitual); } }, { passive:true });
+    activateRitual();
   }
 
   const onNavScroll = ()=>{ nav.classList.toggle('solid', window.scrollY > window.innerHeight * 0.72); };
