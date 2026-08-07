@@ -1,13 +1,19 @@
 /**
  * RecoveryCapacityCard — the canonical replacement for `BACEstimateCard`.
  *
- * Renders the 0–100 Recovery Capacity Score with its AForce Brand System (v2.1.0)
- * band colour (Peak teal / Stable deep blue / Declining amber /
- * Critical Ferrari crimson `#FF2800`) and the three component
- * contributions that produced it (AutoPilot / Hydration / Environment).
+ * Renders the 0–100 Recovery Capacity Score with its AForce Brand System band
+ * colour (Peak teal / Stable deep blue / Declining amber / Critical crimson)
+ * and the three component contributions that produced it (AutoPilot /
+ * Hydration / Environment). The band colour is supplied at runtime via
+ * `meta.color` (source of truth: services/recoveryCapacity.ts) — this card
+ * never hardcodes a band hex.
  *
  * No BAC numbers, no impairment tiers, no transportation prompts —
  * those were retired with the Social→Recovery refactor.
+ *
+ * VS 3.0 P2: chrome-only migration onto the af.* system (Colors.* + Inter_*
+ * strings + rgba(255,255,255,·) muted text → af tokens; the band-colour logic,
+ * cross-fade, and reduced-motion halo gate are untouched).
  */
 
 import React, { useEffect } from 'react';
@@ -18,7 +24,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Icon } from './Icon';
-import { Colors } from '../theme/colors';
+import { af, afType, afAlpha, withAlpha, Typography } from '../theme';
 import type { RecoveryCapacityScore } from '../services/recoveryCapacity';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { AFStatPair } from './ui/AFStatPair';
@@ -27,19 +33,13 @@ interface Props {
   recovery: RecoveryCapacityScore;
 }
 
-/** Subtle wash colour derived from the band hex so the card glows in its band. */
-function tintFor(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
 export function RecoveryCapacityCard({ recovery }: Props) {
   const { score, meta, contributions } = recovery;
-  const borderColor = tintFor(meta.color, 0.45);
-  const fillColor = tintFor(meta.color, 0.08);
+  // Subtle band-tinted washes derived from the (prop-supplied) band hex so the
+  // card glows in its band. meta.color is always a clean 6-digit hex, which
+  // satisfies withAlpha's strict contract.
+  const borderColor = withAlpha(meta.color, afAlpha.a50);
+  const fillColor = withAlpha(meta.color, afAlpha.a08);
 
   // ─── Chunk #7a polish ─────────────────────────────────────────────
   // Smooth color cross-fade when the recovery band changes (e.g.
@@ -159,7 +159,7 @@ function Breakdown({
 }) {
   return (
     <View style={styles.breakdownItem}>
-      <Icon name={icon} size="xs" color="rgba(255,255,255,0.92)" />
+      <Icon name={icon} size="xs" color={af.textSecondary} />
       <AFStatPair
         label={label}
         value={value}
@@ -188,8 +188,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   eyebrow: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
+    ...afType.eyebrow,
     letterSpacing: 1.8,
   },
   bandChip: {
@@ -199,8 +198,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bandChipText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
+    ...afType.microLabel,
     letterSpacing: 1.4,
   },
   scoreRow: {
@@ -220,15 +218,18 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   score: {
+    // Score typeface doctrine: the hero numeral is a metric role (IBM Plex
+    // Mono), matching ScoreBreakdownSheet + HomeScreenV2's displayScore — never
+    // Inter. Size/tracking/line-height and the live band-color cross-fade are
+    // unchanged.
     fontSize: 48,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: Typography.roles.metric,
     letterSpacing: -1.5,
     lineHeight: 52,
   },
   scoreUnit: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.55)',
+    ...afType.caption,
+    color: af.textTertiary,
     marginLeft: 4,
     marginBottom: 6,
   },
@@ -246,26 +247,22 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   breakdownLabel: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: 'rgba(255,255,255,0.55)',
+    ...afType.microLabel,
+    color: af.textTertiary,
     letterSpacing: 1.2,
   },
   breakdownValue: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text.primary,
+    ...afType.caption,
+    fontFamily: Typography.fonts.bold,
+    color: af.textPrimary,
   },
   breakdownMax: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.45)',
+    ...afType.caption,
+    color: af.textTertiary,
   },
   disclaimer: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.42)',
-    lineHeight: 14,
+    ...afType.caption,
+    color: af.textTertiary,
     marginTop: 12,
     letterSpacing: 0.2,
   },

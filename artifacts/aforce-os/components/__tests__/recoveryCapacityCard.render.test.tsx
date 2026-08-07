@@ -144,4 +144,18 @@ describe('RecoveryCapacityCard — halo reduced-motion gate (RC-1 P0)', () => {
     expect(host.textContent).toContain(String(declining.score));
     expect(host.textContent).toContain('DECLINING');
   });
+
+  it('renders the eyebrow, the three contribution breakdowns, and the disclaimer (VS 3.0 chrome)', () => {
+    renderCard();
+    const t = host.textContent ?? '';
+    expect(t).toContain('RECOVERY CAPACITY');
+    expect(t).toContain('/100');
+    expect(t).toContain('AUTOPILOT');
+    expect(t).toContain('HYDRATION');
+    expect(t).toContain('ENVIRONMENT');
+    // disclaimer copy is claims-adjacent — pinned byte-exact
+    expect(t).toContain(
+      'Recovery Capacity is an estimated performance and hydration indicator based on user inputs and environmental factors.',
+    );
+  });
 });

@@ -30,7 +30,6 @@
   "components/LanguageSelector.tsx": 10,
   "components/OnboardingOverlay.tsx": 4,
   "components/RankingCard.tsx": 1,
-  "components/RecoveryCapacityCard.tsx": 6,
   "components/RecoveryModeCard.tsx": 5,
   "components/RecoveryModePaywall.tsx": 9,
   "components/ShareCard.tsx": 7,
