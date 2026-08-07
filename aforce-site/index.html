@@ -331,6 +331,16 @@
   .stick-strip .stick{ background:var(--canvas); padding:36px 20px; text-align:center; opacity:0; transform:translateY(16px); }
   .stick-strip img{ height:324px; margin:0 auto 18px; object-fit:contain; }
   .stick-strip .label{ font-family:'Inter',sans-serif; font-weight:800; font-size:10px; letter-spacing:0.14em; color:rgba(13,13,13,0.6); text-transform:uppercase; }
+  /* P3 — product cards are links to /shop. Reset anchor chrome; keep card styling. */
+  .product-featured, .product-minor, .stick-strip .stick{ text-decoration:none; color:inherit; cursor:pointer; }
+  .product-featured .buy{ display:inline-flex; align-items:center; gap:8px; }
+  .product-featured .buy .arw, .minor-cta .arw, .products-shop .arw{ display:inline-block; transition:transform .25s ease; }
+  .product-featured:hover .buy .arw{ transform:translateX(3px); }
+  .minor-cta{ margin-top:12px; font-family:'Inter',sans-serif; font-weight:800; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); display:inline-flex; align-items:center; gap:7px; }
+  .product-minor:hover .minor-cta .arw{ transform:translateX(3px); }
+  .products-shop{ margin-top:52px; text-align:center; }
+  .products-shop .arw{ margin-left:8px; }
+  .products-shop .btn:hover .arw{ transform:translateX(3px); }
 
   /* ---------- PROOF — typographic sentence, not a box grid ---------- */
   .arenas{ background:var(--canvas); padding:clamp(64px,9vh,96px) clamp(20px,6vw,72px); }
@@ -344,6 +354,15 @@
   .arena .cap .role{ font-family:'Inter',sans-serif; font-weight:800; font-size:19px; }
   .arena .cap .idx{ font-family:'Inter',sans-serif; font-size:11px; color:var(--red); }
   .arena .line{ margin-top:8px; font-family:'Inter',sans-serif; font-size:11.5px; letter-spacing:0.02em; color:#6f7178; }
+  /* P3 — one extra line per arena. Revealed on hover/focus on pointer devices; always
+     shown on touch (hover:none) so mobile keeps its simple vertical read. */
+  .arena .reveal{ margin-top:6px; font-family:'Inter',sans-serif; font-size:11.5px; line-height:1.5; letter-spacing:0.02em; color:#9a9ca1; max-width:34ch; }
+  @media (hover:hover){
+    .arena .reveal{ max-height:0; opacity:0; margin-top:0; overflow:hidden; transition:max-height .45s ease, opacity .45s ease, margin-top .45s ease; }
+    .arena:hover .reveal, .arena:focus-within .reveal{ max-height:64px; opacity:1; margin-top:6px; }
+    .arena .shot img{ transition:transform .6s cubic-bezier(.4,0,.2,1); }
+    .arena:hover .shot img{ transform:scale(1.05); }
+  }
 
   /* ---------- OS ---------- */
   .os-hook{ background:var(--canvas); color:var(--ink); display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; align-items:center; }
@@ -591,29 +610,30 @@
   <div class="eyebrow-label fade-in" style="color:#5FC98A;">The System</div>
   <h2 class="section-title fade-in">Not products. Tools inside the operating system.</h2>
   <div class="product-layout">
-    <div class="product-featured fade-in" data-sku="red">
+    <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Shop Watermelon Surge & Chlorella">
       <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella"></div>
       <span class="tag red">pH 8.8 · Morning</span>
       <h4>Watermelon Surge & Chlorella</h4>
-      <div class="ph">Alkaline Hydration · Electrolytes + Minerals</div>
-      <div class="buy">Add to Ritual</div>
-    </div>
+      <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
+      <div class="buy">Add to Ritual <span class="arw">→</span></div>
+    </a>
     <div class="product-minor-stack">
-      <div class="product-minor fade-in" data-sku="blue">
+      <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Shop Berry Blast & Dulse">
         <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse">
-        <div><span class="tag blue">pH 8.8 · Midday</span><h5>Berry Blast & Dulse</h5><div class="ph">Electrolytes + Minerals</div></div>
-      </div>
-      <div class="product-minor fade-in" data-sku="green">
+        <div><span class="tag blue">pH 8.8 · Midday</span><h5>Berry Blast & Dulse</h5><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+      </a>
+      <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Shop Soursop Edge & Seamoss">
         <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss">
-        <div><span class="tag green">pH 8.8 · Evening</span><h5>Soursop Edge & Seamoss</h5><div class="ph">Electrolytes + Minerals</div></div>
-      </div>
+        <div><span class="tag green">pH 8.8 · Evening</span><h5>Soursop Edge & Seamoss</h5><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+      </a>
     </div>
   </div>
   <div class="stick-strip">
-    <div class="stick fade-in"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon"><div class="label">On-the-go stick · Watermelon</div></div>
-    <div class="stick fade-in"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry"><div class="label">On-the-go stick · Berry</div></div>
-    <div class="stick fade-in"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop"><div class="label">On-the-go stick · Soursop</div></div>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon"><div class="label">On-the-go stick · Watermelon</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry"><div class="label">On-the-go stick · Berry</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop"><div class="label">On-the-go stick · Soursop</div></a>
   </div>
+  <div class="products-shop fade-in"><a href="/shop" class="btn btn-primary">Shop AFORCE <span class="arw">→</span></a></div>
 </section>
 
 <section class="arenas" id="arenas">
@@ -624,16 +644,19 @@
       <div class="shot"><img src="assets/perf-surgeon.jpg" alt="Surgeon in scrubs and cap in an operating room" width="1200" height="1602" loading="lazy"></div>
       <div class="cap"><span class="role">Surgeon</span><span class="idx">01</span></div>
       <div class="line">Composure before the first incision.</div>
+      <div class="reveal">Precision is a state you enter, not a switch you flip.</div>
     </div>
     <div class="arena fade-in">
-      <div class="shot"><img src="assets/perf-trader.jpg" alt="Trader at a dark desk of glowing market monitors" width="1200" height="1602" loading="lazy"></div>
-      <div class="cap"><span class="role">Trader</span><span class="idx">02</span></div>
-      <div class="line">Composure before the open.</div>
+      <div class="shot"><img src="assets/perf-founder.jpg" alt="A founder at a floor-to-ceiling window at dusk, arms crossed, city skyline behind" width="1199" height="1602" loading="lazy"></div>
+      <div class="cap"><span class="role">Founder</span><span class="idx">02</span></div>
+      <div class="line">Clarity before the biggest decision.</div>
+      <div class="reveal">The decision is made before the meeting begins.</div>
     </div>
     <div class="arena fade-in">
-      <div class="shot"><img src="assets/perf-boxer.jpg" alt="Basketball athlete holding a ball in a dim gym" width="1200" height="1602" loading="lazy"></div>
-      <div class="cap"><span class="role">Athlete</span><span class="idx">03</span></div>
-      <div class="line">Composure before tip-off.</div>
+      <div class="shot"><img src="assets/perf-competitor.jpg" alt="A boxer in a hooded robe with wrapped hands in a dark gym before the fight" width="1199" height="1602" loading="lazy"></div>
+      <div class="cap"><span class="role">Competitor</span><span class="idx">03</span></div>
+      <div class="line">Composure before the first bell.</div>
+      <div class="reveal">The fight is won in the hours no one sees.</div>
     </div>
   </div>
 </section>

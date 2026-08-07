@@ -28,12 +28,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Setup pnpm + Node
-        uses: pnpm/setup@v1
+      # pnpm + Node via the standard, deterministic actions. pnpm/action-setup
+      # installs pnpm first, reading the "packageManager" pin ("pnpm@11.1.2")
+      # from package.json so CI and the repo pin can't drift; setup-node then
+      # provisions Node 22 with the pnpm store cache. This replaces the flaky
+      # pnpm/setup@v1 `runtime` provisioning, whose `pnpm runtime set node 22 -g`
+      # intermittently exited 127 (it broke this job while the identical step
+      # happened to pass in ci.yml — non-deterministic, so it's removed here).
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
         with:
-          runtime: node@22
-          cache: true
-          install: false
+          node-version: 22
+          cache: pnpm
 
       - name: Install dependencies (frozen lockfile)
         run: pnpm install --frozen-lockfile
