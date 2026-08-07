@@ -161,8 +161,10 @@
   .clarity-grid{ width:100%; max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.2fr 0.8fr; gap:clamp(40px,4.4vw,88px); align-items:center; padding:0 clamp(20px,4vw,56px); }
   .clarity-copy{ min-width:0; }
   /* left column — editorial statement */
-  .clarity-headline{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(34px,4.7vw,84px); line-height:0.98; letter-spacing:-0.024em; text-transform:uppercase; margin:0; overflow-wrap:break-word; opacity:0; transform:translateY(12px); }
-  .clarity-headline .hl-red{ color:var(--red); }
+  .clarity-headline{ font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(34px,4.7vw,72px); line-height:0.98; letter-spacing:-0.024em; text-transform:uppercase; margin:0; overflow-wrap:break-word; opacity:0; transform:translateY(12px); }
+  /* Keep "Non-Иegotiable." on ONE line at every width — the mirrored-N is an inline-block,
+     which is otherwise a valid line-break opportunity, so the word split at wide viewports. */
+  .clarity-headline .hl-red{ color:var(--red); white-space:nowrap; }
   .clarity-subhead{ margin:clamp(24px,2.6vw,36px) 0 0; font-family:'Inter',sans-serif; font-weight:600; font-size:clamp(18px,2vw,26px); line-height:1.25; letter-spacing:-0.01em; max-width:19ch; color:var(--ink); opacity:0; transform:translateY(12px); }
   .clarity-supporting{ margin:clamp(26px,2.8vw,38px) 0 0; font-family:'Inter',sans-serif; font-weight:400; font-size:clamp(15px,1.3vw,18px); line-height:1.75; color:rgba(13,13,13,0.6); max-width:36ch; opacity:0; transform:translateY(12px); }
   .clarity-list{ list-style:none; margin:clamp(30px,3.4vw,44px) 0 0; padding:0; display:flex; flex-wrap:wrap; gap:14px 26px; max-width:560px; opacity:0; transform:translateY(12px); }
@@ -438,43 +440,39 @@
   /* Protocol */
   .os-kick{ font-family:'IBM Plex Mono',monospace; font-size:2.8cqw; font-weight:500; letter-spacing:0.16em; text-transform:uppercase; color:var(--os-faint); }
   .os-h1{ margin-top:1.3cqw; font-size:6.6cqw; font-weight:700; letter-spacing:-0.02em; color:var(--os-ink); }
-  .os-stagechip{ align-self:flex-start; display:inline-flex; align-items:center; gap:1.8cqw; margin-top:2.4cqw; padding:1.5cqw 3cqw; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:6cqw; font-size:2.9cqw; font-weight:600; color:var(--os-ink); }
-  .os-stagechip-dot{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
-  .os-stagechip-sub{ font-weight:400; color:var(--os-faint); }
-  .os-plan{ margin-top:3cqw; }
-  .os-plan-top{ display:flex; justify-content:space-between; align-items:center; }
-  .os-plan-l{ font-size:3.2cqw; font-weight:600; color:var(--os-dim); }
-  .os-plan-badge{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; font-weight:500; letter-spacing:0.03em; color:var(--os-green); background:rgba(31,163,90,0.12); padding:1cqw 2.4cqw; border-radius:2cqw; }
-  .os-plan-count{ margin-top:2cqw; font-size:3cqw; color:var(--os-faint); }
-  .os-bar{ margin-top:2.2cqw; height:1.6cqw; border-radius:1cqw; background:rgba(255,255,255,0.08); overflow:hidden; }
-  .os-bar-fill{ display:block; height:100%; width:25%; background:var(--os-red); border-radius:1cqw; }
-  .os-step{ margin-top:3.4cqw; background:var(--os-surface); border:1px solid rgba(255,255,255,0.12); border-radius:4.5cqw; padding:3.6cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
-  .os-step-eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-redtext); }
-  .os-step-title{ margin-top:1.7cqw; font-size:4.8cqw; font-weight:600; letter-spacing:-0.01em; color:var(--os-ink); }
-  .os-step-window{ margin-top:1.2cqw; font-size:3.2cqw; color:var(--os-dim); }
-  .os-step-foot{ margin-top:3.2cqw; padding-top:2.8cqw; border-top:1px solid rgba(255,255,255,0.10); display:flex; justify-content:space-between; align-items:center; font-family:'IBM Plex Mono',monospace; font-size:2.6cqw; letter-spacing:0.1em; text-transform:uppercase; color:var(--os-faint); }
-  .os-step-min{ color:var(--os-ink); font-weight:600; }
-  .os-next{ margin-top:3cqw; }
-  .os-next-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:2.4cqw; }
-  .os-tl{ position:relative; display:flex; flex-direction:column; gap:3.4cqw; }
-  .os-tl::before{ content:''; position:absolute; left:1.9cqw; top:2cqw; bottom:2cqw; width:1px; background:rgba(255,255,255,0.10); }
-  .os-tl-row{ position:relative; display:flex; align-items:center; gap:3.4cqw; }
-  .os-tl-dot{ width:4cqw; height:4cqw; border-radius:50%; border:1px solid rgba(255,255,255,0.24); background:var(--os-canvas); flex-shrink:0; z-index:1; }
-  .os-tl-name{ flex:1; font-size:3.5cqw; font-weight:500; color:var(--os-dim); }
-  .os-tl-when{ font-size:2.6cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-metrics{ margin-top:3cqw; display:flex; gap:2.4cqw; }
-  .os-metric{ flex:1; background:rgba(255,255,255,0.04); border-radius:3.2cqw; padding:2.8cqw 2.6cqw; display:flex; flex-direction:column; gap:0.7cqw; }
-  .os-metric-v{ font-family:'IBM Plex Mono',monospace; font-size:5cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; display:flex; align-items:baseline; gap:1cqw; }
-  .os-metric-v em{ font-style:normal; font-family:'Inter',sans-serif; font-size:2.5cqw; font-weight:500; color:var(--os-faint); }
-  .os-metric-l{ font-size:2.5cqw; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-faint); }
-  .os-recent{ margin-top:3cqw; }
-  .os-recent-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); margin-bottom:1cqw; }
-  .os-recent-row{ display:flex; align-items:center; gap:2.6cqw; padding:1.5cqw 0; border-top:1px solid rgba(255,255,255,0.06); }
-  .os-recent-row:first-of-type{ border-top:none; }
-  .os-recent-a{ flex:1; font-size:3.1cqw; color:var(--os-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .os-recent-when{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--os-faint); font-variant-numeric:tabular-nums; }
-  .os-recent-s{ font-family:'IBM Plex Mono',monospace; font-size:3.3cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; min-width:6cqw; text-align:right; }
-  .os-why{ margin-top:auto; padding-top:3cqw; display:flex; align-items:center; gap:1.2cqw; font-size:2.9cqw; font-weight:500; color:var(--os-dim); }
+  .os-checkin{ align-self:flex-start; display:inline-flex; align-items:center; gap:2cqw; margin-top:2.6cqw; padding:1.5cqw 3cqw; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:6cqw; font-size:2.7cqw; font-weight:600; color:var(--os-ink); }
+  .os-checkin-dot{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
+  .os-checkin-frac{ font-family:'IBM Plex Mono',monospace; font-weight:500; color:var(--os-faint); }
+  .os-scard{ margin-top:3.2cqw; background:var(--os-surface); border:1px solid rgba(193,40,27,0.34); border-radius:4.5cqw; padding:3.8cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
+  .os-scard-top{ display:flex; justify-content:space-between; align-items:center; }
+  .os-scard-l{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-redtext); }
+  .os-scard-badge{ font-size:2.3cqw; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-redtext); border:1px solid rgba(228,86,74,0.5); padding:0.8cqw 2.4cqw; border-radius:5cqw; }
+  .os-scard-name{ margin-top:1.8cqw; font-size:4.8cqw; font-weight:700; letter-spacing:-0.01em; color:var(--os-ink); }
+  .os-scard-desc{ margin-top:1.2cqw; font-size:3cqw; line-height:1.4; color:var(--os-dim); }
+  .os-tl{ position:relative; display:flex; flex-direction:column; gap:2.8cqw; margin-top:3.2cqw; }
+  .os-tl::before{ content:''; position:absolute; left:2cqw; top:2.6cqw; bottom:2.6cqw; width:1px; background:rgba(255,255,255,0.10); }
+  .os-tl-row{ position:relative; display:flex; align-items:flex-start; gap:3cqw; }
+  .os-tl-dot{ width:4.2cqw; height:4.2cqw; margin-top:0.3cqw; border-radius:50%; border:1.4px solid rgba(255,255,255,0.24); background:var(--os-surface); flex-shrink:0; z-index:1; }
+  .os-tl-txt{ display:flex; flex-direction:column; gap:0.3cqw; }
+  .os-tl-name{ font-size:3.4cqw; font-weight:500; color:var(--os-ink); }
+  .os-tl-when{ font-size:2.6cqw; color:var(--os-faint); }
+  .os-tl-row.is-done .os-tl-dot{ background:var(--os-red); border-color:var(--os-red); }
+  .os-tl-row.is-done .os-tl-name{ color:var(--os-faint); text-decoration:line-through; }
+  .os-tl-row.is-active .os-tl-dot{ border-color:var(--os-red); box-shadow:0 0 0 1.3cqw rgba(193,40,27,0.18); }
+  .os-tl-row.is-active .os-tl-name{ color:var(--os-ink); font-weight:700; }
+  .os-scard-foot{ margin-top:3.4cqw; padding-top:2.8cqw; border-top:1px solid rgba(255,255,255,0.10); display:flex; gap:5cqw; }
+  .os-foot-col{ display:flex; flex-direction:column; gap:0.8cqw; }
+  .os-foot-l{ font-size:2.4cqw; letter-spacing:0.04em; text-transform:uppercase; color:var(--os-faint); }
+  .os-foot-v{ font-family:'IBM Plex Mono',monospace; font-size:3.6cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; }
+  .os-foot-green{ color:var(--os-green); }
+  .os-summary{ margin-top:3.2cqw; display:flex; gap:2.4cqw; }
+  .os-sumcard{ flex:1; background:rgba(255,255,255,0.04); border-radius:3.2cqw; padding:2.8cqw 2.4cqw; display:flex; flex-direction:column; gap:1cqw; }
+  .os-sum-l{ font-size:2.4cqw; letter-spacing:0.04em; text-transform:uppercase; color:var(--os-faint); }
+  .os-sum-v{ font-family:'IBM Plex Mono',monospace; font-size:3.5cqw; font-weight:600; color:var(--os-ink); font-variant-numeric:tabular-nums; }
+  .os-sum-green{ color:var(--os-green); }
+  .os-cmdhist{ margin-top:3.4cqw; display:flex; justify-content:space-between; align-items:baseline; }
+  .os-cmdhist-l{ font-size:2.9cqw; font-weight:600; color:var(--os-dim); }
+  .os-cmdhist-trend{ font-size:2.6cqw; color:var(--os-green); }
 
   /* ---------- COMMUNITY → PERFORMANCE IS UNIVERSAL (editorial) ---------- */
   .universal{ background:var(--canvas); padding:clamp(64px,9vh,96px) 0 0; }
@@ -784,39 +782,30 @@
         <div class="os-screen">
           <div class="os-status"><span class="os-time">9:41</span><span class="os-ind"></span></div>
           <div class="os-body">
-            <div class="os-kick">Today</div>
-            <div class="os-h1">Protocol</div>
-            <div class="os-stagechip"><span class="os-stagechip-dot"></span>Maintain<span class="os-stagechip-sub">· Hold rhythm</span></div>
-            <div class="os-plan">
-              <div class="os-plan-top"><span class="os-plan-l">Recovery plan</span><span class="os-plan-badge">82% consistency</span></div>
-              <div class="os-plan-count">1 of 4 complete</div>
-              <div class="os-bar"><span class="os-bar-fill"></span></div>
-            </div>
-            <div class="os-step">
-              <span class="os-step-eyebrow">Active step</span>
-              <span class="os-step-title">Log next intake</span>
-              <span class="os-step-window">Within 20 minutes</span>
-              <div class="os-step-foot"><span>Next recheck</span><span class="os-step-min">20 min</span></div>
-            </div>
-            <div class="os-next">
-              <div class="os-next-l">Next</div>
+            <div class="os-kick">Today's Protocol</div>
+            <div class="os-h1">AForce Protocol</div>
+            <div class="os-checkin"><span class="os-checkin-dot"></span>Day 7 check-in · on rhythm<span class="os-checkin-frac">1/4</span></div>
+            <div class="os-scard">
+              <div class="os-scard-top"><span class="os-scard-l">Stage</span><span class="os-scard-badge">Active</span></div>
+              <div class="os-scard-name">Maintain</div>
+              <div class="os-scard-desc">Drink 8&ndash;12 ounces. Hold rhythm. Recheck 45&ndash;60 min.</div>
               <div class="os-tl">
-                <div class="os-tl-row"><span class="os-tl-dot"></span><span class="os-tl-name">Recheck performance signals</span><span class="os-tl-when">After intake</span></div>
-                <div class="os-tl-row"><span class="os-tl-dot"></span><span class="os-tl-name">Confirm Status</span><span class="os-tl-when">End of cycle</span></div>
+                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Confirm hydration signal</span><span class="os-tl-when">Done</span></div></div>
+                <div class="os-tl-row is-active"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Log next intake</span><span class="os-tl-when">Within 20 min</span></div></div>
+                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Recheck performance signals</span><span class="os-tl-when">After intake</span></div></div>
+                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Confirm Status</span><span class="os-tl-when">End of cycle</span></div></div>
+              </div>
+              <div class="os-scard-foot">
+                <div class="os-foot-col"><span class="os-foot-l">Next recheck</span><span class="os-foot-v">20 min</span></div>
+                <div class="os-foot-col"><span class="os-foot-l">Recovery consistency</span><span class="os-foot-v os-foot-green">82%</span></div>
               </div>
             </div>
-            <div class="os-metrics">
-              <div class="os-metric"><span class="os-metric-v">8<em>units</em></span><span class="os-metric-l">Goal</span></div>
-              <div class="os-metric"><span class="os-metric-v">5<em>units</em></span><span class="os-metric-l">Logged</span></div>
-              <div class="os-metric"><span class="os-metric-v">5<em>d</em></span><span class="os-metric-l">Streak</span></div>
+            <div class="os-summary">
+              <div class="os-sumcard"><span class="os-sum-l">Hydration goal</span><span class="os-sum-v">8/8 units</span></div>
+              <div class="os-sumcard"><span class="os-sum-l">Completed</span><span class="os-sum-v">5/8 units</span></div>
+              <div class="os-sumcard"><span class="os-sum-l">Streak</span><span class="os-sum-v os-sum-green">5d</span></div>
             </div>
-            <div class="os-recent">
-              <div class="os-recent-l">Recent activity</div>
-              <div class="os-recent-row"><span class="os-recent-a">Drink 16 ounces now</span><span class="os-recent-when">52m</span><span class="os-recent-s">78</span></div>
-              <div class="os-recent-row"><span class="os-recent-a">Drink 8 ounces before your session</span><span class="os-recent-when">3h</span><span class="os-recent-s">91</span></div>
-              <div class="os-recent-row"><span class="os-recent-a">Drink 12 ounces now. Maintain rhythm.</span><span class="os-recent-when">5h</span><span class="os-recent-s">84</span></div>
-            </div>
-            <div class="os-why">Why this plan <em class="os-chev">&#8964;</em></div>
+            <div class="os-cmdhist"><span class="os-cmdhist-l">Command history</span><span class="os-cmdhist-trend">Recovery trending upward</span></div>
           </div>
         </div>
       </div>
