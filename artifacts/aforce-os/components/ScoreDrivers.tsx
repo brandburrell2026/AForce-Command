@@ -6,12 +6,16 @@
  * no clinical terms — this is the "why" a normal person reads first. The
  * detailed contribution rows still live below it in the breakdown sheet
  * for anyone who wants the full picture.
+ *
+ * VS 3.0 P2: presentation-only migration onto the af.* system (was legacy
+ * Colors.* + hardcoded Inter_* strings + `${color}NN` opacity hacks). Same
+ * drivers, same copy, same layout — brand tokens + AA-clean colors.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-import { Colors } from '../theme/colors';
+import { af, afType, afAlpha, withAlpha } from '../theme';
 import type { ScoreDriver } from '../utils/scoring/drivers';
 import { formatDriverDelta } from '../utils/scoring/drivers';
 
@@ -19,17 +23,18 @@ interface Props {
   drivers: ScoreDriver[];
 }
 
+/** Positive → brand green, negative → AA-clean red text, neutral → tertiary. */
 function colorFor(direction: ScoreDriver['direction']): string {
-  if (direction === 'positive') return Colors.states.PEAK.primary;
-  if (direction === 'negative') return Colors.states.DEPLETED.primary;
-  return Colors.text.muted;
+  if (direction === 'positive') return af.green;
+  if (direction === 'negative') return af.redText;
+  return af.textTertiary;
 }
 
 export function ScoreDrivers({ drivers }: Props) {
   if (drivers.length === 0) return null;
   return (
     <View testID="score-drivers" style={styles.container}>
-      <Text style={styles.label}>WHAT'S MOVING YOUR SCORE</Text>
+      <Text style={styles.label}>WHAT&apos;S MOVING YOUR SCORE</Text>
       <View style={styles.list}>
         {drivers.map((d) => {
           const color = colorFor(d.direction);
@@ -38,13 +43,11 @@ export function ScoreDrivers({ drivers }: Props) {
               <View
                 style={[
                   styles.pill,
-                  { borderColor: `${color}40`, backgroundColor: `${color}14` },
+                  { borderColor: withAlpha(color, afAlpha.a24), backgroundColor: withAlpha(color, afAlpha.a08) },
                 ]}
               >
                 <Text style={[styles.pillLabel, { color }]}>{d.label}</Text>
-                <Text style={[styles.pillDelta, { color }]}>
-                  {formatDriverDelta(d.delta)}
-                </Text>
+                <Text style={[styles.pillDelta, { color }]}>{formatDriverDelta(d.delta)}</Text>
               </View>
               <Text style={styles.text}>{d.text}</Text>
             </View>
@@ -56,22 +59,10 @@ export function ScoreDrivers({ drivers }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 18,
-  },
-  label: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.text.muted,
-    letterSpacing: 2,
-    marginBottom: 12,
-  },
+  container: { marginBottom: 18 },
+  label: { ...afType.eyebrow, color: af.textTertiary, marginBottom: 12 },
   list: { gap: 10 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -79,19 +70,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
     minWidth: 92,
   },
-  pillLabel: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
-  pillDelta: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: -0.3 },
-  text: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.text.secondary,
-    lineHeight: 18,
-  },
+  pillLabel: { ...afType.microLabel },
+  pillDelta: { ...afType.microLabel, fontVariant: ['tabular-nums'] },
+  text: { ...afType.caption, flex: 1, color: af.textSecondary },
 });
 
 export default ScoreDrivers;
