@@ -85,7 +85,7 @@ const FIXTURE: AppleHealthDiagnosticsSnapshot = {
       { sourceName: "Brandon's Apple Watch", valueClass: 'stage', totalHours: 6.7 },
     ],
     valueUsed: 7.2,
-    usedFallback: false,
+    sleepValueUnknown: false,
   },
   workout: {
     identifier: 'HKWorkoutTypeIdentifier',
@@ -223,7 +223,13 @@ describe('AppleHealthDiagnosticsPanel — old vs. new sleep comparison (RC-2 Rul
     expect(host.textContent).toContain("Brandon's Apple Watch (stage)");
   });
 
-  it('flags a fallback explicitly in the "value used" row when the interval-union selection was empty', () => {
+  it('flags the value as unknown in the "value used" row when the interval-union selection was empty (F2, RC-2 P0 gate for build 49)', () => {
+    // F2: `valueUsed: 6.2` alongside this flag is UNREACHABLE post-#592 (S2)
+    // — the real code path always sets `sleepHoursLastNight` (hence
+    // `valueUsed`) to `null` in the same branch that sets this flag, since
+    // no raw-sum fallback exists anymore. This fixture used to assert that
+    // stale, never-reachable combination, which is exactly what let the old
+    // "(fallback → raw sum)" mislabel through — no raw sum is ever used.
     renderPanel({
       diagnostics: {
         ...FIXTURE,
@@ -231,14 +237,16 @@ describe('AppleHealthDiagnosticsPanel — old vs. new sleep comparison (RC-2 Rul
           ...FIXTURE.sleep,
           unionHours: 0,
           selectionBranch: 'none',
-          valueUsed: 6.2,
-          usedFallback: true,
+          valueUsed: null,
+          sleepValueUnknown: true,
         },
       },
     });
     const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
     flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
-    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-used"]')?.textContent).toContain('fallback');
+    const text = q('[data-testid="apple-health-diagnostics-panel-sleep-used"]')?.textContent;
+    expect(text).toContain('unknown');
+    expect(text).not.toContain('fallback');
   });
 });
 

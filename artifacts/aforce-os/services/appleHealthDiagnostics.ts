@@ -110,23 +110,41 @@ export interface AppleHealthSleepDiagnostic {
    */
   totalSampleCount: number | null;
   /**
-   * Count of samples in the branch `selectSleepIntervals` actually chose
-   * (stage samples, or the value-1 fallback set) — the subset that fed
-   * `unionHours`.
+   * Count of SELECTED SLICES `selectSleepIntervals` produced (stage samples,
+   * plus any residual value-1 slices) — the subset that fed `unionHours`.
+   *
+   * S-b (RC-2 P0 gate for build 49): NOT a count of distinct raw samples.
+   * Per-source coverage (F1) can split one raw value-1 sample into multiple
+   * residual slices when it straddles more than one covered span
+   * (`subtractCoveredSpans` in `services/appleHealth.ts`), so this number
+   * can legitimately exceed the number of raw samples that produced it —
+   * e.g. 4 slices "from" 3 samples. The panel/summary label this as
+   * "selected slices: N (from M samples)", not "N of M returned", to avoid
+   * implying a same-units comparison against `totalSampleCount`.
    */
   summedSampleCount: number | null;
   /** Which selection branch fired. 'none' means neither a stage sample nor a value-1 sample existed in the window. */
   selectionBranch: SleepSelectionBranch;
   /** OLD method: flat sum of every asleep sample's duration, no dedup — the exact computation behind the 13.33h/49-sample device evidence (Ruling A). */
   rawSumHours: number | null;
-  /** NEW method: `reduceSleepByIntervalUnion`'s raw result, in hours — captured even when 0 and the fallback below fired. */
+  /** NEW method: `reduceSleepByIntervalUnion`'s raw result, in hours — captured even when 0 and `sleepValueUnknown` below is set. */
   unionHours: number | null;
   /** Per-source, per-value-class flat sums (NOT union-deduplicated) — for on-device comparison against the Health app's per-source breakdown. */
   perSourceTotals: readonly AppleHealthSleepSourceTotal[];
-  /** The number `fetchAppleHealthSnapshot()` actually returned. */
+  /** The number `fetchAppleHealthSnapshot()` actually returned. `null` when `sleepValueUnknown` is `true`. */
   valueUsed: number | null;
-  /** `true` if the interval-union selection resolved to 0h despite real raw samples existing, and the raw flat sum was used as a resilience fallback. */
-  usedFallback: boolean;
+  /**
+   * F2 (RC-2 P0 gate for build 49): renamed from `usedFallback` — the name
+   * changed meaning post-#592 (S2) and the old name became a lie. This is
+   * `true` only when the interval-union selection resolved empty AND the
+   * adapter had to drop at least one raw HealthKit sample it could not
+   * classify — i.e. the sleep value for the night is UNKNOWN. It does NOT
+   * mean a raw flat sum was substituted (that resilience fallback was
+   * removed in #592); `valueUsed` is `null` whenever this is `true`, never a
+   * raw-sum number. See `services/appleHealth.ts`'s `sleepValueUnknown`
+   * local and its S2/F2 comments for the full history.
+   */
+  sleepValueUnknown: boolean;
 }
 
 export interface AppleHealthWorkoutDiagnostic {
@@ -251,13 +269,15 @@ export function formatAppleHealthDiagnosticsSummary(
   lines.push('');
   lines.push(
     `Sleep last night: used ${snapshot.sleep.valueUsed ?? '—'} h${
-      snapshot.sleep.usedFallback ? ' (FALLBACK to raw sum — interval-union selection was empty)' : ''
+      snapshot.sleep.sleepValueUnknown
+        ? ' (UNKNOWN — adapter dropped raw samples; interval-union selection was empty)'
+        : ''
     }`,
   );
   lines.push(`  raw sum (old method, no dedup): ${snapshot.sleep.rawSumHours ?? '—'} h`);
   lines.push(`  interval union (new method): ${snapshot.sleep.unionHours ?? '—'} h`);
   lines.push(`  selection branch: ${snapshot.sleep.selectionBranch}`);
-  lines.push(`  samples used: ${snapshot.sleep.summedSampleCount ?? '—'} of ${snapshot.sleep.totalSampleCount ?? '—'} returned`);
+  lines.push(`  selected slices: ${snapshot.sleep.summedSampleCount ?? '—'} (from ${snapshot.sleep.totalSampleCount ?? '—'} samples)`);
   if (snapshot.sleep.perSourceTotals.length === 0) {
     lines.push('  per-source totals: none');
   } else {

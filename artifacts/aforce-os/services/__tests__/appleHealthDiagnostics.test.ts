@@ -88,7 +88,7 @@ function buildFixture(overrides: Record<string, unknown> = {}) {
         { sourceName: "Brandon's Apple Watch", valueClass: 'stage' as const, totalHours: 6.7 },
       ],
       valueUsed: 7.2,
-      usedFallback: false,
+      sleepValueUnknown: false,
     },
     workout: {
       identifier: 'HKWorkoutTypeIdentifier' as const,
@@ -159,12 +159,19 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
     expect(text).toContain('raw sum (old method, no dedup): 13.33 h');
     expect(text).toContain('interval union (new method): 7.2 h');
     expect(text).toContain('selection branch: stages');
-    expect(text).toContain('samples used: 45 of 49 returned');
+    expect(text).toContain('selected slices: 45 (from 49 samples)');
     expect(text).toContain('iPhone (unspecified): 6.60h');
     expect(text).toContain("Brandon's Apple Watch (stage): 6.70h");
   });
 
-  it('flags a sleep fallback explicitly when the interval-union selection was empty', async () => {
+  it('flags the sleep value as UNKNOWN when the interval-union selection was empty and the adapter dropped a sample (F2, RC-2 P0 gate for build 49)', async () => {
+    // F2: `valueUsed: 6.2` alongside a set "empty selection" flag is
+    // UNREACHABLE post-#592 (S2) — when that guard fires, `sleepHoursLastNight`
+    // is `null`, never a real number (see `services/appleHealth.ts`'s
+    // `sleepValueUnknown` guard: it always `return null`s in the same branch
+    // that sets the flag). This fixture used to assert that stale,
+    // never-reachable combination, which is exactly what let the old
+    // "(fallback → raw sum)" mislabel through — no raw sum is ever used.
     const { formatAppleHealthDiagnosticsSummary } = await loadDiagnosticsModule(undefined);
     const snap = fixtureSnapshot({
       sleep: {
@@ -176,12 +183,13 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
         rawSumHours: 6.2,
         unionHours: 0,
         perSourceTotals: [],
-        valueUsed: 6.2,
-        usedFallback: true,
+        valueUsed: null,
+        sleepValueUnknown: true,
       },
     });
     const text = formatAppleHealthDiagnosticsSummary(snap as any);
-    expect(text).toMatch(/FALLBACK to raw sum — interval-union selection was empty/);
+    expect(text).toMatch(/UNKNOWN — adapter dropped raw samples; interval-union selection was empty/);
+    expect(text).not.toMatch(/FALLBACK to raw sum/);
   });
 
   it('flags a fallback explicitly when the bucketed query failed', async () => {
