@@ -59,6 +59,34 @@
  *     recorded-awake-gap case), probes (g)/(h)/(i)/(j) from the #592
  *     verdict with exact before/after numbers, and a stack-safety
  *     (S-c) large-N test.
+ *
+ * RC-2 P0 gate for build 49 tail fix (2026-08-07, post-#598 independent
+ * verdict) — F2: F1's coverage included a stage source's OWN value-1
+ * samples, and then skipped subtracting against them outright
+ * (`if (stageSources.has(iv.sourceName)) continue;`) — a same-source
+ * value-1 sample deleted itself on sight, undercounting a real 7h night to
+ * 6h (a same-source tail case; lead-in and mid-gap variants are symmetric).
+ * Two consequences for THIS file:
+ *   - The "same-source overlap" describe block's second test (predates
+ *     #598) had a same-source value-1 sample sitting in a genuine gap
+ *     between two of that source's own stage runs — the correct total
+ *     moves from 70min to 80min under this fix. Rewritten in place with
+ *     the coverage-doctrine reasoning; flagged prominently in the PR body
+ *     for founder ratification of this specific number change.
+ *   - A new "F2 — same-source value-1 self-coverage" describe block below
+ *     adds TAIL, LEAD-IN, and MID-GAP regression fixtures (each compared
+ *     against a frozen copy of the exact #598-merged buggy behavior) and an
+ *     `'unknown'`-sourceName-fallback collision fixture documenting a
+ *     related, accepted limitation (two genuinely distinct devices that
+ *     both omit a HealthKit source name are indistinguishable to this
+ *     algorithm).
+ *   - S-c's stack-safety NEGATIVE control (asserting the old spread-based
+ *     envelope throws at a fixed N) was found environment-dependent (the
+ *     throw threshold shifts with the engine's configured stack size) and
+ *     is restructured below to assert the hazardous MECHANISM (the spread
+ *     pattern itself) rather than relying on triggering the failure at
+ *     runtime. The two POSITIVE tests proving the current implementation
+ *     handles large N without throwing are unchanged.
  */
 import { describe, it, expect } from 'vitest';
 
@@ -373,17 +401,34 @@ describe('reduceSleepByIntervalUnion — same-source overlap', () => {
     expect(reduceSleepByIntervalUnion(selected)).toBe(90 * MIN);
   });
 
-  it('three overlapping same-source samples still merge to one run, once the value-1 sample selection would exclude is removed', () => {
+  it('three overlapping same-source samples merge into ONE continuous run: the mid-gap value-1 sample is this source\'s OWN evidence of sleep across the 10-minute gap between its two stage runs, not a self-coverage sample to delete (F2, RC-2 P0 gate for build 49, post-#598 verdict)', () => {
     const intervals: SleepInterval[] = [
       { startMs: 0, endMs: 40 * MIN, value: 3, sourceName: 'iPhone' },
       { startMs: 20 * MIN, endMs: 60 * MIN, value: 1, sourceName: 'iPhone' },
       { startMs: 50 * MIN, endMs: 80 * MIN, value: 3, sourceName: 'iPhone' },
     ];
-    // Stages exist (0-40 and 50-80) and fully cover the value-1 sample's
-    // span (20-60 sits inside the [0,80] envelope), so selection excludes
-    // it before union runs. Selected: [0,40] and [50,80] — disjoint (10min
-    // gap, 40 -> 50) — NOT merged.
-    expect(selectThenUnion(intervals)).toBe(40 * MIN + 30 * MIN);
+    // F2 (this test predates #598; its correct total moved 70min -> 80min
+    // under this fix — flagged prominently in the PR body for founder
+    // ratification): coverage is built from this source's STAGE-valued
+    // samples only (0-40 and 50-80 — disjoint, a real 10-minute gap, 40-50,
+    // where 'iPhone' wrote no stage sample of its own). The value-1 sample
+    // (20-60) is this SAME source's own positive evidence it was recording
+    // asleepUnspecified through that gap — coverage doctrine: a source's
+    // own "asleep" reading is evidence OF SLEEP, never coverage against
+    // itself. Its portions INSIDE the two stage spans (20-40 and 50-60)
+    // are still dropped as redundant with the more-precise stage data;
+    // only its 10-minute sliver over the genuine gap (40-50) is kept.
+    // Selected: [0,40] (stage), [40,50] (value-1 gap-fill), [50,80]
+    // (stage) — three touching intervals that merge into ONE continuous
+    // 80-minute run.
+    //
+    // Pre-F2 (#598 regression): `if (stageSources.has(iv.sourceName))
+    // continue;` skipped this value-1 sample outright because it shared
+    // 'iPhone' with the stage samples, so the 10-minute gap was never
+    // filled and this fixture reported 70min (40+30, disjoint) — an
+    // undercount in the exact defect class the coverage design exists to
+    // close.
+    expect(selectThenUnion(intervals)).toBe(80 * MIN);
   });
 });
 
@@ -680,6 +725,158 @@ describe('F1 — per-source coverage (RC-2 P0 gate for build 49, post-#592 indep
   });
 });
 
+describe('F2 — same-source value-1 self-coverage (RC-2 P0 gate for build 49 tail fix, post-#598 independent verdict)', () => {
+  /**
+   * A frozen copy of the #598-merged (pre-F2) `selectSleepIntervals` body —
+   * coverage built from ALL of a stage source's own samples (including its
+   * own value-1) AND a same-source value-1 sample skipped outright before
+   * ever reaching the subtract-against-coverage step. Kept ONLY here,
+   * self-contained (it reimplements merge/subtract rather than importing
+   * this file's internal, unexported helpers, matching this suite's
+   * `oldEnvelopeSelect`/`oldSpreadEnvelope` convention), as the exact
+   * regression this F2 fix corrects. See the "Sleep aggregation" file
+   * header in `services/appleHealth.ts` for the doctrine this violated (a
+   * stage source's own asleepUnspecified sample is evidence OF SLEEP, not
+   * coverage against itself).
+   */
+  function postF1BuggySelect(intervals: readonly SleepInterval[]): SleepInterval[] {
+    const stageIntervals = intervals.filter((i) => i.value === 3 || i.value === 4 || i.value === 5);
+    const unspecifiedIntervals = intervals.filter((i) => i.value === 1);
+    if (stageIntervals.length === 0) return unspecifiedIntervals;
+    if (unspecifiedIntervals.length === 0) return stageIntervals;
+
+    const stageSources = new Set(stageIntervals.map((i) => i.sourceName));
+    // BUGGY (pre-F2): coverage includes a stage source's OWN value-1 samples.
+    const coverageSource = intervals.filter((i) => stageSources.has(i.sourceName));
+    const sorted = [...coverageSource].sort((a, b) => a.startMs - b.startMs);
+    const covered: Array<{ startMs: number; endMs: number }> = [];
+    for (const iv of sorted) {
+      const last = covered[covered.length - 1];
+      if (last && iv.startMs <= last.endMs) {
+        if (iv.endMs > last.endMs) last.endMs = iv.endMs;
+      } else {
+        covered.push({ startMs: iv.startMs, endMs: iv.endMs });
+      }
+    }
+
+    const residual: SleepInterval[] = [];
+    for (const iv of unspecifiedIntervals) {
+      // BUGGY (pre-F2): same-source value-1 skipped outright — the exact
+      // line F2 removes.
+      if (stageSources.has(iv.sourceName)) continue;
+      let cursor = iv.startMs;
+      for (const span of covered) {
+        if (span.endMs <= cursor) continue;
+        if (span.startMs >= iv.endMs) break;
+        if (span.startMs > cursor) {
+          residual.push({ startMs: cursor, endMs: span.startMs, value: iv.value, sourceName: iv.sourceName });
+        }
+        cursor = Math.max(cursor, span.endMs);
+        if (cursor >= iv.endMs) break;
+      }
+      if (cursor < iv.endMs) {
+        residual.push({ startMs: cursor, endMs: iv.endMs, value: iv.value, sourceName: iv.sourceName });
+      }
+    }
+    return residual.length > 0 ? [...stageIntervals, ...residual] : stageIntervals;
+  }
+
+  it('TAIL — a same-source value-1 sample immediately AFTER a stage run is genuine evidence of sleep the stage source itself never recorded, not self-coverage: reproduces the #598 regression (7h -> 6h) and confirms the fix restores 7h', () => {
+    const watchStage: SleepInterval = { startMs: 0, endMs: 6 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" };
+    const watchTailUnspecified: SleepInterval = { startMs: 6 * HOUR, endMs: 7 * HOUR, value: 1, sourceName: "Brandon's Apple Watch" };
+    const intervals = [watchStage, watchTailUnspecified];
+
+    const buggyTotal = reduceSleepByIntervalUnion(postF1BuggySelect(intervals));
+    expect(buggyTotal).toBe(6 * HOUR); // the #598 regression: the tail deletes itself
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const fixedTotal = reduceSleepByIntervalUnion(selected);
+    expect(fixedTotal).toBe(7 * HOUR); // restored — matches the pre-F1 (#592) correct figure
+    expect(fixedTotal).not.toBe(buggyTotal);
+  });
+
+  it('LEAD-IN — the symmetric case, a same-source value-1 sample immediately BEFORE a stage run: same regression, same fix', () => {
+    const watchLeadIn: SleepInterval = { startMs: -1 * HOUR, endMs: 0, value: 1, sourceName: "Brandon's Apple Watch" };
+    const watchStage: SleepInterval = { startMs: 0, endMs: 6 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" };
+    const intervals = [watchLeadIn, watchStage];
+
+    const buggyTotal = reduceSleepByIntervalUnion(postF1BuggySelect(intervals));
+    expect(buggyTotal).toBe(6 * HOUR); // same regression, mirrored
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const fixedTotal = reduceSleepByIntervalUnion(selected);
+    expect(fixedTotal).toBe(7 * HOUR);
+    expect(fixedTotal).not.toBe(buggyTotal);
+  });
+
+  it('MID-GAP — a same-source value-1 sample sitting exactly between two of that source\'s own stage runs fills the gap: reviewer-measured 6h, NOT the buggy 5h (the two disjoint stage runs never bridged) and NOT a naive 7h (the value-1 sample does not extend beyond the gap it actually fills)', () => {
+    const stage1: SleepInterval = { startMs: 0, endMs: 3 * HOUR, value: 4, sourceName: "Brandon's Apple Watch" };
+    const midUnspecified: SleepInterval = { startMs: 3 * HOUR, endMs: 4 * HOUR, value: 1, sourceName: "Brandon's Apple Watch" };
+    const stage2: SleepInterval = { startMs: 4 * HOUR, endMs: 6 * HOUR, value: 3, sourceName: "Brandon's Apple Watch" };
+    const intervals = [stage1, midUnspecified, stage2];
+
+    // BUGGY (#598): the mid-gap value-1 sample is skipped outright (same
+    // source) and never fills the gap — the two disjoint stage runs (0-3h,
+    // 4-6h) are never bridged: total is 3h + 2h = 5h.
+    const buggyTotal = reduceSleepByIntervalUnion(postF1BuggySelect(intervals));
+    expect(buggyTotal).toBe(5 * HOUR);
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    const fixedTotal = reduceSleepByIntervalUnion(selected);
+    // Reviewer-measured: the mid-gap value-1 sample is genuine evidence the
+    // Watch was recording SOMETHING (asleepUnspecified) in the one stretch
+    // where it wrote no STAGE sample of its own — filled, bridging the two
+    // stage runs into one continuous 6h block (3h + 1h fill + 2h).
+    expect(fixedTotal).toBe(6 * HOUR);
+    expect(fixedTotal).not.toBe(buggyTotal);
+  });
+
+  it("'unknown'-fallback collision — two genuinely distinct devices that both default to sourceName 'unknown' are indistinguishable to this algorithm and pool as one source: documents the fixed behavior AND the remaining, accepted limitation", () => {
+    // If HealthKit's HKSource.name is missing, this file's adapters default
+    // sourceName to the literal string 'unknown' (see `entry.source?.name ??
+    // 'unknown'` elsewhere in appleHealth.ts). If TWO genuinely different
+    // physical devices both fail to report a name for the SAME night — a
+    // real, if unobserved-as-of-this-PR, HealthKit data-quality gap — they
+    // collide into the SAME 'unknown' bucket here, and sourceName is this
+    // algorithm's ONLY signal of device identity: it cannot tell them apart.
+    const stageUnknown: SleepInterval = { startMs: 2 * HOUR, endMs: 4 * HOUR, value: 4, sourceName: 'unknown' };
+    const unspecifiedUnknown: SleepInterval = { startMs: 0, endMs: 8 * HOUR, value: 1, sourceName: 'unknown' };
+    const intervals = [stageUnknown, unspecifiedUnknown];
+
+    const { branch, selected } = selectSleepIntervals(intervals);
+    expect(branch).toBe('stages+uncovered');
+    // Both intervals are pooled under sourceName 'unknown', so the value-1
+    // sample is treated as THIS "source"'s own gap-filling evidence (the F2
+    // fix), not a second device's double-counting layer: the [0,2h)
+    // lead-in and (4h,8h] tail are both kept, and — because they are
+    // adjacent to the 2h-4h stage span — the whole night merges into one
+    // continuous 8h run.
+    const totalMs = reduceSleepByIntervalUnion(selected);
+    expect(totalMs).toBe(8 * HOUR);
+
+    // LIMITATION (documented, not fixed by this PR): if this fixture's two
+    // intervals actually came from two DIFFERENT unnamed devices — e.g. a
+    // stage-capable accessory plus an unrelated app's coarse summary layer,
+    // both omitting HKSource.name — the cross-source dedup that would
+    // normally drop a genuinely different source's overlapping
+    // double-count layer (here, the 2h-4h portion of the value-1 sample)
+    // never happens, because the name collision makes the two sources
+    // indistinguishable from one real source filling its own gaps. This can
+    // only ever OVER-count sleep (never silently drop real sleep, since a
+    // value-1 sample is always either kept as fill or dropped as
+    // redundant-with-stage, never dropped as "belongs to some other,
+    // unrelated source"), and requires TWO independent devices to both omit
+    // a source name for the SAME night — an edge case with no observed
+    // occurrence as of this PR. No fix is planned without real-world
+    // evidence this happens; see `SleepInterval.sourceName`'s doc comment
+    // in `services/appleHealth.ts` for the same note at the field
+    // definition.
+  });
+});
+
 describe('selectSleepIntervals — S-c stack safety (RC-2 P0 gate for build 49)', () => {
   /**
    * A frozen copy of the PRE-F1 (#592) envelope calculation ONLY (not the
@@ -695,20 +892,37 @@ describe('selectSleepIntervals — S-c stack safety (RC-2 P0 gate for build 49)'
     };
   }
 
-  it('S-c: the OLD Math.min/max-spread envelope calculation overflows the call stack on a large array; the current implementation does not', () => {
+  it('S-c: the OLD Math.min/max-spread envelope calculation used the call-stack-limit-prone pattern — verified structurally, NOT by triggering an actual stack overflow (should-fix, #598 verdict)', () => {
     // HealthKit's `queryCategorySamples` is called with `limit: 0`
     // (`fetchAppleHealthSnapshot`, unbounded) — a pathological/misbehaving
     // response could return a very large sample array. `Math.min(...arr)`/
     // `Math.max(...arr)` spread every element into a single function call's
-    // argument list, which throws "Maximum call stack size exceeded" well
-    // before a real night's sample count, but easily within what an
-    // unbounded query could return.
-    const N = 150_000;
-    const stageIntervals: SleepInterval[] = [];
-    for (let i = 0; i < N; i++) {
-      stageIntervals.push({ startMs: i, endMs: i + 1, value: 4, sourceName: "Brandon's Apple Watch" });
-    }
-    expect(() => oldSpreadEnvelope(stageIntervals)).toThrow(/call stack/i);
+    // argument list, which throws "Maximum call stack size exceeded" once
+    // the array is large enough — but HOW large is not a fixed constant of
+    // the language, it is a function of the JS engine's configured stack
+    // size. This test originally asserted `oldSpreadEnvelope` throws at
+    // N=150_000. The reviewer (#598 verdict, S-c should-fix) bisected the
+    // actual throw threshold at N>=124,134 on Node 26's DEFAULT stack size
+    // — but under `--stack-size=4000` (a larger-than-default V8 stack that
+    // some environments configure), the SAME N=150_000 array does not
+    // throw, and neither does N=300_000. A fixed N is therefore not a
+    // reliable negative control across environments: it can spuriously PASS
+    // in one environment and spuriously FAIL (no throw, masking a real
+    // regression) in another with a larger configured stack — exactly the
+    // kind of environment-dependent assertion that erodes trust in a P0
+    // gate. Restructured to assert the MECHANISM instead of the runtime
+    // failure: `oldSpreadEnvelope`'s own source spreads its entire input
+    // into a single `Math.min`/`Math.max` call — the hazardous shape,
+    // independent of whether any particular run's stack size happens to be
+    // large enough to survive it. The two tests below prove the CURRENT
+    // implementation does NOT share this shape, by handling N=150_000
+    // (mostly-contiguous, and separately many-disjoint-span) inputs without
+    // throwing in any environment — a loop-based implementation has no
+    // input-size-dependent call-stack ceiling at all, so that non-throwing
+    // behavior is itself mechanism proof, not incidental.
+    const src = oldSpreadEnvelope.toString();
+    expect(src).toMatch(/Math\.min\(\.\.\./);
+    expect(src).toMatch(/Math\.max\(\.\.\./);
   });
 
   it('S-c: selectSleepIntervals handles a large, mostly-contiguous interval array (no spread anywhere in its call graph)', () => {

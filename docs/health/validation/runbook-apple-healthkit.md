@@ -213,7 +213,7 @@ already-known and move on.
 
 - **Sleep selection is PER-SOURCE COVERAGE, not a simple sum — read this
   before classifying any Time-Asleep mismatch as a bug (RC-2 P0 gate for
-  build 49, F1).** `selectSleepIntervals` (`appleHealth.ts`) treats any
+  build 49, F1 + F2 tail fix).** `selectSleepIntervals` (`appleHealth.ts`) treats any
   HealthKit source that wrote a sleep-stage sample (core/deep/REM) as
   authoritative for every span where THAT source wrote anything at all
   (asleep, awake, or inBed); a different source's coarser "asleep
@@ -239,20 +239,36 @@ already-known and move on.
      file this as an overcount without first checking whether the Watch
      genuinely has zero samples (of ANY value, not just stage) for that
      window in the Health app's own source data.
-  3. **An explicitly Watch-recorded awake(2) or inBed(0) sample is NEVER
-     filled**, even if it sits just before/after a stage run (a
-     just-woke-up tail, a not-yet-asleep lead-in). If a mismatch traces to
-     time the Watch itself marked awake or inBed being counted as asleep,
-     that IS a bug — check whether the sample genuinely has that value in
-     the Health app's raw data (Health app → Browse → Sleep → a specific
-     night → Show All Data) before filing; the two known-limitation cases
-     above look superficially similar but are the opposite of this one.
+  3. **Clipping only ever removes value-1 (asleepUnspecified) time — a
+     STAGE-valued (core/deep/REM) sample is never clipped, from ANY
+     source, including a second stage-capable device.** A value-1 sample is
+     checked against a stage source's full coverage (its stage, awake, and
+     inBed samples together) regardless of whether the value-1 sample came
+     from that SAME source (F2, RC-2 P0 gate for build 49 tail fix) or a
+     DIFFERENT one — an explicitly Watch-recorded awake(2) or inBed(0)
+     sample clips an overlapping value-1 sample either way, even one that
+     sits just before/after a stage run (a just-woke-up tail, a
+     not-yet-asleep lead-in). What clipping can never do is suppress a
+     genuine stage sample: if two different stage-capable sources disagree
+     for the same stretch — one recording awake(2), a different one
+     recording an overlapping stage sample — the stage sample wins outright,
+     because it is always included in the final selection and nothing in
+     this algorithm ever clips a stage-valued sample. If a mismatch traces
+     to time the Watch itself marked awake or inBed being counted as
+     asleep, check whether the sample counted as asleep is a value-1 sample
+     (the bug this point guards against — verify in the Health app's raw
+     data, Health app → Browse → Sleep → a specific night → Show All Data)
+     rather than a genuine stage sample from a second device (expected,
+     not a bug) before filing; the two known-limitation cases above look
+     superficially similar but are the opposite of this one.
   See `services/__tests__/appleHealth.sleepAggregation.test.ts`'s "F1 —
   per-source coverage" describe block for the exact fixtures (probes
-  g/h/i/j) backing all three points. Three of the four (h/i/j) hit the
-  reviewer-predicted numbers exactly; probe (g) required one documented
-  correction — see that test's comment for why its fully-correct total is
-  435min/7.25h, not the verdict's rounded "420".
+  g/h/i/j) backing all three points, and its "F2 — same-source value-1
+  self-coverage" describe block for the TAIL/LEAD-IN/MID-GAP fixtures
+  behind point 3's same-source clipping clarification. Three of the four
+  F1 probes (h/i/j) hit the reviewer-predicted numbers exactly; probe (g)
+  required one documented correction — see that test's comment for why its
+  fully-correct total is 435min/7.25h, not the verdict's rounded "420".
 
 ## Step-by-step validation flow
 
