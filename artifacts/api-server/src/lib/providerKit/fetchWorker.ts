@@ -29,8 +29,23 @@
  *
  * Never throws — every failure path returns a structured outcome so a
  * sweep loop can keep going across users.
+ *
+ * Founder Ruling C (RC-2 arbitration freshness, 2026-08-06): "A
+ * provider should not regain priority just because the server polled
+ * and re-stamped unchanged data." Every freshest-wins reader of
+ * `fetchedAt` (the mobile aggregator, and server-side
+ * `hydrationDemandStateAdapter.ts`) treats a higher `fetchedAt` as
+ * newer DATA — so restamping on every poll, even when the provider
+ * returned byte-identical content, let a frequently-polled provider
+ * permanently outvote a less-frequently-polled one on every field it
+ * carries. `runOnce` now reads the stored entry for this provider key
+ * BEFORE writing, and preserves its `fetchedAt` when the new content is
+ * unchanged (see `resolveProviderFetchedAt` below). `latestObservedAtMs`
+ * (Founder Ruling I, #562) is untouched by this — it always reflects
+ * whatever the current snapshot derived, in both branches.
  */
 
+import { isDeepStrictEqual } from "node:util";
 import type { Logger } from "pino";
 import type { UserStateRepo } from "./userStateRepo";
 
@@ -92,6 +107,54 @@ export interface RunProviderFetchOnceDeps<TSnapshot> {
 function errMessage(err: unknown): string {
   if (err instanceof Error) return err.name;
   return "unknown_error";
+}
+
+/** Every provider blob shape (`WhoopProviderBlob`, `OuraProviderBlob`,
+ *  `GarminProviderBlob`, `StravaProviderBlob`) carries exactly one
+ *  volatile bookkeeping field alongside `providerId` + real metric
+ *  data: `fetchedAt`. Stripping it here, once, keeps every provider's
+ *  `toBlob` free of restamp-awareness — this module owns the decision,
+ *  not the callers. */
+function withoutFetchedAt(
+  entry: Record<string, unknown>,
+): Record<string, unknown> {
+  const { fetchedAt: _fetchedAt, ...rest } = entry;
+  return rest;
+}
+
+/**
+ * Founder Ruling C (RC-2 arbitration freshness, 2026-08-06) — the
+ * shared decision every provider's `runOnce` applies before writing.
+ *
+ * Compares the newly built blob's content (everything except
+ * `fetchedAt`) against the STORED blob's content (same exclusion).
+ * Equal -> the data hasn't changed since the last write; preserve the
+ * stored `fetchedAt` so a frequently-polled-but-unchanged provider
+ * can't outrank a less-frequently-polled one that actually has fresher
+ * data. Different, or nothing stored yet, or the stored `fetchedAt` is
+ * malformed -> stamp `candidateFetchedAt` (now()).
+ *
+ * `candidateBlob` must be the SAME object that will be written when
+ * this returns `candidateFetchedAt` unchanged — callers only need to
+ * patch the `fetchedAt` key when the return value differs from
+ * `candidateFetchedAt`.
+ */
+export function resolveProviderFetchedAt(
+  existingEntry: Record<string, unknown> | null,
+  candidateBlob: Record<string, unknown>,
+  candidateFetchedAt: number,
+): number {
+  if (existingEntry === null) return candidateFetchedAt;
+  const storedFetchedAt = existingEntry["fetchedAt"];
+  if (typeof storedFetchedAt !== "number" || !Number.isFinite(storedFetchedAt)) {
+    // Malformed/legacy stored entry — never propagate garbage forward.
+    return candidateFetchedAt;
+  }
+  const unchanged = isDeepStrictEqual(
+    withoutFetchedAt(existingEntry),
+    withoutFetchedAt(candidateBlob),
+  );
+  return unchanged ? storedFetchedAt : candidateFetchedAt;
 }
 
 export interface CreateProviderFetchWorkerOptions<TSnapshot> {
@@ -157,8 +220,35 @@ export function createProviderFetchWorker<TSnapshot>(
         return { userId, status: "error", error: errMessage(err) };
       }
 
-      const fetchedAt = now();
-      const blob = opts.toBlob(snapshot, fetchedAt);
+      const candidateFetchedAt = now();
+      const candidateBlob = opts.toBlob(snapshot, candidateFetchedAt);
+
+      // Founder Ruling C: read the stored entry BEFORE deciding
+      // fetchedAt. A read failure fails OPEN to a fresh timestamp
+      // (never silently freezes fetchedAt) — a stuck stale reading is
+      // worse than an occasional over-eager restamp.
+      let existingEntry: Record<string, unknown> | null = null;
+      try {
+        existingEntry = await deps.stateRepo.readProviderEntry(
+          userId,
+          providerKey,
+        );
+      } catch (err) {
+        log?.warn(
+          { userId, err: errMessage(err) },
+          `${providerKey}FetchWorker:read-before-write threw — restamping`,
+        );
+      }
+
+      const fetchedAt = resolveProviderFetchedAt(
+        existingEntry,
+        candidateBlob,
+        candidateFetchedAt,
+      );
+      const restamped = fetchedAt === candidateFetchedAt;
+      const blob = restamped
+        ? candidateBlob
+        : { ...candidateBlob, fetchedAt };
 
       try {
         const updated = await deps.stateRepo.writeProviderEntry(
@@ -179,7 +269,10 @@ export function createProviderFetchWorker<TSnapshot>(
         return { userId, status: "error", error: errMessage(err) };
       }
 
-      log?.info({ userId, fetchedAt }, `${providerKey}FetchWorker:ok`);
+      log?.info(
+        { userId, fetchedAt, restamped },
+        `${providerKey}FetchWorker:ok`,
+      );
       return { userId, status: "ok", snapshot, fetchedAt };
     },
   };

@@ -43,6 +43,21 @@ export interface UserStateRepo {
     providerKey: string,
     entry: Record<string, unknown>,
   ): Promise<boolean>;
+  /**
+   * Read-only: the CURRENTLY stored entry for one provider key, or
+   * `null` when the user has no state row yet OR the row exists but
+   * has never had this provider key written. Added for Founder Ruling
+   * C (RC-2 arbitration freshness, 2026-08-06) — every fetch-worker
+   * `runOnce` calls this BEFORE building its write, to decide whether
+   * the newly fetched content actually changed (see
+   * `providerKit/fetchWorker.ts`'s `resolveProviderFetchedAt`). Never
+   * throws on a missing row/key — only on a real I/O failure, which
+   * callers treat as "assume changed" (fail toward a fresh timestamp,
+   * never toward a silently-frozen one). */
+  readProviderEntry(
+    userId: string,
+    providerKey: string,
+  ): Promise<Record<string, unknown> | null>;
 }
 
 /** Default Drizzle-backed UserStateRepo. Path is built as a
@@ -67,6 +82,25 @@ export function createDrizzleUserStateRepo(
         .where(eq(aforceUserState.userId, userId))
         .returning({ id: aforceUserState.userId });
       return updated.length > 0;
+    },
+
+    // Single-column, single-key SELECT — cheap (no full-row fetch) and
+    // read-only, so it carries none of the concurrent-writer hazard
+    // `writeProviderEntry`'s jsonb_set guards against. `->` on a NULL
+    // `biometrics` column, or a key absent from an existing object,
+    // both evaluate to SQL NULL — no COALESCE needed on the read side.
+    async readProviderEntry(userId, providerKey) {
+      const rows = await db
+        .select({
+          entry: sql<Record<
+            string,
+            unknown
+          > | null>`${aforceUserState.biometrics} -> ${providerKey}::text`,
+        })
+        .from(aforceUserState)
+        .where(eq(aforceUserState.userId, userId))
+        .limit(1);
+      return rows[0]?.entry ?? null;
     },
   };
 }
