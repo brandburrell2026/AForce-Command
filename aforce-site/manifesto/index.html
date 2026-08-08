@@ -76,10 +76,12 @@
 
   /* Hero */
   .m-hero{ position:relative; min-height:100vh; display:flex; align-items:flex-end; padding:clamp(120px,20vh,220px) 0 clamp(56px,9vh,110px); overflow:hidden; }
-  .m-hero .bg{ position:absolute; inset:0; background:url('/assets/aforce-manifesto-poster.jpg') center/cover no-repeat; z-index:0; }
+  .m-hero .m-hero-video, .m-hero .m-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; z-index:0; }
+  .m-hero .m-hero-still{ display:none; }
+  @media (prefers-reduced-motion:reduce){ .m-hero .m-hero-video{ display:none; } .m-hero .m-hero-still{ display:block; } }
   .m-hero .scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.2) 34%, rgba(13,13,13,0.86) 100%); }
   .m-hero .wrap{ position:relative; z-index:2; width:100%; }
-  .m-hero .display{ margin-top:20px; max-width:15ch; }
+  .m-hero .display{ margin-top:20px; max-width:15ch; font-size:clamp(28px,4.3vw,56px); }
   .m-hero .sub{ font-family:var(--mono); font-size:12px; letter-spacing:0.24em; text-transform:uppercase; color:var(--faint); margin-top:14px; }
   .m-hero .body{ margin-top:26px; max-width:56ch; color:var(--mute); font-size:clamp(16px,1.4vw,20px); }
   .m-hero .body b{ color:var(--bone); font-weight:500; }
@@ -121,10 +123,10 @@
 
   /* Finale */
   .finale{ position:relative; min-height:96vh; display:flex; align-items:center; overflow:hidden; border-top:1px solid var(--line); }
-  .finale .bg{ position:absolute; inset:0; background:url('/assets/aforce-manifesto-finale.jpg') center/cover no-repeat; z-index:0; }
+  .finale .bg{ position:absolute; inset:0; background:url('/assets/aforce-manifesto-finale.jpg') center 18%/cover no-repeat; z-index:0; }
   .finale .scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.72) 0%, rgba(13,13,13,0.5) 50%, rgba(13,13,13,0.9) 100%); }
   .finale .wrap{ position:relative; z-index:2; text-align:center; width:100%; }
-  .finale .display{ margin:0 auto; max-width:20ch; }
+  .finale .display{ margin:0 auto; max-width:20ch; font-size:clamp(28px,4.2vw,54px); }
   .finale .nonneg{ margin-top:clamp(26px,4vw,44px); font-family:var(--mono); font-size:clamp(14px,1.8vw,20px); letter-spacing:0.14em; text-transform:uppercase; color:var(--red); }
   .finale .cta{ justify-content:center; }
   .finale .triline{ justify-content:center; }
@@ -192,7 +194,10 @@
 
 <!-- ============ HERO ============ -->
 <header class="m-hero" id="top">
-  <div class="bg" aria-hidden="true"></div>
+  <video class="m-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/aforce-manifesto-poster.jpg" aria-hidden="true">
+    <source src="/assets/aforce-manifesto-hero.mp4" type="video/mp4">
+  </video>
+  <img class="m-hero-still" src="/assets/aforce-manifesto-poster.jpg" alt="" aria-hidden="true">
   <div class="scrim" aria-hidden="true"></div>
   <div class="wrap">
     <div class="eyebrow reveal in">The Moment Before<span class="s">—</span>Private Preparation</div>
