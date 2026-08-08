@@ -218,7 +218,13 @@ export function AppleHealthDiagnosticsPanel({
           />
           <Row
             label="value used"
-            value={`${diagnostics.sleep.valueUsed ?? '—'} h${diagnostics.sleep.sleepValueUnknown ? ' (unknown — raw samples dropped)' : ''}`}
+            value={`${diagnostics.sleep.valueUsed ?? '—'} h${
+              diagnostics.sleep.sleepValueUnknown
+                ? ' (unknown — raw samples dropped)'
+                : diagnostics.sleep.valueUsed == null && diagnostics.sleep.sleepSessionRule === 'none'
+                  ? ' (no session in 36h window)'
+                  : ''
+            }`}
             testID={`${testID}-sleep-used`}
           />
           <Row label="selection branch" value={diagnostics.sleep.selectionBranch} testID={`${testID}-sleep-branch`} />
@@ -226,6 +232,38 @@ export function AppleHealthDiagnosticsPanel({
             label="selected slices (from samples)"
             value={`${diagnostics.sleep.summedSampleCount ?? '—'} (from ${diagnostics.sleep.totalSampleCount ?? '—'})`}
           />
+          {/* RC-2 sleep-window ruling (2026-08-08): session-clustering diagnostics. */}
+          <Row
+            label="sessions in window"
+            value={String(diagnostics.sleep.sessionCount)}
+            testID={`${testID}-sleep-session-count`}
+          />
+          <Row
+            label="session rule fired"
+            value={diagnostics.sleep.sleepSessionRule}
+            testID={`${testID}-sleep-session-rule`}
+          />
+          <Row
+            label="chosen session"
+            value={
+              diagnostics.sleep.chosenSessionStartIso && diagnostics.sleep.chosenSessionEndIso
+                ? `${diagnostics.sleep.chosenSessionStartIso} → ${diagnostics.sleep.chosenSessionEndIso}`
+                : 'none'
+            }
+            testID={`${testID}-sleep-chosen-session`}
+          />
+          {diagnostics.sleep.sleepSessions.length === 0 ? (
+            <Row label="all sessions" value="none" />
+          ) : (
+            diagnostics.sleep.sleepSessions.map((s, i) => (
+              <Row
+                key={`${s.startIso}-${s.endIso}`}
+                label={`  session ${i + 1}`}
+                value={`${s.startIso} → ${s.endIso} (${s.durationHours.toFixed(2)}h)`}
+                testID={`${testID}-sleep-session-${i}`}
+              />
+            ))
+          )}
           {diagnostics.sleep.perSourceTotals.length === 0 ? (
             <Row label="per-source totals" value="none" />
           ) : (

@@ -28,6 +28,18 @@ import {
   type AppleHealthSleepSourceTotal,
   type AppleHealthStepsDiagnostic,
 } from './appleHealthDiagnostics';
+// RC-2 sleep-window ruling (2026-08-08): the sleep query window is now §53's
+// own `FRESHNESS_WINDOWS.sleep.staleAfterMs` (36h), reused directly rather
+// than a second, independently-hardcoded literal — see the "Sleep
+// aggregation" section header below for the full device-evidence writeup and
+// `config/hydroStateModel.ts`'s own doc comment on `SLEEP_SESSION_SPLIT_GAP_MS`
+// / `SLEEP_PRIMARY_SESSION_MIN_MS` for the two additive session-clustering
+// thresholds this ruling also introduces.
+import {
+  FRESHNESS_WINDOWS,
+  SLEEP_SESSION_SPLIT_GAP_MS,
+  SLEEP_PRIMARY_SESSION_MIN_MS,
+} from '../config/hydroStateModel';
 
 export interface AppleHealthSnapshot {
   /** Most recent resting heart rate sample (bpm). */
@@ -347,7 +359,10 @@ function sumRawQuantitySamples(samples: unknown): number | null {
 // the diagnostics comparison and as a resilience fallback) took every
 // `HKCategorySample` with an "asleep" value (1 = ASLEEP_UNSPECIFIED, 3/4/5 =
 // ASLEEP_CORE/DEEP/REM) across the whole [now-18h, now] window (`lastNightStart`
-// below) and summed their durations with a flat `reduce` — no cross-source or
+// below — RC-2 sleep-window ruling, 2026-08-08, widened this to [now-36h,
+// now]; see "Founder Ruling D" below `reduceSleepByIntervalUnionDetailed`
+// for why 18h was itself a bug, not just a coarser number) and summed their
+// durations with a flat `reduce` — no cross-source or
 // same-source deduplication at all. When an Apple Watch writes per-stage
 // samples (core/deep/REM) for a night AND the paired iPhone independently
 // writes an `asleepUnspecified` (value 1) layer for the SAME night — exactly
@@ -761,6 +776,174 @@ export function reduceSleepByIntervalUnion(selectedIntervals: readonly SleepInte
   return reduceSleepByIntervalUnionDetailed(selectedIntervals).totalMs;
 }
 
+// ─── Sleep SESSION selection (Founder Ruling D, RC-2 sleep-window ruling, 2026-08-08) ───
+//
+// Device evidence: a founder reading at 18:45 with a real night spanning
+// ~23:30–06:15 (5.6h asleep, with gaps) measured 4.696h from this file's OLD
+// fixed 18h-lookback query — `queryCategorySamples`'s date filter is
+// OVERLAP-MATCHING and returns a matching sample WHOLE, never truncated to
+// the window, so a stage segment ending before the `[now-18h, now]` boundary
+// was not clipped, it was dropped OUTRIGHT, silently shrinking the front of
+// the night. This directly contradicts §53's own freshness policy
+// (`config/hydroStateModel.ts`'s `FRESHNESS_WINDOWS.sleep`), which says
+// sleep AGES via a freshness curve (`staleAfterMs`: usable into a second
+// day) — the fixed 18h fetch window was instead making sleep VANISH before
+// it could ever age.
+//
+// The fix has two parts, both below:
+//
+//   1. WIDEN THE QUERY WINDOW to §53's own `staleAfterMs` cap (36h) — done at
+//      `lastNightStart`'s definition in `fetchAppleHealthSnapshot` below, by
+//      importing `FRESHNESS_WINDOWS.sleep.staleAfterMs` directly rather than
+//      hardcoding a second "36h" literal. This alone fixes the dropped-
+//      segment defect, but is not sufficient BY ITSELF: a 36h window can
+//      contain last night AND today's nap, or (shift work) two legitimate,
+//      unrelated sleep sessions — summing everything the window returns, the
+//      way `reduceSleepByIntervalUnionDetailed` always has, would silently
+//      merge them into one inflated "last night" number.
+//   2. CLUSTER the selected interval set into discrete SESSIONS
+//      (`clusterSleepIntervalsIntoSessions`) and choose exactly one
+//      (`chooseSleepSession`) before it is ever unioned into a single
+//      number. This consumes `selectSleepIntervals`'s output UNCHANGED — the
+//      per-source-coverage selection itself (F1/F2 above) is not touched by
+//      this ruling — and reuses `reduceSleepByIntervalUnionDetailed`
+//      UNCHANGED for each session's own duration/end (pre-selected contract,
+//      RC-2 P0 follow-up S3 / #612 / #617): a session is simply "one call's
+//      worth" of that same reduction, computed once per session rather than
+//      once across the whole window.
+//
+// See `services/__tests__/appleHealth.sleepSession.test.ts` for
+// `clusterSleepIntervalsIntoSessions` / `chooseSleepSession` unit coverage
+// and `services/__tests__/appleHealth.sleepWindow.test.ts` for the
+// end-to-end acceptance fixture reproducing the founder's own reading.
+
+/** One clustered sleep session — a maximal run of selected intervals with no gap ≥ `SLEEP_SESSION_SPLIT_GAP_MS` between consecutive intervals. */
+export interface SleepSession {
+  /** Start of the session — its earliest selected interval's own `startMs`. */
+  startMs: number;
+  /**
+   * End of the session — `reduceSleepByIntervalUnionDetailed`'s own
+   * `lastEndMs` for this session's intervals alone (the end of ITS last
+   * merged run). Matches what `sleepHoursLastNightObservedAtMs` is set to
+   * when this session is the one `chooseSleepSession` picks.
+   */
+  endMs: number;
+  /** This session's own union-deduplicated asleep duration, ms — `reduceSleepByIntervalUnionDetailed`'s `totalMs` for this session's intervals alone. */
+  durationMs: number;
+  /** The selected intervals belonging to this session, sorted ascending by `startMs`. */
+  intervals: readonly SleepInterval[];
+}
+
+/**
+ * Pure clustering: split an ALREADY-SELECTED interval set
+ * (`selectSleepIntervals`'s output — this function does not re-select) into
+ * sessions wherever the gap between two consecutive intervals is `>=
+ * splitGapMs`. A gap that size or larger is deliberately NOT bridged — see
+ * `SLEEP_SESSION_SPLIT_GAP_MS`'s own doc comment
+ * (`config/hydroStateModel.ts`) for why 3h is the boundary — while anything
+ * shorter (a same-session wake-up already covered by `selectSleepIntervals`'s
+ * awake/inBed coverage, or a brief residual gap) keeps the run as one
+ * session. Boundary is inclusive on the split side: a gap of EXACTLY
+ * `splitGapMs` splits; anything smaller merges (see the "split boundary"
+ * fixtures in `appleHealth.sleepSession.test.ts`).
+ *
+ * Empty input returns `[]`, never throws. Sessions are returned in ascending
+ * start-time order — callers rely on this (`chooseSleepSession` reads "most
+ * recent" as the LAST element) rather than re-sorting a second time.
+ *
+ * Same stack-safety discipline as `mergeIntervalSpans`/`subtractCoveredSpans`
+ * above (S-c, RC-2 P0 gate for build 49): a session's own `startMs` is read
+ * directly off its first (already-sorted) interval, never via
+ * `Math.min(...spread)`.
+ */
+export function clusterSleepIntervalsIntoSessions(
+  selectedIntervals: readonly SleepInterval[],
+  splitGapMs: number,
+): SleepSession[] {
+  if (selectedIntervals.length === 0) return [];
+  const sorted = [...selectedIntervals].sort((a, b) => a.startMs - b.startMs);
+
+  const groups: SleepInterval[][] = [];
+  let current: SleepInterval[] = [sorted[0]];
+  let currentMaxEnd = sorted[0].endMs;
+  for (let i = 1; i < sorted.length; i++) {
+    const next = sorted[i];
+    if (next.startMs - currentMaxEnd >= splitGapMs) {
+      groups.push(current);
+      current = [next];
+      currentMaxEnd = next.endMs;
+    } else {
+      current.push(next);
+      if (next.endMs > currentMaxEnd) currentMaxEnd = next.endMs;
+    }
+  }
+  groups.push(current);
+
+  return groups.map((intervals) => {
+    // Reuses `reduceSleepByIntervalUnionDetailed` UNCHANGED — a session is
+    // exactly "one pre-selected set" by this function's own contract, so
+    // this is the same call `fetchAppleHealthSnapshot` used to make once
+    // across the whole window, now made once per session instead.
+    const { totalMs, lastEndMs } = reduceSleepByIntervalUnionDetailed(intervals);
+    return {
+      startMs: intervals[0].startMs, // `intervals` is a contiguous slice of `sorted` — already ascending.
+      endMs: lastEndMs ?? intervals[intervals.length - 1].endMs,
+      durationMs: totalMs,
+      intervals,
+    };
+  });
+}
+
+/** Which `chooseSleepSession` rule produced its result. `'none'` means the input session list was empty (mirrors `SleepSelectionBranch`'s `'none'`, one layer up the pipeline). */
+export type SleepSessionRule = 'most-recent-primary' | 'longest-fallback' | 'none';
+
+export interface SleepSessionChoice {
+  rule: SleepSessionRule;
+  session: SleepSession | null;
+}
+
+/**
+ * Pure selection: which of `clusterSleepIntervalsIntoSessions`'s sessions
+ * becomes "last night." THE PRIMARY-SLEEP RULE, literally: check only the
+ * MOST RECENT session (by start time — the last element, per
+ * `clusterSleepIntervalsIntoSessions`'s documented ordering guarantee); if
+ * ITS OWN duration meets `primaryMinMs`, it wins outright, full stop — this
+ * function never searches backward through earlier sessions looking for a
+ * "better" qualifying one. That is deliberate: it is the literal reading of
+ * "the most recent sleep session ≥ the primary minimum," not "the most
+ * recent LONG-ENOUGH session." Consequence (documented in this ruling's PR
+ * body, not a bug): a nap longer than `primaryMinMs`, if it is the most
+ * recent session, is chosen over an earlier and possibly longer night.
+ *
+ * Only when the most recent session FAILS the primary-sleep check does this
+ * fall back to the LONGEST session anywhere in the window (a fragmented bad
+ * night — no single session reaching the primary minimum — still counts as
+ * something, rather than reporting the tiny most-recent nap or nothing at
+ * all).
+ *
+ * Empty `sessions` returns `{ rule: 'none', session: null }`, never throws —
+ * `fetchAppleHealthSnapshot` reads a `null` session as "no sleep session to
+ * report," the same honest-unknown reading `selectSleepIntervals`'s own
+ * `'none'` branch already established one layer down.
+ */
+export function chooseSleepSession(
+  sessions: readonly SleepSession[],
+  primaryMinMs: number,
+): SleepSessionChoice {
+  if (sessions.length === 0) return { rule: 'none', session: null };
+
+  const mostRecent = sessions[sessions.length - 1];
+  if (mostRecent.durationMs >= primaryMinMs) {
+    return { rule: 'most-recent-primary', session: mostRecent };
+  }
+
+  let longest = sessions[0];
+  for (const s of sessions) {
+    if (s.durationMs > longest.durationMs) longest = s;
+  }
+  return { rule: 'longest-fallback', session: longest };
+}
+
 /**
  * Pure adapter: raw `HKCategorySample[]` (the installed
  * `@kingstinct/react-native-healthkit@14.0.2` `CategorySample` shape —
@@ -911,7 +1094,13 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
   const now = new Date();
-  const lastNightStart = new Date(now.getTime() - 18 * 60 * 60 * 1000);
+  // RC-2 sleep-window ruling (2026-08-08): widened from a fixed trailing 18h
+  // to §53's own `staleAfterMs` cap (36h) — see "Founder Ruling D" above
+  // `SleepSession` for the full device-evidence writeup. Reusing
+  // `FRESHNESS_WINDOWS.sleep.staleAfterMs` directly, rather than a second
+  // independently-hardcoded "36h" literal, means this query window and §53's
+  // "sleep is usable into a second day" freshness cap can never drift apart.
+  const lastNightStart = new Date(now.getTime() - FRESHNESS_WINDOWS.sleep.staleAfterMs);
   const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const diagnosticsEnabled = isAppleHealthDiagnosticsEnabled();
 
@@ -1127,8 +1316,10 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // unconditionally alongside `sleepUnionMs` — see
   // `AppleHealthSleepDiagnostic.unionLastEndMs`'s doc comment for why this
   // is distinct from `sleepHoursLastNightObservedAtMs` below (that one stays
-  // `null` on the `sleepValueUnknown` path by design; this raw union output
-  // does not).
+  // `null` on the no-session path by design; this raw union output does
+  // not). RC-2 sleep-window ruling (2026-08-08): now the CHOSEN SESSION's
+  // own `endMs`/`durationMs`, not a union across the whole window — see
+  // "Founder Ruling D" above `SleepSession`.
   let sleepUnionLastEndMs: number | null = null;
   let sleepRawSumMs: number | null = null;
   // F2 (RC-2 P0 gate for build 49): renamed from `sleepUsedFallback` — post-
@@ -1137,12 +1328,38 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
   // the sleep value is UNKNOWN, not a substituted number. The name now says
   // what it means. See `services/appleHealthDiagnostics.ts`'s
   // `AppleHealthSleepDiagnostic.sleepValueUnknown` for the mirrored rename.
+  // RC-2 sleep-window ruling (2026-08-08): this flag's OWN computation is
+  // UNCHANGED (still means exactly "the adapter dropped malformed raw data,"
+  // never "no session was chosen") — it no longer alone gates the
+  // null-vs-number decision below; `sleepSessionRule`/`chooseSleepSession`
+  // now does. Kept as a diagnostics-panel-only distinction between "no data
+  // at all" and "malformed data."
   let sleepValueUnknown = false;
   let sleepIntervalsForDiagnostics: SleepInterval[] = [];
+  // RC-2 sleep-window ruling (2026-08-08): every session
+  // `clusterSleepIntervalsIntoSessions` produced for this refresh, oldest
+  // first — captured unconditionally for the diagnostics panel's
+  // per-session summaries, regardless of which one (if any)
+  // `chooseSleepSession` picked.
+  let sleepSessions: SleepSession[] = [];
+  /** Which `chooseSleepSession` rule fired — `'none'` when `sleepSessions` is empty. */
+  let sleepSessionRule: SleepSessionRule = 'none';
+  /**
+   * The chosen session itself, kept for diagnostics' ISO start/end capture
+   * below. Initializer is asserted `as SleepSession | null` (not left to
+   * infer the literal `null`) — this variable's only OTHER assignment is
+   * inside the `safe(async () => {...})` closure below, which TypeScript's
+   * control-flow analysis cannot prove runs before a later read; without the
+   * assertion, TS narrows every downstream read back to the literal `null`
+   * (`Property 'startMs' does not exist on type 'never'` at the diagnostics
+   * capture below) instead of the declared union. Confirmed as a genuine TS
+   * narrowing limitation via an isolated repro, not a logic bug in this
+   * file — see this PR's body for the minimal repro.
+   */
+  let sleepChosenSession: SleepSession | null = null as SleepSession | null;
   // RC-2 Ruling C: "the moment the observed sleep ended" — set from the
-  // union reduction's own `lastEndMs`. Stays `null` on the S2 unknown-data
-  // path below (the value itself is `null` there too — nothing to
-  // timestamp when the metric is unknown).
+  // chosen session's own `endMs`. Stays `null` when no session was chosen
+  // (nothing to timestamp when there is no sleep session).
   let sleepHoursLastNightObservedAtMs: number | null = null;
   const sleepHoursLastNight = await safe(async () => {
     const samples = await HK.queryCategorySamples('HKCategoryTypeIdentifierSleepAnalysis', {
@@ -1161,15 +1378,27 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     sleepSelectionBranch = branch;
     sleepSummedSampleCount = selected.length;
 
-    // RC-2 Ruling C: `reduceSleepByIntervalUnionDetailed` runs over `selected`
-    // (the POST-selection set), exactly matching what `reduceSleepByIntervalUnion`
-    // itself is given per S3's contract above — `lastEndMs` is therefore the
-    // end of the same merged run the returned total came from, never a raw/
-    // unselected sample's end.
-    const { totalMs: unionMs, lastEndMs } = reduceSleepByIntervalUnionDetailed(selected);
+    // RC-2 sleep-window ruling (2026-08-08): cluster the SAME selected set
+    // into sessions, then choose exactly one, BEFORE unioning — see
+    // "Founder Ruling D" above `SleepSession` for the full rationale. Each
+    // session's `durationMs`/`endMs` already IS
+    // `reduceSleepByIntervalUnionDetailed`'s own `totalMs`/`lastEndMs` for
+    // that session's intervals (computed once, inside
+    // `clusterSleepIntervalsIntoSessions`) — the chosen session's values are
+    // used directly below rather than re-derived a second time, the same
+    // "compute once, reuse the result" discipline S3 established for the
+    // top-level selection.
+    const sessions = clusterSleepIntervalsIntoSessions(selected, SLEEP_SESSION_SPLIT_GAP_MS);
+    sleepSessions = sessions;
+    const { rule, session } = chooseSleepSession(sessions, SLEEP_PRIMARY_SESSION_MIN_MS);
+    sleepSessionRule = rule;
+    sleepChosenSession = session;
+
+    const unionMs = session?.durationMs ?? 0;
+    const lastEndMs = session?.endMs ?? null;
     sleepUnionMs = unionMs;
     // RC-2 founder logging order: capture unconditionally, before the
-    // sleepValueUnknown branch below can early-return — see
+    // no-session branch below can early-return — see
     // `AppleHealthSleepDiagnostic.unionLastEndMs`'s doc comment.
     sleepUnionLastEndMs = lastEndMs;
     const rawMs = sumRawSleepSamples(samples) ?? 0;
@@ -1184,36 +1413,47 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     // hardened against that specific corruption (see its header), but
     // trusting a raw, non-deduplicated sum as a "fallback value" at all was
     // the deeper defect — malformed data should read as UNKNOWN, not as a
-    // guessed number. The signal that actually distinguishes "confirmed
-    // zero" from "unknown" is whether the ADAPTER had to drop any raw
-    // sample for being unusable: if `intervals.length` is shorter than the
-    // raw `sleepTotalSampleCount`, some real HealthKit rows could not be
-    // classified at all, and an empty selection in that case means "we
-    // don't know", not "zero". If nothing was dropped and selection is still
-    // empty, every raw sample was legitimately inBed/awake-only (or the
-    // window was genuinely empty) — 0h is a confirmed, honest answer.
+    // guessed number. `sleepValueUnknown`'s own computation below is
+    // UNCHANGED from S2: true exactly when the ADAPTER had to drop a raw
+    // sample AND the union came back empty.
+    // Nit (RC-2 P0 gate for build 49): no `?? 0` here — `sleepTotalSampleCount`
+    // was unconditionally assigned `samples.length` above, with an early
+    // `return null` for the only case (`!Array.isArray(samples)`) that could
+    // have left it unset. It is provably a `number` by this line.
+    const adapterDroppedSamples = intervals.length < sleepTotalSampleCount;
+    if (unionMs === 0 && adapterDroppedSamples) {
+      sleepValueUnknown = true;
+    }
+
+    // RC-2 sleep-window ruling (2026-08-08), design point 4 — SUPERSEDES the
+    // S2 (2026-08-06) convention above of returning a confirmed `0` whenever
+    // nothing was dropped: `session === null` means `selected` was empty,
+    // whether because the 36h window genuinely held nothing, held only
+    // inBed/awake rows, or the adapter dropped every classifiable row —
+    // three different REASONS that now converge on the same honest OUTPUT:
+    // there is no sleep session to attach an hours-last-night number to, so
+    // this returns `null`, never a confident "0h slept." Widening the
+    // lookback to 36h makes "confirmed empty" a much stronger (and much
+    // likelier WRONG) claim than it was at 18h — reporting unknown is the
+    // honest read once a whole SESSION, not just a whole sample, is what's
+    // missing. `sleepValueUnknown` (just above) still tracks the
+    // adapter-dropped-data reason specifically, for the diagnostics panel's
+    // benefit only — it does not change this return.
     //
-    // Returning `null` here (rather than 0 or a guessed number) is safe:
     // `AppleHealthSnapshot.sleepHoursLastNight` is already `number | null`
     // and every consumer already guards it — `utils/scoring/breakdown.ts`'s
     // `snap.sleepHoursLastNight != null` check, `utils/biometricsAggregator.ts`'s
     // `freshestNonNull`, the Profile cards (`WhoopSnapshotCard`,
     // `ProfileScreenV2`, `ProfileLegacy`) all render '—' for `null`, and the
     // store mirror (`store/appStoreReducer.ts`, `store/app/actions.ts`)
-    // copies the field verbatim with no coercion. See
-    // `appleHealth.sleepSelection.test.ts` for the regression fixture (the
-    // exact malformed-sample shape that produced the epoch bug) asserting
-    // `null`, not a bounded guess.
-    // Nit (RC-2 P0 gate for build 49): no `?? 0` here — `sleepTotalSampleCount`
-    // was unconditionally assigned `samples.length` above (line ~876), with
-    // an early `return null` for the only case (`!Array.isArray(samples)`)
-    // that could have left it unset. It is provably a `number` by this line.
-    const adapterDroppedSamples = intervals.length < sleepTotalSampleCount;
-    if (unionMs === 0 && adapterDroppedSamples) {
-      sleepValueUnknown = true;
-      // RC-2 Ruling C: the value itself is `null` here (S2, above) — there is
-      // nothing to timestamp when the metric is unknown, not a guess.
-      // `sleepHoursLastNightObservedAtMs` stays at its `null` initializer.
+    // copies the field verbatim with no coercion (#592's verdict — this
+    // ruling adds no new consumer, so nothing further to prove null-safe).
+    // See `appleHealth.sleepSelection.test.ts`'s updated "genuine no-sleep
+    // window" and "inBed/awake only" fixtures (both now assert `null`, with
+    // a comment citing this ruling — their expected value legitimately
+    // changed) and `appleHealth.sleepWindow.test.ts`'s "40h ago, outside the
+    // 36h cap" fixture for the acceptance case this most directly targets.
+    if (session === null) {
       return null;
     }
     sleepHoursLastNightObservedAtMs = lastEndMs;
@@ -1345,6 +1585,18 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
           perSourceTotals: computeSleepPerSourceTotals(sleepIntervalsForDiagnostics),
           valueUsed: sleepHoursLastNight,
           sleepValueUnknown,
+          // RC-2 sleep-window ruling (2026-08-08), additive diagnostics —
+          // see `AppleHealthSleepDiagnostic`'s own doc comments
+          // (`services/appleHealthDiagnostics.ts`) for what each surfaces.
+          sessionCount: sleepSessions.length,
+          chosenSessionStartIso: sleepChosenSession ? new Date(sleepChosenSession.startMs).toISOString() : null,
+          chosenSessionEndIso: sleepChosenSession ? new Date(sleepChosenSession.endMs).toISOString() : null,
+          sleepSessionRule,
+          sleepSessions: sleepSessions.map((s) => ({
+            startIso: new Date(s.startMs).toISOString(),
+            endIso: new Date(s.endMs).toISOString(),
+            durationHours: s.durationMs / MS_PER_HOUR,
+          })),
         },
         workout: {
           identifier: 'HKWorkoutTypeIdentifier',

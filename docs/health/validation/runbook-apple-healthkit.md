@@ -160,6 +160,62 @@ checkbox below that appears to fail ONLY because it observed one of these
 gaps is a false FAIL — do not fail the run on it; record the gap as
 already-known and move on.
 
+- **Sleep query window clipping the front of the night — CLOSED
+  2026-08-08 (RC-2 sleep-window ruling, `fix/rc2-sleep-session-window`).**
+  Founder device evidence: reading at 18:45 with a real night spanning
+  ~23:30–06:15 (5.6h asleep, with gaps), the Home score reported 4.696h
+  against the Health app's own 5.6h for the same night. Root cause: the
+  fixed `[now−18h, now]` query window `services/appleHealth.ts` used for
+  `queryCategorySamples` — HealthKit's date filter is OVERLAP-MATCHING and
+  returns a matching sample WHOLE, never truncated to the window boundary,
+  so a stage segment ending before `now−18h` was not clipped, it was
+  DROPPED OUTRIGHT. This directly contradicted §53's own freshness policy
+  (`config/hydroStateModel.ts`'s `FRESHNESS_WINDOWS.sleep`: sleep is
+  "usable into a second day" via `staleAfterMs`, 36h) — the fixed 18h fetch
+  window was making sleep VANISH before it ever got the chance to age.
+  **Fix, two parts:**
+  1. The query window is now §53's own `staleAfterMs` cap (36h), imported
+     directly rather than a second hardcoded literal — one number, reused,
+     cannot drift from §53.
+  2. Widening the lookback alone is not sufficient once the window can span
+     more than one calendar night (last night + today's nap, or two
+     legitimate shift-work sessions). `services/appleHealth.ts` now
+     clusters the SAME per-source-coverage-selected interval set
+     (`selectSleepIntervals` — UNCHANGED) into discrete SESSIONS
+     (`clusterSleepIntervalsIntoSessions`, split wherever the gap between
+     two selected intervals is `>= SLEEP_SESSION_SPLIT_GAP_MS`, 3h — see
+     `config/hydroStateModel.ts`) and chooses exactly one
+     (`chooseSleepSession`): the MOST RECENT session if its own duration is
+     `>= SLEEP_PRIMARY_SESSION_MIN_MS` (3h); otherwise the LONGEST session
+     anywhere in the window (a fragmented bad night still counts); no
+     sessions at all → `null`.
+  - **Deliberate consequence, not a bug:** "most recent primary session" is
+    literal — a nap LONGER than the 3h primary minimum, if it is the most
+    recent session, is chosen over an earlier and possibly longer night. A
+    tester who sees a nap reported as "last night" after a long afternoon
+    sleep should check whether the nap itself cleared 3h before filing —
+    that is this rule working as designed, not a regression. If the founder
+    finds it counterintuitive in practice, `SLEEP_PRIMARY_SESSION_MIN_MS` is
+    a one-line change.
+  - **Also changed:** a confirmed-empty window (zero HealthKit rows, or
+    only inBed/awake rows, in the 36h window) now reports `null`, not a
+    confident `0h` — widening the lookback to 36h makes "confirmed empty" a
+    much stronger, much likelier WRONG claim than it was at 18h.
+  - **Acceptance criterion for the next device pass:** the panel's "value
+    used" row (internal-TestFlight builds) should read within a few minutes
+    of the Health app's own "Time Asleep" figure at ANY reading hour during
+    the day, not just right after waking — read the diagnostics panel's new
+    "sessions in window" / "session rule fired" / "chosen session" rows
+    (`services/appleHealthDiagnostics.ts`) alongside it if the numbers
+    disagree.
+  - **Owner:** react-native-engineer.
+  - See `services/__tests__/appleHealth.sleepSession.test.ts` (pure
+    `clusterSleepIntervalsIntoSessions` / `chooseSleepSession` coverage —
+    split-boundary, night+nap, shift-worker, fragmented-night fixtures) and
+    `services/__tests__/appleHealth.sleepWindow.test.ts` (the acceptance
+    fixture reproducing the founder's own 4.696h-vs-5.6h reading end to end,
+    plus the 36h-cap boundary).
+
 - **Observation-freshness axis (Founder Ruling I, RC-2) — Apple Health's
   half CLOSED 2026-08-06 (Founder Ruling C,
   `fix/rc2-observation-time-arbitration`).** `ProviderSnapshot.latestObservedAtMs`
@@ -332,13 +388,17 @@ already-known and move on.
       sample with no start bound (`queryQuantitySamples(..., {limit: 1,
       filter: {date: {startDate: new Date(0), endDate: now}}})`,
       `appleHealth.ts:124-133`); steps reads midnight-to-now for the local
-      day (`appleHealth.ts:143-149`); sleep reads the trailing 18 hours
-      (`appleHealth.ts:157-162`). None of this is a 30-day backfill —
+      day (`appleHealth.ts`'s `stepsRawSampleSum`/bucketed-steps queries);
+      sleep reads the trailing 36 hours (`appleHealth.ts`'s `lastNightStart`,
+      widened from 18h by the RC-2 sleep-window ruling, 2026-08-08 — see
+      "Known gaps" above) then clusters the result into sessions
+      (`clusterSleepIntervalsIntoSessions` / `chooseSleepSession`) before
+      choosing one as "last night." None of this is a 30-day backfill —
       `maxBackfillDays: 30` in `HEALTH_PROVIDER_CAPABILITIES.apple_health`
       is a DECLARED CAPABILITY not implemented by this path; its absence in
       observed behavior is not a validation failure.
 - [ ] **Incremental sync** — verify a later sync RE-QUERIES the same fixed
-      windows above from scratch (midnight-to-now for steps, trailing-18h
+      windows above from scratch (midnight-to-now for steps, trailing-36h
       for sleep, most-recent-sample for RHR/HRV) rather than resuming from
       an anchor. There is no persisted anchor token anywhere in
       `appleHealth.ts` — every call recomputes `startOfDay` /
@@ -495,8 +555,11 @@ already-known and move on.
 - [ ] **Home** — any Home-surface content sourced from Apple Health data
       reflects the actual canonical record, not a cached/stale value.
 - [ ] **Sleep** — the WIRED path renders `sleepHoursLastNight` as a single
-      trailing-18h duration figure (`appleHealth.ts:157-176`) — there is no
-      stage breakdown on this path at all (no `SleepSessionValue.stages`
+      duration figure — the CHOSEN SESSION's own duration, from a trailing
+      36h query clustered into sessions (`clusterSleepIntervalsIntoSessions`
+      / `chooseSleepSession`, RC-2 sleep-window ruling, 2026-08-08; widened
+      from a flat trailing-18h figure — see "Known gaps" above) — there is
+      no stage breakdown on this path at all (no `SleepSessionValue.stages`
       field is ever populated; that structured type belongs to
       `CanonicalHealthRecord`, engine-level per the framing note above).
       Verify the duration figure itself renders correctly; do NOT expect a

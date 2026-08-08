@@ -37,7 +37,7 @@
  * app already computed (the score breakdown row), never recomputed.
  */
 import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '../featureFlags/internalTestflightOverlay';
-import type { AppleHealthSnapshot, SleepSelectionBranch } from './appleHealth';
+import type { AppleHealthSnapshot, SleepSelectionBranch, SleepSessionRule } from './appleHealth';
 
 /** One HealthKit sample's identifying facts — never anything beyond this. */
 export interface AppleHealthDiagnosticSample {
@@ -99,20 +99,42 @@ export interface AppleHealthSleepSourceTotal {
   totalHours: number;
 }
 
+/**
+ * RC-2 sleep-window ruling (2026-08-08): one session
+ * `clusterSleepIntervalsIntoSessions` (`services/appleHealth.ts`) produced —
+ * start/end/duration only, no interval-level detail, so a reader can see
+ * what OTHER sessions existed in the window (and why `chooseSleepSession`
+ * did or didn't pick each one) without the panel needing to render raw
+ * per-source interval data twice.
+ */
+export interface AppleHealthSleepSessionSummary {
+  startIso: string;
+  endIso: string;
+  durationHours: number;
+}
+
 export interface AppleHealthSleepDiagnostic {
   identifier: 'HKCategoryTypeIdentifierSleepAnalysis';
   queried: true;
   /**
    * RC-2 founder logging order (build-49 device finding, 2026-08-07): the
-   * `[now−18h, now]` window bounds actually passed to `queryCategorySamples`'s
-   * `filter.date` (`services/appleHealth.ts`'s `lastNightStart`/`now`), as
-   * ISO strings. Captured unconditionally — even when the query itself
-   * throws or returns nothing — because these are the bounds that were
-   * REQUESTED, independent of what came back. Lets a reader line this
-   * window up against the Health app's own per-sample list and see exactly
-   * which segments of the night fell outside it (the trace behind the
-   * founder's 5.6h-vs-4.696h report: the 18h window clipping the front of
-   * the night).
+   * window bounds actually passed to `queryCategorySamples`'s `filter.date`
+   * (`services/appleHealth.ts`'s `lastNightStart`/`now`), as ISO strings.
+   * Captured unconditionally — even when the query itself throws or returns
+   * nothing — because these are the bounds that were REQUESTED, independent
+   * of what came back. Lets a reader line this window up against the Health
+   * app's own per-sample list and see exactly which segments of the night
+   * fell outside it — the trace behind the founder's original 5.6h-vs-4.696h
+   * report.
+   *
+   * RC-2 sleep-window ruling (2026-08-08): this is now `[now−36h, now]`
+   * (§53's own `staleAfterMs` cap), not `[now−18h, now]` — that 18h window
+   * was the ROOT CAUSE the 5.6h-vs-4.696h report traced to: HealthKit's date
+   * filter is overlap-matching and returns a matching sample WHOLE, never
+   * truncated, so a stage segment ending before the boundary was dropped
+   * outright, not clipped. Widening this alone is not sufficient once the
+   * window can span more than one calendar night — see `sessionCount` /
+   * `sleepSessionRule` below for the session-clustering half of that fix.
    */
   queryWindowStartIso: string;
   queryWindowEndIso: string;
@@ -159,20 +181,45 @@ export interface AppleHealthSleepDiagnostic {
   unionLastEndMs: number | null;
   /** Per-source, per-value-class flat sums (NOT union-deduplicated) — for on-device comparison against the Health app's per-source breakdown. */
   perSourceTotals: readonly AppleHealthSleepSourceTotal[];
-  /** The number `fetchAppleHealthSnapshot()` actually returned. `null` when `sleepValueUnknown` is `true`. */
+  /**
+   * The number `fetchAppleHealthSnapshot()` actually returned. `null`
+   * whenever `sleepSessionRule` is `'none'` (no session was chosen — RC-2
+   * sleep-window ruling, 2026-08-08, design point 4) — NOT only when
+   * `sleepValueUnknown` is `true`; a confirmed-empty window with nothing
+   * dropped is now ALSO `null`, superseding the pre-ruling convention where
+   * that specific case reported a confident `0`. Check `sleepSessionRule`
+   * (and `sessionCount`) to distinguish "no session in the window at all"
+   * from `sleepValueUnknown`'s narrower "adapter dropped malformed data."
+   */
   valueUsed: number | null;
   /**
    * F2 (RC-2 P0 gate for build 49): renamed from `usedFallback` — the name
    * changed meaning post-#592 (S2) and the old name became a lie. This is
    * `true` only when the interval-union selection resolved empty AND the
    * adapter had to drop at least one raw HealthKit sample it could not
-   * classify — i.e. the sleep value for the night is UNKNOWN. It does NOT
-   * mean a raw flat sum was substituted (that resilience fallback was
-   * removed in #592); `valueUsed` is `null` whenever this is `true`, never a
-   * raw-sum number. See `services/appleHealth.ts`'s `sleepValueUnknown`
-   * local and its S2/F2 comments for the full history.
+   * classify. It does NOT mean a raw flat sum was substituted (that
+   * resilience fallback was removed in #592); `valueUsed` is `null`
+   * whenever this is `true`, never a raw-sum number. See
+   * `services/appleHealth.ts`'s `sleepValueUnknown` local and its S2/F2
+   * comments for the full history.
+   *
+   * RC-2 sleep-window ruling (2026-08-08): this flag's OWN meaning and
+   * computation are UNCHANGED — it remains specifically "malformed raw data
+   * was dropped," a diagnostics-panel-only distinction. It no longer alone
+   * explains every `valueUsed: null` case; see that field's own updated doc
+   * comment and `sleepSessionRule` below.
    */
   sleepValueUnknown: boolean;
+  /** Every session `clusterSleepIntervalsIntoSessions` produced for this refresh's selected interval set. `0` exactly when `sleepSessionRule` is `'none'`. */
+  sessionCount: number;
+  /** ISO start of the CHOSEN session (`chooseSleepSession`'s pick) — `null` when `sessionCount` is `0`. */
+  chosenSessionStartIso: string | null;
+  /** ISO end of the CHOSEN session — its own union's `lastEndMs`; matches `unionLastEndMs` and, on the success path, `sleepHoursLastNightObservedAtMs`. `null` when `sessionCount` is `0`. */
+  chosenSessionEndIso: string | null;
+  /** Which `chooseSleepSession` rule fired. `'none'` when `sessionCount` is `0` — mirrors `selectionBranch: 'none'`'s "nothing to choose" reading, one layer up the pipeline. */
+  sleepSessionRule: SleepSessionRule;
+  /** Every session in the window, oldest first (regardless of which was chosen) — lets the panel show what else existed and why it wasn't picked. */
+  sleepSessions: readonly AppleHealthSleepSessionSummary[];
 }
 
 export interface AppleHealthWorkoutDiagnostic {
@@ -311,13 +358,33 @@ export function formatAppleHealthDiagnosticsSummary(
     `Sleep last night: used ${snapshot.sleep.valueUsed ?? '—'} h${
       snapshot.sleep.sleepValueUnknown
         ? ' (UNKNOWN — adapter dropped raw samples; interval-union selection was empty)'
-        : ''
+        : snapshot.sleep.valueUsed == null && snapshot.sleep.sleepSessionRule === 'none'
+          ? ' (no sleep session in the 36h window)'
+          : ''
     }`,
   );
   lines.push(`  raw sum (old method, no dedup): ${snapshot.sleep.rawSumHours ?? '—'} h`);
   lines.push(`  interval union (new method): ${snapshot.sleep.unionHours ?? '—'} h`);
   lines.push(`  selection branch: ${snapshot.sleep.selectionBranch}`);
   lines.push(`  selected slices: ${snapshot.sleep.summedSampleCount ?? '—'} (from ${snapshot.sleep.totalSampleCount ?? '—'} samples)`);
+  // RC-2 sleep-window ruling (2026-08-08): session-clustering diagnostics.
+  lines.push(`  sessions in window: ${snapshot.sleep.sessionCount}`);
+  lines.push(`  session rule fired: ${snapshot.sleep.sleepSessionRule}`);
+  lines.push(
+    `  chosen session: ${
+      snapshot.sleep.chosenSessionStartIso && snapshot.sleep.chosenSessionEndIso
+        ? `${snapshot.sleep.chosenSessionStartIso} → ${snapshot.sleep.chosenSessionEndIso}`
+        : 'none'
+    }`,
+  );
+  if (snapshot.sleep.sleepSessions.length === 0) {
+    lines.push('  all sessions: none');
+  } else {
+    lines.push('  all sessions:');
+    for (const s of snapshot.sleep.sleepSessions) {
+      lines.push(`    ${s.startIso} → ${s.endIso} (${s.durationHours.toFixed(2)}h)`);
+    }
+  }
   if (snapshot.sleep.perSourceTotals.length === 0) {
     lines.push('  per-source totals: none');
   } else {

@@ -98,6 +98,14 @@ const FIXTURE: AppleHealthDiagnosticsSnapshot = {
     ],
     valueUsed: 7.2,
     sleepValueUnknown: false,
+    // RC-2 sleep-window ruling (2026-08-08): a single-session night.
+    sessionCount: 1,
+    chosenSessionStartIso: '2026-08-05T23:00:00.000Z',
+    chosenSessionEndIso: '2026-08-06T05:42:00.000Z',
+    sleepSessionRule: 'most-recent-primary',
+    sleepSessions: [
+      { startIso: '2026-08-05T23:00:00.000Z', endIso: '2026-08-06T05:42:00.000Z', durationHours: 7.2 },
+    ],
   },
   workout: {
     identifier: 'HKWorkoutTypeIdentifier',
@@ -263,6 +271,66 @@ describe('AppleHealthDiagnosticsPanel — old vs. new sleep comparison (RC-2 Rul
   });
 });
 
+describe('AppleHealthDiagnosticsPanel — sleep SESSION diagnostics (RC-2 sleep-window ruling, 2026-08-08)', () => {
+  it('renders session count, rule fired, chosen session, and per-session rows', () => {
+    renderPanel({
+      diagnostics: {
+        ...FIXTURE,
+        sleep: {
+          ...FIXTURE.sleep,
+          sessionCount: 2,
+          chosenSessionStartIso: '2026-08-06T13:00:00.000Z',
+          chosenSessionEndIso: '2026-08-06T17:42:00.000Z',
+          sleepSessionRule: 'longest-fallback',
+          sleepSessions: [
+            { startIso: '2026-08-05T23:30:00.000Z', endIso: '2026-08-06T00:24:00.000Z', durationHours: 0.9 },
+            { startIso: '2026-08-06T13:00:00.000Z', endIso: '2026-08-06T17:42:00.000Z', durationHours: 4.7 },
+          ],
+        },
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-count"]')?.textContent).toBe('2');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-rule"]')?.textContent).toBe('longest-fallback');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-chosen-session"]')?.textContent).toBe(
+      '2026-08-06T13:00:00.000Z → 2026-08-06T17:42:00.000Z',
+    );
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-0"]')?.textContent).toContain('0.90h');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-1"]')?.textContent).toContain('4.70h');
+  });
+
+  it('renders "no session in 36h window" (distinct from the adapter-dropped UNKNOWN label) when no session was chosen and nothing was dropped', () => {
+    renderPanel({
+      diagnostics: {
+        ...FIXTURE,
+        sleep: {
+          ...FIXTURE.sleep,
+          totalSampleCount: 0,
+          summedSampleCount: 0,
+          selectionBranch: 'none',
+          unionHours: 0,
+          valueUsed: null,
+          sleepValueUnknown: false,
+          sessionCount: 0,
+          chosenSessionStartIso: null,
+          chosenSessionEndIso: null,
+          sleepSessionRule: 'none',
+          sleepSessions: [],
+        },
+      },
+    });
+    const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
+    flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+    const usedText = q('[data-testid="apple-health-diagnostics-panel-sleep-used"]')?.textContent;
+    expect(usedText).toContain('no session in 36h window');
+    expect(usedText).not.toContain('unknown');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-count"]')?.textContent).toBe('0');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-session-rule"]')?.textContent).toBe('none');
+    expect(q('[data-testid="apple-health-diagnostics-panel-sleep-chosen-session"]')?.textContent).toBe('none');
+  });
+});
+
 describe('AppleHealthDiagnosticsPanel — scoring input section', () => {
   it('shows "not set" / "none found" when no scoring input is supplied', () => {
     renderPanel({ scoringInput: null });
@@ -342,7 +410,7 @@ describe('AppleHealthDiagnosticsPanel — scoring input section', () => {
 });
 
 describe('AppleHealthDiagnosticsPanel — sleep window + raw union last-end (RC-2 founder logging order)', () => {
-  it('shows the [now-18h, now] query window bounds and the raw union last-end timestamp', () => {
+  it('shows the query window bounds and the raw union last-end timestamp', () => {
     renderPanel();
     const toggle = q('[data-testid="apple-health-diagnostics-panel-toggle"]') as HTMLElement;
     flushSync(() => toggle.dispatchEvent(new MouseEvent('click', { bubbles: true })));
