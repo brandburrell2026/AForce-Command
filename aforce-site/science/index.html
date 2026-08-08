@@ -493,6 +493,66 @@
   /* Disclaimers */
   .sr-disc{ font-family:var(--mono); font-size:11px; line-height:1.7; letter-spacing:.02em; color:var(--c40); margin-top:22px; max-width:78ch; }
   .sr-end{ margin-top:clamp(44px,6vw,80px); font-family:var(--mono); font-size:clamp(13px,1.5vw,16px); letter-spacing:.22em; text-transform:uppercase; color:var(--c); }
+
+  /* ===== P1 · Interactive systems visual (connected physiological architecture) ===== */
+  .sys{ display:grid; grid-template-columns:0.9fr 1.1fr; gap:clamp(26px,4vw,60px); margin-top:clamp(28px,4vw,48px); align-items:stretch; }
+  @media (max-width:820px){ .sys{ grid-template-columns:1fr; gap:20px; } }
+  .sys-rail{ position:relative; }
+  .sys-rail::before{ content:''; position:absolute; left:9px; top:26px; bottom:26px; width:1px; background:var(--c14); }
+  .sys-btn{ position:relative; display:flex; align-items:center; gap:18px; width:100%; text-align:left; background:none; border:0; padding:clamp(14px,1.9vw,19px) 0; font-family:var(--display); font-weight:700; text-transform:uppercase; font-size:clamp(15px,1.8vw,21px); letter-spacing:-0.005em; color:var(--c40); transition:color .25s; }
+  .sys-btn .node{ position:relative; z-index:1; width:19px; height:19px; border-radius:50%; border:1px solid var(--c25); background:var(--canvas); flex:0 0 auto; transition:border-color .25s, background .25s, box-shadow .25s; }
+  .sys-btn:hover{ color:var(--c70); }
+  .sys-btn[aria-selected="true"]{ color:var(--c); }
+  .sys-btn[aria-selected="true"] .node{ border-color:var(--red); background:var(--red); box-shadow:0 0 0 5px rgba(193,40,27,0.12); }
+  .sys-panel{ border:1px solid var(--c14); border-radius:8px; padding:clamp(26px,3.2vw,42px); background:linear-gradient(180deg, rgba(11,13,18,0.015), transparent); display:flex; flex-direction:column; justify-content:center; }
+  .sys-panel .sp-name{ font-family:var(--display); font-weight:800; text-transform:uppercase; font-size:clamp(20px,2.4vw,30px); letter-spacing:-0.01em; }
+  .sys-panel .sp-desc{ color:var(--c70); font-size:clamp(15px,1.4vw,18px); line-height:1.65; margin-top:14px; max-width:46ch; }
+  .sys-panel .sp-tag{ margin-top:20px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--c40); }
+  .sys-panel .sp-tag b{ color:var(--red); font-weight:700; }
+
+  /* ===== P1 · Explorable electrolyte regulation layer ===== */
+  .reg-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--c14); border:1px solid var(--c14); border-radius:6px; overflow:hidden; margin-top:clamp(28px,4vw,44px); }
+  @media (max-width:640px){ .reg-grid{ grid-template-columns:1fr; } }
+  .reg{ background:var(--canvas); text-align:left; border:0; padding:clamp(22px,2.8vw,32px); transition:background .25s; }
+  .reg:hover{ background:rgba(11,13,18,0.02); }
+  .reg .rg-sym{ font-family:var(--display); font-weight:800; font-size:clamp(20px,2.2vw,28px); color:var(--red); }
+  .reg .rg-nm{ font-weight:700; font-size:clamp(16px,1.6vw,19px); margin-top:6px; }
+  .reg .rg-role{ color:var(--c70); font-size:14.5px; line-height:1.6; margin-top:10px; }
+  .reg .rg-detail{ overflow:hidden; }
+  .js-sci .reg .rg-detail{ max-height:0; opacity:0; transition:max-height .4s ease, opacity .3s ease, margin .3s ease; }
+  .js-sci .reg[aria-expanded="true"] .rg-detail{ max-height:360px; opacity:1; margin-top:16px; }
+  .reg .rg-detail{ margin-top:16px; }
+  .reg .rg-drow{ font-size:13.5px; line-height:1.55; color:var(--c55); }
+  .reg .rg-drow + .rg-drow{ margin-top:12px; }
+  .reg .rg-drow b{ display:block; font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--c); margin-bottom:4px; font-weight:700; }
+  .reg .rg-drow a{ color:var(--red); border-bottom:1px solid var(--c14); }
+  .reg .rg-more{ margin-top:16px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--red); display:none; align-items:center; gap:8px; }
+  .js-sci .reg .rg-more{ display:inline-flex; }
+  .reg .rg-more .sign::after{ content:'+'; }
+  .reg[aria-expanded="true"] .rg-more .sign::after{ content:'–'; }
+
+  /* ===== P1 · Formulation Explorer — "Why is it here?" (signature trust mechanism) ===== */
+  .fx{ margin-top:clamp(28px,4vw,48px); }
+  .fx-tokens{ display:flex; flex-wrap:wrap; gap:10px; }
+  .fx-token{ font-family:var(--mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--c70); border:1px solid var(--c14); border-radius:999px; padding:11px 18px; transition:border-color .25s, color .25s, background .25s; }
+  .fx-token:hover{ border-color:var(--c25); color:var(--c); }
+  .fx-token[aria-selected="true"]{ background:var(--ink); color:var(--canvas); border-color:var(--ink); }
+  .fx-panel{ margin-top:clamp(22px,3vw,34px); border:1px solid var(--c14); border-radius:8px; overflow:hidden; }
+  .fx-head{ display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:clamp(20px,2.6vw,30px); border-bottom:1px solid var(--c08); background:rgba(11,13,18,.02); }
+  .fx-head .fx-name{ font-family:var(--display); font-weight:800; text-transform:uppercase; font-size:clamp(22px,2.6vw,34px); letter-spacing:-0.01em; }
+  .fx-head .fx-kind{ font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--c40); }
+  .fx-rows{ display:grid; grid-template-columns:1fr 1fr; }
+  @media (max-width:640px){ .fx-rows{ grid-template-columns:1fr; } }
+  .fx-row{ padding:clamp(18px,2.2vw,26px) clamp(20px,2.6vw,30px); border-top:1px solid var(--c08); border-right:1px solid var(--c08); }
+  .fx-row .fx-k{ font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--c40); }
+  .fx-row .fx-v{ margin-top:9px; font-size:15px; line-height:1.62; color:var(--c70); }
+  .fx-row.claim .fx-k{ color:var(--green); }
+  .fx-row.claim .fx-v{ color:var(--c); font-weight:600; }
+  .fx-row.noclaim{ background:rgba(193,40,27,0.035); }
+  .fx-row.noclaim .fx-k{ color:var(--red); }
+  .fx-row.noclaim .fx-v{ color:var(--c); }
+  .fx-row.src{ grid-column:1 / -1; border-right:0; }
+  .fx-row.src .fx-v a{ color:var(--red); border-bottom:1px solid var(--c14); padding-bottom:2px; }
 </style>
 
 <!-- HERO -->
@@ -522,13 +582,21 @@
     <div class="sr-eyebrow reveal">01<span class="s">—</span>The Principle<span class="s">·</span>Why Hydration Matters</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The body does not wait for the moment.<br>It prepares for it.</h2>
     <p class="sr-lead reveal sr-mt-m">Fluid balance, muscle function, nerve signaling and cognitive function depend on normal physiology already working before pressure arrives. Readiness is not summoned in the moment — it is maintained beforehand.</p>
-    <div class="sr-kicker reveal sr-mt-l">H₂O — The regulation layer</div>
-    <div class="sr-grid sr-g4">
-      <div class="sr-cell reveal"><div class="v">Fluid balance</div></div>
-      <div class="sr-cell reveal"><div class="v">Muscle function</div></div>
-      <div class="sr-cell reveal"><div class="v">Nerve signaling</div></div>
-      <div class="sr-cell reveal"><div class="v">Cognitive function</div></div>
+    <h3 class="h-3 reveal sr-mt-l" style="text-transform:none;">The body is already working before the moment arrives.</h3>
+    <div class="sys reveal" id="sysBlock">
+      <div class="sys-rail" role="tablist" aria-label="Physiological systems supported by hydration">
+        <button class="sys-btn" role="tab" type="button" id="sysTab0" aria-selected="true"  aria-controls="sysPanel" tabindex="0"><span class="node" aria-hidden="true"></span>Fluid balance</button>
+        <button class="sys-btn" role="tab" type="button" id="sysTab1" aria-selected="false" aria-controls="sysPanel" tabindex="-1"><span class="node" aria-hidden="true"></span>Muscle function</button>
+        <button class="sys-btn" role="tab" type="button" id="sysTab2" aria-selected="false" aria-controls="sysPanel" tabindex="-1"><span class="node" aria-hidden="true"></span>Nerve signaling</button>
+        <button class="sys-btn" role="tab" type="button" id="sysTab3" aria-selected="false" aria-controls="sysPanel" tabindex="-1"><span class="node" aria-hidden="true"></span>Cognitive function</button>
+      </div>
+      <div class="sys-panel" id="sysPanel" role="tabpanel" aria-live="polite" tabindex="0" aria-labelledby="sysTab0">
+        <div class="sp-name" id="sysName">Fluid balance</div>
+        <p class="sp-desc" id="sysDesc">Water and electrolytes contribute to normal fluid regulation.</p>
+        <div class="sp-tag" id="sysTag">Relationship <b>Water · electrolytes</b></div>
+      </div>
     </div>
+    <p class="sr-disc reveal">These describe established physiological roles in general nutrition — not AFORCE-specific clinical outcomes.</p>
   </div>
 </section>
 
@@ -577,13 +645,77 @@
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">04<span class="s">—</span>The Regulation Layer<span class="s">·</span>Established Physiology</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Electrolytes are not the spectacle.<br>Regulation is.</h2>
-    <div class="sr-grid sr-g4">
-      <div class="sr-cell reveal"><div class="k">Na⁺</div><div class="sym">Sodium</div><div class="d">Contributes to normal fluid balance and supports normal muscle and nerve function.</div></div>
-      <div class="sr-cell reveal"><div class="k">K⁺</div><div class="sym">Potassium</div><div class="d">Its cellular gradient is required for normal nerve transmission and muscle contraction.</div></div>
-      <div class="sr-cell reveal"><div class="k">Mg²⁺</div><div class="sym">Magnesium</div><div class="d">Participates in energy production and normal nerve and muscle function.</div></div>
-      <div class="sr-cell reveal"><div class="k">Ca²⁺</div><div class="sym">Calcium</div><div class="d">Supports normal muscle movement and communication between nerves and muscle.</div></div>
+    <div class="reg-grid reveal">
+      <button class="reg" type="button" aria-expanded="false">
+        <div class="rg-sym">Na⁺</div><div class="rg-nm">Sodium</div>
+        <div class="rg-role">Contributes to normal fluid balance and supports normal muscle and nerve function.</div>
+        <div class="rg-detail">
+          <div class="rg-drow"><b>Why AFORCE includes it</b>Anchors the electrolyte profile the ritual is built around.</div>
+          <div class="rg-drow"><b>Source</b><a href="https://ods.od.nih.gov/factsheets/Sodium-HealthProfessional/" target="_blank" rel="noopener">NIH Office of Dietary Supplements · Sodium ↗</a></div>
+        </div>
+        <span class="rg-more"><span class="sign"></span> Detail</span>
+      </button>
+      <button class="reg" type="button" aria-expanded="false">
+        <div class="rg-sym">K⁺</div><div class="rg-nm">Potassium</div>
+        <div class="rg-role">Its cellular gradient is required for normal nerve transmission and muscle contraction.</div>
+        <div class="rg-detail">
+          <div class="rg-drow"><b>Why AFORCE includes it</b>Chosen for its established physiological role — not a performance promise.</div>
+          <div class="rg-drow"><b>Source</b><a href="https://ods.od.nih.gov/factsheets/Potassium-HealthProfessional/" target="_blank" rel="noopener">NIH Office of Dietary Supplements · Potassium ↗</a></div>
+        </div>
+        <span class="rg-more"><span class="sign"></span> Detail</span>
+      </button>
+      <button class="reg" type="button" aria-expanded="false">
+        <div class="rg-sym">Mg²⁺</div><div class="rg-nm">Magnesium</div>
+        <div class="rg-role">Participates in energy production and normal nerve and muscle function.</div>
+        <div class="rg-detail">
+          <div class="rg-drow"><b>Why AFORCE includes it</b>Part of a considered mineral profile — nothing added without a reason.</div>
+          <div class="rg-drow"><b>Source</b><a href="https://ods.od.nih.gov/factsheets/Magnesium-HealthProfessional/" target="_blank" rel="noopener">NIH Office of Dietary Supplements · Magnesium ↗</a></div>
+        </div>
+        <span class="rg-more"><span class="sign"></span> Detail</span>
+      </button>
+      <button class="reg" type="button" aria-expanded="false">
+        <div class="rg-sym">Ca²⁺</div><div class="rg-nm">Calcium</div>
+        <div class="rg-role">Supports normal muscle movement and communication between nerves and muscle.</div>
+        <div class="rg-detail">
+          <div class="rg-drow"><b>Why AFORCE includes it</b>Rounds out the regulation layer the formula is built on.</div>
+          <div class="rg-drow"><b>Source</b><a href="https://ods.od.nih.gov/factsheets/Calcium-HealthProfessional/" target="_blank" rel="noopener">NIH Office of Dietary Supplements · Calcium ↗</a></div>
+        </div>
+        <span class="rg-more"><span class="sign"></span> Detail</span>
+      </button>
     </div>
     <p class="sr-disc reveal">These descriptions summarize established physiological roles of the minerals in general nutrition; they are not AFORCE-specific outcome claims.</p>
+  </div>
+</section>
+
+<!-- 04b · FORMULATION EXPLORER -->
+<section class="sr-sec" id="explorer" aria-label="Formulation explorer">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">04 · Explorer<span class="s">—</span>Why Is It Here?</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Every ingredient earns its place.</h2>
+    <p class="sr-lead reveal sr-mt-m">Select any part of the formulation to see what it is, why it is included, and — just as deliberately — what we claim and what we do not.</p>
+    <div class="fx reveal">
+      <div class="fx-tokens" role="tablist" aria-label="Formulation ingredients">
+        <button class="fx-token" role="tab" type="button" data-fx="ph" id="fxTab-ph" aria-selected="true" aria-controls="fxPanel" tabindex="0">pH 8.8</button>
+        <button class="fx-token" role="tab" type="button" data-fx="na" id="fxTab-na" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Sodium</button>
+        <button class="fx-token" role="tab" type="button" data-fx="k" id="fxTab-k" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Potassium</button>
+        <button class="fx-token" role="tab" type="button" data-fx="mg" id="fxTab-mg" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Magnesium</button>
+        <button class="fx-token" role="tab" type="button" data-fx="ca" id="fxTab-ca" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Calcium</button>
+        <button class="fx-token" role="tab" type="button" data-fx="chlorella" id="fxTab-chlorella" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Chlorella</button>
+        <button class="fx-token" role="tab" type="button" data-fx="dulse" id="fxTab-dulse" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Dulse</button>
+        <button class="fx-token" role="tab" type="button" data-fx="seamoss" id="fxTab-seamoss" aria-selected="false" aria-controls="fxPanel" tabindex="-1">Seamoss</button>
+      </div>
+      <div class="fx-panel" id="fxPanel" role="tabpanel" aria-live="polite" tabindex="0" aria-labelledby="fxTab-ph">
+        <div class="fx-head"><div class="fx-name" id="fxName">pH 8.8</div><div class="fx-kind" id="fxKind">Product fact</div></div>
+        <div class="fx-rows">
+          <div class="fx-row"><div class="fx-k">What it is</div><div class="fx-v" id="fxWhat">A formulation target for the beverage.</div></div>
+          <div class="fx-row"><div class="fx-k">Why it is included</div><div class="fx-v" id="fxWhy">Part of the AFORCE product standard.</div></div>
+          <div class="fx-row claim"><div class="fx-k">What we claim</div><div class="fx-v" id="fxClaim">AFORCE is formulated to pH 8.8.</div></div>
+          <div class="fx-row noclaim"><div class="fx-k">What we do not claim</div><div class="fx-v" id="fxNoclaim">That drinking AFORCE changes blood pH or treats any condition.</div></div>
+          <div class="fx-row src"><div class="fx-k">Source / evidence type</div><div class="fx-v" id="fxSrc">Product fact · formulation specification.</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="sr-disc reveal">Product fact = objectively true of the AFORCE formulation. Established physiology = general nutrition science, not an AFORCE-specific outcome. Signature botanical = included as a formulation choice, with no health claim.</p>
   </div>
 </section>
 
@@ -822,6 +954,131 @@
   } else {
     revealTargets.forEach(function(el){ el.classList.add("in"); });
   }
+})();
+</script>
+<script>
+/* ===== Science Phase 1 · interactive core (progressive enhancement) ===== */
+(function(){
+  "use strict";
+  document.documentElement.classList.add("js-sci");
+
+  /* Accessible single-select tablist: roving tabindex + arrow/Home/End keys */
+  function initTabs(list, onSelect){
+    if(!list) return;
+    var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    function select(tab, focus){
+      tabs.forEach(function(t){
+        var on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+      });
+      if(focus) tab.focus();
+      onSelect(tab);
+    }
+    tabs.forEach(function(tab, i){
+      tab.addEventListener("click", function(){ select(tab, false); });
+      tab.addEventListener("keydown", function(e){
+        var n = null;
+        if(e.key === "ArrowRight" || e.key === "ArrowDown") n = tabs[(i+1) % tabs.length];
+        else if(e.key === "ArrowLeft" || e.key === "ArrowUp") n = tabs[(i-1+tabs.length) % tabs.length];
+        else if(e.key === "Home") n = tabs[0];
+        else if(e.key === "End") n = tabs[tabs.length-1];
+        if(n){ e.preventDefault(); select(n, true); }
+      });
+    });
+  }
+
+  /* 1 · Systems visual */
+  var SYS = {
+    "Fluid balance":    { desc:"Water and electrolytes contribute to normal fluid regulation.", tag:"Water · electrolytes" },
+    "Muscle function":  { desc:"Sodium, potassium, magnesium and calcium participate in normal muscle contraction and function.", tag:"Na · K · Mg · Ca" },
+    "Nerve signaling":  { desc:"Electrochemical gradients support normal nerve transmission.", tag:"Sodium · potassium gradients" },
+    "Cognitive function":{ desc:"Normal hydration status supports normal physiological function relevant to cognition.", tag:"Hydration status" }
+  };
+  var sName=document.getElementById("sysName"), sDesc=document.getElementById("sysDesc"), sTag=document.getElementById("sysTag"), sPanel=document.getElementById("sysPanel");
+  if(sName){
+    initTabs(document.querySelector("#sysBlock .sys-rail"), function(tab){
+      var name = tab.textContent.trim(), d = SYS[name];
+      if(!d) return;
+      sName.textContent = name; sDesc.textContent = d.desc;
+      sTag.innerHTML = "Relationship <b>"+d.tag+"</b>";
+      if(sPanel) sPanel.setAttribute("aria-labelledby", tab.id);
+    });
+  }
+
+  /* 2 · Formulation explorer */
+  var NIH = "https://ods.od.nih.gov/factsheets/";
+  var FX = {
+    ph:{ name:"pH 8.8", kind:"Product fact",
+      what:"A formulation target for the beverage.",
+      why:"Part of the AFORCE product standard.",
+      claim:"AFORCE is formulated to pH 8.8.",
+      noclaim:"That drinking AFORCE changes blood pH or treats any condition.",
+      src:"Product fact · formulation specification." },
+    na:{ name:"Sodium", kind:"Established physiology",
+      what:"An essential electrolyte (Na⁺).",
+      why:"Anchors the electrolyte profile the ritual is built around.",
+      claim:"AFORCE contains sodium as part of its electrolyte profile.",
+      noclaim:"That AFORCE sodium produces a specific performance or clinical outcome.",
+      src:'<a href="'+NIH+'Sodium-HealthProfessional/" target="_blank" rel="noopener">NIH ODS · Sodium ↗</a> · Established physiology' },
+    k:{ name:"Potassium", kind:"Established physiology",
+      what:"An essential electrolyte (K⁺).",
+      why:"Selected for its established role in normal nerve and muscle function.",
+      claim:"AFORCE contains potassium as part of its electrolyte profile.",
+      noclaim:"That AFORCE potassium improves performance or treats any condition.",
+      src:'<a href="'+NIH+'Potassium-HealthProfessional/" target="_blank" rel="noopener">NIH ODS · Potassium ↗</a> · Established physiology' },
+    mg:{ name:"Magnesium", kind:"Established physiology",
+      what:"An essential mineral (Mg²⁺).",
+      why:"Part of a considered mineral profile — nothing added without a reason.",
+      claim:"AFORCE contains magnesium.",
+      noclaim:"That AFORCE magnesium delivers a specific clinical benefit.",
+      src:'<a href="'+NIH+'Magnesium-HealthProfessional/" target="_blank" rel="noopener">NIH ODS · Magnesium ↗</a> · Established physiology' },
+    ca:{ name:"Calcium", kind:"Established physiology",
+      what:"An essential mineral (Ca²⁺).",
+      why:"Rounds out the regulation layer the formula is built on.",
+      claim:"AFORCE contains calcium.",
+      noclaim:"That AFORCE calcium produces a specific health outcome.",
+      src:'<a href="'+NIH+'Calcium-HealthProfessional/" target="_blank" rel="noopener">NIH ODS · Calcium ↗</a> · Established physiology' },
+    chlorella:{ name:"Chlorella", kind:"Signature botanical",
+      what:"A green freshwater algae.",
+      why:"The signature botanical ingredient in Watermelon Surge.",
+      claim:"AFORCE includes chlorella as a signature botanical ingredient.",
+      noclaim:"Any detox, immunity, cure, or disease-related benefit.",
+      src:"Product fact · brand standard. Signature botanical ingredient." },
+    dulse:{ name:"Dulse", kind:"Signature botanical",
+      what:"A red seaweed.",
+      why:"The signature botanical ingredient in Berry Blast.",
+      claim:"AFORCE includes dulse as a signature botanical ingredient.",
+      noclaim:"Any specific health, detox, or performance benefit.",
+      src:"Product fact · brand standard. Signature botanical ingredient." },
+    seamoss:{ name:"Seamoss", kind:"Signature botanical",
+      what:"A marine algae (Irish moss).",
+      why:"The signature botanical ingredient in Soursop Edge.",
+      claim:"AFORCE includes seamoss as a signature botanical ingredient.",
+      noclaim:"Any detox, immunity, cure, or disease-related benefit.",
+      src:"Product fact · brand standard. Signature botanical ingredient." }
+  };
+  var fxName=document.getElementById("fxName"), fxKind=document.getElementById("fxKind"),
+      fxWhat=document.getElementById("fxWhat"), fxWhy=document.getElementById("fxWhy"),
+      fxClaim=document.getElementById("fxClaim"), fxNoclaim=document.getElementById("fxNoclaim"),
+      fxSrc=document.getElementById("fxSrc"), fxPanel=document.getElementById("fxPanel");
+  if(fxName){
+    initTabs(document.querySelector("#explorer .fx-tokens"), function(tab){
+      var d = FX[tab.getAttribute("data-fx")]; if(!d) return;
+      fxName.textContent=d.name; fxKind.textContent=d.kind;
+      fxWhat.textContent=d.what; fxWhy.textContent=d.why;
+      fxClaim.textContent=d.claim; fxNoclaim.textContent=d.noclaim;
+      fxSrc.innerHTML=d.src;
+      if(fxPanel) fxPanel.setAttribute("aria-labelledby", tab.id);
+    });
+  }
+
+  /* 3 · Electrolyte regulation accordions */
+  Array.prototype.forEach.call(document.querySelectorAll(".reg"), function(btn){
+    btn.addEventListener("click", function(){
+      btn.setAttribute("aria-expanded", btn.getAttribute("aria-expanded")==="true" ? "false" : "true");
+    });
+  });
 })();
 </script>
 </body>
