@@ -553,6 +553,60 @@
   .fx-row.noclaim .fx-v{ color:var(--c); }
   .fx-row.src{ grid-column:1 / -1; border-right:0; }
   .fx-row.src .fx-v a{ color:var(--red); border-bottom:1px solid var(--c14); padding-bottom:2px; }
+
+  /* ===== P2 · Three Expressions — engineered variants ===== */
+  .var-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2.2vw,26px); margin-top:clamp(30px,4vw,48px); }
+  @media (max-width:820px){ .var-grid{ grid-template-columns:1fr; max-width:520px; } }
+  .var{ border:1px solid var(--c14); border-radius:8px; overflow:hidden; background:linear-gradient(180deg, rgba(11,13,18,0.02), transparent); display:flex; flex-direction:column; }
+  .var-obj{ position:relative; padding:clamp(26px,3vw,40px) 0 clamp(16px,2vw,24px); display:flex; justify-content:center; background:radial-gradient(58% 58% at 50% 34%, rgba(11,13,18,0.05), transparent 70%); }
+  .var-obj img{ height:clamp(190px,24vw,262px); width:auto; filter:drop-shadow(0 22px 44px rgba(11,13,18,0.22)); }
+  .var-name{ padding:0 clamp(20px,2.4vw,28px); font-family:var(--display); font-weight:800; text-transform:uppercase; font-size:clamp(16px,1.7vw,20px); line-height:1.12; }
+  .var-specs{ margin-top:14px; border-top:1px solid var(--c08); }
+  .var-spec{ display:grid; grid-template-columns:auto 1fr; gap:14px; padding:12px clamp(20px,2.4vw,28px); border-bottom:1px solid var(--c08); align-items:baseline; }
+  .var-spec:last-child{ border-bottom:0; }
+  .var-spec .vk{ font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--c40); white-space:nowrap; }
+  .var-spec .vv{ font-size:14px; color:var(--c); line-height:1.5; }
+  .var-spec.sig .vv{ color:var(--red); font-weight:600; }
+
+  /* ===== P2 · Journey of Hydration (abstract, scroll-filled sequence) ===== */
+  .jrn{ margin-top:clamp(32px,4.5vw,60px); }
+  .jrn-track{ display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(10px,1.4vw,18px); }
+  @media (max-width:760px){ .jrn-track{ grid-template-columns:1fr; } }
+  .jrn-step{ position:relative; padding-top:34px; }
+  .jrn-step::before{ content:''; position:absolute; top:9px; left:0; width:15px; height:15px; border-radius:50%; background:var(--red); border:1px solid var(--red); z-index:1; }
+  .jrn-step::after{ content:''; position:absolute; top:16px; left:15px; right:0; height:1px; background:var(--c14); }
+  .jrn-step:last-child::after{ display:none; }
+  @media (max-width:760px){
+    .jrn-step{ padding:0 0 clamp(22px,4vw,32px) 30px; }
+    .jrn-step::before{ top:2px; left:0; }
+    .jrn-step::after{ top:14px; left:7px; right:auto; width:1px; bottom:-2px; height:auto; }
+    .jrn-step:last-child{ padding-bottom:0; }
+  }
+  .jrn-n{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; color:var(--red); }
+  .jrn-t{ font-family:var(--display); font-weight:800; text-transform:uppercase; font-size:clamp(14px,1.5vw,17px); line-height:1.12; margin-top:8px; letter-spacing:-0.005em; }
+  .jrn-d{ color:var(--c70); font-size:13px; line-height:1.5; margin-top:8px; max-width:22ch; }
+  /* animated initial state — only with JS + motion allowed; no-JS renders full */
+  .js-sci .jrn:not(.in) .jrn-step{ opacity:.28; transition:opacity .6s ease; }
+  .js-sci .jrn:not(.in) .jrn-step::before{ background:var(--canvas); border-color:var(--c25); transition:background .5s ease, border-color .5s ease; }
+  .jrn.in .jrn-step{ transition:opacity .6s ease; transition-delay:calc(var(--i,0)*170ms); }
+  .jrn.in .jrn-step::before{ transition:background .5s ease, border-color .5s ease; transition-delay:calc(var(--i,0)*170ms); }
+  @media (prefers-reduced-motion:reduce){ .js-sci .jrn:not(.in) .jrn-step{ opacity:1; } .js-sci .jrn:not(.in) .jrn-step::before{ background:var(--red); border-color:var(--red); } }
+
+  /* ===== P2 · The "Before" timeline (common vs ritual) ===== */
+  .bt{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(18px,3vw,44px); margin-top:clamp(32px,4.5vw,58px); }
+  @media (max-width:760px){ .bt{ grid-template-columns:1fr; gap:24px; } }
+  .bt-col{ border:1px solid var(--c14); border-radius:8px; padding:clamp(22px,2.8vw,34px); }
+  .bt-col.ritual{ border-color:rgba(193,40,27,0.3); background:linear-gradient(180deg, rgba(193,40,27,0.02), transparent); }
+  .bt-col .bt-h{ font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--c40); }
+  .bt-col.ritual .bt-h{ color:var(--red); }
+  .bt-steps{ list-style:none; margin-top:clamp(18px,2.4vw,26px); }
+  .bt-steps li{ position:relative; padding:0 0 clamp(15px,2vw,22px) 26px; font-family:var(--display); font-weight:700; text-transform:uppercase; font-size:clamp(16px,1.8vw,21px); letter-spacing:-0.005em; color:var(--c); }
+  .bt-steps li::before{ content:''; position:absolute; left:4px; top:7px; width:9px; height:9px; border-radius:50%; background:var(--c25); z-index:1; }
+  .bt-steps li::after{ content:''; position:absolute; left:8px; top:15px; bottom:2px; width:1px; background:var(--c14); }
+  .bt-steps li:last-child{ padding-bottom:0; }
+  .bt-steps li:last-child::after{ display:none; }
+  .bt-col.ritual .bt-steps li::before{ background:var(--red); }
+  .bt-note{ margin-top:clamp(24px,3vw,38px); }
 </style>
 
 <!-- HERO -->
@@ -623,7 +677,8 @@
 <section class="sr-sec" id="formula" aria-label="The formula">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">03<span class="s">—</span>The Formula<span class="s">·</span>The AFORCE Standard</div>
-    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">One standard. Three expressions.</h2>
+    <div class="sr-kicker reveal sr-mt-m">One standard. Three expressions.</div>
+    <h2 class="h-2 reveal sr-mt-s" style="text-transform:none;">Three expressions.<br>One formulation discipline.</h2>
     <p class="sr-lead reveal sr-mt-m">Three distinct formulations, one deliberate architecture: alkaline pH 8.8, a considered electrolyte and mineral profile, and one signature algae ingredient each. We do not use pH 8.8 as a shortcut to a health promise — it is a formulation standard, held to a lane.</p>
     <div class="sr-grid sr-g4">
       <div class="sr-cell reveal"><div class="k">Standard</div><div class="v">pH 8.8</div><div class="d">A formulation standard, not a blood-pH claim.</div></div>
@@ -631,12 +686,58 @@
       <div class="sr-cell reveal"><div class="k">Signature</div><div class="v">Algae Ingredients</div><div class="d">Chlorella, dulse and seamoss — one per expression.</div></div>
       <div class="sr-cell reveal"><div class="k">Discipline</div><div class="v">Controlled Formulation</div><div class="d">Nothing added without a reason. Nothing claimed without a lane.</div></div>
     </div>
-    <div class="sr-cans">
-      <div class="sr-can reveal"><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge with Chlorella can" loading="lazy"><div class="cn">Watermelon Surge + Chlorella</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
-      <div class="sr-can reveal"><img src="/assets/can-blue.png" alt="AFORCE Berry Blast with Dulse can" loading="lazy"><div class="cn">Berry Blast + Dulse</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
-      <div class="sr-can reveal"><img src="/assets/can-green.png" alt="AFORCE Soursop Edge with Seamoss can" loading="lazy"><div class="cn">Soursop Edge + Seamoss</div><div class="cs">pH 8.8 · Alkaline hydration</div></div>
+    <div class="var-grid">
+      <div class="var reveal">
+        <div class="var-obj"><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge with Chlorella can" loading="lazy"></div>
+        <div class="var-name">Watermelon Surge<br>+ Chlorella</div>
+        <div class="var-specs">
+          <div class="var-spec"><div class="vk">Standard</div><div class="vv">pH 8.8</div></div>
+          <div class="var-spec"><div class="vk">Foundation</div><div class="vv">Electrolytes + minerals</div></div>
+          <div class="var-spec sig"><div class="vk">Signature</div><div class="vv">Chlorella — signature botanical</div></div>
+          <div class="var-spec"><div class="vk">Intent</div><div class="vv">A bright, high-tempo profile for the everyday ritual.</div></div>
+        </div>
+      </div>
+      <div class="var reveal">
+        <div class="var-obj"><img src="/assets/can-blue.png" alt="AFORCE Berry Blast with Dulse can" loading="lazy"></div>
+        <div class="var-name">Berry Blast<br>+ Dulse</div>
+        <div class="var-specs">
+          <div class="var-spec"><div class="vk">Standard</div><div class="vv">pH 8.8</div></div>
+          <div class="var-spec"><div class="vk">Foundation</div><div class="vv">Electrolytes + minerals</div></div>
+          <div class="var-spec sig"><div class="vk">Signature</div><div class="vv">Dulse — signature botanical</div></div>
+          <div class="var-spec"><div class="vk">Intent</div><div class="vv">A deeper berry profile with a subtle marine mineral note.</div></div>
+        </div>
+      </div>
+      <div class="var reveal">
+        <div class="var-obj"><img src="/assets/can-green.png" alt="AFORCE Soursop Edge with Seamoss can" loading="lazy"></div>
+        <div class="var-name">Soursop Edge<br>+ Seamoss</div>
+        <div class="var-specs">
+          <div class="var-spec"><div class="vk">Standard</div><div class="vv">pH 8.8</div></div>
+          <div class="var-spec"><div class="vk">Foundation</div><div class="vv">Electrolytes + minerals</div></div>
+          <div class="var-spec sig"><div class="vk">Signature</div><div class="vv">Seamoss — signature botanical</div></div>
+          <div class="var-spec"><div class="vk">Intent</div><div class="vv">A restrained tropical edge for a considered reset.</div></div>
+        </div>
+      </div>
     </div>
     <p class="sr-disc reveal">Product specifications shown reflect the current AFORCE standard. Final ingredients and values are subject to formulation sign-off before launch.</p>
+  </div>
+</section>
+
+<!-- 03b · THE JOURNEY OF HYDRATION -->
+<section class="sr-sec" id="journey" aria-label="The journey of hydration">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">03 · Process<span class="s">—</span>How Hydration Works</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Hydration is not a claim.<br>It is a process.</h2>
+    <p class="sr-lead reveal sr-mt-m">Water supports normal physiological processes through a sequence — not a promise. The point is the chain, not any single step.</p>
+    <div class="jrn" id="jrnTrack" aria-label="Hydration physiology sequence">
+      <div class="jrn-track">
+        <div class="jrn-step" style="--i:0"><div class="jrn-n">01</div><div class="jrn-t">Ingestion</div><div class="jrn-d">The intentional Water-First action.</div></div>
+        <div class="jrn-step" style="--i:1"><div class="jrn-n">02</div><div class="jrn-t">Fluid availability</div><div class="jrn-d">Fluid becomes available to the body.</div></div>
+        <div class="jrn-step" style="--i:2"><div class="jrn-n">03</div><div class="jrn-t">Electrolyte balance</div><div class="jrn-d">Electrolytes support normal balance.</div></div>
+        <div class="jrn-step" style="--i:3"><div class="jrn-n">04</div><div class="jrn-t">Physiological regulation</div><div class="jrn-d">Normal cellular and physiological regulation.</div></div>
+        <div class="jrn-step" style="--i:4"><div class="jrn-n">05</div><div class="jrn-t">Normal function</div><div class="jrn-d">Fluid, nerve and muscle function supported.</div></div>
+      </div>
+    </div>
+    <p class="sr-disc reveal">This visualization illustrates general hydration physiology, not an AFORCE-specific clinical outcome.</p>
   </div>
 </section>
 
@@ -739,6 +840,35 @@
       <li><span class="fn">07</span>Ready for the ritual</li>
     </ol>
     <p class="reveal sr-mt-l"><a class="sr-link" href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-113" target="_blank" rel="noopener">Read the regulatory framework · 21 CFR Part 113 ↗</a></p>
+  </div>
+</section>
+
+<!-- 05b · THE BEFORE -->
+<section class="sr-sec" id="before" aria-label="Prepare before the moment">
+  <div class="sr-wrap">
+    <div class="sr-eyebrow reveal">05 · Behavior<span class="s">—</span>Before vs After</div>
+    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The moment is too late to begin preparing.</h2>
+    <div class="bt">
+      <div class="bt-col reveal">
+        <div class="bt-h">Common pattern</div>
+        <ul class="bt-steps">
+          <li>Moment arrives</li>
+          <li>React</li>
+          <li>Hydrate</li>
+          <li>Recover</li>
+        </ul>
+      </div>
+      <div class="bt-col ritual reveal">
+        <div class="bt-h">The AFORCE ritual</div>
+        <ul class="bt-steps">
+          <li>Pause</li>
+          <li>Hydrate</li>
+          <li>Lock-In</li>
+          <li>Perform</li>
+        </ul>
+      </div>
+    </div>
+    <p class="sr-disc reveal bt-note">A behavioral contrast, not a performance claim: prepare before the moment instead of responding after it.</p>
   </div>
 </section>
 
@@ -1079,6 +1209,19 @@
       btn.setAttribute("aria-expanded", btn.getAttribute("aria-expanded")==="true" ? "false" : "true");
     });
   });
+
+  /* 4 · Journey of Hydration — fill the sequence when it enters view */
+  var jrns = document.querySelectorAll(".jrn");
+  if(jrns.length){
+    if("IntersectionObserver" in window){
+      var jio = new IntersectionObserver(function(entries){
+        entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add("in"); jio.unobserve(en.target); } });
+      }, {threshold:.3});
+      Array.prototype.forEach.call(jrns, function(j){ jio.observe(j); });
+    } else {
+      Array.prototype.forEach.call(jrns, function(j){ j.classList.add("in"); });
+    }
+  }
 })();
 </script>
 </body>
