@@ -72,10 +72,19 @@ const DRIVER_COPY: Record<
     negative: "You're due for more water.",
     neutral: 'Water is steady for now.',
   },
+  // Build-50 Gate 2, item 5: this pill folds `health_signals` in with
+  // `sleep` (see DRIVER_MEMBERS above) — `health_signals` is the combined
+  // HRV / sleep / readiness / recovery% / stress delta from ANY connected
+  // platform (`computeRecoverySignal`), so a user whose only contributing
+  // field is HRV or Garmin stress (sleep genuinely absent) used to see a
+  // sleep-specific sentence ("Short sleep is weighing on your score.")
+  // attributing the movement to rest quality that was never measured.
+  // Copy widened to "sleep and recovery signals" so it stays true
+  // regardless of which member of the pill actually moved.
   sleep: {
-    positive: 'Good rest is helping your score.',
-    negative: 'Short sleep is weighing on your score.',
-    neutral: "Sleep isn't affecting your score right now.",
+    positive: 'Sleep and recovery signals are helping your score.',
+    negative: 'Sleep and recovery signals are weighing on your score.',
+    neutral: 'Sleep and recovery are steady for now.',
   },
   heat: {
     positive: 'Conditions are comfortable right now.',
