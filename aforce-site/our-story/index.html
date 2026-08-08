@@ -229,6 +229,17 @@
   .btn.ghost{ border:1px solid var(--line); color:var(--ink); }
   .btn.ghost:hover{ border-color:var(--ink); }
   .endline{ margin-top:clamp(48px,7vw,88px); font-family:var(--mono); font-size:clamp(13px,1.6vw,17px); letter-spacing:0.24em; text-transform:uppercase; color:var(--ink); }
+  /* ---------- CODA · elevated ending ---------- */
+  .coda-stack{ display:flex; flex-direction:column; gap:clamp(4px,0.8vw,10px); }
+  .coda-stack .ln{ font-size:clamp(27px,4.6vw,58px); font-weight:800; letter-spacing:-0.022em; line-height:1.05; }
+  .coda-flow{ display:flex; flex-direction:column; gap:clamp(15px,2.2vw,28px); max-width:32ch; }
+  .coda-flow .fl{ font-size:clamp(20px,2.2vw,28px); font-weight:700; line-height:1.35; }
+  .coda-final{ font-size:clamp(38px,7.8vw,112px); font-weight:800; letter-spacing:-0.038em; line-height:0.92; }
+  .coda-invite{ margin-top:clamp(30px,4.5vw,52px); max-width:32ch; font-size:clamp(18px,1.9vw,23px); font-weight:600; line-height:1.5; }
+  .sec.dark .coda-invite{ color:rgba(245,240,232,0.60); }
+  .soft-cta{ margin-top:clamp(28px,4vw,42px); display:inline-flex; align-items:center; gap:10px; font-family:var(--mono); font-size:12px; letter-spacing:0.18em; text-transform:uppercase; color:var(--bone); border-bottom:1px solid rgba(245,240,232,0.42); padding-bottom:7px; transition:color .3s, border-color .3s, gap .3s; }
+  .soft-cta:hover{ color:var(--red); border-color:var(--red); gap:16px; }
+  .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
   /* Footer */
   .ft{ border-top:1px solid var(--line); padding:clamp(48px,7vw,80px) 0; margin-top:clamp(40px,6vw,72px); }
   .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:32px 48px; }
@@ -480,12 +491,55 @@
       <div class="pillar reveal" style="--i:2"><div class="pn">03</div><div class="ph">AFORCE OS</div><div class="pp">The intelligence layer designed to turn preparation into a repeatable habit.</div></div>
     </div>
     <p class="statement reveal mt-xl">The arena may change. The standard does not.</p>
-    <h2 class="h-lg reveal mt-m">Every great performance begins before the moment.</h2>
-    <div class="cta-row reveal">
-      <a class="btn primary" href="/shop">Begin the ritual ↗</a>
-      <a class="btn ghost" href="/aforce-os">See the system →</a>
+  </div>
+</section>
+
+<!-- ============ CODA · the ending ============ -->
+<section class="sec dark coda" aria-label="It was never about the water">
+  <div class="wrap">
+    <div class="label reveal">What It Was Always About</div>
+    <h2 class="display reveal mt-m">It was never<br>about the water.</h2>
+    <p class="lead reveal mt-l" style="max-width:31ch;">One of us woke before the sun, just to be still. One of us believed it could be bigger than a bottle.<br>Both were right.</p>
+  </div>
+</section>
+
+<section class="sec dark coda" aria-label="The moment before">
+  <div class="wrap">
+    <p class="statement reveal">The Moment Before</p>
+    <div class="coda-stack stagger mt-m">
+      <div class="ln reveal" style="--i:0">Before the whistle.</div>
+      <div class="ln reveal" style="--i:1">Before the meeting.</div>
+      <div class="ln reveal" style="--i:2">Before the first incision.</div>
+      <div class="ln reveal" style="--i:3">Before the word that changes everything.</div>
     </div>
-    <div class="endline reveal">Before is where performance is built.</div>
+    <p class="lead reveal mt-xl" style="max-width:26ch;">Everyone stands in that silence.<br>Most meet it unprepared.</p>
+  </div>
+</section>
+
+<section class="sec dark coda" aria-label="How it comes together">
+  <div class="wrap">
+    <div class="coda-flow stagger">
+      <div class="fl reveal" style="--i:0">One sip, taken on purpose.</div>
+      <div class="fl reveal" style="--i:1">Repeated until it was a ritual.</div>
+      <div class="fl reveal" style="--i:2">Lived until it was who you are.</div>
+      <div class="fl reveal" style="--i:3">Measured until you could trust it.</div>
+      <div class="fl reveal" style="--i:4">Carried into the moment that mattered.</div>
+    </div>
+    <p class="statement reveal mt-xl">Pause. &nbsp;Hydrate. &nbsp;<span style="color:var(--red)">Lock-In.</span> &nbsp;Perform.</p>
+  </div>
+</section>
+
+<section class="sec dark coda" aria-label="The preparation is silent">
+  <div class="wrap">
+    <h2 class="display reveal">The moment is loud.<br>The preparation is silent.<br>We built a company for the <span class="em-red">silence</span>.</h2>
+  </div>
+</section>
+
+<section class="sec dark coda" aria-label="Performance is non-negotiable">
+  <div class="wrap">
+    <h2 class="coda-final reveal">Performance<br>is Non-<span class="flip-n">N</span>egotiable.</h2>
+    <p class="coda-invite reveal">What began with two brothers, before sunrise, on an empty beach &mdash; no longer belongs to them. It belongs to everyone preparing for what comes next.</p>
+    <a class="soft-cta reveal" href="/aforce-os">Take the pause &rarr;</a>
   </div>
 </section>
 
