@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | The Performance Operating System</title>
 <meta name="description" content="Meet AFORCE OS — the performance operating system connecting hydration, readiness, recovery, rituals, and daily performance.">
 <meta name="robots" content="index,follow">
@@ -159,7 +159,7 @@
 
   /* hero */
   /* full-screen background-video hero (matches the homepage setup) */
-  .os-hero{ position:relative; min-height:100vh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px); background:var(--ink); color:var(--bone); overflow:hidden; }
+  .os-hero{ position:relative; min-height:100vh; min-height:100svh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px); background:var(--ink); color:var(--bone); overflow:hidden; }
   .os-hero-video, .os-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
   .os-hero-still{ display:none; }
   .os-hero-scrim{ position:absolute; inset:0; z-index:1; background:
@@ -520,6 +520,12 @@
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
+
+  /* ===== mobile responsive QA refinements (phone-only; desktop unchanged) ===== */
+  @media (max-width:390px){
+    .bs-final{ font-size:30px; overflow-wrap:anywhere; }
+    .os-hero{ padding-top:clamp(88px,14vh,120px); }
+  }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>

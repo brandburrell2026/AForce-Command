@@ -31,7 +31,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  height: var(--afx-h);
+  box-sizing: border-box;
+  /* §8 safe-area: with viewport-fit=cover the sticky bar must clear the notch /
+     Dynamic Island in portrait. env() resolves to 0 on desktop → no change there. */
+  height: calc(var(--afx-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   padding-left: max(var(--afx-gutter), env(safe-area-inset-left, 0px));
   padding-right: max(var(--afx-gutter), env(safe-area-inset-right, 0px));
   transition: background .4s ease, color .4s ease, border-color .4s ease;
@@ -43,9 +47,9 @@
    hero down (altering an approved hero, §3). A negative bottom margin cancels
    that flow space, so the hero stays full-bleed AND the bar still sticks (§8).
    Deliberately NOT mix-blend-mode: blend modes make WebKit drop sticky. */
-.afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h) * -1); }
+.afx-nav.afx-overlay { margin-bottom: calc((var(--afx-h) + env(safe-area-inset-top, 0px)) * -1); }
 @media (max-width: 1023.98px) {
-  .afx-nav.afx-overlay { margin-bottom: calc(var(--afx-h-mobile) * -1); }
+  .afx-nav.afx-overlay { margin-bottom: calc((var(--afx-h-mobile) + env(safe-area-inset-top, 0px)) * -1); }
 }
 
 /* Logo — each page keeps its own approved mark; only guarantee it can't be
@@ -119,7 +123,7 @@
 .afx-drawer[data-open="true"] { display: block; }
 .afx-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.4); }
 .afx-panel {
-  position: absolute; top: var(--afx-h-mobile); left: 0; right: 0; bottom: 0;
+  position: absolute; top: calc(var(--afx-h-mobile) + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0;
   background: var(--afx-surface); color: var(--afx-on-surface);
   overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
   padding: 12px max(var(--afx-gutter), env(safe-area-inset-left, 0px))
@@ -151,7 +155,7 @@
 
 /* ---------- Breakpoint (§4 / §5): 1024 ---------- */
 @media (max-width: 1023.98px) {
-  .afx-nav { height: var(--afx-h-mobile); }
+  .afx-nav { height: calc(var(--afx-h-mobile) + env(safe-area-inset-top, 0px)); }
   .afx-links { display: none; }          /* §7 no desktop nav behind the drawer */
   .afx-burger { display: block; }
   /* Compact SHOP stays a button but tighter. */
@@ -171,6 +175,13 @@
 @media (min-width: 1024px) {
   .afx-drawer { display: none !important; }
 }
+
+/* §9/§21 — site-wide horizontal-overflow guard. `clip` (never `hidden`) so it
+   does NOT create a scroll container and cannot break the sticky bar or any
+   position:sticky/fixed descendant. Root-level, so a fixed/absolute decorative
+   layer (grain, hero glows) that escapes a page's own body{overflow-x:hidden}
+   can never cause a sideways scroll on phones. Ignored gracefully pre-Safari 16. */
+html { overflow-x: clip; }
 
 /* Scroll lock (§7) — on <html>; JS compensates scrollbar width so the page
    never shifts sideways (§8). */

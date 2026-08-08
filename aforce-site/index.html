@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <!-- deploy marker: 2026-07-08 — force a fresh production build (homepage studio image) -->
 <meta name="build-marker" content="2026-07-08-studio-image">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE — The Performance Operating System</title>
 <meta name="description" content="AFORCE — a performance hydration system built around readiness, ritual, and recovery. pH 8.8 alkaline hydration with a daily readiness app and performance ritual.">
 <meta name="theme-color" content="#E9E7E1">
@@ -112,7 +112,7 @@
   }
 
   /* ---------- HERO (video-ready) ---------- */
-  .hero{ min-height:100vh; background:#000; color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
+  .hero{ min-height:100vh; min-height:100svh; background:#000; color:var(--canvas); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:120px 24px 80px; position:relative; overflow:hidden; }
   .hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; opacity:1; z-index:0; }
   .hero-video-overlay{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.06) 18%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.34) 78%, rgba(0,0,0,0.66) 100%); }
   .hero > *:not(.hero-video):not(.hero-video-overlay):not(.hero-cine){ position:relative; z-index:2; }
@@ -633,6 +633,17 @@
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
+
+  /* ===== mobile responsive QA refinements (phone-only; desktop unchanged) ===== */
+  .signal-section{ min-height:80vh; min-height:80svh; }
+  @media (max-width:600px){
+    .signal-section .left{ padding:64px clamp(20px,6vw,40px); }
+    .signal-section .right{ padding:0 clamp(20px,6vw,40px) 56px; }
+    .signal-states{ gap:10px; }
+  }
+  @media (max-width:400px){
+    .clarity-headline{ font-size:26px; line-height:1.02; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>

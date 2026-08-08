@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE — Our Story</title>
 <meta name="description" content="Before AFORCE had a name, it had a ritual. The origin of AFORCE — two brothers, two moments of stillness, and one standard for how people prepare.">
 <meta name="robots" content="index,follow">
@@ -257,6 +257,18 @@
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
+
+  /* ===== mobile responsive QA refinements (phone-only; desktop unchanged) ===== */
+  @media (max-width:560px){
+    .specs{ grid-template-columns:1fr; }
+    .film .film-cap{ flex-wrap:wrap; justify-content:flex-start; gap:10px 14px; }
+    .film .film-cap .replay{ margin-left:auto; padding:12px 18px; }
+    .enter .dot{ width:44px; height:44px; }
+  }
+  @media (max-width:400px){
+    .hero-statement{ font-size:34px; line-height:1.04; }
+    .coda-final{ font-size:32px; overflow-wrap:anywhere; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>
