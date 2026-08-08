@@ -412,6 +412,80 @@
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
+
+  /* ================= BUILD YOUR RITUAL — inline mixed-order builder =========
+     A persistent, premium configurator layered on the existing basket (§9).
+     Pure UI: it only reads basket state and calls add/setQuantity/remove/
+     checkout. Dark-stage tokens (--canvas text on --ink), --theme accent. */
+  .step.build[hidden]{ display:none; }
+  .step.build:not([hidden]){ animation:buildIn .6s ease both; }
+  @keyframes buildIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+  .step.build .lead{ margin-bottom:clamp(24px,3vw,36px); }
+  .build-grid{ display:grid; grid-template-columns:1.35fr 1fr; gap:clamp(20px,3vw,44px); align-items:start; }
+  @media (max-width:860px){ .build-grid{ grid-template-columns:1fr; gap:28px; } }
+
+  /* left — live mixed cart */
+  .bc-line{ display:grid; grid-template-columns:66px 1fr; gap:15px; padding:18px 0; border-bottom:1px solid var(--can-12); }
+  .bc-thumb{ width:66px; height:66px; border-radius:6px; background:var(--can-12); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .bc-thumb img{ width:100%; height:100%; object-fit:contain; }
+  .bc-name{ font-family:var(--display); font-weight:800; font-size:16px; letter-spacing:-.01em; color:var(--canvas); }
+  .bc-meta{ margin-top:4px; font-size:12.5px; color:var(--can-55); }
+  .bc-meta .bc-sub-on{ color:var(--theme); } .bc-meta .bc-sub-off{ color:var(--can-40); }
+  .bc-row{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+  .bc-qty{ display:inline-flex; align-items:center; border:1px solid var(--can-22); border-radius:999px; }
+  .bc-qty button{ width:36px; height:36px; border:0; background:none; cursor:pointer; font-size:17px; color:var(--canvas); line-height:1; }
+  .bc-qty button:disabled{ opacity:.3; cursor:not-allowed; }
+  .bc-qty span{ min-width:28px; text-align:center; font-family:var(--mono); font-size:13px; color:var(--canvas); }
+  .bc-price{ font-family:var(--display); font-weight:800; font-size:15px; color:var(--canvas); }
+  .bc-remove{ margin-top:9px; border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-40); padding:5px 0; min-height:32px; }
+  .bc-remove:hover{ color:var(--red); }
+  .bc-foot{ margin-top:24px; }
+  .bc-sub{ display:flex; align-items:baseline; justify-content:space-between; font-family:var(--display); font-weight:800; font-size:18px; color:var(--canvas); }
+  .bc-ship{ margin-top:6px; font-size:12px; color:var(--can-40); }
+  .bc-checkout{ display:block; width:100%; min-height:56px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:800; font-size:15px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s, transform .12s; }
+  .bc-checkout:hover{ opacity:.92; } .bc-checkout:active{ transform:scale(.99); } .bc-checkout:disabled{ opacity:.4; cursor:not-allowed; }
+  .bc-err{ margin-top:12px; color:var(--red); font-size:12.5px; }
+
+  /* contextual cross-sell */
+  .bc-cross{ display:flex; align-items:center; gap:18px; justify-content:space-between; margin-top:18px; padding:18px 20px; border:1px solid var(--can-12); border-left:2px solid var(--theme); border-radius:6px; background:rgba(242,242,240,.03); }
+  .bx-txt{ display:flex; flex-direction:column; gap:3px; }
+  .bx-kick{ font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--theme); }
+  .bx-t{ font-family:var(--display); font-weight:800; font-size:15px; color:var(--canvas); }
+  .bx-d{ font-size:12.5px; color:var(--can-55); max-width:44ch; line-height:1.5; }
+  .bx-add{ flex:none; border:1.5px solid var(--canvas); background:transparent; color:var(--canvas); border-radius:999px; padding:12px 20px; min-height:44px; font-weight:700; font-size:13px; cursor:pointer; transition:background .2s,color .2s; }
+  .bx-add:hover{ background:var(--canvas); color:var(--ink); }
+  .bx-add:disabled{ opacity:.4; cursor:not-allowed; }
+  @media (max-width:520px){ .bc-cross{ flex-direction:column; align-items:flex-start; } .bx-add{ width:100%; } }
+
+  /* right — quick-add configurator (Sweetgreen-style, one tap per SKU) */
+  .build-add{ border:1px solid var(--can-12); border-radius:10px; padding:clamp(20px,2.4vw,28px); background:rgba(242,242,240,.03); position:sticky; top:80px; }
+  @media (max-width:860px){ .build-add{ position:static; } }
+  .ba-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+  .ba-kick{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
+  .ba-plan{ display:inline-flex; border:1px solid var(--can-22); border-radius:999px; padding:2px; }
+  .ba-plan button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--can-55); padding:7px 12px; min-height:34px; border-radius:999px; transition:background .2s,color .2s; }
+  .ba-plan button.on{ background:var(--canvas); color:var(--ink); }
+  .ba-group + .ba-group{ margin-top:20px; }
+  .bag-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+  .bag-fmt{ font-family:var(--display); font-weight:800; font-size:15px; color:var(--canvas); }
+  .bag-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--can-40); }
+  .bag-cells{ display:grid; gap:8px; }
+  .ba-cell{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:1.5px solid var(--can-12); background:transparent; border-radius:6px; padding:12px 14px; min-height:48px; cursor:pointer; color:var(--canvas); transition:border-color .18s, background .18s, transform .1s; }
+  .ba-cell:hover{ border-color:var(--canvas); }
+  .ba-cell:active{ transform:scale(.99); }
+  .ba-cell:disabled{ opacity:.4; cursor:not-allowed; }
+  .ba-cell.pulse{ animation:bacPulse .5s ease; }
+  @keyframes bacPulse{ 0%{ box-shadow:0 0 0 0 var(--theme); } 40%{ box-shadow:0 0 0 5px var(--can-12); border-color:var(--theme); } 100%{ box-shadow:0 0 0 0 transparent; } }
+  .bac-plus{ font-family:var(--display); font-weight:800; font-size:18px; color:var(--theme); width:15px; flex:none; line-height:1; }
+  .bac-name{ flex:1; font-weight:700; font-size:14px; }
+  .bac-price{ font-family:var(--mono); font-size:12px; color:var(--can-55); }
+  .ba-variety{ margin-top:20px; width:100%; text-align:left; display:flex; flex-direction:column; gap:3px; border:1.5px dashed var(--can-22); background:transparent; border-radius:8px; padding:15px 16px; cursor:pointer; transition:border-color .2s, background .2s; }
+  .ba-variety:hover{ border-color:var(--theme); background:rgba(242,242,240,.04); }
+  .ba-variety:disabled{ opacity:.4; cursor:not-allowed; }
+  .bv-t{ font-family:var(--display); font-weight:800; font-size:14.5px; color:var(--canvas); }
+  .bv-s{ font-size:11.5px; color:var(--can-55); }
+  .ba-note{ margin-top:14px; font-size:12px; color:var(--theme); }
+  @media (prefers-reduced-motion:reduce){ .step.build:not([hidden]){ animation:none; } .ba-cell.pulse{ animation:none; } }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>
@@ -645,6 +719,43 @@
       <div class="p-head">Stated Plainly.</div>
       <p>Your Performance Profile is built from the rituals you complete — AFORCE OS does not take live biometric readings. U.S. patent pending.</p>
       <p>These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.</p>
+    </div>
+  </div>
+</section>
+
+<section class="step build" id="stepBuild" hidden aria-labelledby="buildTitle">
+  <div class="wrap">
+    <div class="step-i">Your Ritual — Built to Order</div>
+    <h2 id="buildTitle">Build your ritual.</h2>
+    <p class="lead">Mix formats and flavors freely — cans for the everyday, sticks for the road. Add as many as your week demands; everything checks out together.</p>
+
+    <div class="build-grid">
+      <div class="build-cart">
+        <div class="bc-lines" id="buildLines"><!-- live lines injected --></div>
+        <div class="bc-cross" id="buildCross" hidden><!-- contextual cross-sell --></div>
+        <div class="bc-foot" id="buildFoot" hidden>
+          <div class="bc-sub"><span>Subtotal</span><span id="buildSubtotal">$0.00</span></div>
+          <div class="bc-ship">Shipping calculated at checkout</div>
+          <button type="button" class="bc-checkout" id="buildCheckout">Continue to secure checkout</button>
+          <div class="bc-err" id="buildErr" role="alert" hidden></div>
+        </div>
+      </div>
+
+      <aside class="build-add" aria-label="Add to your ritual">
+        <div class="ba-head">
+          <span class="ba-kick">Add to your ritual</span>
+          <div class="ba-plan" id="buildPlan" role="group" aria-label="Delivery plan for added items">
+            <button type="button" data-bplan="onetime" class="on" aria-pressed="true">One-Time</button>
+            <button type="button" data-bplan="autopilot" aria-pressed="false">AutoPilot</button>
+          </div>
+        </div>
+        <div class="ba-matrix" id="buildMatrix"><!-- 6-SKU quick-add grid injected --></div>
+        <button type="button" class="ba-variety" id="buildVariety">
+          <span class="bv-t">Build a Variety Pack</span>
+          <span class="bv-s">One 6-pack of every flavor · <span id="bvPrice"></span></span>
+        </button>
+        <p class="ba-note" id="buildAddNote" hidden role="status"></p>
+      </aside>
     </div>
   </div>
 </section>
@@ -964,7 +1075,10 @@
          renderFormats (via the basket onChange) surfaces the second-format
          nudge on the other card. */
       if(btn){ btn.textContent="Added to Ritual"; btn.classList.add("confirmed"); setTimeout(function(){ if(document.getElementById("igniteBtn")===btn) renderBegin(); }, 1600); }
-      openBasket();
+      /* §BUILD: the persistent inline builder is now the collector — reveal it and
+         bring it into view so the customer keeps stacking cans/sticks/flavors
+         without restarting the journey. The drawer stays available via the header cart. */
+      revealBuild(); setTimeout(function(){ jump("stepBuild"); }, 80);
     });
     return true;
   }
@@ -1035,6 +1149,110 @@
     if(basket.canUndo()){ u.hidden=false; $("#rb2UndoLabel").textContent="Item removed"; }
     else u.hidden=true;
   }
+
+  /* ================= BUILD YOUR RITUAL — inline mixed-order builder =========
+     Pure UI over the existing basket (§9). Never touches pricing, variants,
+     selling plans, or checkout — it only calls basket.add/setQuantity/remove/
+     checkout and reads basket state. Cans + sticks + any flavors + quantities
+     accumulate as separate lines and check out together. */
+  var BUILD_FLAVORS = ["berry","watermelon","soursop"];
+  var buildPlanState = "onetime";   // quick-add delivery; AutoPilot is opt-in (same price, recurring)
+
+  function buildPlanId(){ return (buildPlanState==="autopilot" && RITUAL_MEMBERSHIP_PLAN!=null) ? RITUAL_MEMBERSHIP_PLAN : null; }
+  function buildAddAttrs(format, flavor, qty){
+    return { Formulation:FORMS[flavor].name, Format:(format==="cans"?"RTD Cans":"Sticks"),
+             Depth:qty+" × "+QTY_LABEL[format], Plan:(buildPlanState==="autopilot"?"AutoPilot Monthly":"One-Time") };
+  }
+  function buildNote(msg){ var n=$("#buildAddNote"); if(!n) return; if(!msg){ n.hidden=true; n.textContent=""; } else { n.hidden=false; n.textContent=msg; } }
+
+  function quickAdd(format, flavor, qty){
+    if(!basket) return;
+    qty = qty||1; buildNote("");
+    var vid = VARIANTS[format] && VARIANTS[format][flavor]; if(!vid) return;
+    basket.add({ variantId:vid, quantity:qty, sellingPlanId:buildPlanId(), attributes:buildAddAttrs(format,flavor,qty) }).then(function(res){
+      if(res && res.error){
+        if(res.error.status===404){ enterPreLaunch(); renderBuild(); buildNote("The Ritual opens Fall 2026 — building is preview-only for now."); }
+        else buildNote("We couldn’t add that right now. Please try again in a moment.");
+        return;
+      }
+      announce("Added "+FORMS[flavor].name+" "+(format==="cans"?"cans":"sticks")+". "+basket.count()+" in your ritual.");
+      track("quick_add",{ format:format, flavor:flavor, qty:qty, subscription:!!buildPlanId() });
+    });
+    return true;
+  }
+  function buildVarietyPack(){
+    if(!basket) return;
+    track("variety_pack_added",{ plan:buildPlanState });
+    BUILD_FLAVORS.forEach(function(fl){ quickAdd("cans", fl, 1); });
+  }
+
+  function buildLineCard(l){
+    var cfg=lineToConfig(l);
+    var fmtLabel = cfg ? (cfg.format==="cans"?"RTD Cans":"Sticks") : (l.title||"");
+    var sub = !!l.sellingPlanId;
+    return '<div class="bc-line" data-line="'+l.id+'">'+
+      '<div class="bc-thumb">'+(l.image?'<img src="'+l.image+'" alt="'+(l.imageAlt||l.title||"")+'">':'')+'</div>'+
+      '<div class="bc-main">'+
+        '<div class="bc-name">'+(l.productTitle||l.title||"Item")+'</div>'+
+        '<div class="bc-meta">'+fmtLabel+' · <span class="'+(sub?"bc-sub-on":"bc-sub-off")+'">'+(sub?"AutoPilot · monthly":"One-Time")+'</span></div>'+
+        '<div class="bc-row">'+
+          '<div class="bc-qty"><button type="button" data-bqty="-1" aria-label="Decrease quantity"'+(l.quantity<=1?' disabled':'')+'>–</button><span aria-label="Quantity">'+l.quantity+'</span><button type="button" data-bqty="1" aria-label="Increase quantity"'+(l.quantity>=10?' disabled':'')+'>+</button></div>'+
+          '<span class="bc-price">'+(l.lineTotal?money2(l.lineTotal):'')+'</span>'+
+        '</div>'+
+        '<button type="button" class="bc-remove" data-bremove>Remove</button>'+
+      '</div>'+
+    '</div>';
+  }
+  function matrixCell(format, flavor){
+    return '<button type="button" class="ba-cell" data-add="'+format+':'+flavor+'"'+(preLaunch?' disabled':'')+'>'+
+      '<span class="bac-plus" aria-hidden="true">+</span>'+
+      '<span class="bac-name">'+FORMS[flavor].name+'</span>'+
+      '<span class="bac-price">'+money(UNIT[format].onetime)+'</span>'+
+    '</button>';
+  }
+  function renderMatrix(){
+    var host=$("#buildMatrix"); if(!host) return;
+    var groups=[["cans","RTD Cans",money(UNIT.cans.onetime)+" · 6-pack"],["sticks","Sticks",money(UNIT.sticks.onetime)+" · 20-count box"]];
+    host.innerHTML=groups.map(function(g){
+      return '<div class="ba-group"><div class="bag-head"><span class="bag-fmt">'+g[1]+'</span><span class="bag-sub">'+g[2]+'</span></div>'+
+        '<div class="bag-cells">'+BUILD_FLAVORS.map(function(fl){ return matrixCell(g[0], fl); }).join("")+'</div></div>';
+    }).join("");
+  }
+  function renderCross(){
+    var host=$("#buildCross"); if(!host) return;
+    var lines=basket?basket.lines():[];
+    if(!lines.length){ host.hidden=true; host.innerHTML=""; return; }
+    var fmts={}, flavs={};
+    lines.forEach(function(l){ var c=lineToConfig(l); if(c){ fmts[c.format]=1; flavs[c.flavor]=1; } });
+    var sug=null;
+    if(fmts.cans && !fmts.sticks) sug={ t:"Add sticks for training & travel", d:"Sticks go where cans can’t — the gym bag, the flight, the trail.", add:["sticks","berry"], label:"Add Sticks" };
+    else if(fmts.sticks && !fmts.cans) sug={ t:"Add cans for the everyday", d:"Cold, immediate, no mixing — the ritual, ready at your desk.", add:["cans","berry"], label:"Add Cans" };
+    else {
+      var missing=BUILD_FLAVORS.filter(function(f){ return !flavs[f]; });
+      if(missing.length){ var f=missing[0]; sug={ t:"Complete the flavor flight", d:"You haven’t added "+FORMS[f].name+" yet — "+FORMS[f].why.split(".")[0]+".", add:[ (fmts.cans?"cans":"sticks"), f ], label:"Add "+FORMS[f].name }; }
+    }
+    if(!sug){ host.hidden=true; host.innerHTML=""; return; }
+    host.hidden=false;
+    host.innerHTML='<div class="bx-txt"><span class="bx-kick">Recommended</span><span class="bx-t">'+sug.t+'</span><span class="bx-d">'+sug.d+'</span></div>'+
+      '<button type="button" class="bx-add" data-add="'+sug.add[0]+':'+sug.add[1]+'"'+(preLaunch?' disabled':'')+'>'+sug.label+'</button>';
+  }
+  function renderBuild(){
+    var sec=$("#stepBuild"); if(!sec||!basket) return;
+    var lines=basket.lines(), empty=!lines.length;
+    sec.hidden = empty;
+    document.body.classList.toggle("has-build", !empty);
+    $$("#buildPlan button").forEach(function(b){ var on=b.getAttribute("data-bplan")===buildPlanState; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on?"true":"false"); });
+    renderMatrix();
+    var bv=$("#bvPrice"); if(bv) bv.textContent = money(+(UNIT.cans.onetime*3).toFixed(2));
+    renderCross();
+    if(empty) return;
+    var host=$("#buildLines"); if(host) host.innerHTML=lines.map(buildLineCard).join("");
+    var foot=$("#buildFoot"); if(foot) foot.hidden=false;
+    var sub = basket.subtotal(); if(sub==null){ sub=lines.reduce(function(n,l){ return n+(parseFloat(l.lineTotal)||0); },0); }
+    var st=$("#buildSubtotal"); if(st) st.textContent=money2(sub||0);
+    var co=$("#buildCheckout"); if(co) co.disabled = !!basket.busy;
+  }
+  function revealBuild(){ renderBuild(); var s=$("#stepBuild"); if(s && basket && !basket.isEmpty()) s.hidden=false; }
 
   /* ================= STEP 01 — DEMAND ================= */
   var firstDemand = true;
@@ -1328,6 +1546,7 @@
        server-side at click time, so there is nothing to cache here. The old
        A1b concern (never reuse a consumed URL) is satisfied by construction. */
     fireIgnition();
+    if(basket) renderBuild();
     persist();
   }
 
@@ -1404,8 +1623,8 @@
 
   /* ================= YOUR RITUAL — basket events (§9) ================= */
   if(basket){
-    basket.onChange(function(){ renderBasket(); renderFormats(); });  // keep the second-format nudge in sync with the cart
-    basket.hydrate().then(function(){ renderBasket(); renderFormats(); });   // §9 persistence: restore on load
+    basket.onChange(function(){ renderBasket(); renderFormats(); renderBuild(); });  // keep the nudge + inline builder in sync with the cart
+    basket.hydrate().then(function(){ renderBasket(); renderFormats(); renderBuild(); });   // §9 persistence: restore on load
 
     var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
     $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
@@ -1444,6 +1663,39 @@
       else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
     });
     window.addEventListener("pagehide", function(){ closeBasket(false); });
+
+    /* ===== BUILD YOUR RITUAL — inline builder events ===== */
+    var buildSec=$("#stepBuild");
+    if(buildSec){
+      buildSec.addEventListener("click", function(e){
+        var addBtn=e.target.closest("[data-add]");
+        if(addBtn && !addBtn.disabled){
+          var p=addBtn.getAttribute("data-add").split(":");
+          quickAdd(p[0], p[1], 1);
+          addBtn.classList.remove("pulse"); void addBtn.offsetWidth; addBtn.classList.add("pulse");
+          return;
+        }
+        if(e.target.closest("#buildVariety")){ buildVarietyPack(); return; }
+        var planBtn=e.target.closest("[data-bplan]");
+        if(planBtn){ var v=planBtn.getAttribute("data-bplan"); if(v!==buildPlanState){ buildPlanState=v; renderBuild(); track("build_plan_toggled",{plan:v}); } return; }
+        var lineEl=e.target.closest(".bc-line");
+        if(lineEl){
+          var id=lineEl.getAttribute("data-line");
+          var q=e.target.closest("[data-bqty]");
+          if(q){ var l=basket.lines().filter(function(x){ return x.id===id; })[0]; if(l) basket.setQuantity(id, l.quantity + (+q.getAttribute("data-bqty"))); return; }
+          if(e.target.closest("[data-bremove]")){ basket.remove(id); announce("Item removed. Undo available in Your Ritual."); return; }
+        }
+      });
+      var bco=$("#buildCheckout");
+      if(bco) bco.addEventListener("click", function(){
+        var e=$("#buildErr"); if(e){ e.hidden=true; e.textContent=""; }
+        try{
+          var url=basket.checkout();
+          track("checkout_started",{ via:"builder", lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+          commit(url);
+        }catch(err){ if(e){ e.hidden=false; e.textContent="Checkout isn’t available right now. Please try again."; } }
+      });
+    }
   }
 
   /* EDIT a line: load its configuration back into the builder, remove the line,
