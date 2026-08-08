@@ -27,6 +27,7 @@
 .afx-footer a{ text-decoration:none; color:inherit; }
 .afx-footer a:focus-visible{ outline:2px solid var(--ff-red); outline-offset:3px; border-radius:2px; }
 .afx-footer .flip{ display:inline-block; transform:scaleX(-1); color:var(--ff-red); }
+.afx-footer .red{ color:var(--ff-red); }
 
 /* ---- Row 1: brand + three nav columns ---- */
 .afx-footer .ff-top{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:clamp(30px,4vw,64px); align-items:start; }
@@ -42,6 +43,7 @@
 .afx-footer .ff-word{ font-family:var(--ff-display); font-weight:700; font-size:clamp(25px,2.5vw,33px); letter-spacing:-0.012em; line-height:1; }
 .afx-footer .ff-word .tm{ font-size:.32em; font-weight:500; vertical-align:super; color:var(--ff-muted); margin-left:.14em; letter-spacing:0; }
 .afx-footer .ff-tag{ margin-top:clamp(20px,2.4vw,28px); font-family:var(--ff-display); font-weight:700; font-size:12px; letter-spacing:.03em; line-height:1.4; text-transform:uppercase; color:var(--ff-strong); }
+.afx-footer .ff-tag .red{ color:var(--ff-red); }
 .afx-footer .ff-built{ margin-top:14px; font-size:14.5px; line-height:1.5; color:var(--ff-link); max-width:24ch; }
 
 /* Social (discreet, text links) */
