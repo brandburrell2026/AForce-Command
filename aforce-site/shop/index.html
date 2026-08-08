@@ -856,11 +856,11 @@
     preLaunch = true;
     clearBeginError();
     renderBegin();
-    announce("The Ritual opens September 2026.");
+    announce("The Ritual opens Fall 2026.");
     track("shop_prelaunch_shown", {});
   }
   function primaryCTA(ready){
-    if(preLaunch) return '<div class="prelaunch" role="status">The Ritual opens September 2026</div>';
+    if(preLaunch) return '<div class="prelaunch" role="status">The Ritual opens Fall 2026</div>';
     return ready
       ? '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>'
       : '<button class="ignite-btn dormant" id="igniteBtn" type="button" disabled>Begin</button>';
