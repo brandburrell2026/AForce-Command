@@ -521,6 +521,7 @@
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
 </style>
+<link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>
 <body>
 
@@ -1058,25 +1059,65 @@
 </section>
 
 <!-- ============ FOOTER ============ -->
-<footer class="ft">
-  <div class="f-wrap">
-    <div class="f-top">
-      <div>
-        <div class="f-nn" role="img" aria-label="AFORCE N–N monogram"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></div>
-        <div class="f-corp" style="margin-top:14px;">AFORCE</div>
+<footer class="afx-footer" role="contentinfo">
+  <div class="ff-wrap">
+    <div class="ff-top">
+      <div class="ff-brand">
+        <a class="ff-mark" href="/" aria-label="AFORCE — home">
+          <span class="ff-nn" aria-hidden="true"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></span>
+          <span class="ff-word">AFORCE<span class="tm">™</span></span>
+        </a>
+        <div class="ff-tag">Performance Is<br><span class="red">Non-<span class="flip">N</span>egotiable.</span></div>
+        <p class="ff-built">Hydration engineered for people who perform before the moment arrives.</p>
       </div>
-      <nav class="f-nav" aria-label="Footer">
-        <a href="/">Home</a>
-        <a href="/aforce-os">The OS</a>
-        <a href="/our-story">Our Story</a>
-        <a href="/science">Science</a>
+      <nav class="ff-col" aria-label="System">
+        <h4>System</h4>
+        <a href="/#ritual">The Ritual</a>
         <a href="/shop">Shop</a>
-        <a href="/legal">Legal</a>
+        <a href="/aforce-os">AFORCE OS</a>
+        <a href="/science">Science</a>
+        <a href="/manifesto">Manifesto</a>
+      </nav>
+      <nav class="ff-col" aria-label="Company">
+        <h4>Company</h4>
+        <a href="/our-story">Our Story</a>
+        <a href="/founding-250">Founding 250</a>
+        <a href="mailto:contact@aforceritual.com">Contact</a>
+        <span class="soon">Careers <small>(Coming Soon)</small></span>
+      </nav>
+      <nav class="ff-col" aria-label="Follow the Standard">
+        <h4>Follow the Standard</h4>
+        <!-- TODO: real channel URLs -->
+        <a href="#" rel="noopener" data-todo="social">Instagram <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">TikTok <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">Facebook <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="#" rel="noopener" data-todo="social">Substack <span class="arw" aria-hidden="true">↗</span></a>
+      </nav>
+      <nav class="ff-col" aria-label="Legal">
+        <h4>Legal</h4>
+        <a href="/legal">Legal Center</a>
+        <a href="/legal/privacy">Privacy</a>
+        <a href="/legal/terms">Terms</a>
+        <a href="/legal">Accessibility</a>
       </nav>
     </div>
-    <div class="f-meta">
-      <span>&copy; 2026 AFORCE Hydration, Inc.</span> &nbsp;·&nbsp;
-      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+
+    <div class="ff-divider"></div>
+
+    <div class="ff-bottom">
+      <span class="ff-left">© 2026 AFORCE Hydration, Inc.</span>
+      <span class="ff-center">Performance Is <span class="red">Non-<span class="flip">N</span>egotiable.</span></span>
+      <span class="ff-right">Made in New York.</span>
+    </div>
+
+    <div class="ff-legal">
+      <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
+      <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
+      <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
+      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
     </div>
   </div>
 </footer>
