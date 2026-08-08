@@ -215,19 +215,34 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     expect(Number.isNaN(diag?.sleep.rawSumHours)).toBe(false);
   });
 
-  it('a genuine no-sleep window (zero samples) is NOT treated as a fallback trigger — 0h is reported plainly', async () => {
+  it('a genuine no-sleep window (zero samples) reports null, not a confident 0h — no session exists to attach an hours-last-night number to', async () => {
+    // CHANGED ASSERTION (RC-2 sleep-window ruling, 2026-08-08, design point
+    // 4): pre-ruling this asserted `toBe(0)` — a confirmed-empty window with
+    // nothing dropped reported a confident "0h slept." Session semantics
+    // supersede that: `session === null` (zero sessions, because `selected`
+    // was empty) is now UNIFORMLY `null`, the same honest-unknown answer the
+    // adapter-dropped-data path already used. See
+    // `services/appleHealth.ts`'s `fetchAppleHealthSnapshot` for the full
+    // rationale — widening the lookback to 36h makes "confirmed empty" a
+    // much stronger (and much likelier WRONG) claim than it was at 18h.
     const fakeHK = makeFakeHK({ sleepSamples: [] });
     const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
 
     const snapshot = await appleHealth.fetchAppleHealthSnapshot();
-    expect(snapshot.sleepHoursLastNight).toBe(0);
+    expect(snapshot.sleepHoursLastNight).toBeNull();
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
-    expect(diag?.sleep.sleepValueUnknown).toBe(false);
+    expect(diag?.sleep.sleepValueUnknown).toBe(false); // still false — nothing was DROPPED, distinct reason for the same null
     expect(diag?.sleep.selectionBranch).toBe('none');
+    expect(diag?.sleep.sessionCount).toBe(0);
+    expect(diag?.sleep.sleepSessionRule).toBe('none');
   });
 
-  it('a window with only inBed/awake samples (real rows, but nothing asleep) is also NOT a fallback trigger', async () => {
+  it('a window with only inBed/awake samples (real rows, but nothing asleep) also reports null, not 0h', async () => {
+    // CHANGED ASSERTION (RC-2 sleep-window ruling, 2026-08-08) — same
+    // rationale as the fixture immediately above: `selected` is empty
+    // (inBed/awake rows never enter `selected`), so zero sessions form and
+    // the result is `null`, not a confirmed `0`.
     const samples = [
       { startDate: new Date('2026-08-05T22:00:00.000Z'), endDate: new Date('2026-08-06T06:00:00.000Z'), value: 0, sourceRevision: { source: { name: 'iPhone' } } },
     ];
@@ -235,22 +250,29 @@ describe('fetchAppleHealthSnapshot — sleep selection chain (Ruling A device sc
     const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
 
     const snapshot = await appleHealth.fetchAppleHealthSnapshot();
-    expect(snapshot.sleepHoursLastNight).toBe(0);
+    expect(snapshot.sleepHoursLastNight).toBeNull();
 
     const diag = diagnostics.getLastAppleHealthDiagnostics();
     expect(diag?.sleep.sleepValueUnknown).toBe(false);
     expect(diag?.sleep.rawSumHours).toBe(0);
+    expect(diag?.sleep.sessionCount).toBe(0);
+    expect(diag?.sleep.sleepSessionRule).toBe('none');
   });
 });
 
 // RC-2 founder-ordered logging (build-49 device finding, 2026-08-07): "Add
 // logging at every stage showing: raw HK value, aggregated value, snapshot
 // value, scoring input, UI value." These three fields close the Stage 1-3
-// gap for sleep — the [now-18h, now] window actually queried, and the raw
-// union `lastEndMs` — so a founder report can be traced against the Health
-// app's own per-sample list instead of guessed at.
+// gap for sleep — the query window actually queried, and the raw union
+// `lastEndMs` — so a founder report can be traced against the Health app's
+// own per-sample list instead of guessed at.
+//
+// CHANGED ASSERTIONS (RC-2 sleep-window ruling, 2026-08-08): both tests
+// below asserted an `[now-18h, now]` window; the window is now
+// `[now-36h, now]` (§53's own `staleAfterMs` cap) — see
+// `services/appleHealth.ts`'s `lastNightStart` definition.
 describe('fetchAppleHealthSnapshot — sleep diagnostics Stage 1-3 additions (RC-2 founder logging order)', () => {
-  it('captures the [now-18h, now] query window bounds actually passed to queryCategorySamples, regardless of what the query returns', async () => {
+  it('captures the [now-36h, now] query window bounds actually passed to queryCategorySamples, regardless of what the query returns', async () => {
     const fixedNow = new Date('2026-08-06T09:00:00.000Z');
     vi.useFakeTimers();
     vi.setSystemTime(fixedNow);
@@ -262,7 +284,7 @@ describe('fetchAppleHealthSnapshot — sleep diagnostics Stage 1-3 additions (RC
       const diag = diagnostics.getLastAppleHealthDiagnostics();
       expect(diag?.sleep.queryWindowEndIso).toBe(fixedNow.toISOString());
       expect(diag?.sleep.queryWindowStartIso).toBe(
-        new Date(fixedNow.getTime() - 18 * 60 * 60 * 1000).toISOString(),
+        new Date(fixedNow.getTime() - 36 * 60 * 60 * 1000).toISOString(),
       );
     } finally {
       vi.useRealTimers();
@@ -281,7 +303,7 @@ describe('fetchAppleHealthSnapshot — sleep diagnostics Stage 1-3 additions (RC
       const diag = diagnostics.getLastAppleHealthDiagnostics();
       expect(diag?.sleep.queryWindowEndIso).toBe(fixedNow.toISOString());
       expect(diag?.sleep.queryWindowStartIso).toBe(
-        new Date(fixedNow.getTime() - 18 * 60 * 60 * 1000).toISOString(),
+        new Date(fixedNow.getTime() - 36 * 60 * 60 * 1000).toISOString(),
       );
     } finally {
       vi.useRealTimers();

@@ -92,6 +92,15 @@ function buildFixture(overrides: Record<string, unknown> = {}) {
       ],
       valueUsed: 7.2,
       sleepValueUnknown: false,
+      // RC-2 sleep-window ruling (2026-08-08): a single-session night — the
+      // ordinary case, one session chosen under 'most-recent-primary'.
+      sessionCount: 1,
+      chosenSessionStartIso: '2026-08-05T23:00:00.000Z',
+      chosenSessionEndIso: '2026-08-06T05:42:00.000Z',
+      sleepSessionRule: 'most-recent-primary' as const,
+      sleepSessions: [
+        { startIso: '2026-08-05T23:00:00.000Z', endIso: '2026-08-06T05:42:00.000Z', durationHours: 7.2 },
+      ],
     },
     workout: {
       identifier: 'HKWorkoutTypeIdentifier' as const,
@@ -188,11 +197,80 @@ describe('formatAppleHealthDiagnosticsSummary — pure text formatting', () => {
         perSourceTotals: [],
         valueUsed: null,
         sleepValueUnknown: true,
+        // RC-2 sleep-window ruling (2026-08-08): an empty selection means
+        // zero sessions — `chooseSleepSession` never ran/chose anything.
+        sessionCount: 0,
+        chosenSessionStartIso: null,
+        chosenSessionEndIso: null,
+        sleepSessionRule: 'none' as const,
+        sleepSessions: [],
       },
     });
     const text = formatAppleHealthDiagnosticsSummary(snap as any);
     expect(text).toMatch(/UNKNOWN — adapter dropped raw samples; interval-union selection was empty/);
     expect(text).not.toMatch(/FALLBACK to raw sum/);
+  });
+
+  it('RC-2 sleep-window ruling (2026-08-08): renders session count, rule fired, chosen session, and all-sessions list', async () => {
+    const { formatAppleHealthDiagnosticsSummary } = await loadDiagnosticsModule(undefined);
+    const snap = fixtureSnapshot({
+      sleep: {
+        identifier: 'HKCategoryTypeIdentifierSleepAnalysis' as const,
+        queried: true as const,
+        totalSampleCount: 10,
+        summedSampleCount: 8,
+        selectionBranch: 'stages' as const,
+        rawSumHours: 8.0,
+        unionHours: 4.7,
+        perSourceTotals: [],
+        valueUsed: 4.7,
+        sleepValueUnknown: false,
+        sessionCount: 2,
+        chosenSessionStartIso: '2026-08-06T13:00:00.000Z',
+        chosenSessionEndIso: '2026-08-06T17:42:00.000Z',
+        sleepSessionRule: 'longest-fallback' as const,
+        sleepSessions: [
+          { startIso: '2026-08-05T23:30:00.000Z', endIso: '2026-08-06T00:24:00.000Z', durationHours: 0.9 },
+          { startIso: '2026-08-06T13:00:00.000Z', endIso: '2026-08-06T17:42:00.000Z', durationHours: 4.7 },
+        ],
+      },
+    });
+    const text = formatAppleHealthDiagnosticsSummary(snap as any);
+    expect(text).toContain('sessions in window: 2');
+    expect(text).toContain('session rule fired: longest-fallback');
+    expect(text).toContain('chosen session: 2026-08-06T13:00:00.000Z → 2026-08-06T17:42:00.000Z');
+    expect(text).toContain('2026-08-05T23:30:00.000Z → 2026-08-06T00:24:00.000Z (0.90h)');
+    expect(text).toContain('2026-08-06T13:00:00.000Z → 2026-08-06T17:42:00.000Z (4.70h)');
+  });
+
+  it('RC-2 sleep-window ruling: a null value with no session in the window (nothing dropped) is labeled distinctly from the adapter-dropped UNKNOWN case', async () => {
+    const { formatAppleHealthDiagnosticsSummary } = await loadDiagnosticsModule(undefined);
+    const snap = fixtureSnapshot({
+      sleep: {
+        identifier: 'HKCategoryTypeIdentifierSleepAnalysis' as const,
+        queried: true as const,
+        totalSampleCount: 0,
+        summedSampleCount: 0,
+        selectionBranch: 'none' as const,
+        rawSumHours: 0,
+        unionHours: 0,
+        perSourceTotals: [],
+        valueUsed: null,
+        sleepValueUnknown: false,
+        sessionCount: 0,
+        chosenSessionStartIso: null,
+        chosenSessionEndIso: null,
+        sleepSessionRule: 'none' as const,
+        sleepSessions: [],
+      },
+    });
+    const text = formatAppleHealthDiagnosticsSummary(snap as any);
+    expect(text).toMatch(/no sleep session in the 36h window/);
+    expect(text).not.toMatch(/UNKNOWN — adapter dropped raw samples/);
+    expect(text).toContain('sessions in window: 0');
+    expect(text).toContain('session rule fired: none');
+    expect(text).toContain('chosen session: none');
+    expect(text).toContain('all sessions: none');
   });
 
   it('flags a fallback explicitly when the bucketed query failed', async () => {

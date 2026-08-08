@@ -332,6 +332,67 @@ export const FRESHNESS_WINDOWS: Record<FreshnessSignalKind, FreshnessWindows> = 
   wearable_sync: { freshUntilMs: 6 * FRESHNESS_HOUR_MS, staleAfterMs: 24 * FRESHNESS_HOUR_MS, expireAfterMs: 72 * FRESHNESS_HOUR_MS },
 };
 
+/* ─── Sleep SESSION semantics (RC-2 sleep-window ruling, founder-ruled 2026-08-08) ──
+ * ADDITIVE to §53 above, not a replacement for it — §53's `FRESHNESS_WINDOWS.sleep`
+ * governs how long an already-computed `sleepHoursLastNight` VALUE stays usable
+ * once observed (freshness, "usable into a second day"). These two constants
+ * instead govern how `services/appleHealth.ts` turns the RAW HealthKit interval
+ * set for that same 36h (`staleAfterMs`) lookback into a single "last night"
+ * NUMBER in the first place, by clustering it into discrete sessions and
+ * choosing one.
+ *
+ * Device evidence behind this ruling: a founder reading at 18:45 with a real
+ * night spanning ~23:30–06:15 (5.6h asleep, with gaps) measured 4.696h from the
+ * OLD fixed 18h-lookback query — HealthKit's date filter is overlap-matching
+ * and returns a matching sample WHOLE, never truncated, so a stage segment
+ * ending before the `[now−18h, now]` boundary was not clipped, it was dropped
+ * outright, silently shrinking the front of the night. Widening the lookback
+ * to 36h (done at the §53 `staleAfterMs` cap immediately above — one number,
+ * reused, never re-hardcoded, per Claude-Code-Build-Rules rule 13) fixes the
+ * dropped-segment defect, but is not sufficient BY ITSELF once the window can
+ * span more than one calendar night: 36h can contain last night AND today's
+ * nap, or (shift work) two legitimate, unrelated sleep sessions. The raw
+ * selected interval set must therefore be split into discrete sessions before
+ * any single one of them is reported as "last night" — these two constants
+ * are the split/qualify thresholds that decision needs.
+ *
+ * RATIFICATION NOTE (flagged prominently, per this ruling's own PR body):
+ * both values below are the founder's ruling on the MECHANISM, not
+ * independently derived from a cited sleep-medicine source the way, say, §53's
+ * windows carry PS-sign-off provenance. His merge of
+ * `fix/rc2-sleep-session-window` ratifies these two specific numbers; either
+ * is a one-line change here if real-world data argues for a different value.
+ */
+
+/**
+ * A gap this long between two already-selected sleep intervals
+ * (`selectSleepIntervals`'s per-source-coverage output — UNCHANGED by this
+ * ruling) ends one sleep session and starts the next
+ * (`clusterSleepIntervalsIntoSessions`, `services/appleHealth.ts`). 3 hours:
+ * comfortably longer than any physiologically normal WITHIN-a-session
+ * wake-up (a bathroom trip, a brief awakening — `selectSleepIntervals`'s
+ * existing awake(2) coverage already keeps those inside one continuous
+ * per-source-covered run, never splitting them), and comfortably shorter
+ * than the gap between a genuine nap and a genuine night, which is typically
+ * many hours — the exact ambiguity this ruling exists to resolve.
+ */
+export const SLEEP_SESSION_SPLIT_GAP_MS = 3 * FRESHNESS_HOUR_MS;
+
+/**
+ * A session's own union-deduplicated duration must reach this floor to
+ * qualify as "last night" under the primary-sleep rule
+ * (`chooseSleepSession`, `services/appleHealth.ts`) — the guard that stops a
+ * short afternoon nap from silently replacing a real night in
+ * `sleepHoursLastNight`. 3 hours: below a typical real (if short) sleep
+ * period's duration, comfortably above a catnap. Deliberate, documented
+ * consequence (see the PR body for `fix/rc2-sleep-session-window`): a nap
+ * LONGER than this threshold, if it is the MOST RECENT session, is chosen
+ * over an earlier and possibly longer night — "most recent primary session"
+ * is the literal rule, not "longest primary session." If the founder later
+ * finds that reading counterintuitive, this one constant is the fix.
+ */
+export const SLEEP_PRIMARY_SESSION_MIN_MS = 3 * FRESHNESS_HOUR_MS;
+
 /* ─── Intelligence retention + graph evidence (K-2 / DR-003 / DR-005) ─────── */
 /* RESTORED 2026-07-26 after the reset-hard incident, from the authoritative
  * decision records: DR-005 (retention classes R0–R7) and DR-003 (evidence
