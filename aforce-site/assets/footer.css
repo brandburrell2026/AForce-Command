@@ -12,7 +12,7 @@
   --ff-link:rgba(13,13,13,.62);    /* nav links (AA) */
   --ff-strong:rgba(13,13,13,.86);
   --ff-muted:rgba(13,13,13,.42);   /* labels */
-  --ff-faint:rgba(13,13,13,.34);   /* disclaimer — almost invisible */
+  --ff-faint:rgba(13,13,13,.52);   /* disclaimer — quiet but readable */
   --ff-line:rgba(13,13,13,.09);    /* very thin dividers */
   --ff-font:"Helvetica Neue","Neue Haas Grotesk Display","Suisse Int'l","Inter",system-ui,-apple-system,sans-serif;
   background:var(--ff-bg);
