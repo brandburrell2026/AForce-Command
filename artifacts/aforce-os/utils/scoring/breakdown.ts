@@ -8,6 +8,7 @@ import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } 
 import { aggregateBiometrics } from '../biometricsAggregator';
 import { materializedIntakePoints } from '../../services/hydrationScoreService';
 import { depletionRatePerMinute } from '../depletionRate';
+import { HEALTH_PROVIDERS } from '../../data/healthProviders';
 
 export function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -56,6 +57,11 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   // breakdown UI keeps its bar-and-label shape while the score itself
   // honors the spec formula.
   const decayPerMinute = computeDecayPerMinute(state, now);
+  // Read-only echo of the same floor `computeDecayPerMinute` already
+  // applied internally — see `resolveEffectiveActivityLevel`'s doc
+  // comment. Used only to disclose the floor on the 'recency' hint below;
+  // does not change `decayPerMinute` or the score.
+  const effectiveActivity = resolveEffectiveActivityLevel(state);
   // Continuous decay — no artificial cap. The final score is clamped
   // to 0..100 below, so a long deficit naturally pins the user at 0
   // (DEPLETED) instead of plateauing inside the band.
@@ -114,7 +120,7 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
         ? 'Log a stick or RTD'
         : `${aforceUnits} intake${aforceUnits === 1 ? '' : 's'} today` },
     { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
-      hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}` },
+      hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}${effectiveActivity.flooredByHealthPlatform ? ` · Activity floor ${effectiveActivity.level.toFixed(1)} (connected platform)` : ''}` },
     { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
       hint: confirmation > 0 ? 'Followed last recheck' : confirmation < 0 ? 'Missed last recheck' : 'No recent recheck' },
     { id: 'consistency', label: 'Compliance streak', delta: consistency, maxMagnitude: 15,
@@ -154,6 +160,40 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
 }
 
 /**
+ * Multi-provider activity floor: when any connected health platform
+ * (WHOOP strain, Strava workout minutes, Garmin GPS workout, Apple Health
+ * steps, etc.) shows the user has been more active than the manual
+ * `activityLevel` slider, the inferred level is used as a FLOOR for decay
+ * — so a heavy training day depletes faster even if the user never bumped
+ * the activity axis themselves. Extracted to its own function (previously
+ * inlined only in `computeDecayPerMinute`) so `buildBreakdown` can also
+ * read `flooredByHealthPlatform` and disclose the floor on the "recency"
+ * row's hint (Build-50 Gate 2, item 3): the visible 'context' row and its
+ * hint always read the raw, un-floored `state.activityLevel` — by design,
+ * `context`'s own delta uses that same raw value, so that row is
+ * internally consistent — but the "Decay since last intake" row's rate
+ * silently used this floored value with no disclosure anywhere in the UI,
+ * and `stepsToday` (the most common signal behind the floor) never
+ * appeared in any breakdown row at all. A user with the manual slider at
+ * a low setting but heavy step count would see a decay rate that doesn't
+ * match anything else on screen with no way to explain it. This does NOT
+ * change what the floor does or its threshold — purely a read of an
+ * already-computed value for display purposes.
+ */
+function resolveEffectiveActivityLevel(state: UserState): { level: number; flooredByHealthPlatform: boolean } {
+  let level = state.activityLevel;
+  let flooredByHealthPlatform = false;
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
+    const agg = aggregateBiometrics(state.biometrics);
+    if (agg.inferredActivityLevel > level) {
+      level = agg.inferredActivityLevel;
+      flooredByHealthPlatform = true;
+    }
+  }
+  return { level, flooredByHealthPlatform };
+}
+
+/**
  * Continuous decay (points / minute) — physiologically grounded.
  *
  * The previous formula (`BaseDecay = 0.4×weight/150 + 0.1×activity`,
@@ -173,19 +213,7 @@ function computeDecayPerMinute(state: UserState, now: number = Date.now()): numb
     ? activeDecayMultiplier(state.socialMode.drinks, now)
     : 1;
 
-  // Multi-provider activity floor: when any connected health platform
-  // (WHOOP strain, Strava workout minutes, Garmin GPS workout, Apple
-  // Health steps, etc.) shows the user has been more active than the
-  // manual `activityLevel` slider, use the inferred level as a FLOOR.
-  // This way a heavy training day automatically depletes faster even
-  // if the user never bumped the activity axis themselves.
-  let activityLevel = state.activityLevel;
-  if (state.biometrics && Object.keys(state.biometrics).length > 0) {
-    const agg = aggregateBiometrics(state.biometrics);
-    if (agg.inferredActivityLevel > activityLevel) {
-      activityLevel = agg.inferredActivityLevel;
-    }
-  }
+  const { level: activityLevel } = resolveEffectiveActivityLevel(state);
 
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
@@ -287,8 +315,23 @@ export function computeRecoverySignal(state: UserState): { delta: number; hint: 
   // Prefer the multi-provider record when present.
   if (state.biometrics && Object.keys(state.biometrics).length > 0) {
     const agg = aggregateBiometrics(state.biometrics);
+    // Build-50 Gate 2, item 2: this used to read the generic
+    // 'Health platform (HRV / sleep / strain)' for EVERY single-provider
+    // case, regardless of which provider it was — a user with only Apple
+    // Health connected, scanning the breakdown sheet for "Apple Health",
+    // found nothing by that name (the literal string only ever appeared on
+    // the legacy `state.appleHealth`-only fallback below, which never runs
+    // once `biometrics` is populated). It also implied HRV, sleep, AND
+    // strain were all being read, which is false whenever the connected
+    // platform doesn't report one of those (e.g. Apple Health has no
+    // strain metric at all). Attributing to the actual connected
+    // provider's catalog name (`data/healthProviders.ts` — the same
+    // display names shown on the Profile connect screen) is both
+    // findable and accurate; the hint below already lists only the
+    // fields that are actually present, so no per-provider capability
+    // string is invented here.
     const label = agg.sources.length === 1
-      ? 'Health platform (HRV / sleep / strain)'
+      ? (HEALTH_PROVIDERS.find((p) => p.id === agg.sources[0])?.name ?? 'Health platform')
       : `Health platforms (${agg.sources.length} connected)`;
     if (agg.recoveryDelta === 0 && agg.hint.startsWith('No') === false) {
       return { delta: 0, hint: agg.hint, label };
