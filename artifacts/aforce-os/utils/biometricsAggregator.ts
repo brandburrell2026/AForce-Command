@@ -160,13 +160,17 @@ export type FieldArbitrationTier = 'fieldObservedAt' | 'latestObservedAt' | 'fet
 
 /**
  * RC-2 Founder Ruling C: the ONE place the three-tier freshness precedence
- * lives — the single comparator every freshness decision in this file (and,
- * for the whole-entry case, `utils/biometricsMerge.ts`) reduces to before
- * comparing two candidates. See this file's header comment for the full
- * precedence and the clock-skew rationale. `now` is REQUIRED here (not
- * defaulted) — the one default lives on `aggregateBiometrics` itself, so
- * every internal call site is forced to thread the same `now` rather than
- * each reaching for its own.
+ * lives — the single comparator every PER-FIELD freshness decision in this
+ * file reduces to before comparing two candidates. `utils/biometricsMerge.ts`
+ * does NOT share this comparator: its whole-entry merge intentionally
+ * compares raw, unclamped `fetchedAt` (see that file's own header comment)
+ * rather than the fieldObservedAtMs / latestObservedAtMs tiers resolved
+ * here — traced end-to-end and locked by the "RC-2 Ruling C verification"
+ * test in `utils/__tests__/biometricsMerge.test.ts`. See this file's header
+ * comment for the full precedence and the clock-skew rationale. `now` is
+ * REQUIRED here (not defaulted) — the one default lives on
+ * `aggregateBiometrics` itself, so every internal call site is forced to
+ * thread the same `now` rather than each reaching for its own.
  *
  * Returns BOTH the resolved (clamped) timestamp and which tier produced
  * it, so a caller that only needs the number (`resolveComparisonTimestamp`
@@ -404,9 +408,11 @@ export function aggregateBiometrics(
   // RC-2 Ruling C, item 3: unit-spacing sweep — was 'ms'/'h' with no
   // leading space; #586 already normalized every other card/panel unit
   // (HRV ' ms', RHR ' bpm') to a leading space. These hint templates were
-  // the one place still rendering 'HRV 59ms' / 'Sleep 7.8h'. Normalized to
-  // match; every string assertion in this module's test suite was updated
-  // alongside.
+  // NOT the only place still rendering 'HRV 59ms' / 'Sleep 7.8h' — the
+  // legacy single-provider fallback in `computeRecoverySignal`
+  // (utils/scoring/breakdown.ts) hand-rolled the same unspaced strings and
+  // was normalized alongside (RC-2 #595 verdict, item S2). Every string
+  // assertion in both modules' test suites was updated to match.
   if (hrv != null) {
     if (hrv >= 60) { delta += 5; parts.push(`HRV ${Math.round(hrv)} ms (high)`); }
     else if (hrv >= 40) { delta += 2; parts.push(`HRV ${Math.round(hrv)} ms`); }

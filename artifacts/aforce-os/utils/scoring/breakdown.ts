@@ -305,18 +305,18 @@ export function computeRecoverySignal(state: UserState): { delta: number; hint: 
   let delta = 0;
 
   if (snap.hrvSdnn != null) {
-    if (snap.hrvSdnn >= 60) { delta += 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (high)`); }
-    else if (snap.hrvSdnn >= 40) { delta += 2; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
-    else if (snap.hrvSdnn >= 30) { parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms`); }
-    else { delta -= 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)}ms (low)`); }
+    if (snap.hrvSdnn >= 60) { delta += 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)} ms (high)`); }
+    else if (snap.hrvSdnn >= 40) { delta += 2; parts.push(`HRV ${Math.round(snap.hrvSdnn)} ms`); }
+    else if (snap.hrvSdnn >= 30) { parts.push(`HRV ${Math.round(snap.hrvSdnn)} ms`); }
+    else { delta -= 5; parts.push(`HRV ${Math.round(snap.hrvSdnn)} ms (low)`); }
   }
 
   if (snap.sleepHoursLastNight != null) {
     const h = snap.sleepHoursLastNight;
-    if (h >= 7 && h <= 9) { delta += 5; parts.push(`Sleep ${h.toFixed(1)}h`); }
-    else if (h >= 6) { delta += 2; parts.push(`Sleep ${h.toFixed(1)}h`); }
-    else if (h >= 4) { delta -= 3; parts.push(`Sleep ${h.toFixed(1)}h (short)`); }
-    else { delta -= 5; parts.push(`Sleep ${h.toFixed(1)}h (deficit)`); }
+    if (h >= 7 && h <= 9) { delta += 5; parts.push(`Sleep ${h.toFixed(1)} h`); }
+    else if (h >= 6) { delta += 2; parts.push(`Sleep ${h.toFixed(1)} h`); }
+    else if (h >= 4) { delta -= 3; parts.push(`Sleep ${h.toFixed(1)} h (short)`); }
+    else { delta -= 5; parts.push(`Sleep ${h.toFixed(1)} h (deficit)`); }
   }
 
   // Clamp to ±10 so a single platform can never dominate the score.
