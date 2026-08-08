@@ -96,6 +96,116 @@ describe('freshestBiometricsFetchedAt', () => {
   });
 });
 
+describe('freshestBiometricsFetchedAt — S2 observation-axis conservatism (#586 verdict)', () => {
+  // The S2 acceptance case, verbatim from the verdict: Apple's HealthKit
+  // holds nothing new for two days, but the app re-checked it five minutes
+  // ago. The OLD resolver took max(fetchedAt) only and rendered "Checked
+  // just now" — the flattering-timestamp inference `providerPresentation.ts`'s
+  // honesty rule forbids. The fix must report the OBSERVATION age (2 days),
+  // not the sync age (5 minutes).
+  it('apple: a fresh sync of a 2-day-old observation reports the observation age, not the sync age', () => {
+    const appleHealth = { fetchedAt: NOW - 5 * MINUTE, latestObservedAtMs: NOW - 2 * DAY };
+    expect(freshestBiometricsFetchedAt(appleHealth, undefined)).toBe(NOW - 2 * DAY);
+  });
+
+  it('apple: the reverse case — a stale sync of fresh-enough observation data still reports honestly (the sync axis is what is old here, so it wins as the conservative/staler bound)', () => {
+    // fetchedAt older than latestObservedAtMs would be a data anomaly (you
+    // cannot observe something before syncing it), but the resolver stays
+    // conservative regardless of which axis is the offender: it always picks
+    // the OLDER of the two, never the newer.
+    const appleHealth = { fetchedAt: NOW - 3 * DAY, latestObservedAtMs: NOW - 1 * MINUTE };
+    expect(freshestBiometricsFetchedAt(appleHealth, undefined)).toBe(NOW - 3 * DAY);
+  });
+
+  it('a server provider whose OWN observation axis is fresher than Apple\'s honest recency wins the cross-provider max (aggregation is unaffected by the per-provider axis fix)', () => {
+    const appleHealth = { fetchedAt: NOW, latestObservedAtMs: NOW - 2 * DAY }; // honest recency: NOW - 2 * DAY
+    const biometrics: ProviderBiometrics = {
+      // Sync is an hour old, but the underlying observation is recent —
+      // honest recency is min(fetchedAt, observedAt) = NOW - 1 * HOUR here
+      // (fetchedAt is the staler of the two for this provider).
+      whoop: { providerId: 'whoop', fetchedAt: NOW - 1 * HOUR, latestObservedAtMs: NOW - 5 * MINUTE },
+    };
+    // Whoop's honest recency (NOW - 1h) is fresher than Apple's (NOW - 2d) —
+    // it wins the cross-provider max, exactly like the pre-S2 aggregation
+    // already did for raw fetchedAt.
+    expect(freshestBiometricsFetchedAt(appleHealth, biometrics)).toBe(NOW - 1 * HOUR);
+  });
+
+  it('ProviderSnapshot.fieldObservedAtMs: the best (freshest) populated field wins, not the first or an average', () => {
+    const biometrics: ProviderBiometrics = {
+      apple_health: {
+        providerId: 'apple_health',
+        fetchedAt: NOW,
+        fieldObservedAtMs: {
+          hrvSdnn: NOW - 3 * HOUR,
+          sleepHoursLastNight: NOW - 1 * HOUR, // freshest field
+          stepsToday: NOW - 5 * HOUR,
+        },
+      },
+    };
+    expect(freshestBiometricsFetchedAt(undefined, biometrics)).toBe(NOW - 1 * HOUR);
+  });
+
+  it('a provider with fieldObservedAtMs present but ALL entries invalid (sentinel/negative/non-finite) falls back to latestObservedAtMs, then fetchedAt', () => {
+    const biometrics: ProviderBiometrics = {
+      apple_health: {
+        providerId: 'apple_health',
+        fetchedAt: NOW - 10 * MINUTE,
+        fieldObservedAtMs: { hrvSdnn: 0, stepsToday: -1 },
+        latestObservedAtMs: NOW - 1 * HOUR,
+      },
+    };
+    // fieldObservedAtMs entries are all sentinel/negative → ignored →
+    // falls back to latestObservedAtMs (NOW - 1h), the staler axis vs.
+    // fetchedAt (NOW - 10min).
+    expect(freshestBiometricsFetchedAt(undefined, biometrics)).toBe(NOW - 1 * HOUR);
+  });
+
+  // Regression-lock: a provider with NEITHER fieldObservedAtMs NOR
+  // latestObservedAtMs — i.e. no observation axis at all — must resolve
+  // EXACTLY as before this fix: fetchedAt alone. (Already exercised by the
+  // plain oura/whoop/garmin fixtures in the describe block above; restated
+  // here, explicitly, as the S2 ticket's own named acceptance case.)
+  it('a provider with no observation axis at all falls back to fetchedAt, unchanged from pre-S2 behavior', () => {
+    const biometrics: ProviderBiometrics = {
+      oura: { providerId: 'oura', fetchedAt: NOW - 45 * MINUTE },
+    };
+    expect(freshestBiometricsFetchedAt(undefined, biometrics)).toBe(NOW - 45 * MINUTE);
+  });
+
+  it('the sentinel guard extends to the observation axis: latestObservedAtMs of 0 is rejected exactly like fetchedAt of 0, not treated as epoch-0', () => {
+    const appleHealth = { fetchedAt: NOW - 2 * MINUTE, latestObservedAtMs: 0 };
+    // observation axis sentinel is rejected → falls back to fetchedAt alone.
+    expect(freshestBiometricsFetchedAt(appleHealth, undefined)).toBe(NOW - 2 * MINUTE);
+  });
+
+  it('mutation-verify: a resolver reverted to max(fetchedAt)-only reproduces the exact S2 bug on the acceptance fixture', () => {
+    // The pre-S2 implementation: ignores every observation axis entirely.
+    const preS2 = (
+      appleHealth: { fetchedAt: number; latestObservedAtMs?: number } | undefined,
+      biometrics: ProviderBiometrics | undefined,
+    ): number | null => {
+      let freshest: number | null = null;
+      const consider = (c: number | null | undefined) => {
+        if (c == null || !Number.isFinite(c) || c <= 0) return;
+        if (freshest == null || c > freshest) freshest = c;
+      };
+      consider(appleHealth?.fetchedAt);
+      if (biometrics) {
+        for (const snap of Object.values(biometrics)) consider(snap?.fetchedAt);
+      }
+      return freshest;
+    };
+
+    const appleHealth = { fetchedAt: NOW - 5 * MINUTE, latestObservedAtMs: NOW - 2 * DAY };
+    // The bug: reverted resolver reports the flattering sync age (5 min).
+    expect(preS2(appleHealth, undefined)).toBe(NOW - 5 * MINUTE);
+    // The fix: honest resolver reports the real observation age (2 days).
+    expect(freshestBiometricsFetchedAt(appleHealth, undefined)).toBe(NOW - 2 * DAY);
+    expect(freshestBiometricsFetchedAt(appleHealth, undefined)).not.toBe(preS2(appleHealth, undefined));
+  });
+});
+
 describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
   it('never fabricates: null fetchedAtMs → the honest "unavailable" state, never an age', () => {
     expect(resolveHomeFreshness(NOW, null)).toEqual({ key: 'home.v2.freshness.unavailable' });
@@ -143,16 +253,29 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
     });
   });
 
-  it('boundary: exactly 24 hours rolls over to days', () => {
+  // S3 (#586 verdict close-out): the days bucket is renamed `days_ago_stale`
+  // — every case that reaches it is, by construction, already past §53's
+  // wearable_sync stale boundary (24h, `config/hydroStateModel.ts`, cited
+  // not imported — see this resolver's file-header "AXIS POLICY" note) —
+  // so the boundary test doubles as proof the explicit-stale key fires
+  // exactly where the neutral `days_ago` key used to.
+  it('boundary: exactly 24 hours rolls over to the explicit-stale days bucket (S3)', () => {
     expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).toEqual({
-      key: 'home.v2.freshness.days_ago',
+      key: 'home.v2.freshness.days_ago_stale',
       params: { count: 1 },
+    });
+  });
+
+  it('23h59m59.999s is still the neutral hours bucket, NOT stale — the boundary is exact, one side only (S3)', () => {
+    expect(resolveHomeFreshness(NOW, NOW - (24 * HOUR - 1))).toEqual({
+      key: 'home.v2.freshness.hours_ago',
+      params: { count: 23 },
     });
   });
 
   it('days bucket for very stale data (e.g. permission revoked, no sync in a week) — never an absurd raw hour count', () => {
     expect(resolveHomeFreshness(NOW, NOW - 9 * DAY)).toEqual({
-      key: 'home.v2.freshness.days_ago',
+      key: 'home.v2.freshness.days_ago_stale',
       params: { count: 9 },
     });
   });
@@ -190,6 +313,26 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
     expect(resolveHomeFreshness(NOW, -1)).toEqual({ key: 'home.v2.freshness.unavailable' });
     expect(resolveHomeFreshness(NOW, -86_400_000)).toEqual({ key: 'home.v2.freshness.unavailable' });
   });
+
+  // S3 (#586 verdict close-out): the days bucket must never again present as
+  // neutrally as `days_ago` did — every case reaching it is already past
+  // §53's wearable_sync stale boundary (24h). Mutation-verify: a resolver
+  // that still emits the retired `days_ago` key at this exact boundary
+  // reproduces the neutral-voice defect S3 closes out.
+  it('mutation-verify (S3): a resolver still emitting the retired "days_ago" key at the 24h boundary reproduces the neutral-voice defect', () => {
+    const preS3Resolver = (nowArg: number, fetchedAtMs: number): { key: string; params: { count: number } } => {
+      const ageMs = Math.max(0, nowArg - fetchedAtMs);
+      const days = Math.floor(ageMs / (24 * HOUR));
+      return { key: 'home.v2.freshness.days_ago', params: { count: days } };
+    };
+    const buggyResult = preS3Resolver(NOW, NOW - 24 * HOUR);
+    expect(buggyResult).toEqual({ key: 'home.v2.freshness.days_ago', params: { count: 1 } });
+    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).not.toEqual(buggyResult);
+    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).toEqual({
+      key: 'home.v2.freshness.days_ago_stale',
+      params: { count: 1 },
+    });
+  });
 });
 
 describe('mutation-verify: reverting to the static-freshness bug', () => {
@@ -205,7 +348,13 @@ describe('mutation-verify: reverting to the static-freshness bug', () => {
   // sentinel. This encodes "revert the guard → this exact assertion fails"
   // from the fix's own mutation table.
   it('a resolver missing the epoch-0 guard would render the sentinel as a multi-thousand-day age, not "unavailable"', () => {
-    const preFixResolver = (now: number, fetchedAtMs: number | null): HomeFreshness => {
+    // Pre-#586, pre-S3 shape: the historical `days_ago` key name (since
+    // renamed to `days_ago_stale`), so this simulated old resolver is typed
+    // structurally rather than against the current `HomeFreshness` union.
+    const preFixResolver = (
+      now: number,
+      fetchedAtMs: number | null,
+    ): { key: string; params?: { count: number } } => {
       if (fetchedAtMs == null || !Number.isFinite(fetchedAtMs)) {
         return { key: 'home.v2.freshness.unavailable' };
       }
