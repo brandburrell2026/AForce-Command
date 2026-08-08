@@ -109,4 +109,53 @@ describe('mergeBiometrics — client owns keys, server fills data', () => {
     });
     expect(out.apple_health?.latestObservedAtMs).toBe(1_699_999_700_000);
   });
+
+  // RC-2 #595 verdict, item N1 — the real "future change" case the test
+  // above only gestures at. That test passes `server = undefined`, so the
+  // adoption branch (`sv && sv.fetchedAt > cv.fetchedAt ? sv : cv`) never
+  // evaluates `sv` at all — it proves the KEEP path, not the ADOPT path.
+  // This test exercises ADOPT: the server DOES carry an `apple_health` entry
+  // (the hypothetical future mirror the old comment worried about) with a
+  // strictly newer `fetchedAt`, but — because that hypothetical mirror
+  // pipeline hasn't been built to carry the enrichment through — no
+  // `fieldObservedAtMs` / `latestObservedAtMs` of its own.
+  //
+  // FINDING (RC-2 #595 verdict N1 — reported prominently, not silently
+  // enshrined): `mergeBiometrics` is a WHOLE-SNAPSHOT swap per provider id,
+  // not a field-level merge (see this file's header: "adopt the server's
+  // snapshot for a key"). When the server wins on `fetchedAt`, `out[id] = sv`
+  // replaces the ENTIRE client entry — there is no per-field reconciliation
+  // to fall back on, so the client's richer observation metadata is DROPPED,
+  // not preserved. This test pins that as today's actual, verified behavior.
+  // If `mergeBiometrics` is ever upgraded to per-field reconciliation, this
+  // assertion should flip alongside the implementation — not be quietly
+  // "fixed" by editing the test without touching the code.
+  it('FINDING — a fresher-but-thinner server apple_health entry replaces the WHOLE client entry, dropping its richer per-field observation metadata (RC-2 #595 verdict N1)', () => {
+    const richClientApple: ProviderBiometrics['apple_health'] = {
+      providerId: 'apple_health',
+      hrvSdnn: 64.97,
+      sleepHoursLastNight: 6.7,
+      fetchedAt: 1_700_000_000_000,
+      fieldObservedAtMs: { hrvSdnn: 1_699_999_700_000, sleepHoursLastNight: 1_699_990_000_000 },
+      latestObservedAtMs: 1_699_999_700_000,
+    };
+    // A hypothetical future server mirror: genuinely fresher `fetchedAt`,
+    // but no per-field observation metadata at all — a thinner snapshot.
+    const thinServerApple: ProviderBiometrics['apple_health'] = {
+      providerId: 'apple_health',
+      hrvSdnn: 58,
+      fetchedAt: 1_700_000_100_000, // strictly newer than the client's
+    };
+    const client: ProviderBiometrics = { apple_health: richClientApple };
+    const server: ProviderBiometrics = { apple_health: thinServerApple };
+    const out = mergeBiometrics(server, client)!;
+
+    // The server's thin snapshot wins wholesale — today's actual rule.
+    expect(out.apple_health).toEqual(thinServerApple);
+    expect(out.apple_health?.hrvSdnn).toBe(58);
+    // The richer client metadata is GONE, not merged forward.
+    expect(out.apple_health?.fieldObservedAtMs).toBeUndefined();
+    expect(out.apple_health?.latestObservedAtMs).toBeUndefined();
+    expect(out.apple_health?.sleepHoursLastNight).toBeUndefined();
+  });
 });
