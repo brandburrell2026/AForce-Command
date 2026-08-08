@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE — The Manifesto</title>
 <meta name="description" content="Performance begins before the moment arrives. The AFORCE Manifesto — a belief built for real life, around preparation, ritual, readiness, and discipline.">
 <meta name="theme-color" content="#0D0D0D">
@@ -75,7 +75,7 @@
   .stagger > *{ transition-delay:calc(var(--i,0) * 85ms); }
 
   /* Hero */
-  .m-hero{ position:relative; min-height:100vh; display:flex; align-items:flex-end; padding:clamp(120px,20vh,220px) 0 clamp(56px,9vh,110px); overflow:hidden; }
+  .m-hero{ position:relative; min-height:100vh; min-height:100svh; display:flex; align-items:flex-end; padding:clamp(120px,20vh,220px) 0 clamp(56px,9vh,110px); overflow:hidden; }
   .m-hero .m-hero-video, .m-hero .m-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; z-index:0; }
   .m-hero .m-hero-still{ display:none; }
   @media (prefers-reduced-motion:reduce){ .m-hero .m-hero-video{ display:none; } .m-hero .m-hero-still{ display:block; } }
@@ -157,6 +157,19 @@
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
+
+  /* ===== mobile responsive QA refinements (phone-only; desktop unchanged) ===== */
+  .finale{ min-height:96vh; min-height:96svh; }
+  @media (max-width:600px){
+    .m-hero{ padding:clamp(96px,14vh,120px) 0 40px; }
+    .sec{ padding:clamp(56px,9vh,88px) 0; }
+  }
+  @media (max-width:430px){
+    .ritual{ grid-template-columns:1fr; gap:22px; }
+    .display{ font-size:clamp(30px,8.5vw,38px); }
+    .h-lg{ font-size:clamp(25px,7vw,30px); }
+    .m-hero .sub, .eyebrow{ letter-spacing:0.16em; }
+  }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>

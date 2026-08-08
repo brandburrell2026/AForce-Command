@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE — The Science</title>
 <meta name="description" content="The Science of AFORCE — hydration, electrolytes, pH 8.8, retort precision, ritual behavior, and the AFORCE OS. Preparation begins long before performance is visible.">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
@@ -135,7 +135,7 @@
   }
 
   /* ---------- HERO (full-screen cinematic video — matches AFORCE OS) ---------- */
-  .sci-hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px);background:var(--ink);color:#F5F0E8;overflow:hidden;}
+  .sci-hero{position:relative;min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px);background:var(--ink);color:#F5F0E8;overflow:hidden;}
   .sci-hero-video,.sci-hero-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;}
   .sci-hero-still{display:none;}
   .sci-hero-scrim{position:absolute;inset:0;z-index:1;background:
@@ -305,7 +305,7 @@
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:960px){
-    .sci-hero-scrim{background:linear-gradient(180deg, rgba(11,13,18,0.58) 0%, rgba(11,13,18,0.30) 42%, rgba(11,13,18,0.80) 100%);}
+    .sr-hero-scrim{background:linear-gradient(180deg, rgba(11,13,18,0.62) 0%, rgba(11,13,18,0.30) 42%, rgba(11,13,18,0.82) 100%);}
     .two-col{grid-template-columns:1fr;}
     .card-grid{grid-template-columns:1fr 1fr;}
     .dash-grid{grid-template-columns:1fr 1fr;}
@@ -373,7 +373,7 @@
   /* Science redesign components — built on the page's existing tokens (Inter, --canvas/--c/--red) */
   .sr-wrap{ max-width:var(--maxw); margin:0 auto; padding:0 var(--gutter); }
   .sr-sec{ padding:clamp(64px,10vh,128px) 0; border-top:1px solid var(--c14); }
-  .sr-hero{ position:relative; min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding:clamp(122px,18vh,200px) 0 clamp(52px,8vh,92px); background:var(--ink); color:#F5F0E8; overflow:hidden; }
+  .sr-hero{ position:relative; min-height:88vh; min-height:88svh; display:flex; flex-direction:column; justify-content:center; padding:clamp(122px,18vh,200px) 0 clamp(52px,8vh,92px); background:var(--ink); color:#F5F0E8; overflow:hidden; }
   .sr-hero .h-display{ text-transform:none; margin-top:20px; max-width:15ch; }
   /* Cinematic video hero (the former homepage film) */
   .sr-hero-media{ position:absolute; inset:0; z-index:0; background:#0B0D12 url('/assets/science-hero-poster.jpg') center/cover no-repeat; }
@@ -510,6 +510,10 @@
   .sys-panel .sp-desc{ color:var(--c70); font-size:clamp(15px,1.4vw,18px); line-height:1.65; margin-top:14px; max-width:46ch; }
   .sys-panel .sp-tag{ margin-top:20px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--c40); }
   .sys-panel .sp-tag b{ color:var(--red); font-weight:700; }
+  /* auto-advance swap fade (§ Systems tablist) */
+  @keyframes sysSwap{ from{ opacity:.3; transform:translateY(5px); } to{ opacity:1; transform:none; } }
+  .js-sci .sys-panel.is-swap .sp-name, .js-sci .sys-panel.is-swap .sp-desc, .js-sci .sys-panel.is-swap .sp-tag{ animation:sysSwap .36s ease; }
+  @media (prefers-reduced-motion:reduce){ .js-sci .sys-panel.is-swap .sp-name, .js-sci .sys-panel.is-swap .sp-desc, .js-sci .sys-panel.is-swap .sp-tag{ animation:none; } }
 
   /* ===== P1 · Explorable electrolyte regulation layer ===== */
   .reg-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--c14); border:1px solid var(--c14); border-radius:6px; overflow:hidden; margin-top:clamp(28px,4vw,44px); }
@@ -535,7 +539,7 @@
   /* ===== P1 · Formulation Explorer — "Why is it here?" (signature trust mechanism) ===== */
   .fx{ margin-top:clamp(28px,4vw,48px); }
   .fx-tokens{ display:flex; flex-wrap:wrap; gap:10px; }
-  .fx-token{ font-family:var(--mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--c70); border:1px solid var(--c14); border-radius:999px; padding:11px 18px; transition:border-color .25s, color .25s, background .25s; }
+  .fx-token{ font-family:var(--mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--c70); border:1px solid var(--c14); border-radius:999px; padding:11px 18px; min-height:44px; display:inline-flex; align-items:center; transition:border-color .25s, color .25s, background .25s; }
   .fx-token:hover{ border-color:var(--c25); color:var(--c); }
   .fx-token[aria-selected="true"]{ background:var(--ink); color:var(--canvas); border-color:var(--ink); }
   .fx-panel{ margin-top:clamp(22px,3vw,34px); border:1px solid var(--c14); border-radius:8px; overflow:hidden; }
@@ -1170,6 +1174,7 @@
         if(n){ e.preventDefault(); select(n, true); }
       });
     });
+    return { tabs: tabs, select: select };
   }
 
   /* 1 · Systems visual */
@@ -1181,13 +1186,35 @@
   };
   var sName=document.getElementById("sysName"), sDesc=document.getElementById("sysDesc"), sTag=document.getElementById("sysTag"), sPanel=document.getElementById("sysPanel");
   if(sName){
-    initTabs(document.querySelector("#sysBlock .sys-rail"), function(tab){
+    var sysRail=document.querySelector("#sysBlock .sys-rail");
+    var sysBlock=document.getElementById("sysBlock");
+    var sysApi=initTabs(sysRail, function(tab){
       var name = tab.textContent.trim(), d = SYS[name];
       if(!d) return;
       sName.textContent = name; sDesc.textContent = d.desc;
       sTag.innerHTML = "Relationship <b>"+d.tag+"</b>";
-      if(sPanel) sPanel.setAttribute("aria-labelledby", tab.id);
+      if(sPanel){ sPanel.setAttribute("aria-labelledby", tab.id);
+        sPanel.classList.remove("is-swap"); void sPanel.offsetWidth; sPanel.classList.add("is-swap"); }
     });
+
+    /* Auto-advance the systems tablist (progressive enhancement). Cycles only
+       while the block is in view and un-hovered; any manual tab click/keypress
+       hands control to the visitor for good; fully disabled under reduced-motion. */
+    var sysReduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if(sysApi && sysBlock && !sysReduce){
+      var sysIdx=0, sysTimer=null, sysManual=false, sysHover=false, sysInView=false;
+      function sysStep(){ sysIdx=(sysIdx+1)%sysApi.tabs.length; sysApi.select(sysApi.tabs[sysIdx], false); }
+      function sysPlay(){ if(sysTimer||sysManual||sysHover||!sysInView) return; sysTimer=setInterval(sysStep, 3600); }
+      function sysPause(){ if(sysTimer){ clearInterval(sysTimer); sysTimer=null; } }
+      function sysStop(){ sysManual=true; sysPause(); }
+      sysRail.addEventListener("click", function(e){ if(e.target.closest('[role="tab"]')) sysStop(); });
+      sysRail.addEventListener("keydown", sysStop);
+      sysBlock.addEventListener("mouseenter", function(){ sysHover=true; sysPause(); });
+      sysBlock.addEventListener("mouseleave", function(){ sysHover=false; sysPlay(); });
+      if("IntersectionObserver" in window){
+        new IntersectionObserver(function(es){ es.forEach(function(en){ sysInView=en.isIntersecting; if(sysInView) sysPlay(); else sysPause(); }); }, { threshold:0.35 }).observe(sysBlock);
+      } else { sysInView=true; sysPlay(); }
+    }
   }
 
   /* 2 · Formulation explorer */
