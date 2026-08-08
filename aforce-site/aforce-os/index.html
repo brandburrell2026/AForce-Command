@@ -466,6 +466,20 @@
   .rx-cmd .row{ margin-top:2.6cqw; display:flex; align-items:center; gap:3.4cqw; }
   .rx-cmd .btn{ background:var(--xred); color:#fff; font-size:3.1cqw; font-weight:600; padding:2cqw 4.6cqw; border-radius:2.4cqw; }
   .rx-cmd .why{ font-size:2.7cqw; font-weight:500; color:var(--xdim); }
+  /* ---- per-phone entrance motion: bars & charts draw in when the phone scrolls
+     into view. Gated on .js-anim (added only when JS runs and motion is allowed),
+     so with no JS / reduced-motion the bars simply render full. ---- */
+  .js-anim .px-bar i, .js-anim .cm-chal .bar i, .js-anim .wr-card .bar i, .js-anim .osx-pb .bar i{ transform:scaleX(0); transform-origin:left center; transition:transform 1.05s cubic-bezier(.4,0,.2,1) .08s; }
+  .js-anim .osx-phone.anim .px-bar i, .js-anim .osx-phone.anim .cm-chal .bar i, .js-anim .osx-phone.anim .wr-card .bar i, .js-anim .osx-phone.anim .osx-pb .bar i{ transform:scaleX(1); }
+  .js-anim .ch-summary .spark i, .js-anim .wr-age .spark i, .js-anim .osx-week .osx-day .bar i{ transform:scaleY(0); transform-origin:center bottom; transition:transform .85s cubic-bezier(.4,0,.2,1); }
+  .js-anim .osx-phone.anim .ch-summary .spark i, .js-anim .osx-phone.anim .wr-age .spark i, .js-anim .osx-phone.anim .osx-week .osx-day .bar i{ transform:scaleY(1); }
+  /* left-to-right stagger for the sparklines & weekly bars */
+  .js-anim .ch-summary .spark i:nth-child(2), .js-anim .wr-age .spark i:nth-child(2), .js-anim .osx-week .osx-day:nth-child(2) .bar i{ transition-delay:.05s; }
+  .js-anim .ch-summary .spark i:nth-child(3), .js-anim .wr-age .spark i:nth-child(3), .js-anim .osx-week .osx-day:nth-child(3) .bar i{ transition-delay:.1s; }
+  .js-anim .ch-summary .spark i:nth-child(4), .js-anim .wr-age .spark i:nth-child(4), .js-anim .osx-week .osx-day:nth-child(4) .bar i{ transition-delay:.15s; }
+  .js-anim .ch-summary .spark i:nth-child(5), .js-anim .wr-age .spark i:nth-child(5), .js-anim .osx-week .osx-day:nth-child(5) .bar i{ transition-delay:.2s; }
+  .js-anim .ch-summary .spark i:nth-child(6), .js-anim .wr-age .spark i:nth-child(6), .js-anim .osx-week .osx-day:nth-child(6) .bar i{ transition-delay:.25s; }
+  .js-anim .ch-summary .spark i:nth-child(7), .js-anim .wr-age .spark i:nth-child(7), .js-anim .osx-week .osx-day:nth-child(7) .bar i{ transition-delay:.3s; }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
   .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
@@ -1026,6 +1040,19 @@
     });
   }, { threshold:0.55 });
   els.forEach(function(e){ io.observe(e); });
+})();
+
+/* per-phone entrance motion — draw bars/charts in when each phone enters view */
+(function(){
+  var phones = document.querySelectorAll('.osx-phone');
+  if(!phones.length) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce || !('IntersectionObserver' in window)) return; // bars render full via CSS default
+  document.documentElement.classList.add('js-anim');
+  var pio = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('anim'); pio.unobserve(en.target); } });
+  }, { threshold:0.25 });
+  phones.forEach(function(p){ pio.observe(p); });
 })();
 
 /* scroll-aware nav */
