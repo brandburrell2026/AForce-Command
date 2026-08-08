@@ -6,7 +6,7 @@
 <meta name="build-marker" content="2026-07-08-studio-image">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AFORCE — The Performance Operating System</title>
-<meta name="description" content="AFORCE — the first performance hydration system built around readiness, ritual, and AI. pH 8.8 alkaline hydration powered by a daily readiness app and performance ritual.">
+<meta name="description" content="AFORCE — a performance hydration system built around readiness, ritual, and recovery. pH 8.8 alkaline hydration with a daily readiness app and performance ritual.">
 <meta name="theme-color" content="#E9E7E1">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="canonical" href="https://www.drinkaforce.com/">
@@ -22,6 +22,36 @@
 <meta name="twitter:title" content="AFORCE — The Performance Operating System">
 <meta name="twitter:description" content="Performance Is Non-Negotiable.">
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.drinkaforce.com/#organization",
+      "name": "AFORCE Hydration, Inc.",
+      "url": "https://www.drinkaforce.com/",
+      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
+      "description": "AFORCE is a performance hydration system built around readiness, ritual, and recovery.",
+      "slogan": "Performance Is Non-Negotiable.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "New York",
+        "addressRegion": "NY",
+        "addressCountry": "US"
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.drinkaforce.com/#website",
+      "name": "AFORCE",
+      "url": "https://www.drinkaforce.com/",
+      "publisher": { "@id": "https://www.drinkaforce.com/#organization" }
+    }
+  ]
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -462,10 +492,10 @@
   .os-checkin{ align-self:flex-start; display:inline-flex; align-items:center; gap:2cqw; margin-top:2.6cqw; padding:1.5cqw 3cqw; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:6cqw; font-size:2.7cqw; font-weight:600; color:var(--os-ink); }
   .os-checkin-dot{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--os-green); flex-shrink:0; }
   .os-checkin-frac{ font-family:'IBM Plex Mono',monospace; font-weight:500; color:var(--os-faint); }
-  .os-scard{ margin-top:3.2cqw; background:var(--os-surface); border:1px solid rgba(193,40,27,0.34); border-radius:4.5cqw; padding:3.8cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
+  .os-scard{ margin-top:3.2cqw; background:var(--os-surface); border:1px solid rgba(31,163,90,0.32); border-radius:4.5cqw; padding:3.8cqw; display:flex; flex-direction:column; box-shadow:0 7cqw 15cqw -8cqw rgba(0,0,0,0.55); }
   .os-scard-top{ display:flex; justify-content:space-between; align-items:center; }
-  .os-scard-l{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-redtext); }
-  .os-scard-badge{ font-size:2.3cqw; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-redtext); border:1px solid rgba(228,86,74,0.5); padding:0.8cqw 2.4cqw; border-radius:5cqw; }
+  .os-scard-l{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; font-weight:500; letter-spacing:0.14em; text-transform:uppercase; color:var(--os-green); }
+  .os-scard-badge{ font-size:2.3cqw; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--os-green); border:1px solid rgba(31,163,90,0.5); padding:0.8cqw 2.4cqw; border-radius:5cqw; }
   .os-scard-name{ margin-top:1.8cqw; font-size:4.8cqw; font-weight:700; letter-spacing:-0.01em; color:var(--os-ink); }
   .os-scard-desc{ margin-top:1.2cqw; font-size:3cqw; line-height:1.4; color:var(--os-dim); }
   .os-tl{ position:relative; display:flex; flex-direction:column; gap:2.8cqw; margin-top:3.2cqw; }
@@ -475,9 +505,9 @@
   .os-tl-txt{ display:flex; flex-direction:column; gap:0.3cqw; }
   .os-tl-name{ font-size:3.4cqw; font-weight:500; color:var(--os-ink); }
   .os-tl-when{ font-size:2.6cqw; color:var(--os-faint); }
-  .os-tl-row.is-done .os-tl-dot{ background:var(--os-red); border-color:var(--os-red); }
+  .os-tl-row.is-done .os-tl-dot{ background:var(--os-green); border-color:var(--os-green); }
   .os-tl-row.is-done .os-tl-name{ color:var(--os-faint); text-decoration:line-through; }
-  .os-tl-row.is-active .os-tl-dot{ border-color:var(--os-red); box-shadow:0 0 0 1.3cqw rgba(193,40,27,0.18); }
+  .os-tl-row.is-active .os-tl-dot{ border-color:var(--os-green); box-shadow:0 0 0 1.3cqw rgba(31,163,90,0.18); }
   .os-tl-row.is-active .os-tl-name{ color:var(--os-ink); font-weight:700; }
   .os-scard-foot{ margin-top:3.4cqw; padding-top:2.8cqw; border-top:1px solid rgba(255,255,255,0.10); display:flex; gap:5cqw; }
   .os-foot-col{ display:flex; flex-direction:column; gap:0.8cqw; }
