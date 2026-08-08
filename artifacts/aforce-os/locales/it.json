@@ -76,7 +76,7 @@
         "just_now": "Checked just now",
         "minutes_ago": "Checked {{count}}m ago",
         "hours_ago": "Checked {{count}}h ago",
-        "days_ago": "Checked {{count}}d ago",
+        "days_ago_stale": "Checked {{count}}d ago — data is stale",
         "unavailable": "Awaiting first sync"
       },
       "readiness_label": "READINESS",

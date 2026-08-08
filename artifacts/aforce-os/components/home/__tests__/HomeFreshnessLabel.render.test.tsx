@@ -93,9 +93,22 @@ describe('HomeFreshnessLabel — graduated states (ticket-specified fake timesta
     expect(host.textContent).toBe('Checked 5h ago');
   });
 
-  it('extension beyond the ticket\'s literal 3 states: multi-day age → "Checked Nd ago", not an absurd hour count', () => {
+  it('extension beyond the ticket\'s literal 3 states: multi-day age → explicit "stale" copy (S3), not a neutral "Checked Nd ago"', () => {
     renderLabel({ fetchedAtMs: START - 3 * DAY, testID: 'freshness' });
-    expect(host.textContent).toBe('Checked 3d ago');
+    expect(host.textContent).toBe('Checked 3d ago — data is stale');
+  });
+
+  // S3 (#586 verdict close-out): the exact §53 wearable_sync stale boundary
+  // (24h) is where the days bucket first fires — the explicit stale copy
+  // must appear starting there, not only for "very stale" multi-day ages.
+  it('exactly at the 24h stale boundary → explicit "stale" copy already applies, not a neutral "Checked 1d ago"', () => {
+    renderLabel({ fetchedAtMs: START - 24 * HOUR, testID: 'freshness' });
+    expect(host.textContent).toBe('Checked 1d ago — data is stale');
+  });
+
+  it('one millisecond before the boundary is still the neutral hours copy, not stale', () => {
+    renderLabel({ fetchedAtMs: START - (24 * HOUR - 1), testID: 'freshness' });
+    expect(host.textContent).toBe('Checked 23h ago');
   });
 
   it('never fabricates: no fetch has ever happened (null) → honest "Awaiting first sync", never a bogus age', () => {
@@ -150,5 +163,52 @@ describe('HomeFreshnessLabel — mutation-verify: the two ways this fix could re
     const freshness = resolveHomeFreshness(START, START - 2 * MINUTE);
     expect(freshness).toEqual({ key: 'home.v2.freshness.minutes_ago', params: { count: 2 } });
     expect(freshness.key).not.toBe('home.v2.freshness.just_now');
+  });
+
+  // S3 (#586 verdict close-out) MUTATION 3: proves this suite is actually
+  // sensitive to the locale copy, not just the key name — a regressed
+  // `en.json` that reverted `days_ago_stale` back to the old neutral
+  // "Checked {{count}}d ago" phrasing would still resolve the SAME key, so
+  // only an assertion against the real rendered TEXT (not the key) can catch
+  // it. Rendered here against a deliberately regressed i18n resource, built
+  // by cloning the real `en.json` and overwriting just that one string, to
+  // prove the two renders diverge — i.e. this suite's text assertions above
+  // would fail against a regressed locale file.
+  it('MUTATION 3 (S3 neutral-copy regression): a locale reverted to the old neutral days_ago phrasing renders visibly differently from the real en.json', () => {
+    const regressedLocale = JSON.parse(JSON.stringify(EN_LOCALE));
+    regressedLocale.home.v2.freshness.days_ago_stale = 'Checked {{count}}d ago';
+    const regressedI18n = i18nCore.createInstance();
+    regressedI18n.use(initReactI18next).init({
+      lng: 'en',
+      fallbackLng: 'en',
+      resources: { en: { translation: regressedLocale } },
+      interpolation: { escapeValue: false },
+      react: { useSuspense: false },
+    });
+
+    // Rendered into its OWN host/root — kept separate from the shared
+    // `host`/`root` (and its own `afterEach` teardown) so this never
+    // double-mounts onto a container `createRoot` already owns.
+    const regressedHost = document.createElement('div');
+    document.body.appendChild(regressedHost);
+    const regressedRoot = createRoot(regressedHost);
+    flushSync(() =>
+      regressedRoot.render(
+        React.createElement(
+          I18nextProvider,
+          { i18n: regressedI18n },
+          React.createElement(HomeFreshnessLabel, { fetchedAtMs: START - 3 * DAY, testID: 'freshness' }),
+        ),
+      ),
+    );
+    expect(regressedHost.textContent).toBe('Checked 3d ago'); // the regressed (neutral) copy
+    flushSync(() => regressedRoot.unmount());
+    regressedHost.remove();
+
+    // The real component, against the real locale, must NOT match that —
+    // this is the assertion a regressed `en.json` is expected to fail.
+    renderLabel({ fetchedAtMs: START - 3 * DAY, testID: 'freshness' });
+    expect(host.textContent).not.toBe('Checked 3d ago');
+    expect(host.textContent).toBe('Checked 3d ago — data is stale');
   });
 });
