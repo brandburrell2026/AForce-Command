@@ -1116,17 +1116,32 @@
   // The Signal — animate once when scrolled into view, light up each state in sequence
   const signalSection = document.getElementById('theSignal');
   if(signalSection){
-    const signalIO = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting && !signalSection.classList.contains('visible')){
-          signalSection.classList.add('visible');
-          setTimeout(()=> document.getElementById('stateDepleted').classList.add('reached'), 100);
-          setTimeout(()=> document.getElementById('stateBalanced').classList.add('reached'), 1300);
-          setTimeout(()=> document.getElementById('stateLocked').classList.add('reached'), 2600);
-        }
-      });
-    }, {threshold:0.4});
-    signalIO.observe(signalSection);
+    /* Activate the signal slider once it enters view — the ball travels 0→100%
+       and the states light up. Made bulletproof for mobile: the old single
+       threshold:0.4 observer could fail to fire on phones (tall stacked section
+       / throttled IO), leaving the ball stuck at the left. Now: a low-threshold
+       observer PLUS a scroll fallback PLUS an on-load check — so it reliably
+       animates all the way across on every device. */
+    function activateSignal(){
+      if(signalSection.classList.contains('visible')) return;
+      signalSection.classList.add('visible');
+      setTimeout(()=> document.getElementById('stateDepleted').classList.add('reached'), 100);
+      setTimeout(()=> document.getElementById('stateBalanced').classList.add('reached'), 1300);
+      setTimeout(()=> document.getElementById('stateLocked').classList.add('reached'), 2600);
+      window.removeEventListener('scroll', signalScrollCheck);
+    }
+    function signalScrollCheck(){
+      var r = signalSection.getBoundingClientRect();
+      if(r.top < window.innerHeight * 0.85 && r.bottom > 0){ activateSignal(); }
+    }
+    if('IntersectionObserver' in window){
+      var signalIO = new IntersectionObserver((entries)=>{
+        entries.forEach(e=>{ if(e.isIntersecting) activateSignal(); });
+      }, {threshold:0.2});
+      signalIO.observe(signalSection);
+    }
+    window.addEventListener('scroll', signalScrollCheck, {passive:true});
+    signalScrollCheck();   // in case it's already in view on load
   }
 
   // The Ritual — activate each stage as it crosses the viewport centre (scroll-spy,
