@@ -515,6 +515,9 @@
   .ingredients .ing-more{ margin-top:18px; display:inline-flex; align-items:center; gap:8px; border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-55); padding:6px 0; min-height:36px; transition:color .2s; }
   .ingredients .ing-more:hover{ color:var(--canvas); }
   .ingredients .ing-more .pm{ font-size:15px; line-height:1; width:12px; text-align:center; }
+  /* consistent, non-oversized focus ring (§9) matching the design system */
+  .ingredients .ing-more:focus-visible, .ingredients .ing-toggle button:focus-visible{ outline:2px solid var(--theme); outline-offset:2px; border-radius:6px; }
+  .ingredients .ing-more:focus:not(:focus-visible), .ingredients .ing-toggle button:focus:not(:focus-visible){ outline:none; }
   .ingredients .ing-full{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .38s cubic-bezier(.4,0,.2,1); }
   .ingredients .ing-full.open{ grid-template-rows:1fr; }
   .ingredients .ing-full-in{ overflow:hidden; }
@@ -934,8 +937,8 @@
 <section class="step ingredients" id="ingredients" aria-labelledby="ingTitle">
   <div class="wrap">
     <div class="step-i">Full Transparency</div>
-    <h2 id="ingTitle">Built for the Ritual.</h2>
-    <p class="ing-tagline">Everything you need to prepare, execute, and recover—without overthinking it.</p>
+    <h2 id="ingTitle">What powers the Ritual.</h2>
+    <p class="ing-tagline">Purposeful hydration, electrolytes, and marine ingredients—built to support the daily Ritual.</p>
     <div class="ing-toggle" role="tablist" aria-label="Choose format">
       <button type="button" class="on" data-fmt="can" role="tab" aria-selected="true">The Can</button>
       <button type="button" data-fmt="stick" role="tab" aria-selected="false">The Stick</button>
@@ -943,7 +946,7 @@
     <p class="ing-serving" id="ingServing"></p>
     <div class="ing-stats" id="ingStats"></div>
     <div class="ing-grid" id="ingGrid"></div>
-    <div class="ing-badges"><span>Plant-based</span><span>No artificial sweeteners</span><span>Marine minerals</span><span>Alkaline pH 8.8+</span></div>
+    <div class="ing-badges"><span>Plant-based</span><span>Sweetened with stevia · 0g added sugar</span><span>Marine minerals</span><span>Alkaline pH 8.8+</span></div>
     <p class="ing-note">Ingredient lists reflect the current formulation. These statements have not been evaluated by the Food and Drug Administration; this product is not intended to diagnose, treat, cure, or prevent any disease.</p>
     <noscript><div class="ing-noscript">
       <p><b>Berry Blast</b> — Can: Alkaline Water, Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, Vitamin E, Organic Dulse Powder. · Stick: Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, Organic Dulse Powder.</p>
