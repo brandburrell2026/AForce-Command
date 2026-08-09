@@ -41,7 +41,11 @@ describe('buildScoreDrivers', () => {
     const sleep = drivers.find((d) => d.id === 'sleep')!;
     expect(sleep.delta).toBe(0);
     expect(sleep.direction).toBe('neutral');
-    expect(sleep.text).toBe('Sleep and recovery are steady for now.');
+    // Build-50 Gate 2 follow-up (independent verdict, S1): the prior
+    // neutral copy ("Sleep and recovery are steady for now.") was an
+    // affirmative claim about the user's body rendered in the zero-data
+    // default state — see drivers.ts's DRIVER_COPY.sleep.neutral comment.
+    expect(sleep.text).toBe("Sleep and recovery aren't affecting your score right now.");
   });
 
   // Build-50 Gate 2, item 5: the 'sleep' pill sums BOTH the 'sleep'

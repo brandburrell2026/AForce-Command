@@ -84,7 +84,17 @@ const DRIVER_COPY: Record<
   sleep: {
     positive: 'Sleep and recovery signals are helping your score.',
     negative: 'Sleep and recovery signals are weighing on your score.',
-    neutral: 'Sleep and recovery are steady for now.',
+    // Build-50 Gate 2 follow-up (independent verdict, S1): this is also
+    // the DEFAULT state when nothing is connected at all — the same
+    // sheet renders "Health platforms (none connected)" right next to
+    // this sentence. "Sleep and recovery are steady for now" asserted
+    // "steady" (an affirmative claim about the user's body/rest quality)
+    // with zero data behind it, violating the same "observation never
+    // diagnosis" principle the positive/negative strings above were
+    // fixed for. Reworded to say the score isn't moving on this driver
+    // right now — a claim about the score's behavior, which is true by
+    // construction at delta 0, not a claim about the user's condition.
+    neutral: "Sleep and recovery aren't affecting your score right now.",
   },
   heat: {
     positive: 'Conditions are comfortable right now.',
