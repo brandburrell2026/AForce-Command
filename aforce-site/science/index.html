@@ -1261,23 +1261,41 @@
         sPanel.classList.remove("is-swap"); void sPanel.offsetWidth; sPanel.classList.add("is-swap"); }
     });
 
-    /* Auto-advance the systems tablist (progressive enhancement). Cycles only
-       while the block is in view and un-hovered; any manual tab click/keypress
-       hands control to the visitor for good; fully disabled under reduced-motion. */
-    var sysReduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if(sysApi && sysBlock && !sysReduce){
-      var sysIdx=0, sysTimer=null, sysManual=false, sysHover=false, sysInView=false;
-      function sysStep(){ sysIdx=(sysIdx+1)%sysApi.tabs.length; sysApi.select(sysApi.tabs[sysIdx], false); }
-      function sysPlay(){ if(sysTimer||sysManual||sysHover||!sysInView) return; sysTimer=setInterval(sysStep, 3600); }
-      function sysPause(){ if(sysTimer){ clearInterval(sysTimer); sysTimer=null; } }
-      function sysStop(){ sysManual=true; sysPause(); }
-      sysRail.addEventListener("click", function(e){ if(e.target.closest('[role="tab"]')) sysStop(); });
-      sysRail.addEventListener("keydown", sysStop);
-      sysBlock.addEventListener("mouseenter", function(){ sysHover=true; sysPause(); });
-      sysBlock.addEventListener("mouseleave", function(){ sysHover=false; sysPlay(); });
-      if("IntersectionObserver" in window){
-        new IntersectionObserver(function(es){ es.forEach(function(en){ sysInView=en.isIntersecting; if(sysInView) sysPlay(); else sysPause(); }); }, { threshold:0.35 }).observe(sysBlock);
-      } else { sysInView=true; sysPlay(); }
+    /* Scroll-driven activation — the home-ritual mechanic (rAF-throttled scroll-spy).
+       This block is compact (roughly one viewport), so instead of home's per-item
+       mid-viewport check we map the block's travel through the viewport onto the
+       four steps: scrolling down lights the circles in order, scrolling back up
+       reverses them. Below the first band the index clamps to step 1, matching the
+       page's static no-JS default. A manual tab click/keypress holds the visitor's
+       choice until the scroll position actually moves to a different band — then
+       scroll resumes control. Activation is state, not decoration, so it stays on
+       under reduced-motion (the CSS already neutralises the swap animation there). */
+    if(sysApi && sysBlock){
+      var sysIdx=0, sysHold=null, sysTicking=false;
+      var SYS_N=sysApi.tabs.length, SYS_T0=0.18, SYS_T1=0.82;
+      function sysScrollIdx(){
+        var r=sysBlock.getBoundingClientRect();
+        var vh=window.innerHeight||document.documentElement.clientHeight||1;
+        var p=(vh-r.top)/(vh+r.height);       /* 0 = entering from below · 1 = gone above */
+        var t=(p-SYS_T0)/(SYS_T1-SYS_T0);     /* steps spread over the comfortable middle */
+        return Math.max(0, Math.min(SYS_N-1, Math.floor(t*SYS_N)));
+      }
+      function sysDrive(){
+        sysTicking=false;
+        var idx=sysScrollIdx();
+        if(sysHold!==null){ if(idx===sysHold) return; sysHold=null; }  /* real movement → scroll resumes */
+        if(idx!==sysIdx){ sysIdx=idx; sysApi.select(sysApi.tabs[idx], false); }
+      }
+      function sysQueue(){ if(!sysTicking){ sysTicking=true; requestAnimationFrame(sysDrive); } }
+      function sysManualHold(){
+        for(var i=0;i<SYS_N;i++){ if(sysApi.tabs[i].getAttribute("aria-selected")==="true"){ sysIdx=i; break; } }
+        sysHold=sysScrollIdx();
+      }
+      sysRail.addEventListener("click", function(e){ if(e.target.closest('[role="tab"]')) sysManualHold(); });
+      sysRail.addEventListener("keydown", function(){ sysManualHold(); });
+      window.addEventListener("scroll", sysQueue, { passive:true });
+      window.addEventListener("resize", sysQueue, { passive:true });
+      sysDrive();
     }
   }
 
