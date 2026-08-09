@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AFORCE — Page Not Found</title>
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0D0D0D; --paper:#E9E7E1; --bone:#F5F0E8; --red:#C1281B;
+    --mute:rgba(245,240,232,0.60); --faint:rgba(245,240,232,0.38); --line:rgba(245,240,232,0.14);
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ overflow-x:clip; }
+  body{
+    background:var(--ink); color:var(--bone); font-family:var(--sans);
+    min-height:100svh; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:clamp(40px,8vh,96px) clamp(22px,6vw,64px);
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    background-image:radial-gradient(120% 90% at 50% 8%, rgba(193,40,27,0.10), rgba(193,40,27,0) 55%);
+  }
+  .wrap{ max-width:600px; }
+  .mark{ display:inline-flex; align-items:center; gap:.16em; text-decoration:none; font-family:'Archivo Black',var(--sans); font-size:clamp(26px,5vw,34px); line-height:1; }
+  .mark .n1{ color:var(--red); } .mark .bar{ display:inline-block; width:.42em; height:.15em; background:var(--red); }
+  .mark .n2{ display:inline-block; transform:scaleX(-1); color:var(--red); }
+  .eyebrow{ margin-top:clamp(40px,7vh,72px); font-family:var(--mono); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--red); }
+  h1{ margin-top:16px; font-family:var(--sans); font-weight:800; letter-spacing:-0.03em; line-height:1.0; font-size:clamp(38px,8vw,72px); }
+  p.sub{ margin:clamp(18px,3vw,26px) auto 0; max-width:42ch; font-size:clamp(15px,1.6vw,18px); line-height:1.6; color:var(--mute); }
+  .cta{ margin-top:clamp(30px,5vw,42px); display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 28px; border-radius:999px; font-family:var(--sans); font-weight:700; font-size:12px; letter-spacing:.06em; text-transform:uppercase; text-decoration:none; transition:opacity .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+  .btn-primary{ background:var(--paper); color:var(--ink); }
+  .btn-primary:hover{ background:var(--red); color:#fff; }
+  .btn-ghost{ border:1.5px solid var(--line); color:var(--bone); }
+  .btn-ghost:hover{ border-color:var(--bone); }
+  .sign{ margin-top:clamp(44px,7vh,76px); font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); }
+  .sign .red{ color:var(--red); } .sign .flip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
+  a:focus-visible, .btn:focus-visible{ outline:2px solid var(--red); outline-offset:3px; border-radius:4px; }
+  @media (prefers-reduced-motion:reduce){ .btn{ transition:none; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="mark" href="/" aria-label="AFORCE — home">
+      <span class="n1" aria-hidden="true">N</span><span class="bar" aria-hidden="true"></span><span class="n2" aria-hidden="true">N</span>
+    </a>
+    <p class="eyebrow">Error 404</p>
+    <h1>This page is off protocol.</h1>
+    <p class="sub">The route you followed isn’t part of the system. Everything you need is one step back.</p>
+    <div class="cta">
+      <a href="/" class="btn btn-primary">Return Home</a>
+      <a href="/shop" class="btn btn-ghost">Enter the Shop</a>
+    </div>
+    <p class="sign">Performance Is <span class="red">Non-<span class="flip">N</span>egotiable.</span></p>
+  </div>
+</body>
+</html>
