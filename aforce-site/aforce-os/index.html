@@ -450,6 +450,8 @@
   .rx-live .dot{ width:1.8cqw; height:1.8cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
   .rx-fresh{ margin-top:0.7cqw; font-size:2.4cqw; color:var(--xfaint); }
   .rx-arc{ position:relative; width:44cqw; aspect-ratio:1; margin:2.4cqw auto 1.2cqw; }
+  #readiness .rx-arc{ width:30cqw; margin:1cqw auto 0.4cqw; }
+  #readiness .osx-sh{ margin-top:2cqw; }
   .rx-arc svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
   .rx-arc .tr{ fill:none; stroke:rgba(255,255,255,.10); stroke-width:6; stroke-linecap:round; stroke-dasharray:75 25; }
   .rx-arc .fl{ fill:none; stroke:var(--xgreen); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 5px rgba(31,163,90,.6)) drop-shadow(0 0 2px rgba(31,163,90,.85)); transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
@@ -461,11 +463,40 @@
   .rx-bio{ display:flex; justify-content:center; gap:3.8cqw; font-family:'IBM Plex Mono',monospace; font-size:2.45cqw; color:var(--xfaint); }
   .rx-bio b{ color:#F4F2ED; font-weight:600; } .rx-bio .up{ color:var(--xgreen); }
   .rx-cmd{ margin-top:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:4cqw; padding:3.2cqw; }
+  #readiness .rx-cmd{ margin-top:2.4cqw; padding:2.8cqw; }
   .rx-cmd .k{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--xfaint); }
   .rx-cmd .t{ margin-top:1.3cqw; font-size:4.6cqw; font-weight:600; color:#F4F2ED; }
   .rx-cmd .row{ margin-top:2.6cqw; display:flex; align-items:center; gap:3.4cqw; }
   .rx-cmd .btn{ background:var(--xred); color:#fff; font-size:3.1cqw; font-weight:600; padding:2cqw 4.6cqw; border-radius:2.4cqw; }
-  .rx-cmd .why{ font-size:2.7cqw; font-weight:500; color:var(--xdim); }
+  .rx-cmd .why{ font-size:2.7cqw; font-weight:500; color:var(--xdim); display:inline-flex; align-items:center; gap:.7cqw; }
+  .rx-cmd .why svg{ width:2.8cqw; height:2.8cqw; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+  /* ---- READINESS / Home screen — extras matching the app Home ---- */
+  .rx-sub{ margin-top:1.4cqw; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:2.3cqw; letter-spacing:.04em; color:var(--xfaint); }
+  .rx-cmd .scan{ display:flex; align-items:center; gap:2cqw; font-size:2.75cqw; font-weight:600; color:var(--xgreen); }
+  .rx-cmd .scan .ck{ width:3.8cqw; height:3.8cqw; border-radius:50%; background:rgba(31,163,90,.2); position:relative; flex-shrink:0; }
+  .rx-cmd .scan .ck::after{ content:''; position:absolute; left:1.25cqw; top:0.9cqw; width:0.9cqw; height:1.55cqw; border:solid var(--xgreen); border-width:0 0.55cqw 0.55cqw 0; transform:rotate(43deg); }
+  .rx-cmd .scan .ago{ color:var(--xfaint); font-weight:400; }
+  .rx-cmd .div{ margin:1.9cqw 0; height:1px; background:rgba(255,255,255,.08); }
+  .rx-cmd .sub2{ margin-top:1.1cqw; font-size:2.7cqw; color:var(--xfaint); }
+  .rx-sig{ margin-top:2.2cqw; display:grid; grid-template-columns:1fr 1fr; gap:1.8cqw; }
+  .rx-sc{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:2.8cqw 3.2cqw; display:flex; align-items:center; justify-content:space-between; gap:2cqw; }
+  .rx-sc .k{ font-size:2.7cqw; color:var(--xdim); }
+  .rx-sc .v{ font-family:'IBM Plex Mono',monospace; font-size:3.4cqw; font-weight:600; color:#F4F2ED; }
+  .rx-sc .v.g{ color:var(--xgreen); font-family:var(--body); font-weight:600; }
+  .rx-done{ margin-top:2.2cqw; display:flex; flex-direction:column; gap:2cqw; }
+  .rx-di{ display:flex; align-items:center; gap:3cqw; }
+  .rx-di .ck{ width:4.6cqw; height:4.6cqw; border-radius:50%; background:var(--xgreen); position:relative; flex-shrink:0; }
+  .rx-di .ck::after{ content:''; position:absolute; left:1.5cqw; top:1cqw; width:1.4cqw; height:2.3cqw; border:solid #0D0D0D; border-width:0 .8cqw .8cqw 0; transform:rotate(43deg); }
+  .rx-di .ck.todo{ background:transparent; border:1.4px solid rgba(255,255,255,.22); }
+  .rx-di .ck.todo::after{ display:none; }
+  .rx-di .nm{ flex:1; font-size:3.1cqw; font-weight:600; }
+  .rx-di.off .nm{ color:var(--xfaint); font-weight:500; }
+  .rx-di .tm{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--xfaint); }
+  .rx-stats{ margin-top:1.9cqw; display:grid; grid-template-columns:1fr 1fr; gap:2cqw; }
+  .rx-st{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:3cqw 3.2cqw; }
+  .rx-st .v{ font-family:'IBM Plex Mono',monospace; font-size:5.2cqw; font-weight:600; line-height:1; color:#F4F2ED; display:flex; align-items:baseline; gap:1cqw; }
+  .rx-st .v.g{ color:var(--xgreen); }
+  .rx-st .k{ margin-top:1.4cqw; font-size:2.5cqw; color:var(--xfaint); }
   /* ---- per-phone entrance motion: bars & charts draw in when the phone scrolls
      into view. Gated on .js-anim (added only when JS runs and motion is allowed),
      so with no JS / reduced-motion the bars simply render full. ---- */
@@ -676,6 +707,77 @@
       </div>
       <div class="cv-out">
         <div class="cv-node"><span class="k">AFORCE</span><span class="v">Readiness</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2b · DAILY READINESS (Home screen) ============ -->
+<section class="block dark" id="readiness">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow reveal">Daily Readiness</div>
+      <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">Open the app. See exactly where you stand.</h2>
+      <p class="lead reveal" style="margin-top:22px;">Every signal resolves into one readiness score &mdash; and the single next command to protect your day.</p>
+      <div class="points stagger">
+        <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>One readiness number</h3><p>Sleep, hydration, recovery, and consistency, resolved into a single score you can act on.</p></div></div>
+        <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Today&rsquo;s command</h3><p>Not a dashboard to interpret. One clear move, timed to exactly where your day is.</p></div></div>
+        <div class="point reveal" style="--i:2"><span class="p-idx">03</span><div><h3>Live signals</h3><p>Hydration, recovery, sleep, and HRV &mdash; updated as the day unfolds.</p></div></div>
+      </div>
+    </div>
+    <div class="split-media reveal">
+      <div class="osx-phone" role="img" aria-label="AFORCE OS Home screen: readiness score of 91, at Peak, checked just now in New York; today's command is Maintain rhythm with the next check in 18 minutes; live signals show hydration 97 percent, recovery excellent, sleep 7 hours 41 minutes and HRV 65 milliseconds; morning hydration, recovery protocol and movement complete with the evening protocol still to come; an 18-day streak, rising recovery trend, plus 6 on today's score and 94 percent consistency.">
+        <div class="osx-screen">
+          <div class="osx-island"></div>
+          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
+          <div class="osx-body">
+            <div class="rx-hd">
+              <span class="rx-brand">AFORCE OS</span>
+              <span class="rx-live"><span class="dot"></span>Apple Health · Live</span>
+            </div>
+            <div class="rx-fresh">Checked just now · New York, NY</div>
+            <div class="rx-arc">
+              <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="tr" cx="50" cy="50" r="43.5" pathLength="100"></circle><circle class="fl" cx="50" cy="50" r="43.5" pathLength="100"></circle></svg>
+              <div class="c"><b data-count="91">91</b><span class="l">Readiness</span><span class="s">Peak</span></div>
+            </div>
+            <div class="rx-sub">Updated 28 sec ago · Performance stable</div>
+            <div class="rx-cmd">
+              <div class="scan"><span class="ck"></span>Recovery scan complete<span class="ago"> · 19 min ago</span></div>
+              <div class="div"></div>
+              <div class="k">Today&rsquo;s Command</div>
+              <div class="t">Maintain rhythm</div>
+              <div class="sub2">Next check in 18 min · you&rsquo;re ahead of pace.</div>
+              <div class="row"><span class="btn">Log Water</span><span class="why">Why this <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Live signals</span><span class="r">Live</span></div>
+            <div class="rx-sig">
+              <div class="rx-sc"><span class="k">Hydration</span><span class="v">97%</span></div>
+              <div class="rx-sc"><span class="k">Recovery</span><span class="v g">Excellent</span></div>
+              <div class="rx-sc"><span class="k">Sleep</span><span class="v">7h 41m</span></div>
+              <div class="rx-sc"><span class="k">HRV</span><span class="v">65 ms</span></div>
+            </div>
+            <div class="osx-sh"><span class="l">Completed today</span><span class="r">3 / 4</span></div>
+            <div class="rx-done">
+              <div class="rx-di"><span class="ck"></span><span class="nm">Morning hydration</span><span class="tm">7:20a</span></div>
+              <div class="rx-di"><span class="ck"></span><span class="nm">Recovery protocol</span><span class="tm">9:05a</span></div>
+              <div class="rx-di"><span class="ck"></span><span class="nm">Movement</span><span class="tm">12:30p</span></div>
+              <div class="rx-di off"><span class="ck todo"></span><span class="nm">Evening protocol</span><span class="tm">6:00p</span></div>
+            </div>
+            <div class="rx-stats">
+              <div class="rx-st"><div class="v">18</div><div class="k">Day streak</div></div>
+              <div class="rx-st"><div class="v g">&#9650; Rising</div><div class="k">Recovery trend</div></div>
+              <div class="rx-st"><div class="v g">+6</div><div class="k">Today&rsquo;s score</div></div>
+              <div class="rx-st"><div class="v">94%</div><div class="k">Consistency</div></div>
+            </div>
+          </div>
+          <div class="osx-nav">
+            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
+            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
