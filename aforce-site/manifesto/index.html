@@ -128,6 +128,9 @@
   .finale .wrap{ position:relative; z-index:2; text-align:center; width:100%; }
   .finale .display{ margin:0 auto; max-width:20ch; font-size:clamp(28px,4.2vw,54px); }
   .finale .nonneg{ margin-top:clamp(26px,4vw,44px); font-family:var(--mono); font-size:clamp(14px,1.8vw,20px); letter-spacing:0.14em; text-transform:uppercase; color:var(--red); }
+  /* §14 — render the brand line with a proper (accessible) mirrored Latin N, not
+     a raw Cyrillic И. Color is inherited so it matches its context exactly. */
+  .pillar .pd .flip-n, .finale .nonneg .flip-n{ display:inline-block; transform:scaleX(-1); }
   .finale .cta{ justify-content:center; }
   .finale .triline{ justify-content:center; }
 
@@ -257,7 +260,7 @@
         <div class="pillar reveal" style="--i:0"><div class="pn">I · Choice</div><div class="pt">Performance begins before pressure.</div><div class="pd">The choice is yours.</div></div>
         <div class="pillar reveal" style="--i:1"><div class="pn">II · Discipline</div><div class="pt">Do not chase the moment.</div><div class="pd">Prepare for it.</div></div>
         <div class="pillar reveal" style="--i:2"><div class="pn">III · Ritual</div><div class="pt">Protect the ritual.</div><div class="pd">Pause. Hydrate. <span style="color:var(--red)">Lock-In</span>. Perform.</div></div>
-        <div class="pillar reveal" style="--i:3"><div class="pn">IV · Standard</div><div class="pt">Raise the standard.</div><div class="pd">Performance Is Non-Иegotiable.</div></div>
+        <div class="pillar reveal" style="--i:3"><div class="pn">IV · Standard</div><div class="pt">Raise the standard.</div><div class="pd">Performance Is Non-<span class="flip-n">N</span>egotiable.</div></div>
       </div>
     </div>
   </div>
@@ -316,7 +319,7 @@
     <div class="triline reveal in">
       <span>The Breath</span><span>The Choice</span><span>The Standard</span>
     </div>
-    <div class="nonneg reveal in">The moment will arrive — Performance Is Non-Иegotiable.</div>
+    <div class="nonneg reveal in">The moment will arrive — Performance Is Non-<span class="flip-n">N</span>egotiable.</div>
     <p class="lead reveal in mt-m" style="margin-left:auto;margin-right:auto;">When the moment begins, the decision has already been made.</p>
     <div class="cta reveal in">
       <a class="btn primary" href="/shop">Begin the ritual ↗</a>
