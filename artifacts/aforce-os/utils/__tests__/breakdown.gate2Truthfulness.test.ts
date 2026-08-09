@@ -175,4 +175,37 @@ describe('buildBreakdown — activity-floor disclosure (Build-50 Gate 2, item 3)
     const recency = contributions.find((c) => c.id === 'recency');
     expect(recency?.hint).toContain('Activity floor 9.0 (connected platform)');
   });
+
+  // Build-50 Gate 2 follow-up (independent verdict, S2): every test above
+  // only checks the DISCLOSED string ("Activity floor N.N (connected
+  // platform)"). None of them assert that the disclosed floor is the
+  // number actually driving `decayPerMinute` — a disclosure is a claim
+  // about behavior, not just a label, and that claim had zero lock. The
+  // reviewer proved this by commenting the floor out of
+  // `computeDecayPerMinute` (i.e. always using the raw manual
+  // `activityLevel`, never `resolveEffectiveActivityLevel`'s floored
+  // value): every test in this file — and all 2,485 tests in the suite —
+  // stayed green, because none of them compare `decayPerMinute` against
+  // what it would be without the floor. This test closes that gap: it
+  // asserts the floored rate is (a) strictly higher than the same manual
+  // slider with no biometrics connected, and (b) numerically identical to
+  // what an unfloored user would get by manually setting the slider to
+  // the same effective level — i.e. the floor reported in the hint is the
+  // exact number driving the score, not a display-only string.
+  it('the disclosed floor is the one actually driving the rate, not just displayed', () => {
+    const manualOnly = makeState({ activityLevel: 5 });
+    const floored = makeState({
+      activityLevel: 5,
+      biometrics: {
+        apple_health: { providerId: 'apple_health', stepsToday: 15000, fetchedAt: NOW },
+      } as ProviderBiometrics,
+    });
+    const equivalentManual = makeState({ activityLevel: 9 });
+
+    expect(recencyHint(floored)).toContain('Activity floor 9.0 (connected platform)');
+    expect(buildBreakdown(floored, NOW).decayPerMinute)
+      .toBeGreaterThan(buildBreakdown(manualOnly, NOW).decayPerMinute);
+    expect(buildBreakdown(floored, NOW).decayPerMinute)
+      .toBeCloseTo(buildBreakdown(equivalentManual, NOW).decayPerMinute, 10);
+  });
 });
