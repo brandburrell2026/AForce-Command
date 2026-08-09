@@ -487,6 +487,30 @@
   .ba-note{ margin-top:14px; font-size:12px; color:var(--theme); }
   @media (prefers-reduced-motion:reduce){ .step.build:not([hidden]){ animation:none; } .ba-cell.pulse{ animation:none; } }
 
+  /* ===== FAST PATH — first-time-buyer zero-config module (§2) ===== */
+  .faststart{ padding:clamp(30px,5vh,58px) var(--gutter) clamp(6px,2vh,18px); background:var(--canvas); }
+  .fs-wrap{ max-width:760px; margin:0 auto; text-align:center; }
+  .fs-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--theme); }
+  .fs-title{ font-family:var(--display); font-weight:800; letter-spacing:-.02em; font-size:clamp(26px,4vw,40px); margin:8px 0 clamp(20px,3vw,28px); color:var(--ink); }
+  .fs-card{ display:grid; grid-template-columns:auto 1fr; gap:clamp(18px,3vw,34px); align-items:center; text-align:left; border:1px solid var(--ink-12); border-radius:14px; padding:clamp(20px,3vw,30px); background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.18)); box-shadow:0 24px 54px -32px rgba(11,13,18,.4); }
+  @media (max-width:560px){ .fs-card{ grid-template-columns:1fr; text-align:center; gap:14px; } }
+  .fs-media{ display:flex; align-items:flex-end; justify-content:center; height:clamp(100px,14vw,134px); }
+  .fs-media img{ height:100%; width:auto; object-fit:contain; filter:drop-shadow(0 16px 26px rgba(11,13,18,.22)); }
+  .fs-media img:nth-child(1){ transform:translateX(16px) scale(.88) rotate(-6deg); z-index:1; opacity:.9; }
+  .fs-media img:nth-child(2){ z-index:3; }
+  .fs-media img:nth-child(3){ transform:translateX(-16px) scale(.88) rotate(6deg); z-index:1; opacity:.9; }
+  .fs-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-40); }
+  .fs-desc{ font-family:var(--display); font-weight:800; font-size:clamp(18px,2.2vw,24px); letter-spacing:-.01em; color:var(--ink); margin-top:6px; }
+  .fs-desc b{ color:var(--theme); font-weight:800; }
+  .fs-cta{ margin-top:16px; display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:0 30px; border:0; border-radius:999px; background:var(--theme); color:var(--ink); font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s, transform .12s; }
+  .fs-cta:hover{ opacity:.9; } .fs-cta:active{ transform:scale(.99); } .fs-cta:disabled{ opacity:.5; cursor:default; }
+  .fs-cta .arw{ transition:transform .2s; } .fs-cta:hover:not(:disabled) .arw{ transform:translateX(3px); }
+  .fs-note{ margin-top:12px; font-size:12.5px; line-height:1.55; color:var(--ink-60); max-width:46ch; }
+  @media (max-width:560px){ .fs-note{ margin-left:auto; margin-right:auto; } }
+  .fs-deeplink{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(20px,3vw,28px); min-height:44px; font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-60); text-decoration:none; transition:color .2s; }
+  .fs-deeplink:hover{ color:var(--ink); }
+  @media (prefers-reduced-motion:reduce){ .fs-cta, .fs-cta .arw{ transition:none; } }
+
   /* ===== mobile responsive QA refinements (CSS-only; no commerce/pricing changes) ===== */
   .ritualbar{ padding:12px var(--gutter) calc(12px + env(safe-area-inset-bottom,0px)); }
   .rb2-qty button{ width:44px; height:44px; }
@@ -550,6 +574,31 @@
     <img data-f="soursop" src="/assets/can-green.png" alt="">
   </div>
 </header>
+
+<!-- ================= FAST PATH (§2) =================
+     Zero-config entry for first-time buyers. Sits above the guided protocol
+     flow so the two paths never block each other: tap once → the AFORCE Variety
+     Pack is built and you drop straight into checkout. Pre-launch aware. -->
+<section class="faststart" aria-labelledby="fsTitle">
+  <div class="fs-wrap">
+    <p class="fs-eyebrow">New to AFORCE?</p>
+    <h2 class="fs-title" id="fsTitle">Start here.</h2>
+    <div class="fs-card">
+      <div class="fs-media" aria-hidden="true">
+        <img src="/assets/can-blue.png" alt="">
+        <img src="/assets/can-red.png" alt="">
+        <img src="/assets/can-green.png" alt="">
+      </div>
+      <div class="fs-body">
+        <p class="fs-kicker">The AFORCE Variety Pack</p>
+        <p class="fs-desc">Three flavors. One ritual. <b>AFORCE OS included.</b></p>
+        <button type="button" class="fs-cta" id="fastStartBtn">Start with AFORCE <span class="arw" aria-hidden="true">→</span></button>
+        <p class="fs-note" id="fsNote">No protocol setup required. Begin the ritual and personalize later.</p>
+      </div>
+    </div>
+    <a href="#stepDemand" class="fs-deeplink">Or build your protocol by demand <span aria-hidden="true">↓</span></a>
+  </div>
+</section>
 
 <!-- ================= DARK STAGE ================= -->
 <div class="stage">
@@ -1568,6 +1617,27 @@
 
   /* ================= EVENTS ================= */
   function jump(stepId){ var el=$("#"+stepId); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }
+
+  /* FAST PATH (§2) — one tap builds the AFORCE Variety Pack (a 6-pack of every
+     flavor) and drops the first-time buyer straight into the builder to check
+     out. Reuses buildVarietyPack()/basket — no pricing or money-path change.
+     Pre-launch: surfaces the Fall 2026 state instead of a dead click. */
+  (function(){
+    var fsBtn = $("#fastStartBtn"); if(!fsBtn) return;
+    function fsNote(msg){ var n=$("#fsNote"); if(n) n.textContent = msg; }
+    fsBtn.addEventListener("click", function(){
+      track("fast_start_clicked", {});
+      fsBtn.disabled = true;
+      buildVarietyPack();
+      var tries = 0;
+      var iv = setInterval(function(){
+        tries++;
+        if(basket && !basket.isEmpty()){ clearInterval(iv); fsBtn.disabled = false; revealBuild(); jump("stepBuild"); }
+        else if(preLaunch){ clearInterval(iv); fsBtn.disabled = false; fsNote("Your Variety Pack is ready — the Ritual opens Fall 2026. We’ll build it the moment it does."); }
+        else if(tries > 24){ clearInterval(iv); fsBtn.disabled = false; }
+      }, 220);
+    });
+  })();
   $("#chips").addEventListener("click", function(e){ var c=e.target.closest(".chip"); if(c) selectDemand(c); });
   (function(){ var a=$("#matchAccept"); if(a) a.addEventListener("click", function(){ track("recommendation_accepted",{demand:state.demand}); jump("stepBegin"); }); })();
   (function(){ var c=$("#matchCustomize"); if(c) c.addEventListener("click", function(){ track("recommendation_customized",{demand:state.demand}); jump("stepFormat"); }); })();
