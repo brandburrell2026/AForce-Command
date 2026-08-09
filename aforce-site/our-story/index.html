@@ -164,6 +164,15 @@
   .stamp{ font-family:var(--mono); font-size:clamp(30px,4.5vw,54px); letter-spacing:0.04em; color:var(--ink); }
   .stamp small{ font-size:0.42em; letter-spacing:0.24em; color:var(--faint); display:block; margin-top:8px; }
   .concept{ font-family:var(--mono); font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:var(--red); }
+  /* Pre-dawn shoreline photograph — tall editorial still, framed like the childhood portrait */
+  .still-photo{ max-width:520px; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--canvas-dim); }
+  .still-photo img{ width:100%; height:auto; display:block; transform:scale(1.02); transition:transform 2.4s cubic-bezier(.2,.6,.2,1); }
+  .still-photo.in img{ transform:none; }
+  .still-photo.reveal{ transition-duration:1.9s; }
+  @media (prefers-reduced-motion:reduce){
+    .still-photo.reveal{ opacity:1; transform:none; transition:none; }
+    .still-photo img{ transform:none; transition:none; }
+  }
   .qmark{ font-size:clamp(26px,3.6vw,44px); font-weight:600; letter-spacing:-0.02em; line-height:1.2; max-width:20ch; }
   .beats{ list-style:none; margin-top:clamp(28px,4vw,44px); display:flex; flex-direction:column; }
   .beats li{ padding:20px 0; border-top:1px solid var(--line); font-size:clamp(17px,1.6vw,21px); color:var(--ink); display:flex; gap:18px; align-items:baseline; }
@@ -408,7 +417,10 @@
       <div class="label reveal">01<span class="sep">—</span>The Stillness</div>
       <p class="lead reveal mt-m">The world slowed down.</p>
       <div class="stamp reveal mt-l">04:58<small>AM</small></div>
-      <div class="concept reveal mt-m">Pause Before Possibility</div>
+      <div class="concept reveal mt-m">Before the World Wakes</div>
+      <figure class="still-photo reveal mt-l">
+        <img src="/assets/our-story/stillness-fort-lauderdale-dawn.webp" width="1333" height="2000" loading="lazy" decoding="async" alt="Empty Fort Lauderdale Beach shoreline before sunrise — the first orange light at the horizon, the city still dark">
+      </figure>
     </div>
     <div>
       <p class="prose big reveal">Meetings stopped. Travel slowed. The constant noise was replaced by something Brandon had not experienced in years: stillness. Before sunrise, he began driving to Fort Lauderdale Beach. He would meditate, sit quietly with his thoughts and then walk the shoreline as the day began. Those mornings changed the direction of his life.</p>
