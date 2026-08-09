@@ -504,6 +504,16 @@
   .ingredients .ing-badges{ margin-top:clamp(20px,2.6vw,28px); display:flex; flex-wrap:wrap; gap:9px; }
   .ingredients .ing-badges span{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-70); border:1px solid var(--can-22); border-radius:999px; padding:8px 14px; }
   .ingredients .ing-note{ margin-top:clamp(20px,2.6vw,28px); font-size:11px; line-height:1.6; color:var(--can-40); max-width:70ch; }
+  /* Can / Stick format toggle — progressive: without JS both panels show, no toggle */
+  .ingredients .ing-toggle{ display:none; }
+  .js .ingredients .ing-toggle{ margin-top:clamp(20px,3vw,28px); display:inline-flex; gap:4px; padding:4px; border:1px solid var(--can-22); border-radius:999px; background:rgba(242,242,240,.03); }
+  .ingredients .ing-toggle button{ border:0; background:none; cursor:pointer; font-family:var(--display); font-weight:800; font-size:13px; letter-spacing:.02em; color:var(--can-55); padding:10px 22px; min-height:44px; border-radius:999px; transition:background .2s, color .2s; }
+  .ingredients .ing-toggle button.on{ background:var(--canvas); color:var(--ink); }
+  .ingredients .ing-panel + .ing-panel{ margin-top:clamp(30px,4vw,44px); }
+  .ingredients .ing-panel-h{ margin-top:clamp(20px,2.6vw,26px); font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--theme); }
+  .js .ingredients .ing-panel-h{ display:none; }
+  .js .ingredients .ing-panel:not(.is-active){ display:none; }
+  .js .ingredients .ing-panel + .ing-panel{ margin-top:0; }
 
   /* ===== FAST PATH — first-time-buyer zero-config module (§2) ===== */
   .faststart{ padding:clamp(30px,5vh,58px) var(--gutter) clamp(6px,2vh,18px); background:var(--canvas); }
@@ -913,32 +923,62 @@
 <section class="step ingredients" id="ingredients" aria-labelledby="ingTitle">
   <div class="wrap">
     <div class="step-i">Full Transparency</div>
-    <h2 id="ingTitle">What’s inside every stick.</h2>
-    <p class="lead">One stick — 18g, one serving. Twenty per box. Plant-based electrolytes and marine minerals, sweetened with stevia. No added sugar, no artificial sweeteners.</p>
-    <div class="ing-stats">
-      <div class="ing-stat"><span class="v">810<i>mg</i></span><span class="k">Potassium · 15% DV</span></div>
-      <div class="ing-stat"><span class="v">200<i>mg</i></span><span class="k">Calcium · 15% DV</span></div>
-      <div class="ing-stat"><span class="v">0<i>g</i></span><span class="k">Added sugar</span></div>
-      <div class="ing-stat"><span class="v">20</span><span class="k">Sticks per box</span></div>
+    <h2 id="ingTitle">What’s inside every AFORCE.</h2>
+    <div class="ing-toggle" role="tablist" aria-label="Choose format">
+      <button type="button" class="on" data-fmt="can" role="tab" aria-selected="true">The Can</button>
+      <button type="button" data-fmt="stick" role="tab" aria-selected="false">The Stick</button>
     </div>
-    <div class="ing-grid">
-      <div class="ing-card">
-        <div class="ing-flavor"><span class="ing-dot" style="background:var(--blue)"></span>Berry Blast</div>
-        <p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Dulse Powder</b>.</p>
+
+    <div class="ing-panel is-active" data-fmt="can">
+      <div class="ing-panel-h">The Can · Ready to Drink</div>
+      <p class="lead">Ready to drink — 11 fl oz (325ml), one serving per can. Alkaline pH 8.8+, plant-based electrolytes and marine minerals. No added sugar, no artificial sweeteners.</p>
+      <div class="ing-stats">
+        <div class="ing-stat"><span class="v">820<i>mg</i></span><span class="k">Potassium · 20% DV</span></div>
+        <div class="ing-stat"><span class="v">200<i>mg</i></span><span class="k">Calcium · 15% DV</span></div>
+        <div class="ing-stat"><span class="v">0<i>g</i></span><span class="k">Added sugar</span></div>
+        <div class="ing-stat"><span class="v">8.8<i>+</i></span><span class="k">Alkaline pH</span></div>
       </div>
-      <div class="ing-card">
-        <div class="ing-flavor"><span class="ing-dot" style="background:var(--red)"></span>Watermelon Surge</div>
-        <p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Chlorella Powder</b>.</p>
-      </div>
-      <div class="ing-card">
-        <div class="ing-flavor"><span class="ing-dot" style="background:var(--green)"></span>Soursop Edge</div>
-        <p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Irish Moss Powder</b>.</p>
+      <div class="ing-grid">
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--blue)"></span>Berry Blast</div><p class="ing-list">Alkaline Water, Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, Vitamin E, <b>Organic Dulse Powder</b>.</p></div>
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--red)"></span>Watermelon Surge</div><p class="ing-list">Alkaline Water, Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, Vitamin E, <b>Organic Chlorella Powder</b>.</p></div>
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--green)"></span>Soursop Edge</div><p class="ing-list">Alkaline Water, Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, Vitamin E, <b>Organic Irish Moss Powder</b>.</p></div>
       </div>
     </div>
-    <div class="ing-badges"><span>Plant-based</span><span>No artificial sweeteners</span><span>Marine minerals</span><span>Magnesium + calcium citrate</span></div>
-    <p class="ing-note">Stick formulation. These statements have not been evaluated by the Food and Drug Administration; this product is not intended to diagnose, treat, cure, or prevent any disease.</p>
+
+    <div class="ing-panel" data-fmt="stick">
+      <div class="ing-panel-h">The Stick</div>
+      <p class="lead">One stick — 18g, one serving. Twenty per box. Plant-based electrolytes and marine minerals, sweetened with stevia. No added sugar, no artificial sweeteners.</p>
+      <div class="ing-stats">
+        <div class="ing-stat"><span class="v">810<i>mg</i></span><span class="k">Potassium · 15% DV</span></div>
+        <div class="ing-stat"><span class="v">200<i>mg</i></span><span class="k">Calcium · 15% DV</span></div>
+        <div class="ing-stat"><span class="v">0<i>g</i></span><span class="k">Added sugar</span></div>
+        <div class="ing-stat"><span class="v">20</span><span class="k">Sticks per box</span></div>
+      </div>
+      <div class="ing-grid">
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--blue)"></span>Berry Blast</div><p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Dulse Powder</b>.</p></div>
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--red)"></span>Watermelon Surge</div><p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Chlorella Powder</b>.</p></div>
+        <div class="ing-card"><div class="ing-flavor"><span class="ing-dot" style="background:var(--green)"></span>Soursop Edge</div><p class="ing-list">Coconut Water Powder, Organic Agave Inulin, Organic Stevia Extract, Magnesium Citrate, Calcium Citrate, Potassium Carbonate, Celtic Sea Salt, <b>Organic Irish Moss Powder</b>.</p></div>
+      </div>
+    </div>
+
+    <div class="ing-badges"><span>Plant-based</span><span>No artificial sweeteners</span><span>Marine minerals</span><span>Alkaline pH 8.8+</span></div>
+    <p class="ing-note">Ingredient lists reflect the current formulation. These statements have not been evaluated by the Food and Drug Administration; this product is not intended to diagnose, treat, cure, or prevent any disease.</p>
   </div>
 </section>
+<script>
+(function(){
+  var wrap=document.getElementById('ingredients'); if(!wrap) return;
+  var btns=Array.prototype.slice.call(wrap.querySelectorAll('.ing-toggle button'));
+  var panels=Array.prototype.slice.call(wrap.querySelectorAll('.ing-panel'));
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      var fmt=b.getAttribute('data-fmt');
+      btns.forEach(function(x){ var on=x===b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on?'true':'false'); });
+      panels.forEach(function(p){ p.classList.toggle('is-active', p.getAttribute('data-fmt')===fmt); });
+    });
+  });
+})();
+</script>
 </main>
 </div><!-- /stage -->
 
