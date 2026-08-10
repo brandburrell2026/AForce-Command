@@ -147,12 +147,12 @@
   /* command feature cards */
   .cmd-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:clamp(28px,3vw,40px); }
   .cmd{ border:1px solid var(--b14); border-left:2px solid var(--teal); border-radius:3px; padding:22px 24px; }
-  .cmd h4{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
+  .cmd h3{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
   .cmd p{ font-size:14px; line-height:1.6; color:var(--b64); }
-  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h4{ color:var(--teal); }
-  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h4{ color:var(--amber); }
-  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h4{ color:var(--green); }
-  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h4{ color:#e5503f; }
+  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h3{ color:var(--teal); }
+  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h3{ color:var(--amber); }
+  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h3{ color:var(--green); }
+  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h3{ color:#e5503f; }
 
   /* ritual 3-col */
   .ritual-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--b14); border:1px solid var(--b14); margin-top:clamp(44px,5vw,72px); }
@@ -902,10 +902,10 @@
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">Your performance summary, in commands.</h2>
       <p class="lead reveal" style="margin-top:22px;">Every completed action becomes part of your history, helping you see patterns in your routine over time.</p>
       <div class="cmd-grid stagger">
-        <div class="cmd balanced reveal" style="--i:0"><h4>Balanced</h4><p>Keep your rhythm and stay ahead of the next window in your routine.</p></div>
-        <div class="cmd recovering reveal" style="--i:1"><h4>Recovering</h4><p>Use the suggested wellness action to support your routine.</p></div>
-        <div class="cmd peak reveal" style="--i:2"><h4>Peak</h4><p>Note what is working for you and repeat the behavior.</p></div>
-        <div class="cmd depleted reveal" style="--i:3"><h4>Depleted</h4><p>Log a suggested action early and review your patterns over the day.</p></div>
+        <div class="cmd balanced reveal" style="--i:0"><h3>Balanced</h3><p>Keep your rhythm and stay ahead of the next window in your routine.</p></div>
+        <div class="cmd recovering reveal" style="--i:1"><h3>Recovering</h3><p>Use the suggested wellness action to support your routine.</p></div>
+        <div class="cmd peak reveal" style="--i:2"><h3>Peak</h3><p>Note what is working for you and repeat the behavior.</p></div>
+        <div class="cmd depleted reveal" style="--i:3"><h3>Depleted</h3><p>Log a suggested action early and review your patterns over the day.</p></div>
       </div>
     </div>
   </div>
