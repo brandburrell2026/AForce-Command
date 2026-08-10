@@ -159,7 +159,7 @@ button{ font-family:inherit; cursor:pointer; color:inherit; background:none; bor
 .lc-card{ border:1px solid var(--i14); border-radius:3px; padding:clamp(22px,2.4vw,28px); display:flex; flex-direction:column; min-height:150px; transition:border-color .25s, transform .3s; }
 a.lc-card:hover{ border-color:var(--ink); transform:translateY(-3px); }
 .lc-card .c-idx{ font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.16em; color:var(--red); }
-.lc-card h3{ font-family:var(--display); font-size:clamp(17px,1.5vw,20px); line-height:1.16; margin:14px 0 10px; }
+.lc-card h2, .lc-card h3{ font-family:var(--display); font-size:clamp(17px,1.5vw,20px); line-height:1.16; margin:14px 0 10px; }
 .lc-card p{ font-size:13px; line-height:1.6; color:var(--i64); flex:1; }
 .lc-card .c-go{ margin-top:16px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink); }
 .lc-card.soon{ opacity:.62; } .lc-card.soon .c-go{ color:var(--i30); }

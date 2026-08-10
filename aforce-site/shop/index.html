@@ -169,7 +169,7 @@
   .ov:hover{ opacity:.8; } .ov.on{ opacity:1; border-color:var(--canvas); transform:scale(1.015); }
   .ov .sw{ width:26px;height:26px;border-radius:50%; margin-bottom:12px; }
   .ov[data-f="berry"] .sw{ background:#2F5BFF; } .ov[data-f="watermelon"] .sw{ background:#E41E2B; } .ov[data-f="soursop"] .sw{ background:#2D6A4F; }
-  .ov h4{ font-family:var(--display); font-weight:800; font-size:clamp(15px,1.5vw,18px); }
+  .ov .ov-name{ display:block; font-family:var(--display); font-weight:800; font-size:clamp(15px,1.5vw,18px); }
   .ov .micro{ display:block; margin-top:5px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-55); min-height:12px; }
   .ov.on .micro{ visibility:hidden; }
 
@@ -760,9 +760,9 @@
         </div>
       </div>
       <div class="overrides" id="overrides">
-        <button class="ov" type="button" data-f="berry" aria-pressed="false"><span class="sw"></span><h4>Berry Blast</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="watermelon" aria-pressed="false"><span class="sw"></span><h4>Watermelon Surge</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="soursop" aria-pressed="false"><span class="sw"></span><h4>Soursop Edge</h4><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="berry" aria-pressed="false"><span class="sw"></span><span class="ov-name">Berry Blast</span><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="watermelon" aria-pressed="false"><span class="sw"></span><span class="ov-name">Watermelon Surge</span><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="soursop" aria-pressed="false"><span class="sw"></span><span class="ov-name">Soursop Edge</span><span class="micro">Run it your way</span></button>
       </div>
     </div>
   </div>
