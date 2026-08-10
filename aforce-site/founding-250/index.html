@@ -24,6 +24,7 @@
     --red:#C1281B;
     --i80:rgba(13,13,13,.80);
     --i64:rgba(13,13,13,.64);
+    --i62:rgba(13,13,13,.62);
     --i46:rgba(13,13,13,.46);
     --i30:rgba(13,13,13,.30);
     --i14:rgba(13,13,13,.14);
@@ -44,6 +45,10 @@
   button{ font-family:inherit; cursor:pointer; color:inherit; background:none; border:none; }
   :focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
   img,svg{ max-width:100%; display:block; }
+
+  /* ---------- SKIP LINK (WCAG 2.4.1) ---------- */
+  .skip-link{ position:fixed; top:12px; left:12px; z-index:400; display:block; padding:12px 20px; background:#0D0D0D; color:#F5F0E8; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; border-radius:4px; transform:translateY(calc(-100% - 16px)); }
+  .skip-link:focus, .skip-link:focus-visible{ transform:none; outline:2px solid #C1281B; outline-offset:2px; }
 
   /* ---------- NAV ---------- */
   .nav{ position:sticky; top:0; z-index:60; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:16px var(--gutter); background:rgba(245,240,232,.82); backdrop-filter:blur(12px); border-bottom:1px solid var(--i08); }
@@ -81,16 +86,20 @@
   /* email capture */
   .capture{ margin:clamp(34px,4vw,46px) auto 0; max-width:480px; width:100%; }
   .capture form{ display:flex; gap:0; border:1px solid var(--i30); border-radius:3px; overflow:hidden; transition:border-color .2s; background:var(--paper); }
-  .capture form:focus-within{ border-color:var(--ink); }
+  /* Visible focus ring (WCAG 2.4.7): drawn on the WRAPPER via :focus-within —
+     the form's overflow:hidden clips any outline drawn on the input inside it
+     (outlines paint outside the border box), but an element's own overflow
+     never clips its own outline, so the ring on the form always renders. */
+  .capture form:focus-within{ border-color:var(--ink); outline:2px solid var(--ink); outline-offset:2px; }
   .capture input{ flex:1; min-width:0; background:transparent; border:none; padding:17px 18px; font-family:var(--body); font-size:15px; color:var(--ink); }
-  .capture input::placeholder{ color:var(--i46); }
-  .capture input:focus{ outline:none; }
+  .capture input::placeholder{ color:var(--i62); }
+  .capture input:focus{ outline:none; } /* focus indicator is the wrapper ring above */
   .capture button{ background:var(--ink); color:var(--paper); font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:0 26px; white-space:nowrap; transition:background .25s; }
   .capture button:hover{ background:var(--red); }
   .capture .err{ display:none; margin-top:12px; font-size:13px; color:var(--red); font-weight:500; }
   .capture.invalid .err{ display:block; }
   .capture.invalid form{ border-color:var(--red); }
-  .trust{ margin-top:16px; font-size:12.5px; color:var(--i46); }
+  .trust{ margin-top:16px; font-size:12.5px; color:var(--i62); }
 
   /* success state */
   .success{ display:none; margin:clamp(34px,4vw,46px) auto 0; max-width:520px; text-align:center; }
@@ -105,7 +114,7 @@
   .secondary{ margin-top:clamp(34px,4vw,48px); }
   .secondary a{ font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; border-bottom:1px solid var(--red); padding-bottom:5px; display:inline-flex; align-items:center; gap:9px; transition:gap .25s; }
   .secondary a:hover{ gap:14px; }
-  .scroll-cue{ margin-top:clamp(34px,5vh,56px); display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--i46); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
+  .scroll-cue{ margin-top:clamp(34px,5vh,56px); display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--i62); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
   .scroll-cue .rail{ width:1px; height:40px; background:linear-gradient(var(--i30), transparent); }
 
   /* ---------- WHY ---------- */
@@ -230,9 +239,10 @@
 </script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <!-- ============ NAV ============ -->
-<nav class="nav">
+<nav class="nav" aria-label="Primary">
   <a class="mark" href="/" aria-label="AFORCE home">
     <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span> AFORCE
   </a>
@@ -245,6 +255,8 @@
     <a href="/shop">Shop</a>
   </div>
 </nav>
+
+<main id="main">
 
 <!-- ============ HERO ============ -->
 <header class="hero" id="top">
@@ -321,6 +333,8 @@
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ============ FOOTER ============ -->
 <footer class="ft">

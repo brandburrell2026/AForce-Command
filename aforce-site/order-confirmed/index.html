@@ -34,6 +34,8 @@
     padding:clamp(28px,7vw,80px) clamp(22px,6vw,64px);
   }
   .card{ width:100%; max-width:680px; }
+  .skip-link{ position:fixed; top:14px; left:14px; z-index:1000; background:var(--ink); color:var(--bone); font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.06em; padding:12px 18px; border-radius:999px; transform:translateY(-200%); }
+  .skip-link:focus{ transform:translateY(0); outline:2px solid var(--red); outline-offset:3px; }
 
   /* N–И monogram (red N · red dash · bone mirrored N) */
   .nn{ display:inline-flex; align-items:center; gap:.14em; font-family:var(--display); font-size:34px; line-height:1; }
@@ -99,7 +101,8 @@
 </style>
 </head>
 <body>
-  <main class="card">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <main class="card" id="main">
     <div class="nn" role="img" aria-label="AFORCE N–N monogram"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></div>
 
     <p class="eyebrow">Order Confirmed · Cohort Nº <span data-fill="cohort">—</span></p>
