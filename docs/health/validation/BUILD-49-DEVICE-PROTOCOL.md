@@ -1,6 +1,13 @@
 # Build-49 Device Verification Protocol — Apple Health pipeline
 
 **For:** Brandon, iPhone 17 Pro + paired Apple Watch, real Health data.
+**TestFlight binary: 1.0.0 (53)** — cut 2026-08-09 from `main@66ebbefe`. "Build 49" is this
+milestone's name; EAS remote auto-increment consumed intermediate numbers, so the number shown in
+TestFlight is **53**. Pre-flight means: confirm 1.0.0 (53), not a literal "49".
+
+> **Amended 2026-08-09 (founder-ratified) — two expectations changed because fixes shipped between
+> this protocol's authoring (#630) and the binary's cut:** §2 sleep truncation is FIXED (#631);
+> §5 score attribution now names "Apple Health" (#632). Details inline in each section.
 **Build:** the internal-TestFlight EAS profile (`EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true`) — this is
 what enables both live HealthKit and the diagnostics panel this protocol reads from. If you don't
 see "INTERNAL DIAGNOSTICS · APPLE HEALTH" on the Profile screen after step 1, you're on the wrong
@@ -78,11 +85,11 @@ test on a two-device day if today was single-device.
 **PASS:** "value used" is within ~10–15 minutes of the Health app's figure (rounding/boundary
 differences at this scale are expected and not a bug).
 
-**FAIL, and which bug it is:**
-- If the query-window start time is later than when you actually fell asleep AND "value used" is
-  noticeably short of the Health app's number → this is the **known, currently-open 18-hour
-  window-truncation bug** (documented in `BUILD-50-CORRECTNESS-LEDGER.md`). Do not file this as a
-  new bug — a fix is already being built. Just confirm the symptom and note the shortfall in hours.
+**FAIL, and which bug it is (amended — #631 shipped in this binary):**
+- The 18-hour window-truncation bug is **FIXED in 1.0.0 (53)** via #631 (36-hour window + session
+  clustering). The query window's start should now comfortably precede your actual bedtime. If the
+  window start is still later than when you actually fell asleep → that is a **regression of
+  #631** — report it with the window timestamps; do NOT dismiss it as the formerly-known bug.
 - If the window comfortably covers your actual bedtime but the number is still off by more than
   ~15 minutes → this is a **new** finding, not the known bug. Note the "selection branch" row
   value and the per-source totals list underneath (which device recorded what) and flag it with
@@ -141,9 +148,11 @@ device check that would catch it if it did.
 
 ## 5. Does the score actually move? (3 min)
 
-1. Note the current Home score and open the score breakdown sheet; find the health-platform row
-   (labeled "Health platform (HRV / sleep / strain)" for a single connected provider — it will NOT
-   say "Apple Health" literally, that's expected, not a bug) and note its delta value.
+1. Note the current Home score and open the score breakdown sheet; find the health-platform row.
+   **Amended (#632 shipped in this binary):** with only Apple Health connected the row is now
+   attributed **"Apple Health" by name**. If it still shows the generic
+   "Health platform (HRV / sleep / strain)" label, that is a **FAIL** (attribution regression),
+   not expected behavior. Note the row's delta value.
 2. Do something that changes an Apple Health number AForce actually scores on — the two real levers
    are HRV and sleep (steps only affects the activity floor, not this row — don't use steps to test
    this). The simplest real trigger: wait until your Watch or phone records a new HRV reading
@@ -164,9 +173,12 @@ before/after diagnostics panel screenshots and the before/after breakdown sheet 
 
 ---
 
-## Reporting back
+## Reporting back (founder-ratified format, 2026-08-09)
 
-For each of the 5 sections above, you need exactly one of: a PASS, a specific FAIL with the numbers
-that back it up, or (for section 1) the fourth-case numbers if none of the three step totals match.
-Screenshots of the expanded diagnostics panel for each section satisfy "the numbers that back it
-up" — you don't need to type them out separately if you have the screenshot.
+Return one PASS/FAIL for each of: pre-flight/setup · steps · sleep · HRV · RHR · freshness ·
+score movement. For every FAIL include: exact observed values, expected values, timestamps,
+device/source names where relevant, likely code path / fix lane, and screenshots if available.
+For section 1, if none of the three step totals match, report all four numbers plus time of day
+instead of guessing. Screenshots of the expanded diagnostics panel satisfy "the numbers that back
+it up." No code changes on assumptions — evidence first, then the steps ruling and any regression
+lanes, then build 50.
