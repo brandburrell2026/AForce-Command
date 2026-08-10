@@ -66,7 +66,7 @@
   a:focus-visible, button:focus-visible, input:focus-visible{ outline: 2px solid var(--red); outline-offset: 2px; }
   .skip-link{ position:absolute; left:-9999px; top:0; background:var(--canvas); color:var(--ink); padding:14px 20px; z-index:999; font-family:'Inter',sans-serif; font-size:12px; text-decoration:none; }
   .skip-link:focus{ left:20px; top:20px; }
-  .sr-status{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+  .sr-status, .sr-label{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
   :root{
     --ink:#0D0D0D; --canvas:#E9E7E1; --canvas-dim:#E1DDD4;
     --red:#C1281B; --blue:#1E5BFF; --green:#1FA35A; --metal:#6B6B66;
@@ -348,7 +348,7 @@
   .product-featured .frame::before{ content:''; position:absolute; inset:0; margin:auto; width:280px; height:280px; border-radius:50%; background:var(--red); filter:blur(80px); opacity:0.3; }
   .product-featured img{ position:relative; z-index:1; max-width:230px; height:400px; object-fit:contain; margin:0 auto; filter:drop-shadow(0 34px 44px rgba(0,0,0,0.5)); }
   .product-featured .tag{ font-family:'Inter',sans-serif; font-weight:800; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--red); margin-bottom:12px;}
-  .product-featured h4{ font-family:'Inter',sans-serif; font-size:clamp(23px,6vw,30px); font-weight:800; margin-bottom:8px;}
+  .product-featured h3{ font-family:'Inter',sans-serif; font-size:clamp(23px,6vw,30px); font-weight:800; margin-bottom:8px;}
   .product-featured .ph{ font-size:12px; color:rgba(13,13,13,0.5); font-family:'Inter',sans-serif; font-weight:800; margin-bottom:20px;}
   .product-featured .buy{ font-family:'Inter',sans-serif; font-weight:800; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; border:1px solid rgba(13,13,13,0.3); padding:12px 22px; transition:all .25s ease; }
   .product-featured:hover .buy{ background:var(--canvas); color:var(--ink); border-color:var(--ink); }
@@ -358,7 +358,7 @@
   .product-minor:hover{ background:rgba(13,13,13,0.03); }
   .product-minor img{ width:126px; height:216px; object-fit:contain; flex-shrink:0; }
   .product-minor .tag{ font-family:'Inter',sans-serif; font-weight:800; font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:6px; }
-  .product-minor h5{ font-family:'Inter',sans-serif; font-size:clamp(17px,4.6vw,19px); font-weight:400; margin-bottom:4px; }
+  .product-minor h3{ font-family:'Inter',sans-serif; font-size:clamp(17px,4.6vw,19px); font-weight:400; margin-bottom:4px; }
   .product-minor .ph{ font-size:10.5px; color:rgba(13,13,13,0.45); font-family:'Inter',sans-serif; font-weight:800;}
   .tag.red{color:var(--red);} .tag.blue{color:#6E86FF;} .tag.green{color:#5FC98A;}
   .product-featured.recommended, .product-minor.recommended{ position:relative; }
@@ -416,7 +416,7 @@
   .os-hook .step{ display:flex; gap:18px; padding:20px 0; border-top:1px solid var(--line-on-dark); }
   .os-hook .step:last-child{ border-bottom:1px solid var(--line-on-dark); }
   .os-hook .step .n{ font-family:'Inter',sans-serif; font-size:12px; color:var(--red); flex-shrink:0; padding-top:2px;}
-  .os-hook .step h5{ font-weight:600; font-size:15px; margin-bottom:4px;}
+  .os-hook .step h3{ font-weight:600; font-size:15px; margin-bottom:4px;}
   .os-hook .step p{ font-size:13.5px; color:rgba(13,13,13,0.55); margin:0; }
   .os-visual{ width:100%; max-width:512px; margin:0 auto; position:relative; }
   .os-visual::before{ content:''; position:absolute; inset:-12% -10%; z-index:0; pointer-events:none;
@@ -685,7 +685,7 @@
   </div>
 </div>
 
-<main id="main">
+<main id="main" tabindex="-1">
 <section class="hero" id="hero">
   <div class="hero-cine" aria-hidden="true">
     <div class="cine-scene">
@@ -795,18 +795,18 @@
     <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Shop Watermelon Surge & Chlorella">
       <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella"></div>
       <span class="tag red">pH 8.8 · Morning</span>
-      <h4>Watermelon Surge & Chlorella</h4>
+      <h3>Watermelon Surge & Chlorella</h3>
       <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
       <div class="buy">Add to Ritual <span class="arw">→</span></div>
     </a>
     <div class="product-minor-stack">
       <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Shop Berry Blast & Dulse">
         <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse">
-        <div><span class="tag blue">pH 8.8 · Midday</span><h5>Berry Blast & Dulse</h5><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+        <div><span class="tag blue">pH 8.8 · Midday</span><h3>Berry Blast & Dulse</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
       </a>
       <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Shop Soursop Edge & Seamoss">
         <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss">
-        <div><span class="tag green">pH 8.8 · Evening</span><h5>Soursop Edge & Seamoss</h5><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+        <div><span class="tag green">pH 8.8 · Evening</span><h3>Soursop Edge & Seamoss</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
       </a>
     </div>
   </div>
@@ -849,9 +849,9 @@
     <h2 class="section-title fade-in">Pressure rewards the prepared.</h2>
     <p class="fade-in">It begins with the can. The ritual becomes habit. The habit becomes readiness. And readiness becomes who you are.</p>
     <div class="steps">
-      <div class="step fade-in"><span class="n">01</span><div><h5>Readiness</h5><p>Know where you stand before the day begins.</p></div></div>
-      <div class="step fade-in"><span class="n">02</span><div><h5>Discipline</h5><p>Show up on the days you'd rather not.</p></div></div>
-      <div class="step fade-in"><span class="n">03</span><div><h5>Composure</h5><p>Arrive at the moment already prepared.</p></div></div>
+      <div class="step fade-in"><span class="n">01</span><div><h3>Readiness</h3><p>Know where you stand before the day begins.</p></div></div>
+      <div class="step fade-in"><span class="n">02</span><div><h3>Discipline</h3><p>Show up on the days you'd rather not.</p></div></div>
+      <div class="step fade-in"><span class="n">03</span><div><h3>Composure</h3><p>Arrive at the moment already prepared.</p></div></div>
     </div>
     <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Enter the System &rarr;</a>
   </div>
@@ -976,7 +976,8 @@
   <h2 class="section-title fade-in" style="margin:0 auto 20px;">The Founding 250.</h2>
   <p class="sub fade-in">The first two hundred and fifty will define what AFORCE becomes. This is the invitation.</p>
   <form class="fade-in">
-    <input type="email" placeholder="Your email" required aria-label="Your email address">
+    <label class="sr-label" for="inviteEmail">Your email address</label>
+    <input type="email" id="inviteEmail" placeholder="Your email" required>
     <button type="submit">Request an Invitation</button>
     <p class="sr-status" role="status" aria-live="polite"></p>
   </form>
@@ -1006,7 +1007,7 @@
         <p class="ff-built">Built for what happens before.</p>
       </div>
       <nav class="ff-col" aria-label="System">
-        <h4>System</h4>
+        <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
         <a href="/shop">Shop</a>
         <a href="/aforce-os">AFORCE OS</a>
@@ -1014,13 +1015,13 @@
         <a href="/manifesto">Manifesto</a>
       </nav>
       <nav class="ff-col" aria-label="Company">
-        <h4>Company</h4>
+        <h2>Company</h2>
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
         <a href="mailto:contact@aforceritual.com">Contact</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
-        <h4>Follow the Standard</h4>
+        <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">TikTok <span class="arw" aria-hidden="true">↗</span></a>
@@ -1031,7 +1032,7 @@
         <a href="#" rel="noopener" data-todo="social">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
-        <h4>Legal</h4>
+        <h2>Legal</h2>
         <a href="/legal">Legal Center</a>
         <a href="/legal/privacy">Privacy</a>
         <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
