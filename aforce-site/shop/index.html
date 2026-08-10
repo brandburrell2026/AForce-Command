@@ -1358,6 +1358,8 @@
     document.documentElement.classList.remove("afx-locked"); document.documentElement.style.paddingRight="";
     var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","false");
     if(returnFocus!==false){ (cb||document.body).focus(); }
+    /* arrived via /shop#cart? clear the hash so a reload doesn't reopen the drawer */
+    if(location.hash==="#cart" && history.replaceState) history.replaceState(null,"",location.pathname+location.search);
   }
 
   /* ---- render (subscribe to basket changes) ---- */
@@ -1907,7 +1909,11 @@
   /* ================= YOUR RITUAL — basket events (§9) ================= */
   if(basket){
     basket.onChange(function(){ renderBasket(); renderFormats(); renderBuild(); });  // keep the nudge + inline builder in sync with the cart
-    basket.hydrate().then(function(){ renderBasket(); renderFormats(); renderBuild(); });   // §9 persistence: restore on load
+    /* §9 persistence: restore on load. The header cart icons on the other
+       marketing pages deep-link to /shop#cart — once the basket is hydrated,
+       open the Ritual drawer directly so the customer sees ONLY their cart
+       (never the legacy Shopify storefront at shop.drinkaforce.com). */
+    basket.hydrate().then(function(){ renderBasket(); renderFormats(); renderBuild(); if(location.hash==="#cart") openBasket(); });
 
     var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
     $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
