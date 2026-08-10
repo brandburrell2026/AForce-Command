@@ -295,6 +295,12 @@
      whenever the selling plans genuinely auto-renew (COMMAND_AUTORENEWS). */
   #stepOS .os-renew{ margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-55); text-align:center; }
   #stepOS .os-renew[hidden]{ display:none; }
+  /* Affirmative subscription consent (P0 legal) — NEVER pre-checked. Gates the
+     Enter Command handoff in osCheckout(). */
+  #stepOS .os-consent{ display:flex; align-items:flex-start; gap:9px; margin:14px 0 12px; text-align:left; font-family:var(--mono); font-size:10.5px; line-height:1.55; letter-spacing:.04em; color:var(--can-70); cursor:pointer; }
+  #stepOS .os-consent input{ width:16px; height:16px; margin:1px 0 0; flex:none; accent-color:var(--theme); cursor:pointer; }
+  #stepOS .os-consent input:focus-visible{ outline:2px solid var(--theme); outline-offset:2px; }
+  #stepOS .os-consent a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
   #stepOS .os-fine{ margin-top:12px; color:var(--can-55); font-size:11.5px; }
 
   /* ---- STEP 03 — BEGIN + ignition ---- */
@@ -371,6 +377,13 @@
   .rb2-foot[hidden]{ display:none; }
   .rb2-sub{ display:flex; justify-content:space-between; font-family:var(--display); font-weight:800; font-size:16px; }
   .rb2-ship{ margin-top:4px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
+  /* Affirmative subscription consent (P0 legal) — NEVER pre-checked. Shown only
+     when the basket holds AutoPilot lines; gates the checkout handoff. */
+  .rb2-consent{ display:flex; align-items:flex-start; gap:9px; margin-top:14px; font-family:var(--mono); font-size:11px; line-height:1.55; letter-spacing:.02em; color:var(--ink-60); cursor:pointer; }
+  .rb2-consent[hidden]{ display:none; }
+  .rb2-consent input{ width:16px; height:16px; margin:1px 0 0; flex:none; accent-color:var(--blue); cursor:pointer; }
+  .rb2-consent input:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+  .rb2-consent a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
   .rb2-checkout{ display:block; width:100%; min-height:52px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s; }
   .rb2-checkout:hover{ opacity:.9; } .rb2-checkout:disabled{ opacity:.4; cursor:not-allowed; }
   .rb2-continue{ display:block; width:100%; min-height:44px; margin-top:10px; border:0; background:none; color:var(--ink-60); cursor:pointer; font-size:12.5px; text-decoration:underline; text-underline-offset:3px; }
@@ -872,6 +885,12 @@
           <li>Expanded trends</li>
           <li>Suggested recovery actions</li>
         </ul>
+        <!-- P0 legal: affirmative recurring-purchase consent. NEVER pre-checked;
+             gates the Enter Command handoff (see osCheckout). -->
+        <label class="os-consent" id="osConsentRow">
+          <input type="checkbox" id="osConsent">
+          <span>I agree to the <a href="/subscription-terms" target="_blank" rel="noopener">Subscription Terms</a>: Command automatically renews until canceled. No minimum commitment. Cancel anytime in AFORCE OS before the next billing date.</span>
+        </label>
         <button class="os-buy" id="osBuy" type="button">Enter Command</button>
         <p class="os-renew" id="osRenew" hidden></p>
         <p class="os-buy-note" id="osBuyNote" role="status"></p>
@@ -1105,6 +1124,12 @@
     <div class="rb2-foot" id="rb2Foot" hidden>
       <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal">$0.00</span></div>
       <div class="rb2-ship">Shipping calculated at checkout</div>
+      <!-- P0 legal: affirmative recurring-purchase consent. NEVER pre-checked;
+           visible only when the basket holds AutoPilot (subscription) lines. -->
+      <label class="rb2-consent" id="rb2ConsentRow" hidden>
+        <input type="checkbox" id="rb2Consent">
+        <span>I agree to the <a href="/subscription-terms" target="_blank" rel="noopener">Subscription Terms</a>: my AutoPilot items automatically renew <strong id="rb2ConsentAmt">monthly</strong> until canceled. No minimum commitment. Cancel anytime in AFORCE OS before the next billing date.</span>
+      </label>
       <button type="button" class="rb2-checkout" id="rb2Checkout">Continue to secure checkout</button>
       <button type="button" class="rb2-continue" id="rb2Continue">Continue building</button>
     </div>
@@ -1154,6 +1179,11 @@
   var COMMAND_VARIANT    = 43905417838710;                // AFORCE OS Command variant (base $20)
   var COMMAND_PLANS      = { monthly: 2532999286, annual: 2533032054 }; // SellingPlan ids ($20/mo, $200/yr)
   var COMMAND_AUTORENEWS = true;
+  /* P0 legal — consent evidence. Version string of /subscription-terms that the
+     consumer affirms at checkout; recorded as Shopify order attributes together
+     with a timestamp, the offer, price, and cadence. Keep in step with the
+     version shown on /subscription-terms (counsel finalizes both together). */
+  var SUBSCRIPTION_TERMS_VERSION = "0.1-draft-2026-07-07";
   function osReady(){ return COMMAND_VARIANT != null && COMMAND_PLANS[state.osCycle] != null; }
   var VARIANTS = {
     sticks:{ watermelon:"43817245868150", berry:"43817131606134", soursop:"43817131638902" },
@@ -1371,6 +1401,10 @@
     var cc=$("#afxCartCount"); if(cc){ cc.textContent=count; cc.hidden = count===0; }
     var body=$("#rb2Body"), foot=$("#rb2Foot");
     if(!body) return;
+    /* P0 legal — consent never outlives the subscription it was given for.
+       Runs on EVERY render (including the empty-basket early return below) so
+       a later AutoPilot add always starts with a fresh, unchecked box. */
+    if(!basket.hasAutoPilot()){ var cbx0=$("#rb2Consent"); if(cbx0) cbx0.checked=false; }
     if(!lines.length){
       body.innerHTML='<div class="rb2-empty"><div class="rb2-empty-h">Your ritual is empty.</div><p>Choose a demand and add your first formulation to begin.</p></div>';
       if(foot) foot.hidden=true;
@@ -1398,6 +1432,21 @@
       foot.hidden=false;
       $("#rb2Subtotal").textContent = money2(basket.subtotal()||0);
       $("#rb2Checkout").disabled = basket.busy;
+      /* P0 legal — the affirmative-consent row appears only while the basket
+         actually holds a recurring (AutoPilot) line, and states the recurring
+         AMOUNT + interval at the point of consent. Never pre-checked: hiding
+         the row also clears the box, so a later subscription is affirmed
+         fresh rather than inheriting an old tick. */
+      var consentRow=$("#rb2ConsentRow");
+      if(consentRow){
+        consentRow.hidden = !basket.hasAutoPilot();
+        if(!consentRow.hidden){
+          var subM=lines.filter(function(l){return !!l.sellingPlanId;})
+                        .reduce(function(s,l){ return s+(parseFloat(l.lineTotal)||0); },0);
+          var amt=$("#rb2ConsentAmt");
+          if(amt) amt.textContent = subM>0 ? "monthly at "+money2(subM)+"/mo" : "monthly";
+        }
+      }
     }
     renderUndo();
   }
@@ -1779,16 +1828,43 @@
      subscription, separate from the hydration "Your Ritual" basket. Gated and
      §11-safe: never hands off unless Shopify confirms the plan was applied. */
   var osHanding=false;
+  /* bfcache: back-navigation from the Command checkout restores this page with
+     the latch set and the button disabled — reset so it works without a reload.
+     Registered here (not inside the basket block) so it holds even if the
+     basket module were absent. */
+  window.addEventListener("pageshow", function(e){
+    if(!e.persisted) return;
+    osHanding=false;
+    var ob=$("#osBuy"); if(ob) ob.disabled=false;
+  });
   function osCheckout(){
     var note=$("#osBuyNote"), C=window.AForceCommerce;
     function gate(msg){ if(note){ note.hidden=false; note.textContent=msg; } }
     if(!osReady() || !C){ gate("Command checkout opens at launch."); return; }
+    /* P0 legal — affirmative consent to the recurring terms BEFORE the consumer
+       authorizes the purchase. The checkbox is never pre-checked. */
+    var consent=$("#osConsent");
+    if(!consent || !consent.checked){
+      gate("To continue, please agree to the Subscription Terms above.");
+      if(consent) consent.focus();
+      return;
+    }
     if(osHanding) return; osHanding=true;
     var plan=COMMAND_PLANS[state.osCycle];
     var btn=$("#osBuy"); if(btn) btn.disabled=true;
     track("os_checkout_started",{ cycle:state.osCycle });
+    /* Consent evidence rides the cart onto the Shopify ORDER as attributes:
+       terms version + timestamp + offer + price + cadence (P0 legal). The cart
+       is created at click time, i.e. strictly AFTER consent. */
+    var osAmtEl=$("#osAmt"), osPerEl=$("#osPer");
+    var shownPrice=((osAmtEl?osAmtEl.textContent:"")+(osPerEl?osPerEl.textContent:"")).replace(/\s+/g,"");
     C.createCart([{ variantId:COMMAND_VARIANT, quantity:1, sellingPlanId:plan }],
-                 { Product:"AFORCE OS Command", Plan:(state.osCycle==="annual"?"Annual":"Monthly") })
+                 { Product:"AFORCE OS Command", Plan:(state.osCycle==="annual"?"Annual":"Monthly"),
+                   "Subscription Consent":"Accepted — affirmative checkbox (not pre-checked)",
+                   "Consent Timestamp":new Date().toISOString(),
+                   "Subscription Terms Version":SUBSCRIPTION_TERMS_VERSION,
+                   "Consent Offer":"AFORCE OS Command "+(state.osCycle==="annual"?"Annual":"Monthly")+" — "+shownPrice,
+                   "Consent Cadence":(state.osCycle==="annual"?"Yearly":"Monthly")+" · automatically renews until canceled · cancel in AFORCE OS" })
       .then(function(cart){
         if(!C.subscriptionApplied(cart, plan)){ throw new Error("Command plan was not applied."); }
         window.location.href = C.checkoutURLFor(cart);   // its own separate Shopify checkout
@@ -1931,14 +2007,96 @@
     });
     $("#rb2Undo").querySelector("button").addEventListener("click", function(){ basket.undo().then(function(){ announce("Item restored."); }); });
 
-    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14) */
+    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14).
+       One-time-only baskets keep the original direct handoff, byte-identical.
+       Baskets holding AutoPilot lines require affirmative consent (P0 legal)
+       and hand off via a consent-evidence cart — see checkoutWithConsent(). */
     $("#rb2Checkout").addEventListener("click", function(){
+      clearBasketErr();
+      if(basket.hasAutoPilot()){
+        var cb=$("#rb2Consent");
+        if(!cb || !cb.checked){
+          showBasketErr("To continue, please agree to the Subscription Terms above.");
+          if(cb) cb.focus();
+          return;
+        }
+        checkoutWithConsent();
+        return;
+      }
       try{
         var url=basket.checkout();
-        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:false });
         commit(url);
       }catch(err){ showBasketErr("Checkout isn’t available right now. Please try again."); }
     });
+
+    /* P0 legal — consent-evidence checkout for subscription baskets. The
+       consumer just affirmed the recurring terms, so we create a FRESH cart
+       from the exact current lines (numeric ids re-derived from the basket's
+       Shopify GIDs) carrying the consent record as order attributes: terms
+       version, timestamp, offer, price, cadence. Uses only the existing
+       createCart API (§12 boundary untouched). §11 fail-closed: the fresh
+       cart must mirror the basket — every requested selling plan applied and
+       total quantity equal — or we refuse to hand off and the shopper can
+       simply retry; the original basket cart is never mutated. */
+    var consentHanding=false;
+    /* bfcache: returning from Shopify checkout via Back restores this page with
+       the in-flight latch still set and the button disabled — reset so checkout
+       works again without a manual reload. (osHanding has its own pageshow
+       reset beside osCheckout, registered even when the basket is absent.) */
+    window.addEventListener("pageshow", function(e){
+      if(!e.persisted) return;
+      consentHanding=false;
+      var b=$("#rb2Checkout"); if(b) b.disabled = !!basket.busy;
+    });
+    function gidNum(gid){ return String(gid).split("/").pop(); }
+    function checkoutWithConsent(){
+      if(consentHanding) return; consentHanding=true;
+      var btn=$("#rb2Checkout"); if(btn) btn.disabled=true;
+      var C=window.AForceCommerce;
+      var lines=basket.lines();
+      var subs=lines.filter(function(l){ return !!l.sellingPlanId; });
+      var payload=lines.map(function(l){
+        var p={ variantId:gidNum(l.variantId), quantity:l.quantity };
+        if(l.sellingPlanId) p.sellingPlanId=gidNum(l.sellingPlanId);
+        return p;
+      });
+      var subMonthly=subs.reduce(function(s,l){ return s+(parseFloat(l.lineTotal)||0); },0);
+      var offer=subs.map(function(l){
+        return (l.productTitle||l.title||"Item")+" ×"+l.quantity+" — AutoPilot monthly"+(l.lineTotal?" ("+money2(l.lineTotal)+"/mo)":"");
+      }).join("; ");
+      /* Shopify attribute values are length-capped — summarize rather than let
+         the legal evidence truncate silently on large baskets. */
+      if(offer.length>200){ offer=subs.length+" AutoPilot lines — "+money2(subMonthly)+"/mo total, monthly"; }
+      /* Carry the order context (Protocol/Formulation/Depth/Plan) the original
+         cart held so subscription orders don't lose it to the evidence cart. */
+      var attrs = isReady()? orderAttrs(checkoutQty()) : {};
+      attrs["Subscription Consent"]="Accepted — affirmative checkbox (not pre-checked)";
+      attrs["Consent Timestamp"]=new Date().toISOString();
+      attrs["Subscription Terms Version"]=SUBSCRIPTION_TERMS_VERSION;
+      attrs["Consent Offer"]=offer;
+      attrs["Consent Cadence"]="Monthly · automatically renews until canceled · cancel in AFORCE OS";
+      C.createCart(payload, attrs).then(function(cart){
+        var plansOk = cart && cart.lines && subs.every(function(s){
+          return cart.lines.some(function(cl){ return cl.sellingPlanId===s.sellingPlanId && cl.variantId===s.variantId; });
+        });
+        var qtyOk = cart && cart.totalQuantity===basket.count();
+        if(!plansOk || !qtyOk){ throw new Error("Subscription could not be confirmed for checkout."); }
+        /* Re-point the persisted cart id at the evidence cart. After the
+           customer PAYS, hydrate() then sees a consumed cart and the basket
+           clears — without this, the old (identical) cart survives the
+           purchase and reads as an unplaced order: a double-charge trap. If
+           the customer backs out unpaid, the evidence cart holds the same
+           lines, so the basket is unchanged either way. */
+        try{ localStorage.setItem("aforce_cart_id", cart.id); }catch(_){ }
+        track("checkout_started",{ lines:lines.length, count:basket.count(), subscription:true, consent:true });
+        commit(C.checkoutURLFor(cart));
+      }).catch(function(err){
+        consentHanding=false; if(btn) btn.disabled=false;
+        showBasketErr("Checkout isn’t available right now. Please try again.");
+        if(window.console && console.warn) console.warn("[consent checkout]", err && err.message);
+      });
+    }
 
     /* Escape + focus trap while the basket is open */
     document.addEventListener("keydown", function(e){
@@ -1978,9 +2136,14 @@
       var bco=$("#buildCheckout");
       if(bco) bco.addEventListener("click", function(){
         var e=$("#buildErr"); if(e){ e.hidden=true; e.textContent=""; }
+        /* P0 legal — a basket holding AutoPilot lines must pass through the
+           single affirmative-consent point (the Ritual drawer). Funnel there;
+           the drawer shows the recurring amount, the consent checkbox, and the
+           gated checkout. One-time baskets keep the direct handoff. */
+        if(basket.hasAutoPilot()){ openBasket(); return; }
         try{
           var url=basket.checkout();
-          track("checkout_started",{ via:"builder", lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+          track("checkout_started",{ via:"builder", lines:basket.lines().length, count:basket.count(), subscription:false });
           commit(url);
         }catch(err){ if(e){ e.hidden=false; e.textContent="Checkout isn’t available right now. Please try again."; } }
       });
