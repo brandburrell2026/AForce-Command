@@ -864,9 +864,9 @@
         <ul class="os-feat">
           <li>Performance Age™</li>
           <li>Weekly interpretation</li>
-          <li>Personalized depletion correction</li>
+          <li>Personalized readiness patterns</li>
           <li>Expanded trends</li>
-          <li>Advanced recovery guidance</li>
+          <li>Suggested recovery actions</li>
         </ul>
         <button class="os-buy" id="osBuy" type="button">Enter Command</button>
         <p class="os-renew" id="osRenew" hidden></p>
@@ -874,7 +874,7 @@
       </div>
     </div>
     <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
-    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD.</p>
+    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD. AutoPilot and Command are subscriptions that automatically renew until canceled; cancel anytime in AFORCE OS. See <a href="/subscription-terms" style="color:inherit;text-decoration:underline;">Subscription Terms</a>. Performance Age™ is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
@@ -1049,8 +1049,12 @@
         <h4>Legal</h4>
         <a href="/legal">Legal Center</a>
         <a href="/legal/privacy">Privacy</a>
+        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
         <a href="/legal/terms">Terms</a>
-        <a href="/legal">Accessibility</a>
+        <a href="/subscription-terms">Subscription Terms</a>
+        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
+        <a href="/accessibility">Accessibility</a>
+        <a href="mailto:support@drinkaforce.com">Contact</a>
       </nav>
     </div>
 
@@ -1751,11 +1755,15 @@
        Ritual tier's approved "cancel anytime in AFORCE OS" language. */
     var renew=$("#osRenew");
     if(renew){
-      var show = COMMAND_AUTORENEWS && osReady();
+      /* P0 legal — the material recurring terms must be visible BEFORE the
+         consumer authorizes purchase, so this shows whenever the recurring
+         offer is displayed (not gated on checkout being live). No minimum
+         commitment. Full terms at /subscription-terms. */
+      var show = COMMAND_AUTORENEWS;
       renew.hidden = !show;
       renew.textContent = show
-        ? (annual ? "Renews yearly at $200 · cancel anytime in AFORCE OS"
-                  : "Renews monthly at $20 · cancel anytime in AFORCE OS")
+        ? (annual ? "$200/year. Automatically renews yearly until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date."
+                  : "$20/month. Automatically renews monthly until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date.")
         : "";
     }
   }

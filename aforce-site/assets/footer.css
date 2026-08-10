@@ -11,8 +11,8 @@
   --ff-red:#C1281B;                /* Signal Red accent */
   --ff-link:rgba(13,13,13,.62);    /* nav links (AA) */
   --ff-strong:rgba(13,13,13,.86);
-  --ff-muted:rgba(13,13,13,.42);   /* labels */
-  --ff-faint:rgba(13,13,13,.52);   /* disclaimer — quiet but readable */
+  --ff-muted:rgba(13,13,13,.60);   /* labels — raised to meet WCAG AA (was .42 ≈ 2.8:1) */
+  --ff-faint:rgba(13,13,13,.64);   /* disclaimer — raised to meet WCAG AA (was .52 ≈ 3.7:1) */
   --ff-line:rgba(13,13,13,.09);    /* very thin dividers */
   --ff-font:"Helvetica Neue","Neue Haas Grotesk Display","Suisse Int'l","Inter",system-ui,-apple-system,sans-serif;
   background:var(--ff-bg);
