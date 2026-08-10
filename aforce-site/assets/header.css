@@ -214,8 +214,11 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
 }
 
 /* ---------- Background-video pause control (WCAG 2.2.2) ----------
-   Injected by header.js after every autoplaying video. Quiet glass chip in the
-   corner of the hero — 44×44 target, visible over light or dark footage. */
+   Injected by header.js after every autoplaying video. Founder ruling
+   (2026-08-10): NOT visible in normal browsing — the cinematic footage stays
+   chrome-free. The control is revealed only on keyboard focus (same pattern as
+   the skip link), so the pause mechanism survives for keyboard/AT users, and
+   prefers-reduced-motion users still get videos auto-paused by header.js. */
 .afx-vid-toggle {
   position: absolute; z-index: 40;
   right: max(16px, env(safe-area-inset-right, 0px));
@@ -226,11 +229,13 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
   background: rgba(13,13,13,.55); color: #F5F0E8;
   border: 1px solid rgba(245,240,232,.38);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  opacity: .75; transition: opacity .2s ease;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.afx-vid-toggle:hover, .afx-vid-toggle:focus-visible { opacity: 1; }
-.afx-vid-toggle:focus-visible { outline: 2px solid #C1281B; outline-offset: 2px; }
+.afx-vid-toggle:focus-visible, .afx-vid-toggle:focus {
+  opacity: 1; pointer-events: auto;
+  outline: 2px solid #C1281B; outline-offset: 2px;
+}
 .afx-vid-toggle svg { width: 16px; height: 16px; display: block; }
 
 /* ---------- Drawer close (a11y) ----------
