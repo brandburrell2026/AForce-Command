@@ -65,6 +65,8 @@
   /* ---------- SHARED ---------- */
   .wrap{ max-width:var(--maxw); margin:0 auto; }
   .eyebrow{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.26em; text-transform:uppercase; color:var(--red); }
+  /* Visually hidden, still read by screen readers (WCAG 3.3.2) — never display:none */
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .reveal{ opacity:0; transform:translateY(22px); transition:opacity 1s ease, transform 1s ease; }
   .reveal.in{ opacity:1; transform:none; }
   .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .09s); }
@@ -256,7 +258,7 @@
   </div>
 </nav>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <!-- ============ HERO ============ -->
 <header class="hero" id="top">
@@ -276,7 +278,8 @@
 
     <div class="capture reveal in" id="capture" style="transition-delay:.3s;">
       <form id="foundingForm" novalidate>
-        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" aria-label="Email address" required>
+        <label class="sr-only" for="foundingEmail">Email address</label>
+        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" required>
         <button type="submit">Claim Access</button>
       </form>
       <div class="err" id="foundingErr" role="alert">Please enter a valid email address.</div>
