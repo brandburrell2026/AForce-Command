@@ -947,7 +947,12 @@
         </div>
       </div>
     </div>
-    <p style="margin-top:16px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:inherit;opacity:.72;">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
+    <!-- margin-top is proportional: the front phone is absolutely positioned and
+         overflows the .os-phones aspect-ratio box by ~6.25% of its width, so a
+         fixed 16px landed the caption ON the phone. calc(6.5% + 16px) clears the
+         overflow at every viewport width (the % resolves against .os-visual's
+         width, which the phones scale with). -->
+    <p style="margin-top:calc(6.5% + 16px);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:inherit;opacity:.72;">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
   </div>
 </section>
 
