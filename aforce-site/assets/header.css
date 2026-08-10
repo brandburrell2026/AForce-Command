@@ -193,6 +193,63 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
   outline: 2px solid var(--red); outline-offset: 2px;
 }
 
+/* ---------- Skip link (WCAG 2.4.1) ----------
+   First focusable element on every page; visually hidden until keyboard focus.
+   COLOUR-POLICY EXCEPTION (deliberate): this is a fixed utility overlay that
+   must be legible on every page regardless of each page's token scheme, so it
+   uses brand constants (Cinematic Black chip / Bone text / Signal Red ring)
+   instead of host tokens. */
+.afx-skip {
+  position: fixed; top: 12px; left: 12px; z-index: 400;
+  display: block; padding: 12px 20px;
+  background: #0D0D0D; color: #F5F0E8;
+  font-family: var(--mono, monospace); font-size: 13px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
+  border-radius: 4px;
+  transform: translateY(calc(-100% - 16px));
+}
+.afx-skip:focus-visible, .afx-skip:focus {
+  transform: none;
+  outline: 2px solid #C1281B; outline-offset: 2px;
+}
+
+/* ---------- Background-video pause control (WCAG 2.2.2) ----------
+   Injected by header.js after every autoplaying video. Quiet glass chip in the
+   corner of the hero — 44×44 target, visible over light or dark footage. */
+.afx-vid-toggle {
+  position: absolute; z-index: 40;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  width: 44px; height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(13,13,13,.55); color: #F5F0E8;
+  border: 1px solid rgba(245,240,232,.38);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: .75; transition: opacity .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.afx-vid-toggle:hover, .afx-vid-toggle:focus-visible { opacity: 1; }
+.afx-vid-toggle:focus-visible { outline: 2px solid #C1281B; outline-offset: 2px; }
+.afx-vid-toggle svg { width: 16px; height: 16px; display: block; }
+
+/* ---------- Drawer close (a11y) ----------
+   Screen-reader / keyboard close control injected as the LAST focusable item
+   inside the drawer panel, so the dialog is self-contained (aria-modal safe).
+   Visually hidden until keyboard focus so the approved drawer design is
+   unchanged for sighted mouse/touch users. */
+.afx-drawer-close {
+  position: absolute; left: -9999px;
+  width: 1px; height: 1px; overflow: hidden;
+  border: 0; padding: 0; background: none; color: inherit; cursor: pointer;
+}
+.afx-drawer-close:focus-visible, .afx-drawer-close:focus {
+  position: static; width: auto; height: auto; overflow: visible;
+  display: block; margin-top: 16px; padding: 14px 0;
+  font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  outline: 2px solid var(--red); outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .afx-nav, .afx-burger .afx-bar { transition: none; }
 }

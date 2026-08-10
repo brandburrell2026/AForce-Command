@@ -636,6 +636,7 @@
 </script>
 </head>
 <body data-theme="berry">
+<a class="afx-skip" href="#main">Skip to main content</a>
 
 <header class="afx-nav" id="afxNav">
   <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
@@ -714,7 +715,7 @@
   <span class="r" data-step="begin"><span class="dot"></span>Begin</span>
 </div>
 
-<main>
+<main id="main">
 <!-- STEP 01 — THE DEMAND -->
 <section class="step" id="stepDemand">
   <div class="wrap">
@@ -756,9 +757,9 @@
         </div>
       </div>
       <div class="overrides" id="overrides">
-        <button class="ov" type="button" data-f="berry"><span class="sw"></span><h4>Berry Blast</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="watermelon"><span class="sw"></span><h4>Watermelon Surge</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="soursop"><span class="sw"></span><h4>Soursop Edge</h4><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="berry" aria-pressed="false"><span class="sw"></span><h4>Berry Blast</h4><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="watermelon" aria-pressed="false"><span class="sw"></span><h4>Watermelon Surge</h4><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="soursop" aria-pressed="false"><span class="sw"></span><h4>Soursop Edge</h4><span class="micro">Run it your way</span></button>
       </div>
     </div>
   </div>
@@ -771,9 +772,9 @@
     <h2>How do you take it?</h2>
     <p class="lead">Both carry your formulation. Flip the flavor here anytime — nothing else resets.</p>
     <div class="switcher" id="switcher">
-      <button class="swdot" type="button" data-f="berry"><span class="d"></span>Berry Blast</button>
-      <button class="swdot" type="button" data-f="watermelon"><span class="d"></span>Watermelon Surge</button>
-      <button class="swdot" type="button" data-f="soursop"><span class="d"></span>Soursop Edge</button>
+      <button class="swdot" type="button" data-f="berry" aria-pressed="false"><span class="d"></span>Berry Blast</button>
+      <button class="swdot" type="button" data-f="watermelon" aria-pressed="false"><span class="d"></span>Watermelon Surge</button>
+      <button class="swdot" type="button" data-f="soursop" aria-pressed="false"><span class="d"></span>Soursop Edge</button>
     </div>
     <div class="sr-only" id="afxLive" role="status" aria-live="polite"></div>
     <div class="formats" id="formats">
@@ -788,15 +789,15 @@
         <h3>Sticks</h3>
         <p class="fmt-desc">Drop one into any water — the ritual travels with you.</p>
         <div class="plan" data-format="sticks">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$59.99</span><span class="pl-unit">/ month</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
-          <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="sticks-onetime">$59.99</span><span class="pl-unit">one box</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot" aria-pressed="true"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$59.99</span><span class="pl-unit">/ month</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt" type="button" data-plan="onetime" aria-pressed="false"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="sticks-onetime">$59.99</span><span class="pl-unit">one box</span></span></button>
         </div>
         <div class="depths" data-format="sticks">
           <div class="depth-lbl">Depth</div>
-          <button class="depth-opt" type="button" data-depth="single"><span><span class="d-name">Single</span><span class="d-sub">1 box · 20 sticks</span></span><span class="d-price" data-depthprice="sticks-single"></span></button>
-          <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 boxes · 40 sticks</span></span><span class="d-price" data-depthprice="sticks-double"></span></button>
-          <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 boxes · 80 sticks</span></span><span class="d-price" data-depthprice="sticks-case"></span></button>
-          <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
+          <button class="depth-opt" type="button" data-depth="single" aria-pressed="false"><span><span class="d-name">Single</span><span class="d-sub">1 box · 20 sticks</span></span><span class="d-price" data-depthprice="sticks-single"></span></button>
+          <button class="depth-opt" type="button" data-depth="double" aria-pressed="false"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 boxes · 40 sticks</span></span><span class="d-price" data-depthprice="sticks-double"></span></button>
+          <button class="depth-opt" type="button" data-depth="case" aria-pressed="false"><span><span class="d-name">The Case</span><span class="d-sub">4 boxes · 80 sticks</span></span><span class="d-price" data-depthprice="sticks-case"></span></button>
+          <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer boxes">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More boxes">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why sticks?</summary><p>Portable and TSA-simple — your ritual holds on the road, in the gym bag, anywhere there's water.</p></details>
         <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span><span class="add-label">Add Sticks to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
@@ -812,15 +813,15 @@
         <h3>RTD Cans</h3>
         <p class="fmt-desc">Cold, immediate, no mixing — the ritual, ready.</p>
         <div class="plan" data-format="cans">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$29.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
-          <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="cans-onetime">$29.99</span><span class="pl-unit">6-pack</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot" aria-pressed="true"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$29.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt" type="button" data-plan="onetime" aria-pressed="false"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="cans-onetime">$29.99</span><span class="pl-unit">6-pack</span></span></button>
         </div>
         <div class="depths" data-format="cans">
           <div class="depth-lbl">Depth</div>
-          <button class="depth-opt" type="button" data-depth="single"><span><span class="d-name">Single</span><span class="d-sub">1 six-pack</span></span><span class="d-price" data-depthprice="cans-single"></span></button>
-          <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 six-packs</span></span><span class="d-price" data-depthprice="cans-double"></span></button>
-          <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 six-packs · 24 cans</span></span><span class="d-price" data-depthprice="cans-case"></span></button>
-          <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
+          <button class="depth-opt" type="button" data-depth="single" aria-pressed="false"><span><span class="d-name">Single</span><span class="d-sub">1 six-pack</span></span><span class="d-price" data-depthprice="cans-single"></span></button>
+          <button class="depth-opt" type="button" data-depth="double" aria-pressed="false"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 six-packs</span></span><span class="d-price" data-depthprice="cans-double"></span></button>
+          <button class="depth-opt" type="button" data-depth="case" aria-pressed="false"><span><span class="d-name">The Case</span><span class="d-sub">4 six-packs · 24 cans</span></span><span class="d-price" data-depthprice="cans-case"></span></button>
+          <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer six-packs">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More six-packs">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why cans?</summary><p>Zero prep — grab, crack, perform. The fastest way into the ritual on a moving day.</p></details>
         <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span><span class="add-label">Add Cans to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
@@ -939,9 +940,9 @@
     <div class="step-i">Full Transparency</div>
     <h2 id="ingTitle">What powers the Ritual.</h2>
     <p class="ing-tagline">Purposeful hydration, electrolytes, and marine ingredients—built to support the daily Ritual.</p>
-    <div class="ing-toggle" role="tablist" aria-label="Choose format">
-      <button type="button" class="on" data-fmt="can" role="tab" aria-selected="true">The Can</button>
-      <button type="button" data-fmt="stick" role="tab" aria-selected="false">The Stick</button>
+    <div class="ing-toggle" role="group" aria-label="Choose format">
+      <button type="button" class="on" data-fmt="can" aria-pressed="true">The Can</button>
+      <button type="button" data-fmt="stick" aria-pressed="false">The Stick</button>
     </div>
     <p class="ing-serving" id="ingServing"></p>
     <div class="ing-stats" id="ingStats"></div>
@@ -998,7 +999,7 @@
   var btns=Array.prototype.slice.call(wrap.querySelectorAll(".ing-toggle button"));
   btns.forEach(function(b){ b.addEventListener("click",function(){
     fmt=b.getAttribute("data-fmt");
-    btns.forEach(function(x){ var on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-selected",on?"true":"false"); });
+    btns.forEach(function(x){ var on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-pressed",on?"true":"false"); });
     render();
   });});
 
@@ -1613,7 +1614,7 @@
       if(choose) choose.setAttribute("aria-pressed", state.format===fmt?"true":"false");
     });
     // plan toggles
-    $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ o.classList.toggle("on", o.getAttribute("data-plan")===state.plan); }); });
+    $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ var on=o.getAttribute("data-plan")===state.plan; o.classList.toggle("on", on); o.setAttribute("aria-pressed", on?"true":"false"); }); });
     // per-format unit prices in the toggle
     $$('[data-price]').forEach(function(el){ var k=el.getAttribute("data-price").split("-"); el.textContent = money(UNIT[k[0]][k[1]]); });
     // depth rows: prices + selected (only reflect on the chosen format; other card shows base single prices)
@@ -1623,7 +1624,8 @@
         var dk=o.getAttribute("data-depth"); var u=DEPTH_UNITS[dk];
         var price = +(UNIT[f][ f===state.format ? state.plan : "autopilot" ] * u).toFixed(2);
         $('[data-depthprice="'+f+'-'+dk+'"]').textContent = money(price) + (state.plan==="autopilot"&&f===state.format?"/mo":"");
-        o.classList.toggle("on", f===state.format && state.depth===dk);
+        var on = f===state.format && state.depth===dk;
+        o.classList.toggle("on", on); o.setAttribute("aria-pressed", on?"true":"false");
       });
       // stepper
       var st=$(".stepper",dep);
@@ -1636,8 +1638,8 @@
       }
     });
   }
-  function renderOverrides(){ $$("#overrides .ov").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-f")===state.formulation); }); }
-  function renderSwitcher(){ $$("#switcher .swdot").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-f")===state.formulation); }); }
+  function renderOverrides(){ $$("#overrides .ov").forEach(function(el){ var on=el.getAttribute("data-f")===state.formulation; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on?"true":"false"); }); }
+  function renderSwitcher(){ $$("#switcher .swdot").forEach(function(el){ var on=el.getAttribute("data-f")===state.formulation; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on?"true":"false"); }); }
 
   function summaryChips(){
     return [
@@ -1893,9 +1895,9 @@
   $("#rbChips").addEventListener("mousedown",armHold); $("#rbChips").addEventListener("touchstart",armHold,{passive:true});
   ["mouseup","mouseleave","touchend","touchcancel"].forEach(function(ev){ $("#rbChips").addEventListener(ev,clearHold); });
 
-  function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; $("#lightbox").classList.add("open"); }
-  $("#lightbox").addEventListener("click", function(){ this.classList.remove("open"); });
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ $("#lightbox").classList.remove("open"); } });
+  function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; $("#lightbox").classList.add("open"); $("#lightbox").setAttribute("aria-hidden","false"); }
+  $("#lightbox").addEventListener("click", function(){ this.classList.remove("open"); this.setAttribute("aria-hidden","true"); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ $("#lightbox").classList.remove("open"); $("#lightbox").setAttribute("aria-hidden","true"); } });
 
   /* ================= YOUR RITUAL — basket events (§9) ================= */
   if(basket){
