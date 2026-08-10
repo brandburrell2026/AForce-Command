@@ -80,10 +80,14 @@
   .m-hero .m-hero-still{ display:none; }
   @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } .reveal{ opacity:1 !important; transform:none !important; transition:none !important; } .m-hero .m-hero-video{ display:none; } .m-hero .m-hero-still{ display:block; } }
   .m-hero .scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,0.55) 0%, rgba(13,13,13,0.2) 34%, rgba(13,13,13,0.86) 100%); }
-  .m-hero .wrap{ position:relative; z-index:2; width:100%; }
-  .m-hero .display{ margin-top:20px; max-width:15ch; font-size:clamp(28px,4.3vw,56px); }
-  .m-hero .sub{ font-family:var(--mono); font-size:12px; letter-spacing:0.24em; text-transform:uppercase; color:var(--faint); margin-top:14px; }
-  .m-hero .body{ margin-top:26px; max-width:56ch; color:var(--mute); font-size:clamp(16px,1.4vw,20px); }
+  /* Hero copy pins LEFT (not centered) and runs smaller/narrower so it never
+     covers the subject's face in the footage on wide screens (founder ruling
+     2026-08-10). margin-left:0 overrides .wrap's auto-centering; the copy
+     starts at the gutter regardless of viewport width. */
+  .m-hero .wrap{ position:relative; z-index:2; width:100%; margin-left:0; }
+  .m-hero .display{ margin-top:20px; max-width:14ch; font-size:clamp(24px,3.2vw,42px); }
+  .m-hero .sub{ font-family:var(--mono); font-size:11px; letter-spacing:0.24em; text-transform:uppercase; color:var(--faint); margin-top:14px; }
+  .m-hero .body{ margin-top:24px; max-width:48ch; color:var(--mute); font-size:clamp(15px,1.15vw,17px); }
   .m-hero .body b{ color:var(--bone); font-weight:500; }
   .cta{ display:flex; flex-wrap:wrap; gap:14px; margin-top:clamp(32px,4vw,48px); }
   .btn{ display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:12px; letter-spacing:0.13em; text-transform:uppercase; text-decoration:none; padding:15px 24px; border-radius:3px; transition:transform .3s, border-color .3s, background .3s; }
