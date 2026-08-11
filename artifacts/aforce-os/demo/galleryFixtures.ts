@@ -38,6 +38,9 @@ import type {
 import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
 import type { UserSubscription, SubscriptionStatus } from '../types/subscription';
 import type { RecoveryCommand, RecoveryCommandState } from '../utils/recovery/recoveryCommand';
+import type { WeeklyV3Inputs } from '../components/insights/weeklyV3Presentation';
+import type { AnalyticsEvent } from '../utils/analytics/metrics';
+import type { PerformanceAgeResult } from '../utils/performanceAge';
 
 import { defaultUserState, mockHistory } from '../data/mockData';
 import { DEFAULT_FLAGS } from '../featureFlags/flags';
@@ -84,6 +87,7 @@ export type GallerySurface =
   | 'home'
   | 'hydration'
   | 'signal'
+  | 'weekly'
   | 'recoveryCoach'
   | 'guardian'
   | 'calibration'
@@ -111,6 +115,12 @@ export interface GalleryFixture {
    * component skips the network entirely when these are provided.
    */
   rollups?: JournalRollup[];
+  /**
+   * Prop-driven inputs for the 'weekly' surface (WeeklyReportV3's fixture
+   * prop) — a full deterministic WeeklyV3Inputs. The component skips every
+   * live source (analytics, rollups, ledger, PA hook) when provided.
+   */
+  weeklyInputs?: WeeklyV3Inputs;
   /** For `recoveryCoach`: the exact prop fixture RecoveryCoachScreen takes. */
   recoveryCommand?: RecoveryCommand;
   /** For `recoveryCoach`: mirrors the screen's real `offline` prop. */
@@ -542,7 +552,81 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       pctTimeDepleted: 5,
     })) as JournalRollup[],
   },
+  {
+    id: 'weekly-review',
+    label: 'Weekly — Week in Review',
+    driver:
+      'fixture: full WeeklyV3Inputs (prop-driven; skips analytics/rollups/ledger/PA hook) — nowISO 2026-08-11 → completed week Aug 2–8; 8-day PA series 47→44',
+    surface: 'weekly',
+    weeklyInputs: buildWeeklyReviewInputs(),
+  },
 ];
+
+/**
+ * Deterministic WeeklyV3Inputs for the 'weekly-review' fixture. Sample data
+ * only — but shaped exactly like the real sources: analytics events with real
+ * types, server-shaped rollups, ledger-shaped PA day snapshots.
+ */
+function buildWeeklyReviewInputs(): WeeklyV3Inputs {
+  const dayIdx = (iso: string) => Math.floor(Date.parse(iso) / 86_400_000);
+  const events: AnalyticsEvent[] = [];
+  // Prior week: 4 active days (so habit velocity shows a real improvement).
+  for (const d of ['07-26', '07-27', '07-28', '07-29']) {
+    events.push({ type: 'session_open', at: `2026-${d}T14:00:00.000Z` });
+  }
+  // Report week + the days since: daily opens (streak + 7 active days).
+  for (let day = 2; day <= 11; day++) {
+    events.push({ type: 'session_open', at: `2026-08-${String(day).padStart(2, '0')}T14:00:00.000Z` });
+  }
+  for (const d of ['02', '03', '05', '06', '08']) {
+    events.push({ type: 'win', at: `2026-08-${d}T20:00:00.000Z` });
+  }
+  const paAges = [47, 47, 46, 46, 45, 45, 44, 44]; // Aug 3 … Aug 10
+  return {
+    nowISO: '2026-08-11T09:00:00.000Z',
+    analyticsEvents: events,
+    rollups: ([
+      ['2026-08-02', 88, 124, 4],
+      ['2026-08-03', 82, 118, 5],
+      ['2026-08-04', 64, 82, 0], // tracked day with no logged intake
+      ['2026-08-05', 90, 130, 6],
+      ['2026-08-06', 71, 96, 3],
+      ['2026-08-07', 84, 120, 5],
+      ['2026-08-08', 89, 126, 6],
+    ] as const).map(([date, avgScore, oz, units]) => ({
+      date,
+      snapshotsCount: 5,
+      avgScore,
+      minScore: Math.max(0, avgScore - 14),
+      maxScore: Math.min(100, avgScore + 7),
+      endOzConsumed: oz,
+      endAforceUnits: 2,
+      endUnitsConsumed: units,
+      endSodiumDelivered: 480,
+      endSodiumLost: 390,
+      endDeficitPct: Math.max(0, 100 - avgScore),
+      pctTimePeak: 30,
+      pctTimeBalanced: 45,
+      pctTimeRecovering: 20,
+      pctTimeDepleted: 5,
+    })) as JournalRollup[],
+    paSnapshots: paAges.map((age, i) => ({
+      dayIndex: dayIdx('2026-08-03T00:00:00.000Z') + i,
+      performanceAge: age,
+    })),
+    paResult: {
+      status: 'established',
+      hasEnoughData: true,
+      provisional: false,
+      performanceAge: 44,
+      actualAge: 47,
+      yearsDelta: -3,
+      composite: 82,
+      band: 'BALANCED',
+      availableSignals: 3,
+    } satisfies PerformanceAgeResult,
+  };
+}
 
 export function getFixture(id: string): GalleryFixture | undefined {
   return GALLERY_FIXTURES.find((f) => f.id === id);
