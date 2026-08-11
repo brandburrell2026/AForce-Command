@@ -428,3 +428,58 @@ export const GRAPH_CONTRADICTION_RATIO = 0.5;
 export const GRAPH_QUERY_MAX_DEPTH = 4;
 export const GRAPH_QUERY_MAX_NODES = 500;
 export const GRAPH_QUERY_MAX_EDGES = 1000;
+
+/* ─── AForce Moments (Phases 1–2, founder approval 2026-08-12) ────────────── */
+/* Preparation-window and action tunables for the flag-gated Moments feature
+ * (`moments_enabled`, OFF in production). Manual/demo moments only in these
+ * phases — no calendar access, no notification scheduling, no new raw data
+ * collection (Phase 3 requires an explicit founder decision record; see
+ * governance/proposals/PR-002-aforce-moments.md). Values follow the founder
+ * comps (meeting: prep 60→30 min before, hydrate 14 oz best-before window
+ * midpoint; training: 75→30, 16–20 oz; travel: 120→60, 12–16 oz).
+ * Advisory-only by construction: nothing here feeds the score engine
+ * (Score Protection, DR-001). */
+
+import type { MomentType, MomentImportance } from '../types/moments';
+
+/** Prep-window offsets per Moment type: minutes BEFORE the moment start. */
+export const MOMENT_PREP_WINDOW_MIN: Record<
+  MomentType,
+  { startBefore: number; endBefore: number }
+> = {
+  work: { startBefore: 60, endBefore: 30 },
+  performance: { startBefore: 75, endBefore: 30 },
+  training: { startBefore: 75, endBefore: 30 },
+  travel: { startBefore: 120, endBefore: 60 },
+  recovery: { startBefore: 30, endBefore: 0 },
+  personal: { startBefore: 30, endBefore: 0 },
+};
+
+/** Low-importance moments widen the window less aggressively. */
+export const MOMENT_IMPORTANCE_WINDOW_SCALE: Record<MomentImportance, number> = {
+  high: 1,
+  moderate: 1,
+  low: 0.5,
+};
+
+/** Hydrate primary-action ounce ranges per Moment type ([min, max]). */
+export const MOMENT_HYDRATE_OZ: Record<MomentType, [number, number]> = {
+  work: [14, 14],
+  performance: [14, 16],
+  training: [16, 20],
+  travel: [12, 16],
+  recovery: [8, 12],
+  personal: [8, 12],
+};
+
+/** LOCK IN lead: minutes before the moment start. */
+export const MOMENT_LOCK_IN_BEFORE_MIN = 15;
+
+/** PAUSE reset length (seconds) — the ritual's opening reset. */
+export const MOMENT_PAUSE_SECONDS = 60;
+
+/** Hydrate "best before": fraction of the way through the prep window. */
+export const MOMENT_HYDRATE_BEST_BEFORE_FRACTION = 0.5;
+
+/** Upcoming-moment surfacing horizon (hours ahead) for Today lists. */
+export const MOMENT_SURFACE_HORIZON_HOURS = 24;
