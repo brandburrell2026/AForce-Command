@@ -40,6 +40,7 @@ import type { UserSubscription, SubscriptionStatus } from '../types/subscription
 import type { RecoveryCommand, RecoveryCommandState } from '../utils/recovery/recoveryCommand';
 import type { WeeklyV3Inputs } from '../components/insights/weeklyV3Presentation';
 import type { CircleV3Inputs } from '../components/community/circleV3Presentation';
+import { buildSnapshot } from '../services/competitionEngine';
 import type { AnalyticsEvent } from '../utils/analytics/metrics';
 import type { PerformanceAgeResult } from '../utils/performanceAge';
 
@@ -125,9 +126,9 @@ export interface GalleryFixture {
   weeklyInputs?: WeeklyV3Inputs;
   /**
    * Prop-driven inputs for the 'circle' surface (CircleScreenV3's fixture
-   * prop) — skips every live source including the referral-boards query.
-   * Board rows use anonymous "Operator XXXX" handles only (never named
-   * sample humans — SS-07).
+   * prop) — skips every live source. The ranked cohort is the deterministic
+   * competitionEngine snapshot over the sample roster (founder comp
+   * 2026-08-12), with a fixed live-injected "You" row.
    */
   circleInputs?: CircleV3Inputs;
   /** For `recoveryCoach`: the exact prop fixture RecoveryCoachScreen takes. */
@@ -571,52 +572,21 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
   },
   {
     id: 'circle-hub',
-    label: 'Circle — Live boards',
+    label: 'Community — Ranked cohort',
     driver:
-      'fixture: full CircleV3Inputs (prop-driven; skips engine/analytics/boards query) — anonymous Operator handles only, PEAK you-card, 6/7 hydration week',
+      "fixture: full CircleV3Inputs (prop-driven) — competitionEngine snapshot over the sample roster with a PEAK 'You' injected (score 92, streak-consistency 96), 5/7 hydration week, Rank tab",
     surface: 'circle',
     circleInputs: {
-      score: 92,
-      level: 'PEAK',
-      trend: { direction: 'rising', delta: 4, ageSec: 90 },
-      displayName: 'Brandon Burrell',
-      city: 'Miami',
-      complianceStreak: 10,
-      rollups: ([
-        ['2026-08-05', 4], ['2026-08-06', 3], ['2026-08-07', 0], ['2026-08-08', 5],
-        ['2026-08-09', 4], ['2026-08-10', 3], ['2026-08-11', 2],
-      ] as const).map(([date, units]) => ({
-        date,
-        snapshotsCount: 4,
-        avgScore: 82,
-        minScore: 70,
-        maxScore: 92,
-        endOzConsumed: units * 12,
-        endAforceUnits: 1,
-        endUnitsConsumed: units,
-        endSodiumDelivered: 480,
-        endSodiumLost: 390,
-        endDeficitPct: 18,
-        pctTimePeak: 30,
-        pctTimeBalanced: 45,
-        pctTimeRecovering: 20,
-        pctTimeDepleted: 5,
-      })) as JournalRollup[],
-      board: {
-        entries: [
-          { handle: 'Operator 4821', tier: { label: 'Vanguard' }, claims: 14, rank: 1, isYou: false },
-          { handle: 'Operator 0193', tier: { label: 'Pathfinder' }, claims: 11, rank: 2, isYou: false },
-          { handle: 'Operator 6604', tier: { label: 'Pathfinder' }, claims: 9, rank: 3, isYou: false },
-          { handle: 'Operator 2358', tier: { label: 'Scout' }, claims: 7, rank: 4, isYou: false },
-          { handle: 'Operator 9012', tier: { label: 'Scout' }, claims: 6, rank: 5, isYou: true },
-          { handle: 'Operator 3477', tier: { label: 'Scout' }, claims: 5, rank: 6, isYou: false },
-          { handle: 'Operator 8140', tier: { label: 'Scout' }, claims: 3, rank: 7, isYou: false },
-        ],
-        yourRank: 5,
-        yourClaims: 6,
-        totalParticipants: 27,
-      },
-      boardFailed: false,
+      // buildSnapshot is pure over the static sample roster → deterministic.
+      snapshot: buildSnapshot({
+        liveUserScore: 92,
+        liveCompliance: 0.9,
+        liveConsistency: 96,
+        liveStateLabel: 'PEAK',
+      }),
+      cityOverride: null,
+      hydrationDaysThisWeek: 5,
+      tab: 'rank',
     },
   },
 ];
