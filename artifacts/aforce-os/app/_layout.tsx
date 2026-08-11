@@ -158,6 +158,9 @@ function RootLayoutNav() {
       <Stack.Screen name="legal" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="modules" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="weekly-report" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moments" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moments-plan" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moment/[id]" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

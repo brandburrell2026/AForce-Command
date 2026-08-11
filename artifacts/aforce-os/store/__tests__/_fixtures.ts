@@ -96,6 +96,7 @@ export const baseFlags: FeatureFlags = {
   signal_v3_dashboard_enabled: false,
   weekly_v3_dashboard_enabled: false,
   circle_v3_dashboard_enabled: false,
+  moments_enabled: false,
   elite_weekly_report_enabled: false,
   elite_motion_enabled: false,
   elite_voice_coach_enabled: false,

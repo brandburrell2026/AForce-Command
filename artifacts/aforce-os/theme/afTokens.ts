@@ -81,6 +81,10 @@ export const af = {
   // (see green/amber/cyan below) — like `red`, it names a specific brand
   // feature (Guardian), not a hydration state.
   guardian: Colors.guardian.primary, //   #8B5CF6 — Guardian tier/feature accent
+  // Moments travel-category tint (founder comp 2026-08-12) — deliberately
+  // the SAME violet as the Guardian tier so the palette stays single-violet;
+  // a feature tint, NOT a semantic status color (same rule as `guardian`).
+  travel: Colors.guardian.primary,
   // The three alpha variants below replace call-site `${'#8B5CF6'}XX` hex-
   // suffix concatenation hacks BYTE-FOR-BYTE (RC-2 Ruling E requires
   // byte-identical rendered color — no new dim/hairline design here, just

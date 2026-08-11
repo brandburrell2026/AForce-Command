@@ -63,6 +63,7 @@ import {
 import { useRouter } from 'expo-router';
 import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useFeatureFlags } from '@/store/useAppStore';
+import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { HomeSkeleton } from './HomeSkeleton';
@@ -253,6 +254,7 @@ export function HomeScreenV2() {
   // explainFieldArbitration — the SAME per-field winner the scoring path's
   // freshestNonNull selects (parity-proven in its test suite).
   const v3 = flags.home_v3_dashboard_enabled;
+  const momentsOn = flags.moments_enabled;
   const v3Data = React.useMemo(() => {
     if (!v3) return null;
     const now = Date.now();
@@ -384,6 +386,15 @@ export function HomeScreenV2() {
             )}
           </Animated.View>
 
+          {/* AForce Moments (Phases 1–2, flag OFF in production) — NEXT MOMENT
+              + today's preparation-relevant list. Additive section; renders
+              nothing when the flag is off or no moments exist. */}
+          {momentsOn && (
+            <Animated.View entering={reveal(3)} style={styles.momentsSection}>
+              <HomeMomentsSection />
+            </Animated.View>
+          )}
+
           {/* Signals — V3: four live-signal tiles (Hydration / Recovery /
               Sleep / HRV, missing readings render an em dash); flag off: the
               shipped three-tile row, byte-identical. */}
@@ -465,6 +476,7 @@ const styles = StyleSheet.create({
   // V3 sections extend the scroll below the fold — clear the floating tab bar
   // (≈49pt bar + home-indicator inset) so the last stat tiles are reachable.
   scrollContentV3: { paddingBottom: Spacing[24] + Spacing[8] },
+  momentsSection: { marginTop: 4 },
   header: { marginTop: 8, marginBottom: 8 },
   welcome: { ...afType.secondary, color: af.textTertiary },
   brand: { ...afType.title1, color: af.textPrimary },

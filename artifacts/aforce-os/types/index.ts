@@ -805,6 +805,12 @@ export interface FeatureFlags {
    * engine/analytics/referral-board data only. Default OFF.
    */
   circle_v3_dashboard_enabled: boolean;
+  /**
+   * AForce Moments Phases 1-2 (founder approval 2026-08-12) — manual/demo
+   * moments, advisory-only prep. Default OFF. Phase 3 (calendar,
+   * notifications) requires a founder decision record.
+   */
+  moments_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the
