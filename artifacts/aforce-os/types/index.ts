@@ -795,6 +795,11 @@ export interface FeatureFlags {
    * rollup-backed Command History screen. Honest data only. Default OFF.
    */
   signal_v3_dashboard_enabled: boolean;
+  /**
+   * Week in Review V3 (founder comps, 2026-08-11) — /weekly-report redesign
+   * with honest ledger/analytics/rollup data only. Default OFF.
+   */
+  weekly_v3_dashboard_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the
