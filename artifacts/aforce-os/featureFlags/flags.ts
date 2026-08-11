@@ -205,6 +205,14 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // only. OFF in production; ON in DEMO_ALL_ON. Production flip is a founder
   // release decision by precedent.
   protocol_v3_dashboard_enabled: false,
+  // Performance Signal V3 (founder comps, 2026-08-11) — the Hydration tab's
+  // Command History / Performance Signal screen, rendered from the server's
+  // real per-day journal rollups (same source as the shipped Journal). Chips
+  // carry only rollup metrics (oz / in-band time / checks — never fabricated
+  // commands or streaks); offline shows the Journal's error posture; band
+  // lights use the same homePresentation accents as Home/Protocol. OFF in
+  // production; ON in DEMO_ALL_ON. Production flip is a founder decision.
+  signal_v3_dashboard_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -452,6 +460,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   elite_home_experience_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
+  signal_v3_dashboard_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,

@@ -33,6 +33,7 @@ import type {
   IntakeEvent,
   FeatureFlags,
   FluidType,
+  JournalRollup,
 } from '../types';
 import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
 import type { UserSubscription, SubscriptionStatus } from '../types/subscription';
@@ -82,6 +83,7 @@ export const GALLERY_VIEWPORTS: readonly GalleryViewport[] = [
 export type GallerySurface =
   | 'home'
   | 'hydration'
+  | 'signal'
   | 'recoveryCoach'
   | 'guardian'
   | 'calibration'
@@ -103,6 +105,12 @@ export interface GalleryFixture {
    * primitives-composed approximation (permissions).
    */
   appState?: StoreAppState;
+  /**
+   * Prop-driven rollups for the 'signal' surface (PerformanceSignalV3's
+   * fixtureRollups prop) — server-shaped JournalRollup sample days. The
+   * component skips the network entirely when these are provided.
+   */
+  rollups?: JournalRollup[];
   /** For `recoveryCoach`: the exact prop fixture RecoveryCoachScreen takes. */
   recoveryCommand?: RecoveryCommand;
   /** For `recoveryCoach`: mirrors the screen's real `offline` prop. */
@@ -502,6 +510,37 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
     appState: baseAppState({
       subscription: { ...defaultSubscription(), status: 'active' as SubscriptionStatus },
     }),
+  },
+  {
+    id: 'signal-week',
+    label: 'Signal — Strong week',
+    driver: 'fixtureRollups: 7 server-shaped JournalRollups (prop-driven; skips the network)',
+    surface: 'signal',
+    rollups: ([
+      ['2026-07-26', 89, 126, 6, 55, 37],
+      ['2026-07-27', 80, 112, 5, 22, 58],
+      ['2026-07-28', 64, 82, 3, 4, 30],
+      ['2026-07-29', 90, 130, 7, 62, 33],
+      ['2026-07-30', 71, 96, 4, 12, 62],
+      ['2026-07-31', 82, 118, 5, 28, 55],
+      ['2026-08-01', 88, 124, 6, 52, 41],
+    ] as const).map(([date, avgScore, oz, checks, pk, bal]) => ({
+      date,
+      snapshotsCount: checks,
+      avgScore,
+      minScore: Math.max(0, avgScore - 14),
+      maxScore: Math.min(100, avgScore + 7),
+      endOzConsumed: oz,
+      endAforceUnits: 2,
+      endUnitsConsumed: Math.round(oz / 12),
+      endSodiumDelivered: 480,
+      endSodiumLost: 390,
+      endDeficitPct: Math.max(0, 100 - avgScore),
+      pctTimePeak: pk,
+      pctTimeBalanced: bal,
+      pctTimeRecovering: Math.max(0, 100 - pk - bal - 5),
+      pctTimeDepleted: 5,
+    })) as JournalRollup[],
   },
 ];
 

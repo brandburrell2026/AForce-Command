@@ -2219,5 +2219,32 @@
     "readiness_default_status": "READY TO PERFORM",
     "tap_to_skip": "TAP TO SKIP",
     "skip_a11y": "Skip the opening sequence"
+  },
+  "signal": {
+    "v3": {
+      "eyebrow": "Command history",
+      "title": "Performance Signal",
+      "avg_label": "{{days}}-day avg",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "band_peak": "Peak",
+      "band_balanced": "Balanced",
+      "band_recovering": "Recovering",
+      "band_depleted": "Depleted",
+      "oz": "oz",
+      "in_band": "in band",
+      "checks": "checks",
+      "weekly_label": "Weekly averages",
+      "weekly_range": "Last {{days}} days",
+      "recap_avg": "Average score",
+      "recap_peak": "Peak score",
+      "recap_best_streak": "Best streak",
+      "recap_days": "{{n}} days",
+      "recap_total_oz": "Total logged",
+      "empty_title": "No tracked days yet",
+      "empty_body": "Complete rituals and checks — each day builds your signal history here.",
+      "load_failed": "Couldn't load your history",
+      "load_failed_body": "Check your connection and pull to refresh from the Journal."
+    }
   }
 }

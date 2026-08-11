@@ -15,7 +15,7 @@
  * ever imports it directly.
  */
 import React from 'react';
-import { Redirect } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
 import { DEMO_MODE } from '@/services/demoMode';
 
@@ -24,10 +24,11 @@ const LazyGallery = React.lazy(() =>
 );
 
 export default function GalleryRoute() {
+  const { fixture } = useLocalSearchParams<{ fixture?: string }>();
   if (!__DEV__ && !DEMO_MODE) return <Redirect href="/" />;
   return (
     <React.Suspense fallback={null}>
-      <LazyGallery />
+      <LazyGallery initialFixtureId={typeof fixture === 'string' ? fixture : undefined} />
     </React.Suspense>
   );
 }
