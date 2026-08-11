@@ -24,11 +24,19 @@ const LazyGallery = React.lazy(() =>
 );
 
 export default function GalleryRoute() {
-  const { fixture } = useLocalSearchParams<{ fixture?: string }>();
+  // Screenshot-harness deep link: /gallery?fixture=<id>&viewport=<se|standard|large>
+  const { fixture, viewport } = useLocalSearchParams<{ fixture?: string; viewport?: string }>();
   if (!__DEV__ && !DEMO_MODE) return <Redirect href="/" />;
   return (
     <React.Suspense fallback={null}>
-      <LazyGallery initialFixtureId={typeof fixture === 'string' ? fixture : undefined} />
+      <LazyGallery
+        initialFixtureId={typeof fixture === 'string' ? fixture : undefined}
+        initialViewportId={
+          viewport === 'se' || viewport === 'standard' || viewport === 'large'
+            ? viewport
+            : undefined
+        }
+      />
     </React.Suspense>
   );
 }

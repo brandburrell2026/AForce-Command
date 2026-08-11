@@ -213,6 +213,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // lights use the same homePresentation accents as Home/Protocol. OFF in
   // production; ON in DEMO_ALL_ON. Production flip is a founder decision.
   signal_v3_dashboard_enabled: false,
+  // Week in Review V3 (founder comps, 2026-08-11) — /weekly-report redesign.
+  // Real ledger-backed Performance Age movement, analytics habit metrics and
+  // rollup timeline; recovery/top-command keep their honest collecting/
+  // awaiting postures. OFF in production; ON in DEMO_ALL_ON. Production
+  // flip is a founder decision.
+  weekly_v3_dashboard_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -461,6 +467,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,
+  weekly_v3_dashboard_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,
