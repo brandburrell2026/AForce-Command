@@ -22,14 +22,24 @@ import {
   AFDisclosureSheet,
   AFTextButton,
   AFMetric,
+  AFReadinessArc,
   AFStatusBadge,
   type AFTimelineStep,
 } from '@/components/ui';
-import { af, afType, afLayout } from '@/theme';
+import { af, afType, afLayout, Spacing } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { deriveProtocol } from '@/services/mockApi';
 import { formatTimeAgo } from '@/data/mockData';
 import { NightOutProtocolEntry } from '@/components/nightOut/NightOutProtocolEntry';
+import { explainFieldArbitration } from '@/utils/biometricsAggregator';
+import { freshestBiometricsFetchedAt } from '@/components/home/homeFreshness';
+import { formatHrvMs } from '@/components/home/homeV3Presentation';
+import {
+  formatBpm,
+  hydrationProgress,
+  signalsAreLive,
+  ringFraction,
+} from './protocolV3Presentation';
 
 export function ProtocolScreenV2() {
   const { t } = useTranslation();
@@ -51,6 +61,32 @@ export function ProtocolScreenV2() {
   const upcoming = activeIndex >= 0 ? steps.slice(activeIndex + 1).filter((s) => !s.complete) : [];
   const progress = total > 0 ? completedCount / total : 0;
 
+  // ── Protocol V3 dashboard (flag-gated, presentation-only; founder comps
+  // 2026-08-11). Honest-data contract mirrors Home V3: every value below is
+  // derived from state this screen (or the shared arbitration/freshness
+  // modules) already exposes — real oz, real streak, the engine-derived
+  // stage, the plan's own recheck timer, and HR/HRV from
+  // explainFieldArbitration (the scoring path's own per-field winner).
+  // Missing readings render an em dash; no fabricated amounts or times.
+  const v3 = state.featureFlags.protocol_v3_dashboard_enabled;
+  const v3Data = React.useMemo(() => {
+    if (!v3) return null;
+    const now = Date.now();
+    const hr = explainFieldArbitration(userState.biometrics, 'restingHeartRate', now).winner;
+    const hrv = explainFieldArbitration(userState.biometrics, 'hrvSdnn', now).winner;
+    return {
+      hydration: hydrationProgress(userState.ozConsumedToday, userState.ozTarget),
+      hrText: formatBpm(hr ? (hr.value as number) : null),
+      hrvText: formatHrvMs(hrv ? (hrv.value as number) : null),
+      live: signalsAreLive(
+        freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics),
+        now,
+      ),
+      completedSteps: steps.filter((s) => s.complete),
+    };
+  }, [v3, userState, steps]);
+  const ringPct = Math.round(ringFraction(completedCount, total) * 100);
+
   // Map the remaining steps into the timeline (first upcoming = the step right
   // after the active one). Completed context stays in the progress bar above.
   const timelineSteps: AFTimelineStep[] = upcoming.map((s, i) => ({
@@ -61,30 +97,104 @@ export function ProtocolScreenV2() {
   }));
 
   return (
-    <AFScreen scroll>
-      <AFTopBar eyebrow={t('protocol.v2.eyebrow')} title={t('protocol.v2.title')} />
+    <AFScreen scroll contentContainerStyle={v3 ? styles.v3ScrollContent : undefined}>
+      <AFTopBar
+        eyebrow={t('protocol.v2.eyebrow')}
+        title={v3 ? protocol.stage : t('protocol.v2.title')}
+      />
 
       {/* Night Out Protocol — authorized entry (renders null unless authorized;
           hidden in production/default). NO-b: placement only, no command experience. */}
       <NightOutProtocolEntry />
 
-      {/* Recovery-plan progress */}
-      <View style={styles.planHeader}>
-        <AFSectionLabel label={t('protocol.v2.recovery_plan')} />
-        <View style={styles.progressRow}>
-          <Text style={styles.progressCount}>
-            {t('protocol.v2.progress_count', { completed: completedCount, total })}
+      {/* V3: day chip — real streak + real plan progress */}
+      {v3 ? (
+        <View style={styles.v3Chip} testID="protocol-v3-chip">
+          <View style={styles.v3ChipDot} />
+          <Text style={styles.v3ChipText}>
+            {t('protocol.v3.chip', {
+              day: userState.complianceStreak,
+              completed: completedCount,
+              total,
+            })}
           </Text>
-          <AFStatusBadge
-            label={t('protocol.v2.consistency', { pct: protocol.weeklyCompliancePct })}
-            tone="positive"
-            icon={null}
-          />
         </View>
-        <View style={styles.track} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
+      ) : null}
+
+      {/* V3: stage hero — protocol-completion ring + streak + next recheck.
+          Flag off: the shipped recovery-plan progress header, byte-identical. */}
+      {v3 ? (
+        <AFCard variant="raised" style={styles.v3Hero} testID="protocol-v3-hero">
+          <View style={styles.v3HeroRow}>
+            <AFReadinessArc
+              progress={ringFraction(completedCount, total)}
+              size={116}
+              stroke={8}
+              sweepDeg={360}
+              color={completedCount >= total && total > 0 ? af.green : af.red}
+            >
+              <Text style={styles.v3RingPct} maxFontSizeMultiplier={1.2}>{ringPct}%</Text>
+              <Text style={styles.v3RingLabel}>{t('protocol.v3.ring_label')}</Text>
+            </AFReadinessArc>
+            <View style={styles.v3HeroStats}>
+              <View>
+                <Text style={styles.v3HeroKey}>{t('protocol.v3.current_streak')}</Text>
+                <Text style={styles.v3HeroValue}>
+                  {t('protocol.v3.streak_days', { n: userState.complianceStreak })}
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.v3HeroKey}>{t('protocol.v3.next_check')}</Text>
+                <Text style={styles.v3HeroValue}>
+                  {t('protocol.v3.check_minutes', { min: protocol.nextRecheckMinutes })}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </AFCard>
+      ) : (
+        <View style={styles.planHeader}>
+          <AFSectionLabel label={t('protocol.v2.recovery_plan')} />
+          <View style={styles.progressRow}>
+            <Text style={styles.progressCount}>
+              {t('protocol.v2.progress_count', { completed: completedCount, total })}
+            </Text>
+            <AFStatusBadge
+              label={t('protocol.v2.consistency', { pct: protocol.weeklyCompliancePct })}
+              tone="positive"
+              icon={null}
+            />
+          </View>
+          <View style={styles.track} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+            <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
+          </View>
         </View>
-      </View>
+      )}
+
+      {/* V3: hydration progress — the REAL oz fields; hidden when no target
+          is set rather than inventing a denominator. */}
+      {v3 && v3Data?.hydration ? (
+        <View style={styles.v3Hydration} testID="protocol-v3-hydration">
+          <View style={styles.v3HydrationTop}>
+            <Text style={styles.v3HydrationLabel}>{t('protocol.v3.hydration')}</Text>
+            <Text style={styles.v3HydrationValue}>
+              {t('protocol.v3.hydration_oz', {
+                consumed: v3Data.hydration.consumed,
+                target: v3Data.hydration.target,
+              })}
+            </Text>
+          </View>
+          <View style={styles.track} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+            <View
+              style={[
+                styles.fill,
+                styles.v3HydrationFill,
+                { width: `${Math.round(v3Data.hydration.fraction * 100)}%` },
+              ]}
+            />
+          </View>
+        </View>
+      ) : null}
 
       {/* One large ACTIVE step */}
       {activeStep ? (
@@ -119,17 +229,49 @@ export function ProtocolScreenV2() {
         <AFTextButton label={t('protocol.v2.why_this_plan')} icon={whyOpen ? 'chevron-up' : 'chevron-down'} onPress={() => setWhyOpen(true)} />
       </View>
 
-      {/* Relocated: plan metrics */}
-      <View style={styles.section}>
-        <AFSectionLabel label={t('protocol.v2.today_section')} />
-        <AFCard>
-          <View style={styles.metricsRow}>
-            <AFMetric label={t('protocol.v2.metric_goal')} value={`${userState.dailyTarget}`} unit={t('protocol.v2.unit_units')} />
-            <AFMetric label={t('protocol.v2.metric_logged')} value={`${userState.unitsConsumedToday}`} unit={t('protocol.v2.unit_units')} />
-            <AFMetric label={t('protocol.v2.metric_streak')} value={`${userState.complianceStreak}`} unit={t('protocol.v2.unit_day')} />
+      {/* V3: completed today — the plan's own completed steps with their real
+          windows; never fabricated amounts. Flag off: the shipped metrics row
+          (whose values live in the V3 hero + hydration bar instead —
+          relocated, never deleted). */}
+      {v3 ? (
+        v3Data && v3Data.completedSteps.length > 0 ? (
+          <View style={styles.section} testID="protocol-v3-completed">
+            <View style={styles.v3SectionHead}>
+              <AFSectionLabel label={t('protocol.v3.completed_today')} />
+              <Text style={styles.v3Count} maxFontSizeMultiplier={1.35}>
+                {completedCount} / {total}
+              </Text>
+            </View>
+            <View style={styles.v3Rows}>
+              {v3Data.completedSteps.map((s) => (
+                <View
+                  key={s.label}
+                  style={styles.v3Row}
+                  accessible
+                  accessibilityLabel={`${s.label}, ${s.window}`}
+                >
+                  <View style={styles.v3Check}>
+                    <Text style={styles.v3CheckMark}>✓</Text>
+                  </View>
+                  <Text style={styles.v3RowLabel} numberOfLines={1}>{s.label}</Text>
+                  <Text style={styles.v3RowWindow}>{s.window}</Text>
+                </View>
+              ))}
+            </View>
           </View>
-        </AFCard>
-      </View>
+        ) : null
+      ) : (
+        <View style={styles.section}>
+          <AFSectionLabel label={t('protocol.v2.today_section')} />
+          <AFCard>
+            <View style={styles.metricsRow}>
+              <AFMetric label={t('protocol.v2.metric_goal')} value={`${userState.dailyTarget}`} unit={t('protocol.v2.unit_units')} />
+              <AFMetric label={t('protocol.v2.metric_logged')} value={`${userState.unitsConsumedToday}`} unit={t('protocol.v2.unit_units')} />
+              <AFMetric label={t('protocol.v2.metric_streak')} value={`${userState.complianceStreak}`} unit={t('protocol.v2.unit_day')} />
+            </View>
+          </AFCard>
+        </View>
+      )}
 
       {/* Relocated: command history (compact) */}
       {history.length > 0 && (
@@ -153,6 +295,32 @@ export function ProtocolScreenV2() {
           </AFCard>
         </View>
       )}
+
+      {/* V3: recovery signals — HR/HRV from the scoring path's own arbitration
+          winner; em dash when a provider hasn't reported; "Live" only within
+          the shared freshness window of an honest timestamp. */}
+      {v3 && v3Data ? (
+        <View style={styles.section} testID="protocol-v3-signals">
+          <View style={styles.v3SectionHead}>
+            <AFSectionLabel label={t('protocol.v3.recovery_signals')} />
+            {v3Data.live ? <Text style={styles.v3Live}>{t('protocol.v3.live')}</Text> : null}
+          </View>
+          <View style={styles.v3Signals}>
+            <View style={styles.v3Signal}>
+              <Text style={styles.v3SignalLabel}>{t('protocol.v3.heart_rate').toUpperCase()}</Text>
+              <Text style={styles.v3SignalValue} numberOfLines={1} adjustsFontSizeToFit>
+                {v3Data.hrText}
+              </Text>
+            </View>
+            <View style={styles.v3Signal}>
+              <Text style={styles.v3SignalLabel}>{t('protocol.v3.hrv').toUpperCase()}</Text>
+              <Text style={styles.v3SignalValue} numberOfLines={1} adjustsFontSizeToFit>
+                {v3Data.hrvText}
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
 
       <View style={{ height: 40 }} />
 
@@ -204,4 +372,44 @@ const styles = StyleSheet.create({
   historyScore: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   whyStage: { ...afType.title3, color: af.textPrimary, marginBottom: 8 },
   whyBody: { ...afType.body, color: af.textSecondary, marginBottom: 12 },
+  // ── Protocol V3 dashboard (protocol_v3_dashboard_enabled) ──
+  v3ScrollContent: { paddingBottom: Spacing[24] + Spacing[8] },
+  v3Chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
+    marginTop: 14, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
+    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
+  },
+  v3ChipDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: af.green },
+  v3ChipText: { ...afType.caption, color: af.textSecondary },
+  v3Hero: { marginTop: 16 },
+  v3HeroRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[6] },
+  v3RingPct: { ...afType.title1, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  v3RingLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
+  v3HeroStats: { flex: 1, gap: Spacing[4] },
+  v3HeroKey: { ...afType.eyebrow, color: af.textTertiary },
+  v3HeroValue: { ...afType.title2, color: af.textPrimary, marginTop: 2, fontVariant: ['tabular-nums'] },
+  v3Hydration: { marginTop: 24, gap: 10 },
+  v3HydrationTop: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  v3HydrationLabel: { ...afType.bodyStrong, color: af.textPrimary },
+  v3HydrationValue: { ...afType.body, color: af.textSecondary, fontVariant: ['tabular-nums'] },
+  v3HydrationFill: { backgroundColor: af.cyan },
+  v3SectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  v3Count: { ...afType.caption, color: af.green, fontVariant: ['tabular-nums'] },
+  v3Rows: { gap: 14 },
+  v3Row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  v3Check: {
+    width: 22, height: 22, borderRadius: 11, backgroundColor: af.green,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  v3CheckMark: { color: af.canvas, fontSize: 12, fontWeight: '700', lineHeight: 14 },
+  v3RowLabel: { ...afType.body, color: af.textPrimary, flex: 1 },
+  v3RowWindow: { ...afType.caption, color: af.textTertiary },
+  v3Live: { ...afType.caption, color: af.green },
+  v3Signals: { flexDirection: 'row', gap: 12 },
+  v3Signal: {
+    flex: 1, gap: 6, paddingVertical: 14, paddingHorizontal: 14,
+    borderRadius: 14, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
+  },
+  v3SignalLabel: { ...afType.eyebrow, color: af.textTertiary },
+  v3SignalValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
 });

@@ -411,10 +411,14 @@ function AppShell() {
                       1000, renders above the Welcome Hero). */}
                   {!CAPTURE_MODE && <OpeningMount onDone={handleOpeningDone} />}
                   {/* Voice Check-In ritual — shows after the opening, gated. */}
-                  <VoiceCheckInMount openingDone={openingDone} />
+                  {/* CAPTURE_MODE also suppresses the post-launch ceremony
+                      overlays (voice check-in / performance statement) —
+                      starting the phase at 'done' would otherwise ARM them on
+                      every capture relaunch and cover the surface. */}
+                  {!CAPTURE_MODE && <VoiceCheckInMount openingDone={openingDone} />}
                   {/* Performance Statement — once-per-day voice-only coach
                       identity line; speaks after the opening / check-in. */}
-                  <PerformanceStatementMount openingDone={openingDone} />
+                  {!CAPTURE_MODE && <PerformanceStatementMount openingDone={openingDone} />}
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>
