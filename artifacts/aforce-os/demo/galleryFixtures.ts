@@ -41,6 +41,8 @@ import type { RecoveryCommand, RecoveryCommandState } from '../utils/recovery/re
 import type { WeeklyV3Inputs } from '../components/insights/weeklyV3Presentation';
 import type { CircleV3Inputs } from '../components/community/circleV3Presentation';
 import { buildSnapshot } from '../services/competitionEngine';
+import type { Moment } from '../types/moments';
+import { buildDemoMoments } from '../data/demoMoments';
 import type { AnalyticsEvent } from '../utils/analytics/metrics';
 import type { PerformanceAgeResult } from '../utils/performanceAge';
 
@@ -91,6 +93,8 @@ export type GallerySurface =
   | 'signal'
   | 'weekly'
   | 'circle'
+  | 'moments'
+  | 'momentDetail'
   | 'recoveryCoach'
   | 'guardian'
   | 'calibration'
@@ -131,6 +135,12 @@ export interface GalleryFixture {
    * 2026-08-12), with a fixed live-injected "You" row.
    */
   circleInputs?: CircleV3Inputs;
+  /**
+   * Prop-driven inputs for the 'moments'/'momentDetail' surfaces —
+   * deterministic sample moments built around a FIXED nowIso so the
+   * comp's active-prep states reproduce exactly.
+   */
+  momentsFixture?: { moments: Moment[]; nowIso: string; detailId?: string };
   /** For `recoveryCoach`: the exact prop fixture RecoveryCoachScreen takes. */
   recoveryCommand?: RecoveryCommand;
   /** For `recoveryCoach`: mirrors the screen's real `offline` prop. */
@@ -587,6 +597,29 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       cityOverride: null,
       hydrationDaysThisWeek: 5,
       tab: 'rank',
+    },
+  },
+  {
+    id: 'moments-day',
+    label: 'Moments — Today',
+    driver:
+      "fixture: buildDemoMoments around fixed nowISO 2026-08-12T17:38Z — Investor Meeting in 22 min (active prep), completed Training, Dinner, Flight",
+    surface: 'moments',
+    momentsFixture: {
+      moments: buildDemoMoments('2026-08-12T17:38:00.000Z'),
+      nowIso: '2026-08-12T17:38:00.000Z',
+    },
+  },
+  {
+    id: 'moment-ritual',
+    label: 'Moment — Ritual detail',
+    driver:
+      "fixture: the Investor Meeting moment at nowISO 2026-08-12T17:05Z — HYDRATE stage active (green dominant), PAUSE completed, LOCK IN/PERFORM upcoming",
+    surface: 'momentDetail',
+    momentsFixture: {
+      moments: buildDemoMoments('2026-08-12T16:43:00.000Z'),
+      nowIso: '2026-08-12T17:05:00.000Z',
+      detailId: 'demo-investor-meeting',
     },
   },
 ];

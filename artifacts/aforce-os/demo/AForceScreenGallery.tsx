@@ -45,6 +45,9 @@ import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
 import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
 import { WeeklyReportV3 } from '../components/insights/WeeklyReportV3';
 import { CircleScreenV3 } from '../components/community/CircleScreenV3';
+import { MomentsScreen } from '../components/moments/MomentsScreen';
+import { MomentDetailScreen } from '../components/moments/MomentDetailScreen';
+import { buildRecommendation } from '../services/momentRecommendation';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { ManageSubscriptionScreenV2 } from '../components/subscription/ManageSubscriptionScreenV2';
 import { VoiceCheckInOverlay } from '../components/voiceCheckIn/VoiceCheckInOverlay';
@@ -202,6 +205,25 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       return <WeeklyReportV3 fixture={fixture.weeklyInputs} />;
     case 'circle':
       return <CircleScreenV3 fixture={fixture.circleInputs} />;
+    case 'moments':
+      return (
+        <MomentsScreen
+          fixtureMoments={fixture.momentsFixture!.moments}
+          fixtureNowIso={fixture.momentsFixture!.nowIso}
+        />
+      );
+    case 'momentDetail': {
+      const fx = fixture.momentsFixture!;
+      const moment = fx.moments.find((m) => m.id === fx.detailId) ?? fx.moments[0]!;
+      return (
+        <MomentDetailScreen
+          moment={moment}
+          rec={buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso)}
+          nowIso={fx.nowIso}
+          readOnly
+        />
+      );
+    }
     case 'hydration':
       return (
         <StoreOverride state={fixture.appState!}>

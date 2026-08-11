@@ -225,6 +225,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // cross-user surface (no named-people rankings — SS-07). ON in
   // production — founder flip 2026-08-11 (all five V3 screens together).
   circle_v3_dashboard_enabled: true,
+  // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
+  // moments only: Home NEXT MOMENT section, Moments overview, flagship
+  // Moment Detail ritual, Prepare My Day, Add a Moment. NO calendar access,
+  // NO new notification behavior, NO new raw data collection, NO new score
+  // (all Phase 3+, gated on an explicit founder decision — see
+  // governance/proposals/PR-002-aforce-moments.md). OFF in production.
+  moments_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -475,6 +482,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
   circle_v3_dashboard_enabled: true,
+  moments_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,
