@@ -31,6 +31,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { deriveProtocol } from '@/services/mockApi';
 import { formatTimeAgo } from '@/data/mockData';
 import { NightOutProtocolEntry } from '@/components/nightOut/NightOutProtocolEntry';
+import { resolveHomePresentation } from '@/components/home/homePresentation';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
 import { freshestBiometricsFetchedAt } from '@/components/home/homeFreshness';
 import { formatHrvMs } from '@/components/home/homeV3Presentation';
@@ -69,6 +70,11 @@ export function ProtocolScreenV2() {
   // explainFieldArbitration (the scoring path's own per-field winner).
   // Missing readings render an em dash; no fabricated amounts or times.
   const v3 = state.featureFlags.protocol_v3_dashboard_enabled;
+  // Founder ruling (2026-08-11): the V3 hero ring's lights follow the
+  // readiness band EXACTLY like the Home arc — same pure homePresentation
+  // accent module (af.* tokens, never statusColor.ts). Cyan Balanced /
+  // green Peak / amber Recovering / red Depleted.
+  const bandAccent = resolveHomePresentation(engineOutput.performanceState.level).accent;
   const v3Data = React.useMemo(() => {
     if (!v3) return null;
     const now = Date.now();
@@ -131,7 +137,7 @@ export function ProtocolScreenV2() {
               size={116}
               stroke={8}
               sweepDeg={360}
-              color={completedCount >= total && total > 0 ? af.green : af.red}
+              color={bandAccent}
             >
               <Text style={styles.v3RingPct} maxFontSizeMultiplier={1.2}>{ringPct}%</Text>
               <Text style={styles.v3RingLabel}>{t('protocol.v3.ring_label')}</Text>
