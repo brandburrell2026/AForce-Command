@@ -193,38 +193,38 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // data show an em dash, never an invented number; protocol rows show period
   // labels (Morning/Midday/Evening), never fabricated clock times. Presentation
   // only — no new store hooks, no scoring/command/timing reads beyond what
-  // HomeScreenV2 already performs. OFF in production; ON in DEMO_ALL_ON.
-  // Production flip is a founder release decision by precedent.
-  home_v3_dashboard_enabled: false,
+  // HomeScreenV2 already performs. ON in production — founder flip
+  // 2026-08-11 (all five V3 screens together).
+  home_v3_dashboard_enabled: true,
   // Protocol V3 dashboard (founder comps, 2026-08-11) — flag-gated ADDITIVE
   // sections inside ProtocolScreenV2: stage hero (protocol-completion ring +
   // streak + next recheck), hydration progress (real oz), completed-today
   // list (derived steps, window labels — never fabricated amounts), and
   // HR/HRV recovery signals via the scoring path's own arbitration winner.
   // Honest-data rules identical to home_v3_dashboard_enabled. Presentation
-  // only. OFF in production; ON in DEMO_ALL_ON. Production flip is a founder
-  // release decision by precedent.
-  protocol_v3_dashboard_enabled: false,
+  // only. ON in production — founder flip 2026-08-11 (all five V3
+  // screens together).
+  protocol_v3_dashboard_enabled: true,
   // Performance Signal V3 (founder comps, 2026-08-11) — the Hydration tab's
   // Command History / Performance Signal screen, rendered from the server's
   // real per-day journal rollups (same source as the shipped Journal). Chips
   // carry only rollup metrics (oz / in-band time / checks — never fabricated
   // commands or streaks); offline shows the Journal's error posture; band
-  // lights use the same homePresentation accents as Home/Protocol. OFF in
-  // production; ON in DEMO_ALL_ON. Production flip is a founder decision.
-  signal_v3_dashboard_enabled: false,
+  // lights use the same homePresentation accents as Home/Protocol. ON in
+  // production — founder flip 2026-08-11 (all five V3 screens together).
+  signal_v3_dashboard_enabled: true,
   // Week in Review V3 (founder comps, 2026-08-11) — /weekly-report redesign.
   // Real ledger-backed Performance Age movement, analytics habit metrics and
   // rollup timeline; recovery/top-command keep their honest collecting/
-  // awaiting postures. OFF in production; ON in DEMO_ALL_ON. Production
-  // flip is a founder decision.
-  weekly_v3_dashboard_enabled: false,
+  // awaiting postures. ON in production — founder flip 2026-08-11 (all
+  // five V3 screens together).
+  weekly_v3_dashboard_enabled: true,
   // Circle V3 (founder comps, 2026-08-11; canonical name per RC-L1) — the
   // Circle tab redesign. Real engine/analytics "You" fields, own-baseline
   // hydration challenge, and the anonymous referral boards as the only
-  // cross-user surface (no named-people rankings — SS-07). OFF in
-  // production; ON in DEMO_ALL_ON. Production flip is a founder decision.
-  circle_v3_dashboard_enabled: false,
+  // cross-user surface (no named-people rankings — SS-07). ON in
+  // production — founder flip 2026-08-11 (all five V3 screens together).
+  circle_v3_dashboard_enabled: true,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
