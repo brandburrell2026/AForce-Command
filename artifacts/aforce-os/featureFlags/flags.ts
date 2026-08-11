@@ -196,6 +196,15 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // HomeScreenV2 already performs. OFF in production; ON in DEMO_ALL_ON.
   // Production flip is a founder release decision by precedent.
   home_v3_dashboard_enabled: false,
+  // Protocol V3 dashboard (founder comps, 2026-08-11) — flag-gated ADDITIVE
+  // sections inside ProtocolScreenV2: stage hero (protocol-completion ring +
+  // streak + next recheck), hydration progress (real oz), completed-today
+  // list (derived steps, window labels — never fabricated amounts), and
+  // HR/HRV recovery signals via the scoring path's own arbitration winner.
+  // Honest-data rules identical to home_v3_dashboard_enabled. Presentation
+  // only. OFF in production; ON in DEMO_ALL_ON. Production flip is a founder
+  // release decision by precedent.
+  protocol_v3_dashboard_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -442,6 +451,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_home: true,
   elite_home_experience_enabled: true,
   home_v3_dashboard_enabled: true,
+  protocol_v3_dashboard_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,

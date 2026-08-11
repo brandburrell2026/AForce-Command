@@ -27,6 +27,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/ui/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/home/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/protocol/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',

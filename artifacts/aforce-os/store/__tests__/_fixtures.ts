@@ -92,6 +92,7 @@ export const baseUser = makeUserState();
 export const baseFlags: FeatureFlags = {
   elite_home_experience_enabled: false,
   home_v3_dashboard_enabled: false,
+  protocol_v3_dashboard_enabled: false,
   elite_weekly_report_enabled: false,
   elite_motion_enabled: false,
   elite_voice_coach_enabled: false,

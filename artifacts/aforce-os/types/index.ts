@@ -785,6 +785,11 @@ export interface FeatureFlags {
    * Honest data only (existing store state; em dash when absent). Default OFF.
    */
   home_v3_dashboard_enabled: boolean;
+  /**
+   * Protocol V3 dashboard (founder comps, 2026-08-11) — additive, flag-gated
+   * sections inside ProtocolScreenV2. Honest data only. Default OFF.
+   */
+  protocol_v3_dashboard_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

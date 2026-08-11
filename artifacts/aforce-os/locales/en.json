@@ -1535,6 +1535,21 @@
       "unit_day": "d",
       "recent_activity": "Recent activity",
       "why_consistency": "You're {{pct}}% consistent this week. The plan adapts each recheck ({{min}} min) to your live readiness."
+    },
+    "v3": {
+      "chip": "Day {{day}} · {{completed}}/{{total}} complete",
+      "ring_label": "Protocol",
+      "current_streak": "Current streak",
+      "streak_days": "{{n}} days",
+      "next_check": "Next check",
+      "check_minutes": "{{min}} min",
+      "hydration": "Hydration",
+      "hydration_oz": "{{consumed}} / {{target}} oz",
+      "completed_today": "Completed today",
+      "recovery_signals": "Recovery signals",
+      "live": "Live",
+      "heart_rate": "Heart rate",
+      "hrv": "HRV"
     }
   },
   "store": {
