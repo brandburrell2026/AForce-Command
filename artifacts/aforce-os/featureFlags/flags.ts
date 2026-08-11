@@ -232,6 +232,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // (all Phase 3+, gated on an explicit founder decision — see
   // governance/proposals/PR-002-aforce-moments.md). OFF in production.
   moments_enabled: false,
+  // Moments prep notifications (Phase 3a, DR-010) — local, pre-scheduled,
+  // behavioral-copy-only prep signals for manual/demo moments. Guardrails:
+  // quiet hours, 60-min gap, daily cap, importance filter, user toggle.
+  // OFF in production (DR-010 constraint 4). Requires moments_enabled too.
+  moments_notifications_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -483,6 +488,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   weekly_v3_dashboard_enabled: true,
   circle_v3_dashboard_enabled: true,
   moments_enabled: true,
+  moments_notifications_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,

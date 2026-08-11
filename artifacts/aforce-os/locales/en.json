@@ -1745,7 +1745,9 @@
       "row_challengeDeadlines_hint": "Reminders before an open circle challenge expires.",
       "row_lowInventoryAlert_label": "Low Inventory Alerts",
       "row_lowInventoryAlert_hint": "Restock prompts when sticks/RTD/canister inventory hits zero.",
-      "back_a11y": "Back"
+      "back_a11y": "Back",
+      "row_momentPrep_label": "Moment prep",
+      "row_momentPrep_hint": "One clear signal before an important moment — hydrate, lock in, perform."
     }
   },
   "legal": {
@@ -2398,6 +2400,18 @@
     "add_tomorrow": "Tomorrow",
     "empty_title": "No moments yet",
     "empty_body": "Add a moment and AForce will build the preparation around it.",
-    "home_empty_hint": "Your next important moment will appear here."
+    "home_empty_hint": "Your next important moment will appear here.",
+    "notify": {
+      "title": "{{title}} in {{minutes}} min",
+      "body": "{{action}}.",
+      "body_best_before": "{{action}}. Best before {{time}}.",
+      "prefs_label": "MOMENT PREP",
+      "mode_important": "Important moments only",
+      "mode_all": "All suggested moments",
+      "lead_label": "LEAD TIME",
+      "lead_window": "Prep window",
+      "lead_min": "{{n}} min",
+      "lead_adaptive_locked": "Adaptive timing unlocks with prep learning."
+    }
   }
 }

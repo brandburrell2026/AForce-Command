@@ -38,6 +38,15 @@ export function buildDemoMoments(nowIso: string): Moment[] {
       createdAtIso: created,
     },
     {
+      id: 'demo-evening-run',
+      source: 'demo',
+      title: 'Evening Run',
+      type: 'training',
+      importance: 'high',
+      startAtIso: at(76), // prep window (75 min before) opens 1 min after seed
+      createdAtIso: created,
+    },
+    {
       id: 'demo-dinner',
       source: 'demo',
       title: 'Dinner with Family',

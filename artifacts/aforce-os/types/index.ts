@@ -437,6 +437,8 @@ export interface NotificationSettings {
   circleActivity: boolean;
   challengeDeadlines: boolean;
   lowInventoryAlert: boolean;
+  /** Moments prep signals (Phase 3a, DR-010) — user-facing kill switch. */
+  momentPrep: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -446,6 +448,7 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   circleActivity: false,
   challengeDeadlines: true,
   lowInventoryAlert: false,
+  momentPrep: true, // delivery still requires BOTH moments flags (OFF in prod)
 };
 
 /** Key-of helper so the store + UI can iterate / address toggles by name. */
@@ -811,6 +814,8 @@ export interface FeatureFlags {
    * notifications) requires a founder decision record.
    */
   moments_enabled: boolean;
+  /** Moments prep notifications (Phase 3a, DR-010). Default OFF. */
+  moments_notifications_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the
