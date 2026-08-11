@@ -29,7 +29,13 @@ export const DEMO_MODE = process.env['EXPO_PUBLIC_DEMO_MODE'] === 'true';
  * Double-gated on `__DEV__`, so it is compile-time inert in any production
  * bundle and cannot ship by accident.
  */
-export const CAPTURE_MODE = __DEV__ && process.env['EXPO_PUBLIC_CAPTURE'] === '1';
+// `typeof` guard (same pattern as the DEMO_MODE release-build check below):
+// `__DEV__` is a Metro/React-Native global that does not exist in the node
+// vitest environment — a bare reference there is a ReferenceError that would
+// fail every test file importing this module. typeof-undefined ⇒ false, which
+// is also the correct semantic: no Metro, no capture bypass.
+export const CAPTURE_MODE =
+  typeof __DEV__ !== 'undefined' && __DEV__ && process.env['EXPO_PUBLIC_CAPTURE'] === '1';
 
 // Safety: DEMO_MODE bypasses the sign-in gate, so it must only ever run
 // in an INTERNAL pitch/demo build, never in one distributed to real
