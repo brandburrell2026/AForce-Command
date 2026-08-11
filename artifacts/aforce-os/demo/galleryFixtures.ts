@@ -39,6 +39,7 @@ import { DEFAULT_NOTIFICATION_SETTINGS } from '../types';
 import type { UserSubscription, SubscriptionStatus } from '../types/subscription';
 import type { RecoveryCommand, RecoveryCommandState } from '../utils/recovery/recoveryCommand';
 import type { WeeklyV3Inputs } from '../components/insights/weeklyV3Presentation';
+import type { CircleV3Inputs } from '../components/community/circleV3Presentation';
 import type { AnalyticsEvent } from '../utils/analytics/metrics';
 import type { PerformanceAgeResult } from '../utils/performanceAge';
 
@@ -88,6 +89,7 @@ export type GallerySurface =
   | 'hydration'
   | 'signal'
   | 'weekly'
+  | 'circle'
   | 'recoveryCoach'
   | 'guardian'
   | 'calibration'
@@ -121,6 +123,13 @@ export interface GalleryFixture {
    * live source (analytics, rollups, ledger, PA hook) when provided.
    */
   weeklyInputs?: WeeklyV3Inputs;
+  /**
+   * Prop-driven inputs for the 'circle' surface (CircleScreenV3's fixture
+   * prop) — skips every live source including the referral-boards query.
+   * Board rows use anonymous "Operator XXXX" handles only (never named
+   * sample humans — SS-07).
+   */
+  circleInputs?: CircleV3Inputs;
   /** For `recoveryCoach`: the exact prop fixture RecoveryCoachScreen takes. */
   recoveryCommand?: RecoveryCommand;
   /** For `recoveryCoach`: mirrors the screen's real `offline` prop. */
@@ -559,6 +568,56 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       'fixture: full WeeklyV3Inputs (prop-driven; skips analytics/rollups/ledger/PA hook) — nowISO 2026-08-11 → completed week Aug 2–8; 8-day PA series 47→44',
     surface: 'weekly',
     weeklyInputs: buildWeeklyReviewInputs(),
+  },
+  {
+    id: 'circle-hub',
+    label: 'Circle — Live boards',
+    driver:
+      'fixture: full CircleV3Inputs (prop-driven; skips engine/analytics/boards query) — anonymous Operator handles only, PEAK you-card, 6/7 hydration week',
+    surface: 'circle',
+    circleInputs: {
+      score: 92,
+      level: 'PEAK',
+      trend: { direction: 'rising', delta: 4, ageSec: 90 },
+      displayName: 'Brandon Burrell',
+      city: 'Miami',
+      complianceStreak: 10,
+      rollups: ([
+        ['2026-08-05', 4], ['2026-08-06', 3], ['2026-08-07', 0], ['2026-08-08', 5],
+        ['2026-08-09', 4], ['2026-08-10', 3], ['2026-08-11', 2],
+      ] as const).map(([date, units]) => ({
+        date,
+        snapshotsCount: 4,
+        avgScore: 82,
+        minScore: 70,
+        maxScore: 92,
+        endOzConsumed: units * 12,
+        endAforceUnits: 1,
+        endUnitsConsumed: units,
+        endSodiumDelivered: 480,
+        endSodiumLost: 390,
+        endDeficitPct: 18,
+        pctTimePeak: 30,
+        pctTimeBalanced: 45,
+        pctTimeRecovering: 20,
+        pctTimeDepleted: 5,
+      })) as JournalRollup[],
+      board: {
+        entries: [
+          { handle: 'Operator 4821', tier: { label: 'Vanguard' }, claims: 14, rank: 1, isYou: false },
+          { handle: 'Operator 0193', tier: { label: 'Pathfinder' }, claims: 11, rank: 2, isYou: false },
+          { handle: 'Operator 6604', tier: { label: 'Pathfinder' }, claims: 9, rank: 3, isYou: false },
+          { handle: 'Operator 2358', tier: { label: 'Scout' }, claims: 7, rank: 4, isYou: false },
+          { handle: 'Operator 9012', tier: { label: 'Scout' }, claims: 6, rank: 5, isYou: true },
+          { handle: 'Operator 3477', tier: { label: 'Scout' }, claims: 5, rank: 6, isYou: false },
+          { handle: 'Operator 8140', tier: { label: 'Scout' }, claims: 3, rank: 7, isYou: false },
+        ],
+        yourRank: 5,
+        yourClaims: 6,
+        totalParticipants: 27,
+      },
+      boardFailed: false,
+    },
   },
 ];
 
