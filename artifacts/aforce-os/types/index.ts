@@ -790,6 +790,11 @@ export interface FeatureFlags {
    * sections inside ProtocolScreenV2. Honest data only. Default OFF.
    */
   protocol_v3_dashboard_enabled: boolean;
+  /**
+   * Performance Signal V3 (founder comps, 2026-08-11) — Hydration tab's
+   * rollup-backed Command History screen. Honest data only. Default OFF.
+   */
+  signal_v3_dashboard_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

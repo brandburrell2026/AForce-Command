@@ -42,6 +42,7 @@ import type { AppState as StoreAppState } from '../store/appStoreTypes';
 
 import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
+import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { ManageSubscriptionScreenV2 } from '../components/subscription/ManageSubscriptionScreenV2';
 import { VoiceCheckInOverlay } from '../components/voiceCheckIn/VoiceCheckInOverlay';
@@ -193,6 +194,8 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
           <HomeScreenV2 />
         </StoreOverride>
       );
+    case 'signal':
+      return <PerformanceSignalV3 fixtureRollups={fixture.rollups} />;
     case 'hydration':
       return (
         <StoreOverride state={fixture.appState!}>
@@ -233,8 +236,10 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
 
 // ─── Gallery shell: index list → viewport-framed detail ──────────────────
 
-export function AForceScreenGallery() {
-  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+export function AForceScreenGallery({ initialFixtureId }: { initialFixtureId?: string } = {}) {
+  // Deterministic deep-link for screenshot harnesses: /gallery?fixture=<id>
+  // opens straight into that fixture's detail view (dev/demo-only surface).
+  const [selectedId, setSelectedId] = React.useState<string | null>(initialFixtureId ?? null);
   const [viewportId, setViewportId] = React.useState<GalleryViewport['id']>('standard');
 
   const selected = selectedId ? GALLERY_FIXTURES.find((f) => f.id === selectedId) : null;
