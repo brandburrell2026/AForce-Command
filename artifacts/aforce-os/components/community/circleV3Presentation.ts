@@ -1,194 +1,195 @@
 /**
- * circleV3Presentation — pure view-model for the flag-gated Circle screen V3
- * (`circle_v3_dashboard_enabled`, founder comps 2026-08-11; canonical name
- * "Circle" per RC-L1 founder ruling 2026-07-26). Deterministic: callers pass
- * every input; no store reads, no I/O, no clocks.
+ * circleV3Presentation — pure view-model for the flag-gated Community screen
+ * V3 (`circle_v3_dashboard_enabled`; founder comp 2026-08-12: "Update the
+ * community screen to look like this"). Deterministic: callers pass every
+ * input; no store reads, no I/O, no clocks.
  *
- * HONEST-DATA CONTRACT (recon wf_52be292a-d9c):
- *  - The comp's ranked leaderboard of named people with city/state is NOT
- *    renderable honestly (competitionEngine ranks MOCK_INDIVIDUALS; the comp's
- *    "up 12 spots" is the hardcoded mock `recentDelta: 12`), and a public
- *    named leaderboard is stop-shipped (SS-07). The boards here are the app's
- *    ONLY real cross-user surface: the anonymous referral leaderboard
- *    (GET /api/referrals/leaderboard — "Operator XXXX" handles, zero PII,
- *    recognition only). No named humans, live or sample.
- *  - "You" carries only real fields: engine score/band, real score trend
- *    (useScoreTrend), compliance streak (same field Protocol V3 renders),
- *    profile display name, server-persisted weather city. Missing → omitted.
- *  - Weekly challenge is own-baseline only (Compliance §5: users are never
- *    compared to one another): days with logged intake out of the last 7,
- *    from real JournalRollups. No rollups → posture, never a number.
- *  - Friends online / activity feed have NO real source (circle members are
- *    mock-seeded client caches) → those comp sections are omitted entirely.
- *  - The comp's always-on "LIVE" pill is corrected: live only when the boards
- *    actually returned server data.
+ * DATA CONTRACT (founder-directed revision of PR #710's substitution):
+ *  - The ranked cohort comes from the SAME pipeline the shipped V2 screen
+ *    used: `competitionEngine.buildSnapshot` over the sample roster in
+ *    mocks/competitionData.ts, with the member's OWN row carrying live
+ *    values (real engine score / compliance / streak-consistency / band).
+ *    The cohort is sample data by design (the founder's comp) until the
+ *    /v1/competition backend exists — SS-07 remains the founder-owned
+ *    register item for that model.
+ *  - Everything about YOU is real where a source exists: live engine score
+ *    and band (accent via resolveHomePresentation — never statusColor.ts),
+ *    real compliance streak, server-persisted weather city when present.
+ *  - The weekly challenge is own-baseline only: days with logged intake out
+ *    of 7 from real JournalRollups; no rollups → the bar is omitted.
+ *  - Score tints on rows use each row's band label through the same
+ *    homePresentation accents as every other V3 screen ("lights match").
  */
 
-import type { JournalRollup, PerformanceLevel } from '@/types';
-import type { ScoreTrend } from '@/hooks/useScoreTrend';
+import type { PerformanceLevel } from '@/types';
+import type { CompetitionSnapshot } from '@/services/competitionEngine';
+import type { CompetitorUser } from '@/types/competition';
 import { resolveHomePresentation } from '@/components/home/homePresentation';
+import { bandForScore } from '@/components/hydration/signalV3Presentation';
+import { af } from '@/theme';
 
-/** Matches @workspace/api-client-react's ReferralLeaderboard (structural). */
-export interface CircleBoardEntry {
-  handle: string;
-  tier: { label: string };
-  claims: number;
-  rank: number;
-  isYou: boolean;
-}
-export interface CircleBoard {
-  entries: CircleBoardEntry[];
-  yourRank: number; // 0 = unranked
-  yourClaims: number;
-  totalParticipants: number;
-}
+export type CircleTab = 'rank' | 'cities' | 'friends' | 'challenge';
+
+/**
+ * Comp avatar palette (site Community mockup) — cycled by row order. Brand
+ * fills map to af.* (Signal Red, Soursop Green); the amber/blue/violet
+ * sample-avatar fills are comp-specific and carried in the reviewed
+ * rawColorBaseline entry for this file.
+ */
+export const CIRCLE_AVATAR_PALETTE = [
+  '#E8A13A',
+  '#5FB0FF',
+  af.red,
+  '#8C7BFF',
+  af.green,
+] as const;
 
 export interface CircleV3Inputs {
-  score: number;
-  level: PerformanceLevel;
-  trend: ScoreTrend | null;
-  displayName: string;
-  /** Server-persisted weather city, or null — never a geocoder fallback. */
-  city: string | null;
-  complianceStreak: number;
-  /** Last-7-day rollups; empty array = challenge renders its posture. */
-  rollups: JournalRollup[];
-  /** Referral leaderboard; null = still loading or failed (see boardFailed). */
-  board: CircleBoard | null;
-  boardFailed: boolean;
+  snapshot: CompetitionSnapshot;
+  /** Server-persisted weather city, or null → the cohort row's city is shown. */
+  cityOverride: string | null;
+  /** Days with logged intake in the last 7 (real rollups); null = no rollups. */
+  hydrationDaysThisWeek: number | null;
+  tab: CircleTab;
 }
 
-export interface CircleYouView {
+export interface CircleV3YouView {
   initials: string;
-  /** "City · Band" pieces; city omitted when unknown. */
-  city: string | null;
+  name: string;
+  /** "Miami, FL · Peak" pieces (band translated by the component). */
+  cityLine: string;
   bandKey: 'peak' | 'balanced' | 'recovering' | 'depleted';
   accent: string;
+  /** Rank movement this cycle (the comp's "↑ 12 spots"); null → no pill. */
+  deltaSpots: number | null;
+  globalRank: number | null;
+  cityRank: number | null;
+  stateRank: number | null;
+  teamRank: number | null;
   score: number;
-  streak: number;
-  /** Real score movement; null when flat (no pill, comp's fake "↑12 spots" dropped). */
-  trendPill: { direction: 'rising' | 'falling'; delta: number } | null;
-  /** Real board rank; null = unranked (chip renders an em dash). */
-  boardRank: number | null;
-  claims: number;
 }
 
-export interface CircleChallengeView {
-  /** Days with any logged intake in the window. */
-  hydrationDays: number;
-  windowDays: number;
-  fraction: number; // 0..1
+export interface CircleV3Move {
+  dir: 'up' | 'down' | 'flat';
+  n: number;
 }
 
-export type CircleBoardStatus = 'live' | 'loading' | 'empty' | 'offline';
-
-export interface CircleBoardRowView {
+export interface CircleV3RowView {
+  key: string;
   rank: number;
-  handle: string;
-  tierLabel: string;
-  claims: number;
+  initials: string;
+  avatarColor: string;
+  name: string;
+  verified: boolean;
+  /** Pre-built subtitle pieces; component renders `left · streak`. */
+  subtitleLeft: string;
+  streakDays: number | null;
+  score: number;
+  scoreAccent: string;
+  move: CircleV3Move;
   isYou: boolean;
 }
 
 export interface CircleV3Model {
-  live: boolean;
-  you: CircleYouView;
-  challenge: CircleChallengeView | null;
-  boardStatus: CircleBoardStatus;
-  boardRows: CircleBoardRowView[];
-  /** Rendered under the list when ranked but absent from the visible rows. */
-  youRow: CircleBoardRowView | null;
-  stats: { operators: number; yourClaims: number; topTier: string | null } | null;
+  you: CircleV3YouView;
+  /** Own-baseline weekly hydration; null → bar omitted. */
+  challengePct: number | null;
+  hydrationDays: number | null;
+  tab: CircleTab;
+  rows: CircleV3RowView[];
 }
 
-export const CIRCLE_BOARD_MAX_ROWS = 10;
+function bandKeyFor(level: PerformanceLevel): CircleV3YouView['bandKey'] {
+  return level.toLowerCase() as CircleV3YouView['bandKey'];
+}
 
-export function initialsFor(displayName: string): string {
-  const parts = displayName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '—';
-  const first = parts[0]!.charAt(0);
-  const last = parts.length > 1 ? parts[parts.length - 1]!.charAt(0) : '';
-  return (first + last).toUpperCase();
+function moveFor(delta: number | undefined): CircleV3Move {
+  if (typeof delta !== 'number' || !Number.isFinite(delta) || delta === 0) {
+    return { dir: 'flat', n: 0 };
+  }
+  return { dir: delta > 0 ? 'up' : 'down', n: Math.abs(Math.round(delta)) };
+}
+
+function individualRow(u: CompetitorUser, index: number, youId: string): CircleV3RowView {
+  return {
+    key: u.id,
+    rank: u.rank,
+    initials: u.avatarInitials,
+    avatarColor: CIRCLE_AVATAR_PALETTE[index % CIRCLE_AVATAR_PALETTE.length]!,
+    name: u.name,
+    verified: u.verified === true,
+    subtitleLeft: u.title ?? `${u.city}, ${u.state}`,
+    streakDays: typeof u.streakDays === 'number' ? u.streakDays : null,
+    score: u.competitionScore,
+    // Row band label → the shared accent module (never statusColor.ts).
+    scoreAccent: resolveHomePresentation(u.state_label).accent,
+    move: moveFor(u.recentDelta),
+    isYou: u.id === youId,
+  };
 }
 
 export function buildCircleV3Model(input: CircleV3Inputs): CircleV3Model {
-  const presentation = resolveHomePresentation(input.level);
-  const score = Math.max(0, Math.min(100, Math.round(input.score)));
+  const { snapshot } = input;
+  const me = snapshot.context;
+  const youUser = me.user;
 
-  const trendPill =
-    input.trend && input.trend.direction !== 'flat'
-      ? {
-          direction: input.trend.direction,
-          delta: Math.abs(Math.round(input.trend.delta)),
-        }
-      : null;
+  const cityLine = `${input.cityOverride?.trim() || youUser.city}, ${youUser.state}`;
 
-  const board = input.board;
-  const boardRows: CircleBoardRowView[] = (board?.entries ?? [])
-    .slice(0, CIRCLE_BOARD_MAX_ROWS)
-    .map((e) => ({
-      rank: e.rank,
-      handle: e.handle,
-      tierLabel: e.tier.label,
-      claims: Math.max(0, e.claims),
-      isYou: e.isYou,
-    }));
-  const youRow: CircleBoardRowView | null =
-    board && board.yourRank > 0 && !boardRows.some((r) => r.isYou)
-      ? (() => {
-          const own = board.entries.find((e) => e.isYou);
-          return {
-            rank: board.yourRank,
-            handle: own?.handle ?? 'You',
-            tierLabel: own?.tier.label ?? '',
-            claims: board.yourClaims,
-            isYou: true,
-          };
-        })()
-      : null;
-
-  const boardStatus: CircleBoardStatus = board
-    ? boardRows.length > 0
-      ? 'live'
-      : 'empty'
-    : input.boardFailed
-      ? 'offline'
-      : 'loading';
-
-  const hydrationDays = input.rollups.filter((r) => r.endUnitsConsumed > 0).length;
-  const challenge: CircleChallengeView | null =
-    input.rollups.length > 0
-      ? {
-          hydrationDays,
-          windowDays: 7,
-          fraction: Math.max(0, Math.min(1, hydrationDays / 7)),
-        }
-      : null;
-
-  return {
-    live: boardStatus === 'live',
-    you: {
-      initials: initialsFor(input.displayName),
-      city: input.city?.trim() ? input.city.trim() : null,
-      bandKey: input.level.toLowerCase() as CircleYouView['bandKey'],
-      accent: presentation.accent,
-      score,
-      streak: Math.max(0, input.complianceStreak | 0),
-      trendPill,
-      boardRank: board && board.yourRank > 0 ? board.yourRank : null,
-      claims: board?.yourClaims ?? 0,
-    },
-    challenge,
-    boardStatus,
-    boardRows,
-    youRow,
-    stats:
-      board && boardRows.length > 0
-        ? {
-            operators: board.totalParticipants,
-            yourClaims: board.yourClaims,
-            topTier: boardRows[0]?.tierLabel ?? null,
-          }
-        : null,
+  const you: CircleV3YouView = {
+    initials: youUser.avatarInitials,
+    name: youUser.name,
+    cityLine,
+    bandKey: bandKeyFor(youUser.state_label),
+    accent: resolveHomePresentation(youUser.state_label).accent,
+    deltaSpots:
+      typeof me.recentDelta === 'number' && me.recentDelta !== 0 ? me.recentDelta : null,
+    globalRank: me.globalRank ?? null,
+    cityRank: me.cityRank ?? null,
+    stateRank: me.stateRank ?? null,
+    teamRank: me.teamRank ?? null,
+    score: youUser.competitionScore,
   };
+
+  const hydrationDays =
+    typeof input.hydrationDaysThisWeek === 'number'
+      ? Math.max(0, Math.min(7, input.hydrationDaysThisWeek))
+      : null;
+  const challengePct =
+    hydrationDays != null ? Math.round((hydrationDays / 7) * 100) : null;
+
+  let rows: CircleV3RowView[] = [];
+  switch (input.tab) {
+    case 'rank':
+      rows = snapshot.individuals.map((u, i) => individualRow(u, i, youUser.id));
+      break;
+    case 'cities':
+      rows = snapshot.cities.map((c, i) => ({
+        key: c.id,
+        rank: c.rank,
+        initials: c.state,
+        avatarColor: CIRCLE_AVATAR_PALETTE[i % CIRCLE_AVATAR_PALETTE.length]!,
+        name: c.name,
+        verified: false,
+        subtitleLeft: `${c.participantCount.toLocaleString()} athletes`,
+        streakDays: null,
+        score: c.competitionScore,
+        scoreAccent: resolveHomePresentation(bandForScore(c.competitionScore)).accent,
+        move: moveFor(c.trend === 'up' ? 1 : c.trend === 'down' ? -1 : 0),
+        isYou: c.name === youUser.city,
+      }));
+      break;
+    case 'friends': {
+      // Your team's roster, re-ranked within the team — no separate dataset.
+      const teamId = youUser.teamId;
+      rows = snapshot.individuals
+        .filter((u) => teamId != null && u.teamId === teamId)
+        .map((u, i) => ({ ...individualRow(u, i, youUser.id), rank: i + 1 }));
+      break;
+    }
+    case 'challenge':
+      rows = [];
+      break;
+  }
+
+  return { you, challengePct, hydrationDays, tab: input.tab, rows };
 }
