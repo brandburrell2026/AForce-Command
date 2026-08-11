@@ -19,7 +19,7 @@ import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { DEMO_MODE } from '../services/demoMode';
+import { DEMO_MODE, CAPTURE_MODE } from '../services/demoMode';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -96,6 +96,14 @@ function SplashGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+    if (CAPTURE_MODE) {
+      // Dev-only capture bypass: mark onboarding done and land on the tabs,
+      // but never hijack an explicit deep-link (e.g. /gallery) — leave any
+      // non-root path where it is so screenshot harnesses render.
+      AsyncStorage.setItem(ONBOARDING_DONE_KEY, 'true').catch(() => {});
+      if (pathname === '/' || pathname === '/onboarding') router.replace('/(tabs)' as never);
+      return;
+    }
     if (DEMO_MODE) {
       AsyncStorage.removeItem(ONBOARDING_DONE_KEY).catch(() => {});
       if (pathname !== '/onboarding') router.replace('/onboarding');
@@ -351,8 +359,10 @@ type LaunchPhase = 'opening' | 'welcome' | 'done';
 function AppShell() {
   // Cold-launch front-door state machine: opening → welcome → done. The
   // Voice Check-In / Performance Statement overlays wait for `done` so the
-  // top-most overlays never stack on a cold launch.
-  const [phase, setPhase] = React.useState<LaunchPhase>('opening');
+  // top-most overlays never stack on a cold launch. CAPTURE_MODE (dev-only
+  // screenshot bypass) starts at 'done' so the cinematic + Welcome Hero
+  // overlays never cover the surface being captured.
+  const [phase, setPhase] = React.useState<LaunchPhase>(CAPTURE_MODE ? 'done' : 'opening');
   // Cinematic finished → crossfade into the Welcome Hero.
   const handleOpeningDone = React.useCallback(() => setPhase('welcome'), []);
   // User picked an entry → dismiss the hero, ungate downstream overlays.
@@ -391,11 +401,15 @@ function AppShell() {
                   <InvestorDemoMount />
                   {/* Photo Welcome Hero — mounted UNDER the cinematic
                       (zIndex 999) so the cinematic's fade-out crossfades into
-                      it with no black flash; waits for GET STARTED / SIGN IN. */}
-                  <WelcomeMount phase={phase} onEntered={handleEntered} />
+                      it with no black flash; waits for GET STARTED / SIGN IN.
+                      CAPTURE_MODE (dev-only screenshot bypass) skips both
+                      front-door overlays entirely — the cinematic's onDone
+                      would otherwise pull the phase back to 'welcome' and
+                      cover the surface being captured. */}
+                  {!CAPTURE_MODE && <WelcomeMount phase={phase} onEntered={handleEntered} />}
                   {/* Top-most overlay: cinematic cold-launch opening (zIndex
                       1000, renders above the Welcome Hero). */}
-                  <OpeningMount onDone={handleOpeningDone} />
+                  {!CAPTURE_MODE && <OpeningMount onDone={handleOpeningDone} />}
                   {/* Voice Check-In ritual — shows after the opening, gated. */}
                   <VoiceCheckInMount openingDone={openingDone} />
                   {/* Performance Statement — once-per-day voice-only coach

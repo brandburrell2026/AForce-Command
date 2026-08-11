@@ -167,6 +167,19 @@
       "verb_declining": "DECLINING",
       "verb_recovering": "RECOVERING",
       "verb_critical": "CRITICAL"
+    },
+    "v3": {
+      "chip_live": "Live",
+      "chip_synced": "Synced",
+      "live_signals": "Live signals",
+      "signal_sleep": "Sleep",
+      "signal_hrv": "HRV",
+      "completed_today": "Completed today",
+      "day_streak": "Day streak",
+      "recovery_trend": "Recovery trend",
+      "trend_rising": "▲ Rising",
+      "trend_falling": "▼ Falling",
+      "trend_steady": "● Steady"
     }
   },
   "logIntake": {

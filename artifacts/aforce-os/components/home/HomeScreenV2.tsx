@@ -81,6 +81,15 @@ import type { FluidType } from '@/types';
 import { LiveStatusLine } from './LiveStatusLine';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
+import { explainFieldArbitration } from '@/utils/biometricsAggregator';
+import { deriveTodaysProtocol } from '@/utils/homeDashboard';
+import {
+  formatSleepHours,
+  formatHrvMs,
+  formatHydrationPct,
+  resolveHealthChip,
+  trendTile,
+} from './homeV3Presentation';
 
 interface HomeActions {
   logIntake: (
@@ -234,12 +243,72 @@ export function HomeScreenV2() {
     ? presentation.signalOrder
     : ['hydration', 'heat', 'recovery'];
 
+  // ── Home V3 dashboard (flag-gated, presentation-only; founder comps
+  // 2026-08-10) — every value below is derived from state this screen ALREADY
+  // reads (userState / engine / trend); no new store hooks, so the render-count
+  // guarantees hold. Honest-data contract lives in homeV3Presentation.ts:
+  // missing readings render an em dash, the chip renders nothing when no
+  // provider has contributed, and protocol rows carry derived period labels —
+  // never fabricated clock times. Sleep/HRV values come from
+  // explainFieldArbitration — the SAME per-field winner the scoring path's
+  // freshestNonNull selects (parity-proven in its test suite).
+  const v3 = flags.home_v3_dashboard_enabled;
+  const v3Data = React.useMemo(() => {
+    if (!v3) return null;
+    const now = Date.now();
+    const sleep = explainFieldArbitration(userState.biometrics, 'sleepHoursLastNight', now).winner;
+    const hrv = explainFieldArbitration(userState.biometrics, 'hrvSdnn', now).winner;
+    const sources = Object.entries(userState.biometrics ?? {})
+      .filter(([, snap]) => snap != null)
+      .map(([id]) => id as import('@/data/healthProviders').HealthProviderId);
+    const chip = resolveHealthChip({
+      sources,
+      freshestFetchedAtMs: freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics),
+      now,
+    });
+    return {
+      chip,
+      sleepText: formatSleepHours(sleep ? (sleep.value as number) : null),
+      hrvText: formatHrvMs(hrv ? (hrv.value as number) : null),
+      hydrationText: formatHydrationPct(userState.unitsConsumedToday, userState.dailyTarget),
+      protocol: deriveTodaysProtocol({
+        unitsConsumedToday: userState.unitsConsumedToday,
+        dailyTarget: userState.dailyTarget,
+      }),
+      trend: trendTile(trend.direction),
+    };
+  }, [
+    v3,
+    userState.biometrics,
+    userState.appleHealth,
+    userState.unitsConsumedToday,
+    userState.dailyTarget,
+    trend.direction,
+  ]);
+  const protocolDone = v3Data ? v3Data.protocol.filter((b) => b.complete).length : 0;
+
   return (
-    <AFScreen scroll contentContainerStyle={styles.scrollContent}>
-      {/* Wordmark + freshness */}
+    <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
+      {/* Wordmark + freshness (+ V3 health-connection chip — renders nothing
+          when no provider has contributed data) */}
       <Animated.View entering={reveal(0)} style={styles.header}>
         <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
-        <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
+        <View style={styles.brandRow}>
+          <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
+          {v3Data?.chip ? (
+            <View
+              style={styles.v3Chip}
+              accessible
+              accessibilityLabel={`${v3Data.chip.label} ${v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}`}
+              testID="home-v3-health-chip"
+            >
+              <View style={[styles.v3ChipDot, !v3Data.chip.live && styles.v3ChipDotIdle]} />
+              <Text style={styles.v3ChipText} numberOfLines={1}>
+                {v3Data.chip.label} · {v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
+              </Text>
+            </View>
+          ) : null}
+        </View>
         <HomeFreshnessLabel
           fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
           style={styles.freshness}
@@ -315,15 +384,75 @@ export function HomeScreenV2() {
             )}
           </Animated.View>
 
-          {/* Three quiet signals */}
+          {/* Signals — V3: four live-signal tiles (Hydration / Recovery /
+              Sleep / HRV, missing readings render an em dash); flag off: the
+              shipped three-tile row, byte-identical. */}
           <Animated.View entering={reveal(3)} style={styles.signalsSection}>
-            <AFSectionLabel label={t('home.v2.signals_label')} />
-            <View style={styles.signals}>
-              {signalOrder.map((key) => (
-                <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
-              ))}
-            </View>
+            <AFSectionLabel label={t(v3 ? 'home.v3.live_signals' : 'home.v2.signals_label')} />
+            {v3 && v3Data ? (
+              <View style={styles.v3Grid}>
+                <View style={styles.signals}>
+                  <Signal label={t('home.v2.signal_hydration')} value={v3Data.hydrationText} />
+                  <Signal label={t('home.v2.signal_recovery')} value={titleCase(engine.performanceState.level)} />
+                </View>
+                <View style={styles.signals}>
+                  <Signal label={t('home.v3.signal_sleep')} value={v3Data.sleepText} />
+                  <Signal label={t('home.v3.signal_hrv')} value={v3Data.hrvText} />
+                </View>
+              </View>
+            ) : (
+              <View style={styles.signals}>
+                {signalOrder.map((key) => (
+                  <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
+                ))}
+              </View>
+            )}
           </Animated.View>
+
+          {/* V3: Completed today — the three DERIVED protocol blocks (period
+              labels, never fabricated clock times) + streak / session-trend
+              stat tiles. complianceStreak and the trend are values this screen
+              already reads. */}
+          {v3 && v3Data ? (
+            <Animated.View entering={reveal(4)} style={styles.v3Section}>
+              <View style={styles.v3SectionHead}>
+                <AFSectionLabel label={t('home.v3.completed_today')} />
+                <Text style={styles.v3Count} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+                  {protocolDone} / {v3Data.protocol.length}
+                </Text>
+              </View>
+              <View style={styles.v3Rows} accessible accessibilityLabel={t('home.v3.completed_today')}>
+                {v3Data.protocol.map((b) => (
+                  <View key={b.id} style={styles.v3Row} accessible accessibilityLabel={`${b.label}, ${b.period}${b.complete ? '' : ', pending'}`}>
+                    <View style={[styles.v3Check, b.complete ? styles.v3CheckOn : styles.v3CheckOff]}>
+                      {b.complete ? <Text style={styles.v3CheckMark}>✓</Text> : null}
+                    </View>
+                    <Text style={[styles.v3RowLabel, !b.complete && styles.v3RowLabelOff]} numberOfLines={1}>
+                      {b.label}
+                    </Text>
+                    <Text style={styles.v3RowPeriod}>{b.period}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.v3Stats}>
+                <View style={styles.v3Stat}>
+                  <Text style={styles.v3StatValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+                    {userState.complianceStreak}
+                  </Text>
+                  <Text style={styles.v3StatLabel}>{t('home.v3.day_streak')}</Text>
+                </View>
+                <View style={styles.v3Stat}>
+                  <Text
+                    style={[styles.v3StatValue, styles.v3StatTrend, v3Data.trend.positive && styles.v3StatPositive]}
+                    maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+                  >
+                    {t(`home.v3.${v3Data.trend.i18nKey}`)}
+                  </Text>
+                  <Text style={styles.v3StatLabel}>{t('home.v3.recovery_trend')}</Text>
+                </View>
+              </View>
+            </Animated.View>
+          ) : null}
         </>
       )}
     </AFScreen>
@@ -333,6 +462,9 @@ export function HomeScreenV2() {
 const styles = StyleSheet.create({
   // Tokenized bottom breathing room (replaces a trailing <View height:40/> spacer).
   scrollContent: { paddingBottom: Spacing[10] },
+  // V3 sections extend the scroll below the fold — clear the floating tab bar
+  // (≈49pt bar + home-indicator inset) so the last stat tiles are reachable.
+  scrollContentV3: { paddingBottom: Spacing[24] + Spacing[8] },
   header: { marginTop: 8, marginBottom: 8 },
   welcome: { ...afType.secondary, color: af.textTertiary },
   brand: { ...afType.title1, color: af.textPrimary },
@@ -367,4 +499,36 @@ const styles = StyleSheet.create({
   signalLabel: { ...afType.eyebrow, color: af.textTertiary },
   signalValue: { ...afType.title3, color: af.textPrimary },
   trust: { ...afType.caption, color: af.textTertiary, marginTop: 10, lineHeight: 17 },
+  // ── Home V3 dashboard (home_v3_dashboard_enabled) ──
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  v3Chip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1,
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
+    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
+  },
+  v3ChipDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: af.green },
+  v3ChipDotIdle: { backgroundColor: af.textTertiary },
+  v3ChipText: { ...afType.caption, color: af.textSecondary },
+  v3Grid: { gap: 12 },
+  v3Section: { marginTop: 28, gap: 12 },
+  v3SectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  v3Count: { ...afType.caption, color: af.textTertiary, fontVariant: ['tabular-nums'] },
+  v3Rows: { gap: 14 },
+  v3Row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  v3Check: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  v3CheckOn: { backgroundColor: af.green },
+  v3CheckOff: { borderWidth: 1.5, borderColor: af.borderStrong },
+  v3CheckMark: { color: af.canvas, fontSize: 12, fontWeight: '700', lineHeight: 14 },
+  v3RowLabel: { ...afType.body, color: af.textPrimary, flex: 1 },
+  v3RowLabelOff: { color: af.textTertiary },
+  v3RowPeriod: { ...afType.caption, color: af.textTertiary },
+  v3Stats: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  v3Stat: {
+    flex: 1, gap: 4, paddingVertical: 14, paddingHorizontal: 14,
+    borderRadius: 14, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
+  },
+  v3StatValue: { ...afType.title2, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  v3StatTrend: { ...afType.title3 },
+  v3StatPositive: { color: af.green },
+  v3StatLabel: { ...afType.caption, color: af.textTertiary },
 });
