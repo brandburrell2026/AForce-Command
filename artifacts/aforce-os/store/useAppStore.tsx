@@ -47,8 +47,9 @@ import {
 } from '../services/profileSyncService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { defaultUserState, mockHistory } from '../data/mockData';
-import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
+import { CAPTURE_MODE } from '../services/demoMode';
 import { getCommandLedgerState } from '../services/commandLedger';
 import { adaptEngineOutputForRecheck } from '../utils/intelligence/adaptEngineOutput';
 import {
@@ -147,8 +148,11 @@ const initialState: AppState = {
   // internal-TestFlight build with EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true (see
   // featureFlags/internalTestflightOverlay.ts). Production/App-Store builds
   // never set that env, so `resolveInitialFeatureFlags` returns DEFAULT_FLAGS
-  // by reference here.
-  featureFlags: resolveInitialFeatureFlags(DEFAULT_FLAGS),
+  // by reference here. CAPTURE_MODE (dev-only screenshot bypass, see
+  // services/demoMode.ts) seeds the SAME clamped payload the Profile screen's
+  // "Unlock all demo features" control dispatches — restricted
+  // internal-preview flags stay OFF; compile-time inert outside __DEV__.
+  featureFlags: CAPTURE_MODE ? demoUnlockAllFlags() : resolveInitialFeatureFlags(DEFAULT_FLAGS),
   subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,

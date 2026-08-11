@@ -778,6 +778,13 @@ export interface FeatureFlags {
    * it to the static Home. Never touches score/command/eligibility/safety logic.
    */
   elite_home_experience_enabled: boolean;
+  /**
+   * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
+   * sections inside HomeScreenV2: health-connection chip, four live-signal
+   * tiles, derived Completed-today protocol list, streak/trend stat tiles.
+   * Honest data only (existing store state; em dash when absent). Default OFF.
+   */
+  home_v3_dashboard_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

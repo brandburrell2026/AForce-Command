@@ -184,6 +184,18 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // count-up / ordering only; never reads into or mutates score, command,
   // eligibility, timing, or safety. Reduced-motion → static Home.
   elite_home_experience_enabled: false,
+  // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
+  // sections inside HomeScreenV2: health-connection chip, four live-signal
+  // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
+  // protocol list, and streak/trend stat tiles. Honest-data rules: every value
+  // comes from existing store state (engine, userState, biometrics arbitration
+  // via explainFieldArbitration — the scoring path's own winner); tiles with no
+  // data show an em dash, never an invented number; protocol rows show period
+  // labels (Morning/Midday/Evening), never fabricated clock times. Presentation
+  // only — no new store hooks, no scoring/command/timing reads beyond what
+  // HomeScreenV2 already performs. OFF in production; ON in DEMO_ALL_ON.
+  // Production flip is a founder release decision by precedent.
+  home_v3_dashboard_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -429,6 +441,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   signal_hierarchy_enabled: true,
   spec_home: true,
   elite_home_experience_enabled: true,
+  home_v3_dashboard_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,
