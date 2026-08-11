@@ -108,7 +108,14 @@
           }
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only — never attendees, notes, or attachments. You choose which calendars.",
+          "remindersPermission": "AForce does not use Reminders. This text exists only because the calendar module requires the entry; reminders access is never requested."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
