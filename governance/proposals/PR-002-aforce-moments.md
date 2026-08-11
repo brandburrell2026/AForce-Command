@@ -2,7 +2,7 @@
 
 **Status:** PARTIALLY APPROVED · Phases 1–2 built (PR #713). Items 5.1 + 5.4
 approved by Brandon + Julius 2026-08-12 → DR-010 (fully ratified);
-Phase 3a (prep notifications) in build. **Items 5.2 / 5.3 / 5.5 / 5.6 NOT authorized** — every item in Part 5 requires explicit
+Phase 3a (prep notifications) in build. **Calendar core building dark per DR-011 (activation blocked on Legal+Privacy, Appendix A); item 5.6 NOT authorized** — every item in Part 5 requires explicit
 approval before any Phase 3 work begins.
 **Deciders:** Brandon (founder) + Julius — items marked [JB] require both.
 **Author:** Claude Code (drafted at founder direction, 2026-08-12).
@@ -77,9 +77,9 @@ substitute when access is absent.
 ## 7. Approval
 
 - [x] 5.1 Section allocation — Brandon ☑ 2026-08-12 (DR-010) · Julius ☑ 2026-08-12
-- [ ] 5.2 Calendar data class — Brandon ☐ Legal ☐ Privacy ☐
-- [ ] 5.3 Calendar-derived surfacing — Brandon ☐ Julius ☐
+- [~] 5.2 Calendar data class — Brandon ☑ 2026-08-12 (DR-011) · Legal ☐ PENDING · Privacy ☐ PENDING (Appendix A is the counsel packet; activation blocked)
+- [x] 5.3 Calendar-derived surfacing — Brandon ☑ 2026-08-12 (DR-011 Ruling 2) · Julius ☐ PENDING
 - [x] 5.4 Prep notifications — Brandon ☑ 2026-08-12 (DR-010, constrained) · Julius ☑ 2026-08-12
-- [ ] 5.5 Native build authorization — Brandon ☐
+- [x] 5.5 Native build authorization — Brandon ☑ 2026-08-12 (DR-011; expo-calendar + permission strings)
 - [ ] 5.6 Learning loop — Brandon ☐ Julius ☐
 - [ ] Terminology registrations (Part 4) — Brandon ☐

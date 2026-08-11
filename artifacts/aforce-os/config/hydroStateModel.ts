@@ -505,3 +505,31 @@ export const MOMENT_NOTIFY_QUIET_END_HOUR = 7;
  *  fire at the prep-window start (the default "do this now" timing).
  *  'Adaptive' is EXCLUDED until PR-002 5.6 is approved (DR-010). */
 export const MOMENT_NOTIFY_LEAD_PRESETS_MIN = [15, 30, 60, 90, 120] as const;
+
+/* ─── AForce Moments Phase 3b — calendar core (DR-011) ───────────────────── */
+/* Calendar-derived Moments: read horizon, classification confidence, and the
+ * per-category defaults. Least-privilege by construction: the bridge reads
+ * titles + times from user-SELECTED calendars only, holds events in memory
+ * only (never persisted — data-minimization commitment in PR-002 Appendix A),
+ * and unclassifiable events are skipped or masked, never guessed
+ * ("do not pretend certainty" — founder spec). */
+
+/** How far ahead the calendar bridge reads (days). */
+export const MOMENT_CALENDAR_HORIZON_DAYS = 2;
+
+/** Minimum keyword-match confidence to surface a calendar event as a Moment.
+ *  Below this the event is skipped (neutral-or-skip rule). */
+export const MOMENT_CLASSIFY_MIN_CONFIDENCE = 0.6;
+
+/** Default importance per classified category (user can't edit v1). */
+export const MOMENT_CALENDAR_DEFAULT_IMPORTANCE: Record<
+  'work' | 'training' | 'travel' | 'recovery' | 'personal' | 'performance',
+  'high' | 'moderate' | 'low'
+> = {
+  work: 'high',
+  performance: 'high',
+  training: 'high',
+  travel: 'moderate',
+  recovery: 'moderate',
+  personal: 'moderate',
+};

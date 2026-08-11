@@ -816,6 +816,9 @@ export interface FeatureFlags {
   moments_enabled: boolean;
   /** Moments prep notifications (Phase 3a, DR-010). Default OFF. */
   moments_notifications_enabled: boolean;
+  /** Moments calendar core (Phase 3b, DR-011). Default OFF; activation
+   *  blocked pending Legal+Privacy sign-off on the data class. */
+  moments_calendar_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

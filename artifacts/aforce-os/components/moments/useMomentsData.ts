@@ -22,6 +22,8 @@ import {
   type MomentSignals,
 } from '@/services/momentRecommendation';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
+import { useFeatureFlags } from '@/store/useAppStore';
+import { useCalendarMoments, refreshCalendarMoments } from '@/services/calendarMoments';
 import { useAppStateGatedInterval } from '@/hooks/useAppStateGatedInterval';
 
 const TICK_MS = 30_000;
@@ -41,6 +43,8 @@ export function useMomentsData(options?: {
   fixtureNowIso?: string;
 }): MomentsData {
   const store = useMomentsStore();
+  const flags = useFeatureFlags();
+  const calendarDerived = useCalendarMoments();
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const [tickIso, setTickIso] = React.useState(() => new Date().toISOString());
@@ -63,9 +67,21 @@ export function useMomentsData(options?: {
     for (const m of buildDemoMoments(new Date().toISOString())) addMoment(m);
   }, [options?.fixtureMoments, store.hydrated, store.moments.length]);
 
+  // Phase 3b (DR-011): merge in-memory calendar moments when the flag is
+  // on. The 30s tick doubles as the throttled foreground refresh driver
+  // (refreshCalendarMoments self-throttles to 60s; zero background work).
+  const calendarOn = flags.moments_calendar_enabled;
+  React.useEffect(() => {
+    if (options?.fixtureMoments || !calendarOn) return;
+    void refreshCalendarMoments();
+  }, [options?.fixtureMoments, calendarOn, tickIso]);
+
   const fixture = options?.fixtureMoments;
   const nowIso = options?.fixtureNowIso ?? tickIso;
-  const moments = fixture ?? store.moments;
+  const moments = React.useMemo(
+    () => fixture ?? (calendarOn ? [...store.moments, ...calendarDerived] : store.moments),
+    [fixture, calendarOn, store.moments, calendarDerived],
+  );
 
   const signals: MomentSignals = React.useMemo(
     () =>

@@ -53,7 +53,9 @@ export function NextMomentCard({
       >
         <Text style={styles.eyebrow}>{t('moments.next_label')}</Text>
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>{moment.title}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {moment.masked ? t('moments.private_event') : moment.title}
+          </Text>
           <Text style={styles.time}>{clockLabel(moment.startAtIso)}</Text>
         </View>
 
@@ -133,7 +135,9 @@ export function TodaysMomentsList({
               </View>
               <View style={styles.rowBody}>
                 <Text style={styles.rowTime}>{row.time}</Text>
-                <Text style={styles.rowTitle} numberOfLines={1}>{row.title}</Text>
+                <Text style={styles.rowTitle} numberOfLines={1}>
+                  {m.masked ? t('moments.private_event') : row.title}
+                </Text>
                 <Text style={[styles.rowStatus, done && { color: af.green }]} numberOfLines={1}>
                   {done
                     ? `${t(`moments.category_${row.type}`)} · ${t('moments.status_completed')}`

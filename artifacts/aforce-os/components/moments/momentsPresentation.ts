@@ -61,6 +61,11 @@ export function prepWindowLabel(rec: MomentRecommendation): string {
   return `${clockLabel(rec.prepWindowStartIso)} – ${clockLabel(rec.prepWindowEndIso)}`;
 }
 
+/** PRIVATE EVENT masking — components pass t('moments.private_event'). */
+export function displayTitle(moment: Moment, privateLabel: string): string {
+  return moment.masked ? privateLabel : moment.title;
+}
+
 export interface MomentListRowView {
   momentId: string;
   time: string;
@@ -81,7 +86,7 @@ export function buildListRow(
   return {
     momentId: moment.id,
     time: clockLabel(moment.startAtIso),
-    title: moment.title,
+    title: moment.title, // masked handled by callers via displayTitle
     posture: windowPosture(rec, moment.startAtIso, nowIso),
     prepWindow: prepWindowLabel(rec),
     accent: accentForType(moment.type),
