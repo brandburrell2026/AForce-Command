@@ -23,6 +23,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { af, afType, Spacing } from '@/theme';
 import type { Moment, MomentRecommendation, RitualStage } from '@/types/moments';
 import { updateMoment } from '@/services/momentsStore';
+import { cancelMomentNotification } from '@/services/momentNotifications';
 import { clockLabel, prepWindowLabel, startsIn } from './momentsPresentation';
 import { WhyThisSheet } from './WhyThisSheet';
 
@@ -107,6 +108,8 @@ export function MomentDetailScreen({
         onPress={() => {
           if (!prepared && !readOnly) {
             updateMoment(moment.id, { preparedAtIso: new Date().toISOString() });
+            // Immediate cancel; the scheduling hook's resync also covers it.
+            void cancelMomentNotification(moment.id);
           }
         }}
         disabled={prepared}

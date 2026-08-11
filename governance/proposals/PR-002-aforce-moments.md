@@ -1,7 +1,8 @@
 # PR-002 — AForce Moments (DRAFT — pending founder decision)
 
-**Status:** DRAFT · Phases 1–2 build authorized by founder 2026-08-12 (flag OFF in
-production); **Phase 3+ NOT authorized** — every item in Part 5 requires explicit
+**Status:** PARTIALLY APPROVED · Phases 1–2 built (PR #713). Items 5.1 + 5.4
+approved by Brandon 2026-08-12 → DR-010 (Julius countersignature pending);
+Phase 3a (prep notifications) in build. **Items 5.2 / 5.3 / 5.5 / 5.6 NOT authorized** — every item in Part 5 requires explicit
 approval before any Phase 3 work begins.
 **Deciders:** Brandon (founder) + Julius — items marked [JB] require both.
 **Author:** Claude Code (drafted at founder direction, 2026-08-12).
@@ -75,10 +76,10 @@ substitute when access is absent.
 
 ## 7. Approval
 
-- [ ] 5.1 Section allocation — Brandon ☐ Julius ☐
+- [x] 5.1 Section allocation — Brandon ☑ 2026-08-12 (DR-010) · Julius ☐ PENDING
 - [ ] 5.2 Calendar data class — Brandon ☐ Legal ☐ Privacy ☐
 - [ ] 5.3 Calendar-derived surfacing — Brandon ☐ Julius ☐
-- [ ] 5.4 Prep notifications — Brandon ☐ Julius ☐
+- [x] 5.4 Prep notifications — Brandon ☑ 2026-08-12 (DR-010, constrained) · Julius ☐ PENDING
 - [ ] 5.5 Native build authorization — Brandon ☐
 - [ ] 5.6 Learning loop — Brandon ☐ Julius ☐
 - [ ] Terminology registrations (Part 4) — Brandon ☐

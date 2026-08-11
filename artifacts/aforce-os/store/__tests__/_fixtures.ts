@@ -97,6 +97,7 @@ export const baseFlags: FeatureFlags = {
   weekly_v3_dashboard_enabled: false,
   circle_v3_dashboard_enabled: false,
   moments_enabled: false,
+  moments_notifications_enabled: false,
   elite_weekly_report_enabled: false,
   elite_motion_enabled: false,
   elite_voice_coach_enabled: false,

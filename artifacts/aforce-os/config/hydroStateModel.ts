@@ -483,3 +483,25 @@ export const MOMENT_HYDRATE_BEST_BEFORE_FRACTION = 0.5;
 
 /** Upcoming-moment surfacing horizon (hours ahead) for Today lists. */
 export const MOMENT_SURFACE_HORIZON_HOURS = 24;
+
+/* ─── AForce Moments Phase 3a — prep notifications (DR-010) ──────────────── */
+/* Interruption-budget constants for the Moments notification planner
+ * (services/momentNotifications.ts). DR-010 constraint 2: quiet hours +
+ * minimum gap + a daily cap BELOW the global 6/day reminder ceiling;
+ * high/moderate importance only by default. Behavioral copy only — no
+ * prediction values ever appear in a notification (PT-1 stays prohibited). */
+
+/** Max Moments prep notifications per calendar day (< GUARDRAIL_MAX_PER_DAY_CEIL). */
+export const MOMENT_NOTIFY_MAX_PER_DAY = 3;
+
+/** Minimum gap between two Moments notifications (minutes). */
+export const MOMENT_NOTIFY_MIN_GAP_MIN = 60;
+
+/** Quiet hours (local): no Moments notification fires inside this window. */
+export const MOMENT_NOTIFY_QUIET_START_HOUR = 22;
+export const MOMENT_NOTIFY_QUIET_END_HOUR = 7;
+
+/** Selectable lead-time presets (minutes before the moment start). null =
+ *  fire at the prep-window start (the default "do this now" timing).
+ *  'Adaptive' is EXCLUDED until PR-002 5.6 is approved (DR-010). */
+export const MOMENT_NOTIFY_LEAD_PRESETS_MIN = [15, 30, 60, 90, 120] as const;

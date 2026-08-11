@@ -20,7 +20,8 @@ import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { af } from '@/theme';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
+import { MomentPrepPrefsCard } from '@/components/moments/MomentPrepPrefsCard';
 import type { NotificationSettingKey } from '@/types';
 
 interface ToggleRow {
@@ -43,6 +44,11 @@ export function NotificationsScreenV2() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { notificationSettings, setNotificationSetting } = useAppStore();
+  const flags = useFeatureFlags();
+  // Phase 3a (DR-010): the Moments row + prefs appear only when both
+  // Moments flags are on (OFF in production).
+  const momentsOn = flags.moments_enabled && flags.moments_notifications_enabled;
+  const rows = momentsOn ? [...ROWS, { key: 'momentPrep' as const, icon: 'zap' as const }] : ROWS;
 
   const topPadding = Platform.OS === 'web' ? 24 : insets.top + 8;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom + 24;
@@ -67,7 +73,7 @@ export function NotificationsScreenV2() {
           <Text style={styles.intro}>{t('notifications.v2.intro')}</Text>
 
           <View style={styles.card}>
-            {ROWS.map((row, idx) => (
+            {rows.map((row, idx) => (
               <View key={row.key}>
                 {idx > 0 && <View style={styles.divider} />}
                 <View style={styles.row}>
@@ -93,6 +99,8 @@ export function NotificationsScreenV2() {
               </View>
             ))}
           </View>
+
+          {momentsOn && notificationSettings.momentPrep ? <MomentPrepPrefsCard /> : null}
 
           <Text style={styles.footnote}>{t('notifications.v2.footnote')}</Text>
         </ScrollView>

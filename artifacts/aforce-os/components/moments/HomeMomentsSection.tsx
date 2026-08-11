@@ -7,10 +7,13 @@
 import React from 'react';
 
 import { useMomentsData } from './useMomentsData';
+import { useMomentPrepScheduling } from './useMomentPrepScheduling';
 import { NextMomentCard, TodaysMomentsList } from './NextMomentCard';
 
 export function HomeMomentsSection() {
   const data = useMomentsData();
+  // Phase 3a (DR-010): OS-level prep signals stay in sync with the store.
+  useMomentPrepScheduling();
   if (!data.hydrated || data.surfaced.length === 0) return null;
   return (
     <>
