@@ -2412,6 +2412,28 @@
       "lead_window": "Prep window",
       "lead_min": "{{n}} min",
       "lead_adaptive_locked": "Adaptive timing unlocks with prep learning."
+    },
+    "private_event": "PRIVATE EVENT",
+    "calendar": {
+      "title": "CONNECT CALENDAR",
+      "subtitle": "AForce reads your calendar to help prepare you for important moments.",
+      "device_calendars": "Device calendars",
+      "device_hint": "iCloud, Google, and Outlook accounts already on this device.",
+      "connect": "CONNECT",
+      "connected": "Connected · read-only",
+      "calendars_label": "CALENDARS TO READ",
+      "categories_label": "EVENT CATEGORIES",
+      "cat_work": "Work Events",
+      "cat_work_hint": "Meetings, calls, deadlines",
+      "cat_training": "Training Events",
+      "cat_training_hint": "Workouts, sessions, classes",
+      "cat_travel": "Travel Events",
+      "cat_travel_hint": "Flights, hotels, trips",
+      "denied": "Calendar access is off. AForce works fully without it — add moments manually, or enable access in Settings.",
+      "unavailable": "Calendar access needs an app update. Manual moments work fully in the meantime.",
+      "disconnect": "Disconnect calendar",
+      "manage_access": "MANAGE CALENDAR ACCESS",
+      "privacy_footer": "We only use what we need to prepare you: event titles and times from the calendars you choose. Never attendees, notes, or attachments. Nothing is stored or sent anywhere. You’re in control — change anytime."
     }
   }
 }

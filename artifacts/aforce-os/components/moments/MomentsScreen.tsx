@@ -14,6 +14,7 @@ import { AFScreen, AFTopBar, AFCard, AFSectionLabel, AFSecondaryButton, AFEmptyS
 import { Icon } from '@/components/Icon';
 import { af, afType, Spacing } from '@/theme';
 import type { Moment, MomentRecommendation } from '@/types/moments';
+import { useFeatureFlags } from '@/store/useAppStore';
 import { useMomentsData } from './useMomentsData';
 import {
   accentForType,
@@ -29,6 +30,7 @@ export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoment
   const { t } = useTranslation();
   const router = useRouter();
   const data = useMomentsData({ fixtureMoments, fixtureNowIso });
+  const calendarOn = useFeatureFlags().moments_calendar_enabled;
   const summary = daySummary(data.surfaced);
   const upNext = data.surfaced.filter((m) => Date.parse(m.startAtIso) > Date.parse(data.nowIso));
 
@@ -38,6 +40,11 @@ export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoment
         eyebrow={t('moments.overview_eyebrow')}
         title={t('moments.overview_title')}
         onBack={() => router.back()}
+        actions={
+          calendarOn
+            ? [{ icon: 'calendar', onPress: () => router.push('/calendar-settings'), label: t('moments.calendar.title') }]
+            : undefined
+        }
       />
       <Text style={styles.subtitle}>{t('moments.overview_subtitle')}</Text>
 
@@ -113,7 +120,9 @@ function MomentOverviewCard({
         <View style={styles.cardHeader}>
           <View style={styles.cardHeadLeft}>
             <Text style={styles.cardTime}>{clockLabel(moment.startAtIso)}</Text>
-            <Text style={styles.cardTitle} numberOfLines={1}>{moment.title}</Text>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {moment.masked ? t('moments.private_event') : moment.title}
+            </Text>
           </View>
           {eta ? (
             <Text style={styles.cardEta}>

@@ -120,7 +120,9 @@ export function PrepareMyDayScreen({ fixtureMoments, fixtureNowIso }: { fixtureM
                   </View>
                   <View style={styles.rowBody}>
                     <Text style={styles.rowTime}>{clockLabel(m.startAtIso)}</Text>
-                    <Text style={styles.rowTitle} numberOfLines={1}>{m.title}</Text>
+                    <Text style={styles.rowTitle} numberOfLines={1}>
+                      {m.masked ? t('moments.private_event') : m.title}
+                    </Text>
                     <Text style={styles.rowSub} numberOfLines={1}>
                       {t(`moments.demand_${m.type}`)} · {t(`moments.importance_${m.importance}`)}
                     </Text>

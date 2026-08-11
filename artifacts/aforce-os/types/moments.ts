@@ -28,8 +28,8 @@ export type MomentType =
 
 export type MomentImportance = 'high' | 'moderate' | 'low';
 
-/** Phase 1–2: manual entry + production-guarded demo seeds only. */
-export type MomentSource = 'manual' | 'demo';
+/** Phase 3b (DR-011) adds 'calendar' — device-derived, in-memory only. */
+export type MomentSource = 'manual' | 'demo' | 'calendar';
 
 export type RitualStageKey = 'pause' | 'hydrate' | 'lock_in' | 'perform';
 
@@ -44,6 +44,10 @@ export interface Moment {
   endAtIso?: string;
   /** Optional user-stated prep goal from "Add a Moment". */
   prepGoal?: string;
+  /** No readable title → render PRIVATE EVENT (never the raw event). */
+  masked?: boolean;
+  /** Source calendar event id (calendar moments only). */
+  calendarEventId?: string;
   /** Set when the member taps I'M READY — Moments-internal state only. */
   preparedAtIso?: string;
   createdAtIso: string;

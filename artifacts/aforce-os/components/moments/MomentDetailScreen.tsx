@@ -23,6 +23,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { af, afType, Spacing } from '@/theme';
 import type { Moment, MomentRecommendation, RitualStage } from '@/types/moments';
 import { updateMoment } from '@/services/momentsStore';
+import { markCalendarMomentPrepared } from '@/services/calendarMoments';
 import { cancelMomentNotification } from '@/services/momentNotifications';
 import { clockLabel, prepWindowLabel, startsIn } from './momentsPresentation';
 import { WhyThisSheet } from './WhyThisSheet';
@@ -63,7 +64,7 @@ export function MomentDetailScreen({
     <AFScreen scroll contentContainerStyle={styles.scrollContent}>
       <AFTopBar
         eyebrow={clockLabel(moment.startAtIso)}
-        title={moment.title}
+        title={moment.masked ? t('moments.private_event') : moment.title}
         onBack={() => router.back()}
       />
 
@@ -107,7 +108,11 @@ export function MomentDetailScreen({
         label={prepared ? t('moments.status_completed') : t('moments.im_ready')}
         onPress={() => {
           if (!prepared && !readOnly) {
-            updateMoment(moment.id, { preparedAtIso: new Date().toISOString() });
+            if (moment.source === 'calendar' && moment.calendarEventId) {
+              void markCalendarMomentPrepared(moment.calendarEventId);
+            } else {
+              updateMoment(moment.id, { preparedAtIso: new Date().toISOString() });
+            }
             // Immediate cancel; the scheduling hook's resync also covers it.
             void cancelMomentNotification(moment.id);
           }

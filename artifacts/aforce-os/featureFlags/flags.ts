@@ -237,6 +237,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // quiet hours, 60-min gap, daily cap, importance filter, user toggle.
   // OFF in production (DR-010 constraint 4). Requires moments_enabled too.
   moments_notifications_enabled: false,
+  // Moments calendar core (Phase 3b, DR-011) — device-calendar reading:
+  // read-only, titles+times only, user-selected calendars/categories,
+  // PRIVATE EVENT masking, in-memory only (never persisted). OFF in
+  // production and BLOCKED from activation until Legal + Privacy sign off
+  // on the calendar data class (PR-002 5.2 / Appendix A).
+  moments_calendar_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -489,6 +495,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   circle_v3_dashboard_enabled: true,
   moments_enabled: true,
   moments_notifications_enabled: true,
+  moments_calendar_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,

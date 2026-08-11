@@ -161,6 +161,7 @@ function RootLayoutNav() {
       <Stack.Screen name="moments" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moments-plan" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moment/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="calendar-settings" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }
