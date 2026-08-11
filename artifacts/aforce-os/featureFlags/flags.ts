@@ -219,6 +219,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // awaiting postures. OFF in production; ON in DEMO_ALL_ON. Production
   // flip is a founder decision.
   weekly_v3_dashboard_enabled: false,
+  // Circle V3 (founder comps, 2026-08-11; canonical name per RC-L1) — the
+  // Circle tab redesign. Real engine/analytics "You" fields, own-baseline
+  // hydration challenge, and the anonymous referral boards as the only
+  // cross-user surface (no named-people rankings — SS-07). OFF in
+  // production; ON in DEMO_ALL_ON. Production flip is a founder decision.
+  circle_v3_dashboard_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -468,6 +474,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,
