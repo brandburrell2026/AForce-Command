@@ -44,6 +44,7 @@ import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
 import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
 import { WeeklyReportV3 } from '../components/insights/WeeklyReportV3';
+import { CircleScreenV3 } from '../components/community/CircleScreenV3';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { ManageSubscriptionScreenV2 } from '../components/subscription/ManageSubscriptionScreenV2';
 import { VoiceCheckInOverlay } from '../components/voiceCheckIn/VoiceCheckInOverlay';
@@ -199,6 +200,8 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       return <PerformanceSignalV3 fixtureRollups={fixture.rollups} />;
     case 'weekly':
       return <WeeklyReportV3 fixture={fixture.weeklyInputs} />;
+    case 'circle':
+      return <CircleScreenV3 fixture={fixture.circleInputs} />;
     case 'hydration':
       return (
         <StoreOverride state={fixture.appState!}>

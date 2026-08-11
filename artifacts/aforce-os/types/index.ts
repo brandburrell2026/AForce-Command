@@ -800,6 +800,11 @@ export interface FeatureFlags {
    * with honest ledger/analytics/rollup data only. Default OFF.
    */
   weekly_v3_dashboard_enabled: boolean;
+  /**
+   * Circle V3 (founder comps, 2026-08-11) — Circle tab redesign with honest
+   * engine/analytics/referral-board data only. Default OFF.
+   */
+  circle_v3_dashboard_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

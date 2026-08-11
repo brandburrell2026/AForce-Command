@@ -31,6 +31,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/community/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cart/__tests__/**/*.test.ts',
