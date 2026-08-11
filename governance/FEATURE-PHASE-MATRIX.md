@@ -93,7 +93,8 @@ subsequent stage is authorized, and none has been started.
 | 40 | Performance DNA™ | **Architecture Only** | Phase 2+ | Principle 2 review (patterns, never a score) |
 | 41 | Intelligence Provenance, Retention & Model Versioning | Build Now (with §38) | n/a — cross-cutting | ships with §38 |
 | 42 | Intelligence Language & Compliance Gate | Build Now (required revision) | n/a — gate | **blocks §39 and §40 user-facing output** |
-| 43–46 | Reserved | Reserved | — | decision record required to allocate |
+| 43 | AForce Moments — preparation layer (Moments, prep windows, ritual delivery) | Phases 1–2 Built (flag `moments_enabled` OFF in prod); Phase 3a prep notifications In Build (flag `moments_notifications_enabled` OFF in prod) | Phase 2 (flag-gated) | Allocated by DR-010 (Brandon approved; Julius countersignature pending). Calendar access NOT authorized (PR-002 5.2/5.3/5.5 open). |
+| 44–46 | Reserved | Reserved | — | decision record required to allocate |
 | 61 | LPM — Your Body's Manual (reads §38) | Architecture Only | Phase 2 | §38 complete |
 | 61 | LPM — Confidence Journey | Architecture Only | Phase 2 | §41 complete |
 | 61 | LPM — Legacy summary | Architecture Only | Phase 4 | language review |
