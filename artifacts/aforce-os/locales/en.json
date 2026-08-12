@@ -1734,12 +1734,12 @@
     "v2": {
       "eyebrow": "PREFERENCES",
       "title": "Notifications",
-      "intro": "Decide exactly which alerts AForce sends. Voice, push, and in-app badges all honor these toggles together.",
+      "intro": "Decide exactly which alerts AForce sends. These toggles govern on-device voice and in-app alerts — AForce sends no remote push.",
       "footnote": "Score-band and risk-timer voice also respect the AForce Command Voice Engine scope/intensity in Profile › Voice.",
       "row_recheckReminders_label": "Recheck Reminders",
-      "row_recheckReminders_hint": "Risk-timer pings as your hydration window closes.",
+      "row_recheckReminders_hint": "Spoken risk-timer callouts as your hydration window closes. On-device voice, no push.",
       "row_scoreDecayAlerts_label": "Score Decay Alerts",
-      "row_scoreDecayAlerts_hint": "Voice + push when you cross PEAK / STABLE / RISK bands.",
+      "row_scoreDecayAlerts_hint": "Spoken alert when you cross a PEAK / STABLE / RISK band. On-device voice, no push.",
       "row_morningKickoff_label": "Morning Kickoff",
       "row_morningKickoff_hint": "Daily 06:30 summary of the prior day + today's plan.",
       "row_circleActivity_label": "Circle Activity",
@@ -2026,7 +2026,10 @@
       "challenge_title": "Weekly Challenge · Hydration",
       "challenge_detail": "{{n}} of 7 days with logged intake this week — measured against your own baseline only.",
       "streak_days": "{{n}}-day streak",
-      "footnote": "Re-ranks live as you log intake, complete protocols, and recover."
+      "sample_note": "Sample cohort · Illustrative standings · Not a ranking against real people",
+      "empty_title": "Nothing to rank yet",
+      "empty_message": "No members to rank in this view. Standings appear here only when there is real data — never placeholders.",
+      "footnote": "Your score and streak update as you log intake, complete protocols, and recover."
     }
   },
   "share": {

@@ -9,7 +9,9 @@
  * the SAME competitionEngine pipeline the shipped V2 screen used (sample
  * roster, live-injected You row), while everything about YOU is real where a
  * source exists (engine score/band, compliance streak, weather city,
- * own-baseline weekly hydration from real rollups).
+ * own-baseline weekly hydration from real rollups). The sample roster is
+ * captioned on screen and the footnote claims only what is real — your own
+ * score and streak moving as you log — never a live standing against others.
  *
  * `fixture` exists ONLY for the demo gallery / tests (production builds never
  * pass it): it supplies the full inputs and skips every live source. Tab
@@ -20,7 +22,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { AFScreen, AFTopBar } from '@/components/ui';
+import { AFScreen, AFTopBar, AFEmptyState } from '@/components/ui';
 import { af, afType, Spacing } from '@/theme';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { buildSnapshot } from '@/services/competitionEngine';
@@ -123,6 +125,13 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
         </View>
       </View>
 
+      {/* Sample-cohort caption. The cohort stays (founder ruling), but the
+          standings it produces — the rank stats above, the rows below — are
+          not a measurement of real people, and the screen has to say so. */}
+      <Text style={styles.sampleNote} testID="circle-v3-sample-note">
+        {t('community.v3.sample_note')}
+      </Text>
+
       {/* Scope tabs — comp pill row */}
       <View style={styles.tabsRow} testID="circle-v3-tabs">
         {TABS.map((key) => (
@@ -171,7 +180,17 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             <LeaderRow key={row.key} row={row} streakLabel={(n) => t('community.v3.streak_days', { n })} />
           ))}
         </View>
-      ) : null}
+      ) : model.tab === 'challenge' ? null : (
+        // Challenge carries no roster by design; on the other three tabs an
+        // empty list means there is nobody to rank — name that rather than
+        // leave the screen looking half-loaded.
+        <AFEmptyState
+          icon="users"
+          title={t('community.v3.empty_title')}
+          message={t('community.v3.empty_message')}
+          testID="circle-v3-empty"
+        />
+      )}
 
       <Text style={styles.footnote}>{t('community.v3.footnote')}</Text>
     </AFScreen>
@@ -251,6 +270,7 @@ const styles = StyleSheet.create({
   stat: { flex: 1, alignItems: 'center', gap: 3 },
   statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   statLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
+  sampleNote: { ...afType.caption, color: af.textTertiary, marginTop: 10 },
   tabsRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
   tabPill: {
     paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999,

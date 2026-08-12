@@ -349,9 +349,10 @@ export type InsertAforceAchievement = typeof aforceAchievements.$inferInsert;
 
 /* ─── Territory battles (regional rivalries) ──────────────────────────────── */
 /**
- * Per-user persisted view of active battles. Battles are surfaced from
- * MOCK_BATTLES on first read if a user has none — preserves the demo
- * experience while making support/open mutations real and durable.
+ * Per-user persisted view of active battles — only battles the user
+ * actually opened. An earlier build seeded MOCK_BATTLES here on first
+ * read; that write is gone (see routes/battles.ts) and any row it left
+ * behind is excluded on read rather than deleted.
  */
 export const aforceBattles = pgTable(
   "aforce_battles",

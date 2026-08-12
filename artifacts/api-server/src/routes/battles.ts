@@ -4,19 +4,27 @@
  * Mounted under `/api/battles`. The Expo client (`services/battleService.ts`)
  * is the only consumer.
  *
- *   GET  /                  → list battles (auto-seeds defaults on first read)
+ *   GET  /                  → list the user's own battles
  *   POST /                  → open a fresh battle between two regions
  *   POST /:id/support       → bump one side's score by 1
  *
  * Battles are SCOPED PER USER (owner_user_id = req.userId) so each
  * user's interactions stay isolated; the underlying region catalog is
  * static and lives client-side in `mockTerritoryData.ts`.
+ *
+ * This route used to seed `SEED_BATTLES` into a real user's rows on
+ * first read. Fabricated rivalries written into real user data become
+ * indistinguishable from real ones forever, which the Constitution
+ * forbids ("observation never diagnosis", "trust over attention"), so
+ * the write is gone and the seed set is now a READ-SIDE EXCLUSION only:
+ * rows already written by the old behavior stay in the database but are
+ * never served again. Nothing is deleted and no migration is required.
  */
 
 import { Router, type IRouter, type Request } from "express";
 import { z } from "zod";
 import { db, aforceBattles } from "@workspace/db";
-import { and, eq, asc } from "drizzle-orm";
+import { and, eq, asc, notInArray } from "drizzle-orm";
 import { DEFAULT_USER_ID } from "../lib/aforceState";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -28,7 +36,7 @@ function resolveUserId(req: Request): string {
   return req.userId ?? DEFAULT_USER_ID;
 }
 
-/* ─── Default seed (mirrors MOCK_BATTLES on the client) ───────────────────── */
+/* ─── Legacy seed set — read-side exclusion list, never written ───────────── */
 interface SeedBattle {
   id: string;
   side1RegionId: string;
@@ -46,34 +54,11 @@ const SEED_BATTLES: ReadonlyArray<SeedBattle> = [
   { id: "b_pulse_apex", side1RegionId: "team_pulse",    side2RegionId: "team_apex",   side1Score: 89, side2Score: 86, hoursRemaining:  6, leader: "side1", trend: "up"   },
 ];
 
-async function seedIfEmpty(userId: string): Promise<void> {
-  const existing = await db
-    .select({ id: aforceBattles.id })
-    .from(aforceBattles)
-    .where(eq(aforceBattles.ownerUserId, userId))
-    .limit(1);
-  if (existing.length > 0) return;
-
-  await db
-    .insert(aforceBattles)
-    .values(
-      SEED_BATTLES.map((b) => ({
-        // Per-user keyed: prefix with user id so two users can both have
-        // the seed set without colliding on the global PK.
-        id: `${userId}:${b.id}`,
-        ownerUserId: userId,
-        side1RegionId: b.side1RegionId,
-        side2RegionId: b.side2RegionId,
-        side1Score: b.side1Score,
-        side2Score: b.side2Score,
-        hoursRemaining: b.hoursRemaining,
-        leader: b.leader,
-        trend: b.trend,
-      })),
-    )
-    // Two concurrent first-GETs would otherwise both pass the empty
-    // check and race the insert, blowing the PK uniqueness on retry.
-    .onConflictDoNothing({ target: aforceBattles.id });
+// Seeded rows were stored user-prefixed (`<userId>:b_mia_nyc`), so the
+// exclusion list has to be rebuilt per caller. User-opened battles carry a
+// `b_<timestamp>` id and never collide with these.
+function seededBattleIds(userId: string): string[] {
+  return SEED_BATTLES.map((b) => `${userId}:${b.id}`);
 }
 
 interface BattleResponse {
@@ -109,11 +94,15 @@ function deriveLeader(s1: number, s2: number): "side1" | "side2" | "tie" {
 router.get("/", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const rows = await db
       .select()
       .from(aforceBattles)
-      .where(eq(aforceBattles.ownerUserId, userId))
+      .where(
+        and(
+          eq(aforceBattles.ownerUserId, userId),
+          notInArray(aforceBattles.id, seededBattleIds(userId)),
+        ),
+      )
       .orderBy(asc(aforceBattles.hoursRemaining));
     res.json({ battles: rows.map(rowToBattle) });
   } catch (err) {

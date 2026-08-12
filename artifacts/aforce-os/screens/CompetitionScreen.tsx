@@ -261,10 +261,14 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
             <Text style={styles.userName}>{me.user.name}</Text>
             <Text style={styles.userMeta}>{me.user.city}, {me.user.state} · {stateLabelDisplay}</Text>
           </View>
-          <View style={[styles.deltaPill, me.recentDelta > 0 ? { backgroundColor: `${Colors.states.PEAK.primary}1F` } : null]}>
-            <Icon name="arrow-up-right" size={11} color={Colors.states.PEAK.primary} />
-            <Text style={[styles.deltaText, { color: Colors.states.PEAK.primary }]}>+{me.recentDelta} spots</Text>
-          </View>
+          {/* The pill only ever says "up" — with no movement there is nothing
+              to claim, so it stays off rather than reading "+0 spots". */}
+          {me.recentDelta > 0 && (
+            <View style={[styles.deltaPill, { backgroundColor: `${Colors.states.PEAK.primary}1F` }]}>
+              <Icon name="arrow-up-right" size={11} color={Colors.states.PEAK.primary} />
+              <Text style={[styles.deltaText, { color: Colors.states.PEAK.primary }]}>+{me.recentDelta} spots</Text>
+            </View>
+          )}
         </View>
         <View style={styles.userStatsRow}>
           <UserStat label="GLOBAL" value={`#${me.globalRank ?? '—'}`} accent={Colors.states.PEAK.primary} />

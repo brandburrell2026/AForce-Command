@@ -11,7 +11,10 @@
  *    values (real engine score / compliance / streak-consistency / band).
  *    The cohort is sample data by design (the founder's comp) until the
  *    /v1/competition backend exists — SS-07 remains the founder-owned
- *    register item for that model.
+ *    register item for that model. Because it is sample data, the screen
+ *    captions it as such and the model never hands out a rank it cannot
+ *    stand behind: with nobody else in the cohort the four rank stats are
+ *    null, not "#1".
  *  - Everything about YOU is real where a source exists: live engine score
  *    and band (accent via resolveHomePresentation — never statusColor.ts),
  *    real compliance streak, server-persisted weather city when present.
@@ -135,6 +138,11 @@ export function buildCircleV3Model(input: CircleV3Inputs): CircleV3Model {
 
   const cityLine = `${input.cityOverride?.trim() || youUser.city}, ${youUser.state}`;
 
+  // A rank is a claim about where you stand among OTHERS. Alone in the cohort
+  // there is nobody to stand among, so every rank falls through to fmtRank's
+  // '—' rather than assert a position the data cannot support.
+  const hasCohort = snapshot.individuals.length >= 2;
+
   const you: CircleV3YouView = {
     initials: youUser.avatarInitials,
     name: youUser.name,
@@ -143,10 +151,10 @@ export function buildCircleV3Model(input: CircleV3Inputs): CircleV3Model {
     accent: resolveHomePresentation(youUser.state_label).accent,
     deltaSpots:
       typeof me.recentDelta === 'number' && me.recentDelta !== 0 ? me.recentDelta : null,
-    globalRank: me.globalRank ?? null,
-    cityRank: me.cityRank ?? null,
-    stateRank: me.stateRank ?? null,
-    teamRank: me.teamRank ?? null,
+    globalRank: hasCohort ? (me.globalRank ?? null) : null,
+    cityRank: hasCohort ? (me.cityRank ?? null) : null,
+    stateRank: hasCohort ? (me.stateRank ?? null) : null,
+    teamRank: hasCohort ? (me.teamRank ?? null) : null,
     score: youUser.competitionScore,
   };
 

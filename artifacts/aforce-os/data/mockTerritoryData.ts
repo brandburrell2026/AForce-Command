@@ -73,8 +73,12 @@ export const MOCK_TEAMS: TerritoryRegion[] = [
     stats: { avgPerformanceScore: 84, protocolCompletionRate: 0.74, streakDensity: 0.62, recoveryEfficiency: 0.71, momentumScore: 0.22, participants: 96 } },
 ];
 
-export const MOCK_BATTLES: TerritoryBattle[] = [
-  { id: 'b_mia_nyc',  side1RegionId: 'city_miami_fl', side2RegionId: 'city_nyc_ny',  side1Score: 86, side2Score: 88, hoursRemaining: 11, leader: 'side2', trend: 'up' },
-  { id: 'b_fl_ca',    side1RegionId: 'state_fl',      side2RegionId: 'state_ca',     side1Score: 84, side2Score: 83, hoursRemaining: 22, leader: 'side1', trend: 'flat' },
-  { id: 'b_pulse_apex', side1RegionId: 'team_pulse',  side2RegionId: 'team_apex',    side1Score: 89, side2Score: 86, hoursRemaining:  6, leader: 'side1', trend: 'up' },
-];
+/**
+ * EMPTY by founder ruling (Wave-4). `battleService` used to boot from these
+ * and fall back to them whenever `/api/battles` failed, so three invented
+ * rivalries with invented live scores and countdowns rendered exactly like
+ * server truth — a fabricated social position. The export is kept (the
+ * service no longer imports it) so the shape stays declared until the
+ * endpoint is the only source.
+ */
+export const MOCK_BATTLES: TerritoryBattle[] = [];
