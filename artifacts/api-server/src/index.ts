@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { db } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
+import { beginDrain } from "./health/checks";
 import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
 import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
@@ -90,4 +91,20 @@ server.listen(port, () => {
 server.on("error", (err) => {
   logger.error({ err }, "Error listening on port");
   process.exit(1);
+});
+
+// Wave-3 PR7: graceful drain. SIGTERM flips /healthz(/deep) to `draining`
+// (503) so the LB stops routing here, then the server closes once
+// in-flight requests finish; a 20s deadline force-exits a wedged drain.
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received — draining");
+  beginDrain();
+  server.close(() => {
+    logger.info("drained; exiting");
+    process.exit(0);
+  });
+  setTimeout(() => {
+    logger.warn("drain deadline exceeded; forcing exit");
+    process.exit(0);
+  }, 20_000).unref();
 });
