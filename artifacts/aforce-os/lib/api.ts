@@ -63,6 +63,23 @@ export interface ApiError {
   message: string;
 }
 
+/**
+ * Wave-3 PR3: thrown errors are now REAL Error instances. The old plain
+ * `{status, message}` object failed every `err instanceof Error` check, so
+ * the server's actual failure reason (e.g. a 400 naming the rejected
+ * return URL) was discarded and users saw only a generic string.
+ * Implements ApiError so existing `isApiError` structural guards keep
+ * working unchanged.
+ */
+export class ApiRequestError extends Error implements ApiError {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
+}
+
 async function request<T>(
   method: "GET" | "POST",
   path: string,
@@ -87,8 +104,7 @@ async function request<T>(
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    const err: ApiError = { status: res.status, message: text || res.statusText };
-    throw err;
+    throw new ApiRequestError(res.status, text || res.statusText);
   }
   return (await res.json()) as T;
 }
