@@ -64,7 +64,7 @@ LOCK IN → PERFORM ritual. A performance concierge, not a calendar app.
 | 5.3 | **Calendar-derived surfacing** — approve automatic classification of calendar events into Moments | Night Out ruling: no automatic activation from calendar (intentional-user-action precedent) |
 | 5.4 | **Prep notifications** — authorize prediction-type output on the notification surface; set caps/quiet-hours interplay | PT-1/DR-008 prohibits notifications as a prediction surface today; SS-17 quiet hours; 0C notification-cap standard incomplete |
 | 5.5 | **Native build** — expo-calendar plugin + NSCalendars permission strings + EAS iOS build | eas.json/native config is founder-authorized per-edit |
-| 5.6 | **Learning loop** — populate reserved command-ledger kinds for prep feedback; approve feedback-driven timing adaptation | Ledger reserved-kind activation is separately approved; adaptive-timing safety gates (hydration never de-prioritized) |
+| 5.6 | **Learning loop** — prep feedback + feedback-driven timing adaptation (design amended by DR-012: dedicated feedback store instead of new ledger vocabulary) | Adaptive-timing safety gates (bounded, min-samples, hydration never de-prioritized) — DR-012 |
 
 ## 6. Privacy commitments carried into any Phase 3 design (from the founder spec)
 
@@ -78,8 +78,8 @@ substitute when access is absent.
 
 - [x] 5.1 Section allocation — Brandon ☑ 2026-08-12 (DR-010) · Julius ☑ 2026-08-12
 - [~] 5.2 Calendar data class — Brandon ☑ 2026-08-12 (DR-011) · Legal ☐ PENDING · Privacy ☐ PENDING (Appendix A is the counsel packet; activation blocked)
-- [x] 5.3 Calendar-derived surfacing — Brandon ☑ 2026-08-12 (DR-011 Ruling 2) · Julius ☐ PENDING
+- [x] 5.3 Calendar-derived surfacing — Brandon ☑ 2026-08-12 (DR-011 Ruling 2) · Julius ☑ 2026-08-12
 - [x] 5.4 Prep notifications — Brandon ☑ 2026-08-12 (DR-010, constrained) · Julius ☑ 2026-08-12
 - [x] 5.5 Native build authorization — Brandon ☑ 2026-08-12 (DR-011; expo-calendar + permission strings)
-- [ ] 5.6 Learning loop — Brandon ☐ Julius ☐
+- [x] 5.6 Learning loop — Brandon ☑ 2026-08-12 (DR-012, constrained) · Julius ☐ PENDING
 - [ ] Terminology registrations (Part 4) — Brandon ☐

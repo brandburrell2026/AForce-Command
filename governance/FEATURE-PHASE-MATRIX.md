@@ -93,7 +93,7 @@ subsequent stage is authorized, and none has been started.
 | 40 | Performance DNA™ | **Architecture Only** | Phase 2+ | Principle 2 review (patterns, never a score) |
 | 41 | Intelligence Provenance, Retention & Model Versioning | Build Now (with §38) | n/a — cross-cutting | ships with §38 |
 | 42 | Intelligence Language & Compliance Gate | Build Now (required revision) | n/a — gate | **blocks §39 and §40 user-facing output** |
-| 43 | AForce Moments — preparation layer (Moments, prep windows, ritual delivery) | Phases 1–2 + 3a Built; Phase 3b calendar core Built DARK (`moments_calendar_enabled` OFF in prod, DR-011) | Phase 2 (flag-gated) | DR-010 fully ratified. Calendar ACTIVATION blocked pending Legal+Privacy (PR-002 Appendix A); Julius pending on 5.3; 5.6 open. |
+| 43 | AForce Moments — preparation layer (Moments, prep windows, ritual delivery) | Phases 1–2 + 3a + 3b Built (calendar DARK, DR-011); Phase 4 learning In Build (`moments_learning_enabled` OFF in prod, DR-012) | Phase 2 (flag-gated) | DR-010 ratified; 5.3 Julius signed 2026-08-12. Calendar ACTIVATION blocked pending Legal+Privacy (Appendix A). DR-012 Julius pending. |
 | 44–46 | Reserved | Reserved | — | decision record required to allocate |
 | 61 | LPM — Your Body's Manual (reads §38) | Architecture Only | Phase 2 | §38 complete |
 | 61 | LPM — Confidence Journey | Architecture Only | Phase 2 | §41 complete |
