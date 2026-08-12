@@ -54,7 +54,7 @@ import { EditProfileModal } from '@/components/EditProfileModal';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
-import { DEFAULT_FLAGS, demoUnlockAllFlags } from '@/featureFlags/flags';
+import { DEFAULT_FLAGS, demoUnlockAllFlags, developerControlsAvailable } from '@/featureFlags/flags';
 import { resolveInitialFeatureFlags } from '@/featureFlags/internalTestflightOverlay';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -2591,6 +2591,17 @@ const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId }> = [
   { id: 'developer' },
 ];
 
+/**
+ * Wave-1 P0 hardening (SS-01): the DEVELOPER tab — and every flag toggle
+ * inside it, including "Unlock all" — is NOT for ordinary production users.
+ * Visible only in local dev, env-gated demo builds, and internal TestFlight
+ * (developerControlsAvailable). Ordinary users see three tabs.
+ */
+const VISIBLE_PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId }> =
+  developerControlsAvailable()
+    ? PROFILE_TABS
+    : PROFILE_TABS.filter((tab) => tab.id !== 'developer');
+
 function ProfileTabBar({
   active,
   onChange,
@@ -2606,7 +2617,7 @@ function ProfileTabBar({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabBarRow}
       >
-        {PROFILE_TABS.map((tab) => {
+        {VISIBLE_PROFILE_TABS.map((tab) => {
           const isActive = tab.id === active;
           const tabLabel = t(`profile.v2.tab_${tab.id}`);
           return (

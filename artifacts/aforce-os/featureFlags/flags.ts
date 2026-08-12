@@ -638,17 +638,92 @@ export function getSpecFlag(flags: FeatureFlags, name: SpecFlagName): boolean {
 export const INTERNAL_PREVIEW_RESTRICTED_FLAGS = ['night_out_enabled'] as const;
 
 /**
- * Payload for the developer "unlock all" control. Returns the demo-presentation
- * flag set with every restricted internal-preview flag force-clamped to `false`,
- * so the generic client unlock can NEVER enable a restricted capability —
- * regardless of what `DEMO_ALL_ON_FLAGS` contains. Pure + testable; the `base`
- * param lets tests prove the clamp holds even against a base that (incorrectly)
- * sets a restricted flag true.
+ * LEGAL/PRIVACY-GATED FLAGS (Wave-1 P0 hardening, founder authorization
+ * 2026-08-12). These capabilities are blocked by an explicit Legal + Privacy
+ * gate (PR-002 Appendix A) and may NEVER be enabled by any client-side
+ * control in ANY distributed build — internal TestFlight included. The only
+ * sanctioned enablement context is local development (__DEV__ / Metro),
+ * where engineering evidence is produced.
  */
-export function demoUnlockAllFlags(base: FeatureFlags = DEMO_ALL_ON_FLAGS): FeatureFlags {
+export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
+
+/**
+ * INTERNAL-TIER FLAGS (Wave-1 P0 hardening). Founder/internal-only and
+ * enterprise capabilities — some carry unvalidated medical-adjacent copy
+ * (Guardian/Clutch) or score-write simulation paths (Phantom). The generic
+ * client "unlock all" must never enable them for an ordinary production
+ * user; they remain reachable in local dev and internal-TestFlight builds
+ * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
+ */
+export const INTERNAL_TIER_FLAGS = [
+  'guardian_intelligence_enabled',
+  'guardian_body_map_enabled',
+  'guardian_alerts_enabled',
+  'clutch_access_enabled',
+  'clutch_heat_mode_enabled',
+  'clutch_inventory_enabled',
+  'clutch_clip_enabled',
+  'phantom_wearable_enabled',
+  'spec_phantom',
+  'spec_enterprise',
+] as const;
+
+/** Build-context for the unlock clamp — injectable so tests can prove every
+ *  combination. Defaults read the real environment. */
+export interface UnlockContext {
+  dev: boolean;
+  internalTestflight: boolean;
+}
+
+declare const __DEV__: boolean | undefined;
+export function currentUnlockContext(): UnlockContext {
+  return {
+    dev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
+    internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
+  };
+}
+
+/**
+ * Whether developer controls (the Profile DEVELOPER tab and its flag
+ * toggles) may be shown at all. Ordinary production users: never.
+ * Local dev, env-gated demo builds, and internal TestFlight: yes.
+ */
+export function developerControlsAvailable(
+  ctx: UnlockContext = currentUnlockContext(),
+  demoMode = process.env['EXPO_PUBLIC_DEMO_MODE'] === 'true',
+): boolean {
+  return ctx.dev || ctx.internalTestflight || demoMode;
+}
+
+/**
+ * Payload for the developer "unlock all" control. Returns the demo-presentation
+ * flag set with every restricted flag force-clamped to `false`, so the generic
+ * client unlock can NEVER enable a restricted capability — regardless of what
+ * `DEMO_ALL_ON_FLAGS` contains. Clamp tiers (Wave-1 P0 hardening):
+ *   - INTERNAL_PREVIEW_RESTRICTED_FLAGS: always clamped (NO-10, unchanged).
+ *   - LEGAL_GATED_FLAGS: clamped in EVERY distributed build; only local dev
+ *     (`ctx.dev`) escapes — a Legal/Privacy gate is never a client toggle.
+ *   - INTERNAL_TIER_FLAGS: clamped unless local dev or internal TestFlight.
+ * Pure + testable; `base`/`ctx` params let tests prove the clamp holds even
+ * against a base that (incorrectly) sets a restricted flag true.
+ */
+export function demoUnlockAllFlags(
+  base: FeatureFlags = DEMO_ALL_ON_FLAGS,
+  ctx: UnlockContext = currentUnlockContext(),
+): FeatureFlags {
   const out: FeatureFlags = { ...base };
   for (const k of INTERNAL_PREVIEW_RESTRICTED_FLAGS) {
     out[k] = false;
+  }
+  if (!ctx.dev) {
+    for (const k of LEGAL_GATED_FLAGS) {
+      out[k] = false;
+    }
+  }
+  if (!ctx.dev && !ctx.internalTestflight) {
+    for (const k of INTERNAL_TIER_FLAGS) {
+      out[k] = false;
+    }
   }
   return out;
 }
