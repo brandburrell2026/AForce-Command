@@ -1981,6 +1981,7 @@
       "scope_state": "STATE",
       "scope_team": "TEAM",
       "scope_individual": "INDIVIDUAL",
+      "sample_note": "Sample cohort · Illustrative standings · Not a ranking against real people",
       "rankings_footnote": "Re-ranks live as you log intake, complete protocols, and recover.",
       "challenges_empty_title": "No open challenges",
       "challenges_empty_body": "When someone in your circle calls you out, it shows up here.",
