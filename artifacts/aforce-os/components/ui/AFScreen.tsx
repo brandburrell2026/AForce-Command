@@ -10,7 +10,7 @@
  *   canvas   — 'default' (#0D0D0D) or 'focused' (#050506, Recovery-Coach field)
  */
 import React from 'react';
-import { View, ScrollView, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
+import { View, ScrollView, StyleSheet, type ViewStyle, type StyleProp, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { af, afLayout } from '@/theme';
 
@@ -24,6 +24,8 @@ export interface AFScreenProps {
   canvas?: 'default' | 'focused';
   edges?: Edge[];
   contentContainerStyle?: StyleProp<ViewStyle>;
+  /** Passed to the ScrollView when `scroll` — enables pull-to-refresh. */
+  refreshControl?: ScrollViewProps['refreshControl'];
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -36,6 +38,7 @@ export function AFScreen({
   canvas = 'default',
   edges = ['top'],
   contentContainerStyle,
+  refreshControl,
   style,
   testID,
 }: AFScreenProps) {
@@ -56,6 +59,7 @@ export function AFScreen({
     return (
       <View style={[styles.fill, { backgroundColor: background }, style]} testID={testID}>
         <ScrollView
+          refreshControl={refreshControl}
           contentContainerStyle={[padding, contentContainerStyle]}
           showsVerticalScrollIndicator={false}
         >

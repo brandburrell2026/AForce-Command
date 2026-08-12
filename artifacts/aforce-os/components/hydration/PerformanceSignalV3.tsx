@@ -19,10 +19,10 @@
  * builds never pass it): it skips the network and renders the given days.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { AFScreen, AFTopBar, AFCard, AFSectionLabel } from '@/components/ui';
+import { AFScreen, AFTopBar, AFCard, AFSectionLabel, AFSecondaryButton } from '@/components/ui';
 import { af, afType, Spacing } from '@/theme';
 import type { JournalRollup } from '@/types';
 import { fetchJournalRollups } from '@/services/realApi';
@@ -58,19 +58,48 @@ function weekdayName(weekday: number): string {
   );
 }
 
+/** Mount-fetch retry backoff — covers the cold-launch auth race (the Clerk
+ *  token getter wires up only after ClerkAuthBridge mounts; a deep link
+ *  straight to this tab can fetch before it) and transient network. */
+const RETRY_DELAYS_MS = [1500, 4000];
+
 export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: JournalRollup[] }) {
   const { t } = useTranslation();
   const [rollups, setRollups] = React.useState<JournalRollup[] | null>(fixtureRollups ?? null);
   const [error, setError] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const load = React.useCallback(async (): Promise<boolean> => {
+    try {
+      const r = await fetchJournalRollups(RANGE_DAYS);
+      setRollups(r);
+      setError(false);
+      return true;
+    } catch {
+      setRollups((prev) => prev ?? []);
+      setError(true);
+      return false;
+    }
+  }, []);
 
   React.useEffect(() => {
     if (fixtureRollups) return;
     let cancelled = false;
-    fetchJournalRollups(RANGE_DAYS)
-      .then((r) => { if (!cancelled) setRollups(r); })
-      .catch(() => { if (!cancelled) { setRollups([]); setError(true); } });
+    void (async () => {
+      if (await load()) return;
+      for (const delay of RETRY_DELAYS_MS) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        if (cancelled) return;
+        if (await load()) return;
+      }
+    })();
     return () => { cancelled = true; };
-  }, [fixtureRollups]);
+  }, [fixtureRollups, load]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }, [load]);
 
   const days: SignalDayView[] = React.useMemo(
     () => (rollups ? buildDayViews(rollups, localTodayIso()) : []),
@@ -80,7 +109,19 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
   const recap = React.useMemo(() => computeRecapStats(rollups ?? []), [rollups]);
 
   return (
-    <AFScreen scroll contentContainerStyle={styles.scrollContent}>
+    <AFScreen
+      scroll
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        fixtureRollups ? undefined : (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void onRefresh()}
+            tintColor={af.textTertiary}
+          />
+        )
+      }
+    >
       <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} />
 
       {rollups === null ? (
@@ -95,6 +136,14 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
           <Text style={styles.stateBody}>
             {t(error ? 'signal.v3.load_failed_body' : 'signal.v3.empty_body')}
           </Text>
+          {error ? (
+            <AFSecondaryButton
+              label={t('signal.v3.retry')}
+              onPress={() => void onRefresh()}
+              loading={refreshing}
+              testID="signal-v3-retry"
+            />
+          ) : null}
         </View>
       ) : (
         <>
