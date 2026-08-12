@@ -44,6 +44,29 @@ export const checkoutLimiter = rateLimit({
   message: { error: "rate_limited", scope: "checkout" },
 });
 
+// Wave-2 PR2 (Score Protection backstop): the two snapshot-writing
+// routes were previously unthrottled. Limits cap write VOLUME only —
+// value bounds live in the zod schemas.
+export const snapshotLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: userOrIpKey,
+  skip: SKIP_IN_TEST,
+  message: { error: "rate_limited", scope: "snapshot" },
+});
+
+export const sensorImportLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 6,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: userOrIpKey,
+  skip: SKIP_IN_TEST,
+  message: { error: "rate_limited", scope: "sensor_import" },
+});
+
 export const weatherLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 30,

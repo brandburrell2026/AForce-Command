@@ -14,6 +14,7 @@ import {
   SCORE_WRITE_GUARD,
 } from "../../lib/scoreWriteGuard";
 import { logger } from "../../lib/logger";
+import { snapshotLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId } from "./shared";
 import { LEVELS, snapshotSchema } from "./journalSchema";
 
@@ -25,7 +26,7 @@ const router: IRouter = Router();
 //   GET  /journal/timeline  → chronological interleave of snapshots + intake_logs
 //   GET  /journal/rollups   → per-day aggregates (avg/min/max score, % time per band, totals)
 
-router.post("/journal/snapshot", async (req, res) => {
+router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
   // Validate first, and report a schema rejection distinctly from a write
   // failure. The old catch collapsed both into an opaque 400, so a contract
   // mismatch and a DB error were indistinguishable in the field. We surface the
