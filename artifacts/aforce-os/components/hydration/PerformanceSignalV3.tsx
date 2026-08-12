@@ -31,6 +31,7 @@ import {
   buildDayViews,
   buildBars,
   accentForScore,
+  weeklyInBandAvg,
   type SignalDayView,
 } from './signalV3Presentation';
 
@@ -146,13 +147,23 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
                         </Text>
                       </View>
                     </View>
+                    {/* Comp restyle 2026-08-12: dotted metric chips. The
+                        "% rec" slot binds the rollup's REAL in-band time (no
+                        per-day recovery series exists) and keeps its honest
+                        label; no per-day streak (rollups carry none). */}
                     <View style={styles.chips}>
-                      <Text style={styles.chip}>
-                        <Text style={styles.chipStrong}>{d.oz}</Text> {t('signal.v3.oz')}
-                      </Text>
-                      <Text style={styles.chip}>
-                        <Text style={styles.chipStrong}>{d.inBandPct}%</Text> {t('signal.v3.in_band')}
-                      </Text>
+                      <View style={styles.chipRow}>
+                        <View style={[styles.chipDot, { backgroundColor: af.cyan }]} />
+                        <Text style={styles.chip}>
+                          <Text style={styles.chipStrong}>{d.oz}</Text> {t('signal.v3.oz')}
+                        </Text>
+                      </View>
+                      <View style={styles.chipRow}>
+                        <View style={[styles.chipDot, { backgroundColor: accentForScore(d.inBandPct) }]} />
+                        <Text style={styles.chip}>
+                          <Text style={styles.chipStrong}>{d.inBandPct}%</Text> {t('signal.v3.in_band')}
+                        </Text>
+                      </View>
                       <Text style={styles.chip}>
                         <Text style={styles.chipStrong}>{d.checks}</Text> {t('signal.v3.checks')}
                       </Text>
@@ -176,6 +187,7 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
               {(
                 [
                   [t('signal.v3.recap_avg'), `${recap.avgScore}`],
+                  [t('signal.v3.recap_in_band'), `${weeklyInBandAvg(days)}%`],
                   [t('signal.v3.recap_peak'), `${recap.peakScore}`],
                   [t('signal.v3.recap_best_streak'), t('signal.v3.recap_days', { n: recap.bestStreak })],
                   [t('signal.v3.recap_total_oz'), `${recap.totalOunces} ${t('signal.v3.oz')}`],
@@ -215,7 +227,9 @@ const styles = StyleSheet.create({
   dayDate: { ...afType.caption, color: af.textTertiary },
   bandPill: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999 },
   bandPillText: { ...afType.caption, fontVariant: ['tabular-nums'] },
-  chips: { flexDirection: 'row', gap: 14, flexWrap: 'wrap' },
+  chips: { flexDirection: 'row', gap: 14, flexWrap: 'wrap', alignItems: 'center' },
+  chipRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  chipDot: { width: 7, height: 7, borderRadius: 4 },
   chip: { ...afType.caption, color: af.textTertiary },
   chipStrong: { color: af.textSecondary, fontVariant: ['tabular-nums'] },
   dayScore: { ...afType.title1, fontVariant: ['tabular-nums'] },

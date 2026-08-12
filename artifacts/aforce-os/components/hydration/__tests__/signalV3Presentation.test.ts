@@ -12,6 +12,7 @@ import {
   accentForScore,
   buildDayViews,
   buildBars,
+  weeklyInBandAvg,
   shiftIsoDay,
   isoWeekday,
 } from '../signalV3Presentation';
@@ -87,6 +88,20 @@ describe('buildBars', () => {
     expect(bars.map((b) => b.date)).toEqual(['2026-08-06', '2026-08-07']);
     expect(bars[0]!.height).toBe(0.08); // floor so a bad day still paints
     expect(bars[1]!.height).toBe(0.88);
+  });
+});
+
+describe('weeklyInBandAvg', () => {
+  it('averages the days\' real in-band time, whole-%, 0 when empty', () => {
+    const days = buildDayViews(
+      [
+        rollup({ date: '2026-08-06', avgScore: 80, pctTimePeak: 40, pctTimeBalanced: 40 }),
+        rollup({ date: '2026-08-07', avgScore: 80, pctTimePeak: 10, pctTimeBalanced: 50 }),
+      ],
+      '2026-08-07',
+    );
+    expect(weeklyInBandAvg(days)).toBe(70); // (80 + 60) / 2
+    expect(weeklyInBandAvg([])).toBe(0);
   });
 });
 

@@ -2296,6 +2296,7 @@
       "weekly_label": "Weekly averages",
       "weekly_range": "Last {{days}} days",
       "recap_avg": "Average score",
+      "recap_in_band": "In band",
       "recap_peak": "Peak score",
       "recap_best_streak": "Best streak",
       "recap_days": "{{n}} days",
