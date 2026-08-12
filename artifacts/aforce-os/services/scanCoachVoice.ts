@@ -19,6 +19,7 @@
  */
 
 import type { CompareProduct } from '../types/comparison';
+import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import type { ScanResult } from '../types/scan';
 
 export interface ScanCoachBullet {
@@ -75,6 +76,26 @@ function compareBullets(
 }
 
 export function buildScanCoachScript(
+  result: ScanResult,
+  aforceEquivalent?: CompareProduct,
+): ScanCoachScript {
+  const script = buildScanCoachScriptUnchecked(result, aforceEquivalent);
+  // §42 claims gate (Wave-2 PR5): HydroScan is a STRICT surface and this
+  // module interpolates EXTERNAL text (scanned product names) into raw
+  // English templates. A blocked headline/transcript falls back to a
+  // neutral, claim-free script — never stripped, never rewritten.
+  if (consumerCopyBlocked(script.headline) || consumerCopyBlocked(script.transcript)) {
+    return {
+      headline: 'Scan complete.',
+      transcript: '',
+      bullets: script.bullets,
+      hasComparison: script.hasComparison,
+    };
+  }
+  return script;
+}
+
+function buildScanCoachScriptUnchecked(
   result: ScanResult,
   aforceEquivalent?: CompareProduct,
 ): ScanCoachScript {
