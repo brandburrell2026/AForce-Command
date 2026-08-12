@@ -30,11 +30,11 @@ We request the following permissions only when you choose to enable the related 
 | --- | --- |
 | **Apple Health (read)** | Read heart rate, heart-rate variability, sleep, and workout data so the App can personalize your hydration recommendations and recovery score. |
 | **Apple Health (write)** | Write your hydration logs back to Apple Health so they appear alongside your other health data. |
-| **Camera** | Scan barcodes on AForce hydration products to log them quickly. The App processes barcode images on-device; raw images are not uploaded. |
+| **Camera** | Scan barcodes on AForce hydration products to log them quickly (barcode images are processed on-device and are not uploaded). If you choose to use Smart Capture, a photo you actively take of a drink or meal is transmitted securely to our AI processing provider solely to estimate its hydration content, and is not stored by AForce after processing. <!-- COUNSEL REVIEW (Wave-1): Smart Capture disclosure wording + processor identification requirements --> |
 | **Location (when in use)** | Fetch local temperature and humidity from a weather provider so the App can adjust your hydration target. We do not store precise location history. |
 
 ### 1.4 Information we do **not** collect
-- We do not collect contacts, photos, microphone audio, or background location.
+- We do not access your photo library, contacts, or background location, and we do not collect microphone audio outside features you actively invoke. Photos you deliberately take with Smart Capture are handled only as described in the Camera row above.
 - We do not access health data for any purpose other than the features described above.
 
 ---
