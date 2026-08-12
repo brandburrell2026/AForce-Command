@@ -5,16 +5,18 @@
  * the API key. Body: `{ text: string, voiceId: string }`. Streams the
  * MP3 audio back to the caller.
  *
- * Light rate-limit applied via the existing checkout limiter pattern to
- * prevent abuse — TTS calls cost real money on ElevenLabs, so we cap
- * how often a single client can hit this even though we don't require
- * auth (voice playback should still work on the marketing-tier paths).
+ * Auth + rate-limit (Wave-2 PR1): TTS calls cost real money on
+ * ElevenLabs. The only caller is the app's elevenLabsTts service (the
+ * marketing site never calls this endpoint — the old comment claiming a
+ * "marketing-tier path" was stale), so the route now requires a Clerk
+ * session; the per-client rate limit stays as the second layer.
  */
 
 import { Router, type IRouter, type Request, type Response } from "express";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { logger } from "../lib/logger";
+import { requireAuth } from "../middlewares/requireAuth";
 import {
   ttsAudioCache,
   isCacheable,
@@ -44,7 +46,7 @@ const ttsLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post("/voice/tts", ttsLimiter, async (req: Request, res: Response) => {
+router.post("/voice/tts", requireAuth, ttsLimiter, async (req: Request, res: Response) => {
   const apiKey = process.env["ELEVENLABS_API_KEY"];
   if (!apiKey) {
     res.status(503).json({ error: "tts_not_configured" });
