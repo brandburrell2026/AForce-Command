@@ -1,0 +1,62 @@
+{
+  "run": "k6-tier1-smoke.js vs https://aforce-command-production.up.railway.app",
+  "date": "2026-08-12",
+  "profile": "50 VU \u00b7 20s ramp / 60s steady / 10s drain \u00b7 read-only",
+  "thresholds_passed": true,
+  "metrics": {
+    "readiness_deep_ms": {
+      "avg": 28.969192893401004,
+      "min": 16.441,
+      "med": 21.823,
+      "max": 147.98,
+      "p(90)": 36.64520000000001,
+      "p(95)": 99.88399999999999,
+      "thresholds": {
+        "p(95)<600": false
+      }
+    },
+    "errors": {
+      "passes": 0,
+      "fails": 5604,
+      "thresholds": {
+        "rate<0.005": false
+      },
+      "value": 0
+    },
+    "liveness_ms": {
+      "avg": 30.614135949157227,
+      "min": 13.361,
+      "med": 19.276,
+      "max": 294.045,
+      "p(90)": 77.39580000000001,
+      "p(95)": 99.1794,
+      "thresholds": {
+        "p(99)<500": false,
+        "p(95)<200": false
+      }
+    },
+    "entitlement_401_ms": {
+      "p(95)": 50.63674999999988,
+      "avg": 23.688239373601746,
+      "min": 13.673,
+      "med": 19.2225,
+      "max": 262.718,
+      "p(90)": 24.4067,
+      "thresholds": {
+        "p(95)<300": false
+      }
+    },
+    "iteration_duration": {
+      "avg": 1045.8057957374965,
+      "min": 518.681667,
+      "med": 1039.6145,
+      "max": 1616.927833,
+      "p(90)": 1443.0732004,
+      "p(95)": 1494.6252746999999
+    },
+    "http_reqs": {
+      "count": 5604,
+      "rate": 61.44141695748463
+    }
+  }
+}
