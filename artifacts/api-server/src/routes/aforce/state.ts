@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { getUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
 import { resolveUserId } from "./shared";
@@ -12,7 +13,7 @@ router.get("/state", async (req, res) => {
     const row = await getUserState(userId);
     res.json({ userState: row, serverTime: new Date().toISOString() });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/state failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/state failed");
     res.status(500).json({ error: "state_fetch_failed" });
   }
 });

@@ -390,7 +390,16 @@ function AppShell() {
           The Welcome Hero (phase 'welcome') is a photo with a DARK gym top,
           so light glyphs read cleanly there too — every phase stays light. */}
       <StatusBar style="light" />
-      <ErrorBoundary>
+      <ErrorBoundary
+      onError={(error, componentStack) => {
+        // Wave-3 PR8: the root boundary previously swallowed every caught
+        // render crash — not even a console line; the componentStack was
+        // captured and discarded. Device-local logging only (NO
+        // transmission — a crash-reporting endpoint/vendor is a founder
+        // STOP decision recorded in the Wave-3 report).
+        console.error('[AForce] render crash:', error?.message, componentStack);
+      }}
+    >
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>

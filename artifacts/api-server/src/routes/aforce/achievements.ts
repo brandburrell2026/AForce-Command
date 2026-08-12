@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import {
   db,
@@ -25,7 +26,7 @@ router.post("/achievements/unlock", async (req, res) => {
     const newlyUnlocked = await unlockAchievementCode(userId, code);
     return res.json({ code, unlocked: true, newlyUnlocked });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/achievements/unlock failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/achievements/unlock failed");
     return res.status(400).json({ error: "unlock_failed" });
   }
 });
@@ -178,7 +179,7 @@ router.get("/achievements", async (req, res) => {
 
     return res.json({ unlocks });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/achievements failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/achievements failed");
     return res.status(500).json({ error: "achievements_failed" });
   }
 });

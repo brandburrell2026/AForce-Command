@@ -13,6 +13,7 @@
  */
 
 import { runMigrations } from 'stripe-replit-sync';
+import { serializeError } from "../lib/serializeError";
 import { getStripeSync } from './stripeClient';
 import { logger } from './logger';
 
@@ -26,7 +27,7 @@ export async function initStripe(): Promise<void> {
   try {
     await runMigrations({ databaseUrl });
   } catch (err) {
-    logger.error({ err }, 'initStripe: runMigrations failed');
+    logger.error({ err: serializeError(err) }, 'initStripe: runMigrations failed');
     return;
   }
 
@@ -45,7 +46,7 @@ export async function initStripe(): Promise<void> {
       await stripeSync.findOrCreateManagedWebhook(webhookUrl);
       logger.info({ webhookUrl }, 'initStripe: managed webhook ensured');
     } catch (err) {
-      logger.error({ err }, 'initStripe: findOrCreateManagedWebhook failed');
+      logger.error({ err: serializeError(err) }, 'initStripe: findOrCreateManagedWebhook failed');
     }
   } else {
     logger.warn('initStripe: no REPLIT_DOMAINS / REPLIT_DEV_DOMAIN — webhook not registered');
@@ -55,6 +56,6 @@ export async function initStripe(): Promise<void> {
     await stripeSync.syncBackfill();
     logger.info('initStripe: syncBackfill complete');
   } catch (err) {
-    logger.error({ err }, 'initStripe: syncBackfill failed');
+    logger.error({ err: serializeError(err) }, 'initStripe: syncBackfill failed');
   }
 }

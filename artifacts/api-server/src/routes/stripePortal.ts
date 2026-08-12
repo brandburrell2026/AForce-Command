@@ -9,6 +9,7 @@
 
 import { Router, type IRouter, type Request, type Response } from "express";
 import { NATIVE_APP_RETURN_SCHEMES } from './checkout';
+import { serializeError } from "../lib/serializeError";
 import { db, aforceUsers } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUncachableStripeClient } from "../lib/stripeClient";
@@ -80,7 +81,7 @@ router.post("/stripe/portal-session", requireAuth, checkoutLimiter, async (req: 
     });
     res.json({ url: session.url });
   } catch (err) {
-    logger.error({ err }, "Stripe portal session creation failed");
+    logger.error({ err: serializeError(err) }, "Stripe portal session creation failed");
     res.status(500).json({ error: "portal_session_failed" });
   }
 });

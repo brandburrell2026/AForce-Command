@@ -13,6 +13,7 @@
  */
 
 import { Router, type IRouter, type Request, type Response } from "express";
+import { serializeError } from "../lib/serializeError";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { logger } from "../lib/logger";
@@ -138,7 +139,7 @@ router.post("/voice/tts", requireAuth, ttsLimiter, async (req: Request, res: Res
       sendAudio(buf, "BYPASS", "audio/mpeg");
     }
   } catch (err) {
-    logger.error({ err }, "voice/tts proxy failed");
+    logger.error({ err: serializeError(err) }, "voice/tts proxy failed");
     res.status(502).json({ error: "tts_request_failed" });
   }
 });

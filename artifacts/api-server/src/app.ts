@@ -1,4 +1,6 @@
 import express, { type Express } from "express";
+import { serializeError } from "./lib/serializeError";
+import { logger } from "./lib/logger";
 import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
@@ -7,7 +9,6 @@ import router from "./routes";
 import stripeWebhookRouter from "./routes/stripeWebhook";
 import shopifyWebhookRouter from "./routes/shopifyWebhook";
 import smartCaptureRouter from "./routes/smartCapture";
-import { logger } from "./lib/logger";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -87,5 +88,20 @@ app.use(express.urlencoded({ extended: true, limit: "64kb" }));
 app.use(clerkMiddleware());
 
 app.use("/api", router);
+
+// Wave-3 PR8: the app had NO error middleware — an uncaught route throw
+// fell through to Express's default HTML error page, unlogged. Redacted
+// structured log + a fixed JSON body (never internal detail).
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  (req as express.Request & { log?: { error?: (o: unknown, m: string) => void } }).log?.error?.(
+    { err: serializeError(err) },
+    "unhandled route error",
+  );
+  logger.error({ err: serializeError(err), url: req.url.split("?")[0] }, "unhandled route error");
+  if (!res.headersSent) {
+    res.status(500).json({ error: "internal_error" });
+  }
+});
 
 export default app;

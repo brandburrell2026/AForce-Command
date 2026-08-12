@@ -12,6 +12,7 @@ import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { webhookLimiter } from "../middlewares/rateLimits";
 import { aforceWebhookDeliveries } from "@workspace/db/schema";
+import { serializeError } from "../lib/serializeError";
 import { db, aforceWebEntitlements } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { logger } from "../lib/logger";

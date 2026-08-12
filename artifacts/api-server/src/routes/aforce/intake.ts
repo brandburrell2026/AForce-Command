@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import { db, aforceIntakeLogs, aforceUserState } from "@workspace/db";
 import { and, eq, sql } from "drizzle-orm";
@@ -164,7 +165,7 @@ router.post("/intake", intakeLimiter, async (req, res) => {
     if (!result.replayed) broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, log: result.log });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/intake failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/intake failed");
     return res.status(400).json({ error: "intake_failed" });
   }
 });
@@ -284,7 +285,7 @@ router.post("/intake/correction", intakeLimiter, async (req, res) => {
     broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, correction: result.correction });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/intake/correction failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/intake/correction failed");
     return res.status(400).json({ error: "correction_failed" });
   }
 });

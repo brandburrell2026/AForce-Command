@@ -22,6 +22,7 @@
  */
 
 import { Router, type IRouter, type Request, type Response } from 'express';
+import { serializeError } from "../lib/serializeError";
 import { getStripeClient, getUncachableStripeClient } from '../lib/stripeClient';
 import { logger } from '../lib/logger';
 import { priceCart } from '../lib/storeCatalog';
@@ -468,7 +469,7 @@ router.post('/checkout/cart', requireAuth, checkoutLimiter, async (req: Request,
       },
     });
   } catch (err) {
-    logger.error({ err }, 'Stripe cart checkout session creation failed');
+    logger.error({ err: serializeError(err) }, 'Stripe cart checkout session creation failed');
     res.status(500).json({ error: 'Could not start checkout. Please try again.' });
   }
 });

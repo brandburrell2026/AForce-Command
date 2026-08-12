@@ -9,6 +9,7 @@
  */
 
 import { Router, type IRouter } from "express";
+import { serializeError } from "../lib/serializeError";
 import { db, aforceAnalyticsEvents } from "@workspace/db";
 import { sql, gte } from "drizzle-orm";
 import { requireRole } from "../middlewares/requireRole";
@@ -57,7 +58,7 @@ router.get(
         byType,
       });
     } catch (err) {
-      logger.error({ err }, "GET /admin/analytics/summary failed");
+      logger.error({ err: serializeError(err) }, "GET /admin/analytics/summary failed");
       return res.status(500).json({ error: "analytics_summary_failed" });
     }
   },

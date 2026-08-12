@@ -9,6 +9,7 @@
  */
 
 import { Router, type IRouter } from "express";
+import { serializeError } from "../lib/serializeError";
 import { requireAuth } from "../middlewares/requireAuth";
 import { resolveEntitlement } from "../lib/entitlementResolver";
 import { logger } from "../lib/logger";
@@ -31,7 +32,7 @@ router.get("/entitlement", requireAuth, async (req, res) => {
       stripeCustomerId: resolved.stripeCustomerId,
     });
   } catch (err) {
-    logger.error({ err }, "GET /entitlement failed");
+    logger.error({ err: serializeError(err) }, "GET /entitlement failed");
     res.status(500).json({ error: "entitlement_failed" });
   }
 });

@@ -1,4 +1,5 @@
 import { createServer } from "node:http";
+import { serializeError } from "./lib/serializeError";
 import { db } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
@@ -89,7 +90,20 @@ server.listen(port, () => {
 });
 
 server.on("error", (err) => {
-  logger.error({ err }, "Error listening on port");
+  logger.error({ err: serializeError(err) }, "Error listening on port");
+  process.exit(1);
+});
+
+// Wave-3 PR8: an unhandled rejection/exception previously crashed the
+// process with ZERO log output. Log a redacted fatal line (Railway
+// captures stdout) and exit non-zero so the supervisor restarts us —
+// fail loudly, never limp on in unknown state.
+process.on("unhandledRejection", (reason) => {
+  logger.fatal({ err: serializeError(reason) }, "unhandledRejection — exiting");
+  process.exit(1);
+});
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err: serializeError(err) }, "uncaughtException — exiting");
   process.exit(1);
 });
 
