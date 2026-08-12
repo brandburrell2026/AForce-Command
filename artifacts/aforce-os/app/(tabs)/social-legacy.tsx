@@ -7,8 +7,11 @@
  *
  * This route is always registered in the (tabs) group but its tab-bar
  * button is hidden (`href: null` in `_layout.tsx`) unless Developer
- * Mode is enabled. It remains reachable via deep link `/social-legacy`
- * for QA regardless of the flag.
+ * Mode is enabled. Wave-1 P0 hardening: `getDevMode()` itself reports
+ * false unless developer controls are available (local dev / demo builds
+ * / internal TestFlight), so this deep link — and every other devMode
+ * surface — redirects for ordinary production users even if a persisted
+ * pre-hardening toggle says otherwise.
  */
 
 import React from 'react';

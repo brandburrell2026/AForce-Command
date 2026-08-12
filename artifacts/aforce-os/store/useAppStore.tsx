@@ -783,11 +783,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // the latest closure (state.userState moves a lot) without resubscribing.
   const logIntakeRef = useRef(logIntake);
   useEffect(() => { logIntakeRef.current = logIntake; }, [logIntake]);
+  // Wave-1 P0 hardening: the sip listener is registered ONLY while the
+  // Phantom flag is on. Score Protection defense-in-depth — with the
+  // listener unregistered, no BLE event or simulated sip can write intake
+  // in a build where Phantom is not enabled (ordinary production).
+  const phantomOn = state.featureFlags.phantom_wearable_enabled;
   useEffect(() => {
+    if (!phantomOn) return;
     return phantomBandService.on('sip', (event) => {
       void logIntakeRef.current(event.fluidType, { silent: true, ozOverride: event.oz });
     });
-  }, []);
+  }, [phantomOn]);
 
   // ─── AForce Command Voice Engine — system command voice ────────────────
   // Routes through commandSpeak() so the bus records every utterance for
