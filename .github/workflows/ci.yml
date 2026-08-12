@@ -311,6 +311,14 @@ jobs:
       # suite runs. `push-force` (lib/db/package.json) is drizzle-kit push
       # --force against DATABASE_URL — safe here by construction: the target
       # is this job's throwaway container, never a shared environment.
+      # The WHOOP token store encrypts at rest with pgp_sym_encrypt, which
+      # lives in the pgcrypto extension — absent from a stock postgres:16
+      # image. Without this, whoopTokenStore.drizzle fails with
+      # "function pgp_sym_encrypt(unknown, unknown) does not exist" (42883).
+      # Production provisions pgcrypto the same way.
+      - name: Enable pgcrypto
+        run: PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d aforce_test -c 'CREATE EXTENSION IF NOT EXISTS pgcrypto;'
+
       - name: Apply schema (drizzle-kit push)
         run: pnpm --filter @workspace/db push-force
 
