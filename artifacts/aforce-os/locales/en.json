@@ -1569,7 +1569,8 @@
       "unit_units": "units",
       "unit_day": "d",
       "recent_activity": "Recent activity",
-      "why_consistency": "You're {{pct}}% consistent this week. The plan adapts each recheck ({{min}} min) to your live readiness."
+      "why_consistency": "You're {{pct}}% consistent this week. The plan adapts each recheck ({{min}} min) to your live readiness.",
+      "why_adaptive": "The plan adapts each recheck ({{min}} min) to your live readiness."
     },
     "v3": {
       "chip": "Day {{day}} · {{completed}}/{{total}} complete",
