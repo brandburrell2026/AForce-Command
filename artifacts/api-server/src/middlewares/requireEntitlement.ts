@@ -29,6 +29,7 @@
  */
 
 import type { RequestHandler } from "express";
+import { incCounter } from "../observability/metrics";
 import { resolveEntitlement } from "../lib/entitlementResolver";
 import { FEATURE_MIN_PLAN, planGrantsFeature } from "../lib/featureEntitlements";
 import { logger } from "../lib/logger";
@@ -60,11 +61,13 @@ export function requireEntitlement(featureId: string): RequestHandler {
     } catch (err) {
       // Lookup failure NEVER falls open.
       logger.error({ err, featureId }, "requireEntitlement: lookup failed; denying");
+      incCounter("entitlement_failures.503_lookup");
       res.status(503).json({ error: "entitlement_unavailable" });
       return;
     }
 
     if (!planGrantsFeature(planId, status, featureId)) {
+      incCounter("entitlement_failures.403_denied");
       res.status(403).json({
         error: "entitlement_required",
         featureId,

@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { serializeError } from "../../lib/serializeError";
+import { incCounter } from "../../observability/metrics";
 import { z } from "zod";
 import {
   db,
@@ -37,6 +38,7 @@ router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), code: i.code }));
     logger.warn({ issues }, "POST /aforce/journal/snapshot rejected (schema)");
+    incCounter("score_write_rejected.schema");
     return res.status(400).json({ error: "snapshot_invalid", issues });
   }
   try {

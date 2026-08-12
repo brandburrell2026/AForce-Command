@@ -19,6 +19,7 @@
  */
 
 import { db, aforceUsers, aforceWebEntitlements } from "@workspace/db";
+import { incCounter } from "../observability/metrics";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { logger } from "./logger";
 import { fetchVerifiedPrimaryEmail } from "./clerkEmail";
@@ -144,6 +145,7 @@ export async function resolveEntitlement(userId: string): Promise<ResolvedEntitl
       }
     } catch (err) {
       // stripe schema missing or query failed — silent fallback to cache.
+      incCounter("entitlement_resolver_fallback.stripe");
       logger.debug({ err }, "entitlement: stripe.subscriptions lookup failed; using cache");
     }
   }
@@ -189,6 +191,7 @@ export async function resolveEntitlement(userId: string): Promise<ResolvedEntitl
         }
       }
     } catch (err) {
+      incCounter("entitlement_resolver_fallback.web");
       logger.debug({ err }, "entitlement: web-entitlement lookup failed; using stripe/cache result");
     }
   }
