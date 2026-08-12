@@ -1,4 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// hydroJournal imports useFeatureFlags from the app store, which
+// transitively pulls RN/Expo-native edges (expo winter runtime,
+// expo-notifications, AsyncStorage) that are unparseable in node.
+// Repo convention (see coachModeResolution.test.ts): stub the store
+// edge minimally; every helper under test here is pure and untouched.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   JOURNAL_SOURCES,
   JOURNAL_SOURCE_LABELS,

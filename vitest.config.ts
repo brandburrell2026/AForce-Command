@@ -2,22 +2,34 @@ import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
 export default defineConfig({
+  assetsInclude: ['**/*.png', '**/*.jpg', '**/*.webp'],
   esbuild: {
     jsx: 'automatic',
   },
   resolve: {
-    alias: {
+    alias: [
+      // Wave-4 Part 3: the real products module executes RN asset
+      // require('*.png') at import — unparseable in node. Redirect ANY
+      // specifier for it (relative or @/-aliased) to the node stub;
+      // per-suite vi.mock still wins where present.
+      {
+        find: /^(.*\/)?data\/products$/,
+        replacement: path.resolve(__dirname, 'artifacts/aforce-os/data/products.node-stub.ts'),
+      },
       // Mirror the aforce-os tsconfig path alias so tests can resolve
       // `@/services/...`, `@/types/...`, `@/data/...` the same way the app does.
-      '@/': path.resolve(__dirname, 'artifacts/aforce-os') + '/',
+      { find: /^@\//, replacement: path.resolve(__dirname, 'artifacts/aforce-os') + '/' },
       // React Native → React Native Web, so the NON-SHIPPING Night Out render
       // harness can render RN presentational components to a real DOM (happy-dom)
       // for render-level a11y evidence. Harmless to node suites: they never import
       // `react-native`. This alias affects tests only, never the app bundle.
-      'react-native': 'react-native-web',
-    },
+      { find: /^react-native$/, replacement: 'react-native-web' },
+    ],
   },
   test: {
+    setupFiles: ['./vitest.setup.ts'],
+    // RN-style require('*.png') in data modules — treat as vite assets
+    // (returns a path string in node, matching the Metro contract shape).
     include: [
       'artifacts/aforce-os/services/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/analytics/**/__tests__/**/*.test.ts',

@@ -1,4 +1,23 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Per-suite mocks of the RN-only edges (repo convention — see
+// realApi.intake.test.ts / claimsGateRuntimeSeams.test.ts).
+// `recoveryCircle.ts` imports `./scopedStorage` (AsyncStorage native)
+// and `@/store/useAppStore` (transitively pulls the `expo` winter
+// runtime / expo-notifications), both unloadable in node/vitest.
+// Everything under test here is pure, so the stubs only need to
+// satisfy the imports with the exact members recoveryCircle reads.
+vi.mock('../scopedStorage', () => ({
+  scopedStorage: {
+    getItem: vi.fn(async () => null),
+    setItem: vi.fn(async () => {}),
+  },
+}));
+
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: vi.fn(() => ({ spec_recoveryCircle: false })),
+}));
+
 import {
   CHECKPOINT_DAYS,
   CIRCLE_MAX,

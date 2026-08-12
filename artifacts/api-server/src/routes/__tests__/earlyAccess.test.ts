@@ -22,6 +22,9 @@ function buildApp(): Express {
   return app;
 }
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const app = buildApp();
 const TEST_EMAIL_DOMAIN = "@earlyaccess.test";
 
@@ -64,7 +67,7 @@ async function postSignup(body: unknown): Promise<{ status: number; json: unknow
   });
 }
 
-describe("POST /api/early-access", () => {
+describe.runIf(DB)("POST /api/early-access", () => {
   it("persists a valid signup with the supplied source", async () => {
     const email = `hero-${Date.now()}${TEST_EMAIL_DOMAIN}`;
     const res = await postSignup({ email, source: "hero_cta" });

@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// `services/productPeek.ts` imports `useFeatureFlags` from
+// `@/store/useAppStore` at module scope (for the untested
+// `useHiddenProductPeek` hook), which transitively reaches RN/Expo
+// native modules ('expo' winter runtime, expo-notifications,
+// AsyncStorage) that fail to load under Vitest's Node environment.
+// Mirroring the repo convention (see coachModeResolution.test.ts),
+// stub that single RN-touching edge with the minimal shape the module
+// reads; every constant/function under test here is pure and real.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   PEEK_BLOCKED_ACTIONS,
   PEEK_LINKS,

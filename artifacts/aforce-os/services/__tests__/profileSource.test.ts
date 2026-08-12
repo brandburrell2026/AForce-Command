@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// `services/profileSource.ts` imports `useFeatureFlags` from
+// `@/store/useAppStore` at module scope for the hidden
+// `useHiddenProfileSource()` hook. The store transitively reaches
+// RN/Expo native edges (the 'expo' winter runtime, expo-notifications,
+// AsyncStorage) that fail to load under Vitest's Node environment.
+// Mirroring the repo convention (coachModeResolution.test.ts,
+// realApi.intake.test.ts): stub the RN-only edge minimally; every
+// manifest/resolver under test here is pure and stays real.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   PROFILE_DOMAINS,
   PROFILE_DOMAIN_LABELS,

@@ -1,4 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// hydroScan imports `useFeatureFlags` from the app store, which
+// transitively pulls RN/Expo-native edges (the 'expo' winter runtime,
+// expo-notifications, AsyncStorage) that are unparseable in node/vitest.
+// Per repo convention (see realApi.intake.test.ts, deriveProtocol.test.ts,
+// claimsGateRuntimeSeams.test.ts) we vi.mock only that RN-only edge with
+// the minimal shape hydroScan reads (`flags.spec_hydroScan`); every
+// function under test here is real.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({ spec_hydroScan: true }),
+}));
+
 import {
   HYDROSCAN_FLOW,
   HYDROSCAN_FLOW_LABELS,
