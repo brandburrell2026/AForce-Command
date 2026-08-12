@@ -33,6 +33,7 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
@@ -279,6 +280,10 @@ const captureLimiter = rateLimit({
 
 router.post(
   "/smart-capture",
+  // Wave-1 P0 hardening: user imagery must never leave the device
+  // unauthenticated. Auth precedes rate limiting so anonymous traffic can
+  // never reach the OpenAI call (or consume its budget).
+  requireAuth,
   captureLimiter,
   // Route-scoped body parser — the app-wide cap is 64kB. This router is
   // mounted in app.ts BEFORE the global express.json() so this limit
