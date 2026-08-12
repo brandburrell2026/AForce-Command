@@ -1,6 +1,6 @@
 /**
  * AForce OS App Store
- * React Context + useReducer state container backed by the mockApi service layer.
+ * React Context + useReducer state container backed by the realApi service layer.
  *
  * Source of truth for: userState, engineOutput (score/state/pulseConfig/command),
  * cycle history, feature flags, and overlay UI state.
@@ -111,7 +111,7 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
 // the scoring engine directly — it always asks the mock API for engineOutput.
-// (We use the synchronous helper from mockApi internals via fetchHome's
+// (We use the synchronous helper via fetchHome's
 // promise resolution being immediate-after-microtask in tests; for the
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';

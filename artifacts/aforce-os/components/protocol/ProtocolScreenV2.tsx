@@ -28,7 +28,8 @@ import {
 } from '@/components/ui';
 import { af, afType, afLayout, Spacing } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
-import { deriveProtocol } from '@/services/mockApi';
+import { useWeeklyCompliance } from '@/hooks/useWeeklyCompliance';
+import { deriveProtocol } from '@/services/protocolDerivation';
 import { formatTimeAgo } from '@/data/mockData';
 import { NightOutProtocolEntry } from '@/components/nightOut/NightOutProtocolEntry';
 import { resolveHomePresentation } from '@/components/home/homePresentation';
@@ -49,9 +50,14 @@ export function ProtocolScreenV2() {
   const { history, engineOutput, userState } = state;
   const [whyOpen, setWhyOpen] = React.useState(false);
 
+  const v3Flag = state.featureFlags.protocol_v3_dashboard_enabled;
+  // Real 7-day compliance; fetched lazily the first time a surface that
+  // shows it activates (the WHY sheet, or the legacy consistency badge).
+  const weeklyCompliancePct = useWeeklyCompliance(whyOpen || !v3Flag);
+
   const protocol = React.useMemo(
-    () => deriveProtocol(userState, engineOutput),
-    [userState, engineOutput],
+    () => deriveProtocol(userState, engineOutput, weeklyCompliancePct),
+    [userState, engineOutput, weeklyCompliancePct],
   );
 
   const steps = protocol.steps;
@@ -165,11 +171,13 @@ export function ProtocolScreenV2() {
             <Text style={styles.progressCount}>
               {t('protocol.v2.progress_count', { completed: completedCount, total })}
             </Text>
-            <AFStatusBadge
-              label={t('protocol.v2.consistency', { pct: protocol.weeklyCompliancePct })}
-              tone="positive"
-              icon={null}
-            />
+            {protocol.weeklyCompliancePct != null ? (
+              <AFStatusBadge
+                label={t('protocol.v2.consistency', { pct: protocol.weeklyCompliancePct })}
+                tone="positive"
+                icon={null}
+              />
+            ) : null}
           </View>
           <View style={styles.track} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
             <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
@@ -334,10 +342,14 @@ export function ProtocolScreenV2() {
         <Text style={styles.whyStage}>{protocol.stage}</Text>
         <Text style={styles.whyBody}>{protocol.description}</Text>
         <Text style={styles.whyBody}>
-          {t('protocol.v2.why_consistency', {
-            pct: protocol.weeklyCompliancePct,
-            min: protocol.nextRecheckMinutes,
-          })}
+          {protocol.weeklyCompliancePct != null
+            ? t('protocol.v2.why_consistency', {
+                pct: protocol.weeklyCompliancePct,
+                min: protocol.nextRecheckMinutes,
+              })
+            : t('protocol.v2.why_adaptive', {
+                min: protocol.nextRecheckMinutes,
+              })}
         </Text>
       </AFDisclosureSheet>
     </AFScreen>

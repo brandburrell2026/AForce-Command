@@ -1,7 +1,8 @@
 /**
  * AForce OS — Real REST + WebSocket API client.
  *
- * Replaces the in-memory `mockApi.ts`. The api-server (see
+ * Replaces the old in-memory mock service layer (deleted in Wave-2
+ * PR4; protocol derivation lives on in `protocolDerivation.ts`). The api-server (see
  * `artifacts/api-server/src/routes/aforce.ts`) is the source of truth
  * for persisted user state, intake logs, confirmations, and the
  * server-side OpenWeather lookup. The scoring engine still lives on
@@ -14,7 +15,7 @@
  *   - Lets us run the engine offline against the last known state
  *   - Avoids duplicating the engine logic on the server
  *
- * Same exported names as `mockApi.ts` so `useAppStore` swaps in with
+ * Same exported names as the old mock layer so `useAppStore` swaps in with
  * minimal churn.
  */
 
