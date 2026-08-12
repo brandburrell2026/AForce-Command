@@ -17,7 +17,7 @@
  * carries no Stripe id, customer id, email, or any re-identifying field;
  * never awards, mutates, or fabricates score.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import {
   subscriptionEventPayload,
@@ -36,7 +36,7 @@ const MAX_EMITTED = 50;
 
 async function readList(key: string): Promise<string[]> {
   try {
-    const raw = await AsyncStorage.getItem(key);
+    const raw = await scopedStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     return Array.isArray(parsed) ? (parsed as string[]) : [];
@@ -47,7 +47,7 @@ async function readList(key: string): Promise<string[]> {
 
 async function writeList(key: string, list: string[]): Promise<void> {
   try {
-    await AsyncStorage.setItem(key, JSON.stringify(list));
+    await scopedStorage.setItem(key, JSON.stringify(list));
   } catch {
     /* non-fatal — best-effort dedupe */
   }

@@ -59,6 +59,22 @@ export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
   '@aforce/recoveryCircle',
   // Tier 3 — server-authoritative caches (safe to re-fetch)
   'aforce.subscription',
+  // Wave-3 PR12 — analytics identity + per-person telemetry state
+  '@aforce/analytics-id',
+  '@aforce/analytics-outbox',
+  '@aforce/analytics',
+  '@aforce/analytics-first-win',
+  '@aforce/analytics-session-day',
+  '@aforce/analytics-territory-day',
+  '@aforce/analytics-perf-age-day',
+  '@aforce/first-command-at',
+  '@aforce/day7-offer-emitted',
+  '@aforce/subscription-emitted',
+  'aforce.notificationSettings',
+  // Consent is ALSO scoped — but via COPY-AND-RETAIN (see
+  // RETAIN_GLOBAL_COPY): the {granted, version, updatedAt} triple is
+  // legal evidence and must survive migration.
+  '@aforce/analytics-consent',
   // Tier 4 — personal mode/session state
   '@aforce/sleepMode/targetTimeHHMM',
   '@aforce/sleepMode/sevenNightAvg',
@@ -67,6 +83,16 @@ export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
   '@aforce/socialV2/lastSession',
   'aforce_night_out_command_timer_v1',
 ];
+
+/**
+ * Wave-3 PR12: legacy globals whose ORIGINAL record must survive the
+ * per-user migration (copied, never deleted). Analytics consent is a
+ * legal artifact — "who consented, to version N, when" must stay
+ * answerable even after the claiming user's copy is scoped.
+ */
+export const RETAIN_GLOBAL_COPY: ReadonlySet<string> = new Set([
+  '@aforce/analytics-consent',
+]);
 
 type ScopeListener = () => void;
 
@@ -112,9 +138,10 @@ async function migrateLegacyGlobals(userId: string): Promise<void> {
       ]);
       if (legacy === null) continue;
       // Copy-then-delete; delete only after the scoped write succeeds
-      // (the secureKV migration contract).
+      // (the secureKV migration contract). Keys in RETAIN_GLOBAL_COPY are
+      // copied WITHOUT deletion — the global record is preserved evidence.
       if (existingScoped === null) await AsyncStorage.setItem(scoped, legacy);
-      await AsyncStorage.removeItem(base);
+      if (!RETAIN_GLOBAL_COPY.has(base)) await AsyncStorage.removeItem(base);
     }
     // The FIRST user ever scoped on this device claims the legacy
     // namespace outright — even when no legacy keys existed — so a later

@@ -12,7 +12,7 @@
  * of the slice store). Score-Protection: nothing here awards, mutates, or
  * fabricates score; an absent anchor simply yields an `unanchored` offer.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import { emit } from './event_dispatcher';
 import { isConsentGranted } from './privacy_manager';
@@ -39,12 +39,12 @@ export async function markFirstCommandCompleted(
 ): Promise<void> {
   if (firstCommandStamped) return;
   try {
-    const existing = await AsyncStorage.getItem(FIRST_COMMAND_KEY);
+    const existing = await scopedStorage.getItem(FIRST_COMMAND_KEY);
     if (existing) {
       firstCommandStamped = true;
       return;
     }
-    await AsyncStorage.setItem(FIRST_COMMAND_KEY, nowIso);
+    await scopedStorage.setItem(FIRST_COMMAND_KEY, nowIso);
     firstCommandStamped = true;
   } catch {
     /* non-fatal — best-effort anchor */
@@ -54,7 +54,7 @@ export async function markFirstCommandCompleted(
 /** Read the activation anchor (ISO), or null when no command has been followed. */
 export async function getFirstCommandAt(): Promise<string | null> {
   try {
-    return await AsyncStorage.getItem(FIRST_COMMAND_KEY);
+    return await scopedStorage.getItem(FIRST_COMMAND_KEY);
   } catch {
     return null;
   }
@@ -74,13 +74,13 @@ export async function recordDay7OfferShown(): Promise<void> {
   day7EmitInFlight = (async () => {
     if (!(await isConsentGranted())) return;
     try {
-      if (await AsyncStorage.getItem(DAY7_EMITTED_KEY)) return;
+      if (await scopedStorage.getItem(DAY7_EMITTED_KEY)) return;
     } catch {
       /* fall through — better to emit than silently drop */
     }
     await emit('day7_subscription_offer');
     try {
-      await AsyncStorage.setItem(DAY7_EMITTED_KEY, new Date().toISOString());
+      await scopedStorage.setItem(DAY7_EMITTED_KEY, new Date().toISOString());
     } catch {
       /* non-fatal — best-effort dedupe */
     }

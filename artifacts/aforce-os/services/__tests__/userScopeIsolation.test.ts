@@ -162,7 +162,13 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
     userScope.setUserScope('user_A');
     await userScope.migrationSettled();
     for (const base of userScope.MIGRATED_GLOBAL_KEYS) {
-      expect(mem.has(base), `${base} global must be consumed`).toBe(false);
+      if (userScope.RETAIN_GLOBAL_COPY.has(base)) {
+        // Wave-3 PR12: consent evidence is COPY-AND-RETAIN — the scoped
+        // copy exists AND the global legal record survives.
+        expect(mem.get(base), `${base} global must be RETAINED`).toBe(`legacy:${base}`);
+      } else {
+        expect(mem.has(base), `${base} global must be consumed`).toBe(false);
+      }
       expect(mem.get(`${base}:user_A`), `${base} must be scoped`).toBe(`legacy:${base}`);
     }
   });

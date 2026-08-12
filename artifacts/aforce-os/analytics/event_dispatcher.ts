@@ -15,7 +15,8 @@
  * serialized write-queue pattern from `services/analytics.ts` so
  * concurrent emits cannot clobber the outbox.
  */
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { scopedStorage } from '@/services/scopedStorage';
+import { subscribeUserScope } from '@/services/userScope';
 import { Platform } from "react-native";
 
 import type {
@@ -46,7 +47,7 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 
 async function readOutbox(): Promise<AnalyticsEventEnvelope[]> {
   try {
-    const raw = await AsyncStorage.getItem(OUTBOX_KEY);
+    const raw = await scopedStorage.getItem(OUTBOX_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     return Array.isArray(parsed) ? (parsed as AnalyticsEventEnvelope[]) : [];
@@ -62,7 +63,7 @@ async function readOutbox(): Promise<AnalyticsEventEnvelope[]> {
  */
 async function writeOutbox(events: AnalyticsEventEnvelope[]): Promise<boolean> {
   try {
-    await AsyncStorage.setItem(OUTBOX_KEY, JSON.stringify(events.slice(-MAX_OUTBOX)));
+    await scopedStorage.setItem(OUTBOX_KEY, JSON.stringify(events.slice(-MAX_OUTBOX)));
     return true;
   } catch {
     return false; /* non-fatal */
@@ -153,12 +154,12 @@ export async function emitSessionStarted(): Promise<void> {
   if (!(await isConsentGranted())) return;
   const today = new Date().toISOString().slice(0, 10);
   try {
-    if ((await AsyncStorage.getItem(SESSION_DAY_KEY)) === today) return;
+    if ((await scopedStorage.getItem(SESSION_DAY_KEY)) === today) return;
   } catch {
     /* fall through — better to emit than silently drop the session */
   }
   try {
-    await AsyncStorage.setItem(SESSION_DAY_KEY, today);
+    await scopedStorage.setItem(SESSION_DAY_KEY, today);
   } catch {
     /* non-fatal */
   }
@@ -197,13 +198,13 @@ export async function emitTerritoryOpened(): Promise<void> {
     if (!(await isConsentGranted())) return;
     const today = new Date().toISOString().slice(0, 10);
     try {
-      if ((await AsyncStorage.getItem(TERRITORY_DAY_KEY)) === today) return;
+      if ((await scopedStorage.getItem(TERRITORY_DAY_KEY)) === today) return;
     } catch {
       /* fall through — better to emit than silently drop the open */
     }
     if (await emit("territory_opened")) {
       try {
-        await AsyncStorage.setItem(TERRITORY_DAY_KEY, today);
+        await scopedStorage.setItem(TERRITORY_DAY_KEY, today);
       } catch {
         /* non-fatal — a retry next mount re-emits, deduped server-side by day */
       }
@@ -270,13 +271,13 @@ export async function emitPerformanceAgeSnapshot(
     if (!(await isConsentGranted())) return;
     const today = new Date().toISOString().slice(0, 10);
     try {
-      if ((await AsyncStorage.getItem(PERF_AGE_DAY_KEY)) === today) return;
+      if ((await scopedStorage.getItem(PERF_AGE_DAY_KEY)) === today) return;
     } catch {
       /* fall through — better to emit than silently drop the snapshot */
     }
     if (await emit("performance_age_snapshot", { deltaYears, status })) {
       try {
-        await AsyncStorage.setItem(PERF_AGE_DAY_KEY, today);
+        await scopedStorage.setItem(PERF_AGE_DAY_KEY, today);
       } catch {
         /* non-fatal — a retry next mount re-emits, deduped server-side by day */
       }
@@ -310,7 +311,7 @@ export async function emitFirstWinConfirmed(winId?: string): Promise<void> {
   try {
     if (!(await isConsentGranted())) return;
     try {
-      if ((await AsyncStorage.getItem(FIRST_WIN_KEY)) === "1") return;
+      if ((await scopedStorage.getItem(FIRST_WIN_KEY)) === "1") return;
     } catch {
       /* fall through — better to emit than silently drop the milestone */
     }
@@ -322,7 +323,7 @@ export async function emitFirstWinConfirmed(winId?: string): Promise<void> {
     // later win retries the milestone.
     if (!queued) return;
     try {
-      await AsyncStorage.setItem(FIRST_WIN_KEY, "1");
+      await scopedStorage.setItem(FIRST_WIN_KEY, "1");
     } catch {
       /* non-fatal — a future win will retry the milestone */
     }
@@ -342,3 +343,13 @@ export async function clearOutbox(): Promise<void> {
 export async function initAnalytics(): Promise<void> {
   await flush();
 }
+
+// Wave-3 PR12: reset the module-level in-flight latches on a user-scope
+// change so USER B's session can never be blocked (or double-emit) off
+// USER A's in-flight once-per-day/once-ever dedupe state.
+subscribeUserScope(() => {
+  territoryOpenInFlight = false;
+  perfAgeSnapshotInFlight = false;
+  firstWinInFlight = false;
+  flushing = false;
+});
