@@ -140,6 +140,45 @@ describe('mapCategorySamplesToSleepIntervals', () => {
     expect(mapCategorySamplesToSleepIntervals(samples)).toHaveLength(1);
   });
 
+  it('a zero-length entry (endDate === startDate) is dropped — a 0ms row is not a measurement of "no sleep"', () => {
+    // Wave-4 zero-sleep fabrication fix (2026-08-12): kept, this row still
+    // clusters into a SESSION whose union is 0ms, which the snapshot lane
+    // then divided by an hour and shipped as a confident "0h slept" — a
+    // fabricated measurement of time nothing was recorded for.
+    const samples = [
+      { startDate: new Date('2026-08-06T03:00:00.000Z'), endDate: new Date('2026-08-06T03:00:00.000Z'), value: 4, sourceRevision: { source: { name: "Brandon's Apple Watch" } } },
+      { startDate: new Date('2026-08-05T23:00:00.000Z'), endDate: new Date('2026-08-06T04:00:00.000Z'), value: 4, sourceRevision: { source: { name: "Brandon's Apple Watch" } } },
+    ];
+    const result = mapCategorySamplesToSleepIntervals(samples);
+    expect(result).toHaveLength(1);
+    expect(result[0].startMs).toBe(new Date('2026-08-05T23:00:00.000Z').getTime());
+  });
+
+  it('an inverted entry (endDate BEFORE startDate) is dropped rather than contributing a negative duration', () => {
+    // Same fix: an inverted row is corrupt, not a reading. Kept, its negative
+    // duration silently CANCELS real sleep in the union sum — the 5h night
+    // below plus this row summed to exactly 0ms.
+    const samples = [
+      { startDate: new Date('2026-08-06T06:00:00.000Z'), endDate: new Date('2026-08-06T01:00:00.000Z'), value: 4, sourceRevision: { source: { name: "Brandon's Apple Watch" } } },
+      { startDate: new Date('2026-08-05T23:00:00.000Z'), endDate: new Date('2026-08-06T04:00:00.000Z'), value: 4, sourceRevision: { source: { name: "Brandon's Apple Watch" } } },
+    ];
+    const result = mapCategorySamplesToSleepIntervals(samples);
+    expect(result).toHaveLength(1);
+    expect(result[0].endMs).toBe(new Date('2026-08-06T04:00:00.000Z').getTime());
+  });
+
+  it('degenerate inBed(0)/awake(2) rows are dropped too — coverage evidence must have real length', () => {
+    // These never become sleep, but a zero-length/inverted one still reaches
+    // `selectSleepIntervals`' per-source coverage set and
+    // `computeSleepPerSourceTotals`' diagnostics rows. Nothing of zero (or
+    // negative) length is evidence of anything, whatever its value class.
+    const samples = [
+      { startDate: new Date('2026-08-05T22:00:00.000Z'), endDate: new Date('2026-08-05T22:00:00.000Z'), value: 0, sourceRevision: { source: { name: 'iPhone' } } },
+      { startDate: new Date('2026-08-06T02:10:00.000Z'), endDate: new Date('2026-08-06T02:00:00.000Z'), value: 2, sourceRevision: { source: { name: 'iPhone' } } },
+    ];
+    expect(mapCategorySamplesToSleepIntervals(samples)).toEqual([]);
+  });
+
   it('inBed(0) and awake(2) samples are still mapped (exclusion happens at selection, not adaptation)', () => {
     const samples = [
       { startDate: new Date('2026-08-05T22:00:00.000Z'), endDate: new Date('2026-08-05T23:00:00.000Z'), value: 0, sourceRevision: { source: { name: 'iPhone' } } },

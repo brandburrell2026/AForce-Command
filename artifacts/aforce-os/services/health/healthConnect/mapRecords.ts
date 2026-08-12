@@ -198,7 +198,34 @@ export function mapSleepStages(rawStages: readonly HcSleepStage[]): SleepSession
 
 // ─── Record mappers ───────────────────────────────────────────────────────────
 
-export function mapSleepSessionRecord(record: SleepSessionRecord, ctx: MapContext): CanonicalHealthRecord {
+/**
+ * A session that maps to `totalSleepHours === 0` returns `null` — NO record —
+ * rather than reporting a measured zero-hour night. Every route HC has to an
+ * asleep total of 0 is an ABSENCE, not an observation: no stages at all (the
+ * session exists but its stage data is missing or still being written),
+ * stages that are exclusively awake and/or out-of-bed (HC classified none of
+ * it as sleep), or timestamps so malformed that durationMs clamped every
+ * segment to 0. None of those means "this person slept zero hours" — yet
+ * downstream a literal 0 is scored as the maximal possible sleep deficit,
+ * which is a diagnosis drawn from a non-measurement (AForce Constitution:
+ * observation never diagnosis).
+ *
+ * The whole record goes, not just the field: SleepSessionValue's
+ * `totalSleepHours` is non-nullable in health-core's contracts, so there is
+ * no shape for "in bed 6h, sleep unknown" — emitting the session anyway
+ * would mean shipping the fabricated 0 alongside the honest in-bed time.
+ *
+ * The tradeoff is deliberate and matches the position the Apple snapshot
+ * lane already took under the RC-2 sleep-window ruling: a genuinely measured
+ * 0h night becomes unrepresentable from this adapter. No HC path produces
+ * one, so no real observation is lost.
+ *
+ * Same caller contract as mapHeartRateRecord below — H2's sync loop must
+ * handle the null and simply sync nothing for that session.
+ */
+export function mapSleepSessionRecord(record: SleepSessionRecord, ctx: MapContext): CanonicalHealthRecord | null {
+  const value = mapSleepStages(record.stages);
+  if (value.totalSleepHours === 0) return null;
   const chain = buildProvenanceChain(record.metadata.dataOrigin);
   const origin = chain[0].provider;
   const observedAt = record.startTime;
@@ -209,7 +236,7 @@ export function mapSleepSessionRecord(record: SleepSessionRecord, ctx: MapContex
     originalSource: record.metadata.dataOrigin.packageName,
     externalId: record.metadata.id,
     metricType: 'sleep_session',
-    value: mapSleepStages(record.stages),
+    value,
     startTime: record.startTime,
     endTime: record.endTime,
     observedAt,

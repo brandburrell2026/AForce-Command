@@ -28,7 +28,9 @@
  *     -> { data: [{ total_sleep_duration, average_hrv,
  *                    lowest_heart_rate, type, bedtime_end, ... }] }
  *     sleepHoursLastNight = latest record's `total_sleep_duration`
- *       (seconds) / 3600.
+ *       (seconds) / 3600, but only when that duration is > 0 — a 0 or
+ *       negative duration is a non-measurement, not a measured zero
+ *       (see the derivation below).
  *     hrvSdnn = latest record's `average_hrv`. NOTE: despite the
  *       shared field name (kept for parity with the cross-provider
  *       `ProviderSnapshot.hrvSdnn` shape), Oura's `average_hrv` is an
@@ -243,11 +245,15 @@ export async function fetchOuraSnapshot(
     if (sawValid) workoutMinutesToday = totalMs / (1000 * 60);
   }
 
-  let sleepHoursLastNight: number | null = null;
+  // Oura only writes a sleep-period record where it detected rest, so a literal
+  // 0 `total_sleep_duration` means the selected period scored no sleep at all —
+  // a rest / failed-detection artifact — and a negative duration is corrupt wire
+  // data. Neither is a measurement, so both surface as UNKNOWN rather than as a
+  // measured zero (observation never diagnosis). Deliberate: Oura's rare literal
+  // 0 is unrepresentable here, the same position the Apple lane took under RC-2.
   const sleepSec = num(sleepRec?.total_sleep_duration);
-  if (sleepSec !== null) {
-    sleepHoursLastNight = Math.max(0, sleepSec) / 3600;
-  }
+  const sleepHoursLastNight =
+    sleepSec !== null && sleepSec > 0 ? sleepSec / 3600 : null;
 
   const readinessScore = num(readinessRec?.score);
   const hrvSdnn = num(sleepRec?.average_hrv);

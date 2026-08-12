@@ -6,6 +6,8 @@
  *   - Empty / blank / undefined token -> empty snapshot, no fetch
  *   - Happy path: real WHOOP wire shapes parse into the normalized
  *     snapshot, with the sleep math (in-bed minus awake -> hours)
+ *   - A non-positive in-bed-minus-awake net (glitched or zeroed
+ *     stage_summary) reports null, never a fabricated measured 0h
  *   - Per-endpoint 4xx / 5xx leaves that endpoint's fields null
  *     without affecting the others (the worker treats partial as
  *     valid)
@@ -265,7 +267,7 @@ describe("fetchWhoopSnapshot", () => {
     expect(snap.sleepHoursLastNight).toBeNull();
   });
 
-  it("clamps sleep to >=0 when WHOOP reports awake > in-bed (defensive)", async () => {
+  it("reports sleep as null (UNKNOWN) when WHOOP reports awake > in-bed (defensive)", async () => {
     const { fn } = makeFetch({
       [RECOVERY_URL]: () => jsonResponse({ records: [] }),
       [CYCLE_URL]: () => jsonResponse({ records: [] }),
@@ -287,7 +289,37 @@ describe("fetchWhoopSnapshot", () => {
       accessToken: "AT",
       fetchImpl: fn,
     });
-    expect(snap.sleepHoursLastNight).toBe(0);
+    // Expectation corrected from 0 — the MEANING changed. awake > inBed is
+    // corrupt WHOOP data, not a night of zero sleep, and the old clamp
+    // published it as a confident measured 0h (a maximal sleep deficit
+    // downstream). A non-measurement now reads as unknown.
+    expect(snap.sleepHoursLastNight).toBeNull();
+  });
+
+  it("reports sleep as null when stage_summary is zeroed/placeholder (in-bed 0)", async () => {
+    const { fn } = makeFetch({
+      [RECOVERY_URL]: () => jsonResponse({ records: [] }),
+      [CYCLE_URL]: () => jsonResponse({ records: [] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({
+          records: [
+            {
+              score_state: "SCORED",
+              score: {
+                stage_summary: {
+                  total_in_bed_time_milli: 0,
+                  total_awake_time_milli: 0,
+                },
+              },
+            },
+          ],
+        }),
+    });
+    const snap = await fetchWhoopSnapshot({
+      accessToken: "AT",
+      fetchImpl: fn,
+    });
+    expect(snap.sleepHoursLastNight).toBeNull();
   });
 });
 

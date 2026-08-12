@@ -11,6 +11,11 @@
  * Contract:
  *   - If no access token is stored, every field stays null. We
  *     never fabricate data.
+ *   - Sleep: a non-positive `inBed - awake` net reports as null, not
+ *     0 — see the derivation in `fetchWhoopSnapshot`. This rule is
+ *     MIRRORED in the server lane (`api-server/src/lib/whoopSnapshot.ts`);
+ *     the two must change together or the lanes disagree about the
+ *     same night.
  *   - WHOOP's primary signals are strain (0–21), recovery % (0–100),
  *     HRV (ms), and sleep duration (hours). The aggregator already
  *     consumes all four.
@@ -111,7 +116,12 @@ export async function fetchWhoopSnapshot(
   if (slp && typeof slp.total_in_bed_time_milli === 'number') {
     const inBed = slp.total_in_bed_time_milli;
     const awake = slp.total_awake_time_milli ?? 0;
-    sleepHoursLastNight = Math.max(0, inBed - awake) / (1000 * 60 * 60);
+    // A non-positive net is never a measured night: awake >= inBed is a WHOOP
+    // data glitch, and inBed <= 0 is a zeroed/placeholder stage_summary. The
+    // old `Math.max(0, …)` clamp published both as a confident 0h, which
+    // downstream reads as a maximal sleep deficit. Report unknown instead.
+    const netMs = inBed - awake;
+    sleepHoursLastNight = netMs > 0 ? netMs / (1000 * 60 * 60) : null;
   }
 
   return {
