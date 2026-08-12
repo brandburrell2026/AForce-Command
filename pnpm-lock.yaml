@@ -997,6 +997,12 @@ importers:
       pino-http:
         specifier: ^10
         version: 10.5.0
+      stripe:
+        specifier: ^22.0.2
+        version: 22.0.2(@types/node@25.3.5)
+      stripe-replit-sync:
+        specifier: ^1.0.0
+        version: 1.0.0(stripe@22.0.2(@types/node@25.3.5))
       ws:
         specifier: 8.20.1
         version: 8.20.1
