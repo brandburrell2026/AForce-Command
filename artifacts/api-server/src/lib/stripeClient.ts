@@ -61,15 +61,25 @@ export async function getUncachableStripeClient(): Promise<Stripe> {
 /** Legacy alias — kept so existing imports keep compiling. */
 export const getStripeClient = getUncachableStripeClient;
 
+// Wave-3 PR6: StripeSync owns a pg.Pool (max 10, keepAlive). It was
+// constructed PER WEBHOOK REQUEST and never closed — every delivery leaked
+// a pool (an unauthenticated DB-exhaustion vector). Memoize per secret so
+// the pool is shared; a rotated key (Replit connector mode) still swaps
+// the instance.
+let cachedSync: { key: string; sync: StripeSync } | null = null;
+
 export async function getStripeSync(): Promise<StripeSync> {
   const databaseUrl = process.env['DATABASE_URL'];
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is required');
   }
   const { secretKey, webhookSecret } = await getStripeCredentials();
-  return new StripeSync({
+  if (cachedSync && cachedSync.key === secretKey) return cachedSync.sync;
+  const sync = new StripeSync({
     poolConfig: { connectionString: databaseUrl },
     stripeSecretKey: secretKey,
     stripeWebhookSecret: webhookSecret ?? '',
   });
+  cachedSync = { key: secretKey, sync };
+  return sync;
 }
