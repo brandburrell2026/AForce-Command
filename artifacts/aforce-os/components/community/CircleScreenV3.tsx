@@ -133,14 +133,17 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
       </Text>
 
       {/* Scope tabs — comp pill row */}
-      <View style={styles.tabsRow} testID="circle-v3-tabs">
+      <View style={styles.tabsRow} accessibilityRole="tablist" testID="circle-v3-tabs">
         {TABS.map((key) => (
           <Pressable
             key={key}
             onPress={() => setTab(key)}
             style={[styles.tabPill, tab === key && styles.tabPillOn]}
-            accessibilityRole="button"
+            accessibilityRole="tab"
             accessibilityState={{ selected: tab === key }}
+            // 9pt padding + a 18pt caption line is ~36pt; hitSlop carries the
+            // touchable area to the 44pt minimum without changing the comp.
+            hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }}
             testID={`circle-v3-tab-${key}`}
           >
             <Text style={[styles.tabText, tab === key && styles.tabTextOn]}>
