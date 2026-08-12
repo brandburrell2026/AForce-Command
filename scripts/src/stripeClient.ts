@@ -9,6 +9,10 @@ import Stripe from 'stripe';
 interface Creds { secretKey: string }
 
 async function getStripeCredentials(): Promise<Creds> {
+  // Wave-3 PR2: env-first (mirrors artifacts/api-server/src/lib/stripeClient.ts).
+  const envSecret = process.env['STRIPE_SECRET_KEY'];
+  if (envSecret) return { secretKey: envSecret };
+
   const hostname = process.env['REPLIT_CONNECTORS_HOSTNAME'];
   const token = process.env['REPL_IDENTITY']
     ? `repl ${process.env['REPL_IDENTITY']}`
