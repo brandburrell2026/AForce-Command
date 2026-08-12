@@ -13,7 +13,7 @@
  * here touches score or hydration state).
  */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useRouter } from 'expo-router';
@@ -24,6 +24,14 @@ import { af, afType, Spacing } from '@/theme';
 import type { Moment, MomentRecommendation, RitualStage } from '@/types/moments';
 import { updateMoment } from '@/services/momentsStore';
 import { markCalendarMomentPrepared } from '@/services/calendarMoments';
+import { useFeatureFlags } from '@/store/useAppStore';
+import {
+  useMomentFeedback,
+  hydrateMomentFeedback,
+  recordMomentFeedback,
+  shouldAskFeedback,
+  type MomentPrepFeedback,
+} from '@/services/momentFeedback';
 import { cancelMomentNotification } from '@/services/momentNotifications';
 import { clockLabel, prepWindowLabel, startsIn } from './momentsPresentation';
 import { WhyThisSheet } from './WhyThisSheet';
@@ -59,6 +67,36 @@ export function MomentDetailScreen({
   const [whyOpen, setWhyOpen] = React.useState(false);
   const eta = startsIn(moment.startAtIso, nowIso);
   const prepared = Boolean(moment.preparedAtIso);
+  const learningOn = useFeatureFlags().moments_learning_enabled;
+  const feedback = useMomentFeedback();
+  React.useEffect(() => {
+    if (learningOn) void hydrateMomentFeedback();
+  }, [learningOn]);
+  const answered = feedback.find((r) => r.momentId === moment.id);
+  // DR-012 Ruling 2: selective — completed + prepared + high importance +
+  // once per moment + daily ask cap. Never after every moment.
+  const askFeedback =
+    learningOn &&
+    !readOnly &&
+    (answered != null ||
+      shouldAskFeedback(
+        {
+          momentId: moment.id,
+          importance: moment.importance,
+          prepared,
+          momentStartIso: moment.startAtIso,
+        },
+        feedback,
+        nowIso,
+      ));
+  const giveFeedback = (value: MomentPrepFeedback) => {
+    recordMomentFeedback({
+      momentId: moment.id,
+      momentType: moment.type,
+      feedback: value,
+      atIso: new Date().toISOString(),
+    });
+  };
 
   return (
     <AFScreen scroll contentContainerStyle={styles.scrollContent}>
@@ -120,6 +158,29 @@ export function MomentDetailScreen({
         disabled={prepared}
         testID="moment-im-ready"
       />
+
+      {askFeedback ? (
+        <View style={styles.feedback} testID="moment-feedback">
+          <Text style={styles.feedbackLabel}>{t('moments.feedback.title')}</Text>
+          {answered ? (
+            <Text style={styles.feedbackThanks}>{t('moments.feedback.thanks')}</Text>
+          ) : (
+            <View style={styles.feedbackRow}>
+              {(['just_right', 'too_early', 'too_late'] as const).map((k) => (
+                <Pressable
+                  key={k}
+                  onPress={() => giveFeedback(k)}
+                  style={styles.feedbackPill}
+                  accessibilityRole="button"
+                  testID={`moment-feedback-${k}`}
+                >
+                  <Text style={styles.feedbackPillText}>{t(`moments.feedback.${k}`)}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+      ) : null}
 
       <WhyThisSheet rec={rec} visible={whyOpen} onClose={() => setWhyOpen(false)} />
     </AFScreen>
@@ -215,4 +276,16 @@ const styles = StyleSheet.create({
   },
   whyLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
   whyBody: { ...afType.body, color: af.textSecondary, lineHeight: 22 },
+  feedback: {
+    padding: 14, gap: 10, borderRadius: 14,
+    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
+  },
+  feedbackLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
+  feedbackRow: { flexDirection: 'row', gap: 8 },
+  feedbackPill: {
+    flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 999,
+    borderWidth: 1, borderColor: af.border, backgroundColor: af.surfaceRaised,
+  },
+  feedbackPillText: { ...afType.caption, color: af.textSecondary },
+  feedbackThanks: { ...afType.caption, color: af.green },
 });

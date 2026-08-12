@@ -243,6 +243,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // production and BLOCKED from activation until Legal + Privacy sign off
   // on the calendar data class (PR-002 5.2 / Appendix A).
   moments_calendar_enabled: false,
+  // Moments learning loop (Phase 4, DR-012) — selective prep feedback +
+  // bounded, min-sample lead adaptation ('Adaptive' lead option). Feedback
+  // is display-and-learning only (Score Protection). OFF in production.
+  moments_learning_enabled: false,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -496,6 +500,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   moments_enabled: true,
   moments_notifications_enabled: true,
   moments_calendar_enabled: true,
+  moments_learning_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,

@@ -21,12 +21,22 @@ import {
   syncMomentNotifications,
 } from '@/services/momentNotifications';
 import { primePushPermission } from '@/services/pushNotifications';
+import {
+  hydrateMomentFeedback,
+  useMomentFeedback,
+  deriveLeadAdjustments,
+} from '@/services/momentFeedback';
 
 export function useMomentPrepScheduling(): void {
   const { t } = useTranslation();
   const flags = useFeatureFlags();
   const { notificationSettings } = useAppStore();
   const { moments, hydrated } = useMomentsStore();
+  const feedback = useMomentFeedback();
+  const learningOn = flags.moments_learning_enabled;
+  React.useEffect(() => {
+    if (learningOn) void hydrateMomentFeedback();
+  }, [learningOn]);
 
   const enabled =
     flags.moments_enabled &&
@@ -45,9 +55,14 @@ export function useMomentPrepScheduling(): void {
       if (cancelled || !granted) return;
       const prefs = await getMomentNotifyPrefs();
       if (cancelled) return;
-      const plan = planMomentNotifications(moments, prefs, new Date().toISOString());
+      const nowIso = new Date().toISOString();
+      // DR-012: adjustments apply only with the learning flag AND the user's
+      // adaptive preference; zero-adjustment otherwise (hard no-op gate).
+      const adjustments =
+        learningOn && prefs.adaptive ? deriveLeadAdjustments(feedback, nowIso) : undefined;
+      const plan = planMomentNotifications(moments, prefs, nowIso, adjustments);
       await syncMomentNotifications(plan, t as never);
     })();
     return () => { cancelled = true; };
-  }, [enabled, hydrated, moments, t]);
+  }, [enabled, hydrated, moments, feedback, learningOn, t]);
 }

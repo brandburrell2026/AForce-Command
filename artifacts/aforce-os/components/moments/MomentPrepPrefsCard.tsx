@@ -18,10 +18,12 @@ import {
   type MomentNotifyPrefs,
 } from '@/services/momentNotifications';
 import { MOMENT_NOTIFY_LEAD_PRESETS_MIN } from '@/config/hydroStateModel';
+import { useFeatureFlags } from '@/store/useAppStore';
 
 export function MomentPrepPrefsCard() {
   const { t } = useTranslation();
   const [prefs, setPrefs] = React.useState<MomentNotifyPrefs>(DEFAULT_MOMENT_NOTIFY_PREFS);
+  const learningOn = useFeatureFlags().moments_learning_enabled;
 
   React.useEffect(() => {
     let cancelled = false;
@@ -52,19 +54,32 @@ export function MomentPrepPrefsCard() {
       <View style={styles.leadRow}>
         <LeadPill
           label={t('moments.notify.lead_window')}
-          on={prefs.leadMin == null}
-          onPress={() => update({ ...prefs, leadMin: null })}
+          on={prefs.leadMin == null && prefs.adaptive !== true}
+          onPress={() => update({ ...prefs, leadMin: null, adaptive: false })}
         />
         {MOMENT_NOTIFY_LEAD_PRESETS_MIN.map((n) => (
           <LeadPill
             key={n}
             label={t('moments.notify.lead_min', { n })}
-            on={prefs.leadMin === n}
-            onPress={() => update({ ...prefs, leadMin: n })}
+            on={prefs.leadMin === n && prefs.adaptive !== true}
+            onPress={() => update({ ...prefs, leadMin: n, adaptive: false })}
           />
         ))}
+        {learningOn ? (
+          <LeadPill
+            label={t('moments.notify.lead_adaptive')}
+            on={prefs.adaptive === true}
+            onPress={() => update({ ...prefs, adaptive: true })}
+          />
+        ) : null}
       </View>
-      <Text style={styles.lockedHint}>{t('moments.notify.lead_adaptive_locked')}</Text>
+      {learningOn ? (
+        prefs.adaptive === true ? (
+          <Text style={styles.lockedHint}>{t('moments.notify.lead_adaptive_on')}</Text>
+        ) : null
+      ) : (
+        <Text style={styles.lockedHint}>{t('moments.notify.lead_adaptive_locked')}</Text>
+      )}
     </View>
   );
 }

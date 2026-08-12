@@ -40,11 +40,16 @@ export interface MomentNotifyPrefs {
   mode: MomentNotifyMode;
   /** Minutes before the moment start; null = fire at prep-window start. */
   leadMin: number | null;
+  /** Phase 4 (DR-012): feedback-tuned lead. Requires moments_learning_enabled;
+   *  when true, leadMin is ignored and the window start shifts by the
+   *  bounded per-type adjustment. */
+  adaptive?: boolean;
 }
 
 export const DEFAULT_MOMENT_NOTIFY_PREFS: MomentNotifyPrefs = {
   mode: 'important',
   leadMin: null,
+  adaptive: false,
 };
 
 export interface PlannedMomentNotification {
@@ -83,6 +88,9 @@ export function planMomentNotifications(
   moments: readonly Moment[],
   prefs: MomentNotifyPrefs,
   nowIso: string,
+  /** DR-012 per-type lead adjustments (minutes; + = earlier). Applied ONLY
+   *  when prefs.adaptive; every DR-010 guardrail still applies after. */
+  adjustments?: Partial<Record<Moment['type'], number>>,
 ): PlannedMomentNotification[] {
   const nowMs = Date.parse(nowIso);
   const candidates = [...moments]
@@ -100,7 +108,11 @@ export function planMomentNotifications(
     const rec = buildRecommendation(m, {}, nowIso);
     const windowStartMs = Date.parse(rec.prepWindowStartIso);
     let fireMs =
-      prefs.leadMin != null ? startMs - prefs.leadMin * MIN_MS : windowStartMs;
+      prefs.adaptive === true
+        ? windowStartMs - (adjustments?.[m.type] ?? 0) * MIN_MS
+        : prefs.leadMin != null
+          ? startMs - prefs.leadMin * MIN_MS
+          : windowStartMs;
     if (fireMs <= nowMs) continue; // never fire past-due prep
     if (fireMs >= startMs) fireMs = windowStartMs; // lead beyond start → window
     if (isQuietHour(new Date(fireMs))) continue; // quiet hours: drop, don't shift
@@ -141,6 +153,7 @@ export async function getMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
     const lead = parsed.leadMin;
     return {
       mode: parsed.mode === 'all' ? 'all' : 'important',
+      adaptive: parsed.adaptive === true,
       leadMin:
         typeof lead === 'number' &&
         (MOMENT_NOTIFY_LEAD_PRESETS_MIN as readonly number[]).includes(lead)
