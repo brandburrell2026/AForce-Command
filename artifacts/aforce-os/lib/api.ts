@@ -13,6 +13,7 @@
  */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE } from "./apiBase";
 import { Platform } from "react-native";
 
 const DEVICE_ID_KEY = "aforce.deviceId";
@@ -49,20 +50,12 @@ export async function getDeviceId(): Promise<string> {
   return fresh;
 }
 
+// Wave-3 PR1: this was the FIFTH, divergent resolver — it skipped
+// EXPO_PUBLIC_API_BASE entirely, which pointed the entire commerce path
+// (checkout, portal, scans, analytics, TTS) at the dead api.drinkaforce.com
+// host while the rest of the app talked to Railway. Canonical now.
 export function getApiBase(): string {
-  if (Platform.OS === "web") {
-    if (typeof window !== "undefined" && window.location?.origin) {
-      return `${window.location.origin}/api`;
-    }
-    return "/api";
-  }
-  const domain = process.env.EXPO_PUBLIC_DOMAIN;
-  if (domain) {
-    const stripped = domain.replace(/^https?:\/\//, "");
-    return `https://${stripped}/api`;
-  }
-  // Last-resort fallback for local Expo runs without the env var.
-  return "http://localhost:8080/api";
+  return API_BASE;
 }
 
 export interface ApiError {

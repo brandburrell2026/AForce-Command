@@ -10,6 +10,8 @@
  * blank.
  */
 
+import { API_BASE } from "@/lib/apiBase";
+
 export type CruiseEnvSource = "openweather" | "fallback";
 
 export interface CruiseLiveEnvironment {
@@ -35,18 +37,8 @@ export interface CruisePortMeta {
   lon: number;
 }
 
-function resolveBase(): string {
-  const explicit = process.env["EXPO_PUBLIC_API_BASE"];
-  if (explicit) return explicit.replace(/\/$/, "");
-  const domain = process.env["EXPO_PUBLIC_DOMAIN"];
-  if (domain) return `https://${domain}/api`;
-  if (typeof window !== "undefined" && window.location?.origin) {
-    return `${window.location.origin}/api`;
-  }
-  return "/api";
-}
-
-const BASE = resolveBase();
+// Wave-3 PR1: canonical resolver (lib/apiBase) — was one of five copies.
+const BASE = API_BASE;
 
 export async function fetchCruisePorts(): Promise<CruisePortMeta[]> {
   const res = await fetch(`${BASE}/cruise/ports`, {

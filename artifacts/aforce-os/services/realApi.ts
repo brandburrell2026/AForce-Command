@@ -33,6 +33,7 @@ import type {
   ProviderBiometrics,
 } from '../types';
 import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
+import { API_BASE } from '@/lib/apiBase';
 import { normalizeProviderBiometrics } from '@workspace/health-core';
 import { mergeBiometrics } from '../utils/biometricsMerge';
 import { calculateScore } from '../utils/scoringEngine';
@@ -42,22 +43,9 @@ import { defaultUserState } from '../data/mockData';
 import { getAuthHeaders, getAuthToken } from './authToken';
 
 // ─── Base URL resolution ─────────────────────────────────────────────────────
-// In dev, EXPO_PUBLIC_DOMAIN is set to REPLIT_DEV_DOMAIN by package.json's
-// dev script. The api-server is mounted at `/api`. In production builds
-// you can override with EXPO_PUBLIC_API_BASE.
-function resolveApiBase(): string {
-  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
-  if (explicit) return explicit.replace(/\/$/, '');
-  const domain = process.env['EXPO_PUBLIC_DOMAIN'];
-  if (domain) return `https://${domain}/api`;
-  // Last-resort fallback: same origin (web preview).
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/api`;
-  }
-  return '/api';
-}
+// Wave-3 PR1: the canonical resolver lives in lib/apiBase (one copy for the
+// whole app — this module previously carried one of five duplicates).
 
-const API_BASE = resolveApiBase();
 const AFORCE_BASE = `${API_BASE}/aforce`;
 
 // ─── Server row → UserState normalization ────────────────────────────────────

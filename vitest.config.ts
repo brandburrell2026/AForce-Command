@@ -44,6 +44,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/lib/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/data/**/__tests__/**/*.test.ts',
       'artifacts/aforce-os/demo/**/__tests__/**/*.test.ts',

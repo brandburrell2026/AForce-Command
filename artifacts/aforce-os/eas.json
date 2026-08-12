@@ -25,6 +25,9 @@
       },
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api"
       }
     },
     "demo": {
@@ -47,7 +50,6 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api",
-        "EXPO_PUBLIC_DOMAIN": "api.drinkaforce.com",
         "PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS": "true"
       },
       "ios": {
