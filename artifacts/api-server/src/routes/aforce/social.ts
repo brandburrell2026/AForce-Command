@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import { getUserState, updateUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
@@ -65,7 +66,7 @@ router.post("/social/activate", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/activate failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/activate failed");
     res.status(400).json({ error: "social_activate_failed" });
   }
 });
@@ -107,7 +108,7 @@ router.post("/social/drink", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/drink failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/drink failed");
     res.status(400).json({ error: "social_drink_failed" });
   }
 });
@@ -138,7 +139,7 @@ router.post("/social/hydrate", async (req, res) => {
     broadcastState(userId, updated);
     return res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/hydrate failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/hydrate failed");
     return res.status(400).json({ error: "social_hydrate_failed" });
   }
 });
@@ -165,7 +166,7 @@ router.post("/social/context", async (req, res) => {
     broadcastState(userId, updated);
     return res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/context failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/context failed");
     return res.status(400).json({ error: "social_context_failed" });
   }
 });
@@ -193,7 +194,7 @@ router.post("/social/cruise", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/cruise failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/cruise failed");
     res.status(500).json({ error: "social_cruise_failed" });
   }
 });
@@ -215,7 +216,7 @@ router.post("/social/shield", requireEntitlement("recovery_mode_enabled"), async
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/shield failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/shield failed");
     res.status(500).json({ error: "social_shield_failed" });
   }
 });
@@ -232,7 +233,7 @@ router.post("/social/deactivate", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/social/deactivate failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/social/deactivate failed");
     res.status(500).json({ error: "social_deactivate_failed" });
   }
 });

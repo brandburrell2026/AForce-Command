@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import {
   db,
@@ -125,7 +126,7 @@ router.post("/sensors/import", sensorImportLimiter, async (req, res) => {
 
     return res.json({ imported: snapshots.length, source: body.source, reason });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/sensors/import failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/sensors/import failed");
     return res.status(400).json({ error: "sensor_import_failed" });
   }
 });

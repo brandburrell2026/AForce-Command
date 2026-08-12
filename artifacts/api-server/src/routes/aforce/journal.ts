@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import {
   db,
@@ -99,7 +100,7 @@ router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
     const row = await repo.create({ userId, ...parsed.data });
     return res.json({ snapshot: row });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/journal/snapshot write failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/journal/snapshot write failed");
     return res.status(500).json({ error: "snapshot_write_failed" });
   }
 });
@@ -143,7 +144,7 @@ router.get("/recovery/snapshot", async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/recovery/snapshot failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/recovery/snapshot failed");
     return res.status(500).json({ error: "recovery_snapshot_failed" });
   }
 });
@@ -233,7 +234,7 @@ router.get("/journal/timeline", async (req, res) => {
 
     return res.json({ entries, days });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/journal/timeline failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/journal/timeline failed");
     return res.status(400).json({ error: "timeline_failed" });
   }
 });
@@ -422,7 +423,7 @@ router.get("/journal/rollups", async (req, res) => {
 
     return res.json({ rollups, days });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/journal/rollups failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/journal/rollups failed");
     return res.status(400).json({ error: "rollups_failed" });
   }
 });

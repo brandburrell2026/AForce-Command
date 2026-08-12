@@ -15,6 +15,7 @@
  */
 
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { db, aforceAnalyticsEvents, type InsertAforceAnalyticsEvent } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import {
@@ -53,7 +54,7 @@ router.post("/analytics", async (req, res) => {
       deduped: events.length - inserted.length,
     });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/analytics failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/analytics failed");
     return res.status(400).json({ error: "analytics_ingest_failed" });
   }
 });
@@ -67,7 +68,7 @@ router.post("/analytics/forget", async (req, res) => {
       .returning({ id: aforceAnalyticsEvents.id });
     return res.json({ deleted: deleted.length });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/analytics/forget failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/analytics/forget failed");
     return res.status(400).json({ error: "analytics_forget_failed" });
   }
 });

@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import { db, aforceConfirmations, aforceUserState } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -25,7 +26,7 @@ router.post("/signals", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/signals failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/signals failed");
     res.status(400).json({ error: "signals_failed" });
   }
 });
@@ -41,7 +42,7 @@ router.post("/urine", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/urine failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/urine failed");
     res.status(400).json({ error: "urine_failed" });
   }
 });
@@ -57,7 +58,7 @@ router.post("/energy", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/energy failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/energy failed");
     res.status(400).json({ error: "energy_failed" });
   }
 });
@@ -70,7 +71,7 @@ router.post("/checkin", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/checkin failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/checkin failed");
     res.status(500).json({ error: "checkin_failed" });
   }
 });
@@ -112,7 +113,7 @@ router.post("/confirm", async (req, res) => {
     broadcastState(userId, result);
     res.json({ userState: result });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/confirm failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/confirm failed");
     res.status(400).json({ error: "confirm_failed" });
   }
 });
@@ -128,7 +129,7 @@ router.post("/flags", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/flags failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/flags failed");
     res.status(400).json({ error: "flags_failed" });
   }
 });
@@ -148,7 +149,7 @@ router.post("/language", async (req, res) => {
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/language failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/language failed");
     res.status(400).json({ error: "language_failed" });
   }
 });
@@ -178,7 +179,7 @@ router.get("/weather", weatherLimiter, async (req, res) => {
     broadcastState(userId, updated);
     return res.json({ weather: snapshot, userState: updated });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/weather failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/weather failed");
     return res.status(400).json({ error: "weather_failed" });
   }
 });
