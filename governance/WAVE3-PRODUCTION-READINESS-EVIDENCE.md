@@ -1,0 +1,37 @@
+# Wave-3 Production Readiness Evidence Report (PR 14)
+
+**Date:** 2026-08-12 · **Prepared under:** AFORCE OS — Wave 3 authorization (Commerce, Identity Continuity, Observability & Production Truth)
+**Status vocabulary (exclusive):** PROPOSED · SPECIFIED · PARTIALLY BUILT · BUILT-HIDDEN · INTERNAL PREVIEW · LIVE · VALIDATED · BLOCKED
+
+> Honesty rules applied: nothing is VALIDATED merely because tests pass. VALIDATED is reserved for
+> real-world verification (e.g., a real controlled sandbox purchase, a real production deploy
+> observed healthy). "LIVE" means merged to `main` AND effective on the next routine deploy/build
+> with no further decision needed. Client-side changes are BUILT-HIDDEN until the next TestFlight
+> binary is cut, because the deployed build predates them.
+
+| # | Capability | Status | Evidence | Remaining gap to VALIDATED |
+|---|---|---|---|---|
+| 1 | **Commerce — API transport** (one canonical base; dead domain removed) | **BUILT-HIDDEN** (client) | #736 merged; 7 resolution-lock tests; `eas.json` production env carries only the Railway base | Next EAS build must be cut (the deployed binary still carries the split-brain resolvers); founder to confirm `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` exists as an EAS secret |
+| 2 | **Commerce — Stripe operation off-Replit** | **BLOCKED** (founder env) | #738 open+green: env-first credentials, `PUBLIC_BASE_URL` webhook registration, migrations shipped beside the bundle (verified locally: 53 files) | Railway env vars only the founder can set: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (or managed mode), `PUBLIC_BASE_URL`; then one deploy + a test-mode purchase |
+| 3 | **Commerce — checkout → app activation** | **PARTIALLY BUILT** | #739 merged: `aforce-os:` scheme accepted (app.json parity-locked), open redirect closed, cold-start returns verified server-side, activation waits for authoritative entitlement, iOS 3.1.1 gate restored | Server half effective on next deploy; client half BUILT-HIDDEN until the next binary; V2 annual-cadence picker deliberately deferred (product call) |
+| 4 | **Identity — Shopify→AForce email bridge** | **LIVE** (next deploy) | #740 merged: verified-Clerk-email written at row creation + isNull-guarded backfill; never overwritten; never Shopify-sourced. E2E lane (#748) drives the full grant path over real Postgres | A real Shopify test purchase against production (founder-observed) would move this to VALIDATED |
+| 5 | **Entitlement — round trip** (purchase → verified tx → identity → grant → activation → authorization) | **PARTIALLY BUILT** | Server chain CI-proven behaviorally in #748 (grant / duplicate-suppress / refund-revoke / restart-restore / Stripe-mirror downgrade / fail-closed lookup); client activation-wait merged (#739) | The one undriveable step: a **real controlled low-value test-mode purchase** — requires a founder-held Stripe test key (unlocked by #738); plus the next client binary |
+| 6 | **Payment security — webhook processing** | **LIVE** (next deploy) | #741 merged: delivery ledger + replay suppression (HMAC-first ordering), pool-leak singleton, refunds/create revocation fix, monotonic expiry, fixed error bodies, email-hash audit logging, 1mb+rate limits. 25 behavioral/lock tests + the E2E duplicate case | `pnpm --filter @workspace/db push` at deploy (additive `aforce_webhook_deliveries` table); no payment-credential logging found in audit (verified) |
+| 7 | **Health checks** (alive / ready / degraded) | **LIVE** (next deploy) | #735 merged: real DB/config/cache checks, critical-vs-optional taxonomy, SIGTERM drain; behavioral tests incl. optional-outage-never-kills; E2E lane proves 503-unready on real DB loss | Founder one-liner: `healthcheckPath = "/api/healthz/deep"` in railway.toml (deployment config — off-limits to the agent) |
+| 8 | **Error detection** | **PARTIALLY BUILT** | #743 open+green: process-level fatal handlers, Express error middleware (fixed JSON body), 40-site token-scrub sweep with a repo-wide regression lock, requireAuth off console; client root boundary un-swallowed (device-local) | **Client crash TRANSMISSION is a founder STOP decision** (no provider exists in-repo; both vendor and first-party-endpoint options hit wave STOP conditions — options memo in #743) |
+| 9 | **Operational metrics** | **PARTIALLY BUILT** | #744 open+green: first wiring of the dormant registry — API latency/status per route bucket, seam counters (auth/entitlement/resolver-fallback/webhooks incl. duplicates/score-writes/§42), founder-gated snapshot endpoint; identity-free labels behaviorally locked | Merge + deploy; longer-term: durable export (currently process-lifetime, founder-only endpoint) |
+| 10 | **Degraded modes** (no mock-on-failure / fake-success / fresh-stamp) | **PARTIALLY BUILT** | #745 merged (P0 set): discriminated fetchHome failures, fabricated history seed deleted (designed synthetic baseline activated), confirmCommand fails visibly, battle rollback, cruise timestamp honesty | Client bits BUILT-HIDDEN until next binary. **Founder-visible P1 set undecided**: Circle/Battles seeded fake members + fabricated "moved up 12 spots" (empty vs labeled-sample), first-launch BALANCED-76 seed, engine-nullable `lastIntakeTime` |
+| 11 | **Sensor truth** (UNKNOWN / NOT_COMPUTED, W2-N3) | **LIVE** (next deploy) | #742 merged: NOT_COMPUTED marker, measured-only rollups/guard/achievements/founder-trend, timeline lock, client-cannot-post lock; false import-screen copy fixed | Existing 70/BALANCED rows retained by policy (relabel is a separate additive decision); sensor data now has no user surface — future product decision recorded |
+| 12 | **Storage isolation** (per-user; analytics identity + consent) | **BUILT-HIDDEN** | Wave-2 #733 + #747 (open+green): 40 keys scoped incl. consent (copy-and-retain legal evidence) and analytics id; module-cache invalidation locked; pre-auth activation keys and cart documented STOP exclusions | Founder flag flip (`per_user_storage_isolation_enabled`) with the standard launch-flip lock test; `hasCompletedOnboarding` boot-order residual |
+
+## Cross-cutting evidence
+- **Baseline discipline:** full unit suite at exactly **45 failed files / 18 failed tests** (the pre-existing ceiling) after every Wave-3 PR; verified by failing-file diff where counts moved.
+- **Typecheck:** workspace compiler 0 errors in both projects after every PR (note: `npx tsc` resolves a different compiler and corrupts project-reference freshness — use `node_modules/.bin/tsc`).
+- **E2E lane:** `artifacts/api-server/src/__integration__/commerceEntitlementE2E.integration.test.ts` (#748) — real Postgres, real handlers, destructive DB-loss cases ordered last; runs in CI's integration job.
+
+## The founder-action list distilled (in dependency order)
+1. Merge #738/#743/#744/#747/#748 at green.
+2. Railway env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PUBLIC_BASE_URL`; `railway.toml` healthcheckPath; deploy (includes `db push` for the two additive tables).
+3. Cut the next EAS build (client transport/checkout/degraded fixes are inert until then); confirm the Clerk publishable-key EAS secret first.
+4. One controlled test-mode Stripe purchase + one Shopify test order → flips capabilities 2/4/5 toward VALIDATED.
+5. Decisions queued: client crash transmission (#743 memo) · Circle/seed honesty pair (#745 memo) · `health_canonical_consumers` evidence plan (D-5 continues) · locale validation track (W2-N2).
