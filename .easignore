@@ -1,0 +1,41 @@
+# .easignore — EAS Build archive exclusions (replaces .gitignore for packing).
+# The iOS build needs: root workspace manifests, lib/* packages, and
+# artifacts/aforce-os (CNG prebuild from app.json — ios/ stays excluded).
+# Everything below is either sensitive, regenerable, or not part of the app
+# build; the tarball must stay under EAS's 2 GB cap.
+
+# ── Sensitive (mirrors .gitignore — MUST stay first-class here) ──
+.env
+.env.*
+**/.env
+**/.env.*
+
+# ── Build artifacts / dependencies (regenerated on EAS) ──
+node_modules/
+**/node_modules/
+**/ios/
+**/android/build/
+**/android/app/build/
+**/.expo/
+**/build/
+
+# ── Session/tooling state ──
+.claude/
+.git/
+**/.git/
+
+# ── Monorepo members not used by the app build ──
+attached_assets/
+aforce-web/
+aforce-site/
+marketing-site/
+screenshots/
+exports/
+docs/
+governance/
+artifacts/aforce-pitch/
+artifacts/aforce-friends-family/
+artifacts/aforce-site/
+artifacts/mockup-sandbox/
+artifacts/aforce-command-center/
+artifacts/api-server/
