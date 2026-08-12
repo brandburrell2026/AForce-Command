@@ -117,6 +117,7 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
 import type { AppContextValue } from './app/types';
+import { pickFacadeState, type FacadeState } from './app/facadeState';
 import {
   VOICE_COACH_KEY,
   SELECTED_VOICE_KEY,
@@ -1166,8 +1167,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState.language]);
 
+  // Wave-4 Part 6: the facade's `state` excludes `timerSeconds`, so a
+  // `TICK_TIMER` no longer changes `value`'s identity and the ~90
+  // `useAppStore()` consumers (including every tab-route wrapper, whose
+  // children are not memoized) stop re-rendering once per second. The
+  // dependency array lists each forwarded field individually — depending
+  // on `state` itself would reintroduce the per-second churn this fix
+  // removes. Countdown readers use `useTimerSlice()`.
+  const facadeState = useMemo<FacadeState>(() => pickFacadeState(state), [
+    state.userState, state.engineOutput, state.history, state.lastCycleResult,
+    state.isCompletingCycle, state.showCycleSuccess, state.pendingConfirmation,
+    state.featureFlags, state.subscription, state.lastIntakeBurstAt,
+    state.hasSeenOnboarding, state.sweatAutopilot, state.sweatAutopilotSetAt,
+    state.notificationSettings, state.unitPreferences, state.profileIdentity,
+  ]);
+
   const value = useMemo<AppContextValue>(() => ({
-    state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
+    state: facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
@@ -1181,7 +1197,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     notificationSettings: state.notificationSettings, setNotificationSetting,
     unitPreferences: state.unitPreferences, setUnitPreference,
     profileIdentity: state.profileIdentity, setProfileIdentity,
-  }), [state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+  }), [facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1246,6 +1262,7 @@ export {
   useSocialSlice,
   useIntakeSlice,
   useCycleSlice,
+  useTimerSlice,
   useConfirmationSlice,
   useOnboardingSlice,
   useInventorySlice,

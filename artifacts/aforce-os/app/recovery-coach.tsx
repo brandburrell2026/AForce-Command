@@ -15,7 +15,7 @@ import { Redirect, useRouter } from 'expo-router';
 import { useAppStore } from '../store/useAppStore';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { buildRecoveryCommand, parseEngineActionCopy, parseDoseOz } from '../utils/recovery/recoveryCommandFromStore';
-import { useActionsSlice } from '../store/slices';
+import { useActionsSlice, useTimerSlice } from '../store/slices';
 import { AdjustCommandSheet } from '../components/recoveryCoach/AdjustCommandSheet';
 import type { FluidType } from '../types';
 
@@ -32,6 +32,7 @@ export default function RecoveryCoachRoute() {
   const router = useRouter();
   const { state } = useAppStore();
   const { logIntake, snooze } = useActionsSlice<CoachActions>();
+  const { timerSeconds } = useTimerSlice();
   const [adjustOpen, setAdjustOpen] = React.useState(false);
 
   // Dormant unless explicitly enabled — never surfaces in the production binary.
@@ -45,7 +46,7 @@ export default function RecoveryCoachRoute() {
   // 15-minute recheck). Deriving elapsed = full − remaining anchors createdAt to
   // the true issue time, so countdown, duration, and progress stay coherent
   // (spec §11). Clamp so the window never drops below the remaining time.
-  const remainingSeconds = Math.max(0, state.timerSeconds);
+  const remainingSeconds = Math.max(0, timerSeconds);
   const fullWindowSeconds = Math.max(remainingSeconds, (state.engineOutput.riskTimer?.minutes ?? 0) * 60);
   const elapsedSeconds = fullWindowSeconds - remainingSeconds;
   // The engine command string is parsed into title + instruction with any
