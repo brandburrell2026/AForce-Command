@@ -8,6 +8,7 @@ import {
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import { getUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
+import { sensorImportLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, unlockAchievementCode } from "./shared";
 
 const router: IRouter = Router();
@@ -32,6 +33,9 @@ export function mapSensorRowsToSnapshots(
   for (const row of rows) {
     const ts = new Date(row.timestamp);
     if (Number.isNaN(ts.getTime())) continue;
+    // Wave-2 PR2: reject future-dated provenance rows (small clock-skew
+    // grace) — same skip semantics as invalid timestamps.
+    if (ts.getTime() - Date.now() > 5 * 60 * 1000) continue;
     const sodiumLost = row.sodiumMg ?? 0;
     const deficitPct = Math.min(100, sodiumLost / 50); // rough %: 5g lost ≈ 100
     snapshots.push({
@@ -74,8 +78,11 @@ const SENSOR_SOURCES = ["hdrop", "nix", "gatorade_gx"] as const;
 
 const sensorRowSchema = z.object({
   timestamp: z.string().min(1),
-  sweatLossMl: z.number().nonnegative(),
-  sodiumMg: z.number().nonnegative().default(0),
+  sweatLossMl: z.number().nonnegative().max(10000),
+  // Wave-2 PR2 bound: sodiumMg flows into sodiumLostMg (and the derived
+  // deficitPct) on the snapshot row — cap at an impossible-but-generous
+  // per-reading ceiling so forged imports can't post absurd loss.
+  sodiumMg: z.number().nonnegative().max(50000).default(0),
   potassiumMg: z.number().nonnegative().optional(),
 });
 
@@ -84,7 +91,7 @@ const sensorImportSchema = z.object({
   rows: z.array(sensorRowSchema).min(1).max(2000),
 });
 
-router.post("/sensors/import", async (req, res) => {
+router.post("/sensors/import", sensorImportLimiter, async (req, res) => {
   try {
     const body = sensorImportSchema.parse(req.body);
     const userId = resolveUserId(req);
