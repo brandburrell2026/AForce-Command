@@ -2304,7 +2304,8 @@
       "empty_title": "No tracked days yet",
       "empty_body": "Complete rituals and checks — each day builds your signal history here.",
       "load_failed": "Couldn't load your history",
-      "load_failed_body": "Check your connection and pull to refresh from the Journal."
+      "load_failed_body": "Check your connection, then pull down to refresh or try again.",
+      "retry": "TRY AGAIN"
     }
   },
   "moments": {
