@@ -12,6 +12,7 @@
  */
 import { useSyncExternalStore } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { developerControlsAvailable } from '@/featureFlags/flags';
 
 const STORAGE_KEY = '@aforce/devMode';
 
@@ -40,7 +41,11 @@ async function hydrate() {
 void hydrate();
 
 export function getDevMode(): boolean {
-  return current;
+  // Wave-1 P0 hardening: Developer Mode is inert for ordinary production
+  // users even if a pre-hardening persisted toggle says '1'. The persisted
+  // value is preserved (QA/internal builds still honor it); it simply never
+  // reports true where developer controls are unavailable.
+  return current && developerControlsAvailable();
 }
 
 export async function setDevMode(next: boolean): Promise<void> {
