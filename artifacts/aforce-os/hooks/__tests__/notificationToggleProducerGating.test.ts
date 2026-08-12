@@ -25,7 +25,7 @@
 import React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 import type { NotificationSettings, PerformanceLevel } from '../../types';
 import type { VoiceIntensity, VoiceScope } from '../../services/voice/commandVoice';
@@ -105,10 +105,14 @@ function ScoreBandHarness() {
   return null;
 }
 
+// Mirrors commandVoiceBus's non-exported `Speaker` shape, so `vi.fn()` still
+// satisfies `_setSpeakerForTests` once it is stored in a typed binding.
+type SpeakerSpy = Mock<(text: string, opts?: { level?: PerformanceLevel }) => void>;
+
 let host: HTMLElement;
 let root: Root;
 let unmounted: boolean;
-let speaker: ReturnType<typeof vi.fn>;
+let speaker: SpeakerSpy;
 
 function mount(Harness: React.ComponentType): void {
   root = createRoot(host);
@@ -142,10 +146,10 @@ afterEach(() => {
 describe('useRiskTimerVoice — recheckReminders gate', () => {
   it('speaks at the 16-minute threshold when recheckReminders is ON', () => {
     setEngine(engineAt({ minutes: 45 }));
-    mount(useRiskTimerVoice);
+    mount(RiskTimerHarness);
 
     setEngine(engineAt({ minutes: 16 }));
-    rerender(useRiskTimerVoice);
+    rerender(RiskTimerHarness);
 
     expect(speaker).toHaveBeenCalledOnce();
   });
@@ -153,10 +157,10 @@ describe('useRiskTimerVoice — recheckReminders gate', () => {
   it('stays SILENT at the same threshold when recheckReminders is OFF', () => {
     setStore({ ...ALL_NOTIFICATIONS_ON, recheckReminders: false });
     setEngine(engineAt({ minutes: 45 }));
-    mount(useRiskTimerVoice);
+    mount(RiskTimerHarness);
 
     setEngine(engineAt({ minutes: 16 }));
-    rerender(useRiskTimerVoice);
+    rerender(RiskTimerHarness);
 
     expect(speaker).not.toHaveBeenCalled();
   });
@@ -164,11 +168,11 @@ describe('useRiskTimerVoice — recheckReminders gate', () => {
   it('stays silent across the WHOLE 16/8/4/0 ladder when recheckReminders is OFF', () => {
     setStore({ ...ALL_NOTIFICATIONS_ON, recheckReminders: false });
     setEngine(engineAt({ minutes: 45 }));
-    mount(useRiskTimerVoice);
+    mount(RiskTimerHarness);
 
     for (const minutes of [16, 8, 4, 0]) {
       setEngine(engineAt({ minutes }));
-      rerender(useRiskTimerVoice);
+      rerender(RiskTimerHarness);
     }
 
     expect(speaker).not.toHaveBeenCalled();
@@ -177,15 +181,15 @@ describe('useRiskTimerVoice — recheckReminders gate', () => {
   it('does not retro-fire a threshold that was crossed while the toggle was OFF', () => {
     setStore({ ...ALL_NOTIFICATIONS_ON, recheckReminders: false });
     setEngine(engineAt({ minutes: 45 }));
-    mount(useRiskTimerVoice);
+    mount(RiskTimerHarness);
 
     setEngine(engineAt({ minutes: 16 }));
-    rerender(useRiskTimerVoice);
+    rerender(RiskTimerHarness);
 
     // Re-enabling mid-cycle must not replay the missed 16 — the threshold
     // state machine advances ahead of the gate for exactly this reason.
     setStore(ALL_NOTIFICATIONS_ON);
-    rerender(useRiskTimerVoice);
+    rerender(RiskTimerHarness);
 
     expect(speaker).not.toHaveBeenCalled();
   });
@@ -194,10 +198,10 @@ describe('useRiskTimerVoice — recheckReminders gate', () => {
 describe('useScoreBandVoice — scoreDecayAlerts gate', () => {
   it('speaks on a band crossing when scoreDecayAlerts is ON', () => {
     setEngine(engineAt({ score: 88 }));
-    mount(useScoreBandVoice);
+    mount(ScoreBandHarness);
 
     setEngine(engineAt({ score: 31 }));
-    rerender(useScoreBandVoice);
+    rerender(ScoreBandHarness);
 
     expect(speaker).toHaveBeenCalledOnce();
   });
@@ -205,10 +209,10 @@ describe('useScoreBandVoice — scoreDecayAlerts gate', () => {
   it('stays SILENT on the same band crossing when scoreDecayAlerts is OFF', () => {
     setStore({ ...ALL_NOTIFICATIONS_ON, scoreDecayAlerts: false });
     setEngine(engineAt({ score: 88 }));
-    mount(useScoreBandVoice);
+    mount(ScoreBandHarness);
 
     setEngine(engineAt({ score: 31 }));
-    rerender(useScoreBandVoice);
+    rerender(ScoreBandHarness);
 
     expect(speaker).not.toHaveBeenCalled();
   });
@@ -216,13 +220,13 @@ describe('useScoreBandVoice — scoreDecayAlerts gate', () => {
   it('does not retro-fire a crossing that happened while the toggle was OFF', () => {
     setStore({ ...ALL_NOTIFICATIONS_ON, scoreDecayAlerts: false });
     setEngine(engineAt({ score: 88 }));
-    mount(useScoreBandVoice);
+    mount(ScoreBandHarness);
 
     setEngine(engineAt({ score: 31 }));
-    rerender(useScoreBandVoice);
+    rerender(ScoreBandHarness);
 
     setStore(ALL_NOTIFICATIONS_ON);
-    rerender(useScoreBandVoice);
+    rerender(ScoreBandHarness);
 
     expect(speaker).not.toHaveBeenCalled();
   });
