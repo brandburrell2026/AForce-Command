@@ -192,6 +192,7 @@ router.get(
                 AND captured_at >= now() - interval '14 days'
             ))::int AS previous_n
           FROM aforce_score_snapshots
+          WHERE level <> 'NOT_COMPUTED'
         `),
       ]);
 

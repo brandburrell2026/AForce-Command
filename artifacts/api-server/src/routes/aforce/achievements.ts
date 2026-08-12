@@ -4,7 +4,7 @@ import {
   db,
   aforceIntakeLogs, aforceScoreSnapshots, aforceAchievements,
 } from "@workspace/db";
-import { eq, and, gte, asc, desc, inArray } from "drizzle-orm";
+import { ne, eq, and, gte, asc, desc, inArray } from "drizzle-orm";
 import { logger } from "../../lib/logger";
 import { resolveUserId, ACH_CODES, unlockAchievementCode } from "./shared";
 import type { AchCode } from "./shared";
@@ -40,7 +40,15 @@ router.get("/achievements", async (req, res) => {
       db
         .select()
         .from(aforceScoreSnapshots)
-        .where(and(eq(aforceScoreSnapshots.userId, userId), gte(aforceScoreSnapshots.capturedAt, since)))
+        .where(and(
+          eq(aforceScoreSnapshots.userId, userId),
+          gte(aforceScoreSnapshots.capturedAt, since),
+          // Wave-3 PR11: achievements are earned on MEASURED behavior only.
+          // Provenance rows previously counted toward hydration_engineer
+          // (one 2000-row import = instant unlock) and their derived
+          // deficitPct could fabricate sodium_master-compliant days.
+          ne(aforceScoreSnapshots.level, "NOT_COMPUTED"),
+        ))
         .orderBy(asc(aforceScoreSnapshots.capturedAt)),
       db
         .select({ id: aforceIntakeLogs.id, loggedAt: aforceIntakeLogs.loggedAt, fluidType: aforceIntakeLogs.fluidType })

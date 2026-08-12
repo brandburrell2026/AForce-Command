@@ -40,8 +40,14 @@ export function mapSensorRowsToSnapshots(
     const deficitPct = Math.min(100, sodiumLost / 50); // rough %: 5g lost ≈ 100
     snapshots.push({
       userId,
-      score: 70,
-      level: "BALANCED",
+      // Wave-3 PR11 (founder decision W2-N3): a sensor row has NOT been
+      // scored by the canonical scoring path — it must never carry an
+      // apparently-physiological score/state. level NOT_COMPUTED is the
+      // honest marker every consumer filters on; the 0 is an inert
+      // sentinel for the NOT NULL column and is never read as a score
+      // (safety comes from `level`, locked by tests).
+      score: 0,
+      level: "NOT_COMPUTED",
       ozConsumedToday: 0,
       aforceUnitsToday: 0,
       unitsConsumedToday: 0,

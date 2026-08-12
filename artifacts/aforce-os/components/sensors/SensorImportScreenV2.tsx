@@ -7,7 +7,7 @@
  *   2. Pick a source label (hdrop / nix / gatorade_gx).
  *   3. Preview parsed rows (count + first 3) and recognised columns.
  *   4. Tap "Import N rows" → POST /api/aforce/sensors/import.
- *   5. Server creates one intake_log + one score_snapshot per row.
+ *   5. Server stores one provenance snapshot per row (no intake, no score).
  */
 
 import React, { useMemo, useState } from 'react';
