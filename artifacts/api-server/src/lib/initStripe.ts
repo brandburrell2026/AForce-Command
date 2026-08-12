@@ -39,17 +39,23 @@ export async function initStripe(): Promise<void> {
     return;
   }
 
-  const domain = process.env['REPLIT_DOMAINS']?.split(',')[0] ?? process.env['REPLIT_DEV_DOMAIN'];
-  if (domain) {
+  // Wave-3 PR2: the deployment's public URL is the primary source (Railway
+    // sets neither Replit var, so the managed Stripe webhook was NEVER
+    // registered off-Replit — entitlements silently never synced).
+    const publicBase = process.env['PUBLIC_BASE_URL']?.replace(/\/+$/, '');
+    const domain = process.env['REPLIT_DOMAINS']?.split(',')[0] ?? process.env['REPLIT_DEV_DOMAIN'];
+  if (publicBase || domain) {
     try {
-      const webhookUrl = `https://${domain}/api/stripe/webhook`;
+      const webhookUrl = publicBase
+        ? `${publicBase}/api/stripe/webhook`
+        : `https://${domain}/api/stripe/webhook`;
       await stripeSync.findOrCreateManagedWebhook(webhookUrl);
       logger.info({ webhookUrl }, 'initStripe: managed webhook ensured');
     } catch (err) {
       logger.error({ err: serializeError(err) }, 'initStripe: findOrCreateManagedWebhook failed');
     }
   } else {
-    logger.warn('initStripe: no REPLIT_DOMAINS / REPLIT_DEV_DOMAIN — webhook not registered');
+    logger.warn('initStripe: no PUBLIC_BASE_URL or REPLIT_DOMAINS/REPLIT_DEV_DOMAIN — managed Stripe webhook NOT registered; entitlements will not sync');
   }
 
   try {
