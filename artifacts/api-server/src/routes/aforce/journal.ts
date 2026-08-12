@@ -5,7 +5,7 @@ import {
   aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations,
   createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
-import { eq, sql, and, gte, asc, desc } from "drizzle-orm";
+import { inArray, eq, sql, and, gte, asc, desc } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import {
   resolveScoreProtectionMode,
@@ -55,7 +55,10 @@ router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
         const [priorRow] = await db
           .select({ score: aforceScoreSnapshots.score, capturedAt: aforceScoreSnapshots.capturedAt })
           .from(aforceScoreSnapshots)
-          .where(eq(aforceScoreSnapshots.userId, userId))
+          // Wave-3 PR11: NOT_COMPUTED provenance rows (sensor imports) are
+          // not scores — anchoring the unexplained-delta check on one would
+          // manufacture false violations (score 0 vs a real 78).
+          .where(and(eq(aforceScoreSnapshots.userId, userId), inArray(aforceScoreSnapshots.level, [...LEVELS])))
           .orderBy(desc(aforceScoreSnapshots.capturedAt))
           .limit(1);
         // Evidence window: since the prior snapshot, or a bounded lookback when
@@ -245,7 +248,14 @@ router.get("/journal/rollups", async (req, res) => {
       db
         .select()
         .from(aforceScoreSnapshots)
-        .where(and(eq(aforceScoreSnapshots.userId, userId), gte(aforceScoreSnapshots.capturedAt, since)))
+        .where(and(
+          eq(aforceScoreSnapshots.userId, userId),
+          gte(aforceScoreSnapshots.capturedAt, since),
+          // Wave-3 PR11: aggregates are MEASURED-ONLY — a NOT_COMPUTED
+          // provenance row must not pollute snapshotsCount/avg/min/max,
+          // band time-share, or the end* fields.
+          inArray(aforceScoreSnapshots.level, [...LEVELS]),
+        ))
         .orderBy(asc(aforceScoreSnapshots.capturedAt)),
       db
         .select()
