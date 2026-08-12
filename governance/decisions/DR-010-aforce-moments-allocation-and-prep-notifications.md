@@ -46,6 +46,10 @@ binding constraints:
    addition to* `moments_enabled`, plus a user-facing toggle in Notification
    settings (`momentPrep`). Trust-over-attention (P10/P11): one prepared
    moment beats one more ping; when in doubt the notification is dropped.
+   > **AMENDED 2026-08-12 (founder):** production activation ordered as part
+   > of the Moments-family flag flip. The flag is now ON in DEFAULT_FLAGS;
+   > the user-facing `momentPrep` toggle and the full interruption budget
+   > (constraint 2) remain binding and are the operative protections.
 5. **Source scope.** Manual + demo moments only — calendar-derived moments
    remain blocked until PR-002 items 5.2 (Founder + Legal + Privacy), 5.3,
    and 5.5 are approved. Nothing in this record authorizes calendar access.
