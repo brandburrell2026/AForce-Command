@@ -59,7 +59,7 @@ interface CruiseEnvironment {
   sunExposureHours: number;
   conditions: string;
   iconCode: string | null;
-  fetchedAt: string;
+  fetchedAt: string | null;
   source: "openweather" | "fallback";
 }
 
@@ -89,7 +89,10 @@ function fallbackFor(port: CruisePort): CruiseEnvironment {
     sunExposureHours: 5,
     conditions: "Partly cloudy",
     iconCode: null,
-    fetchedAt: new Date().toISOString(),
+    // Wave-3 PR10: these values were never fetched — a fresh stamp on
+    // fabricated data is FRESH-TIMESTAMP-ON-STALE-DATA. null + the
+    // explicit 'fallback' source is the honest wire truth.
+    fetchedAt: null,
     source: "fallback",
   };
 }
@@ -167,7 +170,7 @@ router.get("/cruise/environment", async (req: Request, res: Response) => {
       conditions: conditionDesc.replace(/\b\w/g, (c) => c.toUpperCase()),
       iconCode,
       fetchedAt: new Date().toISOString(),
-      source: "openweather",
+      source: (data.main?.temp == null || data.main?.humidity == null) ? "fallback" as const : "openweather" as const,
     };
 
     CACHE.set(port.id, { exp: Date.now() + TTL_MS, payload });

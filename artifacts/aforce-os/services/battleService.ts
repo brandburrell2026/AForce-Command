@@ -125,7 +125,8 @@ export function getBattle(id: string): BattleView | undefined {
 
 /** "Support" a side — tilts the score by 1 in the chosen direction. */
 export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | undefined {
-  // Optimistic local bump.
+  // Optimistic local bump (pre-bump row kept for the double-failure rollback).
+  const prior = battles.find((b) => b.id === id);
   battles = battles.map((b) => {
     if (b.id !== id) return b;
     const next = { ...b };
@@ -153,7 +154,16 @@ export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | u
         const list = await getJsonAforceApi<{ battles: ServerBattle[] }>('/battles');
         applyServerList(list.battles);
         emit();
-      } catch { /* leave optimistic state in place */ }
+      } catch {
+        // Wave-3 PR10: the optimistic bump previously survived a double
+        // failure — the user saw their support counted when the server
+        // never recorded it. Roll back to the pre-bump row instead
+        // (mirrors openBattle's drop-the-phantom posture).
+        if (prior) {
+          battles = battles.map((b) => (b.id === id ? prior : b));
+          emit();
+        }
+      }
     }
   })();
 

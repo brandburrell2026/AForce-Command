@@ -47,7 +47,7 @@ import {
   flushPendingProfileSync,
 } from '../services/profileSyncService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
-import { defaultUserState, mockHistory } from '../data/mockData';
+import { defaultUserState } from '../data/mockData';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
 import { CAPTURE_MODE } from '../services/demoMode';
@@ -139,7 +139,11 @@ const initialEngineOutput = _initialOnly(defaultUserState);
 const initialState: AppState = {
   userState: defaultUserState,
   engineOutput: initialEngineOutput,
-  history: mockHistory,
+  // Wave-3 PR10 (W2-N1): the store previously seeded five FABRICATED
+  // history entries with always-fresh "Nm ago" stamps — and their lack of
+  // an isSynthetic flag permanently disabled buildSyntheticBaselineEntry,
+  // the designed self-labeling honest state. Empty start activates it.
+  history: [],
   lastCycleResult: null,
   isCompletingCycle: false,
   showCycleSuccess: false,

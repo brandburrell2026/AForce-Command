@@ -1,4 +1,6 @@
 import { useCallback } from 'react';
+import { Alert } from 'react-native';
+import i18n from '@/services/i18nService';
 import { scopedStorage } from '@/services/scopedStorage';
 import type { Dispatch, MutableRefObject } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -427,26 +429,16 @@ export function useStoreActions({
       const mergedEngine = _initialOnly(mergedUserState);
       dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine) } });
     } catch (err) {
+      // Wave-3 PR10: the old fallback applied a LOCAL +3/-3 the server never
+      // heard about — the user was rewarded, then silently un-rewarded on
+      // the next sync. Fail visibly instead; state stays untouched.
       console.warn('[AForce] confirmCommand failed', err);
-      // Local fallback so the UI doesn't soft-lock if the server is
-      // unreachable; the next reconnect will re-sync state.
-      const inClutch = !!state.userState.clutchActive;
-      const merged: UserState = {
-        ...state.userState,
-        confirmationDelta: followed ? 3 : -3,
-        confirmationDeltaSetAt: new Date(),
-        clutchDecayBoostUntil: !followed && inClutch
-          ? new Date(Date.now() + 10 * 60 * 1000)
-          : state.userState.clutchDecayBoostUntil,
-      };
-      // NOTE: the offline fallback intentionally does NOT run adaptEngineOutput.
-      // Unlike the success path (which recomputes a FRESH `_initialOnly` engine to
-      // stretch from), this path carries the *current* engine output forward
-      // unchanged — and `state.engineOutput` may itself already be adapted, so
-      // re-adapting here would compound the stretch past the 1.5× cap. Leaving it
-      // untouched keeps the timer at its existing (already-bounded) value and
-      // preserves the pre-Slice-3 behavior exactly.
-      dispatch({ type: 'CONFIRM_COMMAND', payload: { newUserState: merged, engineOutput: state.engineOutput } });
+      Alert.alert(
+        i18n.t('common.action_failed_title', { defaultValue: 'Not saved' }),
+        i18n.t('common.action_failed_body', {
+          defaultValue: "That didn't reach the server — check your connection and try again.",
+        }),
+      );
     }
   }, [state.userState, state.engineOutput, adaptEngineOutput]);
 

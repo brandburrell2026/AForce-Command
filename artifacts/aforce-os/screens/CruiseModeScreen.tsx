@@ -91,7 +91,9 @@ function toLiveEnv(env: CruiseLiveEnvironment): CruiseLiveEnv {
     sunExposureHours: env.sunExposureHours,
     windKts: env.windKts,
     source: env.source,
-    fetchedAtLabel: formatClock(env.fetchedAt),
+    // Wave-3 PR10: a fallback env has NO fetch time — em dash, never a
+    // fabricated clock reading (honest-absence convention).
+    fetchedAtLabel: env.fetchedAt ? formatClock(env.fetchedAt) : '\u2014',
   };
 }
 
