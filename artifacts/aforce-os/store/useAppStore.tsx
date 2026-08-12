@@ -918,7 +918,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Hydrate persisted notification settings on mount; ignore corrupt
   // payloads so a forward-incompat key change can't brick the toggles.
   useEffect(() => {
-    AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY)
+    scopedStorage.getItem(NOTIFICATION_SETTINGS_KEY)
       .then((raw) => {
         if (!raw) return;
         try {
@@ -940,7 +940,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_NOTIFICATION_SETTING', payload: { key, value } });
     // Persist the merged shape so reload always restores every toggle.
     const next = { ...state.notificationSettings, [key]: value };
-    AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
+    scopedStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
   }, [state.notificationSettings]);
 
   // Race-safe persistence for unit preferences. Two refs guard the
