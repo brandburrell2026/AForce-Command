@@ -124,6 +124,9 @@
   .why .why-head{ max-width:760px; }
   .why h2{ font-family:var(--display); font-weight:800; font-size:clamp(30px,4.4vw,58px); line-height:1.05; letter-spacing:-0.01em; margin:18px 0 clamp(26px,3vw,36px); }
   .why p{ font-size:clamp(16px,1.4vw,20px); line-height:1.8; color:var(--i64); max-width:64ch; }
+  /* Statement tier — same system as the homepage community block
+     (.universal-sub): the bold line between the section title and body. */
+  .why .statement{ font-family:var(--body); font-weight:800; font-size:clamp(21px,2.9vw,38px); line-height:1.16; color:var(--ink); margin:6px 0 clamp(22px,3vw,30px); max-width:22ch; }
   .why p + p{ margin-top:20px; }
   .why p strong{ color:var(--ink); font-weight:600; }
 
@@ -151,7 +154,7 @@
   .ft .f-nav{ display:flex; flex-wrap:wrap; gap:12px 24px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
   .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--paper); }
   .ft .f-meta{ margin-top:24px; font-size:11px; letter-spacing:.04em; color:var(--b40); }
-  .ft .f-meta .nonneg{ color:var(--b64); font-weight:600; text-transform:uppercase; letter-spacing:.1em; }
+  .ft .f-meta .nonneg{ color:var(--red); font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
   .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
   /* ---------- RESPONSIVE ---------- */
@@ -170,7 +173,8 @@
     .btn .arw{ transition:none; }
   }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
-  .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
+  .afx-nav .mark .nn, .afx-nav .nn, .f-nn,
+  .nav .mark .nn, .ft .nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
@@ -308,7 +312,8 @@
     <div class="why-head">
       <div class="eyebrow reveal">The Standard</div>
       <h2 class="reveal">Why Founding 250 Exists</h2>
-      <p class="reveal">AFORCE is not launching as another hydration drink. We are building a <strong>performance readiness platform</strong> &mdash; starting with the people who believe performance is non-negotiable.</p>
+      <div class="statement reveal">AFORCE is not launching as another hydration&nbsp;drink.</div>
+      <p class="reveal">We are building a <strong>performance readiness platform</strong> &mdash; starting with the people who believe performance is non-negotiable.</p>
       <p class="reveal">The Founding 250 are the first members invited to test the product, shape the ritual, experience AFORCE OS, and help define what this movement becomes before it reaches the world.</p>
     </div>
 
@@ -357,7 +362,7 @@
     </div>
     <div class="f-meta">
       <span>&copy; 2026 AFORCE Hydration, Inc.</span> &nbsp;·&nbsp;
-      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+      Performance Is <span class="nonneg">Non-<span class="flip-n">N</span>egotiable.</span>
     </div>
   </div>
 </footer>
