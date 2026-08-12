@@ -60,6 +60,7 @@ router.post(
           .returning({ id: aforceWebhookDeliveries.id });
         if (inserted.length === 0) {
           logger.info({ deliveryId, topic }, "shopify webhook: duplicate delivery suppressed");
+          incCounter("webhook_duplicates.shopify");
           return res.json({ ok: true, duplicate: true });
         }
       } catch (err) {

@@ -9,6 +9,7 @@
  */
 
 import { Router, type IRouter, type Request, type Response } from 'express';
+import { incCounter } from '../observability/metrics';
 import { webhookLimiter } from '../middlewares/rateLimits';
 import { db } from '@workspace/db';
 import { aforceWebhookDeliveries } from '@workspace/db/schema';
@@ -47,6 +48,7 @@ router.post(
       // Wave-3 PR6: NEVER echo internal error text to an unauthenticated
       // caller (it leaked connector/config state and middleware guidance).
       logger.warn({ err }, 'stripe webhook: verification/processing failed');
+      incCounter('webhook_failures.stripe');
       res.status(400).json({ error: 'webhook_verification_failed' });
       return;
     }
@@ -61,6 +63,7 @@ router.post(
           .onConflictDoNothing({ target: [aforceWebhookDeliveries.source, aforceWebhookDeliveries.deliveryId] })
           .returning({ id: aforceWebhookDeliveries.id });
         if (inserted.length === 0) {
+          incCounter('webhook_duplicates.stripe');
           logger.info({ eventId: event.id, type: event.type }, 'stripe webhook: duplicate delivery (already processed)');
         }
       }
