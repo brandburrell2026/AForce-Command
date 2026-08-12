@@ -7,6 +7,9 @@ import {
   type HydroScanInsert,
 } from "@workspace/db";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const repo = createDrizzleHydroScanRepo(db);
 
 const TEST_USER_PREFIX = "test_scan_user_";
@@ -48,7 +51,7 @@ async function cleanupTestRows(): Promise<void> {
   }
 }
 
-describe("HydroScanRepo (Drizzle binding, real DB)", () => {
+describe.runIf(DB)("HydroScanRepo (Drizzle binding, real DB)", () => {
   beforeEach(async () => {
     await cleanupTestRows();
   });

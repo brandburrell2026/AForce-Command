@@ -1,4 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Per-repo convention (see realApi.intake.test.ts / claimsGateRuntimeSeams.test.ts):
+// vi.mock the RN/Expo-native edges the service imports so the REAL scheduler
+// logic stays under test. `@react-native-async-storage/async-storage` touches
+// native storage, and `@/store/useAppStore` transitively pulls the `expo`
+// winter runtime — both unloadable in node/vitest. Mocks match only what
+// notifications.ts reads: AsyncStorage.getItem/setItem and useFeatureFlags().
+vi.mock('@react-native-async-storage/async-storage', () => ({
+  default: {
+    getItem: vi.fn(async () => null),
+    setItem: vi.fn(async () => undefined),
+  },
+}));
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({ spec_notifications: false }),
+}));
+
 import {
   MAX_PER_DAY,
   NOTIFICATION_COPY,

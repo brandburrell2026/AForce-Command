@@ -164,7 +164,11 @@ describe("POST /whoop/oauth/start", () => {
     });
     expect(res.status).toBe(200);
     const body = (await res.json()) as { authorizeUrl: string; state: string };
-    expect(body.state).toMatch(/^[A-Za-z0-9_-]{32}$/u);
+    // WHOOP requires a self-generated state of EXACTLY 8 characters
+    // (base64url of 6 random bytes) — see createOAuthState() in
+    // lib/whoopPkce.ts and commit 03f03dbc. A 32-char state silently
+    // fails WHOOP's authorize step.
+    expect(body.state).toMatch(/^[A-Za-z0-9_-]{8}$/u);
     const url = new URL(body.authorizeUrl);
     expect(url.origin + url.pathname).toBe(
       "https://api.prod.whoop.com/oauth/oauth2/auth",

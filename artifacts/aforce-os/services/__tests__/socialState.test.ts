@@ -5,7 +5,18 @@
  * deterministic derivation underneath.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// socialState.ts imports `useFeatureFlags` from the app store for the
+// React hook (`useHiddenSocialState`) only. The store transitively
+// pulls in react-native, AsyncStorage, and the expo winter runtime —
+// unloadable in node/vitest. This file exercises the pure derivation
+// functions exclusively, so the store edge is stubbed with the one
+// export socialState reads (repo convention: mock RN-only edges,
+// keep the real logic under test).
+vi.mock('../../store/useAppStore', () => ({
+  useFeatureFlags: () => ({ spec_social: false }),
+}));
 
 import {
   CREW_MAX,

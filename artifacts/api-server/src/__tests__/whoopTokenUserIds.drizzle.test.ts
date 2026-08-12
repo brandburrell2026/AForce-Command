@@ -28,6 +28,9 @@ import {
   listWhoopTokenUserIds,
 } from "../lib/whoopFetchWorker";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const PREFIX = "test_iter_whoop_";
 const u = (n: string): string => `${PREFIX}${n}`;
 
@@ -125,7 +128,7 @@ async function drainIter(
   return { pages, flat };
 }
 
-describe("iterWhoopTokenUserIds — keyset pagination", () => {
+describe.runIf(DB)("iterWhoopTokenUserIds — keyset pagination", () => {
   it("empty seed window -> iter completes with no qualifying rows", async () => {
     // No seeding has happened in this `it`; cleanSeedRows already ran
     // in beforeAll. Verify our seed set is empty without asserting the
@@ -179,7 +182,7 @@ describe("iterWhoopTokenUserIds — keyset pagination", () => {
   });
 });
 
-describe("iterWhoopTokenUserIds — updatedAtMax snapshot cutoff", () => {
+describe.runIf(DB)("iterWhoopTokenUserIds — updatedAtMax snapshot cutoff", () => {
   it("excludes rows with updated_at > cutoff (sweep-start snapshot semantics)", async () => {
     await seedRows();
     try {
@@ -260,7 +263,7 @@ describe("iterWhoopTokenUserIds — updatedAtMax snapshot cutoff", () => {
   });
 });
 
-describe("iterWhoopTokenUserIdsForSweep — runtime cutoff guard", () => {
+describe.runIf(DB)("iterWhoopTokenUserIdsForSweep — runtime cutoff guard", () => {
   // These don't touch the DB — the guard throws synchronously before
   // any query is issued. The base iterator's behavior is already
   // covered by the cutoff tests above.
@@ -315,7 +318,7 @@ describe("iterWhoopTokenUserIdsForSweep — runtime cutoff guard", () => {
   });
 });
 
-describe("getDbNow — DB-clock cutoff source", () => {
+describe.runIf(DB)("getDbNow — DB-clock cutoff source", () => {
   it("normalizes an ISO-string `now` from a driver without a Date parser", async () => {
     // Locks `getDbNow`'s parser-agnostic branch: if a future env or
     // a custom pg type-parser config returns timestamptz as an ISO
@@ -349,7 +352,7 @@ describe("getDbNow — DB-clock cutoff source", () => {
   });
 });
 
-describe("listWhoopTokenUserIds — drains the iterator", () => {
+describe.runIf(DB)("listWhoopTokenUserIds — drains the iterator", () => {
   it("returns the same stable order as the iterator", async () => {
     await seedRows();
     try {

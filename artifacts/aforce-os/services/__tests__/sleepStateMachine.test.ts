@@ -9,7 +9,18 @@
  * beats IDLE for the first 2 h after waking.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// sleepStateMachine imports `../store/useAppStore` solely for the
+// `useHiddenSleepState` React hook (feature-flag gate). The store
+// transitively pulls RN/Expo-native edges (the `expo` winter runtime,
+// expo-notifications, AsyncStorage) that cannot load in node/vitest.
+// Per repo convention (see realApi.intake.test.ts, deriveProtocol.test.ts)
+// we stub only that edge — `deriveSleepState`, the logic under test,
+// is pure and stays fully real.
+vi.mock('../../store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
 
 import {
   deriveSleepState,

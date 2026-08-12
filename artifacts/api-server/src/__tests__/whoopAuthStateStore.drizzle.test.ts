@@ -22,6 +22,9 @@ import {
   type WhoopAuthStateRecord,
 } from "../lib/whoopAuthStateStore";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const PREFIX = `test_authstate_${process.pid}_`;
 const k = (n: string): string => `${PREFIX}${n}`;
 
@@ -43,7 +46,7 @@ function rec(overrides: Partial<WhoopAuthStateRecord> = {}): WhoopAuthStateRecor
   };
 }
 
-describe("createDrizzleWhoopAuthStateStore — DB integration", () => {
+describe.runIf(DB)("createDrizzleWhoopAuthStateStore — DB integration", () => {
   it("rejects an empty state on put", async () => {
     const store = createDrizzleWhoopAuthStateStore(db);
     await expect(store.put("", rec())).rejects.toThrow(/non-empty/);

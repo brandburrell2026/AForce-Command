@@ -50,6 +50,9 @@ vi.mock("@clerk/express", () => ({
   },
 }));
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const TEST_USER_PREFIX = "test_scans_route_";
 
 function buildApp(): Express {
@@ -102,7 +105,7 @@ function authHeaders(userId: string, extra?: Record<string, string>) {
   return { "content-type": "application/json", "x-auth-user": userId, ...extra };
 }
 
-describe("/api/scans — IDOR / authorization", () => {
+describe.runIf(DB)("/api/scans — IDOR / authorization", () => {
   // NOTE: requireAuth's hard 401/503 fail-closed only fires in production
   // (IS_PRODUCTION is read at module load). That production gate is proven
   // directly in requireAuth.test.ts. Here we prove the dev-convenience
@@ -178,7 +181,7 @@ describe("/api/scans — IDOR / authorization", () => {
   });
 });
 
-describe("/api/scans — legacy contract preservation", () => {
+describe.runIf(DB)("/api/scans — legacy contract preservation", () => {
   it("body.id === '' is accepted verbatim (not regenerated)", async () => {
     const u = user("empty_id");
     const res = await fetch(`${baseUrl}/api/scans`, {
