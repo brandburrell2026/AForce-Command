@@ -19,8 +19,9 @@
  */
 
 import { db, aforceUsers, aforceWebEntitlements } from "@workspace/db";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { logger } from "./logger";
+import { fetchVerifiedPrimaryEmail } from "./clerkEmail";
 
 interface SubRow {
   status: string;
@@ -45,12 +46,34 @@ export async function resolveEntitlement(userId: string): Promise<ResolvedEntitl
     .where(eq(aforceUsers.id, userId))
     .limit(1);
   if (!row) {
+    // Wave-3 PR4: establish the commerce email linkage at row creation —
+    // the VERIFIED Clerk primary email (never an unverified address, never
+    // a Shopify-supplied string). This is what makes the web (Shopify)
+    // entitlement rail below reachable; it was previously dead because
+    // email was read here but written nowhere.
+    const email = await fetchVerifiedPrimaryEmail(userId);
     const [inserted] = await db
       .insert(aforceUsers)
-      .values({ id: userId, planId: "core", subscriptionStatus: "none" })
+      .values({ id: userId, planId: "core", subscriptionStatus: "none", ...(email ? { email } : {}) })
       .onConflictDoNothing({ target: aforceUsers.id })
       .returning();
     row = inserted ?? (await db.select().from(aforceUsers).where(eq(aforceUsers.id, userId)).limit(1))[0];
+  } else if (!row.email) {
+    // One-time backfill for rows created before this bridge existed.
+    // Best-effort and NEVER overwrites a present email (the Clerk id is
+    // canonical identity; a Shopify email must never replace this key).
+    const email = await fetchVerifiedPrimaryEmail(userId);
+    if (email) {
+      try {
+        await db
+          .update(aforceUsers)
+          .set({ email, updatedAt: new Date() })
+          .where(and(eq(aforceUsers.id, userId), isNull(aforceUsers.email)));
+        row = { ...row, email };
+      } catch (err) {
+        logger.debug({ err }, "entitlement: email backfill failed; continuing without web rail");
+      }
+    }
   }
 
   let planId = row?.planId ?? "core";
