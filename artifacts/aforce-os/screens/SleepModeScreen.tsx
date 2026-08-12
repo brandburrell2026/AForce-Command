@@ -12,7 +12,7 @@ import { View, StyleSheet, Platform, ScrollView, AccessibilityInfo } from 'react
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { useUserSlice, useFlagsSlice } from '@/store/slices';
@@ -108,8 +108,8 @@ function SleepModeRedesign() {
     (async () => {
       try {
         const [storedTime, storedAvg, storedFolded] = await Promise.all([
-          AsyncStorage.getItem(SLEEP_TIME_KEY), AsyncStorage.getItem(SEVEN_NIGHT_KEY),
-          AsyncStorage.getItem(LAST_FOLDED_KEY),
+          scopedStorage.getItem(SLEEP_TIME_KEY), scopedStorage.getItem(SEVEN_NIGHT_KEY),
+          scopedStorage.getItem(LAST_FOLDED_KEY),
         ]);
         if (cancelled) return;
         const parsed = parseHHMM(storedTime);
@@ -152,11 +152,11 @@ function SleepModeRedesign() {
     if (!shouldFoldSleepAvg(lastFoldedDay, today, sleepLastNight)) return;
     setSevenNightAvg((prev) => {
       const next = foldSevenNightAvg(prev, sleepLastNight);
-      AsyncStorage.setItem(SEVEN_NIGHT_KEY, String(next)).catch(() => {});
+      scopedStorage.setItem(SEVEN_NIGHT_KEY, String(next)).catch(() => {});
       return next;
     });
     setLastFoldedDay(today);
-    AsyncStorage.setItem(LAST_FOLDED_KEY, today).catch(() => {});
+    scopedStorage.setItem(LAST_FOLDED_KEY, today).catch(() => {});
   }, [hydrated, sleepLastNight, lastFoldedDay]);
 
   const minsUntil = target ? minutesUntilNext(target, now) : null;
@@ -202,7 +202,7 @@ function SleepModeRedesign() {
     if (!parsed) { setDraft(target ? format12(target) : '11:00 PM'); setEditing(false); return; }
     setTarget(parsed);
     setEditing(false);
-    AsyncStorage.setItem(SLEEP_TIME_KEY, formatHHMM(parsed)).catch(() => {});
+    scopedStorage.setItem(SLEEP_TIME_KEY, formatHHMM(parsed)).catch(() => {});
     haptic('light');
   };
   const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;

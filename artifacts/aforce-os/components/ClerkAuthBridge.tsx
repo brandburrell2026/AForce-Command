@@ -14,11 +14,14 @@ import { setTokenGetter } from '@/services/authToken';
 import { useEntitlement } from '@/hooks/useEntitlement';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { setIntakeOutboxUser } from '@/services/intakeOutbox';
+import { setUserScope } from '@/services/userScope';
+import { wireUserScopeCleanup } from '@/services/userScopeCleanup';
 
 export function ClerkAuthBridge(): null {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const flags = useFeatureFlags();
   const outboxEnabled = flags.offline_intake_outbox_enabled;
+  const isolationEnabled = flags.per_user_storage_isolation_enabled;
 
 
   React.useEffect(() => {
@@ -34,6 +37,13 @@ export function ClerkAuthBridge(): null {
       // is persisted under a per-user key, so the next user only ever reads their
       // own. Flag-gated so production (flag OFF) stays byte-identical (no I/O).
       if (outboxEnabled) setIntakeOutboxUser(null);
+      // Per-user isolation (Wave-2 PR6): dropping the scope resets every
+      // subscribed store to un-hydrated and fires the cleanup listeners
+      // (WHOOP token wipe, scoped-notification cancel). Flag OFF → no-op.
+      if (isolationEnabled) {
+        wireUserScopeCleanup();
+        setUserScope(null);
+      }
       return;
     }
     // Bridge into both the imperative realApi/WS registry and the
@@ -47,11 +57,17 @@ export function ClerkAuthBridge(): null {
     // re-runs this effect (it is in the deps) and re-scopes, resetting the
     // in-memory queue for the new account. Flag-gated → no-op when disabled.
     if (outboxEnabled) setIntakeOutboxUser(userId ?? null);
+    // Per-user isolation: scope every durable personal store to this
+    // account. A userId change re-runs this effect (deps) and re-scopes.
+    if (isolationEnabled) {
+      wireUserScopeCleanup();
+      setUserScope(userId ?? null);
+    }
     return () => {
       setTokenGetter(null);
       setAuthTokenGetter(null);
     };
-  }, [isLoaded, isSignedIn, userId, outboxEnabled, getToken]);
+  }, [isLoaded, isSignedIn, userId, outboxEnabled, isolationEnabled, getToken]);
 
   // Pull server-authoritative subscription entitlement once we have a
   // session. Lives here (rather than in tab screens) so it runs once,

@@ -24,7 +24,8 @@
  *     reset / sign-out can never be undone by a late load.
  */
 import { useSyncExternalStore } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 
 import {
   buildTravelSignal,
@@ -76,7 +77,7 @@ function persist(): Promise<void> {
   };
   return enqueue(async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       /* non-fatal: in-memory state is still authoritative */
     }
@@ -107,7 +108,7 @@ export function hydratePerformanceMemoryCapture(): Promise<void> {
     let loaded: PerformanceMemoryCaptureState = emptyCaptureState();
     const now = Date.now();
     try {
-      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const raw = await scopedStorage.getItem(STORAGE_KEY);
       loaded = sanitizeCaptureState(raw ? JSON.parse(raw) : null, now);
     } catch {
       loaded = emptyCaptureState();
@@ -202,7 +203,7 @@ export function clearPerformanceMemoryCapture(): Promise<void> {
   setState({ travel: [], caffeine: [], priorities: [], hydrated: true });
   return enqueue(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await scopedStorage.removeItem(STORAGE_KEY);
     } catch {
       /* non-fatal */
     }
@@ -225,3 +226,10 @@ export function usePerformanceMemoryCaptureStore(): PerformanceMemoryCaptureStat
     getPerformanceMemoryCaptureSnapshot,
   );
 }
+
+// Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
+subscribeUserScope(() => {
+  generation += 1;
+  hydrating = null;
+  setState({ travel: [], caffeine: [], priorities: [], hydrated: false });
+});

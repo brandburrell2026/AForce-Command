@@ -9,7 +9,8 @@
  * (`@aforce/momentPrepared`, calendarEventId → ISO), which contains no event
  * data. Deleted/moved events self-heal on the next refresh (id-keyed).
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 import { useSyncExternalStore } from 'react';
 
 import type { Moment } from '@/types/moments';
@@ -34,7 +35,7 @@ function notify(): void {
 
 async function getPreparedMarks(): Promise<Record<string, string>> {
   try {
-    const raw = await AsyncStorage.getItem(PREPARED_KEY);
+    const raw = await scopedStorage.getItem(PREPARED_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     return typeof parsed === 'object' && parsed !== null
       ? (parsed as Record<string, string>)
@@ -49,7 +50,7 @@ export async function markCalendarMomentPrepared(calendarEventId: string): Promi
   const marks = await getPreparedMarks();
   marks[calendarEventId] = new Date().toISOString();
   try {
-    await AsyncStorage.setItem(PREPARED_KEY, JSON.stringify(marks));
+    await scopedStorage.setItem(PREPARED_KEY, JSON.stringify(marks));
   } catch {
     // best-effort
   }
@@ -130,3 +131,10 @@ export function subscribeCalendarMoments(listener: () => void): () => void {
 export function useCalendarMoments(): Moment[] {
   return useSyncExternalStore(subscribeCalendarMoments, getCalendarMoments, getCalendarMoments);
 }
+
+// Wave-2 PR6: user-scope change → drop derived calendar moments + marks.
+subscribeUserScope(() => {
+  calendarMoments = [];
+  lastRefreshMs = 0;
+  for (const l of listeners) l();
+});

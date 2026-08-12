@@ -13,14 +13,14 @@
  *
  * IO only — no scoring/intake/session mutation.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '../scopedStorage';
 import type { NightOutCommandTimer } from './commandTimer';
 
 const KEY = 'aforce_night_out_command_timer_v1';
 
 export async function saveCommandTimer(timer: NightOutCommandTimer): Promise<void> {
   try {
-    await AsyncStorage.setItem(KEY, JSON.stringify(timer));
+    await scopedStorage.setItem(KEY, JSON.stringify(timer));
   } catch {
     // best-effort; a failed persist just means restoration won't have this record
   }
@@ -28,7 +28,7 @@ export async function saveCommandTimer(timer: NightOutCommandTimer): Promise<voi
 
 export async function loadCommandTimer(): Promise<NightOutCommandTimer | null> {
   try {
-    const raw = await AsyncStorage.getItem(KEY);
+    const raw = await scopedStorage.getItem(KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as NightOutCommandTimer;
     if (
@@ -48,7 +48,7 @@ export async function loadCommandTimer(): Promise<NightOutCommandTimer | null> {
 
 export async function clearCommandTimer(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(KEY);
+    await scopedStorage.removeItem(KEY);
   } catch {
     // best-effort
   }

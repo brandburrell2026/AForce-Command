@@ -18,7 +18,8 @@
  * applied by the planner AFTER this adjustment — adaptation can never push a
  * signal into quiet hours or past the moment start.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 import { useSyncExternalStore } from 'react';
 
 import type { MomentType } from '@/types/moments';
@@ -68,7 +69,7 @@ function sanitize(raw: unknown): MomentFeedbackRecord | null {
 export async function hydrateMomentFeedback(): Promise<void> {
   if (hydrated) return;
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     if (Array.isArray(parsed)) {
       records = parsed.map(sanitize).filter((r): r is MomentFeedbackRecord => r !== null);
@@ -88,7 +89,7 @@ export function recordMomentFeedback(record: MomentFeedbackRecord): void {
   if (records.some((r) => r.momentId === record.momentId)) return; // one per moment
   records = [...records, record].slice(-MOMENT_FEEDBACK_MAX_RECORDS);
   notify();
-  void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(records)).catch(() => {});
+  void scopedStorage.setItem(STORAGE_KEY, JSON.stringify(records)).catch(() => {});
 }
 
 export function subscribeMomentFeedback(listener: () => void): () => void {
@@ -162,3 +163,10 @@ export function deriveLeadAdjustments(
   }
   return out;
 }
+
+// Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
+subscribeUserScope(() => {
+  records = [];
+  hydrated = false;
+  for (const l of listeners) l();
+});

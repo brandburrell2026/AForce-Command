@@ -29,7 +29,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 const DISCLAIMER_KEY = '@aforce/socialV2/disclaimerDismissed';
 const MEMORY_KEY = '@aforce/socialV2/lastSession';
@@ -277,8 +277,8 @@ export default function SocialModeV2Screen() {
     (async () => {
       try {
         const [dismissed, mem] = await Promise.all([
-          AsyncStorage.getItem(DISCLAIMER_KEY),
-          AsyncStorage.getItem(MEMORY_KEY),
+          scopedStorage.getItem(DISCLAIMER_KEY),
+          scopedStorage.getItem(MEMORY_KEY),
         ]);
         if (cancelled) return;
         if (dismissed !== '1') setShowDisclaimer(true);
@@ -295,7 +295,7 @@ export default function SocialModeV2Screen() {
 
   const dismissDisclaimer = React.useCallback(() => {
     setShowDisclaimer(false);
-    AsyncStorage.setItem(DISCLAIMER_KEY, '1').catch(() => {});
+    scopedStorage.setItem(DISCLAIMER_KEY, '1').catch(() => {});
   }, []);
 
   // ─── Session memory (auto-generated 5–11am after a session) ────────
@@ -336,7 +336,7 @@ export default function SocialModeV2Screen() {
         aura: 'RECOVERED',
         signal,
       };
-      AsyncStorage.setItem(MEMORY_KEY, JSON.stringify(snapshot)).catch(() => {});
+      scopedStorage.setItem(MEMORY_KEY, JSON.stringify(snapshot)).catch(() => {});
     });
   };
 

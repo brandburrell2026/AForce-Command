@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { scopedStorage } from '@/services/scopedStorage';
 import type { Dispatch, MutableRefObject } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -540,7 +541,7 @@ export function useStoreActions({
 
   const setSubscription = useCallback((sub: UserSubscription) => {
     dispatch({ type: 'SET_SUBSCRIPTION', payload: sub });
-    AsyncStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
+    scopedStorage.setItem('aforce.subscription', JSON.stringify(sub)).catch(() => {});
   }, []);
 
   const setSweatAutopilot = useCallback((autopilot: SweatAutopilot | null) => {

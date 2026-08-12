@@ -18,7 +18,7 @@
  * from the Day-0/1/3/7 cadence; both caps bind independently.
  */
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
 
 import type { Moment } from '@/types/moments';
 import { buildRecommendation } from '@/services/momentRecommendation';
@@ -147,7 +147,7 @@ export function planMomentNotifications(
 
 export async function getMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
   try {
-    const raw = await AsyncStorage.getItem(PREFS_KEY);
+    const raw = await scopedStorage.getItem(PREFS_KEY);
     if (!raw) return DEFAULT_MOMENT_NOTIFY_PREFS;
     const parsed = JSON.parse(raw) as Partial<MomentNotifyPrefs>;
     const lead = parsed.leadMin;
@@ -167,7 +167,7 @@ export async function getMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
 
 export async function setMomentNotifyPrefs(prefs: MomentNotifyPrefs): Promise<void> {
   try {
-    await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    await scopedStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     // best-effort
   }

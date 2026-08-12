@@ -569,6 +569,13 @@ export interface FeatureFlags {
   // are replayed verbatim; the outbox never recomputes or fabricates score, and
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
+  /**
+   * Wave-2 PR6: per-user local data isolation. ON → ClerkAuthBridge scopes
+   * every durable personal store to the Clerk userId (plus one-shot legacy
+   * migration, WHOOP-token wipe and scoped-notification cancel on account
+   * change). OFF → byte-identical legacy behavior (global keys, no resets).
+   */
+  per_user_storage_isolation_enabled: boolean;
 
   // App Store Guideline 3.1.1 posture: direct Stripe web checkout from the
   // iOS app sells a digital subscription outside IAP. OFF by default so the

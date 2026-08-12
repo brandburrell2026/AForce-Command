@@ -35,7 +35,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { Icon } from '@/components/Icon';
@@ -153,8 +153,8 @@ export default function SleepModeScreenLegacy() {
     (async () => {
       try {
         const [storedTime, storedAvg] = await Promise.all([
-          AsyncStorage.getItem(SLEEP_TIME_KEY),
-          AsyncStorage.getItem(SEVEN_NIGHT_KEY),
+          scopedStorage.getItem(SLEEP_TIME_KEY),
+          scopedStorage.getItem(SEVEN_NIGHT_KEY),
         ]);
         if (cancelled) return;
         const parsed = parseHHMM(storedTime);
@@ -200,7 +200,7 @@ export default function SleepModeScreenLegacy() {
     if (!Number.isFinite(last ?? NaN) || last == null) return;
     setSevenNightAvg((prev) => {
       const next = prev == null ? last : prev + (last - prev) / 7;
-      AsyncStorage.setItem(SEVEN_NIGHT_KEY, String(next)).catch(() => {});
+      scopedStorage.setItem(SEVEN_NIGHT_KEY, String(next)).catch(() => {});
       return next;
     });
   }, [sleepLastNight]);
@@ -215,7 +215,7 @@ export default function SleepModeScreenLegacy() {
     }
     setTarget(parsed);
     setEditing(false);
-    AsyncStorage.setItem(SLEEP_TIME_KEY, formatHHMM(parsed)).catch(() => {});
+    scopedStorage.setItem(SLEEP_TIME_KEY, formatHHMM(parsed)).catch(() => {});
     if (Platform.OS !== 'web') {
       Haptics.selectionAsync().catch(() => {});
     }
