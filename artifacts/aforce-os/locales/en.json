@@ -1711,7 +1711,9 @@
       "billing_no_customer": "No billing account yet. Choose a plan to set up billing first.",
       "billing_signin": "Please sign in again to manage billing.",
       "back_a11y": "Back",
-      "manage_gear_a11y": "Manage subscription"
+      "manage_gear_a11y": "Manage subscription",
+      "activation_pending_title": "Payment received",
+      "activation_pending_body": "Your plan is activating — it will unlock automatically in a moment. No further action is needed."
     }
   },
   "urine": {

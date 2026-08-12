@@ -155,16 +155,39 @@ export const LAUNCHED_PLAN_IDS = new Set<string>(['core', 'athlete']);
 
 // Acceptable schemes for the app-redirect bounce. Restricting to known
 // Expo / app-native / web schemes blocks open-redirect abuse.
-const ALLOWED_RETURN_SCHEMES = new Set([
-  'http:', 'https:', 'exp:', 'exps:', 'aforce:', 'aforceos:',
+//
+// Wave-3 PR3: 'aforce-os:' is the app's REAL registered scheme
+// (artifacts/aforce-os/app.json "scheme": "aforce-os"; every client
+// Linking.createURL return uses it). It was MISSING here, so every
+// native checkout died with a 400 before Stripe was ever contacted.
+// NATIVE_APP_RETURN_SCHEMES is exported for the app.json parity test —
+// keep it in lockstep with the app scheme.
+export const NATIVE_APP_RETURN_SCHEMES = new Set([
+  'exp:', 'exps:', 'aforce:', 'aforceos:', 'aforce-os:',
 ]);
+const ALLOWED_RETURN_SCHEMES = new Set(['http:', 'https:', ...NATIVE_APP_RETURN_SCHEMES]);
 
 const ALLOWED_KINDS = new Set(['subscription', 'cart']);
 
-function publicBaseUrl(req: Request): string {
-  // Trust the host the request came in on. The api-server sits behind the
-  // workspace proxy in dev and behind the deployment proxy in prod, both of
-  // which preserve x-forwarded-host. Fall back to the literal Host header.
+/** Minimal HTML attribute/text escaper for the bounce page (Wave-3 PR3). */
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function publicBaseUrl(req: Request): string {
+  // Wave-3 PR3: a request-derived host is attacker-influenced (raw
+  // x-forwarded-host bypasses Express's trust-proxy handling entirely), and
+  // the same value was ALSO the comparison target for the "same-origin"
+  // returnUrl check — the control validated attacker input against attacker
+  // input. When PUBLIC_BASE_URL is configured (production), it is now the
+  // ONLY source; the request-derived path survives strictly for dev.
+  const configured = process.env['PUBLIC_BASE_URL']?.replace(/\/+$/, '');
+  if (configured) return configured;
   const proto =
     (req.headers['x-forwarded-proto'] as string | undefined)?.split(',')[0]?.trim() ??
     req.protocol;
@@ -189,7 +212,7 @@ function publicBaseUrl(req: Request): string {
  * is exactly what `Linking.createURL` produces from the Expo web client
  * and matches the api-server's own origin.
  */
-function isAllowedReturnUrl(raw: string, requestHost: string | null): boolean {
+export function isAllowedReturnUrl(raw: string, requestHost: string | null): boolean {
   let u: URL;
   try {
     u = new URL(raw);
@@ -207,7 +230,18 @@ function isAllowedReturnUrl(raw: string, requestHost: string | null): boolean {
   return true;
 }
 
-function inboundHost(req: Request): string | null {
+export function inboundHost(req: Request): string | null {
+  // Same PUBLIC_BASE_URL-first rule as publicBaseUrl (see above): web
+  // returnUrls in production must match the CONFIGURED origin, not a
+  // header the caller controls.
+  const configured = process.env['PUBLIC_BASE_URL'];
+  if (configured) {
+    try {
+      return new URL(configured).host;
+    } catch {
+      /* fall through to request-derived (dev) */
+    }
+  }
   const host =
     (req.headers['x-forwarded-host'] as string | undefined)?.split(',')[0]?.trim() ??
     req.get('host') ??
@@ -311,7 +345,7 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
       customer: customerId,
       // Stripe requires https success/cancel URLs — bounce through this
       // server, which then forwards to the caller's returnUrl (web or native).
-      success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
+      success_url: `${base}/api/checkout/return?status=success&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${base}/api/checkout/return?status=cancel&kind=subscription&planId=${encodeURIComponent(planId)}&app=${app}`,
       // userId is critical: lets us recover linkage from Stripe metadata
       // even if customer creation failed for some reason.
@@ -403,7 +437,7 @@ router.post('/checkout/cart', requireAuth, checkoutLimiter, async (req: Request,
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items,
-      success_url: `${base}/api/checkout/return?status=success&kind=cart&app=${app}`,
+      success_url: `${base}/api/checkout/return?status=success&kind=cart&app=${app}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${base}/api/checkout/return?status=cancel&kind=cart&app=${app}`,
       metadata: {
         kind: 'cart',
@@ -467,6 +501,13 @@ router.get('/checkout/return', (req: Request, res: Response) => {
   u.searchParams.set('status', status);
   u.searchParams.set('kind', kind);
   if (planId) u.searchParams.set('planId', planId);
+  // Wave-3 PR3: forward the Stripe session id (shape-validated) so a
+  // cold-start / interrupted-bounce deep link can still verify the
+  // purchase server-side. The id is NOT an entitlement grant — the app
+  // verifies payment_status via GET /checkout/session and then waits for
+  // authoritative entitlement resolution.
+  const sessionId = String(req.query['session_id'] ?? '');
+  if (/^cs_[A-Za-z0-9_]+$/.test(sessionId)) u.searchParams.set('session_id', sessionId);
   const target = u.toString();
 
   // Use a tiny HTML bounce — `res.redirect` to a custom-scheme URL is blocked
@@ -476,11 +517,11 @@ router.get('/checkout/return', (req: Request, res: Response) => {
 <html><head>
 <meta charset="utf-8">
 <title>Returning to AForce…</title>
-<meta http-equiv="refresh" content="0;url=${target.replace(/"/g, '&quot;')}">
+<meta http-equiv="refresh" content="0;url=${escapeHtml(target)}">
 <style>body{font-family:-apple-system,system-ui,sans-serif;background:#0A0A0F;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
 </head><body>
 <p>Returning to AForce…</p>
-<script>window.location.replace(${JSON.stringify(target)});</script>
+<script>window.location.replace(${JSON.stringify(target).replace(/</g, '\\u003C')});</script>
 </body></html>`);
 });
 
@@ -495,7 +536,7 @@ router.get('/checkout/return', (req: Request, res: Response) => {
  * `payment_status`. Sessions for unrelated checkouts (mode mismatch, etc)
  * also return `paid: false` so callers can fail closed.
  */
-router.get('/checkout/session/:id', async (req: Request, res: Response) => {
+router.get('/checkout/session/:id', requireAuth, checkoutLimiter, async (req: Request, res: Response) => {
   const idRaw = req.params['id'];
   const id = typeof idRaw === 'string' ? idRaw : '';
   if (!id || !/^cs_(test|live)_[A-Za-z0-9]+$/.test(id)) {

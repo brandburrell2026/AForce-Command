@@ -54,7 +54,7 @@ export function SubscriptionScreenV2() {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
   const { state } = useAppStore();
-  const params = useLocalSearchParams<{ planId?: string; autoCheckout?: string }>();
+  const params = useLocalSearchParams<{ planId?: string; autoCheckout?: string; status?: string; kind?: string; session_id?: string }>();
   const [filter, setFilter] = useState<CategoryId>('consumer');
   const [pendingPlanId, setPendingPlanId] = useState<SubscriptionPlanId | null>(null);
   const autoCheckoutFiredRef = useRef(false);
@@ -84,6 +84,23 @@ export function SubscriptionScreenV2() {
   const clutchPlans = useMemo(() => visiblePlans.filter((p) => p.subcategory === 'clutch'), [visiblePlans]);
   const guardianPlans = useMemo(() => visiblePlans.filter((p) => p.subcategory === 'guardian'), [visiblePlans]);
 
+  // Live view of the store's plan for the activation poll (the closure
+  // value would be stale inside the async loop).
+  const activePlanRef = React.useRef(state.subscription.planId);
+  React.useEffect(() => {
+    activePlanRef.current = state.subscription.planId;
+  }, [state.subscription.planId]);
+
+  /** Poll authoritative entitlement until `planId` is live (~45s cap). */
+  const waitForEntitlement = async (planId: SubscriptionPlanId): Promise<boolean> => {
+    for (let attempt = 0; attempt < 15; attempt++) {
+      await refreshEntitlement();
+      if (activePlanRef.current === planId) return true;
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+    return activePlanRef.current === planId;
+  };
+
   const onSelect = async (planId: SubscriptionPlanId) => {
     if (state.subscription.planId === planId || pendingPlanId) return;
     setPendingPlanId(planId);
@@ -101,6 +118,19 @@ export function SubscriptionScreenV2() {
       // in-app self-serve flow at launch.
       if (!STRIPE_PLAN_IDS.has(planId)) {
         Alert.alert(t('subscription.v2.sales_title'), t('subscription.v2.sales_body'));
+        return;
+      }
+
+      // Wave-3 PR3: App-Store 3.1.1 posture — ported from the legacy screen
+      // (V2 shipped WITHOUT this gate). iOS in-app direct checkout stays OFF
+      // (ios_direct_checkout_enabled=false) until counsel clears the
+      // external-purchase-link path; users purchase on the web and the
+      // Shopify→entitlement bridge unlocks the account.
+      if (Platform.OS === 'ios' && !state.featureFlags.ios_direct_checkout_enabled) {
+        Alert.alert(
+          'Purchase on the web',
+          'AForce Command is available at drinkaforce.com. Your account unlocks automatically after purchase with this email.',
+        );
         return;
       }
 
@@ -142,11 +172,18 @@ export function SubscriptionScreenV2() {
         return;
       }
 
-      // Pull the authoritative plan from /api/entitlement (set by the
-      // Stripe webhook) instead of writing optimistic local state. The
-      // 60s polling interval would eventually reconcile, but kicking an
-      // immediate refetch keeps the UI in sync with the charge.
-      await refreshEntitlement();
+      // Wave-3 PR3: ACTIVATION WAITS FOR AUTHORITATIVE ENTITLEMENT. A paid
+      // session is necessary but not sufficient — the plan is live only
+      // when /api/entitlement (fed by the Stripe webhook→synced schema)
+      // says so. Poll on a short backoff instead of a single refetch so
+      // webhook lag renders as "activating", never as canceled/none.
+      const activated = await waitForEntitlement(planId);
+      if (!activated) {
+        Alert.alert(
+          t('subscription.v2.activation_pending_title'),
+          t('subscription.v2.activation_pending_body'),
+        );
+      }
 
       // INTERNAL analytics: the client is the SOLE emitter of
       // `subscription_started` (the server webhook emit was removed to
@@ -158,6 +195,41 @@ export function SubscriptionScreenV2() {
       setPendingPlanId(null);
     }
   };
+
+  // Wave-3 PR3: a checkout return that arrives as a COLD-START deep link
+  // (Safari finished the purchase; the in-app browser session was gone)
+  // previously did nothing — the bounce params were dropped and the user
+  // stared at a paywall they had just paid through. Verify the forwarded
+  // session server-side, then run the same activation wait.
+  const coldReturnFiredRef = React.useRef(false);
+  useEffect(() => {
+    if (coldReturnFiredRef.current) return;
+    const status = params.status as string | undefined;
+    const sessionId = params.session_id as string | undefined;
+    if (status !== 'success' || !sessionId || !/^cs_[A-Za-z0-9_]+$/.test(sessionId)) return;
+    coldReturnFiredRef.current = true;
+    router.setParams({ status: undefined, kind: undefined, planId: undefined, session_id: undefined });
+    void (async () => {
+      try {
+        const sessionStatus = await fetchCheckoutSession(sessionId);
+        if (!sessionStatus.paid || !sessionStatus.planId) return;
+        setPendingPlanId(sessionStatus.planId as SubscriptionPlanId);
+        const activated = await waitForEntitlement(sessionStatus.planId as SubscriptionPlanId);
+        if (!activated) {
+          Alert.alert(
+            t('subscription.v2.activation_pending_title'),
+            t('subscription.v2.activation_pending_body'),
+          );
+        }
+      } catch {
+        // Verification failed — leave state untouched; the 60s entitlement
+        // poll remains the recovery path. Never grant from the URL alone.
+      } finally {
+        setPendingPlanId(null);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.status, params.session_id]);
 
   // Deep-link auto-checkout: when the Recovery+ paywall (or any other
   // entry point) routes here with `?planId=X&autoCheckout=1`, kick off
