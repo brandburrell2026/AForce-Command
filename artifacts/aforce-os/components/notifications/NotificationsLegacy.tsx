@@ -3,10 +3,11 @@
  *
  * Surfaces the persisted `notificationSettings` slice as a card stack
  * of segmented toggles so the user can opt in/out of each alert class
- * without leaving the app: score-band alerts, risk-timer countdowns,
- * recovery nudges, completion rewards, reorder prompts, and the
- * morning brief. Every toggle round-trips through `setNotificationSetting`
- * which writes back to AsyncStorage so the choice survives reload.
+ * without leaving the app. Every toggle round-trips through
+ * `setNotificationSetting` which writes back to AsyncStorage so the
+ * choice survives reload.
+ *
+ * Only classes with a live producer get a row — see the note on `ROWS`.
  */
 
 import React from 'react';
@@ -29,13 +30,21 @@ interface ToggleRow {
   icon: IconName;
 }
 
+// Wave-4 notification audit: `morningKickoff`, `circleActivity`, and
+// `challengeDeadlines` are deliberately absent, exactly as in the V2 screen.
+// Nothing in the app can deliver them — there is no 06:30 scheduler, nothing
+// schedules anything ahead of a challenge expiry, and the app has no remote
+// push or device-token registration at all (`services/pushNotifications.ts` is
+// local-cadence only). A switch for a capability that cannot fire is a promise
+// we break every day, so the row is hidden rather than shown. Their keys stay
+// in `NotificationSettings`: the persisted user choice is left untouched
+// (nothing to migrate) and restoring a row is a one-line change the day a real
+// producer exists — a local scheduler for morningKickoff and
+// challengeDeadlines, remote push for circleActivity.
 const ROWS: ToggleRow[] = [
-  { key: 'recheckReminders',    label: 'Recheck Reminders',    hint: 'Risk-timer pings as your hydration window closes.',           icon: 'clock' },
-  { key: 'scoreDecayAlerts',    label: 'Score Decay Alerts',   hint: 'Voice + push when you cross PEAK / STABLE / RISK bands.',     icon: 'activity' },
-  { key: 'morningKickoff',      label: 'Morning Kickoff',      hint: 'Daily 06:30 summary of the prior day + today\'s plan.',       icon: 'sunrise' },
-  { key: 'circleActivity',      label: 'Circle Activity',      hint: 'Pings when friends in your circle log a peak streak.',         icon: 'users' },
-  { key: 'challengeDeadlines',  label: 'Challenge Deadlines',  hint: 'Reminders before an open circle challenge expires.',           icon: 'flag' },
-  { key: 'lowInventoryAlert',   label: 'Low Inventory Alerts', hint: 'Restock prompts when sticks/RTD/canister inventory hits zero.', icon: 'shopping-bag' },
+  { key: 'recheckReminders',    label: 'Recheck Reminders',    hint: 'Spoken risk-timer callouts as your hydration window closes. On-device voice, no push.', icon: 'clock' },
+  { key: 'scoreDecayAlerts',    label: 'Score Decay Alerts',   hint: 'Spoken alert when you cross a PEAK / STABLE / RISK band. On-device voice, no push.',    icon: 'activity' },
+  { key: 'lowInventoryAlert',   label: 'Low Inventory Alerts', hint: 'Restock prompts when sticks/RTD/canister inventory hits zero.',                         icon: 'shopping-bag' },
 ];
 
 export function NotificationsLegacy() {
@@ -64,8 +73,8 @@ export function NotificationsLegacy() {
           </View>
 
           <Text style={styles.intro}>
-            Decide exactly which alerts AForce sends. Voice, push, and in-app
-            badges all honor these toggles together.
+            Decide exactly which alerts AForce sends. These toggles govern
+            on-device voice and in-app alerts — AForce sends no remote push.
           </Text>
 
           <View style={styles.card}>

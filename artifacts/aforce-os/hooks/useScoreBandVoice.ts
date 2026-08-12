@@ -6,10 +6,17 @@
  * CRITICAL). Re-renders that don't change the band do NOT re-fire.
  *
  * Gating, in priority order:
- *   1. `voiceCoachEnabled` master switch — silences everything when off.
- *   2. `voiceScope`                       — only `'all'` and `'risk'`
+ *   1. `notificationSettings.scoreDecayAlerts`
+ *                                         — the Notifications screen's
+ *                                           per-class opt-out. This hook is
+ *                                           the ONLY producer behind that row,
+ *                                           so without this gate the switch
+ *                                           promised a silence it could not
+ *                                           deliver (Wave-4 notification audit).
+ *   2. `voiceCoachEnabled` master switch — silences everything when off.
+ *   3. `voiceScope`                       — only `'all'` and `'risk'`
  *                                           allow score-band alerts.
- *   3. Band-crossing state machine        — fire once per (oldBand →
+ *   4. Band-crossing state machine        — fire once per (oldBand →
  *                                           newBand) transition.
  *
  * Mounting on the first render is deliberately suppressed: we capture
@@ -33,7 +40,9 @@ import { formatSpokenLineForCoach } from '../services/voice/coachPhrasing';
 
 export function useScoreBandVoice(): void {
   const engine = useEngineSlice();
-  const { voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId } = useAppStore();
+  const {
+    voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId, notificationSettings,
+  } = useAppStore();
   const eliteVoice = useFeatureFlags().elite_voice_coach_enabled;
 
   // Snapshot of the band that fired most recently (or the band the
@@ -59,6 +68,7 @@ export function useScoreBandVoice(): void {
     const previousBand = lastFiredBandRef.current;
     lastFiredBandRef.current = band;
 
+    if (!notificationSettings.scoreDecayAlerts) return;
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('score_band', voiceScope)) return;
 
@@ -85,6 +95,7 @@ export function useScoreBandVoice(): void {
   }, [
     engine.score,
     engine.performanceState.level,
+    notificationSettings.scoreDecayAlerts,
     voiceCoachEnabled,
     voiceIntensity,
     voiceScope,

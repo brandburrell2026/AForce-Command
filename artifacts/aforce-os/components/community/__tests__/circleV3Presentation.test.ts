@@ -46,7 +46,28 @@ describe('buildCircleV3Model — You card', () => {
     // Spec formula over live values (0.35·92 + 0.25·90 + 0.20·96 + 0.20·82).
     const me = inputs().snapshot.context.user;
     expect(m.you.score).toBe(me.competitionScore);
-    expect(m.you.deltaSpots).toBe(12);
+    // Was 12: the mock's fabricated "+12 spots" was removed (founder ruling —
+    // rank movement against other people is not a claim any source supports),
+    // so the delta is now 0 and the pill collapses to null.
+    expect(m.you.deltaSpots).toBeNull();
+  });
+
+  it('reports no rank at all when there is nobody else in the cohort', () => {
+    const base = snapshot();
+    const solo = {
+      ...base,
+      individuals: base.individuals.filter((u) => u.id === base.context.user.id),
+    };
+    const m = buildCircleV3Model(inputs({ snapshot: solo }));
+    // The engine's context still hands over a rank; the view model refuses it
+    // — a rank is a claim about others, and there are none. fmtRank → '—'.
+    expect(typeof base.context.globalRank).toBe('number');
+    expect(m.you.globalRank).toBeNull();
+    expect(m.you.cityRank).toBeNull();
+    expect(m.you.stateRank).toBeNull();
+    expect(m.you.teamRank).toBeNull();
+    // Your own score is real and survives — only the comparison is withheld.
+    expect(m.you.score).toBe(base.context.user.competitionScore);
   });
 
   it('prefers the real server city when present', () => {

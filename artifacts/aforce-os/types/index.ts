@@ -446,7 +446,11 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   scoreDecayAlerts: true,
   morningKickoff: true,
   circleActivity: false,
-  challengeDeadlines: true,
+  // Wave-4 notification audit: nothing schedules anything ahead of a challenge
+  // expiry, so this defaulted every user ON to an alert class that can never
+  // fire. Defaults OFF until a real producer exists; the key itself stays so
+  // stored user choices need no migration.
+  challengeDeadlines: false,
   lowInventoryAlert: false,
   momentPrep: true, // delivery still requires BOTH moments flags (OFF in prod)
 };
