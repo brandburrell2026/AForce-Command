@@ -82,6 +82,12 @@ export function buildDayViews(rollups: readonly JournalRollup[], todayIso: strin
   });
 }
 
+/** Whole-% average of the days' in-band time (0 when no days). */
+export function weeklyInBandAvg(days: readonly SignalDayView[]): number {
+  if (days.length === 0) return 0;
+  return Math.round(days.reduce((sum, d) => sum + d.inBandPct, 0) / days.length);
+}
+
 /** Chart bars, oldest-first (the comp reads left→right in time order). */
 export function buildBars(days: readonly SignalDayView[]): { height: number; accent: string; date: string }[] {
   return [...days]
