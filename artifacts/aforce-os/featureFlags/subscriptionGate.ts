@@ -115,8 +115,20 @@ if (typeof __DEV__ !== 'undefined' && __DEV__) {
   }
 }
 
-/** Strict has-feature check — walks the user's plan inheritance chain. */
+/**
+ * Statuses that actually entitle (Wave-1 P0): a plan id alone is not
+ * entitlement. `past_due` keeps access during Stripe's dunning grace;
+ * `canceled`/`paused` do not.
+ */
+const ENTITLING_STATUSES: ReadonlySet<UserSubscription['status']> = new Set([
+  'active',
+  'trialing',
+  'past_due',
+]);
+
+/** Strict has-feature check — entitling status AND plan inheritance chain. */
 export function hasFeature(sub: UserSubscription, featureId: string): boolean {
+  if (!ENTITLING_STATUSES.has(sub.status)) return false;
   const features = getEffectiveFeatures(sub.planId);
   return features.some((f) => f.id === featureId);
 }
@@ -126,8 +138,9 @@ export function gate(sub: UserSubscription, featureId: string): GateCheck {
   const req = FEATURE_REQUIREMENTS[featureId];
   const label = req?.label ?? featureId;
   if (!req) {
-    // Unknown features fall open by default — never block on missing config.
-    return { allowed: true, featureLabel: label };
+    // Wave-1 P0: gated features FAIL CLOSED — an unknown/unconfigured
+    // feature id is never an entitlement bypass. (Previously fell open.)
+    return { allowed: false, featureLabel: label };
   }
   const allowed = hasFeature(sub, featureId);
   return {
