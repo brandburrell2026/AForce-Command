@@ -50,6 +50,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cart/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/subscription/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/nightOut/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cruise/__tests__/**/*.render.test.tsx',
