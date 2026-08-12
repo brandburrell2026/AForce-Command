@@ -34,6 +34,9 @@ would need its own decision record.
 1. **Flag-gated hard no-op:** `moments_learning_enabled` OFF in production;
    when off, the adapter returns zero adjustment and the Adaptive lead
    option stays locked.
+   > **AMENDED 2026-08-12 (founder):** production activation ordered as part
+   > of the Moments-family flag flip (Julius countersignature on this record
+   > still pending). Gates 2–4 remain binding unchanged.
 2. **Minimum evidence:** no adjustment until ≥ MOMENT_FEEDBACK_MIN_SAMPLES
    for that moment type inside the rolling window, with a strict majority.
 3. **Bounded:** lead shifts move in MOMENT_LEAD_ADJUST_STEP_MIN increments,

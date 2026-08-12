@@ -227,26 +227,28 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   circle_v3_dashboard_enabled: true,
   // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
   // moments only: Home NEXT MOMENT section, Moments overview, flagship
-  // Moment Detail ritual, Prepare My Day, Add a Moment. NO calendar access,
-  // NO new notification behavior, NO new raw data collection, NO new score
-  // (all Phase 3+, gated on an explicit founder decision — see
-  // governance/proposals/PR-002-aforce-moments.md). OFF in production.
-  moments_enabled: false,
+  // Moment Detail ritual, Prepare My Day, Add a Moment. ON in production —
+  // founder flip 2026-08-12 (Moments family activation; calendar excluded).
+  moments_enabled: true,
   // Moments prep notifications (Phase 3a, DR-010) — local, pre-scheduled,
   // behavioral-copy-only prep signals for manual/demo moments. Guardrails:
   // quiet hours, 60-min gap, daily cap, importance filter, user toggle.
-  // OFF in production (DR-010 constraint 4). Requires moments_enabled too.
-  moments_notifications_enabled: false,
+  // ON in production — founder-directed activation 2026-08-12 (DR-010
+  // constraint 4 amended; budget + momentPrep toggle remain binding).
+  moments_notifications_enabled: true,
   // Moments calendar core (Phase 3b, DR-011) — device-calendar reading:
   // read-only, titles+times only, user-selected calendars/categories,
   // PRIVATE EVENT masking, in-memory only (never persisted). OFF in
   // production and BLOCKED from activation until Legal + Privacy sign off
-  // on the calendar data class (PR-002 5.2 / Appendix A).
+  // on the calendar data class (PR-002 5.2 / Appendix A). DELIBERATELY
+  // excluded from the 2026-08-12 Moments-family production flip.
   moments_calendar_enabled: false,
   // Moments learning loop (Phase 4, DR-012) — selective prep feedback +
   // bounded, min-sample lead adaptation ('Adaptive' lead option). Feedback
-  // is display-and-learning only (Score Protection). OFF in production.
-  moments_learning_enabled: false,
+  // is display-and-learning only (Score Protection). ON in production —
+  // founder-directed activation 2026-08-12 (DR-012 Ruling 3.1 amended;
+  // all adaptation safety gates remain binding).
+  moments_learning_enabled: true,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
