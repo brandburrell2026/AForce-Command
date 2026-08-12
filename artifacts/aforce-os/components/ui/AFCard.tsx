@@ -54,8 +54,22 @@ export function AFCard({
       </Pressable>
     );
   }
+  // A View is NOT an accessibility element on iOS unless `accessible` is set,
+  // so a label passed here used to be silently discarded — VoiceOver read the
+  // children one fragment at a time instead of the composed sentence the
+  // caller wrote (PerformanceSignalV3's day cards were the worst case).
+  // `accessible` is set only WHEN a label exists: turning every unlabeled card
+  // into a single element would flatten its children out of the reading order
+  // and lose more than it gained.
+  const labelled = accessibilityLabel != null && accessibilityLabel !== '';
   return (
-    <View style={base} testID={testID} accessibilityLabel={accessibilityLabel}>
+    <View
+      style={base}
+      testID={testID}
+      {...(labelled
+        ? { accessible: true, accessibilityLabel, accessibilityRole: 'summary' as const }
+        : {})}
+    >
       {children}
     </View>
   );
