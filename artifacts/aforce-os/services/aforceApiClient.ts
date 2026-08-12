@@ -10,19 +10,9 @@
  */
 
 import { getAuthHeaders } from './authToken';
+import { API_BASE } from '@/lib/apiBase';
 
-function resolveApiBase(): string {
-  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
-  if (explicit) return explicit.replace(/\/$/, '');
-  const domain = process.env['EXPO_PUBLIC_DOMAIN'];
-  if (domain) return `https://${domain}/api`;
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/api`;
-  }
-  return '/api';
-}
-
-const API_BASE = resolveApiBase();
+// Wave-3 PR1: canonical resolver (lib/apiBase) — was one of five copies.
 
 /**
  * Error thrown for non-2xx api-server responses. Subclass of `Error`

@@ -1,4 +1,6 @@
 import '../polyfills';
+import { setBaseUrl } from '@workspace/api-client-react';
+import { apiOrigin } from '@/lib/apiBase';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -70,6 +72,11 @@ enableScreens(DEFAULT_FLAGS.native_screens_enabled);
 initI18n();
 
 SplashScreen.preventAutoHideAsync();
+
+// Wave-3 PR1: the generated OpenAPI client emits absolute /api/* paths;
+// on native there is no origin to resolve them against, so referrals were
+// dead in TestFlight. Point it at the canonical origin once, at startup.
+setBaseUrl(apiOrigin());
 
 const queryClient = new QueryClient();
 
