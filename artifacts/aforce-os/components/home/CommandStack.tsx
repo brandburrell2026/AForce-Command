@@ -19,7 +19,7 @@ import { matchVideo } from '../../services/videoEngine';
 import {
   useEngineSlice,
   useUserSlice,
-  useCycleSlice,
+  useTimerSlice,
   useConfirmationSlice,
   useActionsSlice,
 } from '../../store/slices';
@@ -41,7 +41,7 @@ interface Props {
 function CommandStackImpl({ onOpenBreakdown }: Props) {
   const engine = useEngineSlice();
   const userState = useUserSlice();
-  const { timerSeconds } = useCycleSlice();
+  const { timerSeconds } = useTimerSlice();
   const { pendingConfirmation } = useConfirmationSlice();
   const { confirmCommand, logIntake } = useActionsSlice<ConfirmActions>();
   // Pass the displayed-score accent so the AI Coach recolours in lockstep

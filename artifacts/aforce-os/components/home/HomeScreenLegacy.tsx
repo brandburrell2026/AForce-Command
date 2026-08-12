@@ -82,7 +82,7 @@ import {
   useEngineSlice,
   useUserSlice,
   useIntakeSlice,
-  useCycleSlice,
+  useTimerSlice,
   useActionsSlice,
 } from '@/store/slices';
 import { phantomBandService } from '@/services/phantomBandService';
@@ -227,7 +227,7 @@ function ScoreDrivenBody({
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const intake = useIntakeSlice();
-  const { timerSeconds } = useCycleSlice();
+  const { timerSeconds } = useTimerSlice();
   // Use the in-flight tweened score when available so headline / orb /
   // CTA all flip bands on the same frame.
   const displayed = useDisplayedAccent();

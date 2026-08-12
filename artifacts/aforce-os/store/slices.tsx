@@ -56,6 +56,17 @@ export interface CycleSlice {
   showCycleSuccess: boolean;
   lastCycleResult: CycleResult | null;
   isCompletingCycle: boolean;
+}
+
+/**
+ * The recheck countdown, alone in its own context (Wave-4 Part 6).
+ *
+ * `timerSeconds` changes every second. Bundled into CycleSlice it minted a
+ * new slice value 60x/min, re-rendering consumers that only read
+ * `isCompletingCycle`. Isolated here, the per-second churn reaches only
+ * components that actually display a countdown.
+ */
+export interface TimerSlice {
   timerSeconds: number;
 }
 
@@ -129,6 +140,7 @@ const SubscriptionContext = createContext<SubscriptionSlice | null>(null);
 const FlagsContext = createContext<FlagsSlice | null>(null);
 const IntakeContext = createContext<IntakeSlice | null>(null);
 const CycleContext = createContext<CycleSlice | null>(null);
+const TimerContext = createContext<TimerSlice | null>(null);
 const ConfirmationContext = createContext<ConfirmationSlice | null>(null);
 const OnboardingContext = createContext<OnboardingSlice | null>(null);
 const InventoryContext = createContext<InventorySlice | null>(null);
@@ -170,6 +182,9 @@ export function useIntakeSlice(): IntakeSlice {
 }
 export function useCycleSlice(): CycleSlice {
   return required(useContext(CycleContext), 'useCycleSlice');
+}
+export function useTimerSlice(): TimerSlice {
+  return required(useContext(TimerContext), 'useTimerSlice');
 }
 export function useConfirmationSlice(): ConfirmationSlice {
   return required(useContext(ConfirmationContext), 'useConfirmationSlice');
@@ -303,9 +318,13 @@ export function SliceProvider({
       showCycleSuccess: state.showCycleSuccess,
       lastCycleResult: state.lastCycleResult,
       isCompletingCycle: state.isCompletingCycle,
-      timerSeconds: state.timerSeconds,
     }),
-    [state.showCycleSuccess, state.lastCycleResult, state.isCompletingCycle, state.timerSeconds],
+    [state.showCycleSuccess, state.lastCycleResult, state.isCompletingCycle],
+  );
+
+  const timerValue = useMemo<TimerSlice>(
+    () => ({ timerSeconds: state.timerSeconds }),
+    [state.timerSeconds],
   );
 
   const confirmationValue = useMemo<ConfirmationSlice>(
@@ -365,6 +384,7 @@ export function SliceProvider({
             <FlagsContext.Provider value={flagsValue}>
               <IntakeContext.Provider value={intakeValue}>
                 <CycleContext.Provider value={cycleValue}>
+                 <TimerContext.Provider value={timerValue}>
                   <ConfirmationContext.Provider value={confirmationValue}>
                     <OnboardingContext.Provider value={onboardingValue}>
                       <InventoryContext.Provider value={inventoryValue}>
@@ -386,6 +406,7 @@ export function SliceProvider({
                       </InventoryContext.Provider>
                     </OnboardingContext.Provider>
                   </ConfirmationContext.Provider>
+                 </TimerContext.Provider>
                 </CycleContext.Provider>
               </IntakeContext.Provider>
             </FlagsContext.Provider>

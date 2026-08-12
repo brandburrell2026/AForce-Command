@@ -56,6 +56,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/sleep/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/store/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',
       'artifacts/aforce-os/lib/__tests__/**/*.test.ts',
       'artifacts/aforce-os/featureFlags/**/__tests__/**/*.test.ts',
