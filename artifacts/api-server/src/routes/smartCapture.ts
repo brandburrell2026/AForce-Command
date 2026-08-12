@@ -29,6 +29,7 @@
  */
 
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
+import { incCounter } from "../observability/metrics";
 import { findBlockedConcept } from "../lib/claimsGate";
 import express from "express";
 import rateLimit from "express-rate-limit";
@@ -379,6 +380,7 @@ router.post(
       const claimHit = containsBlockedClaim(result.data);
       if (claimHit) {
         log.warn?.({ claimHit }, "smart-capture: claims gate rejected AI copy");
+        incCounter("claims_gate_suppressions.smart_capture");
         res.status(502).json({
           error: "Smart Capture returned unsupported language. Please try again.",
         });

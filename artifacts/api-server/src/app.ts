@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { serializeError } from "./lib/serializeError";
 import { logger } from "./lib/logger";
+import { observeLatency, incCounter } from "./observability/metrics";
 import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
@@ -86,6 +87,20 @@ app.use(express.urlencoded({ extended: true, limit: "64kb" }));
 // request with auth context for downstream `getAuth(req)` calls. Safe
 // to mount even when CLERK_SECRET_KEY is unset (it just no-ops).
 app.use(clerkMiddleware());
+
+// Wave-3 PR9: first wiring of observability/metrics.ts (previously zero
+// importers — nothing was measured). Route bucket = first two path
+// segments (never ids, never user identity); status class only.
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const segments = req.url.split("?")[0]!.split("/").filter(Boolean).slice(0, 2);
+    const bucket = segments.join("_") || "root";
+    observeLatency(bucket, Date.now() - start);
+    incCounter(`requests_total.${bucket}.${Math.floor(res.statusCode / 100)}xx`);
+  });
+  next();
+});
 
 app.use("/api", router);
 

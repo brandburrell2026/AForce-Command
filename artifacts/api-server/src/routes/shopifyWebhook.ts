@@ -13,6 +13,7 @@ import { and, eq } from "drizzle-orm";
 import { webhookLimiter } from "../middlewares/rateLimits";
 import { aforceWebhookDeliveries } from "@workspace/db/schema";
 import { serializeError } from "../lib/serializeError";
+import { incCounter } from "../observability/metrics";
 import { db, aforceWebEntitlements } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { logger } from "../lib/logger";
@@ -31,6 +32,7 @@ router.post(
     const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.from("");
     if (!verifyShopifyHmac(raw, hmac, secret)) {
       logger.warn("shopify webhook: HMAC verification failed");
+      incCounter("webhook_failures.shopify");
       return res.status(401).json({ error: "invalid_hmac" });
     }
     const topic = String(req.get("X-Shopify-Topic") ?? "");
@@ -58,6 +60,7 @@ router.post(
           .returning({ id: aforceWebhookDeliveries.id });
         if (inserted.length === 0) {
           logger.info({ deliveryId, topic }, "shopify webhook: duplicate delivery suppressed");
+          incCounter("webhook_duplicates.shopify");
           return res.json({ ok: true, duplicate: true });
         }
       } catch (err) {
