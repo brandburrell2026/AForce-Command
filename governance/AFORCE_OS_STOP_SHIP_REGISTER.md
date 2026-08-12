@@ -88,3 +88,29 @@ sharing), **SS-21** ("Hangover Risk" wording = NO-6), **SS-23** (consumption lad
 (RTD leads with product). New reconciliation-only items NO-1..NO-4, NO-9, NO-10 are in the
 Reconciliation Register (not all stop-ship). **Aligned/compliant (no action):** deterministic capped
 alcohol depletion (§5) and neutral alcohol logging (§11).
+
+---
+
+## 2. Wave-1 / Wave-2 hardening update — 2026-08-12
+
+Founder-authorized hardening waves (Wave-1 PRs #722–#727, Wave-2 PRs #728–#733) changed the
+status of several rows above. Dispositions below are **code-verified**; nothing is marked
+resolved on intention. "Flag OFF" means the fix is merged but inert until the founder flips
+the named flag. The Phase-0 table above is preserved as the audit snapshot.
+
+| ID | Wave-1/2 disposition | Evidence | Residual |
+|---|---|---|---|
+| **SS-01** | **CLOSED in code.** Developer tab hidden for ordinary production users (`developerControlsAvailable()`); Unlock-All clamps LEGAL_GATED / INTERNAL_TIER / preview-restricted flags per build context; persisted `devMode=true` is inert in production. | #722, #726 (re-landed #727) | Founder prod-build spot-check remains prudent. |
+| **SS-02** | **PARTIALLY CLOSED.** Server-side entitlement infrastructure now exists and enforces: `requireEntitlement()` middleware (fail-closed on unknown feature / non-entitling status / lookup failure / forged client state), applied to `POST /aforce/social/shield` (`recovery_mode_enabled`); `POST /voice/tts` now requires auth. | #728 | Enterprise/athlete endpoints (battles, circle, analytics, cruise) remain plan-ungated because the **client ships them ungated** — gating them server-side would remove live features; needs a founder policy ruling. Shopify web-entitlement rail is dead code (`aforce_users.email` written nowhere) — live revenue bug, founder decision. |
+| **SS-10** | **PARTIALLY CLOSED.** `/smart-capture` requires auth (photo can no longer be posted anonymously); privacy policy corrected to disclose photo transmission (counsel-review marker in place); §42 claims scrub added to the AI response path. | #723, #732 | Image retention/minimization policy + feature-level consent + counsel sign-off still open. |
+| **SS-15** | **UPDATED, not closed.** Server backstop landed: value bounds on both client-writable score paths (impact points ±100 — closes the score-minting hole; snapshot field caps), two-sided timestamp windows (future-dating closed), rate limits on the two previously-unthrottled write routes. `SCORE_PROTECTION_MODE` deliberately **unchanged** (off in prod): enforce would today block legitimate overnight-decay snapshots, collide with the sensor placeholder, and silently drop journal writes (client swallows 409s). | #729 | Phase-3B pre-flight now also requires: sensor-placeholder disposition (see W2-N3), client 409 surfacing, elapsed-time-aware evidence window. |
+| **SS-04** | **NEEDS RE-AUDIT (row may be stale).** `api-server/src/routes/privacy.ts` and `accountDeletion.ts` now exist; whether they satisfy export/erasure end-to-end was not verified in these waves. | Wave-2 PR1 route inventory | Re-audit against GDPR/CCPA requirements. |
+
+### New items surfaced by Waves 1–2 (open, founder decision required)
+
+| ID | Sev | Item | Evidence |
+|---|---|---|---|
+| **W2-N1** | S2 | **Fabricated store seed persists on cold/offline launch.** `data/mockData.ts` seeds the live store (`complianceStreak: 5` → "Day 5", 5 invented history rows rendered in Protocol "Recent activity"; first-view score tuned to BALANCED 76). Production Protocol compliance itself is fixed (#731), but the seed class remains — fixing it changes Home + first-launch presentation. | Wave-2 PR4 audit |
+| **W2-N2** | S2 | **§42 locale policy violated by runtime fallback.** `LOCALE-POLICY-REGISTRY` rule 4 says unvalidated locales may not emit new intelligence claims; runtime falls back to English for ~340 missing keys across all 10 non-English locales. Enforcing suppression would silence nearly all intelligence copy for non-English users — needs a founder ruling (validate the launch locales, or accept documented suppression). | Wave-2 PR5 audit |
+| **W2-N3** | S2 | **Sensor snapshot placeholder (score 70 / BALANCED) pollutes real aggregates.** `spec_sensors` is ON in production defaults; an import writes placeholder scores that flow into `/journal/rollups` (avg score, band time-share, the Journal consistency KPI, and the new real Protocol compliance). Schema: `score`/`level` are NOT NULL and `level` is a 4-band contract — every honest fix (nullable columns, `NOT_COMPUTED` band, reason-filtered aggregates, or a separate provenance table) is a schema/data-model decision. **STOPPED per Wave-2 directive; founder approval required before implementation.** | Wave-2 PR7 disposition |
+| **W2-N4** | S3 | **Tier-5/6 local keys remain global** after per-user isolation (#733): onboarding progress, analytics id + consent, cart. Consent is per-person and a shared analytics id across accounts is a distinct privacy defect — needs its own pass. | Wave-2 PR6 audit |
