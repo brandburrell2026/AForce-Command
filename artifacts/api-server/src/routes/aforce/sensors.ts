@@ -2,10 +2,9 @@ import { Router, type IRouter } from "express";
 import { z } from "zod";
 import {
   db,
-  aforceIntakeLogs, aforceUserState, aforceScoreSnapshots,
+  aforceScoreSnapshots,
   createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import { getUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
@@ -13,14 +12,63 @@ import { resolveUserId, unlockAchievementCode } from "./shared";
 
 const router: IRouter = Router();
 
+/**
+ * PURE row mapper (exported for tests): sensor rows → provenance-only
+ * score-snapshot inserts. INVARIANTS (Wave-1 P0):
+ *   - produces no intake rows of any kind,
+ *   - consumption fields are always 0 (oz/units/aforceUnits),
+ *   - sweat/sodium loss are preserved as the provenance carriers,
+ *   - invalid timestamps are skipped, never coerced.
+ * The score/level pair remains the timeline's neutral placeholder (70 /
+ * BALANCED) — a pre-existing display convention this fix does not expand;
+ * flagged in the Wave-1 report for a proper sweat-session record.
+ */
+export function mapSensorRowsToSnapshots(
+  userId: string,
+  reason: string,
+  rows: ReadonlyArray<{ timestamp: string; sweatLossMl: number; sodiumMg?: number }>,
+): Array<typeof aforceScoreSnapshots.$inferInsert> {
+  const snapshots: Array<typeof aforceScoreSnapshots.$inferInsert> = [];
+  for (const row of rows) {
+    const ts = new Date(row.timestamp);
+    if (Number.isNaN(ts.getTime())) continue;
+    const sodiumLost = row.sodiumMg ?? 0;
+    const deficitPct = Math.min(100, sodiumLost / 50); // rough %: 5g lost ≈ 100
+    snapshots.push({
+      userId,
+      score: 70,
+      level: "BALANCED",
+      ozConsumedToday: 0,
+      aforceUnitsToday: 0,
+      unitsConsumedToday: 0,
+      sodiumDeliveredMg: 0,
+      sodiumLostMg: sodiumLost,
+      deficitPct,
+      clutchActive: false,
+      socialActive: false,
+      autopilotActive: false,
+      reason,
+      capturedAt: ts,
+    });
+  }
+  return snapshots;
+}
+
 // ─── Sweat-sensor import ───────────────────────────────────────────────────────
 // Accepts parsed rows from a third-party patch (hDrop / Nix / Gx).
-// Each row creates an intake_log + a score_snapshot tagged with
-// `reason='sensor:<source>'`. We approximate the intake side as a
-// water-equivalent rehydration: 1 oz per 30 mL replaced (= a ~30 mL
-// AForce stick converts back to 1 oz, the user's drinking unit). The
-// snapshot deficit_pct stores the actual sweat loss / sodium loss so
-// the journal still reflects the raw sensor data.
+//
+// Wave-1 P0 integrity fix (founder authorization 2026-08-12): sensor rows
+// record LOSS provenance ONLY. A previous revision converted sweat loss to
+// water-intake credit (1 oz per 30 mL lost), fabricated intake_log rows,
+// and advanced lastIntakeTime — i.e. sweating MORE increased hydration
+// credit and reset the engine's recency decay. That inverted the physics
+// and breached Score Protection (HydroState may change only through
+// approved completed hydration behavior). Sensor import now:
+//   • creates NO intake logs (measurement is not consumption),
+//   • never advances lastIntakeTime,
+//   • never records consumption fields (oz/units stay 0),
+//   • preserves source provenance in score_snapshots tagged
+//     `reason='sensor:<source>'` (sweat/sodium loss carriers, as before).
 
 const SENSOR_SOURCES = ["hdrop", "nix", "gatorade_gx"] as const;
 
@@ -43,84 +91,26 @@ router.post("/sensors/import", async (req, res) => {
     await getUserState(userId);
     const reason = `sensor:${body.source}`;
 
-    let lastTs = 0;
-    const intakes: Array<typeof aforceIntakeLogs.$inferInsert> = [];
-    const snapshots: Array<typeof aforceScoreSnapshots.$inferInsert> = [];
+    const snapshots = mapSensorRowsToSnapshots(userId, reason, body.rows);
 
-    for (const row of body.rows) {
-      const ts = new Date(row.timestamp);
-      if (Number.isNaN(ts.getTime())) continue;
-      lastTs = Math.max(lastTs, ts.getTime());
-      // Approximate water-equivalent rehydration: 30 mL ≈ 1 oz.
-      const ozEquivalent = Math.max(0, row.sweatLossMl / 30);
-      intakes.push({
-        userId,
-        fluidType: "water",
-        ozAmount: ozEquivalent,
-        // Score before/after on a sensor-derived row are placeholders;
-        // the engine recomputes the displayed score on the next /state
-        // fetch. We just need a non-null pair that the timeline can
-        // render.
-        scoreBefore: 70,
-        scoreAfter: 70,
-        loggedAt: ts,
-      });
-      // Use deficit_pct as the carrier for "sodium-loss vs delivered"
-      // ratio for this interval — bounded 0–100 to match the column
-      // semantics elsewhere.
-      const sodiumLost = row.sodiumMg;
-      const deficitPct = Math.min(100, sodiumLost / 50); // rough %: 5g lost ≈ 100
-      snapshots.push({
-        userId,
-        score: 70,
-        level: "BALANCED",
-        ozConsumedToday: ozEquivalent,
-        aforceUnitsToday: 0,
-        unitsConsumedToday: 1,
-        sodiumDeliveredMg: 0,
-        sodiumLostMg: sodiumLost,
-        deficitPct,
-        clutchActive: false,
-        socialActive: false,
-        autopilotActive: false,
-        reason,
-        capturedAt: ts,
-      });
-    }
-
-    if (intakes.length === 0) {
+    if (snapshots.length === 0) {
       return res.status(400).json({ error: "no_valid_rows" });
     }
 
-    // Defensive guard against client-side timestamp parsing bugs
-    // (e.g. unix-seconds misread as unix-ms producing 1970 dates, or
-    // future-dated samples from clock-skewed sensors). Only allow
-    // `lastIntakeTime` to advance into a plausible window.
-    const TS_MIN = Date.UTC(2015, 0, 1);
-    const TS_MAX = Date.now() + 24 * 60 * 60 * 1000; // +1 day grace
-    const safeLastTs = lastTs > TS_MIN && lastTs < TS_MAX ? lastTs : 0;
-
     await db.transaction(async (tx) => {
-      await tx.insert(aforceIntakeLogs).values(intakes);
       // D-08 / DR-009: snapshots go through the central repository so every
       // row is stamped with the HydroState model version. The tx handle keeps
       // the batch atomic (founder Decision 4 scope).
       const snapshotRepo = createDrizzleScoreSnapshotRepo(tx, HYDROSTATE_MODEL_VERSION);
       await snapshotRepo.createMany(snapshots);
-      // Bump lastIntakeTime to the most recent valid sensor sample so
-      // the engine's recency-aware terms reflect the import.
-      if (safeLastTs > 0) {
-        await tx
-          .update(aforceUserState)
-          .set({ lastIntakeTime: new Date(safeLastTs), updatedAt: new Date() })
-          .where(eq(aforceUserState.userId, userId));
-      }
+      // Deliberately NO intake insert and NO lastIntakeTime update:
+      // sensor measurement is not hydration behavior (Score Protection).
     });
 
     // Auto-unlock Sensor Sync on first successful import (idempotent).
     await unlockAchievementCode(userId, "sensor_sync");
 
-    return res.json({ imported: intakes.length, source: body.source, reason });
+    return res.json({ imported: snapshots.length, source: body.source, reason });
   } catch (err) {
     logger.error({ err }, "POST /aforce/sensors/import failed");
     return res.status(400).json({ error: "sensor_import_failed" });
