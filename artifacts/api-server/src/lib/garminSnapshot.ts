@@ -40,7 +40,8 @@ export interface GarminSnapshot {
    *  ms, not SDNN — named explicitly so it is never mistaken for the
    *  WHOOP SDNN field). */
   hrvMs: number | null;
-  /** Last night's sleep in hours. */
+  /** Last night's sleep in hours. Null when Garmin reported no measurable
+   *  sleep (see the >0 gate in `fetchGarminSnapshot`). */
   sleepHoursLastNight: number | null;
   /** Average stress level (Garmin 0–100 scale). */
   stress: number | null;
@@ -187,12 +188,17 @@ export async function fetchGarminSnapshot(
   const sleep = sleeps?.[0] ?? null;
   const hrvRec = hrv?.[0] ?? null;
 
-  let sleepHoursLastNight: number | null = null;
+  // Garmin pushes a sleeps summary for every monitoring period it processed,
+  // including periods where it detected NO sleep, so `sleepTimeInSeconds: 0`
+  // encodes failed sync / no sleep detected — never a measured zero. The
+  // `durationInSeconds` fallback lands at 0 on degenerate summaries for the same
+  // reason, and a negative is corrupt. All of it surfaces as UNKNOWN rather than
+  // as a measured zero (observation never diagnosis), which makes a true 0h
+  // unrepresentable from this provider — the accepted tradeoff.
   const sleepSec =
     num(sleep?.sleepTimeInSeconds) ?? num(sleep?.durationInSeconds);
-  if (sleepSec !== null) {
-    sleepHoursLastNight = Math.max(0, sleepSec) / 3600;
-  }
+  const sleepHoursLastNight =
+    sleepSec !== null && sleepSec > 0 ? sleepSec / 3600 : null;
 
   const restingHeartRate = num(daily?.restingHeartRateInBeatsPerMinute);
   const stress = num(daily?.averageStressLevel);

@@ -81,6 +81,35 @@ describe('whoop', () => {
     expect(snap.recoveryPct).toBeNull();
   });
 
+  it('reports sleep as null when awake exceeds in-bed, or stage_summary is zeroed', async () => {
+    // Neither payload is a measured night — awake > inBed is a WHOOP data
+    // glitch and an all-zero stage_summary is a placeholder — so both must
+    // read as unknown rather than a confident 0h. Mirrors the server lane.
+    const sleepPayload = (inBed: number, awake: number) =>
+      new Response(
+        JSON.stringify({
+          records: [
+            { score: { stage_summary: { total_in_bed_time_milli: inBed, total_awake_time_milli: awake } } },
+          ],
+        }),
+        { status: 200 },
+      );
+
+    const glitched = vi.fn(async (url: string) =>
+      url.includes('/activity/sleep') ? sleepPayload(1 * 60 * 60 * 1000, 2 * 60 * 60 * 1000) : new Response(JSON.stringify({ records: [] }), { status: 200 }),
+    ) as unknown as typeof fetch;
+    expect(
+      (await fetchWhoopSnapshot({ accessToken: 'tkn', fetchImpl: glitched })).sleepHoursLastNight,
+    ).toBeNull();
+
+    const zeroed = vi.fn(async (url: string) =>
+      url.includes('/activity/sleep') ? sleepPayload(0, 0) : new Response(JSON.stringify({ records: [] }), { status: 200 }),
+    ) as unknown as typeof fetch;
+    expect(
+      (await fetchWhoopSnapshot({ accessToken: 'tkn', fetchImpl: zeroed })).sleepHoursLastNight,
+    ).toBeNull();
+  });
+
   it('toProviderSnapshot tags with the whoop provider id', () => {
     const lifted = toProviderSnapshot(
       { recoveryPct: 60, strain: 12, hrvSdnn: 55, restingHeartRate: 56, sleepHoursLastNight: 7.4 },

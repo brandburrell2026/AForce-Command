@@ -439,7 +439,10 @@ describe('runHealthConnectSync — changes-token expiry falls back to a full re-
   it('dedup keys make the re-synced full read idempotent with the original record (never a silent double-count)', async () => {
     const raw = sleepRaw('hc_sleep_1');
     const ctx: MapContext = { userId: USER_ID, syncedAt: SYNCED_AT };
+    // sleepRaw carries a real 7h deep stage, so the mapper's zero-sleep null
+    // guard never fires for it — pinned here so the `!` below stays honest.
     const directlyMapped = mapSleepSessionRecord(raw, ctx);
+    expect(directlyMapped).not.toBeNull();
 
     const existingToken = serializeChangesToken('raw-token-expired');
     const client = makeClient({
@@ -456,7 +459,7 @@ describe('runHealthConnectSync — changes-token expiry falls back to a full re-
       baseParams({ client, changesTokens: { sleep_session: existingToken } }),
     );
 
-    expect(result.records[0].deduplicationKey).toBe(directlyMapped.deduplicationKey);
+    expect(result.records[0].deduplicationKey).toBe(directlyMapped!.deduplicationKey);
   });
 });
 
@@ -630,7 +633,10 @@ describe('runHealthConnectSync — provenance attribution passes through untouch
       userId: baseParams({ client }).userId,
       syncedAt: SYNCED_AT,
     });
-    expect(result.records[0].provenanceChain).toEqual(mapped.provenanceChain);
+    // This Fit fixture carries a real asleep stage, so the mapper's zero-sleep
+    // null guard never fires for it — pinned so the `!` below stays honest.
+    expect(mapped).not.toBeNull();
+    expect(result.records[0].provenanceChain).toEqual(mapped!.provenanceChain);
     expect(result.records[0].provenanceChain[0].nativeOrigin).toBe('com.google.android.apps.fitness');
   });
 });

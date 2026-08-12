@@ -243,8 +243,10 @@ export const WHOOP_SLEEP_NO_AWAKE_FIELD_FIXTURE = {
 export const WHOOP_SLEEP_NO_AWAKE_FIELD_EXPECTED_HOURS = 8;
 
 /** Malformed record where awake time exceeds in-bed time (a WHOOP data
- *  glitch, not a documented case) — `Math.max(0, inBed - awake)` must clamp
- *  at zero, never go negative. */
+ *  glitch, not a documented case) — the non-positive net must normalize to
+ *  null (UNKNOWN), never negative and never a fabricated measured 0h. The
+ *  wire payload below is unchanged from the 2026-08-03 basis; only the value
+ *  it must produce moved (0 -> null), a deliberate parity change. */
 export const WHOOP_SLEEP_AWAKE_EXCEEDS_INBED_FIXTURE = {
   records: [
     {

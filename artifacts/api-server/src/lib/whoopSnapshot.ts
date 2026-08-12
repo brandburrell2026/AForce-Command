@@ -13,12 +13,18 @@
  *     injected logger, that endpoint's fields stay null.
  *   - WHOOP wire shape stays inside this module — the rest of the
  *     server consumes the normalized `WhoopSnapshot` only.
+ *   - Sleep: a non-positive `inBed - awake` net reports as null, not 0
+ *     — see the derivation in `fetchWhoopSnapshot`. This rule is
+ *     MIRRORED in the mobile lane (`aforce-os/services/whoop.ts`); the
+ *     two must change together or the lanes disagree about the same
+ *     night.
  *
  * Endpoints (all under `/developer/v2` — WHOOP retired v1, which now 404s):
  *   GET /recovery?limit=1        -> recovery_score, hrv_rmssd_milli, resting_heart_rate
  *   GET /cycle?limit=1           -> strain
  *   GET /activity/sleep?limit=1  -> stage_summary.{total_in_bed_time_milli, total_awake_time_milli}
- *                                   sleepHoursLastNight = max(0, inBed - awake) / 3.6e6
+ *                                   sleepHoursLastNight = (inBed - awake) / 3.6e6,
+ *                                   or null when that net is non-positive
  *
  * v1→v2 migration notes (https://developer.whoop.com/docs/developing/v1-v2-migration/):
  *   - Same paths, same OAuth flow + scopes; only the version segment changes.
@@ -206,7 +212,12 @@ export async function fetchWhoopSnapshot(
   const inBed = num(slp?.["total_in_bed_time_milli"]);
   if (inBed !== null) {
     const awake = num(slp?.["total_awake_time_milli"]) ?? 0;
-    sleepHoursLastNight = Math.max(0, inBed - awake) / (1000 * 60 * 60);
+    // A non-positive net is never a measured night: awake >= inBed is a WHOOP
+    // data glitch, and inBed <= 0 is a zeroed/placeholder stage_summary. The
+    // old `Math.max(0, …)` clamp published both as a confident 0h, which
+    // downstream reads as a maximal sleep deficit. Report unknown instead.
+    const netMs = inBed - awake;
+    sleepHoursLastNight = netMs > 0 ? netMs / (1000 * 60 * 60) : null;
   }
 
   const recoveryPct = num(rec?.["recovery_score"]);

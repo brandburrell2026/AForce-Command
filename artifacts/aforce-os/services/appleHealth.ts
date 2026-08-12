@@ -959,6 +959,18 @@ export function chooseSleepSession(
  * safely, and defaulting them to a real HealthKit value (e.g. 0/inBed)
  * would misrepresent malformed data as a genuine reading. See
  * `services/__tests__/appleHealth.sleepAdapter.test.ts`.
+ *
+ * Wave-4 zero-sleep fabrication fix (2026-08-12): DEGENERATE intervals
+ * (`endMs <= startMs`) are dropped by the same reasoning. A zero-length row
+ * is not a measurement of "no sleep" and an inverted one (end before start)
+ * is corrupt, yet either one still clusters into a SESSION — and a session
+ * whose union is 0ms is the one remaining shape that let this lane publish a
+ * confident "0h slept" for time it never measured (`utils/scoring/breakdown.ts`
+ * reads a literal 0 as a MAXIMAL sleep deficit, where `null` contributes
+ * nothing). Dropping them here keeps them out of sessions AND out of
+ * `computeSleepPerSourceTotals`'s diagnostics, where a negative duration
+ * would silently offset a real one. Same RC-2 position as the no-session
+ * path below: a non-measurement reads as unknown, never as a measured zero.
  */
 export function mapCategorySamplesToSleepIntervals(samples: unknown): SleepInterval[] {
   if (!Array.isArray(samples)) return [];
@@ -972,7 +984,10 @@ export function mapCategorySamplesToSleepIntervals(samples: unknown): SleepInter
       value: s.value,
       sourceName: s.sourceRevision?.source?.name ?? 'unknown',
     }))
-    .filter((i: { startMs: number; endMs: number }) => Number.isFinite(i.startMs) && Number.isFinite(i.endMs));
+    .filter(
+      (i: { startMs: number; endMs: number }) =>
+        Number.isFinite(i.startMs) && Number.isFinite(i.endMs) && i.endMs > i.startMs,
+    );
 }
 
 /**
@@ -1454,6 +1469,21 @@ export async function fetchAppleHealthSnapshot(): Promise<AppleHealthSnapshot> {
     // changed) and `appleHealth.sleepWindow.test.ts`'s "40h ago, outside the
     // 36h cap" fixture for the acceptance case this most directly targets.
     if (session === null) {
+      return null;
+    }
+    // Wave-4 zero-sleep fabrication fix (2026-08-12) — the residual case the
+    // ruling above states in spirit but its `session === null` wording does
+    // not reach: a chosen session whose own union is 0ms carries no sleep
+    // evidence at all, so `unionMs / MS_PER_HOUR` would ship a confident "0h
+    // slept" for a non-measurement, which `utils/scoring/breakdown.ts` scores
+    // as a MAXIMAL sleep deficit (a literal 0 is a measurement there; `null`
+    // is not). `mapCategorySamplesToSleepIntervals` now drops the degenerate
+    // rows that were the only known way to build such a session, so this is
+    // the second line of defense against that reappearing rather than a
+    // live branch — and it deliberately returns BEFORE
+    // `sleepHoursLastNightObservedAtMs` is set, so no observation time is
+    // attached to a non-observation.
+    if (unionMs === 0) {
       return null;
     }
     sleepHoursLastNightObservedAtMs = lastEndMs;

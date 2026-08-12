@@ -374,6 +374,15 @@ const HK_SLEEP_STAGE_MAP: Record<Exclude<HKSleepStageValue, 0>, SleepStageName> 
  * sample with an unparseable date is dropped individually (see toIsoUtc);
  * if every sample in a source group turns out unparseable, that group
  * produces no record rather than a record spanning nothing.
+ *
+ * A source group with NO asleep-labeled duration — inBed/awake samples
+ * only, or asleep samples that all clamp to zero — likewise produces no
+ * record. `totalSleepHours: 0` from such a group would report an absence of
+ * asleep evidence as a measured zero-sleep night, and downstream a literal 0
+ * is a confident number, not an unknown. Since a genuine zero-sleep night is
+ * indistinguishable here from a source that simply never labeled any asleep
+ * interval, the honest output is no record at all — the same answer the
+ * snapshot lane gives for an inBed/awake-only night.
  */
 export function mapSleepSamplesToRecords(
   samples: readonly HKSleepCategorySample[],
@@ -433,6 +442,17 @@ export function mapSleepSamplesToRecords(
     // window to report ⇒ no record for this group, rather than fabricating
     // one that spans nothing.
     if (!Number.isFinite(windowStartMs) || !Number.isFinite(windowEndMs)) continue;
+
+    // No asleep-labeled duration in this group at all — an inBed/awake-only
+    // night, or one whose asleep samples all clamped to zero. A
+    // `totalSleepHours: 0` here would not be "this source measured a night
+    // with no sleep"; it would be "this source never reported any asleep
+    // interval", which is an absence, not a measurement. Downstream a
+    // literal 0 is a real, confident number that scores as a maximal sleep
+    // deficit, so emitting one would turn silence into a diagnosis. No
+    // record is the honest answer — and it converges with what the snapshot
+    // lane already reports for the same night.
+    if (asleepMs === 0) continue;
 
     const value: SleepSessionValue = {
       totalSleepHours: asleepMs / (1000 * 60 * 60),

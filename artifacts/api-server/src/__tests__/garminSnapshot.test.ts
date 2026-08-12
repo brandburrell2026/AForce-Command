@@ -83,6 +83,64 @@ describe("fetchGarminSnapshot", () => {
     expect(snap.sleepHoursLastNight).toBe(6);
   });
 
+  it("reports sleepTimeInSeconds: 0 as unknown, not as zero hours slept", async () => {
+    // Garmin pushes a sleeps summary even for monitoring periods where it
+    // detected no sleep, so a 0 here means failed sync / no sleep detected —
+    // reporting it as a measured 0h would score as a maximal sleep deficit.
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/sleeps"))
+        return jsonResponse([
+          { sleepTimeInSeconds: 0, calendarDate: "2026-08-01" },
+        ]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.sleepHoursLastNight).toBeNull();
+    // Nothing contributed, so the summary's calendarDate never counts.
+    expect(snap.latestObservedAtMs).toBeUndefined();
+  });
+
+  it("reports a 0 durationInSeconds fallback (degenerate summary) as unknown", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/sleeps")) return jsonResponse([{ durationInSeconds: 0 }]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.sleepHoursLastNight).toBeNull();
+  });
+
+  it("reports a negative sleepTimeInSeconds (corrupt) as unknown", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/sleeps"))
+        return jsonResponse([{ sleepTimeInSeconds: -3600 }]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.sleepHoursLastNight).toBeNull();
+  });
+
+  it("still converts a normal positive sleepTimeInSeconds to hours", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url.includes("/sleeps"))
+        return jsonResponse([{ sleepTimeInSeconds: 7.4 * 3600 }]);
+      return jsonResponse([]);
+    });
+    const snap = await fetchGarminSnapshot({
+      accessToken: "tok",
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(snap.sleepHoursLastNight).toBeCloseTo(7.4, 10);
+  });
+
   it("keeps a failed endpoint's fields null while others still contribute", async () => {
     const fetchImpl = vi.fn(async (url: string) => {
       if (url.includes("/dailies")) return jsonResponse({}, 500);

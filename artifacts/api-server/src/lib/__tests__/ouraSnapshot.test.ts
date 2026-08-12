@@ -11,6 +11,8 @@
  *   - Per-endpoint network throw is caught (no unhandled rejection)
  *   - Non-finite numbers from Oura (NaN, strings, undefined) coerce to
  *     null — refuses to leak junk into the persisted blob
+ *   - A 0 / negative total_sleep_duration reads as UNKNOWN (null), never
+ *     as a measured zero hours of sleep
  *   - "latest" picks the LAST element of the data array (Oura returns
  *     ascending date order)
  *   - The start_date/end_date window is anchored on nowMs
@@ -246,6 +248,46 @@ describe("fetchOuraSnapshot", () => {
     expect(snap.hrvSdnn).toBeNull();
     expect(snap.restingHeartRate).toBeNull();
     expect(snap.stepsToday).toBeNull();
+  });
+
+  it("reports a literal 0 total_sleep_duration as unknown, not as zero hours slept", async () => {
+    // Oura only writes a sleep-period record where it detected rest, so a 0 here
+    // is a failed-detection artifact — reporting it as a measured 0h would score
+    // as a maximal sleep deficit downstream.
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => jsonResponse({ data: [] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({ data: [{ day: "2026-08-01", total_sleep_duration: 0 }] }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.sleepHoursLastNight).toBeNull();
+    // Nothing contributed, so the record's day never counts toward freshness.
+    expect(snap.latestObservedAtMs).toBeUndefined();
+  });
+
+  it("reports a negative total_sleep_duration (corrupt) as unknown", async () => {
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => jsonResponse({ data: [] }),
+      [SLEEP_URL]: () => jsonResponse({ data: [{ total_sleep_duration: -3600 }] }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.sleepHoursLastNight).toBeNull();
+  });
+
+  it("still converts a normal positive total_sleep_duration to hours", async () => {
+    const { fn } = makeFetch({
+      [READINESS_URL]: () => jsonResponse({ data: [] }),
+      [SLEEP_URL]: () =>
+        jsonResponse({ data: [{ total_sleep_duration: 7.4 * 3600 }] }),
+      [ACTIVITY_URL]: () => jsonResponse({ data: [] }),
+      [WORKOUT_URL]: () => jsonResponse({ data: [] }),
+    });
+    const snap = await fetchOuraSnapshot({ accessToken: "AT", fetchImpl: fn });
+    expect(snap.sleepHoursLastNight).toBeCloseTo(7.4, 10);
   });
 
   it("ignores workout entries with missing/invalid datetimes without poisoning the sum", async () => {

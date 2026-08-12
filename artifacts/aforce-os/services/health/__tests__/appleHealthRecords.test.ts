@@ -250,6 +250,50 @@ describe('mapSleepSamplesToRecords', () => {
     );
     expect(records).toEqual([]);
   });
+
+  it('an inBed/awake-only group produces NO record — zero asleep evidence is unknown, never a measured zero-sleep night', () => {
+    // The user wore the watch and it recorded time in bed and time awake,
+    // but never labeled a single asleep interval. Emitting
+    // totalSleepHours: 0 would report that absence as a confident
+    // measurement, which downstream reads as a maximal sleep deficit.
+    const records = mapSleepSamplesToRecords(
+      [
+        { value: 0, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-03T06:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // inBed, 7h
+        { value: 2, startDate: '2026-08-02T23:30:00.000Z', endDate: '2026-08-03T00:30:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // awake, 1h
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toEqual([]);
+  });
+
+  it('a group whose asleep samples all clamp to zero duration produces NO record', () => {
+    // endDate <= startDate ⇒ every asleep interval clamps to 0ms. The group
+    // has a parseable window, so the unparseable-window guard doesn't catch
+    // it — but there is still no asleep duration to honestly report.
+    const records = mapSleepSamplesToRecords(
+      [
+        { value: 3, startDate: '2026-08-03T01:00:00.000Z', endDate: '2026-08-03T01:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE },
+        { value: 5, startDate: '2026-08-03T02:00:00.000Z', endDate: '2026-08-03T01:30:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE },
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toEqual([]);
+  });
+
+  it('suppressing an asleep-less group never suppresses a sibling source that DID record sleep', () => {
+    // Grouping is per source: an awake-only Apple Watch group drops out
+    // while Oura's genuine session in the same batch still lands.
+    const records = mapSleepSamplesToRecords(
+      [
+        { value: 2, startDate: '2026-08-02T23:00:00.000Z', endDate: '2026-08-03T06:00:00.000Z', sourceRevision: APPLE_FIRST_PARTY_BUNDLE }, // awake all night
+        ...ouraViaHealthKitNight,
+      ],
+      { userId: USER_ID, syncedAt: SYNCED_AT },
+    );
+    expect(records).toHaveLength(1);
+    expect(records[0].originalSource).toBe('com.ouraring.oura');
+    expect((records[0].value as { totalSleepHours: number }).totalSleepHours).toBeCloseTo(7 + 40 / 60, 5);
+  });
 });
 
 describe('mapHrvSdnnSamples', () => {

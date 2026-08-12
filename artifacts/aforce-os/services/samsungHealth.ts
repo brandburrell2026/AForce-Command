@@ -109,6 +109,43 @@ export async function requestSamsungHealthPermissions(): Promise<boolean> {
 }
 
 /**
+ * Pure reduction: Samsung sleep segments -> hours asleep, or null when
+ * no asleep segment actually contributed. Zero SDK / React Native
+ * dependency so the reduction is provable in node — the same convention
+ * `appleHealth.ts` uses for `reduceSleepByIntervalUnion`, and the only
+ * way to test this at all (`loadSamsungHealth` returns null off Android,
+ * so the fetch path below is unreachable from a test runner).
+ *
+ * Wave-4 Part 12: `!Array.isArray(segs)` used to be the ONLY null exit,
+ * so three distinct non-measurements each reduced to ms=0 and were
+ * reported as a confident 0h — an empty array (the window held no sleep
+ * samples at all), an all-awake segment list (the SDK classified nothing
+ * as asleep), and malformed segments whose spans `Math.max(0, ...)`
+ * clamps away. Downstream a literal 0 is not read as "no reading": it
+ * scores as the MAXIMAL sleep deficit, and being fresher it outranks an
+ * older genuine reading in the aggregator. That is a diagnosis drawn
+ * from an absence, which the Constitution's "observation never
+ * diagnosis" principle forbids — nothing asleep contributed, so the
+ * honest output is unknown.
+ *
+ * Accepted consequence, matching the position the Apple lane already
+ * took under the RC-2 sleep-window ruling (2026-08-08, design point 4):
+ * a TRUE measured 0h night is unrepresentable from this producer. No
+ * Samsung 0 was ever a verified measurement, so nothing real is lost.
+ */
+export function reduceSleepSegmentsToHours(segs: unknown): number | null {
+  if (!Array.isArray(segs)) return null;
+  const list = segs as ReadonlyArray<{ start: number; end: number; stage: number }>;
+  // Samsung sleep stages: 40001 awake, 40002 light, 40003 deep,
+  // 40004 REM. Sum everything except AWAKE.
+  const ms = list.reduce((sum, s) => {
+    const isAsleep = s.stage !== 40001;
+    return isAsleep ? sum + Math.max(0, s.end - s.start) : sum;
+  }, 0);
+  return ms > 0 ? ms / (1000 * 60 * 60) : null;
+}
+
+/**
  * Pull a snapshot of the metrics that influence the AForce score.
  * Any field that can't be read stays null — never substituted with
  * a placeholder. Returns the empty snapshot on iOS / web.
@@ -170,17 +207,11 @@ export async function fetchSamsungHealthSnapshot(): Promise<SamsungHealthSnapsho
 
   const sleepHoursLastNight =
     typeof SH.readSleepSegments === 'function'
-      ? await safe(async () => {
-          const segs = await SH.readSleepSegments!({ start: lastNightStart, end: now });
-          if (!Array.isArray(segs)) return null;
-          // Samsung sleep stages: 40001 awake, 40002 light, 40003 deep,
-          // 40004 REM. Sum everything except AWAKE.
-          const ms = segs.reduce((sum, s) => {
-            const isAsleep = s.stage !== 40001;
-            return isAsleep ? sum + Math.max(0, s.end - s.start) : sum;
-          }, 0);
-          return ms / (1000 * 60 * 60);
-        })
+      ? await safe(async () =>
+          reduceSleepSegmentsToHours(
+            await SH.readSleepSegments!({ start: lastNightStart, end: now }),
+          ),
+        )
       : null;
 
   return {
