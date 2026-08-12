@@ -9,6 +9,7 @@ import type {
   PulseConfig,
 } from '../../types';
 import { Colors } from '../../theme/colors';
+import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import i18n from '../../services/i18nService';
 import { minutesSince } from './breakdown';
 import {
@@ -50,6 +51,17 @@ export function composeExplanation(
   let overlays = 0;
   const MAX_OVERLAYS = 2;
 
+  // §42 claims gate (Wave-2 PR5): overlays resolve through i18n at runtime
+  // (locale files can change under the app), so each one is scanned and a
+  // blocked overlay is DROPPED — the approved base command always survives.
+  // The base variants themselves are locked clean at build time by
+  // utils/__tests__/consumerCopyClaimsLint.test.ts.
+  const pushGated = (line: string): boolean => {
+    if (consumerCopyBlocked(line)) return false;
+    parts.push(line);
+    return true;
+  };
+
   // Re-derive the SAME highest-signal context selectExplanationContext()
   // used to pick `base`'s explanation variant (buildBaseCommand calls it
   // with these identical (level, state) inputs). When `base` already
@@ -61,11 +73,9 @@ export function composeExplanation(
   // copy escalates with depletion rate.
   if (overlays < MAX_OVERLAYS && baseContext !== 'heat') {
     if (state.heatLoad >= 8) {
-      parts.push(i18n.t('coach.context_heat_high'));
-      overlays++;
+      if (pushGated(i18n.t('coach.context_heat_high'))) overlays++;
     } else if (state.heatLoad >= 6) {
-      parts.push(i18n.t('coach.context_heat_elevated'));
-      overlays++;
+      if (pushGated(i18n.t('coach.context_heat_elevated'))) overlays++;
     }
   }
 
@@ -75,8 +85,7 @@ export function composeExplanation(
   if (overlays < MAX_OVERLAYS && level !== 'PEAK') {
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
-      parts.push(i18n.t('coach.context_late_night'));
-      overlays++;
+      if (pushGated(i18n.t('coach.context_late_night'))) overlays++;
     }
   }
 
@@ -89,8 +98,7 @@ export function composeExplanation(
     state.complianceStreak >= 4 &&
     (level === 'PEAK' || level === 'BALANCED')
   ) {
-    parts.push(i18n.t('coach.pattern_streak', { count: state.complianceStreak }));
-    overlays++;
+    if (pushGated(i18n.t('coach.pattern_streak', { count: state.complianceStreak }))) overlays++;
   }
 
   // No-action consequence — projects 30 minutes ahead. Only fires
@@ -104,8 +112,7 @@ export function composeExplanation(
     const minutesAhead = 30;
     const projected = Math.max(0, Math.round(score - decayPerMinute * minutesAhead));
     if (projected <= score - 5) {
-      parts.push(i18n.t('coach.consequence_drop', { projected, minutes: minutesAhead }));
-      overlays++;
+      if (pushGated(i18n.t('coach.consequence_drop', { projected, minutes: minutesAhead }))) overlays++;
     }
   }
 

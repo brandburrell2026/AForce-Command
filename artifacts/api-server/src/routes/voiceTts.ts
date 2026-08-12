@@ -17,6 +17,7 @@ import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { findBlockedConcept } from "../lib/claimsGate";
 import {
   ttsAudioCache,
   isCacheable,
@@ -59,6 +60,15 @@ router.post("/voice/tts", requireAuth, ttsLimiter, async (req: Request, res: Res
     return;
   }
   const { text, voiceId, cachePolicy, phraseKey } = parsed.data;
+
+  // §42 claims gate (Wave-2 PR5): never synthesize blocked claim language,
+  // regardless of which client sent it. Mirrors the app's speak() gate.
+  const blockedConcept = findBlockedConcept(text);
+  if (blockedConcept) {
+    logger.warn({ blockedConcept }, "voice/tts: claims gate suppressed a line");
+    res.status(422).json({ error: "claims_gate_suppressed" });
+    return;
+  }
 
   // Decide caching up front. Only explicit static opt-ins whose
   // (voiceId, phraseKey) pair is allowlisted are eligible; everything else
