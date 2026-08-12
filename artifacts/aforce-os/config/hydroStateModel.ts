@@ -533,3 +533,25 @@ export const MOMENT_CALENDAR_DEFAULT_IMPORTANCE: Record<
   recovery: 'moderate',
   personal: 'moderate',
 };
+
+/* ─── AForce Moments Phase 4 — learning loop (DR-012) ────────────────────── */
+/* Feedback-driven prep-lead adaptation, safety-gated per DR-012 Ruling 3:
+ * minimum evidence, strict majority, bounded step/clamp, and the DR-010
+ * interruption budget always applies AFTER adjustment. Feedback capture is
+ * deliberately sparing (Ruling 2). */
+
+/** Feedback samples required per moment type before ANY adaptation. */
+export const MOMENT_FEEDBACK_MIN_SAMPLES = 5;
+
+/** Rolling evidence window (days). */
+export const MOMENT_FEEDBACK_WINDOW_DAYS = 30;
+
+/** Lead adjustment granularity (minutes) and hard clamp (±minutes). */
+export const MOMENT_LEAD_ADJUST_STEP_MIN = 15;
+export const MOMENT_LEAD_ADJUST_MAX_MIN = 30;
+
+/** Max feedback prompts per calendar day (Ruling 2: sparing, never nagging). */
+export const MOMENT_FEEDBACK_ASK_MAX_PER_DAY = 1;
+
+/** Max stored feedback records (oldest dropped past the cap). */
+export const MOMENT_FEEDBACK_MAX_RECORDS = 200;

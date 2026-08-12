@@ -819,6 +819,8 @@ export interface FeatureFlags {
   /** Moments calendar core (Phase 3b, DR-011). Default OFF; activation
    *  blocked pending Legal+Privacy sign-off on the data class. */
   moments_calendar_enabled: boolean;
+  /** Moments learning loop (Phase 4, DR-012). Default OFF. */
+  moments_learning_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

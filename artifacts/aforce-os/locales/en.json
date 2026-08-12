@@ -2411,7 +2411,9 @@
       "lead_label": "LEAD TIME",
       "lead_window": "Prep window",
       "lead_min": "{{n}} min",
-      "lead_adaptive_locked": "Adaptive timing unlocks with prep learning."
+      "lead_adaptive_locked": "Adaptive timing unlocks with prep learning.",
+      "lead_adaptive": "Adaptive",
+      "lead_adaptive_on": "Prep timing tunes itself from your feedback — always inside quiet hours and never past the moment."
     },
     "private_event": "PRIVATE EVENT",
     "calendar": {
@@ -2434,6 +2436,13 @@
       "disconnect": "Disconnect calendar",
       "manage_access": "MANAGE CALENDAR ACCESS",
       "privacy_footer": "We only use what we need to prepare you: event titles and times from the calendars you choose. Never attendees, notes, or attachments. Nothing is stored or sent anywhere. You’re in control — change anytime."
+    },
+    "feedback": {
+      "title": "HOW DID THAT PREP FEEL?",
+      "just_right": "Just right",
+      "too_early": "Too early",
+      "too_late": "Too late",
+      "thanks": "Noted. Future prep timing tunes to this."
     }
   }
 }

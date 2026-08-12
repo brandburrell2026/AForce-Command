@@ -3,7 +3,7 @@
 **Date:** 2026-08-12
 **Deciders:** Brandon (founder) — APPROVED ("continue with Calendar core"),
 covering PR-002 items **5.3** (calendar-derived surfacing — Brandon; **Julius
-countersignature PENDING**, [JB]), **5.5** (native build — Brandon, sole gate),
+COUNTERSIGNED 2026-08-12**, founder relayed — gate satisfied), **5.5** (native build — Brandon, sole gate),
 and the founder half of **5.2** (calendar data class — **LEGAL sign-off
 PENDING · PRIVACY sign-off PENDING**, both REQUIRED by
 INTELLIGENCE-CHANGE-CONTROL §4 before activation).
@@ -51,5 +51,5 @@ same advisory-only Score Protection as manual Moments.
 ## Explicitly NOT decided here
 
 Production activation of `moments_calendar_enabled` (blocked on Legal +
-Privacy per Appendix A); Julius countersignature on 5.3; PR-002 item 5.6
-(learning loop); the "Ritual" terminology ruling.
+Privacy per Appendix A); the "Ritual" terminology ruling. (5.3's Julius
+gate: satisfied 2026-08-12. Item 5.6: see DR-012.)
