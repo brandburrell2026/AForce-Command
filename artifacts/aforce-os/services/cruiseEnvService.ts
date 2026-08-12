@@ -23,7 +23,7 @@ export interface CruiseLiveEnvironment {
   sunExposureHours: number;
   conditions: string;
   iconCode: string | null;
-  fetchedAt: string;
+  fetchedAt: string | null;
   source: CruiseEnvSource;
 }
 

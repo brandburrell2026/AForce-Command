@@ -104,7 +104,9 @@ export function normalizeUserState(row: Record<string, unknown>): UserState {
     unitsConsumedToday: Number(get('unitsConsumedToday') ?? 0),
     ozConsumedToday: Number(get('ozConsumedToday') ?? 0),
     aforceUnitsToday: Number(get('aforceUnitsToday') ?? 0),
-    lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date(),
+    lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date() /* W3-PR10 residual: a null here
+      requires nullable lastIntakeTime through the SCORING ENGINE (decay math)
+      — founder decision; see the Wave-3 report */,
     lastIntakeType: (get<FluidType>('lastIntakeType') ?? 'water') as FluidType,
     symptomState: (get<UserState['symptomState']>('symptomState') ?? 'none'),
     symptoms: (get<string[]>('symptoms') ?? []),
@@ -231,7 +233,10 @@ async function getJson<T>(path: string): Promise<T> {
 export interface HomePayload {
   engineOutput: ScoreEngineOutput;
   userState: UserState;
-  serverTime: string;
+  serverTime: string | null;
+  /** Wave-3 PR10: true when the server was unreachable and this is the
+   *  caller's own last state echoed back. serverTime is null in that case. */
+  stale?: boolean;
 }
 
 let lastKnownState: UserState = defaultUserState;
@@ -274,13 +279,17 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
   } catch (err) {
-    // Network down — keep the UI alive with the last state we had,
-    // recomputed against `now` so decay continues to tick locally.
-    console.warn('[AForce] fetchHome failed, falling back', err);
+    // Wave-3 PR10: network down — keep the UI alive with the LAST state,
+    // but say so. `stale: true` + a null serverTime replace the old
+    // fabricated success envelope (which minted a fresh server clock for
+    // a server that was never reached — no caller could tell truth from
+    // fallback).
+    console.warn('[AForce] fetchHome failed, falling back (stale)', err);
     return {
       engineOutput: calculateScore(userState),
       userState,
-      serverTime: new Date().toISOString(),
+      serverTime: null,
+      stale: true,
     };
   }
 }
