@@ -26,7 +26,8 @@
  * events (via the adapters), in a later, separately-approved step.
  */
 import { useSyncExternalStore } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 
 import {
   mergeCommandEvents,
@@ -98,7 +99,7 @@ function persist(): Promise<void> {
   const snapshot = current.events;
   return enqueue(async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       /* non-fatal: in-memory state is still authoritative */
     }
@@ -139,7 +140,7 @@ export function hydrateCommandLedger(): Promise<void> {
   hydrating = (async () => {
     let loaded: unknown[] = [];
     try {
-      loaded = parse(await AsyncStorage.getItem(STORAGE_KEY));
+      loaded = parse(await scopedStorage.getItem(STORAGE_KEY));
     } catch {
       loaded = [];
     }
@@ -204,7 +205,7 @@ export function clearCommandLedger(): Promise<void> {
   setState({ events: [], hydrated: true });
   return enqueue(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await scopedStorage.removeItem(STORAGE_KEY);
     } catch {
       /* non-fatal */
     }
@@ -234,3 +235,12 @@ export function useCommandLedgerStore(): CommandLedgerState {
     getCommandLedgerState,
   );
 }
+
+// Wave-2 PR6: a user-scope change is a security boundary — abandon any
+// in-flight hydrate and reset to UN-hydrated (disk untouched: the prior
+// account's ledger stays under its own scoped key).
+subscribeUserScope(() => {
+  generation += 1;
+  hydrating = null;
+  setState({ events: [], hydrated: false });
+});

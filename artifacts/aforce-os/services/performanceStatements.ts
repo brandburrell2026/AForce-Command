@@ -19,7 +19,8 @@
  * disk read completes is never clobbered.
  */
 import { useSyncExternalStore } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 
 import { localDayKey } from '@/utils/voiceCheckIn';
 import {
@@ -103,7 +104,7 @@ function persist(): Promise<void> {
   };
   return enqueue(async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       /* non-fatal: in-memory state is still authoritative */
     }
@@ -129,7 +130,7 @@ export function hydratePerformanceStatements(): Promise<void> {
   hydrating = (async () => {
     let loaded: PersistedShape | null = null;
     try {
-      loaded = parse(await AsyncStorage.getItem(STORAGE_KEY));
+      loaded = parse(await scopedStorage.getItem(STORAGE_KEY));
     } catch {
       loaded = null;
     }
@@ -173,7 +174,7 @@ export function clearPerformanceStatements(): Promise<void> {
   setState({ lastSpokenDayKey: null, recentlyUsedIds: [], hydrated: true });
   return enqueue(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await scopedStorage.removeItem(STORAGE_KEY);
     } catch {
       /* non-fatal */
     }
@@ -215,3 +216,9 @@ export function usePerformanceStatementStore(): PerformanceStatementState {
 }
 
 export const RECENT_STATEMENT_CAP = RECENT_USED_CAP;
+
+// Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
+subscribeUserScope(() => {
+  hydrating = null;
+  setState({ lastSpokenDayKey: null, recentlyUsedIds: [], hydrated: false });
+});

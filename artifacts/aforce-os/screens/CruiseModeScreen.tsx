@@ -21,7 +21,7 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { FeatureGate } from '@/components/FeatureGate';
@@ -126,7 +126,7 @@ function CruiseModeBody() {
   // yesterday's drinks would fabricate today's load).
   useEffect(() => {
     let cancelled = false;
-    AsyncStorage.getItem(SELF_LOG_KEY)
+    scopedStorage.getItem(SELF_LOG_KEY)
       .then((raw) => {
         if (cancelled) return;
         const restored = decodeSelfLog(raw, todayKey());
@@ -204,7 +204,7 @@ function CruiseModeBody() {
       // navigating away doesn't silently zero the log (and quietly raise
       // readiness). Persistence is best-effort; the UI state is authoritative.
       const next = clampSelfLog({ ...prev, ...patch });
-      AsyncStorage.setItem(SELF_LOG_KEY, encodeSelfLog(next, todayKey())).catch(() => {});
+      scopedStorage.setItem(SELF_LOG_KEY, encodeSelfLog(next, todayKey())).catch(() => {});
       return next;
     });
   }, []);

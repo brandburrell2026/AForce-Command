@@ -18,7 +18,8 @@
  *     without pulling in a global store (devMode pattern).
  */
 import { useSyncExternalStore } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 
 import {
   clampScale,
@@ -124,7 +125,7 @@ function persist(): Promise<void> {
   };
   return enqueue(async () => {
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       /* non-fatal: in-memory state is still authoritative */
     }
@@ -143,7 +144,7 @@ export function hydrateVoiceCheckIn(): Promise<void> {
   hydrating = (async () => {
     let loaded: PersistedShape | null = null;
     try {
-      loaded = parse(await AsyncStorage.getItem(STORAGE_KEY));
+      loaded = parse(await scopedStorage.getItem(STORAGE_KEY));
     } catch {
       loaded = null;
     }
@@ -227,7 +228,7 @@ export function clearVoiceCheckIn(): Promise<void> {
   setState({ records: [], snoozedUntilMs: null, hydrated: true });
   return enqueue(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await scopedStorage.removeItem(STORAGE_KEY);
     } catch {
       /* non-fatal */
     }
@@ -280,3 +281,9 @@ export function useVoiceCheckInStore(): VoiceCheckInState {
     getVoiceCheckInState,
   );
 }
+
+// Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
+subscribeUserScope(() => {
+  hydrating = null;
+  setState({ records: [], snoozedUntilMs: null, hydrated: false });
+});

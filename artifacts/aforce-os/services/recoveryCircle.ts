@@ -16,7 +16,7 @@
  * under `@aforce/recoveryCircle`. No referral / invite / share copy
  * lives in this module by design — see spec "No referral wording."
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
 import { useEffect, useState } from 'react';
 import { useFeatureFlags } from '@/store/useAppStore';
 
@@ -132,7 +132,7 @@ function isSnapshot(v: unknown): v is RecoveryCircleSnapshot {
 
 export async function getRecoveryCircle(): Promise<RecoveryCircleSnapshot | null> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     return isSnapshot(parsed) ? parsed : null;
@@ -148,7 +148,7 @@ export async function setRecoveryCircle(snapshot: RecoveryCircleSnapshot): Promi
     checkpoints: snapshot.checkpoints,
   };
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(clamped));
+    await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(clamped));
   } catch {
     /* non-fatal */
   }

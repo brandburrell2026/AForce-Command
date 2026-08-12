@@ -40,7 +40,8 @@ import {
 } from '../utils/profileIdentity';
 import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
-import { secureKV } from '../services/secureStorage';
+import { scopedSecureKV } from '../services/scopedStorage';
+import { scopedStorage } from '../services/scopedStorage';
 import {
   hydrateProfileFromServer,
   flushPendingProfileSync,
@@ -1025,7 +1026,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     // K-1 (RC-L11): identity lives in the encrypted store; the read
     // transparently migrates any legacy plain-AsyncStorage value.
-    secureKV.getItem(PROFILE_IDENTITY_KEY)
+    scopedSecureKV.getItem(PROFILE_IDENTITY_KEY)
       .then((raw) => {
         if (cancelled) return;
         if (profileIdentityDirtyRef.current) return;
@@ -1051,7 +1052,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!profileIdentityHydratedRef.current) return;
-    secureKV.setItem(
+    scopedSecureKV.setItem(
       PROFILE_IDENTITY_KEY,
       JSON.stringify(state.profileIdentity),
     ).catch(() => {});
@@ -1136,7 +1137,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate persisted subscription on mount.
   useEffect(() => {
-    AsyncStorage.getItem('aforce.subscription')
+    scopedStorage.getItem('aforce.subscription')
       .then((raw) => {
         if (!raw) return;
         try {

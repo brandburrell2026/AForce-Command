@@ -20,7 +20,7 @@
  * binaries without the native module, and failures all no-op cleanly.
  */
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
 
 import { MOMENT_CALENDAR_HORIZON_DAYS } from '@/config/hydroStateModel';
 import type { CalendarEventLike } from '@/services/momentClassification';
@@ -148,7 +148,7 @@ export async function fetchUpcomingEvents(
 
 export async function getCalendarPrefs(): Promise<CalendarPrefs> {
   try {
-    const raw = await AsyncStorage.getItem(PREFS_KEY);
+    const raw = await scopedStorage.getItem(PREFS_KEY);
     if (!raw) return DEFAULT_CALENDAR_PREFS;
     const p = JSON.parse(raw) as Partial<CalendarPrefs>;
     return {
@@ -168,7 +168,7 @@ export async function getCalendarPrefs(): Promise<CalendarPrefs> {
 
 export async function setCalendarPrefs(prefs: CalendarPrefs): Promise<void> {
   try {
-    await AsyncStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    await scopedStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   } catch {
     // best-effort
   }
@@ -177,7 +177,7 @@ export async function setCalendarPrefs(prefs: CalendarPrefs): Promise<void> {
 /** Disconnect = forget prefs. (No event data exists to delete — in-memory only.) */
 export async function disconnectCalendar(): Promise<void> {
   try {
-    await AsyncStorage.removeItem(PREFS_KEY);
+    await scopedStorage.removeItem(PREFS_KEY);
   } catch {
     // best-effort
   }

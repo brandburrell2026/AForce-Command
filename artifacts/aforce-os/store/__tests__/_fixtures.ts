@@ -125,6 +125,7 @@ export const baseFlags: FeatureFlags = {
   intent_capture_enabled: false,
   performance_statements_enabled: false,
   offline_intake_outbox_enabled: false,
+  per_user_storage_isolation_enabled: false,
   profile_server_hydration_enabled: false,
   ios_direct_checkout_enabled: false,
   cruise_mode_enabled: false,

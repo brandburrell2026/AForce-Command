@@ -15,7 +15,8 @@
  * score engine, or any scoring surface. Moments state is Moments-internal.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 import { useSyncExternalStore } from 'react';
 
 import type { Moment } from '@/types/moments';
@@ -42,7 +43,7 @@ function persist(): void {
   persistQueue = persistQueue.then(async () => {
     if (gen !== generation) return; // cleared since this write was queued
     try {
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
       // Best-effort: storage failures are non-fatal (commandLedger precedent).
     }
@@ -71,7 +72,7 @@ export async function hydrateMoments(): Promise<void> {
   const gen = generation;
   let loaded: Moment[] = [];
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed: unknown = JSON.parse(raw);
       if (Array.isArray(parsed)) {
@@ -128,7 +129,7 @@ export function clearMoments(): void {
   notify();
   persistQueue = persistQueue.then(async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await scopedStorage.removeItem(STORAGE_KEY);
     } catch {
       // best-effort
     }
@@ -143,3 +144,10 @@ export function subscribeMoments(listener: () => void): () => void {
 export function useMomentsStore(): MomentsState {
   return useSyncExternalStore(subscribeMoments, getMomentsState, getMomentsState);
 }
+
+// Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
+subscribeUserScope(() => {
+  generation += 1;
+  state = { moments: [], hydrated: false };
+  notify();
+});
