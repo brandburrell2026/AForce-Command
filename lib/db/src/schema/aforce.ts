@@ -1289,6 +1289,28 @@ export type AforceGraphEdgeRow = typeof aforceGraphEdges.$inferSelect;
  * read time (userId back-filled on first match). Stripe remains the primary
  * rail; this is an additive OR — the fail-safe core downgrade still applies
  * when neither rail is active. */
+/**
+ * Wave-3 PR6 — webhook delivery ledger. One row per provider delivery:
+ * duplicate suppression (unique on source+delivery id) AND the commerce
+ * audit trail that was previously missing entirely. No payment data —
+ * ids and topic only. Additive table; applied via drizzle-kit push.
+ */
+export const aforceWebhookDeliveries = pgTable(
+  "aforce_webhook_deliveries",
+  {
+    id: serial("id").primaryKey(),
+    source: text("source").notNull(), // 'stripe' | 'shopify'
+    deliveryId: text("delivery_id").notNull(),
+    topic: text("topic").notNull().default(""),
+    action: text("action").notNull().default(""),
+    externalRef: text("external_ref"),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    deliveryUq: uniqueIndex("aforce_webhook_deliveries_source_delivery_uq").on(t.source, t.deliveryId),
+  }),
+);
+
 export const aforceWebEntitlements = pgTable(
   "aforce_web_entitlements",
   {
