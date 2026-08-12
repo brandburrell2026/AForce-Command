@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getUserState, updateUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
 import { resolveUserId, broadcastState } from "./shared";
+import { requireEntitlement } from "../../middlewares/requireEntitlement";
 
 const router: IRouter = Router();
 
@@ -197,7 +198,11 @@ router.post("/social/cruise", async (req, res) => {
   }
 });
 
-router.post("/social/shield", async (req, res) => {
+// Voyage Shield is a Recovery Mode capability — plan-gated in the client
+// (SocialModeSheet gates on recovery_mode_enabled). Wave-2 PR1: the
+// server now enforces the same entitlement so client state alone can
+// never authorize it.
+router.post("/social/shield", requireEntitlement("recovery_mode_enabled"), async (req, res) => {
   try {
     const userId = resolveUserId(req);
     const current = await readSocial(userId);
