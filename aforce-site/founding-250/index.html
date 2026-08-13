@@ -369,16 +369,26 @@
 
 <script>
 /* ============================================================
-   Founding 250 — email capture
-   NOTE: No production email-capture backend is wired yet.
-   submitFoundingSignup() is a clearly-marked PLACEHOLDER. Replace
-   its body with a real POST to the email system when available.
+   Founding 250 — email capture.
+   POSTs to /api/founding-250, which forwards server-to-server to the
+   api-server's early-access capture (persists the row, de-duplicates on
+   email, sends the member a confirmation, notifies the team, and shows up
+   in the admin CSV export). It used to be a placeholder that logged to the
+   console and resolved ok:true, so "claimed" was shown for an address that
+   was never recorded anywhere.
    ============================================================ */
 function submitFoundingSignup(email){
-  // TODO(placeholder): integrate the real email capture endpoint / ESP.
-  // e.g. return fetch("/api/founding-250", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email})}).then(r=>({ ok:r.ok }));
-  console.info("[Founding 250 placeholder] captured signup:", email);
-  return Promise.resolve({ ok: true });
+  return fetch("/api/founding-250", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email })
+  }).then(function(r){
+    return { ok: r.ok };
+  }).catch(function(){
+    // A network failure must surface as a failure. Reporting success here
+    // would tell a member they hold a spot that does not exist.
+    return { ok: false };
+  });
 }
 
 (function(){

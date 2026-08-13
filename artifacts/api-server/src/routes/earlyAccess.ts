@@ -57,6 +57,31 @@ function sendEarlyAccessConfirmation(email: string): void {
   });
 }
 
+// Internal notification. The founder wants every signup to land in one
+// inbox (SIGNUP_NOTIFY_EMAIL, default info@alkalineforce.com) rather than
+// only in the admin export, so a Founding 250 claim is seen the day it
+// happens. Fire-and-forget for the same reason as the confirmation above:
+// a mail-provider outage must not fail the member's signup.
+const NOTIFY_TO = process.env["SIGNUP_NOTIFY_EMAIL"] ?? "info@alkalineforce.com";
+
+function notifyTeamOfSignup(email: string, source: string): void {
+  sendEmailAndForget({
+    to: NOTIFY_TO,
+    subject: `New ${source} signup: ${email}`,
+    text:
+      `A new early-access signup was recorded.\n\n` +
+      `Email:  ${email}\n` +
+      `Source: ${source}\n\n` +
+      `The full list is available from the admin export.\n`,
+    html:
+      `<div style="font:14px/1.5 -apple-system,system-ui,sans-serif;color:#111">` +
+      `<p>A new early-access signup was recorded.</p>` +
+      `<p><strong>Email:</strong> ${email}<br><strong>Source:</strong> ${source}</p>` +
+      `<p style="color:#666">The full list is available from the admin export.</p>` +
+      `</div>`,
+  });
+}
+
 // ─── POST / — public signup capture ──────────────────────────────────────────
 router.post("/", signupLimiter, async (req, res): Promise<void> => {
   const parsed = SignupBody.safeParse(req.body);
@@ -76,6 +101,7 @@ router.post("/", signupLimiter, async (req, res): Promise<void> => {
 
     if (inserted.length > 0) {
       sendEarlyAccessConfirmation(parsed.data.email);
+      notifyTeamOfSignup(parsed.data.email, parsed.data.source);
     }
 
     res.json({ ok: true });
