@@ -36,6 +36,7 @@ import {
   useEngineSlice,
   useFlagsSlice,
   useActionsSlice,
+  useHistorySlice,
 } from '@/store/slices';
 
 const SOURCE = readFileSync(join(__dirname, '..', 'HomeScreenV2.tsx'), 'utf8');
@@ -49,6 +50,10 @@ const PROBE_HOOKS = [
   'useEngineSlice',
   'useFeatureFlags', // called in the real screen as `useFeatureFlags()`, re-exported from `useFlagsSlice`
   'useActionsSlice',
+  // Wave 5: the first-launch evidence gate reads real cycle history from the
+  // store rather than fetching it, so Home subscribes to this slice. History
+  // changes only when a cycle completes, so it costs no per-tick renders.
+  'useHistorySlice',
 ];
 
 const TICKS = 20;
@@ -62,6 +67,7 @@ function HomeSliceProbe({ counterRef }: { counterRef: React.MutableRefObject<num
   useEngineSlice();
   useFlagsSlice();
   useActionsSlice();
+  useHistorySlice();
   return null;
 }
 

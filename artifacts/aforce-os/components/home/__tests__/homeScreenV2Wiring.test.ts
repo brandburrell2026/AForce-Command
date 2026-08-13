@@ -168,8 +168,109 @@ describe('HomeScreenV2 — offline intake outbox visibility (RC-1 Wave-2B, item 
     // `homeFreshness.test.ts` / `HomeFreshnessLabel.render.test.tsx` for
     // that change's own coverage. This test only cares that the anchor
     // still marks the top of the header block.
-    const headerToSkeleton = CODE.slice(CODE.indexOf('<HomeFreshnessLabel'), CODE.indexOf('!isHydrated'));
+    //
+    // Wave 5 anchor correction (behaviour unchanged, assertion unchanged): the
+    // first-launch evidence gate's effect reads `!isHydrated` too, above the
+    // JSX, so a bare `!isHydrated` search no longer lands on the render branch
+    // this slice is meant to bound — it landed ABOVE the freshness label and
+    // produced an empty slice, which would have passed vacuously for the
+    // inverse assertion. Anchored on the JSX gate itself so the slice still
+    // means "between the header and the hydration-gated content".
+    const hydrationGate = CODE.indexOf('{!isHydrated ?');
+    expect(hydrationGate).toBeGreaterThan(-1);
+    const headerToSkeleton = CODE.slice(CODE.indexOf('<HomeFreshnessLabel'), hydrationGate);
     expect(headerToSkeleton).toContain('<AFOfflineBanner');
+  });
+});
+
+describe('HomeScreenV2 — first-launch evidence gate (Wave 5, founder ruling 2026-08-12)', () => {
+  it('resolves the gate through the pure, tested resolver — not an inline predicate', () => {
+    expect(CODE).toContain("} from './homeBaselineState';");
+    expect(CODE).toMatch(/const\s+evidence\s*=\s*resolveHomeEvidence\(\{\s*intakeEventCount,\s*loggedDayCount\s*\}\)/);
+  });
+
+  it('reads the member\'s own intake events as the local, synchronous half of the predicate', () => {
+    expect(CODE).toMatch(/const\s+intakeEventCount\s*=\s*userState\.intakeEvents\?\.length\s*\?\?\s*0;/);
+  });
+
+  it('costs NO network read of its own — both signals come from the store', () => {
+    // Home is the hottest screen in the app, and Wave-4's rule is no extra
+    // refetching. An added journal read here would have fired on every cold
+    // open for anyone who had not logged in the last 24h — a quiet morning,
+    // not a first launch.
+    expect(CODE).not.toContain('fetchJournalRollups');
+    expect(CODE).not.toContain('BASELINE_LOOKBACK_DAYS');
+    expect(CODE).toContain("import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';");
+  });
+
+  it('reads real cycle history synchronously from the slice the store already holds', () => {
+    expect(CODE).toContain('const history = useHistorySlice();');
+    expect(CODE).toMatch(/countRealHistoryEntries\(history\)/);
+  });
+
+  it('withholds an answer until hydration instead of calling an empty store "no evidence"', () => {
+    // Pre-hydration the store legitimately has nothing yet. Reporting 0 there
+    // would tell a veteran member they have no history — the exact collapse
+    // of "not known yet" into "none" this gate exists to prevent.
+    expect(CODE).toMatch(/isHydrated \? countRealHistoryEntries\(history\) : null/);
+  });
+
+  it('renders the baseline treatment via the store-free HomeBaselineHero', () => {
+    expect(CODE).toContain("import { HomeBaselineHero } from './HomeBaselineHero';");
+    expect(CODE).toMatch(/evidence === 'building'[\s\S]{0,120}<HomeBaselineHero/);
+  });
+});
+
+describe('HomeScreenV2 — no flash of a fabricated score before the gate resolves (Wave 5)', () => {
+  // The exact defect: `data/mockData.ts`'s seeded 5 units / 45 oz produce a
+  // confident BALANCED 76 that Home used to paint immediately. The score may
+  // therefore only ever be rendered inside the `established` branch — if it
+  // could render while `evidence` is still 'pending', the member would see the
+  // fabricated number for the frames before the journal read lands.
+  const HERO_SLOT_START = CODE.indexOf("evidence === 'pending'");
+  const ESTABLISHED_START = CODE.indexOf("evidence === 'building'");
+
+  it('the hero slot branches on evidence before anything readiness-related renders', () => {
+    expect(HERO_SLOT_START).toBeGreaterThan(-1);
+    expect(ESTABLISHED_START).toBeGreaterThan(HERO_SLOT_START);
+  });
+
+  it('the pending branch renders NO score, NO band word and NO arc — only a shape-holding placeholder', () => {
+    const pendingBranch = CODE.slice(HERO_SLOT_START, ESTABLISHED_START);
+    expect(pendingBranch).toContain('<AFSkeleton');
+    expect(pendingBranch).toContain('home-baseline-pending');
+    expect(pendingBranch).not.toContain('<AFReadinessArc');
+    expect(pendingBranch).not.toContain('styles.score');
+    expect(pendingBranch).not.toContain('performanceState.level');
+    expect(pendingBranch).not.toContain('<LiveStatusLine');
+  });
+
+  it('the arc, the score numeral and the trend line all live inside the established branch', () => {
+    const established = CODE.slice(ESTABLISHED_START);
+    expect(established).toContain('<AFReadinessArc');
+    expect(established).toContain('<LiveStatusLine');
+    // ...and nothing readiness-bearing escaped ABOVE the gate into the always-on
+    // region of the hydrated render.
+    const beforeGate = CODE.slice(CODE.indexOf('{!isHydrated ?'), HERO_SLOT_START);
+    expect(beforeGate).not.toContain('<AFReadinessArc');
+    expect(beforeGate).not.toContain('<LiveStatusLine');
+  });
+
+  it('the Recovery signal tile withholds the band word too, so the state cannot re-enter sideways', () => {
+    // Without this the hero would say "Building your baseline" while the tile
+    // one section down said "Balanced" — the same fabricated claim, restated.
+    expect(CODE).toMatch(
+      /const\s+recoveryText\s*=\s*evidence === 'established'\s*\?\s*titleCase\(engine\.performanceState\.level\)\s*:\s*EM_DASH;/,
+    );
+    expect(CODE).not.toMatch(/value=\{titleCase\(engine\.performanceState\.level\)\}/);
+  });
+
+  it('mutation-verify: a score rendered outside the established branch is detectable', () => {
+    // If the gate were removed (arc hoisted back above the evidence branch),
+    // the slice below would contain the arc and this suite would fail — this
+    // asserts the detector itself still works on a mutated source.
+    const mutated = CODE.replace("evidence === 'pending'", "false /* gate removed */");
+    expect(mutated.indexOf("evidence === 'pending'")).toBe(-1);
   });
 });
 

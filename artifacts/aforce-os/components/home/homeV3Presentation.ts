@@ -26,7 +26,13 @@ import type { HealthProviderId } from '@/data/healthProviders';
 /** Freshness window within which the chip may claim "Live". */
 export const LIVE_WINDOW_MS = 30 * 60 * 1000;
 
-const EM_DASH = '—';
+/**
+ * The honest-data contract's "nothing observed" glyph. Exported since Wave 5
+ * so the first-launch evidence gate on Home can render the SAME symbol for a
+ * band it is not yet entitled to name, rather than inventing a second idiom
+ * for the same idea.
+ */
+export const EM_DASH = '—';
 
 /** 7.68 → "7h 41m"; null/invalid → "—". */
 export function formatSleepHours(hours: number | null | undefined): string {
