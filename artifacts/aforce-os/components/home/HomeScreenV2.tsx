@@ -31,13 +31,22 @@
  * already occurred.
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
- * PRESENTATION-ONLY elevation layered on the exact same data. When the flag is
- * off the render below is byte-for-byte the shipped Home. When on, it adds a
- * band-tinted arc accent, a ring reveal + truthful score count-up, staggered
- * entrance, and band-aware signal ordering — all decided by the pure, tested
+ * PRESENTATION-ONLY elevation layered on the exact same data. When on, it adds a
+ * ring reveal + truthful score count-up, a larger arc, staggered entrance, a
+ * state pill, and band-aware signal ordering — all decided by the pure, tested
  * `homePresentation.ts`. It never touches the score, command, eligibility,
  * timing, or safety logic (Score-Protection); reduced-motion collapses every
  * animation back to the static Home.
+ *
+ * WAVE 5 — the band accent is NOT part of that flag any more. It used to be:
+ * flag-off pinned `accent = af.red` and the state word to `af.redText`, so the
+ * arc, the trend line and the state word rendered in ALARM RED for every band —
+ * a member at PEAK read "ASCENDING" in the same red a DEPLETED member sees.
+ * Signal Red must be meaningful and restrained, and visual certainty must track
+ * what the data says, so the accent now always comes from
+ * `resolveHomePresentation(level)`. Text/glyphs take `accentText` (Signal Red
+ * fails AA as text on dark — see theme/afTokens.ts); fills and strokes keep
+ * `accent`. This intentionally changes the flag-off render.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
@@ -83,13 +92,11 @@ import { LiveStatusLine } from './LiveStatusLine';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
-import { deriveTodaysProtocol } from '@/utils/homeDashboard';
 import {
   formatSleepHours,
   formatHrvMs,
   formatHydrationPct,
   resolveHealthChip,
-  trendTile,
 } from './homeV3Presentation';
 
 interface HomeActions {
@@ -202,7 +209,10 @@ export function HomeScreenV2() {
     prevScoreRef.current = score;
   }, [score]);
 
-  const accent = elite ? presentation.accent : af.red;
+  // Fills/strokes take `accent`; text + icon glyphs take the AA-clean
+  // `accentText` twin (Wave 5 — see the file header).
+  const accent = presentation.accent;
+  const accentText = presentation.accentText;
   const reveal = (idx: number) =>
     elite && !reducedMotion ? FadeInDown.duration(420).delay(idx * 90) : undefined;
 
@@ -215,7 +225,7 @@ export function HomeScreenV2() {
   // Home — the tested, existing `LiveStatusLine` (trend arrow + delta
   // window + status verb) lived only on the legacy Home. Same hook/service
   // pair the legacy screen uses (app/(tabs)/index.tsx), tinted with V2's own
-  // `accent` so it stays in this screen's spare visual language instead of
+  // `accentText` so it stays in this screen's spare visual language instead of
   // reaching into the legacy band-color selector.
   const trend = useScoreTrend(score);
   const statusVerb = React.useMemo(
@@ -246,11 +256,10 @@ export function HomeScreenV2() {
 
   // ── Home V3 dashboard (flag-gated, presentation-only; founder comps
   // 2026-08-10) — every value below is derived from state this screen ALREADY
-  // reads (userState / engine / trend); no new store hooks, so the render-count
+  // reads (userState / engine); no new store hooks, so the render-count
   // guarantees hold. Honest-data contract lives in homeV3Presentation.ts:
-  // missing readings render an em dash, the chip renders nothing when no
-  // provider has contributed, and protocol rows carry derived period labels —
-  // never fabricated clock times. Sleep/HRV values come from
+  // missing readings render an em dash and the chip renders nothing when no
+  // provider has contributed. Sleep/HRV values come from
   // explainFieldArbitration — the SAME per-field winner the scoring path's
   // freshestNonNull selects (parity-proven in its test suite).
   const v3 = flags.home_v3_dashboard_enabled;
@@ -273,11 +282,6 @@ export function HomeScreenV2() {
       sleepText: formatSleepHours(sleep ? (sleep.value as number) : null),
       hrvText: formatHrvMs(hrv ? (hrv.value as number) : null),
       hydrationText: formatHydrationPct(userState.unitsConsumedToday, userState.dailyTarget),
-      protocol: deriveTodaysProtocol({
-        unitsConsumedToday: userState.unitsConsumedToday,
-        dailyTarget: userState.dailyTarget,
-      }),
-      trend: trendTile(trend.direction),
     };
   }, [
     v3,
@@ -285,9 +289,7 @@ export function HomeScreenV2() {
     userState.appleHealth,
     userState.unitsConsumedToday,
     userState.dailyTarget,
-    trend.direction,
   ]);
-  const protocolDone = v3Data ? v3Data.protocol.filter((b) => b.complete).length : 0;
 
   return (
     <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
@@ -334,7 +336,9 @@ export function HomeScreenV2() {
               accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
               testID="home-readiness-arc"
             >
-              <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite}>
+              {/* a11yHidden: the Pressable above already announces score + band,
+                  so an inner progressbar would make the hero speak twice. */}
+              <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite} a11yHidden>
                 {elite ? (
                   <EliteScoreNumber
                     score={score}
@@ -348,12 +352,14 @@ export function HomeScreenV2() {
                 <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
                 {elite ? (
                   <View style={[styles.statePill, { borderColor: accent }]}>
-                    <Text style={[styles.statePillText, { color: accent }]}>
+                    <Text style={[styles.statePillText, { color: accentText }]}>
                       {engine.performanceState.level}
                     </Text>
                   </View>
                 ) : (
-                  <Text style={styles.stateLabel}>{engine.performanceState.level}</Text>
+                  <Text style={[styles.stateLabel, { color: accentText }]}>
+                    {engine.performanceState.level}
+                  </Text>
                 )}
               </AFReadinessArc>
             </Pressable>
@@ -362,7 +368,7 @@ export function HomeScreenV2() {
               delta={trend.delta}
               ageSec={trend.ageSec}
               verb={statusVerb}
-              accent={accent}
+              accent={accentText}
               testID="home-v2-live-status-line"
             />
           </Animated.View>
@@ -420,50 +426,24 @@ export function HomeScreenV2() {
             )}
           </Animated.View>
 
-          {/* V3: Completed today — the three DERIVED protocol blocks (period
-              labels, never fabricated clock times) + streak / session-trend
-              stat tiles. complianceStreak and the trend are values this screen
-              already reads. */}
-          {v3 && v3Data ? (
-            <Animated.View entering={reveal(4)} style={styles.v3Section}>
-              <View style={styles.v3SectionHead}>
-                <AFSectionLabel label={t('home.v3.completed_today')} />
-                <Text style={styles.v3Count} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-                  {protocolDone} / {v3Data.protocol.length}
-                </Text>
-              </View>
-              <View style={styles.v3Rows} accessible accessibilityLabel={t('home.v3.completed_today')}>
-                {v3Data.protocol.map((b) => (
-                  <View key={b.id} style={styles.v3Row} accessible accessibilityLabel={`${b.label}, ${b.period}${b.complete ? '' : ', pending'}`}>
-                    <View style={[styles.v3Check, b.complete ? styles.v3CheckOn : styles.v3CheckOff]}>
-                      {b.complete ? <Text style={styles.v3CheckMark}>✓</Text> : null}
-                    </View>
-                    <Text style={[styles.v3RowLabel, !b.complete && styles.v3RowLabelOff]} numberOfLines={1}>
-                      {b.label}
-                    </Text>
-                    <Text style={styles.v3RowPeriod}>{b.period}</Text>
-                  </View>
-                ))}
-              </View>
-              <View style={styles.v3Stats}>
-                <View style={styles.v3Stat}>
-                  <Text style={styles.v3StatValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-                    {userState.complianceStreak}
-                  </Text>
-                  <Text style={styles.v3StatLabel}>{t('home.v3.day_streak')}</Text>
-                </View>
-                <View style={styles.v3Stat}>
-                  <Text
-                    style={[styles.v3StatValue, styles.v3StatTrend, v3Data.trend.positive && styles.v3StatPositive]}
-                    maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
-                  >
-                    {t(`home.v3.${v3Data.trend.i18nKey}`)}
-                  </Text>
-                  <Text style={styles.v3StatLabel}>{t('home.v3.recovery_trend')}</Text>
-                </View>
-              </View>
-            </Animated.View>
-          ) : null}
+          {/* WAVE 5 — the V3 "Completed today" section (three protocol rows +
+              n/N count + streak / recovery-trend stat tiles) was DELETED here.
+              Two reasons, both about honesty and hierarchy:
+
+              TRUST — the rows were derived from `deriveTodaysProtocol`, which
+              checked off "Hydration Stick" at one logged serving and "AForce
+              Can" at half the daily target. A member who drank tap water got a
+              green check asserting they had consumed a specific AForce product.
+              A green check is the strongest certainty signal on the screen and
+              it was backed by the weakest evidence. (There is no can data —
+              sticks only, per the founder.)
+
+              HIERARCHY — the day-streak numeral rendered at afType.title2 26pt,
+              the second-largest number on Home. HydroState must not read as
+              points or a game score, and nothing should compete with the arc.
+
+              Nothing is lost: the streak lives on StreakCard / Progress, and the
+              trend is already the LiveStatusLine directly under the arc. */}
         </>
       )}
     </AFScreen>
@@ -473,8 +453,9 @@ export function HomeScreenV2() {
 const styles = StyleSheet.create({
   // Tokenized bottom breathing room (replaces a trailing <View height:40/> spacer).
   scrollContent: { paddingBottom: Spacing[10] },
-  // V3 sections extend the scroll below the fold — clear the floating tab bar
-  // (≈49pt bar + home-indicator inset) so the last stat tiles are reachable.
+  // V3's four-tile signal grid extends the scroll below the fold — clear the
+  // floating tab bar (≈49pt bar + home-indicator inset) so the last row of
+  // tiles is reachable.
   scrollContentV3: { paddingBottom: Spacing[24] + Spacing[8] },
   momentsSection: { marginTop: 4 },
   header: { marginTop: 8, marginBottom: 8 },
@@ -486,8 +467,10 @@ const styles = StyleSheet.create({
   arcWrapPremium: { marginVertical: Spacing[8] },
   score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   scoreLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
-  stateLabel: { ...afType.caption, color: af.redText, marginTop: 6 },
-  // Elite: band-tinted state pill (accent from homePresentation; never statusColor).
+  // Colour is applied at the call site from the band's `accentText` — a fixed
+  // red here made every band's state word read as an alarm (Wave 5).
+  stateLabel: { ...afType.caption, marginTop: 6 },
+  // Band-tinted state pill (accent from homePresentation; never statusColor).
   statePill: {
     marginTop: 8,
     paddingHorizontal: 10,
@@ -522,25 +505,4 @@ const styles = StyleSheet.create({
   v3ChipDotIdle: { backgroundColor: af.textTertiary },
   v3ChipText: { ...afType.caption, color: af.textSecondary },
   v3Grid: { gap: 12 },
-  v3Section: { marginTop: 28, gap: 12 },
-  v3SectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  v3Count: { ...afType.caption, color: af.textTertiary, fontVariant: ['tabular-nums'] },
-  v3Rows: { gap: 14 },
-  v3Row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  v3Check: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  v3CheckOn: { backgroundColor: af.green },
-  v3CheckOff: { borderWidth: 1.5, borderColor: af.borderStrong },
-  v3CheckMark: { color: af.canvas, fontSize: 12, fontWeight: '700', lineHeight: 14 },
-  v3RowLabel: { ...afType.body, color: af.textPrimary, flex: 1 },
-  v3RowLabelOff: { color: af.textTertiary },
-  v3RowPeriod: { ...afType.caption, color: af.textTertiary },
-  v3Stats: { flexDirection: 'row', gap: 12, marginTop: 4 },
-  v3Stat: {
-    flex: 1, gap: 4, paddingVertical: 14, paddingHorizontal: 14,
-    borderRadius: 14, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
-  },
-  v3StatValue: { ...afType.title2, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  v3StatTrend: { ...afType.title3 },
-  v3StatPositive: { color: af.green },
-  v3StatLabel: { ...afType.caption, color: af.textTertiary },
 });

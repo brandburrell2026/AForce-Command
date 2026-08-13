@@ -42,7 +42,80 @@ describe('HomeScreenV2 — LiveStatusLine momentum wiring (RC-1 P0)', () => {
   it('renders LiveStatusLine inside the same block as the arc, tinted with the V2 accent (not a hardcoded legacy color)', () => {
     const arcToCommand = CODE.slice(CODE.indexOf('AFReadinessArc'), CODE.indexOf('One command'));
     expect(arcToCommand).toContain('<LiveStatusLine');
-    expect(arcToCommand).toMatch(/accent=\{accent\}/);
+    // Wave 5: the tint is now `accentText`, the AA-clean twin of the band
+    // accent — the arrow/delta/verb are TEXT, and Signal Red fails AA as text
+    // on dark. Same intent as before (tinted from this screen's band accent,
+    // never a hardcoded legacy color), pointed at the text-safe variable.
+    expect(arcToCommand).toMatch(/accent=\{accentText\}/);
+  });
+});
+
+describe('HomeScreenV2 — band-aware hero (Wave 5, brand + trust)', () => {
+  it('takes the accent from the tested band resolver with NO elite gate — every band gets its own colour', () => {
+    expect(CODE).toMatch(/const\s+accent\s*=\s*presentation\.accent;/);
+    expect(CODE).toMatch(/const\s+accentText\s*=\s*presentation\.accentText;/);
+    // The regression this exists for: `elite ? presentation.accent : af.red`
+    // painted the arc, trend line and state word alarm-red for EVERY band.
+    expect(CODE).not.toMatch(/accent\s*=\s*elite\s*\?/);
+    expect(CODE).not.toMatch(/:\s*af\.red\b/);
+  });
+
+  it('draws the ring in the fill accent and the state word in the text-safe twin', () => {
+    expect(CODE).toMatch(/<AFReadinessArc[^>]*color=\{accent\}/);
+    expect(CODE).toMatch(/styles\.stateLabel,\s*\{\s*color:\s*accentText\s*\}/);
+    expect(CODE).toMatch(/styles\.statePillText,\s*\{\s*color:\s*accentText\s*\}/);
+  });
+
+  it('no longer hardcodes a red state word in the stylesheet', () => {
+    expect(CODE).not.toMatch(/stateLabel:\s*\{[^}]*af\.redText/);
+  });
+});
+
+describe('HomeScreenV2 — "Completed today" removed (Wave 5, trust + hierarchy)', () => {
+  it('no longer derives product completion from generic intake', () => {
+    // deriveTodaysProtocol checked off "Hydration Stick" / "AForce Can" from
+    // logged servings, so tap water earned a green product check.
+    expect(CODE).not.toContain('deriveTodaysProtocol');
+    expect(CODE).not.toContain('protocolDone');
+  });
+
+  it('no longer renders the day-streak numeral as the second-largest number on Home', () => {
+    expect(CODE).not.toContain('complianceStreak');
+    expect(CODE).not.toContain('home.v3.day_streak');
+    expect(CODE).not.toContain('home.v3.recovery_trend');
+    expect(CODE).not.toContain('home.v3.completed_today');
+  });
+
+  it('drops the section styles with it, so nothing can quietly re-render it', () => {
+    for (const dead of ['v3Rows', 'v3Check', 'v3Stat', 'v3Count', 'v3Section']) {
+      expect(CODE).not.toContain(dead);
+    }
+  });
+
+  it('keeps what the section was standing in for: the arc, the live trend line and the signal tiles', () => {
+    expect(CODE).toContain('<LiveStatusLine');
+    expect(CODE).toContain('AFReadinessArc');
+    expect(CODE).toContain('home.v3.signal_sleep');
+  });
+});
+
+describe('HomeScreenV2 — hero announces once (Wave 5 a11y)', () => {
+  it('hides the arc\'s inner progressbar, since the Pressable already announces score + band', () => {
+    const arcToCommand = CODE.slice(CODE.indexOf('AFReadinessArc'), CODE.indexOf('<LiveStatusLine'));
+    expect(arcToCommand).toMatch(/a11yHidden/);
+  });
+
+  it('has no nested `accessible` containers left (the protocol rows were the only pair)', () => {
+    // The deleted block wrapped `accessible` rows inside an `accessible`
+    // container, which collapsed all three rows into one announcement.
+    expect(CODE).not.toMatch(/styles\.v3Rows\}\s+accessible/);
+    // The only two `accessible` nodes left are LEAVES — a signal tile and the
+    // health chip — neither of which contains another accessible element.
+    // A third occurrence means someone added a grouping wrapper: check it
+    // isn't sitting above an already-accessible child before updating this.
+    expect(CODE.match(/\baccessible\b/g)).toHaveLength(2);
+    expect(CODE).toMatch(/styles\.signal\}\s+accessible/);
+    expect(CODE).toMatch(/styles\.v3Chip\}\s+accessible/);
   });
 });
 

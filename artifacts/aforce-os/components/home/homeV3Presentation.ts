@@ -8,9 +8,12 @@
  *  - The health chip claims "Live" only when the freshest biometric timestamp
  *    is genuinely recent (≤ LIVE_WINDOW_MS); otherwise it says "Synced", and
  *    with no connected source it tells the component to render nothing.
- *  - No clock times are fabricated anywhere: the Completed-today rows carry
- *    the derived period labels (Morning/Midday/Evening) from
- *    `deriveTodaysProtocol`, which this module does not re-derive.
+ *  - No clock times are fabricated anywhere. (The Completed-today rows this
+ *    once supported were deleted in Wave 5 along with `deriveTodaysProtocol`,
+ *    which inferred AForce-product completion from generic intake — see
+ *    `utils/homeDashboard.ts`. `trendTile` below is consequently exercised only
+ *    by its tests today; it is kept, unchanged and truthful, for the next
+ *    surface that needs a session trend.)
  *
  * Pure functions only — no store reads, no Date.now() defaults (callers pass
  * `now`), so everything here is trivially unit-testable and can never widen
