@@ -1,11 +1,17 @@
 /**
- * Elite Home — pure presentation resolver (E1, `elite_home_experience_enabled`).
+ * Home — pure presentation resolver (originally E1, `elite_home_experience_enabled`).
  *
- * PRESENTATION ONLY. This module decides how the elevated Home *looks and moves*
- * for a given readiness band — accent colour, signal ordering, and whether the
- * arc/number animate. It NEVER computes, reads into, or alters the HydroState
- * score, the command, command eligibility, timing, or safety logic: it takes the
+ * PRESENTATION ONLY. This module decides how Home *looks and moves* for a given
+ * readiness band — accent colour, signal ordering, and whether the arc/number
+ * animate. It NEVER computes, reads into, or alters the HydroState score, the
+ * command, command eligibility, timing, or safety logic: it takes the
  * already-computed band label + score as inputs and returns display metadata.
+ *
+ * Wave 5: the ACCENT is no longer elite-only. Home used to pin the arc, trend
+ * line and state word to `af.red` whenever the elite flag was off — every band,
+ * including PEAK — so a good state was drawn in the alarm colour. The accent now
+ * comes from here at all times (the motion/sizing decisions below stay
+ * flag-gated), which is what makes Signal Red mean something again.
  *
  * Colour source: the brand state palette exposed by `theme/afTokens.ts` (`af.*`),
  * NOT the off-limits `theme/statusColor.ts`. DEPLETED tints with brand Signal Red
@@ -22,8 +28,16 @@ export type SignalKey = 'hydration' | 'heat' | 'recovery';
 
 export interface HomePresentation {
   band: ReadinessBand;
-  /** Band-tinted accent — a brand `af.*` token string (never statusColor.ts). */
+  /** Band-tinted accent for FILLS/strokes/borders — a brand `af.*` token (never statusColor.ts). */
   accent: string;
+  /**
+   * Text-safe twin of `accent`, for anything rendered as TEXT or an icon glyph.
+   * Signal Red is too dark to read on the dark canvas (~3.1:1 — documented in
+   * `theme/afTokens.ts`), so DEPLETED's state word / trend arrow / delta take
+   * `af.redText`. The other three band accents already clear AA on canvas, so
+   * they are their own text variant. Pinned by homePresentation.test.ts.
+   */
+  accentText: string;
   /** Order the three quiet signals lead in — most-relevant-first per band. */
   signalOrder: SignalKey[];
 }
@@ -47,14 +61,14 @@ export function resolveHomePresentation(level: string | null | undefined): HomeP
   const band = normalizeBand(level);
   switch (band) {
     case 'PEAK':
-      return { band, accent: af.green, signalOrder: ['recovery', 'hydration', 'heat'] };
+      return { band, accent: af.green, accentText: af.green, signalOrder: ['recovery', 'hydration', 'heat'] };
     case 'RECOVERING':
-      return { band, accent: af.amber, signalOrder: ['recovery', 'hydration', 'heat'] };
+      return { band, accent: af.amber, accentText: af.amber, signalOrder: ['recovery', 'hydration', 'heat'] };
     case 'DEPLETED':
-      return { band, accent: af.red, signalOrder: ['hydration', 'heat', 'recovery'] };
+      return { band, accent: af.red, accentText: af.redText, signalOrder: ['hydration', 'heat', 'recovery'] };
     case 'BALANCED':
     default:
-      return { band, accent: af.cyan, signalOrder: DEFAULT_ORDER };
+      return { band, accent: af.cyan, accentText: af.cyan, signalOrder: DEFAULT_ORDER };
   }
 }
 

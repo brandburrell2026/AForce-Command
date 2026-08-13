@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { af } from '@/theme';
+import { contrast } from '@/theme/__tests__/_wcagContrast';
 import {
   normalizeBand,
   resolveHomePresentation,
   resolveArcAnimation,
   resolveArcDimensions,
 } from '../homePresentation';
+
+const BANDS = ['PEAK', 'BALANCED', 'RECOVERING', 'DEPLETED'] as const;
 
 describe('normalizeBand', () => {
   it('accepts the four bands case-insensitively', () => {
@@ -40,7 +43,48 @@ describe('resolveHomePresentation — band-tinted accent (brand af.* only)', () 
   });
   it('returns only presentation fields — never a score/command (Score-Protection)', () => {
     const p = resolveHomePresentation('DEPLETED');
-    expect(Object.keys(p).sort()).toEqual(['accent', 'band', 'signalOrder']);
+    // `accentText` joined the shape in Wave 5 (the AA-clean twin of `accent`,
+    // for text/glyphs). The assertion is unchanged in intent — an exact key
+    // list, so a field carrying score/command data still fails here.
+    expect(Object.keys(p).sort()).toEqual(['accent', 'accentText', 'band', 'signalOrder']);
+  });
+});
+
+describe('resolveHomePresentation — accentText is the AA-clean twin (Wave 5)', () => {
+  it('every band renders text/glyphs at ≥ 4.5:1 on the app canvas', () => {
+    // Home draws the state word and the LiveStatusLine arrow/delta/verb in
+    // `accentText` at 11–13pt, so the normal-text floor applies to all four.
+    for (const band of BANDS) {
+      const { accentText } = resolveHomePresentation(band);
+      expect(contrast(accentText, af.canvas)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('DEPLETED swaps to af.redText because raw Signal Red fails AA as text', () => {
+    expect(resolveHomePresentation('DEPLETED').accentText).toBe(af.redText);
+    // Prove the guard above is real: the fill accent itself would NOT pass.
+    expect(contrast(af.red, af.canvas)).toBeLessThan(4.5);
+  });
+
+  it('keeps the brand fill red for fills — accent is untouched by the text swap', () => {
+    const p = resolveHomePresentation('DEPLETED');
+    expect(p.accent).toBe('#C1281B');
+    expect(p.accentText).not.toBe(p.accent);
+  });
+
+  it('leaves the three already-legible bands as their own text variant', () => {
+    for (const band of ['PEAK', 'BALANCED', 'RECOVERING'] as const) {
+      const p = resolveHomePresentation(band);
+      expect(p.accentText).toBe(p.accent);
+    }
+  });
+
+  it('never tints a healthy band with any red (Signal Red stays meaningful)', () => {
+    for (const band of ['PEAK', 'BALANCED', 'RECOVERING'] as const) {
+      const p = resolveHomePresentation(band);
+      expect([p.accent, p.accentText]).not.toContain(af.red);
+      expect([p.accent, p.accentText]).not.toContain(af.redText);
+    }
   });
 });
 
