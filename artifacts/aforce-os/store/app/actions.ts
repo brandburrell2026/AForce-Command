@@ -67,6 +67,7 @@ import { categorizeCommand } from '../../utils/intelligence/commandCategory';
 import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
 import { appendCommandEvents } from '../../services/commandLedger';
 import { enqueueIntake } from '../../services/intakeOutbox';
+import { classifyWriteFailure, WRITE_FAILURE_COPY } from './writeFailure';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -336,18 +337,20 @@ export function useStoreActions({
       // permanently disabled after any failed intake.
       console.warn('[AForce] logIntake failed', err);
       dispatch({ type: 'CYCLE_FAILURE' });
-      // …but clearing the spinner is ALL CYCLE_FAILURE does, so until now a
-      // 401 / 5xx / timeout looked exactly like success: nothing moved, nothing
-      // was said, and the intake was gone. `offline_intake_outbox_enabled` is
-      // false in production, so there is no durable queue behind this catch —
-      // the write really is lost and the member is the only one who can
-      // recover it. Fail visibly, with the SAME pair `confirmCommand` already
-      // raises below: a write that didn't reach the server is one fact, and it
-      // should read identically wherever it happens.
+      // …but clearing the spinner is ALL CYCLE_FAILURE does, so a 401 / 5xx /
+      // timeout once looked exactly like success. There is no durable queue
+      // behind this catch in production, so the write really is lost. Fail
+      // visibly — and name the CAUSE: one sentence for every cause is what
+      // made a 401 read as a network problem for three builds (why, and the
+      // classes, in ./writeFailure.ts). `confirmCommand` raises the identical
+      // pair for the identical cause.
+      const failure = classifyWriteFailure(err);
       Alert.alert(
-        i18n.t('common.action_failed_title', { defaultValue: 'Not saved' }),
-        i18n.t('common.action_failed_body', {
-          defaultValue: "That didn't reach the server — check your connection and try again.",
+        i18n.t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        i18n.t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
         }),
       );
     }
@@ -447,10 +450,15 @@ export function useStoreActions({
       // heard about — the user was rewarded, then silently un-rewarded on
       // the next sync. Fail visibly instead; state stays untouched.
       console.warn('[AForce] confirmCommand failed', err);
+      // Same classification as the intake leg above — a refused confirmation
+      // and a refused intake share one cause and must read the same way.
+      const failure = classifyWriteFailure(err);
       Alert.alert(
-        i18n.t('common.action_failed_title', { defaultValue: 'Not saved' }),
-        i18n.t('common.action_failed_body', {
-          defaultValue: "That didn't reach the server — check your connection and try again.",
+        i18n.t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        i18n.t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
         }),
       );
     }

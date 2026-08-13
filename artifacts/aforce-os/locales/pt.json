@@ -23,6 +23,24 @@
       "queued_other": "{{count}} registros na fila — ainda não sincronizados. Serão enviados automaticamente assim que você estiver online novamente.",
       "failed_one": "1 registro na fila — a última tentativa de sincronização falhou. O AForce continuará tentando automaticamente.",
       "failed_other": "{{count}} registros na fila — a última tentativa de sincronização falhou. O AForce continuará tentando automaticamente."
+    },
+    "action_failed_title": {
+      "offline": "Não salvo — sem conexão",
+      "auth": "Não salvo — entre novamente",
+      "forbidden": "Não salvo — acesso negado",
+      "timeout": "Não salvo — tempo esgotado",
+      "rate_limited": "Não salvo — tentativas demais",
+      "invalid": "Não salvo — entrada recusada",
+      "server": "Não salvo — problema no servidor"
+    },
+    "action_failed_body": {
+      "offline": "Isso não chegou ao servidor, então nada foi registrado. Verifique sua conexão e tente novamente.",
+      "auth": "Sua sessão expirou, então nada foi registrado. Entre novamente e registre mais uma vez.",
+      "forbidden": "Sua conta não pode fazer esta alteração, então nada foi registrado. Fale com o suporte se isso não for esperado.",
+      "timeout": "O servidor demorou demais para responder, então nada foi registrado. Aguarde um momento e tente novamente.",
+      "rate_limited": "Muitas solicitações em pouco tempo, então nada foi registrado. Aguarde um minuto e tente novamente.",
+      "invalid": "O servidor não aceitou esta entrada, então nada foi registrado. Tente novamente e atualize o AForce se continuar acontecendo.",
+      "server": "Algo falhou do nosso lado, então nada foi registrado. Aguarde um momento e tente novamente."
     }
   },
   "tabs": {
