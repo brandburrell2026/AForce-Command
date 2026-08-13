@@ -145,11 +145,63 @@
  * moment until the member confirms an amount. Score-Protection is untouched —
  * this screen still never computes anything; it hands `ozOverride` to the same
  * `logIntake` action every other intake surface calls.
+ *
+ * AMENDMENT §2 — SAFE-AREA / TAB-BAR CLEARANCE. Home applied no device-derived
+ * bottom inset at all: `AFScreen` defaults `edges={['top']}`, this screen sets
+ * no `contentInsetAdjustmentBehavior`, and the tab bar is `position: 'absolute'`
+ * — react-navigation renders scenes at `absoluteFill` and only PUBLISHES the
+ * bar's height via `BottomTabBarHeightContext`, injecting no padding. So Home
+ * substituted a hard-coded 128 (`Spacing[24] + Spacing[8]`) on the V3 path and a
+ * flat 40 otherwise, against a real bar of `49 + insets.bottom` — 49pt on an SE,
+ * 83pt on a notched device. Both numbers were device-blind, and the flat 40
+ * parked the last 9–43pt of Home permanently underneath the bar.
+ *
+ * The padding is now DERIVED from the height the navigator already published,
+ * plus one spacing token of breathing room (`homeSafeArea.ts`). The CONTEXT is
+ * read directly rather than via `useBottomTabBarHeight()`, because that hook
+ * THROWS when the context is undefined and Home must stay mountable outside the
+ * tab navigator for its render harnesses. No device is named, measured or
+ * guessed at anywhere on this screen.
+ *
+ * AMENDMENTS §1/§3/§4/§5/§6 — HOME HIERARCHY (founder, 2026-08-13).
+ * PRESENTATION ONLY: no HydroState math, no threshold, no decay, no evidence
+ * CALCULATION, no band semantics, no trend logic, no intake or logging path is
+ * touched, and no shared primitive is modified — every change below is HOW HOME
+ * COMPOSES what already ships. The approved order, with nothing competing:
+ *
+ *     HYDROSTATE SCORE → BAND → EVIDENCE CONFIDENCE → COMMAND → ACTION
+ *
+ * The device build put five things in the first glance instead of one. What
+ * changed, and why:
+ *
+ *   §1 CRITICAL is gone from HOME (not from the product). See the `trendVerb`
+ *      derivation below — `services/statusVerb.ts` is untouched.
+ *   §3 'AForce OS' is KEPT and demoted from `afType.title1` to the eyebrow
+ *      register: a product identifier, not the second-largest object on screen.
+ *   §4 The evidence chip is metadata about the READING, not a fourth verdict
+ *      about the body — same chip, same rating, moved out of the verdict column
+ *      and pinned to the number it qualifies. `homeConfidence.ts` is untouched.
+ *   §5 The hero keeps its size. The ring is NOT enlarged — premium comes from
+ *      restraint, not scale — so the gain is spacing, tracking and breathing
+ *      room around one dominant numeral.
+ *   §6 The command card is separated from the hero by a section-scale gap so it
+ *      stops reading as a second hero. Its content, its WHY and its primary
+ *      action are unchanged.
+ *
+ * Net effect on the first paint of a DEPLETED member: they used to meet a 32pt
+ * product name, a 76pt number, a band word, an evidence token and a red
+ * "● CRITICAL" — five objects, three of them saying the same thing. They now
+ * meet the number, the band, and a quiet note on how sure AForce is.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
+// The CONTEXT, never `useBottomTabBarHeight()` — the hook throws when the
+// context is undefined, which would make Home unmountable outside the tab
+// navigator (render harnesses, deep-linked previews). Same import expo-router
+// itself uses to ask "is there a bottom tab bar above me?".
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -185,6 +237,7 @@ import { HomeBaselineHero } from './HomeBaselineHero';
 import { HomeFreshnessLabel } from './HomeFreshnessLabel';
 import { freshestBiometricsFetchedAt } from './homeFreshness';
 import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';
+import { resolveHomeScrollBottomPadding } from './homeSafeArea';
 import { resolveHomeConfidence } from './homeConfidence';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 // CORRECTION 2: `parseDoseOz` is gone from this screen on purpose. The amount
@@ -298,6 +351,15 @@ export function HomeScreenV2() {
   const clerkUser = useUser().user;
   const router = useRouter();
   const reducedMotion = useReducedMotion();
+
+  // ── AMENDMENT §2 — tab-bar clearance (see the file header) ─────────────────
+  // The navigator lays the bar out and publishes what it ACTUALLY measured
+  // (`49 + insets.bottom`, or the explicit web height); this is the only honest
+  // source for it, and reading it costs no store slice, no timer and no
+  // measurement pass of our own. `?? 0` is a real zero, not a fallback guess:
+  // undefined means there is no bottom tab bar above this content.
+  const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
+  const scrollBottomPadding = resolveHomeScrollBottomPadding(tabBarHeight);
 
   // ── CORRECTION 2 — the water-logging surface (see the file header) ─────────
   // The cycle slice is this screen's ONE new subscription. It carries the
@@ -453,6 +515,24 @@ export function HomeScreenV2() {
     () => getStatusVerb(engine.performanceState.level, trend.direction),
     [engine.performanceState.level, trend.direction],
   );
+  // ── FOUNDER §1 (2026-08-13) — CRITICAL LEAVES THE HOME HIERARCHY ──────────
+  // `getStatusVerb` is a band × trend composite, but at DEPLETED the trend axis
+  // collapses: two of its three directions return CRITICAL. What reached the
+  // member was therefore not momentum, it was the BAND WORD SAID AGAIN, louder,
+  // in `af.redText`, one line under the hero that had already said DEPLETED —
+  // and because `useScoreTrend` initialises to 'flat', it arrived on FIRST
+  // PAINT with no delta and no window behind it. Home's approved hierarchy is
+  // score → band → evidence → command → action; a second verdict competing with
+  // the band is exactly the card-competition the premium standard removes.
+  //
+  // The SERVICE IS UNTOUCHED — `services/statusVerb.ts` still returns CRITICAL,
+  // its tests still pass, and `LiveStatusLine` still resolves the i18n key —
+  // because this is a presentation decision belonging to this screen, not a
+  // change to what the verb means. Two withholdings, one rule: Home renders a
+  // verb only when the trend has a real direction to report, and never the one
+  // that merely restates the band. With neither, the line renders nothing.
+  const trendVerb =
+    trend.direction === 'flat' || statusVerb === 'CRITICAL' ? undefined : statusVerb;
 
   // ── E4 elite voice-coach delivery (flag-gated; phrasing/delivery ONLY) ──────
   // Same command/dose/timing/evidence for every coach — only the eyebrow + tone
@@ -534,9 +614,24 @@ export function HomeScreenV2() {
     // content box, not the viewport — it would slide away under the member's
     // thumb. This non-scrolling wrapper is the frame the confirmation fills.
     <View style={styles.root}>
-      <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
+      {/* One derived padding for BOTH signal layouts. The V3 grid used to get
+          its own larger hard-coded constant, but the thing that has to clear the
+          bar is the same thing in both — the last pixel of the scroll — and the
+          derivation covers it identically, so the branch was carrying a second
+          magic number for no behavioural reason. */}
+      <AFScreen scroll contentContainerStyle={{ paddingBottom: scrollBottomPadding }}>
         {/* Wordmark + freshness (+ V3 health-connection chip — renders nothing
-            when no provider has contributed data) */}
+            when no provider has contributed data).
+
+            FOUNDER §3 — 'AForce OS' STAYS, DEMOTED. It shipped at `afType.title1`
+            (32/38), which made the app's own name the second-largest object on
+            the screen, competing with the 76pt HydroState numeral for the first
+            glance — the product announcing itself above the member's state. It
+            is not deleted and it is not turned into a marketing splash: the same
+            key renders in the same place, in the eyebrow register, as a
+            restrained product identifier. Reading order is unchanged, so the
+            approved sequence — quiet contextual greeting → subordinate brand →
+            dominant HYDROSTATE — is exactly what the eye and VoiceOver get. */}
         <View style={styles.header}>
           <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
           <View style={styles.brandRow}>
@@ -657,11 +752,17 @@ export function HomeScreenV2() {
                     a11yContext={t('home.v2.confidence_a11y_context')}
                   />
                 </View>
+                {/* Momentum, not a verdict (founder §1). `trendVerb` is
+                    withheld when the trend is flat or when the verb would be
+                    CRITICAL, and with nothing to report the line renders
+                    NOTHING — so the run under the hero is band → evidence, and
+                    the third line only appears when the score has actually
+                    moved. */}
                 <LiveStatusLine
                   direction={trend.direction}
                   delta={trend.delta}
                   ageSec={trend.ageSec}
-                  verb={statusVerb}
+                  verb={trendVerb}
                   accent={accentText}
                   testID="home-v2-live-status-line"
                 />
@@ -675,8 +776,21 @@ export function HomeScreenV2() {
                 not said how much they drank yet. The write and the haptic moment
                 both live on the confirm path. `primaryLoading` is the in-flight
                 state the card has always accepted and this screen never passed —
-                it also makes the button inert while a write is outstanding. */}
-            <Animated.View entering={commandReveal}>
+                it also makes the button inert while a write is outstanding.
+
+                FOUNDER §6 — the card is the FIFTH thing in the hierarchy, not
+                the second hero. Nothing inside it changes here: `AFCommandCard`
+                is composed by other surfaces and stays untouched, the primary
+                action is preserved exactly, and WHY still reaches the member
+                inline (the card's own one-line reason) with the full rationale
+                one tap away. What changes is the SEPARATION Home gives it —
+                previously the card began ~2pt under the trend line, so the
+                reading and the instruction read as two stacked cards competing
+                at the same altitude. A section-scale gap above it is what makes
+                the eye finish the reading before it arrives at the move, and it
+                applies to all three hero states so the rhythm never depends on
+                how much evidence exists. */}
+            <Animated.View style={styles.command} entering={commandReveal}>
               <AFCommandCard
                 eyebrow={commandEyebrow}
                 title={title || t('home.v2.default_command_title')}
@@ -781,29 +895,60 @@ export function HomeScreenV2() {
 const styles = StyleSheet.create({
   // CORRECTION 2 — the non-scrolling overlay host (see the return statement).
   root: { flex: 1 },
-  // Tokenized bottom breathing room (replaces a trailing <View height:40/> spacer).
-  scrollContent: { paddingBottom: Spacing[10] },
-  // V3's four-tile signal grid extends the scroll below the fold — clear the
-  // floating tab bar (≈49pt bar + home-indicator inset) so the last row of
-  // tiles is reachable.
-  scrollContentV3: { paddingBottom: Spacing[24] + Spacing[8] },
+  // AMENDMENT §2 — the bottom padding is NOT a static style any more. It has to
+  // be `published tab-bar height + breathing room`, and the published height is
+  // only knowable at render time, so it lives at the call site and its rule
+  // lives in `homeSafeArea.ts`. Nothing device-specific may return here.
   momentsSection: { marginTop: 4 },
-  header: { marginTop: 8, marginBottom: 8 },
+  // ── FOUNDER §5 — ONE VERTICAL RHYTHM, FROM SPACING TOKENS ──────────────────
+  // The header used to claim almost as much vertical space as the instrument
+  // (97pt vs 288pt on a 667pt device, from ad-hoc 8s and a 32pt brand line),
+  // which is what made Home read as a stack of equal sections rather than one
+  // reading with context around it. The header is now the SMALLEST block on the
+  // screen and the hero the largest, all of it stepped off `Spacing[]` so the
+  // rhythm is one scale instead of three loose numerics.
+  header: { marginTop: Spacing[1], marginBottom: Spacing[3] },
   welcome: { ...afType.secondary, color: af.textTertiary },
-  brand: { ...afType.title1, color: af.textPrimary },
+  // FOUNDER §3 — kept, demoted (was `afType.title1`, 32/38, textPrimary: the
+  // second-largest object on Home). The eyebrow register is what the product
+  // already uses for structural identifiers, and `textSecondary` keeps it
+  // legible and branded while conceding the glance to the numeral. No new
+  // token, no new colour, no casing transform — the locale value renders as
+  // written, in every language.
+  brand: { ...afType.eyebrow, color: af.textSecondary, marginTop: Spacing[1] },
   freshness: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
-  arcWrap: { alignItems: 'center', marginVertical: 24 },
-  // Sits between the arc and the trend line, centred under the numeral it
-  // qualifies. `arcWrap`'s 24pt bottom margin already separates them, so this
-  // only nudges the chip clear of the trend line beneath it.
+  // The hero owns the most negative space on the screen — above the ring, so
+  // the reading arrives clear of the header; tight below it, so the evidence
+  // chip reads as a caption ON the instrument (§4) rather than as the next
+  // entry in a column of verdicts.
+  arcWrap: { alignItems: 'center', marginTop: Spacing[6], marginBottom: Spacing[3] },
+  // FOUNDER §4 — EVIDENCE IS METADATA, NOT A FOURTH JUDGEMENT. Same chip, same
+  // rating, same opacity ramp, `homeConfidence.ts` untouched: what changes is
+  // where it sits and what it belongs to. The ring's edge is the separation —
+  // score, HYDROSTATE and the band word are INSIDE the instrument (they are the
+  // reading); this sits just outside and just below it, pinned to the number it
+  // qualifies. It is the lowest-weight text on the screen (a 5px dot + a 9pt
+  // structural token on a monochrome opacity ramp — never a band colour), so it
+  // answers "how sure is AForce?" and can never be mistaken for "how bad am I?".
   confidenceRow: { alignItems: 'center', marginBottom: 8 },
   // Premium arc hero gets more vertical presence (elite path only).
-  arcWrapPremium: { marginVertical: Spacing[8] },
+  arcWrapPremium: { marginTop: Spacing[8], marginBottom: Spacing[4] },
   score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  scoreLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
-  // Colour is applied at the call site from the band's `accentText` — a fixed
-  // red here made every band's state word read as an alarm (Wave 5).
-  stateLabel: { ...afType.caption, marginTop: 6 },
+  // The name of the number, not a verdict about it — held close to the numeral
+  // so the two read as one object.
+  scoreLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: Spacing[1] },
+  // The band word: second in the hierarchy, and the only interpretation Home
+  // prints. Colour is applied at the call site from the band's `accentText` — a
+  // fixed red here made every band's state word read as an alarm (Wave 5).
+  // Tracking (the same device `afType.eyebrow` and LiveStatusLine already use
+  // for structural caps) is what separates it from body copy at the SAME size —
+  // it now reads as a state token rather than a 13pt sentence shouted in caps,
+  // without gaining a single point of size.
+  stateLabel: { ...afType.caption, letterSpacing: 1.2, marginTop: Spacing[2] },
+  // FOUNDER §6 — the section-scale gap that stops the command card reading as a
+  // second hero. Applies to every hero state (established / building / pending)
+  // so the rhythm never depends on how much evidence exists.
+  command: { marginTop: Spacing[7] },
   // Band-tinted state pill (accent from homePresentation; never statusColor).
   statePill: {
     marginTop: 8,
