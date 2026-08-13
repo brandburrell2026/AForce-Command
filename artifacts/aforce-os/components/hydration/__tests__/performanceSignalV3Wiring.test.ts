@@ -245,3 +245,70 @@ describe('PerformanceSignalV3 — Wave-4 behaviour preserved', () => {
     expect(CODE).toMatch(/if \(fixtureRollups\) return;/);
   });
 });
+
+/**
+ * WAVE 5 — LOADING / DEGRADED STATES.
+ *
+ * Two defects, both about what the screen asserts when it does not actually
+ * know:
+ *   5. BARE SPINNER — the whole fetch (plus, on a cold-launch auth race, two
+ *      retry backoffs) showed a lone centered ActivityIndicator on an empty
+ *      canvas, then the summary card and seven day rows appeared out of
+ *      nothing.
+ *   6. SILENT STALE — a refresh that failed once history was already on screen
+ *      set `error` and rendered NOTHING: last week's numbers kept the
+ *      authority of a fresh read.
+ */
+describe('PerformanceSignalV3 — the loading window holds the shape, not a spinner', () => {
+  it('mounts the store-free SignalSkeleton instead of a bare ActivityIndicator', () => {
+    expect(CODE).toContain("import { SignalSkeleton } from './SignalSkeleton';");
+    expect(CODE).toContain('<SignalSkeleton dayCount={RANGE_DAYS}');
+    // The spinner is gone at the source: it can't come back by accident.
+    expect(CODE).not.toContain('ActivityIndicator');
+  });
+
+  it('shapes the same number of day rows the window will actually deliver', () => {
+    expect(CODE).toContain('const RANGE_DAYS = 7;');
+    expect(CODE).toMatch(/<SignalSkeleton dayCount=\{RANGE_DAYS\}/);
+  });
+
+  it('keeps ONE progressbar wrapping the shape, so the blocks do not each announce', () => {
+    const loading = CODE.slice(CODE.indexOf('testID="signal-v3-loading"') - 400, CODE.indexOf('testID="signal-v3-loading"') + 120);
+    expect(loading).toContain('accessibilityRole="progressbar"');
+    expect(loading).toContain("accessibilityLabel={t('signal.v3.loading_a11y')}");
+    expect(loading).toContain('accessibilityLiveRegion="polite"');
+  });
+});
+
+describe('PerformanceSignalV3 — a failed refresh says so instead of passing stale off as fresh', () => {
+  it('renders the SHIPPED AFInlineErrorRow when a load failed but history is on screen', () => {
+    expect(CODE).toMatch(/import\s*\{[\s\S]*?AFInlineErrorRow[\s\S]*?\}\s*from\s*'@\/components\/ui';/);
+    expect(CODE).toContain('testID="signal-v3-stale"');
+    expect(CODE).toContain("message={t('signal.v3.stale_notice')}");
+  });
+
+  it('offers the SAME existing retry path, not a second one', () => {
+    // The row's retry is `onRefresh` — the pull-to-refresh loader that already
+    // exists — so no divergent second fetch path can appear beside it.
+    expect(CODE).toMatch(
+      /message=\{t\('signal\.v3\.stale_notice'\)\}\s*onRetry=\{\(\) => void onRefresh\(\)\}/,
+    );
+    expect(CODE).toContain("retryLabel={t('signal.v3.retry')}");
+    expect(CODE.match(/const load = React\.useCallback/g)).toHaveLength(1);
+  });
+
+  it('places the notice above the average it qualifies', () => {
+    expect(CODE.indexOf('signal-v3-stale')).toBeLessThan(CODE.indexOf('testID="signal-v3-summary"'));
+  });
+
+  it('states what still works, not only what broke (founder rule: what happened · what still works · what to do)', () => {
+    // Full-screen failure and inline-stale both carry the "you can still log"
+    // half; without it the member cannot tell whether the app is usable.
+    expect(V3.stale_notice).toMatch(/still works/i);
+    expect(V3.load_failed_body).toMatch(/still counts|still works/i);
+    // …and neither leaks internal vocabulary.
+    for (const copy of [V3.stale_notice, V3.load_failed_body, V3.empty_body]) {
+      expect(copy).not.toMatch(/\b(null|undefined|endpoint|rollup|API|500|error code)\b/i);
+    }
+  });
+});

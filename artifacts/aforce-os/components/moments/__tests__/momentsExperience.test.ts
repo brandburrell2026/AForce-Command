@@ -175,3 +175,59 @@ describe('Moments — no raw colour anywhere on these surfaces', () => {
     expect(DETAIL).toContain('withAlpha(af.green, afAlpha.a16)');
   });
 });
+
+/**
+ * WAVE 5 — LOADING STATES. Both Moments surfaces used the hydration window to
+ * say something they did not know:
+ *   • the overview rendered the "No moments yet" EMPTY STATE while the store
+ *     was still reading, telling a member with a full day that their day was
+ *     empty and then taking it back;
+ *   • `/moment/[id]` returned `null` — a genuinely blank screen — for that same
+ *     window, which on a deep link is the FIRST thing a member sees, and a
+ *     black screen reads as a crash rather than a wait.
+ * `useMomentsData` already exposes `hydrated`; both now wait on it.
+ */
+describe('Moments — empty is a conclusion, and it has to be earned', () => {
+  const ROUTE = strip(readFileSync(join(__dirname, '..', '..', '..', 'app', 'moment', '[id].tsx'), 'utf8'));
+
+  it('the overview waits for hydration before it can call the day empty', () => {
+    expect(OVERVIEW).toContain("import { MomentsOverviewSkeleton } from './MomentsSkeleton';");
+    expect(OVERVIEW).toMatch(/!data\.hydrated\s*\?\s*[\s\S]{0,600}?<MomentsOverviewSkeleton \/>/);
+    // The empty state is still there — it just comes second now.
+    expect(OVERVIEW).toContain('testID="moments-empty"');
+    expect(OVERVIEW.indexOf('MomentsOverviewSkeleton')).toBeLessThan(
+      OVERVIEW.indexOf('testID="moments-empty"'),
+    );
+  });
+
+  it('PREPARE MY DAY waits too — it is deep-linkable, so the flash was reachable first', () => {
+    const PLAN = read('PrepareMyDayScreen.tsx');
+    expect(PLAN).toContain("import { MomentsOverviewSkeleton } from './MomentsSkeleton';");
+    expect(PLAN).toMatch(/!data\.hydrated\s*\?\s*[\s\S]{0,600}?<MomentsOverviewSkeleton \/>/);
+    expect(PLAN.indexOf('MomentsOverviewSkeleton \/>')).toBeLessThan(
+      PLAN.indexOf('testID="plan-empty"'),
+    );
+    // The day strip is a selector, not a claim — it stays live while loading.
+    expect(PLAN.indexOf('testID="plan-day-strip"')).toBeLessThan(
+      PLAN.indexOf('!data.hydrated'),
+    );
+  });
+
+  it('the empty state still teaches what happens next, with one action', () => {
+    expect(OVERVIEW).toMatch(/action=\{\{ label: t\('moments\.add_moment'\)/);
+    expect(moments.empty_title).toBeTruthy();
+    expect(moments.empty_body).toBeTruthy();
+  });
+
+  it('the deep-linked ritual shapes itself instead of painting a blank screen', () => {
+    expect(ROUTE).toContain("import { MomentRitualSkeleton } from '@/components/moments/MomentsSkeleton';");
+    expect(ROUTE).toContain('<MomentRitualSkeleton />');
+    // The `return null` that produced the blank screen is gone.
+    expect(ROUTE).not.toMatch(/if \(!data\.hydrated\) return null;/);
+    // …and an unknown id still redirects, only AFTER hydration settles.
+    expect(ROUTE).toContain("<Redirect href=\"/moments\" />");
+    expect(ROUTE.indexOf('MomentRitualSkeleton')).toBeLessThan(
+      ROUTE.indexOf('href="/moments"'),
+    );
+  });
+});

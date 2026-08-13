@@ -1469,6 +1469,8 @@
       "timeline_day_a11y": "{{day}} {{date}}: daily average score {{score}}.",
       "loading_a11y": "Loading your week in review.",
       "loaded_a11y": "Week in review ready.",
+      "rollups_unavailable": "Couldn't load your day-by-day hydration for this week. Everything else in this report is current.",
+      "retry": "RETRY",
       "wd_sun": "SUN",
       "wd_mon": "MON",
       "wd_tue": "TUE",
@@ -1571,7 +1573,10 @@
       "empty_title": "Nothing logged yet",
       "empty_message": "Scan or log a drink to start today's intake.",
       "this_week": "This week",
-      "oz_value": "{{oz}} oz"
+      "oz_value": "{{oz}} oz",
+      "ring_a11y": "Today's intake, {{pct}}% of your target",
+      "day_logged": "intake logged",
+      "day_not_logged": "no intake logged"
     }
   },
   "protocol": {
@@ -1596,7 +1601,8 @@
       "unit_day": "d",
       "recent_activity": "Recent activity",
       "why_consistency": "You're {{pct}}% consistent this week. The plan adapts each recheck ({{min}} min) to your live readiness.",
-      "why_adaptive": "The plan adapts each recheck ({{min}} min) to your live readiness."
+      "why_adaptive": "The plan adapts each recheck ({{min}} min) to your live readiness.",
+      "timeline_upcoming": "upcoming"
     },
     "v3": {
       "ring_label": "Protocol",
@@ -2353,7 +2359,8 @@
       "empty_title": "No tracked days yet",
       "empty_body": "Complete rituals and checks — each day builds your signal history here.",
       "load_failed": "Couldn't load your history",
-      "load_failed_body": "Check your connection, then pull down to refresh or try again.",
+      "load_failed_body": "Your history lives on your account, so nothing is lost, and anything you log now still counts. Check your connection, then pull down to refresh.",
+      "stale_notice": "Couldn't refresh. These are your last synced days — today's logging still works and syncs when you reconnect.",
       "retry": "TRY AGAIN",
       "loading_a11y": "Loading your history",
       "loaded_a11y": "History loaded",

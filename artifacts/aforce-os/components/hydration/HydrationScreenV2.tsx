@@ -114,7 +114,17 @@ export function HydrationScreenV2() {
       {/* Intake ring + stats */}
       <AFCard variant="raised" style={styles.mainCard}>
         <View style={styles.ringRow}>
-          <AFProgressRing progress={pct} size={110} stroke={9}>
+          {/* The ring's only reading used to be the centered `{pct}%`, and
+              AFProgressRing hid it — so the day's intake was unreachable by
+              VoiceOver. Naming the ring makes it one announced progressbar
+              ("Today's intake, 62% of your target") instead of a nameless bar
+              or silence. */}
+          <AFProgressRing
+            progress={pct}
+            size={110}
+            stroke={9}
+            accessibilityLabel={t('hydration.v2.ring_a11y', { pct: Math.round(pct * 100) })}
+          >
             <Text style={styles.ringPct}>{Math.round(pct * 100)}%</Text>
           </AFProgressRing>
           <View style={styles.stats}>
@@ -191,8 +201,23 @@ export function HydrationScreenV2() {
                 key={i}
                 style={styles.dayCol}
                 accessible
-                accessibilityLabel={weekdayLabels[i]}
-                accessibilityState={{ selected: filled }}
+                /*
+                 * A11y fix (Wave-5 Phase-1 pass — state by appearance alone):
+                 * the label was the weekday and nothing else, so "logged" vs
+                 * "not logged" — the entire point of the strip — existed only
+                 * as a filled vs hollow dot, and "today" only as a lighter
+                 * ring. `accessibilityState.selected` is not announced for a
+                 * plain non-interactive View, so a screen-reader member heard
+                 * seven weekday names and no week. The label now says all
+                 * three facts in words; the dots keep saying them visually.
+                 */
+                accessibilityLabel={[
+                  weekdayLabels[i],
+                  isToday ? t('common.today') : null,
+                  t(filled ? 'hydration.v2.day_logged' : 'hydration.v2.day_not_logged'),
+                ]
+                  .filter(Boolean)
+                  .join(', ')}
               >
                 <View
                   style={[
