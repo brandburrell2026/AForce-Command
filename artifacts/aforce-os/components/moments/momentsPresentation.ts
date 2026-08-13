@@ -7,7 +7,12 @@
  * list rows), mirroring the V3-screen presentation-module pattern.
  */
 
-import type { Moment, MomentRecommendation, MomentType } from '@/types/moments';
+import type {
+  Moment,
+  MomentRecommendation,
+  MomentType,
+  RitualStageState,
+} from '@/types/moments';
 import { af } from '@/theme';
 
 /** Category accent — feature tints per founder comp; never statusColor.ts. */
@@ -93,6 +98,40 @@ export function buildListRow(
     type: moment.type,
     prepared: Boolean(moment.preparedAtIso),
   };
+}
+
+/**
+ * The VISIBLE state word for a ritual stage — or `null` when the stage's own
+ * clock time is the better label (an upcoming stage's useful fact is WHEN, and
+ * a "not yet" word there would only add noise).
+ *
+ * Completed / active / upcoming used to be carried by node color and icon tint
+ * ALONE: identical text in three greens. That fails WCAG 1.4.1 for anyone who
+ * can't separate the tints, and it left the row silent about its own state.
+ */
+export function stageStateLabelKey(state: RitualStageState): string | null {
+  switch (state) {
+    case 'completed':
+      return 'moments.stage_done';
+    case 'active':
+      return 'moments.do_this_now';
+    default:
+      return null;
+  }
+}
+
+/**
+ * One VoiceOver sentence per ritual stage: what it is, where it stands, what
+ * to do. The row rendered these as three sibling Texts inside a plain View, so
+ * assistive tech read three disconnected fragments per stage — twelve for a
+ * four-stage ritual — and never said which stage was live.
+ */
+export function ritualStageA11yLabel(
+  title: string,
+  meta: string,
+  instruction: string,
+): string {
+  return [title, meta, instruction].filter((part) => part.trim().length > 0).join(', ');
 }
 
 /** Prepare-My-Day summary: total vs prep-worthy (high/moderate importance). */

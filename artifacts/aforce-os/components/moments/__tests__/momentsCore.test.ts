@@ -26,6 +26,8 @@ import {
   startsIn,
   daySummary,
   buildListRow,
+  ritualStageA11yLabel,
+  stageStateLabelKey,
 } from '../momentsPresentation';
 
 const NOW = '2026-08-12T17:38:00.000Z'; // 22 min before a 6:00 PM (18:00Z) moment
@@ -152,6 +154,28 @@ describe('presentation', () => {
     expect(windowPosture(rec, moment().startAtIso, NOW)).toBe('active');
     expect(startsIn(moment().startAtIso, NOW)).toEqual({ hours: 0, minutes: 22 });
     expect(startsIn(moment().startAtIso, '2026-08-12T19:00:00.000Z')).toBeNull();
+  });
+
+  it('every ritual stage state is readable as WORDS, not just a green', () => {
+    // completed / active are named; an upcoming stage's clock time is its own
+    // label (stageStateLabelKey returns null and the row renders the time).
+    expect(stageStateLabelKey('completed')).toBe('moments.stage_done');
+    expect(stageStateLabelKey('active')).toBe('moments.do_this_now');
+    expect(stageStateLabelKey('upcoming')).toBeNull();
+    // No two states share a word — colour is never the only differentiator.
+    const labelled = ['completed', 'active'] as const;
+    expect(new Set(labelled.map(stageStateLabelKey)).size).toBe(labelled.length);
+  });
+
+  it('a ritual stage announces as ONE sentence: what it is, where it stands, what to do', () => {
+    expect(ritualStageA11yLabel('HYDRATE', 'DO THIS NOW', 'Drink 12 oz of water')).toBe(
+      'HYDRATE, DO THIS NOW, Drink 12 oz of water',
+    );
+    // An empty piece must not leave a dangling separator mid-sentence.
+    expect(ritualStageA11yLabel('PERFORM', '', 'Enter the meeting prepared')).toBe(
+      'PERFORM, Enter the meeting prepared',
+    );
+    expect(ritualStageA11yLabel('PAUSE', '   ', '')).toBe('PAUSE');
   });
 
   it('list rows carry posture + accent; daySummary counts prep-worthy honestly', () => {
