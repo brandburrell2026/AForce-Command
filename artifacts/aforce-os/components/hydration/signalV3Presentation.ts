@@ -14,6 +14,11 @@
 
 import type { JournalRollup, PerformanceLevel } from '@/types';
 import { resolveHomePresentation } from '@/components/home/homePresentation';
+import {
+  PARTIAL_MIN_RATIO,
+  RICH_MIN_RATIO,
+  type ProfileCompletenessLevel,
+} from '@/utils/profile/profileCompleteness';
 
 /** Shipped day-card thresholds (JournalDayCard.avgColor), as a band. */
 export function bandForScore(avgScore: number): PerformanceLevel {
@@ -23,9 +28,25 @@ export function bandForScore(avgScore: number): PerformanceLevel {
   return 'DEPLETED';
 }
 
-/** Band accent — same af.* accent module as the Home arc / Protocol ring. */
+/** Band accent for FILLS/strokes — same af.* accent module as the Home arc /
+ *  Protocol ring. */
 export function accentForScore(avgScore: number): string {
   return resolveHomePresentation(bandForScore(avgScore)).accent;
+}
+
+/**
+ * Band accent for anything drawn as TEXT.
+ *
+ * The two largest numerals on this screen — the week average and each day's
+ * score — took `accentForScore`, so a DEPLETED week rendered them in Signal Red
+ * (`af.red`), which measures ~3.1:1 on the dark canvas and fails WCAG AA. The
+ * text-safe twin is the one homePresentation already resolves for exactly this
+ * (`accentText`, the same fix Home's arc took in Wave 5); the other three bands
+ * are their own text variant, so only DEPLETED changes. Bars, the day's accent
+ * rail and any dot keep `accentForScore` — a fill has no contrast floor.
+ */
+export function accentTextForScore(avgScore: number): string {
+  return resolveHomePresentation(bandForScore(avgScore)).accentText;
 }
 
 /** i18n key suffix for the band pill (component translates). */
@@ -80,6 +101,48 @@ export function buildDayViews(rollups: readonly JournalRollup[], todayIso: strin
       checks: Math.max(0, r.snapshotsCount | 0),
     };
   });
+}
+
+/**
+ * How much of the requested window actually has data, expressed in the EXISTING
+ * §55 completeness vocabulary so the screen can wear the shipped
+ * `completenessChip` / `ConfidenceChip` instead of a bespoke confidence widget.
+ *
+ * No new metric and no new thresholds: the cuts are §55's own RICH_MIN_RATIO /
+ * PARTIAL_MIN_RATIO, applied to days-with-a-rollup instead of profile fields
+ * (rollups omit days with no data, so `daysTracked` IS the coverage fact). This
+ * reports COVERAGE — how much evidence is behind the average — and never grades
+ * the score itself.
+ */
+export function historyCompletenessLevel(
+  daysTracked: number,
+  windowDays: number,
+): ProfileCompletenessLevel {
+  const ratio = windowDays > 0 ? Math.max(0, daysTracked) / windowDays : 0;
+  if (ratio >= RICH_MIN_RATIO) return 'rich';
+  if (ratio >= PARTIAL_MIN_RATIO) return 'partial';
+  return 'sparse';
+}
+
+/**
+ * Ounces actually logged across the window. `computeRecapStats.totalOunces` is
+ * the LAST rollup's `endOzConsumed` — ONE day's end-of-day total. That is right
+ * for the share card's single-day framing, but under a "Last 7 days" heading it
+ * read as a weekly sum, i.e. a single measurement wearing a week's authority.
+ * Summing the per-day values is what `services/performanceTimeline` already
+ * does for the same window.
+ */
+export function weeklyTotalOz(days: readonly SignalDayView[]): number {
+  return days.reduce((sum, d) => sum + d.oz, 0);
+}
+
+/**
+ * Engine checks behind the whole window. Every averaged number on this screen
+ * is interpolated across these, so the count is the honest basis to state next
+ * to them.
+ */
+export function weeklyChecks(days: readonly SignalDayView[]): number {
+  return days.reduce((sum, d) => sum + d.checks, 0);
 }
 
 /** Whole-% average of the days' in-band time (0 when no days). */
