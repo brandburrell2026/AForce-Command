@@ -32,6 +32,13 @@
  *
  * Goal labels are consumer-facing; they map 1:1 onto the five engine
  * RecoveryGoals so personalization is real with no remap.
+ *
+ * Permissions: the Lifestyle step carries the ONE OS ask in first run —
+ * foreground location, for weather-driven hydration demand — as a row whose
+ * own copy states what it buys before the member touches the switch. It adds
+ * no step (Lifestyle already covers work environment and travel) and no
+ * required tap: declining leaves every reading estimated and labelled as
+ * such, which is the app's behavior with no grant anyway.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -230,10 +237,53 @@ export function OnboardingScreenV2() {
   const [caffeine, setCaffeine] = React.useState<CaffeineHabit | null>(null);
   const [occupation, setOccupation] = React.useState<OccupationType | null>(null);
   const [frequentTraveler, setFrequentTraveler] = React.useState(false);
+  // Location is the one OS permission this wizard asks for, and it is asked
+  // ON the LIFESTYLE step, directly beneath the sentence that explains what
+  // it buys — the founder rule is that no permission may be requested before
+  // the member understands why. Nothing outside this row may request it: the
+  // store's weather effect only ever *reads* the grant (see
+  // `store/useAppStore.tsx`). 'unknown' means we have not asked and cannot
+  // say; it is not a denial.
+  const [locationPermission, setLocationPermission] =
+    React.useState<'unknown' | 'granted' | 'denied'>('unknown');
+  // A denial the OS will not re-prompt for makes the switch a dead control;
+  // the denied line already points at Settings, so lock it rather than leave
+  // a tap that visibly does nothing.
+  const [locationCanAskAgain, setLocationCanAskAgain] = React.useState(true);
 
   const tap = React.useCallback(() => {
     Haptics.selectionAsync().catch(() => {});
   }, []);
+
+  // Reflect a grant this install already holds (a re-run of setup, or a
+  // member who granted elsewhere) so we neither re-ask nor show an "off"
+  // row that contradicts the system. A query, never a prompt.
+  React.useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const Location = await import('expo-location');
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (!cancelled && status === 'granted') setLocationPermission('granted');
+      } catch {
+        // expo-location unavailable (web / test runtime) — stay 'unknown'.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const askForLocation = React.useCallback(async () => {
+    tap();
+    try {
+      const Location = await import('expo-location');
+      const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status === 'granted' ? 'granted' : 'denied');
+      setLocationCanAskAgain(canAskAgain);
+    } catch {
+      setLocationPermission('denied');
+      setLocationCanAskAgain(false);
+    }
+  }, [tap]);
 
   const switchSystem = React.useCallback(
     (next: MeasurementSystem) => {
@@ -788,6 +838,41 @@ export function OnboardingScreenV2() {
                   />
                 </View>
               </View>
+
+              {/* The explanation is on screen before — and beside — the ask.
+                  Last row of the last input step, so it is the final thing
+                  read before Continue. */}
+              <View style={styles.field}>
+                <View style={styles.travelerRow}>
+                  <View style={styles.travelerText}>
+                    <Text style={styles.travelerTitle}>{t('onboarding.v2.location_title')}</Text>
+                    <Text style={styles.travelerSubtitle}>
+                      {t('onboarding.v2.location_sub')}
+                    </Text>
+                    {locationPermission !== 'unknown' ? (
+                      <Text style={styles.locationStatus} testID="onboarding-location-status">
+                        {locationPermission === 'granted'
+                          ? t('onboarding.v2.location_connected')
+                          : t('onboarding.v2.location_denied')}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Switch
+                    value={locationPermission === 'granted'}
+                    // Granted is terminal here — the OS owns revocation, same
+                    // posture as the calendar screen's "Connected · read-only".
+                    disabled={locationPermission === 'granted' || !locationCanAskAgain}
+                    onValueChange={(v) => {
+                      if (!v) return;
+                      void askForLocation();
+                    }}
+                    trackColor={{ true: af.red, false: af.surfaceRaised }}
+                    thumbColor={af.textPrimary}
+                    accessibilityLabel={t('onboarding.v2.location_a11y')}
+                    testID="onboarding-location-switch"
+                  />
+                </View>
+              </View>
             </>
           )}
 
@@ -1024,6 +1109,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     fontSize: 13,
     color: af.textSecondary,
+  },
+  locationStatus: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    color: af.textTertiary,
+    marginTop: 6,
   },
   ready: {
     flex: 1,
