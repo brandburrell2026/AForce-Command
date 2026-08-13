@@ -9,7 +9,11 @@ import { describe, it, expect } from 'vitest';
 
 import type { JournalRollup } from '@/types';
 import type { AnalyticsEvent } from '@/utils/analytics/metrics';
-import { buildWeeklyV3Model } from '../weeklyV3Presentation';
+import {
+  buildWeeklyV3Model,
+  performanceAgeBarAxis,
+  PA_BAR_MIN_DOMAIN_YEARS,
+} from '../weeklyV3Presentation';
 import { getWeeklyReportSection } from '@/utils/weeklyReport';
 
 // 2026-08-11 is a Tuesday → last completed week = Sun Aug 2 … Sat Aug 8 (UTC).
@@ -123,6 +127,82 @@ describe('buildWeeklyV3Model — rollup-derived counts and timeline', () => {
     expect(model.timeline.map((d) => d.score)).toEqual([88, 71, 55]);
     // weekday sanity: 2026-08-05 is a Wednesday (3)
     expect(model.timeline[0]!.weekday).toBe(3);
+  });
+});
+
+/**
+ * The trust defect this replaced: the card ranged its bars to the series' own
+ * min/max (`span = max(1, barMax - barMin)`, `frac = 0.25 + 0.75 * …`), so the
+ * SMALLEST movement `computePerformanceAge` can express — one whole year, since
+ * it rounds — rendered as the full height of the chart. Under a health-adjacent
+ * number that read as a dramatic swing. The visual slope must track the real
+ * magnitude; these tests pin that it now does, in both directions (small stays
+ * small, large stays large).
+ */
+describe('performanceAgeBarAxis — the visual slope tracks the real magnitude', () => {
+  const OLD_AUTO_RANGED_MAX = 1; // what the replaced formula produced for ANY series
+
+  it('draws a one-year week as a small step, not a full-height swing', () => {
+    const axis = performanceAgeBarAxis([{ age: 45 }, { age: 44 }])!;
+    const [older, younger] = axis.fractions as [number, number];
+    // Younger is still taller — the reading direction is unchanged.
+    expect(younger).toBeGreaterThan(older);
+    // …but by ~7% of the track, not the 75% the auto-ranged formula produced.
+    expect(younger - older).toBeCloseTo(0.068, 2);
+    expect(younger).toBeLessThan(OLD_AUTO_RANGED_MAX);
+    expect(younger).toBeCloseTo(0.659, 3);
+    expect(older).toBeCloseTo(0.591, 3);
+  });
+
+  it('draws a flat week flat, mid-track — never pinned to the floor', () => {
+    const axis = performanceAgeBarAxis([{ age: 44 }, { age: 44 }, { age: 44 }])!;
+    expect(axis.fractions).toEqual([0.625, 0.625, 0.625]);
+  });
+
+  it('still gives a genuinely large move the full sweep (this dampens noise, it does not flatten movement)', () => {
+    const axis = performanceAgeBarAxis([{ age: 50 }, { age: 35 }])!;
+    expect(axis.fractions).toEqual([0.25, 1]);
+    // A series wider than the minimum domain is left exactly as it is.
+    expect(axis.minAge).toBe(35);
+    expect(axis.maxAge).toBe(50);
+  });
+
+  it('reports an axis that contains the series and never collapses below the minimum domain', () => {
+    for (const ages of [[44], [45, 44], [47, 45, 44], [50, 35], [60, 30]]) {
+      const axis = performanceAgeBarAxis(ages.map((age) => ({ age })))!;
+      expect(axis.minAge).toBeLessThanOrEqual(Math.min(...ages));
+      expect(axis.maxAge).toBeGreaterThanOrEqual(Math.max(...ages));
+      expect(axis.maxAge - axis.minAge).toBeGreaterThanOrEqual(PA_BAR_MIN_DOMAIN_YEARS);
+      // Whole-year padding keeps the axis exact enough to quote in the caption.
+      expect(Number.isInteger(axis.minAge)).toBe(true);
+      expect(Number.isInteger(axis.maxAge)).toBe(true);
+      for (const f of axis.fractions) {
+        expect(f).toBeGreaterThanOrEqual(0.25);
+        expect(f).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it('returns null for an empty series so the card keeps its collecting posture', () => {
+    expect(performanceAgeBarAxis([])).toBeNull();
+  });
+
+  it('is fed by the model bars unchanged — ranging is presentation, it computes no new value', () => {
+    const model = buildWeeklyV3Model({
+      nowISO: NOW_ISO,
+      analyticsEvents: [],
+      rollups: [],
+      paSnapshots: [
+        { dayIndex: day('2026-08-03T00:00:00Z'), performanceAge: 47 },
+        { dayIndex: day('2026-08-07T00:00:00Z'), performanceAge: 45 },
+        { dayIndex: day('2026-08-10T00:00:00Z'), performanceAge: 44 },
+      ],
+      paResult: PA_RESULT,
+    });
+    expect(model.performanceAge.bars.map((b) => b.age)).toEqual([47, 45, 44]);
+    const axis = performanceAgeBarAxis(model.performanceAge.bars)!;
+    expect([axis.minAge, axis.maxAge]).toEqual([40, 51]);
+    expect(axis.fractions.map((f) => Math.round(f * 100))).toEqual([52, 66, 73]);
   });
 });
 

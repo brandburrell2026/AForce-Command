@@ -136,3 +136,69 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     timeline,
   };
 }
+
+// ─── Performance Age bar geometry (presentation only) ─────────────────────
+
+/**
+ * Smallest domain, in years, the Performance Age bars may be drawn over.
+ *
+ * `computePerformanceAge` rounds to a whole year, so ONE year is the smallest
+ * movement the engine can express — and ranging the bars to the series' own
+ * min/max drew that one-year step as the full height of the chart. Under a
+ * health-adjacent number that read as a dramatic swing when almost nothing had
+ * happened: the picture claimed more certainty than the data carried.
+ *
+ * Ten years is roughly the span a Performance Age can plausibly travel over a
+ * life of behaviour change, so it is the scale a member should read a single
+ * week against. At this domain a one-year week occupies ~10% of the sweep and
+ * only a genuinely large move fills the chart. It is a deliberate literal, not
+ * a reference to an engine bound, so the chart's look can never drift as a
+ * side effect of a scoring change.
+ */
+export const PA_BAR_MIN_DOMAIN_YEARS = 10;
+
+/** Height of the shortest (oldest) bar, so a bar is never a hairline. */
+const PA_BAR_FLOOR = 0.25;
+
+export interface PerformanceAgeBarAxis {
+  /** Youngest age the rendered axis covers — the top of the sweep. */
+  minAge: number;
+  /** Oldest age the rendered axis covers — the bottom of the sweep. */
+  maxAge: number;
+  /** Height fraction (PA_BAR_FLOOR…1) per bar, in the order given. */
+  fractions: number[];
+}
+
+/**
+ * Bar heights over an EXPLICIT axis rather than the series' own extremes.
+ *
+ * The series is padded out symmetrically, in whole years, until it fills at
+ * least `PA_BAR_MIN_DOMAIN_YEARS` — so the axis is exact enough to quote in a
+ * caption, and a flat week sits mid-track instead of pinned to the floor. A
+ * series that genuinely spans the minimum domain or more is left alone and
+ * still uses the full sweep: this dampens noise, it does not flatten real
+ * movement.
+ *
+ * Returns null for an empty series (the card renders its collecting posture).
+ */
+export function performanceAgeBarAxis(
+  bars: readonly { age: number }[],
+): PerformanceAgeBarAxis | null {
+  if (bars.length === 0) return null;
+  const ages = bars.map((b) => b.age);
+  const lo = Math.min(...ages);
+  const hi = Math.max(...ages);
+  const pad = Math.ceil(Math.max(0, PA_BAR_MIN_DOMAIN_YEARS - (hi - lo)) / 2);
+  const minAge = lo - pad;
+  const maxAge = hi + pad;
+  // span ≥ PA_BAR_MIN_DOMAIN_YEARS by construction, so it can never be 0.
+  const span = maxAge - minAge;
+  return {
+    minAge,
+    maxAge,
+    // Younger = taller: invert the age within the rendered domain.
+    fractions: ages.map(
+      (age) => PA_BAR_FLOOR + (1 - PA_BAR_FLOOR) * ((maxAge - age) / span),
+    ),
+  };
+}
