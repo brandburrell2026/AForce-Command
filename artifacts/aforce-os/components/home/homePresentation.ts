@@ -73,7 +73,7 @@ export function resolveHomePresentation(level: string | null | undefined): HomeP
 }
 
 export interface ArcAnimationInput {
-  /** Is the elite experience flag on? */
+  /** Is the elite experience flag on? Gates the NUMBER count-up only (see below). */
   elite: boolean;
   /** OS/user reduced-motion preference. */
   reducedMotion: boolean;
@@ -93,19 +93,24 @@ export interface ArcAnimationPlan {
 }
 
 /**
- * Decide the elevated arc/number motion. Rules (spec §1):
- *  - motion only when elite AND not reduced-motion AND the score is a real finite value;
- *  - the ring may reveal (draw in) on mount;
+ * Decide the arc/number motion. Rules (spec §1):
+ *  - nothing moves under reduced-motion, or when the score is not a real finite value;
+ *  - the RING reveal is the HydroState signature moment (Wave-5) and is therefore NOT
+ *    gated on `elite`. It used to be, which meant the product's defining piece of motion
+ *    shipped switched off while decorative loops elsewhere ran all day. `elite` is a
+ *    PRESENTATION flag (arc size, state pill, count-up) — the reveal is the product;
+ *  - the NUMBER count-up stays elite-only, deliberately: one thing moves in the hero at a
+ *    time, and a drawing ring plus a spinning numeral is two;
  *  - the NUMBER only counts between two real values (never animates from zero / from a
  *    stale-or-absent score) — so a first mount or an unavailable prior shows the value outright.
  */
 export function resolveArcAnimation(i: ArcAnimationInput): ArcAnimationPlan {
   const validScore = Number.isFinite(i.score);
-  const canMotion = i.elite && !i.reducedMotion && validScore;
+  const canMotion = !i.reducedMotion && validScore;
   const hasRealPrev = i.prevScore != null && Number.isFinite(i.prevScore);
   return {
     animateRing: canMotion,
-    countUp: canMotion && hasRealPrev && (i.prevScore as number) !== i.score,
+    countUp: canMotion && i.elite && hasRealPrev && (i.prevScore as number) !== i.score,
     fromScore: hasRealPrev ? (i.prevScore as number) : i.score,
   };
 }

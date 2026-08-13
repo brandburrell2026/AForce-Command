@@ -218,35 +218,61 @@ describe('scan empty-state copy — no locale points at a gated control', () => 
   });
 });
 
-describe.each(SCREENS)('$label — scan-ring pulse honors the motion contract', ({ path }) => {
+/**
+ * Wave-5 motion pass — the scan surface is CALM.
+ *
+ * These replace (and strengthen) the earlier "the pulse is gated on
+ * reduced-motion and torn down" assertions. The founder's brief removes
+ * constant pulsing rather than tuning it down, so the ring pulse is gone
+ * entirely — and "there is no unbounded loop to gate" is a strictly stronger
+ * guarantee than "the loop is gated correctly". Asserted against source text
+ * because both scan screens are store + router + Clerk-connected containers
+ * this suite deliberately never mounts (same convention as the tray guard
+ * above).
+ */
+describe.each(SCREENS)('$label — no unbounded animation on the scan surface', ({ path }) => {
   const CODE = codeOf(path);
 
-  it('gates the infinite pulse on the shared reduced-motion hook', () => {
-    expect(CODE).toContain("import { useReducedMotion } from '@/hooks/useReducedMotion';");
-    expect(CODE).toMatch(/const reducedMotion = useReducedMotion\(\);/);
+  it('has no infinite withRepeat loop at all', () => {
+    // Comments explaining the removal are allowed to name it; code is not.
+    const withoutComments = CODE.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(withoutComments).not.toMatch(/withRepeat/);
   });
 
-  it('provides a static alternative instead of the withRepeat loop when motion is reduced', () => {
-    const effect = CODE.slice(
-      CODE.indexOf('const reducedMotion = useReducedMotion();'),
-      CODE.indexOf('const ringStyle'),
-    );
-    expect(effect).toMatch(/if \(reducedMotion\) \{/);
-    // Resting values, not a loop, on the reduced-motion branch.
-    const staticBranch = effect.slice(effect.indexOf('if (reducedMotion) {'), effect.indexOf('} else {'));
-    expect(staticBranch).toMatch(/cancelAnimation\(ringScale\)/);
-    expect(staticBranch).toMatch(/cancelAnimation\(ringOpacity\)/);
-    expect(staticBranch).not.toMatch(/withRepeat/);
+  it('no longer declares the pulsing scan-ring shared values', () => {
+    expect(CODE).not.toMatch(/ringScale/);
+    expect(CODE).not.toMatch(/ringOpacity/);
+    expect(CODE).not.toMatch(/ringStyle/);
   });
 
-  it('cancels both loops on unmount so nothing keeps animating on the UI thread', () => {
-    const effect = CODE.slice(
-      CODE.indexOf('const reducedMotion = useReducedMotion();'),
-      CODE.indexOf('const ringStyle'),
+  it('renders the framing ring as a plain, static View', () => {
+    expect(CODE).toContain('<View style={styles.ring} />');
+  });
+
+  it('still cancels the finite success flash on unmount', () => {
+    expect(CODE).toMatch(/cancelAnimation\(flashOpacity\)/);
+  });
+});
+
+/**
+ * Wave-5 haptic language — a scan reaches the member's hand for exactly two
+ * reasons, both named in `components/ui/motionLogic.ts`.
+ */
+describe.each(SCREENS)('$label — haptics speak the four-moment language', ({ path }) => {
+  const CODE = codeOf(path);
+
+  it('fires hydration_logged when an intake is actually accepted', () => {
+    expect(CODE).toContain("fireMoment('hydration_logged')");
+  });
+
+  it('fires state_transition ONLY for a verdict that needs attention', () => {
+    expect(CODE).toMatch(
+      /if \(out\.result\.verdict === 'avoid' \|\| out\.result\.verdict === 'suboptimal'\) \{\s*fireMoment\('state_transition'\);\s*\}/,
     );
-    expect(effect).toMatch(
-      /return \(\) => \{\s*cancelAnimation\(ringScale\);\s*cancelAnimation\(ringOpacity\);\s*\};/,
-    );
-    expect(effect).toMatch(/\}, \[reducedMotion, ringScale, ringOpacity\]\);/);
+  });
+
+  it('no longer buzzes on a good verdict (every scan used to vibrate)', () => {
+    // The old call passed a Success/Warning ternary straight to expo-haptics.
+    expect(CODE).not.toMatch(/NotificationFeedbackType\.Warning\s*\n?\s*:\s*Haptics\.NotificationFeedbackType\.Success/);
   });
 });

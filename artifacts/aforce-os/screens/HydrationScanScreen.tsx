@@ -24,11 +24,10 @@ import Animated, {
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { fireMoment } from '@/services/haptics';
 import { Icon } from '../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -113,11 +112,13 @@ export default function HydrationScanScreen() {
     [detailSheetEnabled, state.userState.biometrics],
   );
 
-  // Success flash overlay — fires after a successful log, fades a PEAK
-  // tint over the screen, plays a Success haptic, and pops back to Home
-  // ~800ms later. Per spec §11: 20% PEAK over 300ms + Haptics.Success
-  // then router.back() at 800ms so the user gets a satisfying confirmation
-  // moment before returning to the dashboard.
+  // SIGNATURE MOMENT — HYDRATION COMPLETION. Fires after a successful log:
+  // fades a PEAK tint over the screen, lands the `hydration_logged` haptic, and
+  // pops back to Home ~800ms later. Per spec §11: 20% PEAK over 300ms then
+  // router.back() at 800ms, so the acknowledgement is felt before the screen
+  // leaves. This is the only moment in Phase 1 where the member changed
+  // something about their body, so it is the one that most earns a haptic —
+  // and it is now the ONLY thing a scan vibrates for (see runScan below).
   const flashOpacity = useSharedValue(0);
   const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.value }));
   // Track the pending router.back() so a manual back-nav (or unmount)
@@ -130,16 +131,18 @@ export default function HydrationScanScreen() {
         clearTimeout(flashTimeoutRef.current);
         flashTimeoutRef.current = null;
       }
+      // The flash is finite, but a back-nav during it would otherwise leave the
+      // tween running on the UI thread past unmount (Wave-4 rule: nothing
+      // animates for a screen that is gone).
+      cancelAnimation(flashOpacity);
     };
-  }, []);
+  }, [flashOpacity]);
   const triggerSuccessFlash = useCallback(() => {
     flashOpacity.value = withSequence(
       withTiming(0.2, { duration: 300, easing: Easing.out(Easing.cubic) }),
       withTiming(0, { duration: 500, easing: Easing.in(Easing.cubic) }),
     );
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    }
+    fireMoment('hydration_logged');
     if (flashTimeoutRef.current !== null) clearTimeout(flashTimeoutRef.current);
     flashTimeoutRef.current = setTimeout(() => {
       flashTimeoutRef.current = null;
@@ -152,53 +155,19 @@ export default function HydrationScanScreen() {
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  // Pulsing scan ring
-  const ringScale = useSharedValue(1);
-  const ringOpacity = useSharedValue(0.7);
-  // Wave-4 finding: both pulse loops were `withRepeat(..., -1)` with no
-  // reduced-motion gate and no teardown — they animated forever on the
-  // Reanimated UI thread, including after this screen unmounted and for
-  // members who asked the OS to reduce motion. Same remedy as
-  // components/WhoopSnapshotCard.tsx:116-168 — the shared reduced-motion
-  // hook plus cancelAnimation in the static branch and on unmount.
-  const reducedMotion = useReducedMotion();
-  useEffect(() => {
-    if (reducedMotion) {
-      // Static alternative: the ring holds at its resting scale/opacity, so
-      // the viewfinder still reads as armed without any looping motion.
-      cancelAnimation(ringScale);
-      cancelAnimation(ringOpacity);
-      ringScale.value = 1;
-      ringOpacity.value = 0.7;
-    } else {
-      ringScale.value = withRepeat(
-        withSequence(
-          withTiming(1.15, { duration: 1400, easing: Easing.out(Easing.cubic) }),
-          withTiming(1, { duration: 1400, easing: Easing.in(Easing.cubic) }),
-        ),
-        -1,
-        false,
-      );
-      ringOpacity.value = withRepeat(
-        withSequence(
-          withTiming(0.25, { duration: 1400 }),
-          withTiming(0.7, { duration: 1400 }),
-        ),
-        -1,
-        false,
-      );
-    }
-    return () => {
-      cancelAnimation(ringScale);
-      cancelAnimation(ringOpacity);
-    };
-  }, [reducedMotion, ringScale, ringOpacity]);
-
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ringScale.value }],
-    opacity: ringOpacity.value,
-  }));
-
+  // Wave-5 REMOVAL — the scan ring no longer pulses.
+  //
+  // Wave-4 found this as two ungated, un-torn-down `withRepeat(..., -1)` loops
+  // and Wave-5 round 1 gated them. This round finishes the job: per the
+  // founder's motion brief, constant pulsing is REMOVED rather than tuned down,
+  // and a viewfinder does not need a heartbeat to say it is armed — the live
+  // camera preview inside it already does. Deleting it also takes the last
+  // unbounded UI-thread loop off the scan surface, so an open scanner now costs
+  // nothing per frame while it waits.
+  //
+  // The ring itself stays: it is the framing target. It is simply a static
+  // stroke now, drawn at the resting scale/opacity the reduced-motion branch
+  // already used — so a reduced-motion member sees exactly what everyone sees.
   const simulatable = useMemo(() => listSimulatableBarcodes(), []);
 
   // Other-brand chips for the "Other Brands" tab — every simulatable
@@ -270,12 +239,13 @@ export default function HydrationScanScreen() {
           performanceState: state.engineOutput.performanceState.level,
           recommendedProductId: out.result.recommendation.aforceEquivalentId ?? null,
         });
-        if (Platform.OS !== 'web') {
-          Haptics.notificationAsync(
-            out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal'
-              ? Haptics.NotificationFeedbackType.Warning
-              : Haptics.NotificationFeedbackType.Success,
-          ).catch(() => {});
+        // MEANINGFUL STATE TRANSITION — and only when there is one. A good
+        // verdict used to buzz too, which made every single scan vibrate; the
+        // result card arriving is acknowledgement enough for "this is fine".
+        // A poor verdict is AForce changing its read of the member's next
+        // move, so that one still reaches the hand.
+        if (out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal') {
+          fireMoment('state_transition');
         }
       }
     } finally {
@@ -555,7 +525,7 @@ export default function HydrationScanScreen() {
               { opacity: Platform.OS === 'web' ? 1 : pressed ? 0.85 : 1 },
             ]}
           >
-            <Animated.View style={[styles.ring, ringStyle]} />
+            <View style={styles.ring} />
             <View style={styles.reticule}>
               <View style={[styles.cornerTL, styles.corner]} />
               <View style={[styles.cornerTR, styles.corner]} />
@@ -1125,6 +1095,10 @@ const styles = StyleSheet.create({
   ring: {
     position: 'absolute', width: 240, height: 240, borderRadius: 120,
     borderWidth: 1, borderColor: `${Colors.states.PEAK.primary}55`,
+    // 0.7 was the resting opacity of the removed pulse loop (and the value its
+    // reduced-motion branch already held) — kept so the static ring is exactly
+    // the frame reduced-motion members were already seeing.
+    opacity: 0.7,
   },
   reticule: {
     width: 140, height: 140, position: 'relative',

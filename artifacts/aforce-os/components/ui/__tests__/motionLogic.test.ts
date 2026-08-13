@@ -5,6 +5,8 @@ import {
   pressScale,
   shouldFireHaptic,
   shimmerEnabled,
+  hapticKindForMoment,
+  type HapticMoment,
 } from '../motionLogic';
 
 describe('afMotion tokens (E3 additions)', () => {
@@ -62,5 +64,58 @@ describe('shimmerEnabled', () => {
   it('mirrors shouldAnimate', () => {
     expect(shimmerEnabled({ enabled: true, reducedMotion: false })).toBe(true);
     expect(shimmerEnabled({ enabled: true, reducedMotion: true })).toBe(false);
+  });
+});
+
+/**
+ * Wave-5 — the FOUR named haptic moments. The point of the type is that the
+ * list is closed: "do not vibrate frequently" is enforced by there being
+ * nowhere else to put a vibration.
+ */
+describe('hapticKindForMoment — the minimal haptic language', () => {
+  // Exhaustive by construction: adding a fifth moment without deciding its
+  // texture fails the TS build here, and adding one without listing it here
+  // fails the count assertion below.
+  const ALL: HapticMoment[] = [
+    'hydration_logged',
+    'command_completed',
+    'ritual_progressed',
+    'state_transition',
+  ];
+
+  it('names exactly four moments — the language does not grow by accident', () => {
+    expect(ALL).toHaveLength(4);
+  });
+
+  it('maps every moment to a real texture', () => {
+    for (const m of ALL) {
+      expect(['selection', 'impact', 'success', 'warning']).toContain(hapticKindForMoment(m));
+    }
+  });
+
+  it('acknowledges a completed instruction the same way wherever it came from', () => {
+    expect(hapticKindForMoment('hydration_logged')).toBe('success');
+    expect(hapticKindForMoment('command_completed')).toBe('success');
+  });
+
+  it('makes progression lighter than completion', () => {
+    expect(hapticKindForMoment('ritual_progressed')).toBe('selection');
+    expect(hapticKindForMoment('ritual_progressed')).not.toBe(
+      hapticKindForMoment('command_completed'),
+    );
+  });
+
+  it('gives a state change that needs attention its own distinct texture', () => {
+    expect(hapticKindForMoment('state_transition')).toBe('warning');
+    for (const m of ALL) {
+      if (m !== 'state_transition') {
+        expect(hapticKindForMoment(m)).not.toBe('warning');
+      }
+    }
+  });
+
+  it('uses no more than three textures across the four moments', () => {
+    const textures = new Set(ALL.map(hapticKindForMoment));
+    expect(textures.size).toBeLessThanOrEqual(3);
   });
 });

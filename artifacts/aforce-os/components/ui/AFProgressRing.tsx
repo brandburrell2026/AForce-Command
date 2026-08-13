@@ -2,6 +2,21 @@
  * AFProgressRing — a determinate full-circle ring with an accessible percentage
  * (spec §5). Center content (e.g. "38%") is supplied as `children`. Static;
  * consumers animate the fill if desired (reduced-motion default is static).
+ *
+ * A11y (Wave-5 Phase-1 pass — chart/visualisation text alternative): the ring
+ * declared `accessibilityRole="progressbar"` + `accessibilityValue` on a bare
+ * `View` and unconditionally hid its centered children. A View is NOT an
+ * accessibility element on iOS unless `accessible` is set (the same fact that
+ * broke AFCard's composed labels), so the role/value were never exposed there
+ * — and the `{pct}%` Text the caller put in the middle was the only remaining
+ * text alternative, explicitly hidden. Net result on Hydration: the intake ring
+ * was unreachable by VoiceOver, and on Android it announced a nameless bar.
+ *
+ * The rule now is that the ring can never end up with NEITHER: pass
+ * `accessibilityLabel` and the ring becomes one named progressbar (children
+ * hidden, because they only repeat it visually); omit it and the children stay
+ * in the accessibility tree as the text alternative. Callers that had no label
+ * therefore keep a readable percentage instead of silence.
  */
 import React from 'react';
 import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
@@ -15,6 +30,13 @@ export interface AFProgressRingProps {
   stroke?: number;
   color?: string;
   trackColor?: string;
+  /**
+   * Names the ring for assistive tech (e.g. "Hydration, 38% of today's
+   * target"). When present the ring becomes ONE progressbar element and the
+   * centered children are hidden as a visual duplicate; when absent the
+   * children stay readable so the reading is never lost entirely.
+   */
+  accessibilityLabel?: string;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -26,6 +48,7 @@ export function AFProgressRing({
   stroke = 8,
   color = af.red,
   trackColor = af.divider,
+  accessibilityLabel,
   children,
   style,
   testID,
@@ -33,12 +56,15 @@ export function AFProgressRing({
   const geo = ringGeometry(size, stroke, progress);
   const center = size / 2;
   const pct = Math.round(clampProgress(progress) * 100);
+  const named = accessibilityLabel != null && accessibilityLabel !== '';
 
   return (
     <View
       style={[{ width: size, height: size }, style]}
       testID={testID}
+      accessible={named}
       accessibilityRole="progressbar"
+      accessibilityLabel={named ? accessibilityLabel : undefined}
       accessibilityValue={{ min: 0, max: 100, now: pct }}
     >
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
@@ -68,8 +94,10 @@ export function AFProgressRing({
       {children != null && (
         <View
           style={styles.center}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
+          // Hidden ONLY when the ring names itself — otherwise this centered
+          // reading is the ring's only text alternative.
+          accessibilityElementsHidden={named}
+          importantForAccessibility={named ? 'no-hide-descendants' : undefined}
         >
           {children}
         </View>

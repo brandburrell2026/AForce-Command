@@ -61,3 +61,26 @@ export function ringFraction(completed: number, total: number): number {
   if (!Number.isFinite(total) || total <= 0) return 0;
   return Math.max(0, Math.min(1, completed / total));
 }
+
+/**
+ * Should the RITUAL PROGRESSION moment fire? (Wave-5 motion + haptics pass.)
+ *
+ * The founder's rule is "do not vibrate frequently", so this is deliberately
+ * narrow — it is the difference between acknowledging progress and buzzing
+ * whenever the screen re-derives its state:
+ *
+ *  - `prev === null` means this is the first render, which establishes the
+ *    baseline. Arriving on Protocol with four steps already done is not
+ *    progress that just happened.
+ *  - only an INCREASE counts. A step un-completing (a correction, a day
+ *    rollover, a re-derivation from fresher store state) is not a win.
+ *  - a re-render at the same count is silent, which is the common case: the
+ *    derivation runs on every store change.
+ *
+ * Pure so the rule is proved by unit test rather than by reading an effect.
+ */
+export function shouldAcknowledgeProgress(prev: number | null, next: number): boolean {
+  if (prev == null) return false;
+  if (!Number.isFinite(prev) || !Number.isFinite(next)) return false;
+  return next > prev;
+}

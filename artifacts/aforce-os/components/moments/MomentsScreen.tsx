@@ -33,6 +33,7 @@ import {
   daySummary,
 } from './momentsPresentation';
 import { WhyThisSheet } from './WhyThisSheet';
+import { MomentsOverviewSkeleton } from './MomentsSkeleton';
 
 export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoments?: Moment[]; fixtureNowIso?: string }) {
   const { t } = useTranslation();
@@ -55,7 +56,14 @@ export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoment
         }
       />
 
-      {data.surfaced.length === 0 ? (
+      {!data.hydrated ? (
+        /* Until the store answers, "no moments" is not something we know — it
+           is the shape of not having asked yet. Showing the empty state here
+           told a member with a full day that their day was empty, then took it
+           back. The route at /moment/[id] already waits on this same flag
+           before calling an id unknown; the overview waits too. */
+        <MomentsOverviewSkeleton />
+      ) : data.surfaced.length === 0 ? (
         <AFEmptyState
           title={t('moments.empty_title')}
           message={t('moments.empty_body')}

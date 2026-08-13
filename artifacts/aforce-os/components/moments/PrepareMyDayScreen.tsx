@@ -17,6 +17,7 @@ import type { Moment } from '@/types/moments';
 import { useMomentsData } from './useMomentsData';
 import { accentForType, clockLabel, daySummary } from './momentsPresentation';
 import { AddMomentSheet } from './AddMomentSheet';
+import { MomentsOverviewSkeleton } from './MomentsSkeleton';
 
 const DAY_MS = 86_400_000;
 
@@ -81,7 +82,13 @@ export function PrepareMyDayScreen({ fixtureMoments, fixtureNowIso }: { fixtureM
         })}
       </View>
 
-      {dayMoments.length === 0 ? (
+      {!data.hydrated ? (
+        /* Same rule as the overview: "nothing planned" is a conclusion, and an
+           unhydrated store has not earned it. This route is deep-linkable, so
+           the flash was reachable as a member's first screen. The day strip
+           above stays live — it is a selector, not a claim about the day. */
+        <MomentsOverviewSkeleton />
+      ) : dayMoments.length === 0 ? (
         <AFEmptyState
           title={t('moments.empty_title')}
           message={t('moments.empty_body')}

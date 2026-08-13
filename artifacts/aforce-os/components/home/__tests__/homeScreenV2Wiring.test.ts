@@ -133,13 +133,24 @@ describe('HomeScreenV2 — pre-hydration skeleton wiring (RC-1 Wave-2B, item 2a)
   });
 
   it('renders <HomeSkeleton /> when NOT hydrated, and the real arc/command/tiles otherwise (mutually exclusive)', () => {
-    expect(CODE).toMatch(/!isHydrated\s*\?\s*\(\s*<HomeSkeleton\s*\/>\s*\)\s*:\s*\(/);
+    expect(CODE).toMatch(/!isHydrated\s*\?\s*\([\s\S]{0,80}?<HomeSkeleton[^>]*\/>\s*\)\s*:\s*\(/);
     // The real content branch still contains the arc + command card + signals
     // section, i.e. the skeleton did not silently replace them outright.
     const skeletonBranch = CODE.slice(CODE.indexOf('!isHydrated'));
     expect(skeletonBranch).toContain('AFReadinessArc');
     expect(skeletonBranch).toContain('AFCommandCard');
     expect(skeletonBranch).toContain('signalOrder.map');
+  });
+
+  it('shapes the signal block this screen is about to render, not the one it replaced (Wave 5)', () => {
+    // V3's four-tile 2×2 grid ships ON in production; a skeleton shaping one
+    // row of three guaranteed a jump of a whole row at the moment of
+    // hydration. The layout is chosen by the SAME flag that decides the real
+    // signal block, so the two can never drift apart again.
+    expect(CODE).toMatch(/<HomeSkeleton\s+signals=\{v3 \? 'grid4' : 'row3'\}\s*\/>/);
+    expect(CODE).toMatch(/const\s+v3\s*=\s*flags\.home_v3_dashboard_enabled;/);
+    // …and the real V3 block it stands in for is still the two-row grid.
+    expect(CODE).toMatch(/styles\.v3Grid[\s\S]*?styles\.signals[\s\S]*?styles\.signals/);
   });
 });
 

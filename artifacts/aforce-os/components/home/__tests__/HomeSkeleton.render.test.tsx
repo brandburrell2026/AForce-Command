@@ -86,6 +86,29 @@ describe('HomeSkeleton', () => {
     expect(q('[data-testid="home-skeleton-tile-2"]')).not.toBeNull();
   });
 
+  // Wave 5 — the shape has to match the signal block that is actually coming.
+  // Home ships with `home_v3_dashboard_enabled` ON, whose block is a 2×2 grid
+  // of FOUR tiles; the row-of-three default dropped a whole row of content on
+  // the reader at the instant of hydration.
+  it('shapes FOUR tiles for the V3 grid layout', () => {
+    root = createRoot(host);
+    flushSync(() => root.render(React.createElement(HomeSkeleton, { signals: 'grid4' })));
+    for (const i of [0, 1, 2, 3]) {
+      expect(q(`[data-testid="home-skeleton-tile-${i}"]`)).not.toBeNull();
+    }
+    // Still the arc + command card above it — the grid is an extra tile, not a
+    // different screen.
+    expect(q('[data-testid="home-skeleton-arc"]')).not.toBeNull();
+    expect(q('[data-testid="home-skeleton-command"]')).not.toBeNull();
+  });
+
+  it('shapes exactly three tiles for the row layout (no phantom fourth)', () => {
+    root = createRoot(host);
+    flushSync(() => root.render(React.createElement(HomeSkeleton, { signals: 'row3' })));
+    expect(q('[data-testid="home-skeleton-tile-2"]')).not.toBeNull();
+    expect(q('[data-testid="home-skeleton-tile-3"]')).toBeNull();
+  });
+
   it('is announced as a single accessible loading region', () => {
     root = createRoot(host);
     flushSync(() => root.render(React.createElement(HomeSkeleton)));

@@ -13,13 +13,32 @@
  * convention of never mounting connected screen containers directly in
  * tests (see `components/home/__tests__/homeScreenV2Wiring.test.ts`'s
  * header).
+ *
+ * WAVE 5 — `signals` exists because a skeleton that does not match the layout
+ * it stands in for is worse than none: it guarantees a jump. Home ships with
+ * `home_v3_dashboard_enabled` ON, whose signal block is a 2×2 grid of FOUR
+ * tiles (Hydration / Recovery / Sleep / HRV), while this shaped a single row of
+ * three — so every cold open dropped one row of content on the reader at the
+ * moment of hydration. The caller (which is the one that reads the flag) says
+ * which layout is coming; the `row3` default keeps the legacy/V2 shape for
+ * `app/(tabs)/index.tsx`'s lazy-legacy Suspense fallback.
  */
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { AFSkeleton } from '@/components/ui/AFSkeleton';
 import { afLayout } from '@/theme';
 
-export function HomeSkeleton() {
+/** The two signal layouts HomeScreenV2 actually renders. */
+export type HomeSkeletonSignals = 'row3' | 'grid4';
+
+export interface HomeSkeletonProps {
+  signals?: HomeSkeletonSignals;
+}
+
+export function HomeSkeleton({ signals = 'row3' }: HomeSkeletonProps) {
+  // Tile testIDs stay 0-indexed and contiguous across both layouts, so the
+  // grid is "the row-3 shape plus a fourth tile" rather than a second scheme.
+  const rows = signals === 'grid4' ? [[0, 1], [2, 3]] : [[0, 1, 2]];
   return (
     <View testID="home-v2-skeleton" accessible accessibilityLabel="Loading">
       <View style={styles.arcWrap}>
@@ -27,11 +46,19 @@ export function HomeSkeleton() {
       </View>
       <AFSkeleton height={140} radius={afLayout.radiusCard} style={styles.command} testID="home-skeleton-command" />
       <View style={styles.signalsSection}>
-        <View style={styles.signals}>
-          <AFSkeleton height={74} radius={14} style={styles.tile} testID="home-skeleton-tile-0" />
-          <AFSkeleton height={74} radius={14} style={styles.tile} testID="home-skeleton-tile-1" />
-          <AFSkeleton height={74} radius={14} style={styles.tile} testID="home-skeleton-tile-2" />
-        </View>
+        {rows.map((row, i) => (
+          <View key={i} style={styles.signals}>
+            {row.map((tile) => (
+              <AFSkeleton
+                key={tile}
+                height={74}
+                radius={14}
+                style={styles.tile}
+                testID={`home-skeleton-tile-${tile}`}
+              />
+            ))}
+          </View>
+        ))}
       </View>
     </View>
   );

@@ -49,3 +49,43 @@ export function shouldFireHaptic(
 export function shimmerEnabled(opts: { enabled: boolean; reducedMotion: boolean }): boolean {
   return shouldAnimate(opts);
 }
+
+/**
+ * The FOUR moments in Phase 1 that are allowed to reach the member's hand
+ * (Wave-5 motion+haptics pass, founder brief: "Do not vibrate frequently").
+ *
+ * Naming them here is the whole point: a haptic is now something you *pick from
+ * this list*, not something you sprinkle. `HapticKind` stays the low-level
+ * texture (which Expo call fires); a `HapticMoment` is the PRODUCT event that
+ * earned one. Anything not on this list gets no vibration.
+ *
+ *   hydration_logged  — the member's intake was accepted (HydroScan log).
+ *   command_completed — the one command on Home was carried out.
+ *   ritual_progressed — a Protocol step advanced (the Ritual moved forward).
+ *   state_transition  — AForce changed its read of the member's state in a way
+ *                       that needs attention (a poor HydroScan verdict).
+ */
+export type HapticMoment =
+  | 'hydration_logged'
+  | 'command_completed'
+  | 'ritual_progressed'
+  | 'state_transition';
+
+/**
+ * Moment → texture. Deliberately only THREE textures across FOUR moments: the
+ * language is meant to be small enough that a member learns it. Completion of
+ * something they were asked to do reads the same whether it came from Home or
+ * from a scan; progression is a lighter tick than completion; a state change
+ * that needs attention is the only one that feels different on purpose.
+ */
+export function hapticKindForMoment(moment: HapticMoment): HapticKind {
+  switch (moment) {
+    case 'hydration_logged':
+    case 'command_completed':
+      return 'success';
+    case 'ritual_progressed':
+      return 'selection';
+    case 'state_transition':
+      return 'warning';
+  }
+}

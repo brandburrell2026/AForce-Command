@@ -12,6 +12,7 @@ import {
   signalsAreLive,
   ringFraction,
   anySignalReported,
+  shouldAcknowledgeProgress,
   EM_DASH,
 } from '../protocolV3Presentation';
 
@@ -79,5 +80,50 @@ describe('ringFraction', () => {
     expect(ringFraction(5, 4)).toBe(1);
     expect(ringFraction(0, 0)).toBe(0);
     expect(ringFraction(1, Number.NaN)).toBe(0);
+  });
+});
+
+/**
+ * Wave-5 — RITUAL PROGRESSION, one of the four signature moments and one of the
+ * four named haptic moments. The rule has to be narrow: the Protocol screen
+ * re-derives its plan on every store change, so "the count is N" fires
+ * constantly and only "the count went UP" is progress. "Do not vibrate
+ * frequently" is enforced here, not at the call site.
+ */
+describe('shouldAcknowledgeProgress — the Ritual progression gate', () => {
+  it('acknowledges a step completing', () => {
+    expect(shouldAcknowledgeProgress(1, 2)).toBe(true);
+  });
+
+  it('acknowledges the first step of the day', () => {
+    expect(shouldAcknowledgeProgress(0, 1)).toBe(true);
+  });
+
+  it('acknowledges a multi-step jump once (a batched store update)', () => {
+    expect(shouldAcknowledgeProgress(0, 3)).toBe(true);
+  });
+
+  it('is SILENT on first render — arriving with steps already done is not progress', () => {
+    expect(shouldAcknowledgeProgress(null, 0)).toBe(false);
+    expect(shouldAcknowledgeProgress(null, 4)).toBe(false);
+  });
+
+  it('is silent when the count is unchanged (the common re-render)', () => {
+    expect(shouldAcknowledgeProgress(2, 2)).toBe(false);
+    expect(shouldAcknowledgeProgress(0, 0)).toBe(false);
+  });
+
+  it('is silent when a step un-completes (a correction is not a win)', () => {
+    expect(shouldAcknowledgeProgress(3, 2)).toBe(false);
+  });
+
+  it('is silent on a day rollover back to zero', () => {
+    expect(shouldAcknowledgeProgress(4, 0)).toBe(false);
+  });
+
+  it('never fires on a non-finite count', () => {
+    expect(shouldAcknowledgeProgress(NaN, 2)).toBe(false);
+    expect(shouldAcknowledgeProgress(1, NaN)).toBe(false);
+    expect(shouldAcknowledgeProgress(1, Infinity)).toBe(false);
   });
 });
