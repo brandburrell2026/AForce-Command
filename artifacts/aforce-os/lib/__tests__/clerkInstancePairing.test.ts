@@ -1,107 +1,149 @@
 /**
- * A native release build must not pair a DEVELOPMENT Clerk client with a
- * PRODUCTION backend.
+ * THE INVARIANT: the client's Clerk instance must equal the server's Clerk instance.
  *
- * Builds 59-62 shipped `pk_test_…`, which decodes to the development instance
- * `moving-ox-89.clerk.accounts.dev`, while the api-server validated tokens
- * against its own `CLERK_SECRET_KEY`. When those two belong to different Clerk
- * instances the server cannot verify the token it is handed, `requireAuth`
- * fails closed in production, and EVERY authenticated write returns 401 — while
- * unauthenticated reads keep working. On device that looked like "Home,
- * Hydration and Scan are all broken"; it was one credential pairing.
+ * A Clerk session token is signed by the instance that minted it and can only be
+ * verified by that same instance's keys. `clerkMiddleware()` in the api-server
+ * (`src/app.ts`) verifies against whatever instance `CLERK_SECRET_KEY` belongs to.
+ * If the client mints tokens somewhere else, every authenticated request fails —
+ * and if the client's instance has no DNS, the app cannot even start, because
+ * `app/index.tsx` waits on Clerk's `isLoaded` and renders a black canvas while it
+ * waits.
  *
- * Why this guard lives in the repo rather than in a runbook: the API-base
- * defect (Build 61) had exactly the same shape — a build-time value that no
- * test could see, wrong for three builds running. The lesson was not "check
- * eas.json more carefully", it was "configuration that can break the product
- * must be visible to CI".
+ * WHAT THIS FILE USED TO ASSERT, AND WHY THAT WAS WRONG.
+ * It previously required `pk_live_` on any profile pointing at a production API
+ * host. That is an assumption, not a rule — it conflates "which deployment" with
+ * "which Clerk instance". Acting on it produced the Build 63/64 launch failure:
+ * the client was moved onto a `pk_live_` key for a DIFFERENT Clerk application
+ * (`clerk.travelgate.app`) that the server was never paired with and whose
+ * hostname does not resolve. The pairing that assumption "fixed" had been correct
+ * already. Only the equality below is a real rule; it is the one encoded here.
  *
- * A Clerk PUBLISHABLE key is not a secret — it is designed to ship inside the
- * client binary — so it belongs in eas.json where it can be read and asserted.
- * The SECRET key stays in Railway and is never read here, by this test or by
- * anything else in this repository.
+ * KEEPING THE DECLARED SERVER INSTANCE HONEST.
+ * CI cannot read Railway's environment, so the server side is declared here and
+ * proven separately by `scripts/verify-clerk-pairing.mjs`, which asks Clerk which
+ * instance the deployed secret actually belongs to without ever printing it.
+ * Re-run that script and update this constant whenever the server's Clerk
+ * configuration changes. A declared value that nobody re-checks is how the last
+ * misdiagnosis happened.
+ *
+ * CURRENT STATE — see governance/CLERK-PAIRING-STATE.md.
+ * Client and server are both on the moving-ox-89 DEVELOPMENT instance. That is a
+ * deliberate, temporary QA configuration: acceptable for internal TestFlight,
+ * BLOCKED for public beta. Migration is planned in
+ * governance/PRODUCTION-CLERK-MIGRATION-PLAN.md.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { lookup } from 'node:dns';
 
-const PKG = resolve(__dirname, '..', '..');
-const eas = JSON.parse(readFileSync(resolve(PKG, 'eas.json'), 'utf8')) as {
-  build: Record<string, { env?: Record<string, string> }>;
-};
+/**
+ * The Clerk instance the deployed api-server validates tokens against.
+ * Verified against Railway production on 2026-08-13 via
+ * `node scripts/verify-clerk-pairing.mjs` (run through `railway run`).
+ */
+const SERVER_CLERK_INSTANCE = 'moving-ox-89.clerk.accounts.dev';
 
-/** Profiles that produce a binary a human installs and signs into. */
+/** Profiles that produce a native binary someone signs into. */
 const NATIVE_RELEASE_PROFILES = ['internal', 'preview', 'production'] as const;
 
-/** Hosts that serve real member data. A dev Clerk client may never pair with these. */
-const PRODUCTION_API_HOSTS = ['aforce-command-production.up.railway.app', 'api.drinkaforce.com'];
-
-function apiHost(profile: string): string | null {
-  const base = eas.build[profile]?.env?.['EXPO_PUBLIC_API_BASE'];
-  return base ? (/^https:\/\/([^/]+)/.exec(base)?.[1] ?? null) : null;
-}
-
-function clerkKey(profile: string): string | undefined {
-  return eas.build[profile]?.env?.['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
-}
+const PKG = resolve(__dirname, '..', '..');
+const easRaw = readFileSync(resolve(PKG, 'eas.json'), 'utf8');
+const eas = JSON.parse(easRaw) as { build: Record<string, { env?: Record<string, string> }> };
 
 /** Clerk encodes the instance host in the publishable key's base64 payload. */
-function clerkInstance(key: string): string {
+function instanceHost(key: string): string | null {
   const payload = key.replace(/^pk_(test|live)_/, '');
   try {
-    return Buffer.from(payload + '='.repeat((4 - (payload.length % 4)) % 4), 'base64')
-      .toString('utf8')
-      .replace(/\$$/, '');
+    const decoded = Buffer.from(
+      payload + '='.repeat((4 - (payload.length % 4)) % 4),
+      'base64',
+    ).toString('utf8');
+    const host = decoded.replace(/\$$/, '').trim();
+    return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(host)
+      ? host
+      : null;
   } catch {
-    return '<undecodable>';
+    return null;
   }
 }
 
-describe('Clerk client/server instance pairing', () => {
-  it.each(NATIVE_RELEASE_PROFILES)(
-    '%s: a production API base requires a production Clerk key',
-    (profile) => {
-      const host = apiHost(profile);
-      if (host === null || !PRODUCTION_API_HOSTS.includes(host)) return; // not a production pairing
+type Resolution = { ok: true } | { ok: false; missing: boolean; code: string };
 
-      const key = clerkKey(profile);
-      expect(
-        key,
-        `eas.json build.${profile} points at the production API (${host}) but declares no ` +
-          'EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. A publishable key is not a secret — declare it here ' +
-          'so the pairing is visible to CI instead of living only in the EAS dashboard.',
-      ).toBeDefined();
+async function resolveHost(host: string): Promise<Resolution> {
+  return new Promise((done) => {
+    lookup(host, (err) => {
+      if (!err) return done({ ok: true });
+      const code = (err as NodeJS.ErrnoException).code ?? 'UNKNOWN';
+      done({ ok: false, missing: code === 'ENOTFOUND' || code === 'NXDOMAIN', code });
+    });
+  });
+}
 
-      expect(
-        key!.startsWith('pk_live_'),
-        `build.${profile} pairs a DEVELOPMENT Clerk client (${clerkInstance(key!)}) with the ` +
-          `PRODUCTION API (${host}). The server cannot verify tokens minted by a different ` +
-          'instance, so every authenticated write returns 401 while reads keep working. ' +
-          'This is the Build-62 defect.',
-      ).toBe(true);
-    },
-  );
+const profiles = NATIVE_RELEASE_PROFILES.map((name) => ({
+  name,
+  key: eas.build[name]?.env?.['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'],
+}));
 
-  it('all native release profiles agree on ONE Clerk instance', () => {
-    const instances = NATIVE_RELEASE_PROFILES.map((p) => {
-      const k = clerkKey(p);
-      return k ? clerkInstance(k) : null;
-    }).filter((x): x is string => x !== null);
-    if (instances.length < 2) return;
+describe('client Clerk instance == server Clerk instance', () => {
+  it.each(profiles)('$name declares a Clerk publishable key in eas.json', ({ name, key }) => {
     expect(
-      new Set(instances).size,
-      `native profiles disagree on the Clerk instance: ${instances.join(', ')}`,
+      key,
+      `eas.json build.${name} does not declare EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. A publishable ` +
+        'key is not a secret; declaring it here keeps the pairing visible and testable rather ' +
+        'than depending on whatever the EAS dashboard happens to hold at build time.',
+    ).toBeDefined();
+  });
+
+  it.each(profiles)('$name is paired with the server instance', ({ name, key }) => {
+    const host = key ? instanceHost(key) : null;
+    expect(
+      host,
+      `eas.json build.${name} carries a publishable key that does not decode to a hostname.`,
+    ).not.toBeNull();
+    expect(
+      host,
+      `eas.json build.${name} points the client at Clerk instance "${host}", but the deployed ` +
+        `api-server validates tokens against "${SERVER_CLERK_INSTANCE}". Tokens minted by one ` +
+        'Clerk instance cannot be verified by another, so every authenticated request would ' +
+        'fail. Change the client key, or update SERVER_CLERK_INSTANCE after re-verifying the ' +
+        'server with scripts/verify-clerk-pairing.mjs — do not guess which one is right.',
+    ).toBe(SERVER_CLERK_INSTANCE);
+  });
+
+  it('every native release profile agrees on one instance', () => {
+    const hosts = new Set(profiles.map((p) => (p.key ? instanceHost(p.key) : null)));
+    expect(
+      hosts.size,
+      `Native release profiles disagree on the Clerk instance: ${[...hosts].join(', ')}. ` +
+        'A build promoted between channels would silently change identity provider.',
     ).toBe(1);
   });
 
-  it('never reads, embeds or asserts the Clerk SECRET key', () => {
-    // The secret lives in Railway. Nothing in the client repo may carry it —
-    // and this guard must not become the reason someone pastes it in.
-    const self = readFileSync(resolve(__dirname, 'clerkInstancePairing.test.ts'), 'utf8');
-    expect(self).not.toMatch(/sk_(test|live)_[A-Za-z0-9]/);
-    const easRaw = readFileSync(resolve(PKG, 'eas.json'), 'utf8');
-    expect(easRaw, 'a Clerk SECRET key must never appear in eas.json').not.toMatch(
-      /sk_(test|live)_[A-Za-z0-9]/,
+  it('the paired instance resolves in DNS', async () => {
+    const res = await resolveHost(SERVER_CLERK_INSTANCE);
+    if (res.ok) return;
+    if (!res.missing) {
+      // No resolver reachable — this run cannot prove anything either way, and a
+      // guard that fails offline gets disabled within a week.
+      console.warn(
+        `[clerk-pairing] skipped DNS check: no resolver for ${SERVER_CLERK_INSTANCE} (${res.code}).`,
+      );
+      return;
+    }
+    expect.fail(
+      `Clerk instance "${SERVER_CLERK_INSTANCE}" does NOT resolve (NXDOMAIN). Clerk production ` +
+        'instances require a customer-created CNAME. Until it exists, ClerkProvider can never ' +
+        'initialise: the app does not crash, it waits for isLoaded and renders a black canvas ' +
+        'forever (app/index.tsx). This is exactly the Build 63/64 launch failure.',
     );
+  }, 15_000);
+
+  it('no Clerk secret key is present in eas.json', () => {
+    expect(
+      /sk_(test|live)_/.test(easRaw),
+      'eas.json contains something shaped like a Clerk SECRET key. Secret keys must never enter ' +
+        'the repository, the client bundle, or build output — only the server holds one.',
+    ).toBe(false);
   });
 });
