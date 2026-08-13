@@ -63,6 +63,25 @@ describe('no fake success on user actions', () => {
     expect(catchBlock).not.toContain("CONFIRM_COMMAND");
     expect(catchBlock).toContain('Alert.alert');
   });
+  it('logIntake fails visibly too — a discarded intake is not silent (Build 61)', () => {
+    // Build 60 left this catch at `console.warn` + CYCLE_FAILURE, which only
+    // clears the spinner: a 401 / 5xx / timeout produced exactly what success
+    // produces from the member's seat, with no outbox behind it
+    // (`offline_intake_outbox_enabled` is off in production) to recover the
+    // write. Runtime proof lives in
+    // `store/__tests__/logIntakeFailsVisibly.render.test.tsx`; this pins the
+    // catch itself so the alert can't be lifted out during a later edit.
+    const src = read('store/app/actions.ts');
+    const catchBlock = src.slice(
+      src.indexOf('logIntake failed'),
+      src.indexOf('logIntake failed') + 1200,
+    );
+    expect(catchBlock).toContain("dispatch({ type: 'CYCLE_FAILURE' })");
+    expect(catchBlock).toContain('Alert.alert');
+    // The same copy `confirmCommand` raises — one failure, one sentence.
+    expect(catchBlock).toContain('common.action_failed_title');
+    expect(catchBlock).toContain('common.action_failed_body');
+  });
   it('battle support rolls back the optimistic bump on double failure', () => {
     const src = read('services/battleService.ts');
     expect(src).toContain('const prior = battles.find');

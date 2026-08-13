@@ -923,10 +923,17 @@ export function ProfileScreenV2() {
                     </View>
                   )}
                   <View style={styles.profileInfo}>
-                    <Text style={styles.profileName} numberOfLines={1}>
+                    {/* Two lines, not one: this column is only ~116pt wide on a
+                        320pt phone (avatar + edit button take the rest), so a
+                        one-line clamp cut ordinary names at 20pt — and worse
+                        under Dynamic Type. Still bounded so a pathological name
+                        can't shove the chip strip off the card. */}
+                    <Text style={styles.profileName} numberOfLines={2}>
                       {displayName}
                     </Text>
                     {handle ? (
+                      // Stays one line: a handle is a single unbreakable token,
+                      // so wrapping it would break mid-word rather than help.
                       <Text style={styles.profileHandle} numberOfLines={1}>
                         {handle}
                       </Text>
@@ -934,7 +941,7 @@ export function ProfileScreenV2() {
                     {locationLine ? (
                       <View style={styles.profileLocation}>
                         <Icon name="map-pin" size={11} color={af.textTertiary} />
-                        <Text style={styles.profileLocationText} numberOfLines={1}>
+                        <Text style={styles.profileLocationText} numberOfLines={2}>
                           {locationLine}
                         </Text>
                       </View>
@@ -984,23 +991,37 @@ export function ProfileScreenV2() {
                     color={auraColor}
                   />
                 </View>
-                <View style={styles.profileMetricStrip}>
-                  <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_height')}</Text>
-                    <Text style={styles.profileMetricValue}>{heightLabel}</Text>
+                {/* Build-60 device QA: the goal read "Recovery O…". The strip
+                    was a hard three-across row, so the goal — the only prose
+                    value here — got a third of the card (~91pt at 375, ~73pt
+                    at 320) with a one-line clamp, while "Recovery
+                    Optimization" needs ~190pt. Height and weight are short
+                    numerics and still pair fine side by side; the goal now
+                    takes the full card width on its own row and wraps, so it
+                    survives a small phone and large Dynamic Type without
+                    shrinking type or dropping characters. */}
+                <View style={styles.profileMetricStrip} testID="profile-metric-strip">
+                  <View style={styles.profileMetricRow}>
+                    <View style={styles.profileMetricCell}>
+                      <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_height')}</Text>
+                      <Text style={styles.profileMetricValue}>{heightLabel}</Text>
+                    </View>
+                    <View style={styles.profileMetricDivider} />
+                    <View style={styles.profileMetricCell}>
+                      <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_weight')}</Text>
+                      <Text style={styles.profileMetricValue}>{weightLabel}</Text>
+                    </View>
                   </View>
-                  <View style={styles.profileMetricDivider} />
-                  <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_weight')}</Text>
-                    <Text style={styles.profileMetricValue}>{weightLabel}</Text>
-                  </View>
-                  <View style={styles.profileMetricDivider} />
-                  <View style={styles.profileMetricCell}>
+                  <View style={styles.profileMetricRowDivider} />
+                  <View
+                    style={[styles.profileMetricCell, styles.profileMetricGoalCell]}
+                    testID="profile-metric-goal-cell"
+                  >
                     <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_recovery_goal')}</Text>
-                    <Text
-                      style={[styles.profileMetricValue, { color: auraColor }]}
-                      numberOfLines={1}
-                    >
+                    {/* No numberOfLines on purpose: the goal must wrap, never
+                        ellipsize. A member cannot reconstruct it from a stub
+                        the way they can a height or a weight. */}
+                    <Text style={[styles.profileMetricValue, { color: auraColor }]}>
                       {recoveryGoalLabel}
                     </Text>
                   </View>
@@ -1011,7 +1032,7 @@ export function ProfileScreenV2() {
                     card, so it belongs on it. Same flag gate, same chip. */}
                 {flags.spec_profileStrengthSection ? (
                   <View style={styles.profileStrengthRow} testID="profile-strength-row">
-                    <Text style={styles.profileMetricLabel}>
+                    <Text style={[styles.profileMetricLabel, styles.profileStrengthLabel]}>
                       {t('profile.v2.profile_completeness')}
                     </Text>
                     <ConfidenceChip
@@ -1282,25 +1303,36 @@ export function ProfileScreenV2() {
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
                   </Pressable>
-                  <Divider />
-                  <Pressable
-                    onPress={() => router.push('/modules')}
-                    testID="profile-modules-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.all_modules')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="grid" size={16} color={af.textSecondary} />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
-                        <Text style={styles.settingSubLabel}>
-                          {t('profile.v2.all_modules_sub')}
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
+                  {/* Build-61 correction (device QA, P1): the All Modules
+                      launcher is an INTERNAL evaluation surface — it lists
+                      Guardian, Clutch and Phantom, and its Social card resolved
+                      through Night Out's gate onto the Protocol tab. It carries
+                      the same clamp as the DEVELOPER tab below, so an ordinary
+                      member never sees the entry point; `app/modules.tsx`
+                      repeats the clamp so the route is dead too. */}
+                  {developerControlsAvailable() ? (
+                    <>
+                      <Divider />
+                      <Pressable
+                        onPress={() => router.push('/modules')}
+                        testID="profile-modules-link"
+                        style={styles.settingRow}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('profile.v2.all_modules')}
+                      >
+                        <View style={styles.settingLeft}>
+                          <Icon name="grid" size={16} color={af.textSecondary} />
+                          <View>
+                            <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
+                            <Text style={styles.settingSubLabel}>
+                              {t('profile.v2.all_modules_sub')}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                      </Pressable>
+                    </>
+                  ) : null}
                 </View>
               </>
             );
@@ -2828,7 +2860,10 @@ function IdentityChip({
       accessibilityLabel={label}
     >
       <Icon name={icon} size={11} color={color} />
-      <Text style={[styles.identityChipLabel, { color }]} numberOfLines={1}>
+      {/* No line clamp: a chip carries a member-authored team name or a
+          territory badge, and the strip already wraps. A long chip should
+          become a taller chip, not "NORTHSIDE STRENGT…". */}
+      <Text style={[styles.identityChipLabel, { color }]}>
         {label}
       </Text>
     </View>
@@ -3021,6 +3056,9 @@ const styles = StyleSheet.create({
   profileLocationText: {
     fontSize: 12, fontFamily: 'Inter_500Medium', color: af.textTertiary,
     letterSpacing: 0.3,
+    // Sits in a row beside the pin icon; RN defaults flexShrink to 0, so
+    // without this "San Francisco · United States" pushes past the card.
+    flexShrink: 1,
   },
   profileEditBtn: {
     width: 36, height: 36, borderRadius: 18, borderWidth: 1,
@@ -3033,9 +3071,11 @@ const styles = StyleSheet.create({
   profileChipStrip: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 6,
   },
+  // Column, not a row: the numeric pair shares one line, the prose goal
+  // gets its own full-width line beneath them (see the metric-strip
+  // comment at the call site for the Build-60 truncation this fixes).
   profileMetricStrip: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    flexDirection: 'column',
     backgroundColor: af.canvas,
     borderRadius: 14,
     borderWidth: 1,
@@ -3043,22 +3083,49 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     marginTop: 4,
+    gap: 10,
   },
+  profileMetricRow: {
+    flexDirection: 'row', alignItems: 'stretch',
+  },
+  // `flexShrink` + `minWidth: 0` so a cell yields at 320pt / large Dynamic
+  // Type instead of forcing its text to ellipsize inside a rigid box.
   profileMetricCell: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4,
+    flex: 1, flexShrink: 1, minWidth: 0,
+    alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  // The goal cell is a child of the COLUMN strip rather than of the two-up
+  // row, where `flex: 1`'s grow + zero main-basis would apply VERTICALLY.
+  // Reset both: this cell is content-height and full-width.
+  profileMetricGoalCell: {
+    flexGrow: 0, flexBasis: 'auto', alignSelf: 'stretch',
   },
   profileMetricDivider: {
     width: 1, backgroundColor: af.divider, alignSelf: 'stretch', marginVertical: 4,
   },
+  profileMetricRowDivider: {
+    height: 1, backgroundColor: af.divider,
+  },
+  // textAlign keeps a wrapped label/value centered under its cell rather
+  // than ragged-left once Dynamic Type pushes it onto a second line.
   profileMetricLabel: {
     fontSize: 9, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 1.5,
+    textAlign: 'center', flexShrink: 1,
   },
   profileMetricValue: {
     fontSize: 14, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: 0.3,
+    textAlign: 'center', flexShrink: 1,
   },
   profileStrengthRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     gap: 10, marginTop: 4,
+  },
+  // Same label token, but this one sits in a space-between row next to the
+  // confidence chip: it must shrink and wrap (RN defaults flexShrink to 0,
+  // which pushed the chip past the card edge at large Dynamic Type) and it
+  // reads left-to-right/RTL with the row, not centered like a cell.
+  profileStrengthLabel: {
+    flexShrink: 1, textAlign: 'auto',
   },
   identityChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -3067,6 +3134,9 @@ const styles = StyleSheet.create({
   },
   identityChipLabel: {
     fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5,
+    // The chip is capped at maxWidth 100%; without flexShrink the label
+    // would overflow that cap instead of wrapping inside it.
+    flexShrink: 1,
   },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

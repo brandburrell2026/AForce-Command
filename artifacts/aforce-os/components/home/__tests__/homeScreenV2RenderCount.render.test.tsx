@@ -37,6 +37,7 @@ import {
   useFlagsSlice,
   useActionsSlice,
   useHistorySlice,
+  useCycleSlice,
 } from '@/store/slices';
 
 const SOURCE = readFileSync(join(__dirname, '..', 'HomeScreenV2.tsx'), 'utf8');
@@ -54,6 +55,14 @@ const PROBE_HOOKS = [
   // store rather than fetching it, so Home subscribes to this slice. History
   // changes only when a cycle completes, so it costs no per-tick renders.
   'useHistorySlice',
+  // BUILD-61 CORRECTION 2: LOG WATER now opens a picker, writes on confirm and
+  // shows the shipped success overlay, so Home reads the cycle slice for the
+  // in-flight flag and the settled result. This is a DELIBERATE new
+  // subscription, added here (rather than the guard being relaxed) so the
+  // zero-render proof below covers it: the cycle slice's memo depends only on
+  // showCycleSuccess / lastCycleResult / isCompletingCycle, none of which
+  // TICK_TIMER touches, so the burst assertion still expects ZERO re-renders.
+  'useCycleSlice',
 ];
 
 const TICKS = 20;
@@ -68,6 +77,7 @@ function HomeSliceProbe({ counterRef }: { counterRef: React.MutableRefObject<num
   useFlagsSlice();
   useActionsSlice();
   useHistorySlice();
+  useCycleSlice();
   return null;
 }
 
@@ -180,9 +190,20 @@ describe('HomeScreenV2 — render-count probe hook list matches the real screen 
     // for — HomeScreenV2.tsx growing a new slice-hook call that
     // `HomeSliceProbe` never picks up, so its zero-render proof stops
     // covering the real screen's actual subscription set.
-    const mutatedSource = `${SOURCE}\n  useCycleSlice();\n`;
+    //
+    // BUILD-61 CORRECTION 2: the mutant used to be `useCycleSlice`, which the
+    // real screen now genuinely calls — appending it a second time would have
+    // left the extracted SET unchanged and turned this into a vacuous test
+    // that could never fail. `useTimerSlice` is the right replacement on the
+    // merits, not just the first unused name: it is the per-second slice, so
+    // an unmirrored subscription to it is precisely the regression that would
+    // invalidate the zero-re-render proof above.
+    expect(PROBE_HOOKS).not.toContain('useTimerSlice');
+    expect(extractCalledSliceHooks(SOURCE)).not.toContain('useTimerSlice');
+
+    const mutatedSource = `${SOURCE}\n  useTimerSlice();\n`;
     const actualHooks = [...extractCalledSliceHooks(mutatedSource)].sort();
     expect(actualHooks).not.toEqual([...PROBE_HOOKS].sort());
-    expect(actualHooks).toContain('useCycleSlice');
+    expect(actualHooks).toContain('useTimerSlice');
   });
 });

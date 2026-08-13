@@ -42,10 +42,12 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { WelcomeHero } from '@/components/welcome/WelcomeHero';
+import { useTranslation } from 'react-i18next';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { shouldShowInvestorDemo } from '@/featureFlags/flags';
-import { useEngineSlice } from '@/store/slices';
+import { useEngineSlice, useUserSlice, useHistorySlice, useBootstrapSlice } from '@/store/slices';
+import { countRealHistoryEntries, resolveHomeEvidence } from '@/components/home/homeBaselineState';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
 import { firstRunRoute } from '@/utils/firstRunRoute';
@@ -165,6 +167,9 @@ function RootLayoutNav() {
       <Stack.Screen name="legal" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="modules" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="weekly-report" options={{ headerShown: false, presentation: 'card' }} />
+      {/* Build-61 correction: Performance Signal is a detail surface pushed
+          from the Hydration root, not the Hydration tab itself. */}
+      <Stack.Screen name="performance-signal" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moments" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moments-plan" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moment/[id]" options={{ headerShown: false, presentation: 'card' }} />
@@ -214,7 +219,25 @@ function CommandLedgerSyncMount() {
  * score (Score-Protection): the opening never awards or mutates score.
  */
 function OpeningMount({ onDone }: { onDone: () => void }) {
+  const { t } = useTranslation();
   const engine = useEngineSlice();
+  // WAVE-5 EVIDENCE GATE, applied here too. Build 60 opened on a confident
+  // number for members AForce had never observed: the cinematic reads
+  // `engine.score`, and on a cold first launch that is the seeded
+  // defaultUserState projection (76 / BALANCED), not a measurement. Home
+  // already withholds that number until there is evidence; the cinematic
+  // plays BEFORE Home, so without the same gate it simply announced the
+  // fabrication first. Same resolver, same store-only signals, no network.
+  const userState = useUserSlice();
+  const history = useHistorySlice();
+  const { isHydrated } = useBootstrapSlice();
+  const evidence = resolveHomeEvidence({
+    intakeEventCount: userState.intakeEvents?.length ?? 0,
+    loggedDayCount: isHydrated ? countRealHistoryEntries(history) : null,
+  });
+  // `undefined` is the component's documented "withhold the number" input —
+  // it renders EM_DASH rather than substituting any figure.
+  const shownScore = evidence === 'established' ? engine.score : undefined;
   const [visible, setVisible] = React.useState(true);
   // Stable identity: the engine score refreshes under this overlay, and
   // an inline callback would rebuild OpeningSequence's timeline mid-play.
@@ -225,10 +248,15 @@ function OpeningMount({ onDone }: { onDone: () => void }) {
   if (!visible) return null;
   return (
     <OpeningSequence
-      readinessScore={engine.score}
-      statusLabel={readinessLabel(
-        engine.performanceState.level as PerformanceLevel,
-      )}
+      readinessScore={shownScore}
+      statusLabel={
+        evidence === 'established'
+          ? readinessLabel(engine.performanceState.level as PerformanceLevel)
+          // Not `undefined`: the component's own fallback is "READY TO PERFORM",
+          // which is itself a claim about a body AForce has not observed. Reuse
+          // the approved Wave-5 phrase instead of inventing a second one.
+          : t('opening.readiness_building')
+      }
       onFinish={handleFinish}
     />
   );

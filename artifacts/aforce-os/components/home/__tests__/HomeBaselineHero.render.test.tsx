@@ -71,9 +71,14 @@ describe('HomeBaselineHero — says what is true', () => {
     expect(host.textContent).toContain('Building your baseline');
   });
 
-  it('keeps the readiness slot labelled, so the member learns where their state will appear', () => {
+  it('keeps the hero slot labelled with the product\'s name for the state, so the member learns where it will appear', () => {
     renderHero();
-    expect(host.textContent).toContain('READINESS');
+    // Correction 6 (build 61): the slot eyebrow is the SAME key the arc carries
+    // (`home.v2.readiness_label`), and that key now says HYDROSTATE — the word
+    // the product never printed anywhere. Asserted against the shipped value as
+    // well as the literal, so the two can never drift apart silently.
+    expect(EN_LOCALE.home.v2.readiness_label).toBe('HYDROSTATE');
+    expect(host.textContent).toContain('HYDROSTATE');
   });
 
   it('explains that AForce is still gathering, and points at the one thing to do', () => {
@@ -122,12 +127,21 @@ describe('HomeBaselineHero — the founder\'s hard constraints on the copy', () 
   it('exposes no internal technical language', () => {
     renderHero();
     const lower = (host.textContent ?? '').toLowerCase();
+    // CORRECTION 6 (build 61, founder-authorised) RECLASSIFIED ONE TERM.
+    // 'hydrostate' used to sit in this list, on the Wave-5 premise that it was
+    // an internal engine word. Device QA reversed that premise: the founder
+    // could not find HydroState in the product because the product never said
+    // it, so HYDROSTATE is now the member-facing NAME of the hero state and
+    // this slot's eyebrow. It therefore moved from this forbidden list to a
+    // REQUIRED assertion — "keeps the hero slot labelled…" above asserts the
+    // rendered text CONTAINS it, and `homeHeroNamingLock.test.ts` locks the
+    // shipped value in all 11 locales. Net: the term is more tightly
+    // constrained than before, not less. Every other term stays forbidden.
     for (const jargon of [
       'null',
       'rollup',
       'engine',
       'sample',
-      'hydrostate',
       'sync',
       'fetch',
       'loading',

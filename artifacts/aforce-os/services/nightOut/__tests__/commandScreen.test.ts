@@ -79,7 +79,10 @@ describe('NO-c route is authorization-gated to the new command screen', () => {
   it('renders NightOutCommandScreen only when authorized', () => {
     expect(route).toMatch(/NightOutCommandScreen/);
     expect(route).toMatch(/isNightOutEnabled/);
-    expect(route).toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
+    // Build-61 correction 5: unauthorized now lands on Circle, not Protocol.
+    // Both directions asserted — the redirect cannot vanish or drift back.
+    expect(route).toMatch(/Redirect href="\/\(tabs\)\/competition"/);
+    expect(route).not.toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
     expect(route).not.toMatch(/SocialModeV2Screen/); // no longer the alcohol screen
   });
 });

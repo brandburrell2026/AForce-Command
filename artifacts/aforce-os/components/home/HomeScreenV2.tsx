@@ -90,6 +90,61 @@
  * WHY inline, secondary information quiet, all unchanged. It reads the store
  * state this screen ALREADY subscribes to, so it adds no slice, no network read
  * and no timer.
+ *
+ * CORRECTION 6 — NAME THE HERO, PRINT THE BAND ONCE (build 61, after build 60
+ * failed physical-device QA). Copy and presentation only: no symbol renamed, no
+ * math touched, no second score. The device pass found FOUR alarming-looking
+ * strings stacked in the hero where there is ONE reading:
+ *
+ *   1. the numeral, labelled READINESS — a word the founder could not connect
+ *      to the product, because "HydroState" was rendered NOWHERE in the app;
+ *   2. the band word under it (`engine.performanceState.level`);
+ *   3. the SAME variable again, title-cased, in the "Recovery" signal tile;
+ *   4. the Wave-5 confidence token ("LIMITED") a few points away, a bare
+ *      structural word that reads like a fourth verdict on the body.
+ *
+ * Three of those four were the same underlying value. The corrections:
+ * `home.v2.readiness_label` now says HYDROSTATE in all 11 locales (an
+ * untranslated structural token in every one of them, so key parity is
+ * untouched — see `homeHeroNamingLock.test.ts`); the Recovery tile renders the
+ * honest-data em dash instead of restating the band; and the confidence chip
+ * carries the noun that names its domain ("EVIDENCE: LIMITED") so it qualifies
+ * the reading instead of competing with it.
+ *
+ * The approved shape is unchanged and is now locked: ONE hero state (the arc +
+ * numeral, band-aware colour), ONE band/status word, ONE quiet secondary
+ * evidence indicator, ONE command.
+ *
+ * CORRECTION 2 — LOG WATER OPENS A LOGGING SURFACE (build 61, after build 60
+ * failed physical-device QA). The most important control in the product was
+ * wired like this:
+ *
+ *     onPrimary={() => {
+ *       fireMoment('command_completed');
+ *       void logIntake('water', { silent: true, ozOverride: parseDoseOz(...) });
+ *     }}
+ *
+ * Three defects in four lines. (1) The TAP WAS THE COMMIT — no picker, no
+ * amount, no confirm, no cancel, so a mis-tap was a durable intake event and
+ * the member never said how much they drank. (2) `silent: true` sets
+ * `showCycleSuccess: false` in the reducer, and the repo's only
+ * `<CycleSuccessOverlay>` mount lived in `HomeScreenLegacy`, which
+ * `spec_home: true` makes unreachable — so even without `silent` there was no
+ * renderer. Nothing acknowledged the act. (3) The haptic fired on PRESS, so the
+ * hand was told "logged" before the write had even been attempted, and it still
+ * said "logged" when the write failed.
+ *
+ * The fix re-mounts SHIPPED, ALREADY-TESTED UI rather than building anything:
+ * `components/WaterAmountModal.tsx` (the 8/12/16/20/24/32 oz presets + ±2 oz
+ * stepper, previously reachable only through the orphaned `LogIntakeRow`) and
+ * `components/CycleSuccessOverlay.tsx` (the hero confirmation the legacy Home
+ * used to own). The loop is now: tap → picker → the member's own amount →
+ * ONE durable event → the reading recomputes → the confirmation says so.
+ *
+ * Opening the logger is deliberately inert: no intake, no score, no haptic
+ * moment until the member confirms an amount. Score-Protection is untouched —
+ * this screen still never computes anything; it hands `ozOverride` to the same
+ * `logIntake` action every other intake surface calls.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
@@ -118,8 +173,13 @@ import { af, afType, afMotion, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/them
 import { fireMoment } from '@/services/haptics';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
-import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice } from '@/store/slices';
+import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice, useCycleSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
+// CORRECTION 2 — both already shipped and tested; neither is new UI. The picker
+// was dead code (its only mount, `LogIntakeRow`, is imported by nothing); the
+// overlay's only mount was the unreachable legacy Home.
+import { WaterAmountModal } from '@/components/WaterAmountModal';
+import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { HomeSkeleton } from './HomeSkeleton';
 import { HomeBaselineHero } from './HomeBaselineHero';
 import { HomeFreshnessLabel } from './HomeFreshnessLabel';
@@ -127,7 +187,10 @@ import { freshestBiometricsFetchedAt } from './homeFreshness';
 import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';
 import { resolveHomeConfidence } from './homeConfidence';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
-import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
+// CORRECTION 2: `parseDoseOz` is gone from this screen on purpose. The amount
+// logged is now the amount the MEMBER picked, not a number scraped out of the
+// command copy and written on their behalf.
+import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
 import {
   resolveHomePresentation,
   resolveArcAnimation,
@@ -154,6 +217,8 @@ interface HomeActions {
     fluidType: FluidType,
     opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
   ) => Promise<void>;
+  /** Clears the success overlay (CORRECTION 2) — the same action the legacy Home passes it. */
+  dismissSuccess: () => void;
 }
 
 /** Heat-load band → i18n key suffix (translated at the call site). */
@@ -161,10 +226,6 @@ function heatBand(heatLoad: number): 'high' | 'moderate' | 'low' {
   if (heatLoad >= 60) return 'high';
   if (heatLoad >= 30) return 'moderate';
   return 'low';
-}
-
-function titleCase(level: string): string {
-  return level.charAt(0) + level.slice(1).toLowerCase();
 }
 
 /** Compact signal tile — fixed-width column so word values never collide. */
@@ -233,10 +294,73 @@ export function HomeScreenV2() {
   const { isHydrated } = useBootstrapSlice();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
-  const { logIntake } = useActionsSlice<HomeActions>();
+  const { logIntake, dismissSuccess } = useActionsSlice<HomeActions>();
   const clerkUser = useUser().user;
   const router = useRouter();
   const reducedMotion = useReducedMotion();
+
+  // ── CORRECTION 2 — the water-logging surface (see the file header) ─────────
+  // The cycle slice is this screen's ONE new subscription. It carries the
+  // in-flight flag the primary button now shows and the settled result the
+  // confirmation renders. It changes exactly three times per log (start →
+  // success → dismiss) and NEVER on a timer tick — `TICK_TIMER` touches
+  // `timerSeconds`/`pendingConfirmation`, neither of which is in this slice's
+  // memo — so Wave-4's "no per-second renders" guarantee is untouched. The
+  // render-count harness proves that rather than trusting this comment.
+  const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
+  const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+
+  // A confirmed amount that has been dispatched but has not settled yet.
+  // A ref, not state, because it has to be read and written SYNCHRONOUSLY
+  // inside a single press: two taps in the same frame both close over the same
+  // pre-render `logIntake`, whose own `state.isCompletingCycle` guard has not
+  // seen the first tap yet, so the store would post two intakes for one drink.
+  // This ref is what stands between a fast double-tap and a duplicate durable
+  // event; `primaryLoading` and the picker guard cover the slower cases.
+  const confirmInFlightRef = React.useRef(false);
+
+  // Opening the logger is NOT logging: no intake, no score, no haptic moment.
+  // Refused while a cycle is in flight because `logIntake` would drop the
+  // resulting confirm on the floor (`if (state.isCompletingCycle) return;`),
+  // which would leave the member believing they had logged.
+  const openWaterPicker = React.useCallback(() => {
+    if (isCompletingCycle || confirmInFlightRef.current) return;
+    setWaterPickerOpen(true);
+  }, [isCompletingCycle]);
+
+  // Cancel and back-out are the same thing to this screen: close the surface,
+  // write nothing. `WaterAmountModal` routes its X button, its backdrop tap and
+  // Android hardware-back (`onRequestClose`) all to this one handler.
+  const cancelWaterPicker = React.useCallback(() => {
+    setWaterPickerOpen(false);
+  }, []);
+
+  // THE ONLY PLACE THIS SCREEN LOGS. `silent` is deliberately not passed: it
+  // sets `showCycleSuccess: false`, which is exactly what made this action feel
+  // dead, and a member-initiated log should behave like every other one.
+  const confirmWaterAmount = React.useCallback(
+    (oz: number) => {
+      if (confirmInFlightRef.current || isCompletingCycle) return;
+      confirmInFlightRef.current = true;
+      setWaterPickerOpen(false);
+      void logIntake('water', { ozOverride: oz });
+    },
+    [logIntake, isCompletingCycle],
+  );
+
+  // COMMAND COMPLETED — one of the four named haptic moments, fired on the
+  // CONFIRMED write. `logIntake` catches its own errors and resolves either
+  // way, so awaiting it proves nothing; the settled cycle state is the only
+  // honest success signal. CYCLE_SUCCESS lands a `lastCycleResult`,
+  // CYCLE_FAILURE clears it, and no other cycle can settle in between because
+  // the store serialises on `isCompletingCycle`.
+  React.useEffect(() => {
+    if (!confirmInFlightRef.current) return;
+    if (isCompletingCycle) return; // still writing — nothing to confirm yet
+    confirmInFlightRef.current = false;
+    if (!lastCycleResult) return; // CYCLE_FAILURE: there is no success to claim
+    fireMoment('command_completed');
+  }, [isCompletingCycle, lastCycleResult]);
 
   // RC-1 Wave-2B (item 1) — offline intake outbox visibility. Flag-gated:
   // while `offline_intake_outbox_enabled` is off the outbox is never
@@ -342,13 +466,21 @@ export function HomeScreenV2() {
       : coachLead(archetype)
     : instruction;
 
-  // The Recovery tile is the band word — the same claim the hero gate withholds.
-  // Left alone it would restate "Balanced" one section under "Building your
-  // baseline", handing the fabricated state back through a side door, so until
-  // there is evidence it renders the honest-data contract's em dash (the glyph
-  // the Sleep/HRV tiles already use for a reading nobody took).
-  const recoveryText =
-    evidence === 'established' ? titleCase(engine.performanceState.level) : EM_DASH;
+  // CORRECTION 6 (build-61 device QA) — the Recovery tile is NOT a recovery
+  // reading. It was `titleCase(engine.performanceState.level)`: the same
+  // variable the hero already prints as the band word, restated title-cased one
+  // section down. Home therefore printed the band twice (plus the confidence
+  // token nearby), and the founder read three alarming strings where there is
+  // one underlying value and one measurement.
+  //
+  // A duplicate is not a second measurement, so this renders the honest-data
+  // contract's em dash — the SAME glyph the Sleep/HRV tiles already use for a
+  // reading nobody took — until a real recovery input exists. Nothing truthful
+  // is erased: the band word still appears exactly once, in the hero, where it
+  // is the reading. (The previous `evidence === 'established'` gate is now
+  // redundant rather than removed — the em dash was already what the
+  // pre-evidence branch rendered, and it is now what both branches render.)
+  const recoveryText = EM_DASH;
 
   const signalTiles: Record<SignalKey, React.ReactNode> = {
     hydration: <Signal label={t('home.v2.signal_hydration')} value={`${hydrationPct}%`} />,
@@ -397,211 +529,258 @@ export function HomeScreenV2() {
   ]);
 
   return (
-    <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
-      {/* Wordmark + freshness (+ V3 health-connection chip — renders nothing
-          when no provider has contributed data) */}
-      <View style={styles.header}>
-        <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
-        <View style={styles.brandRow}>
-          <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
-          {v3Data?.chip ? (
-            <View
-              style={styles.v3Chip}
-              accessible
-              accessibilityLabel={`${v3Data.chip.label} ${v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}`}
-              testID="home-v3-health-chip"
-            >
-              <View style={[styles.v3ChipDot, !v3Data.chip.live && styles.v3ChipDotIdle]} />
-              <Text style={styles.v3ChipText} numberOfLines={1}>
-                {v3Data.chip.label} · {v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <HomeFreshnessLabel
-          fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
-          style={styles.freshness}
-          testID="home-v2-freshness"
-        />
-      </View>
-
-      {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
-      <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
-
-      {!isHydrated ? (
-        /* The skeleton has to stand in for the signal block this screen is
-           ABOUT to render, not the one it used to: V3's four-tile grid is two
-           rows, and shaping three tiles in one row dropped a row of content on
-           the reader the instant hydration landed. */
-        <HomeSkeleton signals={v3 ? 'grid4' : 'row3'} />
-      ) : (
-        <>
-          {/* THE HERO SLOT — exactly one of three, never a blend. */}
-          {evidence === 'pending' ? (
-            /* Evidence not known yet. Rendering the score here, even for the
-               one frame before the journal read lands, is precisely the
-               fabricated "BALANCED 76" this gate exists to prevent — so the
-               slot holds its shape and claims nothing. Short-lived by
-               construction: it is only reachable with no local intake. */
-            <View style={styles.arcWrap}>
-              <AFSkeleton
-                width={arcDims.size}
-                height={arcDims.size}
-                radius={arcDims.size / 2}
-                testID="home-baseline-pending"
-              />
-            </View>
-          ) : evidence === 'building' ? (
-            /* No entrance: BUILDING YOUR BASELINE is a statement about what we
-               do not know yet. Sliding it in would dress up an absence. */
-            <HomeBaselineHero testID="home-baseline-hero" />
-          ) : (
-            /* Dominant readiness value + thin arc (tap → insights). The hero
-               wrapper is static — the arc's own draw-in IS the reveal, and
-               animating the container too would move the same thing twice. */
-            <View>
-              <Pressable
-                style={[styles.arcWrap, elite && styles.arcWrapPremium]}
-                onPress={() => router.push('/weekly-report')}
-                accessibilityRole="button"
-                accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
-                testID="home-readiness-arc"
+    // The overlay host. AFScreen renders its children INSIDE a ScrollView, so a
+    // success overlay mounted in there would be positioned against the scrolling
+    // content box, not the viewport — it would slide away under the member's
+    // thumb. This non-scrolling wrapper is the frame the confirmation fills.
+    <View style={styles.root}>
+      <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
+        {/* Wordmark + freshness (+ V3 health-connection chip — renders nothing
+            when no provider has contributed data) */}
+        <View style={styles.header}>
+          <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
+          <View style={styles.brandRow}>
+            <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
+            {v3Data?.chip ? (
+              <View
+                style={styles.v3Chip}
+                accessible
+                accessibilityLabel={`${v3Data.chip.label} ${v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}`}
+                testID="home-v3-health-chip"
               >
-                {/* a11yHidden: the Pressable above already announces score + band,
-                    so an inner progressbar would make the hero speak twice. */}
-                {/* SIGNATURE MOMENT 1 — the HydroState reveal. */}
-                <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} a11yHidden>
-                  {elite ? (
-                    <EliteScoreNumber
-                      score={score}
-                      fromScore={arcPlan.fromScore}
-                      countUp={arcPlan.countUp}
-                      style={styles.score}
-                    />
-                  ) : (
-                    <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
-                  )}
-                  <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
-                  {elite ? (
-                    <View style={[styles.statePill, { borderColor: accent }]}>
-                      <Text style={[styles.statePillText, { color: accentText }]}>
-                        {engine.performanceState.level}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text style={[styles.stateLabel, { color: accentText }]}>
-                      {engine.performanceState.level}
-                    </Text>
-                  )}
-                </AFReadinessArc>
-              </Pressable>
-              {/* The reading's evidence, stated where the reading is. One
-                  quiet chip — 5px dot + a 9pt structural token, differentiated
-                  by opacity only — so it qualifies the number without becoming
-                  a second thing to look at. It is deliberately NOT inside the
-                  arc and NOT a card: the hierarchy is one dominant number, and
-                  this is a footnote on it. Only the `established` branch has a
-                  reading to qualify, so only this branch carries it. */}
-              <View style={styles.confidenceRow}>
-                <ConfidenceChip
-                  label={confidence.chip.label}
-                  opacity={confidence.chip.opacity}
-                  a11yContext={t('home.v2.confidence_a11y_context')}
+                <View style={[styles.v3ChipDot, !v3Data.chip.live && styles.v3ChipDotIdle]} />
+                <Text style={styles.v3ChipText} numberOfLines={1}>
+                  {v3Data.chip.label} · {v3Data.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <HomeFreshnessLabel
+            fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
+            style={styles.freshness}
+            testID="home-v2-freshness"
+          />
+        </View>
+
+        {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
+        <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
+
+        {!isHydrated ? (
+          /* The skeleton has to stand in for the signal block this screen is
+             ABOUT to render, not the one it used to: V3's four-tile grid is two
+             rows, and shaping three tiles in one row dropped a row of content on
+             the reader the instant hydration landed. */
+          <HomeSkeleton signals={v3 ? 'grid4' : 'row3'} />
+        ) : (
+          <>
+            {/* THE HERO SLOT — exactly one of three, never a blend. */}
+            {evidence === 'pending' ? (
+              /* Evidence not known yet. Rendering the score here, even for the
+                 one frame before the journal read lands, is precisely the
+                 fabricated "BALANCED 76" this gate exists to prevent — so the
+                 slot holds its shape and claims nothing. Short-lived by
+                 construction: it is only reachable with no local intake. */
+              <View style={styles.arcWrap}>
+                <AFSkeleton
+                  width={arcDims.size}
+                  height={arcDims.size}
+                  radius={arcDims.size / 2}
+                  testID="home-baseline-pending"
                 />
               </View>
-              <LiveStatusLine
-                direction={trend.direction}
-                delta={trend.delta}
-                ageSec={trend.ageSec}
-                verb={statusVerb}
-                accent={accentText}
-                testID="home-v2-live-status-line"
-              />
-            </View>
-          )}
-
-          {/* One command — SIGNATURE MOMENT 2 (the command reveal). */}
-          <Animated.View entering={commandReveal}>
-            <AFCommandCard
-              eyebrow={commandEyebrow}
-              title={title || t('home.v2.default_command_title')}
-              instruction={commandInstruction}
-              primaryLabel={t('home.v2.log_water')}
-              onPrimary={() => {
-                // COMMAND COMPLETED — one of the four named haptic moments. The
-                // log is `silent: true`, so before this the member pressed the
-                // single most important control in the product and felt nothing.
-                fireMoment('command_completed');
-                void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
-              }}
-              rationale={engine.command.explanation || undefined}
-            />
-            {voiceElite && (
-              <Text style={styles.trust} testID="home-coach-trust">
-                {t('coach.trust_line')}
-              </Text>
-            )}
-          </Animated.View>
-
-          {/* AForce Moments (Phases 1–2, flag OFF in production) — NEXT MOMENT
-              + today's preparation-relevant list. Additive section; renders
-              nothing when the flag is off or no moments exist. */}
-          {momentsOn && (
-            <View style={styles.momentsSection}>
-              <HomeMomentsSection />
-            </View>
-          )}
-
-          {/* Signals — V3: four live-signal tiles (Hydration / Recovery /
-              Sleep / HRV, missing readings render an em dash); flag off: the
-              shipped three-tile row, byte-identical. */}
-          <View style={styles.signalsSection}>
-            <AFSectionLabel label={t(v3 ? 'home.v3.live_signals' : 'home.v2.signals_label')} />
-            {v3 && v3Data ? (
-              <View style={styles.v3Grid}>
-                <View style={styles.signals}>
-                  <Signal label={t('home.v2.signal_hydration')} value={v3Data.hydrationText} />
-                  <Signal label={t('home.v2.signal_recovery')} value={recoveryText} />
-                </View>
-                <View style={styles.signals}>
-                  <Signal label={t('home.v3.signal_sleep')} value={v3Data.sleepText} />
-                  <Signal label={t('home.v3.signal_hrv')} value={v3Data.hrvText} />
-                </View>
-              </View>
+            ) : evidence === 'building' ? (
+              /* No entrance: BUILDING YOUR BASELINE is a statement about what we
+                 do not know yet. Sliding it in would dress up an absence. */
+              <HomeBaselineHero testID="home-baseline-hero" />
             ) : (
-              <View style={styles.signals}>
-                {signalOrder.map((key) => (
-                  <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
-                ))}
+              /* Dominant readiness value + thin arc (tap → insights). The hero
+                 wrapper is static — the arc's own draw-in IS the reveal, and
+                 animating the container too would move the same thing twice. */
+              <View>
+                <Pressable
+                  style={[styles.arcWrap, elite && styles.arcWrapPremium]}
+                  onPress={() => router.push('/weekly-report')}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
+                  testID="home-readiness-arc"
+                >
+                  {/* a11yHidden: the Pressable above already announces score + band,
+                      so an inner progressbar would make the hero speak twice. */}
+                  {/* SIGNATURE MOMENT 1 — the HydroState reveal. */}
+                  <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} a11yHidden>
+                    {elite ? (
+                      <EliteScoreNumber
+                        score={score}
+                        fromScore={arcPlan.fromScore}
+                        countUp={arcPlan.countUp}
+                        style={styles.score}
+                      />
+                    ) : (
+                      <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
+                    )}
+                    <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
+                    {elite ? (
+                      <View style={[styles.statePill, { borderColor: accent }]}>
+                        <Text style={[styles.statePillText, { color: accentText }]}>
+                          {engine.performanceState.level}
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.stateLabel, { color: accentText }]}>
+                        {engine.performanceState.level}
+                      </Text>
+                    )}
+                  </AFReadinessArc>
+                </Pressable>
+                {/* The reading's evidence, stated where the reading is. One
+                    quiet chip — 5px dot + a 9pt structural token, differentiated
+                    by opacity only — so it qualifies the number without becoming
+                    a second thing to look at. It is deliberately NOT inside the
+                    arc and NOT a card: the hierarchy is one dominant number, and
+                    this is a footnote on it. Only the `established` branch has a
+                    reading to qualify, so only this branch carries it.
+
+                    CORRECTION 6 (build-61 device QA) — the chip used to render
+                    the bare rating token ("LIMITED"), which sits inches under a
+                    band word and reads as a fourth verdict about the member's
+                    body rather than a statement about the DATA. The rating is
+                    unchanged (`homeConfidence` still resolves it, opacity ramp
+                    untouched); it is now prefixed with the noun that names its
+                    domain — "EVIDENCE: LIMITED" — so its role is unmistakable at
+                    a glance and not only to a screen reader, which has carried
+                    that noun via `a11yContext` since Wave 5. Composed at the call
+                    site so the shared chip primitive keeps its one grammar. */}
+                <View style={styles.confidenceRow}>
+                  <ConfidenceChip
+                    label={t('home.v2.confidence_chip', { rating: confidence.chip.label })}
+                    opacity={confidence.chip.opacity}
+                    a11yContext={t('home.v2.confidence_a11y_context')}
+                  />
+                </View>
+                <LiveStatusLine
+                  direction={trend.direction}
+                  delta={trend.delta}
+                  ageSec={trend.ageSec}
+                  verb={statusVerb}
+                  accent={accentText}
+                  testID="home-v2-live-status-line"
+                />
               </View>
             )}
-          </View>
 
-          {/* WAVE 5 — the V3 "Completed today" section (three protocol rows +
-              n/N count + streak / recovery-trend stat tiles) was DELETED here.
-              Two reasons, both about honesty and hierarchy:
+            {/* One command — SIGNATURE MOMENT 2 (the command reveal).
 
-              TRUST — the rows were derived from `deriveTodaysProtocol`, which
-              checked off "Hydration Stick" at one logged serving and "AForce
-              Can" at half the daily target. A member who drank tap water got a
-              green check asserting they had consumed a specific AForce product.
-              A green check is the strongest certainty signal on the screen and
-              it was backed by the weakest evidence. (There is no can data —
-              sticks only, per the founder.)
+                CORRECTION 2 — `onPrimary` OPENS the logging surface. It does not
+                log, does not credit and does not congratulate: the member has
+                not said how much they drank yet. The write and the haptic moment
+                both live on the confirm path. `primaryLoading` is the in-flight
+                state the card has always accepted and this screen never passed —
+                it also makes the button inert while a write is outstanding. */}
+            <Animated.View entering={commandReveal}>
+              <AFCommandCard
+                eyebrow={commandEyebrow}
+                title={title || t('home.v2.default_command_title')}
+                instruction={commandInstruction}
+                primaryLabel={t('home.v2.log_water')}
+                onPrimary={openWaterPicker}
+                primaryLoading={isCompletingCycle}
+                rationale={engine.command.explanation || undefined}
+              />
+              {voiceElite && (
+                <Text style={styles.trust} testID="home-coach-trust">
+                  {t('coach.trust_line')}
+                </Text>
+              )}
+            </Animated.View>
 
-              HIERARCHY — the day-streak numeral rendered at afType.title2 26pt,
-              the second-largest number on Home. HydroState must not read as
-              points or a game score, and nothing should compete with the arc.
+            {/* AForce Moments (Phases 1–2, flag OFF in production) — NEXT MOMENT
+                + today's preparation-relevant list. Additive section; renders
+                nothing when the flag is off or no moments exist. */}
+            {momentsOn && (
+              <View style={styles.momentsSection}>
+                <HomeMomentsSection />
+              </View>
+            )}
 
-              Nothing is lost: the streak lives on StreakCard / Progress, and the
-              trend is already the LiveStatusLine directly under the arc. */}
-        </>
+            {/* Signals — V3: four live-signal tiles (Hydration / Recovery /
+                Sleep / HRV, missing readings render an em dash); flag off: the
+                shipped three-tile row, byte-identical. */}
+            <View style={styles.signalsSection}>
+              <AFSectionLabel label={t(v3 ? 'home.v3.live_signals' : 'home.v2.signals_label')} />
+              {v3 && v3Data ? (
+                <View style={styles.v3Grid}>
+                  <View style={styles.signals}>
+                    <Signal label={t('home.v2.signal_hydration')} value={v3Data.hydrationText} />
+                    <Signal label={t('home.v2.signal_recovery')} value={recoveryText} />
+                  </View>
+                  <View style={styles.signals}>
+                    <Signal label={t('home.v3.signal_sleep')} value={v3Data.sleepText} />
+                    <Signal label={t('home.v3.signal_hrv')} value={v3Data.hrvText} />
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.signals}>
+                  {signalOrder.map((key) => (
+                    <React.Fragment key={key}>{signalTiles[key]}</React.Fragment>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* WAVE 5 — the V3 "Completed today" section (three protocol rows +
+                n/N count + streak / recovery-trend stat tiles) was DELETED here.
+                Two reasons, both about honesty and hierarchy:
+
+                TRUST — the rows were derived from `deriveTodaysProtocol`, which
+                checked off "Hydration Stick" at one logged serving and "AForce
+                Can" at half the daily target. A member who drank tap water got a
+                green check asserting they had consumed a specific AForce product.
+                A green check is the strongest certainty signal on the screen and
+                it was backed by the weakest evidence. (There is no can data —
+                sticks only, per the founder.)
+
+                HIERARCHY — the day-streak numeral rendered at afType.title2 26pt,
+                the second-largest number on Home. HydroState must not read as
+                points or a game score, and nothing should compete with the arc.
+
+                Nothing is lost: the streak lives on StreakCard / Progress, and the
+                trend is already the LiveStatusLine directly under the arc. */}
+          </>
+        )}
+      </AFScreen>
+
+      {/* CORRECTION 2 — the logging surface. Shipped component, re-mounted:
+          6 presets + a ±2 oz stepper, because real containers vary (a 16.9 oz
+          bottle, a 24 oz tumbler, a 32 oz Nalgene) and the amount belongs to
+          the member. Cancel / backdrop / hardware-back all write nothing.
+          `accent` (not `accentText`) is correct here: the modal spends it on
+          the confirm button's FILL and a 56pt numeral, and fills take the fill
+          token. It stays mounted with `visible=false` so the picker's own
+          reset-to-16 effect runs on every open. */}
+      <WaterAmountModal
+        visible={waterPickerOpen}
+        accentColor={accent}
+        onCancel={cancelWaterPicker}
+        onConfirm={confirmWaterAmount}
+      />
+
+      {/* CORRECTION 2 — the acknowledgement. This overlay is the repo's
+          shipped confirmation moment and its ONLY previous mount was inside
+          `HomeScreenLegacy`, which `spec_home: true` makes unreachable — so a
+          member on the live Home logged water and the product said nothing.
+          Rendered from the cycle slice's own settled result (never from local
+          state), so it can only appear for a write the store actually
+          committed, and it carries the real before → after score. */}
+      {showCycleSuccess && lastCycleResult && (
+        <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
       )}
-    </AFScreen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // CORRECTION 2 — the non-scrolling overlay host (see the return statement).
+  root: { flex: 1 },
   // Tokenized bottom breathing room (replaces a trailing <View height:40/> spacer).
   scrollContent: { paddingBottom: Spacing[10] },
   // V3's four-tile signal grid extends the scroll below the fold — clear the
