@@ -91,13 +91,17 @@ describe('buildCircleV3Model — rank rows (the comp leaderboard)', () => {
     expect(m.rows.map((r) => r.rank)).toEqual(m.rows.map((_, i) => i + 1));
   });
 
-  it('carries the comp fields: verified, title/city subtitles, streaks, movement', () => {
+  it('carries the comp fields: title/city subtitles, streaks, movement', () => {
     const jordan = m.rows.find((r) => r.name === 'Jordan A.')!;
     expect(jordan).toMatchObject({
-      verified: true,
       subtitleLeft: 'Miami, FL',
       streakDays: 7,
       move: { dir: 'up', n: 3 },
+      // The roster still says `verified: true` for this profile (founder data,
+      // untouched) — the view model is what refuses to render a credential
+      // over an invented person. Locked in circleV3SampleDisclosure.test.ts.
+      isSample: true,
+      verified: false,
     });
     const alicia = m.rows.find((r) => r.name === 'Alicia R.')!;
     expect(alicia.subtitleLeft).toBe('Perfect Hydration'); // title wins over city
@@ -141,6 +145,7 @@ describe('circleRowA11yLabel — the row says out loud what it only showed in co
   const S: CircleRowA11yStrings = {
     rank: (n) => `Rank ${n}`,
     you: 'You',
+    sample: 'Sample data, not a real member or a real standing',
     verified: 'Verified',
     score: (n) => `Score ${n}`,
     // Mirrors en.json's _one/_other plural pair.
@@ -151,18 +156,31 @@ describe('circleRowA11yLabel — the row says out loud what it only showed in co
   const rows = buildCircleV3Model(inputs()).rows;
   const row = (name: string) => rows.find((r) => r.name === name)!;
 
-  it('speaks the verified badge that used to be a glyph on an inert View', () => {
+  it('says a sample profile is sample data, and never calls it verified', () => {
+    // Was: "Rank 1. Jordan A. Verified. …" — a credential spoken over an
+    // invented person, on a row a screen-reader user had no other way to tell
+    // apart from the member's own. The provenance now rides with the name and
+    // the credential is gone (mocks/competitionData.ts still carries
+    // `verified: true` for this profile; the view model refuses it).
     const jordan = row('Jordan A.');
     const label = circleRowA11yLabel(jordan, 'Miami, FL · 7-day streak', S);
     expect(label).toBe(
-      `Rank ${jordan.rank}. Jordan A. Verified. Miami, FL · 7-day streak. Score ${jordan.score}. Up 3 places`,
+      `Rank ${jordan.rank}. Jordan A., Sample data, not a real member or a real standing. ` +
+        `Miami, FL · 7-day streak. Score ${jordan.score}. Up 3 places`,
     );
+    expect(label).not.toContain('Verified');
   });
 
   it('names YOU instead of relying on the green name colour', () => {
     const you = rows.find((r) => r.isYou)!;
     const label = circleRowA11yLabel(you, 'Miami, FL', S);
     expect(label).toContain(`${you.name}, You`);
+  });
+
+  it('never qualifies the member’s own row as sample', () => {
+    const you = rows.find((r) => r.isYou)!;
+    expect(you.isSample).toBe(false);
+    expect(circleRowA11yLabel(you, 'Miami, FL', S)).not.toContain('Sample data');
   });
 
   it('omits the badge phrase for unverified rows', () => {
