@@ -12,26 +12,9 @@
 import { describe, it, expect } from 'vitest';
 import { af, afType, afLayout, afMotion, afAlpha, afElev, withAlpha } from '../afTokens';
 import { Colors } from '../colors';
-
-// ── WCAG relative-luminance contrast (solid hex only) ──
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
-  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)) as [number, number, number];
-}
-function relLuminance([r, g, b]: [number, number, number]): number {
-  const f = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  };
-  const [R, G, B] = [f(r), f(g), f(b)];
-  return 0.2126 * R + 0.7152 * G + 0.0722 * B;
-}
-function contrast(a: string, b: string): number {
-  const la = relLuminance(hexToRgb(a));
-  const lb = relLuminance(hexToRgb(b));
-  const [hi, lo] = la > lb ? [la, lb] : [lb, la];
-  return (hi + 0.05) / (lo + 0.05);
-}
+// WCAG relative-luminance contrast. Shared with homePresentation.test.ts's
+// band-accent text guards so both measure AA with the identical implementation.
+import { contrast } from './_wcagContrast';
 
 describe('af.* brand fidelity', () => {
   it('red is the frozen Signal Red #C1281B, not the spec #E41E2B', () => {
@@ -97,6 +80,12 @@ describe('af.* WCAG 2.2 AA contrast (spec §11)', () => {
   it('primary text stays legible on the raised surface too', () => {
     expect(contrast(af.textPrimary, af.surface)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(af.textPrimary, af.surfaceRaised)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('tertiary micro-copy clears 4.5:1 on the raised card, where AFCommandCard puts it', () => {
+    // The Wave-5 inline reason line (and the card's eyebrow) are tertiary on a
+    // `raised` AFCard — the lightest surface in the ramp, so the tightest pair.
+    expect(contrast(af.textTertiary, af.surfaceRaised)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('on-red label clears the 3:1 large-text/non-text floor for red buttons', () => {

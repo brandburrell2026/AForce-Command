@@ -89,37 +89,31 @@ export function deriveRitualSteps(input: HydrationInputs): RitualStepView[] {
   }));
 }
 
+/**
+ * Today's Protocol view types.
+ *
+ * WAVE 5 — the producer, `deriveTodaysProtocol`, was DELETED. It marked
+ * "Hydration Stick" complete at one logged serving and "AForce Can" at half the
+ * daily target, so a member who drank tap water got a green check asserting they
+ * had consumed a specific AForce product. That inverted this module's own
+ * no-fabrication contract: the check is the strongest certainty signal on the
+ * screen and it was inferred from generic intake, not from product evidence.
+ * (There is also no can data — sticks only, per the founder.) Its only caller
+ * was Home's V3 "Completed today" section, removed in the same change.
+ *
+ * The types stay because `components/home/TodaysProtocol.tsx` — a purely
+ * presentational component with no caller today — is typed against them. Any
+ * future protocol surface needs a real evidence source (a logged product), not
+ * an inference from servings.
+ */
 export type ProtocolBlockId = 'morning' | 'midday' | 'evening';
 
 export interface ProtocolBlockView {
   id: ProtocolBlockId;
   period: string;
   label: string;
-  /** Driven off real intake progression toward the daily target. */
+  /** Must come from product-level evidence, never inferred from total intake. */
   complete: boolean;
-}
-
-/**
- * Today's Protocol — three time-of-day blocks whose completion mirrors
- * the same intake progression used by the engine's protocol checklist:
- *   - Morning  (Hydration Stick)   : first intake on record
- *   - Midday   (AForce Can)        : halfway to target
- *   - Evening  (Recovery Protocol) : daily target reached
- * No fabrication — completion is a pure function of logged intake.
- */
-export function deriveTodaysProtocol(input: {
-  unitsConsumedToday: number;
-  dailyTarget: number;
-}): ProtocolBlockView[] {
-  const units = Math.max(0, input.unitsConsumedToday);
-  const target = safeTarget(input.dailyTarget);
-  const halfway = Math.ceil(target / 2);
-
-  return [
-    { id: 'morning', period: 'Morning', label: 'Hydration Stick', complete: units >= 1 },
-    { id: 'midday', period: 'Midday', label: 'AForce Can', complete: units >= halfway },
-    { id: 'evening', period: 'Evening', label: 'Recovery Protocol', complete: units >= target },
-  ];
 }
 
 export interface AthleteModeView {

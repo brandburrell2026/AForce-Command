@@ -46,6 +46,14 @@ export interface AFReadinessArcProps {
    * default → no halo, byte-identical to the base render.
    */
   alive?: boolean;
+  /**
+   * Hide the arc AND its centered children from assistive tech. Set this when an
+   * accessible ancestor already announces the same reading — Home wraps the arc
+   * in a labelled `Pressable` ("Readiness 76, PEAK"), so without this the hero
+   * announces twice: once as that button, once as this progressbar. Default false
+   * keeps every other caller's output unchanged.
+   */
+  a11yHidden?: boolean;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -62,6 +70,7 @@ export function AFReadinessArc({
   trackColor = af.divider,
   animate = false,
   alive = false,
+  a11yHidden = false,
   children,
   style,
   testID,
@@ -128,8 +137,10 @@ export function AFReadinessArc({
     <View
       style={[{ width: size, height: size }, style]}
       testID={testID}
-      accessibilityRole="progressbar"
-      accessibilityValue={{ min: 0, max: 100, now: pct }}
+      accessibilityRole={a11yHidden ? undefined : 'progressbar'}
+      accessibilityValue={a11yHidden ? undefined : { min: 0, max: 100, now: pct }}
+      accessibilityElementsHidden={a11yHidden}
+      importantForAccessibility={a11yHidden ? 'no-hide-descendants' : undefined}
     >
       <Svg
         width={size}
