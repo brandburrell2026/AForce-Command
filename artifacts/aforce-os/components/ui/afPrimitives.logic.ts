@@ -85,6 +85,49 @@ export function trendOf(delta: number | null | undefined): {
     : { direction: 'down', sign: '−' }; // U+2212 minus, not hyphen
 }
 
+// ─── AFCommandCard reason line (Wave-5) ──────────────────────────────────────
+
+export interface CommandReason {
+  /** The one-line WHY, rendered inline on the card. */
+  line: string;
+  /** True when the full rationale says more than `line` — only then does the disclosure earn its place. */
+  hasMore: boolean;
+}
+
+/**
+ * Reduce a command rationale to ONE line the member reads without tapping.
+ *
+ * The north star's fourth question (WHY) used to cost a tap; a truthful summary
+ * belongs next to the command. The line is the rationale's FIRST SENTENCE, which
+ * is a real unit of the copy rather than an arbitrary crop — a decimal ("1.5 L")
+ * is not a sentence end, so the lookahead requires whitespace + a capital, or the
+ * end of the string. A single sentence longer than `maxChars` is cut at a word
+ * boundary with an ellipsis.
+ *
+ * `hasMore` is an exact comparison against the whitespace-normalised full text,
+ * so the card can drop the disclosure when it would only repeat what is already
+ * on screen. Returns null for empty/whitespace input — the card then renders no
+ * reason row at all rather than an empty one.
+ */
+export function commandReasonLine(
+  rationale: string | null | undefined,
+  maxChars = 96,
+): CommandReason | null {
+  if (typeof rationale !== 'string') return null;
+  const full = rationale.replace(/\s+/g, ' ').trim();
+  if (!full) return null;
+
+  const firstSentence = /^.*?[.!?](?=\s+[A-Z"'(]|\s*$)/.exec(full)?.[0] ?? full;
+
+  let line = firstSentence;
+  if (line.length > maxChars) {
+    const cut = line.slice(0, maxChars - 1);
+    const lastSpace = cut.lastIndexOf(' ');
+    line = `${(lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+  }
+  return { line, hasMore: line !== full };
+}
+
 export type AFButtonVariant = 'primary' | 'secondary' | 'text';
 export type AFButtonPhase = 'default' | 'pressed' | 'disabled' | 'loading';
 

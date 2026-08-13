@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   deriveRitualSteps,
-  deriveTodaysProtocol,
   deriveAthleteMode,
   hydrationPercent,
   readinessLabel,
   ATHLETE_MILESTONE_TIERS,
   type HydrationInputs,
 } from '../homeDashboard';
+import * as homeDashboard from '../homeDashboard';
 
 function inputs(over: Partial<HydrationInputs> = {}): HydrationInputs {
   return {
@@ -83,35 +83,28 @@ describe('deriveRitualSteps', () => {
   });
 });
 
-describe('deriveTodaysProtocol', () => {
-  it('returns morning / midday / evening blocks with product labels', () => {
-    const blocks = deriveTodaysProtocol({ unitsConsumedToday: 0, dailyTarget: 8 });
-    expect(blocks.map((b) => b.id)).toEqual(['morning', 'midday', 'evening']);
-    expect(blocks.map((b) => b.label)).toEqual([
-      'Hydration Stick',
-      'AForce Can',
-      'Recovery Protocol',
-    ]);
+// The `deriveTodaysProtocol` suite was REPLACED, not weakened. The function it
+// covered is gone (Wave 5): it asserted "Hydration Stick complete" from one
+// logged serving and "AForce Can complete" at half target, so plain water earned
+// a green check claiming a specific AForce product had been consumed. The
+// assertions below were the ones that pinned that behaviour as correct —
+// `completes blocks as intake progresses toward target` was literally the lock
+// on the untruthful mapping — so keeping them would keep the defect. This guard
+// replaces them: the product-completion claim must not come back by inference.
+describe('deriveTodaysProtocol — removed (Wave 5, no-fabrication)', () => {
+  it('is no longer exported, so nothing can infer product completion from generic intake', () => {
+    expect(homeDashboard).not.toHaveProperty('deriveTodaysProtocol');
   });
 
-  it('completes blocks as intake progresses toward target', () => {
-    expect(
-      deriveTodaysProtocol({ unitsConsumedToday: 0, dailyTarget: 8 }).map((b) => b.complete),
-    ).toEqual([false, false, false]);
-    expect(
-      deriveTodaysProtocol({ unitsConsumedToday: 1, dailyTarget: 8 }).map((b) => b.complete),
-    ).toEqual([true, false, false]);
-    expect(
-      deriveTodaysProtocol({ unitsConsumedToday: 4, dailyTarget: 8 }).map((b) => b.complete),
-    ).toEqual([true, true, false]);
-    expect(
-      deriveTodaysProtocol({ unitsConsumedToday: 8, dailyTarget: 8 }).map((b) => b.complete),
-    ).toEqual([true, true, true]);
-  });
-
-  it('guards a zero / invalid target without dividing by zero', () => {
-    const blocks = deriveTodaysProtocol({ unitsConsumedToday: 1, dailyTarget: 0 });
-    expect(blocks.every((b) => b.complete)).toBe(true);
+  it('leaves the presentational view types in place for a future evidence-backed source', () => {
+    // TodaysProtocol.tsx is typed against these; only the *derivation* was untruthful.
+    const block: homeDashboard.ProtocolBlockView = {
+      id: 'morning',
+      period: 'Morning',
+      label: 'Hydration Stick',
+      complete: false,
+    };
+    expect(block.id).toBe('morning');
   });
 });
 
