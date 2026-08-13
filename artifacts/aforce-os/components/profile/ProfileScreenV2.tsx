@@ -299,7 +299,11 @@ export function ProfileScreenV2() {
     (profileIdentity.displayName && profileIdentity.displayName.trim()) ||
     clerkName;
   const avatarInitial = displayName.charAt(0).toUpperCase();
-  const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
+  // Wave-5: the `remindersEnabled` useState that lived here is gone. It was
+  // seeded from `mockUserProfile.remindersEnabled` and written only back into
+  // itself — no dispatch, no persistence — so the switch it drove reset on
+  // every remount and changed nothing in between. The real control is the
+  // Notification Preferences screen, one row away in the NOTIFICATIONS group.
   // Active group on the premium tab bar. Defaults to PERFORMANCE so the
   // user lands on engine modules / goals on first open.
   const [profileTab, setProfileTab] = useState<ProfileTabId>('performance');
@@ -899,7 +903,10 @@ export function ProfileScreenV2() {
             const recoveryGoalLabel = profileIdentity.primaryGoal ?? profileIdentity.recoveryGoal;
             const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
-              <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
+              <View
+                style={[styles.profileCard, { borderColor: `${tier.color}33` }]}
+                testID="profile-identity-section"
+              >
                 <View style={styles.profileCardTop}>
                   {hasAvatarImage ? (
                     <Image
@@ -998,7 +1005,33 @@ export function ProfileScreenV2() {
                     </Text>
                   </View>
                 </View>
+                {/* §55/Show-10 Profile Strength. It used to be its own headed
+                    card wrapping a single row, one card down the page from
+                    the fields it measures — it reads the completeness of THIS
+                    card, so it belongs on it. Same flag gate, same chip. */}
+                {flags.spec_profileStrengthSection ? (
+                  <View style={styles.profileStrengthRow} testID="profile-strength-row">
+                    <Text style={styles.profileMetricLabel}>
+                      {t('profile.v2.profile_completeness')}
+                    </Text>
+                    <ConfidenceChip
+                      {...profileStrength(profileIdentity).chip}
+                      a11yContext={t('profile.v2.completeness_a11y_context')}
+                    />
+                  </View>
+                ) : null}
               </View>
+            );
+
+            // Founder Profile brief, section 1 of 8 — IDENTITY. Every other
+            // group on this screen carries a SectionHeader; the identity card
+            // was the one unlabelled block, which is part of why the screen
+            // read as an unsorted pile rather than a set of named sections.
+            const identityBlock = (
+              <>
+                <SectionHeader label={t('profile.v2.identity_label')} />
+                {profileCard}
+              </>
             );
 
             const inviteCode = referralQ.data?.code ?? null;
@@ -1082,30 +1115,27 @@ export function ProfileScreenV2() {
               </>
             );
 
-            // §55/Show-10 — Profile Strength (completeness chip). Flag-gated,
-            // additive, presentational. Chip is copy-independent (label+opacity).
-            const profileStrengthCard = flags.spec_profileStrengthSection ? (
+            // Founder Profile brief, section 2 of 8 — PERFORMANCE PROFILE:
+            // what AForce assumes about this body. Formerly "GOALS". Two rows
+            // left: the ounces row restated the target row directly above it
+            // (target × 12) and is now that row's sub-label; the "Reminders"
+            // switch was a local `useState` that persisted nothing and was
+            // superseded by the real Notification Preferences screen — see
+            // the NOTIFICATIONS group, which now owns every interruption
+            // control on this screen.
+            const performanceProfileBlock = (
               <>
-                <SectionHeader label={t('profile.v2.strength_label')} />
-                <View style={styles.card}>
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLeft}>
-                      <Icon name="user" size={16} color={af.textSecondary} />
-                      <Text style={styles.settingLabel}>{t('profile.v2.profile_completeness')}</Text>
-                    </View>
-                    <ConfidenceChip {...profileStrength(profileIdentity).chip} a11yContext={t('profile.v2.completeness_a11y_context')} />
-                  </View>
-                </View>
-              </>
-            ) : null;
-
-            const goalsCard = (
-              <>
-                <SectionHeader label={t('profile.v2.goals_label')} />
-                <View style={styles.card}>
-                  <SettingRow icon="target" label={t('profile.v2.daily_target')} value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })} />
-                  <Divider />
-                  <SettingRow icon="droplet" label={t('profile.v2.daily_ounces_target')} value={t('profile.v2.unit_ounces', { value: mockUserProfile.dailyTarget * 12 })} />
+                <SectionHeader
+                  label={t('profile.v2.performance_profile_label')}
+                  hint={t('profile.v2.performance_profile_hint')}
+                />
+                <View style={styles.card} testID="profile-performance-profile-card">
+                  <SettingRow
+                    icon="target"
+                    label={t('profile.v2.daily_target')}
+                    value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })}
+                    sub={t('profile.v2.daily_target_oz_sub', { value: mockUserProfile.dailyTarget * 12 })}
+                  />
                   <Divider />
                   <SettingRow
                     icon="user"
@@ -1120,101 +1150,68 @@ export function ProfileScreenV2() {
                   <SettingRow icon="activity" label={t('profile.v2.activity_type')} value={mockUserProfile.activityType} />
                   <Divider />
                   <SettingRow icon="sunrise" label={t('profile.v2.wake_time')} value={mockUserProfile.wakeTimeHHMM} />
-                  <Divider />
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLeft}>
-                      <Icon name="bell" size={16} color={af.cyan} />
-                      <Text style={styles.settingLabel}>{t('profile.v2.reminders')}</Text>
-                    </View>
-                    <Switch
-                      value={remindersEnabled}
-                      onValueChange={setRemindersEnabled}
-                      trackColor={{ false: af.surface, true: af.green }}
-                      thumbColor={af.textPrimary}
-                      ios_backgroundColor={af.surface}
-                      accessibilityLabel={t('profile.v2.reminders')}
-                    />
-                  </View>
-                  <Divider />
-                  <Pressable
-                    onPress={() => router.push('/notifications')}
-                    testID="profile-notifications-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.notif_prefs')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="sliders" size={16} color={af.cyan} />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.notif_prefs')}</Text>
-                        <Text style={styles.settingSubLabel}>{t('profile.v2.notif_prefs_sub')}</Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
+                  {/* Read-only "what your body taught us" surfaces. They were
+                      nested in the SETTINGS card, which is where a member
+                      looks for controls, not readouts. All still flag-gated
+                      and display-only. */}
+                  {flags.adaptive_response_enabled ? (
+                    <>
+                      <Divider />
+                      <PersonalResponseLibraryCard />
+                    </>
+                  ) : null}
+                  {flags.living_performance_enabled ? (
+                    <>
+                      <Divider />
+                      <DailyLessonCard />
+                    </>
+                  ) : null}
+                  {flags.response_timeline_enabled ? (
+                    <>
+                      <Divider />
+                      <ResponseTimelineCard />
+                    </>
+                  ) : null}
                 </View>
               </>
             );
 
-            const modulesCard = (
-              <>
-                <SectionHeader label={t('profile.v2.modules_label')} hint={t('profile.v2.modules_hint')} />
-                <View style={styles.card}>
-                  <Pressable
-                    onPress={() => router.push('/modules')}
-                    testID="profile-modules-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.all_modules')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="grid" size={16} color="#C1281B" />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
-                        <Text style={styles.settingSubLabel}>
-                          {t('profile.v2.all_modules_sub')}
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
-                </View>
-              </>
-            );
-
-            // Flag-gated public entry to the Weekly Performance Report™.
-            // Hidden until `spec_weekly_report` is on (Build 100% · Show 10%);
-            // the Modules launcher always lists it for internal evaluation.
-            const weeklyReportCard = flags.spec_weekly_report ? (
-              <>
-                <SectionHeader label={t('profile.v2.weekly_label')} hint={t('profile.v2.weekly_hint')} />
-                <View style={styles.card}>
-                  <Pressable
-                    onPress={() => router.push('/weekly-report')}
-                    testID="profile-weekly-report-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.weekly_report')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="trending-up" size={16} color="#1E5BFF" />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.weekly_report')}</Text>
-                        <Text style={styles.settingSubLabel}>
-                          {t('profile.v2.weekly_report_sub')}
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
-                </View>
-              </>
-            ) : null;
-
+            // One tools group, not three. MODULES, WEEKLY REPORT and PROTOCOL
+            // TOOLS were three separate headed cards — two of them holding a
+            // single row — for the same job: "take me somewhere else". Merged
+            // into one card, ordered by how often a member actually needs it.
+            // Row icons are uniformly af.textSecondary: a five-hue icon column
+            // implied five different kinds of thing when they are all links.
             const protocolToolsCard = (
               <>
                 <SectionHeader label={t('profile.v2.protocol_tools_label')} />
-                <View style={styles.card}>
+                <View style={styles.card} testID="profile-protocol-tools-card">
+                  {/* Flag-gated public entry to the Weekly Performance Report™
+                      (Build 100% · Show 10%); the Modules launcher below always
+                      lists it for internal evaluation. */}
+                  {flags.spec_weekly_report ? (
+                    <>
+                      <Pressable
+                        onPress={() => router.push('/weekly-report')}
+                        testID="profile-weekly-report-link"
+                        style={styles.settingRow}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('profile.v2.weekly_report')}
+                      >
+                        <View style={styles.settingLeft}>
+                          <Icon name="trending-up" size={16} color={af.textSecondary} />
+                          <View>
+                            <Text style={styles.settingLabel}>{t('profile.v2.weekly_report')}</Text>
+                            <Text style={styles.settingSubLabel}>
+                              {t('profile.v2.weekly_report_sub')}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                      </Pressable>
+                      <Divider />
+                    </>
+                  ) : null}
                   <Pressable
                     onPress={() => router.push('/sensors')}
                     testID="profile-sensors-link"
@@ -1223,7 +1220,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.sensor_import')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="upload" size={16} color={af.cyan} />
+                      <Icon name="upload" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.sensor_import')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.sensor_import_sub')}</Text>
@@ -1240,7 +1237,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.cruise_mode')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="anchor" size={16} color="#00E5FF" />
+                      <Icon name="anchor" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.cruise_mode')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.cruise_mode_sub')}</Text>
@@ -1260,7 +1257,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.achievements')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="award" size={16} color={af.green} />
+                      <Icon name="award" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.achievements')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.achievements_sub')}</Text>
@@ -1281,6 +1278,25 @@ export function ProfileScreenV2() {
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.science')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.science_sub')}</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                  </Pressable>
+                  <Divider />
+                  <Pressable
+                    onPress={() => router.push('/modules')}
+                    testID="profile-modules-link"
+                    style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.all_modules')}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="grid" size={16} color={af.textSecondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
+                        <Text style={styles.settingSubLabel}>
+                          {t('profile.v2.all_modules_sub')}
+                        </Text>
                       </View>
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -1317,24 +1333,17 @@ export function ProfileScreenV2() {
               </>
             );
 
-            const connectedDevicesCard = (
+            // Founder Profile brief, section 3 of 8 — CONNECTED DATA.
+            //
+            // The "CONNECTED DEVICES" card that used to head this group was
+            // deleted, not restyled: it rendered `mockUserProfile.connectedDevices`
+            // (a fixture: Apple Watch Ultra + Oura Ring) with a green LIVE pill
+            // for every member, paired or not — the screen asserting a live
+            // connection the data cannot support, immediately above the
+            // provider list that reports the per-provider truth honestly.
+            const connectedDataBlock = (
               <>
-                <SectionHeader label={t('profile.v2.connected_devices_label')} />
-                <View style={styles.card}>
-                  {mockUserProfile.connectedDevices.map((device, i) => (
-                    <React.Fragment key={device}>
-                      <View style={styles.deviceRow}>
-                        <View style={styles.deviceLeft}>
-                          <View style={[styles.deviceDot, { backgroundColor: af.green }]} />
-                          <Text style={styles.deviceName}>{device}</Text>
-                        </View>
-                        <Text style={[styles.deviceStatus, { color: af.green }]}>{t('profile.v2.device_live')}</Text>
-                      </View>
-                      {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </View>
-                <SectionHeader label={t('profile.v2.health_platforms_label')} hint={t('profile.v2.health_platforms_hint')} />
+                <SectionHeader label={t('profile.v2.connected_data_label')} hint={t('profile.v2.connected_data_hint')} />
                 <View style={styles.card}>
                   {/* RC-1 Wave-2B (item 2b) — while the mount-time WHOOP +
                       Garmin status checks are in flight, skeleton the rows
@@ -1813,15 +1822,40 @@ export function ProfileScreenV2() {
               </>
             );
 
-            // Voice Coach toggle (T3) — re-enables the AI voice persona.
-            // Each new AI command is read aloud via the selected coach
-            // voice (ElevenLabs when picked, else device synthesizer).
-            // Both the on/off toggle AND the picked voice survive a
-            // refresh via AsyncStorage in the store.
-            const voiceCard = (
+            // Founder Profile brief, section 5 of 8 — NOTIFICATIONS: every
+            // channel AForce can use to interrupt a member, under one label.
+            // "When will this app talk to me?" previously had no single
+            // answer — push preferences sat at the bottom of the GOALS card
+            // and the Voice Coach was its own top-level group two cards away.
+            //
+            // Voice Coach (T3) — each new AI command is read aloud via the
+            // selected coach voice (ElevenLabs when picked, else the device
+            // synthesizer). Both the on/off toggle AND the picked voice
+            // survive a refresh via AsyncStorage in the store.
+            const notificationsBlock = (
               <>
-                <SectionHeader label={t('profile.voice_section.label')} />
-                <View style={styles.card}>
+                <SectionHeader
+                  label={t('profile.v2.notifications_label')}
+                  hint={t('profile.v2.notifications_hint')}
+                />
+                <View style={styles.card} testID="profile-notifications-card">
+                  <Pressable
+                    onPress={() => router.push('/notifications')}
+                    testID="profile-notifications-link"
+                    style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.notif_prefs')}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="sliders" size={16} color={af.textSecondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>{t('profile.v2.notif_prefs')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.notif_prefs_sub')}</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                  </Pressable>
+                  <Divider />
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
                       <Icon
@@ -2102,10 +2136,39 @@ export function ProfileScreenV2() {
               </>
             );
 
+            // Founder Profile brief, section 4 of 8 — PRIVACY. Analytics
+            // consent was a single row buried mid-card in SETTINGS, between
+            // the language picker and a stack of flag-gated panels: "what does
+            // AForce collect, and how do I erase it?" was answerable only by
+            // reading every row on the tab. It is now the whole point of its
+            // own labelled group.
+            const privacyBlock = (
+              <>
+                <SectionHeader label={t('profile.v2.privacy_label')} hint={t('profile.v2.privacy_hint')} />
+                <View style={styles.card} testID="profile-privacy-card">
+                  <AnalyticsConsentRow />
+                  {/* Performance Memory™ governance — what the app has
+                      observed about this member, plus the delete action.
+                      Same question, same group. Flag gate unchanged. */}
+                  {flags.performance_memory_governance_enabled ? (
+                    <>
+                      <Divider />
+                      <PerformanceMemoryGovernanceCard />
+                    </>
+                  ) : null}
+                </View>
+              </>
+            );
+
+            // Founder Profile brief, section 7 of 8 — ACCOUNT: how this
+            // account is configured, and how to leave it. Absorbs the former
+            // PREFERENCES card (four display-unit segmented rows a member sets
+            // once did not need a headed card of their own) and SignOutRow,
+            // which floated below every tab rather than belonging to one.
             const settingsBlock = (
               <>
-                <SectionHeader label={t('profile.settings').toUpperCase()} />
-                <View style={styles.card}>
+                <SectionHeader label={t('profile.v2.account_label')} hint={t('profile.v2.account_hint')} />
+                <View style={styles.card} testID="profile-account-card">
                   <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
                     <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
                   </View>
@@ -2122,48 +2185,6 @@ export function ProfileScreenV2() {
                     }}
                   />
                   <Divider />
-                  <AnalyticsConsentRow />
-                  {flags.performance_memory_governance_enabled ? (
-                    <>
-                      <Divider />
-                      <PerformanceMemoryGovernanceCard />
-                    </>
-                  ) : null}
-                  {flags.performance_identity_enabled ? (
-                    <>
-                      <Divider />
-                      <PerformanceIdentityCard />
-                    </>
-                  ) : null}
-                  {flags.adaptive_response_enabled ? (
-                    <>
-                      <Divider />
-                      <PersonalResponseLibraryCard />
-                    </>
-                  ) : null}
-                  {flags.living_performance_enabled ? (
-                    <>
-                      <Divider />
-                      <DailyLessonCard />
-                    </>
-                  ) : null}
-                  {flags.response_timeline_enabled ? (
-                    <>
-                      <Divider />
-                      <ResponseTimelineCard />
-                    </>
-                  ) : null}
-                </View>
-              </>
-            );
-
-            // Preferences card — display units for the whole app.
-            // Three segmented controls; each writes through to
-            // setUnitPreference, which persists to AsyncStorage.
-            const preferencesBlock = (
-              <>
-                <SectionHeader label={t('profile.v2.preferences_label')} hint={t('profile.v2.preferences_hint')} />
-                <View style={styles.card}>
                   <UnitPreferenceRow
                     label={t('profile.v2.pref_weight')}
                     options={[
@@ -2204,6 +2225,7 @@ export function ProfileScreenV2() {
                     onSelect={(v) => setUnitPreference('volume', v)}
                   />
                 </View>
+                <SignOutRow />
               </>
             );
 
@@ -2234,6 +2256,19 @@ export function ProfileScreenV2() {
                     />
                   </View>
                 </View>
+
+                {/* PerformanceIdentityCard describes itself as an INTERNAL
+                    raw-signal verification surface, not a product feature
+                    ("Classification — not assigned (inert)"), yet it mounted
+                    inside the member-facing SETTINGS card. Its flag is OFF in
+                    the production binary, so this relocates an internal
+                    readout to the internal tab — it takes nothing away that an
+                    ordinary member could reach. */}
+                {flags.performance_identity_enabled ? (
+                  <View style={styles.card}>
+                    <PerformanceIdentityCard />
+                  </View>
+                ) : null}
 
                 {devMode && (
                   <View style={styles.card} testID="profile-whoop-encryption-status">
@@ -2429,21 +2464,55 @@ export function ProfileScreenV2() {
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
                   </Pressable>
                 </View>
+                {/* Build + patent footer. It used to trail EVERY tab, so four
+                    lines of legal fine print were the last thing a member read
+                    after their goals and after their devices. It belongs with
+                    the legal group — and support asks for the build string
+                    anyway, which is now one row above it. */}
+                <Text style={styles.version}>{t('profile.v2.version')}</Text>
+                <Text style={styles.patent}>{t('profile.v2.patent_pending')}</Text>
+                <Text style={styles.patentSub}>
+                  {t('profile.v2.patent_sub_1')}{'\n'}
+                  {t('profile.v2.patent_sub_2')}{'\n'}
+                  {t('profile.v2.patent_sub_3')}{'\n'}
+                  {t('profile.v2.patent_sub_4')}
+                </Text>
               </>
             );
 
-            // Group sections by tab. Identity (`profileCard`) always renders
-            // above the tab bar — it's the user's avatar/tier card, not a
-            // group of settings. PhaseEntryRow ships under ACCOUNT so the
-            // CLUTCH / GUARDIAN entries live next to subscription tier.
-            // `legalBlock` closes ACCOUNT as its own headed LEGAL & SUPPORT
-            // group — last in the founder's SUBSCRIPTION · ACCOUNT · SUPPORT
-            // order, and reachable without developer controls.
+            // Group sections by tab, in the founder's Profile order:
+            // IDENTITY · PERFORMANCE PROFILE · CONNECTED DATA · PRIVACY ·
+            // NOTIFICATIONS · SUBSCRIPTION · ACCOUNT · SUPPORT.
+            //
+            // IDENTITY (`identityBlock`) always renders above the tab bar — it
+            // is who the member is, not a group of settings, and it is the one
+            // block every tab needs in view. Everything else has exactly one
+            // home, so no group appears twice and none is homeless:
+            //   PERFORMANCE → what AForce assumes about you + where to go next
+            //   DEVICES     → where the biometrics come from
+            //   ACCOUNT     → subscription, interruptions, data, setup, support
+            //   DEVELOPER   → internal-only, stripped by VISIBLE_PROFILE_TABS
+            //
+            // ACCOUNT runs in the founder's SUBSCRIPTION · ACCOUNT · SUPPORT
+            // order, so sign-out and then the legal footer close the tab.
+            // `inviteCard` is a growth surface, not a setting: it opened the
+            // tab before this change, which meant the first thing a member saw
+            // on ACCOUNT was a referral code rather than their plan.
+            //
+            // Two placements are load-bearing, not cosmetic:
+            //   - `legalBlock` must sit on a tab that survives the developer
+            //     strip (App Review + docs/COMPLIANCE_FRAMEWORK.md); ACCOUNT
+            //     does. Guarded by profileScreenV2LegalReachability.test.ts.
+            //   - `demoModesCard` moved to DEVELOPER: it activates Night Out
+            //     and logs drinks against the REAL server session, so a
+            //     production member could put their own account into a
+            //     drinking-night state from a card labelled "DEMO MODES" —
+            //     the same class of defect PR #767 fixed on Scan.
             const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
-              performance: [profileStrengthCard, modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
-              devices: [hardwareCard, connectedDevicesCard],
-              account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock, legalBlock],
-              developer: [demoAccessCard, developerBlock],
+              performance: [performanceProfileBlock, protocolToolsCard],
+              devices: [connectedDataBlock, hardwareCard],
+              account: [subscriptionBlock, phaseEntryRow, notificationsBlock, privacyBlock, inviteCard, settingsBlock, legalBlock],
+              developer: [demoAccessCard, demoModesCard, developerBlock],
             };
             const activeSections = tabSections[profileTab];
             const tabBar = (
@@ -2457,7 +2526,7 @@ export function ProfileScreenV2() {
               return (
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
-                    {profileCard}
+                    {identityBlock}
                     {tabBar}
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
@@ -2471,7 +2540,7 @@ export function ProfileScreenV2() {
 
             return (
               <>
-                {profileCard}
+                {identityBlock}
                 {tabBar}
                 {activeSections.map((node, i) => (
                   <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>
@@ -2479,17 +2548,6 @@ export function ProfileScreenV2() {
               </>
             );
           })()}
-
-          <SignOutRow />
-
-          <Text style={styles.version}>{t('profile.v2.version')}</Text>
-          <Text style={styles.patent}>{t('profile.v2.patent_pending')}</Text>
-          <Text style={styles.patentSub}>
-            {t('profile.v2.patent_sub_1')}{'\n'}
-            {t('profile.v2.patent_sub_2')}{'\n'}
-            {t('profile.v2.patent_sub_3')}{'\n'}
-            {t('profile.v2.patent_sub_4')}
-          </Text>
         </ScrollView>
       </GradientBackground>
       <EditProfileModal
@@ -2668,12 +2726,18 @@ function SnapshotCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SettingRow({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+// `sub` exists so a derived restatement can hang off the row it restates
+// instead of claiming a row of its own — the daily ounces target is the daily
+// target × 12, and read as a second equal-weight fact until it was folded in.
+function SettingRow({ icon, label, value, sub }: { icon: IconName; label: string; value: string; sub?: string }) {
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingLeft}>
         <Icon name={icon} size={16} color={af.cyan} />
-        <Text style={styles.settingLabel}>{label}</Text>
+        <View>
+          <Text style={styles.settingLabel}>{label}</Text>
+          {sub ? <Text style={styles.settingSubLabel}>{sub}</Text> : null}
+        </View>
       </View>
       <Text style={styles.settingValue}>{value}</Text>
     </View>
@@ -2992,6 +3056,10 @@ const styles = StyleSheet.create({
   profileMetricValue: {
     fontSize: 14, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: 0.3,
   },
+  profileStrengthRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: 10, marginTop: 4,
+  },
   identityChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
@@ -3223,12 +3291,8 @@ const styles = StyleSheet.create({
   hardwareStatus: {
     fontSize: 9, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 1.5,
   },
-  deviceRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14,
-  },
-  deviceLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  deviceDot: { width: 7, height: 7, borderRadius: 4 },
+  // deviceRow / deviceLeft / deviceDot went with the fixture CONNECTED DEVICES
+  // list. deviceName + deviceStatus stay — the provider rows use both.
   deviceName: { fontSize: 15, fontFamily: 'Inter_500Medium', color: af.textPrimary },
   deviceStatus: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   providerRow: {
