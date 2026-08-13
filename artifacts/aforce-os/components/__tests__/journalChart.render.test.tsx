@@ -1,10 +1,13 @@
 // @vitest-environment happy-dom
 /**
- * JournalChart — reduced-motion gate on the three ambient oscillators
- * (RC-1 audit, P0): `breath` (halo), `drift` (vertical float), and `shimmer`
- * (trend-line opacity) were three ungated infinite `withRepeat(..., -1)`
- * loops with no reduced-motion check — they ran forever, including for users
- * who have motion reduction on. Unmount cleanup was already correct.
+ * JournalChart motion harness.
+ *
+ * RC-1 (P0) gated three ungated infinite `withRepeat(..., -1)` oscillators —
+ * `breath` (halo), `drift` (vertical float), `shimmer` (trend-line opacity) —
+ * on reduced motion. Wave-5 DELETED all three per the founder's motion brief
+ * (decorative loops are removed, not tuned down), so this file now pins their
+ * absence plus the reduced-motion + teardown contract on the one motion that
+ * survives: the range-switch crossfade.
  *
  * Follows the harness + assertion pattern in
  * `components/__tests__/whoopSnapshotCard.render.test.tsx`: a spy-able
@@ -144,33 +147,37 @@ afterEach(() => {
   host.remove();
 });
 
-describe('JournalChart — three-oscillator reduced-motion gate (RC-1 P0)', () => {
-  it('reduced motion OFF: starts all three ambient loops (breath, drift, shimmer)', () => {
+describe('JournalChart — the three ambient oscillators are GONE (Wave-5)', () => {
+  // Strictly stronger than the RC-1 gate this replaces: there is no unbounded
+  // loop left to gate, in either motion mode. `breath` / `drift` / `shimmer`
+  // were the chart's only `withRepeat` calls, so "never called" is the
+  // regression guard against them coming back.
+  it('reduced motion OFF: starts no ambient loop at all', () => {
     useReducedMotionMock.mockReturnValue(false);
     renderChart();
-    expect(withRepeatMock).toHaveBeenCalledTimes(3);
+    expect(withRepeatMock).not.toHaveBeenCalled();
   });
 
-  it('reduced motion ON: never starts any of the three loops', () => {
+  it('reduced motion ON: starts no ambient loop either', () => {
     useReducedMotionMock.mockReturnValue(true);
     renderChart();
     expect(withRepeatMock).not.toHaveBeenCalled();
   });
 
-  it('cancels all three shared-value animations on unmount, motion ON or OFF', () => {
+  it('cancels the surviving crossfade on unmount, motion ON or OFF', () => {
     useReducedMotionMock.mockReturnValue(false);
     renderChart();
     cancelAnimationMock.mockClear();
     flushSync(() => root.unmount());
-    expect(cancelAnimationMock).toHaveBeenCalledTimes(3);
+    expect(cancelAnimationMock).toHaveBeenCalledTimes(1);
   });
 
-  it('cancels animations on unmount even under reduced motion (nothing was started, cleanup still runs)', () => {
+  it('cancels on unmount even under reduced motion (nothing was started, cleanup still runs)', () => {
     useReducedMotionMock.mockReturnValue(true);
     renderChart();
     cancelAnimationMock.mockClear();
     flushSync(() => root.unmount());
-    expect(cancelAnimationMock).toHaveBeenCalledTimes(3);
+    expect(cancelAnimationMock).toHaveBeenCalledTimes(1);
   });
 
   it('still renders the constellation (non-empty dataset) under reduced motion', () => {

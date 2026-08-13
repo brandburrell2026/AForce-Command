@@ -17,11 +17,12 @@
  * pass it): it skips every live source and renders the given inputs.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, AccessibilityInfo, Platform } from 'react-native';
+import { View, Text, StyleSheet, AccessibilityInfo, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { AFScreen, AFTopBar, AFCard, AFSectionLabel } from '@/components/ui';
+import { AFScreen, AFTopBar, AFCard, AFSectionLabel, AFInlineErrorRow } from '@/components/ui';
+import { WeeklyReportSkeleton } from './WeeklyReportSkeleton';
 import { af, afType, Spacing } from '@/theme';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
@@ -67,17 +68,32 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
   const [model, setModel] = React.useState<WeeklyV3Model | null>(
     fixture ? buildWeeklyV3Model(fixture) : null,
   );
+  // A failed rollup fetch used to be indistinguishable from a genuinely empty
+  // week: the `.catch` handed the model an empty array, so "0 days tracked" and
+  // "0 wins" rendered as measurements of a week the member had actually lived.
+  // (The legacy report learned this exact lesson — see app/weekly-report.tsx's
+  // `eventsLoading` note.) Tracking the failure lets the tiles fall back to the
+  // honest em dash and lets the screen say what happened.
+  const [rollupsUnavailable, setRollupsUnavailable] = React.useState(false);
+  // Bumped by the retry control so the one loader below re-runs; keeps a single
+  // fetch path rather than a second, divergent copy of it.
+  const [reloadNonce, setReloadNonce] = React.useState(0);
 
   React.useEffect(() => {
     if (fixture) return;
     let cancelled = false;
     (async () => {
       const nowISO = new Date().toISOString();
+      let rollupsFailed = false;
       const [snapshot, rollups] = await Promise.all([
         getAnalyticsSnapshot().catch(() => null),
-        fetchJournalRollups(7).catch(() => [] as never[]),
+        fetchJournalRollups(7).catch(() => {
+          rollupsFailed = true;
+          return [] as never[];
+        }),
       ]);
       if (cancelled) return;
+      setRollupsUnavailable(rollupsFailed);
       setModel(
         buildWeeklyV3Model({
           nowISO,
@@ -92,7 +108,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
     // pa is a fresh object each render; keying on its stable fields avoids a
     // rebuild loop while still refreshing when the age itself moves.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fixture, pa.result.performanceAge, pa.result.status]);
+  }, [fixture, pa.result.performanceAge, pa.result.status, reloadNonce]);
 
   // The spinner and the report occupy the same place, so a VoiceOver member is
   // never told the week finished loading. `accessibilityLiveRegion` on the
@@ -120,15 +136,17 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           title={t('reports.v3.title')}
           onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         />
+        {/* Holds the report's own shape while three sources are assembled,
+            instead of a lone spinner on an empty canvas. One accessible
+            progressbar wraps it so the blocks don't each announce themselves. */}
         <View
-          style={styles.loading}
           accessible
           accessibilityRole="progressbar"
           accessibilityLabel={t('reports.v3.loading_a11y')}
           accessibilityLiveRegion="polite"
           testID="weekly-v3-loading"
         >
-          <ActivityIndicator color={af.textTertiary} />
+          <WeeklyReportSkeleton />
         </View>
       </AFScreen>
     );
@@ -153,10 +171,20 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
   const topCommandAwaiting = topCommand.status === 'awaiting';
 
   // A tile is three sibling Text nodes, so VoiceOver reads its label, value and
-  // caption as three unrelated fragments. Hoisting the two computed values lets
+  // caption as three unrelated fragments. Hoisting the computed values lets
   // each tile carry one composed label without restating the expression.
+  //
+  // The three rollup-fed tiles take the em dash — the honest-data contract's
+  // "nobody took this reading" glyph, already shared with the Home and Protocol
+  // signal tiles — when the rollup fetch failed. A zero here is a claim about
+  // the member's week; the em dash is a claim about our data, which is the only
+  // one that is true.
   const hydrationDaysValue =
-    model.daysTracked > 0 ? `${model.hydrationDays}/${model.daysTracked}` : '—';
+    rollupsUnavailable || model.daysTracked === 0
+      ? '—'
+      : `${model.hydrationDays}/${model.daysTracked}`;
+  const winsValue = rollupsUnavailable ? '—' : `${model.weeklyWins}`;
+  const trackedValue = rollupsUnavailable ? '—' : `${model.daysTracked}`;
   const habitValue =
     habit.status === 'collecting'
       ? t('reports.v3.collecting')
@@ -179,6 +207,22 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           <Text style={styles.chipMuted}>· {t('reports.v3.generated_today')}</Text>
         </Text>
       </View>
+
+      {/* Degraded, not broken: the day-by-day hydration source didn't answer,
+          so the tiles it feeds show an em dash and this row states what
+          happened, what is still current, and how to try again. The rest of the
+          report — Performance Age, habit velocity, next week's focus — comes
+          from other sources and stands unchanged. */}
+      {rollupsUnavailable ? (
+        <View style={styles.degraded}>
+          <AFInlineErrorRow
+            message={t('reports.v3.rollups_unavailable')}
+            onRetry={() => setReloadNonce((n) => n + 1)}
+            retryLabel={t('reports.v3.retry')}
+            testID="weekly-v3-degraded"
+          />
+        </View>
+      ) : null}
 
       {/* Performance Age™ — rendered only with a real current age; movement
           only when the ledger series has a real ≥7-day baseline. */}
@@ -311,10 +355,10 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
         <View
           style={styles.tile}
           accessible
-          accessibilityLabel={`${t('reports.v3.tile_wins')}: ${model.weeklyWins}`}
+          accessibilityLabel={`${t('reports.v3.tile_wins')}: ${winsValue}`}
         >
           <Text style={styles.tileLabel}>{t('reports.v3.tile_wins')}</Text>
-          <Text style={styles.tileValue}>{model.weeklyWins}</Text>
+          <Text style={styles.tileValue}>{winsValue}</Text>
           <View style={styles.dots} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
             {WEEKDAY_KEYS.map((k, i) => (
               <View key={k} style={[styles.dot, i < Math.min(model.weeklyWins, 7) && styles.dotOn]} />
@@ -324,10 +368,10 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
         <View
           style={styles.tile}
           accessible
-          accessibilityLabel={`${t('reports.v3.tile_tracked')}: ${model.daysTracked}`}
+          accessibilityLabel={`${t('reports.v3.tile_tracked')}: ${trackedValue}`}
         >
           <Text style={styles.tileLabel}>{t('reports.v3.tile_tracked')}</Text>
-          <Text style={styles.tileValue}>{model.daysTracked}</Text>
+          <Text style={styles.tileValue}>{trackedValue}</Text>
           <View style={styles.dots} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
             {WEEKDAY_KEYS.map((k, i) => (
               <View key={k} style={[styles.dot, i < Math.min(model.daysTracked, 7) && styles.dotOn]} />
@@ -422,7 +466,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
 
 const styles = StyleSheet.create({
   scrollContent: { paddingBottom: Spacing[24] + Spacing[8] },
-  loading: { marginTop: Spacing[16], alignItems: 'center' },
+  degraded: { marginTop: 14 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
     marginTop: 14, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,

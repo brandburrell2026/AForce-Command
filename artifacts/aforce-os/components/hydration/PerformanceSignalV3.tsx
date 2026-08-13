@@ -40,7 +40,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
   RefreshControl,
   AccessibilityInfo,
   Platform,
@@ -52,9 +51,11 @@ import {
   AFTopBar,
   AFCard,
   AFDisclosureSheet,
+  AFInlineErrorRow,
   AFSecondaryButton,
   AFTextButton,
 } from '@/components/ui';
+import { SignalSkeleton } from './SignalSkeleton';
 import { Icon } from '@/components/Icon';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { completenessChip } from '@/utils/confidence/confidenceChip';
@@ -204,15 +205,19 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
       <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} />
 
       {rollups === null ? (
+        /* The loading window holds the history's own shape (summary card +
+           seven day rows) rather than a bare spinner on an empty canvas — and
+           it claims nothing: a skeleton block says something is coming, never
+           what it will say. Still ONE accessible progressbar, so the shaped
+           blocks don't each announce themselves. */
         <View
-          style={styles.stateWrap}
           accessible
           accessibilityRole="progressbar"
           accessibilityLabel={t('signal.v3.loading_a11y')}
           accessibilityLiveRegion="polite"
           testID="signal-v3-loading"
         >
-          <ActivityIndicator color={af.textTertiary} />
+          <SignalSkeleton dayCount={RANGE_DAYS} />
         </View>
       ) : days.length === 0 ? (
         <View style={styles.stateWrap} accessibilityLiveRegion="polite" testID="signal-v3-empty">
@@ -233,6 +238,24 @@ export function PerformanceSignalV3({ fixtureRollups }: { fixtureRollups?: Journ
         </View>
       ) : (
         <>
+          {/* A refresh that fails once history is already on screen used to say
+              NOTHING: the pull-to-refresh spinner retracted, `error` went true,
+              and the week stayed exactly as it was — last week's numbers
+              presented with the authority of a fresh read. This row names what
+              happened, what still works, and offers the same retry. It appears
+              ABOVE the average it qualifies, for the same reason the
+              completeness chip shares the average's card. */}
+          {error ? (
+            <View style={styles.staleWrap}>
+              <AFInlineErrorRow
+                message={t('signal.v3.stale_notice')}
+                onRetry={() => void onRefresh()}
+                retryLabel={t('signal.v3.retry')}
+                testID="signal-v3-stale"
+              />
+            </View>
+          ) : null}
+
           {/* THE screen's one dominant number: the week average, its trend, and
               — on the same card, so it can never be read without it — how much
               of the week is actually behind it. */}
@@ -410,6 +433,7 @@ const styles = StyleSheet.create({
   stateWrap: { marginTop: Spacing[16], alignItems: 'center', gap: 10, paddingHorizontal: Spacing[6] },
   stateTitle: { ...afType.title3, color: af.textPrimary, textAlign: 'center' },
   stateBody: { ...afType.body, color: af.textTertiary, textAlign: 'center' },
+  staleWrap: { marginTop: 20 },
   summaryCard: { marginTop: 20 },
   summaryRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[6] },
   summaryAvg: { ...afType.displayScore, fontSize: 56, lineHeight: 60 },

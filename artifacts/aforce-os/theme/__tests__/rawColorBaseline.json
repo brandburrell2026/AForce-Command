@@ -74,7 +74,7 @@
   "components/opening/OpeningSequence.tsx": 2,
   "components/performanceStatement/PostStatementIntentPrompt.tsx": 5,
   "components/profile/ProfileLegacy.tsx": 32,
-  "components/profile/ProfileScreenV2.tsx": 28,
+  "components/profile/ProfileScreenV2.tsx": 25,
   "components/protocol/RecoveryCircleMembersModal.tsx": 2,
   "components/scan/HydrationScanScreenV2.tsx": 3,
   "components/science/ScienceScreenV2.tsx": 5,

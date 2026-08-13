@@ -29,7 +29,7 @@ import { View, Text, StyleSheet, Pressable, AccessibilityInfo } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { AFScreen, AFTopBar, AFEmptyState } from '@/components/ui';
+import { AFScreen, AFTopBar, AFEmptyState, AFStatPair } from '@/components/ui';
 import { af, afType, Spacing } from '@/theme';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { buildSnapshot } from '@/services/competitionEngine';
@@ -155,7 +155,19 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             </Text>
           </View>
           {you.deltaSpots != null ? (
-            <View style={styles.spotsPill}>
+            /* The arrow glyph was the only thing saying WHICH WAY this moved,
+               and a bare "↑" is read inconsistently (or skipped) by screen
+               readers — the same defect already fixed on the leader rows, whose
+               `row_move_up` / `row_move_down` strings this reuses rather than
+               inventing a second vocabulary for the same fact. */
+            <View
+              style={styles.spotsPill}
+              accessible
+              accessibilityLabel={t(
+                you.deltaSpots > 0 ? 'community.v3.row_move_up' : 'community.v3.row_move_down',
+                { count: Math.abs(you.deltaSpots) },
+              )}
+            >
               <Text style={styles.spotsText}>
                 {you.deltaSpots > 0 ? '↑' : '↓'} {t('community.v3.spots', { n: Math.abs(you.deltaSpots) })}
               </Text>
@@ -258,23 +270,45 @@ function fmtRank(rank: number | null): string {
   return rank != null ? `#${rank}` : '—';
 }
 
+/*
+ * A11y fix (Wave-5 Phase-1 pass): both stats were a bare numeral Text over a
+ * bare label Text — exactly the ~18-call-site defect `AFStatPair` was built to
+ * end (see its doc-comment). VoiceOver read the you-card's five columns as ten
+ * disconnected fragments ("#12" … "GLOBAL"), while the leader rows underneath
+ * — the SAME information — had already been collapsed to one sentence each.
+ * Adopting the primitive composes each column into "GLOBAL, #12" and brings the
+ * numerals under the display font-scale ceiling. Visual output is unchanged:
+ * `styles.stat` is applied last so its `alignItems: 'center'` and `gap` still
+ * win, and the value/label styles are passed straight through.
+ */
+
 /** A position inside the sample cohort — supporting weight, never the accent. */
 function RankStat({ value, label }: { value: string; label: string }) {
   return (
-    <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+    <AFStatPair
+      label={label}
+      value={value}
+      direction="column"
+      reverseOrder
+      style={styles.stat}
+      valueStyle={styles.statValue}
+      labelStyle={styles.statLabel}
+    />
   );
 }
 
 /** The one measured number on the screen — sized and tinted to say so. */
 function ScoreStat({ value, label, accent }: { value: string; label: string; accent: string }) {
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.scoreValue, { color: accent }]}>{value}</Text>
-      <Text style={styles.scoreLabel}>{label}</Text>
-    </View>
+    <AFStatPair
+      label={label}
+      value={value}
+      direction="column"
+      reverseOrder
+      style={styles.stat}
+      valueStyle={[styles.scoreValue, { color: accent }]}
+      labelStyle={styles.scoreLabel}
+    />
   );
 }
 

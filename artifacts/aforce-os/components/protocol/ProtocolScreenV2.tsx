@@ -37,7 +37,8 @@ import {
   commandReasonLine,
   type AFTimelineStep,
 } from '@/components/ui';
-import { af, afType, afLayout, Spacing } from '@/theme';
+import { af, afType, afLayout, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { fireMoment } from '@/services/haptics';
 import { useAppStore } from '@/store/useAppStore';
 import { useWeeklyCompliance } from '@/hooks/useWeeklyCompliance';
 import { deriveProtocol } from '@/services/protocolDerivation';
@@ -53,6 +54,7 @@ import {
   signalsAreLive,
   ringFraction,
   anySignalReported,
+  shouldAcknowledgeProgress,
 } from './protocolV3Presentation';
 
 export function ProtocolScreenV2() {
@@ -111,6 +113,26 @@ export function ProtocolScreenV2() {
   }, [v3, userState, steps]);
   const ringPct = Math.round(ringFraction(completedCount, total) * 100);
 
+  // ── SIGNATURE MOMENT — RITUAL PROGRESSION (Wave-5 motion pass) ─────────────
+  // The hero ring is the only place a member sees "I moved". It used to be a
+  // static stroke that silently redrew at a new length between renders, so the
+  // thing the Protocol screen exists to communicate was the one thing that
+  // never registered. It now draws in on first paint and animates FROM ITS
+  // CURRENT POSITION when a step completes (see AFReadinessArc's `animate`),
+  // and a single `ritual_progressed` tick — the lightest of the four named
+  // haptic moments — lands with it.
+  //
+  // The "did progress actually happen?" rule is the pure, unit-tested
+  // `shouldAcknowledgeProgress` — a ref holds the baseline so establishing it
+  // never re-renders. Derivation is synchronous from store state, so this costs
+  // nothing per second (Wave-4 rule).
+  const prevCompletedRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    const prev = prevCompletedRef.current;
+    prevCompletedRef.current = completedCount;
+    if (shouldAcknowledgeProgress(prev, completedCount)) fireMoment('ritual_progressed');
+  }, [completedCount]);
+
   // The one-line WHY shown on the active step. The full text (stage +
   // description + the real-or-adaptive compliance line) still lives in the
   // disclosure, which always says more than this line, so the control keeps
@@ -167,7 +189,14 @@ export function ProtocolScreenV2() {
         <View style={styles.section}>
           <AFSectionLabel label={t('protocol.v2.next')} />
           <View style={styles.timelineWrap}>
-            <AFTimeline steps={timelineSteps} />
+            {/* Every step this screen produces is `upcoming` (the active one is
+                the card above, completed ones live in PROGRESS), so that is the
+                only word to translate. AFTimeline falls back to the state key
+                for anything not supplied, so nothing goes unspoken. */}
+            <AFTimeline
+              steps={timelineSteps}
+              stateLabels={{ upcoming: t('protocol.v2.timeline_upcoming') }}
+            />
           </View>
         </View>
       )}
@@ -194,6 +223,7 @@ export function ProtocolScreenV2() {
                 stroke={8}
                 sweepDeg={360}
                 color={bandAccent}
+                animate
               >
                 <Text style={styles.v3RingPct} maxFontSizeMultiplier={1.2}>{ringPct}%</Text>
                 <Text style={styles.v3RingLabel}>{t('protocol.v3.ring_label')}</Text>
@@ -339,16 +369,31 @@ export function ProtocolScreenV2() {
             {v3Data.live ? <Text style={styles.v3Live}>{t('protocol.v3.live')}</Text> : null}
           </View>
           {anySignalReported(v3Data.hrText, v3Data.hrvText) ? (
+            /*
+             * A11y fix (Wave-5 Phase-1 pass): these two tiles were the same
+             * defect pair Home's Signal tile carried — `adjustsFontSizeToFit`
+             * SHRANK the reading as Dynamic Type grew, and label + value were
+             * two unlinked Texts a screen reader read as separate swipes. Home
+             * already grouped its tiles with `accessible`; this matches it.
+             */
             <View style={styles.v3Signals}>
-              <View style={styles.v3Signal}>
+              <View
+                style={styles.v3Signal}
+                accessible
+                accessibilityLabel={`${t('protocol.v3.heart_rate')} ${v3Data.hrText}`}
+              >
                 <Text style={styles.v3SignalLabel}>{t('protocol.v3.heart_rate').toUpperCase()}</Text>
-                <Text style={styles.v3SignalValue} numberOfLines={1} adjustsFontSizeToFit>
+                <Text style={styles.v3SignalValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                   {v3Data.hrText}
                 </Text>
               </View>
-              <View style={styles.v3Signal}>
+              <View
+                style={styles.v3Signal}
+                accessible
+                accessibilityLabel={`${t('protocol.v3.hrv')} ${v3Data.hrvText}`}
+              >
                 <Text style={styles.v3SignalLabel}>{t('protocol.v3.hrv').toUpperCase()}</Text>
-                <Text style={styles.v3SignalValue} numberOfLines={1} adjustsFontSizeToFit>
+                <Text style={styles.v3SignalValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                   {v3Data.hrvText}
                 </Text>
               </View>

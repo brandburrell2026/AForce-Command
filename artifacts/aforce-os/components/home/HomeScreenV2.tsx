@@ -32,11 +32,28 @@
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
  * PRESENTATION-ONLY elevation layered on the exact same data. When on, it adds a
- * ring reveal + truthful score count-up, a larger arc, staggered entrance, a
- * state pill, and band-aware signal ordering — all decided by the pure, tested
- * `homePresentation.ts`. It never touches the score, command, eligibility,
- * timing, or safety logic (Score-Protection); reduced-motion collapses every
- * animation back to the static Home.
+ * truthful score count-up, a larger arc, a state pill, and band-aware signal
+ * ordering — all decided by the pure, tested `homePresentation.ts`. It never
+ * touches the score, command, eligibility, timing, or safety logic
+ * (Score-Protection); reduced-motion collapses every animation back to the
+ * static Home.
+ *
+ * WAVE 5 — MOTION. This screen used to stagger FIVE entrances (header, hero,
+ * command, moments, signals) behind that flag, which is "animate everything"
+ * wearing a flag, and none of it shipped because the flag is off. Home now
+ * carries exactly TWO of the product's four signature moments, and they are
+ * not flag-gated because a signature moment that never plays is not one:
+ *
+ *   1. HYDROSTATE REVEAL — the readiness arc draws itself in on first paint.
+ *      The arc is the instrument; drawing it is what makes the number read as
+ *      MEASURED rather than printed. (The count-up of the numeral stays behind
+ *      `elite_home_experience_enabled` — one moving thing, not two.)
+ *   2. COMMAND REVEAL — the one command card arrives a beat after the reading,
+ *      so the hierarchy (what you are → what to do) is felt, not just laid out.
+ *
+ * Header, hero wrapper, moments and signals no longer animate at all. Both
+ * moments collapse to the static render under reduced motion, both are finite,
+ * and neither costs anything once settled (Wave-4 rule).
  *
  * WAVE 5 — the band accent is NOT part of that flag any more. It used to be:
  * flag-off pinned `accent = af.red` and the state word to `af.redText`, so the
@@ -82,7 +99,8 @@ import {
   AFSkeleton,
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
-import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, afType, afMotion, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { fireMoment } from '@/services/haptics';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice } from '@/store/slices';
@@ -137,7 +155,16 @@ function Signal({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.signal} accessible accessibilityLabel={`${label} ${value}`}>
       <Text style={styles.signalLabel}>{label.toUpperCase()}</Text>
-      <Text style={styles.signalValue} numberOfLines={1} adjustsFontSizeToFit>
+      {/*
+       * A11y fix (Wave-5 Phase-1 pass, Dynamic Type): this was
+       * `numberOfLines={1} adjustsFontSizeToFit`, which made the value shrink
+       * as the member's chosen text size grew — Dynamic Type, inverted, on the
+       * four numbers Home exists to show. The tiles are `flex: 1` columns, so
+       * the value has a column to wrap into; capping the scale with the
+       * documented display ceiling keeps two tall tiles from pushing the row
+       * off the fold. Same call the shared AFListRow / AFTopBar made.
+       */}
+      <Text style={styles.signalValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
         {value}
       </Text>
     </View>
@@ -243,8 +270,14 @@ export function HomeScreenV2() {
   // `accentText` twin (Wave 5 — see the file header).
   const accent = presentation.accent;
   const accentText = presentation.accentText;
-  const reveal = (idx: number) =>
-    elite && !reducedMotion ? FadeInDown.duration(420).delay(idx * 90) : undefined;
+  // SIGNATURE MOMENT 2 — the command reveal, and the ONLY entrance on this
+  // screen. The delay lets the arc's own draw-in (moment 1) land first so the
+  // two read as one sentence: here is your state, here is your move. Under
+  // reduced motion `entering` is undefined, which is React Native's own "do
+  // not animate" — the card is simply present on first paint.
+  const commandReveal = reducedMotion
+    ? undefined
+    : FadeInDown.duration(afMotion.durations.entrance).delay(afMotion.durations.standard);
 
   // Premium arc hero (elite): a larger, bolder, band-glowing readiness gauge so
   // it reads as the single instrument. Flag-off keeps the shipped 240/6 arc
@@ -333,7 +366,7 @@ export function HomeScreenV2() {
     <AFScreen scroll contentContainerStyle={[styles.scrollContent, v3 && styles.scrollContentV3]}>
       {/* Wordmark + freshness (+ V3 health-connection chip — renders nothing
           when no provider has contributed data) */}
-      <Animated.View entering={reveal(0)} style={styles.header}>
+      <View style={styles.header}>
         <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
         <View style={styles.brandRow}>
           <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
@@ -356,13 +389,17 @@ export function HomeScreenV2() {
           style={styles.freshness}
           testID="home-v2-freshness"
         />
-      </Animated.View>
+      </View>
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
       <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
       {!isHydrated ? (
-        <HomeSkeleton />
+        /* The skeleton has to stand in for the signal block this screen is
+           ABOUT to render, not the one it used to: V3's four-tile grid is two
+           rows, and shaping three tiles in one row dropped a row of content on
+           the reader the instant hydration landed. */
+        <HomeSkeleton signals={v3 ? 'grid4' : 'row3'} />
       ) : (
         <>
           {/* THE HERO SLOT — exactly one of three, never a blend. */}
@@ -381,12 +418,14 @@ export function HomeScreenV2() {
               />
             </View>
           ) : evidence === 'building' ? (
-            <Animated.View entering={reveal(1)}>
-              <HomeBaselineHero testID="home-baseline-hero" />
-            </Animated.View>
+            /* No entrance: BUILDING YOUR BASELINE is a statement about what we
+               do not know yet. Sliding it in would dress up an absence. */
+            <HomeBaselineHero testID="home-baseline-hero" />
           ) : (
-            /* Dominant readiness value + thin arc (tap → insights) */
-            <Animated.View entering={reveal(1)}>
+            /* Dominant readiness value + thin arc (tap → insights). The hero
+               wrapper is static — the arc's own draw-in IS the reveal, and
+               animating the container too would move the same thing twice. */
+            <View>
               <Pressable
                 style={[styles.arcWrap, elite && styles.arcWrapPremium]}
                 onPress={() => router.push('/weekly-report')}
@@ -396,7 +435,8 @@ export function HomeScreenV2() {
               >
                 {/* a11yHidden: the Pressable above already announces score + band,
                     so an inner progressbar would make the hero speak twice. */}
-                <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite} a11yHidden>
+                {/* SIGNATURE MOMENT 1 — the HydroState reveal. */}
+                <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} a11yHidden>
                   {elite ? (
                     <EliteScoreNumber
                       score={score}
@@ -429,17 +469,21 @@ export function HomeScreenV2() {
                 accent={accentText}
                 testID="home-v2-live-status-line"
               />
-            </Animated.View>
+            </View>
           )}
 
-          {/* One command */}
-          <Animated.View entering={reveal(2)}>
+          {/* One command — SIGNATURE MOMENT 2 (the command reveal). */}
+          <Animated.View entering={commandReveal}>
             <AFCommandCard
               eyebrow={commandEyebrow}
               title={title || t('home.v2.default_command_title')}
               instruction={commandInstruction}
               primaryLabel={t('home.v2.log_water')}
               onPrimary={() => {
+                // COMMAND COMPLETED — one of the four named haptic moments. The
+                // log is `silent: true`, so before this the member pressed the
+                // single most important control in the product and felt nothing.
+                fireMoment('command_completed');
                 void logIntake('water', { silent: true, ozOverride: parseDoseOz(engine.command.action) });
               }}
               rationale={engine.command.explanation || undefined}
@@ -455,15 +499,15 @@ export function HomeScreenV2() {
               + today's preparation-relevant list. Additive section; renders
               nothing when the flag is off or no moments exist. */}
           {momentsOn && (
-            <Animated.View entering={reveal(3)} style={styles.momentsSection}>
+            <View style={styles.momentsSection}>
               <HomeMomentsSection />
-            </Animated.View>
+            </View>
           )}
 
           {/* Signals — V3: four live-signal tiles (Hydration / Recovery /
               Sleep / HRV, missing readings render an em dash); flag off: the
               shipped three-tile row, byte-identical. */}
-          <Animated.View entering={reveal(3)} style={styles.signalsSection}>
+          <View style={styles.signalsSection}>
             <AFSectionLabel label={t(v3 ? 'home.v3.live_signals' : 'home.v2.signals_label')} />
             {v3 && v3Data ? (
               <View style={styles.v3Grid}>
@@ -483,7 +527,7 @@ export function HomeScreenV2() {
                 ))}
               </View>
             )}
-          </Animated.View>
+          </View>
 
           {/* WAVE 5 — the V3 "Completed today" section (three protocol rows +
               n/N count + streak / recovery-trend stat tiles) was DELETED here.

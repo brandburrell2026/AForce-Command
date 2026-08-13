@@ -173,3 +173,84 @@ describe('WeeklyReportV3 — every a11y string it renders exists in en.json', ()
     }
   });
 });
+
+/**
+ * WAVE 5 — LOADING / DEGRADED STATES.
+ *
+ * Two more defects, both about the report asserting things it does not know:
+ *   4. BARE SPINNER — three sources are assembled on mount (analytics snapshot,
+ *      journal rollups, command ledger) behind a lone centered
+ *      ActivityIndicator on an otherwise empty screen.
+ *   5. FAILURE READ AS A MEASUREMENT — `fetchJournalRollups(7).catch(() => [])`
+ *      made a failed fetch indistinguishable from a genuinely empty week, so
+ *      "0 days tracked" and "0 wins" rendered as facts about a week the member
+ *      had actually lived. (The legacy report fixed this exact defect for its
+ *      analytics fetch — see app/weekly-report.tsx's `eventsLoading` note.)
+ */
+describe('WeeklyReportV3 — the loading window holds the report shape', () => {
+  it('mounts the store-free WeeklyReportSkeleton instead of a bare ActivityIndicator', () => {
+    expect(CODE).toContain("import { WeeklyReportSkeleton } from './WeeklyReportSkeleton';");
+    expect(CODE).toContain('<WeeklyReportSkeleton />');
+    expect(CODE).not.toContain('ActivityIndicator');
+  });
+
+  it('keeps the loading branch a single labelled progressbar around that shape', () => {
+    const loading = CODE.slice(
+      CODE.indexOf('accessibilityRole="progressbar"'),
+      CODE.indexOf('</AFScreen>'),
+    );
+    expect(loading).toContain("accessibilityLabel={t('reports.v3.loading_a11y')}");
+    expect(loading).toContain('accessibilityLiveRegion="polite"');
+    expect(loading).toContain('<WeeklyReportSkeleton />');
+  });
+});
+
+describe('WeeklyReportV3 — a failed week is degraded, never reported as zero', () => {
+  it('distinguishes a failed rollup fetch from a genuinely empty week', () => {
+    expect(CODE).toMatch(/const\s+\[rollupsUnavailable,\s*setRollupsUnavailable\]/);
+    expect(CODE).toMatch(/fetchJournalRollups\(7\)\.catch\(\(\) => \{\s*rollupsFailed = true;/);
+    expect(CODE).toContain('setRollupsUnavailable(rollupsFailed);');
+    // The silent swallow that made the two states identical is gone.
+    expect(CODE).not.toMatch(/fetchJournalRollups\(7\)\.catch\(\(\) => \[\] as never\[\]\)/);
+  });
+
+  it('renders the three rollup-fed tiles as the honest em dash, not a measured 0', () => {
+    expect(CODE).toMatch(/const\s+winsValue\s*=\s*rollupsUnavailable\s*\?\s*'—'/);
+    expect(CODE).toMatch(/const\s+trackedValue\s*=\s*rollupsUnavailable\s*\?\s*'—'/);
+    expect(CODE).toMatch(/rollupsUnavailable \|\| model\.daysTracked === 0\s*\?\s*'—'/);
+    // …and the raw model fields are no longer rendered straight into the tiles.
+    expect(CODE).not.toContain('<Text style={styles.tileValue}>{model.weeklyWins}</Text>');
+    expect(CODE).not.toContain('<Text style={styles.tileValue}>{model.daysTracked}</Text>');
+  });
+
+  it('speaks the same value it shows (the composed tile labels take the dashed values)', () => {
+    expect(CODE).toContain("accessibilityLabel={`${t('reports.v3.tile_wins')}: ${winsValue}`}");
+    expect(CODE).toContain("accessibilityLabel={`${t('reports.v3.tile_tracked')}: ${trackedValue}`}");
+  });
+
+  it('says what happened and what is still current, via the SHIPPED inline error row', () => {
+    expect(CODE).toMatch(/import\s*\{[\s\S]*?AFInlineErrorRow[\s\S]*?\}\s*from\s*'@\/components\/ui';/);
+    expect(CODE).toContain('testID="weekly-v3-degraded"');
+    expect(CODE).toContain("message={t('reports.v3.rollups_unavailable')}");
+  });
+
+  it('gives the member a way to try again that re-runs the ONE existing loader', () => {
+    expect(CODE).toContain('onRetry={() => setReloadNonce((n) => n + 1)}');
+    expect(CODE).toMatch(/\}, \[fixture, pa\.result\.performanceAge, pa\.result\.status, reloadNonce\]\)/);
+    // Still exactly one fetch call site — the retry is a re-run, not a copy.
+    expect(CODE.match(/fetchJournalRollups\(/g)).toHaveLength(1);
+    expect(CODE.match(/getAnalyticsSnapshot\(/g)).toHaveLength(1);
+  });
+});
+
+describe('WeeklyReportV3 — degraded copy exists and stays in AForce voice', () => {
+  it('resolves the new reports.v3 keys and keeps internal vocabulary out of them', async () => {
+    const en = (await import('../../../locales/en.json')).default;
+    const v3 = en.reports.v3 as unknown as Record<string, string | undefined>;
+    expect(v3.rollups_unavailable).toBeTruthy();
+    expect(v3.retry).toBeTruthy();
+    // Answers WHAT HAPPENED and WHAT STILL WORKS; the retry control is WHAT TO DO.
+    expect(v3.rollups_unavailable).toMatch(/current/i);
+    expect(v3.rollups_unavailable).not.toMatch(/\b(null|undefined|rollup|endpoint|API|500)\b/i);
+  });
+});

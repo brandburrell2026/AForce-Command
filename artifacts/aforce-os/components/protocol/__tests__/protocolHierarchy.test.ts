@@ -165,3 +165,49 @@ describe('ProtocolScreenV2 — sparse states read as deliberate, not broken', ()
     expect(af.textTertiary).not.toBe(af.green);
   });
 });
+
+/**
+ * Wave-5 motion pass — RITUAL PROGRESSION is wired on this screen.
+ *
+ * Source-guarded for the same reason as everything else in this file:
+ * `ProtocolScreenV2` is a store-connected container the suite never mounts. The
+ * gate's LOGIC is proved as a pure function in protocolV3Presentation.test.ts
+ * (`shouldAcknowledgeProgress`) and the ring's reveal-then-advance behavior in
+ * components/ui/__tests__/AFReadinessArc.motion.render.test.tsx; this pins that
+ * the screen actually uses both.
+ */
+describe('ProtocolScreenV2 — Ritual progression (Wave-5 signature moment)', () => {
+  const MOTION_SRC = readFileSync(join(__dirname, '..', 'ProtocolScreenV2.tsx'), 'utf8');
+  const MOTION_CODE = MOTION_SRC.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
+
+  it('animates the hero completion ring so a finished step is visible as movement', () => {
+    const ring = MOTION_CODE.slice(
+      MOTION_CODE.indexOf('<AFReadinessArc'),
+      MOTION_CODE.indexOf('>', MOTION_CODE.indexOf('<AFReadinessArc')),
+    );
+    expect(ring).toContain('ringFraction(completedCount, total)');
+    expect(ring).toMatch(/\banimate\b/);
+  });
+
+  it("fires the 'ritual_progressed' moment through the shared façade", () => {
+    expect(MOTION_CODE).toContain("import { fireMoment } from '@/services/haptics';");
+    expect(MOTION_CODE).toContain("fireMoment('ritual_progressed')");
+    expect(MOTION_CODE).not.toMatch(/from 'expo-haptics'/);
+  });
+
+  it('gates that haptic on the pure, tested increase rule — not an inline comparison', () => {
+    expect(MOTION_CODE).toContain('shouldAcknowledgeProgress');
+    expect(MOTION_CODE).toMatch(
+      /if \(shouldAcknowledgeProgress\(prev, completedCount\)\) fireMoment\('ritual_progressed'\);/,
+    );
+  });
+
+  it('fires no other haptic moment from this screen', () => {
+    const moments = MOTION_CODE.match(/fireMoment\(/g) ?? [];
+    expect(moments).toHaveLength(1);
+  });
+
+  it('starts no ambient loop — the Protocol surface stays calm', () => {
+    expect(MOTION_CODE).not.toMatch(/withRepeat/);
+  });
+});

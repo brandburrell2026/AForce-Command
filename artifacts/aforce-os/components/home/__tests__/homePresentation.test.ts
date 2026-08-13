@@ -98,10 +98,15 @@ describe('resolveArcAnimation — motion decisions', () => {
     expect(plan.fromScore).toBe(40);
   });
 
-  it('does nothing when the flag is off (reveal runs only when eligible)', () => {
+  // Wave-5: the RING reveal is a signature moment and no longer depends on the
+  // elite presentation flag — it used to, which meant the product's defining
+  // motion shipped switched off. The NUMBER count-up is still flag-gated, so
+  // only ONE thing moves in the hero on the default build.
+  it('reveals the ring with the flag off, but does not count the number up', () => {
     const plan = resolveArcAnimation({ ...base, elite: false });
-    expect(plan.animateRing).toBe(false);
+    expect(plan.animateRing).toBe(true);
     expect(plan.countUp).toBe(false);
+    expect(plan.fromScore).toBe(40); // still never fabricates a start value
   });
 
   it('reduced-motion bypasses all motion', () => {
