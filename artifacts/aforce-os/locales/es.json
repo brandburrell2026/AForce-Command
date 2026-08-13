@@ -79,7 +79,7 @@
         "days_ago_stale": "Checked {{count}}d ago — data is stale",
         "unavailable": "Awaiting first sync"
       },
-      "readiness_label": "READINESS",
+      "readiness_label": "HYDROSTATE",
       "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
       "baseline_title": "Building your baseline",
       "baseline_body": "AForce is learning how your body responds. Log what you drink and your readiness appears here.",
@@ -2076,6 +2076,7 @@
     "readiness_eyebrow": "TODAY'S READINESS",
     "readiness_default_status": "READY TO PERFORM",
     "tap_to_skip": "TAP TO SKIP",
-    "skip_a11y": "Skip the opening sequence"
+    "skip_a11y": "Skip the opening sequence",
+    "readiness_building": "BUILDING YOUR BASELINE"
   }
 }

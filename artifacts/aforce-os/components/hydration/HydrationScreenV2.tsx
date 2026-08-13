@@ -2,11 +2,18 @@
  * HydrationScreenV2 — the Phase 2 · S5 Hydration redesign (spec §8.2), rendered
  * when `spec_hydration` is on. A live hydration dashboard (vs. the legacy
  * Performance Timeline): intake ring → water/target + electrolytes + recovery →
- * Scan a drink / Log manually → recent intake → a 7-day strip.
+ * Scan a drink / Log manually → recent intake → a 7-day strip → the row that
+ * pushes to Performance Signal (`/performance-signal`).
  *
  * Same store data as everywhere else; logging goes through the sanctioned
  * `logIntake` action (no scoring change). The legacy Performance Timeline is
  * PRESERVED behind the flag-off path (founder ruling: relocate, never delete).
+ *
+ * BUILD-61: this screen is the Hydration TAB again. It shipped unreachable in
+ * Build 60 because `app/(tabs)/journal.tsx` returned PerformanceSignalV3 ahead
+ * of it; that history screen is now the pushed destination of the last row
+ * here. This screen reads only the store — no network — so the root stays
+ * useful even when that history cannot load.
  */
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
@@ -231,6 +238,25 @@ export function HydrationScreenV2() {
             );
           })}
         </View>
+
+        {/* HISTORY — one tap deeper, never in place of this screen.
+            Build-61 correction: Performance Signal used to REPLACE this tab
+            (app/(tabs)/journal.tsx branched on `signal_v3_dashboard_enabled`
+            first), so the ring, the two log affordances and this strip were
+            unreachable in production. It is a pushed detail route now — the
+            same root → detail push Home uses for /weekly-report — which is
+            also why the week fails softly: history lives entirely on the
+            destination, so nothing above depends on it loading. */}
+        <AFCard padded={false} style={styles.recentCard}>
+          <AFListRow
+            icon="bar-chart-2"
+            title={t('hydration.v2.history_title')}
+            subtitle={t('hydration.v2.history_subtitle')}
+            disclosure
+            onPress={() => router.push('/performance-signal')}
+            testID="hydration-v2-history-link"
+          />
+        </AFCard>
       </View>
 
       <View style={{ height: 40 }} />

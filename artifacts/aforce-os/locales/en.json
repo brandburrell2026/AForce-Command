@@ -143,8 +143,9 @@
         "days_ago_stale": "Checked {{count}}d ago — data is stale",
         "unavailable": "Awaiting first sync"
       },
-      "readiness_label": "READINESS",
+      "readiness_label": "HYDROSTATE",
       "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
+      "confidence_chip": "EVIDENCE: {{rating}}",
       "confidence_a11y_context": "signal quality",
       "baseline_title": "Building your baseline",
       "baseline_body": "AForce is learning how your body responds. Log what you drink and your readiness appears here.",
@@ -1577,7 +1578,9 @@
       "oz_value": "{{oz}} oz",
       "ring_a11y": "Today's intake, {{pct}}% of your target",
       "day_logged": "intake logged",
-      "day_not_logged": "no intake logged"
+      "day_not_logged": "no intake logged",
+      "history_title": "Performance Signal",
+      "history_subtitle": "Your last 7 days"
     }
   },
   "protocol": {
@@ -2329,7 +2332,8 @@
     "readiness_eyebrow": "TODAY'S READINESS",
     "readiness_default_status": "READY TO PERFORM",
     "tap_to_skip": "TAP TO SKIP",
-    "skip_a11y": "Skip the opening sequence"
+    "skip_a11y": "Skip the opening sequence",
+    "readiness_building": "BUILDING YOUR BASELINE"
   },
   "signal": {
     "v3": {

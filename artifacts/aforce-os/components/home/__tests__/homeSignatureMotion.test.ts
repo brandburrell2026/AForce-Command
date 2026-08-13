@@ -87,14 +87,57 @@ describe('HomeScreenV2 — command completion reaches the hand', () => {
     expect(CODE).not.toMatch(/from 'expo-haptics'/);
   });
 
-  it("fires 'command_completed' from the command card's primary action", () => {
+  /**
+   * BUILD-61 CORRECTION 2 — this used to assert the moment fired from INSIDE
+   * `onPrimary`, alongside the log. That was the defect, not the contract: the
+   * press handler ran `fireMoment('command_completed')` and THEN dispatched a
+   * write it never waited on, so the hand was told "logged" before the request
+   * was attempted — and was told the same thing when the request failed. The
+   * requirement ("completion reaches the hand") is unchanged and the
+   * assertions below are strictly stronger: the moment must reach the hand
+   * only on a CONFIRMED completion.
+   */
+  it("does NOT fire 'command_completed' from the press handler any more", () => {
     const onPrimary = CODE.slice(
       CODE.indexOf('onPrimary={'),
       CODE.indexOf('rationale={engine.command.explanation'),
     );
-    expect(onPrimary).toContain("fireMoment('command_completed')");
-    // The haptic must accompany the actual log, not replace it.
-    expect(onPrimary).toContain('logIntake(');
+    expect(onPrimary).not.toContain('fireMoment(');
+    // …and the press does not write, either — it opens the logging surface.
+    expect(onPrimary).not.toContain('logIntake(');
+  });
+
+  it("fires 'command_completed' only once the cycle has SETTLED with a result", () => {
+    // The store's `logIntake` catches its own errors and resolves either way,
+    // so the settled cycle state — not the promise — is the honest signal.
+    const effect = CODE.slice(
+      CODE.indexOf('if (!confirmInFlightRef.current) return;'),
+      CODE.indexOf('}, [isCompletingCycle, lastCycleResult]);'),
+    );
+    expect(effect).toContain('if (isCompletingCycle) return;');
+    expect(effect).toContain('if (!lastCycleResult) return;');
+    expect(effect).toContain("fireMoment('command_completed')");
+    // Order matters: both guards must precede the moment, or a failed write
+    // (CYCLE_FAILURE → lastCycleResult null) would still buzz "completed".
+    expect(effect.indexOf('if (isCompletingCycle) return;')).toBeLessThan(
+      effect.indexOf("fireMoment('command_completed')"),
+    );
+    expect(effect.indexOf('if (!lastCycleResult) return;')).toBeLessThan(
+      effect.indexOf("fireMoment('command_completed')"),
+    );
+  });
+
+  it('mutation-verify: dropping the failure guard is detectable', () => {
+    // Proves the slice measured above actually tracks the source. If the
+    // `!lastCycleResult` early-return were deleted, a CYCLE_FAILURE would fire
+    // a completion haptic for a write that never landed.
+    const mutated = CODE.replace('if (!lastCycleResult) return;', '');
+    const effect = mutated.slice(
+      mutated.indexOf('if (!confirmInFlightRef.current) return;'),
+      mutated.indexOf('}, [isCompletingCycle, lastCycleResult]);'),
+    );
+    expect(effect).not.toContain('if (!lastCycleResult) return;');
+    expect(effect).toContain("fireMoment('command_completed')");
   });
 
   it('fires no other haptic moment from this screen', () => {

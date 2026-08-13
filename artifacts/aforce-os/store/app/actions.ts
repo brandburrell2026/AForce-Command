@@ -336,6 +336,20 @@ export function useStoreActions({
       // permanently disabled after any failed intake.
       console.warn('[AForce] logIntake failed', err);
       dispatch({ type: 'CYCLE_FAILURE' });
+      // …but clearing the spinner is ALL CYCLE_FAILURE does, so until now a
+      // 401 / 5xx / timeout looked exactly like success: nothing moved, nothing
+      // was said, and the intake was gone. `offline_intake_outbox_enabled` is
+      // false in production, so there is no durable queue behind this catch —
+      // the write really is lost and the member is the only one who can
+      // recover it. Fail visibly, with the SAME pair `confirmCommand` already
+      // raises below: a write that didn't reach the server is one fact, and it
+      // should read identically wherever it happens.
+      Alert.alert(
+        i18n.t('common.action_failed_title', { defaultValue: 'Not saved' }),
+        i18n.t('common.action_failed_body', {
+          defaultValue: "That didn't reach the server — check your connection and try again.",
+        }),
+      );
     }
   }, [state.userState, state.isCompletingCycle, state.featureFlags.offline_intake_outbox_enabled]);
 

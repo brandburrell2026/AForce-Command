@@ -40,6 +40,10 @@ export default defineConfig({
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/home/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/protocol/__tests__/**/*.test.ts',
+      // Build 61 correction: the cold-launch cinematic had no suite at all, and
+      // shipped a fabricated readiness number for two builds as a result.
+      'artifacts/aforce-os/components/opening/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/opening/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
@@ -109,6 +113,9 @@ export default defineConfig({
       ['artifacts/aforce-os/components/moments/__tests__/**/*.render.test.tsx', 'happy-dom'],
       // VS 3.0 P2 — Journal summary-widget render harnesses render to a DOM.
       ['artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // Build 61 — the cold-launch cinematic's readiness-number lock renders
+      // the real overlay to a DOM (its stage timeline is the thing under test).
+      ['artifacts/aforce-os/components/opening/__tests__/**/*.render.test.tsx', 'happy-dom'],
     ],
     reporters: 'default',
   },

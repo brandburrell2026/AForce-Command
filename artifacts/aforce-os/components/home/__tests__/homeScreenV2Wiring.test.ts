@@ -270,10 +270,18 @@ describe('HomeScreenV2 — no flash of a fabricated score before the gate resolv
   it('the Recovery signal tile withholds the band word too, so the state cannot re-enter sideways', () => {
     // Without this the hero would say "Building your baseline" while the tile
     // one section down said "Balanced" — the same fabricated claim, restated.
-    expect(CODE).toMatch(
-      /const\s+recoveryText\s*=\s*evidence === 'established'\s*\?\s*titleCase\(engine\.performanceState\.level\)\s*:\s*EM_DASH;/,
-    );
+    //
+    // CORRECTION 6 STRENGTHENED THIS. The original assertion allowed the band
+    // word back into the tile as soon as `evidence === 'established'`, which is
+    // how build 60 shipped the band printed twice. The tile now renders the em
+    // dash UNCONDITIONALLY (a duplicate is not a second measurement), so the
+    // pre-evidence case this test was written for is covered a fortiori and the
+    // established case is covered too — strictly more than before.
+    expect(CODE).toMatch(/const\s+recoveryText\s*=\s*EM_DASH;/);
     expect(CODE).not.toMatch(/value=\{titleCase\(engine\.performanceState\.level\)\}/);
+    // The helper that title-cased the band for that tile is gone with it, so
+    // nothing can quietly reintroduce the restatement.
+    expect(CODE).not.toContain('titleCase');
   });
 
   it('mutation-verify: a score rendered outside the established branch is detectable', () => {
@@ -296,7 +304,12 @@ describe('HomeScreenV2 — confidence proportional to evidence (Wave 5 residual 
     // one chip grammar across §53/§54/§55/§58, or the vocabulary fragments.
     expect(CODE).toContain("import { ConfidenceChip } from '@/components/ConfidenceChip';");
     expect(CODE).toMatch(/<ConfidenceChip\s/);
-    expect(CODE).toMatch(/label=\{confidence\.chip\.label\}/);
+    // Correction 6: the RESOLVED rating still reaches the chip unchanged — it
+    // is now interpolated into the i18n label that names its domain
+    // ("EVIDENCE: LIMITED") rather than passed as a bare structural token, so
+    // the chip cannot read as a fourth verdict on the member's body. The
+    // resolver, the vocabulary and the opacity ramp are untouched.
+    expect(CODE).toMatch(/label=\{t\('home\.v2\.confidence_chip',\s*\{\s*rating:\s*confidence\.chip\.label\s*\}\)\}/);
     expect(CODE).toMatch(/opacity=\{confidence\.chip\.opacity\}/);
   });
 
