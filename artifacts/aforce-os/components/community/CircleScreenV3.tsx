@@ -13,12 +13,19 @@
  * captioned on screen and the footnote claims only what is real — your own
  * score and streak moving as you log — never a live standing against others.
  *
+ * Wave 5 turned the certainty hierarchy back the right way up. It had been
+ * inverted: the least-evidenced numbers were the loudest. The one number with
+ * a real source — your own score — now dominates the You card, the four
+ * cohort-relative ranks sit beneath it in supporting weight, the sample-data
+ * caption reads as the standings' caption instead of the faintest line on the
+ * page, and the eyebrow no longer says "LIVE" over a sample roster.
+ *
  * `fixture` exists ONLY for the demo gallery / tests (production builds never
  * pass it): it supplies the full inputs and skips every live source. Tab
  * switching stays interactive in both modes.
  */
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -30,6 +37,8 @@ import { fetchJournalRollups } from '@/services/realApi';
 import type { JournalRollup } from '@/types';
 import {
   buildCircleV3Model,
+  circleRowA11yLabel,
+  type CircleRowA11yStrings,
   type CircleTab,
   type CircleV3Inputs,
   type CircleV3RowView,
@@ -92,6 +101,43 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
 
   const { you } = model;
 
+  // A tab press swaps every row underneath a heading that never changes —
+  // visible to the eye, silent to a screen reader. Announce the new scope
+  // once per change, never on mount (focus already reads the pressed tab).
+  // Ref-guarded exactly like RiskTimerDisplay's ~:58-79: no live region
+  // exists on this screen, so this covers iOS and Android alike.
+  const tabAnnouncement = t('community.v3.tab_announce', {
+    tab: t(`community.v3.tab_${tab}`),
+  });
+  const tabAnnouncementRef = React.useRef(tabAnnouncement);
+  tabAnnouncementRef.current = tabAnnouncement;
+  // Holds the tab last spoken rather than a bare "mounted" flag, so
+  // StrictMode's double-invoked mount effect cannot speak a change that
+  // never happened.
+  const announcedTabRef = React.useRef<CircleTab | null>(null);
+  React.useEffect(() => {
+    if (announcedTabRef.current === tab) return;
+    const first = announcedTabRef.current === null;
+    announcedTabRef.current = tab;
+    if (first) return;
+    try {
+      AccessibilityInfo.announceForAccessibility(tabAnnouncementRef.current);
+    } catch { /* no-op on web */ }
+  }, [tab]);
+
+  const rowLabels = React.useMemo<CircleRowA11yStrings>(
+    () => ({
+      rank: (n) => t('community.v3.row_rank', { n }),
+      you: t('community.v3.row_you'),
+      verified: t('community.v3.row_verified'),
+      score: (n) => t('community.v3.row_score', { n }),
+      moveUp: (n) => t('community.v3.row_move_up', { count: n }),
+      moveDown: (n) => t('community.v3.row_move_down', { count: n }),
+      moveFlat: t('community.v3.row_move_flat'),
+    }),
+    [t],
+  );
+
   return (
     <AFScreen scroll contentContainerStyle={styles.scrollContent}>
       <AFTopBar eyebrow={t('community.v3.eyebrow')} title={t('community.v3.title')} />
@@ -116,12 +162,15 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             </View>
           ) : null}
         </View>
+        {/* Comp layout kept — five columns, same order. What changed is
+            weight: the four ranks are positions inside a SAMPLE cohort, the
+            score is yours and real, so the real number is the loud one. */}
         <View style={styles.statsRow}>
-          <YouStat value={fmtRank(you.globalRank)} label={t('community.v3.stat_global')} accent={you.accent} />
-          <YouStat value={fmtRank(you.cityRank)} label={t('community.v3.stat_city')} />
-          <YouStat value={fmtRank(you.stateRank)} label={t('community.v3.stat_state')} />
-          <YouStat value={fmtRank(you.teamRank)} label={t('community.v3.stat_team')} />
-          <YouStat value={String(you.score)} label={t('community.v3.stat_score')} accent={you.accent} />
+          <RankStat value={fmtRank(you.globalRank)} label={t('community.v3.stat_global')} />
+          <RankStat value={fmtRank(you.cityRank)} label={t('community.v3.stat_city')} />
+          <RankStat value={fmtRank(you.stateRank)} label={t('community.v3.stat_state')} />
+          <RankStat value={fmtRank(you.teamRank)} label={t('community.v3.stat_team')} />
+          <ScoreStat value={String(you.score)} label={t('community.v3.stat_score')} accent={you.accent} />
         </View>
       </View>
 
@@ -141,7 +190,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             style={[styles.tabPill, tab === key && styles.tabPillOn]}
             accessibilityRole="tab"
             accessibilityState={{ selected: tab === key }}
-            // 9pt padding + a 18pt caption line is ~36pt; hitSlop carries the
+            // 9pt padding + an 18pt caption line is ~36pt; hitSlop carries the
             // touchable area to the 44pt minimum without changing the comp.
             hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }}
             testID={`circle-v3-tab-${key}`}
@@ -180,7 +229,12 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
       {model.rows.length > 0 ? (
         <View style={styles.list} testID="circle-v3-list">
           {model.rows.map((row) => (
-            <LeaderRow key={row.key} row={row} streakLabel={(n) => t('community.v3.streak_days', { n })} />
+            <LeaderRow
+              key={row.key}
+              row={row}
+              streakLabel={(n) => t('community.v3.streak_days', { n })}
+              labels={rowLabels}
+            />
           ))}
         </View>
       ) : model.tab === 'challenge' ? null : (
@@ -204,20 +258,49 @@ function fmtRank(rank: number | null): string {
   return rank != null ? `#${rank}` : '—';
 }
 
-function YouStat({ value, label, accent }: { value: string; label: string; accent?: string }) {
+/** A position inside the sample cohort — supporting weight, never the accent. */
+function RankStat({ value, label }: { value: string; label: string }) {
   return (
     <View style={styles.stat}>
-      <Text style={[styles.statValue, accent ? { color: accent } : null]}>{value}</Text>
+      <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
 
-function LeaderRow({ row, streakLabel }: { row: CircleV3RowView; streakLabel: (n: number) => string }) {
+/** The one measured number on the screen — sized and tinted to say so. */
+function ScoreStat({ value, label, accent }: { value: string; label: string; accent: string }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={[styles.scoreValue, { color: accent }]}>{value}</Text>
+      <Text style={styles.scoreLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function LeaderRow({
+  row,
+  streakLabel,
+  labels,
+}: {
+  row: CircleV3RowView;
+  streakLabel: (n: number) => string;
+  labels: CircleRowA11yStrings;
+}) {
   const subtitle =
     row.streakDays != null ? `${row.subtitleLeft} · ${streakLabel(row.streakDays)}` : row.subtitleLeft;
   return (
-    <View style={[styles.row, row.isYou && styles.rowYou]}>
+    // One element, one sentence. The row used to be six-plus loose Texts that
+    // VoiceOver read as fragments; `accessible` collapses them, which also
+    // answers the Verified badge — it needs no label of its own now that the
+    // word is spoken here (AFCard's fix set `accessible` because a card is the
+    // group; here the ROW is the group, and a second element inside it would
+    // only re-fragment what this label just assembled).
+    <View
+      style={[styles.row, row.isYou && styles.rowYou]}
+      accessible
+      accessibilityLabel={circleRowA11yLabel(row, subtitle, labels)}
+    >
       <Text style={styles.rowRank}>{row.rank}</Text>
       <View style={[styles.rowAvatar, { backgroundColor: row.avatarColor }]}>
         <Text style={[styles.rowAvatarText, { color: avatarTextColor(row.avatarColor) }]}>
@@ -227,8 +310,12 @@ function LeaderRow({ row, streakLabel }: { row: CircleV3RowView; streakLabel: (n
       <View style={styles.rowBody}>
         <View style={styles.rowNameLine}>
           <Text style={[styles.rowName, row.isYou && { color: af.green }]}>{row.name}</Text>
+          {/* Green text and a green row tint were the ONLY marks saying which
+              row is yours — invisible to anyone who cannot separate the hues.
+              The tag says it in words; the colour now merely reinforces it. */}
+          {row.isYou ? <Text style={styles.youTag}>{labels.you}</Text> : null}
           {row.verified ? (
-            <View style={styles.verified} accessibilityLabel="Verified">
+            <View style={styles.verified}>
               <Text style={styles.verifiedGlyph}>✓</Text>
             </View>
           ) : null}
@@ -271,9 +358,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: af.divider,
   },
   stat: { flex: 1, alignItems: 'center', gap: 3 },
-  statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  // Ranks: body weight, supporting colour. They were title3 in textPrimary —
+  // the same size as the score, and GLOBAL even wore the band accent, which
+  // dressed a sample-cohort position up as a measurement.
+  statValue: { ...afType.body, color: af.textSecondary, fontVariant: ['tabular-nums'] },
   statLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
-  sampleNote: { ...afType.caption, color: af.textTertiary, marginTop: 10 },
+  scoreValue: { ...afType.title2, fontVariant: ['tabular-nums'] },
+  scoreLabel: { ...afType.eyebrow, color: af.textSecondary, fontSize: 10 },
+  // The caption belongs to the standings above it, so it is set as one: a
+  // rule tying it to the block, secondary text, one step up in size. It was
+  // tertiary caption — the dimmest type on a screen full of ranks it
+  // qualifies. Still quieter than any number; just no longer deniable.
+  sampleNote: {
+    ...afType.secondary,
+    color: af.textSecondary,
+    marginTop: 10,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: af.border,
+  },
   tabsRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
   tabPill: {
     paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999,
@@ -305,6 +408,11 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowNameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rowName: { ...afType.bodyStrong, color: af.textPrimary },
+  youTag: {
+    ...afType.eyebrow, color: af.green, textTransform: 'uppercase',
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999,
+    borderWidth: 1, borderColor: `${af.green}55`,
+  },
   verified: { width: 16, height: 16, borderRadius: 8, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center' },
   verifiedGlyph: { color: af.canvas, fontSize: 10, fontWeight: '700' },
   rowSub: { ...afType.caption, color: af.textTertiary },
