@@ -11,7 +11,12 @@ import { describe, it, expect } from 'vitest';
 
 import { af } from '@/theme';
 import { buildSnapshot } from '@/services/competitionEngine';
-import { buildCircleV3Model, type CircleV3Inputs } from '../circleV3Presentation';
+import {
+  buildCircleV3Model,
+  circleRowA11yLabel,
+  type CircleRowA11yStrings,
+  type CircleV3Inputs,
+} from '../circleV3Presentation';
 
 function snapshot(liveScore = 92) {
   return buildSnapshot({
@@ -128,6 +133,47 @@ describe('buildCircleV3Model — tabs', () => {
 
   it('challenge renders no list rows', () => {
     expect(buildCircleV3Model(inputs({ tab: 'challenge' })).rows).toEqual([]);
+  });
+});
+
+describe('circleRowA11yLabel — the row says out loud what it only showed in colour', () => {
+  // The en.json phrasing, inlined: this module is i18n-free by contract.
+  const S: CircleRowA11yStrings = {
+    rank: (n) => `Rank ${n}`,
+    you: 'You',
+    verified: 'Verified',
+    score: (n) => `Score ${n}`,
+    // Mirrors en.json's _one/_other plural pair.
+    moveUp: (n) => (n === 1 ? 'Up 1 place' : `Up ${n} places`),
+    moveDown: (n) => (n === 1 ? 'Down 1 place' : `Down ${n} places`),
+    moveFlat: 'No change',
+  };
+  const rows = buildCircleV3Model(inputs()).rows;
+  const row = (name: string) => rows.find((r) => r.name === name)!;
+
+  it('speaks the verified badge that used to be a glyph on an inert View', () => {
+    const jordan = row('Jordan A.');
+    const label = circleRowA11yLabel(jordan, 'Miami, FL · 7-day streak', S);
+    expect(label).toBe(
+      `Rank ${jordan.rank}. Jordan A. Verified. Miami, FL · 7-day streak. Score ${jordan.score}. Up 3 places`,
+    );
+  });
+
+  it('names YOU instead of relying on the green name colour', () => {
+    const you = rows.find((r) => r.isYou)!;
+    const label = circleRowA11yLabel(you, 'Miami, FL', S);
+    expect(label).toContain(`${you.name}, You`);
+  });
+
+  it('omits the badge phrase for unverified rows', () => {
+    const cam = row('Cam B.');
+    expect(cam.verified).toBe(false);
+    expect(circleRowA11yLabel(cam, 'Austin, TX', S)).not.toContain('Verified');
+  });
+
+  it('gives every movement direction words — the ↑/↓/– glyphs carry none', () => {
+    expect(circleRowA11yLabel(row('Sasha P.'), 'x', S)).toContain('Down 1 place');
+    expect(circleRowA11yLabel(row('Alicia R.'), 'x', S)).toContain('No change');
   });
 });
 
