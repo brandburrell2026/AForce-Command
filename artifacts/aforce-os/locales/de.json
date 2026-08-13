@@ -23,6 +23,24 @@
       "queued_other": "{{count}} Einträge in der Warteschlange – noch nicht synchronisiert. Sie werden automatisch gesendet, sobald du wieder online bist.",
       "failed_one": "1 Eintrag in der Warteschlange – der letzte Synchronisierungsversuch ist fehlgeschlagen. AForce versucht es automatisch weiter.",
       "failed_other": "{{count}} Einträge in der Warteschlange – der letzte Synchronisierungsversuch ist fehlgeschlagen. AForce versucht es automatisch weiter."
+    },
+    "action_failed_title": {
+      "offline": "Nicht gespeichert – keine Verbindung",
+      "auth": "Nicht gespeichert – bitte erneut anmelden",
+      "forbidden": "Nicht gespeichert – kein Zugriff",
+      "timeout": "Nicht gespeichert – Zeitüberschreitung",
+      "rate_limited": "Nicht gespeichert – zu viele Versuche",
+      "invalid": "Nicht gespeichert – Eintrag abgelehnt",
+      "server": "Nicht gespeichert – Serverproblem"
+    },
+    "action_failed_body": {
+      "offline": "Das hat den Server nicht erreicht, es wurde nichts gespeichert. Prüfe deine Verbindung und versuch es erneut.",
+      "auth": "Deine Sitzung ist abgelaufen, es wurde nichts gespeichert. Melde dich erneut an und trag es dann noch einmal ein.",
+      "forbidden": "Dein Konto darf diese Änderung nicht vornehmen, es wurde nichts gespeichert. Wende dich an den Support, falls das nicht stimmt.",
+      "timeout": "Der Server hat zu lange für eine Antwort gebraucht, es wurde nichts gespeichert. Warte kurz und versuch es erneut.",
+      "rate_limited": "Zu viele Anfragen in kurzer Zeit, es wurde nichts gespeichert. Warte eine Minute und versuch es dann erneut.",
+      "invalid": "Der Server hat diesen Eintrag nicht akzeptiert, es wurde nichts gespeichert. Versuch es erneut und aktualisiere AForce, falls es weiterhin passiert.",
+      "server": "Auf unserer Seite ist etwas schiefgelaufen, es wurde nichts gespeichert. Warte einen Moment und versuch es erneut."
     }
   },
   "tabs": {

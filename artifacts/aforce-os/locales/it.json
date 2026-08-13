@@ -23,6 +23,24 @@
       "queued_other": "{{count}} assunzioni in coda — non ancora sincronizzate. Verranno inviate automaticamente non appena tornerai online.",
       "failed_one": "1 assunzione in coda — l'ultimo tentativo di sincronizzazione non è riuscito. AForce continuerà a riprovare automaticamente.",
       "failed_other": "{{count}} assunzioni in coda — l'ultimo tentativo di sincronizzazione non è riuscito. AForce continuerà a riprovare automaticamente."
+    },
+    "action_failed_title": {
+      "offline": "Non salvato — nessuna connessione",
+      "auth": "Non salvato — accedi di nuovo",
+      "forbidden": "Non salvato — accesso negato",
+      "timeout": "Non salvato — tempo scaduto",
+      "rate_limited": "Non salvato — troppi tentativi",
+      "invalid": "Non salvato — voce rifiutata",
+      "server": "Non salvato — problema del server"
+    },
+    "action_failed_body": {
+      "offline": "Non è arrivato al server, quindi non è stato registrato nulla. Controlla la connessione e riprova.",
+      "auth": "La tua sessione è scaduta, quindi non è stato registrato nulla. Accedi di nuovo e registralo un'altra volta.",
+      "forbidden": "Il tuo account non può effettuare questa modifica, quindi non è stato registrato nulla. Contatta l'assistenza se non te lo aspettavi.",
+      "timeout": "Il server ha impiegato troppo tempo a rispondere, quindi non è stato registrato nulla. Attendi un momento e riprova.",
+      "rate_limited": "Troppe richieste in poco tempo, quindi non è stato registrato nulla. Attendi un minuto e riprova.",
+      "invalid": "Il server non ha accettato questa voce, quindi non è stato registrato nulla. Riprova e aggiorna AForce se continua a succedere.",
+      "server": "Qualcosa non ha funzionato dalla nostra parte, quindi non è stato registrato nulla. Attendi un momento e riprova."
     }
   },
   "tabs": {

@@ -23,6 +23,24 @@
       "queued_other": "{{count}} intakes queued — not yet synced. They'll send automatically once you're back online.",
       "failed_one": "1 intake queued — the last sync attempt failed. AForce will keep retrying automatically.",
       "failed_other": "{{count}} intakes queued — the last sync attempt failed. AForce will keep retrying automatically."
+    },
+    "action_failed_title": {
+      "offline": "Not saved — no connection",
+      "auth": "Not saved — sign in again",
+      "forbidden": "Not saved — access denied",
+      "timeout": "Not saved — timed out",
+      "rate_limited": "Not saved — too many attempts",
+      "invalid": "Not saved — entry rejected",
+      "server": "Not saved — server problem"
+    },
+    "action_failed_body": {
+      "offline": "That didn't reach the server, so nothing was recorded. Check your connection and try again.",
+      "auth": "Your session expired, so nothing was recorded. Sign in again, then log it one more time.",
+      "forbidden": "Your account isn't allowed to make this change, so nothing was recorded. Contact support if that looks wrong.",
+      "timeout": "The server took too long to answer, so nothing was recorded. Give it a moment and try again.",
+      "rate_limited": "Too many requests in a short window, so nothing was recorded. Wait a minute, then try again.",
+      "invalid": "The server wouldn't accept this entry, so nothing was recorded. Try again, and update AForce if it keeps happening.",
+      "server": "Something broke on our end, so nothing was recorded. Wait a moment and try again."
     }
   },
   "tabs": {
