@@ -27,7 +27,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api"
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsudHJhdmVsZ2F0ZS5hcHAk"
       }
     },
     "demo": {
@@ -43,6 +44,7 @@
       "channel": "internal",
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsudHJhdmVsZ2F0ZS5hcHAk",
         "EXPO_PUBLIC_INTERNAL_TESTFLIGHT": "true"
       }
     },
@@ -51,6 +53,7 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsudHJhdmVsZ2F0ZS5hcHAk",
         "PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS": "true"
       },
       "ios": {
