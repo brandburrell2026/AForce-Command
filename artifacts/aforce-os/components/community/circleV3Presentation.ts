@@ -131,6 +131,55 @@ function individualRow(u: CompetitorUser, index: number, youId: string): CircleV
   };
 }
 
+/**
+ * Already-translated phrasing for `circleRowA11yLabel` — this module stays
+ * i18n-free, so the screen passes the strings in.
+ */
+export interface CircleRowA11yStrings {
+  rank: (n: number) => string;
+  you: string;
+  verified: string;
+  score: (n: number) => string;
+  moveUp: (n: number) => string;
+  moveDown: (n: number) => string;
+  moveFlat: string;
+}
+
+/**
+ * One spoken sentence for one leader row. A row paints eight separate Texts,
+ * and three of its facts carry no words at all: "this is you" was green name
+ * colour, "verified" was a ✓ on an inert View, and the movement was a bare
+ * ↑/↓ glyph. Everything a sighted member reads from the row is said here.
+ */
+export function circleRowA11yLabel(
+  row: CircleV3RowView,
+  subtitle: string,
+  s: CircleRowA11yStrings,
+): string {
+  const move =
+    row.move.dir === 'up'
+      ? s.moveUp(row.move.n)
+      : row.move.dir === 'down'
+        ? s.moveDown(row.move.n)
+        : s.moveFlat;
+  return [
+    s.rank(row.rank),
+    row.isYou ? `${row.name}, ${s.you}` : row.name,
+    row.verified ? s.verified : null,
+    subtitle,
+    s.score(row.score),
+    move,
+  ]
+    .filter((part): part is string => part != null && part !== '')
+    // Cohort names carry a trailing initial ("Jordan A."), so the sentence
+    // separator is only added where one is missing — no "A.." artefacts.
+    .reduce(
+      (sentence, part) =>
+        sentence === '' ? part : `${sentence}${sentence.endsWith('.') ? '' : '.'} ${part}`,
+      '',
+    );
+}
+
 export function buildCircleV3Model(input: CircleV3Inputs): CircleV3Model {
   const { snapshot } = input;
   const me = snapshot.context;
