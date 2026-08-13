@@ -14,7 +14,10 @@
  *    register item for that model. Because it is sample data, the screen
  *    captions it as such and the model never hands out a rank it cannot
  *    stand behind: with nobody else in the cohort the four rank stats are
- *    null, not "#1".
+ *    null, not "#1". Each sample row also carries `isSample` so the fact
+ *    reaches the ROW — a caption above a leaderboard is easy not to read,
+ *    and the roster's visual grammar (avatar, name, score, movement) is
+ *    otherwise identical to the member's own real row.
  *  - Everything about YOU is real where a source exists: live engine score
  *    and band (accent via resolveHomePresentation — never statusColor.ts),
  *    real compliance streak, server-persisted weather city when present.
@@ -91,6 +94,16 @@ export interface CircleV3RowView {
   scoreAccent: string;
   move: CircleV3Move;
   isYou: boolean;
+  /**
+   * True when the row is SAMPLE data rather than something measured about the
+   * member. A leaderboard row is the strongest "these are real people" signal
+   * the app has — same avatar, same name grammar, same score column as the
+   * member's own row — so the fact has to travel per ROW, not only in the
+   * caption above the list. The screen renders it as a tag on the row and
+   * `circleRowA11yLabel` speaks it, so a member reaches the same conclusion by
+   * eye or by screen reader.
+   */
+  isSample: boolean;
 }
 
 export interface CircleV3Model {
@@ -114,20 +127,34 @@ function moveFor(delta: number | undefined): CircleV3Move {
 }
 
 function individualRow(u: CompetitorUser, index: number, youId: string): CircleV3RowView {
+  const isYou = u.id === youId;
+  // Exactly one person in this cohort is real: the member. Every other row is
+  // a profile from the sample roster in mocks/competitionData.ts, which the
+  // founder ruled stays until /v1/competition exists (#712 reversed a deletion
+  // of it). Sample-by-design is fine; sample-and-indistinguishable is not.
+  const isSample = !isYou;
   return {
     key: u.id,
     rank: u.rank,
     initials: u.avatarInitials,
     avatarColor: CIRCLE_AVATAR_PALETTE[index % CIRCLE_AVATAR_PALETTE.length]!,
     name: u.name,
-    verified: u.verified === true,
+    // A verified badge is a CREDENTIAL: it says AForce checked this member. On
+    // an invented person it is a claim about somebody who does not exist, and
+    // it is the one mark on the row that reads as social proof rather than
+    // decoration — so it can never reach a sample row. The roster's five
+    // `verified: true` entries are left untouched in the mock (that data is
+    // the founder's), and the field stays wired for the day /v1/competition
+    // supplies real members whose badge WOULD be true.
+    verified: u.verified === true && !isSample,
     subtitleLeft: u.title ?? `${u.city}, ${u.state}`,
     streakDays: typeof u.streakDays === 'number' ? u.streakDays : null,
     score: u.competitionScore,
     // Row band label → the shared accent module (never statusColor.ts).
     scoreAccent: resolveHomePresentation(u.state_label).accent,
     move: moveFor(u.recentDelta),
-    isYou: u.id === youId,
+    isYou,
+    isSample,
   };
 }
 
@@ -138,6 +165,8 @@ function individualRow(u: CompetitorUser, index: number, youId: string): CircleV
 export interface CircleRowA11yStrings {
   rank: (n: number) => string;
   you: string;
+  /** Spoken counterpart of the row's SAMPLE tag — see `isSample`. */
+  sample: string;
   verified: string;
   score: (n: number) => string;
   moveUp: (n: number) => string;
@@ -150,6 +179,10 @@ export interface CircleRowA11yStrings {
  * and three of its facts carry no words at all: "this is you" was green name
  * colour, "verified" was a ✓ on an inert View, and the movement was a bare
  * ↑/↓ glyph. Everything a sighted member reads from the row is said here.
+ *
+ * That now includes provenance. The sample tag is a pill a sighted member
+ * sees; without it in this sentence a screen-reader user would hear a roster
+ * of names with scores and no way to tell which of them exist.
  */
 export function circleRowA11yLabel(
   row: CircleV3RowView,
@@ -162,9 +195,16 @@ export function circleRowA11yLabel(
       : row.move.dir === 'down'
         ? s.moveDown(row.move.n)
         : s.moveFlat;
+  // Both qualifiers ride with the name rather than trailing the sentence, so
+  // the disclosure is heard at the same moment as the person it qualifies.
+  // (They co-occur on the Cities tab, where a row can be YOUR city AND a
+  // sample aggregate — both statements are true and both are spoken.)
+  const who = [row.name, row.isYou ? s.you : null, row.isSample ? s.sample : null]
+    .filter((part): part is string => part != null && part !== '')
+    .join(', ');
   return [
     s.rank(row.rank),
-    row.isYou ? `${row.name}, ${s.you}` : row.name,
+    who,
     row.verified ? s.verified : null,
     subtitle,
     s.score(row.score),
@@ -233,6 +273,13 @@ export function buildCircleV3Model(input: CircleV3Inputs): CircleV3Model {
         scoreAccent: resolveHomePresentation(bandForScore(c.competitionScore)).accent,
         move: moveFor(c.trend === 'up' ? 1 : c.trend === 'down' ? -1 : 0),
         isYou: c.name === youUser.city,
+        // EVERY city row is sample — including your own. `isYou` here means
+        // only "this is the city you're in"; the aggregate itself is invented,
+        // and its subtitle ("4,128 athletes") is the screen's most direct
+        // statement of live participation. So the tag is not conditioned on
+        // `!isYou` the way the individual rows' is: there is no measured city
+        // row to protect from it.
+        isSample: true,
       }));
       break;
     case 'friends': {

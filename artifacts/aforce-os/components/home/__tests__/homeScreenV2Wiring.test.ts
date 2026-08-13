@@ -285,6 +285,80 @@ describe('HomeScreenV2 — no flash of a fabricated score before the gate resolv
   });
 });
 
+describe('HomeScreenV2 — confidence proportional to evidence (Wave 5 residual A)', () => {
+  it('resolves the affordance through the pure, tested module — not an inline predicate', () => {
+    expect(CODE).toContain("import { resolveHomeConfidence } from './homeConfidence';");
+    expect(CODE).toMatch(/resolveHomeConfidence\(\{[\s\S]{0,240}?\}\)/);
+  });
+
+  it('wears the SHIPPED ConfidenceChip, the same primitive PerformanceSignalV3 uses', () => {
+    // A bespoke Home-only confidence widget is the outcome this asserts against:
+    // one chip grammar across §53/§54/§55/§58, or the vocabulary fragments.
+    expect(CODE).toContain("import { ConfidenceChip } from '@/components/ConfidenceChip';");
+    expect(CODE).toMatch(/<ConfidenceChip\s/);
+    expect(CODE).toMatch(/label=\{confidence\.chip\.label\}/);
+    expect(CODE).toMatch(/opacity=\{confidence\.chip\.opacity\}/);
+  });
+
+  it('feeds it the evidence the store already holds — no new slice, no fetch, no timer', () => {
+    const memo = CODE.slice(CODE.indexOf('resolveHomeConfidence({'), CODE.indexOf('const score ='));
+    expect(memo).toContain('intakeEvents: userState.intakeEvents');
+    expect(memo).toContain('history,');
+    expect(memo).toContain('biometrics: userState.biometrics');
+    // Wave-4's rule: Home is the hottest screen in the app.
+    expect(CODE).not.toContain('fetchJournalRollups');
+    expect(CODE).not.toContain('setInterval');
+    expect(CODE).not.toContain('TICK_TIMER');
+  });
+
+  it('renders the chip beside the reading, inside the established branch only', () => {
+    const heroSlot = CODE.indexOf("evidence === 'pending'");
+    const established = CODE.indexOf("evidence === 'building'");
+    const pendingBranch = CODE.slice(heroSlot, established);
+    const buildingBranch = CODE.slice(established, CODE.indexOf('<AFReadinessArc'));
+    // The founder approved `building` for ZERO evidence: those two branches
+    // render no reading, so there is nothing there for a chip to qualify.
+    expect(pendingBranch).not.toContain('<ConfidenceChip');
+    expect(buildingBranch).not.toContain('<ConfidenceChip');
+
+    // …and on the reading itself, between the numeral and its trend line.
+    const arcToTrend = CODE.slice(CODE.indexOf('<AFReadinessArc'), CODE.indexOf('<LiveStatusLine'));
+    expect(arcToTrend).toContain('<ConfidenceChip');
+  });
+
+  it('stays an affordance, never a second hero: no card, no numeral, no competing type ramp', () => {
+    const chipAt = CODE.indexOf('<ConfidenceChip');
+    const block = CODE.slice(CODE.lastIndexOf('<View', chipAt), CODE.indexOf('<LiveStatusLine'));
+    expect(block).not.toContain('AFCard');
+    expect(block).not.toContain('styles.score');
+    expect(block).not.toContain('afType.displayScore');
+    // Layout only — the chip owns its own type and its monochrome opacity ramp.
+    expect(CODE).toMatch(/confidenceRow:\s*\{\s*alignItems:\s*'center',\s*marginBottom:\s*8\s*\}/);
+  });
+
+  it('does NOT re-hide the score behind the baseline state (the gate is unchanged)', () => {
+    // The residual is about the range BETWEEN one event and real coverage —
+    // the fix must not have quietly widened `building` to cover it.
+    expect(CODE).toMatch(/const\s+evidence\s*=\s*resolveHomeEvidence\(\{\s*intakeEventCount,\s*loggedDayCount\s*\}\)/);
+    expect(CODE).not.toMatch(/evidence\s*===\s*'building'\s*\|\|/);
+    expect(CODE).not.toMatch(/confidence[\s\S]{0,40}\?\s*<HomeBaselineHero/);
+  });
+
+  it('mutation-verify: a chip rendered outside the established branch is detectable', () => {
+    // Hoisting the chip above the gate (into the always-on region) is the
+    // regression the branch assertions above exist for — this proves the slice
+    // they measure actually moves when the source does.
+    const mutated = CODE.replace('<ConfidenceChip', '<AFSkeleton /* moved */');
+    const heroSlot = mutated.indexOf("evidence === 'pending'");
+    const arcToTrend = mutated.slice(
+      mutated.indexOf('<AFReadinessArc'),
+      mutated.indexOf('<LiveStatusLine'),
+    );
+    expect(heroSlot).toBeGreaterThan(-1);
+    expect(arcToTrend).not.toContain('<ConfidenceChip');
+  });
+});
+
 describe('HomeScreenV2 — doc-comment honesty guard (RC-1 P0)', () => {
   it('the file header no longer claims the legacy detail zones were relocated with "nothing missing"', () => {
     expect(SOURCE).not.toMatch(/now live[\s\S]{0,40}founder ruling: relocate, never delete/);

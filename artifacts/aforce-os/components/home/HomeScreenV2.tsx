@@ -75,6 +75,21 @@
  * is today's arc + trend line unchanged, `building` is `HomeBaselineHero`, and
  * the short `pending` window between them holds the slot's shape rather than
  * painting a number the next frame would have to take back.
+ *
+ * WAVE 5 — CONFIDENCE PROPORTIONAL TO EVIDENCE (residual A, founder
+ * 2026-08-12). That gate is BINARY, and binary was the residual: one logged
+ * drink flipped Home all the way to the full arc, the band word and the trend
+ * line, so a member with one sip and no wearable read with exactly the
+ * authority of a member with a week of logs and a connected provider. The gate
+ * is unchanged — the founder approved `building` for ZERO evidence and the
+ * score is not re-hidden — but the `established` reading now carries the
+ * shipped `ConfidenceChip`, resolved by the pure `homeConfidence.ts` from the
+ * existing §54 signal-quality / §53 freshness / §55 coverage modules. Same
+ * treatment PerformanceSignalV3 has worn since Wave 5: a small affordance on
+ * the reading, never a second hero — one dominant number, band-aware colour,
+ * WHY inline, secondary information quiet, all unchanged. It reads the store
+ * state this screen ALREADY subscribes to, so it adds no slice, no network read
+ * and no timer.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
@@ -110,6 +125,8 @@ import { HomeBaselineHero } from './HomeBaselineHero';
 import { HomeFreshnessLabel } from './HomeFreshnessLabel';
 import { freshestBiometricsFetchedAt } from './homeFreshness';
 import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';
+import { resolveHomeConfidence } from './homeConfidence';
+import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import {
   resolveHomePresentation,
@@ -243,6 +260,23 @@ export function HomeScreenV2() {
   const history = useHistorySlice();
   const loggedDayCount = isHydrated ? countRealHistoryEntries(history) : null;
   const evidence = resolveHomeEvidence({ intakeEventCount, loggedDayCount });
+
+  // ── WAVE 5 residual A — how MUCH has it observed? ──────────────────────────
+  // The gate above is binary; this is the gradient beside the number. Same
+  // three inputs already read on this screen (intake events, cycle history,
+  // the provider snapshot), graded by the shipped confidence modules — no new
+  // hook, no fetch, and `Date.now()` read once inside the memo exactly as the
+  // V3 block below does, so nothing here ticks.
+  const confidence = React.useMemo(
+    () =>
+      resolveHomeConfidence({
+        intakeEvents: userState.intakeEvents,
+        history,
+        biometrics: userState.biometrics,
+        now: Date.now(),
+      }),
+    [userState.intakeEvents, userState.biometrics, history],
+  );
 
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
   const { title, instruction } = parseEngineActionCopy(engine.command.action);
@@ -461,6 +495,20 @@ export function HomeScreenV2() {
                   )}
                 </AFReadinessArc>
               </Pressable>
+              {/* The reading's evidence, stated where the reading is. One
+                  quiet chip — 5px dot + a 9pt structural token, differentiated
+                  by opacity only — so it qualifies the number without becoming
+                  a second thing to look at. It is deliberately NOT inside the
+                  arc and NOT a card: the hierarchy is one dominant number, and
+                  this is a footnote on it. Only the `established` branch has a
+                  reading to qualify, so only this branch carries it. */}
+              <View style={styles.confidenceRow}>
+                <ConfidenceChip
+                  label={confidence.chip.label}
+                  opacity={confidence.chip.opacity}
+                  a11yContext={t('home.v2.confidence_a11y_context')}
+                />
+              </View>
               <LiveStatusLine
                 direction={trend.direction}
                 delta={trend.delta}
@@ -566,6 +614,10 @@ const styles = StyleSheet.create({
   brand: { ...afType.title1, color: af.textPrimary },
   freshness: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
   arcWrap: { alignItems: 'center', marginVertical: 24 },
+  // Sits between the arc and the trend line, centred under the numeral it
+  // qualifies. `arcWrap`'s 24pt bottom margin already separates them, so this
+  // only nudges the chip clear of the trend line beneath it.
+  confidenceRow: { alignItems: 'center', marginBottom: 8 },
   // Premium arc hero gets more vertical presence (elite path only).
   arcWrapPremium: { marginVertical: Spacing[8] },
   score: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },

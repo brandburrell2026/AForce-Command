@@ -20,6 +20,16 @@
  * caption reads as the standings' caption instead of the faintest line on the
  * page, and the eyebrow no longer says "LIVE" over a sample roster.
  *
+ * The Wave-5 tail closed the last of it at the ROW. A caption can go unread,
+ * and every roster row still wore the grammar of a real leaderboard — avatar,
+ * name, score, movement — with nothing separating an invented person from the
+ * member's own row but a green tint. Now each sample row carries a neutral
+ * SAMPLE tag that a screen reader speaks too, and the Verified badge (a
+ * credential, i.e. social proof) can no longer render over one: the view model
+ * refuses it. The founder's cohort and comp layout are untouched — nobody was
+ * deleted, nothing was invented, the presentation just stopped implying that
+ * these are members you are actually competing against.
+ *
  * `fixture` exists ONLY for the demo gallery / tests (production builds never
  * pass it): it supplies the full inputs and skips every live source. Tab
  * switching stays interactive in both modes.
@@ -129,6 +139,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
     () => ({
       rank: (n) => t('community.v3.row_rank', { n }),
       you: t('community.v3.row_you'),
+      sample: t('community.v3.row_sample_a11y'),
       verified: t('community.v3.row_verified'),
       score: (n) => t('community.v3.row_score', { n }),
       moveUp: (n) => t('community.v3.row_move_up', { count: n }),
@@ -245,6 +256,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
               key={row.key}
               row={row}
               streakLabel={(n) => t('community.v3.streak_days', { n })}
+              sampleLabel={t('community.v3.row_sample')}
               labels={rowLabels}
             />
           ))}
@@ -315,10 +327,13 @@ function ScoreStat({ value, label, accent }: { value: string; label: string; acc
 function LeaderRow({
   row,
   streakLabel,
+  sampleLabel,
   labels,
 }: {
   row: CircleV3RowView;
   streakLabel: (n: number) => string;
+  /** Visible SAMPLE tag copy (the spoken counterpart lives in `labels`). */
+  sampleLabel: string;
   labels: CircleRowA11yStrings;
 }) {
   const subtitle =
@@ -348,6 +363,17 @@ function LeaderRow({
               row is yours — invisible to anyone who cannot separate the hues.
               The tag says it in words; the colour now merely reinforces it. */}
           {row.isYou ? <Text style={styles.youTag}>{labels.you}</Text> : null}
+          {/* The row-level half of the sample disclosure. The caption above the
+              standings qualifies the LIST; this qualifies the PERSON, at the
+              only moment a member is actually reading their name. Deliberately
+              neutral — no hue, no glyph, no icon — so it cannot be mistaken for
+              a status, a badge or an achievement, and so the member's own row
+              (green tint, green YOU tag) stays the loud one. */}
+          {row.isSample ? <Text style={styles.sampleTag}>{sampleLabel}</Text> : null}
+          {/* Reachable only for a row the member's own data backs: the view
+              model forces `verified` false on every sample row, because a
+              credential over an invented person is the one mark here that
+              reads as proof rather than decoration. */}
           {row.verified ? (
             <View style={styles.verified}>
               <Text style={styles.verifiedGlyph}>✓</Text>
@@ -446,6 +472,14 @@ const styles = StyleSheet.create({
     ...afType.eyebrow, color: af.green, textTransform: 'uppercase',
     paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999,
     borderWidth: 1, borderColor: `${af.green}55`,
+  },
+  // Same pill geometry as youTag so the two read as one vocabulary, but with
+  // the neutral line/text tokens: this marks provenance, not a state, and it
+  // must never out-shout the member's own row.
+  sampleTag: {
+    ...afType.eyebrow, color: af.textTertiary, textTransform: 'uppercase',
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999,
+    borderWidth: 1, borderColor: af.border,
   },
   verified: { width: 16, height: 16, borderRadius: 8, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center' },
   verifiedGlyph: { color: af.canvas, fontSize: 10, fontWeight: '700' },
