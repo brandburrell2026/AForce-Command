@@ -7,12 +7,17 @@ import { describe, it, expect } from 'vitest';
 
 import type { JournalRollup } from '@/types';
 import { af } from '@/theme';
+import { RICH_MIN_RATIO, PARTIAL_MIN_RATIO } from '@/utils/profile/profileCompleteness';
+import { completenessChip } from '@/utils/confidence/confidenceChip';
 import {
   bandForScore,
   accentForScore,
   buildDayViews,
   buildBars,
+  historyCompletenessLevel,
+  weeklyChecks,
   weeklyInBandAvg,
+  weeklyTotalOz,
   shiftIsoDay,
   isoWeekday,
 } from '../signalV3Presentation';
@@ -102,6 +107,67 @@ describe('weeklyInBandAvg', () => {
     );
     expect(weeklyInBandAvg(days)).toBe(70); // (80 + 60) / 2
     expect(weeklyInBandAvg([])).toBe(0);
+  });
+});
+
+describe('historyCompletenessLevel', () => {
+  // Wave 5: the screen's 7-day average now wears the shipped ConfidenceChip, so
+  // coverage has to land in §55's EXISTING vocabulary — no new metric, and no
+  // new thresholds either. These assert against §55's own ratio constants so a
+  // retune there moves this with it instead of silently diverging.
+  it('reuses §55 ratio cuts rather than inventing day counts', () => {
+    const window = 7;
+    expect(historyCompletenessLevel(Math.ceil(RICH_MIN_RATIO * window), window)).toBe('rich');
+    expect(historyCompletenessLevel(Math.ceil(PARTIAL_MIN_RATIO * window), window)).toBe('partial');
+    expect(historyCompletenessLevel(Math.ceil(PARTIAL_MIN_RATIO * window) - 1, window)).toBe('sparse');
+  });
+
+  it('grades a 7-day window the way a member would read it', () => {
+    expect(historyCompletenessLevel(7, 7)).toBe('rich');
+    expect(historyCompletenessLevel(6, 7)).toBe('rich');
+    expect(historyCompletenessLevel(5, 7)).toBe('partial');
+    expect(historyCompletenessLevel(3, 7)).toBe('partial');
+    expect(historyCompletenessLevel(2, 7)).toBe('sparse');
+    expect(historyCompletenessLevel(0, 7)).toBe('sparse');
+  });
+
+  it('never divides by an empty window, and never reads above full coverage', () => {
+    expect(historyCompletenessLevel(3, 0)).toBe('sparse');
+    expect(historyCompletenessLevel(-2, 7)).toBe('sparse');
+  });
+
+  it('feeds the existing completenessChip — the chip is reused, not reimplemented', () => {
+    expect(completenessChip(historyCompletenessLevel(7, 7)).label).toBe('RICH');
+    expect(completenessChip(historyCompletenessLevel(4, 7)).label).toBe('PARTIAL');
+    expect(completenessChip(historyCompletenessLevel(1, 7)).label).toBe('SPARSE');
+  });
+});
+
+describe('weeklyTotalOz / weeklyChecks', () => {
+  const days = buildDayViews(
+    [
+      rollup({ date: '2026-08-05', avgScore: 71, endOzConsumed: 96, snapshotsCount: 4 }),
+      rollup({ date: '2026-08-06', avgScore: 82, endOzConsumed: 118, snapshotsCount: 5 }),
+      rollup({ date: '2026-08-07', avgScore: 88, endOzConsumed: 124, snapshotsCount: 6 }),
+    ],
+    '2026-08-07',
+  );
+
+  it('sums the window instead of reporting the last day as the total', () => {
+    // computeRecapStats.totalOunces is `last.endOzConsumed` — ONE day (124 here)
+    // — which read as a weekly sum under the "Last 7 days" heading. The window
+    // total is the sum of the days actually shown.
+    expect(weeklyTotalOz(days)).toBe(96 + 118 + 124);
+    expect(weeklyTotalOz(days)).not.toBe(124);
+  });
+
+  it('counts the engine checks the averages are interpolated across', () => {
+    expect(weeklyChecks(days)).toBe(15);
+  });
+
+  it('is 0 for an empty window (no fabricated total)', () => {
+    expect(weeklyTotalOz([])).toBe(0);
+    expect(weeklyChecks([])).toBe(0);
   });
 });
 
