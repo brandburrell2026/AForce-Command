@@ -47,6 +47,17 @@
  * `resolveHomePresentation(level)`. Text/glyphs take `accentText` (Signal Red
  * fails AA as text on dark — see theme/afTokens.ts); fills and strokes keep
  * `accent`. This intentionally changes the flag-off render.
+ *
+ * WAVE 5 — FIRST-LAUNCH EVIDENCE GATE (founder ruling 2026-08-12). Home used
+ * to greet a brand-new member with a confident BALANCED 76, because
+ * `data/mockData.ts`'s seeded demo day (5 units / 45 oz) flows through the
+ * engine like any other day. Neither the seed nor the scoring engine is
+ * touched — this screen simply stops PRESENTING the result as the member's
+ * state until `resolveHomeEvidence` (homeBaselineState.ts) says AForce has
+ * observed something. Three renders of the hero slot, never two: `established`
+ * is today's arc + trend line unchanged, `building` is `HomeBaselineHero`, and
+ * the short `pending` window between them holds the slot's shape rather than
+ * painting a number the next frame would have to take back.
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
@@ -68,16 +79,19 @@ import {
   AFCommandCard,
   AFSectionLabel,
   AFOfflineBanner,
+  AFSkeleton,
 } from '@/components/ui';
 import { useRouter } from 'expo-router';
 import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
-import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice } from '@/store/slices';
+import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { HomeSkeleton } from './HomeSkeleton';
+import { HomeBaselineHero } from './HomeBaselineHero';
 import { HomeFreshnessLabel } from './HomeFreshnessLabel';
 import { freshestBiometricsFetchedAt } from './homeFreshness';
+import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';
 import { parseEngineActionCopy, parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import {
   resolveHomePresentation,
@@ -97,6 +111,7 @@ import {
   formatHrvMs,
   formatHydrationPct,
   resolveHealthChip,
+  EM_DASH,
 } from './homeV3Presentation';
 
 interface HomeActions {
@@ -187,6 +202,21 @@ export function HomeScreenV2() {
   const outboxPendingCount = flags.offline_intake_outbox_enabled ? selectPendingCount(outboxState) : 0;
   const outboxHasFailedItem = flags.offline_intake_outbox_enabled ? selectHasFailedItem(outboxState) : false;
 
+  // ── WAVE 5 first-launch evidence gate (see the file header) ────────────────
+  // Both signals are already in the store, so the gate costs NO network read
+  // of its own: `intakeEvents` answers "has AForce observed this member?"
+  // locally and synchronously, and cycle history arrives with the mount-time
+  // /v1/home fetch every Home render already waits on. Home is the hottest
+  // screen in the app and Wave-4's rule is no extra refetching — an added
+  // journal read here would have fired on every cold open for anyone who had
+  // not logged in the last 24h, which is a quiet morning, not a first launch.
+  // Before hydration the history answer is `null` — "not known yet", never
+  // "none" — so the hero holds its shape instead of flashing a claim.
+  const intakeEventCount = userState.intakeEvents?.length ?? 0;
+  const history = useHistorySlice();
+  const loggedDayCount = isHydrated ? countRealHistoryEntries(history) : null;
+  const evidence = resolveHomeEvidence({ intakeEventCount, loggedDayCount });
+
   const score = Math.max(0, Math.min(100, Math.round(engine.score)));
   const { title, instruction } = parseEngineActionCopy(engine.command.action);
   const hydrationPct =
@@ -245,10 +275,18 @@ export function HomeScreenV2() {
       : coachLead(archetype)
     : instruction;
 
+  // The Recovery tile is the band word — the same claim the hero gate withholds.
+  // Left alone it would restate "Balanced" one section under "Building your
+  // baseline", handing the fabricated state back through a side door, so until
+  // there is evidence it renders the honest-data contract's em dash (the glyph
+  // the Sleep/HRV tiles already use for a reading nobody took).
+  const recoveryText =
+    evidence === 'established' ? titleCase(engine.performanceState.level) : EM_DASH;
+
   const signalTiles: Record<SignalKey, React.ReactNode> = {
     hydration: <Signal label={t('home.v2.signal_hydration')} value={`${hydrationPct}%`} />,
     heat: <Signal label={t('home.v2.signal_heat')} value={t(`home.v2.heat_${heatBand(userState.heatLoad)}`)} />,
-    recovery: <Signal label={t('home.v2.signal_recovery')} value={titleCase(engine.performanceState.level)} />,
+    recovery: <Signal label={t('home.v2.signal_recovery')} value={recoveryText} />,
   };
   const signalOrder: SignalKey[] = elite
     ? presentation.signalOrder
@@ -327,51 +365,72 @@ export function HomeScreenV2() {
         <HomeSkeleton />
       ) : (
         <>
-          {/* Dominant readiness value + thin arc (tap → insights) */}
-          <Animated.View entering={reveal(1)}>
-            <Pressable
-              style={[styles.arcWrap, elite && styles.arcWrapPremium]}
-              onPress={() => router.push('/weekly-report')}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
-              testID="home-readiness-arc"
-            >
-              {/* a11yHidden: the Pressable above already announces score + band,
-                  so an inner progressbar would make the hero speak twice. */}
-              <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite} a11yHidden>
-                {elite ? (
-                  <EliteScoreNumber
-                    score={score}
-                    fromScore={arcPlan.fromScore}
-                    countUp={arcPlan.countUp}
-                    style={styles.score}
-                  />
-                ) : (
-                  <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
-                )}
-                <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
-                {elite ? (
-                  <View style={[styles.statePill, { borderColor: accent }]}>
-                    <Text style={[styles.statePillText, { color: accentText }]}>
+          {/* THE HERO SLOT — exactly one of three, never a blend. */}
+          {evidence === 'pending' ? (
+            /* Evidence not known yet. Rendering the score here, even for the
+               one frame before the journal read lands, is precisely the
+               fabricated "BALANCED 76" this gate exists to prevent — so the
+               slot holds its shape and claims nothing. Short-lived by
+               construction: it is only reachable with no local intake. */
+            <View style={styles.arcWrap}>
+              <AFSkeleton
+                width={arcDims.size}
+                height={arcDims.size}
+                radius={arcDims.size / 2}
+                testID="home-baseline-pending"
+              />
+            </View>
+          ) : evidence === 'building' ? (
+            <Animated.View entering={reveal(1)}>
+              <HomeBaselineHero testID="home-baseline-hero" />
+            </Animated.View>
+          ) : (
+            /* Dominant readiness value + thin arc (tap → insights) */
+            <Animated.View entering={reveal(1)}>
+              <Pressable
+                style={[styles.arcWrap, elite && styles.arcWrapPremium]}
+                onPress={() => router.push('/weekly-report')}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('home.v2.readiness_a11y', { score })} ${engine.performanceState.level}`}
+                testID="home-readiness-arc"
+              >
+                {/* a11yHidden: the Pressable above already announces score + band,
+                    so an inner progressbar would make the hero speak twice. */}
+                <AFReadinessArc score={score} size={arcDims.size} stroke={arcDims.stroke} color={accent} animate={arcPlan.animateRing} alive={elite} a11yHidden>
+                  {elite ? (
+                    <EliteScoreNumber
+                      score={score}
+                      fromScore={arcPlan.fromScore}
+                      countUp={arcPlan.countUp}
+                      style={styles.score}
+                    />
+                  ) : (
+                    <Text style={styles.score} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{score}</Text>
+                  )}
+                  <Text style={styles.scoreLabel}>{t('home.v2.readiness_label')}</Text>
+                  {elite ? (
+                    <View style={[styles.statePill, { borderColor: accent }]}>
+                      <Text style={[styles.statePillText, { color: accentText }]}>
+                        {engine.performanceState.level}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={[styles.stateLabel, { color: accentText }]}>
                       {engine.performanceState.level}
                     </Text>
-                  </View>
-                ) : (
-                  <Text style={[styles.stateLabel, { color: accentText }]}>
-                    {engine.performanceState.level}
-                  </Text>
-                )}
-              </AFReadinessArc>
-            </Pressable>
-            <LiveStatusLine
-              direction={trend.direction}
-              delta={trend.delta}
-              ageSec={trend.ageSec}
-              verb={statusVerb}
-              accent={accentText}
-              testID="home-v2-live-status-line"
-            />
-          </Animated.View>
+                  )}
+                </AFReadinessArc>
+              </Pressable>
+              <LiveStatusLine
+                direction={trend.direction}
+                delta={trend.delta}
+                ageSec={trend.ageSec}
+                verb={statusVerb}
+                accent={accentText}
+                testID="home-v2-live-status-line"
+              />
+            </Animated.View>
+          )}
 
           {/* One command */}
           <Animated.View entering={reveal(2)}>
@@ -410,7 +469,7 @@ export function HomeScreenV2() {
               <View style={styles.v3Grid}>
                 <View style={styles.signals}>
                   <Signal label={t('home.v2.signal_hydration')} value={v3Data.hydrationText} />
-                  <Signal label={t('home.v2.signal_recovery')} value={titleCase(engine.performanceState.level)} />
+                  <Signal label={t('home.v2.signal_recovery')} value={recoveryText} />
                 </View>
                 <View style={styles.signals}>
                   <Signal label={t('home.v3.signal_sleep')} value={v3Data.sleepText} />
