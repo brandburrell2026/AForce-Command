@@ -2348,10 +2348,17 @@ export function ProfileScreenV2() {
               </>
             );
 
+            // Terms, Privacy, Health Disclaimer and Contact Support are
+            // required to be reachable by every signed-in member — App Store
+            // review and `docs/COMPLIANCE_FRAMEWORK.md` both assume it. This
+            // block therefore belongs to a tab ordinary users can open; it
+            // must NEVER live under `developer`, which production builds strip
+            // (see VISIBLE_PROFILE_TABS). Guarded by
+            // `profileScreenV2LegalReachability.test.ts`.
             const legalBlock = (
               <>
                 <SectionHeader label={t('profile.v2.legal_label')} hint={t('profile.v2.legal_hint')} />
-                <View style={styles.card}>
+                <View style={styles.card} testID="profile-legal-support-card">
                   <Pressable
                     onPress={() => router.push('/legal/terms')}
                     testID="profile-legal-terms"
@@ -2429,11 +2436,14 @@ export function ProfileScreenV2() {
             // above the tab bar — it's the user's avatar/tier card, not a
             // group of settings. PhaseEntryRow ships under ACCOUNT so the
             // CLUTCH / GUARDIAN entries live next to subscription tier.
+            // `legalBlock` closes ACCOUNT as its own headed LEGAL & SUPPORT
+            // group — last in the founder's SUBSCRIPTION · ACCOUNT · SUPPORT
+            // order, and reachable without developer controls.
             const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
               performance: [profileStrengthCard, modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
               devices: [hardwareCard, connectedDevicesCard],
-              account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock],
-              developer: [demoAccessCard, developerBlock, legalBlock],
+              account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock, legalBlock],
+              developer: [demoAccessCard, developerBlock],
             };
             const activeSections = tabSections[profileTab];
             const tabBar = (
