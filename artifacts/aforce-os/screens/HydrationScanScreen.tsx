@@ -1,10 +1,11 @@
 /**
  * Hydration Scan screen.
  *
- * Premium scan-to-decide surface. On native this would drive an
- * Expo Camera barcode scanner; in the workspace preview (web) we ship
- * a mock scan tray that lets the user (or test runner) trigger any
- * known barcode, plus a manual search field as a fallback.
+ * Premium scan-to-decide surface. On native this drives the Expo Camera
+ * barcode scanner; a manual search field is the fallback on every platform.
+ * The mock "PREVIEW SCAN" tray is dev/demo-only (PREVIEW_SCAN_ENABLED) —
+ * a simulated scan persists like a real one, so members must never be able
+ * to author one.
  *
  * The screen itself is fully wired: scan → recognize → score under the
  * comparison engine → recommend → log intake into the live store.
@@ -20,12 +21,14 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { Icon } from '../components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -46,6 +49,7 @@ import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
+import { PREVIEW_SCAN_ENABLED } from '@/services/demoMode';
 import { emit } from '@/analytics/event_dispatcher';
 import { listSimulatableBarcodes, AFORCE_SHELF_SKUS } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
@@ -151,24 +155,44 @@ export default function HydrationScanScreen() {
   // Pulsing scan ring
   const ringScale = useSharedValue(1);
   const ringOpacity = useSharedValue(0.7);
+  // Wave-4 finding: both pulse loops were `withRepeat(..., -1)` with no
+  // reduced-motion gate and no teardown — they animated forever on the
+  // Reanimated UI thread, including after this screen unmounted and for
+  // members who asked the OS to reduce motion. Same remedy as
+  // components/WhoopSnapshotCard.tsx:116-168 — the shared reduced-motion
+  // hook plus cancelAnimation in the static branch and on unmount.
+  const reducedMotion = useReducedMotion();
   useEffect(() => {
-    ringScale.value = withRepeat(
-      withSequence(
-        withTiming(1.15, { duration: 1400, easing: Easing.out(Easing.cubic) }),
-        withTiming(1, { duration: 1400, easing: Easing.in(Easing.cubic) }),
-      ),
-      -1,
-      false,
-    );
-    ringOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.25, { duration: 1400 }),
-        withTiming(0.7, { duration: 1400 }),
-      ),
-      -1,
-      false,
-    );
-  }, [ringScale, ringOpacity]);
+    if (reducedMotion) {
+      // Static alternative: the ring holds at its resting scale/opacity, so
+      // the viewfinder still reads as armed without any looping motion.
+      cancelAnimation(ringScale);
+      cancelAnimation(ringOpacity);
+      ringScale.value = 1;
+      ringOpacity.value = 0.7;
+    } else {
+      ringScale.value = withRepeat(
+        withSequence(
+          withTiming(1.15, { duration: 1400, easing: Easing.out(Easing.cubic) }),
+          withTiming(1, { duration: 1400, easing: Easing.in(Easing.cubic) }),
+        ),
+        -1,
+        false,
+      );
+      ringOpacity.value = withRepeat(
+        withSequence(
+          withTiming(0.25, { duration: 1400 }),
+          withTiming(0.7, { duration: 1400 }),
+        ),
+        -1,
+        false,
+      );
+    }
+    return () => {
+      cancelAnimation(ringScale);
+      cancelAnimation(ringOpacity);
+    };
+  }, [reducedMotion, ringScale, ringOpacity]);
 
   const ringStyle = useAnimatedStyle(() => ({
     transform: [{ scale: ringScale.value }],
@@ -548,114 +572,124 @@ export default function HydrationScanScreen() {
             </Text>
           </Pressable>
 
-          {/* Preview Scan tray — tabbed: AForce Products + Other Brands.
-              AForce tab shows the 9 flavor × format shelf SKUs and a
-              dropdown picker for the full list. */}
-          <View style={styles.trayCard}>
-            <View style={styles.trayHeader}>
-              <Icon name="zap" size={12} color={Colors.text.muted} />
-              <Text style={styles.trayHeaderText}>PREVIEW SCAN</Text>
-            </View>
+          {/* Preview Scan tray + its SKU picker — DEV/DEMO ONLY.
+              A simulated scan writes the same persisted history a real one does,
+              so a shipped tray would let a member author scan records for
+              products they never held. PREVIEW_SCAN_ENABLED folds to false in a
+              release bundle, which removes the only two entry points into
+              runScan() that no product in hand can back. */}
+          {PREVIEW_SCAN_ENABLED && (
+            <>
+              {/* Tabbed: AForce Products + Other Brands. AForce tab shows the
+                  9 flavor × format shelf SKUs and a dropdown picker for the
+                  full list. */}
+              <View style={styles.trayCard}>
+                <View style={styles.trayHeader}>
+                  <Icon name="zap" size={12} color={Colors.text.muted} />
+                  <Text style={styles.trayHeaderText}>PREVIEW SCAN</Text>
+                </View>
 
-            <View style={styles.tabRow}>
-              <Pressable
-                onPress={() => setPreviewTab('aforce')}
-                style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
-                testID="preview-tab-aforce"
-              >
-                <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
-                  AForce Products
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setPreviewTab('other')}
-                style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
-                testID="preview-tab-other"
-              >
-                <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
-                  Other Brands
-                </Text>
-              </Pressable>
-            </View>
-
-            {previewTab === 'aforce' ? (
-              <Pressable
-                onPress={() => setAforcePickerOpen(true)}
-                disabled={scanning}
-                style={({ pressed }) => [
-                  styles.pickerCta,
-                  { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
-                ]}
-                testID="preview-aforce-picker-open"
-              >
-                <Icon name="list" size={14} color={Colors.states.PEAK.primary} />
-                <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
-                  Select an AForce product
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={styles.trayChips}>
-                {otherBrandChips.map((it) => (
+                <View style={styles.tabRow}>
                   <Pressable
-                    key={it.code}
-                    onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
-                    disabled={scanning}
-                    style={({ pressed }) => [
-                      styles.chip,
-                      { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
-                    ]}
+                    onPress={() => setPreviewTab('aforce')}
+                    style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
+                    testID="preview-tab-aforce"
                   >
-                    <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                    <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
+                      AForce Products
+                    </Text>
                   </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
-          <AFModal
-            visible={aforcePickerOpen}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setAforcePickerOpen(false)}
-          >
-            <Pressable
-              style={styles.pickerBackdrop}
-              onPress={() => setAforcePickerOpen(false)}
-            >
-              <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
-                <View style={styles.pickerHeader}>
-                  <Text style={styles.pickerTitle}>AForce Products</Text>
                   <Pressable
-                    onPress={() => setAforcePickerOpen(false)}
-                    hitSlop={10}
-                    accessibilityLabel="Close picker"
+                    onPress={() => setPreviewTab('other')}
+                    style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
+                    testID="preview-tab-other"
                   >
-                    <Icon name="x" size={18} color={Colors.text.primary} />
+                    <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
+                      Other Brands
+                    </Text>
                   </Pressable>
                 </View>
-                <ScrollView style={{ maxHeight: 420 }}>
-                  {aforcePickerRows.map((p) => (
-                    <Pressable
-                      key={p.productId}
-                      onPress={() => {
-                        setAforcePickerOpen(false);
-                        runScan({ kind: 'qr', rawValue: `aforce://product/${p.productId}` });
-                      }}
-                      style={({ pressed }) => [
-                        styles.pickerRow,
-                        pressed && { backgroundColor: Colors.fill.light },
-                      ]}
-                      testID={`preview-aforce-picker-row-${p.productId}`}
-                    >
-                      <Text style={styles.pickerRowText}>{p.name}</Text>
-                      <Icon name="chevron-right" size={14} color={Colors.text.muted} />
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </Pressable>
-            </Pressable>
-          </AFModal>
+
+                {previewTab === 'aforce' ? (
+                  <Pressable
+                    onPress={() => setAforcePickerOpen(true)}
+                    disabled={scanning}
+                    style={({ pressed }) => [
+                      styles.pickerCta,
+                      { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
+                    ]}
+                    testID="preview-aforce-picker-open"
+                  >
+                    <Icon name="list" size={14} color={Colors.states.PEAK.primary} />
+                    <Text style={[styles.chipText, { color: Colors.states.PEAK.primary }]}>
+                      Select an AForce product
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.trayChips}>
+                    {otherBrandChips.map((it) => (
+                      <Pressable
+                        key={it.code}
+                        onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
+                        disabled={scanning}
+                        style={({ pressed }) => [
+                          styles.chip,
+                          { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
+                        ]}
+                      >
+                        <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
+              <AFModal
+                visible={aforcePickerOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setAforcePickerOpen(false)}
+              >
+                <Pressable
+                  style={styles.pickerBackdrop}
+                  onPress={() => setAforcePickerOpen(false)}
+                >
+                  <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
+                    <View style={styles.pickerHeader}>
+                      <Text style={styles.pickerTitle}>AForce Products</Text>
+                      <Pressable
+                        onPress={() => setAforcePickerOpen(false)}
+                        hitSlop={10}
+                        accessibilityLabel="Close picker"
+                      >
+                        <Icon name="x" size={18} color={Colors.text.primary} />
+                      </Pressable>
+                    </View>
+                    <ScrollView style={{ maxHeight: 420 }}>
+                      {aforcePickerRows.map((p) => (
+                        <Pressable
+                          key={p.productId}
+                          onPress={() => {
+                            setAforcePickerOpen(false);
+                            runScan({ kind: 'qr', rawValue: `aforce://product/${p.productId}` });
+                          }}
+                          style={({ pressed }) => [
+                            styles.pickerRow,
+                            pressed && { backgroundColor: Colors.fill.light },
+                          ]}
+                          testID={`preview-aforce-picker-row-${p.productId}`}
+                        >
+                          <Text style={styles.pickerRowText}>{p.name}</Text>
+                          <Icon name="chevron-right" size={14} color={Colors.text.muted} />
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </Pressable>
+                </Pressable>
+              </AFModal>
+            </>
+          )}
 
           {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>
@@ -882,10 +916,14 @@ export default function HydrationScanScreen() {
             <View style={styles.emptyCard}>
               <Icon name="camera" size={20} color={Colors.text.muted} />
               <Text style={styles.emptyTitle}>Awaiting scan</Text>
+              {/* The web hint points AT the preview tray, so it may only be
+                  shown when the tray is actually mounted; otherwise the
+                  empty state would instruct a member to tap something that
+                  is not on the screen. */}
               <Text style={styles.emptyHint}>
-                {Platform.OS === 'web'
+                {Platform.OS === 'web' && PREVIEW_SCAN_ENABLED
                   ? 'Tap a product above to simulate a barcode scan, or search by name.'
-                  : 'Tap the viewfinder to open the camera, or use simulate scan.'}
+                  : 'Tap the viewfinder to open the camera, or search by name.'}
               </Text>
             </View>
           )}
