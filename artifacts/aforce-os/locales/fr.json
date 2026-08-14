@@ -31,7 +31,8 @@
       "timeout": "Non enregistré — délai dépassé",
       "rate_limited": "Non enregistré — trop de tentatives",
       "invalid": "Non enregistré — entrée refusée",
-      "server": "Non enregistré — problème serveur"
+      "server": "Non enregistré — problème serveur",
+      "conflict": "Non enregistré — réessayez"
     },
     "action_failed_body": {
       "offline": "Cela n'a pas atteint le serveur, rien n'a été enregistré. Vérifiez votre connexion et réessayez.",
@@ -40,7 +41,8 @@
       "timeout": "Le serveur a mis trop de temps à répondre, rien n'a été enregistré. Patientez un instant et réessayez.",
       "rate_limited": "Trop de requêtes en peu de temps, rien n'a été enregistré. Attendez une minute, puis réessayez.",
       "invalid": "Le serveur n'a pas accepté cette entrée, rien n'a été enregistré. Réessayez et mettez AForce à jour si cela persiste.",
-      "server": "Quelque chose a échoué de notre côté, rien n'a été enregistré. Patientez un instant et réessayez."
+      "server": "Quelque chose a échoué de notre côté, rien n'a été enregistré. Patientez un instant et réessayez.",
+      "conflict": "Nous n'avons pas pu l'aligner sur votre journée en cours, donc rien n'a été enregistré. Réessayez : cela fonctionne généralement tout de suite."
     }
   },
   "tabs": {

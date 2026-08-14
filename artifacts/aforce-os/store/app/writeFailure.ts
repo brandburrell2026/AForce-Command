@@ -47,6 +47,7 @@ export type WriteFailureKind =
   | 'offline'
   | 'auth'
   | 'forbidden'
+  | 'conflict'
   | 'timeout'
   | 'rate_limited'
   | 'invalid'
@@ -65,6 +66,7 @@ export const WRITE_FAILURE_KINDS: readonly WriteFailureKind[] = [
   'offline',
   'auth',
   'forbidden',
+  'conflict',
   'timeout',
   'rate_limited',
   'invalid',
@@ -112,6 +114,12 @@ export function classifyWriteFailure(err: unknown): WriteFailure {
       return { kind: 'auth', status };
     case 403:
       return { kind: 'forbidden', status };
+    case 409:
+      // The server could not line the write up with current state. Nothing was
+      // wrong with the entry and no client update helps, so this must NOT fall
+      // through to `invalid` — that copy tells the member to update the app.
+      // The route pre-seeds state, so a retry usually resolves it.
+      return { kind: 'conflict', status };
     case 408:
       return { kind: 'timeout', status };
     case 429:
@@ -152,6 +160,10 @@ export const WRITE_FAILURE_COPY: Readonly<
   forbidden: {
     title: 'Not saved — access denied',
     body: "Your account isn't allowed to make this change, so nothing was recorded. Contact support if that looks wrong.",
+  },
+  conflict: {
+    title: 'Not saved — try that again',
+    body: "We couldn't line that up with your current day, so nothing was recorded. Try again — it usually works straight away.",
   },
   timeout: {
     title: 'Not saved — timed out',

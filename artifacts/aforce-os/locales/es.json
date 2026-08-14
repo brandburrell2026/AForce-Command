@@ -31,7 +31,8 @@
       "timeout": "No se guardó — tiempo agotado",
       "rate_limited": "No se guardó — demasiados intentos",
       "invalid": "No se guardó — entrada rechazada",
-      "server": "No se guardó — problema del servidor"
+      "server": "No se guardó — problema del servidor",
+      "conflict": "No se guardó — inténtalo de nuevo"
     },
     "action_failed_body": {
       "offline": "Esto no llegó al servidor, así que no se registró nada. Revisa tu conexión y vuelve a intentarlo.",
@@ -40,7 +41,8 @@
       "timeout": "El servidor tardó demasiado en responder, así que no se registró nada. Espera un momento y vuelve a intentarlo.",
       "rate_limited": "Demasiadas solicitudes en poco tiempo, así que no se registró nada. Espera un minuto y vuelve a intentarlo.",
       "invalid": "El servidor no aceptó esta entrada, así que no se registró nada. Vuelve a intentarlo y actualiza AForce si sigue ocurriendo.",
-      "server": "Algo falló por nuestra parte, así que no se registró nada. Espera un momento y vuelve a intentarlo."
+      "server": "Algo falló por nuestra parte, así que no se registró nada. Espera un momento y vuelve a intentarlo.",
+      "conflict": "No pudimos encajarlo con tu día actual, así que no se registró nada. Inténtalo de nuevo: suele funcionar enseguida."
     }
   },
   "tabs": {

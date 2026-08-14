@@ -76,7 +76,10 @@ describe('classifyWriteFailure — the status realApi already encoded', () => {
     [new Error('POST /intake/log → 429'), 'rate_limited', 429],
     [new Error('POST /intake/log → 400'), 'invalid', 400],
     [new Error('POST /intake/log → 404'), 'invalid', 404],
-    [new Error('POST /intake/log → 409'), 'invalid', 409],
+    // 409 is now its own class: the server could not line the write up with
+    // current state. Nothing was wrong with the entry and no client update
+    // helps, so it must not read as 'entry rejected / update AForce'.
+    [new Error('POST /intake/log → 409'), 'conflict', 409],
     [new Error('POST /intake/log → 422'), 'invalid', 422],
     [new Error('POST /intake/log → 500'), 'server', 500],
     [new Error('POST /intake/log → 502'), 'server', 502],

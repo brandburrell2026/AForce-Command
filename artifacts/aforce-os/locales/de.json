@@ -31,7 +31,8 @@
       "timeout": "Nicht gespeichert – Zeitüberschreitung",
       "rate_limited": "Nicht gespeichert – zu viele Versuche",
       "invalid": "Nicht gespeichert – Eintrag abgelehnt",
-      "server": "Nicht gespeichert – Serverproblem"
+      "server": "Nicht gespeichert – Serverproblem",
+      "conflict": "Nicht gespeichert — bitte erneut versuchen"
     },
     "action_failed_body": {
       "offline": "Das hat den Server nicht erreicht, es wurde nichts gespeichert. Prüfe deine Verbindung und versuch es erneut.",
@@ -40,7 +41,8 @@
       "timeout": "Der Server hat zu lange für eine Antwort gebraucht, es wurde nichts gespeichert. Warte kurz und versuch es erneut.",
       "rate_limited": "Zu viele Anfragen in kurzer Zeit, es wurde nichts gespeichert. Warte eine Minute und versuch es dann erneut.",
       "invalid": "Der Server hat diesen Eintrag nicht akzeptiert, es wurde nichts gespeichert. Versuch es erneut und aktualisiere AForce, falls es weiterhin passiert.",
-      "server": "Auf unserer Seite ist etwas schiefgelaufen, es wurde nichts gespeichert. Warte einen Moment und versuch es erneut."
+      "server": "Auf unserer Seite ist etwas schiefgelaufen, es wurde nichts gespeichert. Warte einen Moment und versuch es erneut.",
+      "conflict": "Wir konnten das nicht deinem aktuellen Tag zuordnen, daher wurde nichts erfasst. Versuch es erneut — meist klappt es sofort."
     }
   },
   "tabs": {

@@ -31,7 +31,8 @@
       "timeout": "Non salvato — tempo scaduto",
       "rate_limited": "Non salvato — troppi tentativi",
       "invalid": "Non salvato — voce rifiutata",
-      "server": "Non salvato — problema del server"
+      "server": "Non salvato — problema del server",
+      "conflict": "Non salvato — riprova"
     },
     "action_failed_body": {
       "offline": "Non è arrivato al server, quindi non è stato registrato nulla. Controlla la connessione e riprova.",
@@ -40,7 +41,8 @@
       "timeout": "Il server ha impiegato troppo tempo a rispondere, quindi non è stato registrato nulla. Attendi un momento e riprova.",
       "rate_limited": "Troppe richieste in poco tempo, quindi non è stato registrato nulla. Attendi un minuto e riprova.",
       "invalid": "Il server non ha accettato questa voce, quindi non è stato registrato nulla. Riprova e aggiorna AForce se continua a succedere.",
-      "server": "Qualcosa non ha funzionato dalla nostra parte, quindi non è stato registrato nulla. Attendi un momento e riprova."
+      "server": "Qualcosa non ha funzionato dalla nostra parte, quindi non è stato registrato nulla. Attendi un momento e riprova.",
+      "conflict": "Non siamo riusciti ad allinearlo alla tua giornata attuale, quindi non è stato registrato nulla. Riprova: di solito funziona subito."
     }
   },
   "tabs": {
