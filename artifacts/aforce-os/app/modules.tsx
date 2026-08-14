@@ -98,15 +98,17 @@ const MODULES: ModuleEntry[] = [
     tint: '#FF2D55',
     gate: 'Flag-gated · phantom_wearable_enabled',
   },
-  {
-    id: 'recovery',
-    title: 'Recovery',
-    blurb: 'Recovery score · replenishment plan · cut-off time',
-    href: '/cruise/recovery',
-    icon: 'refresh-cw',
-    tint: '#1FA35A',
-    gate: 'Flag-gated · spec_cruise',
-  },
+  // Recovery is deliberately ABSENT from this launcher (Build-65 device QA).
+  // The entry pointed at `/cruise/recovery`, which has never existed as a route
+  // — expo-router could not resolve it, so choosing Recovery fell back to Home.
+  // An affordance that names a destination and delivers a different one is
+  // worse than no affordance, so it is removed rather than repointed: inventing
+  // a destination is a product decision, not a bug fix.
+  //
+  // The Recovery IMPLEMENTATION is untouched and stays dark behind its existing
+  // governance (`spec_recoveryCoach`, default OFF, surfaced by
+  // `components/home/RecoveryCoachEntry.tsx`). `lib/__tests__/moduleRouteTargets.test.ts`
+  // now fails if any launcher entry names a route that does not exist.
   {
     id: 'science',
     title: 'Science',
