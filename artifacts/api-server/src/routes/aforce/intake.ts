@@ -8,6 +8,7 @@ import { logger } from "../../lib/logger";
 import { intakeLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, broadcastState } from "./shared";
 import { intakeSchema, intakeEventTsWithinWindow } from "./intakeSchema";
+import { classifyIntakeFailure } from "./intakeFailure";
 import { planIntakeCorrection, CORRECTION_REASONS } from "../../lib/intakeCorrection";
 
 const router: IRouter = Router();
@@ -165,8 +166,14 @@ router.post("/intake", intakeLimiter, async (req, res) => {
     if (!result.replayed) broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, log: result.log });
   } catch (err) {
-    logger.error({ err: serializeError(err) }, "POST /aforce/intake failed");
-    return res.status(400).json({ error: "intake_failed" });
+    // The full error — SQL, table and column names, bound parameters — goes to
+    // the log. Only the stable code below crosses the wire.
+    const failure = classifyIntakeFailure(err);
+    logger.error(
+      { err: serializeError(err), failureKind: failure.kind, status: failure.status },
+      "POST /aforce/intake failed",
+    );
+    return res.status(failure.status).json({ error: `intake_${failure.kind}` });
   }
 });
 
@@ -285,8 +292,12 @@ router.post("/intake/correction", intakeLimiter, async (req, res) => {
     broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, correction: result.correction });
   } catch (err) {
-    logger.error({ err: serializeError(err) }, "POST /aforce/intake/correction failed");
-    return res.status(400).json({ error: "correction_failed" });
+    const failure = classifyIntakeFailure(err);
+    logger.error(
+      { err: serializeError(err), failureKind: failure.kind, status: failure.status },
+      "POST /aforce/intake/correction failed",
+    );
+    return res.status(failure.status).json({ error: `correction_${failure.kind}` });
   }
 });
 
