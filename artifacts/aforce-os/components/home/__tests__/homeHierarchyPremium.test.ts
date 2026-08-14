@@ -234,7 +234,9 @@ describe('§6/§7 — the command card is subordinate, the action is preserved',
     // §7 is explicit that the logger flow, its API calls, its state mutation
     // and its scoring must not move. One write, on confirm, as build 63 shipped.
     expect((CODE.match(/logIntake\(/g) ?? []).length).toBe(1);
-    expect(CODE).toContain("void logIntake('water', { ozOverride: oz });");
+    // Provenance was added to this call (record-only, PR #2 of the Build-65
+    // series); the write itself is unchanged, which is what this pins.
+    expect(CODE).toContain("void logIntake('water', { ozOverride: oz, source: 'home' });");
     expect(CODE).toMatch(/<WaterAmountModal\s/);
     expect(CODE).toMatch(/<CycleSuccessOverlay\s/);
   });

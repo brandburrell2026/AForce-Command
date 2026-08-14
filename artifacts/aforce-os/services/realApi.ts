@@ -33,6 +33,7 @@ import type {
   ProviderBiometrics,
 } from '../types';
 import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
+import type { IntakeSource } from './intakeSource';
 import { API_BASE } from '@/lib/apiBase';
 import { normalizeProviderBiometrics } from '@workspace/health-core';
 import { mergeBiometrics } from '../utils/biometricsMerge';
@@ -288,6 +289,12 @@ export interface IntakeLogPayload {
   ozAmount?: number;
   /** Optional flavor — required for AForce flavored bonuses. */
   flavor?: ProductFlavor;
+  /**
+   * Which surface created this intake. Record-only provenance: it never affects
+   * scoring, dedupe or persistence, and exists so a duplicate can be attributed
+   * to a surface from data instead of a code audit.
+   */
+  entrySource?: IntakeSource;
 }
 export interface IntakeLogResponse {
   log: IntakeLog;
@@ -386,6 +393,8 @@ export function prepareIntake(
       scoreBefore,
       scoreAfter,
       event: eventWire,
+      // Frozen with the payload so a replay reports the ORIGINATING surface.
+      ...(body.entrySource ? { entrySource: body.entrySource } : {}),
     },
     event,
     fluidType: body.fluidType,
@@ -420,6 +429,7 @@ export async function sendPreparedIntake(
       scoreBefore: prepared.scoreBefore,
       scoreAfter: prepared.scoreAfter,
       event: outbox.event,
+      ...(outbox.entrySource ? { entrySource: outbox.entrySource } : {}),
       ...(opts.withClientEventId ? { clientEventId: outbox.clientEventId } : {}),
     },
   );
@@ -459,6 +469,9 @@ export async function replayPreparedIntake(prepared: PreparedIntake): Promise<vo
       scoreBefore: prepared.scoreBefore,
       scoreAfter: prepared.scoreAfter,
       event: prepared.event,
+      // The originating surface, not "offline_replay": provenance must survive
+      // queueing, or the timeline loses the surface exactly when it matters.
+      ...(prepared.entrySource ? { entrySource: prepared.entrySource } : {}),
       clientEventId: prepared.clientEventId,
     },
   );

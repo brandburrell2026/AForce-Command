@@ -18,11 +18,12 @@ import { buildRecoveryCommand, parseEngineActionCopy, parseDoseOz } from '../uti
 import { useActionsSlice, useTimerSlice } from '../store/slices';
 import { AdjustCommandSheet } from '../components/recoveryCoach/AdjustCommandSheet';
 import type { FluidType } from '../types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface CoachActions {
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
   snooze: () => void;
 }
@@ -82,7 +83,11 @@ export default function RecoveryCoachRoute() {
         // matches what was prescribed; parseDoseOz returns undefined when no dose
         // is stated, so logIntake falls back to the product default.
         onPrimary={() => {
-          void logIntake('water', { silent: true, ozOverride: parseDoseOz(engineCommand.action) });
+          void logIntake('water', {
+            silent: true,
+            ozOverride: parseDoseOz(engineCommand.action),
+            source: 'recovery',
+          });
         }}
         // "Adjust command" — opens the adjust sheet (snooze / change dose / dismiss).
         onAdjust={() => setAdjustOpen(true)}
@@ -96,7 +101,7 @@ export default function RecoveryCoachRoute() {
           router.back();
         }}
         onLogDose={(oz) => {
-          void logIntake('water', { silent: true, ozOverride: oz });
+          void logIntake('water', { silent: true, ozOverride: oz, source: 'recovery' });
           setAdjustOpen(false);
           router.back();
         }}

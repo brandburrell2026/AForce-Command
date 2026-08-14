@@ -93,6 +93,7 @@ import {
   minutesSince,
 } from '@/services/hydrationStatus';
 import type { FluidType } from '@/types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 // ─── Header ──────────────────────────────────────────────────────────
 
@@ -451,7 +452,7 @@ function ScoreDrivenBody({
 interface HomeActions {
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
 }
 

@@ -208,6 +208,7 @@ describe('SET_USER_STATE — client-owns-overlays invariant', () => {
           id: 'log_1', timestamp: new Date(), scoreBefore: 70, scoreAfter: 78,
           gainDisplay: '+8', identityMessage: 'Locked in.', nextCycleHint: 'Next at 12:00',
           state: 'PEAK',
+    recordedLabel: '12 oz Water',
         },
         newUserState: stalePayload,
         engineOutput: makeEngine(),

@@ -336,7 +336,7 @@ export function HydrationScanScreenV2() {
     if (!fluid) return;
     setLogging(true);
     try {
-      await logIntake(fluid);
+      await logIntake(fluid, { source: 'scan' });
       triggerSuccessFlash();
     } finally {
       setLogging(false);
@@ -350,7 +350,7 @@ export function HydrationScanScreenV2() {
       | 'aforce_stick' | 'aforce_rtd' | 'aforce_canister' | 'aforce_bulk_bag';
     setLogging(true);
     try {
-      await logIntake(fluid);
+      await logIntake(fluid, { source: 'scan' });
       triggerSuccessFlash();
     } finally {
       setLogging(false);
@@ -426,6 +426,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} \u00b7 ${args.enteredOz} oz`,
         categoryId: args.categoryId,
@@ -455,6 +456,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
         categoryId: args.categoryId,
@@ -482,6 +484,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
         categoryId: args.categoryId,

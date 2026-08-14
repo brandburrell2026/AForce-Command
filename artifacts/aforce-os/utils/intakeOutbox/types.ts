@@ -12,6 +12,7 @@
  * `IntakeEvent` as a type-only import so it stays free of React Native.
  */
 import type { IntakeEvent } from '@/types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'synced';
 
@@ -38,6 +39,15 @@ export interface PreparedIntake {
   scoreBefore: number;
   scoreAfter: number;
   event: IntakeEventWire;
+  /**
+   * Which surface created this intake. Frozen here with the rest of the payload
+   * so a replay reports the surface that ORIGINATED the event, not the fact that
+   * it was later replayed — otherwise every queued intake would come back as
+   * "offline_replay" and provenance would be lost exactly when the timeline is
+   * hardest to reconstruct. Optional so a queued item persisted by an older
+   * build still replays cleanly.
+   */
+  entrySource?: IntakeSource;
 }
 
 export interface OutboxItem {

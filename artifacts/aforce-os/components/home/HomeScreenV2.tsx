@@ -264,11 +264,12 @@ import {
   resolveHealthChip,
   EM_DASH,
 } from './homeV3Presentation';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface HomeActions {
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
   /** Clears the success overlay (CORRECTION 2) — the same action the legacy Home passes it. */
   dismissSuccess: () => void;
@@ -385,10 +386,15 @@ export function HomeScreenV2() {
   // Refused while a cycle is in flight because `logIntake` would drop the
   // resulting confirm on the floor (`if (state.isCompletingCycle) return;`),
   // which would leave the member believing they had logged.
+  // Also refused while the confirmed-success overlay is up: that surface exists
+  // to tell the member the write landed, so re-opening the logger underneath it
+  // is exactly the accidental repeat this is meant to prevent. Bounded by the
+  // overlay's own lifetime — dismissing it re-enables immediately, so there is
+  // no arbitrary lockout.
   const openWaterPicker = React.useCallback(() => {
-    if (isCompletingCycle || confirmInFlightRef.current) return;
+    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess) return;
     setWaterPickerOpen(true);
-  }, [isCompletingCycle]);
+  }, [isCompletingCycle, showCycleSuccess]);
 
   // Cancel and back-out are the same thing to this screen: close the surface,
   // write nothing. `WaterAmountModal` routes its X button, its backdrop tap and
@@ -402,12 +408,12 @@ export function HomeScreenV2() {
   // dead, and a member-initiated log should behave like every other one.
   const confirmWaterAmount = React.useCallback(
     (oz: number) => {
-      if (confirmInFlightRef.current || isCompletingCycle) return;
+      if (confirmInFlightRef.current || isCompletingCycle || showCycleSuccess) return;
       confirmInFlightRef.current = true;
       setWaterPickerOpen(false);
-      void logIntake('water', { ozOverride: oz });
+      void logIntake('water', { ozOverride: oz, source: 'home' });
     },
-    [logIntake, isCompletingCycle],
+    [logIntake, isCompletingCycle, showCycleSuccess],
   );
 
   // COMMAND COMPLETED — one of the four named haptic moments, fired on the

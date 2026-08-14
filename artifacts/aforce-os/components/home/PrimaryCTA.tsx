@@ -14,6 +14,7 @@ import { FlavorPickerModal, type FlavorChoice } from '../FlavorPickerModal';
 import { useEngineSlice, useUserSlice, useCycleSlice, useActionsSlice } from '../../store/slices';
 import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
 import type { FluidType } from '../../types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface Layout {
   ctaPaddingV: number;
@@ -23,7 +24,7 @@ interface Layout {
 interface CtaActions {
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
   snooze: () => void;
 }
