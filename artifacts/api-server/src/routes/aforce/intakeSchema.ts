@@ -46,7 +46,29 @@ export const intakeSchema = z.object({
   // Still optional so legacy clients keep working unchanged.
   clientEventId: z.string().min(1).max(64).optional(),
   // §10 honesty (RC-L12) — record-only capture metadata, both optional.
-  entrySource: z.enum(["tap", "scan_log", "voice", "offline_replay", "sensor"]).optional(),
+  // Provenance — which SURFACE created this intake. Widened from the original
+  // capture-mode list (tap/scan_log/voice/offline_replay/sensor), which could
+  // not tell Home from Hydration from Protocol because all three are "tap".
+  // Legacy values are retained verbatim so historical rows stay valid and older
+  // clients keep working. Must stay in sync with the client's canonical
+  // `services/intakeSource.ts`; a contract test fails if they drift.
+  // Record-only: never affects scoring, dedupe or persistence, and the closed
+  // enum means the field cannot become a free-text/PII channel.
+  entrySource: z
+    .enum([
+      "home",
+      "hydration",
+      "scan",
+      "protocol",
+      "recovery",
+      "voice",
+      "manual",
+      "tap",
+      "scan_log",
+      "offline_replay",
+      "sensor",
+    ])
+    .optional(),
   confirmationLevel: z.enum(["logged", "verified"]).optional(),
 });
 

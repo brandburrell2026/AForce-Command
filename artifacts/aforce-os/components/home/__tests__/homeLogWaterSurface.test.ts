@@ -109,7 +109,11 @@ describe('CORRECTION 2 — pressing LOG WATER OPENS the logger and writes nothin
     // amount confirmed in that window would be silently dropped — the member
     // would believe they logged.
     const open = handlerBody('openWaterPicker');
-    expect(open).toMatch(/if \(isCompletingCycle \|\| confirmInFlightRef\.current\) return;/);
+    // The guard also refuses while the confirmed-success overlay is up (added
+    // with the durable-confirmation work); both in-flight conditions remain.
+    expect(open).toMatch(/isCompletingCycle/);
+    expect(open).toMatch(/confirmInFlightRef\.current/);
+    expect(open).toMatch(/\) return;/);
   });
 
   it('mutation-verify: an inline commit restored onto onPrimary is detectable', () => {
@@ -131,7 +135,8 @@ describe('CORRECTION 2 — the confirm handler is the ONLY thing that writes', (
 
   it('…and that place is the picker confirm handler', () => {
     const confirm = handlerBody('confirmWaterAmount');
-    expect(confirm).toContain("void logIntake('water', { ozOverride: oz });");
+    // Provenance added (record-only); the write itself is what this pins.
+    expect(confirm).toContain("void logIntake('water', { ozOverride: oz, source: 'home' });");
   });
 
   it('logs the amount the MEMBER chose — not a dose scraped out of the command copy', () => {
@@ -186,7 +191,9 @@ describe('CORRECTION 2 — one drink is one event (double tap, repeated submit)'
     // written and read in the same tick.
     expect(CODE).toContain('const confirmInFlightRef = React.useRef(false);');
     const confirm = handlerBody('confirmWaterAmount');
-    expect(confirm).toMatch(/if \(confirmInFlightRef\.current \|\| isCompletingCycle\) return;/);
+    // The guard grew a third condition (the confirmed-success overlay); the
+    // SYNCHRONOUS ref must still lead it, which is the property under test.
+    expect(confirm).toMatch(/if \(confirmInFlightRef\.current \|\|[^)]*\) return;/);
     // The guard must be SET before the dispatch, or the second tap sails past.
     expect(confirm.indexOf('confirmInFlightRef.current = true;')).toBeLessThan(
       confirm.indexOf('logIntake('),
@@ -206,12 +213,13 @@ describe('CORRECTION 2 — one drink is one event (double tap, repeated submit)'
 
   it('mutation-verify: dropping the in-flight guard is detectable', () => {
     const mutated = CODE.replace(
-      'if (confirmInFlightRef.current || isCompletingCycle) return;',
+      'if (confirmInFlightRef.current || isCompletingCycle || showCycleSuccess) return;',
       '',
     );
     const start = mutated.indexOf('const confirmWaterAmount = React.useCallback(');
     const confirm = mutated.slice(start, mutated.indexOf('React.useEffect(', start));
     expect(confirm).not.toContain('confirmInFlightRef.current || isCompletingCycle');
+    expect(confirm).not.toMatch(/if \(confirmInFlightRef\.current \|\|/);
     expect(confirm).toContain('logIntake(');
   });
 });

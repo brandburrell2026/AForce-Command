@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import i18n from '@/services/i18nService';
 import { scopedStorage } from '@/services/scopedStorage';
+import type { IntakeSource } from '@/services/intakeSource';
 import type { Dispatch, MutableRefObject } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -115,6 +116,14 @@ export function useStoreActions({
       flavorLabel?: string;
       displayNameOverride?: string;
       categoryId?: string;
+      /**
+       * Which surface is logging. Record-only provenance — it never affects
+       * scoring, dedupe or persistence. Callers that omit it produce a NULL
+       * `entry_source`, which is exactly the un-attributable state that made the
+       * Build-65 duplicate impossible to narrow, so every real entry point
+       * should pass one.
+       */
+      source?: IntakeSource;
     },
   ) => {
     if (state.isCompletingCycle) return;
@@ -137,6 +146,7 @@ export function useStoreActions({
         fluidType,
         ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
         ...(flavor ? { flavor } : {}),
+        ...(opts?.source ? { entrySource: opts.source } : {}),
       };
       // Offline Intake Outbox marker — true only when this intake could not
       // reach the server and was durably queued. Drives the optional pending UI
@@ -195,6 +205,9 @@ export function useStoreActions({
         identityMessage: generateCycleIdentityMessage(engineOutput.performanceState.level),
         nextCycleHint: generateNextCycleHint(engineOutput.performanceState.level),
         state: engineOutput.performanceState.level,
+        // Built from the CONFIRMED log the server returned, so the confirmation
+        // can never claim a write that did not land.
+        recordedLabel: `${log.ozAmount} oz ${PRODUCTS[fluidType].shortName}`,
       };
       // When a flavor was chosen (e.g. Berry Blast +Dulse), surface it
       // in the history label so users can recall exactly what they drank.

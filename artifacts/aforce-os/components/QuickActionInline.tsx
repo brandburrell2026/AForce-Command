@@ -33,7 +33,7 @@ export function QuickActionInline() {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     }
-    void logIntake(id);
+    void logIntake(id, { source: 'home' });
   };
 
   return (

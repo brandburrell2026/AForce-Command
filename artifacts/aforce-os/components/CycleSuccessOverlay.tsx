@@ -142,6 +142,19 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
           </Animated.View>
         </View>
 
+        {/* DURABLE CONFIRMATION — what was actually recorded.
+            Deliberately stated independently of the score. When HydroState is
+            already capped every score-framed cue above reads "+0 · was 100 →
+            now 100", which is indistinguishable from nothing having happened
+            and is what invites a second, duplicate log. This line is the one
+            piece of the overlay that says what landed. */}
+        <View style={[styles.recordedRow, { borderColor: `${color}55` }]}>
+          <Icon name="check-circle" size={14} color={color} />
+          <Text style={[styles.recordedText, { color }]} testID="cycle-success-recorded">
+            {`RECORDED · ${result.recordedLabel}`}
+          </Text>
+        </View>
+
         {/* Identity message */}
         <Text style={styles.identityText}>{result.identityMessage}</Text>
 
@@ -228,6 +241,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, borderWidth: 1,
   },
   gainText: { fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 0.2 },
+  recordedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 12,
+  },
+  recordedText: {
+    fontSize: 12,
+    letterSpacing: 0.8,
+  },
   identityText: {
     fontSize: 18, fontFamily: 'Inter_700Bold',
     color: Colors.text.primary, textAlign: 'center',

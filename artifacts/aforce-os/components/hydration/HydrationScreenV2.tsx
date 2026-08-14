@@ -40,11 +40,12 @@ import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@
 import { parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
 import { formatTimeAgo } from '@/data/mockData';
 import type { FluidType, IntakeEvent } from '@/types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface HydrationActions {
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
 }
 
@@ -165,7 +166,12 @@ export function HydrationScreenV2() {
       {/* Actions */}
       <View style={styles.actions}>
         <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
-        <AFSecondaryButton label={t('hydration.v2.log_manually')} onPress={() => void logIntake('water', { ozOverride: parseDoseOz(engine.command.action) })} />
+        <AFSecondaryButton label={t('hydration.v2.log_manually')} onPress={() =>
+            void logIntake('water', {
+              ozOverride: parseDoseOz(engine.command.action),
+              source: 'hydration',
+            })
+          } />
       </View>
 
       {/* Recent intake */}

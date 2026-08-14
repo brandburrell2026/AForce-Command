@@ -402,6 +402,14 @@ export interface CycleResult {
   identityMessage: string;
   nextCycleHint: string;
   state: PerformanceLevel;
+  /**
+   * What was actually recorded, e.g. "12 oz Water". Stated independently of the
+   * score so a member whose HydroState is already capped still gets unmistakable
+   * confirmation: at 100/100 every score-framed cue reads "+0 · was 100 → now
+   * 100", which is indistinguishable from nothing having happened and is what
+   * invites a second, duplicate log.
+   */
+  recordedLabel: string;
 }
 
 export interface HistoryEntry {

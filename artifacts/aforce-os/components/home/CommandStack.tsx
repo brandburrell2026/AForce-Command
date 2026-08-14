@@ -25,12 +25,13 @@ import {
 } from '../../store/slices';
 import { useDisplayedAccent } from '../../hooks/useDisplayedAccent';
 import type { FluidType } from '../../types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface ConfirmActions {
   confirmCommand: (followed: boolean) => Promise<void>;
   logIntake: (
     fluidType: FluidType,
-    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string },
+    opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
 }
 
@@ -60,7 +61,7 @@ function CommandStackImpl({ onOpenBreakdown }: Props) {
               // (immediate + delayed score impact, hydration math).
               // MISSED IT → -3 confirmation penalty, no intake event.
               if (answer.kind === 'intake') {
-                logIntake(answer.fluidType);
+                logIntake(answer.fluidType, { source: 'protocol' });
               } else {
                 confirmCommand(false);
               }
