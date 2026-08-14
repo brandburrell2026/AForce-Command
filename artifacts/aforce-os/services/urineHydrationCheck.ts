@@ -52,32 +52,45 @@ export const URINE_COLOR_OPTIONS: readonly UrineColorOption[] = [
  * 8 very dark; the server validates `int().min(1).max(8)`).
  *
  * STATUS: APPROVED FOR BETA / NOT SCIENTIFICALLY VALIDATED.
- * Founder decision 2026-08-14 (governance/URINE-COLOR-MAPPING-MEMO.md). No
- * approved AForce science specification defines a numeric mapping; these values
- * are a deliberately CONSERVATIVE Phase-1 beta choice, not a validated one, and
- * must never be described as validated because tests pass.
+ * Founder re-ratification 2026-08-14 (governance/URINE-COLOR-MAPPING-MEMO.md).
+ * No approved AForce science specification defines a numeric mapping. These are
+ * a deliberately conservative Phase-1 beta choice and must never be described as
+ * validated because tests pass.
  *
- * Why these numbers: the UI is a coarse 4-category SELF-REPORT, not a
- * physiological measurement. `services/heatRiskEngine.ts` computes
- * `urinePts = urineSignal >= 5 ? (urineSignal - 4) * 2 : 0`, so only a value of
- * 5+ contributes heat-risk points. Placing `yellow` at 4 keeps ordinary yellow
- * BELOW that threshold: during beta only `dark_yellow` (7 → 6 points) crosses
- * it. That deliberately avoids over-interpreting ordinary yellow urine as
- * elevated heat risk.
+ * TWO CONSUMERS, TWO THRESHOLDS. The first ratification (1/2/4/7) was made on
+ * the incorrect belief that urine affected heat risk only. It affects BOTH:
  *
- * The numeric value is internal. It is never shown to members, and no copy may
- * imply the app measured urine concentration or hydration physiologically — the
- * shipped disclaimer stands: a general hydration signal, not a medical test.
+ *   HydroState score  utils/scoring/breakdown.ts
+ *                     `-max(0, urineSignal - 3) * 4`   penalises ABOVE 3
+ *   Heat risk         services/heatRiskEngine.ts
+ *                     `urineSignal >= 5 ? (s - 4) * 2 : 0`   penalises AT 5+
  *
- * Isolated here on purpose: replacing the mapping after science validation is a
- * single-constant edit, and nothing in the write path, the persisted contract or
- * the tests needs to move. Do not change these numbers without founder approval.
+ * Because the score's threshold is 3 and not 5, `yellow: 4` silently cost 4
+ * HydroState points — observed on device as an exact -4 drop. Both formulas are
+ * approved and UNCHANGED; only this mapping moved.
+ *
+ * Founder intent: clear, light_yellow and yellow must not directly penalise
+ * HydroState during Phase-1 beta; only dark_yellow crosses either threshold.
+ *
+ *   clear        1 -> score  0   heat 0
+ *   light_yellow 2 -> score  0   heat 0
+ *   yellow       3 -> score  0   heat 0     (exactly at the score threshold)
+ *   dark_yellow  5 -> score -8   heat 2
+ *
+ * `services/__tests__/urineMappingPenalties.test.ts` pins that table against BOTH
+ * formulas and fails if any future mapping makes yellow cross either threshold.
+ *
+ * The numeric value is internal: never shown to members, and no copy may imply
+ * the app measured urine concentration or hydration physiologically.
+ *
+ * Isolated here on purpose — replacing the mapping after science validation is a
+ * single-constant edit. Do not change these numbers without founder approval.
  */
 export const URINE_COLOR_SIGNAL: Readonly<Record<UrineColor, number>> = {
   clear: 1,
   light_yellow: 2,
-  yellow: 4,
-  dark_yellow: 7,
+  yellow: 3,
+  dark_yellow: 5,
 };
 
 /**
