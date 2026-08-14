@@ -31,7 +31,8 @@
       "timeout": "Not saved — timed out",
       "rate_limited": "Not saved — too many attempts",
       "invalid": "Not saved — entry rejected",
-      "server": "Not saved — server problem"
+      "server": "Not saved — server problem",
+      "conflict": "Not saved — try that again"
     },
     "action_failed_body": {
       "offline": "That didn't reach the server, so nothing was recorded. Check your connection and try again.",
@@ -40,7 +41,8 @@
       "timeout": "The server took too long to answer, so nothing was recorded. Give it a moment and try again.",
       "rate_limited": "Too many requests in a short window, so nothing was recorded. Wait a minute, then try again.",
       "invalid": "The server wouldn't accept this entry, so nothing was recorded. Try again, and update AForce if it keeps happening.",
-      "server": "Something broke on our end, so nothing was recorded. Wait a moment and try again."
+      "server": "Something broke on our end, so nothing was recorded. Wait a moment and try again.",
+      "conflict": "We couldn't line that up with your current day, so nothing was recorded. Try again — it usually works straight away."
     }
   },
   "tabs": {

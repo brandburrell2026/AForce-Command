@@ -31,7 +31,8 @@
       "timeout": "Não salvo — tempo esgotado",
       "rate_limited": "Não salvo — tentativas demais",
       "invalid": "Não salvo — entrada recusada",
-      "server": "Não salvo — problema no servidor"
+      "server": "Não salvo — problema no servidor",
+      "conflict": "Não salvo — tente de novo"
     },
     "action_failed_body": {
       "offline": "Isso não chegou ao servidor, então nada foi registrado. Verifique sua conexão e tente novamente.",
@@ -40,7 +41,8 @@
       "timeout": "O servidor demorou demais para responder, então nada foi registrado. Aguarde um momento e tente novamente.",
       "rate_limited": "Muitas solicitações em pouco tempo, então nada foi registrado. Aguarde um minuto e tente novamente.",
       "invalid": "O servidor não aceitou esta entrada, então nada foi registrado. Tente novamente e atualize o AForce se continuar acontecendo.",
-      "server": "Algo falhou do nosso lado, então nada foi registrado. Aguarde um momento e tente novamente."
+      "server": "Algo falhou do nosso lado, então nada foi registrado. Aguarde um momento e tente novamente.",
+      "conflict": "Não conseguimos encaixar isso no seu dia atual, então nada foi registrado. Tente de novo — costuma funcionar logo."
     }
   },
   "tabs": {

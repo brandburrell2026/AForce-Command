@@ -51,23 +51,32 @@ export const URINE_COLOR_OPTIONS: readonly UrineColorOption[] = [
  * Color tile → the persisted `urineSignal` scale (`types/index.ts`: 1 clear …
  * 8 very dark; the server validates `int().min(1).max(8)`).
  *
- * ⚠️ FOUNDER RATIFICATION REQUIRED. These four numbers are the ONLY judgement in
- * this change, and they are not cosmetic: `services/heatRiskEngine.ts` computes
- * `urinePts = urineSignal >= 5 ? (urineSignal - 4) * 2 : 0`, so the value chosen
- * for each tile decides how many penalty points that tile contributes.
+ * STATUS: APPROVED FOR BETA / NOT SCIENTIFICALLY VALIDATED.
+ * Founder decision 2026-08-14 (governance/URINE-COLOR-MAPPING-MEMO.md). No
+ * approved AForce science specification defines a numeric mapping; these values
+ * are a deliberately CONSERVATIVE Phase-1 beta choice, not a validated one, and
+ * must never be described as validated because tests pass.
  *
- * No prior mapping existed to reuse — the screen never wrote the signal at all,
- * so nothing here is being changed, only supplied for the first time. The four
- * tiles are spread evenly across the documented range, placing `yellow` exactly
- * at the "dark" threshold (5) and `dark_yellow` at 7. That is a defensible
- * reading of a 4-step UI against an 8-step scale, not a derivation from the
- * hydration literature — if the intended severity curve differs, change these
- * four numbers and nothing else in the write path needs to move.
+ * Why these numbers: the UI is a coarse 4-category SELF-REPORT, not a
+ * physiological measurement. `services/heatRiskEngine.ts` computes
+ * `urinePts = urineSignal >= 5 ? (urineSignal - 4) * 2 : 0`, so only a value of
+ * 5+ contributes heat-risk points. Placing `yellow` at 4 keeps ordinary yellow
+ * BELOW that threshold: during beta only `dark_yellow` (7 → 6 points) crosses
+ * it. That deliberately avoids over-interpreting ordinary yellow urine as
+ * elevated heat risk.
+ *
+ * The numeric value is internal. It is never shown to members, and no copy may
+ * imply the app measured urine concentration or hydration physiologically — the
+ * shipped disclaimer stands: a general hydration signal, not a medical test.
+ *
+ * Isolated here on purpose: replacing the mapping after science validation is a
+ * single-constant edit, and nothing in the write path, the persisted contract or
+ * the tests needs to move. Do not change these numbers without founder approval.
  */
 export const URINE_COLOR_SIGNAL: Readonly<Record<UrineColor, number>> = {
   clear: 1,
-  light_yellow: 3,
-  yellow: 5,
+  light_yellow: 2,
+  yellow: 4,
   dark_yellow: 7,
 };
 
