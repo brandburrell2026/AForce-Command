@@ -3,15 +3,23 @@
 **Status: APPROVED FOR BETA / NOT SCIENTIFICALLY VALIDATED**
 Founder decision 2026-08-14. Ratified for Phase-1 beta only.
 
-> **Ratified mapping — `clear 1 · light_yellow 2 · yellow 4 · dark_yellow 7`.**
+> **⚠️ SUPERSEDED FIRST RATIFICATION.** The original mapping
+> (`clear 1 · light_yellow 2 · yellow 4 · dark_yellow 7`) was ratified on an
+> **incorrect memo of mine** which claimed urine did not affect HydroState. It
+> does. `yellow: 4` silently cost **4 HydroState points**, observed on device as
+> an exact −4 drop. That claim came from grepping `scoringEngine.ts` alone; the
+> computation lives in `utils/scoring/breakdown.ts`. A single-file grep is not a
+> search.
+>
+> **RE-RATIFIED MAPPING — `clear 1 · light_yellow 2 · yellow 3 · dark_yellow 5`.**
 > Approved for beta; **not** scientifically validated. Passing tests are not
 > ratification, and this must never be described as validated.
 >
 > **Founder rationale.** The UI is a coarse 4-category self-report, not a direct
 > physiological measurement; no approved AForce science specification defines a
-> numeric mapping; only `dark_yellow` should cross the existing heat-risk
-> threshold during beta; this reduces the risk of over-interpreting ordinary
-> yellow urine as elevated heat risk.
+> numeric mapping; clear, light_yellow and yellow must not directly penalise
+> HydroState during Phase-1 beta; only `dark_yellow` crosses **either** threshold.
+> This reduces the risk of over-interpreting ordinary yellow urine.
 >
 > **Member-facing constraints.** The numeric value is internal and must never be
 > shown to members. No copy may imply the app measured urine concentration or
@@ -40,18 +48,34 @@ That is a defensible reading of a 4-step self-report against an 8-step scale.
 **It is not derived from hydration literature and carries no clinical
 authority.**
 
+## URINE AFFECTS TWO SYSTEMS — HydroState AND heat risk
+
+This is the correction. `urineSignal` feeds **two independent formulas with
+different thresholds**, and the first ratification accounted for only one:
+
+| Consumer | Formula | Penalises |
+|---|---|---|
+| **HydroState score** — `utils/scoring/breakdown.ts` | `-max(0, s - 3) * 4` | **above 3** |
+| **Heat risk** — `services/heatRiskEngine.ts` | `s >= 5 ? (s - 4) * 2 : 0` | **at 5+** |
+
+Because the score's threshold is **3**, not 5, a tile can be "below the heat-risk
+threshold" and still cost HydroState points. That is exactly what happened.
+
+**Both formulas are approved and UNCHANGED.** Only the mapping moved.
+
 ## The mapping and its downstream effect
 
-| UI color | Mapped signal | `urinePts` | Engine reads it as |
+| UI color | Signal | HydroState penalty | Heat-risk pts |
 |---|---|---|---|
-| Clear | 1 | **0** | below threshold |
-| Light Yellow | 2 | **0** | below threshold |
-| Yellow | 4 | **0** | below threshold |
-| Dark Yellow | 7 | **6** | "dark (7/8)" |
-| *(DB default, no check yet)* | *3* | *0* | *below threshold* |
+| Clear | 1 | **0** | **0** |
+| Light Yellow | 2 | **0** | **0** |
+| Yellow | 3 | **0** | **0** |
+| Dark Yellow | 5 | **−8** | **2** |
+| *(DB default, no check yet)* | *3* | *0* | *0* |
 
-**Only `dark_yellow` crosses the threshold.** Three of four tiles contribute
-zero heat-risk points, which is the conservative posture the founder ratified.
+**Only `dark_yellow` crosses either threshold.** `yellow: 3` sits exactly at the
+HydroState boundary (`max(0, 3-3) = 0`), which is the intended conservative
+posture.
 
 Formula, unchanged and untouched — `services/heatRiskEngine.ts`:
 
@@ -65,11 +89,9 @@ contributes, at **6** of a possible 18 in that one factor.
 
 ## What is and is not affected
 
-- **HydroState score: NOT directly affected.** `scoringEngine.ts` — the
-  off-limits source of truth — contains no reference to `urineSignal`. Its math
-  is untouched by this mapping.
-- **Heat risk: affected.** Via `urinePts` above. This is the only place the
-  numeric value changes a computed output.
+- **HydroState score: DIRECTLY AFFECTED** via `utils/scoring/breakdown.ts`
+  (threshold 3). *The earlier claim that it was unaffected was wrong.*
+- **Heat risk: affected** via `heatRiskEngine` (threshold 5).
 - **Recovery snapshot: affected.** `urineSignal` is an input to
   `deriveRecoverySnapshot` (gated behind `spec_recovery`).
 - **Protocol: NOT sensitive to the value.** `protocolDerivation.ts` tests
@@ -89,10 +111,17 @@ also a one-line change to that same constant.
 
 ## What the tests do and do not prove
 
-The suite proves the mapping is **internally consistent and durable**: every tile
-stays inside 1–8, round-trips to itself, persists, survives reload, and a second
-color replaces the first. **It proves nothing about whether the four numbers are
-clinically or product-appropriate.** Passing tests are not ratification.
+`services/__tests__/urineMappingPenalties.test.ts` now pins the mapping against
+**both** consumers — a HydroState penalty table and a heat-risk penalty table —
+and fails if any future mapping lets clear, light_yellow or yellow cross either
+threshold. It also pins both formulas to their source, so an upstream edit forces
+re-ratification rather than silently invalidating the tables.
+Mutation-verified: restoring `yellow: 4` fails 3 assertions; `yellow: 5` fails 7.
+
+The suite proves the mapping is **internally consistent with the approved
+formulas** and durable across reload. **It proves nothing about clinical or
+product appropriateness.** Passing tests are not ratification — the first
+ratification passed its tests and was still wrong.
 
 ---
 
