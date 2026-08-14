@@ -24,7 +24,9 @@ import { SYMPTOM_CATALOG, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
 import {
   assessUrineColor,
+  urineColorForSignal,
   URINE_COLOR_OPTIONS,
+  URINE_COLOR_SIGNAL,
   URINE_DISCLAIMER,
   type UrineColor,
   type UrineCheckResult,
@@ -54,24 +56,47 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
   const result: UrineCheckResult | null = selection ? assessUrineColor(selection) : null;
   const sev = result ? SEVERITY[result.severity] : null;
 
-  const { state, updateSymptoms, updateEnergyState, confirmStatus } = useAppStore();
+  const { state, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus } =
+    useAppStore();
   const { userState, engineOutput } = state;
 
   const [symptoms, setSymptoms] = useState<string[]>(userState.symptoms);
   const [energy, setEnergy] = useState<UserState['energyState']>(userState.energyState);
   useEffect(() => setSymptoms(userState.symptoms), [userState.symptoms]);
   useEffect(() => setEnergy(userState.energyState), [userState.energyState]);
+  // Seed the picker from PERSISTED state, the same way symptoms and energy are
+  // seeded above. Without this the tiles reset to "nothing chosen" on every
+  // reload even though the signal was saved, which reads as the save having
+  // failed. Re-runs when the store adopts server state so another device's
+  // check-in is reflected here too.
+  useEffect(() => {
+    setSelection(urineColorForSignal(userState.urineSignal));
+  }, [userState.urineSignal]);
 
   const toggleSymptom = (id: string) => {
     haptic('select');
     setSymptoms((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
-  // LIVE write path — preserved verbatim from the legacy screen.
+  // LIVE write path. The symptom/energy/check-in calls are preserved verbatim
+  // from the legacy screen; the urine signal is the one addition.
+  //
+  // Until now the chosen color lived only in `selection` and was dropped on
+  // confirm — the screen rendered a verdict from it but never wrote it, so the
+  // hydration score never saw the check. `updateUrineSignal` already existed and
+  // was already wired through the store to `POST /aforce/urine`; it simply had
+  // no caller. Nothing new is computed here: the tile is translated to the
+  // persisted scale and handed to the existing action.
   const handleConfirm = async () => {
     haptic('heavy');
     try {
-      await Promise.all([updateSymptoms(symptoms), updateEnergyState(energy)]);
+      await Promise.all([
+        updateSymptoms(symptoms),
+        updateEnergyState(energy),
+        // Skipped when no tile is chosen: the member confirming symptoms alone
+        // must not silently overwrite a previously recorded signal.
+        ...(selection ? [updateUrineSignal(URINE_COLOR_SIGNAL[selection])] : []),
+      ]);
       await confirmStatus();
     } catch (err) {
       console.error('Confirm status failed:', err);
