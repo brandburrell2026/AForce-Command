@@ -46,6 +46,8 @@ export default defineConfig({
       'artifacts/aforce-os/components/opening/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/urine/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/urine/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/community/__tests__/**/*.test.ts',
@@ -110,6 +112,7 @@ export default defineConfig({
       // skeletons (pure, store-free subcomponents, same convention as the two
       // lines above; their connected screens stay source-guard-tested).
       ['artifacts/aforce-os/components/hydration/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      ['artifacts/aforce-os/components/urine/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/moments/__tests__/**/*.render.test.tsx', 'happy-dom'],
       // VS 3.0 P2 — Journal summary-widget render harnesses render to a DOM.
       ['artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx', 'happy-dom'],

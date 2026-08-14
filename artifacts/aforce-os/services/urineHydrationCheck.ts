@@ -47,6 +47,51 @@ export const URINE_COLOR_OPTIONS: readonly UrineColorOption[] = [
   { color: 'dark_yellow', label: 'Dark Yellow', hex: '#B58A0E' },
 ] as const;
 
+/**
+ * Color tile → the persisted `urineSignal` scale (`types/index.ts`: 1 clear …
+ * 8 very dark; the server validates `int().min(1).max(8)`).
+ *
+ * ⚠️ FOUNDER RATIFICATION REQUIRED. These four numbers are the ONLY judgement in
+ * this change, and they are not cosmetic: `services/heatRiskEngine.ts` computes
+ * `urinePts = urineSignal >= 5 ? (urineSignal - 4) * 2 : 0`, so the value chosen
+ * for each tile decides how many penalty points that tile contributes.
+ *
+ * No prior mapping existed to reuse — the screen never wrote the signal at all,
+ * so nothing here is being changed, only supplied for the first time. The four
+ * tiles are spread evenly across the documented range, placing `yellow` exactly
+ * at the "dark" threshold (5) and `dark_yellow` at 7. That is a defensible
+ * reading of a 4-step UI against an 8-step scale, not a derivation from the
+ * hydration literature — if the intended severity curve differs, change these
+ * four numbers and nothing else in the write path needs to move.
+ */
+export const URINE_COLOR_SIGNAL: Readonly<Record<UrineColor, number>> = {
+  clear: 1,
+  light_yellow: 3,
+  yellow: 5,
+  dark_yellow: 7,
+};
+
+/**
+ * The inverse, used to seed the screen from PERSISTED state so a reload shows
+ * what the member last recorded rather than an empty picker. Signals that fall
+ * between tiles (the scale is finer than the UI, and other surfaces may set any
+ * 1–8 value) resolve to the nearest tile; anything outside 1–8 resolves to null
+ * so a corrupt value renders as "nothing selected" rather than a wrong verdict.
+ */
+export function urineColorForSignal(signal: number): UrineColor | null {
+  if (!Number.isFinite(signal) || signal < 1 || signal > 8) return null;
+  let best: UrineColor | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const [color, value] of Object.entries(URINE_COLOR_SIGNAL) as [UrineColor, number][]) {
+    const distance = Math.abs(value - signal);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = color;
+    }
+  }
+  return best;
+}
+
 export function assessUrineColor(color: UrineColor): UrineCheckResult {
   const option = URINE_COLOR_OPTIONS.find((o) => o.color === color);
   // `color` is type-narrowed, so option is always defined; the
