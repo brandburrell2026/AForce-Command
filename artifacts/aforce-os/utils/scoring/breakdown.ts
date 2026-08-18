@@ -24,7 +24,7 @@ export function resolveState(score: number): PerformanceLevel {
 // It defaults to `Date.now()`, so every existing caller is behaviourally
 // unchanged. Score-Protection is untouched: the clock only decides how much
 // time has elapsed for decay/recency, never what behaviour counts.
-export function buildBreakdown(state: UserState, now: number = Date.now()): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number } {
+export function buildBreakdown(state: UserState, now: number = Date.now()): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number; factorDeltas: Record<string, number> } {
   const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
 
   // Per-event hydration scoring (replaces the old running-aggregate
@@ -111,6 +111,34 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
             + recovery.delta + confirmation + socialIntake.penalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
+  // Instrumentation vector (founder-approved 2026-08-18): the EXACT unrounded
+  // terms summed into `raw` above, captured so a persisted snapshot can answer
+  // "why did this score change?" without a device test or code audit. The
+  // contribution rows below round some values for display (`recovery`,
+  // `social_intake`), so they cannot be reused here — the vector must sum to
+  // `raw` exactly or it explains nothing. `clamped` records what the 0-100
+  // clamp absorbed. Deltas only: labels and maxMagnitude (the proprietary
+  // weights) are deliberately excluded, here and at every consumer.
+  // `+ 0` normalises negative zero (e.g. the urine term at signal <= 3) so
+  // JSON never carries `-0`.
+  const factorDeltas: Record<string, number> = {
+    base: baseIntake + 0,
+    aforce_bonus: aforceBonus + 0,
+    recency: recency + 0,
+    confirmation: confirmation + 0,
+    consistency: consistency + 0,
+    context: context + 0,
+    recovery: recoveryMomentum + 0,
+    symptom: symptomPenalty + 0,
+    urine: urinePenalty + 0,
+    output: outputStress + 0,
+    sleep: sleepCarry + 0,
+    health_signals: recovery.delta + 0,
+    social_intake: socialIntake.penalty + 0,
+    raw: raw + 0,
+    clamped: score - Math.round(raw) + 0,
+  };
+
   const aforceUnits = state.aforceUnitsToday ?? 0;
   const contributions: ScoreContribution[] = [
     { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
@@ -156,7 +184,7 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
     });
   }
 
-  return { score, contributions, decayPerMinute, minutesSinceLast };
+  return { score, contributions, decayPerMinute, minutesSinceLast, factorDeltas };
 }
 
 /**
