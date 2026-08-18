@@ -236,6 +236,16 @@ export const aforceScoreSnapshots = pgTable(
     // centrally by lib/db/src/scoreSnapshotRepo.ts — routes can neither
     // supply nor omit it (founder Decision 5).
     hydroStateModelVersion: text("hydrostate_model_version"),
+    /**
+     * Per-factor score deltas captured at write time (additive instrumentation,
+     * founder-approved 2026-08-18; design in
+     * governance/SCORE-SNAPSHOT-INSTRUMENTATION-PROPOSAL.md). Keys are the
+     * factor ids the canonical breakdown already computes, plus `raw` and
+     * `clamped` so a row is self-checking. Values are DELTAS only — labels and
+     * maxMagnitude (the proprietary weights) are never persisted. NULL means
+     * "captured before instrumentation", never "all factors were zero".
+     */
+    factorDeltas: jsonb("factor_deltas").$type<Record<string, number>>(),
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

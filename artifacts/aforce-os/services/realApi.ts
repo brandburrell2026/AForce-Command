@@ -720,6 +720,12 @@ export function getLastKnownState(): UserState {
  */
 export interface JournalSnapshotPayload {
   score: number;
+  /**
+   * Per-factor score deltas at write time ({id: delta} plus `raw`/`clamped`).
+   * Deltas only — never labels or weights. Optional so older callers and
+   * pre-instrumentation replays stay wire-compatible.
+   */
+  factorDeltas?: Record<string, number>;
   level: PerformanceLevel;
   ozConsumedToday: number;
   aforceUnitsToday: number;

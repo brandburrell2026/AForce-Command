@@ -116,6 +116,7 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 // promise resolution being immediate-after-microtask in tests; for the
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
+import { buildBreakdown } from '../utils/scoring/breakdown';
 import type { AppContextValue } from './app/types';
 import { pickFacadeState, type FacadeState } from './app/facadeState';
 import {
@@ -768,6 +769,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     postJournalSnapshot({
       score: state.engineOutput.score,
       level,
+      // Instrumentation vector (founder-approved): the per-factor deltas for
+      // the state being snapshotted, computed at WRITE time. Deliberately not
+      // derived from engineOutput — recomputing here means the vector always
+      // sums to its own `raw`, and any divergence between `raw` and the
+      // engine's `score` field becomes visible data (that divergence is
+      // exactly the optimistic-vs-authoritative question). Same debounce, same
+      // request — zero additional writes.
+      factorDeltas: buildBreakdown(state.userState, now).factorDeltas,
       ozConsumedToday: state.userState.ozConsumedToday,
       aforceUnitsToday: state.userState.aforceUnitsToday,
       unitsConsumedToday: state.userState.unitsConsumedToday,
