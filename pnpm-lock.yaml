@@ -522,7 +522,7 @@ importers:
         specifier: 0.81.5
         version: 0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0)
       react-native-health-connect:
-        specifier: ^3.4.0
+        specifier: ^3.6.0
         version: 3.6.0(@expo/config-plugins@54.0.4)(react-native@0.81.5(patch_hash=4362d381f1a3defaeb14ce6bf99b44c7c9f744771220ec7e94bb82c679028780)(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       react-native-nitro-modules:
         specifier: 0.35.10
