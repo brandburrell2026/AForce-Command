@@ -29,7 +29,8 @@
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://aforce-command-production.up.railway.app/api",
         "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_bW92aW5nLW94LTg5LmNsZXJrLmFjY291bnRzLmRldiQ"
-      }
+      },
+      "node": "22.13.0"
     },
     "demo": {
       "extends": "preview",

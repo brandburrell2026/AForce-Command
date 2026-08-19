@@ -17,7 +17,7 @@
     "eas:build:all": "pnpm dlx eas-cli@latest build --profile production --platform all",
     "eas:build:internal": "pnpm dlx eas-cli@latest build --profile internal --platform ios",
     "eas:submit:ios": "pnpm dlx eas-cli@latest submit --profile production --platform ios --latest",
-    "eas:submit:ios:internal": "echo 'Submit internal builds by ID: pnpm dlx eas-cli@latest submit --platform ios --id <buildId> (never --latest \u2014 see docs/health/rollout/RC2-RULING-A-INTERNAL-TESTFLIGHT-OVERLAY.md)' && exit 1",
+    "eas:submit:ios:internal": "echo 'Submit internal builds by ID: pnpm dlx eas-cli@latest submit --platform ios --id <buildId> (never --latest — see docs/health/rollout/RC2-RULING-A-INTERNAL-TESTFLIGHT-OVERLAY.md)' && exit 1",
     "eas:submit:android": "pnpm dlx eas-cli@latest submit --profile production --platform android --latest",
     "eas-build-pre-install": "pnpm config set dangerously-allow-all-builds true --location project || true",
     "android": "expo run:android",
@@ -102,7 +102,7 @@
     "react": "19.1.0",
     "react-i18next": "^17.0.4",
     "react-native": "0.81.5",
-    "react-native-health-connect": "^3.4.0",
+    "react-native-health-connect": "^3.6.0",
     "react-native-nitro-modules": "0.35.10",
     "react-native-view-shot": "^4.0.3"
   },
