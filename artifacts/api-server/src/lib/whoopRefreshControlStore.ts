@@ -30,29 +30,45 @@ export async function readWhoopEligibilityInput(
   db: Db,
   userId: string,
 ): Promise<WhoopEligibilityInput | null> {
-  const rows = await db
+  // Two indexed primary-key lookups instead of one correlated subquery. The
+  // first shipped version correlated with a raw sql fragment, and drizzle
+  // rendered the OUTER column reference unqualified — inside the subquery
+  // scope `"user_id"` resolved to the inner table, the correlation became
+  // `u.user_id = u.user_id` (always true), and the scalar subquery failed the
+  // moment aforce_user_state held more than one row. It escaped because the
+  // store's real SQL never ran against Postgres in tests (unit suites inject
+  // fakes); `whoopRefreshControlStore.dbtest.ts` now executes every function
+  // here against a real database so a render-level bug like that cannot ship
+  // silently again. The gate's fail-open kept production at exact
+  // pre-redesign behavior while this was broken — visible, not silent.
+  const tokenRows = await db
     .select({
       failureCount: aforceWhoopTokens.refreshFailureCount,
       backoffUntil: aforceWhoopTokens.refreshBackoffUntil,
       needsReauth: aforceWhoopTokens.needsReauth,
-      // biometrics.whoop.fetchedAt — epoch ms written by the fetch worker.
-      blobFetchedAt: sql<string | null>`(
-        select u.biometrics -> 'whoop' ->> 'fetchedAt'
-        from ${aforceUserState} u
-        where u.user_id = ${aforceWhoopTokens.userId}
-      )`,
     })
     .from(aforceWhoopTokens)
     .where(eq(aforceWhoopTokens.userId, userId))
     .limit(1);
-  const row = rows[0];
-  if (!row) return null;
-  const parsed = row.blobFetchedAt == null ? NaN : Number(row.blobFetchedAt);
+  const token = tokenRows[0];
+  if (!token) return null;
+
+  const stateRows = await db
+    .select({
+      blobFetchedAt: sql<
+        string | null
+      >`${aforceUserState.biometrics} -> 'whoop' ->> 'fetchedAt'`,
+    })
+    .from(aforceUserState)
+    .where(eq(aforceUserState.userId, userId))
+    .limit(1);
+  const raw = stateRows[0]?.blobFetchedAt ?? null;
+  const parsed = raw == null ? NaN : Number(raw);
   return {
     blobFetchedAtMs: Number.isFinite(parsed) ? parsed : null,
-    failureCount: row.failureCount ?? null,
-    backoffUntilMs: row.backoffUntil ? row.backoffUntil.getTime() : null,
-    needsReauth: row.needsReauth ?? null,
+    failureCount: token.failureCount ?? null,
+    backoffUntilMs: token.backoffUntil ? token.backoffUntil.getTime() : null,
+    needsReauth: token.needsReauth ?? null,
   };
 }
 
