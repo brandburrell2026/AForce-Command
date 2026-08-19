@@ -176,10 +176,11 @@ function click(el: HTMLElement) {
  * press handler.
  */
 function confirmButton(): HTMLElement {
-  const buttons = Array.from(host.querySelectorAll('button')) as HTMLElement[];
-  const hit = buttons.find((n) => /complete_cycle|complete|confirm/i.test(n.textContent ?? ''));
-  if (!hit) throw new Error('confirm control not found');
-  return hit;
+  // Stable id — the label is not stable any more: it flips to "Recorded"
+  // during the post-success acknowledgment, which is part of the contract.
+  const el = host.querySelector('[data-testid="urine-confirm"]');
+  if (!el) throw new Error('confirm control not found');
+  return el as HTMLElement;
 }
 
 /** The verdict text is the member-visible RESULT of the current selection. */
@@ -250,7 +251,8 @@ describe('urine selection persists', () => {
     const before = verdictText();
     expect(before).not.toBe('');
     click(confirmButton());
-    await vi.waitFor(() => expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.dark_yellow));
+    await vi.waitFor(() => expect(confirmStatus).toHaveBeenCalledTimes(1));
+    expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.dark_yellow);
     unmount();
 
     // Fresh mount = relaunch. The verdict must come back from the persisted
@@ -266,25 +268,36 @@ describe('urine selection persists', () => {
     mount();
     click(byTestId('urine-color-dark_yellow'));
     click(confirmButton());
-    await vi.waitFor(() => expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.dark_yellow));
+    // Wait for the SET to settle, not merely for the mock's side-effect: the
+    // urine write lands mid-set, while the in-flight guard still holds. A
+    // second press before settlement is correctly refused (that refusal has
+    // its own test), so this flow must only continue once the first confirm
+    // has fully completed.
+    await vi.waitFor(() => expect(confirmStatus).toHaveBeenCalledTimes(1));
+    expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.dark_yellow);
 
     click(byTestId('urine-color-clear'));
     click(confirmButton());
-    await vi.waitFor(() => expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.clear));
+    await vi.waitFor(() => expect(confirmStatus).toHaveBeenCalledTimes(2));
+    expect(userState.urineSignal).toBe(URINE_COLOR_SIGNAL.clear);
 
     expect(updateUrineSignal).toHaveBeenLastCalledWith(URINE_COLOR_SIGNAL.clear);
     expect(userState.urineSignal).not.toBe(URINE_COLOR_SIGNAL.dark_yellow);
   });
 
-  it('confirming with no tile chosen does not overwrite a saved signal', async () => {
+  it('confirming with no member interaction cannot overwrite a saved signal', async () => {
     userState.urineSignal = URINE_COLOR_SIGNAL.yellow;
     mount();
-    // Deselect by mounting fresh with a saved value, then confirm without
-    // touching the tiles: symptoms-only check-ins must leave the signal alone.
+    // The protection moved EARLIER in the flow (Build-68 interaction fix):
+    // Confirm is disabled until the member makes/changes something this visit,
+    // so an untouched screen cannot write anything at all — which subsumes the
+    // original guarantee that a seeded signal is never silently overwritten.
     vi.clearAllMocks();
     const seeded = userState.urineSignal;
     click(confirmButton());
-    await vi.waitFor(() => expect(confirmStatus).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 10));
+    expect(confirmStatus).not.toHaveBeenCalled();
+    expect(updateUrineSignal).not.toHaveBeenCalled();
     expect(userState.urineSignal).toBe(seeded);
   });
 });
