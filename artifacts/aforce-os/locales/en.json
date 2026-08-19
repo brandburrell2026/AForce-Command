@@ -2333,6 +2333,17 @@
       "failed": "Couldn't disconnect {{name}} — try again in a moment.",
       "unsupported": "{{name}} can't be disconnected from here yet. Manage it in its own app or device settings.",
       "skipped_not_connected": "{{name}} wasn't actually connected — nothing to disconnect."
+    },
+    "hc_connect": {
+      "cta": "CONNECT HEALTH DATA",
+      "title": "Connect Health Data",
+      "body": "AForce reads sleep, heart, workout and step data through Android Health Connect — including data synced there by Samsung Health. You choose exactly what to share on the next screen, and you can revoke it any time.",
+      "cancel": "Not now",
+      "continue": "Continue",
+      "update_title": "Update Health Connect",
+      "update_body": "Health Connect needs an update from the Play Store before AForce can read health data.",
+      "unavailable_title": "Health Connect unavailable",
+      "unavailable_body": "This device does not have Health Connect. Install it from the Play Store and try again."
     }
   },
   "welcome": {

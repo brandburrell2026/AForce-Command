@@ -70,6 +70,8 @@ import {
   type ConnectedHealthCloudFacts,
 } from '@/services/health/connectedHealthContainerModel';
 import { ConnectedHealthView } from './ConnectedHealthView';
+import { AFPrimaryButton } from '@/components/ui';
+import { connectHealthData } from '@/services/health/healthConnect/runner';
 
 const EMPTY_CLOUD_FACTS: ConnectedHealthCloudFacts = {};
 
@@ -203,6 +205,52 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
 
   const topPadding = Platform.OS === 'web' ? 24 : insets.top;
 
+  // ─── G5: CONNECT HEALTH DATA — the single Android entry (founder-ruled).
+  // Health Connect is the integration layer; there are deliberately NO
+  // separate Google / Samsung buttons. Flow: explainer/consent → the system
+  // permission sheet (approved read set only, via the runner's connect path,
+  // the sole requestPermission caller) → first sync → rows refresh. Origins
+  // like "Samsung Health via Health Connect" surface on the rows themselves.
+  const hcEnabled =
+    Platform.OS === 'android' && state.featureFlags.health_google_connect_enabled;
+  const [hcConnecting, setHcConnecting] = useState(false);
+  const onConnectHealthData = useCallback(() => {
+    Alert.alert(
+      t('connected_health.hc_connect.title'),
+      t('connected_health.hc_connect.body'),
+      [
+        { text: t('connected_health.hc_connect.cancel'), style: 'cancel' },
+        {
+          text: t('connected_health.hc_connect.continue'),
+          onPress: () => {
+            void (async () => {
+              setHcConnecting(true);
+              try {
+                const result = await connectHealthData({ userId: 'device' });
+                if (result.status === 'update_required') {
+                  Alert.alert(
+                    t('connected_health.hc_connect.update_title'),
+                    t('connected_health.hc_connect.update_body'),
+                  );
+                } else if (result.status === 'unavailable') {
+                  Alert.alert(
+                    t('connected_health.hc_connect.unavailable_title'),
+                    t('connected_health.hc_connect.unavailable_body'),
+                  );
+                }
+                // connected / denied / error: the refreshed rows below are the
+                // honest surface — no fabricated success copy.
+                await refreshCloudFacts();
+              } finally {
+                setHcConnecting(false);
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [t, refreshCloudFacts]);
+
   return (
     <View style={[styles.root, { paddingTop: topPadding }]}>
       <ConnectedHealthView
@@ -211,10 +259,22 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
         onTroubleshoot={onTroubleshoot}
         onDisconnect={onDisconnect}
       />
+      {hcEnabled ? (
+        <View style={styles.hcConnectBar}>
+          <AFPrimaryButton
+            label={t('connected_health.hc_connect.cta')}
+            icon="activity"
+            onPress={onConnectHealthData}
+            loading={hcConnecting}
+            testID="connect-health-data"
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: af.canvas },
+  hcConnectBar: { paddingHorizontal: 20, paddingBottom: 28 },
 });

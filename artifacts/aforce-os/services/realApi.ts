@@ -777,6 +777,23 @@ export async function postSensorImport(payload: SensorImportPayload): Promise<Se
   return postJson<SensorImportResponse>('/sensors/import', payload);
 }
 
+// ─── POST /health-records/import (G2 canonical ingest) ───────────────────────
+export interface HealthRecordsImportResponse {
+  received: number;
+  upserted: number;
+}
+/**
+ * Upload one batch of CanonicalHealthRecords to the G2 ingest door. The wire
+ * shape deliberately matches the server's zod contract: userId and
+ * deduplicationKey are NOT sent — the server stamps identity from auth and
+ * recomputes the key. Callers chunk batches well under the 64kb body limit.
+ */
+export async function postHealthRecordsImport(
+  records: readonly Record<string, unknown>[],
+): Promise<HealthRecordsImportResponse> {
+  return postJson<HealthRecordsImportResponse>('/health-records/import', { records });
+}
+
 // ─── Achievements ────────────────────────────────────────────────────────────
 export interface AchievementsResponse { unlocks: AchievementUnlockState[] }
 
