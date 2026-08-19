@@ -24,6 +24,7 @@ import statusRouter from "./aforce/status";
 import socialRouter from "./aforce/social";
 import journalRouter from "./aforce/journal";
 import sensorsRouter from "./aforce/sensors";
+import healthRecordsRouter from "./aforce/healthRecords";
 import achievementsRouter from "./aforce/achievements";
 import analyticsRouter from "./aforce/analytics";
 
@@ -39,6 +40,7 @@ router.use(statusRouter);
 router.use(socialRouter);
 router.use(journalRouter);
 router.use(sensorsRouter);
+router.use(healthRecordsRouter);
 router.use(analyticsRouter);
 router.use(achievementsRouter);
 
