@@ -1,0 +1,64 @@
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+# EAS archive ignore — REPLACES .gitignore semantics for packaging.
+# Exists because the archive was shipping node_modules (910MB): the
+# node_modules OUT of the archive. Contents = both .gitignores merged.
+# prefab kept seeing .pnpm patch_hash paths. Fresh install requires
+# to date'), so the android hoisted-linker npmrc never re-linked and
+# worker's 'pnpm install --frozen-lockfile' then no-opped ('Already up
+*.jks
+*.key
+*.launch
+*.mobileprovision
+*.orig.*
+*.p12
+*.p8
+*.pem
+*.sublime-workspace
+*.tsbuildinfo
+.DS_Store
+.c9/
+.cache/
+.classpath
+.cursor/rules/nx-rules.mdc
+.env
+.env*.local
+.env.*
+.expo
+.expo-shared
+.expo/
+.git
+.github/instructions/nx.instructions.md
+.local/
+.metro-health-check*
+.project
+.settings/
+.vercel
+.vscode/*
+/.idea
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+/typings
+Thumbs.db
+android/
+artifacts/api-server/start-local.sh
+attached_assets/Pasted-*
+dist
+dist/
+expo-env.d.ts
+ios/
+node_modules
+node_modules/
+npm-debug.*
+npm-debug.log
+out-tsc
+testem.log
+tmp
+web-build/
+yarn-debug.*
+yarn-error.*
+yarn-error.log
