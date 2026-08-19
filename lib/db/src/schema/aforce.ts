@@ -734,6 +734,18 @@ export const aforceWhoopTokens = pgTable(
     /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
      *  Null when the WHOOP token endpoint didn't echo `scope` back. */
     scope: text("scope"),
+    // ── WHOOP refresh control (2026-08-19, founder-approved additive migration;
+    //    governance/WHOOP-SWEEP-REDESIGN.md). Scheduling state ONLY — these
+    //    never affect token values, snapshot values, or scoring, and rows are
+    //    never deleted automatically. NULLs mean "no failure history". ──
+    /** Consecutive refresh failures. Cleared by any successful refresh/re-auth. */
+    refreshFailureCount: integer("refresh_failure_count"),
+    /** Automatic refresh must not retry before this instant (exponential
+     *  backoff, 24h cap). */
+    refreshBackoffUntil: timestamp("refresh_backoff_until", { withTimezone: true }),
+    /** Latched after 8 consecutive failures: the member must re-authenticate;
+     *  automatic retries stop until they do. */
+    needsReauth: boolean("needs_reauth"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
