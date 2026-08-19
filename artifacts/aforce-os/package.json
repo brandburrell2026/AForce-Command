@@ -19,7 +19,7 @@
     "eas:submit:ios": "pnpm dlx eas-cli@latest submit --profile production --platform ios --latest",
     "eas:submit:ios:internal": "echo 'Submit internal builds by ID: pnpm dlx eas-cli@latest submit --platform ios --id <buildId> (never --latest \u2014 see docs/health/rollout/RC2-RULING-A-INTERNAL-TESTFLIGHT-OVERLAY.md)' && exit 1",
     "eas:submit:android": "pnpm dlx eas-cli@latest submit --profile production --platform android --latest",
-    "eas-build-pre-install": "pnpm config set dangerously-allow-all-builds true --location project || true && if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then echo \"node-linker=hoisted\" >> ../../.npmrc; fi",
+    "eas-build-pre-install": "pnpm config set dangerously-allow-all-builds true --location project || true && if [ \"$EAS_BUILD_PLATFORM\" = \"android\" ]; then echo \"node-linker=hoisted\" >> ../../.npmrc && find ../.. -maxdepth 3 -name node_modules -type d -prune -exec rm -rf {} +; fi",
     "android": "expo run:android",
     "ios": "expo run:ios"
   },
