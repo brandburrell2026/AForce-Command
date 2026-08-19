@@ -76,6 +76,12 @@ export interface WhoopOAuthDeps extends DestructiveRouteDeps {
       | "skipped_no_token"
       | "skipped_no_state"
       | "skipped_locked"
+      // Scheduling suppressions (WHOOP sweep redesign 2026-08-19). The
+      // connect-time sync path treats them like "nothing to do right now" —
+      // the switch below falls through to its existing default handling.
+      | "skipped_fresh"
+      | "skipped_backoff"
+      | "skipped_needs_reauth"
       | "error";
     fetchedAt?: number;
   }>;
@@ -397,6 +403,18 @@ export function buildWhoopOAuthRouter(deps: WhoopOAuthDeps): IRouter {
         return;
       case "skipped_locked":
         res.status(200).json({ ok: true, synced: false, reason: "locked" });
+        return;
+      case "skipped_fresh":
+        // Data is already fresh — honest 200: connected, nothing to fetch.
+        res.status(200).json({ ok: true, synced: false, reason: "fresh" });
+        return;
+      case "skipped_backoff":
+        res.status(200).json({ ok: true, synced: false, reason: "backoff" });
+        return;
+      case "skipped_needs_reauth":
+        // The member must re-authenticate; the connect flow they are already
+        // in IS the remedy, so report it plainly.
+        res.status(200).json({ ok: true, synced: false, reason: "needs_reauth" });
         return;
       case "error":
       default:

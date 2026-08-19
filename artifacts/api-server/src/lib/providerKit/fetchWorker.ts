@@ -66,6 +66,12 @@ export type ProviderFetchOutcomeStatus =
   | "skipped_no_token"
   | "skipped_no_state"
   | "skipped_locked"
+  // WHOOP sweep redesign (2026-08-19): scheduling suppressions. A suppressed
+  // user costs zero provider calls and zero fetch work — the sweep only
+  // tallies why it did nothing.
+  | "skipped_fresh"
+  | "skipped_backoff"
+  | "skipped_needs_reauth"
   | "error";
 
 export interface ProviderFetchOutcome<TSnapshot> {

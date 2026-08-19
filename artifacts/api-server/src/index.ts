@@ -7,6 +7,7 @@ import { beginDrain } from "./health/checks";
 import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
 import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
+import { initWhoopForegroundRefresh } from "./lib/whoopForegroundRefresh";
 import { maybeStartWhoopAuthStatePurge } from "./lib/whoopAuthStatePurgeBootstrap";
 import { maybeStartWhoopTokenBackfill } from "./lib/whoopTokenBackfillBootstrap";
 import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
@@ -45,6 +46,14 @@ server.listen(port, () => {
   // the process-singleton WhoopRefreshRegistry with the admin trigger
   // route so concurrent fetches for the same user collapse to one POST.
   maybeStartWhoopFetchSweep({
+    db,
+    refreshRegistry: getWhoopRefreshRegistry(),
+    log: logger,
+  });
+  // WHOOP sweep redesign (2026-08-19): foreground refresh rides the app's
+  // existing GET /aforce/state call — no client change. Independent of the
+  // sweep's interval env so app-open refresh works even with the sweep off.
+  initWhoopForegroundRefresh({
     db,
     refreshRegistry: getWhoopRefreshRegistry(),
     log: logger,
