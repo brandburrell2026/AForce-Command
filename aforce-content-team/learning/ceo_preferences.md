@@ -26,4 +26,12 @@ If CONFIRMED: confirmed [date], written to [file] as CEO PREFERENCE citing this 
 *(none)*
 
 ## OBSERVATIONS
-*(none)*
+
+```
+P-001 [OBSERVATION] — Durable messaging changes should earn their status with performance data before entering canon.
+Evidence: D-0005 (2026-08-20) — CEO deferred graduation of 3 campaign lines to the Oct 2 post-mortem, consistent with the system's recommendation.
+Consistency: 1 consistent / 0 contradicting (single occurrence — this is an observation, not a preference)
+Dimension: messaging / brand canon
+First seen: 2026-08-20 · Last reinforced: 2026-08-20
+Note: cannot yet be distinguished from simple agreement with the recommendation; requires independent recurrence to climb the ladder.
+```
