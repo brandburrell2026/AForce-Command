@@ -39,6 +39,8 @@ Leadership reviews in `dashboard/APPROVALS.md` (or directly in files) and marks 
 
 Every leadership action is learning fuel — the Guardian consults this history before future reviews.
 
+Every decision (including DEFER) is also recorded as a row in `../data/ceo_decisions.csv` per `executive-decision-loop.md` — the executive ledger that `/ceo-review` reads so Brandon is never re-asked a settled question, and the source the preference-learning thresholds run over. Recording a decision never edits the Brand Brain; confirmed patterns get there only through the loop's explicit confirmation step.
+
 ## Escalations that bypass nothing but move faster
 
 - ⚠️ QA claim flags: only the named decider (leadership / counsel / Agent 07) clears them; the piece cannot reach APPROVED with an open flag.

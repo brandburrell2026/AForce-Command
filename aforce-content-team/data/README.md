@@ -11,6 +11,7 @@ CSV stores, edited by agents and leadership. **Prime directive: no fabricated da
 | `content_feedback.csv` | Leadership's APPROVED/EDITED/REJECTED record — the voice-learning fuel (`../workflows/voice-training-engine.md`). | empty until feedback |
 | `social_performance.csv` | Normalized per-post metrics (contract in `../integrations/social-analytics.md`). | empty until posts exist |
 | `creators.csv` | Agent 19's creator database. Real people, sourced stats only. | empty until sourcing |
+| `ceo_decisions.csv` | The executive ledger: every CEO APPROVE/EDIT/REJECT/DEFER with dimensions, confidence, and lesson candidates (`../workflows/executive-decision-loop.md`). Append-only; corrections are new rows. | empty until decisions |
 
 ## Conventions
 
