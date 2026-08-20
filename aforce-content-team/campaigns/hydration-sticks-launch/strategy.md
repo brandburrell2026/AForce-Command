@@ -1,7 +1,7 @@
 # CAMPAIGN: THE RITUAL TRAVELS — AForce Hydration Sticks Launch
 
 **Window:** September 1–30, 2026 · **Launch day: Monday, September 14, 2026** *(AI-assumed date inside the confirmed September launch — leadership to confirm or move; the calendar re-anchors automatically around the real date).*
-**Status:** PLANNED — package awaiting leadership sign-off. · **Owner:** CCO + Strategist.
+**Status:** **APPROVED by CEO — D-0001, 2026-08-20** (strategy, messaging, calendar). Launch date remains **unconfirmed** — Sep 14 is still the working assumption; date-bearing content (from Sep 11) must not film until the date is given. · **Owner:** CCO + Strategist.
 
 ## CAMPAIGN NAME
 

@@ -1,6 +1,6 @@
 # FD-003 — Two Years of "Impossible"
 
-**[SLOT]s:** [SLOT-1] one specific rejection scene (who/where — shape only, e.g. "a formulator in a parking lot call"); [SLOT-2] the moment it stung most.
+**[SLOT]s:** resolved via generic fallback (CEO D-0007, 2026-08-20) — the script below uses only canonical facts. If Brandon later supplies a real rejection scene ([SLOT-1]) or the moment it stung most ([SLOT-2]), swap them in at 0:15; the specific beats strengthen it but are not required.
 **CONTENT IDEA:** F02 ep. 3: the two years of "it's impossible" — and the reframe that saved them: treating the no as the brief.
 **OBJECTIVE:** The persistence chapter; LinkedIn flagship for P2.
 **TARGET AUDIENCE:** P2 Builder. **PLATFORM:** LinkedIn (text) + Reels (45s). **VIDEO LENGTH:** 45s. **CONTENT PILLAR:** Founder Journey · Level: Culture. **TALENT:** Brandon.
@@ -18,7 +18,7 @@
 
 [0:00] "Every expert we called said the same three words. 'It's impossible.'"
 [0:06] "An alkaline hydration beverage with the taste, the stability, and the performance profile we wanted — hadn't been done. Two years. Same answer."
-[0:15] "[SLOT-1: one concrete rejection scene — one sentence.]"
+[0:15] "Different experts. Different rooms. Same three words." *(generic fallback — canon-safe; replace with a real scene if supplied)*
 [0:20 — PATTERN INTERRUPT] "Here's the decision that saved us. We stopped hearing 'no' — and started hearing a spec."
 [0:26] "'Impossible' just means nobody's met the requirements yet. So we treated the answer as the brief. Every 'can't be done' became a line item: taste. Stability. Profile. Solve in order."
 [0:36] "Most people would have accepted the answer. I understand why. It's reasonable. Building anything real means being unreasonable a little longer than everyone around you."
