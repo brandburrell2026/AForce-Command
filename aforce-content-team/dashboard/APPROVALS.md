@@ -13,7 +13,7 @@
 | SF-011 "alkaline, honestly" | APPROVE or HOLD (QA-priority piece) | Sep 6 (scheduled Sep 10) |
 | FD-003 + FD-005 + SF-008 (fallback versions) | Content approval — [SLOT]s resolved via the D-0007 generic-fallback policy; scripts are now clean | FD-003 by Sep 1 (Sep 3 slot); FD-005 by Sep 5 (Sep 7 slot) |
 | FD-008 + FD-009 (flagged back per D-0007) | Generic fallbacks would **materially weaken** these (their value IS the real specifics) — supply the facts, or approve the proposed slot swap (FD-004 text → Sep 8 LinkedIn; FD-009 slides) | FD-008 call by Sep 5 |
-| Creator shortlist | **CEO: VERIFY FIRST (D-0008, 2026-08-20)** — verification pass running (3 research agents, no contact); ranked Top 5 across the CEO's 7 criteria returns for approval before any outreach | Top 5 delivered on research completion; deliverables still due Sep 10 |
+| Creator Top 5 | **VERIFICATION COMPLETE — Top 5 delivered** (`../reports/2026-08-20-creator-top5.md`): 1 kofuzi · 2 Ashleigh Small · 3 Alica R-S · 4 Hutchins (podcast framing) · 5 Forte (partnership framing). 3 flagged out (identity mismatch CR-014, eligibility CR-007, fit CR-008); UGC-006 gap still open. Awaiting per-creator outreach approval — zero contact made | decide now — kofuzi's Berlin window (~Sep 25) is time-bound; deliverables due Sep 10 |
 
 ## APPROVED — CEO D-0002 (Week-1 batch, 2026-08-20) → production may begin
 
