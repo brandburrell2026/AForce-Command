@@ -36,7 +36,9 @@ audience_type,content_style,sports,fitness_focus,brand_fit,status,contact,rate,
 products_sent,campaigns,performance,notes
 ```
 
-`status` vocabulary: PROSPECT → CONTACTED → SEEDED → NEGOTIATING → ACTIVE → DELIVERED → RENEWED / PAUSED / DECLINED / ENDED.
+`status` vocabulary (CEO-set, D-0014): **RESEARCHING → VERIFIED → SHORTLISTED → CEO-SELECTED → OUTREACH HOLD → OUTREACH AUTHORIZED → CONTACTED → RESPONDED → NEGOTIATING → CONTRACTED → ACTIVE → DECLINED → ARCHIVED.**
+
+**STANDING HOLD (D-0014, 2026-08-20): ALL creator outreach is on hold** — no emails, DMs, calls, introductions, offers, product shipments, media-kit requests, rate requests, negotiations, contracts, or partnership discussions with any creator — until the CEO explicitly issues **"AUTHORIZE CREATOR OUTREACH."** Research, verification, scoring, ranking, prospecting, conflict monitoring, brief and draft preparation all continue internally and must never trigger contact. The hold is not rejection: held creators keep their shortlist standing and brand-fit scores. Do not surface outreach authorization as a CEO decision while the hold is active.
 `brand_fit` is scored /10 against: arena authenticity, existing content tone (quiet-confidence compatible?), claims hygiene of their past posts, audience overlap with our personas.
 
 ## Rules

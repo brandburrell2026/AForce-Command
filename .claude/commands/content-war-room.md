@@ -57,6 +57,10 @@ BLOCKED — … (with what unblocks each)
 
 `/run-day` *generates* the daily plan; `/run-week` *generates* the weekly plan; the war room *reports state* across both plus pipeline, agents, campaigns, and performance — read their outputs, don't redo their work. Items needing executive judgment are pointed at `/ceo-review`, not decided here. If TODAY.md is stale (older than today), refresh it via the `/run-day` sequence first, then report.
 
+## Creator program under hold (C-007/D-0014)
+
+While the CEO's creator-outreach hold is active: sections 4/9/10 show the creator program as **`CREATOR PROGRAM — OUTREACH HOLD BY CEO`** — never as a blocker on the CEO, never in WAITING FOR CEO, never as an urgent decision. Internal creator work (research, verification, ranking, brief/draft prep) reports as normal agent activity. The department's focus during the hold: AForce-owned content, founder content, campaign production, launch creative, production readiness.
+
 ## Integrity rules (mandatory)
 
 No fabricated analytics, creator performance, testimonials, sales, conversions, evidence, or approvals. `NO VERIFIED DATA` and `NOT RUN` are first-class answers. Simulated/demo data is labeled. Historical records are never silently rewritten; raw source data is never overwritten with interpretation. Nothing publishes automatically — human approval remains required.

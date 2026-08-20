@@ -36,6 +36,8 @@ Group into **APPROVE / EDIT / REJECT / DEFER** recommendation buckets (your reco
 
 Do not surface trivia: anything the specs already authorize (e.g., routine Always-On production of approved concepts) does not need the CEO. Decisions already recorded in `ceo_decisions.csv` are settled — show them only under "previously decided" if context requires. **Standing unresolved items are presented as one line each in the queue — never re-explained at length in report after report** (C-005): the full case for each was made once; link to where it lives.
 
+**Creator program under hold (C-007/D-0014):** while the CEO's outreach hold is active, creator outreach NEVER appears as a decision or urgency. Show exactly one status line — `CREATOR PROGRAM — OUTREACH HOLD BY CEO` — plus internal progress if material (research/verification only). Do not ask for outreach authorization unless the CEO has lifted the hold ("AUTHORIZE CREATOR OUTREACH") or explicitly asked to review the creator program.
+
 ### C. TOP CONTENT
 The highest-priority content currently proposed (typically 5–10 items, from the scorecards + calendar criticality). For each: platform · audience · content pillar · hook · concept · CTA · campaign · rationale (why this one matters now) · claim/compliance status (✔ clean / ⚠️ flagged: what) · approval status.
 

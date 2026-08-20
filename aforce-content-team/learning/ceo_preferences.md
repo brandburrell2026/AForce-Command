@@ -38,9 +38,15 @@ Scope: /ceo-review recording protocol
 ```
 
 ```
-C-004 [CONFIRMED — explicit instruction] — Creator governance pipeline: AI researches → AI ranks → CEO selects → AI final-verifies → CEO authorizes outreach → outreach → AI tracks. Shortlisted/ranked/GO does NOT authorize contact; only the explicit words "AUTHORIZE OUTREACH" do.
-Evidence: D-0010 (CEO directive, 2026-08-20).
+C-004 [CONFIRMED — explicit instruction] — Creator governance pipeline: AI researches → AI ranks → CEO selects → AI final-verifies → CEO authorizes outreach → outreach → AI tracks. Shortlisted/ranked/GO does NOT authorize contact.
+Evidence: D-0010 (CEO directive, 2026-08-20). AMENDED by C-007/D-0014: the authorization phrase is now "AUTHORIZE CREATOR OUTREACH", and a standing hold is in force.
 Scope: all creator operations (Agents 11, 19)
+```
+
+```
+C-007 [CONFIRMED — explicit instruction] — STANDING HOLD on all creator outreach (every creator in the database, every contact form: email/DM/call/intro/offer/shipment/media-kit/rate/negotiation/contract/partnership talk) until the CEO explicitly issues "AUTHORIZE CREATOR OUTREACH". Internal research/verification/ranking/brief-and-draft prep continues and never triggers contact. The hold is not rejection — no shortlist removal, no brand-fit downgrade for paused creators. /ceo-review and /content-war-room show "CREATOR PROGRAM — OUTREACH HOLD BY CEO" instead of an outreach decision, and never re-ask for authorization unless the hold is lifted or the CEO asks to review the program.
+Evidence: D-0014 (CEO directive, 2026-08-20).
+Scope: entire creator program + executive reporting
 ```
 
 ```

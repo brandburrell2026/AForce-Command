@@ -13,7 +13,7 @@
 | SF-011 "alkaline, honestly" | APPROVE or HOLD (QA-priority piece) | Sep 6 (scheduled Sep 10) |
 | FD-003 + FD-005 + SF-008 (fallback versions) | Content approval — [SLOT]s resolved via the D-0007 generic-fallback policy; scripts are now clean | FD-003 by Sep 1 (Sep 3 slot); FD-005 by Sep 5 (Sep 7 slot) |
 | FD-008 + FD-009 (flagged back per D-0007) | Generic fallbacks would **materially weaken** these (their value IS the real specifics) — supply the facts, or approve the proposed slot swap (FD-004 text → Sep 8 LinkedIn; FD-009 slides) | FD-008 call by Sep 5 |
-| Creators | **FINAL VERIFICATION DONE** (`../reports/2026-08-20-final-verification.md`): kofuzi READY (1 pre-send gate) · Alica READY (cleanest) · Ashleigh NOT READY (recency failed — 5-min in-app check flips or drops her). Hutchins/Forte explore-only. **Awaiting the words "AUTHORIZE OUTREACH" — nothing sends without them (C-004)** | kofuzi's Berlin window is time-bound (race Sep 27) |
+| Creators | **CREATOR PROGRAM — OUTREACH HOLD BY CEO (D-0014).** Not a CEO decision while the hold stands. Internal state: kofuzi + Alica verified READY, Ashleigh NOT READY (recency), Hutchins/Forte explore-prepped — all five OUTREACH HOLD; drafts and gates preserved in `../reports/2026-08-20-final-verification.md`, ready the day the hold lifts ("AUTHORIZE CREATOR OUTREACH") | — |
 
 ## APPROVED — CEO D-0002 (Week-1 batch, 2026-08-20) → production may begin
 
