@@ -18,7 +18,7 @@
 [0:00] "'Isn't this just expensive salt?' Fair question. Real answer."
 [0:05 — concede first] "Here's what's true in it: sodium is cheap. If a stick were only salt, you'd be overpaying. You'd be right to say so."
 [0:13 — the turn] "Here's what the question misses. You're paying for what's *around* the sodium — a considered profile of electrolytes and minerals, chosen for established roles. Balanced, tested, repeated until it's the same every time."
-[0:24 — PATTERN INTERRUPT: slides a plain salt shaker into frame next to the stick] "This is salt." [beat] "This took two years, a scientist who'd never built anything like it, and thirty-some failed batches." *(verify batch figure with founders — else say "more failed batches than we like to admit")*
+[0:24 — PATTERN INTERRUPT: slides a plain salt shaker into frame next to the stick] "This is salt." [beat] "This took two years, a scientist who'd never built anything like it, and more failed batches than we like to admit." *(generic fallback per CEO D-0007 — swap in the real figure only if the founders explicitly supply it)*
 [0:33] "Taste that doesn't punish you. Stability that doesn't separate. Zero grams of added sugar. Plant-based. A standard we print, not promises we invent."
 [0:41 — CTA] "You don't have to buy it. But now you know what it is. Stated plainly."
 
@@ -43,4 +43,4 @@ Macro salt crystals vs. stick powder · glass swirl · label pan.
 **EDITING NOTES:** Zero music until the final line (single low note). Two-camera A/B for the concede/turn rhythm. Keep the salt-shaker beat deadpan.
 **ALTERNATIVE VERSION (60s):** Add 12s on where the money actually goes (formulation, testing, ingredient sourcing) — requires founder-verified specifics before filming.
 
-**CLAIMS CHECK:** "Established roles" phrasing per CLAIMS §2; product facts canonical; batch-count claim flagged **[verify with founders]** — QA blocks until resolved or genericized. Stick-level formulation specifics not stated.
+**CLAIMS CHECK:** "Established roles" phrasing per CLAIMS §2; product facts canonical; batch-count line genericized per CEO D-0007 (2026-08-20) — no unverified figure remains. Stick-level formulation specifics not stated. ✔ QA-ready. (The 60s ALTERNATIVE VERSION still requires founder-verified specifics before filming.)

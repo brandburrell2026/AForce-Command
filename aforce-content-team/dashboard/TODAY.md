@@ -4,8 +4,8 @@
 
 ## TODAY'S PRIORITIES
 1. **Production is unblocked** — D-0002 approved the 13-item Week-1 batch: schedule the founder pre-dawn session (FD-001/002/010) and lock the CB-01 launch-film shoot week (recommended Aug 24–30, airport scene first).
-2. **Four CEO inputs still outstanding** (came back as unfilled placeholders): launch date · SF-019 approve/hold · SF-011 approve/hold · founder [SLOT] facts + SF-008 figure. FD-003's slot is needed by **Sep 1**.
-3. **Casting can't start** — UGC briefs are approved (D-0003) but no creator names/handles were supplied; `data/creators.csv` is still empty. Deliverables due **Sep 10**.
+2. **Three CEO inputs still outstanding** (placeholders returned unfilled twice): launch date · SF-019 approve/hold · SF-011 approve/hold. Plus content approvals for the new fallback versions (FD-003 by Sep 1) and the FD-008/FD-009 flag-backs (facts or slot swap).
+3. **Casting: cold-sourcing underway** (D-0006) — Agent 19 is researching a shortlist for CEO review; **no outreach without explicit CEO approval**. Deliverables still due **Sep 10**.
 4. Agent 07: attach source notes to SF-004/SF-017 (both now APPROVED) before filming; SF-011's note ready for whenever the CEO clears it.
 5. On GitHub: merge of `claude/aforce-content-os-command-center` approved (D-0004) — executes on Brandon's side.
 
