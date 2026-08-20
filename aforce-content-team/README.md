@@ -37,10 +37,12 @@ aforce-content-team/
 
 ## Commands
 
-Slash commands are installed at the repo root (`.claude/commands/`). The two master commands:
+Slash commands are installed at the repo root (`.claude/commands/`). The founder operates the department through four (full guide: `FOUNDER_WORKFLOW.md`):
 
-- **`/run-week`** — the full weekly department cycle: executive brief → strategy → portfolio → 50 scored hooks → scored concepts → scripts → founder + UGC → briefs → filming list → calendar → community plan → experiments → priority list.
 - **`/run-day`** — the operational daily brief: posts, filming, editing, approvals, trends, comments, top hook, live experiment, deadlines.
+- **`/content-war-room`** — the operating dashboard: pipeline, agent status, campaign state, performance (real or `NO VERIFIED DATA`), winners, risks, next actions.
+- **`/ceo-review`** — the executive approval interface: a ≤10-bullet summary and a numbered APPROVE/EDIT/REJECT/DEFER queue with evidence; decisions are recorded to `data/ceo_decisions.csv` and learned from via evidence thresholds (`workflows/executive-decision-loop.md`).
+- **`/run-week`** — the full weekly department cycle: executive brief → strategy → portfolio → 50 scored hooks → scored concepts → scripts → founder + UGC → briefs → filming list → calendar → community plan → experiments → priority list.
 
 Plus: `/content-today`, `/content-week`, `/content-month`, `/hooks [topic]`, `/script [concept]`, `/campaign [objective]`, `/repurpose [content]`, `/analyze-content`, `/double-down`, `/founder-content`, `/ugc [product]`, `/launch-plan [product]`.
 

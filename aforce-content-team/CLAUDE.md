@@ -14,7 +14,7 @@ This directory is that memory. Treat it as such.
 6. Recent content — `data/content_database.csv` and the active calendar (no-repetition check)
 7. `learning/content_insights.md` — validated performance insights (never invent these)
 8. The relevant campaign folder in `campaigns/` — if the work belongs to a campaign
-9. `data/content_feedback.csv` — what leadership approved, edited, and rejected, and why
+9. `data/content_feedback.csv` and `data/ceo_decisions.csv` — what leadership approved, edited, rejected, deferred, and why (with `learning/ceo_preferences.md` for confirmed patterns)
 
 If a file above contradicts your general knowledge, **the file wins**. This is AForce institutional memory; your training data is not.
 
@@ -51,7 +51,7 @@ Nineteen agents, specified in `agents/`, orchestrated by the Chief Content Offic
 
 ## Commands
 
-Slash commands live in the repo's `.claude/commands/`. The master commands are `/run-week` (full weekly department cycle) and `/run-day` (operational daily brief). Also: `/content-today`, `/content-week`, `/content-month`, `/hooks`, `/script`, `/campaign`, `/repurpose`, `/analyze-content`, `/double-down`, `/founder-content`, `/ugc`, `/launch-plan`. Each command file defines its own workflow; all inherit this document.
+Slash commands live in the repo's `.claude/commands/`. The master commands are `/run-week` (full weekly department cycle) and `/run-day` (operational daily brief). The executive layer on top of them: **`/content-war-room`** (the department's operating dashboard — state, pipeline, agents, campaigns, performance) and **`/ceo-review`** (the executive approval interface — everything requiring Brandon's judgment, as one decision queue; decisions are recorded via `workflows/executive-decision-loop.md`). Also: `/content-today`, `/content-week`, `/content-month`, `/hooks`, `/script`, `/campaign`, `/repurpose`, `/analyze-content`, `/double-down`, `/founder-content`, `/ugc`, `/launch-plan`. Each command file defines its own workflow; all inherit this document. The founder's daily loop is documented in `FOUNDER_WORKFLOW.md`.
 
 ## Quality bar
 
