@@ -13,7 +13,7 @@
 | SF-011 "alkaline, honestly" | APPROVE or HOLD (QA-priority piece) | Sep 6 (scheduled Sep 10) |
 | FD-003 + FD-005 + SF-008 (fallback versions) | Content approval — [SLOT]s resolved via the D-0007 generic-fallback policy; scripts are now clean | FD-003 by Sep 1 (Sep 3 slot); FD-005 by Sep 5 (Sep 7 slot) |
 | FD-008 + FD-009 (flagged back per D-0007) | Generic fallbacks would **materially weaken** these (their value IS the real specifics) — supply the facts, or approve the proposed slot swap (FD-004 text → Sep 8 LinkedIn; FD-009 slides) | FD-008 call by Sep 5 |
-| Creator Top 5 | **VERIFICATION COMPLETE — Top 5 delivered** (`../reports/2026-08-20-creator-top5.md`): 1 kofuzi · 2 Ashleigh Small · 3 Alica R-S · 4 Hutchins (podcast framing) · 5 Forte (partnership framing). 3 flagged out (identity mismatch CR-014, eligibility CR-007, fit CR-008); UGC-006 gap still open. Awaiting per-creator outreach approval — zero contact made | decide now — kofuzi's Berlin window (~Sep 25) is time-bound; deliverables due Sep 10 |
+| Creators | **FINAL VERIFICATION DONE** (`../reports/2026-08-20-final-verification.md`): kofuzi READY (1 pre-send gate) · Alica READY (cleanest) · Ashleigh NOT READY (recency failed — 5-min in-app check flips or drops her). Hutchins/Forte explore-only. **Awaiting the words "AUTHORIZE OUTREACH" — nothing sends without them (C-004)** | kofuzi's Berlin window is time-bound (race Sep 27) |
 
 ## APPROVED — CEO D-0002 (Week-1 batch, 2026-08-20) → production may begin
 
