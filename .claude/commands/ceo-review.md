@@ -34,7 +34,7 @@ Group into **APPROVE / EDIT / REJECT / DEFER** recommendation buckets (your reco
 6. **Deadline/urgency** — only real ones from the calendar or campaign dates. **Never manufacture urgency**; "no deadline" is a valid answer.
 7. **Exact CEO decision required** — phrased so Brandon can answer in one word or one sentence.
 
-Do not surface trivia: anything the specs already authorize (e.g., routine Always-On production of approved concepts) does not need the CEO. Decisions already recorded in `ceo_decisions.csv` are settled — show them only under "previously decided" if context requires.
+Do not surface trivia: anything the specs already authorize (e.g., routine Always-On production of approved concepts) does not need the CEO. Decisions already recorded in `ceo_decisions.csv` are settled — show them only under "previously decided" if context requires. **Standing unresolved items are presented as one line each in the queue — never re-explained at length in report after report** (C-005): the full case for each was made once; link to where it lives.
 
 ### C. TOP CONTENT
 The highest-priority content currently proposed (typically 5–10 items, from the scorecards + calendar criticality). For each: platform · audience · content pillar · hook · concept · CTA · campaign · rationale (why this one matters now) · claim/compliance status (✔ clean / ⚠️ flagged: what) · approval status.

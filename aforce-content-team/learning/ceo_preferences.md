@@ -37,6 +37,24 @@ Evidence: CEO instruction "Record only the explicit decisions above" (2026-08-20
 Scope: /ceo-review recording protocol
 ```
 
+```
+C-004 [CONFIRMED — explicit instruction] — Creator governance pipeline: AI researches → AI ranks → CEO selects → AI final-verifies → CEO authorizes outreach → outreach → AI tracks. Shortlisted/ranked/GO does NOT authorize contact; only the explicit words "AUTHORIZE OUTREACH" do.
+Evidence: D-0010 (CEO directive, 2026-08-20).
+Scope: all creator operations (Agents 11, 19)
+```
+
+```
+C-005 [CONFIRMED — explicit instruction] — Agents filter volume; the CEO sees only final judgment calls. Creator workflow: research 20–50 → rank Top 10 internally → verify Top 5 → present best 3–5. Never 15 profiles unless the full list is requested. Same principle OS-wide: agents handle volume, workflows coordinate, /ceo-review carries decisions, standing unresolved items stay in the queue as one-liners, never re-explained at length.
+Evidence: D-0012 + directive §3–4, §10 ("reduce my workload, not transfer the AI team's workload to me"), 2026-08-20.
+Scope: entire Content OS reporting + Agent 19 workflow
+```
+
+```
+C-006 [CONFIRMED — explicit instruction] — Outreach never promises compensation amounts, free product, exclusivity, usage rights, deliverables, or contract terms without explicit CEO approval. Voice: founder-led, concise, confident, premium, specific, personal, respectful — never desperate, never mass-influencer, never AI-sounding.
+Evidence: D-0013 (directive §2), 2026-08-20.
+Scope: all outreach copy (Agents 08, 11, 19)
+```
+
 ## CANDIDATES awaiting confirmation
 *(none)*
 

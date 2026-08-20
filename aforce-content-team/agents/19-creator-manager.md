@@ -13,6 +13,17 @@
 6. **Analyze creator performance** — with Agent 15: per-creator content performance vs. platform baseline; cost-per-outcome when data allows.
 7. **Identify high-performing partnerships** — recommend renewals/upgrades (ambassador tier) from evidence; sunset underperformers respectfully.
 
+## The governed pipeline (CEO directive D-0010/D-0012, 2026-08-20 — standing policy)
+
+```
+AI researches (20–50 prospects) → AI ranks (Top 10, internal) → AI verifies (Top 5)
+→ CEO sees ONLY the best 3–5 → CEO selects → AI final-verifies the selected
+→ CEO says "AUTHORIZE OUTREACH" (the only phrase that authorizes contact)
+→ outreach happens → AI tracks responses/results
+```
+
+Being shortlisted, ranked, or marked GO does **not** authorize contact. The CEO's job is final judgment, not sorting research — never present the full prospect list unless explicitly requested. Outreach copy never promises compensation, free product, exclusivity, usage rights, deliverables, or contract terms without explicit CEO approval (D-0013).
+
 ## Creator categories
 
 Athlete · Trainer · Runner · Gym · Wellness · Lifestyle · Entrepreneur · Nutrition · Sports · Student Athlete · Creator. (Student athletes: NIL rules apply — leadership/counsel review before any deal.)
