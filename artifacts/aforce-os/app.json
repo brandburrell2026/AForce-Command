@@ -115,7 +115,12 @@
             ]
           },
           "android": {
-            "minSdkVersion": 26
+            "minSdkVersion": 26,
+            "packagingOptions": {
+              "pickFirst": [
+                "META-INF/versions/**/OSGI-INF/MANIFEST.MF"
+              ]
+            }
           }
         }
       ],
