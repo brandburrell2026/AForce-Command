@@ -13,7 +13,7 @@
 | SF-011 "alkaline, honestly" | APPROVE or HOLD (QA-priority piece) | Sep 6 (scheduled Sep 10) |
 | FD-003 + FD-005 + SF-008 (fallback versions) | Content approval — [SLOT]s resolved via the D-0007 generic-fallback policy; scripts are now clean | FD-003 by Sep 1 (Sep 3 slot); FD-005 by Sep 5 (Sep 7 slot) |
 | FD-008 + FD-009 (flagged back per D-0007) | Generic fallbacks would **materially weaken** these (their value IS the real specifics) — supply the facts, or approve the proposed slot swap (FD-004 text → Sep 8 LinkedIn; FD-009 slides) | FD-008 call by Sep 5 |
-| Creator shortlist | Cold-sourcing underway per D-0006 (research only, no contact) — shortlist comes to you for review before any outreach | review when delivered; deliverables still due Sep 10 |
+| Creator shortlist | **DELIVERED** — 12 candidates + 3 leads in `../reports/2026-08-20-creator-shortlist.md` (CR-001–015, all UNVERIFIED PROSPECT). Per creator: APPROVE FOR OUTREACH / REJECT / VERIFY FIRST. No contact until you approve. | review now — deliverables still due Sep 10 and the outreach→filming runway is ~3 weeks |
 
 ## APPROVED — CEO D-0002 (Week-1 batch, 2026-08-20) → production may begin
 
