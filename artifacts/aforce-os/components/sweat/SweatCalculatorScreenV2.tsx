@@ -189,18 +189,18 @@ export function SweatCalculatorScreenV2() {
   const ambientTempC = useMemo(() => Math.round((climate.tempF - 32) * (5 / 9)), [climate]);
 
   // Quick mode state.
-  const [qPre, setQPre] = useState('170');
-  const [qPost, setQPost] = useState('167.5');
-  const [qHeight, setQHeight] = useState('5.8');
-  const [qDuration, setQDuration] = useState('60');
-  const [qFluid, setQFluid] = useState('16');
+  const [qPre, setQPre] = useState('');
+  const [qPost, setQPost] = useState('');
+  const [qHeight, setQHeight] = useState('');
+  const [qDuration, setQDuration] = useState('');
+  const [qFluid, setQFluid] = useState('');
 
   // Precision mode state.
-  const [pPre, setPPre] = useState('170');
-  const [pPost, setPPost] = useState('167');
-  const [pHeight, setPHeight] = useState('5.8');
-  const [pDuration, setPDuration] = useState('90');
-  const [pFluid, setPFluid] = useState('20');
+  const [pPre, setPPre] = useState('');
+  const [pPost, setPPost] = useState('');
+  const [pHeight, setPHeight] = useState('');
+  const [pDuration, setPDuration] = useState('');
+  const [pFluid, setPFluid] = useState('');
   const [pUrine, setPUrine] = useState('0');
   const [pSportId, setPSportId] = useState('soccer');
   const [pAcclimatized, setPAcclimatized] = useState(false);
@@ -217,7 +217,7 @@ export function SweatCalculatorScreenV2() {
   const eWeightLbs = profileIdentity.bodyWeightLbs;
   const eHeightCm = profileIdentity.heightCm;
   const [eSportId, setESportId] = useState('basketball');
-  const [eDuration, setEDuration] = useState('60');
+  const [eDuration, setEDuration] = useState('');
   const [eIntensity, setEIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [eAcclimatized, setEAcclimatized] = useState(false);
   const [eSodium, setESodium] = useState<SodiumProfile>('moderate');
@@ -275,7 +275,19 @@ export function SweatCalculatorScreenV2() {
     setProfileIdentity: (patch: Partial<ProfileIdentity>) => void;
   }>();
 
+  const [blockedQualification, setBlockedQualification] =
+    useState<SweatSession['qualification'] | null>(null);
+
   function commitSession(session: SweatSession) {
+    // S1-2 (COR-001): an implausible computed session must not become
+    // an authoritative result — and must not drive recheck cadence.
+    if (session.qualification?.status === 'unavailable') {
+      setResult(null);
+      setBlockedQualification(session.qualification);
+      setSweatAutopilot(null);
+      return;
+    }
+    setBlockedQualification(null);
     setResult(session);
     setSweatAutopilot(session.autopilot);
   }
@@ -479,6 +491,12 @@ export function SweatCalculatorScreenV2() {
               </Text>
             </Pressable>
 
+            {blockedQualification && !result && (
+              <View style={styles.qualBlockedCard} testID="sweat-qual-unavailable">
+                <Text style={styles.qualBlockedTitle}>{t('sweat.v2.qual_unavailable_title')}</Text>
+                <Text style={styles.qualBlockedBody}>{t('sweat.v2.qual_unavailable_body')}</Text>
+              </View>
+            )}
             {result && canCalculate && <ResultPane result={result} />}
 
             <Pressable
@@ -749,6 +767,7 @@ function ClimateLine({ climate, ambientTempC }: { climate: CityClimate; ambientT
  * positioning copy required by the upgrade brief.
  */
 function ResultPane({ result }: { result: SweatSession }) {
+  const { t } = useTranslation();
   const inventory = useInventorySlice();
   const protocol = useMemo(
     () => pickRecoveryProtocol(result, inventory),
@@ -757,6 +776,11 @@ function ResultPane({ result }: { result: SweatSession }) {
 
   return (
     <View style={styles.resultsWrap}>
+      {result.qualification?.status === 'limited' && (
+        <Text style={styles.qualLimitedNote} testID="sweat-qual-limited">
+          {t('sweat.v2.qual_limited_note')}
+        </Text>
+      )}
       <PerformanceHeader result={result} />
       <RecoveryIntelligenceCard />
       <AForceSystemCard />
@@ -1240,6 +1264,27 @@ function CitationCard() {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  qualBlockedCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: af.border,
+    backgroundColor: af.surface,
+    padding: 20,
+    gap: 8,
+  },
+  qualBlockedTitle: { color: af.textPrimary, fontSize: 17, fontWeight: '700' },
+  qualBlockedBody: { color: af.textSecondary, fontSize: 14, lineHeight: 20 },
+  qualLimitedNote: {
+    fontSize: 12,
+    color: af.textSecondary,
+    borderWidth: 1,
+    borderColor: af.border,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    overflow: 'hidden',
+  },
+
   root: { flex: 1, backgroundColor: af.canvas },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, gap: 14 },

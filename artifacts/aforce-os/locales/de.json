@@ -1768,7 +1768,10 @@
       "cite_strategy_source": "Source: Sawka MN et al. 2007. Med Sci Sports Exerc 39(2):377–390; Maughan RJ, Shirreffs SM. 2010. Scand J Med Sci Sports 20(Suppl 2):59–69.",
       "cite_estimate_heading": "Estimate path:",
       "cite_estimate_body": "Anchored to per-sport population-mean sweat rates (Baker 2017; sport-specific values from Maughan 2007 and Godek 2010), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.",
-      "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device."
+      "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device.",
+      "qual_unavailable_title": "Ergebnis nicht verfügbar",
+      "qual_unavailable_body": "Diese Eingaben ergeben eine Schweißrate außerhalb des plausiblen menschlichen Bereichs. Prüfe Vor- und Nachgewicht, Dauer und Flüssigkeit und berechne erneut.",
+      "qual_limited_note": "Schweißrate im Elitebereich — als Schätzung behandeln und mit einer Waage bestätigen."
     }
   },
   "achievements": {
