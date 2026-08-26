@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// `services/uiFreeze.ts` imports `useFeatureFlags` from
+// `@/store/useAppStore` at module scope (for the hidden
+// `useHiddenUiFreeze()` hook, which this suite does not test).
+// The store transitively reaches RN/Expo native edges (the `expo`
+// winter runtime, expo-notifications, AsyncStorage) that fail to
+// load under Vitest's Node environment. Per repo convention
+// (see orbReasons.test.ts, realApi.intake.test.ts), stub the
+// RN-touching edge minimally and test the real pure logic.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   FROZEN_SURFACES,
   FROZEN_SURFACE_LABELS,

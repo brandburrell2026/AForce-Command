@@ -34,6 +34,8 @@
   "url": "https://drinkaforce.com/founding-250/experience"
 }
 </script>
+<!-- Shared a11y enhancements (loaded before page styles so page styles win): header.css styles the background-video pause control injected by header.js; skip-link styles are local. -->
+<link rel="stylesheet" href="/assets/header.css">
 <style>
   :root{
     --ink:#0D0D0D;
@@ -50,7 +52,8 @@
     --b40:rgba(245,240,232,.40);
     --b24:rgba(245,240,232,.24);
     --b14:rgba(245,240,232,.14);
-    --display:'Archivo Black',sans-serif;
+    /* Homepage type system: Inter for display; Archivo Black ONLY for the N-И mark. */
+    --display:'Inter',sans-serif;
     --body:'Inter',sans-serif;
     --gutter:clamp(22px,6vw,88px);
     --maxw:1280px;
@@ -65,6 +68,10 @@
   img,svg,video{max-width:100%;display:block;}
   .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
+  /* ---------- SKIP LINK (WCAG 2.4.1) ---------- */
+  .skip-link{ position:fixed; top:12px; left:12px; z-index:400; display:block; padding:12px 20px; background:#0D0D0D; color:#F5F0E8; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; border-radius:4px; transform:translateY(calc(-100% - 16px)); }
+  .skip-link:focus, .skip-link:focus-visible{ transform:none; outline:2px solid #C1281B; outline-offset:2px; }
+
   /* ---------- TYPE ---------- */
   .eyebrow{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--red); }
   .h-display{ font-family:var(--display); font-weight:800; line-height:1.03; letter-spacing:-0.01em; font-size:clamp(38px,6.4vw,92px); }
@@ -77,7 +84,7 @@
   .nav{ position:fixed; top:0; left:0; right:0; z-index:80; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px var(--gutter); color:var(--bone); background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
   .nav.solid{ color:var(--ink); background:rgba(245,240,232,.85); backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
   .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
-  .nn{ display:inline-flex; align-items:center; gap:3px; }
+  .nn{ display:inline-flex; align-items:center; gap:0.13em; font-family:'Archivo Black',serif; font-weight:400; letter-spacing:0; }
   .nn > span:first-child{ color:var(--red); }
   .nn .bar{ display:inline-block; width:10px; height:2.5px; background:var(--red); }
   .nn .nflip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
@@ -122,7 +129,7 @@
   /* ---------- CINEMATIC ---------- */
   .cine{ position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden; }
   .cine.center{ align-items:center; }
-  .cine-media{ position:absolute; inset:0; z-index:0; }
+  .cine-media{ position:absolute; inset:0; } /* no z-index: would trap the injected .afx-vid-toggle (header.js) beneath .cine-scrim */
   .cine-media img,.cine-media video{ width:100%; height:100%; object-fit:cover; object-position:center; }
   .cine-scrim{ position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(13,13,13,.48) 0%, rgba(13,13,13,.10) 24%, rgba(13,13,13,0) 48%, rgba(13,13,13,.40) 74%, rgba(13,13,13,.84) 100%); }
   .cine-inner{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; padding:clamp(56px,9vh,120px) var(--gutter); color:var(--bone); }
@@ -193,13 +200,13 @@
   /* ---------- FOOTER ---------- */
   .ft{ background:var(--ink); color:var(--b64); padding:clamp(60px,8vw,100px) var(--gutter) clamp(40px,5vw,60px); }
   .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:40px; padding-bottom:clamp(36px,4vw,56px); border-bottom:1px solid var(--b14); }
-  .ft .f-brand .nn{ color:var(--bone); font-family:var(--display); font-size:22px; }
+  .ft .f-brand .nn{ color:var(--bone); font-family:'Archivo Black',serif; font-size:22px; }
   .ft .f-corp{ color:var(--bone); font-family:var(--display); font-size:clamp(18px,2vw,24px); line-height:1.3; }
   .ft .f-corp span{ display:block; color:var(--b40); font-family:var(--body); font-weight:400; font-size:13px; letter-spacing:.04em; margin-top:10px; }
   .ft .f-nav{ display:flex; flex-wrap:wrap; gap:14px 26px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
   .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--bone); }
   .ft .f-meta{ margin-top:clamp(30px,3vw,44px); display:flex; flex-wrap:wrap; gap:12px 28px; font-family:var(--body); font-weight:600; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--b40); }
-  .ft .f-meta .nonneg{ color:var(--b64); }
+  .ft .f-meta .nonneg{ color:var(--red); font-weight:700; }
 
   /* ---------- RESPONSIVE ---------- */
   @media (max-width:1000px){
@@ -225,9 +232,10 @@
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <!-- ============ NAV ============ -->
-<nav class="nav" id="nav">
+<nav class="nav" id="nav" aria-label="Primary">
   <a class="mark" href="/" aria-label="AFORCE home">
     <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span>
     AFORCE
@@ -241,6 +249,8 @@
     <a href="/shop">Shop</a>
   </div>
 </nav>
+
+<main id="main" tabindex="-1">
 
 <!-- ============ HERO ============ -->
 <header class="cine center" id="top">
@@ -377,6 +387,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER ============ -->
 <footer class="ft">
   <div class="wrap">
@@ -395,7 +407,7 @@
     </div>
     <div class="f-meta">
       <span>&copy; 2026 AFORCE Hydration, Inc.</span>
-      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+      Performance Is <span class="nonneg">Non-<span class="flip-n">N</span>egotiable.</span>
     </div>
   </div>
 </footer>
@@ -539,5 +551,7 @@ function el(html){ var t=document.createElement('template'); t.innerHTML=html.tr
   onScroll();
 })();
 </script>
+<!-- Shared a11y enhancements: header.js adds the background-video pause control (WCAG 2.2.2); its drawer code no-ops without afx markup. -->
+<script src="/assets/header.js" defer></script>
 </body>
 </html>

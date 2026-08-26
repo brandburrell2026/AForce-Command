@@ -57,6 +57,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // prod so logIntake keeps its exact online-only path (byte-identical no-op),
   // ON in DEMO. Score-Protection: replays frozen scores, server dedupes.
   offline_intake_outbox_enabled: false,
+  per_user_storage_isolation_enabled: false,
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
   profile_server_hydration_enabled: false,
@@ -184,6 +185,71 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // count-up / ordering only; never reads into or mutates score, command,
   // eligibility, timing, or safety. Reduced-motion → static Home.
   elite_home_experience_enabled: false,
+  // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
+  // sections inside HomeScreenV2: health-connection chip, four live-signal
+  // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
+  // protocol list, and streak/trend stat tiles. Honest-data rules: every value
+  // comes from existing store state (engine, userState, biometrics arbitration
+  // via explainFieldArbitration — the scoring path's own winner); tiles with no
+  // data show an em dash, never an invented number; protocol rows show period
+  // labels (Morning/Midday/Evening), never fabricated clock times. Presentation
+  // only — no new store hooks, no scoring/command/timing reads beyond what
+  // HomeScreenV2 already performs. ON in production — founder flip
+  // 2026-08-11 (all five V3 screens together).
+  home_v3_dashboard_enabled: true,
+  // Protocol V3 dashboard (founder comps, 2026-08-11) — flag-gated ADDITIVE
+  // sections inside ProtocolScreenV2: stage hero (protocol-completion ring +
+  // streak + next recheck), hydration progress (real oz), completed-today
+  // list (derived steps, window labels — never fabricated amounts), and
+  // HR/HRV recovery signals via the scoring path's own arbitration winner.
+  // Honest-data rules identical to home_v3_dashboard_enabled. Presentation
+  // only. ON in production — founder flip 2026-08-11 (all five V3
+  // screens together).
+  protocol_v3_dashboard_enabled: true,
+  // Performance Signal V3 (founder comps, 2026-08-11) — the Hydration tab's
+  // Command History / Performance Signal screen, rendered from the server's
+  // real per-day journal rollups (same source as the shipped Journal). Chips
+  // carry only rollup metrics (oz / in-band time / checks — never fabricated
+  // commands or streaks); offline shows the Journal's error posture; band
+  // lights use the same homePresentation accents as Home/Protocol. ON in
+  // production — founder flip 2026-08-11 (all five V3 screens together).
+  signal_v3_dashboard_enabled: true,
+  // Week in Review V3 (founder comps, 2026-08-11) — /weekly-report redesign.
+  // Real ledger-backed Performance Age movement, analytics habit metrics and
+  // rollup timeline; recovery/top-command keep their honest collecting/
+  // awaiting postures. ON in production — founder flip 2026-08-11 (all
+  // five V3 screens together).
+  weekly_v3_dashboard_enabled: true,
+  // Circle V3 (founder comps, 2026-08-11; canonical name per RC-L1) — the
+  // Circle tab redesign. Real engine/analytics "You" fields, own-baseline
+  // hydration challenge, and the anonymous referral boards as the only
+  // cross-user surface (no named-people rankings — SS-07). ON in
+  // production — founder flip 2026-08-11 (all five V3 screens together).
+  circle_v3_dashboard_enabled: true,
+  // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
+  // moments only: Home NEXT MOMENT section, Moments overview, flagship
+  // Moment Detail ritual, Prepare My Day, Add a Moment. ON in production —
+  // founder flip 2026-08-12 (Moments family activation; calendar excluded).
+  moments_enabled: true,
+  // Moments prep notifications (Phase 3a, DR-010) — local, pre-scheduled,
+  // behavioral-copy-only prep signals for manual/demo moments. Guardrails:
+  // quiet hours, 60-min gap, daily cap, importance filter, user toggle.
+  // ON in production — founder-directed activation 2026-08-12 (DR-010
+  // constraint 4 amended; budget + momentPrep toggle remain binding).
+  moments_notifications_enabled: true,
+  // Moments calendar core (Phase 3b, DR-011) — device-calendar reading:
+  // read-only, titles+times only, user-selected calendars/categories,
+  // PRIVATE EVENT masking, in-memory only (never persisted). OFF in
+  // production and BLOCKED from activation until Legal + Privacy sign off
+  // on the calendar data class (PR-002 5.2 / Appendix A). DELIBERATELY
+  // excluded from the 2026-08-12 Moments-family production flip.
+  moments_calendar_enabled: false,
+  // Moments learning loop (Phase 4, DR-012) — selective prep feedback +
+  // bounded, min-sample lead adaptation ('Adaptive' lead option). Feedback
+  // is display-and-learning only (Score Protection). ON in production —
+  // founder-directed activation 2026-08-12 (DR-012 Ruling 3.1 amended;
+  // all adaptation safety gates remain binding).
+  moments_learning_enabled: true,
   // Weekly Report V2 switch — ON in production: routes /weekly-report to
   // ReadinessInsightsV2. When OFF, the legacy once-per-week shareable recap
   // renders (What improved / What needs attention / Performance Age movement /
@@ -302,7 +368,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // each provider's credentials/approval land. When OFF (or not yet available)
   // the HEALTH PLATFORMS screen shows an honest status, never a fake connection.
   health_apple_enabled: false,
-  health_google_connect_enabled: false,
+  // Health Connect ACTIVATED for internal Android testing — founder ruling
+  // 2026-08-20 (the deliberate provider-activation flip the Foundation 1A
+  // lock anticipated; healthFlagsDefaultOff.test.ts pins this new truth).
+  // The member CTA remains Platform.OS === 'android'-gated, so iOS builds
+  // are behaviorally unchanged. The demo profile stays OFF — demo never
+  // activates a provider.
+  health_google_connect_enabled: true,
   health_whoop_enabled: false,
   health_oura_enabled: false,
   health_strava_enabled: false,
@@ -360,6 +432,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   intent_capture_enabled: true,
   performance_statements_enabled: true,
   offline_intake_outbox_enabled: true,
+  per_user_storage_isolation_enabled: true,
   // Hydration restore is safe to demo (deterministic, never overwrites), but
   // keep it OFF here too until the reinstall release-gate passes — demo builds
   // must never be the first place a persistence path runs.
@@ -429,6 +502,15 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   signal_hierarchy_enabled: true,
   spec_home: true,
   elite_home_experience_enabled: true,
+  home_v3_dashboard_enabled: true,
+  protocol_v3_dashboard_enabled: true,
+  signal_v3_dashboard_enabled: true,
+  weekly_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: true,
+  moments_enabled: true,
+  moments_notifications_enabled: true,
+  moments_calendar_enabled: true,
+  moments_learning_enabled: true,
   spec_weekly_report: true,
   elite_weekly_report_enabled: true,
   elite_motion_enabled: true,
@@ -564,17 +646,92 @@ export function getSpecFlag(flags: FeatureFlags, name: SpecFlagName): boolean {
 export const INTERNAL_PREVIEW_RESTRICTED_FLAGS = ['night_out_enabled'] as const;
 
 /**
- * Payload for the developer "unlock all" control. Returns the demo-presentation
- * flag set with every restricted internal-preview flag force-clamped to `false`,
- * so the generic client unlock can NEVER enable a restricted capability —
- * regardless of what `DEMO_ALL_ON_FLAGS` contains. Pure + testable; the `base`
- * param lets tests prove the clamp holds even against a base that (incorrectly)
- * sets a restricted flag true.
+ * LEGAL/PRIVACY-GATED FLAGS (Wave-1 P0 hardening, founder authorization
+ * 2026-08-12). These capabilities are blocked by an explicit Legal + Privacy
+ * gate (PR-002 Appendix A) and may NEVER be enabled by any client-side
+ * control in ANY distributed build — internal TestFlight included. The only
+ * sanctioned enablement context is local development (__DEV__ / Metro),
+ * where engineering evidence is produced.
  */
-export function demoUnlockAllFlags(base: FeatureFlags = DEMO_ALL_ON_FLAGS): FeatureFlags {
+export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
+
+/**
+ * INTERNAL-TIER FLAGS (Wave-1 P0 hardening). Founder/internal-only and
+ * enterprise capabilities — some carry unvalidated medical-adjacent copy
+ * (Guardian/Clutch) or score-write simulation paths (Phantom). The generic
+ * client "unlock all" must never enable them for an ordinary production
+ * user; they remain reachable in local dev and internal-TestFlight builds
+ * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
+ */
+export const INTERNAL_TIER_FLAGS = [
+  'guardian_intelligence_enabled',
+  'guardian_body_map_enabled',
+  'guardian_alerts_enabled',
+  'clutch_access_enabled',
+  'clutch_heat_mode_enabled',
+  'clutch_inventory_enabled',
+  'clutch_clip_enabled',
+  'phantom_wearable_enabled',
+  'spec_phantom',
+  'spec_enterprise',
+] as const;
+
+/** Build-context for the unlock clamp — injectable so tests can prove every
+ *  combination. Defaults read the real environment. */
+export interface UnlockContext {
+  dev: boolean;
+  internalTestflight: boolean;
+}
+
+declare const __DEV__: boolean | undefined;
+export function currentUnlockContext(): UnlockContext {
+  return {
+    dev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
+    internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
+  };
+}
+
+/**
+ * Whether developer controls (the Profile DEVELOPER tab and its flag
+ * toggles) may be shown at all. Ordinary production users: never.
+ * Local dev, env-gated demo builds, and internal TestFlight: yes.
+ */
+export function developerControlsAvailable(
+  ctx: UnlockContext = currentUnlockContext(),
+  demoMode = process.env['EXPO_PUBLIC_DEMO_MODE'] === 'true',
+): boolean {
+  return ctx.dev || ctx.internalTestflight || demoMode;
+}
+
+/**
+ * Payload for the developer "unlock all" control. Returns the demo-presentation
+ * flag set with every restricted flag force-clamped to `false`, so the generic
+ * client unlock can NEVER enable a restricted capability — regardless of what
+ * `DEMO_ALL_ON_FLAGS` contains. Clamp tiers (Wave-1 P0 hardening):
+ *   - INTERNAL_PREVIEW_RESTRICTED_FLAGS: always clamped (NO-10, unchanged).
+ *   - LEGAL_GATED_FLAGS: clamped in EVERY distributed build; only local dev
+ *     (`ctx.dev`) escapes — a Legal/Privacy gate is never a client toggle.
+ *   - INTERNAL_TIER_FLAGS: clamped unless local dev or internal TestFlight.
+ * Pure + testable; `base`/`ctx` params let tests prove the clamp holds even
+ * against a base that (incorrectly) sets a restricted flag true.
+ */
+export function demoUnlockAllFlags(
+  base: FeatureFlags = DEMO_ALL_ON_FLAGS,
+  ctx: UnlockContext = currentUnlockContext(),
+): FeatureFlags {
   const out: FeatureFlags = { ...base };
   for (const k of INTERNAL_PREVIEW_RESTRICTED_FLAGS) {
     out[k] = false;
+  }
+  if (!ctx.dev) {
+    for (const k of LEGAL_GATED_FLAGS) {
+      out[k] = false;
+    }
+  }
+  if (!ctx.dev && !ctx.internalTestflight) {
+    for (const k of INTERNAL_TIER_FLAGS) {
+      out[k] = false;
+    }
   }
   return out;
 }

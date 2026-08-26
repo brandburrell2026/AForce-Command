@@ -10,6 +10,9 @@ import { getUserState } from "../../../lib/aforceState";
 // middlewares/rateLimits.ts) so vitest can hammer the route freely.
 process.env["NODE_ENV"] = "test";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const TEST_USER_ID = "intake-outbox-test-user";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -128,7 +131,7 @@ async function readLogs() {
     .where(eq(aforceIntakeLogs.userId, TEST_USER_ID));
 }
 
-describe("POST /api/aforce/intake — offline-outbox idempotency", () => {
+describe.runIf(DB)("POST /api/aforce/intake — offline-outbox idempotency", () => {
   it("a keyed replay does not double-count score, counters, log, or JSONB event", async () => {
     const event = makeEvent();
     const body = {

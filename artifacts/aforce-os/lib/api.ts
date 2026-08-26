@@ -13,6 +13,7 @@
  */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE } from "./apiBase";
 import { Platform } from "react-native";
 
 const DEVICE_ID_KEY = "aforce.deviceId";
@@ -49,25 +50,34 @@ export async function getDeviceId(): Promise<string> {
   return fresh;
 }
 
+// Wave-3 PR1: this was the FIFTH, divergent resolver — it skipped
+// EXPO_PUBLIC_API_BASE entirely, which pointed the entire commerce path
+// (checkout, portal, scans, analytics, TTS) at the dead api.drinkaforce.com
+// host while the rest of the app talked to Railway. Canonical now.
 export function getApiBase(): string {
-  if (Platform.OS === "web") {
-    if (typeof window !== "undefined" && window.location?.origin) {
-      return `${window.location.origin}/api`;
-    }
-    return "/api";
-  }
-  const domain = process.env.EXPO_PUBLIC_DOMAIN;
-  if (domain) {
-    const stripped = domain.replace(/^https?:\/\//, "");
-    return `https://${stripped}/api`;
-  }
-  // Last-resort fallback for local Expo runs without the env var.
-  return "http://localhost:8080/api";
+  return API_BASE;
 }
 
 export interface ApiError {
   status: number;
   message: string;
+}
+
+/**
+ * Wave-3 PR3: thrown errors are now REAL Error instances. The old plain
+ * `{status, message}` object failed every `err instanceof Error` check, so
+ * the server's actual failure reason (e.g. a 400 naming the rejected
+ * return URL) was discarded and users saw only a generic string.
+ * Implements ApiError so existing `isApiError` structural guards keep
+ * working unchanged.
+ */
+export class ApiRequestError extends Error implements ApiError {
+  readonly status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.status = status;
+  }
 }
 
 async function request<T>(
@@ -94,8 +104,7 @@ async function request<T>(
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    const err: ApiError = { status: res.status, message: text || res.statusText };
-    throw err;
+    throw new ApiRequestError(res.status, text || res.statusText);
   }
   return (await res.json()) as T;
 }

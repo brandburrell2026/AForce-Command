@@ -5,11 +5,23 @@
  * score, state, freshness). Static by default — a static arc IS the
  * reduced-motion presentation (spec §11).
  *
- * Opt-in `animate` (E1, elevated Home): the progress stroke *reveals* (draws in
- * from empty to `fraction`) once on mount. This is a ring reveal, not a score
- * animation — the number never counts from zero (that decision lives in the
- * caller / `homePresentation.ts`). Reduced-motion collapses it to the static
- * render, so the default (non-animated) output is byte-for-byte unchanged.
+ * Opt-in `animate` — this component carries TWO of the four Wave-5 signature
+ * moments, and they are the same gesture at two speeds:
+ *
+ *   HYDROSTATE REVEAL (Home)      — first paint draws the stroke in from empty.
+ *   RITUAL PROGRESSION (Protocol) — a later change animates from WHERE THE ARC
+ *                                   ALREADY IS to the new fraction.
+ *
+ * The second half is why the effect below tracks whether it has drawn once.
+ * Re-running the reveal on every `fraction` change (the previous behavior) made
+ * a completed Protocol step read as "the ring restarted" instead of "the ring
+ * advanced" — the opposite of progression. Reduced-motion collapses both to the
+ * static render, so a non-animated caller is byte-for-byte unchanged.
+ *
+ * Wave-5 removal: the opt-in "alive" breathing halo is gone. It was an
+ * unbounded `withRepeat` glow behind the stroke — a decorative loop competing
+ * with the number it framed, and per the founder's brief constant pulsing is
+ * removed rather than tuned down.
  */
 import React from 'react';
 import { View, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
@@ -18,7 +30,6 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
-  withRepeat,
   cancelAnimation,
   Easing,
   useReducedMotion,
@@ -38,14 +49,19 @@ export interface AFReadinessArcProps {
   sweepDeg?: number;
   color?: string;
   trackColor?: string;
-  /** Reveal the progress stroke on mount (E1). Ignored under reduced-motion. */
+  /**
+   * Draw the progress stroke: reveal from empty on first paint, then animate
+   * from the current fill to any later `fraction`. Ignored under reduced-motion.
+   */
   animate?: boolean;
   /**
-   * "Alive" (P-A): a subtle band-tinted glow halo behind the progress arc that
-   * breathes slowly. Reduced-motion shows a static glow (no breathing); off by
-   * default → no halo, byte-identical to the base render.
+   * Hide the arc AND its centered children from assistive tech. Set this when an
+   * accessible ancestor already announces the same reading — Home wraps the arc
+   * in a labelled `Pressable` ("Readiness 76, PEAK"), so without this the hero
+   * announces twice: once as that button, once as this progressbar. Default false
+   * keeps every other caller's output unchanged.
    */
-  alive?: boolean;
+  a11yHidden?: boolean;
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -61,7 +77,7 @@ export function AFReadinessArc({
   color = af.red,
   trackColor = af.divider,
   animate = false,
-  alive = false,
+  a11yHidden = false,
   children,
   style,
   testID,
@@ -75,61 +91,51 @@ export function AFReadinessArc({
   const pct = Math.round(clampProgress(fraction) * 100);
 
   const reducedMotion = useReducedMotion();
-  const shouldReveal = animate && !reducedMotion;
+  const shouldDraw = animate && !reducedMotion;
   // Shared value tracks the *displayed* fill fraction. Static default = fraction.
-  const fill = useSharedValue(shouldReveal ? 0 : clampProgress(fraction));
+  const fill = useSharedValue(shouldDraw ? 0 : clampProgress(fraction));
+  // Has this arc already drawn itself in? The first pass is the REVEAL (from
+  // empty); every pass after it is PROGRESSION (from wherever the stroke
+  // currently sits). A ref, not state — flipping it must not re-render.
+  const hasRevealed = React.useRef(!shouldDraw);
 
   React.useEffect(() => {
-    if (shouldReveal) {
-      fill.value = 0;
-      fill.value = withTiming(clampProgress(fraction), {
-        duration: 750,
-        easing: Easing.out(Easing.cubic),
-      });
-    } else {
-      fill.value = clampProgress(fraction);
+    const target = clampProgress(fraction);
+    if (!shouldDraw) {
+      // Static alternative: the arc simply IS its value. Cancel first so a
+      // mid-flight draw can't keep writing after reduced-motion turns on.
+      cancelAnimation(fill);
+      fill.value = target;
+      hasRevealed.current = true;
+      return;
     }
+    // Reveal: start from empty. Progression: start from the current fill, which
+    // is what `fill.value` already holds — so we simply do not reset it.
+    if (!hasRevealed.current) fill.value = 0;
+    hasRevealed.current = true;
+    fill.value = withTiming(target, {
+      duration: afMotion.durations.cinematic,
+      easing: Easing.out(Easing.cubic),
+    });
     // `fill` is a stable shared value; re-run when the target or motion mode changes.
-  }, [fraction, shouldReveal, fill]);
+  }, [fraction, shouldDraw, fill]);
+
+  // Nothing here loops, but a finite tween can still be in flight at unmount —
+  // cancel so no animation outlives the component (Wave-4 rule).
+  React.useEffect(() => () => cancelAnimation(fill), [fill]);
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: geo.arcLength * (1 - fill.value),
   }));
 
-  // "Alive" glow halo: breathe when alive & motion allowed; a static mid-glow
-  // under reduced-motion (the static alternative); nothing when not alive.
-  const breatheActive = alive && !reducedMotion;
-  const breath = useSharedValue(alive ? 0.5 : 0);
-  React.useEffect(() => {
-    if (breatheActive) {
-      breath.value = 0;
-      breath.value = withRepeat(
-        withTiming(1, { duration: afMotion.durations.pulse, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true,
-      );
-    } else {
-      cancelAnimation(breath);
-      breath.value = alive ? 0.5 : 0;
-    }
-    return () => cancelAnimation(breath);
-  }, [breatheActive, alive, breath]);
-
-  const haloProps = useAnimatedProps(() => {
-    const b = breath.value < 0 ? 0 : breath.value > 1 ? 1 : breath.value;
-    return {
-      strokeOpacity: 0.12 + b * 0.22,
-      strokeWidth: stroke * (2 + b * 1.2),
-      strokeDashoffset: geo.arcLength * (1 - fill.value),
-    };
-  });
-
   return (
     <View
       style={[{ width: size, height: size }, style]}
       testID={testID}
-      accessibilityRole="progressbar"
-      accessibilityValue={{ min: 0, max: 100, now: pct }}
+      accessibilityRole={a11yHidden ? undefined : 'progressbar'}
+      accessibilityValue={a11yHidden ? undefined : { min: 0, max: 100, now: pct }}
+      accessibilityElementsHidden={a11yHidden}
+      importantForAccessibility={a11yHidden ? 'no-hide-descendants' : undefined}
     >
       <Svg
         width={size}
@@ -149,18 +155,6 @@ export function AFReadinessArc({
             strokeLinecap="round"
             fill="none"
           />
-          {alive && (
-            <AnimatedCircle
-              cx={center}
-              cy={center}
-              r={geo.radius}
-              stroke={color}
-              strokeDasharray={geo.dashArray}
-              animatedProps={haloProps}
-              strokeLinecap="round"
-              fill="none"
-            />
-          )}
           <AnimatedCircle
             cx={center}
             cy={center}

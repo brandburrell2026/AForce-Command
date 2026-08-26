@@ -1,10 +1,13 @@
 import { createServer } from "node:http";
+import { serializeError } from "./lib/serializeError";
 import { db } from "@workspace/db";
 import app from "./app";
 import { logger } from "./lib/logger";
+import { beginDrain } from "./health/checks";
 import { attachAforceHub } from "./lib/aforceHub";
 import { initStripe } from "./lib/initStripe";
 import { maybeStartWhoopFetchSweep } from "./lib/whoopFetchSweepBootstrap";
+import { initWhoopForegroundRefresh } from "./lib/whoopForegroundRefresh";
 import { maybeStartWhoopAuthStatePurge } from "./lib/whoopAuthStatePurgeBootstrap";
 import { maybeStartWhoopTokenBackfill } from "./lib/whoopTokenBackfillBootstrap";
 import { getWhoopRefreshRegistry } from "./lib/whoopRegistry";
@@ -43,6 +46,14 @@ server.listen(port, () => {
   // the process-singleton WhoopRefreshRegistry with the admin trigger
   // route so concurrent fetches for the same user collapse to one POST.
   maybeStartWhoopFetchSweep({
+    db,
+    refreshRegistry: getWhoopRefreshRegistry(),
+    log: logger,
+  });
+  // WHOOP sweep redesign (2026-08-19): foreground refresh rides the app's
+  // existing GET /aforce/state call — no client change. Independent of the
+  // sweep's interval env so app-open refresh works even with the sweep off.
+  initWhoopForegroundRefresh({
     db,
     refreshRegistry: getWhoopRefreshRegistry(),
     log: logger,
@@ -88,6 +99,35 @@ server.listen(port, () => {
 });
 
 server.on("error", (err) => {
-  logger.error({ err }, "Error listening on port");
+  logger.error({ err: serializeError(err) }, "Error listening on port");
   process.exit(1);
+});
+
+// Wave-3 PR8: an unhandled rejection/exception previously crashed the
+// process with ZERO log output. Log a redacted fatal line (Railway
+// captures stdout) and exit non-zero so the supervisor restarts us —
+// fail loudly, never limp on in unknown state.
+process.on("unhandledRejection", (reason) => {
+  logger.fatal({ err: serializeError(reason) }, "unhandledRejection — exiting");
+  process.exit(1);
+});
+process.on("uncaughtException", (err) => {
+  logger.fatal({ err: serializeError(err) }, "uncaughtException — exiting");
+  process.exit(1);
+});
+
+// Wave-3 PR7: graceful drain. SIGTERM flips /healthz(/deep) to `draining`
+// (503) so the LB stops routing here, then the server closes once
+// in-flight requests finish; a 20s deadline force-exits a wedged drain.
+process.on("SIGTERM", () => {
+  logger.info("SIGTERM received — draining");
+  beginDrain();
+  server.close(() => {
+    logger.info("drained; exiting");
+    process.exit(0);
+  });
+  setTimeout(() => {
+    logger.warn("drain deadline exceeded; forcing exit");
+    process.exit(0);
+  }, 20_000).unref();
 });

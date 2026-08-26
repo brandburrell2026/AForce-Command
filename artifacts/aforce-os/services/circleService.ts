@@ -5,17 +5,18 @@
  * synchronous read surface (and the `useSyncExternalStore` subscribe
  * pattern) by keeping an in-memory cache that mirrors the server.
  *
- * On first call: returns the MOCK_* seeds so the UI has data right
- * away, then triggers a background fetch that replaces the cache and
- * bumps the version.
+ * The cache starts EMPTY and stays empty when a fetch fails (Wave-4).
+ * It used to boot from — and fall back to — the MOCK_* seeds, so an
+ * offline or logged-out user was shown invented friends with invented
+ * scores, indistinguishable from server truth. A circle we could not
+ * reach is not a circle we may draw. `getCircleLoadState()` is how the
+ * UI tells "we haven't got it yet" apart from "we asked and couldn't
+ * get it" — neither may be rendered as a populated circle.
  *
  * Mutations: optimistic local update + version bump, fire-and-forget
  * server call. On failure we re-fetch the affected slice to recover.
  */
 
-import {
-  MOCK_CIRCLE_USERS, MOCK_SHARED_STATUSES, MOCK_CHALLENGES, MOCK_NOTIFICATIONS,
-} from '@/data/mockCircleData';
 import type {
   CircleUser, SharedStatus, CircleFeedItem, CircleGroup, CircleChallenge,
   CircleNotification, RelationshipStatus,
@@ -24,10 +25,10 @@ import {
   getJsonAforceApi, postJsonAforceApi, deleteJsonAforceApi,
 } from '@/services/aforceApiClient';
 
-let users: CircleUser[] = [...MOCK_CIRCLE_USERS];
-let statuses: Record<string, SharedStatus> = { ...MOCK_SHARED_STATUSES };
-let challenges: CircleChallenge[] = [...MOCK_CHALLENGES];
-let notifications: CircleNotification[] = [...MOCK_NOTIFICATIONS];
+let users: CircleUser[] = [];
+let statuses: Record<string, SharedStatus> = {};
+let challenges: CircleChallenge[] = [];
+let notifications: CircleNotification[] = [];
 
 let usersHydrated = false;
 let statusesHydrated = false;
@@ -37,6 +38,15 @@ let notificationsHydrated = false;
 let usersInflight: Promise<void> | null = null;
 let challengesInflight: Promise<void> | null = null;
 let notificationsInflight: Promise<void> | null = null;
+
+// Latched by a failed fetch. Two jobs: it is what makes `unavailable`
+// distinguishable from `loading`, and it stops `ensure*Hydrated` re-firing —
+// the failure emit re-enters these reads, which without the latch is an
+// unbounded retry storm against a server that is already down. Cleared by
+// `retryCircleHydration()` and by the mutation-recovery refetches.
+let usersFetchFailed = false;
+let challengesFetchFailed = false;
+let notificationsFetchFailed = false;
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -50,6 +60,31 @@ export function subscribeCircle(fn: () => void): () => void {
 /** Monotonic version stamp — used by `useSyncExternalStore` snapshots. */
 export function getCircleVersion(): number {
   return version;
+}
+
+export type CircleLoadState = 'loading' | 'ready' | 'unavailable';
+
+/**
+ * What a circle surface is allowed to claim right now.
+ *
+ * `unavailable` exists because an empty list on its own says "you have no
+ * one" — a statement about the user's life we have no standing to make when
+ * all we actually know is that the request failed. Screens must render the
+ * two differently.
+ */
+export function getCircleLoadState(): CircleLoadState {
+  if (usersHydrated) return 'ready';
+  if (usersFetchFailed) return 'unavailable';
+  // Idle collapses into 'loading': every consumer read triggers the fetch.
+  return 'loading';
+}
+
+/** Drop the failure latches so the next read re-fetches (retry action). */
+export function retryCircleHydration(): void {
+  usersFetchFailed = false;
+  challengesFetchFailed = false;
+  notificationsFetchFailed = false;
+  emit();
 }
 
 function emit() {
@@ -134,7 +169,7 @@ function applyNotificationList(list: ServerNotification[]): void {
 }
 
 function ensureUsersHydrated(): void {
-  if (usersHydrated || usersInflight) return;
+  if (usersHydrated || usersInflight || usersFetchFailed) return;
   usersInflight = (async () => {
     try {
       // Active members + feed (statuses) + pending in parallel.
@@ -162,7 +197,10 @@ function ensureUsersHydrated(): void {
       statusesHydrated = true;
       emit();
     } catch {
-      // Stay on the seed lists — caller will see MOCK_CIRCLE_USERS.
+      // Stay empty and say so. Inventing a circle to fill the screen is the
+      // exact failure this branch used to ship.
+      usersFetchFailed = true;
+      emit();
     } finally {
       usersInflight = null;
     }
@@ -170,7 +208,7 @@ function ensureUsersHydrated(): void {
 }
 
 function ensureChallengesHydrated(): void {
-  if (challengesHydrated || challengesInflight) return;
+  if (challengesHydrated || challengesInflight || challengesFetchFailed) return;
   challengesInflight = (async () => {
     try {
       const res = await getJsonAforceApi<{ challenges: ServerChallenge[] }>('/circle/challenges');
@@ -178,7 +216,9 @@ function ensureChallengesHydrated(): void {
       challengesHydrated = true;
       emit();
     } catch {
-      /* keep mock seeds */
+      // No emit: the list was already empty and stays empty, so there is
+      // nothing new for a subscriber to paint — only the latch to set.
+      challengesFetchFailed = true;
     } finally {
       challengesInflight = null;
     }
@@ -186,7 +226,7 @@ function ensureChallengesHydrated(): void {
 }
 
 function ensureNotificationsHydrated(): void {
-  if (notificationsHydrated || notificationsInflight) return;
+  if (notificationsHydrated || notificationsInflight || notificationsFetchFailed) return;
   notificationsInflight = (async () => {
     try {
       const res = await getJsonAforceApi<{ notifications: ServerNotification[] }>(
@@ -196,11 +236,34 @@ function ensureNotificationsHydrated(): void {
       notificationsHydrated = true;
       emit();
     } catch {
-      /* keep mock seeds */
+      notificationsFetchFailed = true;
     } finally {
       notificationsInflight = null;
     }
   })();
+}
+
+/* ─── Mutation-failure recovery ──────────────────────────────────────────
+   A mutation that fails needs the slice re-pulled, which means clearing the
+   failure latch as well as the hydrated flag — otherwise the guard above
+   swallows the recovery attempt. */
+function refetchUsers(): void {
+  usersHydrated = false;
+  statusesHydrated = false; // statuses ride along on the same fetch
+  usersFetchFailed = false;
+  ensureUsersHydrated();
+}
+
+function refetchChallenges(): void {
+  challengesHydrated = false;
+  challengesFetchFailed = false;
+  ensureChallengesHydrated();
+}
+
+function refetchNotifications(): void {
+  notificationsHydrated = false;
+  notificationsFetchFailed = false;
+  ensureNotificationsHydrated();
 }
 
 /* ─── Reads (synchronous over the cache) ─────────────────────────────────── */
@@ -250,8 +313,7 @@ export function setRelationshipStatus(userId: string, status: RelationshipStatus
       );
     } catch {
       // Re-pull users to recover.
-      usersHydrated = false;
-      ensureUsersHydrated();
+      refetchUsers();
     }
   })();
 }
@@ -266,9 +328,7 @@ export function removeFromCircle(userId: string): void {
         `/circle/users/${encodeURIComponent(userId)}`,
       );
     } catch {
-      usersHydrated = false;
-      statusesHydrated = false;
-      ensureUsersHydrated();
+      refetchUsers();
     }
   })();
 }
@@ -283,8 +343,7 @@ export function moveToGroup(userId: string, group: CircleGroup): void {
         { group },
       );
     } catch {
-      usersHydrated = false;
-      ensureUsersHydrated();
+      refetchUsers();
     }
   })();
 }
@@ -306,8 +365,7 @@ export function acceptChallenge(id: string): void {
         {},
       );
     } catch {
-      challengesHydrated = false;
-      ensureChallengesHydrated();
+      refetchChallenges();
     }
   })();
 }
@@ -327,8 +385,7 @@ export function markNotificationRead(id: string): void {
         {},
       );
     } catch {
-      notificationsHydrated = false;
-      ensureNotificationsHydrated();
+      refetchNotifications();
     }
   })();
 }
@@ -340,14 +397,15 @@ export function getCircleRanking(): Array<{ user: CircleUser; status: SharedStat
 }
 
 /**
- * Test-only reset. Restores all in-memory arrays and bumps version so any
- * subscribed snapshots invalidate. Not exported for app code paths.
+ * Test-only reset. Returns every cache to the cold-boot empty state, clears
+ * the hydration/inflight/failure flags, and bumps version so any subscribed
+ * snapshots invalidate. Not exported for app code paths.
  */
 export function __resetCircleStateForTests(): void {
-  users = [...MOCK_CIRCLE_USERS];
-  statuses = { ...MOCK_SHARED_STATUSES };
-  challenges = [...MOCK_CHALLENGES];
-  notifications = [...MOCK_NOTIFICATIONS];
+  users = [];
+  statuses = {};
+  challenges = [];
+  notifications = [];
   usersHydrated = false;
   statusesHydrated = false;
   challengesHydrated = false;
@@ -355,5 +413,8 @@ export function __resetCircleStateForTests(): void {
   usersInflight = null;
   challengesInflight = null;
   notificationsInflight = null;
+  usersFetchFailed = false;
+  challengesFetchFailed = false;
+  notificationsFetchFailed = false;
   emit();
 }

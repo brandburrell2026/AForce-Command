@@ -13,9 +13,19 @@
  *   GET    /notifications                 → all notifications, newest first
  *   POST   /notifications/:id/read        → mark notification read
  *
- * All rows are scoped to `owner_user_id = req.userId`. On first GET of
- * any sub-resource, we seed the user's view with a demo set so the UI
- * has content out of the box — same data the in-memory mock used.
+ * All rows are scoped to `owner_user_id = req.userId`.
+ *
+ * Every GET here used to seed the caller's rows with a demo circle
+ * (friends, statuses, challenges, notifications) so the UI had content
+ * out of the box. Fabricated people and fabricated social signal written
+ * into real user data become indistinguishable from real ones forever —
+ * exactly what the Constitution forbids ("observation never diagnosis",
+ * "trust over attention") — so the writes are gone and the SEED_*
+ * constants are now READ-SIDE EXCLUSION LISTS only. Rows already written
+ * by the old behavior stay in the database but are never served again:
+ * nothing is deleted and no migration is required. A user with no real
+ * circle now gets empty lists, and the client renders an honest empty
+ * state instead of a fabricated one.
  */
 
 import { Router, type IRouter, type Request } from "express";
@@ -27,7 +37,7 @@ import {
   aforceCircleChallenges,
   aforceCircleNotifications,
 } from "@workspace/db";
-import { and, eq, asc, desc } from "drizzle-orm";
+import { and, eq, asc, desc, notInArray } from "drizzle-orm";
 import { DEFAULT_USER_ID } from "../lib/aforceState";
 import { requireAuth } from "../middlewares/requireAuth";
 
@@ -54,7 +64,7 @@ const TREND_DIRS = ["up", "flat", "down"] as const;
 const groupEnum = z.enum(CIRCLE_GROUPS);
 const relStatusEnum = z.enum(RELATIONSHIP_STATUSES);
 
-/* ─── Seeds (mirror mockCircleData.ts) ───────────────────────────────────── */
+/* ─── Legacy seeds — read-side exclusion lists, never written ────────────── */
 interface SeedUser {
   memberUserId: string;
   name: string;
@@ -126,84 +136,26 @@ const SEED_NOTIFICATIONS: ReadonlyArray<SeedNotification> = [
   { id: "n4", kind: "friend_trending_down", fromUserId: "u_devon",   message: "Devon is trending down. A check-in helps.", createdAt: "2026-04-21T09:14:00Z", read: false },
 ];
 
-async function seedIfEmpty(userId: string): Promise<void> {
-  const existing = await db
-    .select({ id: aforceCircleUsers.id })
-    .from(aforceCircleUsers)
-    .where(eq(aforceCircleUsers.ownerUserId, userId))
-    .limit(1);
-  if (existing.length > 0) return;
+// Members and statuses were seeded under literal mock ids (`u_kai`), the same
+// for every owner — a real member id is the invitee's Clerk id (`user_2…`) and
+// can never collide with these. Both lists are unioned so a seeded status is
+// excluded even where its member row isn't, and vice versa. Mutable `string[]`
+// rather than ReadonlyArray because notInArray only accepts a mutable array.
+const SEEDED_MEMBER_IDS: string[] = Array.from(
+  new Set([
+    ...SEED_USERS.map((u) => u.memberUserId),
+    ...SEED_STATUSES.map((s) => s.memberUserId),
+  ]),
+);
 
-  // Every insert below uses onConflictDoNothing so concurrent first-GETs
-  // by the same user (which both pass the "is empty?" check) cannot race
-  // each other into a unique-constraint 500.
-  await db
-    .insert(aforceCircleUsers)
-    .values(
-      SEED_USERS.map((u) => ({
-        ownerUserId: userId,
-        memberUserId: u.memberUserId,
-        name: u.name,
-        initials: u.initials,
-        city: u.city,
-        group: u.group,
-        status: u.status,
-        joinedAt: new Date(u.joinedAt),
-      })),
-    )
-    .onConflictDoNothing({
-      target: [aforceCircleUsers.ownerUserId, aforceCircleUsers.memberUserId],
-    });
+// Challenges and notifications were stored user-prefixed
+// (`<userId>:ch_1`), so their exclusion lists are rebuilt per caller.
+function seededChallengeIds(userId: string): string[] {
+  return SEED_CHALLENGES.map((c) => `${userId}:${c.id}`);
+}
 
-  await db
-    .insert(aforceCircleStatuses)
-    .values(
-      SEED_STATUSES.map((s) => ({
-        ownerUserId: userId,
-        memberUserId: s.memberUserId,
-        score: s.score,
-        state: s.state,
-        streakDays: s.streakDays,
-        protocolComplete: s.protocolComplete,
-        trend: s.trend,
-        updatedAt: new Date(s.updatedAt),
-      })),
-    )
-    .onConflictDoNothing({
-      target: [aforceCircleStatuses.ownerUserId, aforceCircleStatuses.memberUserId],
-    });
-
-  await db
-    .insert(aforceCircleChallenges)
-    .values(
-      SEED_CHALLENGES.map((c) => ({
-        // Prefix with user so multi-user fixtures don't collide on PK.
-        id: `${userId}:${c.id}`,
-        ownerUserId: userId,
-        fromUserId: c.fromUserId,
-        kind: c.kind,
-        targetScore: c.targetScore ?? null,
-        expiresAt: new Date(c.expiresAt),
-        status: "open",
-        createdAt: new Date(c.createdAt),
-      })),
-    )
-    .onConflictDoNothing({ target: aforceCircleChallenges.id });
-
-  await db
-    .insert(aforceCircleNotifications)
-    .values(
-      SEED_NOTIFICATIONS.map((n) => ({
-        id: `${userId}:${n.id}`,
-        ownerUserId: userId,
-        kind: n.kind,
-        fromUserId: n.fromUserId,
-        message: n.message,
-        read: n.read,
-        createdAt: new Date(n.createdAt),
-      })),
-    )
-    .onConflictDoNothing({ target: aforceCircleNotifications.id });
+function seededNotificationIds(userId: string): string[] {
+  return SEED_NOTIFICATIONS.map((n) => `${userId}:${n.id}`);
 }
 
 /* ─── Row → wire shape (strip owner + db-id, normalize dates) ─────────────── */
@@ -264,7 +216,6 @@ function notificationRowToWire(row: typeof aforceCircleNotifications.$inferSelec
 router.get("/", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const groupParam = String(req.query["group"] ?? "");
     const group = (CIRCLE_GROUPS as readonly string[]).includes(groupParam)
       ? (groupParam as (typeof CIRCLE_GROUPS)[number])
@@ -275,10 +226,12 @@ router.get("/", async (req, res) => {
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.status, "active"),
           eq(aforceCircleUsers.group, group),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
         )
       : and(
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.status, "active"),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
         );
 
     const rows = await db
@@ -297,7 +250,6 @@ router.get("/", async (req, res) => {
 router.get("/pending", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const rows = await db
       .select()
       .from(aforceCircleUsers)
@@ -305,6 +257,7 @@ router.get("/pending", async (req, res) => {
         and(
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.status, "pending"),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
         ),
       )
       .orderBy(asc(aforceCircleUsers.name));
@@ -319,7 +272,6 @@ router.get("/pending", async (req, res) => {
 router.get("/feed", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const groupParam = String(req.query["group"] ?? "");
     const group = (CIRCLE_GROUPS as readonly string[]).includes(groupParam)
       ? (groupParam as (typeof CIRCLE_GROUPS)[number])
@@ -330,17 +282,27 @@ router.get("/feed", async (req, res) => {
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.status, "active"),
           eq(aforceCircleUsers.group, group),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
         )
       : and(
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.status, "active"),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
         );
 
     const userRows = await db.select().from(aforceCircleUsers).where(userWhere);
+    // The status query is filtered too, not just joined against the filtered
+    // users: a seeded status must never reach the feed even if a same-named
+    // member row somehow survives.
     const statusRows = await db
       .select()
       .from(aforceCircleStatuses)
-      .where(eq(aforceCircleStatuses.ownerUserId, userId));
+      .where(
+        and(
+          eq(aforceCircleStatuses.ownerUserId, userId),
+          notInArray(aforceCircleStatuses.memberUserId, SEEDED_MEMBER_IDS),
+        ),
+      );
 
     const statusByMember = new Map(
       statusRows.map((r) => [r.memberUserId, statusRowToWire(r)]),
@@ -473,7 +435,6 @@ router.delete("/users/:memberUserId", async (req, res) => {
 router.get("/challenges", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const rows = await db
       .select()
       .from(aforceCircleChallenges)
@@ -481,6 +442,7 @@ router.get("/challenges", async (req, res) => {
         and(
           eq(aforceCircleChallenges.ownerUserId, userId),
           eq(aforceCircleChallenges.status, "open"),
+          notInArray(aforceCircleChallenges.id, seededChallengeIds(userId)),
         ),
       )
       .orderBy(asc(aforceCircleChallenges.expiresAt));
@@ -527,11 +489,18 @@ router.post("/challenges/:id/accept", async (req, res) => {
 router.get("/notifications", async (req, res) => {
   try {
     const userId = resolveUserId(req);
-    await seedIfEmpty(userId);
     const rows = await db
       .select()
       .from(aforceCircleNotifications)
-      .where(eq(aforceCircleNotifications.ownerUserId, userId))
+      .where(
+        and(
+          eq(aforceCircleNotifications.ownerUserId, userId),
+          notInArray(
+            aforceCircleNotifications.id,
+            seededNotificationIds(userId),
+          ),
+        ),
+      )
       .orderBy(desc(aforceCircleNotifications.createdAt));
     res.json({ notifications: rows.map(notificationRowToWire) });
   } catch (err) {

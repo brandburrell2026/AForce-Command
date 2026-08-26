@@ -4,6 +4,8 @@ import {
   DEMO_ALL_ON_FLAGS,
   demoUnlockAllFlags,
   INTERNAL_PREVIEW_RESTRICTED_FLAGS,
+  LEGAL_GATED_FLAGS,
+  INTERNAL_TIER_FLAGS,
 } from '@/featureFlags/flags';
 import {
   isNightOutEnabled,
@@ -31,8 +33,15 @@ describe('NO-a.1 — Night Out internal flag isolation', () => {
   });
 
   it('the unlock payload preserves every other demo flag; restricted flags stay false', () => {
-    const payload = demoUnlockAllFlags();
-    const restricted = new Set<string>(INTERNAL_PREVIEW_RESTRICTED_FLAGS);
+    // Wave-1 P0 hardening widened the clamp: the unlock payload now also
+    // clamps Legal-gated and internal-tier flags for ordinary production
+    // users (see featureFlags/__tests__/productionRestrictedFlags.test.ts).
+    const payload = demoUnlockAllFlags(DEMO_ALL_ON_FLAGS, { dev: false, internalTestflight: false });
+    const restricted = new Set<string>([
+      ...INTERNAL_PREVIEW_RESTRICTED_FLAGS,
+      ...LEGAL_GATED_FLAGS,
+      ...INTERNAL_TIER_FLAGS,
+    ]);
     for (const k of Object.keys(DEMO_ALL_ON_FLAGS) as (keyof FeatureFlags)[]) {
       if (restricted.has(k as string)) {
         expect(payload[k]).toBe(false);

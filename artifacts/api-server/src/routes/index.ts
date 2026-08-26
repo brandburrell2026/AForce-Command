@@ -23,6 +23,7 @@ import adminDemandRouter from "./adminDemand";
 import adminDemandFromStateRouter from "./adminDemandFromState";
 import analyticsAdminRouter from "./analyticsAdmin";
 import commandCenterAdminRouter from "./commandCenterAdmin";
+import adminMetricsRouter from "./adminMetrics";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -200,6 +201,7 @@ router.use(adminDemandRouter);
 router.use(adminDemandFromStateRouter);
 router.use(analyticsAdminRouter);
 router.use(commandCenterAdminRouter);
+router.use(adminMetricsRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the

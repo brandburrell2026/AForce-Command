@@ -13,7 +13,6 @@ import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '../flags';
 const PROVIDER_FLAGS = [
   'healthkit_native_enabled',
   'health_apple_enabled',
-  'health_google_connect_enabled',
   'health_whoop_enabled',
   'health_oura_enabled',
   'health_strava_enabled',
@@ -30,6 +29,15 @@ describe('health provider flags remain OFF (no provider activated)', () => {
       expect(DEMO_ALL_ON_FLAGS[flag]).toBe(false);
     });
   }
+
+  it('health_google_connect_enabled is ACTIVATED (founder ruling 2026-08-20, internal Android testing)', () => {
+    // The deliberate provider-activation flip this lock's header anticipated.
+    // The member CTA stays Platform.OS === 'android'-gated (runner.test.ts),
+    // so iOS builds are behaviorally unchanged; demo remains OFF because the
+    // demo profile never claims a live provider connection.
+    expect(DEFAULT_FLAGS.health_google_connect_enabled).toBe(true);
+    expect(DEMO_ALL_ON_FLAGS.health_google_connect_enabled).toBe(false);
+  });
 
   it('health_demo_data_enabled stays a demo-only overlay (off by default, on in demo)', () => {
     expect(DEFAULT_FLAGS.health_demo_data_enabled).toBe(false);

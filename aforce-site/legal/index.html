@@ -25,6 +25,7 @@
 <link rel="stylesheet" href="/legal/legal.css">
 </head>
 <body data-doc="">
+<a class="lc-skip" href="#legalHome">Skip to main content</a>
 
 <header class="lc-header">
   <a class="lc-brand" href="/" aria-label="AFORCE home">
@@ -45,7 +46,7 @@
   </div>
 </section>
 
-<main id="legalHome"></main>
+<main id="legalHome" tabindex="-1"></main>
 
 <footer class="lc-footer">
   <div class="f-wrap">
@@ -89,12 +90,12 @@
       if(it.built){
         var a = document.createElement("a");
         a.className = "lc-card"; a.href = "/legal/" + it.slug;
-        a.innerHTML = '<span class="c-idx">'+idx+'</span><h3>'+it.title+'</h3><p>'+it.desc+'</p><span class="c-go">Read &rarr;</span>';
+        a.innerHTML = '<span class="c-idx">'+idx+'</span><h2>'+it.title+'</h2><p>'+it.desc+'</p><span class="c-go">Read &rarr;</span>';
         grid.appendChild(a);
       } else {
         var d = document.createElement("div");
         d.className = "lc-card soon";
-        d.innerHTML = '<span class="c-idx">'+idx+'</span><h3>'+it.title+'</h3><p>'+it.desc+'</p><span class="c-go">In preparation</span>';
+        d.innerHTML = '<span class="c-idx">'+idx+'</span><h2>'+it.title+'</h2><p>'+it.desc+'</p><span class="c-go">In preparation</span>';
         grid.appendChild(d);
       }
     });

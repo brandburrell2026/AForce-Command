@@ -29,6 +29,9 @@ import { eq, inArray } from "drizzle-orm";
 import { db, aforceUserState } from "@workspace/db";
 import { createDrizzleUserStateRepo } from "../lib/whoopFetchWorker";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const TEST_PREFIX = "test_whoop_worker_";
 const user = (n: string): string => `${TEST_PREFIX}${n}`;
 const SEED = [
@@ -69,7 +72,7 @@ async function readBlob(userId: string): Promise<BiometricsRow | undefined> {
   return { biometrics: (row.biometrics ?? null) as Record<string, unknown> | null };
 }
 
-describe("createDrizzleUserStateRepo.writeProviderEntry", () => {
+describe.runIf(DB)("createDrizzleUserStateRepo.writeProviderEntry", () => {
   it("returns false when no state row exists; no row is created", async () => {
     const ok = await repo.writeProviderEntry(user("none"), "whoop", {
       providerId: "whoop",
@@ -192,7 +195,7 @@ describe("createDrizzleUserStateRepo.writeProviderEntry", () => {
   });
 });
 
-describe("createDrizzleUserStateRepo.readProviderEntry (Founder Ruling C, RC-2)", () => {
+describe.runIf(DB)("createDrizzleUserStateRepo.readProviderEntry (Founder Ruling C, RC-2)", () => {
   it("returns null when no state row exists for the user", async () => {
     const entry = await repo.readProviderEntry(user("read_none"), "whoop");
     expect(entry).toBeNull();

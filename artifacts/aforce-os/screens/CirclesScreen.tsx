@@ -14,10 +14,12 @@ import { Colors } from '@/theme/colors';
 import type { CircleGroup } from '@/types/circle';
 import {
   getCircleFeed, listChallenges, acceptChallenge, listPending,
+  getCircleLoadState, retryCircleHydration,
 } from '@/services/circleService';
 import { useCircleSubscription } from '@/hooks/useCircleSubscription';
 import CircleUserCard from '@/components/CircleUserCard';
 import CircleChallengeCard from '@/components/CircleChallengeCard';
+import { AFEmptyState, AFErrorState, AFSkeleton } from '@/components/ui';
 import { useEngineSlice } from '@/store/slices';
 
 const GROUPS: { id: CircleGroup | 'all'; label: string }[] = [
@@ -42,6 +44,11 @@ export const CirclesScreen: React.FC = () => {
   );
   const challenges = React.useMemo(() => listChallenges(), [v]);
   const pending = React.useMemo(() => listPending(), [v]);
+  // Read AFTER the feed read above, which is what kicks the fetch off.
+  // An empty feed means one of three different things and this is how we
+  // tell them apart — "we couldn't reach your circle" must never be drawn
+  // as "you have no one".
+  const loadState = React.useMemo(() => getCircleLoadState(), [v]);
 
   // CIRCLE PULSE — surface the highest-scoring friend across the full
   // circle (not just the current group filter) plus the user's own
@@ -180,16 +187,29 @@ export const CirclesScreen: React.FC = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>MY CIRCLE</Text>
-          {feed.length === 0 ? (
-            <View style={styles.empty}>
-              <Text style={styles.emptyText}>No active members in this group.</Text>
-              <Pressable
-                onPress={() => router.push('/circles/manage')}
-                style={({ pressed }) => [styles.emptyCta, pressed && { opacity: 0.85 }]}
-              >
-                <Text style={styles.emptyCtaText}>INVITE</Text>
-              </Pressable>
+          {loadState === 'unavailable' ? (
+            <AFErrorState
+              variant="unavailable"
+              title="Circle unavailable"
+              message="We couldn't reach your circle just now. Nothing is being shown in its place."
+              action={{ label: 'Try again', onPress: () => retryCircleHydration() }}
+              testID="circle-feed-unavailable"
+            />
+          ) : loadState === 'loading' ? (
+            <View style={styles.list} accessibilityLabel="Loading your circle">
+              <AFSkeleton height={72} radius={18} />
+              <AFSkeleton height={72} radius={18} />
             </View>
+          ) : feed.length === 0 ? (
+            <AFEmptyState
+              icon="users"
+              title="No one here yet"
+              message={group === 'all'
+                ? 'Your circle is empty. Invite the people whose cadence you actually want to match.'
+                : 'No active members in this group yet.'}
+              action={{ label: 'Invite', onPress: () => router.push('/circles/manage') }}
+              testID="circle-feed-empty"
+            />
           ) : (
             <View style={styles.list}>
               {feed.map(item => (
@@ -259,17 +279,6 @@ const styles = StyleSheet.create({
   section: { gap: 12 },
   sectionLabel: { color: Colors.text.muted, fontSize: 11, letterSpacing: 3, fontWeight: '600' },
   list: { gap: 12 },
-  empty: {
-    padding: 20, gap: 12, alignItems: 'center',
-    borderRadius: 18, borderWidth: 1, borderColor: Colors.border.subtle,
-    backgroundColor: Colors.background.card,
-  },
-  emptyText: { color: Colors.text.muted, fontSize: 13 },
-  emptyCta: {
-    paddingHorizontal: 18, paddingVertical: 10, borderRadius: 100,
-    backgroundColor: Colors.text.primary,
-  },
-  emptyCtaText: { color: Colors.text.inverse, fontSize: 11, letterSpacing: 2, fontWeight: '700' },
   hint: { color: Colors.text.muted, fontSize: 13 },
   pulseCard: {
     padding: 16, borderRadius: 16,

@@ -428,3 +428,130 @@ export const GRAPH_CONTRADICTION_RATIO = 0.5;
 export const GRAPH_QUERY_MAX_DEPTH = 4;
 export const GRAPH_QUERY_MAX_NODES = 500;
 export const GRAPH_QUERY_MAX_EDGES = 1000;
+
+/* ─── AForce Moments (Phases 1–2, founder approval 2026-08-12) ────────────── */
+/* Preparation-window and action tunables for the flag-gated Moments feature
+ * (`moments_enabled`, OFF in production). Manual/demo moments only in these
+ * phases — no calendar access, no notification scheduling, no new raw data
+ * collection (Phase 3 requires an explicit founder decision record; see
+ * governance/proposals/PR-002-aforce-moments.md). Values follow the founder
+ * comps (meeting: prep 60→30 min before, hydrate 14 oz best-before window
+ * midpoint; training: 75→30, 16–20 oz; travel: 120→60, 12–16 oz).
+ * Advisory-only by construction: nothing here feeds the score engine
+ * (Score Protection, DR-001). */
+
+import type { MomentType, MomentImportance } from '../types/moments';
+
+/** Prep-window offsets per Moment type: minutes BEFORE the moment start. */
+export const MOMENT_PREP_WINDOW_MIN: Record<
+  MomentType,
+  { startBefore: number; endBefore: number }
+> = {
+  work: { startBefore: 60, endBefore: 30 },
+  performance: { startBefore: 75, endBefore: 30 },
+  training: { startBefore: 75, endBefore: 30 },
+  travel: { startBefore: 120, endBefore: 60 },
+  recovery: { startBefore: 30, endBefore: 0 },
+  personal: { startBefore: 30, endBefore: 0 },
+};
+
+/** Low-importance moments widen the window less aggressively. */
+export const MOMENT_IMPORTANCE_WINDOW_SCALE: Record<MomentImportance, number> = {
+  high: 1,
+  moderate: 1,
+  low: 0.5,
+};
+
+/** Hydrate primary-action ounce ranges per Moment type ([min, max]). */
+export const MOMENT_HYDRATE_OZ: Record<MomentType, [number, number]> = {
+  work: [14, 14],
+  performance: [14, 16],
+  training: [16, 20],
+  travel: [12, 16],
+  recovery: [8, 12],
+  personal: [8, 12],
+};
+
+/** LOCK IN lead: minutes before the moment start. */
+export const MOMENT_LOCK_IN_BEFORE_MIN = 15;
+
+/** PAUSE reset length (seconds) — the ritual's opening reset. */
+export const MOMENT_PAUSE_SECONDS = 60;
+
+/** Hydrate "best before": fraction of the way through the prep window. */
+export const MOMENT_HYDRATE_BEST_BEFORE_FRACTION = 0.5;
+
+/** Upcoming-moment surfacing horizon (hours ahead) for Today lists. */
+export const MOMENT_SURFACE_HORIZON_HOURS = 24;
+
+/* ─── AForce Moments Phase 3a — prep notifications (DR-010) ──────────────── */
+/* Interruption-budget constants for the Moments notification planner
+ * (services/momentNotifications.ts). DR-010 constraint 2: quiet hours +
+ * minimum gap + a daily cap BELOW the global 6/day reminder ceiling;
+ * high/moderate importance only by default. Behavioral copy only — no
+ * prediction values ever appear in a notification (PT-1 stays prohibited). */
+
+/** Max Moments prep notifications per calendar day (< GUARDRAIL_MAX_PER_DAY_CEIL). */
+export const MOMENT_NOTIFY_MAX_PER_DAY = 3;
+
+/** Minimum gap between two Moments notifications (minutes). */
+export const MOMENT_NOTIFY_MIN_GAP_MIN = 60;
+
+/** Quiet hours (local): no Moments notification fires inside this window. */
+export const MOMENT_NOTIFY_QUIET_START_HOUR = 22;
+export const MOMENT_NOTIFY_QUIET_END_HOUR = 7;
+
+/** Selectable lead-time presets (minutes before the moment start). null =
+ *  fire at the prep-window start (the default "do this now" timing).
+ *  'Adaptive' is EXCLUDED until PR-002 5.6 is approved (DR-010). */
+export const MOMENT_NOTIFY_LEAD_PRESETS_MIN = [15, 30, 60, 90, 120] as const;
+
+/* ─── AForce Moments Phase 3b — calendar core (DR-011) ───────────────────── */
+/* Calendar-derived Moments: read horizon, classification confidence, and the
+ * per-category defaults. Least-privilege by construction: the bridge reads
+ * titles + times from user-SELECTED calendars only, holds events in memory
+ * only (never persisted — data-minimization commitment in PR-002 Appendix A),
+ * and unclassifiable events are skipped or masked, never guessed
+ * ("do not pretend certainty" — founder spec). */
+
+/** How far ahead the calendar bridge reads (days). */
+export const MOMENT_CALENDAR_HORIZON_DAYS = 2;
+
+/** Minimum keyword-match confidence to surface a calendar event as a Moment.
+ *  Below this the event is skipped (neutral-or-skip rule). */
+export const MOMENT_CLASSIFY_MIN_CONFIDENCE = 0.6;
+
+/** Default importance per classified category (user can't edit v1). */
+export const MOMENT_CALENDAR_DEFAULT_IMPORTANCE: Record<
+  'work' | 'training' | 'travel' | 'recovery' | 'personal' | 'performance',
+  'high' | 'moderate' | 'low'
+> = {
+  work: 'high',
+  performance: 'high',
+  training: 'high',
+  travel: 'moderate',
+  recovery: 'moderate',
+  personal: 'moderate',
+};
+
+/* ─── AForce Moments Phase 4 — learning loop (DR-012) ────────────────────── */
+/* Feedback-driven prep-lead adaptation, safety-gated per DR-012 Ruling 3:
+ * minimum evidence, strict majority, bounded step/clamp, and the DR-010
+ * interruption budget always applies AFTER adjustment. Feedback capture is
+ * deliberately sparing (Ruling 2). */
+
+/** Feedback samples required per moment type before ANY adaptation. */
+export const MOMENT_FEEDBACK_MIN_SAMPLES = 5;
+
+/** Rolling evidence window (days). */
+export const MOMENT_FEEDBACK_WINDOW_DAYS = 30;
+
+/** Lead adjustment granularity (minutes) and hard clamp (±minutes). */
+export const MOMENT_LEAD_ADJUST_STEP_MIN = 15;
+export const MOMENT_LEAD_ADJUST_MAX_MIN = 30;
+
+/** Max feedback prompts per calendar day (Ruling 2: sparing, never nagging). */
+export const MOMENT_FEEDBACK_ASK_MAX_PER_DAY = 1;
+
+/** Max stored feedback records (oldest dropped past the cap). */
+export const MOMENT_FEEDBACK_MAX_RECORDS = 200;

@@ -18,7 +18,7 @@
  *   - `setTokens` / `signOut` / `peek` round-trip.
  *   - `getWhoopOAuthConfigFromEnv` throws cleanly on missing vars.
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createInMemoryWhoopTokenStore,
   type WhoopTokens,
@@ -553,5 +553,118 @@ describe("getWhoopOAuthConfigFromEnv", () => {
       clientId: "cid",
       clientSecret: "csecret",
     });
+  });
+});
+
+/**
+ * Refresh-outcome observers (WHOOP sweep redesign, 2026-08-19). These drive
+ * the exponential-backoff / needs_reauth control state, so the exact firing
+ * rules matter:
+ *   - failed refresh  → onRefreshFailure (and only that)
+ *   - successful refresh → onRefreshSuccess
+ *   - setTokens (re-auth) → onRefreshSuccess (founder-ratified reset point)
+ *   - a still-valid token → NEITHER (no refresh happened, no state to change)
+ *   - a throwing observer is swallowed — bookkeeping never breaks the path
+ */
+describe("refresh-outcome observers", () => {
+  const NOW = 1_000_000;
+  const expiredTokens: WhoopTokens = {
+    accessToken: "old-a",
+    refreshToken: "old-r",
+    expiresAt: NOW - 1,
+    scope: "offline",
+  };
+
+  async function storeWith(tokens: WhoopTokens | null) {
+    const store = createInMemoryWhoopTokenStore();
+    if (tokens) await store.write(tokens);
+    return store;
+  }
+
+  it("a failed refresh fires onRefreshFailure, not onRefreshSuccess", async () => {
+    const onRefreshSuccess = vi.fn();
+    const onRefreshFailure = vi.fn();
+    const manager = createWhoopTokenManager({
+      store: await storeWith(expiredTokens),
+      config: CONFIG,
+      fetchImpl: makeFetchStatus(401),
+      nowMs: () => NOW,
+      onRefreshSuccess,
+      onRefreshFailure,
+    });
+    expect(await manager.getValidAccessToken()).toBeNull();
+    await vi.waitFor(() => expect(onRefreshFailure).toHaveBeenCalledTimes(1));
+    expect(onRefreshSuccess).not.toHaveBeenCalled();
+  });
+
+  it("a successful refresh fires onRefreshSuccess (the reset signal)", async () => {
+    const onRefreshSuccess = vi.fn();
+    const onRefreshFailure = vi.fn();
+    const { fetchImpl } = makeFetchOk({
+      access_token: "new-a",
+      refresh_token: "new-r",
+      expires_in: 3600,
+      scope: "offline",
+    });
+    const manager = createWhoopTokenManager({
+      store: await storeWith(expiredTokens),
+      config: CONFIG,
+      fetchImpl,
+      nowMs: () => NOW,
+      onRefreshSuccess,
+      onRefreshFailure,
+    });
+    expect(await manager.getValidAccessToken()).toBe("new-a");
+    await vi.waitFor(() => expect(onRefreshSuccess).toHaveBeenCalledTimes(1));
+    expect(onRefreshFailure).not.toHaveBeenCalled();
+  });
+
+  it("setTokens (re-auth) fires onRefreshSuccess", async () => {
+    const onRefreshSuccess = vi.fn();
+    const manager = createWhoopTokenManager({
+      store: await storeWith(null),
+      config: CONFIG,
+      fetchImpl: makeFetchThrow(),
+      nowMs: () => NOW,
+      onRefreshSuccess,
+    });
+    await manager.setTokens({
+      access_token: "a",
+      refresh_token: "r",
+      expires_in: 3600,
+      scope: "offline",
+    });
+    await vi.waitFor(() => expect(onRefreshSuccess).toHaveBeenCalledTimes(1));
+  });
+
+  it("a still-valid token fires neither observer", async () => {
+    const onRefreshSuccess = vi.fn();
+    const onRefreshFailure = vi.fn();
+    const manager = createWhoopTokenManager({
+      store: await storeWith({ ...expiredTokens, expiresAt: NOW + 3_600_000 }),
+      config: CONFIG,
+      fetchImpl: makeFetchThrow(),
+      nowMs: () => NOW,
+      onRefreshSuccess,
+      onRefreshFailure,
+    });
+    expect(await manager.getValidAccessToken()).toBe("old-a");
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onRefreshSuccess).not.toHaveBeenCalled();
+    expect(onRefreshFailure).not.toHaveBeenCalled();
+  });
+
+  it("a throwing observer never breaks the token path", async () => {
+    const manager = createWhoopTokenManager({
+      store: await storeWith(expiredTokens),
+      config: CONFIG,
+      fetchImpl: makeFetchStatus(500),
+      nowMs: () => NOW,
+      onRefreshFailure: () => {
+        throw new Error("bookkeeping exploded");
+      },
+    });
+    // Contract: refresh failure still resolves null (never throws).
+    await expect(manager.getValidAccessToken()).resolves.toBeNull();
   });
 });

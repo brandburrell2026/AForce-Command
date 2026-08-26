@@ -174,6 +174,8 @@
   .still-photo.in img{ transform:none; }
   .still-photo.reveal{ transition-duration:1.9s; }
   @media (prefers-reduced-motion:reduce){
+    html{ scroll-behavior:auto; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
     .still-photo.reveal{ opacity:1; transform:none; transition:none; }
     .still-photo img{ transform:none; transition:none; }
   }
@@ -353,6 +355,7 @@
 </script>
 </head>
 <body>
+<a class="afx-skip" href="#main">Skip to main content</a>
 
 <!-- ============ NAV (shared) ============ -->
 <header class="afx-nav afx-overlay" id="afxNav">
@@ -362,7 +365,7 @@
       <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story" aria-current="page">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
     <a href="/shop" class="afx-shop">Shop</a>
-    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
       <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
     </a>
@@ -384,6 +387,8 @@
     </nav>
   </div>
 </div>
+
+<main id="main" tabindex="-1">
 
 <!-- ============ 00 · HERO ============ -->
 <header class="hero" id="top">
@@ -639,6 +644,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER (shared) ============ -->
 <footer class="afx-footer" role="contentinfo">
   <div class="ff-wrap">
@@ -652,7 +659,7 @@
         <p class="ff-built">Built for what happens before.</p>
       </div>
       <nav class="ff-col" aria-label="System">
-        <h4>System</h4>
+        <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
         <a href="/shop">Shop</a>
         <a href="/aforce-os">AFORCE OS</a>
@@ -660,28 +667,32 @@
         <a href="/manifesto">Manifesto</a>
       </nav>
       <nav class="ff-col" aria-label="Company">
-        <h4>Company</h4>
+        <h2>Company</h2>
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
         <a href="mailto:contact@aforceritual.com">Contact</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
-        <h4>Follow the Standard</h4>
+        <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">TikTok <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Substack <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Facebook <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
-        <h4>Legal</h4>
+        <h2>Legal</h2>
         <a href="/legal">Legal Center</a>
         <a href="/legal/privacy">Privacy</a>
+        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
         <a href="/legal/terms">Terms</a>
-        <a href="/legal">Accessibility</a>
+        <a href="/subscription-terms">Subscription Terms</a>
+        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
+        <a href="/accessibility">Accessibility</a>
+        <a href="mailto:support@drinkaforce.com">Contact</a>
       </nav>
     </div>
 

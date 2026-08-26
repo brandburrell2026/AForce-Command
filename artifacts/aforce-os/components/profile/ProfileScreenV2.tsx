@@ -54,7 +54,7 @@ import { EditProfileModal } from '@/components/EditProfileModal';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
-import { DEFAULT_FLAGS, demoUnlockAllFlags } from '@/featureFlags/flags';
+import { DEFAULT_FLAGS, demoUnlockAllFlags, developerControlsAvailable } from '@/featureFlags/flags';
 import { resolveInitialFeatureFlags } from '@/featureFlags/internalTestflightOverlay';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -299,7 +299,11 @@ export function ProfileScreenV2() {
     (profileIdentity.displayName && profileIdentity.displayName.trim()) ||
     clerkName;
   const avatarInitial = displayName.charAt(0).toUpperCase();
-  const [remindersEnabled, setRemindersEnabled] = useState(mockUserProfile.remindersEnabled);
+  // Wave-5: the `remindersEnabled` useState that lived here is gone. It was
+  // seeded from `mockUserProfile.remindersEnabled` and written only back into
+  // itself — no dispatch, no persistence — so the switch it drove reset on
+  // every remount and changed nothing in between. The real control is the
+  // Notification Preferences screen, one row away in the NOTIFICATIONS group.
   // Active group on the premium tab bar. Defaults to PERFORMANCE so the
   // user lands on engine modules / goals on first open.
   const [profileTab, setProfileTab] = useState<ProfileTabId>('performance');
@@ -899,7 +903,10 @@ export function ProfileScreenV2() {
             const recoveryGoalLabel = profileIdentity.primaryGoal ?? profileIdentity.recoveryGoal;
             const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
-              <View style={[styles.profileCard, { borderColor: `${tier.color}33` }]}>
+              <View
+                style={[styles.profileCard, { borderColor: `${tier.color}33` }]}
+                testID="profile-identity-section"
+              >
                 <View style={styles.profileCardTop}>
                   {hasAvatarImage ? (
                     <Image
@@ -916,10 +923,17 @@ export function ProfileScreenV2() {
                     </View>
                   )}
                   <View style={styles.profileInfo}>
-                    <Text style={styles.profileName} numberOfLines={1}>
+                    {/* Two lines, not one: this column is only ~116pt wide on a
+                        320pt phone (avatar + edit button take the rest), so a
+                        one-line clamp cut ordinary names at 20pt — and worse
+                        under Dynamic Type. Still bounded so a pathological name
+                        can't shove the chip strip off the card. */}
+                    <Text style={styles.profileName} numberOfLines={2}>
                       {displayName}
                     </Text>
                     {handle ? (
+                      // Stays one line: a handle is a single unbreakable token,
+                      // so wrapping it would break mid-word rather than help.
                       <Text style={styles.profileHandle} numberOfLines={1}>
                         {handle}
                       </Text>
@@ -927,7 +941,7 @@ export function ProfileScreenV2() {
                     {locationLine ? (
                       <View style={styles.profileLocation}>
                         <Icon name="map-pin" size={11} color={af.textTertiary} />
-                        <Text style={styles.profileLocationText} numberOfLines={1}>
+                        <Text style={styles.profileLocationText} numberOfLines={2}>
                           {locationLine}
                         </Text>
                       </View>
@@ -977,28 +991,68 @@ export function ProfileScreenV2() {
                     color={auraColor}
                   />
                 </View>
-                <View style={styles.profileMetricStrip}>
-                  <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_height')}</Text>
-                    <Text style={styles.profileMetricValue}>{heightLabel}</Text>
+                {/* Build-60 device QA: the goal read "Recovery O…". The strip
+                    was a hard three-across row, so the goal — the only prose
+                    value here — got a third of the card (~91pt at 375, ~73pt
+                    at 320) with a one-line clamp, while "Recovery
+                    Optimization" needs ~190pt. Height and weight are short
+                    numerics and still pair fine side by side; the goal now
+                    takes the full card width on its own row and wraps, so it
+                    survives a small phone and large Dynamic Type without
+                    shrinking type or dropping characters. */}
+                <View style={styles.profileMetricStrip} testID="profile-metric-strip">
+                  <View style={styles.profileMetricRow}>
+                    <View style={styles.profileMetricCell}>
+                      <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_height')}</Text>
+                      <Text style={styles.profileMetricValue}>{heightLabel}</Text>
+                    </View>
+                    <View style={styles.profileMetricDivider} />
+                    <View style={styles.profileMetricCell}>
+                      <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_weight')}</Text>
+                      <Text style={styles.profileMetricValue}>{weightLabel}</Text>
+                    </View>
                   </View>
-                  <View style={styles.profileMetricDivider} />
-                  <View style={styles.profileMetricCell}>
-                    <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_weight')}</Text>
-                    <Text style={styles.profileMetricValue}>{weightLabel}</Text>
-                  </View>
-                  <View style={styles.profileMetricDivider} />
-                  <View style={styles.profileMetricCell}>
+                  <View style={styles.profileMetricRowDivider} />
+                  <View
+                    style={[styles.profileMetricCell, styles.profileMetricGoalCell]}
+                    testID="profile-metric-goal-cell"
+                  >
                     <Text style={styles.profileMetricLabel}>{t('profile.v2.metric_recovery_goal')}</Text>
-                    <Text
-                      style={[styles.profileMetricValue, { color: auraColor }]}
-                      numberOfLines={1}
-                    >
+                    {/* No numberOfLines on purpose: the goal must wrap, never
+                        ellipsize. A member cannot reconstruct it from a stub
+                        the way they can a height or a weight. */}
+                    <Text style={[styles.profileMetricValue, { color: auraColor }]}>
                       {recoveryGoalLabel}
                     </Text>
                   </View>
                 </View>
+                {/* §55/Show-10 Profile Strength. It used to be its own headed
+                    card wrapping a single row, one card down the page from
+                    the fields it measures — it reads the completeness of THIS
+                    card, so it belongs on it. Same flag gate, same chip. */}
+                {flags.spec_profileStrengthSection ? (
+                  <View style={styles.profileStrengthRow} testID="profile-strength-row">
+                    <Text style={[styles.profileMetricLabel, styles.profileStrengthLabel]}>
+                      {t('profile.v2.profile_completeness')}
+                    </Text>
+                    <ConfidenceChip
+                      {...profileStrength(profileIdentity).chip}
+                      a11yContext={t('profile.v2.completeness_a11y_context')}
+                    />
+                  </View>
+                ) : null}
               </View>
+            );
+
+            // Founder Profile brief, section 1 of 8 — IDENTITY. Every other
+            // group on this screen carries a SectionHeader; the identity card
+            // was the one unlabelled block, which is part of why the screen
+            // read as an unsorted pile rather than a set of named sections.
+            const identityBlock = (
+              <>
+                <SectionHeader label={t('profile.v2.identity_label')} />
+                {profileCard}
+              </>
             );
 
             const inviteCode = referralQ.data?.code ?? null;
@@ -1082,30 +1136,27 @@ export function ProfileScreenV2() {
               </>
             );
 
-            // §55/Show-10 — Profile Strength (completeness chip). Flag-gated,
-            // additive, presentational. Chip is copy-independent (label+opacity).
-            const profileStrengthCard = flags.spec_profileStrengthSection ? (
+            // Founder Profile brief, section 2 of 8 — PERFORMANCE PROFILE:
+            // what AForce assumes about this body. Formerly "GOALS". Two rows
+            // left: the ounces row restated the target row directly above it
+            // (target × 12) and is now that row's sub-label; the "Reminders"
+            // switch was a local `useState` that persisted nothing and was
+            // superseded by the real Notification Preferences screen — see
+            // the NOTIFICATIONS group, which now owns every interruption
+            // control on this screen.
+            const performanceProfileBlock = (
               <>
-                <SectionHeader label={t('profile.v2.strength_label')} />
-                <View style={styles.card}>
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLeft}>
-                      <Icon name="user" size={16} color={af.textSecondary} />
-                      <Text style={styles.settingLabel}>{t('profile.v2.profile_completeness')}</Text>
-                    </View>
-                    <ConfidenceChip {...profileStrength(profileIdentity).chip} a11yContext={t('profile.v2.completeness_a11y_context')} />
-                  </View>
-                </View>
-              </>
-            ) : null;
-
-            const goalsCard = (
-              <>
-                <SectionHeader label={t('profile.v2.goals_label')} />
-                <View style={styles.card}>
-                  <SettingRow icon="target" label={t('profile.v2.daily_target')} value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })} />
-                  <Divider />
-                  <SettingRow icon="droplet" label={t('profile.v2.daily_ounces_target')} value={t('profile.v2.unit_ounces', { value: mockUserProfile.dailyTarget * 12 })} />
+                <SectionHeader
+                  label={t('profile.v2.performance_profile_label')}
+                  hint={t('profile.v2.performance_profile_hint')}
+                />
+                <View style={styles.card} testID="profile-performance-profile-card">
+                  <SettingRow
+                    icon="target"
+                    label={t('profile.v2.daily_target')}
+                    value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })}
+                    sub={t('profile.v2.daily_target_oz_sub', { value: mockUserProfile.dailyTarget * 12 })}
+                  />
                   <Divider />
                   <SettingRow
                     icon="user"
@@ -1120,101 +1171,68 @@ export function ProfileScreenV2() {
                   <SettingRow icon="activity" label={t('profile.v2.activity_type')} value={mockUserProfile.activityType} />
                   <Divider />
                   <SettingRow icon="sunrise" label={t('profile.v2.wake_time')} value={mockUserProfile.wakeTimeHHMM} />
-                  <Divider />
-                  <View style={styles.settingRow}>
-                    <View style={styles.settingLeft}>
-                      <Icon name="bell" size={16} color={af.cyan} />
-                      <Text style={styles.settingLabel}>{t('profile.v2.reminders')}</Text>
-                    </View>
-                    <Switch
-                      value={remindersEnabled}
-                      onValueChange={setRemindersEnabled}
-                      trackColor={{ false: af.surface, true: af.green }}
-                      thumbColor={af.textPrimary}
-                      ios_backgroundColor={af.surface}
-                      accessibilityLabel={t('profile.v2.reminders')}
-                    />
-                  </View>
-                  <Divider />
-                  <Pressable
-                    onPress={() => router.push('/notifications')}
-                    testID="profile-notifications-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.notif_prefs')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="sliders" size={16} color={af.cyan} />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.notif_prefs')}</Text>
-                        <Text style={styles.settingSubLabel}>{t('profile.v2.notif_prefs_sub')}</Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
+                  {/* Read-only "what your body taught us" surfaces. They were
+                      nested in the SETTINGS card, which is where a member
+                      looks for controls, not readouts. All still flag-gated
+                      and display-only. */}
+                  {flags.adaptive_response_enabled ? (
+                    <>
+                      <Divider />
+                      <PersonalResponseLibraryCard />
+                    </>
+                  ) : null}
+                  {flags.living_performance_enabled ? (
+                    <>
+                      <Divider />
+                      <DailyLessonCard />
+                    </>
+                  ) : null}
+                  {flags.response_timeline_enabled ? (
+                    <>
+                      <Divider />
+                      <ResponseTimelineCard />
+                    </>
+                  ) : null}
                 </View>
               </>
             );
 
-            const modulesCard = (
-              <>
-                <SectionHeader label={t('profile.v2.modules_label')} hint={t('profile.v2.modules_hint')} />
-                <View style={styles.card}>
-                  <Pressable
-                    onPress={() => router.push('/modules')}
-                    testID="profile-modules-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.all_modules')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="grid" size={16} color="#C1281B" />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
-                        <Text style={styles.settingSubLabel}>
-                          {t('profile.v2.all_modules_sub')}
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
-                </View>
-              </>
-            );
-
-            // Flag-gated public entry to the Weekly Performance Report™.
-            // Hidden until `spec_weekly_report` is on (Build 100% · Show 10%);
-            // the Modules launcher always lists it for internal evaluation.
-            const weeklyReportCard = flags.spec_weekly_report ? (
-              <>
-                <SectionHeader label={t('profile.v2.weekly_label')} hint={t('profile.v2.weekly_hint')} />
-                <View style={styles.card}>
-                  <Pressable
-                    onPress={() => router.push('/weekly-report')}
-                    testID="profile-weekly-report-link"
-                    style={styles.settingRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('profile.v2.weekly_report')}
-                  >
-                    <View style={styles.settingLeft}>
-                      <Icon name="trending-up" size={16} color="#1E5BFF" />
-                      <View>
-                        <Text style={styles.settingLabel}>{t('profile.v2.weekly_report')}</Text>
-                        <Text style={styles.settingSubLabel}>
-                          {t('profile.v2.weekly_report_sub')}
-                        </Text>
-                      </View>
-                    </View>
-                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
-                  </Pressable>
-                </View>
-              </>
-            ) : null;
-
+            // One tools group, not three. MODULES, WEEKLY REPORT and PROTOCOL
+            // TOOLS were three separate headed cards — two of them holding a
+            // single row — for the same job: "take me somewhere else". Merged
+            // into one card, ordered by how often a member actually needs it.
+            // Row icons are uniformly af.textSecondary: a five-hue icon column
+            // implied five different kinds of thing when they are all links.
             const protocolToolsCard = (
               <>
                 <SectionHeader label={t('profile.v2.protocol_tools_label')} />
-                <View style={styles.card}>
+                <View style={styles.card} testID="profile-protocol-tools-card">
+                  {/* Flag-gated public entry to the Weekly Performance Report™
+                      (Build 100% · Show 10%); the Modules launcher below always
+                      lists it for internal evaluation. */}
+                  {flags.spec_weekly_report ? (
+                    <>
+                      <Pressable
+                        onPress={() => router.push('/weekly-report')}
+                        testID="profile-weekly-report-link"
+                        style={styles.settingRow}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('profile.v2.weekly_report')}
+                      >
+                        <View style={styles.settingLeft}>
+                          <Icon name="trending-up" size={16} color={af.textSecondary} />
+                          <View>
+                            <Text style={styles.settingLabel}>{t('profile.v2.weekly_report')}</Text>
+                            <Text style={styles.settingSubLabel}>
+                              {t('profile.v2.weekly_report_sub')}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                      </Pressable>
+                      <Divider />
+                    </>
+                  ) : null}
                   <Pressable
                     onPress={() => router.push('/sensors')}
                     testID="profile-sensors-link"
@@ -1223,7 +1241,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.sensor_import')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="upload" size={16} color={af.cyan} />
+                      <Icon name="upload" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.sensor_import')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.sensor_import_sub')}</Text>
@@ -1240,7 +1258,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.cruise_mode')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="anchor" size={16} color="#00E5FF" />
+                      <Icon name="anchor" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.cruise_mode')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.cruise_mode_sub')}</Text>
@@ -1260,7 +1278,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.achievements')}
                   >
                     <View style={styles.settingLeft}>
-                      <Icon name="award" size={16} color={af.green} />
+                      <Icon name="award" size={16} color={af.textSecondary} />
                       <View>
                         <Text style={styles.settingLabel}>{t('profile.v2.achievements')}</Text>
                         <Text style={styles.settingSubLabel}>{t('profile.v2.achievements_sub')}</Text>
@@ -1285,6 +1303,36 @@ export function ProfileScreenV2() {
                     </View>
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
                   </Pressable>
+                  {/* Build-61 correction (device QA, P1): the All Modules
+                      launcher is an INTERNAL evaluation surface — it lists
+                      Guardian, Clutch and Phantom, and its Social card resolved
+                      through Night Out's gate onto the Protocol tab. It carries
+                      the same clamp as the DEVELOPER tab below, so an ordinary
+                      member never sees the entry point; `app/modules.tsx`
+                      repeats the clamp so the route is dead too. */}
+                  {developerControlsAvailable() ? (
+                    <>
+                      <Divider />
+                      <Pressable
+                        onPress={() => router.push('/modules')}
+                        testID="profile-modules-link"
+                        style={styles.settingRow}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('profile.v2.all_modules')}
+                      >
+                        <View style={styles.settingLeft}>
+                          <Icon name="grid" size={16} color={af.textSecondary} />
+                          <View>
+                            <Text style={styles.settingLabel}>{t('profile.v2.all_modules')}</Text>
+                            <Text style={styles.settingSubLabel}>
+                              {t('profile.v2.all_modules_sub')}
+                            </Text>
+                          </View>
+                        </View>
+                        <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                      </Pressable>
+                    </>
+                  ) : null}
                 </View>
               </>
             );
@@ -1317,24 +1365,17 @@ export function ProfileScreenV2() {
               </>
             );
 
-            const connectedDevicesCard = (
+            // Founder Profile brief, section 3 of 8 — CONNECTED DATA.
+            //
+            // The "CONNECTED DEVICES" card that used to head this group was
+            // deleted, not restyled: it rendered `mockUserProfile.connectedDevices`
+            // (a fixture: Apple Watch Ultra + Oura Ring) with a green LIVE pill
+            // for every member, paired or not — the screen asserting a live
+            // connection the data cannot support, immediately above the
+            // provider list that reports the per-provider truth honestly.
+            const connectedDataBlock = (
               <>
-                <SectionHeader label={t('profile.v2.connected_devices_label')} />
-                <View style={styles.card}>
-                  {mockUserProfile.connectedDevices.map((device, i) => (
-                    <React.Fragment key={device}>
-                      <View style={styles.deviceRow}>
-                        <View style={styles.deviceLeft}>
-                          <View style={[styles.deviceDot, { backgroundColor: af.green }]} />
-                          <Text style={styles.deviceName}>{device}</Text>
-                        </View>
-                        <Text style={[styles.deviceStatus, { color: af.green }]}>{t('profile.v2.device_live')}</Text>
-                      </View>
-                      {i < mockUserProfile.connectedDevices.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </View>
-                <SectionHeader label={t('profile.v2.health_platforms_label')} hint={t('profile.v2.health_platforms_hint')} />
+                <SectionHeader label={t('profile.v2.connected_data_label')} hint={t('profile.v2.connected_data_hint')} />
                 <View style={styles.card}>
                   {/* RC-1 Wave-2B (item 2b) — while the mount-time WHOOP +
                       Garmin status checks are in flight, skeleton the rows
@@ -1813,15 +1854,40 @@ export function ProfileScreenV2() {
               </>
             );
 
-            // Voice Coach toggle (T3) — re-enables the AI voice persona.
-            // Each new AI command is read aloud via the selected coach
-            // voice (ElevenLabs when picked, else device synthesizer).
-            // Both the on/off toggle AND the picked voice survive a
-            // refresh via AsyncStorage in the store.
-            const voiceCard = (
+            // Founder Profile brief, section 5 of 8 — NOTIFICATIONS: every
+            // channel AForce can use to interrupt a member, under one label.
+            // "When will this app talk to me?" previously had no single
+            // answer — push preferences sat at the bottom of the GOALS card
+            // and the Voice Coach was its own top-level group two cards away.
+            //
+            // Voice Coach (T3) — each new AI command is read aloud via the
+            // selected coach voice (ElevenLabs when picked, else the device
+            // synthesizer). Both the on/off toggle AND the picked voice
+            // survive a refresh via AsyncStorage in the store.
+            const notificationsBlock = (
               <>
-                <SectionHeader label={t('profile.voice_section.label')} />
-                <View style={styles.card}>
+                <SectionHeader
+                  label={t('profile.v2.notifications_label')}
+                  hint={t('profile.v2.notifications_hint')}
+                />
+                <View style={styles.card} testID="profile-notifications-card">
+                  <Pressable
+                    onPress={() => router.push('/notifications')}
+                    testID="profile-notifications-link"
+                    style={styles.settingRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.v2.notif_prefs')}
+                  >
+                    <View style={styles.settingLeft}>
+                      <Icon name="sliders" size={16} color={af.textSecondary} />
+                      <View>
+                        <Text style={styles.settingLabel}>{t('profile.v2.notif_prefs')}</Text>
+                        <Text style={styles.settingSubLabel}>{t('profile.v2.notif_prefs_sub')}</Text>
+                      </View>
+                    </View>
+                    <Icon name="chevron-right" size={16} color={af.textTertiary} />
+                  </Pressable>
+                  <Divider />
                   <View style={styles.settingRow}>
                     <View style={styles.settingLeft}>
                       <Icon
@@ -2102,10 +2168,39 @@ export function ProfileScreenV2() {
               </>
             );
 
+            // Founder Profile brief, section 4 of 8 — PRIVACY. Analytics
+            // consent was a single row buried mid-card in SETTINGS, between
+            // the language picker and a stack of flag-gated panels: "what does
+            // AForce collect, and how do I erase it?" was answerable only by
+            // reading every row on the tab. It is now the whole point of its
+            // own labelled group.
+            const privacyBlock = (
+              <>
+                <SectionHeader label={t('profile.v2.privacy_label')} hint={t('profile.v2.privacy_hint')} />
+                <View style={styles.card} testID="profile-privacy-card">
+                  <AnalyticsConsentRow />
+                  {/* Performance Memory™ governance — what the app has
+                      observed about this member, plus the delete action.
+                      Same question, same group. Flag gate unchanged. */}
+                  {flags.performance_memory_governance_enabled ? (
+                    <>
+                      <Divider />
+                      <PerformanceMemoryGovernanceCard />
+                    </>
+                  ) : null}
+                </View>
+              </>
+            );
+
+            // Founder Profile brief, section 7 of 8 — ACCOUNT: how this
+            // account is configured, and how to leave it. Absorbs the former
+            // PREFERENCES card (four display-unit segmented rows a member sets
+            // once did not need a headed card of their own) and SignOutRow,
+            // which floated below every tab rather than belonging to one.
             const settingsBlock = (
               <>
-                <SectionHeader label={t('profile.settings').toUpperCase()} />
-                <View style={styles.card}>
+                <SectionHeader label={t('profile.v2.account_label')} hint={t('profile.v2.account_hint')} />
+                <View style={styles.card} testID="profile-account-card">
                   <View style={{ paddingHorizontal: 14, paddingVertical: 4 }}>
                     <LanguageSelector onPersist={(lang) => setLanguage(lang)} />
                   </View>
@@ -2122,48 +2217,6 @@ export function ProfileScreenV2() {
                     }}
                   />
                   <Divider />
-                  <AnalyticsConsentRow />
-                  {flags.performance_memory_governance_enabled ? (
-                    <>
-                      <Divider />
-                      <PerformanceMemoryGovernanceCard />
-                    </>
-                  ) : null}
-                  {flags.performance_identity_enabled ? (
-                    <>
-                      <Divider />
-                      <PerformanceIdentityCard />
-                    </>
-                  ) : null}
-                  {flags.adaptive_response_enabled ? (
-                    <>
-                      <Divider />
-                      <PersonalResponseLibraryCard />
-                    </>
-                  ) : null}
-                  {flags.living_performance_enabled ? (
-                    <>
-                      <Divider />
-                      <DailyLessonCard />
-                    </>
-                  ) : null}
-                  {flags.response_timeline_enabled ? (
-                    <>
-                      <Divider />
-                      <ResponseTimelineCard />
-                    </>
-                  ) : null}
-                </View>
-              </>
-            );
-
-            // Preferences card — display units for the whole app.
-            // Three segmented controls; each writes through to
-            // setUnitPreference, which persists to AsyncStorage.
-            const preferencesBlock = (
-              <>
-                <SectionHeader label={t('profile.v2.preferences_label')} hint={t('profile.v2.preferences_hint')} />
-                <View style={styles.card}>
                   <UnitPreferenceRow
                     label={t('profile.v2.pref_weight')}
                     options={[
@@ -2204,6 +2257,7 @@ export function ProfileScreenV2() {
                     onSelect={(v) => setUnitPreference('volume', v)}
                   />
                 </View>
+                <SignOutRow />
               </>
             );
 
@@ -2234,6 +2288,19 @@ export function ProfileScreenV2() {
                     />
                   </View>
                 </View>
+
+                {/* PerformanceIdentityCard describes itself as an INTERNAL
+                    raw-signal verification surface, not a product feature
+                    ("Classification — not assigned (inert)"), yet it mounted
+                    inside the member-facing SETTINGS card. Its flag is OFF in
+                    the production binary, so this relocates an internal
+                    readout to the internal tab — it takes nothing away that an
+                    ordinary member could reach. */}
+                {flags.performance_identity_enabled ? (
+                  <View style={styles.card}>
+                    <PerformanceIdentityCard />
+                  </View>
+                ) : null}
 
                 {devMode && (
                   <View style={styles.card} testID="profile-whoop-encryption-status">
@@ -2348,10 +2415,17 @@ export function ProfileScreenV2() {
               </>
             );
 
+            // Terms, Privacy, Health Disclaimer and Contact Support are
+            // required to be reachable by every signed-in member — App Store
+            // review and `docs/COMPLIANCE_FRAMEWORK.md` both assume it. This
+            // block therefore belongs to a tab ordinary users can open; it
+            // must NEVER live under `developer`, which production builds strip
+            // (see VISIBLE_PROFILE_TABS). Guarded by
+            // `profileScreenV2LegalReachability.test.ts`.
             const legalBlock = (
               <>
                 <SectionHeader label={t('profile.v2.legal_label')} hint={t('profile.v2.legal_hint')} />
-                <View style={styles.card}>
+                <View style={styles.card} testID="profile-legal-support-card">
                   <Pressable
                     onPress={() => router.push('/legal/terms')}
                     testID="profile-legal-terms"
@@ -2422,18 +2496,55 @@ export function ProfileScreenV2() {
                     <Icon name="chevron-right" size={16} color={af.textTertiary} />
                   </Pressable>
                 </View>
+                {/* Build + patent footer. It used to trail EVERY tab, so four
+                    lines of legal fine print were the last thing a member read
+                    after their goals and after their devices. It belongs with
+                    the legal group — and support asks for the build string
+                    anyway, which is now one row above it. */}
+                <Text style={styles.version}>{t('profile.v2.version')}</Text>
+                <Text style={styles.patent}>{t('profile.v2.patent_pending')}</Text>
+                <Text style={styles.patentSub}>
+                  {t('profile.v2.patent_sub_1')}{'\n'}
+                  {t('profile.v2.patent_sub_2')}{'\n'}
+                  {t('profile.v2.patent_sub_3')}{'\n'}
+                  {t('profile.v2.patent_sub_4')}
+                </Text>
               </>
             );
 
-            // Group sections by tab. Identity (`profileCard`) always renders
-            // above the tab bar — it's the user's avatar/tier card, not a
-            // group of settings. PhaseEntryRow ships under ACCOUNT so the
-            // CLUTCH / GUARDIAN entries live next to subscription tier.
+            // Group sections by tab, in the founder's Profile order:
+            // IDENTITY · PERFORMANCE PROFILE · CONNECTED DATA · PRIVACY ·
+            // NOTIFICATIONS · SUBSCRIPTION · ACCOUNT · SUPPORT.
+            //
+            // IDENTITY (`identityBlock`) always renders above the tab bar — it
+            // is who the member is, not a group of settings, and it is the one
+            // block every tab needs in view. Everything else has exactly one
+            // home, so no group appears twice and none is homeless:
+            //   PERFORMANCE → what AForce assumes about you + where to go next
+            //   DEVICES     → where the biometrics come from
+            //   ACCOUNT     → subscription, interruptions, data, setup, support
+            //   DEVELOPER   → internal-only, stripped by VISIBLE_PROFILE_TABS
+            //
+            // ACCOUNT runs in the founder's SUBSCRIPTION · ACCOUNT · SUPPORT
+            // order, so sign-out and then the legal footer close the tab.
+            // `inviteCard` is a growth surface, not a setting: it opened the
+            // tab before this change, which meant the first thing a member saw
+            // on ACCOUNT was a referral code rather than their plan.
+            //
+            // Two placements are load-bearing, not cosmetic:
+            //   - `legalBlock` must sit on a tab that survives the developer
+            //     strip (App Review + docs/COMPLIANCE_FRAMEWORK.md); ACCOUNT
+            //     does. Guarded by profileScreenV2LegalReachability.test.ts.
+            //   - `demoModesCard` moved to DEVELOPER: it activates Night Out
+            //     and logs drinks against the REAL server session, so a
+            //     production member could put their own account into a
+            //     drinking-night state from a card labelled "DEMO MODES" —
+            //     the same class of defect PR #767 fixed on Scan.
             const tabSections: Record<ProfileTabId, React.ReactNode[]> = {
-              performance: [profileStrengthCard, modulesCard, weeklyReportCard, goalsCard, protocolToolsCard, voiceCard, demoModesCard],
-              devices: [hardwareCard, connectedDevicesCard],
-              account: [inviteCard, subscriptionBlock, phaseEntryRow, settingsBlock, preferencesBlock],
-              developer: [demoAccessCard, developerBlock, legalBlock],
+              performance: [performanceProfileBlock, protocolToolsCard],
+              devices: [connectedDataBlock, hardwareCard],
+              account: [subscriptionBlock, phaseEntryRow, notificationsBlock, privacyBlock, inviteCard, settingsBlock, legalBlock],
+              developer: [demoAccessCard, demoModesCard, developerBlock],
             };
             const activeSections = tabSections[profileTab];
             const tabBar = (
@@ -2447,7 +2558,7 @@ export function ProfileScreenV2() {
               return (
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
-                    {profileCard}
+                    {identityBlock}
                     {tabBar}
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
@@ -2461,7 +2572,7 @@ export function ProfileScreenV2() {
 
             return (
               <>
-                {profileCard}
+                {identityBlock}
                 {tabBar}
                 {activeSections.map((node, i) => (
                   <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>
@@ -2469,17 +2580,6 @@ export function ProfileScreenV2() {
               </>
             );
           })()}
-
-          <SignOutRow />
-
-          <Text style={styles.version}>{t('profile.v2.version')}</Text>
-          <Text style={styles.patent}>{t('profile.v2.patent_pending')}</Text>
-          <Text style={styles.patentSub}>
-            {t('profile.v2.patent_sub_1')}{'\n'}
-            {t('profile.v2.patent_sub_2')}{'\n'}
-            {t('profile.v2.patent_sub_3')}{'\n'}
-            {t('profile.v2.patent_sub_4')}
-          </Text>
         </ScrollView>
       </GradientBackground>
       <EditProfileModal
@@ -2591,6 +2691,17 @@ const PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId }> = [
   { id: 'developer' },
 ];
 
+/**
+ * Wave-1 P0 hardening (SS-01): the DEVELOPER tab — and every flag toggle
+ * inside it, including "Unlock all" — is NOT for ordinary production users.
+ * Visible only in local dev, env-gated demo builds, and internal TestFlight
+ * (developerControlsAvailable). Ordinary users see three tabs.
+ */
+const VISIBLE_PROFILE_TABS: ReadonlyArray<{ id: ProfileTabId }> =
+  developerControlsAvailable()
+    ? PROFILE_TABS
+    : PROFILE_TABS.filter((tab) => tab.id !== 'developer');
+
 function ProfileTabBar({
   active,
   onChange,
@@ -2606,7 +2717,7 @@ function ProfileTabBar({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabBarRow}
       >
-        {PROFILE_TABS.map((tab) => {
+        {VISIBLE_PROFILE_TABS.map((tab) => {
           const isActive = tab.id === active;
           const tabLabel = t(`profile.v2.tab_${tab.id}`);
           return (
@@ -2647,12 +2758,18 @@ function SnapshotCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function SettingRow({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+// `sub` exists so a derived restatement can hang off the row it restates
+// instead of claiming a row of its own — the daily ounces target is the daily
+// target × 12, and read as a second equal-weight fact until it was folded in.
+function SettingRow({ icon, label, value, sub }: { icon: IconName; label: string; value: string; sub?: string }) {
   return (
     <View style={styles.settingRow}>
       <View style={styles.settingLeft}>
         <Icon name={icon} size={16} color={af.cyan} />
-        <Text style={styles.settingLabel}>{label}</Text>
+        <View>
+          <Text style={styles.settingLabel}>{label}</Text>
+          {sub ? <Text style={styles.settingSubLabel}>{sub}</Text> : null}
+        </View>
       </View>
       <Text style={styles.settingValue}>{value}</Text>
     </View>
@@ -2743,7 +2860,10 @@ function IdentityChip({
       accessibilityLabel={label}
     >
       <Icon name={icon} size={11} color={color} />
-      <Text style={[styles.identityChipLabel, { color }]} numberOfLines={1}>
+      {/* No line clamp: a chip carries a member-authored team name or a
+          territory badge, and the strip already wraps. A long chip should
+          become a taller chip, not "NORTHSIDE STRENGT…". */}
+      <Text style={[styles.identityChipLabel, { color }]}>
         {label}
       </Text>
     </View>
@@ -2936,6 +3056,9 @@ const styles = StyleSheet.create({
   profileLocationText: {
     fontSize: 12, fontFamily: 'Inter_500Medium', color: af.textTertiary,
     letterSpacing: 0.3,
+    // Sits in a row beside the pin icon; RN defaults flexShrink to 0, so
+    // without this "San Francisco · United States" pushes past the card.
+    flexShrink: 1,
   },
   profileEditBtn: {
     width: 36, height: 36, borderRadius: 18, borderWidth: 1,
@@ -2948,9 +3071,11 @@ const styles = StyleSheet.create({
   profileChipStrip: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 6,
   },
+  // Column, not a row: the numeric pair shares one line, the prose goal
+  // gets its own full-width line beneath them (see the metric-strip
+  // comment at the call site for the Build-60 truncation this fixes).
   profileMetricStrip: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    flexDirection: 'column',
     backgroundColor: af.canvas,
     borderRadius: 14,
     borderWidth: 1,
@@ -2958,18 +3083,49 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     marginTop: 4,
+    gap: 10,
   },
+  profileMetricRow: {
+    flexDirection: 'row', alignItems: 'stretch',
+  },
+  // `flexShrink` + `minWidth: 0` so a cell yields at 320pt / large Dynamic
+  // Type instead of forcing its text to ellipsize inside a rigid box.
   profileMetricCell: {
-    flex: 1, alignItems: 'center', justifyContent: 'center', gap: 4,
+    flex: 1, flexShrink: 1, minWidth: 0,
+    alignItems: 'center', justifyContent: 'center', gap: 4,
+  },
+  // The goal cell is a child of the COLUMN strip rather than of the two-up
+  // row, where `flex: 1`'s grow + zero main-basis would apply VERTICALLY.
+  // Reset both: this cell is content-height and full-width.
+  profileMetricGoalCell: {
+    flexGrow: 0, flexBasis: 'auto', alignSelf: 'stretch',
   },
   profileMetricDivider: {
     width: 1, backgroundColor: af.divider, alignSelf: 'stretch', marginVertical: 4,
   },
+  profileMetricRowDivider: {
+    height: 1, backgroundColor: af.divider,
+  },
+  // textAlign keeps a wrapped label/value centered under its cell rather
+  // than ragged-left once Dynamic Type pushes it onto a second line.
   profileMetricLabel: {
     fontSize: 9, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 1.5,
+    textAlign: 'center', flexShrink: 1,
   },
   profileMetricValue: {
     fontSize: 14, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: 0.3,
+    textAlign: 'center', flexShrink: 1,
+  },
+  profileStrengthRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: 10, marginTop: 4,
+  },
+  // Same label token, but this one sits in a space-between row next to the
+  // confidence chip: it must shrink and wrap (RN defaults flexShrink to 0,
+  // which pushed the chip past the card edge at large Dynamic Type) and it
+  // reads left-to-right/RTL with the row, not centered like a cell.
+  profileStrengthLabel: {
+    flexShrink: 1, textAlign: 'auto',
   },
   identityChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -2978,6 +3134,9 @@ const styles = StyleSheet.create({
   },
   identityChipLabel: {
     fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.5,
+    // The chip is capped at maxWidth 100%; without flexShrink the label
+    // would overflow that cap instead of wrapping inside it.
+    flexShrink: 1,
   },
   sectionHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -3202,12 +3361,8 @@ const styles = StyleSheet.create({
   hardwareStatus: {
     fontSize: 9, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 1.5,
   },
-  deviceRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14,
-  },
-  deviceLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  deviceDot: { width: 7, height: 7, borderRadius: 4 },
+  // deviceRow / deviceLeft / deviceDot went with the fixture CONNECTED DEVICES
+  // list. deviceName + deviceStatus stay — the provider rows use both.
   deviceName: { fontSize: 15, fontFamily: 'Inter_500Medium', color: af.textPrimary },
   deviceStatus: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   providerRow: {

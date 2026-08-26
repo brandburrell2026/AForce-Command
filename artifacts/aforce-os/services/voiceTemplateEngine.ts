@@ -14,6 +14,7 @@ import type {
   VoiceUrgencyMode,
 } from '../types/voicePersona';
 import { VOICE_TEMPLATES } from '../data/voiceTemplates';
+import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { getRule } from './voicePersonaService';
 import i18n from 'i18next';
 // Type-only import keeps the RN-touching i18nService module out of the
@@ -128,6 +129,11 @@ export function renderTemplate(
   spoken = stripBanned(spoken, rule.forbidden_phrases);
   spoken = clipSentences(spoken, rule.max_sentences);
   spoken = clipWords(spoken, rule.max_words);
+  // §42 claims gate (Wave-2 PR5): a token-filled line that lands on a
+  // block-severity concept is SUPPRESSED whole ('' no-ops in speak()),
+  // never stripped — stripBanned's delete-the-phrase behavior is only
+  // safe for its tone list; deleting claim words can invert meaning.
+  if (consumerCopyBlocked(spoken)) spoken = '';
 
   let detail: string | undefined;
   if (template.detail) {
@@ -135,6 +141,7 @@ export function renderTemplate(
     detail = stripBanned(detail, rule.forbidden_phrases);
     // Detail line is one sentence, slightly higher ceiling.
     detail = clipWords(detail, 18);
+    if (detail && consumerCopyBlocked(detail)) detail = undefined;
   }
 
   return { spoken, detail, category, mode: ctx.mode };

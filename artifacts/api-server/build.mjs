@@ -120,7 +120,25 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
   });
 }
 
-buildAll().catch((err) => {
+// Wave-3 PR2: stripe-replit-sync resolves its SQL migrations relative to
+// __dirname at runtime. Bundled by esbuild, that becomes dist/migrations —
+// which never existed, so runMigrations logged "skipping" and created ZERO
+// stripe.* tables while reporting success. Ship the migrations beside the
+// bundle so the mirror schema actually materializes.
+import { cpSync, existsSync } from "node:fs";
+function copySyncMigrations() {
+  const pkgEntry = require.resolve("stripe-replit-sync");
+  const migrationsSrc = path.join(path.dirname(pkgEntry), "migrations");
+  const migrationsDst = path.join(path.dirname(fileURLToPath(import.meta.url)), "dist", "migrations");
+  if (existsSync(migrationsSrc)) {
+    cpSync(migrationsSrc, migrationsDst, { recursive: true });
+    console.log(`copied stripe sync migrations -> ${migrationsDst}`);
+  } else {
+    throw new Error(`stripe-replit-sync migrations not found at ${migrationsSrc}`);
+  }
+}
+
+buildAll().then(copySyncMigrations).catch((err) => {
   console.error(err);
   process.exit(1);
 });

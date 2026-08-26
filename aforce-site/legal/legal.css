@@ -36,6 +36,12 @@ img,svg{ max-width:100%; display:block; }
 button{ font-family:inherit; cursor:pointer; color:inherit; background:none; border:none; }
 .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
+/* ---------- SKIP LINK ---------- */
+.lc-skip{ position:fixed; top:12px; left:12px; z-index:400; padding:12px 20px; background:#0D0D0D; color:#F5F0E8;
+  font-family:var(--mono, monospace); font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+  text-decoration:none; border-radius:4px; transform:translateY(calc(-100% - 16px)); }
+.lc-skip:focus, .lc-skip:focus-visible{ transform:none; outline:2px solid #C1281B; outline-offset:2px; }
+
 /* ---------- HEADER ---------- */
 .lc-header{ position:sticky; top:0; z-index:60; display:flex; align-items:center; justify-content:space-between; gap:18px;
   padding:14px var(--gutter); background:rgba(247,245,239,.9); backdrop-filter:blur(12px); border-bottom:1px solid var(--i08); }
@@ -153,7 +159,7 @@ button{ font-family:inherit; cursor:pointer; color:inherit; background:none; bor
 .lc-card{ border:1px solid var(--i14); border-radius:3px; padding:clamp(22px,2.4vw,28px); display:flex; flex-direction:column; min-height:150px; transition:border-color .25s, transform .3s; }
 a.lc-card:hover{ border-color:var(--ink); transform:translateY(-3px); }
 .lc-card .c-idx{ font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.16em; color:var(--red); }
-.lc-card h3{ font-family:var(--display); font-size:clamp(17px,1.5vw,20px); line-height:1.16; margin:14px 0 10px; }
+.lc-card h2, .lc-card h3{ font-family:var(--display); font-size:clamp(17px,1.5vw,20px); line-height:1.16; margin:14px 0 10px; }
 .lc-card p{ font-size:13px; line-height:1.6; color:var(--i64); flex:1; }
 .lc-card .c-go{ margin-top:16px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink); }
 .lc-card.soon{ opacity:.62; } .lc-card.soon .c-go{ color:var(--i30); }

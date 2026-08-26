@@ -39,6 +39,9 @@ describe("runProviderFetchSweep", () => {
       skipped_no_token: 0,
       skipped_no_state: 0,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 0,
     });
   });
@@ -61,6 +64,9 @@ describe("runProviderFetchSweep", () => {
       skipped_no_token: 1,
       skipped_no_state: 1,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 1,
     });
   });

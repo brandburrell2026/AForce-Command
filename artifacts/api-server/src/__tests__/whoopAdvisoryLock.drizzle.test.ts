@@ -24,9 +24,12 @@ import {
   WHOOP_USER_ADVISORY_LOCK_NAMESPACE,
 } from "../lib/whoopAdvisoryLock";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const TEST_USER = `test_advlock_${process.pid}`;
 
-describe("withWhoopUserAdvisoryLock — DB integration (cross-connection)", () => {
+describe.runIf(DB)("withWhoopUserAdvisoryLock — DB integration (cross-connection)", () => {
   it("blocks a second session while a first session holds the lock, then admits it after unlock", async () => {
     const a = await pool.connect();
     const b = await pool.connect();

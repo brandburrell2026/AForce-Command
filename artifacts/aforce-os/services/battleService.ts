@@ -6,20 +6,30 @@
  * pattern in `useCircleSubscription` continues to work without async
  * propagation through every screen.
  *
+ * The cache starts EMPTY and stays empty when a fetch fails (Wave-4).
+ * It used to boot from — and fall back to — MOCK_BATTLES, so invented
+ * rivalries with invented live scores and countdowns rendered exactly
+ * like server truth. A rivalry we cannot fetch is a rivalry we do not
+ * show; `getBattlesLoadState()` reports which of the two it is.
+ *
  * Mutation strategy: optimistic local cache update + version bump,
  * then background POST. On response we replace the row with the
  * server's authoritative copy and bump again. On failure we re-fetch
  * the whole list to recover.
  */
 
-import { MOCK_BATTLES } from '@/data/mockTerritoryData';
 import { getRegionById } from '@/services/mapAggregationService';
 import type { TerritoryBattle, TerritoryRegion } from '@/types/territory';
 import { getJsonAforceApi, postJsonAforceApi } from '@/services/aforceApiClient';
 
-let battles: TerritoryBattle[] = [...MOCK_BATTLES];
+let battles: TerritoryBattle[] = [];
 let hydrated = false;
 let inflight: Promise<void> | null = null;
+
+// Latched by a failed fetch: it separates `unavailable` from `loading`, and
+// it stops `ensureHydrated` re-firing off its own failure emit (which would
+// otherwise retry on every render against an already-down server).
+let fetchFailed = false;
 
 let version = 0;
 const listeners = new Set<() => void>();
@@ -31,6 +41,25 @@ export function subscribeBattles(fn: () => void): () => void {
 
 export function getBattlesVersion(): number {
   return version;
+}
+
+export type BattlesLoadState = 'loading' | 'ready' | 'unavailable';
+
+/**
+ * What a battle surface may claim. `unavailable` keeps "we couldn't reach
+ * the server" from being drawn as "there are no rivalries running".
+ */
+export function getBattlesLoadState(): BattlesLoadState {
+  if (hydrated) return 'ready';
+  if (fetchFailed) return 'unavailable';
+  // Idle collapses into 'loading': every consumer read triggers the fetch.
+  return 'loading';
+}
+
+/** Drop the failure latch so the next read re-fetches (retry action). */
+export function retryBattlesHydration(): void {
+  fetchFailed = false;
+  emit();
 }
 
 function emit() {
@@ -81,12 +110,12 @@ function upsertLocal(updated: ServerBattle): void {
 }
 
 /**
- * Kick off a background hydrate of the cache from the api-server.
- * First-call sync from MOCK_BATTLES guarantees the UI has data
- * immediately; the network response replaces it once it lands.
+ * Kick off a background hydrate of the cache from the api-server. Until it
+ * lands the cache is empty, and it stays empty if the fetch fails — callers
+ * read `getBattlesLoadState()` to know which.
  */
 function ensureHydrated(): void {
-  if (hydrated || inflight) return;
+  if (hydrated || inflight || fetchFailed) return;
   inflight = (async () => {
     try {
       const res = await getJsonAforceApi<{ battles: ServerBattle[] }>('/battles');
@@ -94,7 +123,9 @@ function ensureHydrated(): void {
       hydrated = true;
       emit();
     } catch {
-      // Stay on the seed list — caller will see MOCK_BATTLES.
+      // Stay empty. A seeded rivalry is a fabricated social position.
+      fetchFailed = true;
+      emit();
     } finally {
       inflight = null;
     }
@@ -125,7 +156,8 @@ export function getBattle(id: string): BattleView | undefined {
 
 /** "Support" a side — tilts the score by 1 in the chosen direction. */
 export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | undefined {
-  // Optimistic local bump.
+  // Optimistic local bump (pre-bump row kept for the double-failure rollback).
+  const prior = battles.find((b) => b.id === id);
   battles = battles.map((b) => {
     if (b.id !== id) return b;
     const next = { ...b };
@@ -153,7 +185,16 @@ export function supportSide(id: string, side: 'side1' | 'side2'): BattleView | u
         const list = await getJsonAforceApi<{ battles: ServerBattle[] }>('/battles');
         applyServerList(list.battles);
         emit();
-      } catch { /* leave optimistic state in place */ }
+      } catch {
+        // Wave-3 PR10: the optimistic bump previously survived a double
+        // failure — the user saw their support counted when the server
+        // never recorded it. Roll back to the pre-bump row instead
+        // (mirrors openBattle's drop-the-phantom posture).
+        if (prior) {
+          battles = battles.map((b) => (b.id === id ? prior : b));
+          emit();
+        }
+      }
     }
   })();
 
@@ -193,10 +234,11 @@ export function openBattle(side1RegionId: string, side2RegionId: string): Battle
   return getBattle(tempId);
 }
 
-/** Test-only reset. */
+/** Test-only reset — back to the cold-boot empty cache. */
 export function __resetBattlesForTests(): void {
-  battles = [...MOCK_BATTLES];
+  battles = [];
   hydrated = false;
   inflight = null;
+  fetchFailed = false;
   emit();
 }

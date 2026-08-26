@@ -50,15 +50,23 @@ function buildSubscription(planId: SubscriptionPlanId): UserSubscription {
 /**
  * Cold-start seed used by `useAppStore`.
  *
- * For the investor / demo build we seed the top consumer tier
- * (`elite`) so every locked mode — Social, Recovery, Cruise, Voyage
- * Shield, and every Athlete / System / Elite feature — is unlocked on
- * first launch. `elite` inherits from all lower tiers via
- * `inheritsFromId`, so `getEffectiveFlags('elite')` returns every
- * feature flag in the catalog. In production this is overwritten a few
- * hundred ms later when `/api/entitlement` returns the real
- * Stripe-mirrored plan for the signed-in user.
+ * Wave-1 P0 hardening (founder authorization 2026-08-12): unknown
+ * entitlement is NOT entitlement. Production cold-starts on `core` (the
+ * free tier — Home, logging, reminders, basic protocol all live there),
+ * and paid tiers unlock only when `/api/entitlement` returns the real
+ * Stripe-mirrored plan. Network failure, offline first launch, or a
+ * missing server response therefore FAIL CLOSED to core; a legitimate
+ * paying user recovers automatically on the next successful entitlement
+ * fetch (useEntitlement refreshes on sign-in, foreground, and a 60s
+ * interval).
+ *
+ * Env-gated demo/capture builds (investor walkthroughs, screenshot
+ * sessions — never ordinary production) still seed `elite` so every
+ * locked mode presents.
  */
-export function defaultSubscription(): UserSubscription {
-  return buildSubscription('elite');
+export function defaultSubscription(
+  demoBuild: boolean = process.env['EXPO_PUBLIC_DEMO_MODE'] === 'true' ||
+    process.env['EXPO_PUBLIC_CAPTURE'] === '1',
+): UserSubscription {
+  return buildSubscription(demoBuild ? 'elite' : 'core');
 }

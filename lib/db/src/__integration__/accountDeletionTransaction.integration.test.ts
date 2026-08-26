@@ -88,6 +88,11 @@ CREATE TABLE "aforce_whoop_tokens" (
   "refresh_token_enc" bytea,
   "expires_at" timestamp with time zone NOT NULL,
   "scope" text,
+  -- WHOOP sweep redesign (2026-08-19): refresh-control columns, mirroring the
+  -- founder-approved production migration exactly (nullable, no defaults).
+  "refresh_failure_count" integer,
+  "refresh_backoff_until" timestamp with time zone,
+  "needs_reauth" boolean,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL,
   "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );

@@ -108,3 +108,63 @@ describe('LiveStatusLine — localized copy (RC-1 Wave-1 r2, item 5)', () => {
     expect(el?.getAttribute('aria-label')).toBe('Trend HOLDING');
   });
 });
+
+/**
+ * HOME HIERARCHY — the verb is optional, and silence is a valid render
+ * (founder §1, 2026-08-13; see this component's header and
+ * `homeHierarchyPremium.test.ts` for the call-site gate).
+ *
+ * These are ADDITIVE: every assertion above still holds, including that a
+ * CRITICAL passed IN still renders — the verb set and `services/statusVerb.ts`
+ * are unchanged, and it is Home that withholds it.
+ */
+describe('LiveStatusLine — no verb to report (founder §1)', () => {
+  it('renders NOTHING when there is neither a verb nor a measurement window', () => {
+    // The exact first-paint case: `useScoreTrend` starts at 'flat', and Home
+    // withholds the verb, so there is no momentum to draw. A bare arrow glyph
+    // holding the line under the hero is what this replaces.
+    renderLine({ direction: 'flat', delta: 0, ageSec: 0, accent: '#00E5C8', testID: 'live-status-silent' });
+    expect(q('[data-testid="live-status-silent"]')).toBeNull();
+    expect(host.textContent).toBe('');
+  });
+
+  it('renders NOTHING for a fresh direction that has not opened a window yet', () => {
+    // `showWindow` needs ageSec >= 5; before that there is no delta to show and
+    // (with the verb withheld) nothing else to say.
+    renderLine({ direction: 'rising', delta: 3, ageSec: 2, accent: '#1FA35A', testID: 'live-status-fresh' });
+    expect(q('[data-testid="live-status-fresh"]')).toBeNull();
+    expect(host.textContent).toBe('');
+  });
+
+  it('still reports real momentum without a verb: arrow + delta + window, no verdict', () => {
+    // DEPLETED + falling is where `getStatusVerb` returns CRITICAL, so this is
+    // what a genuinely declining member now sees — the measurement, not a
+    // second, louder restatement of the band word above it.
+    renderLine({ direction: 'falling', delta: -4, ageSec: 30, accent: '#E4564A', testID: 'live-status-nover' });
+    const el = q('[data-testid="live-status-nover"]');
+    expect(el).not.toBeNull();
+    expect(host.textContent).toContain('-4 pts');
+    expect(host.textContent).toContain('LAST 30s');
+    for (const verb of ['CRITICAL', 'DECLINING', 'DRIFTING', 'HOLDING']) {
+      expect(host.textContent).not.toContain(verb);
+    }
+  });
+
+  it('speaks the measurement when there is no verb to announce', () => {
+    // "Trend " with an empty verb would be an announcement of nothing; the
+    // label carries the same strings the sighted member reads instead.
+    renderLine({ direction: 'falling', delta: -4, ageSec: 30, accent: '#E4564A', testID: 'live-status-a11y-nover' });
+    expect(q('[data-testid="live-status-a11y-nover"]')?.getAttribute('aria-label')).toBe(
+      '-4 pts LAST 30s',
+    );
+  });
+
+  it('a verb that IS passed still renders and still leads the spoken label', () => {
+    // Proves the suppression is the CALLER's decision, not something baked in
+    // here: this component did not lose the ability to show a verb.
+    renderLine({ direction: 'falling', delta: -4, ageSec: 30, verb: 'DECLINING', accent: '#E4564A', testID: 'live-status-verb' });
+    expect(host.textContent).toContain('DECLINING');
+    expect(host.textContent).toContain('-4 pts');
+    expect(q('[data-testid="live-status-verb"]')?.getAttribute('aria-label')).toBe('Trend DECLINING');
+  });
+});

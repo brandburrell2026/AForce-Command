@@ -13,12 +13,16 @@ export const LEVELS = ["PEAK", "BALANCED", "RECOVERING", "DEPLETED"] as const;
 export const snapshotSchema = z.object({
   score: z.number().int().min(0).max(100),
   level: z.enum(LEVELS),
-  ozConsumedToday: z.number().min(0).default(0),
-  aforceUnitsToday: z.number().int().min(0).default(0),
-  unitsConsumedToday: z.number().int().min(0).default(0),
-  sodiumDeliveredMg: z.number().min(0).default(0),
-  sodiumLostMg: z.number().min(0).default(0),
-  deficitPct: z.number().min(0).default(0),
+  // Wave-2 PR2 upper bounds: pure input-domain restrictions chosen far
+  // above any legitimate client value (client computes these from real
+  // state; deployed build 58 maxima are orders of magnitude lower), so
+  // they reject only impossible/forged writes — never legitimate ones.
+  ozConsumedToday: z.number().min(0).max(1000).default(0),
+  aforceUnitsToday: z.number().int().min(0).max(500).default(0),
+  unitsConsumedToday: z.number().int().min(0).max(500).default(0),
+  sodiumDeliveredMg: z.number().min(0).max(50000).default(0),
+  sodiumLostMg: z.number().min(0).max(50000).default(0),
+  deficitPct: z.number().min(0).max(300).default(0),
   clutchActive: z.boolean().default(false),
   socialActive: z.boolean().default(false),
   autopilotActive: z.boolean().default(false),
@@ -30,6 +34,14 @@ export const snapshotSchema = z.object({
   recoveryTrend: z.enum(["rising", "stable", "declining"]).optional(),
   recoveryFingerprint: z.string().regex(/^[0-9a-f]{8}$/).optional(),
   recoveryStory: z.string().max(280).optional(),
+  // Per-factor score deltas (additive instrumentation). Content-agnostic like
+  // the recovery fields, but bounded hard: short keys, finite numeric values,
+  // and a key-count cap so the column cannot become a free-form dumping ground.
+  // Values are deltas only — the client never sends labels or weights.
+  factorDeltas: z
+    .record(z.string().min(1).max(32), z.number().finite())
+    .refine((o) => Object.keys(o).length <= 24, { message: "too many factor keys" })
+    .optional(),
 });
 
 export type SnapshotInput = z.infer<typeof snapshotSchema>;

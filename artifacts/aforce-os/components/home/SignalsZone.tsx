@@ -22,7 +22,7 @@ import { PhantomBandCard } from '../PhantomBandCard';
 import { RingStatusCard } from '../RingStatusCard';
 import { HeatAlertBanner } from '../HeatAlertBanner';
 import { SocialModeBanner } from '../SocialModeBanner';
-import { useEngineSlice, useUserSlice, useCycleSlice, useSocialSlice, useFlagsSlice } from '../../store/slices';
+import { useEngineSlice, useUserSlice, useTimerSlice, useSocialSlice, useFlagsSlice } from '../../store/slices';
 import { isNightOutEnabled, nightOutInternalPreviewContext } from '@/services/nightOut/access';
 import type { HeatRiskBand } from '../../types/heat';
 
@@ -40,7 +40,7 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
   const { t } = useTranslation();
   const engine = useEngineSlice();
   const userState = useUserSlice();
-  const cycle = useCycleSlice();
+  const timer = useTimerSlice();
   const social = useSocialSlice();
   // Hardware (Phantom Band + AForce Ring) ships dark for v1 launch — these
   // surfaces only render when the flag is on (admin toggle in Profile, or
@@ -57,7 +57,7 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
     <>
       {includeEntryActions && entryActions}
       {includeEntryActions && <Spacer />}
-      <RiskTimerDisplay timerSeconds={cycle.timerSeconds} performanceState={engine.performanceState} />
+      <RiskTimerDisplay timerSeconds={timer.timerSeconds} performanceState={engine.performanceState} />
       <Spacer />
       <WaterCycleBar
         unitsConsumed={userState.unitsConsumedToday}

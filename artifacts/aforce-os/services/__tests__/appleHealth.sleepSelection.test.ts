@@ -356,3 +356,88 @@ describe('fetchAppleHealthSnapshot — sleep diagnostics Stage 1-3 additions (RC
     expect(diag?.sleep.unionLastEndMs).toBeNull();
   });
 });
+
+// Wave-4 zero-sleep fabrication fix (2026-08-12). The RC-2 ruling's
+// null-never-zero position held for the no-session path, but a DEGENERATE row
+// — zero-length, or inverted (end before start) — still clustered into a
+// session, so `session !== null` while that session's own union was 0ms, and
+// the lane divided it by an hour and shipped a confident "0h slept."
+// `utils/scoring/breakdown.ts` reads a literal 0 as a MAXIMAL sleep deficit
+// where `null` contributes nothing, and `utils/biometricsAggregator.ts`'s
+// `freshestNonNull` lets a fresher fabricated 0 beat an older genuine
+// reading — so the fabricated zero was strictly worse than reporting nothing.
+// "Observation never diagnosis": a non-measurement reads as unknown.
+describe('fetchAppleHealthSnapshot — a degenerate sleep row never becomes a confident 0h (Wave-4 zero-sleep fabrication fix)', () => {
+  it('a zero-length stage sample reports null, not 0h — and leaves no per-source diagnostics row behind', async () => {
+    const samples = [
+      { startDate: new Date('2026-08-06T03:00:00.000Z'), endDate: new Date('2026-08-06T03:00:00.000Z'), value: 4, sourceRevision: { source: { name: "Brandon's Apple Watch" } } },
+    ];
+    const fakeHK = makeFakeHK({ sleepSamples: samples });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    expect(snapshot.sleepHoursLastNight).toBeNull();
+    expect(snapshot.sleepHoursLastNightObservedAtMs).toBeUndefined();
+
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.sleep.totalSampleCount).toBe(1); // HealthKit did return the row
+    expect(diag?.sleep.summedSampleCount).toBe(0); // the adapter dropped it before selection
+    expect(diag?.sleep.sessionCount).toBe(0); // nothing left to cluster — no 0ms session forms
+    expect(diag?.sleep.sleepSessionRule).toBe('none');
+    expect(diag?.sleep.perSourceTotals).toEqual([]); // a 0h row for a real device would read as "this Watch measured nothing"
+    expect(diag?.sleep.valueUsed).toBeNull();
+    expect(diag?.sleep.sleepValueUnknown).toBe(true); // a row WAS dropped — the diagnostics-only reason behind this null
+  });
+
+  it('an inverted sample no longer cancels a genuine night: the real 5h is reported, where the union previously summed to exactly 0h', async () => {
+    const samples = [
+      stageSample('2026-08-05T23:00:00.000Z', '2026-08-06T04:00:00.000Z', 4, "Brandon's Apple Watch"), // a real 5h night
+      // Corrupt row, end 5h BEFORE start: pre-fix it merged into its own
+      // (negative) run of -5h, cancelling the night above to exactly 0ms —
+      // and the session it clustered into was NON-null, so `session === null`
+      // never fired and a confident 0h shipped for a genuinely slept night.
+      stageSample('2026-08-06T06:00:00.000Z', '2026-08-06T01:00:00.000Z', 4, "Brandon's Apple Watch"),
+    ];
+    const fakeHK = makeFakeHK({ sleepSamples: samples });
+    const { appleHealth, diagnostics } = await loadAppleHealthWithHK(fakeHK);
+
+    const snapshot = await appleHealth.fetchAppleHealthSnapshot();
+    expect(snapshot.sleepHoursLastNight).toBeCloseTo(5, 5);
+    expect(snapshot.sleepHoursLastNightObservedAtMs).toBe(new Date('2026-08-06T04:00:00.000Z').getTime());
+
+    const diag = diagnostics.getLastAppleHealthDiagnostics();
+    expect(diag?.sleep.totalSampleCount).toBe(2);
+    expect(diag?.sleep.summedSampleCount).toBe(1);
+    expect(diag?.sleep.unionHours).toBeCloseTo(5, 5);
+    expect(diag?.sleep.sessionCount).toBe(1);
+    expect(diag?.sleep.sleepSessionRule).toBe('most-recent-primary');
+    expect(diag?.sleep.perSourceTotals).toEqual([
+      { sourceName: "Brandon's Apple Watch", valueClass: 'stage', totalHours: 5 },
+    ]);
+    expect(diag?.sleep.sleepValueUnknown).toBe(false); // a row was dropped, but the value that remains is genuinely known
+  });
+
+  it('the `unionMs === 0` guard covers a state the pure layer can still produce: a NON-NULL session whose own union is 0ms', async () => {
+    // The adapter fix above is what keeps degenerate rows out of the live
+    // fetch path, so the guard inside `fetchAppleHealthSnapshot` is a second
+    // line of defense rather than a reachable branch today — there is no seam
+    // to feed the closure an interval the adapter refuses to build. What IS
+    // directly provable is the state the guard exists for: the pure session
+    // layer imposes no minimum duration, and `chooseSleepSession` hands back
+    // a 0ms session via `longest-fallback` simply because it is the only one
+    // there is. `session === null` alone therefore does NOT mean "no sleep
+    // evidence," which is exactly the reasoning gap that shipped the 0h.
+    const { clusterSleepIntervalsIntoSessions, chooseSleepSession } = await import('../appleHealth');
+    const { SLEEP_SESSION_SPLIT_GAP_MS, SLEEP_PRIMARY_SESSION_MIN_MS } = await import('../../config/hydroStateModel');
+
+    const atMs = new Date('2026-08-06T03:00:00.000Z').getTime();
+    const sessions = clusterSleepIntervalsIntoSessions(
+      [{ startMs: atMs, endMs: atMs, value: 4, sourceName: "Brandon's Apple Watch" }],
+      SLEEP_SESSION_SPLIT_GAP_MS,
+    );
+    const { rule, session } = chooseSleepSession(sessions, SLEEP_PRIMARY_SESSION_MIN_MS);
+    expect(session).not.toBeNull();
+    expect(rule).toBe('longest-fallback');
+    expect(session?.durationMs).toBe(0);
+  });
+});

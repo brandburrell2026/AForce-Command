@@ -11,8 +11,8 @@
   --ff-red:#C1281B;                /* Signal Red accent */
   --ff-link:rgba(13,13,13,.62);    /* nav links (AA) */
   --ff-strong:rgba(13,13,13,.86);
-  --ff-muted:rgba(13,13,13,.42);   /* labels */
-  --ff-faint:rgba(13,13,13,.52);   /* disclaimer — quiet but readable */
+  --ff-muted:rgba(13,13,13,.60);   /* labels — raised to meet WCAG AA (was .42 ≈ 2.8:1) */
+  --ff-faint:rgba(13,13,13,.64);   /* disclaimer — raised to meet WCAG AA (was .52 ≈ 3.7:1) */
   --ff-line:rgba(13,13,13,.09);    /* very thin dividers */
   --ff-font:"Helvetica Neue","Neue Haas Grotesk Display","Suisse Int'l","Inter",system-ui,-apple-system,sans-serif;
   background:var(--ff-bg);
@@ -48,7 +48,7 @@
 .afx-footer .ff-built{ margin-top:16px; font-size:16px; line-height:1.62; color:var(--ff-link); max-width:30ch; }
 
 /* Nav columns */
-.afx-footer .ff-col h4{ font-family:var(--ff-font); font-size:12px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--ff-muted); margin:0 0 20px; }
+.afx-footer .ff-col h2, .afx-footer .ff-col h4{ font-family:var(--ff-font); font-size:12px; font-weight:600; letter-spacing:.2em; line-height:inherit; text-transform:uppercase; color:var(--ff-muted); margin:0 0 20px; }
 .afx-footer .ff-col a{ position:relative; display:block; width:-moz-fit-content; width:fit-content; max-width:100%; font-size:15.5px; font-weight:500; line-height:1.25; color:var(--ff-link); padding:7px 0; transition:color .2s ease; }
 .afx-footer .ff-col a::after{ content:''; position:absolute; left:0; right:100%; bottom:4px; height:1px; background:var(--ff-red); transition:right .2s ease; }
 .afx-footer .ff-col a:hover{ color:var(--ff-ink); }

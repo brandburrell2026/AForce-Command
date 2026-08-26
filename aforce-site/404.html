@@ -39,14 +39,17 @@
   .btn-primary:hover{ background:var(--red); color:#fff; }
   .btn-ghost{ border:1.5px solid var(--line); color:var(--bone); }
   .btn-ghost:hover{ border-color:var(--bone); }
-  .sign{ margin-top:clamp(44px,7vh,76px); font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); }
+  .sign{ margin-top:clamp(44px,7vh,76px); font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:rgba(245,240,232,0.62); }
   .sign .red{ color:var(--red); } .sign .flip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
+  .skip-link{ position:fixed; top:14px; left:14px; z-index:1000; background:var(--ink); color:var(--bone); font-family:var(--sans); font-weight:600; font-size:12px; letter-spacing:.06em; padding:12px 18px; border-radius:999px; text-decoration:none; transform:translateY(-200%); }
+  .skip-link:focus{ transform:translateY(0); outline:2px solid var(--red); outline-offset:3px; border-radius:999px; }
   a:focus-visible, .btn:focus-visible{ outline:2px solid var(--red); outline-offset:3px; border-radius:4px; }
   @media (prefers-reduced-motion:reduce){ .btn{ transition:none; } }
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <main class="wrap" id="main" tabindex="-1">
     <a class="mark" href="/" aria-label="AFORCE — home">
       <span class="n1" aria-hidden="true">N</span><span class="bar" aria-hidden="true"></span><span class="n2" aria-hidden="true">N</span>
     </a>
@@ -58,6 +61,6 @@
       <a href="/shop" class="btn btn-ghost">Enter the Shop</a>
     </div>
     <p class="sign">Performance Is <span class="red">Non-<span class="flip">N</span>egotiable.</span></p>
-  </div>
+  </main>
 </body>
 </html>

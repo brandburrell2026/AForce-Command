@@ -96,12 +96,18 @@ export function ManageSubscriptionScreenV2() {
     }
   };
 
+  // Fill vs text are deliberately different tokens for red. afTokens.ts
+  // documents that Signal Red fails WCAG AA as text on dark surfaces
+  // (~3.1:1) and supplies `redText` for exactly this; fills, borders and
+  // dots keep the brand red. A canceled subscription is the one status a
+  // member most needs to be able to read.
   const statusColor =
     sub.status === 'active' ? af.green :
     sub.status === 'trialing' ? af.cyan :
     sub.status === 'paused' ? af.amber :
     sub.status === 'past_due' ? af.amber :
     af.red;
+  const statusTextColor = statusColor === af.red ? af.redText : statusColor;
 
   return (
     <View style={styles.root}>
@@ -134,7 +140,7 @@ export function ManageSubscriptionScreenV2() {
             <View style={styles.planMeta}>
               <View style={[styles.statusPill, { borderColor: `${statusColor}55`, backgroundColor: `${statusColor}14` }]}>
                 <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-                <Text style={[styles.statusText, { color: statusColor }]}>{sub.status.toUpperCase()}</Text>
+                <Text style={[styles.statusText, { color: statusTextColor }]}>{sub.status.toUpperCase()}</Text>
               </View>
               <Text style={styles.priceText}>{plan.priceLabel}</Text>
             </View>

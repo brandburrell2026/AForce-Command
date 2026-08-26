@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// `services/orbReasons.ts` imports `useFeatureFlags` from
+// `@/store/useAppStore` at module scope (for the hidden
+// `useHiddenOrbReasons()` hook, which this suite does not test).
+// The store transitively reaches RN/Expo native edges (the `expo`
+// winter runtime, expo-notifications, AsyncStorage) that fail to
+// load under Vitest's Node environment. Per repo convention
+// (see coachModeResolution.test.ts, realApi.intake.test.ts), stub
+// the RN-touching edge minimally and test the real pure logic.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   ORB_REASON_FACTORS,
   ORB_REASON_LABELS,
@@ -135,7 +148,10 @@ describe('replayFrameAt', () => {
   });
 
   it('returns the proportional frame mid-timeline', () => {
-    expect(replayFrameAt(frames, 250, 1000)?.reason.factor).toBe('water');
+    // floor(0.25 * 4) = 1 → 'heat': a timeline boundary belongs to the
+    // LATER frame (documented contract in replayFrameAt; the 500ms→'sleep'
+    // and 750ms→'correction' expectations below encode the same rule).
+    expect(replayFrameAt(frames, 250, 1000)?.reason.factor).toBe('heat');
     expect(replayFrameAt(frames, 500, 1000)?.reason.factor).toBe('sleep');
     expect(replayFrameAt(frames, 750, 1000)?.reason.factor).toBe('correction');
   });

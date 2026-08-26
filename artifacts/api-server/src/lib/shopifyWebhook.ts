@@ -51,7 +51,20 @@ export function planWebEntitlement(topic: string, payload: unknown): WebEntitlem
     const paid = planFromPaidOrder(
       topic === "refunds/create" ? (payload as { order?: unknown })?.order ?? payload : payload,
     );
-    return paid.action === "activate" ? { ...paid, action: "cancel" } : paid;
+    if (paid.action === "activate") return { ...paid, action: "cancel" };
+    // Wave-3 PR6: refunds/create payloads carry refund_line_items +
+    // order_id — NOT the nested order with line_items — so the branch
+    // above always fell through to "ignore" and refunds via this topic
+    // silently never revoked. Cancel the grant row by its own
+    // external_ref; no line-item parsing is needed to revoke, and the
+    // route treats an email-less cancel as UPDATE-only (never inserts).
+    if (topic === "refunds/create") {
+      const orderId = (payload as { order_id?: unknown } | null)?.order_id;
+      if (orderId != null && orderId !== "") {
+        return { action: "cancel", email: null, externalRef: String(orderId), currentPeriodEnd: null };
+      }
+    }
+    return paid;
   }
   if (!topic.startsWith("subscription_contracts/")) return none;
   const p = payload as {

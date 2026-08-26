@@ -18,6 +18,19 @@ interface StripeCredentials {
 }
 
 async function getStripeCredentials(): Promise<StripeCredentials> {
+  // Wave-3 PR2: standard env vars are the PRIMARY credential source so the
+  // actual production deployment (Railway) can operate; the Replit
+  // Connectors API remains the fallback for Replit-hosted dev. Missing
+  // configuration still fails loudly (throws below) — never silently.
+  const envSecret = process.env['STRIPE_SECRET_KEY'];
+  if (envSecret) {
+    return {
+      secretKey: envSecret,
+      publishableKey: process.env['STRIPE_PUBLISHABLE_KEY'],
+      webhookSecret: process.env['STRIPE_WEBHOOK_SECRET'],
+    };
+  }
+
   const hostname = process.env['REPLIT_CONNECTORS_HOSTNAME'];
   const token = process.env['REPL_IDENTITY']
     ? `repl ${process.env['REPL_IDENTITY']}`
@@ -27,8 +40,8 @@ async function getStripeCredentials(): Promise<StripeCredentials> {
 
   if (!hostname || !token) {
     throw new Error(
-      'Stripe integration is not configured. ' +
-      'Connect the Stripe integration in the Replit workspace.',
+      'Stripe is not configured: set STRIPE_SECRET_KEY (and STRIPE_WEBHOOK_SECRET) ' +
+      'in the deployment environment, or connect the Stripe integration in the Replit workspace.',
     );
   }
 
@@ -61,15 +74,27 @@ export async function getUncachableStripeClient(): Promise<Stripe> {
 /** Legacy alias — kept so existing imports keep compiling. */
 export const getStripeClient = getUncachableStripeClient;
 
+// Wave-3 PR6: StripeSync owns a pg.Pool (max 10, keepAlive). It was
+// constructed PER WEBHOOK REQUEST and never closed — every delivery leaked
+// a pool (an unauthenticated DB-exhaustion vector). Memoize per secret so
+// the pool is shared; a rotated key (Replit connector mode) still swaps
+// the instance.
+let cachedSync: { key: string; sync: StripeSync } | null = null;
+
 export async function getStripeSync(): Promise<StripeSync> {
   const databaseUrl = process.env['DATABASE_URL'];
   if (!databaseUrl) {
     throw new Error('DATABASE_URL environment variable is required');
   }
   const { secretKey, webhookSecret } = await getStripeCredentials();
-  return new StripeSync({
+  if (cachedSync && cachedSync.key === secretKey) return cachedSync.sync;
+  const sync = new StripeSync({
     poolConfig: { connectionString: databaseUrl },
     stripeSecretKey: secretKey,
-    stripeWebhookSecret: webhookSecret ?? '',
+    // undefined (NOT '') so the sync package's managed-webhook fallback
+    // and its fail-closed no-secret throw stay distinguishable.
+    ...(webhookSecret ? { stripeWebhookSecret: webhookSecret } : {}),
   });
+  cachedSync = { key: secretKey, sync };
+  return sync;
 }

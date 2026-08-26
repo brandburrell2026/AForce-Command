@@ -11,6 +11,14 @@
     {{ FORMAT }}      → line item property "format"
     {{ DELIVERY }}    → first delivery date (fulfillment estimate)
     {{ OS_URL }}      → AFORCE OS download link (e.g. https://drinkaforce.com/aforce-os)
+
+  P0 legal — the SUBSCRIPTION ACKNOWLEDGMENT block below must render for any
+  order containing a recurring line (AutoPilot / Command). When installing,
+  wrap it in Liquid so it appears only on subscription orders, e.g.:
+    {% assign has_subscription = false %}
+    {% for line in line_items %}{% if line.selling_plan_allocation %}{% assign has_subscription = true %}{% endif %}{% endfor %}
+    {% if has_subscription %} …block… {% endif %}
+  (Or leave it unconditional — the copy is safe for one-time orders too.)
 -->
 <body style="margin:0;padding:0;background:#0D0D0D;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0D0D0D;">
@@ -56,8 +64,15 @@
           </td></tr>
 
           <!-- access key line -->
-          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5;color:rgba(245,240,232,0.64);padding:32px 0 36px;">
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:1.5;color:rgba(245,240,232,0.64);padding:32px 0 12px;">
             Your AFORCE OS access key arrives with shipment confirmation.
+          </td></tr>
+
+          <!-- SUBSCRIPTION ACKNOWLEDGMENT (P0 legal — see install note in the
+               header comment: wrap in Liquid for subscription orders). States
+               the recurring terms + how to cancel, post-purchase. -->
+          <tr><td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:rgba(245,240,232,0.64);padding:0 0 36px;border-top:1px solid rgba(245,240,232,0.14);padding-top:18px;">
+            <span style="color:#F5F0E8;font-weight:bold;">Subscription orders:</span> AutoPilot renews monthly and Command renews monthly or yearly (as selected), automatically, until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date. Full terms: <a href="https://drinkaforce.com/subscription-terms" style="color:#F5F0E8;text-decoration:underline;">drinkaforce.com/subscription-terms</a>.
           </td></tr>
 
           <!-- button -->

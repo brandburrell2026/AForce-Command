@@ -3,10 +3,11 @@
  *
  * Surfaces the persisted `notificationSettings` slice as a card stack
  * of segmented toggles so the user can opt in/out of each alert class
- * without leaving the app: score-band alerts, risk-timer countdowns,
- * recovery nudges, completion rewards, reorder prompts, and the
- * morning brief. Every toggle round-trips through `setNotificationSetting`
- * which writes back to AsyncStorage so the choice survives reload.
+ * without leaving the app. Every toggle round-trips through
+ * `setNotificationSetting` which writes back to AsyncStorage so the
+ * choice survives reload.
+ *
+ * Only classes with a live producer get a row — see the note on `ROWS`.
  */
 
 import React from 'react';
@@ -20,7 +21,8 @@ import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { af } from '@/theme';
-import { useAppStore } from '@/store/useAppStore';
+import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
+import { MomentPrepPrefsCard } from '@/components/moments/MomentPrepPrefsCard';
 import type { NotificationSettingKey } from '@/types';
 
 interface ToggleRow {
@@ -29,12 +31,21 @@ interface ToggleRow {
 }
 
 // Label + hint resolve under notifications.v2.row_<key>_{label,hint} at render.
+//
+// Wave-4 notification audit: `morningKickoff`, `circleActivity`, and
+// `challengeDeadlines` are deliberately absent. Nothing in the app can deliver
+// them — there is no 06:30 scheduler, nothing schedules anything ahead of a
+// challenge expiry, and the app has no remote push or device-token
+// registration at all (`services/pushNotifications.ts` is local-cadence only).
+// A switch for a capability that cannot fire is a promise we break every day,
+// so the row is hidden rather than shown. Their keys stay in
+// `NotificationSettings` and in every locale file: the persisted user choice is
+// left untouched (nothing to migrate) and restoring a row is a one-line change
+// the day a real producer exists — a local scheduler for morningKickoff and
+// challengeDeadlines, remote push for circleActivity.
 const ROWS: ToggleRow[] = [
   { key: 'recheckReminders',    icon: 'clock' },
   { key: 'scoreDecayAlerts',    icon: 'activity' },
-  { key: 'morningKickoff',      icon: 'sunrise' },
-  { key: 'circleActivity',      icon: 'users' },
-  { key: 'challengeDeadlines',  icon: 'flag' },
   { key: 'lowInventoryAlert',   icon: 'shopping-bag' },
 ];
 
@@ -43,6 +54,11 @@ export function NotificationsScreenV2() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { notificationSettings, setNotificationSetting } = useAppStore();
+  const flags = useFeatureFlags();
+  // Phase 3a (DR-010): the Moments row + prefs appear only when both
+  // Moments flags are on (OFF in production).
+  const momentsOn = flags.moments_enabled && flags.moments_notifications_enabled;
+  const rows = momentsOn ? [...ROWS, { key: 'momentPrep' as const, icon: 'zap' as const }] : ROWS;
 
   const topPadding = Platform.OS === 'web' ? 24 : insets.top + 8;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom + 24;
@@ -67,7 +83,7 @@ export function NotificationsScreenV2() {
           <Text style={styles.intro}>{t('notifications.v2.intro')}</Text>
 
           <View style={styles.card}>
-            {ROWS.map((row, idx) => (
+            {rows.map((row, idx) => (
               <View key={row.key}>
                 {idx > 0 && <View style={styles.divider} />}
                 <View style={styles.row}>
@@ -93,6 +109,8 @@ export function NotificationsScreenV2() {
               </View>
             ))}
           </View>
+
+          {momentsOn && notificationSettings.momentPrep ? <MomentPrepPrefsCard /> : null}
 
           <Text style={styles.footnote}>{t('notifications.v2.footnote')}</Text>
         </ScrollView>

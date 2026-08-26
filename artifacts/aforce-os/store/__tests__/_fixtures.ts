@@ -91,6 +91,15 @@ export const baseUser = makeUserState();
 
 export const baseFlags: FeatureFlags = {
   elite_home_experience_enabled: false,
+  home_v3_dashboard_enabled: false,
+  protocol_v3_dashboard_enabled: false,
+  signal_v3_dashboard_enabled: false,
+  weekly_v3_dashboard_enabled: false,
+  circle_v3_dashboard_enabled: false,
+  moments_enabled: false,
+  moments_notifications_enabled: false,
+  moments_calendar_enabled: false,
+  moments_learning_enabled: false,
   elite_weekly_report_enabled: false,
   elite_motion_enabled: false,
   elite_voice_coach_enabled: false,
@@ -116,6 +125,7 @@ export const baseFlags: FeatureFlags = {
   intent_capture_enabled: false,
   performance_statements_enabled: false,
   offline_intake_outbox_enabled: false,
+  per_user_storage_isolation_enabled: false,
   profile_server_hydration_enabled: false,
   ios_direct_checkout_enabled: false,
   cruise_mode_enabled: false,
@@ -252,6 +262,7 @@ export function makeCycleResult(scoreAfter = 80): CycleResult {
     identityMessage: 'You are AForce.',
     nextCycleHint: 'Stay sharp.',
     state: 'PEAK',
+    recordedLabel: '12 oz Water',
   };
 }
 

@@ -262,6 +262,69 @@ jobs:
           artifacts/api-server/src/__tests__/whoopParity
           artifacts/api-server/src/lib/garminMock
 
+  db-lane:
+    name: db-lane
+    runs-on: ubuntu-latest
+    # Real-Postgres suites carved out of the unit lane (Wave-4): the nine
+    # api-server suites listed explicitly in vitest.db.config.ts. They are
+    # guarded with describe.runIf(DB_TESTS) so tests-baseline skips them;
+    # this job is where they actually execute, against the service container
+    # below. Throwaway credentials, job-local network — nothing here is a
+    # real secret or reachable outside the runner.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aforce_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/aforce_test
+      DB_TESTS: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Same deterministic pnpm+Node provisioning as integration.yml (the
+      # pnpm/setup@v1 `runtime` path used by the older jobs above proved
+      # flaky there — see integration.yml's comment).
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      # Apply the Drizzle schema to the empty service database before any
+      # suite runs. `push-force` (lib/db/package.json) is drizzle-kit push
+      # --force against DATABASE_URL — safe here by construction: the target
+      # is this job's throwaway container, never a shared environment.
+      # The WHOOP token store encrypts at rest with pgp_sym_encrypt, which
+      # lives in the pgcrypto extension — absent from a stock postgres:16
+      # image. Without this, whoopTokenStore.drizzle fails with
+      # "function pgp_sym_encrypt(unknown, unknown) does not exist" (42883).
+      # Production provisions pgcrypto the same way.
+      - name: Enable pgcrypto
+        run: PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d aforce_test -c 'CREATE EXTENSION IF NOT EXISTS pgcrypto;'
+
+      - name: Apply schema (drizzle-kit push)
+        run: pnpm --filter @workspace/db push-force
+
+      - name: Run DB lane (real Postgres)
+        run: pnpm test:db
+
   governance-drift:
     name: governance-drift
     runs-on: ubuntu-latest

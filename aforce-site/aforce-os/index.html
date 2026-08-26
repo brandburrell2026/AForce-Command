@@ -122,7 +122,11 @@
   /* split section */
   .split{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,5vw,88px); align-items:center; }
   .split.reverse .split-media{ order:-1; }
-  .split-media{ position:relative; display:flex; justify-content:center; }
+  .split-media{ position:relative; display:flex; flex-wrap:wrap; justify-content:center; }
+  /* P0 legal — visible, always-rendered sample-data disclosure directly beneath
+     each simulated AFORCE OS interface. `order` places it below the device; it
+     carries no .reveal class so it never depends on JS/scroll to appear. */
+  .osx-illus{ order:1; flex:0 0 100%; margin-top:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.55; letter-spacing:.05em; text-transform:uppercase; color:inherit; opacity:.75; }
   .split-media .phone{ width:min(340px,78%); }
   /* ambient light behind the device — makes it read as a physical object */
   .split-media::before{ content:''; position:absolute; z-index:0; inset:4% 6%; border-radius:50%; pointer-events:none;
@@ -143,12 +147,12 @@
   /* command feature cards */
   .cmd-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:clamp(28px,3vw,40px); }
   .cmd{ border:1px solid var(--b14); border-left:2px solid var(--teal); border-radius:3px; padding:22px 24px; }
-  .cmd h4{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
+  .cmd h3{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
   .cmd p{ font-size:14px; line-height:1.6; color:var(--b64); }
-  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h4{ color:var(--teal); }
-  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h4{ color:var(--amber); }
-  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h4{ color:var(--green); }
-  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h4{ color:#e5503f; }
+  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h3{ color:var(--teal); }
+  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h3{ color:var(--amber); }
+  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h3{ color:var(--green); }
+  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h3{ color:#e5503f; }
 
   /* ritual 3-col */
   .ritual-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--b14); border:1px solid var(--b14); margin-top:clamp(44px,5vw,72px); }
@@ -525,6 +529,10 @@
   @media (max-width:390px){
     .bs-final{ font-size:30px; overflow-wrap:anywhere; }
     .os-hero{ padding-top:clamp(88px,14vh,120px); }
+    /* WCAG 1.4.10 reflow: at ≤390px the 2-col 30-day grid clips the large
+       after-values ("92%") past the viewport (page scroll is overflow-clipped,
+       so clipped = unreachable). Single column keeps every value in view. */
+    .t30-grid{ grid-template-columns:1fr; }
   }
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
@@ -594,6 +602,7 @@
 </script>
 </head>
 <body>
+<a class="afx-skip" href="#main">Skip to main content</a>
 
 <!-- ============ NAV ============ -->
 <header class="afx-nav afx-overlay" id="afxNav">
@@ -605,7 +614,7 @@
       <a href="/#ritual">Ritual</a><a href="/aforce-os" aria-current="page">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
     <a href="/shop" class="afx-shop">Shop</a>
-    <a href="https://shop.drinkaforce.com/cart" class="afx-cart" aria-label="Cart">
+    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
       <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
     </a>
@@ -627,6 +636,8 @@
     </nav>
   </div>
 </div>
+
+<main id="main" tabindex="-1">
 
 <!-- ============ 1 · HERO ============ -->
 <header class="os-hero" id="top">
@@ -685,16 +696,17 @@
 <section class="block cream" id="depletion">
   <div class="wrap split">
     <div>
-      <div class="eyebrow reveal">Depletion Correction</div>
-      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">When your body is behind, the OS gives you the next command.</h2>
-      <p class="lead reveal" style="margin-top:22px;">The OS detects depletion before performance drops &mdash; then gives you the one move that fixes it.</p>
+      <div class="eyebrow reveal">Reading Your Signals</div>
+      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">When your signals shift, the OS surfaces your next suggested action.</h2>
+      <p class="lead reveal" style="margin-top:22px;">AFORCE OS interprets your available wellness signals and logged behavior to surface a suggested next action.</p>
       <div class="points stagger">
-        <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>Identify the stage</h3><p>The OS recognizes when the user enters a depletion or recovery state.</p></div></div>
-        <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Give the next command</h3><p>Instead of generic reminders, the OS provides a specific hydration action.</p></div></div>
-        <div class="point reveal" style="--i:2"><span class="p-idx">03</span><div><h3>Recheck the signal</h3><p>The user returns after intake to confirm progress and protect the habit.</p></div></div>
+        <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>Organize the signals</h3><p>AFORCE OS organizes available wellness signals into general readiness patterns.</p></div></div>
+        <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Surface a suggestion</h3><p>Instead of generic reminders, the OS surfaces a suggested hydration action.</p></div></div>
+        <div class="point reveal" style="--i:2"><span class="p-idx">03</span><div><h3>Log and review</h3><p>The user returns after intake to log progress and support the habit over time.</p></div></div>
       </div>
     </div>
     <div class="split-media reveal">
+      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
       <div class="osx-phone" role="img" aria-label="AFORCE OS Protocol screen, Day 24. Recovery stage complete at 91%, 14-day streak, next check in 42 minutes; hydration 118 of 128 ounces; today's protocol steps all done — hydration, electrolytes, movement and breathing.">
         <div class="osx-screen">
           <div class="osx-island"></div>
@@ -778,6 +790,7 @@
 <section class="block dark" id="history">
   <div class="wrap split reverse">
     <div class="split-media reveal">
+      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
       <div class="osx-phone" role="img" aria-label="AFORCE OS Command History screen: a 7-day average score of 86, with a daily log — Today 88 Peak, Yesterday 82 Balanced, Monday 71 Recovering, Sunday 90 Peak, Saturday 64 Depleted — each showing hydration, recovery, commands completed and streak.">
         <div class="osx-screen">
           <div class="osx-island"></div>
@@ -887,12 +900,12 @@
     <div>
       <div class="eyebrow reveal">Command History</div>
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">Your performance summary, in commands.</h2>
-      <p class="lead reveal" style="margin-top:22px;">Every command leaves a record. The OS remembers what moved you back to peak.</p>
+      <p class="lead reveal" style="margin-top:22px;">Every completed action becomes part of your history, helping you see patterns in your routine over time.</p>
       <div class="cmd-grid stagger">
-        <div class="cmd balanced reveal" style="--i:0"><h4>Balanced</h4><p>Maintain rhythm and stay ahead of the next performance window.</p></div>
-        <div class="cmd recovering reveal" style="--i:1"><h4>Recovering</h4><p>Take the recommended action before fatigue becomes the standard.</p></div>
-        <div class="cmd peak reveal" style="--i:2"><h4>Peak</h4><p>Confirm what is working and repeat the behavior.</p></div>
-        <div class="cmd depleted reveal" style="--i:3"><h4>Depleted</h4><p>Correct early, recheck quickly, and protect the day.</p></div>
+        <div class="cmd balanced reveal" style="--i:0"><h3>Balanced</h3><p>Keep your rhythm and stay ahead of the next window in your routine.</p></div>
+        <div class="cmd recovering reveal" style="--i:1"><h3>Recovering</h3><p>Use the suggested wellness action to support your routine.</p></div>
+        <div class="cmd peak reveal" style="--i:2"><h3>Peak</h3><p>Note what is working for you and repeat the behavior.</p></div>
+        <div class="cmd depleted reveal" style="--i:3"><h3>Depleted</h3><p>Log a suggested action early and review your patterns over the day.</p></div>
       </div>
     </div>
   </div>
@@ -906,14 +919,16 @@
       <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">Daily behavior becomes a weekly performance picture.</h2>
       <p class="lead reveal" style="margin-top:22px;">Seven days of behavior, resolved into one clear direction.</p>
       <div class="points stagger">
-        <div class="point reveal" style="--i:0"><span class="p-idx">—</span><div><h3>Performance Age Movement</h3><p>Tracks how daily behavior begins to influence the user&rsquo;s performance profile.</p></div></div>
+        <div class="point reveal" style="--i:0"><span class="p-idx">—</span><div><h3>Performance Age&trade; Movement</h3><p>Reflects how your logged behavior tracks against a proprietary AFORCE OS engagement indicator over time.</p></div></div>
         <div class="point reveal" style="--i:1"><span class="p-idx">—</span><div><h3>Habit Velocity</h3><p>Shows whether the user is building consistency or losing rhythm.</p></div></div>
-        <div class="point reveal" style="--i:2"><span class="p-idx">—</span><div><h3>Recovery Trend</h3><p>Highlights whether recovery behavior is improving week over week.</p></div></div>
-        <div class="point reveal" style="--i:3"><span class="p-idx">—</span><div><h3>Top Command</h3><p>Reveals the action the user needed most often.</p></div></div>
+        <div class="point reveal" style="--i:2"><span class="p-idx">—</span><div><h3>Recovery Trend</h3><p>Highlights whether recovery behavior is trending week over week.</p></div></div>
+        <div class="point reveal" style="--i:3"><span class="p-idx">—</span><div><h3>Top Command</h3><p>Reveals the action the user logged most often.</p></div></div>
         <div class="point reveal" style="--i:4"><span class="p-idx">—</span><div><h3>Next Week Focus</h3><p>Gives one clear priority for the next seven days.</p></div></div>
       </div>
+      <p class="reveal" style="margin-top:clamp(20px,2.4vw,28px);font-size:11.5px;line-height:1.6;letter-spacing:.01em;color:var(--i46);max-width:60ch;">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
     </div>
     <div class="split-media reveal">
+      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
       <div class="osx-phone" role="img" aria-label="AFORCE OS Weekly Performance Report: performance age improved from 47 to 44, recovery trend up 11 percent, hydration consistency 93 percent, habit velocity excellent, 18-day streak, 5 weekly wins, 6 recovery days, and the top command hydrate before 10 AM.">
         <div class="osx-screen">
           <div class="osx-island"></div>
@@ -923,7 +938,7 @@
             <div class="osx-h1">Week in Review</div>
             <div class="osx-chip"><span class="dot"></span>Aug 1 &ndash; Aug 7<span class="mut">· generated today</span></div>
             <div class="wr-age">
-              <div style="display:flex;align-items:center;"><span class="k">Performance Age</span><span class="badge">&#9660; 3 yrs</span></div>
+              <div style="display:flex;align-items:center;"><span class="k">Performance Age&trade;</span><span class="badge">&#9660; 3 yrs</span></div>
               <div class="row"><span class="from">47</span><span class="arw">&rarr;</span><span class="to">44</span></div>
               <div class="spark"><i style="height:38%"></i><i style="height:52%"></i><i style="height:46%"></i><i style="height:64%"></i><i style="height:72%"></i><i style="height:86%"></i><i style="height:100%"></i></div>
             </div>
@@ -959,7 +974,7 @@
             <div class="osx-badges">
               <span class="osx-badge"><span class="ic"></span>7-Day Streak</span>
               <span class="osx-badge"><span class="ic"></span>Recovery Improved</span>
-              <span class="osx-badge"><span class="ic"></span>Performance Age Down</span>
+              <span class="osx-badge"><span class="ic"></span>Performance Age&trade; Down</span>
               <span class="osx-badge"><span class="ic"></span>Morning Protocol Complete</span>
               <span class="osx-badge"><span class="ic"></span>No Missed Hydration</span>
             </div>
@@ -1015,6 +1030,7 @@
 <section class="block dark" id="community">
   <div class="wrap split reverse">
     <div class="split-media reveal">
+      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
       <div class="osx-phone" role="img" aria-label="AFORCE OS Community leaderboard: you are ranked #8 global, #2 city, #1 state and team with a score of 92, up 12 spots; weekly hydration challenge at 72 percent; leaderboard led by Jordan A. 95, Alicia R. 93, Marcus K. 90, Sasha P. 88 and Cam B. 86.">
         <div class="osx-screen">
           <div class="osx-island"></div>
@@ -1107,13 +1123,14 @@
     <div class="eyebrow reveal">30 Days In</div>
     <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">The same person. A sharper system.</h2>
     <p class="lead reveal" style="margin-top:22px;">One month of ritual, measured.</p>
+    <p style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--i64);">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
     <div class="t30-grid stagger">
       <div class="t30 reveal" style="--i:0;--w:91%"><div class="t30-k">Readiness</div><div class="t30-row"><span class="t30-a">58</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green" data-count="91">91</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +33</div></div>
       <div class="t30 reveal" style="--i:1;--w:92%"><div class="t30-k">Recovery</div><div class="t30-row"><span class="t30-a">61%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">92%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +31 pts</div></div>
       <div class="t30 reveal" style="--i:2;--w:95%"><div class="t30-k">Hydration consistency</div><div class="t30-row"><span class="t30-a">42%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">95%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +53 pts</div></div>
-      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance age</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
+      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance Age&trade;</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
     </div>
-    <p class="reveal" style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:64ch;">Sample profile shown for illustration. AFORCE OS supports general wellness tracking, is not a medical device, and does not diagnose or treat any condition. Individual results vary.</p>
+    <p style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:66ch;">Illustrative interface using sample data. Values shown are not claims of typical or expected results. AFORCE OS supports general wellness tracking and is not a medical device. Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
@@ -1142,6 +1159,8 @@
   </div>
 </section>
 
+</main>
+
 <!-- ============ FOOTER ============ -->
 <footer class="afx-footer" role="contentinfo">
   <div class="ff-wrap">
@@ -1155,7 +1174,7 @@
         <p class="ff-built">Built for what happens before.</p>
       </div>
       <nav class="ff-col" aria-label="System">
-        <h4>System</h4>
+        <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
         <a href="/shop">Shop</a>
         <a href="/aforce-os">AFORCE OS</a>
@@ -1163,28 +1182,32 @@
         <a href="/manifesto">Manifesto</a>
       </nav>
       <nav class="ff-col" aria-label="Company">
-        <h4>Company</h4>
+        <h2>Company</h2>
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
         <a href="mailto:contact@aforceritual.com">Contact</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
-        <h4>Follow the Standard</h4>
+        <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">TikTok <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Substack <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Facebook <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
-        <h4>Legal</h4>
+        <h2>Legal</h2>
         <a href="/legal">Legal Center</a>
         <a href="/legal/privacy">Privacy</a>
+        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
         <a href="/legal/terms">Terms</a>
-        <a href="/legal">Accessibility</a>
+        <a href="/subscription-terms">Subscription Terms</a>
+        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
+        <a href="/accessibility">Accessibility</a>
+        <a href="mailto:support@drinkaforce.com">Contact</a>
       </nav>
     </div>
 

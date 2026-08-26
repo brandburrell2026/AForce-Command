@@ -298,14 +298,19 @@ describe("parity: WHOOP snapshot null/missing-field handling", () => {
     expect(snap.sleepHoursLastNight).toBe(WHOOP_SLEEP_NO_AWAKE_FIELD_EXPECTED_HOURS);
   });
 
-  it("awake time exceeding in-bed time clamps sleepHoursLastNight to 0, never negative", async () => {
+  it("awake time exceeding in-bed time -> sleepHoursLastNight is null (UNKNOWN), never 0 and never negative", async () => {
     const fetchImpl: typeof fetch = (async (url) => {
       const u = String(url);
       if (u.includes("/activity/sleep")) return jsonResponse(WHOOP_SLEEP_AWAKE_EXCEEDS_INBED_FIXTURE);
       return jsonResponse({ records: [] });
     }) as unknown as typeof fetch;
     const snap = await fetchWhoopSnapshot({ accessToken: "AT", fetchImpl });
-    expect(snap.sleepHoursLastNight).toBe(0);
+    // Expectation corrected from 0 — the MEANING changed, not the assertion's
+    // strength. This fixture is corrupt WHOOP data, not a night of zero sleep;
+    // the old clamp reported it as a confident measured 0h, which downstream
+    // scores as a maximal sleep deficit. A non-measurement now reads as
+    // unknown. Deliberate, documented parity change to the W3 basis.
+    expect(snap.sleepHoursLastNight).toBeNull();
   });
 
   it("num() rejects a non-numeric string value -> null, never Number()-coerced", async () => {

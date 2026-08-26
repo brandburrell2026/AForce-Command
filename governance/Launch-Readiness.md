@@ -19,6 +19,20 @@ mismatches fixed. **No unsubstantiated claim currently ships.** The external reg
 itself is still **unbooked** (the remaining gate); the reviewer outreach and supplier-evidence
 request are **finalized and one field from sent** in `governance/reviews/`. See §1 / §4 / §5.
 
+**Refresh 2026-08-12 (Waves 1–2 hardening, PRs #722–#733):** the founder-authorized P0
+hardening waves landed: developer/unlock containment, Smart-Capture auth + privacy-copy truth,
+sensor-import integrity, entitlement fail-closed (client) + server-side entitlement
+enforcement (`requireEntitlement`), a server Score-Protection backstop (bounds, two-sided
+timestamps, write throttles — enforce mode deliberately untouched), the legacy-vs-canonical
+health shadow harness + committed diff report (no flag flips), removal of fabricated Protocol
+compliance from production (real rollup-derived metric or honest absence), §42 claims-gate
+runtime wiring at 6 seams + an all-locale copy lint, and per-user local data isolation
+(flag-gated OFF, one-shot migration, WHOOP-token wipe + notification cancel on account
+change). Composite beta-readiness moved **41 → 55 of 100** — still NO-GO for public launch;
+the dominant blockers are unchanged (command coherence, commerce, observability, i18n) and
+three new founder decisions are queued in the Stop-Ship register (W2-N1..N4). See the
+Stop-Ship register §2 addendum for row-level dispositions.
+
 Read alongside: `governance/OPEN-RISKS.md` (live risks, esp. R-21 graph deploy),
 `governance/CAPABILITY-STATUS-REGISTER.md`, `governance/PASS3-BUILD-PLAN.md`,
 `governance/Risk-Register.md`, `governance/decisions/DR-001-hydroscan-integration-and-launch-scope.md`,

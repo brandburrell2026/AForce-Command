@@ -277,10 +277,14 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
             <Text style={styles.userName}>{me.user.name}</Text>
             <Text style={styles.userMeta}>{me.user.city}, {me.user.state} · {stateLabelDisplay}</Text>
           </View>
-          <View style={[styles.deltaPill, me.recentDelta > 0 ? { backgroundColor: `${af.green}1F` } : null]}>
-            <Icon name="arrow-up-right" size={11} color={af.green} />
-            <Text style={[styles.deltaText, { color: af.green }]}>{t('community.v2.spots', { count: me.recentDelta })}</Text>
-          </View>
+          {/* The pill only ever says "up" — with no movement there is nothing
+              to claim, so it stays off rather than reading "+0 spots". */}
+          {me.recentDelta > 0 && (
+            <View style={[styles.deltaPill, { backgroundColor: `${af.green}1F` }]}>
+              <Icon name="arrow-up-right" size={11} color={af.green} />
+              <Text style={[styles.deltaText, { color: af.green }]}>{t('community.v2.spots', { count: me.recentDelta })}</Text>
+            </View>
+          )}
         </View>
         <View style={styles.userStatsRow}>
           <UserStat label={t('community.v2.stat_global')} value={`#${me.globalRank ?? '—'}`} accent={af.green} />
@@ -289,6 +293,11 @@ function RankingsSection({ snapshot, me, myTeam, topCity, featureFlags }: Rankin
           <UserStat label={t('community.v2.stat_team')}   value={me.teamRank != null ? `#${me.teamRank}` : '—'} />
           <UserStat label={t('community.v2.stat_score')}  value={String(me.user.competitionScore)} accent={af.green} />
         </View>
+        {/* The ranks above are computed over the sample cohort, not against
+            real people. CircleScreenV3 carries the same caption; this screen
+            is only reachable with circle_v3_dashboard_enabled off, and an
+            undisclosed rank is a fabricated claim on either path. */}
+        <Text style={styles.sampleNote}>{t('community.v2.sample_note')}</Text>
       </View>
 
       {snapshot.cityWinsAvailable && topCity && (
@@ -548,6 +557,7 @@ function EmptyBlock({ icon, title, body }: { icon: string; title: string; body: 
 }
 
 const styles = StyleSheet.create({
+  sampleNote: { fontSize: 11, lineHeight: 15, color: af.textTertiary, marginTop: 10 },
   root: { flex: 1, backgroundColor: af.canvas },
   scroll: { flex: 1 },
   content: {},

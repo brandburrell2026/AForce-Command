@@ -23,6 +23,26 @@
       "queued_other": "{{count}} registros na fila — ainda não sincronizados. Serão enviados automaticamente assim que você estiver online novamente.",
       "failed_one": "1 registro na fila — a última tentativa de sincronização falhou. O AForce continuará tentando automaticamente.",
       "failed_other": "{{count}} registros na fila — a última tentativa de sincronização falhou. O AForce continuará tentando automaticamente."
+    },
+    "action_failed_title": {
+      "offline": "Não salvo — sem conexão",
+      "auth": "Não salvo — entre novamente",
+      "forbidden": "Não salvo — acesso negado",
+      "timeout": "Não salvo — tempo esgotado",
+      "rate_limited": "Não salvo — tentativas demais",
+      "invalid": "Não salvo — entrada recusada",
+      "server": "Não salvo — problema no servidor",
+      "conflict": "Não salvo — tente de novo"
+    },
+    "action_failed_body": {
+      "offline": "Isso não chegou ao servidor, então nada foi registrado. Verifique sua conexão e tente novamente.",
+      "auth": "Sua sessão expirou, então nada foi registrado. Entre novamente e registre mais uma vez.",
+      "forbidden": "Sua conta não pode fazer esta alteração, então nada foi registrado. Fale com o suporte se isso não for esperado.",
+      "timeout": "O servidor demorou demais para responder, então nada foi registrado. Aguarde um momento e tente novamente.",
+      "rate_limited": "Muitas solicitações em pouco tempo, então nada foi registrado. Aguarde um minuto e tente novamente.",
+      "invalid": "O servidor não aceitou esta entrada, então nada foi registrado. Tente novamente e atualize o AForce se continuar acontecendo.",
+      "server": "Algo falhou do nosso lado, então nada foi registrado. Aguarde um momento e tente novamente.",
+      "conflict": "Não conseguimos encaixar isso no seu dia atual, então nada foi registrado. Tente de novo — costuma funcionar logo."
     }
   },
   "tabs": {
@@ -79,8 +99,10 @@
         "days_ago_stale": "Checked {{count}}d ago — data is stale",
         "unavailable": "Awaiting first sync"
       },
-      "readiness_label": "READINESS",
+      "readiness_label": "HYDROSTATE",
       "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
+      "baseline_title": "Building your baseline",
+      "baseline_body": "AForce is learning how your body responds. Log what you drink and your readiness appears here.",
       "default_command_title": "Start with water",
       "log_water": "Log water",
       "signals_label": "Signals",
@@ -175,6 +197,18 @@
       "muted_detail": "We show on-screen prompts only — voice input still works."
     },
     "v2": {
+      "identity_label": "IDENTITY",
+      "performance_profile_label": "PERFORMANCE PROFILE",
+      "performance_profile_hint": "What AForce assumes about your body",
+      "daily_target_oz_sub": "≈ {{value}} oz per day",
+      "connected_data_label": "CONNECTED DATA",
+      "connected_data_hint": "Where AForce reads your biometrics",
+      "privacy_label": "PRIVACY",
+      "privacy_hint": "What AForce collects · and how to erase it",
+      "notifications_label": "NOTIFICATIONS",
+      "notifications_hint": "When AForce is allowed to interrupt you",
+      "account_label": "ACCOUNT",
+      "account_hint": "Language, coach, units, sign out",
       "tier_core_label": "AForce Core",
       "tier_core_desc": "Start your performance system.",
       "tier_athlete_label": "AForce Athlete",
@@ -411,7 +445,7 @@
       "enc_cron": "CRON {{state}}",
       "enc_loading": "Loading…",
       "enc_tap_refresh": "Tap Refresh to load.",
-      "legal_label": "LEGAL",
+      "legal_label": "LEGAL & SUPPORT",
       "legal_hint": "Terms · privacy · disclaimers",
       "terms": "Terms of Service",
       "terms_sub": "How the app works · your account · subscriptions",
@@ -893,6 +927,11 @@
       "traveler_title": "Frequent Traveler",
       "traveler_sub": "Flights and time-zone shifts dry you out faster.",
       "traveler_a11y": "Frequent traveler",
+      "location_title": "Local Conditions",
+      "location_sub": "AForce reads the temperature and humidity where you are — the two biggest drivers of how fast you lose water.",
+      "location_connected": "On · weather only",
+      "location_denied": "Location is off. AForce works fully without it — conditions are estimated, or enable access in Settings.",
+      "location_a11y": "Use local conditions",
       "ready_title": "You're set.",
       "ready_lede": "Your first command is waiting. Start with water — lock in your first cycle and watch your score respond.",
       "mantra": "PAUSE · HYDRATE · LOCK IN · PERFORM",
@@ -1066,7 +1105,7 @@
       "log_product": "LOG {{name}}",
       "empty_title": "Awaiting scan",
       "empty_hint_web": "Tap a product above to simulate a barcode scan, or search by name.",
-      "empty_hint_native": "Tap the viewfinder to open the camera, or use simulate scan.",
+      "empty_hint_native": "Tap the viewfinder to open the camera, or search by name.",
       "recent_scans": "RECENT SCANS",
       "synced": "SYNCED",
       "history_fit": "fit {{score}}",
@@ -2057,6 +2096,7 @@
     "readiness_eyebrow": "TODAY'S READINESS",
     "readiness_default_status": "READY TO PERFORM",
     "tap_to_skip": "TAP TO SKIP",
-    "skip_a11y": "Skip the opening sequence"
+    "skip_a11y": "Skip the opening sequence",
+    "readiness_building": "BUILDING YOUR BASELINE"
   }
 }

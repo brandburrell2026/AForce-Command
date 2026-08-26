@@ -122,6 +122,11 @@ export function reducer(state: AppState, action: Action): AppState {
       return { ...state, userState: updated };
     }
     case 'TICK_TIMER': {
+      // Already expired and awaiting the user's answer: the branch below
+      // would return a value-identical new object every second, defeating
+      // React's same-reference bail-out and re-rendering the whole
+      // provider 60x/min for no change. Return the SAME reference instead.
+      if (state.timerSeconds === 0 && state.pendingConfirmation) return state;
       const next = state.timerSeconds - 1;
       if (next <= 0) {
         return { ...state, timerSeconds: 0, pendingConfirmation: true };

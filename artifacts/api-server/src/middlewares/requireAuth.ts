@@ -10,6 +10,8 @@
  */
 
 import type { RequestHandler } from "express";
+import { logger } from "../lib/logger";
+import { incCounter } from "../observability/metrics";
 import { getAuth } from "@clerk/express";
 import { DEFAULT_USER_ID } from "../lib/aforceState";
 
@@ -34,7 +36,8 @@ export const requireAuth: RequestHandler = (req, res, next) => {
       // Operator misconfiguration — log loudly and reject. Never
       // grant DEFAULT_USER_ID in production.
       // eslint-disable-next-line no-console
-      console.error("[requireAuth] CLERK_SECRET_KEY missing in production — denying request");
+      logger.error("[requireAuth] CLERK_SECRET_KEY missing in production — denying request");
+      incCounter("auth_failures.503_misconfig");
       res.status(503).json({ error: "auth_unavailable" });
       return;
     }
@@ -57,6 +60,7 @@ export const requireAuth: RequestHandler = (req, res, next) => {
       req.userId = DEFAULT_USER_ID;
       return next();
     }
+    incCounter("auth_failures.401");
     res.status(401).json({ error: "Unauthorized" });
     return;
   }

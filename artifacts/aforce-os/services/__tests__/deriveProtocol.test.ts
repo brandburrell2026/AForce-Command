@@ -9,7 +9,7 @@
  * loading flash. If the level→stage mapping ever drifts (or someone
  * re-introduces a `Promise`), this contract test fails first.
  *
- * `mockApi` transitively imports `data/products` (which uses RN
+ * `protocolDerivation` transitively imports `data/products` (which uses RN
  * `require('../assets/...')` for image bundling) and the
  * `scoringEngine` (which pulls i18next + expo-localization). Both are
  * unparseable in node/vitest, so we stub them with the same minimal
@@ -40,7 +40,7 @@ vi.mock('../../utils/scoringEngine', () => ({
   })),
 }));
 
-import { deriveProtocol } from '../mockApi';
+import { deriveProtocol } from '../protocolDerivation';
 import type {
   ScoreEngineOutput,
   UserState,
@@ -67,48 +67,48 @@ function fakeEngine(
 
 describe('deriveProtocol — PerformanceLevel → stage mapping', () => {
   it('PEAK → "Peak Support"', () => {
-    const p = deriveProtocol(fakeUserState(), fakeEngine('PEAK'));
+    const p = deriveProtocol(fakeUserState(), fakeEngine('PEAK'), null);
     expect(p.stage).toBe('Peak Support');
   });
 
   it('BALANCED → "Maintain"', () => {
-    const p = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'));
+    const p = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'), null);
     expect(p.stage).toBe('Maintain');
   });
 
   it('RECOVERING → "Recovery"', () => {
-    const p = deriveProtocol(fakeUserState(), fakeEngine('RECOVERING'));
+    const p = deriveProtocol(fakeUserState(), fakeEngine('RECOVERING'), null);
     expect(p.stage).toBe('Recovery');
   });
 
   it('DEPLETED → "Depletion Correction" (the headline real-time stage)', () => {
-    const p = deriveProtocol(fakeUserState(), fakeEngine('DEPLETED'));
+    const p = deriveProtocol(fakeUserState(), fakeEngine('DEPLETED'), null);
     expect(p.stage).toBe('Depletion Correction');
     expect(p.description).toContain('Electrolytes');
   });
 
   it('is synchronous — returns a payload, never a Promise', () => {
-    const out = deriveProtocol(fakeUserState(), fakeEngine('DEPLETED'));
+    const out = deriveProtocol(fakeUserState(), fakeEngine('DEPLETED'), null);
     expect(out).not.toBeInstanceOf(Promise);
     expect(typeof out.stage).toBe('string');
   });
 
   it('reflects engine.riskTimer.minutes in the second step + footer', () => {
-    const p = deriveProtocol(fakeUserState(), fakeEngine('RECOVERING', 17));
+    const p = deriveProtocol(fakeUserState(), fakeEngine('RECOVERING', 17), null);
     expect(p.nextRecheckMinutes).toBe(17);
     expect(p.steps[1].window).toBe('Within 17 min');
   });
 
   it('flips step 1 to complete when urineSignal > 0 (live signal pulled in)', () => {
-    const dry = deriveProtocol(fakeUserState({ urineSignal: 0 }), fakeEngine('BALANCED'));
-    const wet = deriveProtocol(fakeUserState({ urineSignal: 2 }), fakeEngine('BALANCED'));
+    const dry = deriveProtocol(fakeUserState({ urineSignal: 0 }), fakeEngine('BALANCED'), null);
+    const wet = deriveProtocol(fakeUserState({ urineSignal: 2 }), fakeEngine('BALANCED'), null);
     expect(dry.steps[0].complete).toBe(false);
     expect(wet.steps[0].complete).toBe(true);
   });
 
   it('returns deterministic compliance when called sync (no Math.random)', () => {
-    const a = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'));
-    const b = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'));
+    const a = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'), null);
+    const b = deriveProtocol(fakeUserState(), fakeEngine('BALANCED'), null);
     expect(a.weeklyCompliancePct).toBe(b.weeklyCompliancePct);
   });
 });

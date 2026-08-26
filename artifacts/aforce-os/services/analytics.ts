@@ -13,7 +13,7 @@
  * Recorders are idempotent / deduped so callers can fire freely from
  * render-driven effects without spamming the log.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from '@/services/scopedStorage';
 
 import {
   computeAnalyticsMetrics,
@@ -39,7 +39,7 @@ function isSnapshot(v: unknown): v is AnalyticsSnapshot {
 
 export async function getAnalyticsSnapshot(): Promise<AnalyticsSnapshot | null> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     return isSnapshot(parsed) ? parsed : null;
@@ -50,7 +50,7 @@ export async function getAnalyticsSnapshot(): Promise<AnalyticsSnapshot | null> 
 
 async function setAnalyticsSnapshot(snapshot: AnalyticsSnapshot): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch {
     /* non-fatal */
   }

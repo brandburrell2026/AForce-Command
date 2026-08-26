@@ -5,16 +5,21 @@
  * the API key. Body: `{ text: string, voiceId: string }`. Streams the
  * MP3 audio back to the caller.
  *
- * Light rate-limit applied via the existing checkout limiter pattern to
- * prevent abuse — TTS calls cost real money on ElevenLabs, so we cap
- * how often a single client can hit this even though we don't require
- * auth (voice playback should still work on the marketing-tier paths).
+ * Auth + rate-limit (Wave-2 PR1): TTS calls cost real money on
+ * ElevenLabs. The only caller is the app's elevenLabsTts service (the
+ * marketing site never calls this endpoint — the old comment claiming a
+ * "marketing-tier path" was stale), so the route now requires a Clerk
+ * session; the per-client rate limit stays as the second layer.
  */
 
 import { Router, type IRouter, type Request, type Response } from "express";
+import { serializeError } from "../lib/serializeError";
+import { incCounter } from "../observability/metrics";
 import { z } from "zod";
 import rateLimit from "express-rate-limit";
 import { logger } from "../lib/logger";
+import { requireAuth } from "../middlewares/requireAuth";
+import { findBlockedConcept } from "../lib/claimsGate";
 import {
   ttsAudioCache,
   isCacheable,
@@ -44,7 +49,7 @@ const ttsLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post("/voice/tts", ttsLimiter, async (req: Request, res: Response) => {
+router.post("/voice/tts", requireAuth, ttsLimiter, async (req: Request, res: Response) => {
   const apiKey = process.env["ELEVENLABS_API_KEY"];
   if (!apiKey) {
     res.status(503).json({ error: "tts_not_configured" });
@@ -57,6 +62,16 @@ router.post("/voice/tts", ttsLimiter, async (req: Request, res: Response) => {
     return;
   }
   const { text, voiceId, cachePolicy, phraseKey } = parsed.data;
+
+  // §42 claims gate (Wave-2 PR5): never synthesize blocked claim language,
+  // regardless of which client sent it. Mirrors the app's speak() gate.
+  const blockedConcept = findBlockedConcept(text);
+  if (blockedConcept) {
+    logger.warn({ blockedConcept }, "voice/tts: claims gate suppressed a line");
+    incCounter("claims_gate_suppressions.voice_tts");
+    res.status(422).json({ error: "claims_gate_suppressed" });
+    return;
+  }
 
   // Decide caching up front. Only explicit static opt-ins whose
   // (voiceId, phraseKey) pair is allowlisted are eligible; everything else
@@ -126,7 +141,7 @@ router.post("/voice/tts", ttsLimiter, async (req: Request, res: Response) => {
       sendAudio(buf, "BYPASS", "audio/mpeg");
     }
   } catch (err) {
-    logger.error({ err }, "voice/tts proxy failed");
+    logger.error({ err: serializeError(err) }, "voice/tts proxy failed");
     res.status(502).json({ error: "tts_request_failed" });
   }
 });

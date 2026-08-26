@@ -29,7 +29,9 @@
     "pino-http": "^10",
     "ws": "8.18.0",
     "zod": "catalog:",
-    "@workspace/health-core": "workspace:*"
+    "@workspace/health-core": "workspace:*",
+    "stripe": "^22.0.2",
+    "stripe-replit-sync": "^1.0.0"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

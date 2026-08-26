@@ -6,8 +6,8 @@
  * published thresholds (green ≥67%, yellow 34–66%, red ≤33%), Strain
  * shown on the official 0–21 scale in WHOOP teal, and a Sleep
  * Performance percentage. The recovery ring animates its stroke
- * fill-in on mount and a green dot pulses next to "CONNECTED" so the
- * panel reads as live telemetry, not a static graphic.
+ * fill-in on mount; the green dot next to "CONNECTED" is a static mark
+ * (Wave-5 removed its pulse — see the note beside the effect below).
  *
  * Pure presentation. Numbers are passed in by the parent; this card
  * does not touch the score store or fetch anything itself.
@@ -23,8 +23,6 @@ import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
   withTiming,
-  withRepeat,
-  withSequence,
   cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
@@ -108,33 +106,32 @@ export function WhoopSnapshotCard({
 
   // Animated stroke fill-in on mount: progress 0 → 1 over 900ms.
   const ringProgress = useSharedValue(0);
-  // Pulsing connection dot: opacity 1 ↔ 0.35 looped.
-  const pulse = useSharedValue(1);
   // Strain bar fill-in.
   const strainProgress = useSharedValue(0);
 
-  // A11y fix (Squad-F HIGH #1): the connection-dot pulse was an ungated
-  // `withRepeat(..., -1)` loop with no reduced-motion check and no teardown —
-  // it ran forever, including for users who have motion reduction on, and
-  // kept animating on Reanimated's UI thread even after this card unmounted.
-  // The ring/strain reveal tweens were finite but had the same gap. Pattern
-  // mirrors components/ui/AFReadinessArc.tsx:77-116 — gate on the shared
-  // hooks/useReducedMotion, and cancelAnimation in both the static branch and
-  // the unmount cleanup.
+  // Wave-5 REMOVAL — the connection dot no longer pulses.
+  //
+  // Squad-F fixed it (it was an ungated `withRepeat(..., -1)` with no teardown);
+  // the founder's motion brief deletes it. It was an unbounded loop running the
+  // whole time the Profile provider block was on screen, in service of saying
+  // "connected" — which the label right beside it already says in words, and
+  // which a screen reader could never have heard as a pulse anyway. Constant
+  // pulsing is removed, not tuned down. The dot is now a static mark.
+  //
+  // The two REVEAL tweens (recovery ring, strain bar) stay: they are finite,
+  // they show a value arriving at its position, and they are still gated on the
+  // shared reduced-motion hook with cancelAnimation on both branches + unmount.
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const target = recoveryPct != null ? Math.max(0, Math.min(100, recoveryPct)) / 100 : 0;
 
     if (reducedMotion) {
-      // Static alternative: jump straight to the resolved values — no reveal
-      // tween, no looping pulse (the connection dot holds fully opaque).
+      // Static alternative: jump straight to the resolved values — no reveal tween.
       cancelAnimation(ringProgress);
       cancelAnimation(strainProgress);
-      cancelAnimation(pulse);
       ringProgress.value = target;
       strainProgress.value = strainPct;
-      pulse.value = 1;
     } else {
       ringProgress.value = withTiming(target, {
         duration: 900,
@@ -144,35 +141,18 @@ export function WhoopSnapshotCard({
         duration: 900,
         easing: Easing.out(Easing.cubic),
       });
-      pulse.value = withRepeat(
-        withSequence(
-          withTiming(0.35, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-          withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
-        ),
-        -1,
-        false,
-      );
     }
 
     // Unmount (and re-run) teardown: always cancel so nothing keeps
-    // animating on the UI thread past this render's inputs. This repo has no
-    // established pattern for pausing Reanimated loops on screen-blur (sibling
-    // loops — StatusPulseOrb, AFReadinessArc's `alive` halo — don't do it
-    // either); unmount cleanup + the reduced-motion gate is what's implemented
-    // here, consistent with those.
+    // animating on the UI thread past this render's inputs.
     return () => {
       cancelAnimation(ringProgress);
       cancelAnimation(strainProgress);
-      cancelAnimation(pulse);
     };
-  }, [recoveryPct, strainPct, reducedMotion, ringProgress, strainProgress, pulse]);
+  }, [recoveryPct, strainPct, reducedMotion, ringProgress, strainProgress]);
 
   const animatedRingProps = useAnimatedProps(() => ({
     strokeDashoffset: RING_CIRCUMFERENCE * (1 - ringProgress.value),
-  }));
-
-  const animatedDotStyle = useAnimatedStyle(() => ({
-    opacity: pulse.value,
   }));
 
   const animatedStrainBarStyle = useAnimatedStyle(() => ({
@@ -227,8 +207,8 @@ export function WhoopSnapshotCard({
           accessibilityLiveRegion="polite"
           testID="whoop-connection-state"
         >
-          <Animated.View
-            style={[styles.pulseDot, animatedDotStyle]}
+          <View
+            style={styles.statusDot}
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           />
@@ -368,7 +348,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  pulseDot: {
+  // Wave-5: renamed from `pulseDot` — it no longer pulses (see the removal
+  // note above). Same 6pt mark, drawn once.
+  statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,

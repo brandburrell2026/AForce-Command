@@ -13,6 +13,7 @@
  */
 
 import { speak as ttsSpeak, stop as ttsStop } from './ttsService';
+import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { speakWithElevenLabs, stopElevenLabs } from './elevenLabsTts';
 import { resolvePersona } from './voicePersonaService';
 import { elevenLabsIdFor } from './voiceCatalog';
@@ -110,6 +111,13 @@ export function speak(text: string, opts: SpeakOpts = {}): void {
   if (!enabled) return;
   if (effectiveCoachMode !== 'spoken') return;
   if (!text || !text.trim()) return;
+  // §42 claims gate (Wave-2 PR5): every spoken line passes the block-severity
+  // concept scan. Fail closed = stay silent (silence is already a valid
+  // outcome of this function); never rewrite the line.
+  if (consumerCopyBlocked(text)) {
+    console.warn('[AForce] claims gate suppressed a spoken line');
+    return;
+  }
   const profile = opts.level ? resolvePersona(opts.level).profile : null;
 
   // If the user has picked an ElevenLabs voice, prefer that — but fall

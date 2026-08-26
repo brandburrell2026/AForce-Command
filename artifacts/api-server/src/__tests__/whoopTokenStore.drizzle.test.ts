@@ -22,6 +22,9 @@ import {
   backfillWhoopTokenEncryption,
 } from "@workspace/db";
 
+// requires real Postgres — runs in the DB lane (pnpm test:db)
+const DB = Boolean(process.env['DB_TESTS']);
+
 const TEST_PREFIX = "test_whoop_user_";
 const user = (n: string): string => `${TEST_PREFIX}${n}`;
 
@@ -56,7 +59,7 @@ afterAll(async () => {
     .where(inArray(aforceWhoopTokens.userId, SEED_USERS));
 });
 
-describe("createDrizzleWhoopTokenStoreForUser", () => {
+describe.runIf(DB)("createDrizzleWhoopTokenStoreForUser", () => {
   it("refuses empty userId — prevents accidental row-key collapse", () => {
     expect(() => createDrizzleWhoopTokenStoreForUser(db, "")).toThrow(
       /userId must be non-empty/,

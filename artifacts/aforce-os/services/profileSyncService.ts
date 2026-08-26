@@ -19,7 +19,7 @@
  *     per the DB schema, so there is no multi-device race to reconcile).
  */
 
-import { secureKV } from './secureStorage';
+import { scopedSecureKV } from './scopedStorage';
 import { getJsonAforceApi, postJsonAforceApi } from './aforceApiClient';
 import {
   decideProfileHydration,
@@ -106,7 +106,7 @@ async function loadSyncState(): Promise<ProfileSyncState> {
   try {
     // K-1 (RC-L11): sync state lives in the encrypted store; the read
     // transparently migrates any legacy plain-AsyncStorage value.
-    const raw = await secureKV.getItem(SYNC_STATE_KEY);
+    const raw = await scopedSecureKV.getItem(SYNC_STATE_KEY);
     if (!raw) return { ...EMPTY_SYNC_STATE };
     const parsed = JSON.parse(raw) as Partial<ProfileSyncState>;
     return { ...EMPTY_SYNC_STATE, ...parsed };
@@ -117,7 +117,7 @@ async function loadSyncState(): Promise<ProfileSyncState> {
 
 async function saveSyncState(next: ProfileSyncState): Promise<void> {
   try {
-    await secureKV.setItem(SYNC_STATE_KEY, JSON.stringify(next));
+    await scopedSecureKV.setItem(SYNC_STATE_KEY, JSON.stringify(next));
   } catch {
     // Persistence is best-effort; a failed write just means the next save
     // re-diffs against the prior snapshot (idempotent on the server).

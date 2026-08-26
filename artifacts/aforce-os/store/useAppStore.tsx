@@ -1,6 +1,6 @@
 /**
  * AForce OS App Store
- * React Context + useReducer state container backed by the mockApi service layer.
+ * React Context + useReducer state container backed by the realApi service layer.
  *
  * Source of truth for: userState, engineOutput (score/state/pulseConfig/command),
  * cycle history, feature flags, and overlay UI state.
@@ -40,15 +40,17 @@ import {
 } from '../utils/profileIdentity';
 import { SliceProvider, type ActionsSlice } from './slices';
 import { defaultSubscription } from '../services/subscriptionService';
-import { secureKV } from '../services/secureStorage';
+import { scopedSecureKV } from '../services/scopedStorage';
+import { scopedStorage } from '../services/scopedStorage';
 import {
   hydrateProfileFromServer,
   flushPendingProfileSync,
 } from '../services/profileSyncService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
-import { defaultUserState, mockHistory } from '../data/mockData';
-import { DEFAULT_FLAGS } from '../featureFlags/flags';
+import { defaultUserState } from '../data/mockData';
+import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
+import { CAPTURE_MODE } from '../services/demoMode';
 import { getCommandLedgerState } from '../services/commandLedger';
 import { adaptEngineOutputForRecheck } from '../utils/intelligence/adaptEngineOutput';
 import {
@@ -110,11 +112,13 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 
 // Service-only synchronous bootstrapping helper. The store NEVER calls
 // the scoring engine directly — it always asks the mock API for engineOutput.
-// (We use the synchronous helper from mockApi internals via fetchHome's
+// (We use the synchronous helper via fetchHome's
 // promise resolution being immediate-after-microtask in tests; for the
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
+import { buildBreakdown } from '../utils/scoring/breakdown';
 import type { AppContextValue } from './app/types';
+import { pickFacadeState, type FacadeState } from './app/facadeState';
 import {
   VOICE_COACH_KEY,
   SELECTED_VOICE_KEY,
@@ -137,7 +141,11 @@ const initialEngineOutput = _initialOnly(defaultUserState);
 const initialState: AppState = {
   userState: defaultUserState,
   engineOutput: initialEngineOutput,
-  history: mockHistory,
+  // Wave-3 PR10 (W2-N1): the store previously seeded five FABRICATED
+  // history entries with always-fresh "Nm ago" stamps — and their lack of
+  // an isSynthetic flag permanently disabled buildSyntheticBaselineEntry,
+  // the designed self-labeling honest state. Empty start activates it.
+  history: [],
   lastCycleResult: null,
   isCompletingCycle: false,
   showCycleSuccess: false,
@@ -147,8 +155,11 @@ const initialState: AppState = {
   // internal-TestFlight build with EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true (see
   // featureFlags/internalTestflightOverlay.ts). Production/App-Store builds
   // never set that env, so `resolveInitialFeatureFlags` returns DEFAULT_FLAGS
-  // by reference here.
-  featureFlags: resolveInitialFeatureFlags(DEFAULT_FLAGS),
+  // by reference here. CAPTURE_MODE (dev-only screenshot bypass, see
+  // services/demoMode.ts) seeds the SAME clamped payload the Profile screen's
+  // "Unlock all demo features" control dispatches — restricted
+  // internal-preview flags stay OFF; compile-time inert outside __DEV__.
+  featureFlags: CAPTURE_MODE ? demoUnlockAllFlags() : resolveInitialFeatureFlags(DEFAULT_FLAGS),
   subscription: defaultSubscription(),
   lastIntakeBurstAt: 0,
   hasSeenOnboarding: false,
@@ -578,60 +589,79 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
-  // Weather: fetch once on mount, then every 15 min. Uses Denver as a
-  // safe default (matches the existing climate strip) so we never block
-  // the UI on a permission prompt; if expo-location grants real coords
-  // later the next tick will use them.
+  // Weather: fetch on mount, then every 15 min — but ONLY once we actually
+  // know where the member is.
   //
-  // `lat`/`lon` hoisted to refs (RC-1 W3P1, were plain `let`s closed over by
-  // one effect) purely so the AppState-gated interval — a separate effect
-  // now — can still read whatever coordinates the mount-time geolocation
-  // lookup resolved to. Same "resolve once, reuse forever" behavior as
-  // before: the interval never re-resolves location, only re-fetches
-  // weather for the last-known lat/lon.
-  const weatherLatRef = useRef(39.7392); // Denver default
-  const weatherLonRef = useRef(-104.9903); // Denver default
+  // This provider wraps the entire route tree, so anything it asks for is
+  // asked at launch, before a single line of AForce copy has explained
+  // itself. The founder rule is absolute: never request a permission before
+  // the member understands why we want it. The ask therefore lives in
+  // onboarding, on the same row as the sentence that justifies it
+  // (`components/onboarding/OnboardingScreenV2.tsx`, LIFESTYLE step). What
+  // happens here is a READ of an answer already given —
+  // `getForegroundPermissionsAsync` queries the current grant and never
+  // presents a dialog; `requestForegroundPermissionsAsync` must not appear
+  // anywhere in this provider's reachable graph
+  // (`store/__tests__/noPermissionRequestOnProviderMount.test.ts` pins it).
+  //
+  // With no grant we fetch nothing at all. The previous Denver fallback fed
+  // another city's air into the engine as if it were the member's, with
+  // nothing in the UI able to tell the two apart — visual certainty ahead of
+  // evidence. Leaving `weatherTempC`/`weatherHumidity` unset is the state
+  // the engine is already documented to expect (see `types/index.ts`: never
+  // substituted with placeholder numbers when missing), and the climate
+  // surfaces keep their own `est.` labelling for the estimated reading.
+  //
+  // Coordinates resolve lazily rather than once-at-mount, because onboarding
+  // may grant AFTER this effect has run. The permission dialog's own
+  // inactive → active transition resume-fires the AppState-gated interval
+  // below, so the first post-grant reading lands right away rather than up
+  // to 15 min later. Once resolved the coordinates are reused forever, same
+  // as before — a granted install re-resolves nothing.
+  const weatherCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
   const weatherMountedRef = useRef(true);
   useEffect(() => {
     weatherMountedRef.current = true;
     return () => { weatherMountedRef.current = false; };
   }, []);
 
-  const weatherTick = useCallback(async (lat: number, lon: number) => {
+  const resolveWeatherCoords = useCallback(async (): Promise<{ lat: number; lon: number } | null> => {
+    if (weatherCoordsRef.current) return weatherCoordsRef.current;
+    try {
+      const Location = await import('expo-location');
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') return null;
+      const pos = await Location.getCurrentPositionAsync({});
+      weatherCoordsRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      return weatherCoordsRef.current;
+    } catch {
+      // expo-location unavailable (web / test runtime) or the lookup failed
+      // — indistinguishable from "no location", and treated the same.
+      return null;
+    }
+  }, []);
+
+  const weatherTick = useCallback(async () => {
+    const coords = await resolveWeatherCoords();
+    if (!coords || !weatherMountedRef.current) return;
     try {
       // Read latest userState via ref so a tick that fires AFTER a
       // provider connect / Apple-Health snapshot lands carries those
       // overlays into the merge, instead of the mount-time closure
       // that lacked them.
-      const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
+      const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, coords.lat, coords.lon);
       if (!weatherMountedRef.current) return;
       applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] weather refresh failed', err);
     }
-  }, [applyServerUserState]);
+  }, [applyServerUserState, resolveWeatherCoords]);
 
   useEffect(() => {
-    let cancelled = false;
-    // Best-effort geolocation — only on web/native where the API exists.
-    // Failures fall through to the Denver default.
-    (async () => {
-      try {
-        const Location = await import('expo-location');
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const pos = await Location.getCurrentPositionAsync({});
-          weatherLatRef.current = pos.coords.latitude;
-          weatherLonRef.current = pos.coords.longitude;
-        }
-      } catch {
-        // fall back to Denver
-      }
-      if (!cancelled) void weatherTick(weatherLatRef.current, weatherLonRef.current);
-    })();
-    return () => { cancelled = true; };
-    // Mount-once geolocation resolution + first fetch; the recurring 15min
-    // cadence is owned by the AppState-gated interval below.
+    void weatherTick();
+    // Mount-once first attempt; the recurring 15min cadence — and the retry
+    // that picks up a grant made after mount — is owned by the AppState-gated
+    // interval below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -639,7 +669,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // fires once immediately on foreground return, then resumes the normal
   // 15min cadence.
   useAppStateGatedInterval(() => {
-    void weatherTick(weatherLatRef.current, weatherLonRef.current);
+    void weatherTick();
   }, 15 * 60 * 1000);
 
   // Action handlers — extracted into a factory hook so the bodies live
@@ -739,6 +769,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     postJournalSnapshot({
       score: state.engineOutput.score,
       level,
+      // Instrumentation vector (founder-approved): the per-factor deltas for
+      // the state being snapshotted, computed at WRITE time. Deliberately not
+      // derived from engineOutput — recomputing here means the vector always
+      // sums to its own `raw`, and any divergence between `raw` and the
+      // engine's `score` field becomes visible data (that divergence is
+      // exactly the optimistic-vs-authoritative question). Same debounce, same
+      // request — zero additional writes.
+      factorDeltas: buildBreakdown(state.userState, now).factorDeltas,
       ozConsumedToday: state.userState.ozConsumedToday,
       aforceUnitsToday: state.userState.aforceUnitsToday,
       unitsConsumedToday: state.userState.unitsConsumedToday,
@@ -779,11 +817,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // the latest closure (state.userState moves a lot) without resubscribing.
   const logIntakeRef = useRef(logIntake);
   useEffect(() => { logIntakeRef.current = logIntake; }, [logIntake]);
+  // Wave-1 P0 hardening: the sip listener is registered ONLY while the
+  // Phantom flag is on. Score Protection defense-in-depth — with the
+  // listener unregistered, no BLE event or simulated sip can write intake
+  // in a build where Phantom is not enabled (ordinary production).
+  const phantomOn = state.featureFlags.phantom_wearable_enabled;
   useEffect(() => {
+    if (!phantomOn) return;
     return phantomBandService.on('sip', (event) => {
       void logIntakeRef.current(event.fluidType, { silent: true, ozOverride: event.oz });
     });
-  }, []);
+  }, [phantomOn]);
 
   // ─── AForce Command Voice Engine — system command voice ────────────────
   // Routes through commandSpeak() so the bus records every utterance for
@@ -903,7 +947,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Hydrate persisted notification settings on mount; ignore corrupt
   // payloads so a forward-incompat key change can't brick the toggles.
   useEffect(() => {
-    AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY)
+    scopedStorage.getItem(NOTIFICATION_SETTINGS_KEY)
       .then((raw) => {
         if (!raw) return;
         try {
@@ -925,7 +969,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_NOTIFICATION_SETTING', payload: { key, value } });
     // Persist the merged shape so reload always restores every toggle.
     const next = { ...state.notificationSettings, [key]: value };
-    AsyncStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
+    scopedStorage.setItem(NOTIFICATION_SETTINGS_KEY, JSON.stringify(next)).catch(() => {});
   }, [state.notificationSettings]);
 
   // Race-safe persistence for unit preferences. Two refs guard the
@@ -1015,7 +1059,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     // K-1 (RC-L11): identity lives in the encrypted store; the read
     // transparently migrates any legacy plain-AsyncStorage value.
-    secureKV.getItem(PROFILE_IDENTITY_KEY)
+    scopedSecureKV.getItem(PROFILE_IDENTITY_KEY)
       .then((raw) => {
         if (cancelled) return;
         if (profileIdentityDirtyRef.current) return;
@@ -1041,7 +1085,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!profileIdentityHydratedRef.current) return;
-    secureKV.setItem(
+    scopedSecureKV.setItem(
       PROFILE_IDENTITY_KEY,
       JSON.stringify(state.profileIdentity),
     ).catch(() => {});
@@ -1126,7 +1170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate persisted subscription on mount.
   useEffect(() => {
-    AsyncStorage.getItem('aforce.subscription')
+    scopedStorage.getItem('aforce.subscription')
       .then((raw) => {
         if (!raw) return;
         try {
@@ -1151,8 +1195,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.userState.language]);
 
+  // Wave-4 Part 6: the facade's `state` excludes `timerSeconds`, so a
+  // `TICK_TIMER` no longer changes `value`'s identity and the ~90
+  // `useAppStore()` consumers (including every tab-route wrapper, whose
+  // children are not memoized) stop re-rendering once per second. The
+  // dependency array lists each forwarded field individually — depending
+  // on `state` itself would reintroduce the per-second churn this fix
+  // removes. Countdown readers use `useTimerSlice()`.
+  const facadeState = useMemo<FacadeState>(() => pickFacadeState(state), [
+    state.userState, state.engineOutput, state.history, state.lastCycleResult,
+    state.isCompletingCycle, state.showCycleSuccess, state.pendingConfirmation,
+    state.featureFlags, state.subscription, state.lastIntakeBurstAt,
+    state.hasSeenOnboarding, state.sweatAutopilot, state.sweatAutopilotSetAt,
+    state.notificationSettings, state.unitPreferences, state.profileIdentity,
+  ]);
+
   const value = useMemo<AppContextValue>(() => ({
-    state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
+    state: facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
@@ -1166,7 +1225,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     notificationSettings: state.notificationSettings, setNotificationSetting,
     unitPreferences: state.unitPreferences, setUnitPreference,
     profileIdentity: state.profileIdentity, setProfileIdentity,
-  }), [state, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+  }), [facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1231,6 +1290,7 @@ export {
   useSocialSlice,
   useIntakeSlice,
   useCycleSlice,
+  useTimerSlice,
   useConfirmationSlice,
   useOnboardingSlice,
   useInventorySlice,

@@ -7,7 +7,7 @@
  *   2. Pick a source label (hdrop / nix / gatorade_gx).
  *   3. Preview parsed rows (count + first 3) and recognised columns.
  *   4. Tap "Import N rows" → POST /api/aforce/sensors/import.
- *   5. Server creates one intake_log + one score_snapshot per row.
+ *   5. Server stores one provenance snapshot per row (no intake, no score).
  */
 
 import React, { useMemo, useState } from 'react';
@@ -119,7 +119,7 @@ export function SensorImportScreen() {
           </View>
 
           <Text style={styles.intro}>
-            Import data from a third-party sweat patch. Each row creates an intake event and a score snapshot tagged with the sensor source.
+            Import data from a third-party sweat patch. Each row is stored as a provenance record tagged with the sensor source — it never counts as intake and never changes your score.
           </Text>
 
           {/* Source picker */}

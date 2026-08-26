@@ -5,8 +5,8 @@
  * screen mutates the hydration/readiness store, so those calls are preserved
  * verbatim (must not regress). Presentation only on the af.* system.
  */
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -19,12 +19,16 @@ import {
   type AFStatusTone,
 } from '@/components/ui';
 import { af, afType } from '@/theme';
+import { Icon } from '@/components/Icon';
 import { useAppStore } from '@/store/useAppStore';
+import { classifyWriteFailure, WRITE_FAILURE_COPY } from '@/store/app/writeFailure';
 import { SYMPTOM_CATALOG, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
 import {
   assessUrineColor,
+  urineColorForSignal,
   URINE_COLOR_OPTIONS,
+  URINE_COLOR_SIGNAL,
   URINE_DISCLAIMER,
   type UrineColor,
   type UrineCheckResult,
@@ -51,30 +55,106 @@ const haptic = (kind: 'select' | 'heavy') => {
 export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
   const [selection, setSelection] = useState<UrineColor | null>(null);
+  /**
+   * Has the member made or changed anything THIS visit? The tiles are seeded
+   * from persisted state, so `selection` alone cannot distinguish "the member
+   * chose this" from "the screen restored it" — and Confirm must reflect the
+   * member's action, not the seed. Reset only after a durable success.
+   */
+  const [dirty, setDirty] = useState(false);
+  /**
+   * Confirm lifecycle. Build-68 device QA: eight identical confirm sets landed
+   * in six minutes because success was silent and the button never refused a
+   * repeat press. `saving` drives the button's loading state, `saved` is the
+   * brief unmistakable acknowledgment; the ref is the SYNCHRONOUS re-entry
+   * guard (same pattern as Home's confirmInFlightRef — state alone cannot stop
+   * two presses in one frame).
+   */
+  const confirmInFlightRef = useRef(false);
+  const [confirmPhase, setConfirmPhase] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    },
+    [],
+  );
   const result: UrineCheckResult | null = selection ? assessUrineColor(selection) : null;
   const sev = result ? SEVERITY[result.severity] : null;
 
-  const { state, updateSymptoms, updateEnergyState, confirmStatus } = useAppStore();
+  const { state, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus } =
+    useAppStore();
   const { userState, engineOutput } = state;
 
   const [symptoms, setSymptoms] = useState<string[]>(userState.symptoms);
   const [energy, setEnergy] = useState<UserState['energyState']>(userState.energyState);
   useEffect(() => setSymptoms(userState.symptoms), [userState.symptoms]);
   useEffect(() => setEnergy(userState.energyState), [userState.energyState]);
+  // Seed the picker from PERSISTED state, the same way symptoms and energy are
+  // seeded above. Without this the tiles reset to "nothing chosen" on every
+  // reload even though the signal was saved, which reads as the save having
+  // failed. Re-runs when the store adopts server state so another device's
+  // check-in is reflected here too.
+  useEffect(() => {
+    setSelection(urineColorForSignal(userState.urineSignal));
+  }, [userState.urineSignal]);
 
   const toggleSymptom = (id: string) => {
     haptic('select');
+    setDirty(true);
     setSymptoms((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
   };
 
-  // LIVE write path — preserved verbatim from the legacy screen.
+  // LIVE write path. The symptom/energy/check-in calls are preserved verbatim
+  // from the legacy screen; the urine signal is the one addition.
+  //
+  // Until now the chosen color lived only in `selection` and was dropped on
+  // confirm — the screen rendered a verdict from it but never wrote it, so the
+  // hydration score never saw the check. `updateUrineSignal` already existed and
+  // was already wired through the store to `POST /aforce/urine`; it simply had
+  // no caller. Nothing new is computed here: the tile is translated to the
+  // persisted scale and handed to the existing action.
   const handleConfirm = async () => {
+    // One physical Confirm = one update set. The ref refuses re-entry
+    // synchronously (two presses in one frame both see stale state); the
+    // button's loading/disabled props cover the slower cases.
+    if (confirmInFlightRef.current) return;
+    confirmInFlightRef.current = true;
+    setConfirmPhase('saving');
     haptic('heavy');
     try {
-      await Promise.all([updateSymptoms(symptoms), updateEnergyState(energy)]);
+      await Promise.all([
+        updateSymptoms(symptoms),
+        updateEnergyState(energy),
+        // Skipped when no tile is chosen: the member confirming symptoms alone
+        // must not silently overwrite a previously recorded signal.
+        ...(selection ? [updateUrineSignal(URINE_COLOR_SIGNAL[selection])] : []),
+      ]);
       await confirmStatus();
+      // Durable success ONLY — every write above resolved. The brief `saved`
+      // state is the success mirror of the failure alert below: Build-68 QA
+      // showed a silent success is indistinguishable from a dead screen, and
+      // the member responds by tapping again.
+      setDirty(false);
+      setConfirmPhase('saved');
+      savedTimerRef.current = setTimeout(() => setConfirmPhase('idle'), 2200);
     } catch (err) {
-      console.error('Confirm status failed:', err);
+      setConfirmPhase('idle');
+      // A failed check-in used to reach console only, so the member was told
+      // nothing and believed it saved. Reuses the same classifier and copy the
+      // intake path uses — no new vocabulary, no new locale keys — so a urine
+      // failure reads as truthfully as a lost intake does.
+      const failure = classifyWriteFailure(err);
+      Alert.alert(
+        t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
+        }),
+      );
+    } finally {
+      confirmInFlightRef.current = false;
     }
   };
 
@@ -90,15 +170,37 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
           return (
             <Pressable
               key={opt.color}
-              onPress={() => setSelection(opt.color)}
+              onPress={() => {
+                haptic('select');
+                setDirty(true);
+                setSelection(opt.color);
+              }}
               accessibilityRole="button"
               accessibilityLabel={t('urine.v2.select_a11y', { label: opt.label })}
               accessibilityState={{ selected: active }}
               testID={`urine-color-${opt.color}`}
-              style={[styles.tile, { borderColor: active ? af.red : af.border }]}
+              // Build-68 device QA: the selected state was a 1px border-color
+              // swap and read as a dead screen. Mirrors the ENERGY tiles'
+              // existing treatment on this same screen — background tint +
+              // accent border — plus a check on the swatch, so selection is
+              // unmistakable. Same visual language, nothing invented.
+              style={[
+                styles.tile,
+                active
+                  ? { borderColor: af.red, backgroundColor: `${af.red}14` }
+                  : { borderColor: af.border },
+              ]}
             >
-              <View style={[styles.swatch, { backgroundColor: opt.hex }]} />
-              <Text style={styles.tileLabel}>{opt.label.toUpperCase()}</Text>
+              <View style={[styles.swatch, { backgroundColor: opt.hex }]}>
+                {active ? (
+                  <View style={styles.swatchCheck} testID={`urine-color-${opt.color}-check`}>
+                    <Icon name="check" size={13} color={af.red} />
+                  </View>
+                ) : null}
+              </View>
+              <Text style={[styles.tileLabel, active ? { color: af.textPrimary } : null]}>
+                {opt.label.toUpperCase()}
+              </Text>
             </Pressable>
           );
         })}
@@ -161,6 +263,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
                 key={opt.value}
                 onPress={() => {
                   haptic('select');
+                  setDirty(true);
                   setEnergy(opt.value);
                 }}
                 accessibilityRole="button"
@@ -193,7 +296,26 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
       </View>
 
       <View style={{ marginTop: 20 }}>
-        <AFPrimaryButton label={t('urine.v2.complete_cycle')} icon="check-circle" onPress={handleConfirm} />
+        {/* Confirm reflects the member's state: disabled until something was
+            made/changed this visit, loading while the set is in flight, and a
+            brief RECORDED acknowledgment after durable success — the success
+            mirror of the failure alert, so success never looks like nothing. */}
+        <AFPrimaryButton
+          label={
+            confirmPhase === 'saved'
+              ? t('urine.v2.recorded', { defaultValue: 'Recorded' })
+              : t('urine.v2.complete_cycle')
+          }
+          icon={confirmPhase === 'saved' ? 'check' : 'check-circle'}
+          onPress={handleConfirm}
+          loading={confirmPhase === 'saving'}
+          // Purely dirty-driven: after a durable success dirty resets, so the
+          // RECORDED state is also non-interactive — a tap during the
+          // acknowledgment cannot fire an empty repeat set. A new tile/chip
+          // press re-arms it immediately, even mid-acknowledgment.
+          disabled={!dirty}
+          testID="urine-confirm"
+        />
       </View>
       <View style={{ height: 40 }} />
     </AFScreen>
@@ -213,7 +335,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: af.surface,
   },
-  swatch: { width: 40, height: 40, borderRadius: 20 },
+  swatch: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  /** Token-only disc so the check reads on every swatch hex. */
+  swatchCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: af.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   tileLabel: { ...afType.eyebrow, color: af.textTertiary },
   verdict: { ...afType.title3, color: af.textPrimary, marginTop: 10 },
   detail: { ...afType.secondary, color: af.textSecondary, marginTop: 4 },

@@ -24,6 +24,7 @@
     --red:#C1281B;
     --i80:rgba(13,13,13,.80);
     --i64:rgba(13,13,13,.64);
+    --i62:rgba(13,13,13,.62);
     --i46:rgba(13,13,13,.46);
     --i30:rgba(13,13,13,.30);
     --i14:rgba(13,13,13,.14);
@@ -45,6 +46,10 @@
   :focus-visible{ outline:2px solid var(--red); outline-offset:3px; }
   img,svg{ max-width:100%; display:block; }
 
+  /* ---------- SKIP LINK (WCAG 2.4.1) ---------- */
+  .skip-link{ position:fixed; top:12px; left:12px; z-index:400; display:block; padding:12px 20px; background:#0D0D0D; color:#F5F0E8; font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; border-radius:4px; transform:translateY(calc(-100% - 16px)); }
+  .skip-link:focus, .skip-link:focus-visible{ transform:none; outline:2px solid #C1281B; outline-offset:2px; }
+
   /* ---------- NAV ---------- */
   .nav{ position:sticky; top:0; z-index:60; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:16px var(--gutter); background:rgba(245,240,232,.82); backdrop-filter:blur(12px); border-bottom:1px solid var(--i08); }
   .nav .mark{ font-family:var(--display); font-size:18px; letter-spacing:.02em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
@@ -60,6 +65,8 @@
   /* ---------- SHARED ---------- */
   .wrap{ max-width:var(--maxw); margin:0 auto; }
   .eyebrow{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.26em; text-transform:uppercase; color:var(--red); }
+  /* Visually hidden, still read by screen readers (WCAG 3.3.2) — never display:none */
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   .reveal{ opacity:0; transform:translateY(22px); transition:opacity 1s ease, transform 1s ease; }
   .reveal.in{ opacity:1; transform:none; }
   .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .09s); }
@@ -81,16 +88,20 @@
   /* email capture */
   .capture{ margin:clamp(34px,4vw,46px) auto 0; max-width:480px; width:100%; }
   .capture form{ display:flex; gap:0; border:1px solid var(--i30); border-radius:3px; overflow:hidden; transition:border-color .2s; background:var(--paper); }
-  .capture form:focus-within{ border-color:var(--ink); }
+  /* Visible focus ring (WCAG 2.4.7): drawn on the WRAPPER via :focus-within —
+     the form's overflow:hidden clips any outline drawn on the input inside it
+     (outlines paint outside the border box), but an element's own overflow
+     never clips its own outline, so the ring on the form always renders. */
+  .capture form:focus-within{ border-color:var(--ink); outline:2px solid var(--ink); outline-offset:2px; }
   .capture input{ flex:1; min-width:0; background:transparent; border:none; padding:17px 18px; font-family:var(--body); font-size:15px; color:var(--ink); }
-  .capture input::placeholder{ color:var(--i46); }
-  .capture input:focus{ outline:none; }
+  .capture input::placeholder{ color:var(--i62); }
+  .capture input:focus{ outline:none; } /* focus indicator is the wrapper ring above */
   .capture button{ background:var(--ink); color:var(--paper); font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:0 26px; white-space:nowrap; transition:background .25s; }
   .capture button:hover{ background:var(--red); }
   .capture .err{ display:none; margin-top:12px; font-size:13px; color:var(--red); font-weight:500; }
   .capture.invalid .err{ display:block; }
   .capture.invalid form{ border-color:var(--red); }
-  .trust{ margin-top:16px; font-size:12.5px; color:var(--i46); }
+  .trust{ margin-top:16px; font-size:12.5px; color:var(--i62); }
 
   /* success state */
   .success{ display:none; margin:clamp(34px,4vw,46px) auto 0; max-width:520px; text-align:center; }
@@ -98,14 +109,14 @@
   .capture.done{ display:none; }
   .success .check{ width:52px; height:52px; margin:0 auto 20px; border-radius:50%; border:1.5px solid var(--red); display:flex; align-items:center; justify-content:center; color:var(--red); }
   .success .check svg{ width:24px; height:24px; }
-  .success h3{ font-family:var(--display); font-size:clamp(22px,2.6vw,30px); line-height:1.12; }
+  .success h2{ font-family:var(--display); font-size:clamp(22px,2.6vw,30px); line-height:1.12; }
   .success p{ margin-top:12px; font-size:14.5px; color:var(--i64); }
 
   /* secondary cta + scroll cue */
   .secondary{ margin-top:clamp(34px,4vw,48px); }
   .secondary a{ font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; border-bottom:1px solid var(--red); padding-bottom:5px; display:inline-flex; align-items:center; gap:9px; transition:gap .25s; }
   .secondary a:hover{ gap:14px; }
-  .scroll-cue{ margin-top:clamp(34px,5vh,56px); display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--i46); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
+  .scroll-cue{ margin-top:clamp(34px,5vh,56px); display:flex; flex-direction:column; align-items:center; gap:9px; color:var(--i62); font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
   .scroll-cue .rail{ width:1px; height:40px; background:linear-gradient(var(--i30), transparent); }
 
   /* ---------- WHY ---------- */
@@ -113,6 +124,9 @@
   .why .why-head{ max-width:760px; }
   .why h2{ font-family:var(--display); font-weight:800; font-size:clamp(30px,4.4vw,58px); line-height:1.05; letter-spacing:-0.01em; margin:18px 0 clamp(26px,3vw,36px); }
   .why p{ font-size:clamp(16px,1.4vw,20px); line-height:1.8; color:var(--i64); max-width:64ch; }
+  /* Statement tier — same system as the homepage community block
+     (.universal-sub): the bold line between the section title and body. */
+  .why .statement{ font-family:var(--body); font-weight:800; font-size:clamp(21px,2.9vw,38px); line-height:1.16; color:var(--ink); margin:6px 0 clamp(22px,3vw,30px); max-width:22ch; }
   .why p + p{ margin-top:20px; }
   .why p strong{ color:var(--ink); font-weight:600; }
 
@@ -120,7 +134,7 @@
   .card{ border:1px solid var(--i14); border-radius:3px; padding:clamp(28px,3vw,42px); background:var(--paper); display:flex; flex-direction:column; min-height:clamp(200px,20vw,260px); transition:border-color .25s, transform .3s ease; }
   .card:hover{ border-color:var(--ink); transform:translateY(-4px); }
   .card .c-idx{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; color:var(--red); }
-  .card h3{ font-family:var(--display); font-size:clamp(20px,2vw,26px); line-height:1.12; margin:18px 0 14px; }
+  .card h2{ font-family:var(--display); font-size:clamp(20px,2vw,26px); line-height:1.12; margin:18px 0 14px; }
   .card p{ font-size:14.5px; line-height:1.7; color:var(--i64); }
   .why-cta{ margin-top:clamp(44px,5vw,68px); display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
   .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
@@ -140,7 +154,7 @@
   .ft .f-nav{ display:flex; flex-wrap:wrap; gap:12px 24px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
   .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--paper); }
   .ft .f-meta{ margin-top:24px; font-size:11px; letter-spacing:.04em; color:var(--b40); }
-  .ft .f-meta .nonneg{ color:var(--b64); font-weight:600; text-transform:uppercase; letter-spacing:.1em; }
+  .ft .f-meta .nonneg{ color:var(--red); font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
   .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
   /* ---------- RESPONSIVE ---------- */
@@ -159,7 +173,8 @@
     .btn .arw{ transition:none; }
   }
   /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
-  .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
+  .afx-nav .mark .nn, .afx-nav .nn, .f-nn,
+  .nav .mark .nn, .ft .nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
   .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
   .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
@@ -230,9 +245,10 @@
 </script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to main content</a>
 
 <!-- ============ NAV ============ -->
-<nav class="nav">
+<nav class="nav" aria-label="Primary">
   <a class="mark" href="/" aria-label="AFORCE home">
     <span class="nn"><span>N</span><span class="bar"></span><span class="nflip">N</span></span> AFORCE
   </a>
@@ -245,6 +261,8 @@
     <a href="/shop">Shop</a>
   </div>
 </nav>
+
+<main id="main" tabindex="-1">
 
 <!-- ============ HERO ============ -->
 <header class="hero" id="top">
@@ -264,7 +282,8 @@
 
     <div class="capture reveal in" id="capture" style="transition-delay:.3s;">
       <form id="foundingForm" novalidate>
-        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" aria-label="Email address" required>
+        <label class="sr-only" for="foundingEmail">Email address</label>
+        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" required>
         <button type="submit">Claim Access</button>
       </form>
       <div class="err" id="foundingErr" role="alert">Please enter a valid email address.</div>
@@ -274,7 +293,7 @@
       <div class="check" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
       </div>
-      <h3>You&rsquo;re on the Founding 250 roster.</h3>
+      <h2>You&rsquo;re on the Founding 250 roster.</h2>
       <p>Watch your inbox &mdash; we&rsquo;ll be in touch before the Brickell launch.</p>
     </div>
 
@@ -293,24 +312,25 @@
     <div class="why-head">
       <div class="eyebrow reveal">The Standard</div>
       <h2 class="reveal">Why Founding 250 Exists</h2>
-      <p class="reveal">AFORCE is not launching as another hydration drink. We are building a <strong>performance readiness platform</strong> &mdash; starting with the people who believe performance is non-negotiable.</p>
+      <div class="statement reveal">AFORCE is not launching as another hydration&nbsp;drink.</div>
+      <p class="reveal">We are building a <strong>performance readiness platform</strong> &mdash; starting with the people who believe performance is non-negotiable.</p>
       <p class="reveal">The Founding 250 are the first members invited to test the product, shape the ritual, experience AFORCE OS, and help define what this movement becomes before it reaches the world.</p>
     </div>
 
     <div class="cards stagger">
       <article class="card reveal" style="--i:0">
         <span class="c-idx">01</span>
-        <h3>Product Access</h3>
+        <h2>Product Access</h2>
         <p>Be first to receive early access to AFORCE hydration products before the broader launch.</p>
       </article>
       <article class="card reveal" style="--i:1">
         <span class="c-idx">02</span>
-        <h3>Shape the System</h3>
+        <h2>Shape the System</h2>
         <p>Provide real feedback that helps refine the product, ritual, experience, and performance platform.</p>
       </article>
       <article class="card reveal" style="--i:2">
         <span class="c-idx">03</span>
-        <h3>Brickell Launch</h3>
+        <h2>Brickell Launch</h2>
         <p>Receive priority consideration for the Miami launch experience and future AFORCE founder activations.</p>
       </article>
     </div>
@@ -321,6 +341,8 @@
     </div>
   </div>
 </section>
+
+</main>
 
 <!-- ============ FOOTER ============ -->
 <footer class="ft">
@@ -340,23 +362,33 @@
     </div>
     <div class="f-meta">
       <span>&copy; 2026 AFORCE Hydration, Inc.</span> &nbsp;·&nbsp;
-      <span class="nonneg">Performance Is Non-<span class="flip-n">N</span>egotiable.</span>
+      Performance Is <span class="nonneg">Non-<span class="flip-n">N</span>egotiable.</span>
     </div>
   </div>
 </footer>
 
 <script>
 /* ============================================================
-   Founding 250 — email capture
-   NOTE: No production email-capture backend is wired yet.
-   submitFoundingSignup() is a clearly-marked PLACEHOLDER. Replace
-   its body with a real POST to the email system when available.
+   Founding 250 — email capture.
+   POSTs to /api/founding-250, which forwards server-to-server to the
+   api-server's early-access capture (persists the row, de-duplicates on
+   email, sends the member a confirmation, notifies the team, and shows up
+   in the admin CSV export). It used to be a placeholder that logged to the
+   console and resolved ok:true, so "claimed" was shown for an address that
+   was never recorded anywhere.
    ============================================================ */
 function submitFoundingSignup(email){
-  // TODO(placeholder): integrate the real email capture endpoint / ESP.
-  // e.g. return fetch("/api/founding-250", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email})}).then(r=>({ ok:r.ok }));
-  console.info("[Founding 250 placeholder] captured signup:", email);
-  return Promise.resolve({ ok: true });
+  return fetch("/api/founding-250", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email })
+  }).then(function(r){
+    return { ok: r.ok };
+  }).catch(function(){
+    // A network failure must surface as a failure. Reporting success here
+    // would tell a member they hold a spot that does not exist.
+    return { ok: false };
+  });
 }
 
 (function(){

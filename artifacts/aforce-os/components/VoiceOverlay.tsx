@@ -144,7 +144,10 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
         // ozOverride flows through to the engine so "log 12 oz of water"
         // logs exactly that, not the default per-serving size.
         const repeat = Math.max(1, Math.min(action.repeat ?? 1, 6));
-        const opts: { silent: boolean; ozOverride?: number } = { silent: true };
+        const opts: { silent: boolean; ozOverride?: number; source: 'voice' } = {
+          silent: true,
+          source: 'voice',
+        };
         if (action.ozOverride !== undefined) opts.ozOverride = action.ozOverride;
         for (let i = 0; i < repeat; i++) {
           // Sequential awaits ensure the engine sees each intake atomically.
@@ -159,7 +162,7 @@ export function VoiceOverlay({ visible, onClose, autoStart = false, demoMode = f
         // CycleSuccessOverlay hero modal on top of the voice response card
         // (RN-web only renders one Modal at a time → the response would be
         // hidden behind the hero modal).
-        await logIntake('aforce_stick', { silent: true });
+        await logIntake('aforce_stick', { silent: true, source: 'voice' });
         return;
       case 'UPDATE_SYMPTOMS':
         await updateSymptoms(action.symptoms);

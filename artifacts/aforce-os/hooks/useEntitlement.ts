@@ -15,6 +15,7 @@
  */
 
 import React from 'react';
+import { API_BASE } from '@/lib/apiBase';
 import { AppState } from 'react-native';
 import { useAuth } from '@clerk/expo';
 
@@ -30,18 +31,8 @@ interface EntitlementResponse {
   stripeCustomerId: string | null;
 }
 
-function resolveBase(): string {
-  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
-  if (explicit) return explicit.replace(/\/$/, '');
-  const domain = process.env['EXPO_PUBLIC_DOMAIN'];
-  if (domain) return `https://${domain}/api`;
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/api`;
-  }
-  return '/api';
-}
-
-const ENTITLEMENT_URL = `${resolveBase()}/entitlement`;
+// Wave-3 PR1: canonical resolver (lib/apiBase) — was one of five copies.
+const ENTITLEMENT_URL = `${API_BASE}/entitlement`;
 const REFETCH_INTERVAL_MS = 60_000;
 
 const VALID_STATUSES: readonly SubscriptionStatus[] = [

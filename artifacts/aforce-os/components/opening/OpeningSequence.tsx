@@ -20,8 +20,10 @@
  *   - Near-black #0D0D0D canvas; white/bone (#F5F0E8) type; brand red (#C1281B)
  *     used only as thin hairlines / eyebrows (sparse), never as fills.
  *   - Score-Protection: the readiness number is a *display* of the live
- *     engine score (falls back to a cinematic default before state
- *     loads). Nothing here awards, mutates, or fabricates score.
+ *     engine score, and ONLY of the live engine score. When the score has
+ *     not loaded, Stage 4 shows the em-dash "nothing observed" glyph — it
+ *     never substitutes a number. Nothing here awards, mutates, or
+ *     fabricates score.
  *   - Reduced-motion aware: collapses to short cross-fades with no
  *     looping breath / translate when the OS setting is enabled.
  *   - Tap anywhere to skip.
@@ -75,11 +77,24 @@ const EASE = Easing.inOut(Easing.ease);
 
 type Stage = 1 | 2 | 3 | 4;
 
-const DEFAULT_SCORE = 92;
+/**
+ * The "nothing observed" glyph — the same treatment Home uses for a value it
+ * has not measured (`components/home/homeV3Presentation.ts`'s honest-data
+ * contract; `components/protocol/protocolV3Presentation.ts` keeps its own copy
+ * for the same reason, so no surface imports another feature's presentation
+ * module). Stage 4 renders this in the score slot when the engine score has
+ * not loaded, holding the composition's shape without asserting a value.
+ *
+ * It replaces a hardcoded `DEFAULT_SCORE = 92` that the cinematic displayed
+ * whenever the score was absent — a confident number for a state the app had
+ * not measured, which is the exact class of fabrication Waves 4–5 removed.
+ */
+const EM_DASH = '—';
 
 interface Props {
-  /** Live readiness score to count up to. Falls back to a cinematic
-   *  default when the store has not yet loaded a real value. */
+  /** Live readiness score to display. A real 0 is a real score and renders as
+   *  0; only a genuinely absent (non-finite) value withholds the number, and
+   *  then the sequence shows EM_DASH rather than any substitute figure. */
   readinessScore?: number;
   /** Band-aware readiness caption (e.g. REHYDRATE NOW for DEPLETED). A
    *  DEPLETED user must never be told "READY TO PERFORM". */
@@ -379,20 +394,33 @@ function StageReadiness({
 }: {
   active: boolean;
   reduce: boolean;
-  target: number;
+  /** `null` = the engine score has not loaded. Renders EM_DASH, never a
+   *  number — "not measured yet" and "measured as low" are different facts. */
+  target: number | null;
   statusLabel: string;
 }) {
   const { t } = useTranslation();
   const [count, setCount] = React.useState(0);
   const targetRef = React.useRef(target);
   targetRef.current = target;
+  // Dep on PRESENCE, not value: the score can land while stage 4 is on screen,
+  // and the count-up has to start when it does. A score that merely refreshes
+  // (~30s) must not restart the count mid-animation — hence reading the value
+  // itself through the ref, as this component already did.
+  const hasTarget = target != null;
 
   React.useEffect(() => {
     if (!active) {
       setCount(0);
       return undefined;
     }
-    const to = Math.max(0, Math.round(targetRef.current));
+    const raw = targetRef.current;
+    if (raw == null) {
+      // Nothing measured: no count-up, and no interval left running.
+      setCount(0);
+      return undefined;
+    }
+    const to = Math.max(0, Math.round(raw));
     if (reduce) {
       setCount(to);
       return undefined;
@@ -407,7 +435,7 @@ function StageReadiness({
       if (t >= 1) clearInterval(id);
     }, 32);
     return () => clearInterval(id);
-  }, [active, reduce]);
+  }, [active, reduce, hasTarget]);
 
   return (
     <StageLayer active={active} reduce={reduce}>
@@ -416,7 +444,11 @@ function StageReadiness({
           <Text style={styles.readinessEyebrow}>{t('opening.readiness_eyebrow')}</Text>
         </Reveal>
         <Reveal active={active} reduce={reduce} delay={120} dy={10}>
-          <Text style={styles.readinessNumber}>{count}</Text>
+          {/* `target == null` is the ONLY case that withholds a number; a real
+              0 counts up to 0 and is shown as 0. */}
+          <Text style={styles.readinessNumber} testID="opening-readiness-value">
+            {target == null ? EM_DASH : count}
+          </Text>
         </Reveal>
         <Reveal active={active} reduce={reduce} delay={900} dy={8}>
           <View style={styles.brandRule} />
@@ -455,10 +487,16 @@ export function OpeningSequence({
     onFinishRef.current = onFinish;
   }, [onFinish]);
 
+  // A HydroState of 0 is a MEASURED state, not a missing one. The previous
+  // `> 0` guard collapsed those two facts, so a member whose real score was 0
+  // met the app with a fabricated 92 on cold launch (Build 60 device QA) —
+  // seconds before Home correctly showed them 0. Finiteness is the only honest
+  // question: everything finite (0 included) is the member's real score, and
+  // anything else is "not loaded", which Stage 4 answers with EM_DASH.
   const target =
-    typeof readinessScore === 'number' && readinessScore > 0
+    typeof readinessScore === 'number' && Number.isFinite(readinessScore)
       ? readinessScore
-      : DEFAULT_SCORE;
+      : null;
 
   // Honour the OS reduce-motion setting.
   React.useEffect(() => {

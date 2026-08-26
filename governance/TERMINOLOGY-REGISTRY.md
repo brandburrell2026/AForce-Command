@@ -92,6 +92,20 @@ alias to be normalized away, and it is not permitted in structural contexts.
 | Governance records | — |
 | Engineering specifications | — |
 
+## 3.2 AForce Moments vocabulary (DR-010)
+
+| Term | Definition | Not |
+|---|---|---|
+| **Moment** | A user-designated upcoming event that AForce prepares the member for (§43, AForce Moments). Manual/demo sources only until PR-002 5.2/5.3 approve calendar derivation. | Not a calendar event per se. Not a score. Not a notification. |
+| **Prep window** | The Moment's preparation interval, derived from config tunables (`hydroStateModel.ts`). | Not a prediction surface — no forecast values are shown in it. |
+
+> **"Ritual" overload — OPEN.** The PAUSE/HYDRATE/LOCK IN/PERFORM sequence is
+> one identity across the Opening Sequence and AForce Moments (deliberate
+> reuse, same i18n keys). But "Ritual" also names the Shop builder ("Build
+> Your Ritual") and the live Shopify subscription plan. Resolution is a
+> pending founder terminology ruling (PR-002 Part 4) — do not add further
+> meanings.
+
 ## 4. Alias table — canonical vs. tolerated legacy
 
 New writing uses the canonical form only.

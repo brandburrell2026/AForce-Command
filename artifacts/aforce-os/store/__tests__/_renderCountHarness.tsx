@@ -42,6 +42,7 @@ import React, { createContext, useContext, useLayoutEffect, useMemo, useReducer 
 import { reducer } from '../appStoreReducer';
 import { SliceProvider, type ActionsSlice } from '../slices';
 import type { AppState } from '../appStoreTypes';
+import { pickFacadeState, type FacadeState } from '../app/facadeState';
 import { makeState } from './_fixtures';
 
 const noop = (): void => {};
@@ -97,6 +98,20 @@ export function useFacadeState(): AppState {
   return v;
 }
 
+const StableFacadeContext = createContext<FacadeState | null>(null);
+
+/**
+ * Reads the CURRENT facade — `pickFacadeState`-shaped and memoized on the
+ * 16 non-timer fields, exactly as `useAppStore.tsx` builds it since Wave-4
+ * Part 6. Paired with `useFacadeState` above, the two give a before/after
+ * measurement of the same `TICK_TIMER` load in one run.
+ */
+export function useStableFacadeState(): FacadeState {
+  const v = useContext(StableFacadeContext);
+  if (!v) throw new Error('useStableFacadeState() called outside <FacadeAndSliceHarness>');
+  return v;
+}
+
 export interface HarnessControls {
   /** Fires one `TICK_TIMER` dispatch against the real reducer. */
   dispatchTick: () => void;
@@ -123,8 +138,20 @@ export function FacadeAndSliceHarness({
 }) {
   const [state, dispatch] = useReducer(reducer, initialState ?? makeState());
   const actions = useMemo(buildHarnessActions, []);
-  // Exactly `useAppStore.tsx`'s real facade shape: memoized on `state` alone.
+  // The PRE-Wave-4 facade: memoized on `state` alone, so every TICK_TIMER
+  // changed its identity. Retained as the "before" control.
   const facadeValue = useMemo(() => state, [state]);
+
+  // The CURRENT facade: `pickFacadeState` memoized on the 16 non-timer
+  // fields — byte-identical in shape and dependency list to
+  // `useAppStore.tsx`'s `facadeState` memo.
+  const stableFacadeValue = useMemo<FacadeState>(() => pickFacadeState(state), [
+    state.userState, state.engineOutput, state.history, state.lastCycleResult,
+    state.isCompletingCycle, state.showCycleSuccess, state.pendingConfirmation,
+    state.featureFlags, state.subscription, state.lastIntakeBurstAt,
+    state.hasSeenOnboarding, state.sweatAutopilot, state.sweatAutopilotSetAt,
+    state.notificationSettings, state.unitPreferences, state.profileIdentity,
+  ]);
 
   useLayoutEffect(() => {
     onControls({ dispatchTick: () => dispatch({ type: 'TICK_TIMER' }) });
@@ -133,6 +160,7 @@ export function FacadeAndSliceHarness({
 
   return (
     <FacadeContext.Provider value={facadeValue}>
+     <StableFacadeContext.Provider value={stableFacadeValue}>
       <SliceProvider
         state={state}
         actions={actions}
@@ -144,6 +172,7 @@ export function FacadeAndSliceHarness({
       >
         {children}
       </SliceProvider>
+     </StableFacadeContext.Provider>
     </FacadeContext.Provider>
   );
 }

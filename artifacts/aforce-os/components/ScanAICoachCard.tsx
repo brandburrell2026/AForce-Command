@@ -18,9 +18,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, {
-  useSharedValue, useAnimatedStyle, withTiming, withSpring, withRepeat,
-  Easing, interpolate,
+  useSharedValue, useAnimatedStyle, withTiming, cancelAnimation, Easing,
 } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
@@ -126,43 +126,60 @@ export function ScanAICoachCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scanKey]);
 
-  // ─── Chunk #7b polish ──────────────────────────────────────────────
-  // Entrance choreography: each new scan re-mounts (or re-keys) this
-  // card, so we run a fade + slide-up + subtle scale to make the
-  // AI Coach feel like it's *arriving* rather than popping in.
-  const entryOpacity = useSharedValue(0);
-  const entryY = useSharedValue(14);
-  const entryScale = useSharedValue(0.98);
+  // Entrance: each new scan re-keys this card, so it fades + rises in as an
+  // ordinary ENTER (afMotion pattern #1) — the app's baseline grammar for a
+  // surface arriving, not one of the four signature moments.
+  //
+  // Wave-5 REMOVALS, per the founder's motion brief:
+  //  · the entrance SPRING is gone. A scale spring on a card that reports what
+  //    you are drinking is bounce for its own sake; a straight ease-out says
+  //    "arrived" without asking to be watched.
+  //  · the whole entrance is now gated on the shared reduced-motion hook. It
+  //    never was — the card slid and sprang for members who had asked the OS
+  //    for neither. The static alternative is the card simply being present.
+  const reducedMotion = useReducedMotion();
+  const entryOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const entryY = useSharedValue(reducedMotion ? 0 : 14);
   useEffect(() => {
+    if (reducedMotion) {
+      cancelAnimation(entryOpacity);
+      cancelAnimation(entryY);
+      entryOpacity.value = 1;
+      entryY.value = 0;
+      return;
+    }
     entryOpacity.value = 0;
     entryY.value = 14;
-    entryScale.value = 0.98;
-    entryOpacity.value = withTiming(1, { duration: 320, easing: Easing.out(Easing.cubic) });
-    // afMotion.springs.standard — exact-config match to the dominant sheet
-    // spring (RC-1 Wave-2A §3). entryScale keeps its bespoke {16,240} tune
-    // (see PR body holdout list).
-    entryY.value = withSpring(0, afMotion.springs.standard);
-    entryScale.value = withSpring(1, { damping: 16, stiffness: 240 });
-  }, [scanKey, entryOpacity, entryY, entryScale]);
+    entryOpacity.value = withTiming(1, {
+      duration: afMotion.durations.entrance,
+      easing: Easing.out(Easing.cubic),
+    });
+    entryY.value = withTiming(0, {
+      duration: afMotion.durations.entrance,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [scanKey, reducedMotion, entryOpacity, entryY]);
+
+  // A finite tween can still be mid-flight at unmount — cancel it (Wave-4 rule).
+  useEffect(
+    () => () => {
+      cancelAnimation(entryOpacity);
+      cancelAnimation(entryY);
+    },
+    [entryOpacity, entryY],
+  );
 
   const cardEntryStyle = useAnimatedStyle(() => ({
     opacity: entryOpacity.value,
-    transform: [{ translateY: entryY.value }, { scale: entryScale.value }],
+    transform: [{ translateY: entryY.value }],
   }));
 
-  // Pulsing AI COACH status dot — slow 1.6s breathing in the band color
-  // so the badge reads as "live" while the coach surface is on screen.
-  const dotPulse = useSharedValue(0);
-  useEffect(() => {
-    dotPulse.value = withRepeat(
-      withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.quad) }),
-      -1, true,
-    );
-  }, [dotPulse]);
-  const statusDotStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(dotPulse.value, [0, 1], [0.55, 1]),
-    transform: [{ scale: interpolate(dotPulse.value, [0, 1], [0.85, 1.15]) }],
-  }));
+  // Wave-5 REMOVAL — the AI COACH badge no longer breathes.
+  // It was a `withRepeat(..., -1)` loop with NO reduced-motion gate and NO
+  // cancelAnimation teardown: the exact pattern Wave-4 found on the scan ring,
+  // still live here. It kept animating on the UI thread after this card
+  // unmounted, and it pulsed a badge that says "AI COACH" — a label, not a
+  // live signal. The dot is a static mark now.
 
   const onToggle = () => {
     if (Platform.OS !== 'web') {
@@ -197,8 +214,8 @@ export function ScanAICoachCard({
     >
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: `${accent}1A`, borderColor: `${accent}66` }]}>
-          {/* Status dot — the small pulsing signal next to AI COACH */}
-          <Animated.View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }, statusDotStyle]} />
+          {/* Status dot — a static mark next to AI COACH (Wave-5: was a pulse) */}
+          <View style={[styles.statusDot, { backgroundColor: accent, shadowColor: accent }]} />
           <Icon name="message-circle" size={11} color={accent} />
           <Text style={[styles.badgeText, { color: accent }]}>{t('hydroScan2.cards.ai_coach')}</Text>
         </View>

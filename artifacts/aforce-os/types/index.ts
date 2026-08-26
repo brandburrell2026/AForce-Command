@@ -402,6 +402,14 @@ export interface CycleResult {
   identityMessage: string;
   nextCycleHint: string;
   state: PerformanceLevel;
+  /**
+   * What was actually recorded, e.g. "12 oz Water". Stated independently of the
+   * score so a member whose HydroState is already capped still gets unmistakable
+   * confirmation: at 100/100 every score-framed cue reads "+0 · was 100 → now
+   * 100", which is indistinguishable from nothing having happened and is what
+   * invites a second, duplicate log.
+   */
+  recordedLabel: string;
 }
 
 export interface HistoryEntry {
@@ -437,6 +445,8 @@ export interface NotificationSettings {
   circleActivity: boolean;
   challengeDeadlines: boolean;
   lowInventoryAlert: boolean;
+  /** Moments prep signals (Phase 3a, DR-010) — user-facing kill switch. */
+  momentPrep: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -444,8 +454,13 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   scoreDecayAlerts: true,
   morningKickoff: true,
   circleActivity: false,
-  challengeDeadlines: true,
+  // Wave-4 notification audit: nothing schedules anything ahead of a challenge
+  // expiry, so this defaulted every user ON to an alert class that can never
+  // fire. Defaults OFF until a real producer exists; the key itself stays so
+  // stored user choices need no migration.
+  challengeDeadlines: false,
   lowInventoryAlert: false,
+  momentPrep: true, // delivery still requires BOTH moments flags (OFF in prod)
 };
 
 /** Key-of helper so the store + UI can iterate / address toggles by name. */
@@ -566,6 +581,13 @@ export interface FeatureFlags {
   // are replayed verbatim; the outbox never recomputes or fabricates score, and
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
+  /**
+   * Wave-2 PR6: per-user local data isolation. ON → ClerkAuthBridge scopes
+   * every durable personal store to the Clerk userId (plus one-shot legacy
+   * migration, WHOOP-token wipe and scoped-notification cancel on account
+   * change). OFF → byte-identical legacy behavior (global keys, no resets).
+   */
+  per_user_storage_isolation_enabled: boolean;
 
   // App Store Guideline 3.1.1 posture: direct Stripe web checkout from the
   // iOS app sells a digital subscription outside IAP. OFF by default so the
@@ -778,6 +800,46 @@ export interface FeatureFlags {
    * it to the static Home. Never touches score/command/eligibility/safety logic.
    */
   elite_home_experience_enabled: boolean;
+  /**
+   * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
+   * sections inside HomeScreenV2: health-connection chip, four live-signal
+   * tiles, derived Completed-today protocol list, streak/trend stat tiles.
+   * Honest data only (existing store state; em dash when absent). Default OFF.
+   */
+  home_v3_dashboard_enabled: boolean;
+  /**
+   * Protocol V3 dashboard (founder comps, 2026-08-11) — additive, flag-gated
+   * sections inside ProtocolScreenV2. Honest data only. Default OFF.
+   */
+  protocol_v3_dashboard_enabled: boolean;
+  /**
+   * Performance Signal V3 (founder comps, 2026-08-11) — Hydration tab's
+   * rollup-backed Command History screen. Honest data only. Default OFF.
+   */
+  signal_v3_dashboard_enabled: boolean;
+  /**
+   * Week in Review V3 (founder comps, 2026-08-11) — /weekly-report redesign
+   * with honest ledger/analytics/rollup data only. Default OFF.
+   */
+  weekly_v3_dashboard_enabled: boolean;
+  /**
+   * Circle V3 (founder comps, 2026-08-11) — Circle tab redesign with honest
+   * engine/analytics/referral-board data only. Default OFF.
+   */
+  circle_v3_dashboard_enabled: boolean;
+  /**
+   * AForce Moments Phases 1-2 (founder approval 2026-08-12) — manual/demo
+   * moments, advisory-only prep. Default OFF. Phase 3 (calendar,
+   * notifications) requires a founder decision record.
+   */
+  moments_enabled: boolean;
+  /** Moments prep notifications (Phase 3a, DR-010). Default OFF. */
+  moments_notifications_enabled: boolean;
+  /** Moments calendar core (Phase 3b, DR-011). Default OFF; activation
+   *  blocked pending Legal+Privacy sign-off on the data class. */
+  moments_calendar_enabled: boolean;
+  /** Moments learning loop (Phase 4, DR-012). Default OFF. */
+  moments_learning_enabled: boolean;
   spec_weekly_report: boolean;
   /**
    * Elite Weekly Report (E2) — presentation-only editorial elevation of the

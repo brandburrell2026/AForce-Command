@@ -42,6 +42,12 @@ import type { AppState as StoreAppState } from '../store/appStoreTypes';
 
 import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
+import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
+import { WeeklyReportV3 } from '../components/insights/WeeklyReportV3';
+import { CircleScreenV3 } from '../components/community/CircleScreenV3';
+import { MomentsScreen } from '../components/moments/MomentsScreen';
+import { MomentDetailScreen } from '../components/moments/MomentDetailScreen';
+import { buildRecommendation } from '../services/momentRecommendation';
 import { RecoveryCoachScreen } from '../components/recoveryCoach/RecoveryCoachScreen';
 import { ManageSubscriptionScreenV2 } from '../components/subscription/ManageSubscriptionScreenV2';
 import { VoiceCheckInOverlay } from '../components/voiceCheckIn/VoiceCheckInOverlay';
@@ -193,6 +199,31 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
           <HomeScreenV2 />
         </StoreOverride>
       );
+    case 'signal':
+      return <PerformanceSignalV3 fixtureRollups={fixture.rollups} />;
+    case 'weekly':
+      return <WeeklyReportV3 fixture={fixture.weeklyInputs} />;
+    case 'circle':
+      return <CircleScreenV3 fixture={fixture.circleInputs} />;
+    case 'moments':
+      return (
+        <MomentsScreen
+          fixtureMoments={fixture.momentsFixture!.moments}
+          fixtureNowIso={fixture.momentsFixture!.nowIso}
+        />
+      );
+    case 'momentDetail': {
+      const fx = fixture.momentsFixture!;
+      const moment = fx.moments.find((m) => m.id === fx.detailId) ?? fx.moments[0]!;
+      return (
+        <MomentDetailScreen
+          moment={moment}
+          rec={buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso)}
+          nowIso={fx.nowIso}
+          readOnly
+        />
+      );
+    }
     case 'hydration':
       return (
         <StoreOverride state={fixture.appState!}>
@@ -233,9 +264,17 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
 
 // ─── Gallery shell: index list → viewport-framed detail ──────────────────
 
-export function AForceScreenGallery() {
-  const [selectedId, setSelectedId] = React.useState<string | null>(null);
-  const [viewportId, setViewportId] = React.useState<GalleryViewport['id']>('standard');
+export function AForceScreenGallery({
+  initialFixtureId,
+  initialViewportId,
+}: { initialFixtureId?: string; initialViewportId?: GalleryViewport['id'] } = {}) {
+  // Deterministic deep-link for screenshot harnesses: /gallery?fixture=<id>
+  // (&viewport=<se|standard|large>) opens straight into that fixture's detail
+  // view at the given frame size (dev/demo-only surface).
+  const [selectedId, setSelectedId] = React.useState<string | null>(initialFixtureId ?? null);
+  const [viewportId, setViewportId] = React.useState<GalleryViewport['id']>(
+    initialViewportId ?? 'standard',
+  );
 
   const selected = selectedId ? GALLERY_FIXTURES.find((f) => f.id === selectedId) : null;
   const viewport = GALLERY_VIEWPORTS.find((v) => v.id === viewportId) ?? GALLERY_VIEWPORTS[1];

@@ -8,6 +8,8 @@
  */
 
 import { Router, type IRouter, type Request, type Response } from "express";
+import { NATIVE_APP_RETURN_SCHEMES } from './checkout';
+import { serializeError } from "../lib/serializeError";
 import { db, aforceUsers } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUncachableStripeClient } from "../lib/stripeClient";
@@ -17,9 +19,8 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
-const ALLOWED_RETURN_SCHEMES = new Set([
-  "http:", "https:", "exp:", "exps:", "aforce:", "aforceos:",
-]);
+// Wave-3 PR3: shared with checkout so the app scheme can never drift again.
+const ALLOWED_RETURN_SCHEMES = new Set(['http:', 'https:', ...NATIVE_APP_RETURN_SCHEMES]);
 
 function inboundHost(req: Request): string | null {
   const host =
@@ -80,7 +81,7 @@ router.post("/stripe/portal-session", requireAuth, checkoutLimiter, async (req: 
     });
     res.json({ url: session.url });
   } catch (err) {
-    logger.error({ err }, "Stripe portal session creation failed");
+    logger.error({ err: serializeError(err) }, "Stripe portal session creation failed");
     res.status(500).json({ error: "portal_session_failed" });
   }
 });

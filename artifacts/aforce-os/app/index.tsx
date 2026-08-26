@@ -4,7 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useAuth } from '@clerk/expo';
 
-import { DEMO_MODE } from '@/services/demoMode';
+import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
 
 const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
 
@@ -47,9 +47,9 @@ export default function Index() {
     return <View style={{ flex: 1, backgroundColor: '#000' }} />;
   }
 
-  if (!isSignedIn && !DEMO_MODE) {
+  if (!isSignedIn && !DEMO_MODE && !CAPTURE_MODE) {
     return <Redirect href={'/(auth)/sign-in' as never} />;
   }
 
-  return <Redirect href={(onboarded ? '/(tabs)' : '/onboarding') as never} />;
+  return <Redirect href={(onboarded || CAPTURE_MODE ? '/(tabs)' : '/onboarding') as never} />;
 }

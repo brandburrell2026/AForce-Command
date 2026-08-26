@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
 import { db, aforceIntakeLogs, aforceUserState } from "@workspace/db";
 import { and, eq, sql } from "drizzle-orm";
@@ -6,49 +7,14 @@ import { getUserState, ALL_FLUID_TYPES, isAforceFluid } from "../../lib/aforceSt
 import { logger } from "../../lib/logger";
 import { intakeLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, broadcastState } from "./shared";
+import { intakeSchema, intakeEventTsWithinWindow } from "./intakeSchema";
+import { classifyIntakeFailure } from "./intakeFailure";
 import { planIntakeCorrection, CORRECTION_REASONS } from "../../lib/intakeCorrection";
 
 const router: IRouter = Router();
 
 // ─── POST /intake ──────────────────────────────────────────────────────────────
-// `event` carries the per-event impact decomposition computed client-
-// side by `services/hydrationScoreService.ts`. The server stores it
-// verbatim into the `intake_events` JSONB so the materialized score
-// is reproducible across reloads / multi-device. Cap-trim to last 24h.
-const flavorEnum = z.enum(["watermelon", "berry", "soursop", "unflavored"]);
-const intakeEventSchema = z.object({
-  id: z.string().min(1).max(64),
-  fluidType: z.enum(ALL_FLUID_TYPES),
-  flavor: flavorEnum.optional(),
-  oz: z.number().positive(),
-  loggedAt: z.string(),
-  baseImpact: z.number(),
-  capAdjusted: z.number(),
-  immediate: z.number(),
-  delayed: z.number(),
-  delayedDurationMin: z.number().positive(),
-  heatGuardActiveAtLog: z.boolean(),
-  scoreBeforeAtLog: z.number(),
-});
-const intakeSchema = z.object({
-  // Strict allow-list (mirrors client `FluidType`). Rejects arbitrary
-  // strings like `aforce_fake` that would otherwise sneak past the
-  // bonus gate.
-  fluidType: z.enum(ALL_FLUID_TYPES),
-  ozAmount: z.number().positive(),
-  scoreBefore: z.number().int(),
-  scoreAfter: z.number().int(),
-  event: intakeEventSchema.optional(),
-  // Idempotency key (the frozen client event id). Since RC-L12 slice 3 the
-  // client sends it on the ONLINE path too, so a double-fired tap dedupes.
-  // Still optional so legacy clients keep working unchanged.
-  clientEventId: z.string().min(1).max(64).optional(),
-  // §10 honesty (RC-L12) — record-only capture metadata, both optional.
-  entrySource: z.enum(["tap", "scan_log", "voice", "offline_replay", "sensor"]).optional(),
-  confirmationLevel: z.enum(["logged", "verified"]).optional(),
-});
 
-const INTAKE_EVENT_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 router.post("/intake", intakeLimiter, async (req, res) => {
   try {
@@ -105,10 +71,9 @@ router.post("/intake", intakeLimiter, async (req, res) => {
 
       type StoredEvent = NonNullable<typeof current>['intakeEvents'][number];
       const prevEvents: StoredEvent[] = current?.intakeEvents ?? [];
-      const trimmed = prevEvents.filter((e) => {
-        const t = new Date(e.loggedAt).getTime();
-        return Number.isFinite(t) && now.getTime() - t < INTAKE_EVENT_MAX_AGE_MS;
-      });
+      const trimmed = prevEvents.filter((e) =>
+        intakeEventTsWithinWindow(new Date(e.loggedAt).getTime(), now.getTime()),
+      );
 
       // Stale-event guard: a keyed replay whose event has aged out of the
       // 24h scoring window must NOT inflate today's score/counters — we still
@@ -118,9 +83,7 @@ router.post("/intake", intakeLimiter, async (req, res) => {
       const eventTs = body.event
         ? new Date(body.event.loggedAt).getTime()
         : now.getTime();
-      const applyToToday =
-        Number.isFinite(eventTs) &&
-        now.getTime() - eventTs < INTAKE_EVENT_MAX_AGE_MS;
+      const applyToToday = intakeEventTsWithinWindow(eventTs, now.getTime());
 
       // Defense-in-depth: never append the same event id twice. Only keyed
       // requests can collide (legacy events are minted fresh per request).
@@ -203,8 +166,14 @@ router.post("/intake", intakeLimiter, async (req, res) => {
     if (!result.replayed) broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, log: result.log });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/intake failed");
-    return res.status(400).json({ error: "intake_failed" });
+    // The full error — SQL, table and column names, bound parameters — goes to
+    // the log. Only the stable code below crosses the wire.
+    const failure = classifyIntakeFailure(err);
+    logger.error(
+      { err: serializeError(err), failureKind: failure.kind, status: failure.status },
+      "POST /aforce/intake failed",
+    );
+    return res.status(failure.status).json({ error: `intake_${failure.kind}` });
   }
 });
 
@@ -323,8 +292,12 @@ router.post("/intake/correction", intakeLimiter, async (req, res) => {
     broadcastState(userId, result.updated);
     return res.json({ userState: result.updated, correction: result.correction });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/intake/correction failed");
-    return res.status(400).json({ error: "correction_failed" });
+    const failure = classifyIntakeFailure(err);
+    logger.error(
+      { err: serializeError(err), failureKind: failure.kind, status: failure.status },
+      "POST /aforce/intake/correction failed",
+    );
+    return res.status(failure.status).json({ error: `correction_${failure.kind}` });
   }
 });
 

@@ -63,3 +63,10 @@ export async function timed<T>(flow: string, fn: () => Promise<T>): Promise<T> {
   try { return await fn(); }
   finally { observeLatency(flow, Date.now() - start); }
 }
+
+/** TEST-ONLY: clear the registry between cases (Wave-3 PR9). */
+export function __resetForTests(): void {
+  histograms.clear();
+  counters.clear();
+  gauges.clear();
+}

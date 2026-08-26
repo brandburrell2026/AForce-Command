@@ -13,10 +13,17 @@
  * the full ladder again.
  *
  * Gating, in priority order:
- *   1. `voiceCoachEnabled` master switch — silences everything when off.
- *   2. `voiceScope`                       — only `'all'` and `'risk'`
+ *   1. `notificationSettings.recheckReminders`
+ *                                         — the Notifications screen's
+ *                                           per-class opt-out. This hook is
+ *                                           the ONLY producer behind that row,
+ *                                           so without this gate the switch
+ *                                           promised a silence it could not
+ *                                           deliver (Wave-4 notification audit).
+ *   2. `voiceCoachEnabled` master switch — silences everything when off.
+ *   3. `voiceScope`                       — only `'all'` and `'risk'`
  *                                           allow risk-timer alerts.
- *   3. Threshold state machine            — see above.
+ *   4. Threshold state machine            — see above.
  */
 
 import { useEffect, useRef } from 'react';
@@ -36,7 +43,9 @@ import { formatSpokenLineForCoach } from '../services/voice/coachPhrasing';
 
 export function useRiskTimerVoice(): void {
   const engine = useEngineSlice();
-  const { voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId } = useAppStore();
+  const {
+    voiceCoachEnabled, voiceIntensity, voiceScope, selectedVoiceId, notificationSettings,
+  } = useAppStore();
   const eliteVoice = useFeatureFlags().elite_voice_coach_enabled;
 
   /**
@@ -66,6 +75,7 @@ export function useRiskTimerVoice(): void {
     // mid-cycle never retro-fires past thresholds.
     lastFiredThresholdRef.current = current;
 
+    if (!notificationSettings.recheckReminders) return;
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('risk_timer', voiceScope)) return;
 
@@ -84,6 +94,7 @@ export function useRiskTimerVoice(): void {
   }, [
     engine.riskTimer.minutes,
     engine.performanceState.level,
+    notificationSettings.recheckReminders,
     voiceCoachEnabled,
     voiceIntensity,
     voiceScope,

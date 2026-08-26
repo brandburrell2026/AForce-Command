@@ -27,7 +27,8 @@
  * `environmentalAdderOz` produced by the pure engine.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
 
 import {
   deriveLocationContext,
@@ -85,7 +86,7 @@ export function readDeviceTimezone(): string | null {
 /** Read the last persisted anchor, or null when none / unreadable. */
 export async function readLastAnchor(): Promise<LocationAnchor | null> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<LocationAnchor>;
     return {
@@ -102,7 +103,7 @@ export async function readLastAnchor(): Promise<LocationAnchor | null> {
 /** Persist the current anchor for next-launch travel comparison. */
 async function writeLastAnchor(anchor: LocationAnchor): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(anchor));
+    await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(anchor));
   } catch {
     // non-fatal — travel detection simply won't have a prior anchor.
   }
@@ -373,3 +374,9 @@ export function getLocationSnapshotSync(): LocationSnapshot {
   const now = Date.now();
   return buildSnapshot(buildMockInputs(now), null, 'mock', new Date(now).toISOString());
 }
+
+// Wave-2 PR6: user-scope change → drop the cached anchor snapshot.
+subscribeUserScope(() => {
+  cachedSnapshot = null;
+  cachedAt = 0;
+});

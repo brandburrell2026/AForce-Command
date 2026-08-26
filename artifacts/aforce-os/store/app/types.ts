@@ -14,10 +14,17 @@ import type { UnitPreferences } from '../../utils/units';
 import type { ProfileIdentity } from '../../utils/profileIdentity';
 import type { SupportedLanguage } from '../../services/i18nService';
 import type { VoiceIntensity, VoiceScope } from '../../services/voice/commandVoice';
-import type { AppState } from '../appStoreTypes';
+import type { FacadeState } from './facadeState';
+import type { IntakeSource } from '@/services/intakeSource';
 
 export interface AppContextValue {
-  state: AppState;
+  /**
+   * Everything in `AppState` EXCEPT `timerSeconds` (Wave-4 Part 6) — see
+   * `facadeState.ts`. Per-second countdown readers use `useTimerSlice()`;
+   * the exclusion is compile-enforced so a reader cannot regress onto the
+   * facade and silently reintroduce the 1Hz whole-app re-render.
+   */
+  state: FacadeState;
   /**
    * RC-1 Wave-2B — true once the mount-time `/v1/home` fetch has settled
    * (success or failure). False only during the brief pre-hydration window
@@ -32,6 +39,8 @@ export interface AppContextValue {
       silent?: boolean;
       ozOverride?: number;
       flavorLabel?: string;
+      /** Which surface is logging — record-only provenance. */
+      source?: IntakeSource;
       /**
        * When set, completely replaces the auto-built history action label
        * ("Logged Stick — Berry Blast (12 ounces)") with a caller-supplied

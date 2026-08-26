@@ -13,7 +13,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { Colors, getStateColors } from '@/theme/colors';
 import { formatTimeAgo } from '@/data/mockData';
 import type { HistoryEntry } from '@/types';
-import { deriveProtocol } from '@/services/mockApi';
+import { deriveProtocol } from '@/services/protocolDerivation';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { RecoveryCircleChip } from '@/components/protocol/RecoveryCircleChip';
@@ -43,8 +43,10 @@ function ProtocolScreenLegacy() {
   // both `userState` and `engineOutput`, so depend on the full objects
   // — cherry-picking deps is brittle and skips legitimate updates if
   // the function ever starts reading another field.
+  // Legacy screen (unreachable at flag defaults): no rollups fetch here —
+  // compliance renders an em dash, the honest-absence convention.
   const protocol = useMemo(
-    () => deriveProtocol(userState, engineOutput),
+    () => deriveProtocol(userState, engineOutput, null),
     [userState, engineOutput],
   );
 
@@ -144,7 +146,7 @@ function ProtocolScreenLegacy() {
                   <View style={styles.footerCol}>
                     <Text style={styles.footerLabel}>Recovery consistency</Text>
                     <Text style={[styles.footerValue, { color: Colors.states.PEAK.primary }]}>
-                      {protocol.weeklyCompliancePct}%
+                      {protocol.weeklyCompliancePct != null ? `${protocol.weeklyCompliancePct}%` : '\u2014'}
                     </Text>
                   </View>
                 </View>

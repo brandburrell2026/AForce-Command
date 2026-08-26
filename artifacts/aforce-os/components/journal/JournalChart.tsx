@@ -5,8 +5,10 @@
  *   • atmospheric vignette + soft fog backdrop inside the card
  *   • aggressive bucketing → at most ~5 trend anchors (luxury = less)
  *   • softened trend line — stacked-stroke glow, not a single hard line
- *   • multi-layered breathing halos around every anchor
- *   • slow vertical drift on the constellation (floating signal feel)
+ *   • multi-layered static halos around every anchor
+ *
+ * Wave-5: the halos no longer breathe, the constellation no longer drifts and
+ * the trend line no longer shimmers — see the removal note in the component.
  *
  * The component is layout-stable: props are unchanged, the JournalScreen
  * call site does not need updates.
@@ -19,10 +21,8 @@ import Animated, {
   cancelAnimation,
   Easing,
   runOnJS,
-  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
@@ -35,12 +35,16 @@ import Svg, {
   Rect,
   Stop,
 } from 'react-native-svg';
-const AnimatedPath = Animated.createAnimatedComponent(Path);
 import type { JournalSnapshot } from '@/types';
 import { Colors } from '@/theme/colors';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+// Resting opacities left behind by the three removed ambient loops (see the
+// component body). Each is the midpoint of the range its oscillator travelled,
+// so the still frame is the one the loop spent most of its cycle on.
+const HALO_OUTER_OPACITY = 0.09; //  was 0.06 + breath * 0.06
+const HALO_MID_OPACITY = 0.17; //    was 0.12 + breath * 0.10
+const LINE_OPACITY = 0.93; //        was 0.86 + shimmer * 0.14
 
 interface Props {
   data: JournalSnapshot[];
@@ -138,76 +142,29 @@ export default function JournalChart({
   const innerW = Math.max(40, width - PADDING.left - PADDING.right);
   const innerH = Math.max(40, height - PADDING.top - PADDING.bottom);
 
-  // Three slow oscillators running on the UI thread.
-  //   `breath`   — 2.6s, drives halo opacity/scale (the "alive" feeling)
-  //   `drift`    — 6.0s, drives a tiny vertical translation of the whole
-  //                constellation (the "floating signal" feeling)
-  //   `shimmer`  — 4.8s, drives a barely-perceptible opacity shimmer on
-  //                the trend line itself (the "signal flow" feeling)
-  // RC-1 fix (P0): all three were ungated infinite `withRepeat(..., -1)`
-  // loops with no reduced-motion check — they ran forever, including for
-  // users who have motion reduction on. Gated on the shared
-  // hooks/useReducedMotion (same pattern as components/WhoopSnapshotCard.tsx
-  // and components/RecoveryCapacityCard.tsx); the static fallback settles
-  // each oscillator at a value that renders a sensible resting frame (no
-  // halo breathing, no drift, no shimmer) instead of freezing mid-loop.
-  // Unmount cleanup was already correct — kept as-is.
+  // ── Wave-5 REMOVAL — the three ambient oscillators are gone ───────────────
+  // This chart used to run THREE unbounded `withRepeat(..., -1)` loops on the
+  // UI thread the entire time it was on screen: `breath` (2.6s halo pulse, "the
+  // alive feeling"), `drift` (6s vertical float, "the floating signal feeling")
+  // and `shimmer` (4.8s trend-line opacity wobble, "the signal flow feeling").
+  // RC-1 gated them on reduced motion; the founder's motion brief deletes them.
+  //
+  // They are the clearest instance of what that brief names — decorative loops,
+  // constant pulsing, excessive shimmer — and they were competing with the data
+  // they drew: a member reading a hydration trend was watching the line breathe.
+  // Removal, not tuning: three loops off the UI thread, and a chart that is
+  // still while you read it.
+  //
+  // What survives is the one motion here that carries meaning: the crossfade
+  // below, which is a TRANSITION (content swapping in place) rather than an
+  // ambient loop. It fires only on a range switch and it settles.
   const reducedMotion = useReducedMotion();
-  const breath = useSharedValue(0);
-  const drift = useSharedValue(0);
-  const shimmer = useSharedValue(0);
-  useEffect(() => {
-    if (reducedMotion) {
-      cancelAnimation(breath);
-      cancelAnimation(drift);
-      cancelAnimation(shimmer);
-      breath.value = 0;
-      drift.value = 0;
-      shimmer.value = 0;
-    } else {
-      breath.value = withRepeat(
-        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.quad) }),
-        -1,
-        true,
-      );
-      drift.value = withRepeat(
-        withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.sin) }),
-        -1,
-        true,
-      );
-      shimmer.value = withRepeat(
-        withTiming(1, { duration: 4800, easing: Easing.inOut(Easing.sin) }),
-        -1,
-        true,
-      );
-    }
-    return () => {
-      cancelAnimation(breath);
-      cancelAnimation(drift);
-      cancelAnimation(shimmer);
-    };
-  }, [breath, drift, shimmer, reducedMotion]);
 
-  const haloOuterProps = useAnimatedProps(() => ({
-    opacity: 0.06 + breath.value * 0.06,
-  }));
-  const haloMidProps = useAnimatedProps(() => ({
-    opacity: 0.12 + breath.value * 0.10,
-  }));
   // Crossfade opacity — fades the whole constellation out when `data`
   // changes (range switch from 7d → 30d → 90d), swaps the underlying
-  // dataset at the trough, then fades back in. Combined with the drift
-  // transform below so motion + opacity feel like one organic gesture
-  // rather than a hard re-render.
+  // dataset at the trough, then fades back in.
   const fade = useSharedValue(1);
-  const driftStyle = useAnimatedStyle(() => ({
-    opacity: fade.value,
-    transform: [{ translateY: -2 + drift.value * 4 }],
-  }));
-  // ±~8% line opacity drift around 0.93 — never lower than 0.85.
-  const lineShimmerProps = useAnimatedProps(() => ({
-    opacity: 0.86 + shimmer.value * 0.14,
-  }));
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
 
   // Deferred dataset: we render `renderedData` (not the incoming prop)
   // so we can hold the previous frame visible while the fade-out plays,
@@ -227,6 +184,16 @@ export default function JournalChart({
   useEffect(() => {
     if (data === lastTargetRef.current) return;
     lastTargetRef.current = data;
+    if (reducedMotion) {
+      // Static alternative (Wave-5): swap the dataset outright at full opacity.
+      // With the three ambient loops gone this crossfade is the ONLY motion left
+      // in the chart, and it had no reduced-motion branch of its own — it
+      // inherited one from loops that no longer exist.
+      cancelAnimation(fade);
+      fade.value = 1;
+      setRenderedData(data);
+      return;
+    }
     fade.value = withSequence(
       withTiming(0.12, { duration: 220, easing: Easing.in(Easing.cubic) }, (finished) => {
         if (finished) {
@@ -235,7 +202,11 @@ export default function JournalChart({
       }),
       withTiming(1, { duration: 360, easing: Easing.out(Easing.cubic) }),
     );
-  }, [data, fade]);
+  }, [data, fade, reducedMotion]);
+
+  // A crossfade in flight when the screen leaves would otherwise keep running
+  // on the UI thread past unmount (Wave-4 rule).
+  useEffect(() => () => cancelAnimation(fade), [fade]);
 
   const { points, pathD, avg, trendDiff } = useMemo(() => {
     if (renderedData.length === 0) {
@@ -315,7 +286,7 @@ export default function JournalChart({
 
   return (
     <View style={{ width, height }}>
-      <Animated.View style={driftStyle}>
+      <Animated.View style={fadeStyle}>
         <Svg width={width} height={height}>
           <Defs>
             {/* Atmospheric vignette — radial fog from center, fades to
@@ -406,36 +377,36 @@ export default function JournalChart({
               gaussian-blurred glow without needing SVG filters (which
               are unreliable across react-native-svg backends). */}
           {pathD && (
-            <AnimatedPath
+            <Path
               d={pathD}
               stroke="url(#trendGlow)"
               strokeWidth={5}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
-              animatedProps={lineShimmerProps}
+              opacity={LINE_OPACITY}
             />
           )}
           {pathD && (
-            <AnimatedPath
+            <Path
               d={pathD}
               stroke="url(#trendGlow)"
               strokeWidth={2.4}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
-              animatedProps={lineShimmerProps}
+              opacity={LINE_OPACITY}
             />
           )}
           {pathD && (
-            <AnimatedPath
+            <Path
               d={pathD}
               stroke="url(#trendStroke)"
               strokeWidth={0.8}
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
-              animatedProps={lineShimmerProps}
+              opacity={LINE_OPACITY}
             />
           )}
 
@@ -456,22 +427,20 @@ export default function JournalChart({
                 {/* Ultra-soft outer atmosphere */}
                 <Circle cx={p.x} cy={p.y} r={p.kind === 'missed' ? 32 : 38} fill={c} opacity={0.04 * k} />
                 {/* Breathing outer halo */}
-                <AnimatedCircle
+                <Circle
                   cx={p.x}
                   cy={p.y}
                   r={p.kind === 'missed' ? 22 : 26}
                   fill={c}
-                  animatedProps={haloOuterProps}
-                  opacity={k}
+                  opacity={HALO_OUTER_OPACITY}
                 />
                 {/* Breathing mid halo */}
-                <AnimatedCircle
+                <Circle
                   cx={p.x}
                   cy={p.y}
                   r={16}
                   fill={c}
-                  animatedProps={haloMidProps}
-                  opacity={k}
+                  opacity={HALO_MID_OPACITY}
                 />
                 {/* Solid inner glow */}
                 <Circle cx={p.x} cy={p.y} r={8} fill={c} opacity={0.28 * k} />

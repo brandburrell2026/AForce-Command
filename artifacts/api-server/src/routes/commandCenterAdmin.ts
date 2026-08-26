@@ -16,6 +16,7 @@
  */
 
 import { Router, type IRouter } from "express";
+import { serializeError } from "../lib/serializeError";
 import { db } from "@workspace/db";
 import { sql, type SQL } from "drizzle-orm";
 import { requireFounder } from "../middlewares/requireFounder";
@@ -192,6 +193,7 @@ router.get(
                 AND captured_at >= now() - interval '14 days'
             ))::int AS previous_n
           FROM aforce_score_snapshots
+          WHERE level <> 'NOT_COMPUTED'
         `),
       ]);
 
@@ -220,7 +222,7 @@ router.get(
       );
       return res.json(dto);
     } catch (err) {
-      logger.error({ err }, "GET /admin/command-center/summary failed");
+      logger.error({ err: serializeError(err) }, "GET /admin/command-center/summary failed");
       return res.status(500).json({ error: "command_center_summary_failed" });
     }
   },
@@ -367,7 +369,7 @@ router.get(
       );
       return res.json(dto);
     } catch (err) {
-      logger.error({ err }, "GET /admin/command-center/retention-gates failed");
+      logger.error({ err: serializeError(err) }, "GET /admin/command-center/retention-gates failed");
       return res
         .status(500)
         .json({ error: "command_center_retention_gates_failed" });
@@ -493,7 +495,7 @@ router.get(
       );
       return res.json(dto);
     } catch (err) {
-      logger.error({ err }, "GET /admin/command-center/marketing failed");
+      logger.error({ err: serializeError(err) }, "GET /admin/command-center/marketing failed");
       return res
         .status(500)
         .json({ error: "command_center_marketing_failed" });

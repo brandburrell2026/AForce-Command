@@ -34,6 +34,8 @@
     padding:clamp(28px,7vw,80px) clamp(22px,6vw,64px);
   }
   .card{ width:100%; max-width:680px; }
+  .skip-link{ position:fixed; top:14px; left:14px; z-index:1000; background:var(--ink); color:var(--bone); font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.06em; padding:12px 18px; border-radius:999px; transform:translateY(-200%); }
+  .skip-link:focus{ transform:translateY(0); outline:2px solid var(--red); outline-offset:3px; }
 
   /* N–И monogram (red N · red dash · bone mirrored N) */
   .nn{ display:inline-flex; align-items:center; gap:.14em; font-family:var(--display); font-size:34px; line-height:1; }
@@ -99,7 +101,8 @@
 </style>
 </head>
 <body>
-  <main class="card">
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <main class="card" id="main" tabindex="-1">
     <div class="nn" role="img" aria-label="AFORCE N–N monogram"><span class="n1">N</span><span class="bar"></span><span class="n2">N</span></div>
 
     <p class="eyebrow">Order Confirmed · Cohort Nº <span data-fill="cohort">—</span></p>
@@ -113,6 +116,13 @@
     </div>
 
     <p class="accesskey">Your AFORCE OS access key arrives with shipment confirmation.</p>
+
+    <!-- P0 legal — post-purchase acknowledgment of recurring terms (shown when
+         the order included a subscription; copy is conditional-by-wording since
+         this static page has no order data beyond URL params). -->
+    <div class="manifest" aria-label="Subscription terms acknowledgment" style="margin-top:14px;">
+      <div class="row"><div class="k">Subscriptions</div><div class="v" style="text-transform:none;letter-spacing:0;text-align:left;">If your order included AutoPilot or Command, it automatically renews (AutoPilot monthly; Command monthly or yearly as selected) until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date. Full terms: <a href="/subscription-terms" style="color:inherit;text-decoration:underline;">Subscription Terms</a>.</div></div>
+    </div>
 
     <a class="cta" href="/aforce-os">Download AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
 

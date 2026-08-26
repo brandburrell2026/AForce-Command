@@ -1,4 +1,17 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Per-suite mock of the RN-only edge (repo convention — see
+// realApi.intake.test.ts / claimsGateRuntimeSeams.test.ts).
+// sharedContextLayer imports `useFeatureFlags` from the app store,
+// which transitively pulls zustand persist → AsyncStorage → the
+// Expo winter runtime — unloadable in node/vitest. Only this edge
+// is stubbed; every constant/guard/assertion under test is the
+// REAL implementation. The mock returns an empty flag bag, which
+// none of the pure exports exercised here ever read.
+vi.mock('@/store/useAppStore', () => ({
+  useFeatureFlags: () => ({}),
+}));
+
 import {
   CONTEXT_INPUTS,
   CONTEXT_INPUT_LABELS,

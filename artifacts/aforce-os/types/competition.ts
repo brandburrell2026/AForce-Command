@@ -26,6 +26,14 @@ export interface CompetitorUser {
   rank: number;
   trend: RankTrend;
   state_label: PerformanceLevel;
+  /** Current streak in days — leaderboard row subtitle (founder comp). */
+  streakDays?: number;
+  /** Earned title shown instead of city/state (e.g. "Recovery King"). */
+  title?: string;
+  /** Verified badge on the leaderboard row. */
+  verified?: boolean;
+  /** Signed rank movement this cycle (+3 = up 3 spots); undefined = flat. */
+  recentDelta?: number;
 }
 
 /**

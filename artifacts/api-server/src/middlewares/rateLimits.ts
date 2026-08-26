@@ -44,6 +44,43 @@ export const checkoutLimiter = rateLimit({
   message: { error: "rate_limited", scope: "checkout" },
 });
 
+// Wave-2 PR2 (Score Protection backstop): the two snapshot-writing
+// routes were previously unthrottled. Limits cap write VOLUME only —
+// value bounds live in the zod schemas.
+export const snapshotLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: userOrIpKey,
+  skip: SKIP_IN_TEST,
+  message: { error: "rate_limited", scope: "snapshot" },
+});
+
+export const sensorImportLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 6,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: userOrIpKey,
+  skip: SKIP_IN_TEST,
+  message: { error: "rate_limited", scope: "sensor_import" },
+});
+
+// Wave-3 PR6: the two provider-webhook routes were unthrottled and
+// unauthenticated. Generous IP-keyed cap — providers retry on 429, so a
+// legitimate burst is safe; a flood no longer reaches signature
+// verification (which, on the Stripe rail, used to construct a pg.Pool
+// per request).
+export const webhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip: SKIP_IN_TEST,
+  message: { error: "rate_limited", scope: "webhook" },
+});
+
 export const weatherLimiter = rateLimit({
   windowMs: 60 * 1000,
   limit: 30,

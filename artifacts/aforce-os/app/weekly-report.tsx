@@ -40,6 +40,7 @@ import type { AnalyticsEvent } from '@/utils/analytics/metrics';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { useAppStore } from '@/store/useAppStore';
 import { ReadinessInsightsV2 } from '@/components/insights/ReadinessInsightsV2';
+import { WeeklyReportV3 } from '@/components/insights/WeeklyReportV3';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { openShareSheet } from '@/services/shareService';
 import { sectionSummary } from '@/components/insights/weeklyReportCopy';
@@ -77,13 +78,15 @@ const SECTION_ORDER: WeeklyReportSectionKey[] = [
 ];
 
 /**
- * Weekly Report route — renders the Phase 2 "Readiness insights" redesign when
- * `spec_weekly_report` is on, else the legacy report below (unchanged). Flipping
- * the flag is the go-live switch.
+ * Weekly Report route — three-way switch, newest first: the V3 Week in Review
+ * (`weekly_v3_dashboard_enabled`, founder comps 2026-08-11), else the Phase 2
+ * "Readiness insights" redesign (`spec_weekly_report`), else the legacy report
+ * below (unchanged). Flipping a flag is the go-live switch.
  */
 export default function WeeklyReportScreen() {
-  const specOn = useAppStore().state.featureFlags.spec_weekly_report;
-  return specOn ? <ReadinessInsightsV2 /> : <WeeklyReportLegacy />;
+  const flags = useAppStore().state.featureFlags;
+  if (flags.weekly_v3_dashboard_enabled) return <WeeklyReportV3 />;
+  return flags.spec_weekly_report ? <ReadinessInsightsV2 /> : <WeeklyReportLegacy />;
 }
 
 function WeeklyReportLegacy() {

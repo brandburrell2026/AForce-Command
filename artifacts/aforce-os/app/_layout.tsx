@@ -1,4 +1,6 @@
 import '../polyfills';
+import { setBaseUrl } from '@workspace/api-client-react';
+import { apiOrigin } from '@/lib/apiBase';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -19,7 +21,7 @@ import { Feather } from '@expo/vector-icons';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { DEMO_MODE } from '../services/demoMode';
+import { DEMO_MODE, CAPTURE_MODE } from '../services/demoMode';
 import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -40,10 +42,12 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { WelcomeHero } from '@/components/welcome/WelcomeHero';
+import { useTranslation } from 'react-i18next';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { shouldShowInvestorDemo } from '@/featureFlags/flags';
-import { useEngineSlice } from '@/store/slices';
+import { useEngineSlice, useUserSlice, useHistorySlice, useBootstrapSlice } from '@/store/slices';
+import { countRealHistoryEntries, resolveHomeEvidence } from '@/components/home/homeBaselineState';
 import { CartProvider } from '@/store/useCartStore';
 import { initI18n } from '@/services/i18nService';
 import { firstRunRoute } from '@/utils/firstRunRoute';
@@ -71,6 +75,11 @@ initI18n();
 
 SplashScreen.preventAutoHideAsync();
 
+// Wave-3 PR1: the generated OpenAPI client emits absolute /api/* paths;
+// on native there is no origin to resolve them against, so referrals were
+// dead in TestFlight. Point it at the canonical origin once, at startup.
+setBaseUrl(apiOrigin());
+
 const queryClient = new QueryClient();
 
 const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
@@ -96,6 +105,14 @@ function SplashGate() {
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
+    if (CAPTURE_MODE) {
+      // Dev-only capture bypass: mark onboarding done and land on the tabs,
+      // but never hijack an explicit deep-link (e.g. /gallery) — leave any
+      // non-root path where it is so screenshot harnesses render.
+      AsyncStorage.setItem(ONBOARDING_DONE_KEY, 'true').catch(() => {});
+      if (pathname === '/' || pathname === '/onboarding') router.replace('/(tabs)' as never);
+      return;
+    }
     if (DEMO_MODE) {
       AsyncStorage.removeItem(ONBOARDING_DONE_KEY).catch(() => {});
       if (pathname !== '/onboarding') router.replace('/onboarding');
@@ -150,6 +167,13 @@ function RootLayoutNav() {
       <Stack.Screen name="legal" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="modules" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="weekly-report" options={{ headerShown: false, presentation: 'card' }} />
+      {/* Build-61 correction: Performance Signal is a detail surface pushed
+          from the Hydration root, not the Hydration tab itself. */}
+      <Stack.Screen name="performance-signal" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moments" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moments-plan" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="moment/[id]" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="calendar-settings" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }
@@ -195,7 +219,25 @@ function CommandLedgerSyncMount() {
  * score (Score-Protection): the opening never awards or mutates score.
  */
 function OpeningMount({ onDone }: { onDone: () => void }) {
+  const { t } = useTranslation();
   const engine = useEngineSlice();
+  // WAVE-5 EVIDENCE GATE, applied here too. Build 60 opened on a confident
+  // number for members AForce had never observed: the cinematic reads
+  // `engine.score`, and on a cold first launch that is the seeded
+  // defaultUserState projection (76 / BALANCED), not a measurement. Home
+  // already withholds that number until there is evidence; the cinematic
+  // plays BEFORE Home, so without the same gate it simply announced the
+  // fabrication first. Same resolver, same store-only signals, no network.
+  const userState = useUserSlice();
+  const history = useHistorySlice();
+  const { isHydrated } = useBootstrapSlice();
+  const evidence = resolveHomeEvidence({
+    intakeEventCount: userState.intakeEvents?.length ?? 0,
+    loggedDayCount: isHydrated ? countRealHistoryEntries(history) : null,
+  });
+  // `undefined` is the component's documented "withhold the number" input —
+  // it renders EM_DASH rather than substituting any figure.
+  const shownScore = evidence === 'established' ? engine.score : undefined;
   const [visible, setVisible] = React.useState(true);
   // Stable identity: the engine score refreshes under this overlay, and
   // an inline callback would rebuild OpeningSequence's timeline mid-play.
@@ -206,10 +248,15 @@ function OpeningMount({ onDone }: { onDone: () => void }) {
   if (!visible) return null;
   return (
     <OpeningSequence
-      readinessScore={engine.score}
-      statusLabel={readinessLabel(
-        engine.performanceState.level as PerformanceLevel,
-      )}
+      readinessScore={shownScore}
+      statusLabel={
+        evidence === 'established'
+          ? readinessLabel(engine.performanceState.level as PerformanceLevel)
+          // Not `undefined`: the component's own fallback is "READY TO PERFORM",
+          // which is itself a claim about a body AForce has not observed. Reuse
+          // the approved Wave-5 phrase instead of inventing a second one.
+          : t('opening.readiness_building')
+      }
       onFinish={handleFinish}
     />
   );
@@ -351,8 +398,10 @@ type LaunchPhase = 'opening' | 'welcome' | 'done';
 function AppShell() {
   // Cold-launch front-door state machine: opening → welcome → done. The
   // Voice Check-In / Performance Statement overlays wait for `done` so the
-  // top-most overlays never stack on a cold launch.
-  const [phase, setPhase] = React.useState<LaunchPhase>('opening');
+  // top-most overlays never stack on a cold launch. CAPTURE_MODE (dev-only
+  // screenshot bypass) starts at 'done' so the cinematic + Welcome Hero
+  // overlays never cover the surface being captured.
+  const [phase, setPhase] = React.useState<LaunchPhase>(CAPTURE_MODE ? 'done' : 'opening');
   // Cinematic finished → crossfade into the Welcome Hero.
   const handleOpeningDone = React.useCallback(() => setPhase('welcome'), []);
   // User picked an entry → dismiss the hero, ungate downstream overlays.
@@ -369,7 +418,16 @@ function AppShell() {
           The Welcome Hero (phase 'welcome') is a photo with a DARK gym top,
           so light glyphs read cleanly there too — every phase stays light. */}
       <StatusBar style="light" />
-      <ErrorBoundary>
+      <ErrorBoundary
+      onError={(error, componentStack) => {
+        // Wave-3 PR8: the root boundary previously swallowed every caught
+        // render crash — not even a console line; the componentStack was
+        // captured and discarded. Device-local logging only (NO
+        // transmission — a crash-reporting endpoint/vendor is a founder
+        // STOP decision recorded in the Wave-3 report).
+        console.error('[AForce] render crash:', error?.message, componentStack);
+      }}
+    >
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView style={{ flex: 1 }}>
             <KeyboardProvider>
@@ -391,16 +449,24 @@ function AppShell() {
                   <InvestorDemoMount />
                   {/* Photo Welcome Hero — mounted UNDER the cinematic
                       (zIndex 999) so the cinematic's fade-out crossfades into
-                      it with no black flash; waits for GET STARTED / SIGN IN. */}
-                  <WelcomeMount phase={phase} onEntered={handleEntered} />
+                      it with no black flash; waits for GET STARTED / SIGN IN.
+                      CAPTURE_MODE (dev-only screenshot bypass) skips both
+                      front-door overlays entirely — the cinematic's onDone
+                      would otherwise pull the phase back to 'welcome' and
+                      cover the surface being captured. */}
+                  {!CAPTURE_MODE && <WelcomeMount phase={phase} onEntered={handleEntered} />}
                   {/* Top-most overlay: cinematic cold-launch opening (zIndex
                       1000, renders above the Welcome Hero). */}
-                  <OpeningMount onDone={handleOpeningDone} />
+                  {!CAPTURE_MODE && <OpeningMount onDone={handleOpeningDone} />}
                   {/* Voice Check-In ritual — shows after the opening, gated. */}
-                  <VoiceCheckInMount openingDone={openingDone} />
+                  {/* CAPTURE_MODE also suppresses the post-launch ceremony
+                      overlays (voice check-in / performance statement) —
+                      starting the phase at 'done' would otherwise ARM them on
+                      every capture relaunch and cover the surface. */}
+                  {!CAPTURE_MODE && <VoiceCheckInMount openingDone={openingDone} />}
                   {/* Performance Statement — once-per-day voice-only coach
                       identity line; speaks after the opening / check-in. */}
-                  <PerformanceStatementMount openingDone={openingDone} />
+                  {!CAPTURE_MODE && <PerformanceStatementMount openingDone={openingDone} />}
                 </CartProvider>
               </AppProvider>
             </KeyboardProvider>

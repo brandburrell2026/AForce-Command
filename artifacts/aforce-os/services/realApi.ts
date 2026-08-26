@@ -1,7 +1,8 @@
 /**
  * AForce OS — Real REST + WebSocket API client.
  *
- * Replaces the in-memory `mockApi.ts`. The api-server (see
+ * Replaces the old in-memory mock service layer (deleted in Wave-2
+ * PR4; protocol derivation lives on in `protocolDerivation.ts`). The api-server (see
  * `artifacts/api-server/src/routes/aforce.ts`) is the source of truth
  * for persisted user state, intake logs, confirmations, and the
  * server-side OpenWeather lookup. The scoring engine still lives on
@@ -14,7 +15,7 @@
  *   - Lets us run the engine offline against the last known state
  *   - Avoids duplicating the engine logic on the server
  *
- * Same exported names as `mockApi.ts` so `useAppStore` swaps in with
+ * Same exported names as the old mock layer so `useAppStore` swaps in with
  * minimal churn.
  */
 
@@ -32,6 +33,8 @@ import type {
   ProviderBiometrics,
 } from '../types';
 import type { PreparedIntake, IntakeEventWire } from '../utils/intakeOutbox';
+import type { IntakeSource } from './intakeSource';
+import { API_BASE } from '@/lib/apiBase';
 import { normalizeProviderBiometrics } from '@workspace/health-core';
 import { mergeBiometrics } from '../utils/biometricsMerge';
 import { calculateScore } from '../utils/scoringEngine';
@@ -41,22 +44,9 @@ import { defaultUserState } from '../data/mockData';
 import { getAuthHeaders, getAuthToken } from './authToken';
 
 // ─── Base URL resolution ─────────────────────────────────────────────────────
-// In dev, EXPO_PUBLIC_DOMAIN is set to REPLIT_DEV_DOMAIN by package.json's
-// dev script. The api-server is mounted at `/api`. In production builds
-// you can override with EXPO_PUBLIC_API_BASE.
-function resolveApiBase(): string {
-  const explicit = process.env['EXPO_PUBLIC_API_BASE'];
-  if (explicit) return explicit.replace(/\/$/, '');
-  const domain = process.env['EXPO_PUBLIC_DOMAIN'];
-  if (domain) return `https://${domain}/api`;
-  // Last-resort fallback: same origin (web preview).
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    return `${window.location.origin}/api`;
-  }
-  return '/api';
-}
+// Wave-3 PR1: the canonical resolver lives in lib/apiBase (one copy for the
+// whole app — this module previously carried one of five duplicates).
 
-const API_BASE = resolveApiBase();
 const AFORCE_BASE = `${API_BASE}/aforce`;
 
 // ─── Server row → UserState normalization ────────────────────────────────────
@@ -103,7 +93,9 @@ export function normalizeUserState(row: Record<string, unknown>): UserState {
     unitsConsumedToday: Number(get('unitsConsumedToday') ?? 0),
     ozConsumedToday: Number(get('ozConsumedToday') ?? 0),
     aforceUnitsToday: Number(get('aforceUnitsToday') ?? 0),
-    lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date(),
+    lastIntakeTime: dateOrNull('lastIntakeTime') ?? new Date() /* W3-PR10 residual: a null here
+      requires nullable lastIntakeTime through the SCORING ENGINE (decay math)
+      — founder decision; see the Wave-3 report */,
     lastIntakeType: (get<FluidType>('lastIntakeType') ?? 'water') as FluidType,
     symptomState: (get<UserState['symptomState']>('symptomState') ?? 'none'),
     symptoms: (get<string[]>('symptoms') ?? []),
@@ -230,7 +222,10 @@ async function getJson<T>(path: string): Promise<T> {
 export interface HomePayload {
   engineOutput: ScoreEngineOutput;
   userState: UserState;
-  serverTime: string;
+  serverTime: string | null;
+  /** Wave-3 PR10: true when the server was unreachable and this is the
+   *  caller's own last state echoed back. serverTime is null in that case. */
+  stale?: boolean;
 }
 
 let lastKnownState: UserState = defaultUserState;
@@ -273,13 +268,17 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
   } catch (err) {
-    // Network down — keep the UI alive with the last state we had,
-    // recomputed against `now` so decay continues to tick locally.
-    console.warn('[AForce] fetchHome failed, falling back', err);
+    // Wave-3 PR10: network down — keep the UI alive with the LAST state,
+    // but say so. `stale: true` + a null serverTime replace the old
+    // fabricated success envelope (which minted a fresh server clock for
+    // a server that was never reached — no caller could tell truth from
+    // fallback).
+    console.warn('[AForce] fetchHome failed, falling back (stale)', err);
     return {
       engineOutput: calculateScore(userState),
       userState,
-      serverTime: new Date().toISOString(),
+      serverTime: null,
+      stale: true,
     };
   }
 }
@@ -290,6 +289,12 @@ export interface IntakeLogPayload {
   ozAmount?: number;
   /** Optional flavor — required for AForce flavored bonuses. */
   flavor?: ProductFlavor;
+  /**
+   * Which surface created this intake. Record-only provenance: it never affects
+   * scoring, dedupe or persistence, and exists so a duplicate can be attributed
+   * to a surface from data instead of a code audit.
+   */
+  entrySource?: IntakeSource;
 }
 export interface IntakeLogResponse {
   log: IntakeLog;
@@ -388,6 +393,8 @@ export function prepareIntake(
       scoreBefore,
       scoreAfter,
       event: eventWire,
+      // Frozen with the payload so a replay reports the ORIGINATING surface.
+      ...(body.entrySource ? { entrySource: body.entrySource } : {}),
     },
     event,
     fluidType: body.fluidType,
@@ -422,6 +429,7 @@ export async function sendPreparedIntake(
       scoreBefore: prepared.scoreBefore,
       scoreAfter: prepared.scoreAfter,
       event: outbox.event,
+      ...(outbox.entrySource ? { entrySource: outbox.entrySource } : {}),
       ...(opts.withClientEventId ? { clientEventId: outbox.clientEventId } : {}),
     },
   );
@@ -461,6 +469,9 @@ export async function replayPreparedIntake(prepared: PreparedIntake): Promise<vo
       scoreBefore: prepared.scoreBefore,
       scoreAfter: prepared.scoreAfter,
       event: prepared.event,
+      // The originating surface, not "offline_replay": provenance must survive
+      // queueing, or the timeline loses the surface exactly when it matters.
+      ...(prepared.entrySource ? { entrySource: prepared.entrySource } : {}),
       clientEventId: prepared.clientEventId,
     },
   );
@@ -709,6 +720,12 @@ export function getLastKnownState(): UserState {
  */
 export interface JournalSnapshotPayload {
   score: number;
+  /**
+   * Per-factor score deltas at write time ({id: delta} plus `raw`/`clamped`).
+   * Deltas only — never labels or weights. Optional so older callers and
+   * pre-instrumentation replays stay wire-compatible.
+   */
+  factorDeltas?: Record<string, number>;
   level: PerformanceLevel;
   ozConsumedToday: number;
   aforceUnitsToday: number;
@@ -758,6 +775,23 @@ export interface SensorImportResponse {
 
 export async function postSensorImport(payload: SensorImportPayload): Promise<SensorImportResponse> {
   return postJson<SensorImportResponse>('/sensors/import', payload);
+}
+
+// ─── POST /health-records/import (G2 canonical ingest) ───────────────────────
+export interface HealthRecordsImportResponse {
+  received: number;
+  upserted: number;
+}
+/**
+ * Upload one batch of CanonicalHealthRecords to the G2 ingest door. The wire
+ * shape deliberately matches the server's zod contract: userId and
+ * deduplicationKey are NOT sent — the server stamps identity from auth and
+ * recomputes the key. Callers chunk batches well under the 64kb body limit.
+ */
+export async function postHealthRecordsImport(
+  records: readonly Record<string, unknown>[],
+): Promise<HealthRecordsImportResponse> {
+  return postJson<HealthRecordsImportResponse>('/health-records/import', { records });
 }
 
 // ─── Achievements ────────────────────────────────────────────────────────────

@@ -91,7 +91,10 @@
   .stage{
     --ink:#E9E8E3;            /* surface (was dark) */
     --canvas:#15171C;         /* foreground text / dark button fills (was light) */
-    --can-70:rgba(21,23,28,.64); --can-55:rgba(21,23,28,.52); --can-40:rgba(21,23,28,.44); --can-22:rgba(21,23,28,.20); --can-12:rgba(21,23,28,.11);
+    /* --can-55 raised .52→.62 (WCAG 1.4.3): every --can-55 use is a text color;
+       .52 dark-on-cream ≈3.6:1 for the 9.5–12px labels, .62 clears 4.5:1.
+       Borders stay on --can-40/--can-22 (untouched). */
+    --can-70:rgba(21,23,28,.64); --can-55:rgba(21,23,28,.62); --can-40:rgba(21,23,28,.44); --can-22:rgba(21,23,28,.20); --can-12:rgba(21,23,28,.11);
     background:var(--ink); color:var(--canvas);
   }
   .stage .eyebrow{ color:var(--theme); }
@@ -102,7 +105,7 @@
 
   /* progress rail (dark) */
   .rail{ position:sticky; top:57px; z-index:40; display:flex; justify-content:center; padding:14px var(--gutter); background:rgba(233,232,227,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--can-12); }
-  .rail .r{ display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
+  .rail .r{ display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-55); }
   .rail .r + .r{ margin-left:clamp(14px,3vw,42px); }
   .rail .r .dot{ width:8px;height:8px;border-radius:50%; border:1.5px solid var(--can-40); transition:all .3s; }
   .rail .r.current{ color:var(--canvas); } .rail .r.current .dot{ border-color:var(--theme); background:var(--theme); box-shadow:0 0 10px var(--theme); }
@@ -143,7 +146,7 @@
   .match-sub{ font-family:var(--body); font-size:13px; color:var(--can-55); margin:-6px 0 2px; }
   .match-specs{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; margin:16px 0 2px; max-width:420px; }
   .match-specs > div{ display:flex; flex-direction:column; gap:3px; padding:11px 0; border-top:1px solid var(--ink-12); }
-  .match-specs .ms-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
+  .match-specs .ms-k{ font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-55); }
   .match-specs .ms-v{ font-size:14.5px; font-weight:700; color:var(--canvas); }
   .match-cta{ display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-top:20px; }
   .match-alt{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-55); border-bottom:1px solid var(--ink-12); padding-bottom:3px; min-height:44px; display:inline-flex; align-items:center; transition:color .2s,border-color .2s; }
@@ -153,7 +156,7 @@
   .yp-grid{ margin:14px 0 8px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 28px; }
   @media (max-width:560px){ .yp-grid{ grid-template-columns:1fr; } }
   .yp-row{ display:flex; justify-content:space-between; gap:16px; align-items:baseline; padding:13px 0; border-top:1px solid var(--ink-12); }
-  .yp-row .yp-k{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-40); }
+  .yp-row .yp-k{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-55); }
   .yp-row .yp-v{ font-size:15px; font-weight:700; color:var(--canvas); text-align:right; }
   /* P1 · ritual-bar estimated cost */
   .rb-cost{ flex:none; font-family:var(--display); font-weight:800; font-size:14px; color:var(--canvas); white-space:nowrap; }
@@ -166,8 +169,8 @@
   .ov:hover{ opacity:.8; } .ov.on{ opacity:1; border-color:var(--canvas); transform:scale(1.015); }
   .ov .sw{ width:26px;height:26px;border-radius:50%; margin-bottom:12px; }
   .ov[data-f="berry"] .sw{ background:#2F5BFF; } .ov[data-f="watermelon"] .sw{ background:#E41E2B; } .ov[data-f="soursop"] .sw{ background:#2D6A4F; }
-  .ov h4{ font-family:var(--display); font-weight:800; font-size:clamp(15px,1.5vw,18px); }
-  .ov .micro{ display:block; margin-top:5px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-40); min-height:12px; }
+  .ov .ov-name{ display:block; font-family:var(--display); font-weight:800; font-size:clamp(15px,1.5vw,18px); }
+  .ov .micro{ display:block; margin-top:5px; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-55); min-height:12px; }
   .ov.on .micro{ visibility:hidden; }
 
   /* ---- FORMULATION switcher ---- */
@@ -189,7 +192,7 @@
   @media (hover:hover){ .fmt-visual:hover img.on{ transform:scale(1.07); } }
   .fmt.floaty .fmt-visual img.on{ animation:float 3.5s ease-in-out infinite; }
   @keyframes float{ 0%,100%{transform:translateY(-6px);} 50%{transform:translateY(6px);} }
-  .fmt-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
+  .fmt-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-55); }
   .fmt h3{ font-family:var(--display); font-weight:800; font-size:clamp(20px,2.4vw,28px); letter-spacing:-.01em; margin:6px 0 4px; color:var(--canvas); }
   .fmt-desc{ color:var(--can-70); font-size:14px; min-height:38px; }
 
@@ -204,18 +207,18 @@
   .plan-opt .pl-main{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   .plan-opt .pl-name{ font-weight:700; font-size:14px; color:var(--canvas); }
   .plan-opt .pl-price{ font-weight:800; font-size:15px; color:var(--canvas); }
-  .plan-opt .pl-unit{ color:var(--can-40); font-size:12px; }
+  .plan-opt .pl-unit{ color:var(--can-55); font-size:12px; }
   .plan-opt .pl-save{ font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--canvas); border:1px solid var(--can-40); border-radius:999px; padding:2px 7px; }
-  .plan-opt .pl-note{ display:block; width:100%; margin-top:4px; color:var(--can-40); font-size:11.5px; }
+  .plan-opt .pl-note{ display:block; width:100%; margin-top:4px; color:var(--can-55); font-size:11.5px; }
 
   /* depth tiers */
   .depths{ margin-top:14px; }
-  .depth-lbl{ font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); margin-bottom:8px; }
+  .depth-lbl{ font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-55); margin-bottom:8px; }
   .depth-opt{ display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; text-align:left; padding:12px 14px; min-height:44px; border-radius:4px; border:1.5px solid var(--can-12); transition:border-color .15s, background .15s; }
   .depth-opt + .depth-opt{ margin-top:8px; }
   .depth-opt.on{ border-color:var(--canvas); background:var(--can-12); }
   .depth-opt .d-name{ font-weight:700; font-size:14px; color:var(--canvas); }
-  .depth-opt .d-sub{ display:block; font-size:11.5px; color:var(--can-40); margin-top:2px; }
+  .depth-opt .d-sub{ display:block; font-size:11.5px; color:var(--can-55); margin-top:2px; }
   .depth-opt .d-micro{ font-family:var(--mono); font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--theme); }
   .depth-opt .d-price{ font-weight:800; font-size:14px; color:var(--canvas); white-space:nowrap; }
   /* stepper (appears after depth selected) */
@@ -225,12 +228,12 @@
   .stepper button:hover{ border-color:var(--canvas); }
   .stepper button:disabled{ opacity:.3; pointer-events:none; }
   .stepper .units{ font-family:var(--display); font-weight:800; font-size:16px; color:var(--canvas); min-width:64px; text-align:center; }
-  .stepper .units small{ display:block; font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-40); }
+  .stepper .units small{ display:block; font-family:var(--mono); font-weight:400; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-55); }
   /* §7/§19 screen-reader-only live region — visually hidden, still announced */
   .sr-only{ position:absolute!important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0 0 0 0); clip-path:inset(50%); white-space:nowrap; border:0; }
 
   .why-toggle{ margin-top:14px; }
-  .why-toggle summary{ list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-40); display:inline-flex; align-items:center; gap:7px; }
+  .why-toggle summary{ list-style:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-55); display:inline-flex; align-items:center; gap:7px; }
   .why-toggle summary::-webkit-details-marker{ display:none; }
   .why-toggle summary::before{ content:"+"; } .why-toggle[open] summary::before{ content:"–"; }
   .why-toggle p{ margin-top:9px; color:var(--can-70); font-size:13.5px; max-width:44ch; }
@@ -258,15 +261,15 @@
   @media (max-width:640px){ #stepOS .os-tiers{ grid-template-columns:1fr; } }
   #stepOS .os-tier{ position:relative; border:1.5px solid var(--can-12); border-radius:6px; background:rgba(242,242,240,.03); padding:clamp(20px,2.4vw,28px); display:flex; flex-direction:column; gap:8px; }
   #stepOS .os-tier--pro{ border-color:var(--can-40); }
-  #stepOS .os-badge{ align-self:flex-start; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-40); border:1px solid var(--can-12); border-radius:999px; padding:3px 9px; }
+  #stepOS .os-badge{ align-self:flex-start; font-family:var(--mono); font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--can-55); border:1px solid var(--can-12); border-radius:999px; padding:3px 9px; }
   #stepOS .os-badge--pro{ color:var(--ink); background:var(--theme); border-color:var(--theme); }
   #stepOS .os-tier h3{ font-family:var(--display); font-weight:800; font-size:clamp(22px,2.4vw,28px); letter-spacing:-.01em; color:var(--canvas); margin-top:4px; }
   #stepOS .os-price{ display:flex; align-items:baseline; gap:6px; }
   #stepOS .os-amt{ font-family:var(--display); font-weight:800; font-size:clamp(26px,3vw,34px); color:var(--canvas); }
-  #stepOS .os-per{ font-family:var(--mono); font-size:12px; color:var(--can-40); }
+  #stepOS .os-per{ font-family:var(--mono); font-size:12px; color:var(--can-55); }
   #stepOS .os-desc{ color:var(--can-70); font-size:14px; line-height:1.5; }
   /* §6 Core/Command content — existing tokens only, no new colours */
-  #stepOS .os-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--can-40); }
+  #stepOS .os-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--can-55); }
   #stepOS .os-line{ font-style:italic; color:var(--can-55); font-size:13.5px; margin-top:2px; }
   #stepOS .os-feat{ list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:7px; }
   #stepOS .os-feat li{ position:relative; padding-left:16px; font-size:13.5px; color:var(--can-70); }
@@ -286,13 +289,19 @@
   #stepOS .os-buy{ margin-top:auto; width:100%; text-align:center; font-family:var(--display); font-weight:800; font-size:15px; letter-spacing:.02em; border-radius:6px; padding:16px; min-height:52px; background:var(--theme); color:var(--ink); border:1.5px solid var(--theme); cursor:pointer; transition:opacity .2s; }
   #stepOS .os-buy:hover{ opacity:.92; }
   #stepOS .os-buy:disabled{ background:transparent; color:var(--can-40); border-color:var(--can-22); cursor:not-allowed; }
-  #stepOS .os-buy-note{ margin-top:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-40); text-align:center; }
+  #stepOS .os-buy-note{ margin-top:10px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-55); text-align:center; }
   #stepOS .os-buy-note[hidden]{ display:none; }
   /* Auto-renew disclosure — must be visible adjacent to the Enter Command CTA
      whenever the selling plans genuinely auto-renew (COMMAND_AUTORENEWS). */
   #stepOS .os-renew{ margin-top:8px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-55); text-align:center; }
   #stepOS .os-renew[hidden]{ display:none; }
-  #stepOS .os-fine{ margin-top:12px; color:var(--can-40); font-size:11.5px; }
+  /* Affirmative subscription consent (P0 legal) — NEVER pre-checked. Gates the
+     Enter Command handoff in osCheckout(). */
+  #stepOS .os-consent{ display:flex; align-items:flex-start; gap:9px; margin:14px 0 12px; text-align:left; font-family:var(--mono); font-size:10.5px; line-height:1.55; letter-spacing:.04em; color:var(--can-70); cursor:pointer; }
+  #stepOS .os-consent input{ width:16px; height:16px; margin:1px 0 0; flex:none; accent-color:var(--theme); cursor:pointer; }
+  #stepOS .os-consent input:focus-visible{ outline:2px solid var(--theme); outline-offset:2px; }
+  #stepOS .os-consent a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
+  #stepOS .os-fine{ margin-top:12px; color:var(--can-55); font-size:11.5px; }
 
   /* ---- STEP 03 — BEGIN + ignition ---- */
   .begin-card{ position:relative; z-index:1; margin-top:clamp(24px,4vw,36px); border:1px solid var(--can-12); border-radius:6px; background:rgba(242,242,240,.03); padding:clamp(24px,3vw,40px); }
@@ -301,7 +310,7 @@
   .begin-summary .chip-back:hover{ color:var(--theme); }
   .begin-price{ margin-top:16px; display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
   .begin-price .amt{ font-family:var(--display); font-weight:800; font-size:clamp(26px,3.4vw,40px); color:var(--canvas); }
-  .begin-price .per{ color:var(--can-40); font-size:13px; }
+  .begin-price .per{ color:var(--can-55); font-size:13px; }
   .begin-ship{ margin-top:6px; font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--canvas); }
   .begin-init{ margin-top:20px; font-size:14px; color:var(--can-70); }
   .begin-init b{ color:var(--canvas); font-weight:600; }
@@ -319,11 +328,11 @@
      system (display type, existing tokens, --theme accent). Non-interactive. */
   .prelaunch{ margin-top:18px; width:100%; text-align:center; font-family:var(--display); font-weight:800; font-size:clamp(15px,1.7vw,18px); letter-spacing:.02em; border-radius:6px; padding:20px; min-height:56px; display:flex; align-items:center; justify-content:center; gap:11px; background:transparent; color:var(--canvas); border:1.5px solid var(--can-22); }
   .prelaunch::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--theme); flex:none; }
-  .begin-legal{ margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-40); text-align:center; }
+  .begin-legal{ margin-top:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; color:var(--can-55); text-align:center; }
 
   /* ---- "STATED PLAINLY" compliance block ---- */
   .plainly{ position:relative; z-index:1; max-width:66ch; margin:clamp(30px,5vw,52px) auto 0; padding:clamp(22px,3vw,30px) var(--gutter); border-top:1px solid var(--can-12); text-align:center; }
-  .plainly .p-kick{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--can-40); }
+  .plainly .p-kick{ font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--can-55); }
   .plainly .p-head{ font-family:var(--mono); font-weight:700; font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--canvas); margin:8px 0 14px; }
   .plainly p{ font-family:var(--mono); font-size:11.5px; line-height:1.85; letter-spacing:.02em; color:var(--can-55); max-width:60ch; margin:0 auto; }
   .plainly p + p{ margin-top:12px; }
@@ -348,7 +357,7 @@
   .rb2-line-name{ font-family:var(--display); font-weight:800; font-size:14.5px; letter-spacing:-.01em; }
   .rb2-line-meta{ margin-top:3px; font-size:12px; color:var(--ink-60); line-height:1.5; }
   .rb2-line-plan{ display:inline-block; margin-top:5px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--blue); }
-  .rb2-line-plan.onetime{ color:var(--ink-40); }
+  .rb2-line-plan.onetime{ color:var(--ink-60); }
   .rb2-line-bottom{ display:flex; align-items:center; justify-content:space-between; margin-top:11px; }
   .rb2-qty{ display:inline-flex; align-items:center; border:1px solid var(--ink-12); border-radius:999px; }
   .rb2-qty button{ width:34px; height:34px; border:0; background:none; cursor:pointer; font-size:16px; color:var(--ink); line-height:1; }
@@ -356,7 +365,7 @@
   .rb2-qty span{ min-width:26px; text-align:center; font-family:var(--mono); font-size:13px; }
   .rb2-line-price{ font-family:var(--display); font-weight:800; font-size:14px; }
   .rb2-line-acts{ margin-top:8px; display:flex; gap:16px; }
-  .rb2-line-acts button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-40); padding:6px 0; min-height:32px; }
+  .rb2-line-acts button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-60); padding:6px 0; min-height:32px; }
   .rb2-line-acts button:hover{ color:var(--ink); }
   .rb2-line-acts button.rb2-remove:hover{ color:var(--red); }
   .rb2-empty{ text-align:center; padding:48px 10px; color:var(--ink-60); }
@@ -367,7 +376,14 @@
   .rb2-foot{ border-top:1px solid var(--ink-12); padding:16px var(--gutter) calc(20px + env(safe-area-inset-bottom,0px)); background:#FCFCFB; }
   .rb2-foot[hidden]{ display:none; }
   .rb2-sub{ display:flex; justify-content:space-between; font-family:var(--display); font-weight:800; font-size:16px; }
-  .rb2-ship{ margin-top:4px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-40); }
+  .rb2-ship{ margin-top:4px; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-60); }
+  /* Affirmative subscription consent (P0 legal) — NEVER pre-checked. Shown only
+     when the basket holds AutoPilot lines; gates the checkout handoff. */
+  .rb2-consent{ display:flex; align-items:flex-start; gap:9px; margin-top:14px; font-family:var(--mono); font-size:11px; line-height:1.55; letter-spacing:.02em; color:var(--ink-60); cursor:pointer; }
+  .rb2-consent[hidden]{ display:none; }
+  .rb2-consent input{ width:16px; height:16px; margin:1px 0 0; flex:none; accent-color:var(--blue); cursor:pointer; }
+  .rb2-consent input:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+  .rb2-consent a{ color:inherit; text-decoration:underline; text-underline-offset:2px; }
   .rb2-checkout{ display:block; width:100%; min-height:52px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s; }
   .rb2-checkout:hover{ opacity:.9; } .rb2-checkout:disabled{ opacity:.4; cursor:not-allowed; }
   .rb2-continue{ display:block; width:100%; min-height:44px; margin-top:10px; border:0; background:none; color:var(--ink-60); cursor:pointer; font-size:12.5px; text-decoration:underline; text-underline-offset:3px; }
@@ -385,7 +401,7 @@
   .rb-chip{ flex:none; display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--canvas); border:1px solid var(--can-22); border-radius:999px; padding:11px 15px; min-height:44px; white-space:nowrap; transition:border-color .2s; }
   .rb-chip:hover{ border-color:var(--can-55); }
   .rb-chip .d{ width:9px;height:9px;border-radius:50%; background:var(--theme); transition:background-color .6s ease; }
-  .rb-chip.empty{ color:var(--can-40); } .rb-chip.empty .d{ background:var(--can-22); }
+  .rb-chip.empty{ color:var(--can-55); } .rb-chip.empty .d{ background:var(--can-22); }
   .rb-begin{ flex:none; display:inline-flex; align-items:center; gap:8px; font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.02em; color:var(--ink); background:var(--canvas); border-radius:999px; padding:12px 24px; min-height:44px; transition:box-shadow .3s, transform .12s; }
   .rb-begin .arw{ transition:transform .2s; }
   .rb-begin.ready{ box-shadow:0 0 20px -4px var(--theme); } .rb-begin.ready .arw{ transform:translateX(2px); }
@@ -395,7 +411,7 @@
   .lb.open{ display:flex; } .lb img{ max-height:80vh; width:auto; filter:drop-shadow(0 30px 50px rgba(0,0,0,.6)); }
 
   /* ---------- FOOTER (light) ---------- */
-  footer{ padding:clamp(30px,4vw,48px) var(--gutter); border-top:1px solid var(--ink-12); display:flex; flex-wrap:wrap; gap:14px 32px; align-items:center; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--ink-40); }
+  footer{ padding:clamp(30px,4vw,48px) var(--gutter); border-top:1px solid var(--ink-12); display:flex; flex-wrap:wrap; gap:14px 32px; align-items:center; font-family:var(--mono); font-size:11px; letter-spacing:.08em; color:var(--ink-60); }
   footer .nonneg{ color:var(--red); }
 
   @media (max-width:760px){
@@ -430,18 +446,18 @@
   .bc-thumb img{ width:100%; height:100%; object-fit:contain; }
   .bc-name{ font-family:var(--display); font-weight:800; font-size:16px; letter-spacing:-.01em; color:var(--canvas); }
   .bc-meta{ margin-top:4px; font-size:12.5px; color:var(--can-55); }
-  .bc-meta .bc-sub-on{ color:var(--theme); } .bc-meta .bc-sub-off{ color:var(--can-40); }
+  .bc-meta .bc-sub-on{ color:var(--theme); } .bc-meta .bc-sub-off{ color:var(--can-55); }
   .bc-row{ display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
   .bc-qty{ display:inline-flex; align-items:center; border:1px solid var(--can-22); border-radius:999px; }
   .bc-qty button{ width:36px; height:36px; border:0; background:none; cursor:pointer; font-size:17px; color:var(--canvas); line-height:1; }
   .bc-qty button:disabled{ opacity:.3; cursor:not-allowed; }
   .bc-qty span{ min-width:28px; text-align:center; font-family:var(--mono); font-size:13px; color:var(--canvas); }
   .bc-price{ font-family:var(--display); font-weight:800; font-size:15px; color:var(--canvas); }
-  .bc-remove{ margin-top:9px; border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-40); padding:5px 0; min-height:32px; }
+  .bc-remove{ margin-top:9px; border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-55); padding:5px 0; min-height:32px; }
   .bc-remove:hover{ color:var(--red); }
   .bc-foot{ margin-top:24px; }
   .bc-sub{ display:flex; align-items:baseline; justify-content:space-between; font-family:var(--display); font-weight:800; font-size:18px; color:var(--canvas); }
-  .bc-ship{ margin-top:6px; font-size:12px; color:var(--can-40); }
+  .bc-ship{ margin-top:6px; font-size:12px; color:var(--can-55); }
   .bc-checkout{ display:block; width:100%; min-height:56px; margin-top:16px; border:0; border-radius:999px; background:var(--blue); color:#fff; font-family:var(--display); font-weight:800; font-size:15px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s, transform .12s; }
   .bc-checkout:hover{ opacity:.92; } .bc-checkout:active{ transform:scale(.99); } .bc-checkout:disabled{ opacity:.4; cursor:not-allowed; }
   .bc-err{ margin-top:12px; color:var(--red); font-size:12.5px; }
@@ -461,14 +477,14 @@
   .build-add{ border:1px solid var(--can-12); border-radius:10px; padding:clamp(20px,2.4vw,28px); background:rgba(242,242,240,.03); position:sticky; top:80px; }
   @media (max-width:860px){ .build-add{ position:static; } }
   .ba-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
-  .ba-kick{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-40); }
+  .ba-kick{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--can-55); }
   .ba-plan{ display:inline-flex; border:1px solid var(--can-22); border-radius:999px; padding:2px; }
   .ba-plan button{ border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase; color:var(--can-55); padding:7px 12px; min-height:34px; border-radius:999px; transition:background .2s,color .2s; }
   .ba-plan button.on{ background:var(--canvas); color:var(--ink); }
   .ba-group + .ba-group{ margin-top:20px; }
   .bag-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
   .bag-fmt{ font-family:var(--display); font-weight:800; font-size:15px; color:var(--canvas); }
-  .bag-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--can-40); }
+  .bag-sub{ font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--can-55); }
   .bag-cells{ display:grid; gap:8px; }
   .ba-cell{ display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:1.5px solid var(--can-12); background:transparent; border-radius:6px; padding:12px 14px; min-height:48px; cursor:pointer; color:var(--canvas); transition:border-color .18s, background .18s, transform .1s; }
   .ba-cell:hover{ border-color:var(--canvas); }
@@ -503,7 +519,7 @@
   .ingredients .ing-stat{ background:rgba(242,242,240,.03); padding:clamp(20px,2.6vw,28px); display:flex; flex-direction:column; gap:6px; }
   .ingredients .ing-stat .v{ font-family:var(--display); font-weight:800; font-size:clamp(24px,3vw,34px); letter-spacing:-.02em; color:var(--canvas); line-height:1; }
   .ingredients .ing-stat .v i{ font-style:normal; font-size:.5em; font-weight:700; color:var(--can-55); margin-left:1px; }
-  .ingredients .ing-stat .k{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-40); }
+  .ingredients .ing-stat .k{ font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--can-55); }
   /* flavor cards — hero ingredients first, full list on demand */
   .js .ingredients .ing-grid{ margin-top:clamp(24px,3.2vw,36px); display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2vw,22px); align-items:start; }
   @media (max-width:820px){ .js .ingredients .ing-grid{ grid-template-columns:1fr; } }
@@ -511,7 +527,7 @@
   .ingredients .ing-flavor{ display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:800; font-size:17px; color:var(--canvas); }
   .ingredients .ing-flavor .ing-dot{ width:10px; height:10px; border-radius:50%; flex:none; }
   .ingredients .ing-hero{ margin-top:14px; font-size:15.5px; line-height:1.5; font-weight:600; color:var(--canvas); }
-  .ingredients .ing-hero .sep{ color:var(--can-40); font-weight:400; margin:0 3px; }
+  .ingredients .ing-hero .sep{ color:var(--can-55); font-weight:400; margin:0 3px; }
   .ingredients .ing-more{ margin-top:18px; display:inline-flex; align-items:center; gap:8px; border:0; background:none; cursor:pointer; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-55); padding:6px 0; min-height:36px; transition:color .2s; }
   .ingredients .ing-more:hover{ color:var(--canvas); }
   .ingredients .ing-more .pm{ font-size:15px; line-height:1; width:12px; text-align:center; }
@@ -524,7 +540,7 @@
   .ingredients .ing-list{ margin-top:12px; padding-top:12px; border-top:1px solid var(--can-12); font-size:12.5px; line-height:1.7; color:var(--can-70); }
   .ingredients .ing-badges{ margin-top:clamp(26px,3.2vw,36px); display:flex; flex-wrap:wrap; gap:9px; }
   .ingredients .ing-badges span{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--can-70); border:1px solid var(--can-22); border-radius:999px; padding:8px 14px; }
-  .ingredients .ing-note{ margin-top:clamp(20px,2.6vw,28px); font-size:11px; line-height:1.6; color:var(--can-40); max-width:70ch; }
+  .ingredients .ing-note{ margin-top:clamp(20px,2.6vw,28px); font-size:11px; line-height:1.6; color:var(--can-55); max-width:70ch; }
   .ingredients .ing-noscript{ margin-top:24px; font-size:12.5px; line-height:1.7; color:var(--can-70); }
   .ingredients .ing-noscript p{ margin-top:10px; }
   @media (prefers-reduced-motion:reduce){ .ingredients .ing-full{ transition:none; } }
@@ -541,7 +557,7 @@
   .fs-media img:nth-child(1){ transform:translateX(16px) scale(.88) rotate(-6deg); z-index:1; opacity:.9; }
   .fs-media img:nth-child(2){ z-index:3; }
   .fs-media img:nth-child(3){ transform:translateX(-16px) scale(.88) rotate(6deg); z-index:1; opacity:.9; }
-  .fs-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-40); }
+  .fs-kicker{ font-family:var(--mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-60); }
   .fs-desc{ font-family:var(--display); font-weight:800; font-size:clamp(18px,2.2vw,24px); letter-spacing:-.01em; color:var(--ink); margin-top:6px; }
   .fs-desc b{ color:var(--theme); font-weight:800; }
   .fs-cta{ margin-top:16px; display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:0 30px; border:0; border-radius:999px; background:var(--theme); color:var(--ink); font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.03em; cursor:pointer; transition:opacity .2s, transform .12s; }
@@ -636,6 +652,7 @@
 </script>
 </head>
 <body data-theme="berry">
+<a class="afx-skip" href="#main">Skip to main content</a>
 
 <header class="afx-nav" id="afxNav">
   <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span>N</span><span class="bar"></span><span class="flip">N</span></span> AFORCE</a>
@@ -675,9 +692,9 @@
   <div class="hero-badge"><span class="pulse" aria-hidden="true"></span>Every order activates AFORCE OS</div>
   <a href="#stepDemand" class="hero-cta" data-hero-cta>Begin the Ritual</a>
   <div class="hero-can" id="heroCan" aria-hidden="true">
-    <img data-f="watermelon" src="/assets/can-red.png" alt="">
-    <img data-f="berry" src="/assets/can-blue.png" alt="" class="on">
-    <img data-f="soursop" src="/assets/can-green.png" alt="">
+    <img data-f="watermelon" src="/assets/can-red.png" alt="AFORCE Watermelon Surge can">
+    <img data-f="berry" src="/assets/can-blue.png" alt="AFORCE Berry Blast can" class="on">
+    <img data-f="soursop" src="/assets/can-green.png" alt="AFORCE Soursop Edge can">
   </div>
 </header>
 
@@ -714,7 +731,7 @@
   <span class="r" data-step="begin"><span class="dot"></span>Begin</span>
 </div>
 
-<main>
+<main id="main" tabindex="-1">
 <!-- STEP 01 — THE DEMAND -->
 <section class="step" id="stepDemand">
   <div class="wrap">
@@ -756,9 +773,9 @@
         </div>
       </div>
       <div class="overrides" id="overrides">
-        <button class="ov" type="button" data-f="berry"><span class="sw"></span><h4>Berry Blast</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="watermelon"><span class="sw"></span><h4>Watermelon Surge</h4><span class="micro">Run it your way</span></button>
-        <button class="ov" type="button" data-f="soursop"><span class="sw"></span><h4>Soursop Edge</h4><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="berry" aria-pressed="false"><span class="sw"></span><span class="ov-name">Berry Blast</span><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="watermelon" aria-pressed="false"><span class="sw"></span><span class="ov-name">Watermelon Surge</span><span class="micro">Run it your way</span></button>
+        <button class="ov" type="button" data-f="soursop" aria-pressed="false"><span class="sw"></span><span class="ov-name">Soursop Edge</span><span class="micro">Run it your way</span></button>
       </div>
     </div>
   </div>
@@ -771,9 +788,9 @@
     <h2>How do you take it?</h2>
     <p class="lead">Both carry your formulation. Flip the flavor here anytime — nothing else resets.</p>
     <div class="switcher" id="switcher">
-      <button class="swdot" type="button" data-f="berry"><span class="d"></span>Berry Blast</button>
-      <button class="swdot" type="button" data-f="watermelon"><span class="d"></span>Watermelon Surge</button>
-      <button class="swdot" type="button" data-f="soursop"><span class="d"></span>Soursop Edge</button>
+      <button class="swdot" type="button" data-f="berry" aria-pressed="false"><span class="d"></span>Berry Blast</button>
+      <button class="swdot" type="button" data-f="watermelon" aria-pressed="false"><span class="d"></span>Watermelon Surge</button>
+      <button class="swdot" type="button" data-f="soursop" aria-pressed="false"><span class="d"></span>Soursop Edge</button>
     </div>
     <div class="sr-only" id="afxLive" role="status" aria-live="polite"></div>
     <div class="formats" id="formats">
@@ -788,15 +805,15 @@
         <h3>Sticks</h3>
         <p class="fmt-desc">Drop one into any water — the ritual travels with you.</p>
         <div class="plan" data-format="sticks">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$59.99</span><span class="pl-unit">/ month</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
-          <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="sticks-onetime">$59.99</span><span class="pl-unit">one box</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot" aria-pressed="true"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="sticks-autopilot">$59.99</span><span class="pl-unit">/ month</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt" type="button" data-plan="onetime" aria-pressed="false"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="sticks-onetime">$59.99</span><span class="pl-unit">one box</span></span></button>
         </div>
         <div class="depths" data-format="sticks">
           <div class="depth-lbl">Depth</div>
-          <button class="depth-opt" type="button" data-depth="single"><span><span class="d-name">Single</span><span class="d-sub">1 box · 20 sticks</span></span><span class="d-price" data-depthprice="sticks-single"></span></button>
-          <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 boxes · 40 sticks</span></span><span class="d-price" data-depthprice="sticks-double"></span></button>
-          <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 boxes · 80 sticks</span></span><span class="d-price" data-depthprice="sticks-case"></span></button>
-          <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
+          <button class="depth-opt" type="button" data-depth="single" aria-pressed="false"><span><span class="d-name">Single</span><span class="d-sub">1 box · 20 sticks</span></span><span class="d-price" data-depthprice="sticks-single"></span></button>
+          <button class="depth-opt" type="button" data-depth="double" aria-pressed="false"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 boxes · 40 sticks</span></span><span class="d-price" data-depthprice="sticks-double"></span></button>
+          <button class="depth-opt" type="button" data-depth="case" aria-pressed="false"><span><span class="d-name">The Case</span><span class="d-sub">4 boxes · 80 sticks</span></span><span class="d-price" data-depthprice="sticks-case"></span></button>
+          <div class="stepper" data-format="sticks"><button type="button" data-step-dir="-1" aria-label="Fewer boxes">–</button><span class="units"><span data-units>1</span><small>boxes</small></span><button type="button" data-step-dir="1" aria-label="More boxes">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why sticks?</summary><p>Portable and TSA-simple — your ritual holds on the road, in the gym bag, anywhere there's water.</p></details>
         <button class="fmt-choose" type="button" data-choose="sticks" aria-pressed="false"><span class="pick">Choose Sticks</span><span class="sel">Sticks selected</span><span class="add-label">Add Sticks to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
@@ -812,15 +829,15 @@
         <h3>RTD Cans</h3>
         <p class="fmt-desc">Cold, immediate, no mixing — the ritual, ready.</p>
         <div class="plan" data-format="cans">
-          <button class="plan-opt on" type="button" data-plan="autopilot"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$29.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
-          <button class="plan-opt" type="button" data-plan="onetime"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="cans-onetime">$29.99</span><span class="pl-unit">6-pack</span></span></button>
+          <button class="plan-opt on" type="button" data-plan="autopilot" aria-pressed="true"><span class="radio"></span><span class="pl-main"><span class="pl-name">AutoPilot</span><span class="pl-price" data-price="cans-autopilot">$29.99</span><span class="pl-unit">/ 6-pack, monthly</span><span class="pl-note">Ritual Membership · skip or cancel anytime in AFORCE OS</span></span></button>
+          <button class="plan-opt" type="button" data-plan="onetime" aria-pressed="false"><span class="radio"></span><span class="pl-main"><span class="pl-name">One-Time</span><span class="pl-price" data-price="cans-onetime">$29.99</span><span class="pl-unit">6-pack</span></span></button>
         </div>
         <div class="depths" data-format="cans">
           <div class="depth-lbl">Depth</div>
-          <button class="depth-opt" type="button" data-depth="single"><span><span class="d-name">Single</span><span class="d-sub">1 six-pack</span></span><span class="d-price" data-depthprice="cans-single"></span></button>
-          <button class="depth-opt" type="button" data-depth="double"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 six-packs</span></span><span class="d-price" data-depthprice="cans-double"></span></button>
-          <button class="depth-opt" type="button" data-depth="case"><span><span class="d-name">The Case</span><span class="d-sub">4 six-packs · 24 cans</span></span><span class="d-price" data-depthprice="cans-case"></span></button>
-          <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More">+</button></div>
+          <button class="depth-opt" type="button" data-depth="single" aria-pressed="false"><span><span class="d-name">Single</span><span class="d-sub">1 six-pack</span></span><span class="d-price" data-depthprice="cans-single"></span></button>
+          <button class="depth-opt" type="button" data-depth="double" aria-pressed="false"><span><span class="d-name">Double <span class="d-micro">Most begin here</span></span><span class="d-sub">2 six-packs</span></span><span class="d-price" data-depthprice="cans-double"></span></button>
+          <button class="depth-opt" type="button" data-depth="case" aria-pressed="false"><span><span class="d-name">The Case</span><span class="d-sub">4 six-packs · 24 cans</span></span><span class="d-price" data-depthprice="cans-case"></span></button>
+          <div class="stepper" data-format="cans"><button type="button" data-step-dir="-1" aria-label="Fewer six-packs">–</button><span class="units"><span data-units>1</span><small>six-packs</small></span><button type="button" data-step-dir="1" aria-label="More six-packs">+</button></div>
         </div>
         <details class="why-toggle"><summary>Why cans?</summary><p>Zero prep — grab, crack, perform. The fastest way into the ritual on a moving day.</p></details>
         <button class="fmt-choose" type="button" data-choose="cans" aria-pressed="false"><span class="pick">Choose Cans</span><span class="sel">Cans selected</span><span class="add-label">Add Cans to your Ritual<span class="arw" aria-hidden="true"> →</span></span></button>
@@ -864,17 +881,23 @@
         <ul class="os-feat">
           <li>Performance Age™</li>
           <li>Weekly interpretation</li>
-          <li>Personalized depletion correction</li>
+          <li>Personalized readiness patterns</li>
           <li>Expanded trends</li>
-          <li>Advanced recovery guidance</li>
+          <li>Suggested recovery actions</li>
         </ul>
+        <!-- P0 legal: affirmative recurring-purchase consent. NEVER pre-checked;
+             gates the Enter Command handoff (see osCheckout). -->
+        <label class="os-consent" id="osConsentRow">
+          <input type="checkbox" id="osConsent">
+          <span>I agree to the <a href="/subscription-terms" target="_blank" rel="noopener">Subscription Terms</a>: Command automatically renews until canceled. No minimum commitment. Cancel anytime in AFORCE OS before the next billing date.</span>
+        </label>
         <button class="os-buy" id="osBuy" type="button">Enter Command</button>
         <p class="os-renew" id="osRenew" hidden></p>
         <p class="os-buy-note" id="osBuyNote" role="status"></p>
       </div>
     </div>
     <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
-    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD.</p>
+    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD. AutoPilot and Command are subscriptions that automatically renew until canceled; cancel anytime in AFORCE OS. See <a href="/subscription-terms" style="color:inherit;text-decoration:underline;">Subscription Terms</a>. Performance Age™ is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
@@ -939,9 +962,9 @@
     <div class="step-i">Full Transparency</div>
     <h2 id="ingTitle">What powers the Ritual.</h2>
     <p class="ing-tagline">Purposeful hydration, electrolytes, and marine ingredients—built to support the daily Ritual.</p>
-    <div class="ing-toggle" role="tablist" aria-label="Choose format">
-      <button type="button" class="on" data-fmt="can" role="tab" aria-selected="true">The Can</button>
-      <button type="button" data-fmt="stick" role="tab" aria-selected="false">The Stick</button>
+    <div class="ing-toggle" role="group" aria-label="Choose format">
+      <button type="button" class="on" data-fmt="can" aria-pressed="true">The Can</button>
+      <button type="button" data-fmt="stick" aria-pressed="false">The Stick</button>
     </div>
     <p class="ing-serving" id="ingServing"></p>
     <div class="ing-stats" id="ingStats"></div>
@@ -998,7 +1021,7 @@
   var btns=Array.prototype.slice.call(wrap.querySelectorAll(".ing-toggle button"));
   btns.forEach(function(b){ b.addEventListener("click",function(){
     fmt=b.getAttribute("data-fmt");
-    btns.forEach(function(x){ var on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-selected",on?"true":"false"); });
+    btns.forEach(function(x){ var on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-pressed",on?"true":"false"); });
     render();
   });});
 
@@ -1021,7 +1044,7 @@
         <p class="ff-built">Built for what happens before.</p>
       </div>
       <nav class="ff-col" aria-label="System">
-        <h4>System</h4>
+        <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
         <a href="/shop">Shop</a>
         <a href="/aforce-os">AFORCE OS</a>
@@ -1029,28 +1052,32 @@
         <a href="/manifesto">Manifesto</a>
       </nav>
       <nav class="ff-col" aria-label="Company">
-        <h4>Company</h4>
+        <h2>Company</h2>
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
         <a href="mailto:contact@aforceritual.com">Contact</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
-        <h4>Follow the Standard</h4>
+        <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">TikTok <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Substack <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
         <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">Facebook <span class="arw" aria-hidden="true">↗</span></a>
+        <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
-        <h4>Legal</h4>
+        <h2>Legal</h2>
         <a href="/legal">Legal Center</a>
         <a href="/legal/privacy">Privacy</a>
+        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
         <a href="/legal/terms">Terms</a>
-        <a href="/legal">Accessibility</a>
+        <a href="/subscription-terms">Subscription Terms</a>
+        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
+        <a href="/accessibility">Accessibility</a>
+        <a href="mailto:support@drinkaforce.com">Contact</a>
       </nav>
     </div>
 
@@ -1078,7 +1105,7 @@
     <button class="rb-begin" id="rbBegin" type="button" disabled>Begin the Ritual <span class="arw">→</span></button>
   </div>
 </div>
-<div class="lb" id="lightbox" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
+<div class="lb" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged product image" tabindex="-1" aria-hidden="true"><img id="lbImg" src="" alt=""></div>
 
 <!-- YOUR RITUAL — multi-product basket (§9). Right-side drawer; state from
      /assets/basket.js. Reuses the Shop's warm-white/gray + AForce-blue system. -->
@@ -1097,6 +1124,12 @@
     <div class="rb2-foot" id="rb2Foot" hidden>
       <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal">$0.00</span></div>
       <div class="rb2-ship">Shipping calculated at checkout</div>
+      <!-- P0 legal: affirmative recurring-purchase consent. NEVER pre-checked;
+           visible only when the basket holds AutoPilot (subscription) lines. -->
+      <label class="rb2-consent" id="rb2ConsentRow" hidden>
+        <input type="checkbox" id="rb2Consent">
+        <span>I agree to the <a href="/subscription-terms" target="_blank" rel="noopener">Subscription Terms</a>: my AutoPilot items automatically renew <strong id="rb2ConsentAmt">monthly</strong> until canceled. No minimum commitment. Cancel anytime in AFORCE OS before the next billing date.</span>
+      </label>
       <button type="button" class="rb2-checkout" id="rb2Checkout">Continue to secure checkout</button>
       <button type="button" class="rb2-continue" id="rb2Continue">Continue building</button>
     </div>
@@ -1146,6 +1179,11 @@
   var COMMAND_VARIANT    = 43905417838710;                // AFORCE OS Command variant (base $20)
   var COMMAND_PLANS      = { monthly: 2532999286, annual: 2533032054 }; // SellingPlan ids ($20/mo, $200/yr)
   var COMMAND_AUTORENEWS = true;
+  /* P0 legal — consent evidence. Version string of /subscription-terms that the
+     consumer affirms at checkout; recorded as Shopify order attributes together
+     with a timestamp, the offer, price, and cadence. Keep in step with the
+     version shown on /subscription-terms (counsel finalizes both together). */
+  var SUBSCRIPTION_TERMS_VERSION = "0.1-draft-2026-07-07";
   function osReady(){ return COMMAND_VARIANT != null && COMMAND_PLANS[state.osCycle] != null; }
   var VARIANTS = {
     sticks:{ watermelon:"43817245868150", berry:"43817131606134", soursop:"43817131638902" },
@@ -1350,6 +1388,8 @@
     document.documentElement.classList.remove("afx-locked"); document.documentElement.style.paddingRight="";
     var cb=$("#afxCartBtn"); if(cb) cb.setAttribute("aria-expanded","false");
     if(returnFocus!==false){ (cb||document.body).focus(); }
+    /* arrived via /shop#cart? clear the hash so a reload doesn't reopen the drawer */
+    if(location.hash==="#cart" && history.replaceState) history.replaceState(null,"",location.pathname+location.search);
   }
 
   /* ---- render (subscribe to basket changes) ---- */
@@ -1361,6 +1401,10 @@
     var cc=$("#afxCartCount"); if(cc){ cc.textContent=count; cc.hidden = count===0; }
     var body=$("#rb2Body"), foot=$("#rb2Foot");
     if(!body) return;
+    /* P0 legal — consent never outlives the subscription it was given for.
+       Runs on EVERY render (including the empty-basket early return below) so
+       a later AutoPilot add always starts with a fresh, unchecked box. */
+    if(!basket.hasAutoPilot()){ var cbx0=$("#rb2Consent"); if(cbx0) cbx0.checked=false; }
     if(!lines.length){
       body.innerHTML='<div class="rb2-empty"><div class="rb2-empty-h">Your ritual is empty.</div><p>Choose a demand and add your first formulation to begin.</p></div>';
       if(foot) foot.hidden=true;
@@ -1388,6 +1432,21 @@
       foot.hidden=false;
       $("#rb2Subtotal").textContent = money2(basket.subtotal()||0);
       $("#rb2Checkout").disabled = basket.busy;
+      /* P0 legal — the affirmative-consent row appears only while the basket
+         actually holds a recurring (AutoPilot) line, and states the recurring
+         AMOUNT + interval at the point of consent. Never pre-checked: hiding
+         the row also clears the box, so a later subscription is affirmed
+         fresh rather than inheriting an old tick. */
+      var consentRow=$("#rb2ConsentRow");
+      if(consentRow){
+        consentRow.hidden = !basket.hasAutoPilot();
+        if(!consentRow.hidden){
+          var subM=lines.filter(function(l){return !!l.sellingPlanId;})
+                        .reduce(function(s,l){ return s+(parseFloat(l.lineTotal)||0); },0);
+          var amt=$("#rb2ConsentAmt");
+          if(amt) amt.textContent = subM>0 ? "monthly at "+money2(subM)+"/mo" : "monthly";
+        }
+      }
     }
     renderUndo();
   }
@@ -1609,7 +1668,7 @@
       if(choose) choose.setAttribute("aria-pressed", state.format===fmt?"true":"false");
     });
     // plan toggles
-    $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ o.classList.toggle("on", o.getAttribute("data-plan")===state.plan); }); });
+    $$(".plan").forEach(function(p){ var f=p.getAttribute("data-format"); $$(".plan-opt",p).forEach(function(o){ var on=o.getAttribute("data-plan")===state.plan; o.classList.toggle("on", on); o.setAttribute("aria-pressed", on?"true":"false"); }); });
     // per-format unit prices in the toggle
     $$('[data-price]').forEach(function(el){ var k=el.getAttribute("data-price").split("-"); el.textContent = money(UNIT[k[0]][k[1]]); });
     // depth rows: prices + selected (only reflect on the chosen format; other card shows base single prices)
@@ -1619,7 +1678,8 @@
         var dk=o.getAttribute("data-depth"); var u=DEPTH_UNITS[dk];
         var price = +(UNIT[f][ f===state.format ? state.plan : "autopilot" ] * u).toFixed(2);
         $('[data-depthprice="'+f+'-'+dk+'"]').textContent = money(price) + (state.plan==="autopilot"&&f===state.format?"/mo":"");
-        o.classList.toggle("on", f===state.format && state.depth===dk);
+        var on = f===state.format && state.depth===dk;
+        o.classList.toggle("on", on); o.setAttribute("aria-pressed", on?"true":"false");
       });
       // stepper
       var st=$(".stepper",dep);
@@ -1632,8 +1692,8 @@
       }
     });
   }
-  function renderOverrides(){ $$("#overrides .ov").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-f")===state.formulation); }); }
-  function renderSwitcher(){ $$("#switcher .swdot").forEach(function(el){ el.classList.toggle("on", el.getAttribute("data-f")===state.formulation); }); }
+  function renderOverrides(){ $$("#overrides .ov").forEach(function(el){ var on=el.getAttribute("data-f")===state.formulation; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on?"true":"false"); }); }
+  function renderSwitcher(){ $$("#switcher .swdot").forEach(function(el){ var on=el.getAttribute("data-f")===state.formulation; el.classList.toggle("on", on); el.setAttribute("aria-pressed", on?"true":"false"); }); }
 
   function summaryChips(){
     return [
@@ -1669,7 +1729,7 @@
       '<div class="yp-grid">'+yp+'</div>' +
       '<div class="begin-price"><span class="amt">'+money(total())+'</span><span class="per">'+(state.plan==="autopilot"?"per month":"one-time")+(state.units>1?" · "+state.units+" units":"")+'</span></div>' +
       '<div class="begin-ship">'+shippingLine()+'</div>' +
-      (state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN==null ? '<div class="begin-init" style="color:var(--can-40);font-size:12.5px;">AutoPilot membership billing activates shortly — this order checks out as one-time until it’s live.</div>' : '') +
+      (state.plan==="autopilot" && RITUAL_MEMBERSHIP_PLAN==null ? '<div class="begin-init" style="color:var(--can-55);font-size:12.5px;">AutoPilot membership billing activates shortly — this order checks out as one-time until it’s live.</div>' : '') +
       '<div class="begin-init"><b>Your Performance Profile initializes with this order.</b></div>' +
       /* §9: primary action ADDS to the basket and keeps the customer on the
          page; checkout happens from Your Ritual. In pre-launch it becomes a
@@ -1751,11 +1811,15 @@
        Ritual tier's approved "cancel anytime in AFORCE OS" language. */
     var renew=$("#osRenew");
     if(renew){
-      var show = COMMAND_AUTORENEWS && osReady();
+      /* P0 legal — the material recurring terms must be visible BEFORE the
+         consumer authorizes purchase, so this shows whenever the recurring
+         offer is displayed (not gated on checkout being live). No minimum
+         commitment. Full terms at /subscription-terms. */
+      var show = COMMAND_AUTORENEWS;
       renew.hidden = !show;
       renew.textContent = show
-        ? (annual ? "Renews yearly at $200 · cancel anytime in AFORCE OS"
-                  : "Renews monthly at $20 · cancel anytime in AFORCE OS")
+        ? (annual ? "$200/year. Automatically renews yearly until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date."
+                  : "$20/month. Automatically renews monthly until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date.")
         : "";
     }
   }
@@ -1764,16 +1828,43 @@
      subscription, separate from the hydration "Your Ritual" basket. Gated and
      §11-safe: never hands off unless Shopify confirms the plan was applied. */
   var osHanding=false;
+  /* bfcache: back-navigation from the Command checkout restores this page with
+     the latch set and the button disabled — reset so it works without a reload.
+     Registered here (not inside the basket block) so it holds even if the
+     basket module were absent. */
+  window.addEventListener("pageshow", function(e){
+    if(!e.persisted) return;
+    osHanding=false;
+    var ob=$("#osBuy"); if(ob) ob.disabled=false;
+  });
   function osCheckout(){
     var note=$("#osBuyNote"), C=window.AForceCommerce;
     function gate(msg){ if(note){ note.hidden=false; note.textContent=msg; } }
     if(!osReady() || !C){ gate("Command checkout opens at launch."); return; }
+    /* P0 legal — affirmative consent to the recurring terms BEFORE the consumer
+       authorizes the purchase. The checkbox is never pre-checked. */
+    var consent=$("#osConsent");
+    if(!consent || !consent.checked){
+      gate("To continue, please agree to the Subscription Terms above.");
+      if(consent) consent.focus();
+      return;
+    }
     if(osHanding) return; osHanding=true;
     var plan=COMMAND_PLANS[state.osCycle];
     var btn=$("#osBuy"); if(btn) btn.disabled=true;
     track("os_checkout_started",{ cycle:state.osCycle });
+    /* Consent evidence rides the cart onto the Shopify ORDER as attributes:
+       terms version + timestamp + offer + price + cadence (P0 legal). The cart
+       is created at click time, i.e. strictly AFTER consent. */
+    var osAmtEl=$("#osAmt"), osPerEl=$("#osPer");
+    var shownPrice=((osAmtEl?osAmtEl.textContent:"")+(osPerEl?osPerEl.textContent:"")).replace(/\s+/g,"");
     C.createCart([{ variantId:COMMAND_VARIANT, quantity:1, sellingPlanId:plan }],
-                 { Product:"AFORCE OS Command", Plan:(state.osCycle==="annual"?"Annual":"Monthly") })
+                 { Product:"AFORCE OS Command", Plan:(state.osCycle==="annual"?"Annual":"Monthly"),
+                   "Subscription Consent":"Accepted — affirmative checkbox (not pre-checked)",
+                   "Consent Timestamp":new Date().toISOString(),
+                   "Subscription Terms Version":SUBSCRIPTION_TERMS_VERSION,
+                   "Consent Offer":"AFORCE OS Command "+(state.osCycle==="annual"?"Annual":"Monthly")+" — "+shownPrice,
+                   "Consent Cadence":(state.osCycle==="annual"?"Yearly":"Monthly")+" · automatically renews until canceled · cancel in AFORCE OS" })
       .then(function(cart){
         if(!C.subscriptionApplied(cart, plan)){ throw new Error("Command plan was not applied."); }
         window.location.href = C.checkoutURLFor(cart);   // its own separate Shopify checkout
@@ -1885,14 +1976,20 @@
   $("#rbChips").addEventListener("mousedown",armHold); $("#rbChips").addEventListener("touchstart",armHold,{passive:true});
   ["mouseup","mouseleave","touchend","touchcancel"].forEach(function(ev){ $("#rbChips").addEventListener(ev,clearHold); });
 
-  function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; $("#lightbox").classList.add("open"); }
-  $("#lightbox").addEventListener("click", function(){ this.classList.remove("open"); });
-  document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ $("#lightbox").classList.remove("open"); } });
+  var lbReturnFocus=null;
+  function openLightbox(vis){ var img=$("img.on",vis); if(!img) return; $("#lbImg").src=img.getAttribute("src"); $("#lbImg").alt=img.getAttribute("alt")||""; lbReturnFocus=document.activeElement; $("#lightbox").classList.add("open"); $("#lightbox").setAttribute("aria-hidden","false"); $("#lightbox").focus(); }
+  function closeLightbox(){ $("#lightbox").classList.remove("open"); $("#lightbox").setAttribute("aria-hidden","true"); if(lbReturnFocus && document.contains(lbReturnFocus)){ lbReturnFocus.focus(); } lbReturnFocus=null; }
+  $("#lightbox").addEventListener("click", closeLightbox);
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape"){ closeLightbox(); } });
 
   /* ================= YOUR RITUAL — basket events (§9) ================= */
   if(basket){
     basket.onChange(function(){ renderBasket(); renderFormats(); renderBuild(); });  // keep the nudge + inline builder in sync with the cart
-    basket.hydrate().then(function(){ renderBasket(); renderFormats(); renderBuild(); });   // §9 persistence: restore on load
+    /* §9 persistence: restore on load. The header cart icons on the other
+       marketing pages deep-link to /shop#cart — once the basket is hydrated,
+       open the Ritual drawer directly so the customer sees ONLY their cart
+       (never the legacy Shopify storefront at shop.drinkaforce.com). */
+    basket.hydrate().then(function(){ renderBasket(); renderFormats(); renderBuild(); if(location.hash==="#cart") openBasket(); });
 
     var cartBtn=$("#afxCartBtn"); if(cartBtn) cartBtn.addEventListener("click", openBasket);
     $("#rb2Close").addEventListener("click", function(){ closeBasket(); });
@@ -1910,14 +2007,96 @@
     });
     $("#rb2Undo").querySelector("button").addEventListener("click", function(){ basket.undo().then(function(){ announce("Item restored."); }); });
 
-    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14) */
+    /* CONTINUE TO SECURE CHECKOUT — validated Shopify URL (§9/§11/§14).
+       One-time-only baskets keep the original direct handoff, byte-identical.
+       Baskets holding AutoPilot lines require affirmative consent (P0 legal)
+       and hand off via a consent-evidence cart — see checkoutWithConsent(). */
     $("#rb2Checkout").addEventListener("click", function(){
+      clearBasketErr();
+      if(basket.hasAutoPilot()){
+        var cb=$("#rb2Consent");
+        if(!cb || !cb.checked){
+          showBasketErr("To continue, please agree to the Subscription Terms above.");
+          if(cb) cb.focus();
+          return;
+        }
+        checkoutWithConsent();
+        return;
+      }
       try{
         var url=basket.checkout();
-        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+        track("checkout_started",{ lines:basket.lines().length, count:basket.count(), subscription:false });
         commit(url);
       }catch(err){ showBasketErr("Checkout isn’t available right now. Please try again."); }
     });
+
+    /* P0 legal — consent-evidence checkout for subscription baskets. The
+       consumer just affirmed the recurring terms, so we create a FRESH cart
+       from the exact current lines (numeric ids re-derived from the basket's
+       Shopify GIDs) carrying the consent record as order attributes: terms
+       version, timestamp, offer, price, cadence. Uses only the existing
+       createCart API (§12 boundary untouched). §11 fail-closed: the fresh
+       cart must mirror the basket — every requested selling plan applied and
+       total quantity equal — or we refuse to hand off and the shopper can
+       simply retry; the original basket cart is never mutated. */
+    var consentHanding=false;
+    /* bfcache: returning from Shopify checkout via Back restores this page with
+       the in-flight latch still set and the button disabled — reset so checkout
+       works again without a manual reload. (osHanding has its own pageshow
+       reset beside osCheckout, registered even when the basket is absent.) */
+    window.addEventListener("pageshow", function(e){
+      if(!e.persisted) return;
+      consentHanding=false;
+      var b=$("#rb2Checkout"); if(b) b.disabled = !!basket.busy;
+    });
+    function gidNum(gid){ return String(gid).split("/").pop(); }
+    function checkoutWithConsent(){
+      if(consentHanding) return; consentHanding=true;
+      var btn=$("#rb2Checkout"); if(btn) btn.disabled=true;
+      var C=window.AForceCommerce;
+      var lines=basket.lines();
+      var subs=lines.filter(function(l){ return !!l.sellingPlanId; });
+      var payload=lines.map(function(l){
+        var p={ variantId:gidNum(l.variantId), quantity:l.quantity };
+        if(l.sellingPlanId) p.sellingPlanId=gidNum(l.sellingPlanId);
+        return p;
+      });
+      var subMonthly=subs.reduce(function(s,l){ return s+(parseFloat(l.lineTotal)||0); },0);
+      var offer=subs.map(function(l){
+        return (l.productTitle||l.title||"Item")+" ×"+l.quantity+" — AutoPilot monthly"+(l.lineTotal?" ("+money2(l.lineTotal)+"/mo)":"");
+      }).join("; ");
+      /* Shopify attribute values are length-capped — summarize rather than let
+         the legal evidence truncate silently on large baskets. */
+      if(offer.length>200){ offer=subs.length+" AutoPilot lines — "+money2(subMonthly)+"/mo total, monthly"; }
+      /* Carry the order context (Protocol/Formulation/Depth/Plan) the original
+         cart held so subscription orders don't lose it to the evidence cart. */
+      var attrs = isReady()? orderAttrs(checkoutQty()) : {};
+      attrs["Subscription Consent"]="Accepted — affirmative checkbox (not pre-checked)";
+      attrs["Consent Timestamp"]=new Date().toISOString();
+      attrs["Subscription Terms Version"]=SUBSCRIPTION_TERMS_VERSION;
+      attrs["Consent Offer"]=offer;
+      attrs["Consent Cadence"]="Monthly · automatically renews until canceled · cancel in AFORCE OS";
+      C.createCart(payload, attrs).then(function(cart){
+        var plansOk = cart && cart.lines && subs.every(function(s){
+          return cart.lines.some(function(cl){ return cl.sellingPlanId===s.sellingPlanId && cl.variantId===s.variantId; });
+        });
+        var qtyOk = cart && cart.totalQuantity===basket.count();
+        if(!plansOk || !qtyOk){ throw new Error("Subscription could not be confirmed for checkout."); }
+        /* Re-point the persisted cart id at the evidence cart. After the
+           customer PAYS, hydrate() then sees a consumed cart and the basket
+           clears — without this, the old (identical) cart survives the
+           purchase and reads as an unplaced order: a double-charge trap. If
+           the customer backs out unpaid, the evidence cart holds the same
+           lines, so the basket is unchanged either way. */
+        try{ localStorage.setItem("aforce_cart_id", cart.id); }catch(_){ }
+        track("checkout_started",{ lines:lines.length, count:basket.count(), subscription:true, consent:true });
+        commit(C.checkoutURLFor(cart));
+      }).catch(function(err){
+        consentHanding=false; if(btn) btn.disabled=false;
+        showBasketErr("Checkout isn’t available right now. Please try again.");
+        if(window.console && console.warn) console.warn("[consent checkout]", err && err.message);
+      });
+    }
 
     /* Escape + focus trap while the basket is open */
     document.addEventListener("keydown", function(e){
@@ -1957,9 +2136,14 @@
       var bco=$("#buildCheckout");
       if(bco) bco.addEventListener("click", function(){
         var e=$("#buildErr"); if(e){ e.hidden=true; e.textContent=""; }
+        /* P0 legal — a basket holding AutoPilot lines must pass through the
+           single affirmative-consent point (the Ritual drawer). Funnel there;
+           the drawer shows the recurring amount, the consent checkbox, and the
+           gated checkout. One-time baskets keep the direct handoff. */
+        if(basket.hasAutoPilot()){ openBasket(); return; }
         try{
           var url=basket.checkout();
-          track("checkout_started",{ via:"builder", lines:basket.lines().length, count:basket.count(), subscription:basket.hasAutoPilot() });
+          track("checkout_started",{ via:"builder", lines:basket.lines().length, count:basket.count(), subscription:false });
           commit(url);
         }catch(err){ if(e){ e.hidden=false; e.textContent="Checkout isn’t available right now. Please try again."; } }
       });

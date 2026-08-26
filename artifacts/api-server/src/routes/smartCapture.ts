@@ -29,10 +29,13 @@
  */
 
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
+import { incCounter } from "../observability/metrics";
+import { findBlockedConcept } from "../lib/claimsGate";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
@@ -155,6 +158,24 @@ const FORBIDDEN_NUTRITION = new RegExp(
   `)\b`,
   "i",
 );
+
+/** §42 block-severity scan over the same consumer-visible free-text fields. */
+function containsBlockedClaim(result: SmartCaptureResponseT): string | null {
+  const fields: string[] = [
+    result.itemSummary,
+    result.hydrationDemand.note,
+    result.recoveryLoad.note,
+    result.stimulantLoad.note,
+    result.acidicLoad.note,
+    result.correctionRecommendation.drinkName,
+    result.correctionRecommendation.rationale,
+  ];
+  for (const f of fields) {
+    const hit = findBlockedConcept(f);
+    if (hit) return hit;
+  }
+  return null;
+}
 
 function containsForbiddenNutritionTalk(result: SmartCaptureResponseT): string | null {
   const fields: string[] = [
@@ -279,6 +300,10 @@ const captureLimiter = rateLimit({
 
 router.post(
   "/smart-capture",
+  // Wave-1 P0 hardening: user imagery must never leave the device
+  // unauthenticated. Auth precedes rate limiting so anonymous traffic can
+  // never reach the OpenAI call (or consume its budget).
+  requireAuth,
   captureLimiter,
   // Route-scoped body parser — the app-wide cap is 64kB. This router is
   // mounted in app.ts BEFORE the global express.json() so this limit
@@ -344,6 +369,20 @@ router.post(
         log.warn?.({ leaked }, "smart-capture: forbidden nutrition talk detected, rejecting");
         res.status(502).json({
           error: "Smart Capture returned nutritional data, which is not supported. Please try again.",
+        });
+        return;
+      }
+
+      // §42 claims gate (Wave-2 PR5): the ONLY LLM-generated consumer text in
+      // the product. Same free-text fields as the nutrition scrub; a
+      // block-severity claim (medical/injury/causal/coercive) rejects the
+      // response outright — fail closed, never rewrite.
+      const claimHit = containsBlockedClaim(result.data);
+      if (claimHit) {
+        log.warn?.({ claimHit }, "smart-capture: claims gate rejected AI copy");
+        incCounter("claims_gate_suppressions.smart_capture");
+        res.status(502).json({
+          error: "Smart Capture returned unsupported language. Please try again.",
         });
         return;
       }

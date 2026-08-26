@@ -43,7 +43,15 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO",
-        "android.permission.MODIFY_AUDIO_SETTINGS"
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_RESTING_HEART_RATE",
+        "android.permission.health.READ_HEART_RATE_VARIABILITY",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_RESPIRATORY_RATE"
       ]
     },
     "web": {
@@ -105,10 +113,26 @@
                 "modular_headers": true
               }
             ]
+          },
+          "android": {
+            "minSdkVersion": 26,
+            "packagingOptions": {
+              "pickFirst": [
+                "META-INF/versions/**/OSGI-INF/MANIFEST.MF"
+              ]
+            }
           }
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only — never attendees, notes, or attachments. You choose which calendars.",
+          "remindersPermission": "AForce does not use Reminders. This text exists only because the calendar module requires the entry; reminders access is never requested."
+        }
+      ],
+      "react-native-health-connect"
     ],
     "experiments": {
       "typedRoutes": true,

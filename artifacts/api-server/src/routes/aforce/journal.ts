@@ -1,11 +1,13 @@
 import { Router, type IRouter } from "express";
+import { serializeError } from "../../lib/serializeError";
+import { incCounter } from "../../observability/metrics";
 import { z } from "zod";
 import {
   db,
   aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations,
   createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
-import { eq, sql, and, gte, asc, desc } from "drizzle-orm";
+import { inArray, eq, sql, and, gte, asc, desc } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import {
   resolveScoreProtectionMode,
@@ -14,6 +16,7 @@ import {
   SCORE_WRITE_GUARD,
 } from "../../lib/scoreWriteGuard";
 import { logger } from "../../lib/logger";
+import { snapshotLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId } from "./shared";
 import { LEVELS, snapshotSchema } from "./journalSchema";
 
@@ -25,7 +28,7 @@ const router: IRouter = Router();
 //   GET  /journal/timeline  → chronological interleave of snapshots + intake_logs
 //   GET  /journal/rollups   → per-day aggregates (avg/min/max score, % time per band, totals)
 
-router.post("/journal/snapshot", async (req, res) => {
+router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
   // Validate first, and report a schema rejection distinctly from a write
   // failure. The old catch collapsed both into an opaque 400, so a contract
   // mismatch and a DB error were indistinguishable in the field. We surface the
@@ -35,6 +38,7 @@ router.post("/journal/snapshot", async (req, res) => {
   if (!parsed.success) {
     const issues = parsed.error.issues.map((i) => ({ path: i.path.join("."), code: i.code }));
     logger.warn({ issues }, "POST /aforce/journal/snapshot rejected (schema)");
+    incCounter("score_write_rejected.schema");
     return res.status(400).json({ error: "snapshot_invalid", issues });
   }
   try {
@@ -54,7 +58,10 @@ router.post("/journal/snapshot", async (req, res) => {
         const [priorRow] = await db
           .select({ score: aforceScoreSnapshots.score, capturedAt: aforceScoreSnapshots.capturedAt })
           .from(aforceScoreSnapshots)
-          .where(eq(aforceScoreSnapshots.userId, userId))
+          // Wave-3 PR11: NOT_COMPUTED provenance rows (sensor imports) are
+          // not scores — anchoring the unexplained-delta check on one would
+          // manufacture false violations (score 0 vs a real 78).
+          .where(and(eq(aforceScoreSnapshots.userId, userId), inArray(aforceScoreSnapshots.level, [...LEVELS])))
           .orderBy(desc(aforceScoreSnapshots.capturedAt))
           .limit(1);
         // Evidence window: since the prior snapshot, or a bounded lookback when
@@ -95,7 +102,7 @@ router.post("/journal/snapshot", async (req, res) => {
     const row = await repo.create({ userId, ...parsed.data });
     return res.json({ snapshot: row });
   } catch (err) {
-    logger.error({ err }, "POST /aforce/journal/snapshot write failed");
+    logger.error({ err: serializeError(err) }, "POST /aforce/journal/snapshot write failed");
     return res.status(500).json({ error: "snapshot_write_failed" });
   }
 });
@@ -139,7 +146,7 @@ router.get("/recovery/snapshot", async (req, res) => {
       },
     });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/recovery/snapshot failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/recovery/snapshot failed");
     return res.status(500).json({ error: "recovery_snapshot_failed" });
   }
 });
@@ -229,7 +236,7 @@ router.get("/journal/timeline", async (req, res) => {
 
     return res.json({ entries, days });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/journal/timeline failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/journal/timeline failed");
     return res.status(400).json({ error: "timeline_failed" });
   }
 });
@@ -244,7 +251,14 @@ router.get("/journal/rollups", async (req, res) => {
       db
         .select()
         .from(aforceScoreSnapshots)
-        .where(and(eq(aforceScoreSnapshots.userId, userId), gte(aforceScoreSnapshots.capturedAt, since)))
+        .where(and(
+          eq(aforceScoreSnapshots.userId, userId),
+          gte(aforceScoreSnapshots.capturedAt, since),
+          // Wave-3 PR11: aggregates are MEASURED-ONLY — a NOT_COMPUTED
+          // provenance row must not pollute snapshotsCount/avg/min/max,
+          // band time-share, or the end* fields.
+          inArray(aforceScoreSnapshots.level, [...LEVELS]),
+        ))
         .orderBy(asc(aforceScoreSnapshots.capturedAt)),
       db
         .select()
@@ -411,7 +425,7 @@ router.get("/journal/rollups", async (req, res) => {
 
     return res.json({ rollups, days });
   } catch (err) {
-    logger.error({ err }, "GET /aforce/journal/rollups failed");
+    logger.error({ err: serializeError(err) }, "GET /aforce/journal/rollups failed");
     return res.status(400).json({ error: "rollups_failed" });
   }
 });

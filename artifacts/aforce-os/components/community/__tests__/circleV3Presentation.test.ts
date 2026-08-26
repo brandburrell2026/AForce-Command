@@ -1,0 +1,209 @@
+/**
+ * circleV3Presentation — unit tests (founder comp 2026-08-12 revision).
+ * The contract under test: the You card mirrors the live-injected snapshot
+ * row (ranks from the engine's re-rank, band accent via the shared module),
+ * rows carry the comp's fields (verified, streak/title subtitles, band-
+ * tinted scores, movement arrows), tabs slice the same snapshot (friends =
+ * your team's roster re-ranked), and the own-baseline challenge never
+ * invents a number without rollups.
+ */
+import { describe, it, expect } from 'vitest';
+
+import { af } from '@/theme';
+import { buildSnapshot } from '@/services/competitionEngine';
+import {
+  buildCircleV3Model,
+  circleRowA11yLabel,
+  type CircleRowA11yStrings,
+  type CircleV3Inputs,
+} from '../circleV3Presentation';
+
+function snapshot(liveScore = 92) {
+  return buildSnapshot({
+    liveUserScore: liveScore,
+    liveCompliance: 0.9,
+    liveConsistency: 96,
+    liveStateLabel: 'PEAK',
+  });
+}
+
+function inputs(overrides: Partial<CircleV3Inputs> = {}): CircleV3Inputs {
+  return {
+    snapshot: snapshot(),
+    cityOverride: null,
+    hydrationDaysThisWeek: 5,
+    tab: 'rank',
+    ...overrides,
+  };
+}
+
+describe('buildCircleV3Model — You card', () => {
+  it('mirrors the live-injected snapshot row: band, ranks, spec score, delta pill', () => {
+    const m = buildCircleV3Model(inputs());
+    expect(m.you.name).toBe('You');
+    expect(m.you.bandKey).toBe('peak');
+    expect(m.you.accent).toBe(af.green);
+    expect(m.you.cityLine).toBe('Miami, FL');
+    // Ranks come from the engine's re-rank over the live-injected row.
+    expect(m.you.globalRank).toBeGreaterThanOrEqual(1);
+    expect(m.you.cityRank).toBeGreaterThanOrEqual(1);
+    expect(m.you.teamRank).toBeGreaterThanOrEqual(1);
+    // Spec formula over live values (0.35·92 + 0.25·90 + 0.20·96 + 0.20·82).
+    const me = inputs().snapshot.context.user;
+    expect(m.you.score).toBe(me.competitionScore);
+    // Was 12: the mock's fabricated "+12 spots" was removed (founder ruling —
+    // rank movement against other people is not a claim any source supports),
+    // so the delta is now 0 and the pill collapses to null.
+    expect(m.you.deltaSpots).toBeNull();
+  });
+
+  it('reports no rank at all when there is nobody else in the cohort', () => {
+    const base = snapshot();
+    const solo = {
+      ...base,
+      individuals: base.individuals.filter((u) => u.id === base.context.user.id),
+    };
+    const m = buildCircleV3Model(inputs({ snapshot: solo }));
+    // The engine's context still hands over a rank; the view model refuses it
+    // — a rank is a claim about others, and there are none. fmtRank → '—'.
+    expect(typeof base.context.globalRank).toBe('number');
+    expect(m.you.globalRank).toBeNull();
+    expect(m.you.cityRank).toBeNull();
+    expect(m.you.stateRank).toBeNull();
+    expect(m.you.teamRank).toBeNull();
+    // Your own score is real and survives — only the comparison is withheld.
+    expect(m.you.score).toBe(base.context.user.competitionScore);
+  });
+
+  it('prefers the real server city when present', () => {
+    const m = buildCircleV3Model(inputs({ cityOverride: 'Fort Lauderdale' }));
+    expect(m.you.cityLine).toBe('Fort Lauderdale, FL');
+  });
+});
+
+describe('buildCircleV3Model — rank rows (the comp leaderboard)', () => {
+  const m = buildCircleV3Model(inputs());
+
+  it('renders the full ranked cohort with You highlighted in place', () => {
+    expect(m.rows.length).toBe(inputs().snapshot.individuals.length);
+    expect(m.rows.filter((r) => r.isYou)).toHaveLength(1);
+    // Ranks are the engine's, contiguous from 1.
+    expect(m.rows.map((r) => r.rank)).toEqual(m.rows.map((_, i) => i + 1));
+  });
+
+  it('carries the comp fields: title/city subtitles, streaks, movement', () => {
+    const jordan = m.rows.find((r) => r.name === 'Jordan A.')!;
+    expect(jordan).toMatchObject({
+      subtitleLeft: 'Miami, FL',
+      streakDays: 7,
+      move: { dir: 'up', n: 3 },
+      // The roster still says `verified: true` for this profile (founder data,
+      // untouched) — the view model is what refuses to render a credential
+      // over an invented person. Locked in circleV3SampleDisclosure.test.ts.
+      isSample: true,
+      verified: false,
+    });
+    const alicia = m.rows.find((r) => r.name === 'Alicia R.')!;
+    expect(alicia.subtitleLeft).toBe('Perfect Hydration'); // title wins over city
+    expect(alicia.move).toEqual({ dir: 'flat', n: 0 });
+    const sasha = m.rows.find((r) => r.name === 'Sasha P.')!;
+    expect(sasha.move).toEqual({ dir: 'down', n: 1 });
+  });
+
+  it('tints scores by each row band through the shared accent module', () => {
+    const jordan = m.rows.find((r) => r.name === 'Jordan A.')!;
+    const cam = m.rows.find((r) => r.name === 'Cam B.')!;
+    const tyler = m.rows.find((r) => r.name === 'Tyler M.')!;
+    expect(jordan.scoreAccent).toBe(af.green); // PEAK
+    expect(cam.scoreAccent).toBe(af.cyan); // BALANCED
+    expect(tyler.scoreAccent).toBe(af.amber); // RECOVERING
+  });
+});
+
+describe('buildCircleV3Model — tabs', () => {
+  it('cities slices the ranked city table', () => {
+    const m = buildCircleV3Model(inputs({ tab: 'cities' }));
+    expect(m.rows.length).toBe(inputs().snapshot.cities.length);
+    expect(m.rows[0]!.rank).toBe(1);
+    expect(m.rows.some((r) => r.isYou)).toBe(true); // your city highlighted
+  });
+
+  it('friends is your team roster re-ranked within the team', () => {
+    const m = buildCircleV3Model(inputs({ tab: 'friends' }));
+    expect(m.rows.length).toBeGreaterThan(1);
+    expect(m.rows.every((r, i) => r.rank === i + 1)).toBe(true);
+    expect(m.rows.filter((r) => r.isYou)).toHaveLength(1);
+  });
+
+  it('challenge renders no list rows', () => {
+    expect(buildCircleV3Model(inputs({ tab: 'challenge' })).rows).toEqual([]);
+  });
+});
+
+describe('circleRowA11yLabel — the row says out loud what it only showed in colour', () => {
+  // The en.json phrasing, inlined: this module is i18n-free by contract.
+  const S: CircleRowA11yStrings = {
+    rank: (n) => `Rank ${n}`,
+    you: 'You',
+    sample: 'Sample data, not a real member or a real standing',
+    verified: 'Verified',
+    score: (n) => `Score ${n}`,
+    // Mirrors en.json's _one/_other plural pair.
+    moveUp: (n) => (n === 1 ? 'Up 1 place' : `Up ${n} places`),
+    moveDown: (n) => (n === 1 ? 'Down 1 place' : `Down ${n} places`),
+    moveFlat: 'No change',
+  };
+  const rows = buildCircleV3Model(inputs()).rows;
+  const row = (name: string) => rows.find((r) => r.name === name)!;
+
+  it('says a sample profile is sample data, and never calls it verified', () => {
+    // Was: "Rank 1. Jordan A. Verified. …" — a credential spoken over an
+    // invented person, on a row a screen-reader user had no other way to tell
+    // apart from the member's own. The provenance now rides with the name and
+    // the credential is gone (mocks/competitionData.ts still carries
+    // `verified: true` for this profile; the view model refuses it).
+    const jordan = row('Jordan A.');
+    const label = circleRowA11yLabel(jordan, 'Miami, FL · 7-day streak', S);
+    expect(label).toBe(
+      `Rank ${jordan.rank}. Jordan A., Sample data, not a real member or a real standing. ` +
+        `Miami, FL · 7-day streak. Score ${jordan.score}. Up 3 places`,
+    );
+    expect(label).not.toContain('Verified');
+  });
+
+  it('names YOU instead of relying on the green name colour', () => {
+    const you = rows.find((r) => r.isYou)!;
+    const label = circleRowA11yLabel(you, 'Miami, FL', S);
+    expect(label).toContain(`${you.name}, You`);
+  });
+
+  it('never qualifies the member’s own row as sample', () => {
+    const you = rows.find((r) => r.isYou)!;
+    expect(you.isSample).toBe(false);
+    expect(circleRowA11yLabel(you, 'Miami, FL', S)).not.toContain('Sample data');
+  });
+
+  it('omits the badge phrase for unverified rows', () => {
+    const cam = row('Cam B.');
+    expect(cam.verified).toBe(false);
+    expect(circleRowA11yLabel(cam, 'Austin, TX', S)).not.toContain('Verified');
+  });
+
+  it('gives every movement direction words — the ↑/↓/– glyphs carry none', () => {
+    expect(circleRowA11yLabel(row('Sasha P.'), 'x', S)).toContain('Down 1 place');
+    expect(circleRowA11yLabel(row('Alicia R.'), 'x', S)).toContain('No change');
+  });
+});
+
+describe('buildCircleV3Model — own-baseline hydration challenge', () => {
+  it('is a real days-out-of-7 percentage', () => {
+    const m = buildCircleV3Model(inputs({ hydrationDaysThisWeek: 5 }));
+    expect(m.challengePct).toBe(71);
+    expect(m.hydrationDays).toBe(5);
+  });
+
+  it('is omitted, never invented, without rollups', () => {
+    const m = buildCircleV3Model(inputs({ hydrationDaysThisWeek: null }));
+    expect(m.challengePct).toBeNull();
+  });
+});
