@@ -13,6 +13,18 @@
  * resolves the enum to display copy, mirroring the established
  * resolver-returns-enum / component-resolves-i18n pattern (see
  * `docs/health/TRANSLATION-REVIEW.md`).
+ *
+ * HOME HIERARCHY PASS (founder §1, 2026-08-13) — the verb is now OPTIONAL and
+ * the whole line may render NOTHING. Home's hierarchy is HYDROSTATE score →
+ * band → evidence confidence → command → action, and a verb rendered under
+ * that stack was competing for the band's job: at DEPLETED, `getStatusVerb`
+ * collapses two of three trend directions onto CRITICAL, so a member saw the
+ * band word restated louder, in red, immediately beneath it — and saw it on
+ * FIRST PAINT, because `useScoreTrend` initialises to 'flat' and therefore had
+ * no delta to justify the verdict. The mapping in `services/statusVerb.ts` is
+ * unchanged (other consumers and its tests still see the full verb set); this
+ * component simply stops requiring a verb, and stops rendering a bare arrow
+ * when there is neither a verb nor a measurement window to show.
  */
 
 import React from 'react';
@@ -26,7 +38,17 @@ interface Props {
   direction: TrendDirection;
   delta: number;
   ageSec: number;
-  verb: StatusVerb;
+  /**
+   * The status verb — OPTIONAL since the Home hierarchy pass (founder §1,
+   * 2026-08-13). `undefined` means "there is no verdict to draw here", NOT
+   * "the caller forgot it": Home withholds the verb when `getStatusVerb`
+   * would return DEPLETED's CRITICAL (a second, louder lexicalisation of the
+   * band word the hero already prints, ~8-24pt above it), and when the trend
+   * has no direction to report at all. `services/statusVerb.ts` is untouched —
+   * every other consumer still gets the full verb set, and `VERB_KEY` below
+   * still resolves CRITICAL, so the copy and the mapping stay in place.
+   */
+  verb?: StatusVerb;
   /** Tint that drives arrow + verb color (matches orb accent). */
   accent: string;
   testID?: string;
@@ -63,28 +85,43 @@ function LiveStatusLineImpl({ direction, delta, ageSec, verb, accent, testID }: 
   // For 'flat' / freshly-mounted (no window yet), show just the verb
   // so we don't render meaningless "+0 · 0s".
   const showWindow = direction !== 'flat' && ageSec >= 5;
-  const verbLabel = t(VERB_KEY[verb]);
+  const verbLabel = verb ? t(VERB_KEY[verb]) : null;
+
+  // NOTHING TO SAY IS A VALID STATE (founder §1). With no window AND no verb
+  // the row would be a lone arrow glyph — a mark with no reading behind it,
+  // occupying a line directly under the hero. The line is momentum, so when
+  // there is no momentum to report it takes up no space at all rather than
+  // holding the slot with punctuation.
+  if (!showWindow && !verbLabel) return null;
+
+  // Composed once and reused for the spoken label, so a screen reader hears
+  // exactly the strings on screen (and so the two can never drift apart).
+  const deltaText = `${delta > 0 ? '+' : ''}${delta} ${t('home.live_status.pts_suffix')}`;
+  const windowText = `${t('home.live_status.last_label')} ${formatAge(ageSec)}`;
 
   return (
     <View
       style={styles.row}
       testID={testID}
-      accessibilityLabel={t('home.live_status.a11y_label', { verb: verbLabel })}
+      accessibilityLabel={
+        // With a verb, the established "Trend VERB" phrasing. Without one there
+        // is no verdict to announce, so the label carries the measurement the
+        // line is actually showing instead of announcing an empty "Trend".
+        verbLabel
+          ? t('home.live_status.a11y_label', { verb: verbLabel })
+          : `${deltaText} ${windowText}`
+      }
     >
       <Text style={[styles.arrow, { color: accent }]}>{ARROW[direction]}</Text>
       {showWindow ? (
         <>
-          <Text style={[styles.delta, { color: accent }]}>
-            {delta > 0 ? '+' : ''}{delta} {t('home.live_status.pts_suffix')}
-          </Text>
+          <Text style={[styles.delta, { color: accent }]}>{deltaText}</Text>
           <Text style={styles.dot}>·</Text>
-          <Text style={styles.window}>
-            {t('home.live_status.last_label')} {formatAge(ageSec)}
-          </Text>
-          <Text style={styles.dot}>·</Text>
+          <Text style={styles.window}>{windowText}</Text>
+          {verbLabel ? <Text style={styles.dot}>·</Text> : null}
         </>
       ) : null}
-      <Text style={[styles.verb, { color: accent }]}>{verbLabel}</Text>
+      {verbLabel ? <Text style={[styles.verb, { color: accent }]}>{verbLabel}</Text> : null}
     </View>
   );
 }

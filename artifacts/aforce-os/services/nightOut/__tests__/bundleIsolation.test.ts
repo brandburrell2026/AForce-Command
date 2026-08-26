@@ -74,6 +74,11 @@ describe('NO-c production-bundle isolation (harness cannot ship / enable the fea
   it('the route guard is unchanged — /night-out still gates on isNightOutEnabled + redirects', () => {
     const route = read('app', 'night-out.tsx');
     expect(route).toMatch(/isNightOutEnabled\(flags, nightOutInternalPreviewContext\(\)\)/);
-    expect(route).toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
+    // Build-61 correction 5: the GATE is what this suite protects and it is
+    // untouched; only the unauthorized LANDING moved Protocol → Circle (a
+    // social entry point must not deposit the member on Protocol). Asserted
+    // both ways so the redirect can neither disappear nor drift back.
+    expect(route).toMatch(/Redirect href="\/\(tabs\)\/competition"/);
+    expect(route).not.toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
   });
 });

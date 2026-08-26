@@ -47,6 +47,73 @@ export const URINE_COLOR_OPTIONS: readonly UrineColorOption[] = [
   { color: 'dark_yellow', label: 'Dark Yellow', hex: '#B58A0E' },
 ] as const;
 
+/**
+ * Color tile → the persisted `urineSignal` scale (`types/index.ts`: 1 clear …
+ * 8 very dark; the server validates `int().min(1).max(8)`).
+ *
+ * STATUS: APPROVED FOR BETA / NOT SCIENTIFICALLY VALIDATED.
+ * Founder re-ratification 2026-08-14 (governance/URINE-COLOR-MAPPING-MEMO.md).
+ * No approved AForce science specification defines a numeric mapping. These are
+ * a deliberately conservative Phase-1 beta choice and must never be described as
+ * validated because tests pass.
+ *
+ * TWO CONSUMERS, TWO THRESHOLDS. The first ratification (1/2/4/7) was made on
+ * the incorrect belief that urine affected heat risk only. It affects BOTH:
+ *
+ *   HydroState score  utils/scoring/breakdown.ts
+ *                     `-max(0, urineSignal - 3) * 4`   penalises ABOVE 3
+ *   Heat risk         services/heatRiskEngine.ts
+ *                     `urineSignal >= 5 ? (s - 4) * 2 : 0`   penalises AT 5+
+ *
+ * Because the score's threshold is 3 and not 5, `yellow: 4` silently cost 4
+ * HydroState points — observed on device as an exact -4 drop. Both formulas are
+ * approved and UNCHANGED; only this mapping moved.
+ *
+ * Founder intent: clear, light_yellow and yellow must not directly penalise
+ * HydroState during Phase-1 beta; only dark_yellow crosses either threshold.
+ *
+ *   clear        1 -> score  0   heat 0
+ *   light_yellow 2 -> score  0   heat 0
+ *   yellow       3 -> score  0   heat 0     (exactly at the score threshold)
+ *   dark_yellow  5 -> score -8   heat 2
+ *
+ * `services/__tests__/urineMappingPenalties.test.ts` pins that table against BOTH
+ * formulas and fails if any future mapping makes yellow cross either threshold.
+ *
+ * The numeric value is internal: never shown to members, and no copy may imply
+ * the app measured urine concentration or hydration physiologically.
+ *
+ * Isolated here on purpose — replacing the mapping after science validation is a
+ * single-constant edit. Do not change these numbers without founder approval.
+ */
+export const URINE_COLOR_SIGNAL: Readonly<Record<UrineColor, number>> = {
+  clear: 1,
+  light_yellow: 2,
+  yellow: 3,
+  dark_yellow: 5,
+};
+
+/**
+ * The inverse, used to seed the screen from PERSISTED state so a reload shows
+ * what the member last recorded rather than an empty picker. Signals that fall
+ * between tiles (the scale is finer than the UI, and other surfaces may set any
+ * 1–8 value) resolve to the nearest tile; anything outside 1–8 resolves to null
+ * so a corrupt value renders as "nothing selected" rather than a wrong verdict.
+ */
+export function urineColorForSignal(signal: number): UrineColor | null {
+  if (!Number.isFinite(signal) || signal < 1 || signal > 8) return null;
+  let best: UrineColor | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const [color, value] of Object.entries(URINE_COLOR_SIGNAL) as [UrineColor, number][]) {
+    const distance = Math.abs(value - signal);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = color;
+    }
+  }
+  return best;
+}
+
 export function assessUrineColor(color: UrineColor): UrineCheckResult {
   const option = URINE_COLOR_OPTIONS.find((o) => o.color === color);
   // `color` is type-narrowed, so option is always defined; the

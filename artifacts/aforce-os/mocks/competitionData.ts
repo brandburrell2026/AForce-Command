@@ -61,7 +61,10 @@ export const MOCK_INDIVIDUALS: CompetitorUser[] = [
 ];
 
 export const MOCK_USER_CONTEXT: Pick<UserCompetitionContext, 'recentDelta'> = {
-  recentDelta: 12, // moved up 12 spots — used for the "personal best" wow moment
+  // "Moved up 12 spots" is a measurement of you against other people, and no
+  // source produces it — the founder banned that claim outright. Zero, so the
+  // pill stays off until /v1/competition can report real movement.
+  recentDelta: 0,
 };
 
 export const CURRENT_USER_KEY = CURRENT_USER_ID;

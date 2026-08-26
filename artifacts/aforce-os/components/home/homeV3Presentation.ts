@@ -8,9 +8,12 @@
  *  - The health chip claims "Live" only when the freshest biometric timestamp
  *    is genuinely recent (≤ LIVE_WINDOW_MS); otherwise it says "Synced", and
  *    with no connected source it tells the component to render nothing.
- *  - No clock times are fabricated anywhere: the Completed-today rows carry
- *    the derived period labels (Morning/Midday/Evening) from
- *    `deriveTodaysProtocol`, which this module does not re-derive.
+ *  - No clock times are fabricated anywhere. (The Completed-today rows this
+ *    once supported were deleted in Wave 5 along with `deriveTodaysProtocol`,
+ *    which inferred AForce-product completion from generic intake — see
+ *    `utils/homeDashboard.ts`. `trendTile` below is consequently exercised only
+ *    by its tests today; it is kept, unchanged and truthful, for the next
+ *    surface that needs a session trend.)
  *
  * Pure functions only — no store reads, no Date.now() defaults (callers pass
  * `now`), so everything here is trivially unit-testable and can never widen
@@ -23,7 +26,13 @@ import type { HealthProviderId } from '@/data/healthProviders';
 /** Freshness window within which the chip may claim "Live". */
 export const LIVE_WINDOW_MS = 30 * 60 * 1000;
 
-const EM_DASH = '—';
+/**
+ * The honest-data contract's "nothing observed" glyph. Exported since Wave 5
+ * so the first-launch evidence gate on Home can render the SAME symbol for a
+ * band it is not yet entitled to name, rather than inventing a second idiom
+ * for the same idea.
+ */
+export const EM_DASH = '—';
 
 /** 7.68 → "7h 41m"; null/invalid → "—". */
 export function formatSleepHours(hours: number | null | undefined): string {

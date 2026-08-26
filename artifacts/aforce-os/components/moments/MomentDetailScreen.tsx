@@ -11,16 +11,23 @@
  * are pure engine output (services/momentRecommendation.ts); I'M READY marks
  * the moment prepared in the Moments store only (Score Protection: nothing
  * here touches score or hydration state).
+ *
+ * Wave 5 closed three accessibility defects here: each ritual stage is now ONE
+ * accessibility element with a composed label (it used to read as three loose
+ * fragments), stage state is said in words rather than carried by green alone,
+ * and the ritual announces when it advances. The dead WHY THIS sheet — mounted
+ * but with no control that could ever open it, since WHY is answered inline
+ * below — was deleted.
  */
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, AccessibilityInfo, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useRouter } from 'expo-router';
 
 import { AFScreen, AFTopBar, AFPrimaryButton } from '@/components/ui';
 import { Icon, type IconName } from '@/components/Icon';
-import { af, afType, Spacing } from '@/theme';
+import { af, afType, afAlpha, afLayout, withAlpha, Spacing } from '@/theme';
 import type { Moment, MomentRecommendation, RitualStage } from '@/types/moments';
 import { updateMoment } from '@/services/momentsStore';
 import { markCalendarMomentPrepared } from '@/services/calendarMoments';
@@ -33,8 +40,13 @@ import {
   type MomentPrepFeedback,
 } from '@/services/momentFeedback';
 import { cancelMomentNotification } from '@/services/momentNotifications';
-import { clockLabel, prepWindowLabel, startsIn } from './momentsPresentation';
-import { WhyThisSheet } from './WhyThisSheet';
+import {
+  clockLabel,
+  prepWindowLabel,
+  ritualStageA11yLabel,
+  stageStateLabelKey,
+  startsIn,
+} from './momentsPresentation';
 
 const STAGE_ICON: Record<RitualStage['key'], IconName> = {
   pause: 'pause',
@@ -64,7 +76,6 @@ export function MomentDetailScreen({
 }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const [whyOpen, setWhyOpen] = React.useState(false);
   const eta = startsIn(moment.startAtIso, nowIso);
   const prepared = Boolean(moment.preparedAtIso);
   const learningOn = useFeatureFlags().moments_learning_enabled;
@@ -98,6 +109,41 @@ export function MomentDetailScreen({
     });
   };
 
+  // The ritual advances on its own — useMomentsData's 30s tick moves HYDRATE
+  // from upcoming to active while the screen is open. Sighted members watch
+  // the green move down; screen-reader users were told nothing. Android gets
+  // the polite live region on the ritual group below; RN marks
+  // `accessibilityLiveRegion` @platform android, so iOS gets an explicit
+  // announcement here — fired ONLY when the ACTIVE STAGE CHANGES, never on the
+  // tick itself, so this costs nothing on a re-render that only moved a clock.
+  const activeStage = rec.ritual.find((s) => s.state === 'active');
+  const activeStageKey = activeStage?.key ?? null;
+  const activeAnnouncementRef = React.useRef('');
+  activeAnnouncementRef.current = activeStage
+    ? ritualStageA11yLabel(
+        t(STAGE_TITLE_KEY[activeStage.key]),
+        t('moments.do_this_now'),
+        t(activeStage.instructionKey, activeStage.instructionParams),
+      )
+    : '';
+  const announcedStageRef = React.useRef<string | null>(null);
+  const hasMountedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    if (!hasMountedRef.current) {
+      // VoiceOver already reads the stage when focus lands on it; announcing
+      // on mount would double-speak the state the member just navigated to.
+      hasMountedRef.current = true;
+      announcedStageRef.current = activeStageKey;
+      return;
+    }
+    if (announcedStageRef.current === activeStageKey) return;
+    announcedStageRef.current = activeStageKey;
+    if (activeAnnouncementRef.current) {
+      AccessibilityInfo.announceForAccessibility(activeAnnouncementRef.current);
+    }
+  }, [activeStageKey]);
+
   return (
     <AFScreen scroll contentContainerStyle={styles.scrollContent}>
       <AFTopBar
@@ -125,7 +171,7 @@ export function MomentDetailScreen({
       </View>
 
       {/* The Ritual — one linear progression, active stage dominant */}
-      <View style={styles.ritual} testID="moment-ritual">
+      <View style={styles.ritual} accessibilityLiveRegion="polite" testID="moment-ritual">
         {rec.ritual.map((stage, i) => (
           <RitualStageRow
             key={stage.key}
@@ -172,6 +218,7 @@ export function MomentDetailScreen({
                   onPress={() => giveFeedback(k)}
                   style={styles.feedbackPill}
                   accessibilityRole="button"
+                  hitSlop={8}
                   testID={`moment-feedback-${k}`}
                 >
                   <Text style={styles.feedbackPillText}>{t(`moments.feedback.${k}`)}</Text>
@@ -181,8 +228,6 @@ export function MomentDetailScreen({
           )}
         </View>
       ) : null}
-
-      <WhyThisSheet rec={rec} visible={whyOpen} onClose={() => setWhyOpen(false)} />
     </AFScreen>
   );
 }
@@ -198,16 +243,31 @@ function RitualStageRow({
 }) {
   const active = stage.state === 'active';
   const done = stage.state === 'completed';
-  const accent = done ? af.green : active ? af.green : af.textTertiary;
+  const accent = done || active ? af.green : af.textTertiary;
+
+  const title = t(STAGE_TITLE_KEY[stage.key]);
+  // DONE / DO THIS NOW in words, or — for a stage still ahead — its own clock
+  // time. State stops depending on which green the node happens to be.
+  const stateKey = stageStateLabelKey(stage.state);
+  const meta = stateKey ? t(stateKey) : clockLabel(stage.atIso);
+  const instruction = t(stage.instructionKey, stage.instructionParams);
 
   return (
-    <View style={styles.stageRow}>
+    <View
+      style={styles.stageRow}
+      accessible
+      accessibilityLabel={ritualStageA11yLabel(title, meta, instruction)}
+      accessibilityState={{ selected: active }}
+      testID={`moment-stage-${stage.key}`}
+    >
       <View style={styles.stageRail}>
         <View
           style={[
             styles.stageNode,
             { borderColor: accent },
-            (done || active) && { backgroundColor: done ? af.green : `${af.green}26` },
+            (done || active) && {
+              backgroundColor: done ? af.green : withAlpha(af.green, afAlpha.a16),
+            },
           ]}
         >
           {done ? (
@@ -216,7 +276,14 @@ function RitualStageRow({
             <Icon name={STAGE_ICON[stage.key]} size={13} color={active ? af.green : af.textTertiary} />
           )}
         </View>
-        {!last && <View style={[styles.stageConnector, done && { backgroundColor: `${af.green}66` }]} />}
+        {!last && (
+          <View
+            style={[
+              styles.stageConnector,
+              done && { backgroundColor: withAlpha(af.green, afAlpha.a34) },
+            ]}
+          />
+        )}
       </View>
       <View
         style={[
@@ -227,14 +294,12 @@ function RitualStageRow({
       >
         <View style={styles.stageHeader}>
           <Text style={[styles.stageTitle, active && { color: af.green }, done && { color: af.textPrimary }]}>
-            {t(STAGE_TITLE_KEY[stage.key])}
+            {title}
           </Text>
-          <Text style={[styles.stageMeta, active && { color: af.green }]}>
-            {active ? t('moments.do_this_now') : clockLabel(stage.atIso)}
-          </Text>
+          <Text style={[styles.stageMeta, active && { color: af.green }]}>{meta}</Text>
         </View>
         <Text style={[styles.stageInstruction, active && { color: af.textPrimary }]}>
-          {t(stage.instructionKey, stage.instructionParams)}
+          {instruction}
         </Text>
       </View>
     </View>
@@ -262,7 +327,8 @@ const styles = StyleSheet.create({
   stageConnector: { flex: 1, width: 2, backgroundColor: af.divider, marginVertical: 4 },
   stageBody: { flex: 1, paddingBottom: 22, gap: 3 },
   stageBodyActive: {
-    backgroundColor: `${af.green}0D`, borderWidth: 1, borderColor: `${af.green}44`,
+    backgroundColor: withAlpha(af.green, afAlpha.a06), borderWidth: 1,
+    borderColor: withAlpha(af.green, afAlpha.a24),
     borderRadius: 14, padding: 12, marginBottom: 22, paddingBottom: 12,
   },
   stageBodyLast: { paddingBottom: 0, marginBottom: 0 },
@@ -282,8 +348,10 @@ const styles = StyleSheet.create({
   },
   feedbackLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
   feedbackRow: { flexDirection: 'row', gap: 8 },
+  // 44pt floor, not the 38pt the caption + padding happened to produce.
   feedbackPill: {
-    flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 999,
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    minHeight: afLayout.controlMinHeight, paddingVertical: 10, borderRadius: 999,
     borderWidth: 1, borderColor: af.border, backgroundColor: af.surfaceRaised,
   },
   feedbackPillText: { ...afType.caption, color: af.textSecondary },

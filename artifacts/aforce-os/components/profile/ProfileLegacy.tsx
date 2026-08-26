@@ -32,7 +32,7 @@ import { EditProfileModal } from '@/components/EditProfileModal';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { profileStrength } from '@/utils/profile/profileStrength';
 import type { UnitPreferences } from '@/utils/units';
-import { DEFAULT_FLAGS, demoUnlockAllFlags } from '@/featureFlags/flags';
+import { DEFAULT_FLAGS, demoUnlockAllFlags, developerControlsAvailable } from '@/featureFlags/flags';
 import { resolveInitialFeatureFlags } from '@/featureFlags/internalTestflightOverlay';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -985,7 +985,13 @@ export function ProfileLegacy() {
               </>
             );
 
-            const modulesCard = (
+            // Build-61 correction (device QA, P1): the MODULES card opens the
+            // INTERNAL evaluation launcher (Guardian / Clutch / Phantom, plus a
+            // Social card that resolved onto the Protocol tab through Night
+            // Out's gate). Same clamp as ProfileScreenV2's row and the
+            // launcher route itself — internal contexts only; ordinary members
+            // render nothing here.
+            const modulesCard = developerControlsAvailable() ? (
               <>
                 <SectionHeader label="MODULES" hint="Every engine module · internal evaluation" />
                 <View style={styles.card}>
@@ -1007,7 +1013,7 @@ export function ProfileLegacy() {
                   </Pressable>
                 </View>
               </>
-            );
+            ) : null;
 
             // Flag-gated public entry to the Weekly Performance Report™.
             // Hidden until `spec_weekly_report` is on (Build 100% · Show 10%);

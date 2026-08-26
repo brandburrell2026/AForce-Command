@@ -368,7 +368,13 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // each provider's credentials/approval land. When OFF (or not yet available)
   // the HEALTH PLATFORMS screen shows an honest status, never a fake connection.
   health_apple_enabled: false,
-  health_google_connect_enabled: false,
+  // Health Connect ACTIVATED for internal Android testing — founder ruling
+  // 2026-08-20 (the deliberate provider-activation flip the Foundation 1A
+  // lock anticipated; healthFlagsDefaultOff.test.ts pins this new truth).
+  // The member CTA remains Platform.OS === 'android'-gated, so iOS builds
+  // are behaviorally unchanged. The demo profile stays OFF — demo never
+  // activates a provider.
+  health_google_connect_enabled: true,
   health_whoop_enabled: false,
   health_oura_enabled: false,
   health_strava_enabled: false,

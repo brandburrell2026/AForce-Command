@@ -25,7 +25,12 @@ export { AFListRow, type AFListRowProps } from './AFListRow';
 // F3 · Primitives B
 export { AFTopBar, type AFTopBarProps, type AFTopBarAction } from './AFTopBar';
 export { AFCommandCard, type AFCommandCardProps } from './AFCommandCard';
-export { AFTimeline, type AFTimelineProps, type AFTimelineStep } from './AFTimeline';
+export {
+  AFTimeline,
+  timelineStepA11yLabel,
+  type AFTimelineProps,
+  type AFTimelineStep,
+} from './AFTimeline';
 export { AFChart, type AFChartProps } from './AFChart';
 export { AFDisclosureSheet, type AFDisclosureSheetProps } from './AFDisclosureSheet';
 export { AFEmptyState, type AFEmptyStateProps } from './AFEmptyState';

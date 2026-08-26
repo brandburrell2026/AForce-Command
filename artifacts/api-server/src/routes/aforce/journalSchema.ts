@@ -34,6 +34,14 @@ export const snapshotSchema = z.object({
   recoveryTrend: z.enum(["rising", "stable", "declining"]).optional(),
   recoveryFingerprint: z.string().regex(/^[0-9a-f]{8}$/).optional(),
   recoveryStory: z.string().max(280).optional(),
+  // Per-factor score deltas (additive instrumentation). Content-agnostic like
+  // the recovery fields, but bounded hard: short keys, finite numeric values,
+  // and a key-count cap so the column cannot become a free-form dumping ground.
+  // Values are deltas only — the client never sends labels or weights.
+  factorDeltas: z
+    .record(z.string().min(1).max(32), z.number().finite())
+    .refine((o) => Object.keys(o).length <= 24, { message: "too many factor keys" })
+    .optional(),
 });
 
 export type SnapshotInput = z.infer<typeof snapshotSchema>;

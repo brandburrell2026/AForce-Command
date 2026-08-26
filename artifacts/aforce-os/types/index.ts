@@ -402,6 +402,14 @@ export interface CycleResult {
   identityMessage: string;
   nextCycleHint: string;
   state: PerformanceLevel;
+  /**
+   * What was actually recorded, e.g. "12 oz Water". Stated independently of the
+   * score so a member whose HydroState is already capped still gets unmistakable
+   * confirmation: at 100/100 every score-framed cue reads "+0 · was 100 → now
+   * 100", which is indistinguishable from nothing having happened and is what
+   * invites a second, duplicate log.
+   */
+  recordedLabel: string;
 }
 
 export interface HistoryEntry {
@@ -446,7 +454,11 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   scoreDecayAlerts: true,
   morningKickoff: true,
   circleActivity: false,
-  challengeDeadlines: true,
+  // Wave-4 notification audit: nothing schedules anything ahead of a challenge
+  // expiry, so this defaulted every user ON to an alert class that can never
+  // fire. Defaults OFF until a real producer exists; the key itself stays so
+  // stored user choices need no migration.
+  challengeDeadlines: false,
   lowInventoryAlert: false,
   momentPrep: true, // delivery still requires BOTH moments flags (OFF in prod)
 };

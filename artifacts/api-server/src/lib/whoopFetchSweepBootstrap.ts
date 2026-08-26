@@ -44,6 +44,13 @@ import {
   withWhoopUserAdvisoryLock,
   type PgPoolLike,
 } from "./whoopAdvisoryLock";
+import { readWhoopEligibilityInput } from "./whoopRefreshControlStore";
+import {
+  resolveWhoopEligibility,
+  WHOOP_DATA_FRESH_MS,
+  type WhoopEligibility,
+} from "./whoopRefreshPolicy";
+import type { WhoopFetchOutcome } from "./whoopFetchWorker";
 
 export interface MaybeStartWhoopFetchSweepOpts {
   db: NodePgDatabase<Record<string, unknown>>;
@@ -82,6 +89,16 @@ export interface MaybeStartWhoopFetchSweepOpts {
    *  precedence over the env-gated default. Use to inject a fake
    *  lock in unit tests without touching env. */
   acquireLock?: AcquireUserSweepLock;
+  /** Freshness threshold override. Defaults to WHOOP_DATA_FRESH_MS (30 min,
+   *  founder-ratified); env `WHOOP_DATA_FRESH_MS` overrides when it parses
+   *  to a positive number. */
+  freshMs?: number;
+  /** TEST SEAM: override the eligibility reader (defaults to the drizzle
+   *  control-store read). Production code should not pass this. */
+  eligibilityGate?: (userId: string) => Promise<WhoopEligibility>;
+  /** TEST SEAM: override the per-user fetch runner (defaults to
+   *  `runWhoopFetchOnce` with production deps). */
+  runOnce?: (userId: string) => Promise<WhoopFetchOutcome>;
 }
 
 /**
@@ -143,6 +160,32 @@ export function maybeStartWhoopFetchSweep(
     ): Promise<{ acquired: true; value: T } | { acquired: false }> =>
       withWhoopUserAdvisoryLock(lockPool, userId, fn);
   }
+  const freshMsEnvRaw = env["WHOOP_DATA_FRESH_MS"];
+  const freshMsEnv = Number(freshMsEnvRaw);
+  const freshMs =
+    opts.freshMs ??
+    (freshMsEnvRaw && Number.isFinite(freshMsEnv) && freshMsEnv > 0
+      ? freshMsEnv
+      : WHOOP_DATA_FRESH_MS);
+  const eligibilityGate =
+    opts.eligibilityGate ??
+    (async (userId: string): Promise<WhoopEligibility> => {
+      const input = await readWhoopEligibilityInput(opts.db, userId);
+      // No token row: let the worker produce its canonical skipped_no_token.
+      if (input === null) return "fetch";
+      return resolveWhoopEligibility(input, Date.now(), freshMs);
+    });
+  const runOnce =
+    opts.runOnce ??
+    ((userId: string) =>
+      runWhoopFetchOnce(
+        userId,
+        buildDefaultWhoopFetchDeps(opts.db, userId, {
+          log,
+          refreshRegistry: opts.refreshRegistry,
+        }),
+      ));
+
   const stop = startWhoopFetchSweepLoop({
     intervalMs,
     log,
@@ -164,14 +207,24 @@ export function maybeStartWhoopFetchSweep(
         concurrency: opts.concurrency,
         acquireLock,
         log,
-        runOnce: (userId) =>
-          runWhoopFetchOnce(
-            userId,
-            buildDefaultWhoopFetchDeps(opts.db, userId, {
-              log,
-              refreshRegistry: opts.refreshRegistry,
-            }),
-          ),
+        runOnce: async (userId) => {
+          // WHOOP sweep redesign (2026-08-19): eligibility gate BEFORE any
+          // fetch work. A suppressed user costs one control-row read and
+          // zero provider calls. Gate failure fails OPEN to 'fetch' — a
+          // broken bookkeeping read must never silence the sweep, only the
+          // suppressions.
+          let gate: WhoopEligibility = "fetch";
+          try {
+            gate = await eligibilityGate(userId);
+          } catch (err) {
+            log.warn(
+              { userId, err: err instanceof Error ? err.message : String(err) },
+              "whoopFetchSweep:eligibility read failed — fetching anyway",
+            );
+          }
+          if (gate !== "fetch") return { userId, status: gate };
+          return runOnce(userId);
+        },
       });
     },
   });

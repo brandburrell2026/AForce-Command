@@ -72,12 +72,12 @@ export function LogIntakeRow({ accentColor }: Props) {
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-    logIntake(fluid);
+    logIntake(fluid, { source: 'manual' });
   };
 
   const handleWaterConfirm = (oz: number) => {
     setWaterPickerOpen(false);
-    logIntake('water', { ozOverride: oz });
+    logIntake('water', { ozOverride: oz, source: 'manual' });
   };
 
   const handleFlavorConfirm = (flavor: FlavorChoice | null) => {
@@ -88,7 +88,7 @@ export function LogIntakeRow({ accentColor }: Props) {
       const key = flavor.flavor as FlavoredKey;
       setLastFlavor((prev) => ({ ...prev, [fluid]: key }));
     }
-    logIntake(fluid, flavor ? { flavorLabel: flavor.label } : undefined);
+    logIntake(fluid, flavor ? { flavorLabel: flavor.label, source: 'manual' } : { source: 'manual' });
   };
 
   // Resolve the artwork for a tile: use the flavored render once a

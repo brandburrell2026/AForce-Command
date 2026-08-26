@@ -108,8 +108,17 @@ export const HEALTH_PROVIDER_CAPABILITIES: Record<HealthProviderId, ProviderCapa
   },
   samsung_health: {
     method: 'via_health_connect', platforms: ['android'], requiresExternalApproval: true,
-    recordTypes: ['sleep_session', 'resting_heart_rate', 'heart_rate_summary', 'workout', 'steps', 'active_energy'],
-    providerScores: [], hrvMethod: null, maxBackfillDays: 30, sync: 'push_from_device',
+    // G1 correction (founder-approved 2026-08-19): Samsung-origin HRV DOES
+    // arrive via Health Connect (Galaxy Watch/Ring write
+    // HeartRateVariabilityRmssdRecord), and the shipped mapper hard-codes
+    // RMSSD for every HC HRV record (mapRecords.ts GOOGLE_HRV_METHOD, with a
+    // never-sdnn guard). The registry previously said null/no-hrv — the
+    // cross-file inconsistency flagged in
+    // docs/health/validation/runbook-health-connect-samsung.md. Method is a
+    // PROVENANCE fact, not scoring: RMSSD and SDNN stay separate downstream
+    // (readinessSignals consumes rmssd only under an explicit method check).
+    recordTypes: ['sleep_session', 'resting_heart_rate', 'hrv', 'heart_rate_summary', 'workout', 'steps', 'active_energy'],
+    providerScores: [], hrvMethod: 'rmssd', maxBackfillDays: 30, sync: 'push_from_device',
     activationGates: ['arrives as upstream origin via Health Connect (no direct claim)', 'health_samsung_direct_enabled + partner SDK for direct'],
   },
   whoop: {

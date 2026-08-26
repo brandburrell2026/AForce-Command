@@ -1,0 +1,101 @@
+hook_id,hook,hook_type,topic,platform,audience,times_used,views,watch_rate,winner,notes
+H-001,There's a reason surgeons and boxers do the same thing before their biggest moments.,curiosity,culture,reels,all,0,,,,
+H-002,The most important part of your workout happens before you leave the house.,curiosity,performance,tiktok,P1,0,,,,
+H-003,A fruit most of America can't name might be the best flavor in hydration.,curiosity,soursop,tiktok,P4,0,,,,
+H-004,The best athletes in the world are boring for one hour a day. Same hour.,curiosity,culture,shorts,P1,0,,,,
+H-005,Your body makes a decision about tomorrow around nine tonight.,curiosity,recovery,reels,P1,0,,,,"payoff stays behavioral — sleep/prep framing, no medical claims"
+H-006,A name in an old spreadsheet saved this company.,curiosity,founder,linkedin,P2,0,,,,canon: our-story
+H-007,Why we put the pH on the can and not a promise.,curiosity,product,tiktok,P4,0,,,,pairs with SF-001
+H-008,What 'nothing added without a reason' actually costs us.,curiosity,ingredients,reels,P4,0,,,,
+H-009,The first physical action in a performance ritual. That's the whole product.,curiosity,product,reels,all,0,,,,canonical framing
+H-010,Motivation is overrated. Preparation doesn't care how you feel.,contrarian,culture,tiktok,all,0,,,,
+H-011,You don't have an energy problem. You have a preparation problem.,contrarian,performance,tiktok,P2,0,,,,
+H-012,Game day doesn't matter. It's already decided.,contrarian,performance,shorts,P1,0,,,,
+H-013,Stop training harder. Start arriving readier.,contrarian,performance,reels,P1,0,,,,
+H-014,The grind isn't the flex. The prep is.,contrarian,culture,x,all,0,,,,
+H-015,We're not going to tell you to drink more water.,contrarian,hydration,tiktok,P4,0,,,,
+H-016,Sodium isn't the villain your feed says it is.,educational,ingredients,shorts,P4,0,,,,ESTABLISHED lane; NIH ODS source; SF-002
+H-017,Your muscles wait for a signal. Potassium keeps it alive.,educational,ingredients,shorts,P1,0,,,,ESTABLISHED lane phrasing per CLAIMS.md
+H-018,Thirst is a lagging indicator. Here's what that means.,educational,hydration,tiktok,P4,0,,,,SF-004
+H-019,You lose more than water when you sweat.,educational,hydration,shorts,P1,0,,,,SF-010; ESTABLISHED lane
+H-020,Flying dehydrates you faster than you think. Nobody preps for it.,educational,travel,reels,P2,0,,,,"verify framing with Agent 07 — keep general, sourced"
+H-021,Electrolytes don't give you energy. They do something better.,educational,ingredients,shorts,P4,0,,,,payoff: regulation; SF-015
+H-022,Mild dehydration shows up in your focus before it shows up in your thirst.,educational,hydration,tiktok,P2,0,,,,Agent 07 to source; EMERGING flag until sourced
+H-023,Sweat rates vary hugely between people. Yours is knowable.,educational,hydration,shorts,P1,0,,,,QA: keep ranges sourced or drop numbers
+H-024,Hydration timing beats hydration volume. Here's the case.,educational,hydration,reels,P1,0,,,,EMERGING lane — frame as emerging
+H-025,That 3 PM crash might not be a sleep problem.,problem,hydration,tiktok,P2,0,,,,no cure claims — education framing only
+H-026,You trained for months. Then the morning got decided by something you skipped.,problem,performance,reels,P1,0,,,,
+H-027,Hotel rooms have ended more streaks than hard workouts ever did.,problem,travel,tiktok,P2,0,,,,
+H-028,Your water bottle is full. Your electrolytes are gone.,problem,hydration,tiktok,P1,0,,,,
+H-029,August training has different rules. Here they are.,problem,heat,shorts,P1,0,,,,seasonal; SF-017
+H-030,Six months ago I couldn't finish a 5K. Saturday I paced my first half.,transformation,community,tiktok,P1,0,,,,UGC voice — real creator stories only
+H-031,From 'it's impossible' to a pallet with our name on it.,transformation,founder,linkedin,P2,0,,,,canon
+H-032,I stopped chasing mornings and started building them.,transformation,lifestyle,reels,P4,0,,,,
+H-033,4:58 AM. Fort Lauderdale Beach. This is where it started.,story,founder,reels,P2,0,,,,canon; FD-001
+H-034,The fight is Saturday. This is Thursday. Watch what he does.,story,culture,reels,P1,0,,,,48 Hours Out
+H-035,She's been up since 4:40. Her patients will never know.,story,culture,reels,P3,0,,,,The Moment Before; respect rules
+H-036,The batch failed at 2 AM. We started again at 7.,story,founder,tiktok,P2,0,,,,VERIFY specifics with founders before use
+H-037,Two brothers. Two years of 'no.' One spreadsheet.,story,founder,shorts,P2,0,,,,canon
+H-038,I called my brother from the beach at 5 AM. He picked up. Everything changed.,story,founder,reels,P2,0,,,,canon; FD-002
+H-039,We read the NIH sodium page so you don't have to. Three things matter.,authority,ingredients,shorts,P4,0,,,,cite on screen
+H-040,The scientist who built our formula told us one thing we'll never forget.,authority,founder,tiktok,P2,0,,,,canon quote: 'I believe we can'
+H-041,"After two years of formulation failures, here's what we know about taste.",authority,product,reels,P4,0,,,,
+H-042,Name your non-negotiable. The one thing you never skip.,challenge,community,tiktok,all,0,,,,F08
+H-043,Do the first action before 8 AM for seven days. Report back.,challenge,lifestyle,tiktok,P4,0,,,,F07
+H-044,"Show us your 4:58. No filters, no music, no performance.",challenge,community,reels,all,0,,,,
+H-045,Seven days. One non-negotiable. Choose it publicly.,challenge,community,tiktok,all,0,,,,
+H-046,Film your moment before. Tag us. No production allowed.,challenge,community,tiktok,P1,0,,,,
+H-047,What does your last hour before pressure look like?,question,culture,reels,P2,0,,,,
+H-048,What's your arena?,question,community,tiktok,all,0,,,,F05 engine
+H-049,If tomorrow mattered more than usual — what would you do differently tonight?,question,performance,x,P2,0,,,,
+H-050,Why do the calmest people in the room always seem the most prepared?,question,culture,shorts,P3,0,,,,
+H-051,What's the first thing you complete every day?,question,lifestyle,tiktok,P4,0,,,,
+H-052,What's the one question about AForce you want answered plainly?,question,community,stories,P5,0,,,,Stated Plainly intake
+H-053,No music. No voiceover. Just what 5 AM sounds like.,pattern_interrupt,culture,reels,P1,0,,,,F09 Quiet Hours; SF-009
+H-054,This is not a morning routine video.,pattern_interrupt,lifestyle,tiktok,P4,0,,,,
+H-055,Pause. That's the first step. Literally.,pattern_interrupt,ritual,tiktok,all,0,,,,
+H-056,"POV: row 34, red-eye, water from the cart. Ritual intact.",pattern_interrupt,travel,tiktok,P2,0,,,,UGC-003
+H-057,'Alkaline water changes your body's pH.' We sell alkaline hydration. And that's not how it works.,myth,ingredients,shorts,P4,0,,,,SF-011 — honesty play; QA required
+H-058,Eight glasses a day is not the rule you think it is.,myth,hydration,tiktok,P4,0,,,,source the history; ESTABLISHED framing
+H-059,'Electrolytes are just marketing.' Half true. Here's the half that isn't.,myth,ingredients,tiktok,P1,0,,,,QA lane check
+H-060,Cramping isn't fully understood. Anyone who says otherwise is selling certainty.,myth,hydration,shorts,P1,0,,,,QA: no relief claims — honesty about science
+H-061,The biggest hydration mistake happens before 9 AM.,mistake,hydration,tiktok,P4,0,,,,
+H-062,We almost approved packaging we'd have regretted for years.,mistake,founder,reels,P2,0,,,,VERIFY story with founders
+H-063,Your pre-workout routine is missing its first step.,mistake,performance,tiktok,P1,0,,,,
+H-064,I used to save hydration for the workout. Backwards.,mistake,performance,shorts,P1,0,,,,
+H-065,Three things in your gym bag that matter more than your program.,list,lifestyle,tiktok,P1,0,,,,
+H-066,Seven demands. One ritual. Pick yours.,list,product,reels,all,0,,,,Demand system; SF-007
+H-067,Five things elite performers do before 7 AM. None of them are exciting.,list,culture,shorts,P2,0,,,,
+H-068,Four verbs. That's the whole system.,list,ritual,reels,all,0,,,,Pause. Hydrate. Lock-In. Perform.
+H-069,A surgeon and a wrestler wake up at the same 4:45. Different arenas.,comparison,culture,reels,P3,0,,,,F05; SF-013
+H-070,Two alarms. Same time. Completely different lives.,comparison,culture,tiktok,all,0,,,,F05
+H-071,Sticks vs. cans: the road vs. the ritual at home.,comparison,product,reels,P4,0,,,,
+H-072,Your playlist gets you hyped. Your preparation gets you ready. Not the same.,comparison,performance,tiktok,P1,0,,,,
+H-073,We spent two years being told our product was impossible.,confession,founder,linkedin,P2,0,,,,canon
+H-074,I don't love every part of building this company. Here's what I'd skip.,confession,founder,tiktok,P2,0,,,,[SLOT] real specifics
+H-075,"Honest answer: no, you don't need electrolytes for a 20-minute walk.",confession,product,tiktok,P4,0,,,,Stated Plainly trust play; SF-019
+H-076,'Isn't this just expensive salt?' Fair question. Real answer inside.,confession,product,tiktok,P4,0,,,,SF-008
+H-077,"In five years, nobody serious will train without a preparation ritual.",prediction,culture,x,P1,0,,,,opinion framing
+H-078,Soursop is about to be everywhere. You heard it here.,prediction,soursop,tiktok,P4,0,,,,
+H-079,The next flex isn't the workout. It's the calm.,prediction,culture,reels,all,0,,,,
+H-080,Preparation content is going to replace motivation content. Watch.,prediction,culture,x,P2,0,,,,
+H-081,"What does soursop even taste like? First-timers, on camera.",curiosity,soursop,tiktok,P4,0,,,,SF-006
+H-082,"Berry, explained by the people who tested more versions than they'll admit.",story,product,reels,P4,0,,,,VERIFY details
+H-083,The Variety Pack exists because your week isn't one flavor.,curiosity,product,reels,P4,0,,,,direct-response allocation
+H-084,The reps no one applauds are the ones that decide.,authority,culture,reels,P1,0,,,,two-beat close
+H-085,Being ready is quiet. That's why nobody posts about it.,contrarian,culture,x,all,0,,,,
+H-086,Composure is a skill. Nobody teaches it.,problem,culture,shorts,P3,0,,,,
+H-087,Some people romanticize the grind. We respect the prep.,comparison,culture,x,P2,0,,,,
+H-088,Tell us your arena. We're building something for the answers.,question,community,stories,P5,0,,,,
+H-089,My brother had a dream. Literally. It became half our company.,story,founder,reels,P2,0,,,,canon; FD-006 (Julius)
+H-090,The vision guy and the structure guy. We argue. It works.,comparison,founder,tiktok,P2,0,,,,FD-007
+H-091,Retail taught us a lesson no pitch deck could.,story,founder,linkedin,P2,0,,,,[SLOT] real story
+H-092,TSA can't stop your ritual. That's the point of the stick.,pattern_interrupt,sticks,tiktok,P2,0,,,,launch campaign
+H-093,Your carry-on has room for 20 servings of discipline.,curiosity,sticks,reels,P2,0,,,,launch campaign
+H-094,Recovery isn't rest. It's the second half of the work.,educational,recovery,shorts,P1,0,,,,behavioral framing
+H-095,Watermelon at 6 AM tastes like a decision.,curiosity,product,tiktok,P4,0,,,,flavor identity; type=lifestyle-ish
+H-096,Hydration brands sell drinks. The next one sells readiness.,prediction,culture,linkedin,P2,0,,,,meta-positioning; founder voice
+H-097,One day the moment will ask. Answer early.,prediction,culture,reels,all,0,,,,brand-line adjacent
+H-098,Delete every hack. Keep one ritual.,pattern_interrupt,performance,tiktok,P2,0,,,,
+H-099,"Which flavor starts your ritual — Watermelon, Soursop, or Berry?",question,product,stories,P4,0,,,,SF-018; poll mechanics
+H-100,We can't tell you the stick's full formula yet. Here's why.,confession,product,tiktok,P4,0,,,,PENDING formulation sign-off — honest teaser; QA required

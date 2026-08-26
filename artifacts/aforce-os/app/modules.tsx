@@ -1,24 +1,37 @@
 /**
- * Modules — visible internal evaluation surface.
+ * Modules — INTERNAL evaluation launcher (developer-gated).
  *
  * Per the FINAL build lock: "Build once. Evaluate everything.
  * Release later." Every engine module stays reachable from a single
  * place so Julius / Brandon (and any internal reviewer) can see the
- * whole product without Developer Mode gating or deep-link guessing.
+ * whole product without deep-link guessing.
  *
- * This is not a public-facing tab. It's a visible launcher, opened
- * from Profile → Modules.
+ * Build-61 correction (device QA, P1): this launcher shipped with NO gate.
+ * A production member could walk Profile → PROTOCOL TOOLS → All Modules and
+ * land on internal-tier surfaces (Guardian, Clutch, Phantom); the "Social"
+ * card in particular resolves through Night Out's authorization gate and
+ * deposited the member on the Protocol tab — the symptom the founder
+ * reported on device. The launcher is now clamped by
+ * `developerControlsAvailable()` — the SAME clamp that hides the Profile
+ * DEVELOPER tab (local dev, env-gated demo builds, internal TestFlight).
+ * "Evaluate everything" was always an INTERNAL promise; production users
+ * were never its audience.
+ *
+ * This is not a public-facing tab. It's a launcher, opened from
+ * Profile → PROTOCOL TOOLS → All Modules (that row carries the same clamp,
+ * so in production the entry point is invisible AND the route is dead).
  */
 
 import React from 'react';
 import {
   View, Text, ScrollView, Pressable, StyleSheet, Platform,
 } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/theme/colors';
+import { developerControlsAvailable } from '@/featureFlags/flags';
 import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
@@ -85,15 +98,17 @@ const MODULES: ModuleEntry[] = [
     tint: '#FF2D55',
     gate: 'Flag-gated · phantom_wearable_enabled',
   },
-  {
-    id: 'recovery',
-    title: 'Recovery',
-    blurb: 'Recovery score · replenishment plan · cut-off time',
-    href: '/cruise/recovery',
-    icon: 'refresh-cw',
-    tint: '#1FA35A',
-    gate: 'Flag-gated · spec_cruise',
-  },
+  // Recovery is deliberately ABSENT from this launcher (Build-65 device QA).
+  // The entry pointed at `/cruise/recovery`, which has never existed as a route
+  // — expo-router could not resolve it, so choosing Recovery fell back to Home.
+  // An affordance that names a destination and delivers a different one is
+  // worse than no affordance, so it is removed rather than repointed: inventing
+  // a destination is a product decision, not a bug fix.
+  //
+  // The Recovery IMPLEMENTATION is untouched and stays dark behind its existing
+  // governance (`spec_recoveryCoach`, default OFF, surfaced by
+  // `components/home/RecoveryCoachEntry.tsx`). `lib/__tests__/moduleRouteTargets.test.ts`
+  // now fails if any launcher entry names a route that does not exist.
   {
     id: 'science',
     title: 'Science',
@@ -153,7 +168,21 @@ const MODULES: ModuleEntry[] = [
   },
 ];
 
-export default function ModulesScreen() {
+/**
+ * Route entry. Kept hook-free so the gate can return before
+ * `ModulesLauncher` mounts any hooks (rules-of-hooks safe). Production
+ * lands back on Profile — the screen this launcher is opened from, and a
+ * terminal tab, so there is no redirect loop and nothing an evaluator
+ * could reach is silently swallowed in an internal build.
+ */
+export default function ModulesRoute() {
+  if (!developerControlsAvailable()) {
+    return <Redirect href="/(tabs)/profile" />;
+  }
+  return <ModulesLauncher />;
+}
+
+function ModulesLauncher() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === 'web';

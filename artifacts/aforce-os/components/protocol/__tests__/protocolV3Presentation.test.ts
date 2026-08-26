@@ -5,12 +5,15 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { LIVE_WINDOW_MS } from '@/components/home/homeV3Presentation';
+import { LIVE_WINDOW_MS, formatHrvMs } from '@/components/home/homeV3Presentation';
 import {
   formatBpm,
   hydrationProgress,
   signalsAreLive,
   ringFraction,
+  anySignalReported,
+  shouldAcknowledgeProgress,
+  EM_DASH,
 } from '../protocolV3Presentation';
 
 const NOW = 1_754_900_000_000;
@@ -51,11 +54,76 @@ describe('signalsAreLive', () => {
   });
 });
 
+describe('anySignalReported', () => {
+  it('is false only when EVERY value is the formatters\' own "no reading" mark', () => {
+    expect(anySignalReported(EM_DASH, EM_DASH)).toBe(false);
+    expect(anySignalReported(EM_DASH, '54 ms')).toBe(true);
+    expect(anySignalReported('58 bpm', EM_DASH)).toBe(true);
+  });
+
+  it('composes with the real formatters — a fully unreported pair collapses the tiles', () => {
+    // The screen swaps the two bordered tiles for one sentence on false; a
+    // single real reading is enough to keep them, so nothing is ever hidden.
+    expect(anySignalReported(formatBpm(null), formatHrvMs(null))).toBe(false);
+    expect(anySignalReported(formatBpm(0), formatHrvMs(Number.NaN))).toBe(false);
+    expect(anySignalReported(formatBpm(58), formatHrvMs(null))).toBe(true);
+  });
+
+  it('treats an empty argument list as nothing reported (never a stray true)', () => {
+    expect(anySignalReported()).toBe(false);
+  });
+});
+
 describe('ringFraction', () => {
   it('clamps and survives an empty plan', () => {
     expect(ringFraction(2, 4)).toBe(0.5);
     expect(ringFraction(5, 4)).toBe(1);
     expect(ringFraction(0, 0)).toBe(0);
     expect(ringFraction(1, Number.NaN)).toBe(0);
+  });
+});
+
+/**
+ * Wave-5 — RITUAL PROGRESSION, one of the four signature moments and one of the
+ * four named haptic moments. The rule has to be narrow: the Protocol screen
+ * re-derives its plan on every store change, so "the count is N" fires
+ * constantly and only "the count went UP" is progress. "Do not vibrate
+ * frequently" is enforced here, not at the call site.
+ */
+describe('shouldAcknowledgeProgress — the Ritual progression gate', () => {
+  it('acknowledges a step completing', () => {
+    expect(shouldAcknowledgeProgress(1, 2)).toBe(true);
+  });
+
+  it('acknowledges the first step of the day', () => {
+    expect(shouldAcknowledgeProgress(0, 1)).toBe(true);
+  });
+
+  it('acknowledges a multi-step jump once (a batched store update)', () => {
+    expect(shouldAcknowledgeProgress(0, 3)).toBe(true);
+  });
+
+  it('is SILENT on first render — arriving with steps already done is not progress', () => {
+    expect(shouldAcknowledgeProgress(null, 0)).toBe(false);
+    expect(shouldAcknowledgeProgress(null, 4)).toBe(false);
+  });
+
+  it('is silent when the count is unchanged (the common re-render)', () => {
+    expect(shouldAcknowledgeProgress(2, 2)).toBe(false);
+    expect(shouldAcknowledgeProgress(0, 0)).toBe(false);
+  });
+
+  it('is silent when a step un-completes (a correction is not a win)', () => {
+    expect(shouldAcknowledgeProgress(3, 2)).toBe(false);
+  });
+
+  it('is silent on a day rollover back to zero', () => {
+    expect(shouldAcknowledgeProgress(4, 0)).toBe(false);
+  });
+
+  it('never fires on a non-finite count', () => {
+    expect(shouldAcknowledgeProgress(NaN, 2)).toBe(false);
+    expect(shouldAcknowledgeProgress(1, NaN)).toBe(false);
+    expect(shouldAcknowledgeProgress(1, Infinity)).toBe(false);
   });
 });

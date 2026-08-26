@@ -15,6 +15,7 @@ import type { ProfileIdentity } from '../../utils/profileIdentity';
 import type { SupportedLanguage } from '../../services/i18nService';
 import type { VoiceIntensity, VoiceScope } from '../../services/voice/commandVoice';
 import type { FacadeState } from './facadeState';
+import type { IntakeSource } from '@/services/intakeSource';
 
 export interface AppContextValue {
   /**
@@ -38,6 +39,8 @@ export interface AppContextValue {
       silent?: boolean;
       ozOverride?: number;
       flavorLabel?: string;
+      /** Which surface is logging — record-only provenance. */
+      source?: IntakeSource;
       /**
        * When set, completely replaces the auto-built history action label
        * ("Logged Stick — Berry Blast (12 ounces)") with a caller-supplied

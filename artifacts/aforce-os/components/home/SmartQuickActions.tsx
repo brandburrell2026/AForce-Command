@@ -26,6 +26,7 @@ import {
   type QuickAction,
 } from '@/utils/logging/quickActions';
 import type { FluidType } from '@/types';
+import type { IntakeSource } from '@/services/intakeSource';
 
 interface QuickLogActions {
   logIntake?: (
@@ -34,6 +35,8 @@ interface QuickLogActions {
       silent?: boolean;
       ozOverride?: number;
       flavorLabel?: string;
+      /** Which surface is logging — record-only provenance. */
+      source?: IntakeSource;
       displayNameOverride?: string;
       categoryId?: string;
     },
@@ -89,6 +92,7 @@ export function SmartQuickActions() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       }
       void logIntake(action.fluidType, {
+        source: 'home',
         ...(action.ozOverride != null ? { ozOverride: action.ozOverride } : {}),
         ...(action.flavorLabel ? { flavorLabel: action.flavorLabel } : {}),
       });

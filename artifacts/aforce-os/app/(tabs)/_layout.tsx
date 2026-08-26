@@ -27,7 +27,6 @@ import { Redirect, Tabs } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
-import * as Haptics from 'expo-haptics';
 import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
@@ -93,17 +92,18 @@ function PlainTabButton(props: Record<string, unknown>) {
       accessibilityLabel?: string;
       testID?: string;
     };
-  // Light haptic tick on tab switch (native only; no-op on web).
-  const handlePress = React.useCallback(() => {
-    if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
-    }
-    onPress?.();
-  }, [onPress]);
+  // Wave-5 REMOVAL — no haptic on tab switch.
+  //
+  // This was the single most frequent vibration in the product: every tab press,
+  // all day, for navigation the member can already see happen. The founder's
+  // rule is "do not vibrate frequently", and the four moments that are allowed
+  // to reach the hand are named in `components/ui/motionLogic.ts` — moving
+  // between screens is not one of them. A haptic has to mean something, and one
+  // that fires on every press means nothing.
 
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={onPress as (() => void) | undefined}
       accessibilityRole="button"
       accessibilityState={accessibilityState as never}
       accessibilityLabel={accessibilityLabel}

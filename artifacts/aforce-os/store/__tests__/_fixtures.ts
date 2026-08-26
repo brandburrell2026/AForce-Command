@@ -262,6 +262,7 @@ export function makeCycleResult(scoreAfter = 80): CycleResult {
     identityMessage: 'You are AForce.',
     nextCycleHint: 'Stay sharp.',
     state: 'PEAK',
+    recordedLabel: '12 oz Water',
   };
 }
 

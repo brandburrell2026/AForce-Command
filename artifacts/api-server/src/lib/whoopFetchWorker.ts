@@ -52,6 +52,10 @@ import {
 } from "./whoopTokenManager";
 import type { WhoopRefreshRegistry } from "./whoopRefreshRegistry";
 import {
+  clearWhoopRefreshFailureState,
+  recordWhoopRefreshFailure,
+} from "./whoopRefreshControlStore";
+import {
   fetchWhoopSnapshot,
   whoopSnapshotToProviderBlob,
   type WhoopSnapshot,
@@ -182,6 +186,11 @@ export function buildDefaultWhoopFetchDeps(
     config,
     refreshCoordinator: opts.refreshRegistry?.coordinatorFor(userId),
     log: opts.log,
+    // WHOOP sweep redesign (2026-08-19): refresh outcomes drive the
+    // exponential-backoff / needs_reauth scheduling state. Fire-and-forget by
+    // the manager's contract — bookkeeping can never break the token path.
+    onRefreshSuccess: () => clearWhoopRefreshFailureState(db, userId),
+    onRefreshFailure: () => recordWhoopRefreshFailure(db, userId, Date.now()),
   });
   return {
     tokenManager,

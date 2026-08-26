@@ -236,6 +236,16 @@ export const aforceScoreSnapshots = pgTable(
     // centrally by lib/db/src/scoreSnapshotRepo.ts — routes can neither
     // supply nor omit it (founder Decision 5).
     hydroStateModelVersion: text("hydrostate_model_version"),
+    /**
+     * Per-factor score deltas captured at write time (additive instrumentation,
+     * founder-approved 2026-08-18; design in
+     * governance/SCORE-SNAPSHOT-INSTRUMENTATION-PROPOSAL.md). Keys are the
+     * factor ids the canonical breakdown already computes, plus `raw` and
+     * `clamped` so a row is self-checking. Values are DELTAS only — labels and
+     * maxMagnitude (the proprietary weights) are never persisted. NULL means
+     * "captured before instrumentation", never "all factors were zero".
+     */
+    factorDeltas: jsonb("factor_deltas").$type<Record<string, number>>(),
     capturedAt: timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
@@ -349,9 +359,10 @@ export type InsertAforceAchievement = typeof aforceAchievements.$inferInsert;
 
 /* ─── Territory battles (regional rivalries) ──────────────────────────────── */
 /**
- * Per-user persisted view of active battles. Battles are surfaced from
- * MOCK_BATTLES on first read if a user has none — preserves the demo
- * experience while making support/open mutations real and durable.
+ * Per-user persisted view of active battles — only battles the user
+ * actually opened. An earlier build seeded MOCK_BATTLES here on first
+ * read; that write is gone (see routes/battles.ts) and any row it left
+ * behind is excluded on read rather than deleted.
  */
 export const aforceBattles = pgTable(
   "aforce_battles",
@@ -723,6 +734,18 @@ export const aforceWhoopTokens = pgTable(
     /** Space-separated scopes the user granted (e.g. 'offline read:recovery …').
      *  Null when the WHOOP token endpoint didn't echo `scope` back. */
     scope: text("scope"),
+    // ── WHOOP refresh control (2026-08-19, founder-approved additive migration;
+    //    governance/WHOOP-SWEEP-REDESIGN.md). Scheduling state ONLY — these
+    //    never affect token values, snapshot values, or scoring, and rows are
+    //    never deleted automatically. NULLs mean "no failure history". ──
+    /** Consecutive refresh failures. Cleared by any successful refresh/re-auth. */
+    refreshFailureCount: integer("refresh_failure_count"),
+    /** Automatic refresh must not retry before this instant (exponential
+     *  backoff, 24h cap). */
+    refreshBackoffUntil: timestamp("refresh_backoff_until", { withTimezone: true }),
+    /** Latched after 8 consecutive failures: the member must re-authenticate;
+     *  automatic retries stop until they do. */
+    needsReauth: boolean("needs_reauth"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

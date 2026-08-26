@@ -24,10 +24,16 @@ describe('NO-b — visibility gating (unauthorized cannot see / enter Night Out)
 });
 
 describe('NO-b — route wiring (gated entry, safe redirects, no loops)', () => {
-  it('the /night-out route is authorization-gated and redirects to Protocol when unauthorized', () => {
+  // Build-61 correction (device QA, P1): the unauthorized landing for Night
+  // Out's routes moved Protocol → Circle. Protocol's job is TODAY / NEXT / WHY
+  // / PROGRESS; a social entry point that cannot open must not deposit the
+  // member there. The assertion is retargeted, not relaxed — the gate check,
+  // the no-loop checks, and a NEW "never lands on Protocol" check all hold.
+  it('the /night-out route is authorization-gated and redirects to Circle (never Protocol) when unauthorized', () => {
     const route = read('app', 'night-out.tsx');
     expect(route).toMatch(/isNightOutEnabled/);
-    expect(route).toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
+    expect(route).toMatch(/Redirect href="\/\(tabs\)\/competition"/);
+    expect(route).not.toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
     // no self-loop / no redirect back to a Night Out alias
     expect(route).not.toMatch(/Redirect href="\/night-out"/);
     expect(route).not.toMatch(/Redirect href="\/social/);
@@ -47,10 +53,12 @@ describe('NO-b — route wiring (gated entry, safe redirects, no loops)', () => 
     expect(sv2).not.toMatch(/SocialModeV2Screen/); // no longer mounts the screen directly
   });
 
-  it('the legacy /social alias is authorization-gated (cannot bypass in production)', () => {
+  it('the legacy /social alias is authorization-gated (cannot bypass in production) and lands on Circle', () => {
     const social = read('app', '(tabs)', 'social.tsx');
     expect(social).toMatch(/isNightOutEnabled/);
-    expect(social).toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
+    // Build-61: same Protocol → Circle move as `/night-out` above.
+    expect(social).toMatch(/Redirect href="\/\(tabs\)\/competition"/);
+    expect(social).not.toMatch(/Redirect href="\/\(tabs\)\/protocol"/);
     // no self-loop back to a Night Out alias
     expect(social).not.toMatch(/Redirect href="\/social/);
     expect(social).not.toMatch(/Redirect href="\/night-out"/);

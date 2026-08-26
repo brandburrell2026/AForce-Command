@@ -321,7 +321,7 @@ export function SubscriptionScreenV2() {
           <Text style={styles.subtitle}>{t('subscription.v2.subtitle')}</Text>
 
           {/* Category filter */}
-          <View style={styles.filterRow}>
+          <View style={styles.filterRow} accessibilityRole="tablist">
             {availableFilters.map((f) => {
               const active = filter === f.id;
               return (
@@ -330,6 +330,7 @@ export function SubscriptionScreenV2() {
                   onPress={() => setFilter(f.id)}
                   style={[styles.filterBtn, active && styles.filterBtnActive]}
                   accessibilityRole="tab"
+                  hitSlop={{ top: 7, bottom: 7 }}
                   accessibilityState={{ selected: active }}
                 >
                   <Text style={[styles.filterText, active && styles.filterTextActive]}>{t(`subscription.v2.${f.labelKey}`)}</Text>

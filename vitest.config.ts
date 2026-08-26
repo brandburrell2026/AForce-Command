@@ -40,15 +40,30 @@ export default defineConfig({
       'artifacts/aforce-os/components/home/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/home/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/protocol/__tests__/**/*.test.ts',
+      // Build 61 correction: the cold-launch cinematic had no suite at all, and
+      // shipped a fabricated readiness number for two builds as a result.
+      'artifacts/aforce-os/components/opening/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/opening/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/hydration/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/hydration/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/urine/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/urine/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/community/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/moments/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/moments/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/notifications/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cart/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/subscription/__tests__/**/*.test.ts',
+      // Wave-5 Phase-1 a11y pass: `components/__tests__/` was matched for
+      // `*.render.test.tsx` ONLY, so the Wave-5 Parts 20/21 accessibility lock
+      // (`a11yContrastAndTargets.test.ts`, a plain `.test.ts` source scan)
+      // silently never ran — an unenforced beta gate. Accessibility is a beta
+      // gate; its lock has to be able to fail CI.
+      'artifacts/aforce-os/components/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/nightOut/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cruise/__tests__/**/*.render.test.tsx',
@@ -93,8 +108,17 @@ export default defineConfig({
       // convention documented in homeScreenV2Wiring.test.ts).
       ['artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // Wave 5 loading-state pass — the Performance Signal and Moments loading
+      // skeletons (pure, store-free subcomponents, same convention as the two
+      // lines above; their connected screens stay source-guard-tested).
+      ['artifacts/aforce-os/components/hydration/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      ['artifacts/aforce-os/components/urine/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      ['artifacts/aforce-os/components/moments/__tests__/**/*.render.test.tsx', 'happy-dom'],
       // VS 3.0 P2 — Journal summary-widget render harnesses render to a DOM.
       ['artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // Build 61 — the cold-launch cinematic's readiness-number lock renders
+      // the real overlay to a DOM (its stage timeline is the thing under test).
+      ['artifacts/aforce-os/components/opening/__tests__/**/*.render.test.tsx', 'happy-dom'],
     ],
     reporters: 'default',
   },

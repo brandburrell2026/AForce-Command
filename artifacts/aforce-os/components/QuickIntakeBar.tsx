@@ -22,7 +22,7 @@ export function QuickIntakeBar({ accentColor }: Props) {
   const handleLog = (fluidType: FluidType) => {
     if (state.isCompletingCycle) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    logIntake(fluidType);
+    logIntake(fluidType, { source: 'home' });
   };
 
   return (

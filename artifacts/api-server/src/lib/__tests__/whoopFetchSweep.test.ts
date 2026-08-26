@@ -58,6 +58,9 @@ describe("runWhoopFetchSweep", () => {
       skipped_no_token: 1,
       skipped_no_state: 1,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 1,
     });
     expect(result.startedAt).toBe(1_000_000);
@@ -81,6 +84,9 @@ describe("runWhoopFetchSweep", () => {
       skipped_no_token: 0,
       skipped_no_state: 0,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 0,
     });
   });
@@ -225,6 +231,9 @@ describe("runWhoopFetchSweepStreaming", () => {
       skipped_no_token: 0,
       skipped_no_state: 0,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 0,
     });
     expect(result.startedAt).toBe(5_000);
@@ -266,6 +275,9 @@ describe("runWhoopFetchSweepStreaming", () => {
       skipped_no_token: 1,
       skipped_no_state: 1,
       skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
       error: 1,
     });
   });
@@ -409,6 +421,9 @@ describe("startWhoopFetchSweepLoop", () => {
             skipped_no_token: 0,
             skipped_no_state: 0,
             skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
             error: 0,
           },
           startedAt: 0,
@@ -443,6 +458,9 @@ describe("startWhoopFetchSweepLoop", () => {
             skipped_no_token: 0,
             skipped_no_state: 0,
             skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
             error: 0,
           },
           startedAt: 0,
@@ -477,6 +495,9 @@ describe("startWhoopFetchSweepLoop", () => {
             skipped_no_token: 0,
             skipped_no_state: 0,
             skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
             error: 0,
           },
           startedAt: 0,
@@ -537,6 +558,9 @@ describe("startWhoopFetchSweepLoop", () => {
             skipped_no_token: 0,
             skipped_no_state: 0,
             skipped_locked: 0,
+      skipped_fresh: 0,
+      skipped_backoff: 0,
+      skipped_needs_reauth: 0,
             error: 0,
           },
           startedAt: 0,

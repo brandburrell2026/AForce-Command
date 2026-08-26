@@ -1,10 +1,11 @@
 /**
  * Hydration Scan screen.
  *
- * Premium scan-to-decide surface. On native this would drive an
- * Expo Camera barcode scanner; in the workspace preview (web) we ship
- * a mock scan tray that lets the user (or test runner) trigger any
- * known barcode, plus a manual search field as a fallback.
+ * Premium scan-to-decide surface. On native this drives the Expo Camera
+ * barcode scanner; a manual search field is the fallback on every platform.
+ * The mock "PREVIEW SCAN" tray is dev/demo-only (PREVIEW_SCAN_ENABLED) —
+ * a simulated scan persists like a real one, so members must never be able
+ * to author one.
  *
  * The screen itself is fully wired: scan → recognize → score under the
  * comparison engine → recommend → log intake into the live store.
@@ -20,12 +21,13 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { fireMoment } from '@/services/haptics';
 import { Icon } from '@/components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -46,6 +48,7 @@ import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { af } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
+import { PREVIEW_SCAN_ENABLED } from '@/services/demoMode';
 import { emit } from '@/analytics/event_dispatcher';
 import { listSimulatableBarcodes, AFORCE_SHELF_SKUS } from '@/services/productRecognitionService';
 import { buildScanCoachScript } from '@/services/scanCoachVoice';
@@ -109,11 +112,13 @@ export function HydrationScanScreenV2() {
     [detailSheetEnabled, state.userState.biometrics],
   );
 
-  // Success flash overlay — fires after a successful log, fades a PEAK
-  // tint over the screen, plays a Success haptic, and pops back to Home
-  // ~800ms later. Per spec §11: 20% PEAK over 300ms + Haptics.Success
-  // then router.back() at 800ms so the user gets a satisfying confirmation
-  // moment before returning to the dashboard.
+  // SIGNATURE MOMENT — HYDRATION COMPLETION. Fires after a successful log:
+  // fades a PEAK tint over the screen, lands the `hydration_logged` haptic, and
+  // pops back to Home ~800ms later. Per spec §11: 20% PEAK over 300ms then
+  // router.back() at 800ms, so the acknowledgement is felt before the screen
+  // leaves. This is the only moment in Phase 1 where the member changed
+  // something about their body, so it is the one that most earns a haptic —
+  // and it is now the ONLY thing a scan vibrates for (see runScan below).
   const flashOpacity = useSharedValue(0);
   const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.value }));
   // Track the pending router.back() so a manual back-nav (or unmount)
@@ -126,16 +131,18 @@ export function HydrationScanScreenV2() {
         clearTimeout(flashTimeoutRef.current);
         flashTimeoutRef.current = null;
       }
+      // The flash is finite, but a back-nav during it would otherwise leave the
+      // tween running on the UI thread past unmount (Wave-4 rule: nothing
+      // animates for a screen that is gone).
+      cancelAnimation(flashOpacity);
     };
-  }, []);
+  }, [flashOpacity]);
   const triggerSuccessFlash = useCallback(() => {
     flashOpacity.value = withSequence(
       withTiming(0.2, { duration: 300, easing: Easing.out(Easing.cubic) }),
       withTiming(0, { duration: 500, easing: Easing.in(Easing.cubic) }),
     );
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    }
+    fireMoment('hydration_logged');
     if (flashTimeoutRef.current !== null) clearTimeout(flashTimeoutRef.current);
     flashTimeoutRef.current = setTimeout(() => {
       flashTimeoutRef.current = null;
@@ -148,33 +155,19 @@ export function HydrationScanScreenV2() {
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom;
 
-  // Pulsing scan ring
-  const ringScale = useSharedValue(1);
-  const ringOpacity = useSharedValue(0.7);
-  useEffect(() => {
-    ringScale.value = withRepeat(
-      withSequence(
-        withTiming(1.15, { duration: 1400, easing: Easing.out(Easing.cubic) }),
-        withTiming(1, { duration: 1400, easing: Easing.in(Easing.cubic) }),
-      ),
-      -1,
-      false,
-    );
-    ringOpacity.value = withRepeat(
-      withSequence(
-        withTiming(0.25, { duration: 1400 }),
-        withTiming(0.7, { duration: 1400 }),
-      ),
-      -1,
-      false,
-    );
-  }, [ringScale, ringOpacity]);
-
-  const ringStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: ringScale.value }],
-    opacity: ringOpacity.value,
-  }));
-
+  // Wave-5 REMOVAL — the scan ring no longer pulses.
+  //
+  // Wave-4 found this as two ungated, un-torn-down `withRepeat(..., -1)` loops
+  // and Wave-5 round 1 gated them. This round finishes the job: per the
+  // founder's motion brief, constant pulsing is REMOVED rather than tuned down,
+  // and a viewfinder does not need a heartbeat to say it is armed — the live
+  // camera preview inside it already does. Deleting it also takes the last
+  // unbounded UI-thread loop off the scan surface, so an open scanner now costs
+  // nothing per frame while it waits.
+  //
+  // The ring itself stays: it is the framing target. It is simply a static
+  // stroke now, drawn at the resting scale/opacity the reduced-motion branch
+  // already used — so a reduced-motion member sees exactly what everyone sees.
   const simulatable = useMemo(() => listSimulatableBarcodes(), []);
 
   // Other-brand chips for the "Other Brands" tab — every simulatable
@@ -246,12 +239,13 @@ export function HydrationScanScreenV2() {
           performanceState: state.engineOutput.performanceState.level,
           recommendedProductId: out.result.recommendation.aforceEquivalentId ?? null,
         });
-        if (Platform.OS !== 'web') {
-          Haptics.notificationAsync(
-            out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal'
-              ? Haptics.NotificationFeedbackType.Warning
-              : Haptics.NotificationFeedbackType.Success,
-          ).catch(() => {});
+        // MEANINGFUL STATE TRANSITION — and only when there is one. A good
+        // verdict used to buzz too, which made every single scan vibrate; the
+        // result card arriving is acknowledgement enough for "this is fine".
+        // A poor verdict is AForce changing its read of the member's next
+        // move, so that one still reaches the hand.
+        if (out.result.verdict === 'avoid' || out.result.verdict === 'suboptimal') {
+          fireMoment('state_transition');
         }
       }
     } finally {
@@ -342,7 +336,7 @@ export function HydrationScanScreenV2() {
     if (!fluid) return;
     setLogging(true);
     try {
-      await logIntake(fluid);
+      await logIntake(fluid, { source: 'scan' });
       triggerSuccessFlash();
     } finally {
       setLogging(false);
@@ -356,7 +350,7 @@ export function HydrationScanScreenV2() {
       | 'aforce_stick' | 'aforce_rtd' | 'aforce_canister' | 'aforce_bulk_bag';
     setLogging(true);
     try {
-      await logIntake(fluid);
+      await logIntake(fluid, { source: 'scan' });
       triggerSuccessFlash();
     } finally {
       setLogging(false);
@@ -432,6 +426,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} \u00b7 ${args.enteredOz} oz`,
         categoryId: args.categoryId,
@@ -461,6 +456,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
         categoryId: args.categoryId,
@@ -488,6 +484,7 @@ export function HydrationScanScreenV2() {
     setLogging(true);
     try {
       await logIntake(cat.fluidType, {
+        source: 'scan',
         ozOverride: args.effectiveOz,
         displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
         categoryId: args.categoryId,
@@ -533,7 +530,7 @@ export function HydrationScanScreenV2() {
               { opacity: Platform.OS === 'web' ? 1 : pressed ? 0.85 : 1 },
             ]}
           >
-            <Animated.View style={[styles.ring, ringStyle]} />
+            <View style={styles.ring} />
             <View style={styles.reticule}>
               <View style={[styles.cornerTL, styles.corner]} />
               <View style={[styles.cornerTR, styles.corner]} />
@@ -550,120 +547,130 @@ export function HydrationScanScreenV2() {
             </Text>
           </Pressable>
 
-          {/* Preview Scan tray — tabbed: AForce Products + Other Brands.
-              AForce tab shows the 9 flavor × format shelf SKUs and a
-              dropdown picker for the full list. */}
-          <View style={styles.trayCard}>
-            <View style={styles.trayHeader}>
-              <Icon name="zap" size={12} color={af.textTertiary} />
-              <Text style={styles.trayHeaderText}>{t('hydroScan2.v2.preview_scan')}</Text>
-            </View>
+          {/* Preview Scan tray + its SKU picker — DEV/DEMO ONLY.
+              A simulated scan writes the same persisted history a real one does,
+              so a shipped tray would let a member author scan records for
+              products they never held. PREVIEW_SCAN_ENABLED folds to false in a
+              release bundle, which removes the only two entry points into
+              runScan() that no product in hand can back. */}
+          {PREVIEW_SCAN_ENABLED && (
+            <>
+              {/* Tabbed: AForce Products + Other Brands. AForce tab shows the
+                  9 flavor × format shelf SKUs and a dropdown picker for the
+                  full list. */}
+              <View style={styles.trayCard}>
+                <View style={styles.trayHeader}>
+                  <Icon name="zap" size={12} color={af.textTertiary} />
+                  <Text style={styles.trayHeaderText}>{t('hydroScan2.v2.preview_scan')}</Text>
+                </View>
 
-            <View style={styles.tabRow}>
-              <Pressable
-                onPress={() => setPreviewTab('aforce')}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: previewTab === 'aforce' }}
-                style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
-                testID="preview-tab-aforce"
-              >
-                <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
-                  {t('hydroScan2.v2.tab_aforce')}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setPreviewTab('other')}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: previewTab === 'other' }}
-                style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
-                testID="preview-tab-other"
-              >
-                <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
-                  {t('hydroScan2.v2.tab_other')}
-                </Text>
-              </Pressable>
-            </View>
-
-            {previewTab === 'aforce' ? (
-              <Pressable
-                onPress={() => setAforcePickerOpen(true)}
-                disabled={scanning}
-                style={({ pressed }) => [
-                  styles.pickerCta,
-                  { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
-                ]}
-                testID="preview-aforce-picker-open"
-              >
-                <Icon name="list" size={14} color={af.green} />
-                <Text style={[styles.chipText, { color: af.green }]}>
-                  {t('hydroScan2.v2.select_aforce_product')}
-                </Text>
-              </Pressable>
-            ) : (
-              <View style={styles.trayChips}>
-                {otherBrandChips.map((it) => (
+                <View style={styles.tabRow}>
                   <Pressable
-                    key={it.code}
-                    onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
-                    disabled={scanning}
-                    accessibilityRole="button"
-                    style={({ pressed }) => [
-                      styles.chip,
-                      { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
-                    ]}
+                    onPress={() => setPreviewTab('aforce')}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: previewTab === 'aforce' }}
+                    style={[styles.tabPill, previewTab === 'aforce' && styles.tabPillActive]}
+                    testID="preview-tab-aforce"
                   >
-                    <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                    <Text style={[styles.tabPillText, previewTab === 'aforce' && styles.tabPillTextActive]}>
+                      {t('hydroScan2.v2.tab_aforce')}
+                    </Text>
                   </Pressable>
-                ))}
-              </View>
-            )}
-          </View>
-
-          {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
-          <AFModal
-            visible={aforcePickerOpen}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setAforcePickerOpen(false)}
-          >
-            <Pressable
-              style={styles.pickerBackdrop}
-              onPress={() => setAforcePickerOpen(false)}
-            >
-              <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
-                <View style={styles.pickerHeader}>
-                  <Text style={styles.pickerTitle}>{t('hydroScan2.v2.picker_title')}</Text>
                   <Pressable
-                    onPress={() => setAforcePickerOpen(false)}
-                    hitSlop={10}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('hydroScan2.v2.close_picker_a11y')}
+                    onPress={() => setPreviewTab('other')}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: previewTab === 'other' }}
+                    style={[styles.tabPill, previewTab === 'other' && styles.tabPillActive]}
+                    testID="preview-tab-other"
                   >
-                    <Icon name="x" size={18} color={af.textPrimary} />
+                    <Text style={[styles.tabPillText, previewTab === 'other' && styles.tabPillTextActive]}>
+                      {t('hydroScan2.v2.tab_other')}
+                    </Text>
                   </Pressable>
                 </View>
-                <ScrollView style={{ maxHeight: 420 }}>
-                  {aforcePickerRows.map((p) => (
-                    <Pressable
-                      key={p.productId}
-                      onPress={() => {
-                        setAforcePickerOpen(false);
-                        runScan({ kind: 'qr', rawValue: `aforce://product/${p.productId}` });
-                      }}
-                      style={({ pressed }) => [
-                        styles.pickerRow,
-                        pressed && { backgroundColor: af.surface },
-                      ]}
-                      testID={`preview-aforce-picker-row-${p.productId}`}
-                    >
-                      <Text style={styles.pickerRowText}>{p.name}</Text>
-                      <Icon name="chevron-right" size={14} color={af.textTertiary} />
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </Pressable>
-            </Pressable>
-          </AFModal>
+
+                {previewTab === 'aforce' ? (
+                  <Pressable
+                    onPress={() => setAforcePickerOpen(true)}
+                    disabled={scanning}
+                    style={({ pressed }) => [
+                      styles.pickerCta,
+                      { opacity: scanning ? 0.5 : pressed ? 0.85 : 1 },
+                    ]}
+                    testID="preview-aforce-picker-open"
+                  >
+                    <Icon name="list" size={14} color={af.green} />
+                    <Text style={[styles.chipText, { color: af.green }]}>
+                      {t('hydroScan2.v2.select_aforce_product')}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.trayChips}>
+                    {otherBrandChips.map((it) => (
+                      <Pressable
+                        key={it.code}
+                        onPress={() => runScan({ kind: 'barcode', rawValue: it.code })}
+                        disabled={scanning}
+                        accessibilityRole="button"
+                        style={({ pressed }) => [
+                          styles.chip,
+                          { opacity: scanning ? 0.5 : pressed ? 0.7 : 1 },
+                        ]}
+                      >
+                        <Text style={styles.chipText} numberOfLines={1}>{it.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {/* AForce product picker modal — full list from AFORCE_SHELF_SKUS. */}
+              <AFModal
+                visible={aforcePickerOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setAforcePickerOpen(false)}
+              >
+                <Pressable
+                  style={styles.pickerBackdrop}
+                  onPress={() => setAforcePickerOpen(false)}
+                >
+                  <Pressable style={styles.pickerSheet} onPress={(e) => e.stopPropagation()}>
+                    <View style={styles.pickerHeader}>
+                      <Text style={styles.pickerTitle}>{t('hydroScan2.v2.picker_title')}</Text>
+                      <Pressable
+                        onPress={() => setAforcePickerOpen(false)}
+                        hitSlop={10}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('hydroScan2.v2.close_picker_a11y')}
+                      >
+                        <Icon name="x" size={18} color={af.textPrimary} />
+                      </Pressable>
+                    </View>
+                    <ScrollView style={{ maxHeight: 420 }}>
+                      {aforcePickerRows.map((p) => (
+                        <Pressable
+                          key={p.productId}
+                          onPress={() => {
+                            setAforcePickerOpen(false);
+                            runScan({ kind: 'qr', rawValue: `aforce://product/${p.productId}` });
+                          }}
+                          style={({ pressed }) => [
+                            styles.pickerRow,
+                            pressed && { backgroundColor: af.surface },
+                          ]}
+                          testID={`preview-aforce-picker-row-${p.productId}`}
+                        >
+                          <Text style={styles.pickerRowText}>{p.name}</Text>
+                          <Icon name="chevron-right" size={14} color={af.textTertiary} />
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </Pressable>
+                </Pressable>
+              </AFModal>
+            </>
+          )}
 
           {/* Manual search — looks up AForce products via the comparison engine */}
           <View style={styles.manualCard}>
@@ -731,7 +738,13 @@ export function HydrationScanScreenV2() {
             accessibilityLabel={t('hydroScan2.v2.smart_capture_a11y')}
             testID="hydroscan-smart-capture"
           >
-            <Icon name="camera" size={16} color={af.red} />
+            {/* Contrast (Wave-5 Phase-1 pass): these two 16pt glyphs were the
+                last `af.red` ICONS on a Phase-1 surface. The token's own rule
+                is text AND icons take `af.redText` on dark (~3.1:1 vs 5.3:1);
+                only fills/borders/dots keep brand red — which the CTA's
+                `borderColor: af.red` above still does, so the Signal Red accent
+                is unchanged. The title beside them had already been moved. */}
+            <Icon name="camera" size={16} color={af.redText} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.logAnyTitle, { color: af.redText }]}>
                 {t('hydroScan2.v2.smart_capture_title')}
@@ -740,7 +753,7 @@ export function HydrationScanScreenV2() {
                 {t('hydroScan2.v2.smart_capture_hint')}
               </Text>
             </View>
-            <Icon name="chevron-right" size={16} color={af.red} />
+            <Icon name="chevron-right" size={16} color={af.redText} />
           </Pressable>
 
           {/* Urine Hydration Check — simple color-based signal. Not a
@@ -902,8 +915,12 @@ export function HydrationScanScreenV2() {
             <View style={styles.emptyCard}>
               <Icon name="camera" size={20} color={af.textTertiary} />
               <Text style={styles.emptyTitle}>{t('hydroScan2.v2.empty_title')}</Text>
+              {/* The web hint points AT the preview tray, so it may only be
+                  shown when the tray is actually mounted; otherwise the
+                  empty state would instruct a member to tap something that
+                  is not on the screen. */}
               <Text style={styles.emptyHint}>
-                {Platform.OS === 'web'
+                {Platform.OS === 'web' && PREVIEW_SCAN_ENABLED
                   ? t('hydroScan2.v2.empty_hint_web')
                   : t('hydroScan2.v2.empty_hint_native')}
               </Text>
@@ -1114,6 +1131,10 @@ const styles = StyleSheet.create({
   ring: {
     position: 'absolute', width: 240, height: 240, borderRadius: 120,
     borderWidth: 1, borderColor: `${af.green}55`,
+    // 0.7 was the resting opacity of the removed pulse loop (and the value its
+    // reduced-motion branch already held) — kept so the static ring is exactly
+    // the frame reduced-motion members were already seeing.
+    opacity: 0.7,
   },
   reticule: {
     width: 140, height: 140, position: 'relative',

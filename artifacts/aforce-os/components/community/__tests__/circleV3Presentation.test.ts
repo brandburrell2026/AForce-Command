@@ -11,7 +11,12 @@ import { describe, it, expect } from 'vitest';
 
 import { af } from '@/theme';
 import { buildSnapshot } from '@/services/competitionEngine';
-import { buildCircleV3Model, type CircleV3Inputs } from '../circleV3Presentation';
+import {
+  buildCircleV3Model,
+  circleRowA11yLabel,
+  type CircleRowA11yStrings,
+  type CircleV3Inputs,
+} from '../circleV3Presentation';
 
 function snapshot(liveScore = 92) {
   return buildSnapshot({
@@ -46,7 +51,28 @@ describe('buildCircleV3Model — You card', () => {
     // Spec formula over live values (0.35·92 + 0.25·90 + 0.20·96 + 0.20·82).
     const me = inputs().snapshot.context.user;
     expect(m.you.score).toBe(me.competitionScore);
-    expect(m.you.deltaSpots).toBe(12);
+    // Was 12: the mock's fabricated "+12 spots" was removed (founder ruling —
+    // rank movement against other people is not a claim any source supports),
+    // so the delta is now 0 and the pill collapses to null.
+    expect(m.you.deltaSpots).toBeNull();
+  });
+
+  it('reports no rank at all when there is nobody else in the cohort', () => {
+    const base = snapshot();
+    const solo = {
+      ...base,
+      individuals: base.individuals.filter((u) => u.id === base.context.user.id),
+    };
+    const m = buildCircleV3Model(inputs({ snapshot: solo }));
+    // The engine's context still hands over a rank; the view model refuses it
+    // — a rank is a claim about others, and there are none. fmtRank → '—'.
+    expect(typeof base.context.globalRank).toBe('number');
+    expect(m.you.globalRank).toBeNull();
+    expect(m.you.cityRank).toBeNull();
+    expect(m.you.stateRank).toBeNull();
+    expect(m.you.teamRank).toBeNull();
+    // Your own score is real and survives — only the comparison is withheld.
+    expect(m.you.score).toBe(base.context.user.competitionScore);
   });
 
   it('prefers the real server city when present', () => {
@@ -65,13 +91,17 @@ describe('buildCircleV3Model — rank rows (the comp leaderboard)', () => {
     expect(m.rows.map((r) => r.rank)).toEqual(m.rows.map((_, i) => i + 1));
   });
 
-  it('carries the comp fields: verified, title/city subtitles, streaks, movement', () => {
+  it('carries the comp fields: title/city subtitles, streaks, movement', () => {
     const jordan = m.rows.find((r) => r.name === 'Jordan A.')!;
     expect(jordan).toMatchObject({
-      verified: true,
       subtitleLeft: 'Miami, FL',
       streakDays: 7,
       move: { dir: 'up', n: 3 },
+      // The roster still says `verified: true` for this profile (founder data,
+      // untouched) — the view model is what refuses to render a credential
+      // over an invented person. Locked in circleV3SampleDisclosure.test.ts.
+      isSample: true,
+      verified: false,
     });
     const alicia = m.rows.find((r) => r.name === 'Alicia R.')!;
     expect(alicia.subtitleLeft).toBe('Perfect Hydration'); // title wins over city
@@ -107,6 +137,61 @@ describe('buildCircleV3Model — tabs', () => {
 
   it('challenge renders no list rows', () => {
     expect(buildCircleV3Model(inputs({ tab: 'challenge' })).rows).toEqual([]);
+  });
+});
+
+describe('circleRowA11yLabel — the row says out loud what it only showed in colour', () => {
+  // The en.json phrasing, inlined: this module is i18n-free by contract.
+  const S: CircleRowA11yStrings = {
+    rank: (n) => `Rank ${n}`,
+    you: 'You',
+    sample: 'Sample data, not a real member or a real standing',
+    verified: 'Verified',
+    score: (n) => `Score ${n}`,
+    // Mirrors en.json's _one/_other plural pair.
+    moveUp: (n) => (n === 1 ? 'Up 1 place' : `Up ${n} places`),
+    moveDown: (n) => (n === 1 ? 'Down 1 place' : `Down ${n} places`),
+    moveFlat: 'No change',
+  };
+  const rows = buildCircleV3Model(inputs()).rows;
+  const row = (name: string) => rows.find((r) => r.name === name)!;
+
+  it('says a sample profile is sample data, and never calls it verified', () => {
+    // Was: "Rank 1. Jordan A. Verified. …" — a credential spoken over an
+    // invented person, on a row a screen-reader user had no other way to tell
+    // apart from the member's own. The provenance now rides with the name and
+    // the credential is gone (mocks/competitionData.ts still carries
+    // `verified: true` for this profile; the view model refuses it).
+    const jordan = row('Jordan A.');
+    const label = circleRowA11yLabel(jordan, 'Miami, FL · 7-day streak', S);
+    expect(label).toBe(
+      `Rank ${jordan.rank}. Jordan A., Sample data, not a real member or a real standing. ` +
+        `Miami, FL · 7-day streak. Score ${jordan.score}. Up 3 places`,
+    );
+    expect(label).not.toContain('Verified');
+  });
+
+  it('names YOU instead of relying on the green name colour', () => {
+    const you = rows.find((r) => r.isYou)!;
+    const label = circleRowA11yLabel(you, 'Miami, FL', S);
+    expect(label).toContain(`${you.name}, You`);
+  });
+
+  it('never qualifies the member’s own row as sample', () => {
+    const you = rows.find((r) => r.isYou)!;
+    expect(you.isSample).toBe(false);
+    expect(circleRowA11yLabel(you, 'Miami, FL', S)).not.toContain('Sample data');
+  });
+
+  it('omits the badge phrase for unverified rows', () => {
+    const cam = row('Cam B.');
+    expect(cam.verified).toBe(false);
+    expect(circleRowA11yLabel(cam, 'Austin, TX', S)).not.toContain('Verified');
+  });
+
+  it('gives every movement direction words — the ↑/↓/– glyphs carry none', () => {
+    expect(circleRowA11yLabel(row('Sasha P.'), 'x', S)).toContain('Down 1 place');
+    expect(circleRowA11yLabel(row('Alicia R.'), 'x', S)).toContain('No change');
   });
 });
 

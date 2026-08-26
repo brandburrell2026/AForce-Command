@@ -177,26 +177,24 @@ afterEach(() => {
 });
 
 describe('WhoopSnapshotCard — reduced-motion gate (Squad-F HIGH #1)', () => {
-  it('reduced motion OFF: starts the reveal tweens AND the looping pulse', () => {
+  it('reduced motion OFF: starts the two finite reveal tweens', () => {
     useReducedMotionMock.mockReturnValue(false);
     renderCard({ recoveryPct: 72, strain: 10.2, sleepHoursLastNight: 7.5 });
     expect(withTimingMock).toHaveBeenCalled();
-    expect(withRepeatMock).toHaveBeenCalled();
   });
 
-  it('reduced motion ON: never starts the reveal tweens or the looping pulse', () => {
+  it('reduced motion ON: never starts the reveal tweens', () => {
     useReducedMotionMock.mockReturnValue(true);
     renderCard({ recoveryPct: 72, strain: 10.2, sleepHoursLastNight: 7.5 });
     expect(withTimingMock).not.toHaveBeenCalled();
-    expect(withRepeatMock).not.toHaveBeenCalled();
   });
 
-  it('cancels all three shared-value animations on unmount, motion ON or OFF', () => {
+  it('cancels both shared-value animations on unmount, motion ON or OFF', () => {
     useReducedMotionMock.mockReturnValue(false);
     renderCard({ recoveryPct: 72 });
     cancelAnimationMock.mockClear();
     flushSync(() => root.unmount());
-    expect(cancelAnimationMock).toHaveBeenCalledTimes(3);
+    expect(cancelAnimationMock).toHaveBeenCalledTimes(2);
   });
 
   it('cancels animations on unmount even under reduced motion (nothing was started, cleanup still runs)', () => {
@@ -204,7 +202,39 @@ describe('WhoopSnapshotCard — reduced-motion gate (Squad-F HIGH #1)', () => {
     renderCard({ recoveryPct: 72 });
     cancelAnimationMock.mockClear();
     flushSync(() => root.unmount());
-    expect(cancelAnimationMock).toHaveBeenCalledTimes(3);
+    expect(cancelAnimationMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * Wave-5 motion pass — the connection dot no longer pulses.
+ *
+ * Stronger than the gate it replaces: there is no unbounded loop here to gate,
+ * in EITHER motion mode. `withRepeat` was this card's only use of an infinite
+ * animation, so asserting it is never reached is a regression guard against the
+ * pulse being reintroduced.
+ */
+describe('WhoopSnapshotCard — no ambient loop (Wave-5)', () => {
+  it('never starts an infinite loop with motion allowed', () => {
+    useReducedMotionMock.mockReturnValue(false);
+    renderCard({ recoveryPct: 72, strain: 10.2, sleepHoursLastNight: 7.5 });
+    expect(withRepeatMock).not.toHaveBeenCalled();
+    expect(withSequenceMock).not.toHaveBeenCalled();
+  });
+
+  it('never starts an infinite loop under reduced motion either', () => {
+    useReducedMotionMock.mockReturnValue(true);
+    renderCard({ recoveryPct: 72, strain: 10.2, sleepHoursLastNight: 7.5 });
+    expect(withRepeatMock).not.toHaveBeenCalled();
+    expect(withSequenceMock).not.toHaveBeenCalled();
+  });
+
+  it('still renders the connection dot — it is static, not gone', () => {
+    renderCard({ recoveryPct: 72, syncing: false });
+    // The dot is a11y-hidden by design; the row it lives in is the anchor.
+    const row = q('[data-testid="whoop-connection-state"]');
+    expect(row).not.toBeNull();
+    expect(row?.childElementCount).toBeGreaterThanOrEqual(2);
   });
 });
 

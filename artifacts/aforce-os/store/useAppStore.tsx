@@ -116,6 +116,7 @@ import { inferFlavorFromLabel } from '../utils/inferFlavorFromLabel';
 // promise resolution being immediate-after-microtask in tests; for the
 // initial render, we accept a one-tick zero state and refresh on mount.)
 import { calculateScore as _initialOnly } from '../utils/scoringEngine';
+import { buildBreakdown } from '../utils/scoring/breakdown';
 import type { AppContextValue } from './app/types';
 import { pickFacadeState, type FacadeState } from './app/facadeState';
 import {
@@ -588,60 +589,79 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
-  // Weather: fetch once on mount, then every 15 min. Uses Denver as a
-  // safe default (matches the existing climate strip) so we never block
-  // the UI on a permission prompt; if expo-location grants real coords
-  // later the next tick will use them.
+  // Weather: fetch on mount, then every 15 min — but ONLY once we actually
+  // know where the member is.
   //
-  // `lat`/`lon` hoisted to refs (RC-1 W3P1, were plain `let`s closed over by
-  // one effect) purely so the AppState-gated interval — a separate effect
-  // now — can still read whatever coordinates the mount-time geolocation
-  // lookup resolved to. Same "resolve once, reuse forever" behavior as
-  // before: the interval never re-resolves location, only re-fetches
-  // weather for the last-known lat/lon.
-  const weatherLatRef = useRef(39.7392); // Denver default
-  const weatherLonRef = useRef(-104.9903); // Denver default
+  // This provider wraps the entire route tree, so anything it asks for is
+  // asked at launch, before a single line of AForce copy has explained
+  // itself. The founder rule is absolute: never request a permission before
+  // the member understands why we want it. The ask therefore lives in
+  // onboarding, on the same row as the sentence that justifies it
+  // (`components/onboarding/OnboardingScreenV2.tsx`, LIFESTYLE step). What
+  // happens here is a READ of an answer already given —
+  // `getForegroundPermissionsAsync` queries the current grant and never
+  // presents a dialog; `requestForegroundPermissionsAsync` must not appear
+  // anywhere in this provider's reachable graph
+  // (`store/__tests__/noPermissionRequestOnProviderMount.test.ts` pins it).
+  //
+  // With no grant we fetch nothing at all. The previous Denver fallback fed
+  // another city's air into the engine as if it were the member's, with
+  // nothing in the UI able to tell the two apart — visual certainty ahead of
+  // evidence. Leaving `weatherTempC`/`weatherHumidity` unset is the state
+  // the engine is already documented to expect (see `types/index.ts`: never
+  // substituted with placeholder numbers when missing), and the climate
+  // surfaces keep their own `est.` labelling for the estimated reading.
+  //
+  // Coordinates resolve lazily rather than once-at-mount, because onboarding
+  // may grant AFTER this effect has run. The permission dialog's own
+  // inactive → active transition resume-fires the AppState-gated interval
+  // below, so the first post-grant reading lands right away rather than up
+  // to 15 min later. Once resolved the coordinates are reused forever, same
+  // as before — a granted install re-resolves nothing.
+  const weatherCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
   const weatherMountedRef = useRef(true);
   useEffect(() => {
     weatherMountedRef.current = true;
     return () => { weatherMountedRef.current = false; };
   }, []);
 
-  const weatherTick = useCallback(async (lat: number, lon: number) => {
+  const resolveWeatherCoords = useCallback(async (): Promise<{ lat: number; lon: number } | null> => {
+    if (weatherCoordsRef.current) return weatherCoordsRef.current;
+    try {
+      const Location = await import('expo-location');
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') return null;
+      const pos = await Location.getCurrentPositionAsync({});
+      weatherCoordsRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      return weatherCoordsRef.current;
+    } catch {
+      // expo-location unavailable (web / test runtime) or the lookup failed
+      // — indistinguishable from "no location", and treated the same.
+      return null;
+    }
+  }, []);
+
+  const weatherTick = useCallback(async () => {
+    const coords = await resolveWeatherCoords();
+    if (!coords || !weatherMountedRef.current) return;
     try {
       // Read latest userState via ref so a tick that fires AFTER a
       // provider connect / Apple-Health snapshot lands carries those
       // overlays into the merge, instead of the mount-time closure
       // that lacked them.
-      const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, lat, lon);
+      const { newUserState, engineOutput } = await refreshWeather(userStateRef.current, coords.lat, coords.lon);
       if (!weatherMountedRef.current) return;
       applyServerUserState(newUserState, engineOutput);
     } catch (err) {
       console.warn('[AForce] weather refresh failed', err);
     }
-  }, [applyServerUserState]);
+  }, [applyServerUserState, resolveWeatherCoords]);
 
   useEffect(() => {
-    let cancelled = false;
-    // Best-effort geolocation — only on web/native where the API exists.
-    // Failures fall through to the Denver default.
-    (async () => {
-      try {
-        const Location = await import('expo-location');
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const pos = await Location.getCurrentPositionAsync({});
-          weatherLatRef.current = pos.coords.latitude;
-          weatherLonRef.current = pos.coords.longitude;
-        }
-      } catch {
-        // fall back to Denver
-      }
-      if (!cancelled) void weatherTick(weatherLatRef.current, weatherLonRef.current);
-    })();
-    return () => { cancelled = true; };
-    // Mount-once geolocation resolution + first fetch; the recurring 15min
-    // cadence is owned by the AppState-gated interval below.
+    void weatherTick();
+    // Mount-once first attempt; the recurring 15min cadence — and the retry
+    // that picks up a grant made after mount — is owned by the AppState-gated
+    // interval below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -649,7 +669,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // fires once immediately on foreground return, then resumes the normal
   // 15min cadence.
   useAppStateGatedInterval(() => {
-    void weatherTick(weatherLatRef.current, weatherLonRef.current);
+    void weatherTick();
   }, 15 * 60 * 1000);
 
   // Action handlers — extracted into a factory hook so the bodies live
@@ -749,6 +769,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     postJournalSnapshot({
       score: state.engineOutput.score,
       level,
+      // Instrumentation vector (founder-approved): the per-factor deltas for
+      // the state being snapshotted, computed at WRITE time. Deliberately not
+      // derived from engineOutput — recomputing here means the vector always
+      // sums to its own `raw`, and any divergence between `raw` and the
+      // engine's `score` field becomes visible data (that divergence is
+      // exactly the optimistic-vs-authoritative question). Same debounce, same
+      // request — zero additional writes.
+      factorDeltas: buildBreakdown(state.userState, now).factorDeltas,
       ozConsumedToday: state.userState.ozConsumedToday,
       aforceUnitsToday: state.userState.aforceUnitsToday,
       unitsConsumedToday: state.userState.unitsConsumedToday,

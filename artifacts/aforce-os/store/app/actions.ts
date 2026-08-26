@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Alert } from 'react-native';
 import i18n from '@/services/i18nService';
 import { scopedStorage } from '@/services/scopedStorage';
+import type { IntakeSource } from '@/services/intakeSource';
 import type { Dispatch, MutableRefObject } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -67,6 +68,7 @@ import { categorizeCommand } from '../../utils/intelligence/commandCategory';
 import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
 import { appendCommandEvents } from '../../services/commandLedger';
 import { enqueueIntake } from '../../services/intakeOutbox';
+import { classifyWriteFailure, WRITE_FAILURE_COPY } from './writeFailure';
 
 interface StoreActionsDeps {
   state: AppState;
@@ -114,6 +116,14 @@ export function useStoreActions({
       flavorLabel?: string;
       displayNameOverride?: string;
       categoryId?: string;
+      /**
+       * Which surface is logging. Record-only provenance — it never affects
+       * scoring, dedupe or persistence. Callers that omit it produce a NULL
+       * `entry_source`, which is exactly the un-attributable state that made the
+       * Build-65 duplicate impossible to narrow, so every real entry point
+       * should pass one.
+       */
+      source?: IntakeSource;
     },
   ) => {
     if (state.isCompletingCycle) return;
@@ -136,6 +146,7 @@ export function useStoreActions({
         fluidType,
         ...(opts?.ozOverride != null ? { ozAmount: opts.ozOverride } : {}),
         ...(flavor ? { flavor } : {}),
+        ...(opts?.source ? { entrySource: opts.source } : {}),
       };
       // Offline Intake Outbox marker — true only when this intake could not
       // reach the server and was durably queued. Drives the optional pending UI
@@ -194,6 +205,9 @@ export function useStoreActions({
         identityMessage: generateCycleIdentityMessage(engineOutput.performanceState.level),
         nextCycleHint: generateNextCycleHint(engineOutput.performanceState.level),
         state: engineOutput.performanceState.level,
+        // Built from the CONFIRMED log the server returned, so the confirmation
+        // can never claim a write that did not land.
+        recordedLabel: `${log.ozAmount} oz ${PRODUCTS[fluidType].shortName}`,
       };
       // When a flavor was chosen (e.g. Berry Blast +Dulse), surface it
       // in the history label so users can recall exactly what they drank.
@@ -336,6 +350,22 @@ export function useStoreActions({
       // permanently disabled after any failed intake.
       console.warn('[AForce] logIntake failed', err);
       dispatch({ type: 'CYCLE_FAILURE' });
+      // …but clearing the spinner is ALL CYCLE_FAILURE does, so a 401 / 5xx /
+      // timeout once looked exactly like success. There is no durable queue
+      // behind this catch in production, so the write really is lost. Fail
+      // visibly — and name the CAUSE: one sentence for every cause is what
+      // made a 401 read as a network problem for three builds (why, and the
+      // classes, in ./writeFailure.ts). `confirmCommand` raises the identical
+      // pair for the identical cause.
+      const failure = classifyWriteFailure(err);
+      Alert.alert(
+        i18n.t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        i18n.t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
+        }),
+      );
     }
   }, [state.userState, state.isCompletingCycle, state.featureFlags.offline_intake_outbox_enabled]);
 
@@ -433,10 +463,15 @@ export function useStoreActions({
       // heard about — the user was rewarded, then silently un-rewarded on
       // the next sync. Fail visibly instead; state stays untouched.
       console.warn('[AForce] confirmCommand failed', err);
+      // Same classification as the intake leg above — a refused confirmation
+      // and a refused intake share one cause and must read the same way.
+      const failure = classifyWriteFailure(err);
       Alert.alert(
-        i18n.t('common.action_failed_title', { defaultValue: 'Not saved' }),
-        i18n.t('common.action_failed_body', {
-          defaultValue: "That didn't reach the server — check your connection and try again.",
+        i18n.t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        i18n.t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
         }),
       );
     }

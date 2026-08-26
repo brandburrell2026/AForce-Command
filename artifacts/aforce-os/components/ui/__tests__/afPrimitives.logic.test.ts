@@ -35,6 +35,7 @@ import {
   buttonIsInert,
   chartScale,
   timelineStepIsActionable,
+  commandReasonLine,
 } from '../afPrimitives.logic';
 
 describe('clampProgress', () => {
@@ -127,5 +128,67 @@ describe('timelineStepIsActionable', () => {
     expect(timelineStepIsActionable('completed')).toBe(false);
     expect(timelineStepIsActionable('locked')).toBe(false);
     expect(timelineStepIsActionable('hold')).toBe(false);
+  });
+});
+
+describe('commandReasonLine (Wave-5 inline WHY)', () => {
+  // Real strings from locales/en.json `coach.*_explanation`, so the split is
+  // pinned against the copy the card actually receives, not invented samples.
+  it('takes the first sentence of a real band explanation', () => {
+    expect(
+      commandReasonLine('Deep recovery window. Electrolytes will restore your balance.')?.line,
+    ).toBe('Deep recovery window.');
+    expect(
+      commandReasonLine('Recovery window opening. A water cycle now keeps you in flow.')?.line,
+    ).toBe('Recovery window opening.');
+    expect(
+      commandReasonLine(
+        "You're locked in — notice what peak feels like. Add a stick if the heat or your effort ramps up.",
+      )?.line,
+    ).toBe("You're locked in — notice what peak feels like.");
+  });
+
+  it('does not break a sentence at a decimal point or an abbreviation-style period', () => {
+    expect(commandReasonLine('Overnight took 1.5 L out of you. Reset your baseline.')?.line).toBe(
+      'Overnight took 1.5 L out of you.',
+    );
+  });
+
+  it('returns a single-sentence rationale whole, with nothing left to disclose', () => {
+    const single = "You're holding steady, but the heat's raising the bar — stay a step ahead of it.";
+    expect(commandReasonLine(single)).toEqual({ line: single, hasMore: false });
+  });
+
+  it('flags hasMore whenever the full text says more than the line', () => {
+    const two = 'Deep recovery window. Electrolytes will restore your balance.';
+    expect(commandReasonLine(two)?.hasMore).toBe(true);
+  });
+
+  it('collapses newlines/runs of whitespace so the line can never wrap the card', () => {
+    const r = commandReasonLine('Deep recovery\n  window now');
+    expect(r?.line).toBe('Deep recovery window now');
+    expect(r?.line).not.toMatch(/\s{2,}|\n/);
+  });
+
+  it('cuts an over-long single sentence at a word boundary with an ellipsis', () => {
+    const long = `${'word '.repeat(40)}end.`;
+    const r = commandReasonLine(long, 24);
+    expect(r?.line.length).toBeLessThanOrEqual(24);
+    expect(r?.line.endsWith('…')).toBe(true);
+    expect(r?.line).not.toMatch(/ …$/); // no dangling space before the ellipsis
+    expect(r?.hasMore).toBe(true); // the disclosure still holds the full text
+  });
+
+  it('renders nothing rather than an empty row when there is no rationale', () => {
+    expect(commandReasonLine(undefined)).toBeNull();
+    expect(commandReasonLine(null)).toBeNull();
+    expect(commandReasonLine('')).toBeNull();
+    expect(commandReasonLine('   \n ')).toBeNull();
+  });
+
+  it('never invents or reorders copy — the line is always a prefix of the normalised rationale', () => {
+    const src = 'Deep recovery window. Electrolytes will restore your balance.';
+    const line = commandReasonLine(src)!.line;
+    expect(src.startsWith(line)).toBe(true);
   });
 });

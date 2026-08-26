@@ -85,6 +85,15 @@ export interface WhoopTokenManagerOptions {
    * etc.) instead of returning null with no trace.
    */
   log?: Pick<Logger, "error">;
+  /**
+   * Refresh-outcome observers (WHOOP sweep redesign, 2026-08-19). Called
+   * fire-and-forget: a throwing observer is swallowed so bookkeeping can
+   * never break the token path it watches. `onRefreshSuccess` also fires on
+   * `setTokens` (re-auth), which the founder ratified as clearing failure
+   * state.
+   */
+  onRefreshSuccess?: () => void | Promise<void>;
+  onRefreshFailure?: () => void | Promise<void>;
 }
 
 export type WhoopTokenManager = ProviderTokenManager;
@@ -141,6 +150,16 @@ export async function exchangeAuthorizationCode(
   });
 }
 
+/** Fire-and-forget observer call — bookkeeping must never break the path. */
+function notify(fn: (() => void | Promise<void>) | undefined): void {
+  if (!fn) return;
+  try {
+    void Promise.resolve(fn()).catch(() => {});
+  } catch {
+    /* observer threw synchronously — ignored by contract */
+  }
+}
+
 export function createWhoopTokenManager(
   opts: WhoopTokenManagerOptions,
 ): WhoopTokenManager {
@@ -173,8 +192,10 @@ export function createWhoopTokenManager(
       if (current.expiresAt - now() > skew) return current.accessToken;
       try {
         const next = await inner.refresh();
+        notify(opts.onRefreshSuccess);
         return next.accessToken;
       } catch (err) {
+        notify(opts.onRefreshFailure);
         // Previously swallowed silently. Surface the real cause (undecryptable
         // refresh token after a key rotation, WHOOP rejecting a stale refresh
         // token, network, …) — redacted so no token leaks — then keep the
@@ -186,8 +207,22 @@ export function createWhoopTokenManager(
         return null;
       }
     },
-    refresh: () => inner.refresh(),
-    setTokens: (tokens) => inner.setTokens(tokens),
+    refresh: async () => {
+      try {
+        const next = await inner.refresh();
+        notify(opts.onRefreshSuccess);
+        return next;
+      } catch (err) {
+        notify(opts.onRefreshFailure);
+        throw err;
+      }
+    },
+    setTokens: async (tokens) => {
+      const out = await inner.setTokens(tokens);
+      // Re-auth stores fresh tokens — founder-ratified reset point.
+      notify(opts.onRefreshSuccess);
+      return out;
+    },
     signOut: () => inner.signOut(),
     peek: () => inner.peek(),
   };
