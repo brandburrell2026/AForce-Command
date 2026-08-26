@@ -20,6 +20,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import * as Haptics from 'expo-haptics';
 import { scopedStorage } from '@/services/scopedStorage';
 
@@ -28,7 +29,7 @@ import { FeatureGate } from '@/components/FeatureGate';
 import { af } from '@/theme/afTokens';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useCommandConfidence } from '@/hooks/useCommandConfidence';
-import { useEngineSlice, useUserSlice, useActionsSlice, useFlagsSlice } from '@/store/slices';
+import { useCycleSlice, useEngineSlice, useUserSlice, useActionsSlice, useFlagsSlice } from '@/store/slices';
 import {
   fetchCruiseEnvironment,
   type CruiseLiveEnvironment,
@@ -66,6 +67,7 @@ const CROSS_NAV: CruiseCrossNavItem[] = [
 
 interface LogIntakeActions {
   logIntake: (fluidType: FluidType, opts?: { silent?: boolean; ozOverride?: number }) => Promise<void>;
+  dismissSuccess: () => void;
 }
 
 const SELF_LOG_KEY = '@aforce/cruiseMode/selfLog';
@@ -104,7 +106,8 @@ function CruiseModeBody() {
 
   const engine = useEngineSlice();
   const user = useUserSlice();
-  const { logIntake } = useActionsSlice<LogIntakeActions>();
+  const { logIntake, dismissSuccess } = useActionsSlice<LogIntakeActions>();
+  const { showCycleSuccess, lastCycleResult } = useCycleSlice();
   // Section 58 — Command Confidence on the Guest Readiness readout, gated.
   const showConfidence = useFlagsSlice().spec_commandConfidenceDisplay;
   const commandConfidence = useCommandConfidence();
@@ -242,6 +245,15 @@ function CruiseModeBody() {
           />
         </View>
       </GradientBackground>
+
+      {/* S2-1 strand-proof: this screen's own "log a glass of water" write is
+          non-silent, so the confirmation it raises must render HERE — before
+          this mount, the raised showCycleSuccess stranded until the member
+          visited Home, where it disabled the primary CTA. Rendered from the
+          cycle slice's settled result, same contract as Home/Hydration. */}
+      {showCycleSuccess && lastCycleResult && (
+        <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
+      )}
     </View>
   );
 }
