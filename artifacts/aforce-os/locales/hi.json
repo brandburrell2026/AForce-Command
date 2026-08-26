@@ -1724,7 +1724,7 @@
       "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device.",
       "qual_unavailable_title": "Result unavailable",
       "qual_unavailable_body": "These entries combine into a sweat rate outside the plausible human range. Double-check pre and post weight, duration, and fluid, then recalculate.",
-      "qual_limited_note": "Elite-range sweat rate — treat this as an estimate and confirm with a scale."
+      "qual_limited_note": "Elite-range sweat rate — read this as an estimate and confirm with a scale."
     }
   },
   "achievements": {
