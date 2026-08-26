@@ -236,7 +236,7 @@ function symptomRisk(input: HeatSignalInput): HeatRiskContribution {
   const raw = points + urinePts;
   return {
     id: "symptom_risk",
-    label: "Symptom signals",
+    label: "Warning signs",
     points: clamp(raw, 0, 18),
     maxPoints: 18,
     reason:
@@ -244,7 +244,7 @@ function symptomRisk(input: HeatSignalInput): HeatRiskContribution {
         ? `Reported: ${input.symptoms.join(", ")}.`
         : input.urineSignal >= 5
         ? `Urine signal is dark (${input.urineSignal}/8).`
-        : `No symptom signals reported.`,
+        : `No warning signs reported.`,
   };
 }
 
@@ -352,7 +352,7 @@ function commandForBand(band: HeatRiskBand): string {
     case "HIGH_RISK":
       return "Stop activity now. Move to shade or cooling. Drink fluids immediately. Recheck in 5 minutes.";
     case "CRITICAL":
-      return "Critical heat risk rising. Stop activity now. Begin rapid cooling and hydration immediately. Seek on-site medical support if symptoms escalate.";
+      return "Critical heat risk rising. Stop activity now. Begin rapid cooling and hydration immediately. Seek on-site medical support if warning signs escalate.";
   }
 }
 
@@ -368,8 +368,8 @@ function commandDetailForBand(band: HeatRiskBand, input: HeatSignalInput): strin
       return "Dangerous heat trend detected. Aggressive cooling and fluids required.";
     case "CRITICAL":
       return input.symptoms.includes("confusion")
-        ? "Confusion reported with extreme heat load — treat as urgent."
-        : "Extreme heat-injury risk pattern. Do not resume activity until cleared.";
+        ? "Confusion reported with extreme heat load — act urgently."
+        : "Extreme heat risk pattern. Do not resume activity until cleared.";
   }
 }
 

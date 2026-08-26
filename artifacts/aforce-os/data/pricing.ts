@@ -118,7 +118,7 @@ export const STORE_SKUS: StoreSKU[] = [
     priceCents: 3499,
     subscriptionPriceCents: 2999,
     upc: "850000000062",
-    blurb: "Heat absorption. Detox and clean output.",
+    blurb: "Watermelon flavor with chlorella.",
     useCase: "Heat",
     protocolRole: "baseline_hydration",
     recommendedFor: ["BALANCED", "PEAK"],

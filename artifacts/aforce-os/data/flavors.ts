@@ -53,7 +53,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
       'Recovery stability',
     ],
     stateAlignment: ['BALANCED', 'PEAK'],
-    aiCommand: 'Take 1 Berry Blast now. Maintain your current state.',
+    aiCommand: 'Berry Blast — a daily-maintenance option.',
     accent: af.guardian,
   },
   {
@@ -75,7 +75,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
       'Recovery acceleration',
     ],
     stateAlignment: ['RECOVERING'],
-    aiCommand: 'Take 1 Watermelon Surge now. You are in recovery.',
+    aiCommand: 'Watermelon Surge — an option for recovery days.',
     accent: '#FF2800',
   },
   {
@@ -97,7 +97,7 @@ export const FLAVOR_VARIANTS: FlavorVariant[] = [
       'Performance recovery',
     ],
     stateAlignment: ['DEPLETED'],
-    aiCommand: 'Take 1 Soursop Edge now. You are trending depleted.',
+    aiCommand: 'Soursop Edge — an option for high-output days.',
     accent: '#1FA35A',
   },
 ];

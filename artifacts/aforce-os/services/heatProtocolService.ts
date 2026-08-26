@@ -82,7 +82,7 @@ const EMERGENCY_COOLDOWN: HeatProtocol = {
     { id: "drink", label: "Sip cold fluids — do not chug if nauseous" },
     {
       id: "escalate",
-      label: "Seek on-site medical support if symptoms escalate",
+      label: "Seek on-site medical support if warning signs escalate",
       detail: "Confusion, vomiting, or fainting → call emergency services.",
     },
   ],
@@ -102,7 +102,7 @@ const RETURN_TO_PLAY: HeatProtocol = {
   tone: "info",
   actions: [
     { id: "verify", label: "Verify hydration score above threshold" },
-    { id: "verify_sym", label: "Confirm zero symptom signals" },
+    { id: "verify_sym", label: "Confirm zero warning signs" },
     { id: "ramp", label: "Ramp activity intensity in 25% steps" },
     { id: "monitor", label: "Recheck score every 10 min for first hour" },
   ],
@@ -169,7 +169,7 @@ export function evaluateReturnGate(input: ReturnGateInput): ReturnDecision {
     blockers.push(`Hydration below ${gate.minHydrationScore}.`);
   }
   if (gate.noSymptoms && input.activeSymptomCount > 0) {
-    blockers.push(`Active symptoms reported.`);
+    blockers.push(`Active warning signs reported.`);
   }
   if (gate.recoveryTimerComplete && !input.recoveryTimerCompleted) {
     blockers.push(`Recovery timer still running.`);

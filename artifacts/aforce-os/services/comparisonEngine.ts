@@ -97,7 +97,7 @@ function scoreProduct(p: CompareProduct, inputs: CompareInputs): { fit: number; 
 function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult['axes']): string {
   if (p.category === 'plain_water') {
     return inputs.protocol === 'depletion_correction'
-      ? 'Hydrates volume but lacks electrolyte replacement. Insufficient for current state.'
+      ? 'Hydrates volume; contains no electrolytes.'
       : 'Baseline hydration only. No electrolyte support.';
   }
   if (axes.sugarImpact <= 40) {
@@ -108,17 +108,17 @@ function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult
   const strongElectrolytes = axes.electrolyteBalance >= 85;
 
   if (inputs.protocol === 'depletion_correction' || inputs.score < 50) {
-    if (compatible && fastUptake && strongElectrolytes) return 'Fast electrolyte absorption matches current depletion state. Closes the deficit rapidly.';
+    if (compatible && fastUptake && strongElectrolytes) return 'High electrolyte density and a fast-uptake profile for depletion protocols.';
     if (fastUptake) return 'Fast uptake but lower electrolyte density for the current depletion load.';
     return 'Slower uptake than the depletion state requires.';
   }
   if (inputs.protocol === 'heat_stress') {
-    if (strongElectrolytes && axes.sugarImpact >= 80) return 'Electrolyte density and low sugar load are tuned for heat stress.';
+    if (strongElectrolytes && axes.sugarImpact >= 80) return 'Electrolyte density and low sugar load fit hot-conditions protocols.';
     if (strongElectrolytes) return 'Strong electrolyte density. Sugar load reduces fit for heat stress.';
     return 'Electrolyte density below the heat-stress threshold.';
   }
   if (inputs.protocol === 'recovery') {
-    if (compatible && axes.recovery >= 85) return 'Recovery-grade balance. Closes the deficit fast.';
+    if (compatible && axes.recovery >= 85) return 'Recovery-protocol fit with balanced electrolytes.';
     return 'Acceptable hydration but recovery efficiency below target.';
   }
   if (p.category === 'medical_oral_rehydration') {
