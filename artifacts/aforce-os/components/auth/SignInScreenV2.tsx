@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     marginTop: 16, marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: af.surface,
     borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
     color: af.textPrimary, fontFamily: 'Inter_500Medium', fontSize: 16,
     borderWidth: 1, borderColor: af.divider,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   linkText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.textTertiary },
   link: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: af.textPrimary },
   error: {
-    fontFamily: 'Inter_400Regular', fontSize: 12, color: '#FF6B6B', marginTop: 6,
+    fontFamily: 'Inter_400Regular', fontSize: 12, color: af.redText, marginTop: 6,
   },
   dividerRow: {
     flexDirection: 'row', alignItems: 'center', marginTop: 22, marginBottom: 14,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   oauthButton: {
     paddingVertical: 14, borderRadius: 14, alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: af.surface,
     borderWidth: 1, borderColor: af.divider,
   },
   oauthButtonText: {

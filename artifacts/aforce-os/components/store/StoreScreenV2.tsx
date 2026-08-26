@@ -31,6 +31,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { GradientBackground } from "@/components/GradientBackground";
 import { ZoomableProductImage } from "@/components/ZoomableProductImage";
 import { af } from "@/theme";
+import { Typography } from "@/theme/typography";
 import {
   STORE_SKUS,
   formatPrice,
@@ -534,8 +535,8 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 16 },
 
   headerRow: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
-  eyebrow: { fontSize: 11, letterSpacing: 1.6, color: af.textTertiary, fontWeight: "600" },
-  title: { fontSize: 26, fontWeight: "700", color: af.textPrimary, marginTop: 2 },
+  eyebrow: { fontSize: 11, letterSpacing: 1.6, color: af.textTertiary, fontFamily: Typography.fonts.semibold },
+  title: { fontSize: 26, fontFamily: Typography.fonts.bold, color: af.textPrimary, marginTop: 2 },
   subtitle: { fontSize: 13, color: af.textSecondary, lineHeight: 19, marginVertical: 12 },
 
   cartIconBtn: {
@@ -552,22 +553,22 @@ const styles = StyleSheet.create({
     backgroundColor: af.green,
   },
   cartIconBadgeText: {
-    fontSize: 10, fontWeight: "700", color: "#000",
+    fontSize: 10, fontFamily: Typography.fonts.bold, color: "#000",
   },
 
   recommendCard: {
     borderRadius: 16, padding: 14, marginBottom: 18,
     borderWidth: 1,
   },
-  recommendLabel: { fontSize: 10, letterSpacing: 1.4, color: af.textTertiary, fontWeight: "700" },
-  recommendName: { fontSize: 16, fontWeight: "700", color: af.textPrimary, marginTop: 6 },
-  recommendIngredient: { fontWeight: "500", color: af.textSecondary },
+  recommendLabel: { fontSize: 10, letterSpacing: 1.4, color: af.textTertiary, fontFamily: Typography.fonts.bold },
+  recommendName: { fontSize: 16, fontFamily: Typography.fonts.bold, color: af.textPrimary, marginTop: 6 },
+  recommendIngredient: { fontFamily: Typography.fonts.medium, color: af.textSecondary },
   recommendCmd: { fontSize: 12, color: af.textPrimary, marginTop: 6, lineHeight: 17 },
   recommendState: { fontSize: 10, color: af.textTertiary, marginTop: 6, letterSpacing: 0.6 },
 
   formatBlock: { marginBottom: 18 },
   formatHeader: {
-    fontSize: 11, letterSpacing: 1.6, fontWeight: "700",
+    fontSize: 11, letterSpacing: 1.6, fontFamily: Typography.fonts.bold,
     color: af.textTertiary, marginBottom: 10,
   },
 
@@ -597,16 +598,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3,
     borderRadius: 6, borderWidth: 1,
   },
-  badgeChipText: { fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+  badgeChipText: { fontSize: 9, fontFamily: Typography.fonts.bold, letterSpacing: 0.9 },
 
-  skuTitle: { fontSize: 15, fontWeight: "700", color: af.textPrimary },
+  skuTitle: { fontSize: 15, fontFamily: Typography.fonts.bold, color: af.textPrimary },
   skuFormat: { fontSize: 11, color: af.textTertiary, letterSpacing: 0.4 },
   skuBlurb: { fontSize: 12, color: af.textSecondary, lineHeight: 17, marginTop: 2 },
 
   intelRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" },
-  intelChip: { fontSize: 9, fontWeight: "700", letterSpacing: 1, color: af.textSecondary },
+  intelChip: { fontSize: 9, fontFamily: Typography.fonts.bold, letterSpacing: 1, color: af.textSecondary },
   intelDivider: { fontSize: 10, color: af.textTertiary },
-  intelRecommend: { fontSize: 9, fontWeight: "700", letterSpacing: 1, color: af.textTertiary, marginTop: 4 },
+  intelRecommend: { fontSize: 9, fontFamily: Typography.fonts.bold, letterSpacing: 1, color: af.textTertiary, marginTop: 4 },
 
   toggleRow: { flexDirection: "row", gap: 6 },
   toggleBtn: {
@@ -618,7 +619,7 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   toggleBtnText: {
-    fontSize: 10, fontWeight: "700", letterSpacing: 1,
+    fontSize: 10, fontFamily: Typography.fonts.bold, letterSpacing: 1,
     color: af.textTertiary,
   },
 
@@ -631,18 +632,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.02)",
   },
   bundleChipText: {
-    fontSize: 10, fontWeight: "700", letterSpacing: 0.8,
+    fontSize: 10, fontFamily: Typography.fonts.bold, letterSpacing: 0.8,
     color: af.textSecondary,
   },
   bundleChipSavings: {
-    fontSize: 9, fontWeight: "700", color: af.textTertiary,
+    fontSize: 9, fontFamily: Typography.fonts.bold, color: af.textTertiary,
   },
 
   priceRow: {
     flexDirection: "row", alignItems: "baseline", gap: 6,
     flexWrap: "wrap",
   },
-  priceMain: { fontSize: 19, fontWeight: "700", color: af.textPrimary },
+  priceMain: { fontSize: 19, fontFamily: Typography.fonts.bold, color: af.textPrimary },
   priceCompare: {
     fontSize: 12, color: af.textTertiary,
     textDecorationLine: "line-through",
@@ -655,11 +656,11 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     justifyContent: "center",
   },
-  addBtnText: { fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  addBtnText: { fontSize: 11, fontFamily: Typography.fonts.bold, letterSpacing: 1 },
 
   legalBlock: { marginTop: 8, paddingHorizontal: 4 },
   legalText: { fontSize: 11, color: af.textTertiary, lineHeight: 17 },
-  legalLink: { color: af.green, fontWeight: "600" },
+  legalLink: { color: af.green, fontFamily: Typography.fonts.semibold },
 
   cartPill: {
     position: "absolute",
@@ -685,7 +686,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     alignItems: "center", justifyContent: "center",
   },
-  cartPillBadgeText: { color: "#fff", fontSize: 9, fontWeight: "700" },
-  cartPillText: { flex: 1, color: "#000", fontSize: 12, fontWeight: "700", letterSpacing: 1.2 },
-  cartPillTotal: { color: "#000", fontSize: 14, fontWeight: "700" },
+  cartPillBadgeText: { color: "#fff", fontSize: 9, fontFamily: Typography.fonts.bold },
+  cartPillText: { flex: 1, color: "#000", fontSize: 12, fontFamily: Typography.fonts.bold, letterSpacing: 1.2 },
+  cartPillTotal: { color: "#000", fontSize: 14, fontFamily: Typography.fonts.bold },
 });
