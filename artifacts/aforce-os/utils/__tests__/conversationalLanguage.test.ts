@@ -106,8 +106,18 @@ describe('Section 64 — every coach.* locale string is compliant', () => {
     }
   });
 
-  it('the two compliance-flagged lines are untouched (founder/counsel owned)', () => {
-    expect(ns.depleted_explanation).toBe('Deep recovery window. Electrolytes will restore your balance.');
+  it('the compliance-flagged lines match their founder-ruled state', () => {
+    // depleted_explanation: rewritten under the founder's Stage-1 S1-1
+    // claims-emergency authorization (2026-08-25) — the prior text
+    // ("Electrolytes will restore your balance.") was a Stage-0
+    // REMOVE-class unhedged efficacy claim. This pin now locks the
+    // evidence-bound replacement; changing it again requires the same
+    // founder/counsel authority as before.
+    expect(ns.depleted_explanation).toBe(
+      'Deep recovery window. Water and electrolytes support your recovery.',
+    );
+    // social_do_not_drive_explanation: HELD for founder Decision B
+    // (alcohol/BAC memo). Untouched — still founder/counsel owned.
     expect(ns.social_do_not_drive_explanation).toBe(
       'Reaction time and judgment are significantly reduced. A ride is the safer next move.',
     );

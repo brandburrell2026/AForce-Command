@@ -81,9 +81,9 @@ export function pickRecoveryProtocol(
       reason: 'restock',
       steps: [],
       waterOz,
-      headline: 'Restock your supply to start the recovery protocol.',
+      headline: `Start with water — ${waterOz} ounces over the recovery window.`,
       reasoning:
-        'No sticks, RTD, or canister on hand — your tracked inventory is empty.',
+        'Water covers the fluid target. Your tracked AForce inventory is empty; restock to add sodium servings.',
     };
   }
 
@@ -106,7 +106,7 @@ export function pickRecoveryProtocol(
       waterOz,
       headline: 'Sip to maintain — sodium loss this session was minimal.',
       reasoning:
-        'Deficit was within optimal range. One light serving keeps your balance trending up.',
+        'Estimated sodium loss this session was minimal. One light serving is optional.',
     };
   }
 
@@ -157,7 +157,7 @@ export function pickRecoveryProtocol(
 
   const reasoning = partial
     ? `Inventory covers ${totalUnitsNeeded - remaining}/${totalUnitsNeeded} units. Top up to fully replace your sodium loss.`
-    : `${totalUnitsNeeded} unit${totalUnitsNeeded > 1 ? 's' : ''} matches your sodium loss; ${waterOz} ounces water pairs the absorption window.`;
+    : `${totalUnitsNeeded} unit${totalUnitsNeeded > 1 ? 's' : ''} sized to your estimated sodium loss; pair with ${waterOz} ounces water.`;
 
   return { reason: 'ok', steps, waterOz, headline, reasoning };
 }
