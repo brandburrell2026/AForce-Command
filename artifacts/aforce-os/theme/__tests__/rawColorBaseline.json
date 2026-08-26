@@ -81,7 +81,7 @@
   "components/share/SharePreviewScreenV2.tsx": 6,
   "components/sleep/SleepModeView.tsx": 2,
   "components/store/StoreScreenV2.tsx": 10,
-  "components/sweat/SweatCalculatorScreenV2.tsx": 16,
+  "components/sweat/SweatCalculatorScreenV2.tsx": 15,
   "components/ui/AFDisclosureSheet.tsx": 1,
   "components/ui/AFEditorialHero.tsx": 1,
   "components/ui/AFListRow.tsx": 1,

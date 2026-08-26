@@ -35,7 +35,9 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { HeightField, WeightField } from '@/components/bodyModel';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { AdaptiveScreenWrapper } from '@/components/AdaptiveScreenWrapper';
-import { af } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { AFDisclosureSheet, AFListRow } from '@/components/ui';
+import { Typography } from '@/theme/typography';
 import {
   AFORCE_SODIUM_PER_UNIT_MG,
   computeSweatSession,
@@ -120,8 +122,7 @@ function SweatLossSnapshot() {
           <Text
             style={styles.snapshotMetricValue}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
+            maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
           >
             {t('sweat.v2.unit_mg', { value: snap.sodiumLossMg })}
           </Text>
@@ -136,8 +137,7 @@ function SweatLossSnapshot() {
           <Text
             style={[styles.snapshotMetricValue, { color: accent }]}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
+            maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
           >
             {t('sweat.v2.unit_pct', { value: snap.efficiencyPct })}
           </Text>
@@ -152,8 +152,7 @@ function SweatLossSnapshot() {
           <Text
             style={styles.snapshotMetricValue}
             numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
+            maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
           >
             {intensityLabel}
           </Text>
@@ -598,7 +597,7 @@ function NumberRow({
   const { t } = useTranslation();
   return (
     <View style={styles.numberRow}>
-      <Text style={styles.numberLabel} numberOfLines={1} adjustsFontSizeToFit>
+      <Text style={styles.numberLabel} numberOfLines={1}>
         {label}
       </Text>
       <View style={styles.numberInputWrap}>
@@ -768,6 +767,8 @@ function ClimateLine({ climate, ambientTempC }: { climate: CityClimate; ambientT
  */
 function ResultPane({ result }: { result: SweatSession }) {
   const { t } = useTranslation();
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
   const inventory = useInventorySlice();
   const protocol = useMemo(
     () => pickRecoveryProtocol(result, inventory),
@@ -781,16 +782,55 @@ function ResultPane({ result }: { result: SweatSession }) {
           {t('sweat.v2.qual_limited_note')}
         </Text>
       )}
+      {/* S2-9: ten equal cards → one hero (the reading), one command
+          (decision + protocol), two quiet disclosures, share. The
+          founder-commissioned positioning copy (Recovery Intelligence,
+          AForce System, comparison) moves BEHIND a tap — evicted from the
+          computed-result surface, preserved verbatim inside it. */}
       <PerformanceHeader result={result} />
-      <RecoveryIntelligenceCard />
-      <AForceSystemCard />
       <AIRecoveryDecision result={result} protocol={protocol} />
       <RecoveryProtocolCard protocol={protocol} result={result} />
-      <SodiumGapCard result={result} />
-      <OptionalSupportCard result={result} />
-      <AdvancedDataCard result={result} />
-      <ComparisonTable />
+
+      <AFListRow
+        icon="bar-chart-2"
+        title={t('sweat.v2.full_analysis_title')}
+        subtitle={t('sweat.v2.full_analysis_hint')}
+        disclosure
+        onPress={() => setAnalysisOpen(true)}
+        testID="sweat-full-analysis"
+      />
+      <AFListRow
+        icon="info"
+        title={t('sweat.v2.why_aforce_title')}
+        subtitle={t('sweat.v2.why_aforce_hint')}
+        disclosure
+        onPress={() => setWhyOpen(true)}
+        testID="sweat-why-aforce"
+      />
+
       <ShareCardHandoff result={result} />
+
+      <AFDisclosureSheet
+        visible={analysisOpen}
+        onClose={() => setAnalysisOpen(false)}
+        title={t('sweat.v2.full_analysis_title')}
+        testID="sweat-analysis-sheet"
+      >
+        <SodiumGapCard result={result} />
+        <OptionalSupportCard result={result} />
+        <AdvancedDataCard result={result} />
+      </AFDisclosureSheet>
+
+      <AFDisclosureSheet
+        visible={whyOpen}
+        onClose={() => setWhyOpen(false)}
+        title={t('sweat.v2.why_aforce_title')}
+        testID="sweat-why-sheet"
+      >
+        <RecoveryIntelligenceCard />
+        <AForceSystemCard />
+        <ComparisonTable />
+      </AFDisclosureSheet>
     </View>
   );
 }
@@ -1272,7 +1312,7 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 8,
   },
-  qualBlockedTitle: { color: af.textPrimary, fontSize: 17, fontWeight: '700' },
+  qualBlockedTitle: { color: af.textPrimary, fontSize: 17, fontFamily: 'Inter_700Bold' },
   qualBlockedBody: { color: af.textSecondary, fontSize: 14, lineHeight: 20 },
   qualLimitedNote: {
     fontSize: 12,
@@ -1302,9 +1342,9 @@ const styles = StyleSheet.create({
     color: af.cyan,
     fontSize: 11,
     letterSpacing: 1.4,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
-  title: { color: af.textPrimary, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
+  title: { color: af.textPrimary, fontSize: 26, fontFamily: 'Inter_700Bold', letterSpacing: -0.4 },
   subhead: { color: af.textSecondary, fontSize: 13, lineHeight: 18 },
 
   snapshotCard: {
@@ -1322,12 +1362,12 @@ const styles = StyleSheet.create({
   snapshotEyebrow: {
     fontSize: 10,
     letterSpacing: 1.6,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   snapshotConfidence: {
     fontSize: 9,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     color: af.textSecondary,
   },
   snapshotHeroRow: {
@@ -1337,7 +1377,7 @@ const styles = StyleSheet.create({
   },
   snapshotHero: {
     fontSize: 38,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: -0.6,
     color: af.textPrimary,
   },
@@ -1362,12 +1402,12 @@ const styles = StyleSheet.create({
   snapshotMetricLabel: {
     fontSize: 9,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     color: af.textSecondary,
   },
   snapshotMetricValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     color: af.textPrimary,
   },
   snapshotHint: {
@@ -1385,7 +1425,7 @@ const styles = StyleSheet.create({
   },
   segmentBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 9 },
   segmentBtnActive: { backgroundColor: af.surfaceRaised },
-  segmentText: { color: af.textSecondary, fontSize: 13, fontWeight: '600', letterSpacing: 0.4 },
+  segmentText: { color: af.textSecondary, fontSize: 13, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.4 },
   segmentTextActive: { color: af.textPrimary },
 
   card: {
@@ -1400,14 +1440,14 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 11,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 4,
   },
   subLabel: {
     color: af.textTertiary,
     fontSize: 11,
     letterSpacing: 1.0,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginTop: 2,
     marginBottom: 6,
   },
@@ -1434,13 +1474,13 @@ const styles = StyleSheet.create({
   numberInput: {
     color: af.textPrimary,
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
     flex: 1,
     textAlign: 'right',
     paddingVertical: 0,
     minWidth: 0,
   },
-  numberSuffix: { color: af.textTertiary, fontSize: 11, marginLeft: 6, fontWeight: '600' },
+  numberSuffix: { color: af.textTertiary, fontSize: 11, marginLeft: 6, fontFamily: 'Inter_600SemiBold' },
 
   chipRow: { gap: 8, paddingVertical: 2 },
   chip: {
@@ -1455,7 +1495,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,229,200,0.12)',
     borderColor: af.cyan,
   },
-  chipText: { color: af.textSecondary, fontSize: 12, fontWeight: '600' },
+  chipText: { color: af.textSecondary, fontSize: 12, fontFamily: 'Inter_600SemiBold' },
   chipTextActive: { color: af.textPrimary },
 
   sodiumRow: {
@@ -1483,7 +1523,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   sodiumDotInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent' },
-  sodiumLabel: { color: af.textPrimary, fontSize: 13, fontWeight: '700' },
+  sodiumLabel: { color: af.textPrimary, fontSize: 13, fontFamily: 'Inter_700Bold' },
   sodiumDesc: { color: af.textTertiary, fontSize: 11, lineHeight: 14, marginTop: 2 },
 
   intensityRow: { flexDirection: 'row', gap: 6 },
@@ -1500,13 +1540,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,229,200,0.12)',
     borderColor: af.cyan,
   },
-  intensityNum: { color: af.textSecondary, fontSize: 18, fontWeight: '800' },
+  intensityNum: { color: af.textSecondary, fontSize: 18, fontFamily: 'Inter_700Bold' },
   intensityNumActive: { color: af.textPrimary },
-  intensityLabel: { color: af.textTertiary, fontSize: 9, marginTop: 2, letterSpacing: 0.4, fontWeight: '700' },
+  intensityLabel: { color: af.textTertiary, fontSize: 9, marginTop: 2, letterSpacing: 0.4, fontFamily: 'Inter_700Bold' },
   intensityLabelActive: { color: af.textSecondary },
 
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  toggleLabel: { color: af.textPrimary, fontSize: 14, fontWeight: '600' },
+  toggleLabel: { color: af.textPrimary, fontSize: 14, fontFamily: 'Inter_600SemiBold' },
   toggleHint: { color: af.textTertiary, fontSize: 11, marginTop: 2 },
 
   climateLine: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
@@ -1537,7 +1577,7 @@ const styles = StyleSheet.create({
         } as Record<string, unknown>)
       : {}),
   },
-  calcBtnText: { color: af.onRed, fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
+  calcBtnText: { color: af.onRed, fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
   calcBtnDisabled: { backgroundColor: af.surface },
   calcBtnTextDisabled: { color: af.textTertiary },
 
@@ -1567,14 +1607,14 @@ const styles = StyleSheet.create({
     color: af.cyan,
     fontSize: 10,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   heroNumbers: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 6 },
-  heroBig: { color: af.textPrimary, fontSize: 56, fontWeight: '800', lineHeight: 56, letterSpacing: -2 },
-  heroUnitTop: { color: af.textPrimary, fontSize: 18, fontWeight: '700' },
+  heroBig: { color: af.textPrimary, fontSize: 56, fontFamily: 'Inter_700Bold', lineHeight: 56, letterSpacing: -2 },
+  heroUnitTop: { color: af.textPrimary, fontSize: 18, fontFamily: 'Inter_700Bold' },
   heroUnitBottom: { color: af.textTertiary, fontSize: 12, marginTop: 2 },
   heroSub: { color: af.textSecondary, fontSize: 12, marginTop: 8 },
-  heroSubBold: { color: af.textPrimary, fontWeight: '700' },
+  heroSubBold: { color: af.textPrimary, fontFamily: 'Inter_700Bold' },
   estimatedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1589,7 +1629,7 @@ const styles = StyleSheet.create({
   estimatedBadgeText: {
     color: af.amber,
     fontSize: 9,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.6,
   },
   intentionalSodiumLine: {
@@ -1618,7 +1658,7 @@ const styles = StyleSheet.create({
     color: af.cyan,
     fontSize: 11,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   sodiumGapRows: {
     gap: 6,
@@ -1636,7 +1676,7 @@ const styles = StyleSheet.create({
   sodiumGapValue: {
     color: af.textPrimary,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   sodiumGapValueAccent: {
     color: af.cyan,
@@ -1662,8 +1702,8 @@ const styles = StyleSheet.create({
   },
   bandHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bandPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
-  bandPillText: { color: af.onRed, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
-  bandPct: { fontSize: 28, fontWeight: '800' },
+  bandPillText: { color: af.onRed, fontSize: 11, fontFamily: 'Inter_700Bold', letterSpacing: 0.6 },
+  bandPct: { fontSize: 28, fontFamily: 'Inter_700Bold' },
   bandMessage: { color: af.textPrimary, fontSize: 13, lineHeight: 18 },
   bandReference: { color: af.textTertiary, fontSize: 10, marginTop: 4 },
 
@@ -1678,12 +1718,12 @@ const styles = StyleSheet.create({
     color: af.green,
     fontSize: 10,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   rxHeadline: {
     color: af.textPrimary,
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginTop: 8,
     lineHeight: 22,
   },
@@ -1695,9 +1735,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
   },
-  rxStatValue: { color: af.textPrimary, fontSize: 22, fontWeight: '800' },
-  rxStatUnit: { color: af.textTertiary, fontSize: 12, fontWeight: '600' },
-  rxStatLabel: { color: af.textTertiary, fontSize: 10, letterSpacing: 0.6, marginTop: 4, fontWeight: '700' },
+  rxStatValue: { color: af.textPrimary, fontSize: 22, fontFamily: 'Inter_700Bold' },
+  rxStatUnit: { color: af.textTertiary, fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  rxStatLabel: { color: af.textTertiary, fontSize: 10, letterSpacing: 0.6, marginTop: 4, fontFamily: 'Inter_700Bold' },
 
   bulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   bulletDot: {
@@ -1720,7 +1760,7 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 10,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 8,
   },
   auditRow: {
@@ -1730,10 +1770,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   auditKey: { color: af.textSecondary, fontSize: 11, flex: 1 },
-  auditValue: { color: af.textPrimary, fontSize: 11, fontWeight: '600', textAlign: 'right' },
+  auditValue: { color: af.textPrimary, fontSize: 11, fontFamily: 'Inter_600SemiBold', textAlign: 'right' },
 
   citationToggle: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8 },
-  citationToggleText: { color: af.textTertiary, fontSize: 11, fontWeight: '600', letterSpacing: 0.4 },
+  citationToggleText: { color: af.textTertiary, fontSize: 11, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.4 },
 
   citationCard: {
     backgroundColor: af.surface,
@@ -1747,11 +1787,11 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 10,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 4,
   },
   citationBody: { color: af.textSecondary, fontSize: 11, lineHeight: 16 },
-  citationBold: { color: af.textPrimary, fontWeight: '700' },
+  citationBold: { color: af.textPrimary, fontFamily: 'Inter_700Bold' },
   citationDisclaimer: {
     color: af.textTertiary,
     fontSize: 10,
@@ -1768,7 +1808,7 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 10,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 10,
   },
 
@@ -1787,21 +1827,21 @@ const styles = StyleSheet.create({
   perfMetaValue: {
     color: af.textPrimary,
     fontSize: 15,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: -0.2,
   },
   perfMetaLabel: {
     color: af.textTertiary,
     fontSize: 9,
     letterSpacing: 0.8,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginTop: 3,
     textTransform: 'uppercase',
   },
 
   // B — Recovery Intelligence
   intelCard: {
-    backgroundColor: '#0A0B10',
+    backgroundColor: af.canvasFocused,
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
@@ -1811,12 +1851,12 @@ const styles = StyleSheet.create({
     color: af.green,
     fontSize: 10,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   intelHeadline: {
     color: af.textPrimary,
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: -0.4,
     lineHeight: 28,
     marginTop: 10,
@@ -1844,7 +1884,7 @@ const styles = StyleSheet.create({
   intelChipText: {
     color: af.textPrimary,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.4,
   },
 
@@ -1868,7 +1908,7 @@ const styles = StyleSheet.create({
   systemRowKey: {
     color: af.textPrimary,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     flexShrink: 0,
   },
   systemRowValue: {
@@ -1882,14 +1922,14 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 10,
     letterSpacing: 1.2,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 8,
   },
   ingredientRow: { paddingVertical: 6 },
   ingredientName: {
     color: af.textPrimary,
     fontSize: 12,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.2,
   },
   ingredientLine: {
@@ -1916,12 +1956,12 @@ const styles = StyleSheet.create({
   aiEyebrow: {
     fontSize: 10,
     letterSpacing: 1.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   aiHeadline: {
     color: af.textPrimary,
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: -0.2,
     marginBottom: 10,
   },
@@ -1941,7 +1981,7 @@ const styles = StyleSheet.create({
   protocolHeadline: {
     color: af.textPrimary,
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     lineHeight: 21,
   },
   protocolReasoning: {
@@ -1967,12 +2007,12 @@ const styles = StyleSheet.create({
   protocolStepIdxText: {
     color: af.green,
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   protocolStepLabel: {
     color: af.textPrimary,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   protocolStepHint: {
     color: af.textTertiary,
@@ -1992,7 +2032,7 @@ const styles = StyleSheet.create({
   restockBtnText: {
     color: af.onRed,
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.4,
   },
 
@@ -2030,7 +2070,7 @@ const styles = StyleSheet.create({
   supportLabel: {
     color: af.textPrimary,
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   supportHint: {
     color: af.textTertiary,
@@ -2077,7 +2117,7 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 9,
     letterSpacing: 1,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     textTransform: 'uppercase',
   },
   compareRowYou: {
@@ -2090,14 +2130,14 @@ const styles = StyleSheet.create({
   compareCell: {
     color: af.textPrimary,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   compareCellBrand: { width: 92 },
   compareCellSodium: { width: 76 },
   compareCellProfile: { flex: 1 },
   compareYouText: {
     color: af.green,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   youDot: {
     backgroundColor: af.green,
@@ -2108,13 +2148,13 @@ const styles = StyleSheet.create({
   youDotText: {
     color: af.onRed,
     fontSize: 8,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.6,
   },
   compareCloser: {
     color: af.textPrimary,
     fontSize: 13,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     fontStyle: 'italic',
     letterSpacing: -0.1,
     lineHeight: 18,
@@ -2162,7 +2202,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.45)',
     fontSize: 10,
     letterSpacing: 1.6,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   shareTopRow: {
     flexDirection: 'row',
@@ -2179,12 +2219,12 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
     fontSize: 10,
     letterSpacing: 2.4,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
   },
   shareHeadline: {
     color: '#FFFFFF',
     fontSize: 26,
-    fontWeight: '800',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: -0.5,
     lineHeight: 30,
     textTransform: 'uppercase',
@@ -2193,7 +2233,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
     fontSize: 11,
     letterSpacing: 0.5,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
   shareCTA: {
     flexDirection: 'row',
@@ -2210,7 +2250,7 @@ const styles = StyleSheet.create({
   shareCTAText: {
     color: af.textPrimary,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 0.4,
   },
 });
