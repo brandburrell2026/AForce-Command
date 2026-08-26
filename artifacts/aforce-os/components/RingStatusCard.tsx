@@ -14,7 +14,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, Platform } from 'react-native';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { router } from 'expo-router';
 
 import { af, afType, afAlpha, withAlpha, Typography } from '../theme';
@@ -31,7 +31,7 @@ export function RingStatusCard() {
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+        if (Platform.OS !== 'web') hapticSelection();
         // If a session is already streaming, jump straight to the live HUD
         // instead of stranding the user on the resting Calm Coach screen.
         router.push(ring.sessionActive ? '/ring/session' : '/ring');

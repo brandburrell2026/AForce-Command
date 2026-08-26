@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Icon } from '../Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../../theme/colors';
@@ -46,12 +46,12 @@ function PrimaryCTAImpl({ layout }: Props) {
 
   const onCta = () => {
     if (isCompletingCycle) return;
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     setOpen(true);
   };
   const onChoose = (flavor: FlavorChoice | null) => {
     setOpen(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    hapticImpact('heavy');
     const fluid = flavor?.fluid ?? 'aforce_stick';
     const opts = flavor
       ? {
@@ -61,7 +61,7 @@ function PrimaryCTAImpl({ layout }: Props) {
       : undefined;
     logIntake(fluid, opts);
   };
-  const onSnooze = () => { Haptics.selectionAsync(); snooze(); };
+  const onSnooze = () => { hapticSelection(); snooze(); };
 
   return (
     <>

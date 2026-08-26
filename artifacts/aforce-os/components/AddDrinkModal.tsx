@@ -31,7 +31,7 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { AFModal } from '@/components/ui/AFModal';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
@@ -103,7 +103,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
   );
 
   const hapticTap = () => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
   };
 
   const onPickDrink = (drink: CatalogDrink) => {
@@ -152,7 +152,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
       const coef = getDrinkCoefficient(drink);
       const effective = computeEffectiveOz(drink.categoryId, oz, drink.hydrationCoefficient);
       if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        hapticImpact('medium');
       }
       onConfirm({
         categoryId: drink.categoryId,
@@ -168,7 +168,7 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
       const coef = DRINK_CATEGORIES[stage.categoryId].hydrationCoefficient;
       const effective = computeEffectiveOz(stage.categoryId, stage.oz);
       if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        hapticImpact('medium');
       }
       onConfirm({
         categoryId: stage.categoryId,

@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { Colors } from '@/theme/colors';
 import type { BattleView } from '@/services/battleService';
 
@@ -20,7 +20,7 @@ export const BattleCard: React.FC<Props> = ({ battle, onSupport }) => {
   const leadingSide2 = battle.leader === 'side2';
 
   const handleSupport = (side: 'side1' | 'side2') => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     onSupport?.(battle.id, side);
   };
 

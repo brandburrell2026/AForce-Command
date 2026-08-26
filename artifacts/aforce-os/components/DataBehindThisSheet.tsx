@@ -23,7 +23,7 @@ import {
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
@@ -57,7 +57,7 @@ export function DataBehindThisSheet({ visible, onDismiss, confidence, signals }:
 
   useEffect(() => {
     if (visible) {
-      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+      if (Platform.OS !== 'web') hapticSelection();
       // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
       // was 220ms/Easing.out(quad) — exact duration match, token easing curve.
       opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });

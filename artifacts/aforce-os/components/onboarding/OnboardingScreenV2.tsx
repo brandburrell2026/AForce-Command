@@ -42,7 +42,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import { router } from 'expo-router';
 
 import { recordOnboardingCompleted } from '@/services/analytics';
@@ -252,7 +252,7 @@ export function OnboardingScreenV2() {
   const [locationCanAskAgain, setLocationCanAskAgain] = React.useState(true);
 
   const tap = React.useCallback(() => {
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
   }, []);
 
   // Reflect a grant this install already holds (a re-run of setup, or a
@@ -304,7 +304,7 @@ export function OnboardingScreenV2() {
   );
 
   const finish = React.useCallback(async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    hapticNotify('success');
     const patch: Partial<ProfileIdentity> = {};
     // §19 (B′): one goal question → primaryGoal (the major snapshot slot).
     if (primaryGoal) patch.primaryGoal = primaryGoal;

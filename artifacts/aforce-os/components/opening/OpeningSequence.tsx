@@ -49,7 +49,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
@@ -569,7 +569,7 @@ export function OpeningSequence({
 
   const onSkip = React.useCallback(() => {
     if (finishedRef.current) return;
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     finish(true);
   }, [finish]);
 

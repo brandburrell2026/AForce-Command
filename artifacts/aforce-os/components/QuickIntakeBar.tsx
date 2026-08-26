@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image, ScrollView } from 'react-native';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
 import { PRODUCTS, QUICK_INTAKE_ORDER } from '../data/products';
@@ -21,7 +21,7 @@ export function QuickIntakeBar({ accentColor }: Props) {
 
   const handleLog = (fluidType: FluidType) => {
     if (state.isCompletingCycle) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    hapticImpact('medium');
     logIntake(fluidType, { source: 'home' });
   };
 

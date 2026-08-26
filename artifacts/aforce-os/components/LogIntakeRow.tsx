@@ -14,7 +14,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Icon, type IconName } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
@@ -62,16 +62,16 @@ export function LogIntakeRow({ accentColor }: Props) {
   const handleLog = (fluid: FluidType) => {
     if (state.isCompletingCycle) return;
     if (fluid === 'water') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
       setWaterPickerOpen(true);
       return;
     }
     if (fluid === 'aforce_stick' || fluid === 'aforce_rtd') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
       setFlavorPickerFor(fluid);
       return;
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    hapticImpact('medium');
     logIntake(fluid, { source: 'manual' });
   };
 

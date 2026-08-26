@@ -28,7 +28,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { scopedStorage } from '@/services/scopedStorage';
 
 const DISCLAIMER_KEY = '@aforce/socialV2/disclaimerDismissed';
@@ -264,7 +264,7 @@ export default function SocialModeV2Screen() {
 
   const startDemo = React.useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
     setSessionComplete(false);
     setDemoBeat(0);
@@ -323,7 +323,7 @@ export default function SocialModeV2Screen() {
   const closeAnim = React.useRef(new Animated.Value(1)).current;
   const onReset = () => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticImpact('light');
     }
     Animated.timing(closeAnim, {
       toValue: 0, duration: 1500,

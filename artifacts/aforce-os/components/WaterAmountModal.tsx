@@ -14,7 +14,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 
 interface Props {
@@ -39,17 +39,17 @@ export function WaterAmountModal({ visible, accentColor, onCancel, onConfirm }: 
   }, [visible]);
 
   const adjust = (delta: number) => {
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     setOz((prev) => Math.max(MIN_OZ, Math.min(MAX_OZ, prev + delta)));
   };
 
   const choose = (value: number) => {
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     setOz(value);
   };
 
   const confirm = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    hapticImpact('medium');
     onConfirm(oz);
   };
 

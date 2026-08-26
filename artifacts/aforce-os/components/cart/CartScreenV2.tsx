@@ -22,7 +22,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import * as Haptics from "expo-haptics";
+import { hapticNotify } from '@/services/haptics';
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { Icon, type IconName } from '@/components/Icon';
@@ -105,7 +105,7 @@ export function CartScreenV2() {
       }
 
       if (Platform.OS !== "web") {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
       clear();
       setCheckoutNotice(t('cart.v2.checkout_confirmed'));

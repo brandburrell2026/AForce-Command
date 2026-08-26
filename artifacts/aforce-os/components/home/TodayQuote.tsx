@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { hapticSelection } from '@/services/haptics';
 import { Pressable, Share, StyleSheet, Text, View, Platform } from 'react-native';
 
 import { Colors } from '@/theme/colors';
@@ -58,11 +59,8 @@ function TodayQuoteImpl() {
 
   const onShare = React.useCallback(async () => {
     try {
-      // Lazy haptic feedback on native; web silently no-ops.
-      if (Platform.OS !== 'web') {
-        const haptics = await import('expo-haptics');
-        haptics.selectionAsync().catch(() => {});
-      }
+      // Central façade — web no-op and best-effort live inside it (S2-6).
+      hapticSelection();
       await Share.share({ message: `${quote.text} — AForce` });
     } catch {
       // Share dismissed / no provider — silent. Failing share is a

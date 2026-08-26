@@ -31,7 +31,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '../Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/expo';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -512,7 +512,7 @@ export default function HomeScreenLegacy() {
 
   const openBreakdown = React.useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
     setBreakdownOpen(true);
   }, []);
@@ -530,13 +530,13 @@ export default function HomeScreenLegacy() {
   const onPrimaryCta = React.useCallback(() => {
     if (state.isCompletingCycle) return;
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      hapticImpact('medium');
     }
     setFlavorOpen(true);
   }, [state.isCompletingCycle]);
 
   const onShare = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     const level = engine.performanceState.level;
     const stateLabel =
       level === 'PEAK' ? 'Peak'
@@ -547,7 +547,7 @@ export default function HomeScreenLegacy() {
   }, [router, engine.score, engine.performanceState.level]);
 
   const onTapHeat = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setVoiceAutoStart(false);
     setVoiceOpen(true);
   }, []);
@@ -556,7 +556,7 @@ export default function HomeScreenLegacy() {
     (flavor: FlavorChoice | null) => {
       setFlavorOpen(false);
       if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+        hapticImpact('heavy');
       }
       const fluid: FluidType = flavor?.fluid ?? 'aforce_stick';
       const opts = flavor

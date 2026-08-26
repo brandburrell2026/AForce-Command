@@ -12,7 +12,7 @@
  */
 import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '../../theme/colors';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
@@ -29,7 +29,7 @@ export function SocialModePip() {
   const decay = engine.prediction.decayPerMinute;
 
   const onPress = useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     if (active) {
       void deactivateSocialMode();
     } else {

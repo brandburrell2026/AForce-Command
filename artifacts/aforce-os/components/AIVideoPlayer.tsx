@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import Animated, {
   useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence,
   withDelay, Easing, cancelAnimation, interpolateColor,
@@ -358,7 +358,7 @@ export function AIVideoPlayer({ video, command, compact = true, timerSeconds, sc
   }));
 
   const handleExpand = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setExpanded(true);
   }, []);
   const handleCollapse = React.useCallback(() => setExpanded(false), []);

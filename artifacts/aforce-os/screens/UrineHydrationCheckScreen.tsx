@@ -11,6 +11,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import {
   View,
   Text,
@@ -44,17 +45,8 @@ const SEVERITY_COLOR: Record<UrineSeverity, string> = {
   correction: Colors.states.DEPLETED.primary,
 };
 
-// Lazy haptics — same pattern as elsewhere; never reject on web.
-const hapticSelection = () => {
-  import('expo-haptics')
-    .then((m) => m.selectionAsync().catch(() => {}))
-    .catch(() => {});
-};
-const hapticImpactHeavy = () => {
-  import('expo-haptics')
-    .then((m) => m.impactAsync(m.ImpactFeedbackStyle.Heavy).catch(() => {}))
-    .catch(() => {});
-};
+// S2-6: central façade — web no-op and best-effort live inside it.
+const hapticImpactHeavy = () => hapticImpact('heavy');
 
 export default function UrineHydrationCheckScreen() {
   const router = useRouter();

@@ -10,7 +10,7 @@
 
 import React from 'react';
 import { Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify } from '@/services/haptics';
 
 import { evaluateHeatRisk } from '../services/heatRiskEngine';
 import { renderTemplate } from '../services/voiceTemplateEngine';
@@ -169,7 +169,7 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       const line = renderTemplate('heat_warning', ctx);
       speak(line.spoken);
       if (Platform.OS !== 'web') {
-        try { Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning); } catch { /* ignore */ }
+        hapticNotify('warning');
       }
       onEscalate();
     }

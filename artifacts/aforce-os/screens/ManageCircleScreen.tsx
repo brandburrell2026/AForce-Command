@@ -8,7 +8,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Alert } from '
 import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import {
@@ -48,7 +48,7 @@ export const ManageCircleScreen: React.FC = () => {
   const pending = React.useMemo(() => listPending(), [v]);
 
   const accept = (u: CircleUser) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setRelationshipStatus(u.userId, 'active');
   };
   const decline = (u: CircleUser) => {
@@ -61,7 +61,7 @@ export const ManageCircleScreen: React.FC = () => {
     confirmRemove(u.name, () => { removeFromCircle(u.userId); });
   };
   const move = (u: CircleUser, g: CircleGroup) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     moveToGroup(u.userId, g);
   };
 

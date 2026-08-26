@@ -35,7 +35,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import { router } from 'expo-router';
 
 import { recordOnboardingCompleted } from '@/services/analytics';
@@ -230,7 +230,7 @@ export function OnboardingLegacy() {
   const [frequentTraveler, setFrequentTraveler] = React.useState(false);
 
   const tap = React.useCallback(() => {
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
   }, []);
 
   const switchSystem = React.useCallback(
@@ -252,7 +252,7 @@ export function OnboardingLegacy() {
   );
 
   const finish = React.useCallback(async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    hapticNotify('success');
     const patch: Partial<ProfileIdentity> = {};
     // §19 (B′): one goal question → primaryGoal (the major snapshot slot).
     if (primaryGoal) patch.primaryGoal = primaryGoal;

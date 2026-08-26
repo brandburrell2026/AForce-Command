@@ -9,7 +9,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Icon } from '../Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../../theme/colors';
@@ -52,7 +52,7 @@ function OrbSectionImpl({ onOpenBreakdown, orbSize }: Props) {
   const stateColor = recoveryAccent?.primary ?? displayed?.primary ?? engine.performanceState.color;
 
   const onTap = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     onOpenBreakdown();
   }, [onOpenBreakdown]);
 

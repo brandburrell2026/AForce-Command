@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify } from '@/services/haptics';
 import { Colors } from '@/theme/colors';
 import type { ReactionId, SharedStateLabel } from '@/types/circle';
 import { reactionsForState } from '@/services/reactionService';
@@ -23,7 +23,7 @@ export const ReactionBar: React.FC<Props> = ({ state, onSend }) => {
   const handleSend = (id: ReactionId) => {
     if (sentId === id) return;
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      hapticNotify('success');
     }
     setSentId(id);
     onSend(id);

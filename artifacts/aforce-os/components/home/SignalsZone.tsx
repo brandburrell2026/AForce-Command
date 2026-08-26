@@ -11,7 +11,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Icon } from '../Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '../../theme/colors';
@@ -93,7 +93,7 @@ function SignalsZoneImpl({ heatScore, onOpenSocial, includeEntryActions, entryAc
           <Spacer />
           <TouchableOpacity
             onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+              if (Platform.OS !== 'web') hapticSelection();
               onOpenSocial();
             }}
             activeOpacity={0.85}

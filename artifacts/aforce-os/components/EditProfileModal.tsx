@@ -30,7 +30,7 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { AFModal } from './ui/AFModal';
 import { KeyboardAwareScrollViewCompat } from './KeyboardAwareScrollViewCompat';
 import { Icon } from './Icon';
@@ -259,7 +259,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
         WORKOUT_DURATION_MAX,
       ),
     };
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     onSave(sanitized);
   };
 
@@ -391,7 +391,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={sex}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('biologicalSex', sex);
                       }}
                       style={[
@@ -435,7 +435,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={level}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('trainingLevel', level);
                       }}
                       style={[
@@ -473,7 +473,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={goal}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('primaryGoal', goal);
                       }}
                       style={[
@@ -512,7 +512,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={level}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('sweatClassification', level);
                       }}
                       style={[
@@ -586,7 +586,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={aura}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('auraState', aura);
                       }}
                       style={[
@@ -629,7 +629,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={opt}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('caffeineHabit', opt);
                       }}
                       style={[
@@ -667,7 +667,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={opt}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('occupationType', opt);
                       }}
                       style={[
@@ -705,7 +705,7 @@ export function EditProfileModal({ visible, initialValue, onClose, onSave }: Pro
                     <Pressable
                       key={String(val)}
                       onPress={() => {
-                        Haptics.selectionAsync().catch(() => {});
+                        hapticSelection();
                         setField('frequentTraveler', val);
                       }}
                       style={[

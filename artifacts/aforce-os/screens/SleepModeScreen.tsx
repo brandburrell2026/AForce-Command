@@ -11,7 +11,7 @@ import React from 'react';
 import { View, StyleSheet, Platform, ScrollView, AccessibilityInfo } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -191,8 +191,8 @@ function SleepModeRedesign() {
 
   const haptic = (kind: 'light' | 'success') => {
     if (Platform.OS === 'web') return;
-    if (kind === 'success') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    else Haptics.selectionAsync().catch(() => {});
+    if (kind === 'success') hapticNotify('success');
+    else hapticSelection();
   };
 
   const onBack = () => { if (router.canGoBack()) router.back(); else router.replace('/'); };

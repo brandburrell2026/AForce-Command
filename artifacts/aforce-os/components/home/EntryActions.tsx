@@ -17,7 +17,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Icon, type IconName } from '../Icon';
 
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useRouter } from 'expo-router';
 
 import { Colors } from '../../theme/colors';
@@ -163,7 +163,7 @@ function EntryActionsImpl() {
   ];
 
   const onTilePress = (key: TileKey) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     if (key === 'urine') {
       router.push('/urine-check');
       return;

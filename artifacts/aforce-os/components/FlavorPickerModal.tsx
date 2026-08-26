@@ -17,7 +17,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 import { FLAVOR_VARIANTS } from '../data/flavors';
 import { PRODUCT_FLAVORS } from '../data/products';
@@ -110,7 +110,7 @@ function FlavorCard({ variant: f, formatOptions, onChoose }: FlavorCardProps) {
               <Pressable
                 key={opt.fluid}
                 onPress={() => {
-                  Haptics.selectionAsync().catch(() => {});
+                  hapticSelection();
                   setSelected(opt);
                 }}
                 style={[
@@ -180,7 +180,7 @@ export function FlavorPickerModal({ visible, format, onCancel, onConfirm }: Prop
   const titleText = format === 'both' ? 'LOG INTAKE' : `LOG AFORCE${titleSuffix}`;
 
   const choose = (flavor: FlavorChoice | null) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    hapticImpact('medium');
     onConfirm(flavor);
   };
 

@@ -5,6 +5,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
+import { hapticSelection } from '@/services/haptics';
 import {
   View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, Platform, Pressable, Alert, Image,
 } from 'react-native';
@@ -89,14 +90,6 @@ import {
   type GarminUiState,
 } from '@/utils/garminProviderState';
 import type { ProviderSnapshot } from '@/types/biometrics';
-
-// Lazy-loaded haptics — `expo-haptics` rejects on web (no native
-// module). The `import('expo-haptics')` form bundles the module on
-// native and no-ops cleanly on web. We swallow rejections so a
-// haptics failure can never surface to the user.
-const hapticSelection = () => {
-  import('expo-haptics').then(m => m.selectionAsync().catch(() => {})).catch(() => {});
-};
 
 const TIER_LABELS: Record<string, { label: string; desc: string; color: string }> = {
   core:           { label: 'AForce Core',           desc: 'Start your performance system.',                      color: Colors.states.BALANCED.primary },

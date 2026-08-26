@@ -9,7 +9,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-n
 import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import type { RegionKind, TerritoryLayer } from '@/types/territory';
@@ -79,7 +79,7 @@ export const TerritoryScreen: React.FC = () => {
   }, []);
 
   const onScope = (next: RegionKind) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setScope(next);
     setSelectedId(undefined);
   };

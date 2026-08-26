@@ -37,7 +37,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
@@ -183,7 +183,7 @@ function Fade({
 }
 
 function haptic() {
-  if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+  if (Platform.OS !== 'web') hapticSelection();
 }
 
 export function VoiceCheckInOverlay({ onComplete, onSnooze, onClose }: Props) {

@@ -30,7 +30,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
@@ -87,7 +87,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
   }, [visible]);
 
   const hapticTap = () => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
   };
 
   const launchPicker = useCallback(async (source: 'camera' | 'library') => {
@@ -154,7 +154,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
   const analyze = useCallback(async () => {
     if (stage.kind !== 'preview') return;
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      hapticImpact('medium');
     }
     const { imageBase64, mimeType, localUri } = stage;
     setStage({ kind: 'loading', localUri });
@@ -183,7 +183,7 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
     const coef = cat.hydrationCoefficient;
     const effective = Math.round(Math.max(0, rec.oz) * Math.max(0, coef) * 10) / 10;
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      hapticImpact('medium');
     }
     onLogCorrection({
       categoryId: rec.drinkCategory,

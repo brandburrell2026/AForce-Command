@@ -18,7 +18,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
@@ -91,7 +91,7 @@ export function NotificationBanner() {
 
   const onDismiss = useCallback(async () => {
     if (!due) return;
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     // Dismiss is the user's response to the reminder.
     void recordReminderResponse(due.day, new Date().toISOString());
     // Internal analytics pipeline (Task #39) — consent-gated no-op until opt-in.

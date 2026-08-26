@@ -17,7 +17,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withRepeat, withSequence,
   Easing, useReducedMotion, cancelAnimation,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -119,7 +119,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
       return;
     }
     if (ackAt !== null) return; // prevent duplicate logging (spec §8 rechecking)
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('medium');
     setAckAt(nowOverride ?? Date.now());
     void emit('recovery_coach_primary_tapped', { commandId: command.id, commandState: command.state, screenVersion: SCREEN_VERSION });
     void emit('recovery_coach_completed', { commandId: command.id, screenVersion: SCREEN_VERSION });

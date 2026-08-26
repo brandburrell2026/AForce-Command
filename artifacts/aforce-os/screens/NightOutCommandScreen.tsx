@@ -11,7 +11,7 @@
  */
 import React from 'react';
 import { Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticNotify, hapticSelection } from '@/services/haptics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 import { AFScreen } from '@/components/ui';
@@ -37,9 +37,9 @@ interface Actions {
 
 function haptic(kind: 'light' | 'medium' | 'success') {
   if (Platform.OS === 'web') return;
-  if (kind === 'success') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-  else if (kind === 'medium') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-  else Haptics.selectionAsync().catch(() => {});
+  if (kind === 'success') hapticNotify('success');
+  else if (kind === 'medium') hapticImpact('medium');
+  else hapticSelection();
 }
 
 function freshestAgeMs(state: ReturnType<typeof useAppStore>['state'], now: number): number | null {

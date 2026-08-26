@@ -25,7 +25,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import * as Haptics from "expo-haptics";
+import { hapticNotify } from '@/services/haptics';
 import { Icon, type IconName } from '@/components/Icon';
 
 import { GradientBackground } from "@/components/GradientBackground";
@@ -104,7 +104,7 @@ export function StoreScreenV2() {
 
   const onAdd = (sku: StoreSKU) => {
     if (Platform.OS !== "web") {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      hapticNotify('success');
     }
     const bundleId = bundleMap[sku.id] ?? null;
     if (bundleId) {

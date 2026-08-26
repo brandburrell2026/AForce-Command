@@ -13,7 +13,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, View, Animated, Easing, Platform } from 'react-native';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 import type { VoiceState } from '../types/voice';
 
@@ -64,7 +64,7 @@ export function VoiceButton({ state, onPress, onPressIn, onPressOut }: Props) {
   const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0] });
 
   const handlePress = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('medium');
     onPress();
   };
 
