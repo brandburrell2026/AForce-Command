@@ -30,6 +30,7 @@ import { Icon, type IconName } from '@/components/Icon';
 import { GradientBackground } from "@/components/GradientBackground";
 import { ZoomableProductImage } from "@/components/ZoomableProductImage";
 import { af } from '@/theme';
+import { Typography } from '@/theme/typography';
 import { AFInlineErrorRow } from '@/components/ui';
 import { formatPrice } from "@/data/pricing";
 import { PRODUCT_FLAVORS } from "@/data/products";
@@ -351,16 +352,16 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center",
     borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
   },
-  eyebrow: { fontSize: 11, letterSpacing: 1.6, color: af.textTertiary, fontWeight: "600" },
-  title: { fontSize: 22, fontWeight: "700", color: af.textPrimary, marginTop: 2 },
-  clearText: { fontSize: 11, letterSpacing: 1.2, color: af.textTertiary, fontWeight: "700" },
+  eyebrow: { fontSize: 11, letterSpacing: 1.6, color: af.textTertiary, fontFamily: Typography.fonts.semibold },
+  title: { fontSize: 22, fontFamily: Typography.fonts.bold, color: af.textPrimary, marginTop: 2 },
+  clearText: { fontSize: 11, letterSpacing: 1.2, color: af.textTertiary, fontFamily: Typography.fonts.bold },
 
   emptyCard: {
     marginTop: 24, padding: 24, alignItems: "center", gap: 10,
     borderRadius: 16, borderWidth: 1, borderColor: af.border,
     backgroundColor: af.surface,
   },
-  emptyTitle: { fontSize: 15, fontWeight: "700", color: af.textPrimary, marginTop: 6 },
+  emptyTitle: { fontSize: 15, fontFamily: Typography.fonts.bold, color: af.textPrimary, marginTop: 6 },
   emptyHint: { fontSize: 12, color: af.textSecondary, textAlign: "center", lineHeight: 18 },
   emptyCta: {
     marginTop: 12, flexDirection: "row", alignItems: "center", gap: 8,
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     borderRadius: 10, borderWidth: 1, borderColor: af.border,
     backgroundColor: af.surface,
   },
-  emptyCtaText: { color: af.textPrimary, fontSize: 11, fontWeight: "700", letterSpacing: 1 },
+  emptyCtaText: { color: af.textPrimary, fontSize: 11, fontFamily: Typography.fonts.bold, letterSpacing: 1 },
 
   shipBanner: {
     flexDirection: "row", alignItems: "center", gap: 8,
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   },
   lineImg: { width: 52, height: 76 },
   lineBody: { flex: 1, gap: 4 },
-  lineTitle: { fontSize: 14, fontWeight: "700", color: af.textPrimary },
+  lineTitle: { fontSize: 14, fontFamily: Typography.fonts.bold, color: af.textPrimary },
   lineFormat: { fontSize: 11, color: af.textTertiary },
   qtyRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   qtyBtn: {
@@ -401,8 +402,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: af.border,
     backgroundColor: af.surface,
   },
-  qtyText: { color: af.textPrimary, fontSize: 13, fontWeight: "700", minWidth: 20, textAlign: "center" },
-  lineSubtotal: { color: af.textPrimary, fontSize: 14, fontWeight: "700" },
+  qtyText: { color: af.textPrimary, fontSize: 13, fontFamily: Typography.fonts.bold, minWidth: 20, textAlign: "center" },
+  lineSubtotal: { color: af.textPrimary, fontSize: 14, fontFamily: Typography.fonts.bold },
   removeBtn: {
     width: 24, height: 24, borderRadius: 12,
     alignItems: "center", justifyContent: "center",
@@ -415,9 +416,9 @@ const styles = StyleSheet.create({
   },
   totalsRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   totalsLabel: { fontSize: 12, color: af.textSecondary },
-  totalsValue: { fontSize: 12, color: af.textPrimary, fontWeight: "600" },
-  totalsLabelBig: { fontSize: 14, color: af.textPrimary, fontWeight: "700" },
-  totalsValueBig: { fontSize: 18, color: af.textPrimary, fontWeight: "700" },
+  totalsValue: { fontSize: 12, color: af.textPrimary, fontFamily: Typography.fonts.semibold },
+  totalsLabelBig: { fontSize: 14, color: af.textPrimary, fontFamily: Typography.fonts.bold },
+  totalsValueBig: { fontSize: 18, color: af.textPrimary, fontFamily: Typography.fonts.bold },
   totalsDivider: { height: 1, backgroundColor: af.border, marginVertical: 4 },
 
   noticeBox: {
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16, borderRadius: 12,
     backgroundColor: af.green,
   },
-  checkoutBtnText: { color: "#000", fontSize: 13, fontWeight: "800", letterSpacing: 1.2 },
+  checkoutBtnText: { color: "#000", fontSize: 13, fontFamily: Typography.fonts.bold, letterSpacing: 1.2 },
   footnote: {
     marginTop: 10, fontSize: 11, color: af.textTertiary, textAlign: "center", lineHeight: 17,
   },
