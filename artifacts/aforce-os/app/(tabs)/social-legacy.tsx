@@ -20,7 +20,7 @@ import {
 } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Icon } from '../../components/Icon';
 
 import { useDevMode } from '@/services/devMode';
@@ -77,7 +77,7 @@ export default function SocialLegacyScreen() {
 
   const goToStore = React.useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+      hapticImpact('medium');
     }
     router.push('/store');
   }, [router]);

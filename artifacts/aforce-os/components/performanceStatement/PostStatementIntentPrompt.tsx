@@ -32,7 +32,7 @@ import Animated, {
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
@@ -123,7 +123,7 @@ export function PostStatementIntentPrompt({ onDone }: { onDone: () => void }) {
   if (!show) return null;
 
   const choose = (i: IntentId) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     void record(i, 'performanceStatement');
     onDone();
   };

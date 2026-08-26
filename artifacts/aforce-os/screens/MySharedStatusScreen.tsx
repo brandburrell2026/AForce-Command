@@ -9,7 +9,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Platform } from 
 import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -55,7 +55,7 @@ export const MySharedStatusScreen: React.FC = () => {
   const projected = React.useMemo(() => projectSharedStatus(myStatus), [myStatus, privacy]);
 
   const updateScope = (next: ShareScope) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setScope(next);
   };
 

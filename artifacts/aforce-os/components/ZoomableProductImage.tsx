@@ -40,7 +40,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import { AFModal } from '@/components/ui/AFModal';
@@ -97,7 +97,7 @@ export function ZoomableProductImage({
 
   const openLightbox = useCallback(() => {
     if (disabled) return;
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setOpen(true);
     // kick off the in-animation on the next frame so Modal mount has a chance.
     modalOpacity.value = 0;

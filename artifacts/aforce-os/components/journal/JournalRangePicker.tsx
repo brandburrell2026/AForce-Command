@@ -4,7 +4,7 @@
 
 import React, { useCallback } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { af, afType, Typography } from '@/theme';
 
@@ -25,7 +25,7 @@ export default function JournalRangePicker({ value, onChange }: Props) {
     (next: JournalRange) => {
       if (next === value) return;
       if (Platform.OS !== 'web') {
-        Haptics.selectionAsync().catch(() => {});
+        hapticSelection();
       }
       onChange(next);
     },

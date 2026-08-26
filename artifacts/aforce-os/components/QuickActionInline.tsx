@@ -9,7 +9,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { Icon, type IconName } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 import { useAppStore } from '../store/useAppStore';
 import type { FluidType } from '../types';
@@ -31,7 +31,7 @@ export function QuickActionInline() {
   const handlePress = (id: FluidType) => {
     if (disabled) return;
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticImpact('light');
     }
     void logIntake(id, { source: 'home' });
   };

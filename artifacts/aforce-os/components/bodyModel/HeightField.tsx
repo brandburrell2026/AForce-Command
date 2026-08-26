@@ -15,7 +15,7 @@
  * awards, or mutates score.
  */
 
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -57,14 +57,14 @@ export function HeightField({
 
   const step = React.useCallback(
     (direction: 1 | -1) => {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
       onChange(stepHeightCm(heightCm, direction, unit));
     },
     [heightCm, unit, onChange],
   );
 
   const clear = React.useCallback(() => {
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     onChange(null);
   }, [onChange]);
 

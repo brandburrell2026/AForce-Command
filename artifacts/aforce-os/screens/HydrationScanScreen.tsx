@@ -18,7 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AFModal } from '@/components/ui/AFModal';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -208,7 +208,7 @@ export default function HydrationScanScreen() {
     // Reset advisory capture for the new scan.
     setConsumption(null);
     setUnknownSaved(false);
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     try {
       const out = await scan(
         source,
@@ -260,7 +260,7 @@ export default function HydrationScanScreen() {
 
   const openCamera = () => {
     if (Platform.OS === 'web') return;
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     setCameraOpen(true);
   };
 
@@ -321,7 +321,7 @@ export default function HydrationScanScreen() {
         return;
       }
       if (shouldHaptic(coachMode) && Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
     },
     [coachMode],
@@ -371,7 +371,7 @@ export default function HydrationScanScreen() {
     (status: ConsumptionStatus) => {
       setConsumption(status);
       if (!result) return;
-      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+      if (Platform.OS !== 'web') hapticSelection();
       const entry: HydroScanHistoryInput = {
         scannedAt: result.scannedAt,
         productName: result.product.productName,
@@ -403,7 +403,7 @@ export default function HydrationScanScreen() {
       void hydroScanHistory.record(entry);
       setUnknownSaved(true);
       if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
     },
     [hydroScanHistory, t],

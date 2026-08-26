@@ -35,7 +35,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { AFModal } from '@/components/ui/AFModal';
 import Animated, {
   Easing,
@@ -133,7 +133,7 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
               category: b.voice.category,
             });
             if (Platform.OS !== 'web') {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              hapticImpact('medium');
             }
           }
         }, b.startMs),
@@ -337,7 +337,7 @@ export function InvestorDemoOverlay({ visible, onClose }: Props) {
   const onExit = React.useCallback(() => {
     clearAllTimers();
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticImpact('light');
     }
     onClose();
   }, [clearAllTimers, onClose]);

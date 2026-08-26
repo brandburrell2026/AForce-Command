@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { Pressable, View, Text, StyleSheet, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Icon } from './Icon';
 import { CommandConfidenceBadge } from './CommandConfidenceBadge';
@@ -40,7 +40,7 @@ function SocialModeBannerImpl({ social, onPress }: Props) {
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+        if (Platform.OS !== 'web') hapticSelection();
         onPress();
       }}
       accessibilityRole="button"

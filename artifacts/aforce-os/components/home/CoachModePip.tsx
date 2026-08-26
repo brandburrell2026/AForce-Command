@@ -16,7 +16,7 @@
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useRouter } from 'expo-router';
 
 import { Colors } from '../../theme/colors';
@@ -46,7 +46,7 @@ export function CoachModePip() {
   const accent = accentFor(mode);
 
   const onPress = () => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     router.push('/(tabs)/profile');
   };
 

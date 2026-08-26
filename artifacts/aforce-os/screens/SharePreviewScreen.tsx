@@ -20,7 +20,7 @@ import {
 import { Icon, type IconName } from '../components/Icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import ViewShot from 'react-native-view-shot';
 
 import { Colors } from '@/theme/colors';
@@ -174,7 +174,7 @@ export const SharePreviewScreen: React.FC = () => {
   const dispatchShare = async (platform: SocialPlatform = 'system') => {
     if (!message || sharing) return;
     setSharing(true);
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
 
     // Snapshot the visual preview for card/story formats so the share
     // includes the actual image — required for Instagram, and a much
@@ -197,7 +197,7 @@ export const SharePreviewScreen: React.FC = () => {
     if (ok) {
       buildShareItem(format, message, ctx); // local record; server event TBD
       if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
     }
     setSharing(false);
@@ -279,7 +279,7 @@ export const SharePreviewScreen: React.FC = () => {
                 <Pressable
                   key={v.id}
                   onPress={() => {
-                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                    if (Platform.OS !== 'web') hapticSelection();
                     setVoice(v.id);
                     setVariantIdx(0);
                   }}
@@ -347,7 +347,7 @@ export const SharePreviewScreen: React.FC = () => {
                 <Pressable
                   key={f.id}
                   onPress={() => {
-                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                    if (Platform.OS !== 'web') hapticSelection();
                     setFormat(f.id);
                   }}
                   style={[styles.formatBtn, active && styles.formatBtnActive]}
@@ -374,7 +374,7 @@ export const SharePreviewScreen: React.FC = () => {
                 <Pressable
                   key={b.id}
                   onPress={() => {
-                    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                    if (Platform.OS !== 'web') hapticSelection();
                     setVariantIdx(i);
                   }}
                   style={[styles.variantBtn, active && styles.variantBtnActive]}

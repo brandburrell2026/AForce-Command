@@ -23,6 +23,7 @@ import { Icon } from '@/components/Icon';
 import { useAppStore } from '@/store/useAppStore';
 import { classifyWriteFailure, WRITE_FAILURE_COPY } from '@/store/app/writeFailure';
 import { AFInlineErrorRow } from '@/components/ui';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { SYMPTOM_CATALOG, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
 import {
@@ -43,14 +44,11 @@ const SEVERITY: Record<UrineSeverity, { color: string; tone: AFStatusTone }> = {
   correction: { color: af.red, tone: 'critical' },
 };
 
+// S2-6: the local lazy-import helper routed around the central gate; the
+// façade keeps the exact textures ('heavy' confirm, selection elsewhere).
 const haptic = (kind: 'select' | 'heavy') => {
-  import('expo-haptics')
-    .then((m) =>
-      (kind === 'heavy' ? m.impactAsync(m.ImpactFeedbackStyle.Heavy) : m.selectionAsync()).catch(
-        () => {},
-      ),
-    )
-    .catch(() => {});
+  if (kind === 'heavy') hapticImpact('heavy');
+  else hapticSelection();
 };
 
 export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {

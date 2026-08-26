@@ -28,7 +28,7 @@ import { Feather } from '@expo/vector-icons';
 import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -144,7 +144,7 @@ export function SocialModeSheet({
 
   useEffect(() => {
     if (visible) {
-      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+      if (Platform.OS !== 'web') hapticSelection();
       // ENTER (afMotion pattern #1): durations.standard + easing.standardOut,
       // was 220ms/Easing.out(quad) — exact duration match, token easing curve.
       opacity.value = withTiming(1, { duration: afMotion.durations.standard, easing: Easing.bezier(...afMotion.easing.standardOut) });
@@ -185,14 +185,14 @@ export function SocialModeSheet({
   })();
 
   const handleActivate = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('light');
     onActivate(selectedPreset);
   };
 
   const activePreset = presetMetaFor(socialMode?.preset);
 
   const handleDeactivate = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('medium');
     onDeactivate();
   };
 
@@ -207,12 +207,12 @@ export function SocialModeSheet({
   const shieldGate = gate(state.subscription, 'recovery_mode_enabled');
 
   const handleCruise = () => {
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('light');
     onActivateCruise();
   };
   const handleShield = () => {
     if (!shieldGate.allowed) return;
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (Platform.OS !== 'web') hapticImpact('light');
     onActivateShield();
   };
 
@@ -275,7 +275,7 @@ export function SocialModeSheet({
                     <Pressable
                       key={p.id}
                       onPress={() => {
-                        if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+                        if (Platform.OS !== 'web') hapticSelection();
                         setSelectedPreset(isSel ? null : p.id);
                       }}
                       style={[

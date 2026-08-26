@@ -21,7 +21,7 @@ import { View, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -198,12 +198,12 @@ function CruiseModeBody() {
 
   const onLogWater = useCallback(() => {
     if (typeof logIntake !== 'function') return;
-    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    if (Platform.OS !== 'web') hapticNotify('success');
     void logIntake('water');
   }, [logIntake]);
 
   const onLogChange = useCallback((patch: Partial<CruiseSelfLog>) => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     setLog((prev) => {
       // Bound every patch (hours ≤ 24, drinks ≤ 20) and persist day-scoped so
       // navigating away doesn't silently zero the log (and quietly raise

@@ -6,7 +6,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { Icon } from '../Icon';
 import { useTranslation } from 'react-i18next';
 import type { JournalRollup } from '@/types';
@@ -85,7 +85,7 @@ export default function JournalDayCard({ rollup }: Props) {
   // missing haptics engine never breaks the press.
   const handleToggle = useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
     setOpen((o) => !o);
   }, []);

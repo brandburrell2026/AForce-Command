@@ -12,7 +12,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Icon } from '../Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
@@ -44,7 +44,7 @@ function HomeHeaderImpl() {
   const stateColor = engine.performanceState.color;
 
   const onShare = () => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     router.push('/share');
   };
 

@@ -25,7 +25,7 @@
 
 import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -179,7 +179,7 @@ function VoiceStatusModuleImpl({ embedded = false }: VoiceStatusModuleProps) {
   const replayDisabled = !last || !isLive || isPlaying;
   const onReplay = React.useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      hapticImpact('light');
     }
     replayLastCommand();
   }, []);

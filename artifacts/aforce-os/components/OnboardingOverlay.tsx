@@ -17,7 +17,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, withSpring, Easing,
 } from 'react-native-reanimated';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -63,7 +63,7 @@ export function OnboardingOverlay({ visible, onDismiss }: Props) {
   const accent = Colors.states.PEAK.primary;
 
   const next = () => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     if (isLast) onDismiss();
     else setPage(page + 1);
   };

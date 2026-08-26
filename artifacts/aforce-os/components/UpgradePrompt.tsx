@@ -10,7 +10,7 @@ import React from 'react';
 import {
   View, Text, StyleSheet, Pressable, Platform,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 
@@ -70,7 +70,7 @@ export function UpgradePrompt({ gate, visible, onDismiss, onUpgrade }: Props) {
 
           <Pressable
             onPress={() => {
-              if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              if (Platform.OS !== 'web') hapticImpact('medium');
               onUpgrade(planId);
             }}
             style={({ pressed }) => [

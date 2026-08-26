@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { Colors } from '@/theme/colors';
 import type { TerritoryLayer } from '@/types/territory';
 
@@ -29,7 +29,7 @@ export const MapLayerToggle: React.FC<Props> = ({ layer, onChange }) => {
           <Pressable
             key={l.id}
             onPress={() => {
-              if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+              if (Platform.OS !== 'web') hapticSelection();
               onChange(l.id);
             }}
             style={[styles.chip, active && styles.chipActive]}

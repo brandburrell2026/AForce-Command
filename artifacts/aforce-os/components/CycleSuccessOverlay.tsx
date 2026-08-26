@@ -21,7 +21,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify } from '@/services/haptics';
 
 import type { CycleResult } from '../types';
 import { Colors, getStateColors } from '../theme/colors';
@@ -54,7 +54,7 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
   useEffect(() => {
     // Haptic celebration cascade
     if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      hapticNotify('success');
     }
 
     // ENTER (afMotion pattern #1, opacity beat): durations.standard +

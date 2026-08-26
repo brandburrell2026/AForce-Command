@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -270,7 +270,7 @@ export default function JournalChart({
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const handleNodeTap = useCallback((i: number) => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
     setSelectedIdx((prev) => (prev === i ? null : i));
   }, []);

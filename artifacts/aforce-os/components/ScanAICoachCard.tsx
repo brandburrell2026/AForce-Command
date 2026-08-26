@@ -21,7 +21,7 @@ import Animated, {
   useSharedValue, useAnimatedStyle, withTiming, cancelAnimation, Easing,
 } from 'react-native-reanimated';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 
@@ -183,7 +183,7 @@ export function ScanAICoachCard({
 
   const onToggle = () => {
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
     if (isPlaying) {
       clearFinishTimer();

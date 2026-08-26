@@ -15,7 +15,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { Icon } from './Icon';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Colors } from '../theme/colors';
 import type { FluidType } from '../types';
 
@@ -37,13 +37,7 @@ export function CommandConfirmPrompt({ onAnswer, inClutch }: Props) {
   const tap = (answer: ConfirmAnswer) => {
     if (submitted) return;
     setSubmitted(true);
-    if (Platform.OS !== 'web') {
-      Haptics.impactAsync(
-        answer.kind === 'intake'
-          ? Haptics.ImpactFeedbackStyle.Light
-          : Haptics.ImpactFeedbackStyle.Medium,
-      ).catch(() => {});
-    }
+    hapticImpact(answer.kind === 'intake' ? 'light' : 'medium');
     onAnswer(answer);
   };
 

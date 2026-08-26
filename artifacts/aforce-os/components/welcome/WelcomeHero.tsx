@@ -45,7 +45,7 @@ import Animated, {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
@@ -180,7 +180,7 @@ function PillButton({
   onPress: () => void;
 }) {
   const handlePress = React.useCallback(() => {
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     onPress();
   }, [onPress]);
   const primary = variant === 'primary';

@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
@@ -119,7 +119,7 @@ export function SubscriptionPlanCard({ plan, isCurrent, isProcessing, onSelect }
       <Pressable
         onPress={() => {
           if (isCurrent || isProcessing) return;
-          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+          if (Platform.OS !== 'web') hapticImpact('medium');
           onSelect(plan.id);
         }}
         disabled={isCurrent || isProcessing}

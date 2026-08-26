@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { AFModal } from '@/components/ui/AFModal';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { hapticNotify, hapticSelection } from '@/services/haptics';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -210,7 +210,7 @@ export function HydrationScanScreenV2() {
     // Reset advisory capture for the new scan.
     setConsumption(null);
     setUnknownSaved(false);
-    if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+    if (Platform.OS !== 'web') hapticSelection();
     try {
       const out = await scan(
         source,
@@ -262,7 +262,7 @@ export function HydrationScanScreenV2() {
 
   const openCamera = () => {
     if (Platform.OS === 'web') return;
-    Haptics.selectionAsync().catch(() => {});
+    hapticSelection();
     setCameraOpen(true);
   };
 
@@ -323,7 +323,7 @@ export function HydrationScanScreenV2() {
         return;
       }
       if (shouldHaptic(coachMode) && Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
     },
     [coachMode],
@@ -373,7 +373,7 @@ export function HydrationScanScreenV2() {
     (status: ConsumptionStatus) => {
       setConsumption(status);
       if (!result) return;
-      if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+      if (Platform.OS !== 'web') hapticSelection();
       const entry: HydroScanHistoryInput = {
         scannedAt: result.scannedAt,
         productName: result.product.productName,
@@ -405,7 +405,7 @@ export function HydrationScanScreenV2() {
       void hydroScanHistory.record(entry);
       setUnknownSaved(true);
       if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        hapticNotify('success');
       }
     },
     [hydroScanHistory, t],

@@ -15,7 +15,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { hapticImpact } from '@/services/haptics';
 
 import { Colors } from '@/theme/colors';
 import { Icon } from '@/components/Icon';
@@ -89,7 +89,7 @@ export function SmartQuickActions() {
       anchorRef.current = Date.now();
       void recordLogAction(ttlMs, action.id, new Date().toISOString());
       if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        hapticImpact('light');
       }
       void logIntake(action.fluidType, {
         source: 'home',

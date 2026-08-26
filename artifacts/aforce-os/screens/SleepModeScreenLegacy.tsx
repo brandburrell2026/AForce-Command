@@ -34,7 +34,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/services/haptics';
 import { scopedStorage } from '@/services/scopedStorage';
 
 import { GradientBackground } from '@/components/GradientBackground';
@@ -217,7 +217,7 @@ export default function SleepModeScreenLegacy() {
     setEditing(false);
     scopedStorage.setItem(SLEEP_TIME_KEY, formatHHMM(parsed)).catch(() => {});
     if (Platform.OS !== 'web') {
-      Haptics.selectionAsync().catch(() => {});
+      hapticSelection();
     }
   }, [draft, target]);
 
@@ -370,7 +370,7 @@ export default function SleepModeScreenLegacy() {
                   accessibilityRole="link"
                   accessibilityLabel="Connect Journal"
                   onPress={() => {
-                    Haptics.selectionAsync().catch(() => {});
+                    hapticSelection();
                     router.push('/(tabs)/journal');
                   }}
                   hitSlop={8}>
