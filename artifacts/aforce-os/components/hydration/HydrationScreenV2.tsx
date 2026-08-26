@@ -46,6 +46,7 @@ import {
 import { af, afType } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
@@ -124,6 +125,7 @@ export function HydrationScreenV2() {
   // while `offline_intake_outbox_enabled` is off the outbox is never
   // hydrated/written (see `services/intakeOutbox.ts`), so this stays at its
   // inert 0/false default and `AFOfflineBanner` renders nothing.
+  const tabClearance = useTabBarClearance();
   const outboxState = useIntakeOutboxStore();
   const outboxPendingCount = flags.offline_intake_outbox_enabled ? selectPendingCount(outboxState) : 0;
   const outboxHasFailedItem = flags.offline_intake_outbox_enabled ? selectHasFailedItem(outboxState) : false;
@@ -167,7 +169,7 @@ export function HydrationScreenV2() {
 
   return (
     <View style={styles.root}>
-      <AFScreen scroll>
+      <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
       <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
@@ -318,7 +320,6 @@ export function HydrationScreenV2() {
         </AFCard>
       </View>
 
-      <View style={{ height: 40 }} />
       </AFScreen>
 
       {/* Amount is an explicit member choice; cancel/backdrop/hardware-back

@@ -17,7 +17,8 @@ import { scopedStorage } from '@/services/scopedStorage';
 import { GradientBackground } from '@/components/GradientBackground';
 import { useUserSlice, useFlagsSlice } from '@/store/slices';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { TAB_BAR_HEIGHT, WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
+import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING } from '@/constants/layout';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import {
   deriveCommandConfidence, commandConfidenceInputsFromState,
 } from '@/utils/scoring/commandConfidence';
@@ -206,7 +207,8 @@ function SleepModeRedesign() {
     haptic('light');
   };
   const topPadding = Platform.OS === 'web' ? WEB_TOP_PADDING : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : insets.bottom + TAB_BAR_HEIGHT;
+  const tabClearance = useTabBarClearance();
+  const bottomPadding = Platform.OS === 'web' ? WEB_BOTTOM_PADDING : tabClearance;
 
   const announce = (msg: string) => {
     // Meaningful VoiceOver/TalkBack feedback for state changes the eye sees.

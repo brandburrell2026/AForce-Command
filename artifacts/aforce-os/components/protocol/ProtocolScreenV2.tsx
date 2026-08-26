@@ -22,6 +22,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 
 import {
   AFScreen,
@@ -63,6 +64,7 @@ export function ProtocolScreenV2() {
   const { state } = useAppStore();
   const { history, engineOutput, userState } = state;
   const [whyOpen, setWhyOpen] = React.useState(false);
+  const tabClearance = useTabBarClearance();
 
   const v3Flag = state.featureFlags.protocol_v3_dashboard_enabled;
   // Real 7-day compliance; fetched lazily the first time a surface that
@@ -149,7 +151,7 @@ export function ProtocolScreenV2() {
   }));
 
   return (
-    <AFScreen scroll contentContainerStyle={v3 ? styles.v3ScrollContent : undefined}>
+    <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
       <AFTopBar
         eyebrow={t('protocol.v2.eyebrow')}
         title={v3 ? protocol.stage : t('protocol.v2.title')}
@@ -406,7 +408,6 @@ export function ProtocolScreenV2() {
         </View>
       ) : null}
 
-      <View style={{ height: 40 }} />
 
       <AFDisclosureSheet visible={whyOpen} onClose={() => setWhyOpen(false)} title={t('protocol.v2.why_this_plan')}>
         <Text style={styles.whyStage}>{protocol.stage}</Text>
@@ -464,7 +465,6 @@ const styles = StyleSheet.create({
   whyStage: { ...afType.title3, color: af.textPrimary, marginBottom: 8 },
   whyBody: { ...afType.body, color: af.textSecondary, marginBottom: 12 },
   // ── Protocol V3 dashboard (protocol_v3_dashboard_enabled) ──
-  v3ScrollContent: { paddingBottom: Spacing[24] + Spacing[8] },
   v3HeroRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[6] },
   v3RingPct: { ...afType.title1, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   v3RingLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 2 },
