@@ -9,6 +9,16 @@
  * `logIntake` action (no scoring change). The legacy Performance Timeline is
  * PRESERVED behind the flag-off path (founder ruling: relocate, never delete).
  *
+ * S2-1 (Stage-1-severity carryover, world-class-release audit): "Log
+ * manually" used to be tap-is-the-commit with a dose scraped from command
+ * copy — a fabricated amount, no picker, no confirmation, and (because the
+ * write was non-silent with no local overlay mount) a stranded
+ * `showCycleSuccess` that disabled Home's primary CTA. It now runs the
+ * exact Home path: WaterAmountModal (explicit member-chosen amount) → one
+ * guarded `logIntake` → CycleSuccessOverlay mounted HERE, so the success
+ * state a Hydration log raises is rendered and dismissible on Hydration.
+ * `source: 'hydration'` is preserved; no scoring change.
+ *
  * BUILD-61: this screen is the Hydration TAB again. It shipped unreachable in
  * Build 60 because `app/(tabs)/journal.tsx` returned PerformanceSignalV3 ahead
  * of it; that history screen is now the pushed destination of the last row
@@ -35,9 +45,11 @@ import {
 } from '@/components/ui';
 import { af, afType } from '@/theme';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
-import { useEngineSlice, useActionsSlice } from '@/store/slices';
+import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
-import { parseDoseOz } from '@/utils/recovery/recoveryCommandFromStore';
+import { WaterAmountModal } from '@/components/WaterAmountModal';
+import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
+import { fireMoment } from '@/services/haptics';
 import { formatTimeAgo } from '@/data/mockData';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -47,6 +59,7 @@ interface HydrationActions {
     fluidType: FluidType,
     opts?: { silent?: boolean; ozOverride?: number; flavorLabel?: string; source?: IntakeSource },
   ) => Promise<void>;
+  dismissSuccess: () => void;
 }
 
 /** FluidType → i18n key suffix under hydration.v2.fluid_* (translated at render). */
@@ -64,8 +77,48 @@ export function HydrationScreenV2() {
   const { state } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
-  const { logIntake } = useActionsSlice<HydrationActions>();
+  const { logIntake, dismissSuccess } = useActionsSlice<HydrationActions>();
   const { userState } = state;
+  const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
+  const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+
+  // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
+  // one frame both close over a pre-render `logIntake` whose own
+  // `isCompletingCycle` guard has not seen the first tap yet.
+  const confirmInFlightRef = React.useRef(false);
+
+  // Opening the logger is NOT logging: no intake, no score, no haptic moment.
+  const openWaterPicker = React.useCallback(() => {
+    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess) return;
+    setWaterPickerOpen(true);
+  }, [isCompletingCycle, showCycleSuccess]);
+
+  const cancelWaterPicker = React.useCallback(() => {
+    setWaterPickerOpen(false);
+  }, []);
+
+  // THE ONLY PLACE THIS SCREEN LOGS. The amount is the member's explicit
+  // picker choice — never scraped from command copy. `silent` deliberately
+  // not passed; the success overlay below renders the confirmation locally.
+  const confirmWaterAmount = React.useCallback(
+    (oz: number) => {
+      if (confirmInFlightRef.current || isCompletingCycle || showCycleSuccess) return;
+      confirmInFlightRef.current = true;
+      setWaterPickerOpen(false);
+      void logIntake('water', { ozOverride: oz, source: 'hydration' });
+    },
+    [logIntake, isCompletingCycle, showCycleSuccess],
+  );
+
+  // COMMAND COMPLETED on the CONFIRMED write only — settled cycle state, not
+  // the promise, is the honest success signal (same contract as Home).
+  React.useEffect(() => {
+    if (!confirmInFlightRef.current) return;
+    if (isCompletingCycle) return;
+    confirmInFlightRef.current = false;
+    if (!lastCycleResult) return;
+    fireMoment('command_completed');
+  }, [isCompletingCycle, lastCycleResult]);
 
   // RC-1 Wave-2B (item 1) — offline intake outbox visibility. Flag-gated:
   // while `offline_intake_outbox_enabled` is off the outbox is never
@@ -113,7 +166,8 @@ export function HydrationScreenV2() {
   );
 
   return (
-    <AFScreen scroll>
+    <View style={styles.root}>
+      <AFScreen scroll>
       <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
@@ -166,12 +220,11 @@ export function HydrationScreenV2() {
       {/* Actions */}
       <View style={styles.actions}>
         <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
-        <AFSecondaryButton label={t('hydration.v2.log_manually')} onPress={() =>
-            void logIntake('water', {
-              ozOverride: parseDoseOz(engine.command.action),
-              source: 'hydration',
-            })
-          } />
+        <AFSecondaryButton
+          label={t('hydration.v2.log_manually')}
+          testID="hydration-log-manually"
+          onPress={openWaterPicker}
+        />
       </View>
 
       {/* Recent intake */}
@@ -266,7 +319,25 @@ export function HydrationScreenV2() {
       </View>
 
       <View style={{ height: 40 }} />
-    </AFScreen>
+      </AFScreen>
+
+      {/* Amount is an explicit member choice; cancel/backdrop/hardware-back
+          all write nothing (WaterAmountModal routes them to one handler). */}
+      <WaterAmountModal
+        visible={waterPickerOpen}
+        accentColor={af.red}
+        onCancel={cancelWaterPicker}
+        onConfirm={confirmWaterAmount}
+      />
+
+      {/* Rendered from the cycle slice's own settled result, so it can only
+          appear for a write the store committed — and because it is mounted
+          HERE, a Hydration log's success state is dismissed here instead of
+          stranding until the member happens to visit Home. */}
+      {showCycleSuccess && lastCycleResult && (
+        <CycleSuccessOverlay result={lastCycleResult} onDismiss={dismissSuccess} />
+      )}
+    </View>
   );
 }
 
@@ -284,6 +355,7 @@ function titleCase(level: string): string {
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
   mainCard: { marginTop: 20 },
   ringRow: { flexDirection: 'row', alignItems: 'center', gap: 20 },
   ringPct: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
