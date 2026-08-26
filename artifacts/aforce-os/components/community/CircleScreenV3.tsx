@@ -70,6 +70,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
   const [tab, setTab] = React.useState<CircleTab>(fixture?.tab ?? 'rank');
 
   const [rollupDays, setRollupDays] = React.useState<number | null>(null);
+  const [rollupsFailed, setRollupsFailed] = React.useState(false);
   React.useEffect(() => {
     if (fixture) return;
     let cancelled = false;
@@ -78,7 +79,11 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
         if (cancelled) return;
         setRollupDays(rollups.filter((r) => r.endUnitsConsumed > 0).length);
       })
-      .catch(() => {}); // no rollups → the challenge bar is omitted
+      .catch(() => {
+        // S2-7: the bar being silently absent was indistinguishable from
+        // "no challenge this week" — a failed fetch now says so in words.
+        if (!cancelled) setRollupsFailed(true);
+      });
     return () => { cancelled = true; };
   }, [fixture]);
 
@@ -248,6 +253,10 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             </Text>
           ) : null}
         </View>
+      ) : rollupsFailed ? (
+        <Text style={styles.challengeUnavailable} testID="circle-v3-challenge-unavailable">
+          {t('community.v3.challenge_unavailable')}
+        </Text>
       ) : null}
 
       {/* Leaderboard — comp rows */}
@@ -455,6 +464,7 @@ const styles = StyleSheet.create({
   challengePct: { ...afType.bodyStrong, color: af.textSecondary, fontVariant: ['tabular-nums'] },
   challengeTrack: { height: 8, borderRadius: 4, backgroundColor: af.divider, overflow: 'hidden' },
   challengeFill: { height: '100%', borderRadius: 4 },
+  challengeUnavailable: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
   challengeDetail: { ...afType.caption, color: af.textTertiary },
   list: { marginTop: 8 },
   row: {

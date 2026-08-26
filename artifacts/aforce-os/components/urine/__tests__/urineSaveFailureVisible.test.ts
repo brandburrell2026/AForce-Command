@@ -37,7 +37,12 @@ describe('a failed urine save is surfaced to the member', () => {
     expect(SRC).toMatch(/common\.action_failed_body\.\$\{failure\.kind\}/);
   });
 
-  it('tells the member something', () => {
-    expect(SRC).toMatch(/Alert\.alert\(/);
+  it('tells the member something — inline, in-brand, with retry (S2-7)', () => {
+    // The mechanism moved from an OS Alert to AFInlineErrorRow beside the
+    // CTA; the invariant this file exists for — a failed save is SURFACED,
+    // never console-only — is unchanged.
+    expect(SRC).toMatch(/<AFInlineErrorRow/);
+    expect(SRC).toMatch(/setSaveError\(/);
+    expect(SRC).not.toMatch(/Alert\.alert\(/);
   });
 });

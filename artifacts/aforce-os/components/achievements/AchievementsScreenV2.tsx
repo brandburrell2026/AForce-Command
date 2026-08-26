@@ -17,6 +17,7 @@ import { Icon } from '@/components/Icon';
 import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { AFErrorState } from '@/components/ui';
 import { af } from '@/theme';
 import {
   ACHIEVEMENTS,
@@ -30,6 +31,7 @@ export function AchievementsScreenV2() {
   const insets = useSafeAreaInsets();
   const [unlocks, setUnlocks] = useState<AchievementUnlockState[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const topPadding = Platform.OS === 'web' ? 24 : insets.top + 8;
   const bottomPadding = Platform.OS === 'web' ? 34 : insets.bottom + 24;
@@ -39,8 +41,11 @@ export function AchievementsScreenV2() {
     try {
       const res = await fetchAchievements();
       setUnlocks(res.unlocks);
+      setLoadFailed(false);
     } catch (err) {
+      // S2-7: a failed fetch used to render a silently blank grid.
       console.warn('[Achievements] fetch failed', err);
+      setLoadFailed(true);
     } finally {
       setRefreshing(false);
     }
@@ -66,6 +71,15 @@ export function AchievementsScreenV2() {
           }
           showsVerticalScrollIndicator={false}
         >
+          {loadFailed ? (
+            <AFErrorState
+              variant="retry"
+              title={t('achievements.v2.error_title')}
+              message={t('achievements.v2.error_body')}
+              action={{ label: t('common.retry'), onPress: () => void load() }}
+              testID="achievements-load-error"
+            />
+          ) : null}
           <View style={styles.headerRow}>
             <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12} accessibilityRole="button" accessibilityLabel={t('common.back')} testID="achievements-back">
               <Icon name="chevron-left" size={20} color={af.textPrimary} />

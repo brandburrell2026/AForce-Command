@@ -6,7 +6,7 @@
  * verbatim (must not regress). Presentation only on the af.* system.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -22,6 +22,7 @@ import { af, afType } from '@/theme';
 import { Icon } from '@/components/Icon';
 import { useAppStore } from '@/store/useAppStore';
 import { classifyWriteFailure, WRITE_FAILURE_COPY } from '@/store/app/writeFailure';
+import { AFInlineErrorRow } from '@/components/ui';
 import { SYMPTOM_CATALOG, ENERGY_STATE_OPTIONS } from '@/data/mockData';
 import type { UserState } from '@/types';
 import {
@@ -73,6 +74,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
   const confirmInFlightRef = useRef(false);
   const [confirmPhase, setConfirmPhase] = useState<'idle' | 'saving' | 'saved'>('idle');
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   useEffect(
     () => () => {
       if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
@@ -115,6 +117,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
   // no caller. Nothing new is computed here: the tile is translated to the
   // persisted scale and handed to the existing action.
   const handleConfirm = async () => {
+    setSaveError(null);
     // One physical Confirm = one update set. The ref refuses re-entry
     // synchronously (two presses in one frame both see stale state); the
     // button's loading/disabled props cover the slower cases.
@@ -145,13 +148,12 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
       // intake path uses — no new vocabulary, no new locale keys — so a urine
       // failure reads as truthfully as a lost intake does.
       const failure = classifyWriteFailure(err);
-      Alert.alert(
-        t(`common.action_failed_title.${failure.kind}`, {
+      setSaveError(
+        `${t(`common.action_failed_title.${failure.kind}`, {
           defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
-        }),
-        t(`common.action_failed_body.${failure.kind}`, {
+        })} — ${t(`common.action_failed_body.${failure.kind}`, {
           defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
-        }),
+        })}`,
       );
     } finally {
       confirmInFlightRef.current = false;
@@ -294,6 +296,15 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
           </Text>
         </AFCard>
       </View>
+
+      {saveError ? (
+        <AFInlineErrorRow
+          message={saveError}
+          onRetry={() => void handleConfirm()}
+          retryLabel={t('common.retry')}
+          testID="urine-save-error"
+        />
+      ) : null}
 
       <View style={{ marginTop: 20 }}>
         {/* Confirm reflects the member's state: disabled until something was
