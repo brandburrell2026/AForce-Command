@@ -42,9 +42,9 @@ interface ToggleRow {
 // producer exists — a local scheduler for morningKickoff and
 // challengeDeadlines, remote push for circleActivity.
 const ROWS: ToggleRow[] = [
-  { key: 'recheckReminders',    label: 'Recheck Reminders',    hint: 'Spoken risk-timer callouts as your hydration window closes. On-device voice, no push.', icon: 'clock' },
-  { key: 'scoreDecayAlerts',    label: 'Score Decay Alerts',   hint: 'Spoken alert when you cross a PEAK / STABLE / RISK band. On-device voice, no push.',    icon: 'activity' },
-  { key: 'lowInventoryAlert',   label: 'Low Inventory Alerts', hint: 'Restock prompts when sticks/RTD/canister inventory hits zero.',                         icon: 'shopping-bag' },
+  // S1-4: recheckReminders / scoreDecayAlerts / lowInventoryAlert hidden —
+  // their only producers mount in unreachable legacy Home (or, for
+  // lowInventoryAlert, nowhere). Same rule as the Wave-4 hidden rows.
 ];
 
 export function NotificationsLegacy() {

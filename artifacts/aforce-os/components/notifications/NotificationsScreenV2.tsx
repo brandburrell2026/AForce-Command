@@ -43,11 +43,17 @@ interface ToggleRow {
 // left untouched (nothing to migrate) and restoring a row is a one-line change
 // the day a real producer exists — a local scheduler for morningKickoff and
 // challengeDeadlines, remote push for circleActivity.
-const ROWS: ToggleRow[] = [
-  { key: 'recheckReminders',    icon: 'clock' },
-  { key: 'scoreDecayAlerts',    icon: 'activity' },
-  { key: 'lowInventoryAlert',   icon: 'shopping-bag' },
-];
+// S1-4 (notification honesty) extends the same rule to the remaining
+// three legacy rows: `recheckReminders` and `scoreDecayAlerts` are
+// consumed only by useRiskTimerVoice / useScoreBandVoice, which mount
+// exclusively in HomeScreenLegacy — unreachable while `spec_home` is
+// on — and `lowInventoryAlert` has NO consumer anywhere. A toggle whose
+// producer cannot fire is a broken promise, so the rows are hidden, not
+// wired-by-invention. Keys and persisted choices stay untouched;
+// restoring a row is a one-line change the day its producer mounts on
+// a reachable surface. `momentPrep` remains the one honest toggle
+// (consumed live by useMomentPrepScheduling).
+const ROWS: ToggleRow[] = [];
 
 export function NotificationsScreenV2() {
   const { t } = useTranslation();
