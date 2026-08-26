@@ -25,7 +25,6 @@ import {
   getLastAppleHealthDiagnostics,
   type AppleHealthDiagnosticsSnapshot,
 } from '@/services/appleHealthDiagnostics';
-import { mockUserProfile } from '@/data/mockData';
 import { HEALTH_PROVIDERS, type HealthProviderId } from '@/data/healthProviders';
 import { buildDemoSnapshot } from '@/data/providerDemoSnapshots';
 import {
@@ -282,16 +281,17 @@ export function ProfileScreenV2() {
   const inRecovery = !!userState.socialMode && !userState.socialMode.active && !!userState.socialMode.endedAt;
   const { t } = useTranslation();
 
-  // Real Clerk identity for the profile header. Other `mockUserProfile`
-  // fields (weight, target, tier, etc.) stay mocked until they're wired
-  // to a real API. `useUser()` is safe here — ClerkProvider always
-  // wraps the tab group via the root _layout.
+  // Real Clerk identity for the profile header. S2-2 (production truth):
+  // every former `mockUserProfile` read on this screen now resolves real
+  // canonical state or an honest not-set label — never an invented value.
+  // `useUser()` is safe here — ClerkProvider always wraps the tab group
+  // via the root _layout.
   const { user: clerkUser } = useUser();
   // "Real name OR alias" — the user-editable displayName wins over the
   // Clerk-provided name when set. Empty string falls through to Clerk
-  // (the auth source of truth) and finally to the mock fixture so the
-  // card never renders blank.
-  const clerkName = clerkUser?.fullName ?? clerkUser?.firstName ?? mockUserProfile.name;
+  // (the auth source of truth) and finally to a neutral localized label —
+  // never a fabricated personal name — so the card never renders blank.
+  const clerkName = clerkUser?.fullName ?? clerkUser?.firstName ?? t('profile.v2.member_fallback');
   // `profileIdentity` (ProfileIdentitySlice, already sourced above) — this
   // used to re-read the same data off the `state` facade as a separate
   // `profileIdentityForName` binding.
@@ -807,8 +807,17 @@ export function ProfileScreenV2() {
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
   const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
-  const tierKey = mockUserProfile.subscriptionTier;
-  const tier = TIER_LABELS[tierKey] ?? TIER_LABELS.core;
+  // S2-2: the identity chip now reads the SAME server-authoritative
+  // entitlement the subscription panel below always has (state.subscription,
+  // Stripe-webhook-fed via useEntitlement) — the mock hardcoded 'core', so a
+  // paying Athlete saw "CORE" on their own identity card.
+  const entitlement = useSubscriptionSlice();
+  const tierKey = entitlement.planId ?? null;
+  const tier = (tierKey && TIER_LABELS[tierKey]) || null;
+  // Neutral presentational accent while entitlement is unknown — a color is
+  // chrome, not a tier claim; the tier CHIP below renders only from a real
+  // server-fed planId.
+  const tierColor = tier?.color ?? af.textTertiary;
 
   const toggleFlag = (key: keyof FeatureFlags) => {
     setFeatureFlags({ ...flags, [key]: !flags[key] });
@@ -876,11 +885,10 @@ export function ProfileScreenV2() {
             // underneath, then a chip strip below a divider with tier,
             // streak, team/circle, territory badge, and aura. All
             // identity fields after the tier come from the persisted
-            // ProfileIdentity slice (edited via the modal); only
-            // streakDays remains on mockUserProfile because it's
-            // engine-computed from compliance history, not a vanity
-            // field. Each chip is gated so the card degrades cleanly
-            // when a field is empty.
+            // ProfileIdentity slice (edited via the modal); the streak
+            // is the ENGINE's own complianceStreak — the mock's constant
+            // "12" shipped as if computed. Each chip is gated so the
+            // card degrades cleanly when a field is empty.
             const handle = profileIdentity.nickname
               ? `@${profileIdentity.nickname}`
               : null;
@@ -904,20 +912,20 @@ export function ProfileScreenV2() {
             const hasAvatarImage = profileIdentity.avatarUri.length > 0;
             const profileCard = (
               <View
-                style={[styles.profileCard, { borderColor: `${tier.color}33` }]}
+                style={[styles.profileCard, { borderColor: `${tierColor}33` }]}
                 testID="profile-identity-section"
               >
                 <View style={styles.profileCardTop}>
                   {hasAvatarImage ? (
                     <Image
                       source={{ uri: profileIdentity.avatarUri }}
-                      style={[styles.avatar, { borderColor: `${tier.color}55` }]}
+                      style={[styles.avatar, { borderColor: `${tierColor}55` }]}
                       accessibilityIgnoresInvertColors
                       accessibilityLabel={t('profile.v2.avatar_a11y')}
                     />
                   ) : (
-                    <View style={[styles.avatar, { backgroundColor: `${tier.color}20`, borderColor: `${tier.color}55` }]}>
-                      <Text style={[styles.avatarText, { color: tier.color }]}>
+                    <View style={[styles.avatar, { backgroundColor: `${tierColor}20`, borderColor: `${tierColor}55` }]}>
+                      <Text style={[styles.avatarText, { color: tierColor }]}>
                         {avatarInitial}
                       </Text>
                     </View>
@@ -959,15 +967,17 @@ export function ProfileScreenV2() {
                 </View>
                 <View style={styles.profileChipDivider} />
                 <View style={styles.profileChipStrip}>
-                  <IdentityChip
-                    icon="award"
-                    label={t(`profile.v2.tier_${tierKey}_label`).toUpperCase()}
-                    color={tier.color}
-                  />
-                  {typeof mockUserProfile.streakDays === 'number' && mockUserProfile.streakDays > 0 ? (
+                  {tierKey && tier ? (
+                    <IdentityChip
+                      icon="award"
+                      label={t(`profile.v2.tier_${tierKey}_label`).toUpperCase()}
+                      color={tier.color}
+                    />
+                  ) : null}
+                  {userState.complianceStreak > 0 ? (
                     <IdentityChip
                       icon="zap"
-                      label={t('profile.v2.day_streak', { days: mockUserProfile.streakDays })}
+                      label={t('profile.v2.day_streak', { days: userState.complianceStreak })}
                       color={af.amber}
                     />
                   ) : null}
@@ -1154,8 +1164,8 @@ export function ProfileScreenV2() {
                   <SettingRow
                     icon="target"
                     label={t('profile.v2.daily_target')}
-                    value={t('profile.v2.unit_units', { value: mockUserProfile.dailyTarget })}
-                    sub={t('profile.v2.daily_target_oz_sub', { value: mockUserProfile.dailyTarget * 12 })}
+                    value={t('profile.v2.unit_units', { value: userState.dailyTarget })}
+                    sub={t('profile.v2.daily_target_oz_sub', { value: userState.ozTarget })}
                   />
                   <Divider />
                   <SettingRow
@@ -1164,13 +1174,23 @@ export function ProfileScreenV2() {
                     value={
                       profileIdentity.bodyWeightLbs != null
                         ? t('profile.v2.unit_lb', { value: profileIdentity.bodyWeightLbs })
-                        : t('profile.v2.unit_lb', { value: mockUserProfile.bodyWeightLbs })
+                        : t('profile.v2.not_set')
                     }
                   />
                   <Divider />
-                  <SettingRow icon="activity" label={t('profile.v2.activity_type')} value={mockUserProfile.activityType} />
+                  {/* No canonical activity-type store exists yet — honest
+                      not-set beats the mock's permanent "Field Athlete". */}
+                  <SettingRow icon="activity" label={t('profile.v2.activity_type')} value={t('profile.v2.not_set')} />
                   <Divider />
-                  <SettingRow icon="sunrise" label={t('profile.v2.wake_time')} value={mockUserProfile.wakeTimeHHMM} />
+                  <SettingRow
+                    icon="sunrise"
+                    label={t('profile.v2.wake_time')}
+                    value={
+                      userState.wakeTime
+                        ? new Date(userState.wakeTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : t('profile.v2.not_set')
+                    }
+                  />
                   {/* Read-only "what your body taught us" surfaces. They were
                       nested in the SETTINGS card, which is where a member
                       looks for controls, not readouts. All still flag-gated
