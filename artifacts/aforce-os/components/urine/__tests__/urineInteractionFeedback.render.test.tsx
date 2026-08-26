@@ -252,23 +252,22 @@ describe('3. success acknowledgment appears only after durable success', () => {
   });
 });
 
-describe('4. failed save alerts and never claims success', () => {
-  it('shows the truthful failure alert, no RECORDED state, and stays armed for retry', async () => {
-    const alertSpy = vi.spyOn(
-      (await import('react-native')).Alert,
-      'alert',
-    );
+describe('4. failed save surfaces inline and never claims success', () => {
+  it('shows the truthful inline failure, no RECORDED state, and stays armed for retry', async () => {
     updateSymptoms.mockImplementationOnce(async () => {
       throw new Error('POST /signals → 500');
     });
     mount();
     click(byTestId('urine-color-dark_yellow'));
     click(byTestId('urine-confirm'));
-    await vi.waitFor(() => expect(alertSpy).toHaveBeenCalled());
-    expect(host.textContent).not.toMatch(/Recorded/i);
+    // S2-7: the failure renders inline (AFInlineErrorRow) instead of an OS
+    // modal — same classified vocabulary, now in-brand and beside the CTA.
+    await vi.waitFor(() => expect(byTestId('urine-save-error')).toBeTruthy());
+    // Case-sensitive: the success acknowledgment is capital-R "Recorded";
+    // the failure copy itself honestly says "nothing was recorded".
+    expect(host.textContent).not.toMatch(/Recorded/);
     // dirty is preserved on failure so the member can simply retry.
     click(byTestId('urine-confirm'));
     await vi.waitFor(() => expect(updateSymptoms).toHaveBeenCalledTimes(2));
-    alertSpy.mockRestore();
   });
 });

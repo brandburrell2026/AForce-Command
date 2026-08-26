@@ -2003,7 +2003,9 @@
       "eyebrow": "RETENTION",
       "title": "Achievements",
       "unlocked": "Unlocked",
-      "back_a11y": "Back"
+      "back_a11y": "Back",
+      "error_title": "Achievements unavailable",
+      "error_body": "Your unlock progress could not be loaded, so the grid may not reflect what you have earned."
     }
   },
   "leaderboard": {
@@ -2107,7 +2109,8 @@
       "sample_note": "Sample cohort · Illustrative standings · Not a ranking against real people",
       "empty_title": "Nothing to rank yet",
       "empty_message": "No members to rank in this view. Standings appear here only when there is real data — never placeholders.",
-      "footnote": "Your score and streak update as you log intake, complete protocols, and recover."
+      "footnote": "Your score and streak update as you log intake, complete protocols, and recover.",
+      "challenge_unavailable": "Weekly challenge can't load right now."
     }
   },
   "share": {
