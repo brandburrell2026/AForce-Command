@@ -40,19 +40,25 @@ function rowKeys(source: string): NotificationSettingKey[] {
 }
 
 /** No producer exists anywhere in the app for these. */
-const UNDELIVERABLE: NotificationSettingKey[] = ['morningKickoff', 'circleActivity', 'challengeDeadlines'];
+const UNDELIVERABLE: NotificationSettingKey[] = ['morningKickoff', 'circleActivity', 'challengeDeadlines', 'recheckReminders', 'scoreDecayAlerts', 'lowInventoryAlert'];
 
 /** Honoured by `useRiskTimerVoice` / `useScoreBandVoice` respectively. */
-const VOICE_BACKED: NotificationSettingKey[] = ['recheckReminders', 'scoreDecayAlerts'];
+const VOICE_BACKED: string[] = []; // S1-4: voice producers mount only in unreachable HomeScreenLegacy — no longer deliverable
 
 describe.each(Object.entries(SCREENS))('%s — only deliverable rows render', (_name, source) => {
   it.each(UNDELIVERABLE)('renders no row for %s (nothing in the app can fire it)', (key) => {
     expect(rowKeys(source)).not.toContain(key);
   });
 
-  it.each(VOICE_BACKED)('still renders %s (a voice producer honours it)', (key) => {
-    expect(rowKeys(source)).toContain(key);
-  });
+  // S1-4: no voice-backed rows remain — useRiskTimerVoice and
+  // useScoreBandVoice mount only in HomeScreenLegacy, unreachable while
+  // spec_home is on. When a producer mounts on a reachable surface,
+  // move its key back out of UNDELIVERABLE and restore this block.
+  if (VOICE_BACKED.length > 0) {
+    it.each(VOICE_BACKED)('still renders %s (a voice producer honours it)', (key) => {
+      expect(rowKeys(source)).toContain(key);
+    });
+  }
 
   it('documents why the hidden rows are hidden and what would restore them', () => {
     expect(source).toContain('Wave-4 notification audit');
@@ -101,8 +107,10 @@ describe('surviving hints describe what actually happens', () => {
     expect(v2.intro.toLowerCase()).toContain('no remote push');
   });
 
-  it('the legacy screen carries the same corrected copy inline (it is not i18n-backed)', () => {
-    expect(SCREENS.NotificationsLegacy).toContain('On-device voice, no push.');
+  it('the legacy screen keeps the no-remote-push truth and offers no voice-hint rows (S1-4)', () => {
+    // The voice-backed rows are hidden on both screens now; the only
+    // surviving inline truth statement is the no-remote-push notice.
     expect(SCREENS.NotificationsLegacy).toContain('AForce sends no remote push');
+    expect(SCREENS.NotificationsLegacy).not.toContain('On-device voice, no push.');
   });
 });

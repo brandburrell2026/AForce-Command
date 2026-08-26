@@ -18,6 +18,7 @@
  * from the Day-0/1/3/7 cadence; both caps bind independently.
  */
 import { Platform } from 'react-native';
+import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { scopedStorage } from './scopedStorage';
 
 import type { Moment } from '@/types/moments';
@@ -206,11 +207,19 @@ export async function syncMomentNotifications(
     for (const p of plan) {
       const seconds = Math.max(1, Math.round((Date.parse(p.fireAtIso) - nowMs) / 1000));
       const actionLabel = translate(String(p.bodyParams['actionKey']), p.bodyParams);
+      const title = translate(p.titleKey, p.titleParams);
+      const body = translate(p.bodyKey, { ...p.bodyParams, action: actionLabel });
+      // S1-4: OS-channel copy runs through the same §42 seam as the
+      // other emit paths (speak/tts/scan/overlays). Fail closed — a
+      // blocked line means the notification is skipped, not reworded
+      // here. This adds NO new command authority: the copy is the
+      // existing Moments plan's, only scanned.
+      if (consumerCopyBlocked(title) || consumerCopyBlocked(body)) continue;
       await Notif.scheduleNotificationAsync({
         identifier: p.tag,
         content: {
-          title: translate(p.titleKey, p.titleParams),
-          body: translate(p.bodyKey, { ...p.bodyParams, action: actionLabel }),
+          title,
+          body,
           sound: false,
         },
         trigger: {
