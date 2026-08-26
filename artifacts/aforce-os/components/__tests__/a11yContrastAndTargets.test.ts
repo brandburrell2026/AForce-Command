@@ -226,15 +226,13 @@ describe('Dynamic Type — Phase-1 values reflow, they do not shrink', () => {
 });
 
 describe('contrast — red icons on Phase-1 surfaces use the AA token', () => {
-  it('HydroScan\'s Smart Capture glyphs are redText, while its border stays brand red', () => {
-    // The token rule is text AND icons take redText on dark (~3.1:1 vs 5.3:1);
-    // fills/borders/dots keep frozen Signal Red — which this CTA still does.
+  it('HydroScan renders no brand-red glyph anywhere (S2-8: the tinted CTA became a sheet row)', () => {
+    // The token rule is text AND icons take redText on dark (~3.1:1 vs 5.3:1).
+    // S2-8 collapsed the Smart Capture CTA into a default-tint AFListRow
+    // inside the disclosure sheet, so the stronger invariant now holds:
+    // this surface colors NO icon with brand red at all.
     expect(tokens).toMatch(/redText: '#E4564A'/);
-    const ctaBlock = scan.slice(
-      scan.indexOf('hydroscan-smart-capture'),
-      scan.indexOf('hydroscan-urine-check'),
-    );
-    expect(ctaBlock).toContain('color={af.redText}');
-    expect(ctaBlock).not.toContain('color={af.red}');
+    expect(scan).not.toContain('color={af.red}');
+    expect(scan).toContain('testID="hydroscan-smart-capture"');
   });
 });

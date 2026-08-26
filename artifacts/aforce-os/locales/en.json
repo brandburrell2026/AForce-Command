@@ -1258,7 +1258,13 @@
       "disclaimer": "Scan provides performance and hydration guidance only. It is not intended to diagnose, treat, cure, or prevent medical conditions.",
       "open_camera_a11y": "Open camera to scan",
       "search_a11y": "Search products",
-      "log_cta_a11y": "Log scanned product"
+      "log_cta_a11y": "Log scanned product",
+      "other_ways_title": "Other ways to log",
+      "other_ways_hint": "Log any drink, Smart Capture, or a urine check",
+      "time_just_now": "just now",
+      "time_m_ago": "{{m}}m ago",
+      "time_h_ago": "{{h}}h ago",
+      "time_d_ago": "{{d}}d ago"
     },
     "cards": {
       "verdict_optimal": "OPTIMAL",

@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { AFDisclosureSheet, AFListRow } from '@/components/ui';
 import { AFModal } from '@/components/ui/AFModal';
 import { useRouter } from 'expo-router';
 import { hapticNotify, hapticSelection } from '@/services/haptics';
@@ -46,7 +48,7 @@ import { WhyThisForYouCard } from '@/components/WhyThisForYouCard';
 import { SuperfoodSignalsCard } from '@/components/SuperfoodSignalsCard';
 import { derivePersonalizationSignals } from '@/utils/personalizationSignals';
 import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
-import { af } from '@/theme';
+import { af, afAlpha, withAlpha } from '@/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { scan } from '@/services/hydrationScanService';
 import { PREVIEW_SCAN_ENABLED } from '@/services/demoMode';
@@ -79,6 +81,7 @@ export function HydrationScanScreenV2() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabClearance = useTabBarClearance();
+  const reducedMotion = useReducedMotion();
   const { state, logIntake } = useAppStore();
   const { t } = useTranslation();
   // HydroScan 2.0™ — flag-gated profile-aware layer (OFF in prod, ON in demo).
@@ -92,6 +95,7 @@ export function HydrationScanScreenV2() {
   // True once the current unknown-product flow has been saved to history.
   const [unknownSaved, setUnknownSaved] = useState(false);
   const [manualQuery, setManualQuery] = useState('');
+  const [otherWaysOpen, setOtherWaysOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [addDrinkOpen, setAddDrinkOpen] = useState(false);
   const [smartCaptureOpen, setSmartCaptureOpen] = useState(false);
@@ -140,7 +144,10 @@ export function HydrationScanScreenV2() {
     };
   }, [flashOpacity]);
   const triggerSuccessFlash = useCallback(() => {
-    flashOpacity.value = withSequence(
+    // Reduced motion: the acknowledgment (haptic moment + auto-back) stays;
+    // only the tween is withheld. Previously this animated unconditionally —
+    // the screen's only breach of the afMotion reduced-motion rule.
+    if (!reducedMotion) flashOpacity.value = withSequence(
       withTiming(0.2, { duration: 300, easing: Easing.out(Easing.cubic) }),
       withTiming(0, { duration: 500, easing: Easing.in(Easing.cubic) }),
     );
@@ -150,7 +157,7 @@ export function HydrationScanScreenV2() {
       flashTimeoutRef.current = null;
       router.back();
     }, 800);
-  }, [flashOpacity, router]);
+  }, [flashOpacity, router, reducedMotion]);
   const postScanMut = usePostScan();
   const { data: serverScans } = useScanHistory(20);
 
@@ -513,12 +520,8 @@ export function HydrationScanScreenV2() {
               <Text style={styles.eyebrow}>{t('hydroScan2.v2.eyebrow')}</Text>
               <Text style={styles.title}>{t('hydroScan2.v2.title')}</Text>
             </View>
-            <View style={styles.statePill}>
-              <View style={[styles.dot, { backgroundColor: state.engineOutput.performanceState.color }]} />
-              <Text style={[styles.stateText, { color: state.engineOutput.performanceState.color }]}>
-                {state.engineOutput.performanceState.level}
-              </Text>
-            </View>
+            {/* S2-8: the HydroState band pill is gone — one state, one
+                verdict, and Home owns it. This screen is a tool. */}
           </View>
 
           {/* Camera viewfinder — tap to open native camera on device */}
@@ -541,7 +544,7 @@ export function HydrationScanScreenV2() {
               <Icon
                 name={Platform.OS === 'web' ? 'maximize' : 'camera'}
                 size={28}
-                color={scanning ? af.green : `${af.textPrimary}99`}
+                color={scanning ? af.green : withAlpha(af.textPrimary, 0.6)}
               />
             </View>
             <Text style={styles.viewfinderLabel}>
@@ -693,100 +696,19 @@ export function HydrationScanScreenV2() {
             </View>
           </View>
 
-          {/* Personalized Hydration Intelligence — log any drink across the
-              13 supported categories with the correct hydration coefficient
-              applied. Custom drinks supported. */}
-          <Pressable
-            onPress={() => setAddDrinkOpen(true)}
-            disabled={logging}
-            style={({ pressed }) => [
-              styles.logAnyCta,
-              {
-                borderColor: af.green,
-                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('hydroScan2.v2.log_any_a11y')}
-            testID="hydroscan-log-any-drink"
-          >
-            <Icon name="plus-circle" size={16} color={af.green} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.logAnyTitle, { color: af.green }]}>
-                {t('hydroScan2.v2.log_any_title')}
-              </Text>
-              <Text style={styles.logAnyHint}>
-                {t('hydroScan2.v2.log_any_hint')}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={16} color={af.green} />
-          </Pressable>
-
-          {/* Smart Capture — AI-powered photo analysis for hydration demand,
-              recovery load, stimulants, acidic burden + correction. Same CTA
-              shape as LOG ANY DRINK but tinted with the Signal Red accent
-              to signal it's the premium AI surface. */}
-          <Pressable
-            onPress={() => setSmartCaptureOpen(true)}
-            disabled={logging}
-            style={({ pressed }) => [
-              styles.logAnyCta,
-              {
-                borderColor: af.red,
-                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('hydroScan2.v2.smart_capture_a11y')}
-            testID="hydroscan-smart-capture"
-          >
-            {/* Contrast (Wave-5 Phase-1 pass): these two 16pt glyphs were the
-                last `af.red` ICONS on a Phase-1 surface. The token's own rule
-                is text AND icons take `af.redText` on dark (~3.1:1 vs 5.3:1);
-                only fills/borders/dots keep brand red — which the CTA's
-                `borderColor: af.red` above still does, so the Signal Red accent
-                is unchanged. The title beside them had already been moved. */}
-            <Icon name="camera" size={16} color={af.redText} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.logAnyTitle, { color: af.redText }]}>
-                {t('hydroScan2.v2.smart_capture_title')}
-              </Text>
-              <Text style={styles.logAnyHint}>
-                {t('hydroScan2.v2.smart_capture_hint')}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={16} color={af.redText} />
-          </Pressable>
-
-          {/* Urine Hydration Check — simple color-based signal. Not a
-              medical test. Same CTA shape as the two above, tinted
-              with the BALANCED status color to signal it's a passive
-              read rather than an active scan. */}
-          <Pressable
-            onPress={() => router.push('/urine-check' as never)}
-            disabled={logging}
-            style={({ pressed }) => [
-              styles.logAnyCta,
-              {
-                borderColor: af.cyan,
-                opacity: logging ? 0.6 : pressed ? 0.85 : 1,
-              },
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('hydroScan2.v2.urine_check_a11y')}
-            testID="hydroscan-urine-check"
-          >
-            <Icon name="droplet" size={16} color={af.cyan} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.logAnyTitle, { color: af.cyan }]}>
-                {t('hydroScan2.v2.urine_check_title')}
-              </Text>
-              <Text style={styles.logAnyHint}>
-                {t('hydroScan2.v2.urine_check_hint')}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={16} color={af.cyan} />
-          </Pressable>
+          {/* S2-8: LOG ANY DRINK / SMART CAPTURE / URINE CHECK were three
+              full-width blocks in the identical shape as each other (and as
+              the hero) — a four-way command pileup differing only by border
+              hue. One quiet entry now opens them as a disclosure; the
+              viewfinder is the sole hero. Handlers unchanged. */}
+          <AFListRow
+            icon="plus-circle"
+            title={t('hydroScan2.v2.other_ways_title')}
+            subtitle={t('hydroScan2.v2.other_ways_hint')}
+            disclosure
+            onPress={() => setOtherWaysOpen(true)}
+            testID="hydroscan-other-ways"
+          />
 
           {/* Result region */}
           {outcome?.ok === false && (
@@ -943,7 +865,7 @@ export function HydrationScanScreenV2() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.historyTitle} numberOfLines={1}>{s.productName}</Text>
                     <Text style={styles.historyMeta} numberOfLines={1}>
-                      {formatRelativeTime(s.loggedAt)} · {t('hydroScan2.v2.history_fit', { score: s.fitScore })}
+                      {formatRelativeTime(s.loggedAt, t)} · {t('hydroScan2.v2.history_fit', { score: s.fitScore })}
                     </Text>
                   </View>
                   <Text style={[styles.historyVerdict, { color: toTextSafeColor(verdictColor(s.verdict)) }]}>
@@ -973,7 +895,7 @@ export function HydrationScanScreenV2() {
                       {e.productName}
                     </Text>
                     <Text style={styles.historyMeta} numberOfLines={1}>
-                      {formatRelativeTime(e.scannedAt)} · {t(`hydroScan2.consumption.${e.consumption}`)}
+                      {formatRelativeTime(e.scannedAt, t)} · {t(`hydroScan2.consumption.${e.consumption}`)}
                     </Text>
                   </View>
                   <Text style={[styles.historyVerdict, { color: toTextSafeColor(impactColor(e.impactLevel)) }]}>
@@ -986,6 +908,35 @@ export function HydrationScanScreenV2() {
 
           <Text style={styles.scanDisclaimer}>{t('hydroScan2.v2.disclaimer')}</Text>
         </ScrollView>
+
+        <AFDisclosureSheet
+          visible={otherWaysOpen}
+          onClose={() => setOtherWaysOpen(false)}
+          title={t('hydroScan2.v2.other_ways_title')}
+          testID="hydroscan-other-ways-sheet"
+        >
+          <AFListRow
+            icon="plus-circle"
+            title={t('hydroScan2.v2.log_any_title')}
+            subtitle={t('hydroScan2.v2.log_any_hint')}
+            onPress={() => { setOtherWaysOpen(false); setAddDrinkOpen(true); }}
+            testID="hydroscan-log-any-drink"
+          />
+          <AFListRow
+            icon="camera"
+            title={t('hydroScan2.v2.smart_capture_title')}
+            subtitle={t('hydroScan2.v2.smart_capture_hint')}
+            onPress={() => { setOtherWaysOpen(false); setSmartCaptureOpen(true); }}
+            testID="hydroscan-smart-capture"
+          />
+          <AFListRow
+            icon="droplet"
+            title={t('hydroScan2.v2.urine_check_title')}
+            subtitle={t('hydroScan2.v2.urine_check_hint')}
+            onPress={() => { setOtherWaysOpen(false); router.push('/urine-check' as never); }}
+            testID="hydroscan-urine-check"
+          />
+        </AFDisclosureSheet>
       </GradientBackground>
       {/* Success flash overlay — pointerEvents='none' so it never blocks
           taps mid-fade. Tinted PEAK so a successful log feels rewarded. */}
@@ -1052,17 +1003,17 @@ function toTextSafeColor(color: string): string {
   return color === af.red ? af.redText : color;
 }
 
-function formatRelativeTime(iso: string): string {
-  const t = Date.parse(iso);
-  if (!Number.isFinite(t)) return '';
-  const diff = Date.now() - t;
+function formatRelativeTime(iso: string, t: (k: string, o?: Record<string, unknown>) => string): string {
+  const parsed = Date.parse(iso);
+  if (!Number.isFinite(parsed)) return '';
+  const diff = Date.now() - parsed;
   const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t('hydroScan2.v2.time_just_now');
+  if (m < 60) return t('hydroScan2.v2.time_m_ago', { m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return t('hydroScan2.v2.time_h_ago', { h });
   const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return t('hydroScan2.v2.time_d_ago', { d });
 }
 
 const styles = StyleSheet.create({
@@ -1088,25 +1039,25 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.2,
     color: af.textTertiary,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   historySync: {
     fontSize: 9,
     letterSpacing: 1.2,
     color: af.green,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   historyAdvisory: {
     fontSize: 9,
     letterSpacing: 1.2,
     color: af.textTertiary,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   historyDot: { width: 6, height: 6, borderRadius: 3 },
-  historyTitle: { fontSize: 13, color: af.textPrimary, fontWeight: '600' },
+  historyTitle: { fontSize: 13, color: af.textPrimary, fontFamily: 'Inter_600SemiBold' },
   historyMeta: { fontSize: 11, color: af.textTertiary, marginTop: 2 },
-  historyVerdict: { fontSize: 10, letterSpacing: 1, fontWeight: '700' },
+  historyVerdict: { fontSize: 10, letterSpacing: 1, fontFamily: 'Inter_700Bold' },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   backBtn: {
@@ -1117,22 +1068,15 @@ const styles = StyleSheet.create({
   },
   eyebrow: { fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 2.5 },
   title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: -0.6, marginTop: 2 },
-  statePill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100,
-    borderWidth: 1, borderColor: af.divider,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3 },
-  stateText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.4 },
 
   viewfinder: {
     height: 200, borderRadius: 22,
-    backgroundColor: '#05090E', borderWidth: 1, borderColor: af.divider,
+    backgroundColor: af.canvasFocused, borderWidth: 1, borderColor: af.divider,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   ring: {
     position: 'absolute', width: 240, height: 240, borderRadius: 120,
-    borderWidth: 1, borderColor: `${af.green}55`,
+    borderWidth: 1, borderColor: withAlpha(af.green, afAlpha.a34),
     // 0.7 was the resting opacity of the removed pulse loop (and the value its
     // reduced-motion branch already held) — kept so the static ring is exactly
     // the frame reduced-motion members were already seeing.
@@ -1144,7 +1088,7 @@ const styles = StyleSheet.create({
   },
   corner: {
     position: 'absolute', width: 22, height: 22,
-    borderColor: `${af.green}AA`, borderWidth: 2,
+    borderColor: withAlpha(af.green, afAlpha.a67), borderWidth: 2,
   },
   cornerTL: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0 },
   cornerTR: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0 },
@@ -1173,8 +1117,8 @@ const styles = StyleSheet.create({
   qrChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, paddingVertical: 7,
-    borderRadius: 100, borderWidth: 1, borderColor: `${af.green}55`,
-    backgroundColor: `${af.green}10`,
+    borderRadius: 100, borderWidth: 1, borderColor: withAlpha(af.green, afAlpha.a34),
+    backgroundColor: withAlpha(af.green, afAlpha.a06),
     alignSelf: 'flex-start',
   },
   tabRow: {
@@ -1203,13 +1147,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, paddingVertical: 8,
     borderRadius: 100, borderWidth: 1,
-    borderColor: `${af.green}55`,
-    backgroundColor: `${af.green}10`,
+    borderColor: withAlpha(af.green, afAlpha.a34),
+    backgroundColor: withAlpha(af.green, afAlpha.a06),
     alignSelf: 'flex-start',
   },
   pickerBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: withAlpha('#000000', afAlpha.a67),
     justifyContent: 'flex-end',
   },
   pickerSheet: {
@@ -1246,15 +1190,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 12,
     padding: 14, marginVertical: 12,
     borderRadius: 14, borderWidth: 1,
-    borderColor: `${af.green}55`,
-    backgroundColor: `${af.green}10`,
+    borderColor: withAlpha(af.green, afAlpha.a34),
+    backgroundColor: withAlpha(af.green, afAlpha.a06),
   },
   compareWithAforceCta: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 14, paddingVertical: 12,
     borderRadius: 12, borderWidth: 1,
-    borderColor: `${af.green}66`,
-    backgroundColor: `${af.green}14`,
+    borderColor: withAlpha(af.green, 0.4),
+    backgroundColor: withAlpha(af.green, afAlpha.a08),
   },
   compareWithAforceText: {
     flex: 1,
@@ -1278,6 +1222,7 @@ const styles = StyleSheet.create({
   manualLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 1.8 },
   manualRow: { flexDirection: 'row', gap: 8 },
   manualInput: {
+    minHeight: 44,
     flex: 1, height: 42, borderRadius: 10,
     paddingHorizontal: 12, color: af.textPrimary,
     backgroundColor: af.surface,
@@ -1285,30 +1230,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium', fontSize: 13,
   },
   manualBtn: {
+    minWidth: 44, minHeight: 44,
     width: 42, height: 42, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: af.surface,
     borderWidth: 1, borderColor: af.divider,
   },
 
-  logAnyCta: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 14, paddingHorizontal: 14,
-    borderRadius: 14, borderWidth: 1,
-    backgroundColor: af.surface,
-  },
-  logAnyTitle: {
-    fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 2,
-  },
-  logAnyHint: {
-    fontSize: 10, fontFamily: 'Inter_500Medium',
-    color: af.textTertiary, marginTop: 3, letterSpacing: 0.3,
-  },
 
   errorCard: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: `${af.amber}14`,
-    borderColor: `${af.amber}55`,
+    backgroundColor: withAlpha(af.amber, afAlpha.a08),
+    borderColor: withAlpha(af.amber, afAlpha.a34),
     borderWidth: 1, borderRadius: 14, padding: 12,
   },
   errorText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: af.textPrimary, flex: 1 },
@@ -1318,7 +1251,7 @@ const styles = StyleSheet.create({
     marginTop: 4, paddingHorizontal: 10, paddingVertical: 5,
     borderRadius: 999, borderWidth: StyleSheet.hairlineWidth,
     borderColor: af.divider,
-    backgroundColor: 'rgba(255,255,255,0.02)',
+    backgroundColor: withAlpha('#FFFFFF', 0.02),
   },
   recoveryStripText: {
     fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.6,
