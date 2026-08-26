@@ -2,12 +2,12 @@
  * ConnectedHealthContainer — thin, real-data container for the Connected
  * Health command center (W3.6 live wiring).
  *
- * NOT REGISTERED TO ANY ROUTE. This component is exported but unmounted —
- * no screen under `app/` imports it, and it appears in no nav/tab bar. It
- * exists so the full real-data wiring (store → cloud probes → the honest
- * per-provider status → the pure resolver → the pure presentational
- * `ConnectedHealthView`) can be built, tested, and reviewed as one unit
- * ahead of a future PR that actually mounts it behind a route. This mirrors
+ * MOUNTED at `app/health-connected.tsx` (G5) — this header once declared
+ * the component route-less; that claim went stale the day the route landed
+ * and is corrected here (S2-3 D). The wiring shape is unchanged: store →
+ * cloud probes → the honest per-provider status → the pure resolver → the
+ * pure presentational `ConnectedHealthView`, built and tested as one unit.
+ * This mirrors
  * how `scoringEngine.ts` / `statusColor.ts` stay untouched by feature work —
  * here the boundary is "no navigation surface until product/legal sign off
  * on where Connected Health lives" rather than an off-limits file.
@@ -51,7 +51,8 @@
  *   cycle-2 timeout, instead of being downgraded to dormant.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Platform, Alert } from 'react-native';
+import {
+  ScrollView, View, StyleSheet, Platform, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
@@ -162,9 +163,10 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
     return resolveConnectedHealthView(input);
   }, [now, cloudProbeStatus, platform, state.featureFlags, state.userState.biometrics, cloud, appleHealthLinked, appleHealthNativeReady]);
 
-  const onTroubleshoot = useCallback((_providerId: HealthProviderId) => {
-    // See file header — connect/reconnect activation is next-phase work.
-  }, []);
+  // S2-3(D): the troubleshoot/reconnect flow is not wired yet. Passing
+  // null WITHHOLDS the button (the view's contract) instead of shipping a
+  // live control that does nothing — the audit's only dead affordance.
+  const onTroubleshoot = null;
 
   const onDisconnect = useCallback(
     (providerId: HealthProviderId) => {
@@ -253,12 +255,17 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
 
   return (
     <View style={[styles.root, { paddingTop: topPadding }]}>
-      <ConnectedHealthView
-        view={view}
-        onBack={onBack ?? (() => {})}
-        onTroubleshoot={onTroubleshoot}
-        onDisconnect={onDisconnect}
-      />
+      {/* S2-3(D): the provider list had no scroll container — with several
+          providers plus the always-on Score-Protection footer it clipped on
+          small screens. The connect bar stays pinned outside the scroll. */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <ConnectedHealthView
+          view={view}
+          onBack={onBack ?? (() => {})}
+          onTroubleshoot={onTroubleshoot}
+          onDisconnect={onDisconnect}
+        />
+      </ScrollView>
       {hcEnabled ? (
         <View style={styles.hcConnectBar}>
           <AFPrimaryButton
@@ -276,5 +283,7 @@ export function ConnectedHealthContainer({ onBack }: ConnectedHealthContainerPro
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: af.canvas },
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
   hcConnectBar: { paddingHorizontal: 20, paddingBottom: 28 },
 });

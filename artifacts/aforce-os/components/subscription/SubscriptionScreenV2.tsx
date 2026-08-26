@@ -25,6 +25,7 @@ import { GradientBackground } from '@/components/GradientBackground';
 import { SubscriptionPlanCard } from '@/components/SubscriptionPlanCard';
 import { EnterprisePlanCard } from '@/components/EnterprisePlanCard';
 import { af } from '@/theme';
+import { useSubscriptionSlice } from '@/store/slices';
 import { useAppStore } from '@/store/useAppStore';
 import { SUBSCRIPTION_PLANS, LAUNCHED_PLAN_IDS } from '@/data/subscriptionPlans';
 import type { SubscriptionPlan, SubscriptionPlanId } from '@/types/subscription';
@@ -48,10 +49,33 @@ const FILTERS: { id: CategoryId; labelKey: string }[] = [
   { id: 'performance', labelKey: 'filter_performance' },
 ];
 
+function useRestorePurchases() {
+  // S2-3(C) — 'Restore purchases' against the REAL purchase authority.
+  // Purchases here are Stripe-side and the server entitlement endpoint is
+  // the single source of truth (useEntitlement docblock); on this
+  // architecture, restoration IS a forced re-sync of that entitlement for
+  // the signed-in account — there is no App Store IAP receipt to replay,
+  // and no fake path is offered. The outcome line reports the re-synced
+  // plan honestly, whatever it is.
+  const [restoreState, setRestoreState] = React.useState<'idle' | 'busy' | 'done' | 'error'>('idle');
+  const restore = React.useCallback(async () => {
+    setRestoreState('busy');
+    try {
+      await refreshEntitlement();
+      setRestoreState('done');
+    } catch {
+      setRestoreState('error');
+    }
+  }, []);
+  return { restoreState, restore };
+}
+
 export function SubscriptionScreenV2() {
   const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { restoreState, restore } = useRestorePurchases();
+  const entitlementNow = useSubscriptionSlice();
   const layout = useResponsiveLayout();
   const { state } = useAppStore();
   const params = useLocalSearchParams<{ planId?: string; autoCheckout?: string; status?: string; kind?: string; session_id?: string }>();
@@ -381,6 +405,30 @@ export function SubscriptionScreenV2() {
             <Icon name="shield" size={12} color={af.textTertiary} />
             <Text style={styles.trustText}>{t('subscription.v2.trust')}</Text>
           </View>
+
+          {/* S2-3(C) — restore against the server entitlement (the purchase
+              authority on this Stripe architecture). */}
+          <Pressable
+            onPress={restore}
+            disabled={restoreState === 'busy'}
+            style={styles.restoreBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('subscription.v2.restore_purchases')}
+            testID="subscription-restore"
+          >
+            <Text style={styles.restoreText}>
+              {restoreState === 'busy' ? t('subscription.v2.restore_busy') : t('subscription.v2.restore_purchases')}
+            </Text>
+          </Pressable>
+          {restoreState === 'done' ? (
+            <Text style={styles.restoreOutcome} accessibilityLiveRegion="polite">
+              {t('subscription.v2.restore_done', { plan: entitlementNow.planId.toUpperCase() })}
+            </Text>
+          ) : restoreState === 'error' ? (
+            <Text style={[styles.restoreOutcome, { color: af.redText }]} accessibilityLiveRegion="polite">
+              {t('subscription.v2.restore_error')}
+            </Text>
+          ) : null}
         </ScrollView>
       </GradientBackground>
     </View>
@@ -464,4 +512,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   trustText: { fontSize: 11, fontFamily: 'Inter_500Medium', color: af.textTertiary, textAlign: 'center' },
+  restoreBtn: { alignSelf: 'center', marginTop: 14, minHeight: 44, justifyContent: 'center', paddingHorizontal: 16 },
+  restoreText: { fontSize: 12.5, fontFamily: 'Inter_500Medium', color: af.textSecondary, letterSpacing: 0.3 },
+  restoreOutcome: { fontSize: 11.5, fontFamily: 'Inter_400Regular', color: af.textTertiary, textAlign: 'center', marginTop: 6 },
 });
