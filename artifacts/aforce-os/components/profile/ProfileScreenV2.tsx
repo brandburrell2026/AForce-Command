@@ -1119,7 +1119,7 @@ export function ProfileScreenV2() {
                     accessibilityLabel={t('profile.v2.share_invite_a11y')}
                     testID="profile-invite-share"
                   >
-                    <Icon name="send" size={14} color="#0A0A0F" />
+                    <Icon name="send" size={14} color={af.onRed} />
                     <Text style={styles.inviteShareLabel}>{t('profile.v2.share_invite')}</Text>
                   </Pressable>
                   <Pressable
@@ -3170,6 +3170,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   tabPill: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 999,
@@ -3193,7 +3195,10 @@ const styles = StyleSheet.create({
     color: af.textTertiary,
   },
   tabPillLabelActive: {
-    color: '#000000',
+    // S2-10: '#000000' on the af.red active fill measured ~3.59:1 — the
+    // screen's PRIMARY navigation failed AA. af.onRed is the AA-verified
+    // on-red token (same fix SignIn documented; Profile never received it).
+    color: af.onRed,
   },
   sectionLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 2.5,
@@ -3300,7 +3305,7 @@ const styles = StyleSheet.create({
   inviteShareBtnDisabled: { opacity: 0.4 },
   inviteShareBtnPressed: { opacity: 0.85 },
   inviteShareLabel: {
-    fontFamily: 'Inter_700Bold', fontSize: 12, color: '#0A0A0F', letterSpacing: 1.5,
+    fontFamily: 'Inter_700Bold', fontSize: 12, color: af.onRed, letterSpacing: 1.5,
   },
   inviteTierBadge: {
     paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999,
