@@ -571,7 +571,9 @@
       "row_a11y_via_health_connect": "{{name}}, available through Health Connect",
       "row_a11y_unsupported": "{{name}}, unsupported on this device",
       "apple_fetch_failed": "Couldn't refresh Apple Health data.",
-      "whoop_status_failed": "Couldn't check WHOOP connection status."
+      "whoop_status_failed": "Couldn't check WHOOP connection status.",
+      "not_set": "Not set",
+      "member_fallback": "Member"
     }
   },
   "settings": {
