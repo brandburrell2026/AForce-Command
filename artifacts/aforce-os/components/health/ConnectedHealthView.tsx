@@ -35,7 +35,9 @@ import type {
 export interface ConnectedHealthViewProps {
   view: ConnectedHealthVM;
   onBack: () => void;
-  onTroubleshoot: (providerId: ConnectedHealthRowView['providerId']) => void;
+  /** null = the reconnect/troubleshoot flow is not wired yet — the button
+   *  is withheld rather than rendered dead (S2-3 D: no no-op affordances). */
+  onTroubleshoot: ((providerId: ConnectedHealthRowView['providerId']) => void) | null;
   onDisconnect: (providerId: ConnectedHealthRowView['providerId']) => void;
 }
 
@@ -109,7 +111,7 @@ function ProviderRow({
   row, onTroubleshoot, onDisconnect,
 }: {
   row: ConnectedHealthRowView;
-  onTroubleshoot: (providerId: ConnectedHealthRowView['providerId']) => void;
+  onTroubleshoot: ((providerId: ConnectedHealthRowView['providerId']) => void) | null;
   onDisconnect: (providerId: ConnectedHealthRowView['providerId']) => void;
 }) {
   const { t } = useTranslation();
@@ -203,9 +205,9 @@ function ProviderRow({
         </View>
       ) : null}
 
-      {(hasAction || row.canDisconnect) ? (
+      {((hasAction && onTroubleshoot) || row.canDisconnect) ? (
         <View style={styles.actionsRow}>
-          {hasAction && row.troubleshoot.label ? (
+          {hasAction && row.troubleshoot.label && onTroubleshoot ? (
             <Pressable
               onPress={() => onTroubleshoot(row.providerId)}
               style={styles.actionBtn}

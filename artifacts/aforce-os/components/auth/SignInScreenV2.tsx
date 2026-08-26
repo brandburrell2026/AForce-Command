@@ -137,6 +137,16 @@ export function SignInScreenV2() {
           )}
 
           <Pressable
+            onPress={() => router.push('/(auth)/reset-password')}
+            style={styles.forgotLink}
+            accessibilityRole="button"
+            accessibilityLabel={t('auth.v2.forgot_password')}
+            testID="signin-forgot-password"
+          >
+            <Text style={styles.forgotLinkText}>{t('auth.v2.forgot_password')}</Text>
+          </Pressable>
+
+          <Pressable
             onPress={handleSubmit}
             disabled={disabled}
             style={({ pressed }) => [
@@ -197,6 +207,8 @@ export function SignInScreenV2() {
 }
 
 const styles = StyleSheet.create({
+  forgotLink: { alignSelf: 'flex-end', marginTop: 10, minHeight: 44, justifyContent: 'center' },
+  forgotLinkText: { color: af.textSecondary, fontSize: 13, fontFamily: 'Inter_500Medium' },
   flex: { flex: 1 },
   container: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
   eyebrow: {

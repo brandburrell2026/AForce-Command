@@ -1771,7 +1771,11 @@
       "back_a11y": "Back",
       "manage_gear_a11y": "Manage subscription",
       "activation_pending_title": "Payment received",
-      "activation_pending_body": "Your plan is activating — it will unlock automatically in a moment. No further action is needed."
+      "activation_pending_body": "Your plan is activating — it will unlock automatically in a moment. No further action is needed.",
+      "restore_purchases": "Restore purchases",
+      "restore_busy": "Checking your plan…",
+      "restore_done": "Plan re-synced from your account: {{plan}}",
+      "restore_error": "Could not reach your account right now. Please try again."
     }
   },
   "urine": {
@@ -2190,7 +2194,21 @@
       "signup_err_start": "Sign-up failed.",
       "signup_err_verify_incomplete": "Verification incomplete ({{status}}).",
       "signup_err_verify_fallback": "Verification failed.",
-      "signup_err_resend": "Could not resend code."
+      "signup_err_resend": "Could not resend code.",
+      "forgot_password": "Forgot password?",
+      "reset_title": "Reset password",
+      "reset_subtitle_request": "Enter your account email and we’ll send a verification code.",
+      "reset_subtitle_verify": "Enter the code from your email and choose a new password.",
+      "reset_label_code": "Verification code",
+      "reset_placeholder_code": "6-digit code",
+      "reset_a11y_code": "Verification code",
+      "reset_label_new_password": "New password",
+      "reset_a11y_new_password": "New password",
+      "reset_send_code": "Send code",
+      "reset_submit": "Set new password",
+      "reset_submitting": "Working…",
+      "reset_back": "Back",
+      "reset_err_fallback": "Password reset failed. Please try again."
     }
   },
   "science": {
