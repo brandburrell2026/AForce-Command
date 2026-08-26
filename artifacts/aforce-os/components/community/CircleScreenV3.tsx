@@ -38,6 +38,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 
 import { AFScreen, AFTopBar, AFEmptyState, AFStatPair } from '@/components/ui';
 import { af, afType, Spacing } from '@/theme';
@@ -62,6 +63,7 @@ function avatarTextColor(bg: string): string {
 }
 
 export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
+  const tabClearance = useTabBarClearance();
   const { t } = useTranslation();
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -150,7 +152,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
   );
 
   return (
-    <AFScreen scroll contentContainerStyle={styles.scrollContent}>
+    <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
       <AFTopBar eyebrow={t('community.v3.eyebrow')} title={t('community.v3.title')} />
 
       {/* You card — comp layout, live-injected row underneath */}
@@ -397,7 +399,6 @@ function LeaderRow({
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: Spacing[24] + Spacing[8] },
   youCard: {
     marginTop: 16, padding: 16, borderRadius: 18, borderWidth: 1,
     backgroundColor: `${af.green}0A`,

@@ -16,6 +16,7 @@ import {
   View, Text, StyleSheet, ScrollView, Platform, Pressable, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { AFModal } from '@/components/ui/AFModal';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -77,6 +78,7 @@ import type { PerformanceLevel } from '@/types';
 export function HydrationScanScreenV2() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabClearance = useTabBarClearance();
   const { state, logIntake } = useAppStore();
   const { t } = useTranslation();
   // HydroScan 2.0™ — flag-gated profile-aware layer (OFF in prod, ON in demo).
@@ -500,7 +502,7 @@ export function HydrationScanScreenV2() {
       <GradientBackground>
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: bottomPadding + 32 }]}
+          contentContainerStyle={[styles.content, { paddingTop: topPadding + 8, paddingBottom: tabClearance }]}
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
