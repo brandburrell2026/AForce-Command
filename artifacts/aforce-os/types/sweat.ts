@@ -128,6 +128,23 @@ export interface SweatAutopilot {
 }
 
 /** ── Output — the resolved session ─────────────────────────────────── */
+/**
+ * S1-2 (COR-001) — cross-field plausibility qualification.
+ *
+ * The screen validator checks each input independently; this
+ * qualification judges the COMPUTED result. 'unavailable' means the
+ * inputs combine into a physiologically implausible session and no
+ * authoritative numbers may be shown; 'limited' means the result is
+ * inside the elite tail and must carry an estimate qualifier.
+ */
+export type SweatQualificationStatus = 'ok' | 'limited' | 'unavailable';
+
+export interface SweatQualification {
+  status: SweatQualificationStatus;
+  /** Machine-readable reasons (stable ids, not consumer copy). */
+  reasons: string[];
+}
+
 export interface SweatSession {
   /** ISO timestamp when computed. */
   computedAt: string;
@@ -151,6 +168,12 @@ export interface SweatSession {
   sodiumLossMg: number;
   /** Resolved sodium classification. */
   sodiumProfile: SodiumProfile;
+
+  /**
+   * Plausibility qualification (S1-2). Optional for fixture
+   * compatibility; `computeSweatSession` always sets it.
+   */
+  qualification?: SweatQualification;
 
   /** Personalized AForce prescription. */
   prescription: SweatPrescription;

@@ -1721,7 +1721,10 @@
       "cite_strategy_source": "Source: Sawka MN et al. 2007. Med Sci Sports Exerc 39(2):377–390; Maughan RJ, Shirreffs SM. 2010. Scand J Med Sci Sports 20(Suppl 2):59–69.",
       "cite_estimate_heading": "Estimate path:",
       "cite_estimate_body": "Anchored to per-sport population-mean sweat rates (Baker 2017; sport-specific values from Maughan 2007 and Godek 2010), scaled by Du Bois body-surface area, RPE-mapped intensity, USARIEM-style climate factors, and Périard 2015 acclimatization adjustment.",
-      "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device."
+      "cite_calibration": "This is a modeled estimate, not a measurement — always confirm with a scale for clinical decisions. Not a medical device.",
+      "qual_unavailable_title": "Result unavailable",
+      "qual_unavailable_body": "These entries combine into a sweat rate outside the plausible human range. Double-check pre and post weight, duration, and fluid, then recalculate.",
+      "qual_limited_note": "Elite-range sweat rate — treat this as an estimate and confirm with a scale."
     }
   },
   "achievements": {

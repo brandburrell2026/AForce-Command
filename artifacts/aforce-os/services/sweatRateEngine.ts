@@ -26,6 +26,7 @@
  */
 
 import {
+  SweatQualification,
   type DeficitBand,
   type DeficitBandSpec,
   type EstimateInputs,
@@ -268,6 +269,52 @@ export function estimateSweatRateLh(a: EstimateArgs): { sweatRateLh: number; bsa
   return { sweatRateLh: clampPositive(rate), bsaM2: bsa, heat, accl };
 }
 
+
+// ─── S1-2 (COR-001) — plausibility qualification ────────────────────────────
+//
+// PENDING CLAIMS/SCIENCE RATIFICATION: these boundaries are PROPOSED
+// qualification thresholds, isolated here for founder/science review.
+// They are deliberately NOT part of the scientific model above — they
+// only decide whether a computed result may be presented as
+// authoritative. Sources considered: peak sustained whole-body sweat
+// rates ~3.0-3.5 L/h in elite athletes under heat (Cheuvront &
+// Kenefick 2014); acute dehydration beyond ~7% body mass is a medical
+// emergency, far outside a self-serve calculator's paradigm.
+export const PROPOSED_LIMITED_SWEAT_RATE_LH = 2.5;
+export const PROPOSED_MAX_PLAUSIBLE_SWEAT_RATE_LH = 3.5;
+export const PROPOSED_MAX_PLAUSIBLE_DEFICIT_PCT = 7;
+export const PROPOSED_LIMITED_DURATION_MIN = 360;
+
+/**
+ * Judge the COMPUTED session, not the individual fields — the COR-001
+ * class (595 oz / 29,148 mg from a one-keystroke weight typo) passes
+ * every per-field check and only becomes visible in the combination.
+ * Pure; never mutates. NaN/Infinity anywhere → unavailable.
+ */
+export function qualifySweat(args: {
+  sweatLossL: number;
+  sweatRateLh: number;
+  deficitPct: number;
+  sodiumLossMg: number;
+  durationMin: number;
+}): SweatQualification {
+  const reasons: string[] = [];
+  const values = [args.sweatLossL, args.sweatRateLh, args.deficitPct, args.sodiumLossMg];
+  if (values.some((v) => !Number.isFinite(v))) {
+    return { status: 'unavailable', reasons: ['non_finite_result'] };
+  }
+  if (args.sweatRateLh > PROPOSED_MAX_PLAUSIBLE_SWEAT_RATE_LH) {
+    reasons.push('sweat_rate_implausible');
+  }
+  if (args.deficitPct > PROPOSED_MAX_PLAUSIBLE_DEFICIT_PCT) {
+    reasons.push('deficit_implausible');
+  }
+  if (reasons.length > 0) return { status: 'unavailable', reasons };
+  if (args.sweatRateLh > PROPOSED_LIMITED_SWEAT_RATE_LH) reasons.push('sweat_rate_elite_range');
+  if (args.durationMin > PROPOSED_LIMITED_DURATION_MIN) reasons.push('long_duration_estimate');
+  return { status: reasons.length > 0 ? 'limited' : 'ok', reasons };
+}
+
 // ─── Prescription ────────────────────────────────────────────────────────────
 
 /**
@@ -377,6 +424,7 @@ function computeQuick(i: QuickInputs): SweatSession {
   const audit: SweatAudit = { bodyWeightKg: preKg, bsaM2, source: 'measured' };
   return finalize({
     mode: 'quick',
+    durationMin: i.durationMinutes,
     sweatLossL,
     sweatRateLh,
     deficitPct,
@@ -424,6 +472,7 @@ function computePrecision(i: PrecisionInputs): SweatSession {
 
   return finalize({
     mode: 'precision',
+    durationMin: i.durationMinutes,
     sweatLossL,
     sweatRateLh,
     deficitPct,
@@ -472,6 +521,7 @@ function computeEstimate(i: EstimateInputs): SweatSession {
 
   return finalize({
     mode: 'estimate',
+    durationMin: i.durationMinutes,
     sweatLossL,
     sweatRateLh: est.sweatRateLh,
     deficitPct,
@@ -499,6 +549,7 @@ export function deriveAutopilot(deficitPct: number): SweatAutopilot {
 
 function finalize(args: {
   mode: SweatSession['mode'];
+  durationMin: number;
   sweatLossL: number;
   sweatRateLh: number;
   deficitPct: number;
@@ -517,6 +568,13 @@ function finalize(args: {
   return {
     computedAt: new Date().toISOString(),
     mode: args.mode,
+    qualification: qualifySweat({
+      sweatLossL: args.sweatLossL,
+      sweatRateLh: args.sweatRateLh,
+      deficitPct: args.deficitPct,
+      sodiumLossMg: args.sodiumLossMg,
+      durationMin: args.durationMin,
+    }),
     sweatLossL: round(args.sweatLossL, 2),
     sweatRateLh: round(args.sweatRateLh, 2),
     sweatRateOzh: round(args.sweatRateLh * OZ_PER_L, 1),
