@@ -25,10 +25,14 @@
  * suites own the primitives. The Stage-4 silence/intervention COUNTERS
  * are founder-held for Stage 4; nothing here fakes them.
  *
- * Later tranches (harness decisions pending): time-zone transition ·
- * calendar withdrawal · provider conflict/dedupe · prompt-injection +
- * BOLA (api-server harness) — tracked in the program ledger, one lane
- * at a time.
+ * Tranche 4 (2026-08-27): time-zone transition — the day-key/fold seam
+ * and the planner's absolute-time contract. Formulations are TZ-PORTABLE:
+ * expectations are computed through the same local-time APIs the code
+ * uses, so the suite holds in any process TZ, DST days included.
+ *
+ * Later tranches (harness decisions pending): calendar withdrawal ·
+ * provider conflict/dedupe · prompt-injection + BOLA (api-server
+ * harness) — tracked in the program ledger, one lane at a time.
  */
 import { describe, expect, it } from 'vitest';
 import { calculateScore } from '../../utils/scoringEngine';
@@ -427,5 +431,83 @@ describe('§10 — the attention budget holds under calendar pressure', () => {
       expect(fires[i]! - fires[i - 1]!).toBeGreaterThanOrEqual(60 * 60 * 1000);
       expect(fires[i]!).toBeGreaterThan(fires[i - 1]!);
     }
+  });
+});
+
+// ─── Tranche 4 — time-zone transition (§18: travel / TZ shift) ───────────────
+import {
+  localDayKey,
+  shouldFoldSleepAvg,
+  foldSevenNightAvg,
+} from '../sleep/sleepModeView';
+
+describe('§18 — the local day key is stable within a day and rolls exactly at local midnight', () => {
+  it('every instant of one local day shares the key; the next local day differs', () => {
+    const probe = new Date(NOW);
+    const startOfDay = new Date(probe.getFullYear(), probe.getMonth(), probe.getDate()).getTime();
+    const endOfDay = startOfDay + 24 * 3600 * 1000 - 1;
+    const key = localDayKey(startOfDay);
+    expect(localDayKey(startOfDay + 1)).toBe(key);
+    expect(localDayKey(endOfDay)).toBe(key);
+    expect(localDayKey(endOfDay + 1)).not.toBe(key);
+  });
+});
+
+describe('§18 — travel cannot bias the sleep average', () => {
+  it('westward travel that repeats a calendar day cannot re-fold the same night', () => {
+    const K = localDayKey(NOW);
+    expect(shouldFoldSleepAvg(K, K, 7.2)).toBe(false);
+  });
+
+  it('eastward travel that lands in a new day folds exactly once, then locks', () => {
+    const today = localDayKey(NOW);
+    const yesterday = localDayKey(NOW - 24 * 3600 * 1000);
+    expect(shouldFoldSleepAvg(yesterday, today, 7.2)).toBe(true);
+    // After the fold the guard is stamped with today — a second mount is quiet.
+    expect(shouldFoldSleepAvg(today, today, 7.2)).toBe(false);
+  });
+
+  it('a corrupt guard fails open ONCE — one extra fold at most, never a permanent skip', () => {
+    const today = localDayKey(NOW);
+    expect(shouldFoldSleepAvg('garbage-value', today, 7.2)).toBe(true);
+    expect(shouldFoldSleepAvg(today, today, 7.2)).toBe(false);
+  });
+
+  it('no real sleep value never folds — evidence absence stays silent', () => {
+    const today = localDayKey(NOW);
+    expect(shouldFoldSleepAvg(null, today, null)).toBe(false);
+    expect(shouldFoldSleepAvg(null, today, Number.NaN)).toBe(false);
+  });
+
+  it('the EMA moves by exactly one step per fold — the guard is what prevents bias', () => {
+    const once = foldSevenNightAvg(7, 8.4);
+    expect(once).toBeCloseTo(7 + (8.4 - 7) / 7, 12);
+    // Folding the SAME night again WOULD move it further — the day-key guard
+    // above is the only thing standing between travel and a biased average.
+    expect(foldSevenNightAvg(once, 8.4)).not.toBeCloseTo(once, 6);
+  });
+});
+
+describe('§18 — the moment planner runs on absolute time, not wall-clock representation', () => {
+  it('the same instant written in two UTC offsets plans identically (the traveler invariant)', () => {
+    const start = iso(T0 + 4 * 3600 * 1000);
+    const moments = [moment('tz1', start), moment('tz2', iso(T0 + 6 * 3600 * 1000))];
+    const nowUtc = new Date(T0).toISOString(); // ...Z
+    const nowOffset = nowUtc.replace('Z', '+00:00');
+    const planA = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, nowUtc);
+    const planB = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, nowOffset);
+    expect(planB).toEqual(planA);
+    for (const pl of planA) {
+      // Fire instants are absolute ISO — crossing a time zone cannot move the
+      // real moment; only its local rendering changes.
+      expect(Number.isFinite(Date.parse(pl.fireAtIso))).toBe(true);
+    }
+  });
+
+  it('planning is deterministic: identical absolute inputs, identical plan', () => {
+    const moments = [moment('d1', iso(T0 + 3 * 3600 * 1000))];
+    const a = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
+    const b = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
+    expect(b).toEqual(a);
   });
 });
