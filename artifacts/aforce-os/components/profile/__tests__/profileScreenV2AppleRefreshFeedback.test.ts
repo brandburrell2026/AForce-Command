@@ -1,4 +1,5 @@
 // S2-10b(1): shell + kit scanned together (primitives + styles moved verbatim to profileKit.tsx).
+// S2-10b(2): + panes/*.tsx — the tab blocks moved there (mechanism move, invariants intact).
 /**
  * ProfileScreenV2 — Apple Health refresh feedback (RC-2, TestFlight build
  * 45, founder-reported: "the refresh icon does nothing visibly when
@@ -31,7 +32,12 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8'));
+const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'PerformancePane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'DevicesPane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'AccountPane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'DeveloperPane.tsx'), 'utf8')
+);
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 function refreshAppleSnapshotBody(): string {

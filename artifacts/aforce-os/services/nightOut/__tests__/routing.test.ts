@@ -72,7 +72,14 @@ describe('NO-b — route wiring (gated entry, safe redirects, no loops)', () => 
   });
 
   it('the social-v2 discoverability link was removed from Profile', () => {
-    const profile = read('components', 'profile', 'ProfileScreenV2.tsx');
+    // S2-10b(2): the tab blocks live in panes/*.tsx — scan shell + panes so a
+    // pane cannot quietly reintroduce the link.
+    const profile =
+      read('components', 'profile', 'ProfileScreenV2.tsx') +
+      read('components', 'profile', 'panes', 'PerformancePane.tsx') +
+      read('components', 'profile', 'panes', 'DevicesPane.tsx') +
+      read('components', 'profile', 'panes', 'AccountPane.tsx') +
+      read('components', 'profile', 'panes', 'DeveloperPane.tsx');
     expect(profile).not.toMatch(/router\.push\('\/social-v2'\)/);
   });
 });
