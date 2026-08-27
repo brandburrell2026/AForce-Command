@@ -12,6 +12,8 @@ import type { SharedStatus, SharedStateLabel } from '@/types/circle';
 interface Props {
   status: SharedStatus;
   yourName: string;
+  /** Overrides the visibility eyebrow (community-sharing passes the live scope). */
+  visibilityLabel?: string;
   yourInitials: string;
 }
 
@@ -22,7 +24,7 @@ const STATE_COLOR: Record<SharedStateLabel, string> = {
   Depleted:   Colors.states.DEPLETED.primary,
 };
 
-export const SharedStatusCard: React.FC<Props> = ({ status, yourName, yourInitials }) => {
+export const SharedStatusCard: React.FC<Props> = ({ status, yourName, yourInitials, visibilityLabel }) => {
   const accent = STATE_COLOR[status.state];
   return (
     <View style={styles.card}>
@@ -32,7 +34,7 @@ export const SharedStatusCard: React.FC<Props> = ({ status, yourName, yourInitia
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{yourName}</Text>
-          <Text style={styles.eyebrow}>VISIBLE TO YOUR CIRCLE</Text>
+          <Text style={styles.eyebrow}>{visibilityLabel ?? 'VISIBLE TO YOUR CIRCLE'}</Text>
         </View>
         <Text style={[styles.score, { color: accent }]}>{status.score || '—'}</Text>
       </View>

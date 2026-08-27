@@ -40,7 +40,9 @@ interface PrivacyResponse {
 }
 
 const DEFAULTS: PrivacyResponse = {
-  scope: "circle",
+  // Founder ruling 2026-08-27: PRIVATE by default (mirrors
+  // mockCircleData.DEFAULT_PRIVACY). Existing rows are untouched.
+  scope: "private",
   fields: { score: true, state: true, streak: true, protocol: true, trend: true },
 };
 

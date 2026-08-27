@@ -2581,5 +2581,33 @@
       "too_late": "Too late",
       "thanks": "Noted. Future prep timing tunes to this."
     }
+  },
+  "communitySharing": {
+    "eyebrow": "PRIVACY",
+    "title": "Community Sharing",
+    "entry_title": "Community Sharing",
+    "entry_sub": "What others can see, and who",
+    "preview_label": "WHAT OTHERS SEE",
+    "preview_you": "You",
+    "preview_note": "Nothing is sent anywhere today — this preview shows what your chosen scope WOULD share.",
+    "visibility_label": "VISIBILITY",
+    "visibility_private": "PRIVATE — VISIBLE ONLY TO YOU",
+    "visibility_circle": "VISIBLE TO YOUR CIRCLE",
+    "visibility_team_coach": "VISIBLE TO TEAM AND COACH",
+    "visibility_public_card": "PUBLIC SHARE CARD",
+    "scope_private": "Private",
+    "scope_private_sub": "Visible only to you. Nothing is shared.",
+    "scope_circle": "Circle only",
+    "scope_circle_sub": "Friends, team, coach, family.",
+    "scope_team_coach": "Team and coach",
+    "scope_team_coach_sub": "Performance group only.",
+    "scope_public_card": "Public share card",
+    "scope_public_card_sub": "A single card you choose to send out.",
+    "fields_label": "FIELDS SHARED",
+    "field_score": "Score",
+    "field_state": "State",
+    "field_streak": "Streak",
+    "field_protocol": "Protocol status",
+    "field_trend": "Trend direction"
   }
 }
