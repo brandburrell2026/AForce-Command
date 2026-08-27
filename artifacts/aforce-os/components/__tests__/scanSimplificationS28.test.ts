@@ -17,10 +17,11 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const src = readFileSync(
-  resolve(__dirname, '..', 'scan', 'HydrationScanScreenV2.tsx'),
-  'utf8',
-);
+// S2-8b: the stylesheet + pure helpers moved into scan/scanKit.tsx — shell +
+// kit scanned together (mechanism move, every invariant intact).
+const src =
+  readFileSync(resolve(__dirname, '..', 'scan', 'HydrationScanScreenV2.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'scan', 'scanKit.tsx'), 'utf8');
 const code = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
 
 describe('S2-8 — one hero, one sheet', () => {
