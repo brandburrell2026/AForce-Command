@@ -32,7 +32,12 @@ import { join } from 'node:path';
 
 import { PRIMARY_GOALS } from '@/utils/profileIdentity';
 
-const SOURCE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8');
+// S2-10b(1): the shared primitives + StyleSheet moved verbatim to
+// profileKit.tsx; both files are scanned so every assertion keeps its
+// original target. The Correction-7 invariant (no clamps, no shrink) now also guards the kit.
+const SOURCE =
+  readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') +
+  readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8');
 // Comments stripped first — this file's own fix is heavily commented, and the
 // call-site comment literally contains the words `numberOfLines` and
 // "Recovery O…", which would otherwise satisfy the guards by accident.
