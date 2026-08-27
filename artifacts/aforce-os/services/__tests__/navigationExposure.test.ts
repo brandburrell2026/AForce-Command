@@ -259,6 +259,10 @@ describe('no approved functionality became unreachable', () => {
   const SURVIVING_ENTRIES: ReadonlyArray<{ module: string; needle: string }> = [
     { module: 'Providers', needle: "router.push('/sensors')" },
     { module: 'Cruise', needle: "router.push('/cruise')" },
+    // Founder ruling 2026-08-27 (Build-70 validation): Sweat's only member
+    // entry — the legacy Home tile row — retired with the fifteen twins;
+    // this Profile row is now its canonical path and must survive.
+    { module: 'Sweat Calculator', needle: "router.push('/sweat')" },
     { module: 'Science', needle: "router.push('/science')" },
     { module: 'Achievements', needle: "router.push('/achievements')" },
     { module: 'Weekly Report', needle: "router.push('/weekly-report')" },

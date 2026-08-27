@@ -232,6 +232,26 @@ export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[
             <Divider />
           </>
         ) : null}
+        {/* Founder ruling 2026-08-27 (Build-70 validation finding): the Sweat
+            Calculator's only member entry died with the legacy Home's tile
+            row — this row is now its canonical member-facing path. */}
+        <Pressable
+          onPress={() => router.push('/sweat')}
+          testID="profile-sweat-link"
+          style={styles.settingRow}
+          accessibilityRole="button"
+          accessibilityLabel={t('profile.v2.sweat_calculator')}
+        >
+          <View style={styles.settingLeft}>
+            <Icon name="cloud-drizzle" size={16} color={af.textSecondary} />
+            <View>
+              <Text style={styles.settingLabel}>{t('profile.v2.sweat_calculator')}</Text>
+              <Text style={styles.settingSubLabel}>{t('profile.v2.sweat_calculator_sub')}</Text>
+            </View>
+          </View>
+          <Icon name="chevron-right" size={16} color={af.textTertiary} />
+        </Pressable>
+        <Divider />
         <Pressable
           onPress={() => router.push('/sensors')}
           testID="profile-sensors-link"
