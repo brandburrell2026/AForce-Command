@@ -66,7 +66,7 @@ import { SignalSkeleton } from './SignalSkeleton';
 import { Icon } from '@/components/Icon';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { completenessChip } from '@/utils/confidence/confidenceChip';
-import { af, afType, Spacing } from '@/theme';
+import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import type { JournalRollup } from '@/types';
 import { fetchJournalRollups } from '@/services/realApi';
 import { computeRecapStats } from '@/utils/journalRecapStats';
@@ -344,7 +344,7 @@ export function PerformanceSignalV3({
             <View>
               <Text
                 style={[styles.summaryAvg, { color: accentTextForScore(recap.avgScore) }]}
-                maxFontSizeMultiplier={1.2}
+                maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
               >
                 {recap.avgScore}
               </Text>
@@ -407,7 +407,7 @@ export function PerformanceSignalV3({
                 {/* accentTextForScore, not d.accent: as TEXT the DEPLETED
                     band's Signal Red fails AA on this canvas (~3.1:1). The
                     rail above keeps the fill accent. */}
-                <Text style={[styles.dayScore, { color: accentTextForScore(d.score) }]} maxFontSizeMultiplier={1.2}>
+                <Text style={[styles.dayScore, { color: accentTextForScore(d.score) }]} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                   {d.score}
                 </Text>
                 <Icon name="chevron-right" size={16} color={af.textTertiary} />

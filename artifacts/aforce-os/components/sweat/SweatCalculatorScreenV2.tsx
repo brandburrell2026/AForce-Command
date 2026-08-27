@@ -549,6 +549,7 @@ function ModeSegment({
           <Pressable
             key={it.id}
             onPress={() => onChange(it.id)}
+            hitSlop={8}
             style={[styles.segmentBtn, active && styles.segmentBtnActive]}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}

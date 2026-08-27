@@ -238,6 +238,7 @@ export function UrineCheckScreenV2({ onBack }: { onBack: () => void }) {
                 <Pressable
                   key={s.id}
                   onPress={() => toggleSymptom(s.id)}
+                  hitSlop={8}
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                   style={[styles.chip, active && { borderColor: af.red, backgroundColor: af.redDim }]}
@@ -371,6 +372,8 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12,
+    minHeight: 36,
+    justifyContent: 'center',
     paddingVertical: 7,
     borderRadius: 9999,
     borderWidth: 1,

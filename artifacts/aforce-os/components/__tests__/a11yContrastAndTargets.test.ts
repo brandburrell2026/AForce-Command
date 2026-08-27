@@ -236,3 +236,90 @@ describe('contrast — red icons on Phase-1 surfaces use the AA token', () => {
     expect(scan).toContain('testID="hydroscan-smart-capture"');
   });
 });
+
+/* ────────────────────────────────────────────────────────────────────────
+ * S2-12 — the guard goes app-wide.
+ *
+ * Until now this suite covered a handful of named files; the classes of
+ * defect the Stage-2 program just spent five PRs killing (shrink-to-fit
+ * defeating Dynamic Type, dark-on-red literals failing AA, numeric clamp
+ * literals drifting from the house token) could quietly return anywhere
+ * else. These walks make the whole production surface the coverage.
+ * ──────────────────────────────────────────────────────────────────────── */
+import { readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
+function walkProduction(): Array<{ rel: string; code: string }> {
+  const out: Array<{ rel: string; code: string }> = [];
+  const roots = ['components', 'app', 'screens', 'hooks'];
+  const visit = (dir: string) => {
+    for (const name of readdirSync(resolve(PKG, dir))) {
+      const rel = join(dir, name);
+      const full = resolve(PKG, rel);
+      if (statSync(full).isDirectory()) {
+        if (name === 'node_modules' || name === '__tests__') continue;
+        visit(rel);
+        continue;
+      }
+      if (!/\.tsx?$/.test(name) || name.includes('.test.')) continue;
+      const src = readFileSync(full, 'utf8');
+      const code = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
+      out.push({ rel, code });
+    }
+  };
+  for (const r of roots) visit(r);
+  return out;
+}
+
+describe('S2-12 — Dynamic Type is never opted out of, app-wide', () => {
+  const files = walkProduction();
+
+  it('allowFontScaling={false} appears nowhere in production', () => {
+    const hits = files.filter((f) => f.code.includes('allowFontScaling={false}')).map((f) => f.rel);
+    expect(hits).toEqual([]);
+  });
+
+  it('shrink-to-fit exists only on the fixed-canvas share ARTWORK (and the flag-dead legacy queued for S2-13)', () => {
+    // Share cards render to an image at fixed dimensions — shrink-to-fit is
+    // correct there and documented at the call sites. The two legacy screens
+    // are unreachable at flag defaults and are deleted by S2-13; listing
+    // them here keeps the walk total instead of blessing them.
+    const ALLOW = new Set([
+      'components/ShareCard.tsx',
+      'components/ShareStory.tsx',
+      'screens/SweatCalculatorScreen.tsx', // flag-dead — S2-13 deletes
+      'screens/CirclesScreen.tsx', //          flag-dead — S2-13 deletes
+    ]);
+    const hits = files
+      .filter((f) => f.code.includes('adjustsFontSizeToFit') && !ALLOW.has(f.rel))
+      .map((f) => f.rel);
+    expect(hits).toEqual([]);
+  });
+
+  it('every Dynamic Type clamp is the house token, never a numeric literal', () => {
+    const hits = files
+      .filter((f) => /maxFontSizeMultiplier=\{\s*[\d.]/.test(f.code))
+      .map((f) => f.rel);
+    expect(hits).toEqual([]);
+  });
+});
+
+describe('S2-12 — the canvas-as-ink AA failure class is extinct, app-wide', () => {
+  it("no text/icon color is '#0A0A0F' (the literal behind every real AA failure found)", () => {
+    // All three measured AA failures used the dark-canvas literal as ink on
+    // an af.red fill. Generic '#000' on LIGHT fills (gold badges, green
+    // pills) measures AA-passing and is judged by the S2-14 device pass,
+    // not banned statically. The three flag-dead legacy screens are
+    // allowlisted pending their S2-13 deletion.
+    const ALLOW = new Set([
+      'components/auth/SignInLegacy.tsx', //   flag-dead — S2-13 deletes
+      'components/auth/SignUpLegacy.tsx', //   flag-dead — S2-13 deletes
+      'components/profile/ProfileLegacy.tsx', // flag-dead — S2-13 deletes
+    ]);
+    const rx = /(?<![A-Za-z])color\s*[:=]\s*["'{]*["']#0A0A0F["']/;
+    const hits = walkProduction()
+      .filter((f) => rx.test(f.code) && !ALLOW.has(f.rel))
+      .map((f) => f.rel);
+    expect(hits).toEqual([]);
+  });
+});

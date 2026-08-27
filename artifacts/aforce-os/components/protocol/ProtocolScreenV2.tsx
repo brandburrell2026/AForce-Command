@@ -227,7 +227,7 @@ export function ProtocolScreenV2() {
                 color={bandAccent}
                 animate
               >
-                <Text style={styles.v3RingPct} maxFontSizeMultiplier={1.2}>{ringPct}%</Text>
+                <Text style={styles.v3RingPct} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{ringPct}%</Text>
                 <Text style={styles.v3RingLabel}>{t('protocol.v3.ring_label')}</Text>
               </AFReadinessArc>
               <View style={styles.v3HeroStats}>
@@ -295,7 +295,7 @@ export function ProtocolScreenV2() {
         <View style={styles.section} testID="protocol-v3-completed">
           <View style={styles.v3SectionHead}>
             <AFSectionLabel label={t('protocol.v3.completed_today')} />
-            <Text style={styles.v3Count} maxFontSizeMultiplier={1.35}>
+            <Text style={styles.v3Count} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
               {completedCount} / {total}
             </Text>
           </View>
