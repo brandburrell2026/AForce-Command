@@ -269,7 +269,7 @@ export const styles = StyleSheet.create({
   manualRow: { flexDirection: 'row', gap: 8 },
   manualInput: {
     minHeight: 44,
-    flex: 1, height: 42, borderRadius: 10,
+    flex: 1, borderRadius: 10,
     paddingHorizontal: 12, color: af.textPrimary,
     backgroundColor: af.surface,
     borderWidth: 1, borderColor: af.divider,

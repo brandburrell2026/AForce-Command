@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   generated: {
     fontFamily: 'Inter_400Regular',
     fontSize: 11,
-    color: 'rgba(255,255,255,0.35)',
+    color: 'rgba(255,255,255,0.55)',
     marginTop: 2,
     marginBottom: 18,
   },
@@ -490,7 +490,7 @@ const styles = StyleSheet.create({
   reference: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
-    color: 'rgba(255,255,255,0.40)',
+    color: 'rgba(255,255,255,0.55)',
     marginTop: 8,
   },
 });

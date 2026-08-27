@@ -326,3 +326,52 @@ describe('S2-12 — the canvas-as-ink AA failure class is extinct, app-wide', ()
     expect(hits).toEqual([]);
   });
 });
+
+describe('S2-12b — measured sub-AA text classes are extinct, app-wide', () => {
+  /**
+   * Style-object co-location: a `{...}` carrying BOTH fontSize and the value
+   * under test is one rendered element, so these scans have no false
+   * pairings. Thresholds are measured, not aspirational:
+   *
+   * - White-alpha text below 0.45 fails 4.5:1 on EVERY app surface (0.40
+   *   composites to 3.81:1 over the darkest canvas — the most favorable
+   *   ground — and only gets worse on lighter surfaces). 0.45-and-up is
+   *   ground-dependent and stays with the device pass, exactly like the
+   *   '#000'-on-light call in the rule above.
+   * - Black-alpha text is not scanned statically: it sits on colored/light
+   *   fills whose ground cannot be read from the style object.
+   */
+  it('white-alpha text never dips below the 0.45 measured floor', () => {
+    const ALLOW = new Set([
+      'app/modules.tsx', //                    developer launcher — route-clamped by developerControlsAvailable()
+      'components/home/MembershipCard.tsx', // preview-STATE dimming of sample values (deliberate, sample-data honesty pattern)
+    ]);
+    const rx = /color:\s*'rgba\(255,\s*255,\s*255,\s*(0?\.\d+)\)'/;
+    const hits: string[] = [];
+    for (const f of walkProduction()) {
+      if (ALLOW.has(f.rel)) continue;
+      for (const m of f.code.matchAll(/\{[^{}]*\}/g)) {
+        if (!m[0].includes('fontSize')) continue;
+        const c = m[0].match(rx);
+        if (c && parseFloat(c[1]) < 0.45) hits.push(`${f.rel} (${c[1]})`);
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it('no text style carries a fixed height — text boxes grow with Dynamic Type (minHeight is the pattern)', () => {
+    const ALLOW = new Set([
+      // Route-imported flag-OFF fallback (rollback path) — retirement is the
+      // founder ruling pending in #832, same standing as the lists above.
+      'screens/HydrationScanScreen.tsx',
+    ]);
+    const hits: string[] = [];
+    for (const f of walkProduction()) {
+      if (ALLOW.has(f.rel)) continue;
+      for (const m of f.code.matchAll(/\{[^{}]*\}/g)) {
+        if (m[0].includes('fontSize') && /(?<![a-zA-Z])height:\s*\d/.test(m[0])) hits.push(f.rel);
+      }
+    }
+    expect(hits).toEqual([]);
+  });
+});

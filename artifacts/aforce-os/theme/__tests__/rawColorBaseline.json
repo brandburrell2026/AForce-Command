@@ -61,7 +61,7 @@
   "components/home/HydrationStatusCard.tsx": 6,
   "components/home/MembershipCard.tsx": 4,
   "components/home/PerformanceAgeCard.tsx": 3,
-  "components/home/RitualRail.tsx": 7,
+  "components/home/RitualRail.tsx": 6,
   "components/home/SignalsZone.tsx": 4,
   "components/home/StreakCard.tsx": 2,
   "components/home/TodaysProtocol.tsx": 6,
