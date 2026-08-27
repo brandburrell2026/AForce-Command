@@ -290,7 +290,9 @@ describe('S2-12 — Dynamic Type is never opted out of, app-wide', () => {
       // Route-imported flag-OFF fallbacks (rollback paths): retirement is
       // a founder ruling, not a cleanup — S2-13's census corrected the
       // earlier 'S2-13 deletes' note.
-      'screens/SweatCalculatorScreen.tsx',
+      // Fifteen-twin retirement (2026-08-27): the legacy sweat screen is
+      // deleted. CirclesScreen stays — the /circles island is HELD for the
+      // founder's relocation ruling, not retired.
       'screens/CirclesScreen.tsx',
     ]);
     const hits = files
@@ -314,11 +316,10 @@ describe('S2-12 — the canvas-as-ink AA failure class is extinct, app-wide', ()
     // pills) measures AA-passing and is judged by the S2-14 device pass,
     // not banned statically. The three flag-dead legacy screens are
     // allowlisted pending their S2-13 deletion.
-    const ALLOW = new Set([
-      'components/auth/SignInLegacy.tsx', //   flag-dead — S2-13 deletes
-      'components/auth/SignUpLegacy.tsx', //   flag-dead — S2-13 deletes
-      'components/profile/ProfileLegacy.tsx', // flag-dead — S2-13 deletes
-    ]);
+    // Fifteen-twin retirement (2026-08-27): the three allowlisted legacy
+    // screens are deleted — the canvas-as-ink class is extinct with NO
+    // allowlist at all.
+    const ALLOW = new Set<string>([]);
     const rx = /(?<![A-Za-z])color\s*[:=]\s*["'{]*["']#0A0A0F["']/;
     const hits = walkProduction()
       .filter((f) => rx.test(f.code) && !ALLOW.has(f.rel))
@@ -360,11 +361,9 @@ describe('S2-12b — measured sub-AA text classes are extinct, app-wide', () => 
   });
 
   it('no text style carries a fixed height — text boxes grow with Dynamic Type (minHeight is the pattern)', () => {
-    const ALLOW = new Set([
-      // Route-imported flag-OFF fallback (rollback path) — retirement is the
-      // founder ruling pending in #832, same standing as the lists above.
-      'screens/HydrationScanScreen.tsx',
-    ]);
+    // Fifteen-twin retirement (2026-08-27): the legacy scan screen is
+    // deleted — this rule now holds app-wide with NO allowlist.
+    const ALLOW = new Set<string>([]);
     const hits: string[] = [];
     for (const f of walkProduction()) {
       if (ALLOW.has(f.rel)) continue;

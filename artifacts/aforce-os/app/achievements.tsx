@@ -1,10 +1,11 @@
 /**
- * achievements route — Phase 3 redesign when `spec_achievements` is on, else legacy.
+ * Achievements route.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import { AchievementsScreen } from '@/screens/AchievementsScreen';
 import { AchievementsScreenV2 } from '@/components/achievements/AchievementsScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function AchievementsScreenRoute() {
-  return useAppStore().state.featureFlags.spec_achievements ? <AchievementsScreenV2 /> : <AchievementsScreen />;
+  return <AchievementsScreenV2 />;
 }

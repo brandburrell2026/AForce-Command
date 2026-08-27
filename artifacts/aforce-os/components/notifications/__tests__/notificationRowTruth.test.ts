@@ -26,9 +26,11 @@ import { join } from 'node:path';
 import { DEFAULT_NOTIFICATION_SETTINGS, type NotificationSettingKey } from '../../../types';
 import en from '../../../locales/en.json';
 
+// Founder ruling 2026-08-27 (fifteen-twin retirement): NotificationsLegacy is
+// deleted; V2 is the only notifications surface, so the cross-screen parity
+// suite retired with its subject.
 const SCREENS = {
   NotificationsScreenV2: readFileSync(join(__dirname, '..', 'NotificationsScreenV2.tsx'), 'utf8'),
-  NotificationsLegacy: readFileSync(join(__dirname, '..', 'NotificationsLegacy.tsx'), 'utf8'),
 };
 
 /** The `const ROWS: ToggleRow[] = [...]` literal, comments stripped. */
@@ -66,11 +68,8 @@ describe.each(Object.entries(SCREENS))('%s — only deliverable rows render', (_
   });
 });
 
-describe('the two screens cannot drift apart', () => {
-  it('renders the identical row set, so a dead row cannot come back on one screen only', () => {
-    expect(rowKeys(SCREENS.NotificationsScreenV2)).toEqual(rowKeys(SCREENS.NotificationsLegacy));
-  });
-});
+// (fifteen-twin retirement: the cross-screen drift suite retired with the
+// legacy screen — one surface cannot drift from itself.)
 
 describe('persisted settings shape is untouched', () => {
   it.each(UNDELIVERABLE)('keeps %s in NotificationSettings so stored choices need no migration', (key) => {
@@ -107,10 +106,6 @@ describe('surviving hints describe what actually happens', () => {
     expect(v2.intro.toLowerCase()).toContain('no remote push');
   });
 
-  it('the legacy screen keeps the no-remote-push truth and offers no voice-hint rows (S1-4)', () => {
-    // The voice-backed rows are hidden on both screens now; the only
-    // surviving inline truth statement is the no-remote-push notice.
-    expect(SCREENS.NotificationsLegacy).toContain('AForce sends no remote push');
-    expect(SCREENS.NotificationsLegacy).not.toContain('On-device voice, no push.');
-  });
+  // (fifteen-twin retirement: the legacy screen's S1-4 copy guard retired
+  // with its subject; the V2 guard above still pins the truth statement.)
 });

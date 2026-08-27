@@ -1,12 +1,11 @@
 /**
- * Scan route — renders the Phase 3 redesign when `spec_scan` is on, else the
- * untouched legacy HydroScan screen. Flipping the flag is the go-live switch.
+ * Scan route.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import HydrationScanScreen from '@/screens/HydrationScanScreen';
 import { HydrationScanScreenV2 } from '@/components/scan/HydrationScanScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function ScanRoute() {
-  const specScan = useAppStore().state.featureFlags.spec_scan;
-  return specScan ? <HydrationScanScreenV2 /> : <HydrationScanScreen />;
+  return <HydrationScanScreenV2 />;
 }

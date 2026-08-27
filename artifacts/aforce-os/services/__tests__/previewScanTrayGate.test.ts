@@ -89,9 +89,10 @@ describe('PREVIEW_SCAN_ENABLED — simulate-scan gate', () => {
 // ─── Source-text wiring guard, both scan screens ──────────────────────────
 const AFORCE_OS_ROOT = resolve(__dirname, '../..');
 
+// Founder ruling 2026-08-27 (fifteen-twin retirement): the legacy scan screen
+// is deleted; the tray-gate invariants continue on the live V2 surface.
 const SCREENS = [
   { label: 'HydrationScanScreenV2', path: 'components/scan/HydrationScanScreenV2.tsx' },
-  { label: 'HydrationScanScreen (legacy)', path: 'screens/HydrationScanScreen.tsx' },
 ] as const;
 
 /**

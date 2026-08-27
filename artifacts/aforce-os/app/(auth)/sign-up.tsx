@@ -1,11 +1,11 @@
 /**
- * Sign-up route — Phase 3 brand reskin when `spec_auth` is on, else legacy.
- * Clerk sign-up + OAuth flow is unchanged in both.
+ * Sign-up route. Clerk sign-up + OAuth flow unchanged.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import { SignUpLegacy } from '@/components/auth/SignUpLegacy';
 import { SignUpScreenV2 } from '@/components/auth/SignUpScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function SignUpRoute() {
-  return useAppStore().state.featureFlags.spec_auth ? <SignUpScreenV2 /> : <SignUpLegacy />;
+  return <SignUpScreenV2 />;
 }
