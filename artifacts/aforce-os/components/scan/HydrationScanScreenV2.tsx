@@ -606,7 +606,7 @@ export function HydrationScanScreenV2() {
                     testID="preview-aforce-picker-open"
                   >
                     <Icon name="list" size={14} color={af.green} />
-                    <Text style={[styles.chipText, { color: af.green }]}>
+                    <Text style={[styles.chipText, { color: af.green, flexShrink: 1 }]}>
                       {t('hydroScan2.v2.select_aforce_product')}
                     </Text>
                   </Pressable>

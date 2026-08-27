@@ -147,6 +147,10 @@ export const styles = StyleSheet.create({
   },
 
   trayCard: {
+    // S2-14b: the card's own min-content (row of pills, picker text) must
+    // never push it past the scroll container — clamp it so the wrapping
+    // rules below actually bind against the screen width.
+    maxWidth: '100%',
     backgroundColor: af.surface,
     borderRadius: 16, borderWidth: 1, borderColor: af.divider,
     padding: 14, gap: 10,
@@ -169,6 +173,12 @@ export const styles = StyleSheet.create({
   },
   tabRow: {
     flexDirection: 'row', gap: 6,
+    // S2-14b: at accessibility type sizes the pills outgrow the tray width —
+    // wrap instead of pushing an option off-screen. Single-line (and
+    // byte-identical) at normal sizes; both options stay fully visible and
+    // tappable at every size.
+    flexWrap: 'wrap',
+    maxWidth: '100%',
     padding: 3,
     borderRadius: 100,
     backgroundColor: af.surface,
