@@ -19,11 +19,16 @@
  * the primitives; these pin the multi-step §18 scenarios: double-tap,
  * crash mid-sync, late duplicate, API-failure storm, overlay honesty).
  *
- * Later tranches (harness decisions pending): command-level
- * appropriate-silence metric · time-zone transition · calendar
- * withdrawal · provider conflict/dedupe · prompt-injection + BOLA
- * (api-server harness) — tracked in the program ledger, one lane at a
- * time.
+ * Tranche 3 (2026-08-27, founder-ratified silence definition):
+ * appropriate silence = maintain-class command + no interruption planned.
+ * Compositions only — the commandCategory and momentNotifications unit
+ * suites own the primitives. The Stage-4 silence/intervention COUNTERS
+ * are founder-held for Stage 4; nothing here fakes them.
+ *
+ * Later tranches (harness decisions pending): time-zone transition ·
+ * calendar withdrawal · provider conflict/dedupe · prompt-injection +
+ * BOLA (api-server harness) — tracked in the program ledger, one lane
+ * at a time.
  */
 import { describe, expect, it } from 'vitest';
 import { calculateScore } from '../../utils/scoringEngine';
@@ -321,5 +326,106 @@ describe('§18 — the offline overlay never fabricates "today" numbers', () => 
     expect(overlay.count).toBe(2);
     expect(overlay.ozPending).toBe(16); // the fresh 16 oz only
     expect(overlay.unitsPending).toBe(1);
+  });
+});
+
+// ─── Tranche 3 — appropriate silence (§10, founder-ratified definition) ──────
+import { categorizeCommand } from '../../utils/intelligence/commandCategory';
+import { planMomentNotifications, DEFAULT_MOMENT_NOTIFY_PREFS } from '../momentNotifications';
+import type { Moment } from '../../types/moments';
+
+/** A member genuinely on track: target nearly met, intake minutes ago. */
+function onTrackUser() {
+  return makeUserState({
+    ozConsumedToday: 90,
+    unitsConsumedToday: 7,
+    aforceUnitsToday: 3,
+    lastIntakeTime: new Date(NOW - 10 * 60 * 1000),
+    urineSignal: 3,
+    symptomState: 'none',
+  });
+}
+
+function moment(id: string, startAtIso: string, over: Partial<Moment> = {}): Moment {
+  return {
+    id,
+    source: 'manual',
+    title: `Moment ${id}`,
+    type: 'work',
+    importance: 'high',
+    startAtIso,
+    ...over,
+  } as Moment;
+}
+
+// The planner's quiet window wraps 22:00→07:00 local; keep every scenario
+// fire-time inside the local afternoon so quiet-hours (unit-covered) never
+// interferes with what these compositions assert.
+const DAY = new Date(NOW);
+DAY.setHours(12, 0, 0, 0);
+const T0 = DAY.getTime();
+const iso = (ms: number) => new Date(ms).toISOString();
+
+describe('§10 — silence is reachable from the real engine, and need is never silenced', () => {
+  it('an on-track member resolves to a maintain-class command — "nothing needed" exists', () => {
+    const out = calculateScore(onTrackUser(), NOW);
+    const category = categorizeCommand({
+      level: out.performanceState.level,
+      score: out.score,
+      urgencyLevel: out.command.urgencyLevel,
+    });
+    expect(['hydration_maintain', 'performance_activation']).toContain(category);
+  });
+
+  it('the inverse guard: a depleted member is never silenced (Water-First)', () => {
+    const out = calculateScore(
+      makeUserState({
+        ozConsumedToday: 0,
+        unitsConsumedToday: 0,
+        aforceUnitsToday: 0,
+        lastIntakeTime: new Date(NOW - 9 * 3600 * 1000),
+        urineSignal: 6,
+      }),
+      NOW,
+    );
+    const category = categorizeCommand({
+      level: out.performanceState.level,
+      score: out.score,
+      urgencyLevel: out.command.urgencyLevel,
+    });
+    expect(['hydration_urgent', 'recovery_reset']).toContain(category);
+    expect(category).not.toBe('performance_activation');
+  });
+});
+
+describe('§10 — the full silent day: prepared moments + on-track state plan ZERO interruptions', () => {
+  it('every moment already prepared -> empty plan (silence is a computed outcome)', () => {
+    const moments = [
+      moment('m1', iso(T0 + 3 * 3600 * 1000), { preparedAtIso: iso(T0) }),
+      moment('m2', iso(T0 + 5 * 3600 * 1000), { preparedAtIso: iso(T0) }),
+      moment('m3', iso(T0 + 7 * 3600 * 1000), { preparedAtIso: iso(T0) }),
+    ];
+    const plan = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
+    expect(plan).toEqual([]);
+  });
+
+  it('no eligible evidence at all -> empty plan, not a guessed ping', () => {
+    expect(planMomentNotifications([], DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0))).toEqual([]);
+  });
+});
+
+describe('§10 — the attention budget holds under calendar pressure', () => {
+  it('eight eligible important moments still plan at most the daily cap, spaced and chronological', () => {
+    const moments = Array.from({ length: 8 }, (_, i) =>
+      moment(`p${i}`, iso(T0 + (2 + i) * 3600 * 1000)),
+    );
+    const plan = planMomentNotifications(moments, DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
+    expect(plan.length).toBeGreaterThan(0);
+    expect(plan.length).toBeLessThanOrEqual(3);
+    const fires = plan.map((pl) => Date.parse(pl.fireAtIso));
+    for (let i = 1; i < fires.length; i += 1) {
+      expect(fires[i]! - fires[i - 1]!).toBeGreaterThanOrEqual(60 * 60 * 1000);
+      expect(fires[i]!).toBeGreaterThan(fires[i - 1]!);
+    }
   });
 });
