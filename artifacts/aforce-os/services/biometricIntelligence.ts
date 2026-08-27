@@ -13,6 +13,8 @@
  */
 
 import type { UserState, ScoreEngineOutput } from '../types';
+import type { SweatQualification } from '../types/sweat';
+import { qualifySweat, toLiters } from './sweatRateEngine';
 import type { TempHeatBand } from '../utils/heatBand';
 
 // ─── Sweat Loss ──────────────────────────────────────────────────────
@@ -74,6 +76,45 @@ export function deriveSweatLoss(user: UserState): SweatLossEstimate {
     sweatRate + activity + heatLoad > 0.15 ? 'high' : 'low';
 
   return { fluidLossOz, sodiumLossMg, efficiencyPct, intensity, confidence };
+}
+
+/** lbs per kg — mirrors sweatRateEngine's KG_PER_LB (1 L sweat ≡ 1 kg). */
+const KG_PER_LB = 0.45359237;
+
+/**
+ * S2-14b — judge the home/calculator LIVE snapshot with the SAME S1-2
+ * plausibility authority that judges a computed session. This introduces
+ * NO new physiological threshold: units are converted and handed to
+ * `qualifySweat`, and the deficit uses the engine's own estimate-mode
+ * semantic (gross `sweatLossL / weightKg`, sweatRateEngine.ts:509).
+ *
+ * Evidence gate, not a threshold: without a member-set body weight the
+ * S1-2 deficit check CANNOT run, and an unverifiable projection must not
+ * pass by omission — it resolves to the honest `unavailable` posture.
+ *
+ * The projection window itself (ACTIVE_HOURS_PER_DAY = 12 h = 720 min)
+ * exceeds S1-2's PROPOSED_LIMITED_DURATION_MIN, so even a fully plausible
+ * projection is at most `limited` — a 12-hour model projection is never a
+ * calibrated LIVE reading. The card renders accordingly.
+ */
+export function qualifySweatLossEstimate(
+  est: SweatLossEstimate,
+  bodyWeightLbs: number | null,
+): SweatQualification {
+  const sweatLossL = toLiters(est.fluidLossOz, 'oz');
+  const sweatRateLh = sweatLossL / ACTIVE_HOURS_PER_DAY;
+  if (bodyWeightLbs == null || !(bodyWeightLbs > 0)) {
+    return { status: 'unavailable', reasons: ['deficit_unverifiable_no_weight'] };
+  }
+  const weightKg = bodyWeightLbs * KG_PER_LB;
+  const deficitPct = (sweatLossL / weightKg) * 100;
+  return qualifySweat({
+    sweatLossL,
+    sweatRateLh,
+    deficitPct,
+    sodiumLossMg: est.sodiumLossMg,
+    durationMin: ACTIVE_HOURS_PER_DAY * 60,
+  });
 }
 
 // ─── Performance Forecast ────────────────────────────────────────────

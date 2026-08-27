@@ -1873,6 +1873,8 @@
       "unit_g": "{{value}} g",
       "unit_mgl": "{{value}} mg/L",
       "snap_eyebrow": "SWEAT LOSS · LIVE",
+      "snap_eyebrow_unqualified": "SWEAT LOSS",
+      "snap_unavailable_body": "No calibrated reading yet. Run a calculation below.",
       "snap_est": "EST.",
       "snap_oz_projected": "oz projected",
       "snap_sodium": "SODIUM",
