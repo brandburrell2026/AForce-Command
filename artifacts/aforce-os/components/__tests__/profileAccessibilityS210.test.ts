@@ -19,10 +19,11 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const src = readFileSync(
-  resolve(__dirname, '..', 'profile', 'ProfileScreenV2.tsx'),
-  'utf8',
-);
+// S2-10b(1): shell + kit scanned together — the styles this suite pins
+// (tabPill, onRed labels) moved verbatim into profileKit.tsx.
+const src =
+  readFileSync(resolve(__dirname, '..', 'profile', 'ProfileScreenV2.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'profile', 'profileKit.tsx'), 'utf8');
 const code = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
 
 describe('S2-10 — AA on red, everywhere on this screen', () => {

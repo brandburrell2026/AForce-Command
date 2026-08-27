@@ -1,3 +1,4 @@
+// S2-10b(1): shell + kit scanned together (primitives + styles moved verbatim to profileKit.tsx).
 // @vitest-environment happy-dom
 /**
  * ProfileScreenV2 — render-count proof (RC-1 Wave-3 P2 render-waste
@@ -41,7 +42,7 @@ import {
   useSubscriptionSlice,
 } from '@/store/slices';
 
-const SOURCE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8');
+const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8'));
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 /** The exact slice-hook set `ProfileMainSliceProbe` exercises. */

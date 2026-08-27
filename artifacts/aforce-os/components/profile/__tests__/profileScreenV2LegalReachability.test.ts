@@ -20,7 +20,12 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SOURCE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8');
+// S2-10b(1): the shared primitives + StyleSheet moved verbatim to
+// profileKit.tsx; both files are scanned so every assertion keeps its
+// original target. tabSections stays in the shell; the tab-strip consts live in the kit.
+const SOURCE =
+  readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') +
+  readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8');
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 /**

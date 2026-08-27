@@ -132,7 +132,11 @@ describe('the internal Modules launcher is not reachable in a production build',
   });
 
   it('the ProfileScreenV2 row sits inside the clamp (invisible to an ordinary member)', () => {
-    const profile = readCode('components', 'profile', 'ProfileScreenV2.tsx');
+    // S2-10b(1): the tab-strip clamp moved verbatim into profileKit.tsx —
+    // shell + kit scanned together (mechanism move, invariant intact).
+    const profile =
+      readCode('components', 'profile', 'ProfileScreenV2.tsx') +
+      readCode('components', 'profile', 'profileKit.tsx');
     const tools = balancedDeclaration(profile, 'protocolToolsCard');
     expect(tools).toMatch(
       /developerControlsAvailable\(\)\s*\?\s*\([\s\S]{0,600}?router\.push\('\/modules'\)/,
@@ -236,7 +240,10 @@ describe('social entry points reachable in production resolve under Circle', () 
 });
 
 describe('no approved functionality became unreachable', () => {
-  const profile = readCode('components', 'profile', 'ProfileScreenV2.tsx');
+  // S2-10b(1): the clamp expression lives in profileKit.tsx now — scan both.
+  const profile =
+    readCode('components', 'profile', 'ProfileScreenV2.tsx') +
+    readCode('components', 'profile', 'profileKit.tsx');
   const layout = readCode('app', '(tabs)', '_layout.tsx');
 
   /**

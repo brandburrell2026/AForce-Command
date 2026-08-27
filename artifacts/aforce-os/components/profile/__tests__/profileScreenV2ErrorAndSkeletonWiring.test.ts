@@ -1,3 +1,4 @@
+// S2-10b(1): shell + kit scanned together (primitives + styles moved verbatim to profileKit.tsx).
 /**
  * ProfileScreenV2 — provider-section skeleton + honest error rows
  * (RC-1 Wave-2B, items 2b and 4 / audit P1-7).
@@ -24,7 +25,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SOURCE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8');
+const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8'));
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 describe('ProfileScreenV2 — Apple Health fetch failure is no longer silent', () => {
