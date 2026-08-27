@@ -14,11 +14,16 @@
  * (recheck clamp, window anchoring, no fabricated dose, the §2/§11
  * recheck-contradiction guard).
  *
- * Later tranches (harness decisions pending): duplicate-confirmation
- * idempotency (reducer seam) · command-level appropriate-silence metric ·
- * time-zone transition · calendar withdrawal · provider conflict/dedupe ·
- * prompt-injection + BOLA (api-server harness) — tracked in the program
- * ledger, added one lane at a time.
+ * Tranche 2 (2026-08-27): duplicate-confirmation idempotency — full
+ * lifecycle compositions over the pure outbox core (the unit suite owns
+ * the primitives; these pin the multi-step §18 scenarios: double-tap,
+ * crash mid-sync, late duplicate, API-failure storm, overlay honesty).
+ *
+ * Later tranches (harness decisions pending): command-level
+ * appropriate-silence metric · time-zone transition · calendar
+ * withdrawal · provider conflict/dedupe · prompt-injection + BOLA
+ * (api-server harness) — tracked in the program ledger, one lane at a
+ * time.
  */
 import { describe, expect, it } from 'vitest';
 import { calculateScore } from '../../utils/scoringEngine';
@@ -189,5 +194,132 @@ describe('§18 — RecoveryCommand construction invariants', () => {
     const parsed = parseEngineActionCopy('Start with water — 20 oz now. Recheck in 15 minutes.');
     expect(parsed.instruction).not.toMatch(/recheck/i);
     expect(parsed.title.toLowerCase()).toContain('start with water');
+  });
+});
+
+// ─── Tranche 2 — duplicate-confirmation idempotency (§6 + §18) ────────────────
+import {
+  mergeOutboxItems,
+  markSyncing,
+  markSynced,
+  markFailed,
+  dueItems,
+  pruneSynced,
+  pendingOverlay,
+  type OutboxItem,
+} from '../../utils/intakeOutbox';
+
+function outboxItem(cid: string, overrides: Partial<OutboxItem> = {}): OutboxItem {
+  return {
+    prepared: {
+      clientEventId: cid,
+      fluidType: 'water',
+      ozAmount: 16,
+      scoreBefore: 90,
+      scoreAfter: 92,
+      event: {
+        id: `evt-${cid}`,
+        fluidType: 'water',
+        oz: 16,
+        loggedAt: new Date(NOW).toISOString(),
+        baseImpact: 5,
+        capAdjusted: 5,
+        immediate: 3,
+        delayed: 2,
+        delayedDurationMin: 30,
+        heatGuardActiveAtLog: false,
+        scoreBeforeAtLog: 90,
+      },
+    },
+    status: 'pending',
+    attempts: 0,
+    createdAtMs: NOW,
+    nextAttemptAtMs: NOW,
+    ...overrides,
+  } as OutboxItem;
+}
+
+describe('§18 — a double-tapped confirmation credits exactly once, end to end', () => {
+  it('same clientEventId enqueued twice + a disk replay + a sync cycle -> one item, frozen scores verbatim', () => {
+    const tap1 = outboxItem('cid-double');
+    const tap2 = outboxItem('cid-double'); // the second tap of the same confirmation
+    let queue = mergeOutboxItems([tap1], [tap2]);
+    expect(queue).toHaveLength(1);
+
+    // App restarts mid-queue: the persisted copy replays into the merge.
+    queue = mergeOutboxItems(queue, [outboxItem('cid-double')]);
+    expect(queue).toHaveLength(1);
+
+    queue = markSynced(markSyncing(queue, 'cid-double'), 'cid-double');
+    expect(queue).toHaveLength(1);
+    expect(queue[0]?.status).toBe('synced');
+    // Score-Protection: the frozen numbers replayed byte-identically —
+    // nothing along the lifecycle recomputed them.
+    expect(queue[0]?.prepared.scoreBefore).toBe(90);
+    expect(queue[0]?.prepared.scoreAfter).toBe(92);
+  });
+});
+
+describe('§18 — a crash mid-sync neither strands nor duplicates the intake', () => {
+  it("an item killed while 'syncing' is still one item, still unsynced, and becomes due again", () => {
+    const inFlight = markSyncing([outboxItem('cid-crash')], 'cid-crash');
+    // Restart: the disk copy (still status syncing) merges with itself.
+    const afterRestart = mergeOutboxItems(inFlight, [inFlight[0]]);
+    expect(afterRestart).toHaveLength(1);
+    expect(afterRestart[0]?.status).not.toBe('synced');
+    // Once its retry time passes it is offered to the flusher again —
+    // replaying is safe because the server dedupes on clientEventId.
+    expect(dueItems(afterRestart, NOW + 1)).toHaveLength(1);
+  });
+});
+
+describe('§18 — a late duplicate can never double-credit a confirmed intake', () => {
+  it('a synced item wins over a stale pending copy of the same confirmation', () => {
+    const confirmed = markSynced(markSyncing([outboxItem('cid-late')], 'cid-late'), 'cid-late');
+    const staleDuplicate = outboxItem('cid-late'); // e.g. an old persisted copy
+    const merged = mergeOutboxItems(confirmed, [staleDuplicate]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.status).toBe('synced');
+  });
+
+  it('pruning after reconcile leaves nothing that could replay the credit', () => {
+    const confirmed = markSynced([outboxItem('cid-pruned')], 'cid-pruned');
+    expect(pruneSynced(confirmed)).toHaveLength(0);
+  });
+});
+
+describe('§18 — an API-failure storm retries without losing identity or the queue', () => {
+  it('attempts increment, the schedule never moves backwards, and the payload stays byte-stable', () => {
+    let queue: OutboxItem[] = [outboxItem('cid-storm')];
+    let lastNext = queue[0]!.nextAttemptAtMs;
+    for (let n = 0; n < 6; n += 1) {
+      queue = markFailed(queue, 'cid-storm', NOW + n);
+      const it = queue[0]!;
+      expect(queue).toHaveLength(1);
+      expect(it.status).toBe('failed');
+      expect(it.attempts).toBe(n + 1);
+      expect(it.nextAttemptAtMs).toBeGreaterThanOrEqual(lastNext);
+      lastNext = it.nextAttemptAtMs;
+      expect(it.prepared.clientEventId).toBe('cid-storm');
+      expect(it.prepared.event.id).toBe('evt-cid-storm');
+      expect(it.prepared.scoreAfter).toBe(92);
+    }
+    // Still queued for the flusher once its backoff passes — never dropped.
+    expect(dueItems(queue, lastNext + 1)).toHaveLength(1);
+  });
+});
+
+describe('§18 — the offline overlay never fabricates "today" numbers', () => {
+  it('stale items still count on the badge but contribute no numeric delta', () => {
+    const fresh = outboxItem('cid-fresh');
+    const stale = outboxItem('cid-stale', {
+      createdAtMs: NOW - 48 * 3600 * 1000,
+      nextAttemptAtMs: NOW - 48 * 3600 * 1000,
+    });
+    stale.prepared.event.loggedAt = new Date(NOW - 48 * 3600 * 1000).toISOString();
+    const overlay = pendingOverlay([fresh, stale], NOW);
+    expect(overlay.count).toBe(2);
+    expect(overlay.ozPending).toBe(16); // the fresh 16 oz only
+    expect(overlay.unitsPending).toBe(1);
   });
 });
