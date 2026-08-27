@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { af, afType } from '@/theme';
 import { AFCard } from './AFCard';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFProductCardProps {
   title: string;
@@ -44,6 +45,7 @@ export function AFProductCard({
   style,
   testID,
 }: AFProductCardProps) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <AFCard
       variant={selected ? 'raised' : 'standard'}
@@ -52,7 +54,7 @@ export function AFProductCard({
       style={[selected && styles.selected, style]}
       testID={testID}
     >
-      {badge && <Text style={styles.badge}>{badge.toUpperCase()}</Text>}
+      {badge && <Text style={[styles.badge, eyebrowType]}>{badge.toUpperCase()}</Text>}
       <View style={styles.top}>
         {image && (
           <Image

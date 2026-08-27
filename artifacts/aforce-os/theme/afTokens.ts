@@ -325,5 +325,26 @@ export const afMotion = {
  */
 export const AF_MAX_DISPLAY_FONT_SCALE = 1.35;
 
+/**
+ * S2-14b founder ruling — tracked uppercase micro-labels YIELD to
+ * readability at accessibility text sizes: past the display ceiling
+ * (AF_MAX_DISPLAY_FONT_SCALE — the existing house boundary, not a new
+ * threshold) the eyebrow's tracking drops to 0 so short words stop
+ * breaking mid-word just to preserve letter-spacing. At or below the
+ * ceiling the token's spec tracking is returned unchanged.
+ *
+ * letterSpacing-ONLY on purpose: the override composes with any
+ * per-component customization of the eyebrow fragment (color, margins,
+ * even fontSize overrides like AFOfflineBanner's) without undoing it.
+ * Consumed via `useAFEyebrowType()`; `afType.eyebrow` itself is never
+ * mutated. Owner token: afType.eyebrow.
+ */
+export function afEyebrowAt(fontScale: number): { letterSpacing: number } {
+  return {
+    letterSpacing:
+      fontScale > AF_MAX_DISPLAY_FONT_SCALE ? 0 : afType.eyebrow.letterSpacing,
+  };
+}
+
 export type AfColorToken = keyof typeof af;
 export type AfTypeToken = keyof typeof afType;

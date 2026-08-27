@@ -19,6 +19,7 @@ import { af, afType, afLayout } from '@/theme';
 import { AFCard } from './AFCard';
 import { AFPrimaryButton, AFSecondaryButton, AFTextButton } from './AFButton';
 import { commandReasonLine } from './afPrimitives.logic';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFCommandCardProps {
   eyebrow?: string;
@@ -47,11 +48,12 @@ export function AFCommandCard({
   whyLabel = 'Why this command',
   testID,
 }: AFCommandCardProps) {
+  const eyebrowType = useAFEyebrowType();
   const [showWhy, setShowWhy] = React.useState(false);
   const reason = commandReasonLine(rationale);
   return (
     <AFCard variant="raised" testID={testID}>
-      <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>
+      <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.instruction}>{instruction}</Text>
 

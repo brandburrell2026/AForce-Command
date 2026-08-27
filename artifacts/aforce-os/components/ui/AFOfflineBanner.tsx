@@ -30,6 +30,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
 import { af, afType, afLayout } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFOfflineBannerProps {
   /** Unsynced items in the outbox (pending + syncing + failed). */
@@ -44,6 +45,7 @@ export function AFOfflineBanner({
   hasFailedItem = false,
   testID = 'af-offline-banner',
 }: AFOfflineBannerProps) {
+  const eyebrowType = useAFEyebrowType();
   const { t } = useTranslation();
   if (pendingCount <= 0) return null;
 
@@ -59,7 +61,7 @@ export function AFOfflineBanner({
       accessibilityLabel={text}
     >
       <Icon name="wifi-off" size={14} color={af.amber} />
-      <Text style={styles.text}>{text}</Text>
+      <Text style={[styles.text, eyebrowType]}>{text}</Text>
     </View>
   );
 }

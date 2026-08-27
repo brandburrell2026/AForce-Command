@@ -7,6 +7,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Icon } from '../Icon';
 import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { trendOf } from './afPrimitives.logic';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFMetricProps {
   label: string;
@@ -22,11 +23,12 @@ const TREND_COLOR = { up: af.green, down: af.redText, flat: af.textTertiary } as
 const TREND_ICON = { up: 'trending-up', down: 'trending-down', flat: 'minus' } as const;
 
 export function AFMetric({ label, value, unit, trendDelta, timestamp, testID }: AFMetricProps) {
+  const eyebrowType = useAFEyebrowType();
   const { direction, sign } = trendOf(trendDelta);
   const showTrend = trendDelta != null && direction !== 'flat';
   return (
     <View style={styles.wrap} testID={testID}>
-      <Text style={styles.label}>{label.toUpperCase()}</Text>
+      <Text style={[styles.label, eyebrowType]}>{label.toUpperCase()}</Text>
       <View style={styles.valueRow}>
         <Text style={styles.value} allowFontScaling maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
           {value}
