@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   caption: {
     fontFamily: 'Inter_400Regular',
     fontSize: 9,
-    color: 'rgba(255,255,255,0.38)',
+    color: Colors.text.muted,
     marginTop: 2,
   },
 });

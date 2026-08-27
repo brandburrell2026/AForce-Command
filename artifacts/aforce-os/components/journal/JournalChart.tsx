@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   emptyText: {
-    color: 'rgba(255,255,255,0.4)',
+    color: 'rgba(255,255,255,0.55)',
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.4,
