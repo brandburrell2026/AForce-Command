@@ -287,8 +287,11 @@ describe('S2-12 — Dynamic Type is never opted out of, app-wide', () => {
     const ALLOW = new Set([
       'components/ShareCard.tsx',
       'components/ShareStory.tsx',
-      'screens/SweatCalculatorScreen.tsx', // flag-dead — S2-13 deletes
-      'screens/CirclesScreen.tsx', //          flag-dead — S2-13 deletes
+      // Route-imported flag-OFF fallbacks (rollback paths): retirement is
+      // a founder ruling, not a cleanup — S2-13's census corrected the
+      // earlier 'S2-13 deletes' note.
+      'screens/SweatCalculatorScreen.tsx',
+      'screens/CirclesScreen.tsx',
     ]);
     const hits = files
       .filter((f) => f.code.includes('adjustsFontSizeToFit') && !ALLOW.has(f.rel))
