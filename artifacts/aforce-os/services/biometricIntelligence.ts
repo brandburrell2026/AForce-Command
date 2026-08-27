@@ -14,7 +14,10 @@
 
 import type { UserState, ScoreEngineOutput } from '../types';
 import type { SweatQualification } from '../types/sweat';
-import { qualifySweat, toLiters } from './sweatRateEngine';
+import { qualifySweat } from './sweatRateEngine';
+import {
+  oz, lb, ozToL, lbToKg, fraction01FromScale10, KG_PER_LB,
+} from '../utils/quantities';
 import type { TempHeatBand } from '../utils/heatBand';
 
 // ─── Sweat Loss ──────────────────────────────────────────────────────
@@ -35,9 +38,13 @@ export interface SweatLossEstimate {
 }
 
 /**
- * Sweat rate in `UserState` is stored as a 0–1 normalized value where
- * 1.0 ≈ ~1.5 L/hr (very heavy athletic sweat). This converts back to
- * oz/hr for the user-facing card.
+ * The drive inputs (`sweatRate`, `activityLevel`, `heatLoad`) are stored on
+ * a 0–10 scale (realApi defaults 3/5/4). COR-001 close-out (founder-approved
+ * with the typed-units layer): they normalize through the one sanctioned
+ * bridge, `fraction01FromScale10` — the old `clamp01` read assumed 0–1 and
+ * saturated every real-scale value to 1.0, the exact mechanism behind the
+ * 600 oz / 30,000 mg LIVE card. At the top of the normalized scale
+ * 1.0 ≈ ~1.5 L/hr (very heavy athletic sweat).
  */
 const SWEAT_RATE_MAX_OZ_PER_HOUR = 50; // ~1.5 L/hr at top of scale
 /** Average sodium concentration of human sweat (mg per fl oz). */
@@ -46,9 +53,9 @@ const SODIUM_MG_PER_OZ = 50;
 const ACTIVE_HOURS_PER_DAY = 12;
 
 export function deriveSweatLoss(user: UserState): SweatLossEstimate {
-  const sweatRate = clamp01(user.sweatRate ?? 0);
-  const activity = clamp01(user.activityLevel ?? 0);
-  const heatLoad = clamp01(user.heatLoad ?? 0);
+  const sweatRate = fraction01FromScale10(user.sweatRate ?? 0);
+  const activity = fraction01FromScale10(user.activityLevel ?? 0);
+  const heatLoad = fraction01FromScale10(user.heatLoad ?? 0);
 
   // Combined intensity factor — sweat capacity weighted by how much
   // activity + heat is actually driving it right now.
@@ -78,8 +85,8 @@ export function deriveSweatLoss(user: UserState): SweatLossEstimate {
   return { fluidLossOz, sodiumLossMg, efficiencyPct, intensity, confidence };
 }
 
-/** lbs per kg — mirrors sweatRateEngine's KG_PER_LB (1 L sweat ≡ 1 kg). */
-const KG_PER_LB = 0.45359237;
+// KG_PER_LB now imports from utils/units (COR-001 single source);
+// 1 L sweat ≡ 1 kg unchanged.
 
 /**
  * S2-14b — judge the home/calculator LIVE snapshot with the SAME S1-2
@@ -101,12 +108,12 @@ export function qualifySweatLossEstimate(
   est: SweatLossEstimate,
   bodyWeightLbs: number | null,
 ): SweatQualification {
-  const sweatLossL = toLiters(est.fluidLossOz, 'oz');
+  const sweatLossL = ozToL(oz(est.fluidLossOz));
   const sweatRateLh = sweatLossL / ACTIVE_HOURS_PER_DAY;
   if (bodyWeightLbs == null || !(bodyWeightLbs > 0)) {
     return { status: 'unavailable', reasons: ['deficit_unverifiable_no_weight'] };
   }
-  const weightKg = bodyWeightLbs * KG_PER_LB;
+  const weightKg = lbToKg(lb(bodyWeightLbs));
   const deficitPct = (sweatLossL / weightKg) * 100;
   return qualifySweat({
     sweatLossL,

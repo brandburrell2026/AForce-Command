@@ -131,10 +131,10 @@ export const AFORCE_SODIUM_PER_UNIT_MG = 25;
 
 // ─── Unit normalization ──────────────────────────────────────────────────────
 
-const KG_PER_LB = 0.45359237;
-const L_PER_OZ = 0.0295735;
-const OZ_PER_L = 1 / L_PER_OZ;          // 33.814
-const CM_PER_IN = 2.54;
+// COR-001 typed-units layer: the conversion constants moved verbatim to
+// utils/units.ts (single source of truth); the engine imports them back.
+// Values are byte-identical — no formula change.
+import { KG_PER_LB, L_PER_OZ, OZ_PER_L, CM_PER_IN } from '../utils/quantities';
 
 export function toKg(value: number, unit: 'lbs' | 'kg'): number {
   return unit === 'kg' ? value : value * KG_PER_LB;

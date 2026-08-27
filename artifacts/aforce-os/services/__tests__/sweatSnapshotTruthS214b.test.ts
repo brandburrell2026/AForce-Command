@@ -8,15 +8,15 @@
  * — rendered "600 oz projected / 30,000 mg sodium / Extreme" under the
  * "SWEAT LOSS · LIVE" eyebrow.
  *
- * ROOT CAUSE, pinned below: `deriveSweatLoss` documents its inputs as
- * 0-1 normalized and `clamp01`s them, so every 0-10-scale store value
- * saturates to 1.0 → drive = 1.0 exactly → the projection ceiling
- * (50 oz/h x 12 h = 600 oz; x50 mg/oz = 30,000 mg; drive >= .75 =
- * 'extreme') renders as a genuine computation for the ENTIRE
- * default-profile population. The normalization itself is a units
- * decision awaiting separate founder approval (formula freeze) — what
- * this suite locks is that the S1-2 qualifier now stands between that
- * math and the LIVE label.
+ * ROOT CAUSE (now FIXED): `deriveSweatLoss` assumed 0-1 normalized
+ * inputs and `clamp01`d them, so every 0-10-scale store value saturated
+ * to 1.0 → drive = 1.0 → the 600 oz / 30,000 mg ceiling rendered as a
+ * genuine computation for the entire default-profile population.
+ * COR-001 close-out (founder-approved with the typed quantities layer):
+ * the inputs now normalize through `fraction01FromScale10` — the
+ * saturation is dead (its death certificate lives in
+ * quantitiesCor001.test.ts), and this suite pins the corrected
+ * derivation PLUS the S1-2 qualifier that still fronts every number.
  */
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -38,16 +38,17 @@ const REAL_API_DEFAULT_USER = asUser({
 });
 
 describe('S2-14b — the reproduced 600 oz / 30,000 mg LIVE-card condition', () => {
-  it('realApi-default profile values saturate the projection to its ceiling (the observed numbers)', () => {
+  it('realApi-default profile values derive the NORMALIZED projection — the ceiling is gone', () => {
     const est = deriveSweatLoss(REAL_API_DEFAULT_USER);
-    expect(est.fluidLossOz).toBe(600);
-    expect(est.sodiumLossMg).toBe(30000);
-    expect(est.intensity).toBe('extreme');
-    // 45 oz consumed against a 600 oz ceiling — the 8% the device showed.
-    expect(est.efficiencyPct).toBe(8);
-    // The saturated inputs read as STRONG to the legacy confidence flag —
-    // which is exactly why confidence alone could not protect the card.
+    // 3/5/4 on the 0-10 scale -> 0.3/0.5/0.4 -> drive 0.4 -> 240 oz.
+    expect(est.fluidLossOz).toBe(240);
+    expect(est.sodiumLossMg).toBe(12000);
+    expect(est.intensity).toBe('moderate');
+    expect(est.efficiencyPct).toBe(19); // 45 / 240
     expect(est.confidence).toBe('high');
+    // The observed-bug numbers can no longer be produced from these inputs.
+    expect(est.fluidLossOz).not.toBe(600);
+    expect(est.intensity).not.toBe('extreme');
   });
 
   it('without a member-set body weight the projection is unverifiable — honest unavailable, never LIVE', () => {
@@ -59,20 +60,30 @@ describe('S2-14b — the reproduced 600 oz / 30,000 mg LIVE-card condition', () 
 
   it('with a weight on file the S1-2 deficit boundary rejects the saturated projection outright', () => {
     const est = deriveSweatLoss(REAL_API_DEFAULT_USER);
-    // 600 oz = 17.7 L =~ 17.7 kg against a 200 lb (90.7 kg) member: ~19.6%
-    // of body mass — far past S1-2's 7% medical-emergency boundary.
+    // 240 oz = 7.1 L =~ 7.1 kg against a 200 lb (90.7 kg) member: ~7.8%
+    // of body mass — still past S1-2's 7% boundary, so even the corrected
+    // default-profile projection may not present as authoritative.
     const q = qualifySweatLossEstimate(est, 200);
     expect(q.status).toBe('unavailable');
     expect(q.reasons).toContain('deficit_implausible');
   });
 
   it("a plausible projection is still at most 'limited' — a 12-hour model window is never a calibrated LIVE reading (S1-2 duration rule)", () => {
-    // Small normalized inputs -> a modest 36 oz / day projection.
-    const est = deriveSweatLoss(asUser({ sweatRate: 0.1, activityLevel: 0.05, heatLoad: 0, ozConsumedToday: 20 }));
+    // Small 0-10-scale inputs (1 / 0.5 / 0 -> 0.1 / 0.05 / 0 normalized)
+    // -> a modest 36 oz / day projection.
+    const est = deriveSweatLoss(asUser({ sweatRate: 1, activityLevel: 0.5, heatLoad: 0, ozConsumedToday: 20 }));
     expect(est.fluidLossOz).toBeLessThan(50);
     const q = qualifySweatLossEstimate(est, 200);
     expect(q.status).toBe('limited');
     expect(q.reasons).toContain('long_duration_estimate');
+  });
+
+  it('the drive inputs pass through the one sanctioned scale bridge — clamp01 saturation is dead here', () => {
+    const src = readFileSync(resolve(__dirname, '..', 'biometricIntelligence.ts'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+    expect(src).toContain('fraction01FromScale10(user.sweatRate ?? 0)');
+    expect(src).not.toMatch(/clamp01\(user\./);
   });
 
   it('the qualifier is a seam over S1-2, not a parallel authority — no local thresholds', () => {

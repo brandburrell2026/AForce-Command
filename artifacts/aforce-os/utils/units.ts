@@ -46,7 +46,10 @@ export const DEFAULT_UNIT_PREFERENCES: UnitPreferences = {
   height: 'ft',
 };
 
-export const KG_PER_LB = 0.45359237;
+// COR-001 single source: the value now lives in utils/quantities.ts;
+// re-exported here so this module's existing consumers are untouched.
+import { KG_PER_LB } from './quantities';
+export { KG_PER_LB };
 export const ML_PER_FL_OZ = 29.5735295625;
 
 // ─── Pure converters (canonical metric ↔ display unit) ────────────────
