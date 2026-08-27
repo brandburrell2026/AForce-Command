@@ -21,10 +21,13 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const src = readFileSync(
-  resolve(__dirname, '..', 'sweat', 'SweatCalculatorScreenV2.tsx'),
-  'utf8',
-);
+// S2-9b: the private shadow-kit (stylesheet, snapshot, form primitives,
+// result-card family) moved into sweat/sweatKit.tsx + sweat/sweatResultKit.tsx
+// — shell + both kits scanned together (mechanism move, invariants intact).
+const src =
+  readFileSync(resolve(__dirname, '..', 'sweat', 'SweatCalculatorScreenV2.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'sweat', 'sweatKit.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'sweat', 'sweatResultKit.tsx'), 'utf8');
 const code = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
 
 function paneOf(name: string): string {
