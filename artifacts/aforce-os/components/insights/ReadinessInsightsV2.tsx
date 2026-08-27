@@ -179,7 +179,7 @@ export function ReadinessInsightsV2() {
       priorWeekStartISO: shareWeek.priorWeekStartISO,
       priorWeekEndISO: shareWeek.priorWeekEndISO,
       analyticsEvents: shareEvents,
-      current: { performanceAge: sharePerformanceAge.result },
+      current: { performanceAge: sharePerformanceAge.result, complianceStreak: userState.complianceStreak },
       health,
     });
   }, [shareNowISO, shareWeek, shareEvents, sharePerformanceAge.result, healthCanonicalConsumers, biometrics]);

@@ -104,6 +104,16 @@ export interface WeeklyReportInput {
   /** Current snapshot values computed live elsewhere (reference only). */
   current?: {
     performanceAge?: PerformanceAgeResult | null;
+    /**
+     * S2-15 (streak one-truth): the ENGINE's canonical complianceStreak —
+     * the number Profile, Protocol and Hydration already render. When
+     * supplied it is THE member-facing streak in this report; the
+     * analytics recount (retention.currentDayStreak — a day-with-any-log
+     * streak, different semantics) remains for internal friction math
+     * only. Both live callers supply it; omitting it (legacy tests)
+     * preserves the old recount behavior rather than fabricating.
+     */
+    complianceStreak?: number | null;
     recoveryScore?: number | null;
     readinessScore?: number | null;
   };
@@ -194,7 +204,7 @@ export function buildWeeklyReport(input: WeeklyReportInput): WeeklyReport {
 
   const activeDays = weekMetrics.retention.activeDays;
   const logCount = weekMetrics.logging.count;
-  const streak = fullMetrics.retention.currentDayStreak;
+  const streak = input.current?.complianceStreak ?? fullMetrics.retention.currentDayStreak;
   const priorActiveDays = priorMetrics ? priorMetrics.retention.activeDays : null;
   const activeDaysDelta = priorActiveDays !== null ? activeDays - priorActiveDays : null;
   const noWeekData = activeDays === 0 && logCount === 0;

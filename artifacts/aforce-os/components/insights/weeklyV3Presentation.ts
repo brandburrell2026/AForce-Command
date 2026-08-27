@@ -39,6 +39,8 @@ export interface WeeklyV3Inputs {
   rollups: JournalRollup[];
   paSnapshots: PerformanceAgeDailySnapshot[];
   paResult: PerformanceAgeResult | null;
+  /** Engine canonical streak (S2-15) — see WeeklyReportInput.current. */
+  complianceStreak?: number | null;
 }
 
 export interface WeeklyV3PerformanceAgeView {
@@ -86,7 +88,7 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     priorWeekStartISO: week.priorWeekStartISO,
     priorWeekEndISO: week.priorWeekEndISO,
     analyticsEvents: input.analyticsEvents,
-    current: { performanceAge: input.paResult },
+    current: { performanceAge: input.paResult, complianceStreak: input.complianceStreak ?? null },
     // The one wiring fix this screen exists to make: hand the builder the
     // ledger's REAL daily Performance Age series so movement can be honest.
     history: { performanceAgeSnapshots: input.paSnapshots },
