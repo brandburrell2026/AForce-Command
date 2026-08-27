@@ -82,7 +82,9 @@ describe('every intake entry point names its surface', () => {
     { file: 'components/scan/HydrationScanScreenV2.tsx', expected: 'scan', what: 'Scan' },
     { file: 'app/recovery-coach.tsx', expected: 'recovery', what: 'Recovery Coach' },
     { file: 'components/VoiceOverlay.tsx', expected: 'voice', what: 'Voice overlay' },
-    { file: 'components/LogIntakeRow.tsx', expected: 'manual', what: 'Manual drink entry' },
+    // S2-13: LogIntakeRow (source 'manual') was a proven orphan — mounted
+    // nowhere since Build 61 — and is deleted; the live member-initiated
+    // entries are the Home/Hydration picker rows above.
   ];
 
   it.each(SITES)('$what declares source: $expected', ({ file, expected, what }) => {

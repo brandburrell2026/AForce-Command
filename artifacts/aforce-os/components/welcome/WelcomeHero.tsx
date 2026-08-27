@@ -240,10 +240,12 @@ export function WelcomeHero({ active, onGetStarted, onSignIn }: Props) {
           dy={6}
           style={[styles.topZone, { paddingTop: insets.top + 12 }]}
         >
+          {/* S2-12: adjustsFontSizeToFit SHRANK this as Dynamic Type grew
+              (the inverted-setting defect Wave-5 fixed on Home). One line +
+              tail ellipsis; the type scales honestly. */}
           <Text
             style={styles.eyebrow}
             numberOfLines={1}
-            adjustsFontSizeToFit
           >
             {t('welcome.eyebrow')}
           </Text>

@@ -22,7 +22,17 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '../Icon';
-import { RecoveryCoachTokens as T } from '../../theme/recoveryCoachTokens';
+import { af } from '@/theme';
+
+/**
+ * S2-13: the RecoveryCoachTokens file was 9/11 a value-for-value duplicate
+ * of `af.*` and is deleted; those nine now come from the one palette. The
+ * two survivors below are NOT duplicates — the coach's focused-mode
+ * surfaces are deliberately a touch deeper than `af.surface`/`surfaceRaised`
+ * (see the deleted file's header, preserved here): a private command field.
+ */
+const COACH_SURFACE = '#0D0E10'; //        sheets + expanded details
+const COACH_SURFACE_RAISED = '#141518'; // elevated interactive surface
 import { afMotion } from '../../theme/afTokens';
 import {
   deriveRecoveryCommandView, type RecoveryCommand,
@@ -151,7 +161,7 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
   });
 
   return (
-    <View style={[styles.root, { backgroundColor: T.canvas }]}>
+    <View style={[styles.root, { backgroundColor: af.canvasFocused }]}>
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
@@ -160,19 +170,19 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
         <View style={styles.header} accessibilityRole="header">
           <View style={styles.headerLeft}>
             <View style={styles.headerLabelRow}>
-              <View style={[styles.liveDot, { backgroundColor: T.red }]} />
-              <Text style={[styles.headerLabel, { color: T.textPrimary }]}>{t('coach.v2.header_label')}</Text>
+              <View style={[styles.liveDot, { backgroundColor: af.red }]} />
+              <Text style={[styles.headerLabel, { color: af.textPrimary }]}>{t('coach.v2.header_label')}</Text>
             </View>
-            <Text style={[styles.status, { color: T.textSecondary }]}>{offline ? t('coach.v2.status_offline') : t('coach.v2.status_live')}</Text>
+            <Text style={[styles.status, { color: af.textSecondary }]}>{offline ? t('coach.v2.status_offline') : t('coach.v2.status_live')}</Text>
           </View>
           <Pressable
             onPress={onCloseTap}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={t('coach.v2.close_a11y')}
-            style={[styles.close, { borderColor: T.border }]}
+            style={[styles.close, { borderColor: af.border }]}
           >
-            <Icon name="x" size={20} color={T.textSecondary} />
+            <Icon name="x" size={20} color={af.textSecondary} />
           </Pressable>
         </View>
 
@@ -180,29 +190,29 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
           {/* Ambient pulse (decorative) */}
           <View style={styles.pulseZone} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             {/* Soft radial atmosphere (§5) — Signal Red at low alpha, well below the pulse. */}
-            <View style={[styles.pulseAtmosphere, { backgroundColor: T.redDim }]} />
-            <Animated.View style={[styles.pulseRing, { borderColor: T.redHairline }, ringStyle]} />
-            <Animated.View style={[styles.pulseCore, { backgroundColor: T.red }, coreStyle]} />
+            <View style={[styles.pulseAtmosphere, { backgroundColor: af.redDim }]} />
+            <Animated.View style={[styles.pulseRing, { borderColor: af.redHairline }, ringStyle]} />
+            <Animated.View style={[styles.pulseCore, { backgroundColor: af.red }, coreStyle]} />
           </View>
 
           {/* Command block */}
           <View style={styles.commandBlock}>
-            <Text style={[styles.eyebrow, { color: T.textTertiary }]}>{t('coach.v2.eyebrow')}</Text>
-            <Text style={[styles.title, { color: T.textPrimary }]} accessibilityRole="text">{title}</Text>
+            <Text style={[styles.eyebrow, { color: af.textTertiary }]}>{t('coach.v2.eyebrow')}</Text>
+            <Text style={[styles.title, { color: af.textPrimary }]} accessibilityRole="text">{title}</Text>
             {!isExpired && view.instruction ? (
-              <Text style={[styles.instruction, { color: T.textSecondary }]}>{view.instruction}</Text>
+              <Text style={[styles.instruction, { color: af.textSecondary }]}>{view.instruction}</Text>
             ) : null}
             {view.updatedAgoLabel ? (
-              <Text style={[styles.updatedAgo, { color: T.textTertiary }]}>{view.updatedAgoLabel}</Text>
+              <Text style={[styles.updatedAgo, { color: af.textTertiary }]}>{view.updatedAgoLabel}</Text>
             ) : null}
           </View>
 
           {/* Countdown */}
           {!isExpired ? (
             <View style={styles.countdownBlock} accessible accessibilityLabel={t('coach.v2.countdown_a11y', { label: view.timerLabel, countdown: view.countdown })}>
-              <View style={[styles.timerHairline, { backgroundColor: T.red }]} />
-              <Text style={[styles.timerLabel, { color: T.textTertiary }]}>{view.timerLabel}</Text>
-              <Text style={[styles.timer, { color: T.textPrimary }]}>{view.countdown}</Text>
+              <View style={[styles.timerHairline, { backgroundColor: af.red }]} />
+              <Text style={[styles.timerLabel, { color: af.textTertiary }]}>{view.timerLabel}</Text>
+              <Text style={[styles.timer, { color: af.textPrimary }]}>{view.countdown}</Text>
             </View>
           ) : null}
 
@@ -212,19 +222,19 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
               onPress={onPrimaryTap}
               accessibilityRole="button"
               accessibilityLabel={primaryLabel}
-              style={({ pressed }) => [styles.primaryBtn, { backgroundColor: T.red, opacity: pressed ? 0.9 : 1 }]}
+              style={({ pressed }) => [styles.primaryBtn, { backgroundColor: af.red, opacity: pressed ? 0.9 : 1 }]}
             >
-              {showAck && !isExpired ? <Icon name="check" size={18} color={T.textPrimary} /> : null}
-              <Text style={[styles.primaryLabel, { color: T.textPrimary }]}>{primaryLabel}</Text>
+              {showAck && !isExpired ? <Icon name="check" size={18} color={af.textPrimary} /> : null}
+              <Text style={[styles.primaryLabel, { color: af.textPrimary }]}>{primaryLabel}</Text>
             </Pressable>
             {!isExpired ? (
               <Pressable
                 onPress={onAdjustTap}
                 accessibilityRole="button"
                 accessibilityLabel={t('coach.v2.adjust')}
-                style={({ pressed }) => [styles.secondaryBtn, { borderColor: T.border, opacity: pressed ? 0.7 : 1 }]}
+                style={({ pressed }) => [styles.secondaryBtn, { borderColor: af.border, opacity: pressed ? 0.7 : 1 }]}
               >
-                <Text style={[styles.secondaryLabel, { color: T.textPrimary }]}>{t('coach.v2.adjust')}</Text>
+                <Text style={[styles.secondaryLabel, { color: af.textPrimary }]}>{t('coach.v2.adjust')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -232,13 +242,13 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
           {/* Why this command */}
           {!isExpired ? (
             <Pressable onPress={onWhyTap} accessibilityRole="button" accessibilityState={{ expanded: whyOpen }} accessibilityLabel={t('coach.v2.why')} style={styles.whyLink}>
-              <Text style={[styles.whyText, { color: T.textSecondary }]}>{t('coach.v2.why')}</Text>
-              <Icon name={whyOpen ? 'chevron-up' : 'chevron-down'} size={14} color={T.textTertiary} />
+              <Text style={[styles.whyText, { color: af.textSecondary }]}>{t('coach.v2.why')}</Text>
+              <Icon name={whyOpen ? 'chevron-up' : 'chevron-down'} size={14} color={af.textTertiary} />
             </Pressable>
           ) : null}
           {whyOpen && !isExpired ? (
-            <View style={[styles.whySheet, { backgroundColor: T.surface, borderColor: T.divider }]}>
-              <Text style={[styles.whyBody, { color: T.textSecondary }]}>{view.rationale}</Text>
+            <View style={[styles.whySheet, { backgroundColor: COACH_SURFACE, borderColor: af.divider }]}>
+              <Text style={[styles.whyBody, { color: af.textSecondary }]}>{view.rationale}</Text>
             </View>
           ) : null}
         </Animated.View>
@@ -249,15 +259,15 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
         <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]} accessible accessibilityLabel={progressA11y}>
           <View style={styles.footerInner}>
             <View
-              style={[styles.track, { backgroundColor: T.divider }]}
+              style={[styles.track, { backgroundColor: af.divider }]}
               importantForAccessibility="no-hide-descendants"
               accessibilityElementsHidden
             >
-              <View style={[styles.trackFill, { width: progressPct, backgroundColor: T.red }]} />
+              <View style={[styles.trackFill, { width: progressPct, backgroundColor: af.red }]} />
             </View>
             <View style={styles.footerLabels}>
-              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{t('coach.v2.recovery_focus')}</Text>
-              <Text style={[styles.footerLabel, { color: T.textTertiary }]}>{view.durationLabel}</Text>
+              <Text style={[styles.footerLabel, { color: af.textTertiary }]}>{t('coach.v2.recovery_focus')}</Text>
+              <Text style={[styles.footerLabel, { color: af.textTertiary }]}>{view.durationLabel}</Text>
             </View>
           </View>
         </View>

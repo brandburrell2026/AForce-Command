@@ -51,6 +51,9 @@ export const ShareCard: React.FC<Props> = ({ broadcast, context }) => {
       </View>
 
       <View style={styles.body}>
+        {/* fixed-canvas share ARTWORK (rendered to an image): shrink-to-fit is
+            the correct behavior here, not a Dynamic Type defect — the S2-12
+            guard allowlists exactly the two share canvases. */}
         <Text style={styles.headline} numberOfLines={3} adjustsFontSizeToFit>
           {broadcast.headline}
         </Text>

@@ -118,9 +118,9 @@ export function RecoveryModePaywall() {
         testID="recovery-mode-paywall-cta"
       >
         {busy ? (
-          <ActivityIndicator size="small" color="#0A0A0F" />
+          <ActivityIndicator size="small" color={af.canvas} />
         ) : (
-          <Icon name="arrow-right" size={16} color="#0A0A0F" />
+          <Icon name="arrow-right" size={16} color={af.canvas} />
         )}
         <Text style={styles.ctaText}>{t('social.recovery_paywall_cta')}</Text>
       </Pressable>
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontFamily: 'Inter_700Bold',
-    color: '#0A0A0F',
+    color: af.canvas,
     letterSpacing: 0.4,
   },
   disclaimer: {

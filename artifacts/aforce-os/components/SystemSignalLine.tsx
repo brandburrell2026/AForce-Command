@@ -38,7 +38,7 @@ export function SystemSignalLine({ performanceLevel }: Props) {
 
   return (
     <View style={styles.container} testID="system-signal-line">
-      <Text style={styles.line} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+      <Text style={styles.line} numberOfLines={1}>
         {parts.join('  ·  ')}
       </Text>
       <Text style={styles.interpretation} numberOfLines={1}>

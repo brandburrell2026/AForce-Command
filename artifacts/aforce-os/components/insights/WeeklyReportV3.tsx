@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 
 import { AFScreen, AFTopBar, AFCard, AFSectionLabel, AFInlineErrorRow } from '@/components/ui';
 import { WeeklyReportSkeleton } from './WeeklyReportSkeleton';
-import { af, afType, Spacing } from '@/theme';
+import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
 import { getCommandLedgerState } from '@/services/commandLedger';
@@ -257,13 +257,13 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           >
             {paView.previousAge != null ? (
               <>
-                <Text style={styles.paPrev} maxFontSizeMultiplier={1.2}>{paView.previousAge}</Text>
+                <Text style={styles.paPrev} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{paView.previousAge}</Text>
                 <Text style={styles.paArrow}>→</Text>
               </>
             ) : null}
             <Text
               style={[styles.paCurrent, paDelta != null && paDelta <= 0 && { color: af.green }]}
-              maxFontSizeMultiplier={1.2}
+              maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
             >
               {paView.currentAge}
             </Text>
