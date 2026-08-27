@@ -31,7 +31,7 @@
   "components/OnboardingOverlay.tsx": 4,
   "components/RankingCard.tsx": 1,
   "components/RecoveryModeCard.tsx": 5,
-  "components/RecoveryModePaywall.tsx": 9,
+  "components/RecoveryModePaywall.tsx": 6,
   "components/ShareCard.tsx": 7,
   "components/ShareJournalRecap.tsx": 16,
   "components/ShareStory.tsx": 7,

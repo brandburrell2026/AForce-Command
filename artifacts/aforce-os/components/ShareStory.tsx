@@ -54,6 +54,8 @@ export const ShareStory: React.FC<Props> = ({ broadcast, context }) => {
       </View>
 
       <View style={styles.body}>
+        {/* fixed-canvas share ARTWORK — see ShareCard: allowlisted by the
+            S2-12 guard, not a Dynamic Type defect. */}
         <Text style={styles.headline} numberOfLines={4} adjustsFontSizeToFit>
           {broadcast.headline}
         </Text>
