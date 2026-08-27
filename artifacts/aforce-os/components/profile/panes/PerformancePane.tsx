@@ -202,6 +202,13 @@ export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[
   // into one card, ordered by how often a member actually needs it.
   // Row icons are uniformly af.textSecondary: a five-hue icon column
   // implied five different kinds of thing when they are all links.
+  // Directive §5 "Modes & Checks" — founder ruling 2026-08-27: THIS card is
+  // the canonical consolidated entry (member label "MODES & CHECKS"; the
+  // const/testIDs keep their historical names as stable lock handles).
+  // Rows appear strictly by entitlement + flag. Dormant until Stage 3 opens
+  // and the founder approves each: Social Mode (night_out), SkinIA Visual
+  // Check, Heat Guard. Contextual cards (Home/Moments) remain the timely
+  // second channel; this list is the always-findable home.
   const protocolToolsCard = (
     <>
       <SectionHeader label={t('profile.v2.protocol_tools_label')} />
