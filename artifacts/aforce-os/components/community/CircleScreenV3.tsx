@@ -46,6 +46,7 @@ import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { buildSnapshot } from '@/services/competitionEngine';
 import { fetchJournalRollups } from '@/services/realApi';
 import type { JournalRollup } from '@/types';
+import { useRouter } from 'expo-router';
 import {
   buildCircleV3Model,
   circleRowA11yLabel,
@@ -63,6 +64,7 @@ function avatarTextColor(bg: string): string {
 }
 
 export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
+  const router = useRouter();
   const tabClearance = useTabBarClearance();
   const { t } = useTranslation();
   const engine = useEngineSlice();
@@ -158,7 +160,15 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
 
   return (
     <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
-      <AFTopBar eyebrow={t('community.v3.eyebrow')} title={t('community.v3.title')} />
+      <AFTopBar
+        eyebrow={t('community.v3.eyebrow')}
+        title={t('community.v3.title')}
+        actions={[{
+          icon: 'shield',
+          label: t('communitySharing.entry_title'),
+          onPress: () => router.push('/privacy/community-sharing'),
+        }]}
+      />
 
       {/* You card — comp layout, live-injected row underneath */}
       <View style={[styles.youCard, { borderColor: `${you.accent}55` }]} testID="circle-v3-you">
@@ -473,7 +483,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: af.divider,
   },
   rowYou: { backgroundColor: `${af.green}0D`, borderRadius: 12, paddingHorizontal: 10 },
-  rowRank: { ...afType.body, color: af.textTertiary, width: 22, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  // Founder fix 2026-08-27: two-digit ranks wrapped vertically in a 22pt
+  // column — minWidth lets the cell grow so 10+ (and 100+) stay on one line.
+  rowRank: { ...afType.body, color: af.textTertiary, minWidth: 28, textAlign: 'center', fontVariant: ['tabular-nums'] },
   rowAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   rowAvatarText: { ...afType.bodyStrong, letterSpacing: 0.5 },
   rowBody: { flex: 1, gap: 2 },

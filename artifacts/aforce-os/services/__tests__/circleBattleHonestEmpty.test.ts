@@ -260,7 +260,10 @@ describe('the seeds themselves', () => {
   it('REACTIONS and DEFAULT_PRIVACY remain — they are product definitions, not invented people', async () => {
     const seeds = await import('@/data/mockCircleData');
     expect(seeds.REACTIONS.length).toBeGreaterThan(0);
-    expect(seeds.DEFAULT_PRIVACY.scope).toBe('circle');
+    // Founder ruling 2026-08-27 (community-sharing relocation): the default
+    // share scope is PRIVATE — superseding the earlier 'circle' decision this
+    // lock used to pin. Nothing is shared until the member widens it.
+    expect(seeds.DEFAULT_PRIVACY.scope).toBe('private');
   });
 
   it('MOCK_BATTLES is empty (the region rosters are a separate surface and untouched)', async () => {

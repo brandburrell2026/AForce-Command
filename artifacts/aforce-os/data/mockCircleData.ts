@@ -40,6 +40,9 @@ export const MOCK_CHALLENGES: CircleChallenge[] = [];
 export const MOCK_NOTIFICATIONS: CircleNotification[] = [];
 
 export const DEFAULT_PRIVACY: PrivacySettings = {
-  scope: 'circle',
+  // Founder ruling 2026-08-27 (community-sharing relocation): PRIVATE by
+  // default — supersedes the previously recorded 'circle' default. Nothing
+  // is shared until the member explicitly widens the scope.
+  scope: 'private',
   fields: { score: true, state: true, streak: true, protocol: true, trend: true },
 };

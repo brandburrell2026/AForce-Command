@@ -43,7 +43,7 @@ import {
   voicePickerStyles,
   type ProfileTabId,
 } from '../profileKit';
-import { AFInlineErrorRow, AFStatPair } from '@/components/ui';
+import { AFInlineErrorRow, AFStatPair , AFListRow } from '@/components/ui';
 import { ProviderSectionSkeleton } from '../ProviderSectionSkeleton';
 import { AppleHealthRefreshControl } from '../AppleHealthRefreshControl';
 import { AppleHealthDiagnosticsSection } from '../AppleHealthDiagnosticsSection';
@@ -549,6 +549,17 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
       <SectionHeader label={t('profile.v2.privacy_label')} hint={t('profile.v2.privacy_hint')} />
       <View style={styles.card} testID="profile-privacy-card">
         <AnalyticsConsentRow />
+        <Divider />
+        {/* Community Sharing — the circle visibility control relocated from
+            the stranded /circles island (founder ruling 2026-08-27). */}
+        <AFListRow
+          icon="shield"
+          title={t('communitySharing.entry_title')}
+          subtitle={t('communitySharing.entry_sub')}
+          disclosure
+          onPress={() => router.push('/privacy/community-sharing')}
+          testID="profile-community-sharing-row"
+        />
         {/* Performance Memory™ governance — what the app has
             observed about this member, plus the delete action.
             Same question, same group. Flag gate unchanged. */}
