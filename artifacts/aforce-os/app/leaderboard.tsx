@@ -1,10 +1,11 @@
 /**
- * Leaderboard route — Phase 3 redesign when `spec_leaderboard` is on, else legacy.
+ * Leaderboard route.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import { LeaderboardScreen } from '@/screens/LeaderboardScreen';
 import { LeaderboardScreenV2 } from '@/components/leaderboard/LeaderboardScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function LeaderboardRoute() {
-  return useAppStore().state.featureFlags.spec_leaderboard ? <LeaderboardScreenV2 /> : <LeaderboardScreen />;
+  return <LeaderboardScreenV2 />;
 }

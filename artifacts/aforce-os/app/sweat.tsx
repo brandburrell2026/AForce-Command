@@ -1,12 +1,11 @@
 /**
- * Sweat Calculator route — renders the Phase 3 redesign when `spec_sweat` is on,
- * else the untouched legacy screen. Flipping the flag is the go-live switch.
+ * Sweat Calculator route.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import SweatCalculatorScreen from '@/screens/SweatCalculatorScreen';
 import { SweatCalculatorScreenV2 } from '@/components/sweat/SweatCalculatorScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function SweatRoute() {
-  const specSweat = useAppStore().state.featureFlags.spec_sweat;
-  return specSweat ? <SweatCalculatorScreenV2 /> : <SweatCalculatorScreen />;
+  return <SweatCalculatorScreenV2 />;
 }

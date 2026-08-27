@@ -1,11 +1,11 @@
 /**
- * Notifications route — Phase 3 redesign when `spec_notifScreen` is on, else the
- * preserved legacy screen. Both read/write the notificationSettings store slice.
+ * Notifications route — reads/writes the notificationSettings store slice.
+ * Founder ruling 2026-08-27: the flag-OFF legacy fallback is retired
+ * (fifteen-twin retirement); this route now renders the production screen
+ * unconditionally.
  */
-import { NotificationsLegacy } from '@/components/notifications/NotificationsLegacy';
 import { NotificationsScreenV2 } from '@/components/notifications/NotificationsScreenV2';
-import { useAppStore } from '@/store/useAppStore';
 
 export default function NotificationsRoute() {
-  return useAppStore().state.featureFlags.spec_notifScreen ? <NotificationsScreenV2 /> : <NotificationsLegacy />;
+  return <NotificationsScreenV2 />;
 }

@@ -29,7 +29,6 @@ function code(...segments: string[]): string {
 }
 
 const CIRCLE_V3 = code('components', 'community', 'CircleScreenV3.tsx');
-const COMPETITION_V1 = code('screens', 'CompetitionScreen.tsx');
 const COMPETITION_V2 = code('components', 'community', 'CompetitionScreenV2.tsx');
 
 const EN = JSON.parse(
@@ -77,10 +76,9 @@ describe('CircleScreenV3 — an empty roster reads as empty, not as a blank scre
 });
 
 describe('Competition screens — the movement pill never reports a non-move', () => {
-  it('V1 renders the pill only for positive movement', () => {
-    expect(COMPETITION_V1).toMatch(/\{me\.recentDelta > 0 && \(/);
-  });
-
+  // Founder ruling 2026-08-27 (fifteen-twin retirement): the legacy V1 screen
+  // is deleted; its movement-pill truth-guard retires with its subject. V2's
+  // guard below still pins the invariant on the live fallback.
   it('V2 renders the pill only for positive movement', () => {
     expect(COMPETITION_V2).toMatch(/\{me\.recentDelta > 0 && \(/);
   });

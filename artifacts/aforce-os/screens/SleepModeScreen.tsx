@@ -1,10 +1,9 @@
 /**
  * SLEEP MODE — container.
  *
- * Behind `spec_sleep_v2` (default OFF) this renders the redesigned, guided
+ * Renders the redesigned, guided
  * pre-sleep protocol (`SleepModeView`, fed by the pure `resolveSleepModeView`).
- * With the flag OFF it renders the untouched legacy screen. The container owns
- * real data + interaction; the view is pure. It NEVER fabricates a health metric
+ * The container owns real data + interaction; the view is pure. It NEVER fabricates a health metric
  * and NEVER mutates Recovery Capacity — hydration stays the primary driver.
  */
 import React from 'react';
@@ -29,7 +28,6 @@ import {
 } from '@/services/sleep/sleepModeView';
 import { sleepSignalsForContainer } from '@/services/health/sleepSignals';
 import { SleepModeView } from '@/components/sleep/SleepModeView';
-import SleepModeScreenLegacy from './SleepModeScreenLegacy';
 
 const SLEEP_TIME_KEY = '@aforce/sleepMode/targetTimeHHMM';
 const SEVEN_NIGHT_KEY = '@aforce/sleepMode/sevenNightAvg';
@@ -77,7 +75,8 @@ function isFiniteNum(v: unknown): v is number { return typeof v === 'number' && 
 export default function SleepModeScreen() {
   const flags = useFlagsSlice();
   // Flag OFF → untouched legacy screen. This keeps the redesign fully gated.
-  if (!flags.spec_sleep_v2) return <SleepModeScreenLegacy />;
+  // Founder ruling 2026-08-27: the spec_sleep_v2 legacy fallback is retired
+  // (fifteen-twin retirement); the guided protocol renders unconditionally.
   return <SleepModeRedesign />;
 }
 

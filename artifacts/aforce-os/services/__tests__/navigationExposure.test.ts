@@ -126,8 +126,9 @@ describe('the internal Modules launcher is not reachable in a production build',
       stripComments(readFileSync(join(APP_ROOT, f), 'utf8')).includes("'/modules'"),
     );
     // S2-10b(2): the V2 row lives in the performance pane now (mechanism move).
+    // Founder ruling 2026-08-27 (fifteen-twin retirement): ProfileLegacy is
+    // deleted — the pane row is the ONLY launcher entry point left.
     expect(linkers).toEqual([
-      'components/profile/ProfileLegacy.tsx',
       'components/profile/panes/PerformancePane.tsx',
     ]);
   });
@@ -150,11 +151,8 @@ describe('the internal Modules launcher is not reachable in a production build',
     expect(tools.match(/developerControlsAvailable\(\)/g)).toHaveLength(1);
   });
 
-  it('the ProfileLegacy MODULES card is clamped at its declaration', () => {
-    const legacy = readCode('components', 'profile', 'ProfileLegacy.tsx');
-    expect(legacy).toMatch(/const modulesCard = developerControlsAvailable\(\)\s*\?\s*\(/);
-    expect(legacy).toMatch(/\)\s*:\s*null;/);
-  });
+  // (fifteen-twin retirement: ProfileLegacy and its clamped MODULES card are
+  // deleted — that guard retired with its subject; the pane clamp above holds.)
 
   it('Phantom keeps its own route-level gate — the launcher was never its only lock', () => {
     // Defense in depth: closing the launcher removed the DISCOVERY path; the
