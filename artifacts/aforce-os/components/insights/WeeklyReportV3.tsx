@@ -27,6 +27,7 @@ import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
 import { getCommandLedgerState } from '@/services/commandLedger';
+import { useUserSlice } from '@/store/slices';
 import { ledgerToPerformanceAgeSnapshots } from '@/utils/intelligence/commandEventAdapters';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { PERFORMANCE_AGE_DISCLAIMER } from '@/utils/performanceAge';
@@ -75,6 +76,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
   // `eventsLoading` note.) Tracking the failure lets the tiles fall back to the
   // honest em dash and lets the screen say what happened.
   const [rollupsUnavailable, setRollupsUnavailable] = React.useState(false);
+  const complianceStreak = useUserSlice().complianceStreak;
   // Bumped by the retry control so the one loader below re-runs; keeps a single
   // fetch path rather than a second, divergent copy of it.
   const [reloadNonce, setReloadNonce] = React.useState(0);
@@ -101,6 +103,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           rollups,
           paSnapshots: ledgerToPerformanceAgeSnapshots(getCommandLedgerState().events),
           paResult: pa.result,
+          complianceStreak,
         }),
       );
     })();

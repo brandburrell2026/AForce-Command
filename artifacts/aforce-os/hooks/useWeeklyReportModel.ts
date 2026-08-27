@@ -13,6 +13,7 @@
  */
 import React from 'react';
 
+import { useUserSlice } from '@/store/slices';
 import {
   buildWeeklyReport,
   lastCompletedWeek,
@@ -47,6 +48,7 @@ export function useWeeklyReportModel(): WeeklyReportModel {
   }, []);
 
   const pa = usePerformanceAge();
+  const complianceStreak = useUserSlice().complianceStreak;
 
   const report = React.useMemo(
     () =>
@@ -57,9 +59,9 @@ export function useWeeklyReportModel(): WeeklyReportModel {
         priorWeekStartISO: week.priorWeekStartISO,
         priorWeekEndISO: week.priorWeekEndISO,
         analyticsEvents: events,
-        current: { performanceAge: pa.result },
+        current: { performanceAge: pa.result, complianceStreak },
       }),
-    [nowISO, week, events, pa.result],
+    [nowISO, week, events, pa.result, complianceStreak],
   );
 
   return {
