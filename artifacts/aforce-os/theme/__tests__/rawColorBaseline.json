@@ -72,7 +72,7 @@
   "components/opening/OpeningSequence.tsx": 2,
   "components/performanceStatement/PostStatementIntentPrompt.tsx": 5,
   "components/profile/ProfileLegacy.tsx": 32,
-  "components/profile/ProfileScreenV2.tsx": 8,
+  "components/profile/panes/DeveloperPane.tsx": 8,
   "components/profile/profileKit.tsx": 14,
   "components/protocol/RecoveryCircleMembersModal.tsx": 2,
   "components/recoveryCoach/RecoveryCoachScreen.tsx": 2,

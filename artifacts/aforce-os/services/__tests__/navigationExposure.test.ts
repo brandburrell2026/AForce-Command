@@ -125,18 +125,21 @@ describe('the internal Modules launcher is not reachable in a production build',
     const linkers = sourceFiles().filter((f) =>
       stripComments(readFileSync(join(APP_ROOT, f), 'utf8')).includes("'/modules'"),
     );
+    // S2-10b(2): the V2 row lives in the performance pane now (mechanism move).
     expect(linkers).toEqual([
       'components/profile/ProfileLegacy.tsx',
-      'components/profile/ProfileScreenV2.tsx',
+      'components/profile/panes/PerformancePane.tsx',
     ]);
   });
 
   it('the ProfileScreenV2 row sits inside the clamp (invisible to an ordinary member)', () => {
-    // S2-10b(1): the tab-strip clamp moved verbatim into profileKit.tsx —
-    // shell + kit scanned together (mechanism move, invariant intact).
+    // S2-10b(1): the tab-strip clamp moved verbatim into profileKit.tsx;
+    // S2-10b(2): protocolToolsCard moved into panes/PerformancePane.tsx —
+    // all three scanned together (mechanism moves, invariant intact).
     const profile =
       readCode('components', 'profile', 'ProfileScreenV2.tsx') +
-      readCode('components', 'profile', 'profileKit.tsx');
+      readCode('components', 'profile', 'profileKit.tsx') +
+      readCode('components', 'profile', 'panes', 'PerformancePane.tsx');
     const tools = balancedDeclaration(profile, 'protocolToolsCard');
     expect(tools).toMatch(
       /developerControlsAvailable\(\)\s*\?\s*\([\s\S]{0,600}?router\.push\('\/modules'\)/,
@@ -240,10 +243,12 @@ describe('social entry points reachable in production resolve under Circle', () 
 });
 
 describe('no approved functionality became unreachable', () => {
-  // S2-10b(1): the clamp expression lives in profileKit.tsx now — scan both.
+  // S2-10b(1): the clamp expression lives in profileKit.tsx;
+  // S2-10b(2): protocolToolsCard lives in panes/PerformancePane.tsx — scan all.
   const profile =
     readCode('components', 'profile', 'ProfileScreenV2.tsx') +
-    readCode('components', 'profile', 'profileKit.tsx');
+    readCode('components', 'profile', 'profileKit.tsx') +
+    readCode('components', 'profile', 'panes', 'PerformancePane.tsx');
   const layout = readCode('app', '(tabs)', '_layout.tsx');
 
   /**

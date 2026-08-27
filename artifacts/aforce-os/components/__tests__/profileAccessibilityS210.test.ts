@@ -23,7 +23,12 @@ import { resolve } from 'node:path';
 // (tabPill, onRed labels) moved verbatim into profileKit.tsx.
 const src =
   readFileSync(resolve(__dirname, '..', 'profile', 'ProfileScreenV2.tsx'), 'utf8') +
-  readFileSync(resolve(__dirname, '..', 'profile', 'profileKit.tsx'), 'utf8');
+  readFileSync(resolve(__dirname, '..', 'profile', 'profileKit.tsx'), 'utf8') +
+  // S2-10b(2): the tab blocks live in panes/*.tsx now (mechanism move).
+  readFileSync(resolve(__dirname, '..', 'profile', 'panes', 'PerformancePane.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'profile', 'panes', 'DevicesPane.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'profile', 'panes', 'AccountPane.tsx'), 'utf8') +
+  readFileSync(resolve(__dirname, '..', 'profile', 'panes', 'DeveloperPane.tsx'), 'utf8');
 const code = src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
 
 describe('S2-10 — AA on red, everywhere on this screen', () => {

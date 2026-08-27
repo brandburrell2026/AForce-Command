@@ -31,7 +31,14 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, '');
 }
 
-const profile = stripComments(read('components/profile/ProfileScreenV2.tsx'));
+// S2-10b(2): the tab blocks live in panes/*.tsx now — scanned together (mechanism move).
+const profile = stripComments(
+  read('components/profile/ProfileScreenV2.tsx')
+  + read('components/profile/panes/PerformancePane.tsx')
+  + read('components/profile/panes/DevicesPane.tsx')
+  + read('components/profile/panes/AccountPane.tsx')
+  + read('components/profile/panes/DeveloperPane.tsx')
+);
 const en = JSON.parse(read('locales/en.json')) as {
   profile: { v2: Record<string, string> };
 };

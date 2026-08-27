@@ -26,8 +26,22 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8'));
+// S2-10b(2): the tab blocks live in panes/*.tsx now — shell + kit + panes
+// scanned together (mechanism move, every invariant intact).
+const SOURCE = (readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8') + readFileSync(join(__dirname, '..', 'profileKit.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'PerformancePane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'DevicesPane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'AccountPane.tsx'), 'utf8')
+  + readFileSync(join(__dirname, '..', 'panes', 'DeveloperPane.tsx'), 'utf8')
+);
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
+
+// S2-10b(2): the trailing-footer invariant below is about the SHELL's render
+// tail — panes contribute blocks, not the frame — so that one slice scopes to
+// the shell alone (a pane's inline IIFE would otherwise shift lastIndexOf).
+const SHELL_CODE = readFileSync(join(__dirname, '..', 'ProfileScreenV2.tsx'), 'utf8')
+  .replace(/\/\*[\s\S]*?\*\//g, ' ')
+  .replace(/\/\/.*$/gm, '');
 
 const LOCALES = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh', 'hi', 'ar'] as const;
 
@@ -46,13 +60,24 @@ function balancedDeclaration(name: string): string {
   throw new Error(`unbalanced parens in \`${name}\``);
 }
 
-/** tab id -> the block identifiers listed under it in `tabSections`. */
+/**
+ * tab id -> the block identifiers that render under it.
+ * S2-10b(2): `tabSections` wires each tab to a pane render function
+ * (`renderXSections(paneCtx)` in panes/<X>Pane.tsx) and each pane's
+ * `return [...]` lists its blocks — the map follows that chain, so it still
+ * fails if a tab loses its pane or a block is moved, duplicated, or dropped.
+ */
 function tabSectionsMap(): Record<string, string[]> {
   const start = CODE.indexOf('const tabSections: Record<ProfileTabId, React.ReactNode[]>');
   if (start === -1) throw new Error('ProfileScreenV2 no longer declares `tabSections`');
   const body = CODE.slice(start, CODE.indexOf('};', start));
   const map: Record<string, string[]> = {};
-  for (const [, id, list] of body.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {
+  for (const [, id, fn] of body.matchAll(/(\w+):\s*(render\w+Sections)\(paneCtx\)/g)) {
+    const fnStart = CODE.indexOf(`export function ${fn}(`);
+    if (fnStart === -1) throw new Error(`pane render function \`${fn}\` is not defined in the scanned panes`);
+    const retStart = CODE.indexOf('return [', fnStart);
+    if (retStart === -1) throw new Error(`\`${fn}\` no longer returns a block array`);
+    const list = CODE.slice(retStart + 'return ['.length, CODE.indexOf(']', retStart));
     map[id] = list.split(',').map((s) => s.trim()).filter(Boolean);
   }
   return map;
@@ -192,9 +217,9 @@ describe('ProfileScreenV2 — UI that was removed rather than restyled', () => {
     expect(balancedDeclaration('legalBlock')).toContain("t('profile.v2.patent_pending')");
     // Neither may reappear after the tab-content IIFE, which is what made them
     // the last thing a member read on the goals and devices tabs alike.
-    // `lastIndexOf`: the WHOOP snapshot branch inside the provider list is
-    // itself an inline IIFE, so the FIRST `})()}` is not the one we want.
-    const afterSections = CODE.slice(CODE.lastIndexOf('})()}'));
+    // `lastIndexOf` over the SHELL alone: the shell's last inline IIFE is the
+    // tab-content render (the WHOOP snapshot IIFE moved into DevicesPane).
+    const afterSections = SHELL_CODE.slice(SHELL_CODE.lastIndexOf('})()}'));
     expect(afterSections).not.toContain('<SignOutRow />');
     expect(afterSections).not.toContain("t('profile.v2.patent_pending')");
   });
