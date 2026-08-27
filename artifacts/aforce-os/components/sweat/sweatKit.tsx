@@ -72,7 +72,7 @@ import {
   useUnitPreferencesSlice,
   useUserSlice,
 } from '@/store/slices';
-import { deriveSweatLoss } from '@/services/biometricIntelligence';
+import { deriveSweatLoss, qualifySweatLossEstimate } from '@/services/biometricIntelligence';
 import {
   getCurrentCityClimate,
   getCurrentCityClimateSync,
@@ -95,7 +95,33 @@ import type { ProfileIdentity } from '@/utils/profileIdentity';
 export function SweatLossSnapshot() {
   const { t } = useTranslation();
   const user = useUserSlice();
+  const profileIdentity = useProfileIdentitySlice();
   const snap = React.useMemo(() => deriveSweatLoss(user), [user]);
+  // S2-14b — the S1-2 qualifier decides how this card may present itself:
+  // 'ok' -> LIVE, 'limited' -> EST., 'unavailable' -> honest needs-input
+  // state with no numbers. An unqualified value can never be labeled LIVE.
+  const qualification = React.useMemo(
+    () => qualifySweatLossEstimate(snap, profileIdentity.bodyWeightLbs),
+    [snap, profileIdentity.bodyWeightLbs],
+  );
+
+  if (qualification.status === 'unavailable') {
+    return (
+      <View style={[styles.snapshotCard, { borderColor: af.border }]}>
+        <View style={styles.snapshotHeaderRow}>
+          <Text style={styles.snapshotEyebrow}>{t('sweat.v2.snap_eyebrow_unqualified')}</Text>
+        </View>
+        <View
+          style={styles.snapshotHeroRow}
+          accessible
+          accessibilityLabel={t('sweat.v2.snap_unavailable_body')}
+        >
+          <Text style={styles.snapshotHero}>{'\u2014'}</Text>
+        </View>
+        <Text style={styles.snapshotHint}>{t('sweat.v2.snap_unavailable_body')}</Text>
+      </View>
+    );
+  }
 
   const accent =
     snap.efficiencyPct >= 100 ? af.green
@@ -108,8 +134,10 @@ export function SweatLossSnapshot() {
   return (
     <View style={[styles.snapshotCard, { borderColor: accent + '55' }]}>
       <View style={styles.snapshotHeaderRow}>
-        <Text style={[styles.snapshotEyebrow, { color: accent }]}>{t('sweat.v2.snap_eyebrow')}</Text>
-        {snap.confidence === 'low' ? (
+        <Text style={[styles.snapshotEyebrow, { color: accent }]}>
+          {qualification.status === 'ok' ? t('sweat.v2.snap_eyebrow') : t('sweat.v2.snap_eyebrow_unqualified')}
+        </Text>
+        {qualification.status !== 'ok' || snap.confidence === 'low' ? (
           <Text style={styles.snapshotConfidence}>{t('sweat.v2.snap_est')}</Text>
         ) : null}
       </View>
