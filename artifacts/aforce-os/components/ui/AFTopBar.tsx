@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Icon, type IconName } from '../Icon';
 import { af, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFTopBarAction {
   icon: IconName;
@@ -38,6 +39,7 @@ function IconButton({ icon, onPress, label }: AFTopBarAction) {
 }
 
 export function AFTopBar({ title, eyebrow, onBack, onClose, actions = [], testID }: AFTopBarProps) {
+  const eyebrowType = useAFEyebrowType();
   const trailing = actions.slice(0, 2);
   return (
     <View style={styles.bar} testID={testID}>
@@ -46,7 +48,7 @@ export function AFTopBar({ title, eyebrow, onBack, onClose, actions = [], testID
           <IconButton icon="chevron-left" onPress={onBack} label="Back" />
         )}
         <View style={styles.titleGroup}>
-          {eyebrow && <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>}
+          {eyebrow && <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>}
           {title && (
             /*
              * A11y fix (Wave-5 Phase-1 pass, Dynamic Type): the title was

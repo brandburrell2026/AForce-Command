@@ -5,6 +5,7 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { af, afType } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFSectionLabelProps {
   label: string;
@@ -13,9 +14,10 @@ export interface AFSectionLabelProps {
 }
 
 export function AFSectionLabel({ label, action, testID }: AFSectionLabelProps) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <View style={styles.row} testID={testID}>
-      <Text style={styles.label} accessibilityRole="header">
+      <Text style={[styles.label, eyebrowType]} accessibilityRole="header">
         {label.toUpperCase()}
       </Text>
       {action && (

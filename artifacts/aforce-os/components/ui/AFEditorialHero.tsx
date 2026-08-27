@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { af, afType, afLayout } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFEditorialHeroProps {
   source: ImageSourcePropType;
@@ -41,6 +42,7 @@ export function AFEditorialHero({
   style,
   testID,
 }: AFEditorialHeroProps) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <ImageBackground
       source={source}
@@ -53,7 +55,7 @@ export function AFEditorialHero({
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.safeZone}>
-        {eyebrow && <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>}
+        {eyebrow && <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>}
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
         {children && <View style={styles.cta}>{children}</View>}
