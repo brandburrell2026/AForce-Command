@@ -172,7 +172,7 @@ describe('circleService — empty start, empty on failure', () => {
     expect(circle.getSharedStatus('u_kai')).toBeUndefined();
   });
 
-  it('getUser returns undefined for an unreachable circle (FriendDetailScreen’s guard input)', async () => {
+  it('getUser returns undefined for an unreachable circle (the friend-detail guard contract)', async () => {
     api.getJson.mockRejectedValue(new Error('offline'));
     const circle = await freshCircle();
 
@@ -293,34 +293,6 @@ describe('the fallback cannot be restored by refilling a seed', () => {
   });
 });
 
-describe('CirclesScreen renders the three states differently', () => {
-  const SRC = readFileSync(
-    resolve(__dirname, '../..', 'screens/CirclesScreen.tsx'),
-    'utf8',
-  );
-  const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, ' ');
-
-  it('reads the service load state rather than inferring truth from list length alone', () => {
-    expect(CODE).toContain('getCircleLoadState');
-    expect(CODE).toMatch(/loadState\s*===\s*'unavailable'/);
-  });
-
-  it('renders AFErrorState variant="unavailable" with a retry, not an empty state', () => {
-    const block = CODE.slice(CODE.indexOf("loadState === 'unavailable'"));
-    expect(block).toMatch(/<AFErrorState/);
-    expect(block).toMatch(/variant="unavailable"/);
-    expect(block).toContain('retryCircleHydration');
-  });
-
-  it('uses the shared AFEmptyState for a genuinely empty circle', () => {
-    expect(CODE).toMatch(/<AFEmptyState/);
-    expect(CODE).toContain("import { AFEmptyState, AFErrorState, AFSkeleton } from '@/components/ui';");
-  });
-
-  it('never claims "no members" while the circle is still loading', () => {
-    const emptyIdx = CODE.indexOf('<AFEmptyState');
-    const loadingIdx = CODE.indexOf("loadState === 'loading'");
-    expect(loadingIdx).toBeGreaterThan(-1);
-    expect(loadingIdx).toBeLessThan(emptyIdx);
-  });
-});
+// (The island CirclesScreen was deleted in the /circles deletion PR — its
+// three-states render lock retired with it. The circleService/battleService/
+// seed blocks above test the SHARED survivors and stay.)

@@ -55,7 +55,9 @@ const NUMBER_WORDS: Record<string, number> = {
 /** Friendly handle → display name; voiceService maps to the actual route. */
 const SCREEN_KEYWORDS: Array<{ screen: VoiceScreenTarget; pattern: RegExp }> = [
   { screen: 'rewards',     pattern: /\b(rewards?|achievements?|badges?|trophies)\b/ },
-  { screen: 'circles',     pattern: /\b(circles?|squad|crew|friends?|teammates?)\b/ },
+  // The 'Circle' experience is the competition tab (CircleScreenV3); the
+  // deleted /circles island no longer exists, so these route there.
+  { screen: 'competition', pattern: /\b(circles?|squad|crew|friends?|teammates?)\b/ },
   { screen: 'territory',   pattern: /\b(territory|map|leader\s*board|leaderboard)\b/ },
   { screen: 'competition', pattern: /\b(competition|compete|contest|tournament)\b/ },
   { screen: 'share',       pattern: /\b(share(\s+(my\s+)?status)?|brag|post)\b/ },

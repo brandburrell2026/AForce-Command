@@ -81,7 +81,6 @@ const SCREEN_ROUTE: Record<VoiceScreenTarget, string> = {
   scan:         '/scan',
   cart:         '/cart',
   rewards:      '/achievements',
-  circles:      '/circles',
   share:        '/share',
   ring:         '/ring',
   competition:  '/competition',
@@ -96,7 +95,7 @@ const SCREEN_ROUTE: Record<VoiceScreenTarget, string> = {
 const SCREEN_LABEL: Record<VoiceScreenTarget, string> = {
   home: 'Home', profile: 'Profile', journal: 'Journal', store: 'Store',
   protocol: 'Protocol', scan: 'HydroScan',
-  cart: 'Cart', rewards: 'Rewards', circles: 'Circles', share: 'Share',
+  cart: 'Cart', rewards: 'Rewards', share: 'Share',
   ring: 'Ring', competition: 'Competition', territory: 'Territory',
   science: 'Science', sweat: 'Sweat', heat: 'Heat Risk', cruise: 'Cruise',
   subscription: 'Membership',
