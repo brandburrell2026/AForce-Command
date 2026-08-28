@@ -17,6 +17,18 @@ why, and how — written to be reviewable without reading code.
 > this pass is marked **⟦Draft — counsel review required⟧**. All determination
 > boxes below are intentionally left blank for Legal / Privacy.
 
+> **Close-out addendum — 2026-08-28 (post-counsel-review). ⟦Draft — counsel
+> review required⟧** O-1 and O-2 (§8) are now DECIDED and implemented in **PR A
+> ([#860](https://github.com/brandburrell2026/AForce-Command/pull/860), commit
+> `c81f22d6`)**: `disconnectCalendar()` clears prepared-marks, and sign-out
+> purges the signing-out user's scoped calendar keys. The no-egress /
+> no-provider-API invariants are now **test-enforced** by a standing guard
+> (`calendarSurfaceNoEgress.guard.test.ts`, PR A), so §7's certification moves
+> them from audit-verified to test-enforced. §3, §5, §6, §7 and §8 are updated
+> accordingly. Still **no signature or determination recorded**; the flag
+> remains **OFF**. PR A changed code; this close-out PR changes only this
+> document.
+
 ---
 
 ## 0. How to use this packet ⟦Draft — counsel review required⟧
@@ -33,6 +45,10 @@ why, and how — written to be reviewable without reading code.
    recorded determinations, and the dependent canonical documents are committed
    to `governance/`. Signing this packet does not itself change any runtime
    behaviour.
+
+*Close-out status (2026-08-28): O-1 and O-2 are implemented in PR A (#860); this
+packet's §3, §5, §6, §7 and §8 reflect that. Only **O-3** (SS-04 account
+export/deletion) remains open. The counsel action items in §2–§4 are unchanged.*
 
 ---
 
@@ -72,6 +88,12 @@ derived category is never transmitted (see §2c). The health-flavoured terms
 presently in the list are concentrated in the `recovery` category
 (`massage`, `sauna`, `recovery`, `physio`, `stretch`, `ice bath`, `sleep`).
 
+**Clarification.** The term `therapy` — cited illustratively in the original
+packet — is **not** in the shipped keyword list (verify against §2a.1). The
+health-adjacent terms actually present are `physio`, `ice bath`, and `sleep`
+(note for counsel: **sleep** data is routinely treated as health-related under
+consumer-health-data statutes).
+
 **Question.** Is the derived preparation category (e.g. `training`, `recovery`)
 a consumer-health-data inference under any of the following, and if so does the
 consumer-health-data-privacy disclosure inventory need a calendar-events entry
@@ -102,7 +124,11 @@ inference. Counsel elects one:
   governs, and (if any box is YES) the disclosure-inventory entry is required
   before activation.
 
-#### 2a.1 Keyword-list change control ⟦Draft — counsel review required⟧
+**Founder preference:** _[FOUNDER TO COMPLETE — e.g. "retain recovery category
+if defensible; if counsel determines CHD, prefer removing health terms over
+building the disclosure inventory for v1" — or the reverse.]_ (Guidance for
+counsel; does not decide the determination above — the checkboxes remain
+counsel's.)
 
 The classifier keyword list (`artifacts/aforce-os/services/momentClassification.ts`,
 `CATEGORY_KEYWORDS`) is placed under change control **referencing this
@@ -179,6 +205,12 @@ surface.** Full findings recorded in the PR description.
   the calendar → Moments inference. (Relates to the open **SS-04**
   export/deletion path.)
 
+**Status.** Pending founder verification of App Store Connect availability
+territories for `com.aforce.os` (ASC ID 6783984149). If availability includes
+EU/UK territories, either **restrict territories before activation** or **open
+the GDPR / UK-GDPR workstream**. (Both boxes above remain blank pending that
+verification.)
+
 ### 2e. COPPA / minor users ⟦Draft — counsel review required⟧
 
 **Question.** For users under the app's age floor, is there any COPPA
@@ -201,7 +233,7 @@ delta — confirm wording" question.*
 > content; the only things we keep, on your device, are your calendar
 > selections and a record of which moments you've prepared for. You can
 > disconnect at any time, which immediately stops all reading and deletes your
-> calendar preferences.
+> calendar preferences and prepared marks.
 
 **Contingency.** If determination **2a = YES** (consumer health data), this
 clause must be **expanded to meet the separate consumer-health-data disclosure
@@ -248,34 +280,49 @@ engineering items in §8, not papered over here.*
 > **Calendar.** Your calendar selections and prepared-moment marks are stored
 > **only on your device**. No calendar **event content** is stored by AForce, so
 > there is no event data to delete or export. Disconnecting the calendar
-> immediately removes your calendar preferences. A data export contains only
-> **internal identifiers** — your selected calendar ids and event-id prepared
-> marks — **not readable event content**.
+> immediately removes your calendar preferences and prepared marks. Calendar
+> data does not appear in account data exports, because AForce stores no
+> calendar data on its servers. When the on-device export path ships (SS-04),
+> it will include only **internal identifiers** — your selected calendar ids and
+> prepared-moment marks — **never readable event content**.
 
-**Audited today (read-only):**
+**Audited / implemented (this close-out):**
 - `disconnectCalendar()` removes the preferences key (`@aforce/calendarPrefs`)
   immediately — **verified**.
-- It does **not** clear prepared-marks (`@aforce/momentPrepared`) — **open item (§8)**.
-- Sign-out does **not** purge either key; `scopedStorage` **isolates** data per
-  user (`key:userId`) but does not delete on sign-out — **open item (§8)**.
+- `disconnectCalendar()` **now also clears** prepared-marks
+  (`@aforce/momentPrepared`) — **verified** (O-1, PR A `c81f22d6`).
+- Sign-out **now purges** both scoped calendar keys for the signing-out user;
+  a bystander user's keys survive — **verified** (O-2, PR A `c81f22d6`).
 - Account-wide local deletion is the unbuilt **SS-04** path (`forgetAnalytics`
-  today reaches only a server endpoint) — **open item (§8)**.
+  today reaches only a server endpoint) — **open item O-3 (§8)**.
 - Uninstalling the app removes all local calendar data — **verified** (standard
   OS behaviour).
 
-*(The founder-proposed sentence "…removed when you disconnect, sign out, or
-delete the app" is **not** accurate today for sign-out or for prepared-marks;
-per instruction these are flagged in §8 and not implemented in this PR.)*
+*(The earlier accuracy caveat is resolved: with O-1 and O-2 implemented in PR A,
+local calendar data is removed on **disconnect** (preferences + prepared marks)
+and on **sign-out** (both scoped keys), as well as on app deletion. Only
+account-wide export/deletion — **SS-04**, O-3 — remains to be built.)*
 
 ## 6. Apple App Store deliverables (blocking, pre-flag-flip) ⟦Draft — counsel review required⟧
 
 These must complete before the flag flips; tracked in §8's return path.
 
-1. **iOS calendar purpose string** — `NSCalendarsUsageDescription` justifying
-   preparation-only use. Reading events on iOS 17+ requires the **full-access**
-   calendar authorization (there is no read-only tier); request the minimum
-   access that permits reading and no more, with a purpose string scoped to
-   preparation.
+1. **iOS calendar purpose string — already declared; verified.** iOS 17+
+   requires `NSCalendarsFullAccessUsageDescription` (there is no read-only
+   access tier); the legacy `NSCalendarsUsageDescription` covers pre-iOS-17.
+   **Current build config (verified this close-out):** `app.json` configures the
+   `expo-calendar` (~15.0.8) plugin with a single `calendarPermission` string,
+   and the plugin's `withCalendar` maps it to **both**
+   `NSCalendarsFullAccessUsageDescription` **and** `NSCalendarsUsageDescription`
+   at prebuild — so the iOS 17+ key is already present, carrying the
+   preparation-scoped copy ("…Event titles and times only — never attendees,
+   notes, or attachments. You choose which calendars."). A matching
+   `remindersPermission` string is also declared, disclaiming Reminders use (the
+   module requires the entry; access is never requested). **No correction to the
+   key is needed** — confirm the copy at sign-off. *Aside (Android, non-iOS):*
+   the same plugin adds `READ_CALENDAR` **and** `WRITE_CALENDAR`; `WRITE_CALENDAR`
+   is unused by the read-only bridge — a least-privilege trim to consider on the
+   Android track (not iOS-blocking).
 2. **App Privacy "nutrition label"** — update the App Store privacy label to
    declare calendar data usage (purpose, linkage, tracking = none).
 3. **Guideline 5.1.1 alignment check** — confirm the purpose string, the App
@@ -291,22 +338,24 @@ These must complete before the flag flips; tracked in §8's return path.
 - Privacy — ☐ PENDING
 
 **Engineering certification (to accompany sign-off) ⟦Draft — counsel review required⟧.**
-The calendar invariants are enforced/verified as of commit **`d64f1319`** (the
-base of this branch):
-- **Test-enforced** — read-only scope (no write/create/delete, no reminders),
-  field minimization (no excluded fields), and no event-data persistence
-  (storage keys limited to `@aforce/calendarPrefs` and `@aforce/momentPrepared`):
-  `calendarBridge.scopes.test.ts`. Flag stays OFF / build-dark clamp:
-  `momentsLaunchFlip.test.ts`. Consent-revocation lifecycle:
-  `intelligenceEvalS18Calendar.test.ts`.
-- **Audit-verified this branch (read-only, recorded in the PR description)** —
-  no network egress and no telemetry carrying event-derived data across the
-  calendar/Moments surface (§2c); no direct Google/Microsoft calendar API calls
-  (§2b).
+The calendar invariants are **test-enforced** as of commit **`c81f22d6`** (PR A
+[#860](https://github.com/brandburrell2026/AForce-Command/pull/860)):
+- Read-only scope (no write/create/delete, no reminders), field minimization
+  (no excluded fields), and no event-data persistence (storage keys limited to
+  `@aforce/calendarPrefs` and `@aforce/momentPrepared`):
+  `calendarBridge.scopes.test.ts`.
+- Flag stays OFF / build-dark clamp: `momentsLaunchFlip.test.ts`.
+- Consent-revocation lifecycle: `intelligenceEvalS18Calendar.test.ts`.
+- **No telemetry carrying event-derived data, no network egress, and no direct
+  Google/Microsoft provider-API calls** across the calendar/Moments surface
+  (§2b, §2c) — now a standing static-scan guard,
+  `calendarSurfaceNoEgress.guard.test.ts` (PR A). *(Audit-verified in the prior
+  revision; converted to a test in PR A so it fails CI on regression.)*
+- Local deletion — disconnect clears both keys; sign-out purges the signing-out
+  user's scoped keys: `calendarLocalDeletion.test.ts` (PR A; O-1/O-2).
 
-Signatures are given in reliance on this certification. *(Engineering to
-re-confirm the suite green at the sign-off commit; hash updated then if it has
-advanced.)*
+Full suite green at `c81f22d6` (7887 passed). Signatures are given in reliance
+on this certification.
 
 ## 8. Engineering return path (after sign-off — for reference) ⟦Draft — counsel review required⟧
 
@@ -317,29 +366,36 @@ Happens **only once §2/§4 determinations are recorded and §7 is signed**:
 2. Engineering adds the approved matrix rows, sets R0/R2 + the ruled R7 window in
    `DR-005`, and lands the approved privacy-policy (§3) and deletion/export (§5)
    wording — **as approved, nothing more**.
-3. Complete the **§6 Apple deliverables** (purpose string, App Privacy label,
-   5.1.1 alignment) — blocking, pre-flag-flip.
+3. Complete the remaining **§6 Apple deliverables** (App Privacy label + 5.1.1
+   alignment; the calendar purpose strings are already declared — §6) —
+   blocking, pre-flag-flip.
 4. Flip `moments_calendar_enabled → true`; rewrite `momentsLaunchFlip.test.ts` to
    pin the approved ON state, referencing the committed sign-off record.
 5. Run the full consent / withdrawal / privacy / notification / regression
    suites; verify the #857 Home doorway + connect flow end-to-end; return a PR +
    evidence for founder review **before any deploy**. No new data or permissions.
 
-**Open engineering items (surfaced by the §5 audit — do NOT implement in this PR):**
-- **O-1** Prepared-marks (`@aforce/momentPrepared`) are not cleared by
-  `disconnectCalendar()`; decide whether disconnect should also drop them.
-- **O-2** Sign-out does not purge scoped calendar data (it is scope-isolated,
-  not deleted); decide the intended sign-out behaviour.
-- **O-3** Account-wide local deletion of scoped calendar data is part of the
-  unbuilt **SS-04** GDPR/CCPA export+deletion path; ensure calendar keys are in
-  scope when SS-04 is built.
+**Engineering items:**
+- **O-1 — DECIDED, implemented in PR A `c81f22d6`.** `disconnectCalendar()` now
+  also clears prepared-marks (`@aforce/momentPrepared`).
+- **O-2 — DECIDED, implemented in PR A `c81f22d6`.** Sign-out purges the
+  signing-out user's scoped calendar keys (`@aforce/calendarPrefs`,
+  `@aforce/momentPrepared`); a bystander user's keys survive.
+- **O-3 — OPEN.** Account-wide local deletion / export of scoped calendar data
+  is part of the unbuilt **SS-04** GDPR/CCPA export+deletion path; ensure
+  calendar keys are in scope when SS-04 is built. (Also gates §2d if EU/UK.)
+- **Convert no-egress audit → standing test — DONE (PR A).** The
+  no-egress / no-provider-API invariants are now enforced by
+  `calendarSurfaceNoEgress.guard.test.ts` (see §7), not a one-off audit.
 
 ## 9. Standing state
 
 **Nothing in this packet is approved, and nothing about runtime behaviour has
 changed.** `moments_calendar_enabled` remains **OFF**; no signature or
-determination has been recorded; no product code was modified; and this is a
-**PR only — not a merge and not a deploy**. Calendar remains a strategic AForce
-capability, held solely on this documented Legal + Privacy gate. Activation
-follows only after the signed artifacts and dependent canonical documents are
-committed to `governance/`.
+determination has been recorded. This close-out PR changes **only this document**
+(no product code); the O-1/O-2 code lives in PR A
+([#860](https://github.com/brandburrell2026/AForce-Command/pull/860), `c81f22d6`),
+which is likewise **PR only — not a merge and not a deploy**. Calendar remains a
+strategic AForce capability, held solely on this documented Legal + Privacy gate.
+Activation follows only after the signed artifacts and dependent canonical
+documents are committed to `governance/`.
