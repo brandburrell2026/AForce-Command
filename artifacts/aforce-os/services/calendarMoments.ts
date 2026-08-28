@@ -62,6 +62,20 @@ export async function markCalendarMomentPrepared(calendarEventId: string): Promi
   notify();
 }
 
+/**
+ * O-1: forget the persisted prepared-marks. They are event-id-keyed and
+ * useless once the calendar is disconnected; `disconnectCalendar()` calls this
+ * so a disconnect leaves no calendar-derived record on disk. The in-memory set
+ * is cleared by the disconnect refresh (prefs.connected=false → empty set).
+ */
+export async function forgetPreparedMarks(): Promise<void> {
+  try {
+    await scopedStorage.removeItem(PREPARED_KEY);
+  } catch {
+    // best-effort
+  }
+}
+
 export function getCalendarMoments(): Moment[] {
   return calendarMoments;
 }

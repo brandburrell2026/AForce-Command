@@ -174,10 +174,22 @@ export async function setCalendarPrefs(prefs: CalendarPrefs): Promise<void> {
   }
 }
 
-/** Disconnect = forget prefs. (No event data exists to delete — in-memory only.) */
+/**
+ * Disconnect = forget prefs AND the prepared-marks (O-1). No event data ever
+ * exists to delete (reads are in-memory only), but the prepared-marks record
+ * is event-id-keyed and useless after disconnect; clearing it leaves no
+ * calendar-derived record on disk. That key is owned by calendarMoments; a
+ * dynamic import avoids a static cycle (calendarMoments imports this module).
+ */
 export async function disconnectCalendar(): Promise<void> {
   try {
     await scopedStorage.removeItem(PREFS_KEY);
+  } catch {
+    // best-effort
+  }
+  try {
+    const { forgetPreparedMarks } = await import('./calendarMoments');
+    await forgetPreparedMarks();
   } catch {
     // best-effort
   }
