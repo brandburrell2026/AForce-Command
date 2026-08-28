@@ -34,6 +34,7 @@ import { fireMoment } from '@/services/haptics';
 import { Icon } from '@/components/Icon';
 
 import { GradientBackground } from '@/components/GradientBackground';
+import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { ScanResultCard } from '@/components/ScanResultCard';
 import { ScanAICoachCard } from '@/components/ScanAICoachCard';
 import { ProductFitCard } from '@/components/ProductFitCard';
@@ -83,7 +84,7 @@ export function HydrationScanScreenV2() {
   const insets = useSafeAreaInsets();
   const tabClearance = useTabBarClearance();
   const reducedMotion = useReducedMotion();
-  const { state, logIntake } = useAppStore();
+  const { state, logIntake, dismissSuccess } = useAppStore();
   const { t } = useTranslation();
   // HydroScan 2.0™ — flag-gated profile-aware layer (OFF in prod, ON in demo).
   const hydroScan2 = state.featureFlags.hydro_scan_2_enabled;
@@ -970,6 +971,22 @@ export function HydrationScanScreenV2() {
         onCancel={() => setSmartCaptureOpen(false)}
         onLogCorrection={onSmartCaptureLog}
       />
+
+      {/* S2-1 STRAND-PROOF (scan closure, founder-authorized). This screen's
+          five intake writes are NON-silent — each raises `showCycleSuccess` —
+          but the screen mounted no CycleSuccessOverlay, so the confirmation
+          stranded: the §11 signature moment auto-backs ~800ms after a log,
+          and wherever back() landed that didn't mount the overlay left the
+          state raised, blocking Home/Hydration's pickers until a stale
+          out-of-context overlay finally rendered. Same contract as Home/
+          Hydration/Cruise now: the success state a scan log raises renders
+          and is dismissible HERE (and stays continuous across the auto-back
+          when the destination mounts the same overlay). The writes stay
+          non-silent on purpose — silent also suppresses the ritual_started
+          analytics emit (store/app/actions.ts). */}
+      {state.showCycleSuccess && state.lastCycleResult && (
+        <CycleSuccessOverlay result={state.lastCycleResult} onDismiss={dismissSuccess} />
+      )}
     </View>
   );
 }

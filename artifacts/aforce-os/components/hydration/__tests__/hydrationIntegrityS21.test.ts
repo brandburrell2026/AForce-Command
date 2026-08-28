@@ -90,12 +90,29 @@ describe("S2-1.3 — a success state cannot strand Home's CTA", () => {
     );
   });
 
+  it('Scan mounts the overlay for the state its five writes raise (strand-proof closure)', () => {
+    // The scan closure (founder-authorized): all five scan writes are
+    // NON-silent and variable-first-arg — the original sweep regex below
+    // only matched string-literal first args, so they escaped it, mounted
+    // no overlay, and stranded showCycleSuccess across the §11 auto-back.
+    const scan = stripComments(read('components/scan/HydrationScanScreenV2.tsx'));
+    expect(scan).toMatch(
+      /state\.showCycleSuccess\s*&&\s*state\.lastCycleResult\s*&&[\s\S]{0,200}?<CycleSuccessOverlay[\s\S]{0,200}?onDismiss=\{dismissSuccess\}/,
+    );
+  });
+
   it('every REACHABLE non-silent intake writer in components/ mounts CycleSuccessOverlay', () => {
     // Walk all component sources; any file whose CODE calls logIntake( without
     // passing `silent` in that call must render the overlay locally — the
     // structural guarantee that no screen can raise a confirmation it cannot
-    // show. (Silent writers — voice, scan auto-log, etc. — are exempt by the
-    // reducer's own contract: silent never sets showCycleSuccess.)
+    // show. (Genuinely silent writers — e.g. app/recovery-coach.tsx's
+    // silent:true log — are exempt by the reducer's own contract: silent
+    // never sets showCycleSuccess. NOTE this comment previously listed
+    // "scan auto-log" as a silent exemplar — that premise was WRONG: scan's
+    // five writes are non-silent, and the sweep's old first-arg regex,
+    // `logIntake\((?:'|")`, matched only string-literal first args, so
+    // scan's variable-first-arg calls were invisible to it. The sweep now
+    // matches ANY first arg.)
     //
     // Orphan exemption, proven in-test: a writer imported by NO production
     // module can never render, so it can never strand the state (today:
@@ -127,7 +144,10 @@ describe("S2-1.3 — a success state cannot strand Home's CTA", () => {
 
     const offenders = files
       .filter((f) => {
-        const calls = [...f.code.matchAll(/logIntake\((?:'|")[\s\S]{0,200}?\)/g)];
+        // ANY first arg — string literal OR variable. The original
+        // `logIntake\((?:'|")` shape silently exempted every
+        // variable-first-arg writer (the scan gap this closure fixed).
+        const calls = [...f.code.matchAll(/logIntake\([\s\S]{0,300}?\)/g)];
         if (calls.length === 0) return false;
         const hasNonSilent = calls.some((m) => !/silent/.test(m[0]));
         return hasNonSilent && !f.code.includes('<CycleSuccessOverlay') && isImported(f.rel);
