@@ -59,6 +59,7 @@ import {
   type CommandConfirmationCommandEvent,
   type PerformanceAgeSnapshotCommandEvent,
   type ContextSnapshotCommandEvent,
+  type ExecutionEventCommandEvent,
 } from './commandEvents';
 
 // ─── Windows ────────────────────────────────────────────────────────────────────
@@ -303,6 +304,38 @@ export function collectPerformanceAgeSnapshotEvents(
 
 /** Args accepted by {@link collectConfirmationCommandEvents}. */
 export type ConfirmationSource = Parameters<typeof confirmationToCommandEvent>[0];
+
+/**
+ * Build a Decision Guard result row (directive §11: the ledger records a
+ * "Decision Guard result" per command). Uses the reserved generic
+ * `execution_event` kind so no schema change is needed; the subtype keeps
+ * it invisible to every kind-filtered reader (adaptive learning, execution
+ * memory, response timeline) — advisory audit only, never selection input.
+ * The id encodes the evaluation instant (first-wins merge would otherwise
+ * freeze the first verdict forever).
+ */
+export function decisionGuardResultToCommandEvent(args: {
+  result: { verdict: 'approved' } | { verdict: 'blocked'; reason: string };
+  commandId?: string;
+  atMs: number;
+}): ExecutionEventCommandEvent | null {
+  if (!isFiniteNumber(args.atMs) || args.atMs <= 0) return null;
+  const label =
+    args.result.verdict === 'approved' ? 'approved' : `blocked:${args.result.reason}`;
+  const id = isNonEmptyString(args.commandId)
+    ? `execution_event:${args.atMs}:decision_guard:${args.commandId}`
+    : `execution_event:${args.atMs}:decision_guard`;
+  return {
+    id,
+    kind: 'execution_event',
+    occurredAtMs: args.atMs,
+    localDayIndex: utcDayIndex(args.atMs),
+    source: 'decisionGuard',
+    subtype: 'decision_guard_result',
+    label,
+    ...(isNonEmptyString(args.commandId) ? { commandId: args.commandId } : {}),
+  };
+}
 
 export function collectConfirmationCommandEvents(
   confirmations: readonly ConfirmationSource[] | undefined | null,
