@@ -274,8 +274,12 @@ describe('no approved functionality became unreachable', () => {
     });
   }
 
-  it('Scan keeps its Home + Hydration entries (it was never launcher-only)', () => {
-    expect(readCode('components', 'home', 'HomeDashboard.tsx')).toContain("router.push('/scan')");
+  it('Scan keeps its member entry (it was never launcher-only)', () => {
+    // CONSCIOUS REPIN (orphan-tree retirement, founder-authorized): the
+    // previous pin read HomeDashboard.tsx — a legacy-Home ORPHAN (zero
+    // importers) whose "entry" no member could reach; it is deleted. The
+    // live member entry to Scan is the Hydration screen's Scan-a-drink
+    // action (Scan is also a routable tab).
     expect(readCode('components', 'hydration', 'HydrationScreenV2.tsx'))
       .toContain("router.push('/scan')");
   });

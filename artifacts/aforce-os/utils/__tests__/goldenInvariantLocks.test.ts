@@ -327,7 +327,8 @@ describe('INVARIANT 14 — sample social data is confined and disclosed', () => 
     'screens/GuardianHeatScreen.tsx', // mocks/heatData roster + alert feed
     'screens/HeatRiskScreen.tsx', // mocks/heatData sample inputs
     'services/competitionEngine.ts', // the ranked cohort itself
-    'services/videoEngine.ts', // mocks/videoLibrary
+    // (services/videoEngine.ts retired with the legacy-Home orphan tree —
+    // mocks/videoLibrary died with it.)
   ];
 
   it('exactly these production modules import from mocks/', () => {

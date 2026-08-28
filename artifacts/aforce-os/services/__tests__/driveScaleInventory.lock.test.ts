@@ -101,11 +101,9 @@ const INVENTORY: Record<string, { cls: Classification; why: string }> = {
     cls: 'comment-only',
     why: 'the regex hit is prose (“setting state.sweatRate if desired”); engine inputs are explicit args',
   },
-  // ── Known-defective orphan (documented, NOT blessed) ──────────────────────
-  'services/videoEngine.ts': {
-    cls: 'defective-orphan',
-    why: '0–1 thresholds on the 0–10 fields; ZERO importers (legacy-Home orphan tree); slated for orphan retirement, not fixed here to keep this PR to live/authorized surfaces',
-  },
+  // (services/videoEngine.ts — the one 'defective-orphan' entry — was retired
+  // with the legacy-Home orphan tree, founder-authorized; its wrong-scale
+  // defect died with it.)
 };
 
 function walk(dir: string, out: string[] = []): string[] {

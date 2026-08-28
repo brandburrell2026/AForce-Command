@@ -23,9 +23,9 @@
  *     focus inside the overlay instead of letting a swipe gesture escape to
  *     the screen underneath.
  *
- * `BiometricDetailSheet` intentionally keeps rendering a plain RN `<Modal>`
- * — it already carries its own, more specific accessibility semantics from
- * #513 and re-wrapping it here would be a regression risk for no gain.
+ * (`BiometricDetailSheet` — since retired with the legacy-Home orphan tree —
+ * intentionally kept a plain RN `<Modal>` for its own #513 accessibility
+ * semantics; the audit list above is a historical record.)
  */
 import React from 'react';
 import { Modal, View, StyleSheet, type ModalProps } from 'react-native';

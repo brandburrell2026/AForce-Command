@@ -9,7 +9,8 @@
  * isolated child ticking on its own clock. Mirrors this repo's established
  * pattern for exactly this class of problem: `components/LocalTimeBar.tsx`
  * (a small ticking text label inside an otherwise static screen, driven by
- * its own local `setInterval`).
+ * its own local `setInterval`; that component has since been retired with
+ * the orphan tree — the pattern lives on here).
  *
  * Uses `useAppStateGatedInterval` (not a raw `setInterval`) — the same
  * house primitive `useAppStore.tsx` uses for its own periodic timers — so

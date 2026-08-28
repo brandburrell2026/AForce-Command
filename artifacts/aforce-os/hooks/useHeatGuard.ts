@@ -17,10 +17,12 @@
  * header for the full contract.
  *
  * REACHABILITY NOTE (2026-08-28): no production surface currently imports
- * this hook (its former host, the legacy Home SignalsZone, is orphaned).
- * It is corrected rather than deleted because the founder ruled the
- * fabricated-vitals behavior unacceptable wherever it exists; orphan-tree
- * retirement is a separately scoped lane.
+ * this hook (its former host, the legacy Home SignalsZone, was retired
+ * with the orphan tree).
+ * It was corrected (not deleted) because the founder ruled the
+ * fabricated-vitals behavior unacceptable wherever it exists, and HELD
+ * OUT of the orphan-tree retirement: whether this freshly-corrected
+ * capability seam is retired or re-hosted is a founder call.
  */
 
 import React from 'react';

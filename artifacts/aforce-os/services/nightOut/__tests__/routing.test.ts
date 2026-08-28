@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { isNightOutEnabled, nightOutInternalPreviewContext } from '../access';
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '@/featureFlags/flags';
@@ -85,20 +85,25 @@ describe('NO-b — route wiring (gated entry, safe redirects, no loops)', () => 
 });
 
 describe('NO-b — Home entry points are authorization-gated (no unauthorized entry)', () => {
-  it('the Home pip renders null and is gated behind isNightOutEnabled', () => {
-    const pip = read('components', 'home', 'SocialModePip.tsx');
-    expect(pip).toMatch(/isNightOutEnabled/);
-    expect(pip).toMatch(/return null/);
-    // residue removed
-    expect(pip).not.toMatch(/Social Mode active/);
-    expect(pip).not.toMatch(/Activate Social Mode/);
+  // CONSCIOUS REPIN (orphan-tree retirement, founder-authorized): the two
+  // gated Home entry surfaces this block pinned — SocialModePip and
+  // SignalsZone's banner/tile — were legacy-Home ORPHANS (zero importers;
+  // no member could reach them) and are deleted. The invariant is now
+  // satisfied structurally: the entry surfaces do not exist, and this
+  // negative guard keeps them retired (the phantom-tab idiom). Any future
+  // Night Out Home entry must reintroduce a file here and re-pin its gate.
+  it('the retired Home entry surfaces stay retired', () => {
+    expect(existsSync(join(APP, 'components', 'home', 'SocialModePip.tsx'))).toBe(false);
+    expect(existsSync(join(APP, 'components', 'home', 'SignalsZone.tsx'))).toBe(false);
   });
 
-  it('the Home banner + entry tile are gated behind nightOutAuthorized', () => {
-    const zone = read('components', 'home', 'SignalsZone.tsx');
-    expect(zone).toMatch(/isNightOutEnabled/);
-    expect(zone).toMatch(/nightOutAuthorized && social/);
-    expect(zone).toMatch(/\{nightOutAuthorized && \(/);
+  it('no surviving Home component routes into Night Out', () => {
+    const dir = join(APP, 'components', 'home');
+    for (const name of readdirSync(dir)) {
+      if (!/\.tsx?$/.test(name) || name.includes('.test.')) continue;
+      const src = readFileSync(join(dir, name), 'utf8');
+      expect(src, name).not.toMatch(/router\.push\('\/social-v2'\)/);
+    }
   });
 });
 

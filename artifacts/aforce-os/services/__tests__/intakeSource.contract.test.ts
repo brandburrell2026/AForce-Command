@@ -76,8 +76,6 @@ describe('intake provenance contract', () => {
 describe('every intake entry point names its surface', () => {
   const SITES: ReadonlyArray<{ file: string; expected: string; what: string }> = [
     { file: 'components/home/HomeScreenV2.tsx', expected: 'home', what: 'Home Log Water' },
-    { file: 'components/home/SmartQuickActions.tsx', expected: 'home', what: 'Home quick actions' },
-    { file: 'components/home/CommandStack.tsx', expected: 'protocol', what: 'Command stack' },
     { file: 'components/hydration/HydrationScreenV2.tsx', expected: 'hydration', what: 'Hydration' },
     { file: 'components/scan/HydrationScanScreenV2.tsx', expected: 'scan', what: 'Scan' },
     { file: 'app/recovery-coach.tsx', expected: 'recovery', what: 'Recovery Coach' },
@@ -85,6 +83,10 @@ describe('every intake entry point names its surface', () => {
     // S2-13: LogIntakeRow (source 'manual') was a proven orphan — mounted
     // nowhere since Build 61 — and is deleted; the live member-initiated
     // entries are the Home/Hydration picker rows above.
+    // Orphan-tree retirement (founder-authorized): SmartQuickActions
+    // (source 'home') and CommandStack (source 'protocol') were legacy-Home
+    // orphans — zero importers — and are deleted; their rows retire with
+    // their subjects, same protocol as LogIntakeRow above.
   ];
 
   it.each(SITES)('$what declares source: $expected', ({ file, expected, what }) => {

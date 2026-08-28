@@ -122,7 +122,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Section 58 — Command Confidence Display™: the badge on the NEW surfaces.
   // LIVE (founder release 2026-07-18): shows the (display-only, non-tappable)
   // Command Confidence badge on the Recovery Window / Social banner
-  // (SocialModeBanner) and Cruise (CruiseModeScreen). HydroScan Fit's badge is
+  // (the since-retired SocialModeBanner) and Cruise (CruiseModeScreen). HydroScan Fit's badge is
   // already lit + tappable via spec_confidenceDetailSheet; this flag is redundant
   // there (no change). Today's Command shows confidence unflagged.
   spec_commandConfidenceDisplay: true,
