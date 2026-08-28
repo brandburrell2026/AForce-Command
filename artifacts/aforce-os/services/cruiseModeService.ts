@@ -226,13 +226,22 @@ export function evaluateCruise(s: CruiseSession): CruiseEvaluation {
   else if (riskScore >= 18) riskLevel = "MODERATE";
   else riskLevel = "LOW";
 
+  // COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized):
+  // these strings previously issued their own doses ("Drink 8–12 ounces")
+  // and their own recheck clock ("Recheck in 20 min") — a parallel
+  // recommendation engine beside the canonical command. Cruise keeps its
+  // scoring/risk CONTEXT (above) as presentation input; the copy now
+  // speaks in the product's own ritual unit (a water cycle — the amount
+  // is always the member's picker choice) and defers pace/amount to the
+  // member's current command. No dose numbers or clock clauses may
+  // return (services/__tests__/commandAuthorityContainment.test.ts).
   let recommendation: string;
   if (status === "LOCKED_IN") {
-    recommendation = "Ready for your next experience. Sip water every 45 min to maintain.";
+    recommendation = "Ready for your next experience. Your current command stays the guide.";
   } else if (status === "BALANCED") {
-    recommendation = "Ready for your next experience. Drink 8–12 ounces of water and complete one water cycle.";
+    recommendation = "Ready for your next experience. Complete one water cycle.";
   } else if (status === "RECOVERING") {
-    recommendation = "Recovery available. Drink 12–16 ounces of water now. Recheck in 20 min.";
+    recommendation = "Recovery available. Complete a water cycle now — your current command sets the pace.";
   } else {
     recommendation = "Reset recommended. Complete a water cycle and take 5 minutes of seated cool-down.";
   }

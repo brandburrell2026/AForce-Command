@@ -128,7 +128,7 @@ export type HeatProtocolId =
 
 export interface CoolingAction {
   id: string;
-  /** Short verb-led directive: "Move to shade", "Drink 16 oz", etc. */
+  /** Short verb-led directive: "Move to shade", "Hydrate now", etc. */
   label: string;
   /** Optional supporting detail. */
   detail?: string;

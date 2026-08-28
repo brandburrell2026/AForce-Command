@@ -341,18 +341,34 @@ export function evaluateHeatRisk(
   };
 }
 
+/**
+ * COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized).
+ * These strings previously issued their own hydration doses ("Drink 12
+ * to 16 ounces now") and their own recheck clocks ("Recheck in 20
+ * minutes") — a second command authority beside the canonical
+ * RecoveryCommand, on safety-framed copy. The heat engine CALCULATES
+ * (score, band, trend — unchanged above); its band copy now carries
+ * heat-SAFETY behavior only (stop, shade, cooling, escalation) and
+ * defers every hydration action to the member's current command, which
+ * already reflects heat via the engine inputs. The band's
+ * `recheckMinutes` (HEAT_BANDS config) remains the heat-risk
+ * RE-ASSESSMENT cadence — the same ladder useHeatGuard runs — which is
+ * this surface's own function; what was removed is the hydration-command
+ * clock embedded in copy. No dose numbers or product pushes may return
+ * here (services/__tests__/commandAuthorityContainment.test.ts).
+ */
 function commandForBand(band: HeatRiskBand): string {
   switch (band) {
     case "STABLE":
-      return "Hydrate now and stay on cadence. Heat load is under control.";
+      return "Heat load is under control. Your current command stays the guide.";
     case "ELEVATED":
-      return "Drink 12 to 16 ounces now. Heat stress is building. Recheck in 20 minutes.";
+      return "Heat stress is building. Act on your current command now.";
     case "WARNING":
-      return "Stop and hydrate now. Cooling protocol starts immediately. Recheck in 10 minutes.";
+      return "Stop and cool down now. Act on your current command.";
     case "HIGH_RISK":
-      return "Stop activity now. Move to shade or cooling. Drink fluids immediately. Recheck in 5 minutes.";
+      return "Stop activity now. Move to shade or cooling. Act on your current command immediately.";
     case "CRITICAL":
-      return "Critical heat risk rising. Stop activity now. Begin rapid cooling and hydration immediately. Seek on-site medical support if warning signs escalate.";
+      return "Critical heat risk rising. Stop activity now. Begin rapid cooling immediately and act on your current command. Seek on-site medical support if warning signs escalate.";
   }
 }
 
