@@ -1,40 +1,22 @@
 /**
- * Sleep Mode launch flip — flag-state lock (go-live 2026-08-03).
+ * Sleep Mode — surviving flag lock after the flag-key prune (2026-08-27).
  *
- * `spec_sleep_v2` selects the Sleep surface in `screens/SleepModeScreen.tsx`:
- * true → redesigned SleepModeView path, false → SleepModeScreenLegacy.
- * These tests lock the launched production default, prove an explicit
- * override still selects the legacy path (it remains in the binary until the
- * post-soak cleanup PR), and pin the independent public kill switch.
+ * `spec_sleep_v2` was RETIRED with the fifteen-twin retirement (#842):
+ * SleepModeScreenLegacy is deleted and `screens/SleepModeScreen.tsx`
+ * renders the redesigned SleepModeView unconditionally — the flag no
+ * longer selects anything, so its three launch-flip assertions retired
+ * with their subject. The independent public kill switch survives and is
+ * pinned here.
  */
 
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '../flags';
-import type { FeatureFlags } from '../../types';
+import { DEFAULT_FLAGS } from '../flags';
 
-describe('sleep launch flip — spec_sleep_v2', () => {
-  it('the redesign is the DEFAULT production path (flag ON in DEFAULT_FLAGS)', () => {
-    expect(DEFAULT_FLAGS.spec_sleep_v2).toBe(true);
-  });
-
-  it('an explicit override still works — forcing false selects the legacy path', () => {
-    // Same shape the store's flag state carries; the container gate reads
-    // exactly this boolean (`flags.spec_sleep_v2 ? redesign : legacy`).
-    const forcedLegacy: FeatureFlags = { ...DEFAULT_FLAGS, spec_sleep_v2: false };
-    expect(forcedLegacy.spec_sleep_v2).toBe(false);
-    // And re-enabling flips back — the override mechanism is symmetric.
-    const reEnabled: FeatureFlags = { ...forcedLegacy, spec_sleep_v2: true };
-    expect(reEnabled.spec_sleep_v2).toBe(true);
-  });
-
-  it('demo/preview flag set is unchanged by the launch flip', () => {
-    expect(DEMO_ALL_ON_FLAGS.spec_sleep_v2).toBe(true);
-  });
-
+describe('sleep mode — surviving kill switch', () => {
   it('the public kill switch stays independent and ON at launch', () => {
     // sleep_mode_enabled gates the surface's internal-preview banner (H1);
-    // launching the redesign must not have touched it.
+    // the redesign launch and the spec_sleep_v2 prune both left it untouched.
     expect(DEFAULT_FLAGS.sleep_mode_enabled).toBe(true);
   });
 });

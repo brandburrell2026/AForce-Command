@@ -98,7 +98,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Sleep Mode premium redesign — LAUNCHED (go-live flip 2026-08-03, PR #455
   // hardening complete). Legacy screen remains reachable by forcing this
   // flag false; it is deleted in a separate post-soak cleanup PR.
-  spec_sleep_v2: true,
   spec_cruise: false,
   spec_coachV2: true,
   spec_premium: false,
@@ -179,7 +178,6 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // zones are unreachable while this is true — see HomeScreenV2's header).
   // RC-1 r3 note: the Weekly-recap doc comment that previously sat here
   // described a different flag and was re-homed above spec_weekly_report.
-  spec_home: true,
   // Elite Home (E1) — presentation-only elevation of HomeScreenV2. OFF in the
   // production binary, ON in DEMO_ALL_ON. Score-Protection: band-tint / reveal /
   // count-up / ordering only; never reads into or mutates score, command,
@@ -271,24 +269,12 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // fail-safe + §64-guarded and never touches command/dose/timing/evidence.
   elite_voice_coach_enabled: false,
   // ── Phase 3 redesign — one flag per redesigned screen, default OFF until go-live ──
-  spec_community: true,
   spec_store: true,
-  spec_share: true,
-  spec_urine: true,
-  spec_scan: true,
-  spec_sweat: true,
-  spec_profile: true,
-  spec_onboarding: true,
   spec_cart: true,
   spec_subscription: true,
   spec_manageSub: true,
-  spec_leaderboard: true,
-  spec_achievements: true,
-  spec_notifScreen: true,
-  spec_science: true,
   spec_legal: true,
   spec_sensors: true,
-  spec_auth: true,
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). OFF in
   // prod AND demo: shadow-compare only until contribution-level parity is
@@ -464,7 +450,6 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // (env-driven DEMO_MODE) via `services/nightOut/access.ts`.
   night_out_enabled: false,
   spec_sleep: true,
-  spec_sleep_v2: true,
   spec_cruise: true,
   spec_coachV2: true,
   spec_premium: true,
@@ -500,7 +485,6 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   hydro_scan_2_enabled: true,
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
-  spec_home: true,
   elite_home_experience_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
@@ -516,24 +500,12 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   elite_motion_enabled: true,
   elite_voice_coach_enabled: true,
   // ── Phase 3 redesign ──
-  spec_community: true,
   spec_store: true,
-  spec_share: true,
-  spec_urine: true,
-  spec_scan: true,
-  spec_sweat: true,
-  spec_profile: true,
-  spec_onboarding: true,
   spec_cart: true,
   spec_subscription: true,
   spec_manageSub: true,
-  spec_leaderboard: true,
-  spec_achievements: true,
-  spec_notifScreen: true,
-  spec_science: true,
   spec_legal: true,
   spec_sensors: true,
-  spec_auth: true,
   // Stays OFF even in the demo profile: enabling a "score from ledger" path
   // before contribution-level parity is proven could misrepresent the score.
   scoreFromLedgerHybrid: false,

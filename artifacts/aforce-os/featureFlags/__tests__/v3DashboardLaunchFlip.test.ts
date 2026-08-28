@@ -47,10 +47,10 @@ describe('V3 dashboard launch flip — the five founder-comp screens', () => {
     }
   });
 
-  it('the pre-V3 fallbacks underneath the three-way switches stay ON', () => {
-    // If a V3 flag is ever pulled, these keep the modern V2 surfaces (not
-    // the legacy screens) as the fallback path.
-    expect(DEFAULT_FLAGS.spec_community).toBe(true);
+  it('the pre-V3 weekly-report fallback underneath the switch stays ON', () => {
+    // If a V3 flag is ever pulled, the modern V2 surface is the fallback.
+    // (spec_community was retired in the flag-key prune — the competition
+    // route now falls back to CompetitionScreenV2 unconditionally, no gate.)
     expect(DEFAULT_FLAGS.spec_weekly_report).toBe(true);
   });
 });

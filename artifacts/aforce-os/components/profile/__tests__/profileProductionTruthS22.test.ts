@@ -48,9 +48,14 @@ describe('S2-2 — the live Profile renders no mock fixture data', () => {
     expect(profile).not.toContain('mockUserProfile');
   });
 
-  it('the live Profile stays the reachable one (spec_profile default ON)', () => {
-    const flags = stripComments(read('featureFlags/flags.ts'));
-    expect(flags).toMatch(/spec_profile:\s*true/);
+  it('the live Profile is the ONLY reachable Profile (spec_profile flag retired; route renders V2 unconditionally)', () => {
+    // Post fifteen-twin retirement (#842) + flag-key prune: the legacy
+    // fallback and its spec_profile gate are gone. The route now renders
+    // ProfileScreenV2 unconditionally — the invariant this test protects.
+    const route = stripComments(read('app/(tabs)/profile.tsx'));
+    expect(route).toContain('<ProfileScreenV2 />');
+    expect(route).not.toContain('spec_profile');
+    expect(route).not.toContain('ProfileLegacy');
   });
 
   it('no fabricated literals survive: streak 12, 180 lb, Field Athlete, 06:30', () => {

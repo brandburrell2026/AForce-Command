@@ -655,7 +655,6 @@ export interface FeatureFlags {
   spec_sleep: boolean;
   /** Sleep Mode premium redesign (guided pre-sleep protocol). Default OFF —
    *  gates the redesigned Sleep screen; legacy screen stays until go-live. */
-  spec_sleep_v2: boolean;
   spec_cruise: boolean;
   spec_coachV2: boolean;
   spec_premium: boolean;
@@ -792,7 +791,6 @@ export interface FeatureFlags {
    * Home premium redesign (Phase 2 · S3) — reduced readiness-arc Home.
    * Default OFF: legacy Home renders until flipped. Same engine data.
    */
-  spec_home: boolean;
   /**
    * Elite Home experience (E1) — presentation-only elevation of HomeScreenV2:
    * band-tinted arc accent, ring reveal + truthful score count-up, staggered
@@ -873,24 +871,12 @@ export interface FeatureFlags {
    */
   night_out_enabled: boolean;
   // Phase 3 redesign flags (one per redesigned screen; default OFF). Presentation-only.
-  spec_community: boolean;
   spec_store: boolean;
-  spec_share: boolean;
-  spec_urine: boolean;
-  spec_scan: boolean;
-  spec_sweat: boolean;
-  spec_profile: boolean;
-  spec_onboarding: boolean;
   spec_cart: boolean;
   spec_subscription: boolean;
   spec_manageSub: boolean;
-  spec_leaderboard: boolean;
-  spec_achievements: boolean;
-  spec_notifScreen: boolean;
-  spec_science: boolean;
   spec_legal: boolean;
   spec_sensors: boolean;
-  spec_auth: boolean;
 
   // Score-from-Ledger Hybrid — Tier-1 score-integration seam (P2b). When ON,
   // the hydration score reads its INPUTS from a ledger-projected UserState
