@@ -78,9 +78,21 @@ function buildSubscription(
 // Module-level handle so non-hook callers (e.g. the Recovery+ paywall
 // after a Stripe Checkout browser session closes) can request an
 // immediate entitlement refresh without waiting for the next 60s tick.
-let activeRefresh: (() => Promise<void>) | null = null;
-export function refreshEntitlement(): Promise<void> {
-  return activeRefresh ? activeRefresh() : Promise.resolve();
+//
+// RESTORE-ERROR TRUTHFULNESS (founder-authorized): this used to resolve
+// void unconditionally — a failed fetch, a rejected response, and even
+// "no hook mounted at all" were indistinguishable from success, so the
+// Restore Purchases control's error branch was DEAD CODE and an offline
+// member was told "Plan re-synced from your account" when nothing was
+// fetched. The promise now reports the outcome: `true` only when the
+// server's entitlement was actually fetched and applied/confirmed
+// current by this call; `false` when nothing was re-synced (signed out,
+// HTTP failure, network failure, or no mounted hook to refresh through).
+// Background callers (interval / foreground / initial) ignore the value.
+let activeRefresh: (() => Promise<boolean>) | null = null;
+export function refreshEntitlement(): Promise<boolean> {
+  // No mounted hook = nothing was re-synced. Never report success here.
+  return activeRefresh ? activeRefresh() : Promise.resolve(false);
 }
 
 export function useEntitlement(): void {
@@ -97,16 +109,23 @@ export function useEntitlement(): void {
   // would otherwise overwrite the newer one.
   const requestIdRef = React.useRef(0);
 
-  const refresh = React.useCallback(async () => {
-    if (!isSignedIn) return;
+  // Returns whether this call actually re-synced against the server:
+  // `true` = the entitlement was fetched and applied (or confirmed
+  // already-current, or superseded by a newer request that landed
+  // first — the state is fresh either way); `false` = nothing was
+  // fetched (signed out / HTTP failure / network failure). Background
+  // callers ignore the value; the Restore Purchases control must not.
+  const refresh = React.useCallback(async (): Promise<boolean> => {
+    if (!isSignedIn) return false;
     const myId = ++requestIdRef.current;
     try {
       const headers = await getAuthHeaders();
       const res = await fetch(ENTITLEMENT_URL, { headers });
-      if (!res.ok) return;
+      if (!res.ok) return false;
       const data = (await res.json()) as EntitlementResponse;
-      // Drop stale responses — a newer request finished first.
-      if (myId !== requestIdRef.current) return;
+      // Drop stale responses — a newer request finished first, so the
+      // store already reflects fresher server truth than this response.
+      if (myId !== requestIdRef.current) return true;
       const next = buildSubscription(subscriptionRef.current, data);
       // Avoid a needless dispatch if nothing actually changed. Compare
       // currentPeriodEnd too so renewal-date refreshes propagate.
@@ -116,10 +135,13 @@ export function useEntitlement(): void {
         next.planId === subscriptionRef.current.planId &&
         next.status === subscriptionRef.current.status &&
         prevPeriodEnd === nextPeriodEnd
-      ) return;
+      ) return true; // fetched and confirmed current — a successful re-sync
       setSubscription(next);
+      return true;
     } catch {
-      // Network errors are silent — the cached subscription remains.
+      // Network errors stay silent for background refreshes — the cached
+      // subscription remains — but the outcome is reported truthfully.
+      return false;
     }
   }, [isSignedIn, setSubscription]);
 
