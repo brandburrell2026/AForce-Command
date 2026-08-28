@@ -19,6 +19,7 @@ import type {
 } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import { COMPARE_PRODUCTS } from '../data/productDatabase';
+import { fraction01FromScale10 } from '../utils/quantities';
 
 // ─── Weighting profiles ──────────────────────────────────────────────────────
 type Weights = {
@@ -268,8 +269,22 @@ export function computeComparison({ inputs, catalog = COMPARE_PRODUCTS }: Comput
 // ─── Adapter: derive CompareInputs from app state ────────────────────────────
 export function inferInputs(engineOutput: ScoreEngineOutput, userState: UserState, goal: CompareInputs['goal'] = 'performance'): CompareInputs {
   const { performanceState, score } = engineOutput;
+
+  // Store drives are on the canonical 0–10 scale (realApi defaults 3/5/4);
+  // CompareInputs' axis is 0–1 (normalizeInputs pins it, buildCommand's
+  // 0.6 buckets assume it). Reading them raw made EVERY default member
+  // `heat_stress` (4 >= 0.7) and pinned the hot/sweaty copy buckets on.
+  // Bridge at this boundary via the ONLY sanctioned scale conversion —
+  // non-finite degrades to 0, matching normalizeInputs' prior semantic.
+  const heatLoad01 = fraction01FromScale10(
+    Number.isFinite(userState.heatLoad) ? userState.heatLoad : 0,
+  );
+  const sweatRate01 = fraction01FromScale10(
+    Number.isFinite(userState.sweatRate) ? userState.sweatRate : 0,
+  );
+
   let protocol: ProtocolKind = 'maintenance';
-  if (userState.heatLoad >= 0.7) protocol = 'heat_stress';
+  if (heatLoad01 >= 0.7) protocol = 'heat_stress';
   else if (performanceState.level === 'DEPLETED' || score < 40) protocol = 'depletion_correction';
   else if (performanceState.level === 'RECOVERING' || score < 65) protocol = 'recovery';
   else if (userState.isAwake && !userState.hasSeenMorningCommand && userState.unitsConsumedToday === 0) protocol = 'morning_reset';
@@ -281,8 +296,8 @@ export function inferInputs(engineOutput: ScoreEngineOutput, userState: UserStat
     score,
     protocol,
     goal,
-    heatLoad: userState.heatLoad,
-    sweatRate: userState.sweatRate,
+    heatLoad: heatLoad01,
+    sweatRate: sweatRate01,
     symptomCount: userState.symptoms.length,
     hoursSinceLastIntake,
   };

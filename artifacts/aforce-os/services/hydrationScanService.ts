@@ -22,6 +22,7 @@ import { preWorkoutSupportFor } from '../utils/preWorkoutSupport';
 import { buildSuperfoodSignalsBlock } from '../utils/superfoodSignals';
 import { computeHydrationImpact } from '../utils/impact/hydrationImpact';
 import { computeTimingGuidance } from '../utils/impact/hydrationTiming';
+import { fraction01FromScale10 } from '../utils/quantities';
 import type { CompareInputs, CompareProduct, CompareResult } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
 import type { ProfileIdentity } from '../utils/profileIdentity';
@@ -263,7 +264,12 @@ export async function scan(
       },
       state: inputs.state,
       environment: {
-        heat01: userState.heatLoad,
+        // hydrationImpact's contract: heat01 is 0..1 and "the service
+        // normalizes UserState.heatLoad" — the store field is 0–10, so an
+        // unbridged read saturated the heat factor for every member ≥1.
+        heat01: fraction01FromScale10(
+          Number.isFinite(userState.heatLoad) ? userState.heatLoad : 0,
+        ),
         humidity01:
           userState.weatherHumidity != null ? userState.weatherHumidity / 100 : null,
         tempC: userState.weatherTempC ?? null,

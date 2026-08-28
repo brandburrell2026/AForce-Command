@@ -243,16 +243,21 @@ export function deriveRecoveryLoad(
   heatBand: TempHeatBand,
 ): RecoveryLoad {
   // Heat — combines ambient temp/humidity-derived heatBand with
-  // user-reported heat exposure load.
+  // user-reported heat exposure load. Drives are the canonical 0–10
+  // scale — bridged exactly like deriveSweatLoss above; read raw, the
+  // clamp01 pegged heatImpact/exertion at 100%/1.0 for every member ≥2.
   const bandWeight =
     heatBand === 'CRITICAL' ? 1.0
     : heatBand === 'HIGH'   ? 0.75
     : heatBand === 'ELEVATED' ? 0.45
     : 0.1;
-  const heatImpact = Math.round(clamp01(0.5 * (user.heatLoad ?? 0) + 0.5 * bandWeight) * 100);
+  const heatLoad01 = fraction01FromScale10(user.heatLoad ?? 0);
+  const heatImpact = Math.round(clamp01(0.5 * heatLoad01 + 0.5 * bandWeight) * 100);
 
   // Sweat / exertion accumulation — biological cost of today's output.
-  const exertion = clamp01(0.6 * (user.sweatRate ?? 0) + 0.4 * (user.activityLevel ?? 0));
+  const sweatRate01 = fraction01FromScale10(user.sweatRate ?? 0);
+  const activity01 = fraction01FromScale10(user.activityLevel ?? 0);
+  const exertion = clamp01(0.6 * sweatRate01 + 0.4 * activity01);
 
   // Hydration stress — how far below target the user is right now.
   const target = Math.max(1, user.dailyTarget ?? 8);

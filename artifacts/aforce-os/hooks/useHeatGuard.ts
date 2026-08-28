@@ -6,6 +6,21 @@
  *
  * Lives outside the home tab so the orchestrator stays slim and the heat
  * logic remains self-contained / unit-testable in isolation.
+ *
+ * TRUTH CONTRACT (founder ruling, wrong-scale close-out): the engine input
+ * comes from `services/heatGuardInput.buildHeatSignalInput` — measured
+ * facts only (real weather, member-reported signals, real weight), the
+ * activity drive on the engine's documented 0–1 intensity axis via the
+ * canonical bridge, and zero-risk NEUTRAL elements for every unmeasured
+ * vital. The previous inline version synthesized vitals from the drives
+ * (166 °F ambient, 410 bpm, 90 oz/hr); that is banned — see the builder's
+ * header for the full contract.
+ *
+ * REACHABILITY NOTE (2026-08-28): no production surface currently imports
+ * this hook (its former host, the legacy Home SignalsZone, is orphaned).
+ * It is corrected rather than deleted because the founder ruled the
+ * fabricated-vitals behavior unacceptable wherever it exists; orphan-tree
+ * retirement is a separately scoped lane.
  */
 
 import React from 'react';
@@ -13,18 +28,16 @@ import { Platform } from 'react-native';
 import { hapticNotify } from '@/services/haptics';
 
 import { evaluateHeatRisk } from '../services/heatRiskEngine';
+import { buildHeatSignalInput } from '../services/heatGuardInput';
 import { renderTemplate } from '../services/voiceTemplateEngine';
 import { speak } from '../services/textToSpeech';
 import { resolvePersona } from '../services/voicePersonaService';
-import type { HeatRiskBand, HeatSymptom } from '../types/heat';
+import type { HeatRiskBand } from '../types/heat';
 import type { VoiceContext } from '../types/voicePersona';
 import type { AutopilotUrgency } from '../types/sweat';
 import { useEngineSlice, useSweatAutopilotSlice, useUserSlice } from '../store/slices';
 import { getHeatBandFromCelsius, shouldEscalateForBand } from '../utils/heatBand';
 
-const SYMPTOM_IDS: HeatSymptom[] = [
-  'dizziness','headache','nausea','cramping','chills','confusion','fatigue',
-];
 const SEVERITY: Record<HeatRiskBand, number> = {
   STABLE: 0, ELEVATED: 1, WARNING: 2, HIGH_RISK: 3, CRITICAL: 4,
 };
@@ -70,35 +83,7 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
   const { autopilot, setAt } = useSweatAutopilotSlice();
 
   const heatScore = React.useMemo<HeatGuardResult>(() => {
-    const symptoms: HeatSymptom[] = (userState.symptoms ?? []).filter(
-      (s): s is HeatSymptom => (SYMPTOM_IDS as string[]).includes(s),
-    );
-    const heat = evaluateHeatRisk({
-      hydrationScore: score,
-      recentFluidOz: 0,
-      minutesSinceLastIntake: Math.max(
-        0,
-        Math.round((Date.now() - new Date(userState.lastIntakeTime).getTime()) / 60000),
-      ),
-      ambientTempF: 78 + (userState.heatLoad ?? 0) * 22,
-      humidityPct: 50 + (userState.heatLoad ?? 0) * 25,
-      sunExposure: Math.min(1, (userState.heatLoad ?? 0)),
-      continuousActiveMin: Math.round((userState.activityLevel ?? 0) * 60),
-      activityIntensity: userState.activityLevel ?? 0,
-      heartRateBpm: 110 + Math.round((userState.activityLevel ?? 0) * 60),
-      hrRecoveryDelaySec: Math.round((userState.activityLevel ?? 0) * 25),
-      sweatLossOzPerHr: (userState.sweatRate ?? 0) * 30,
-      bodyWeightLbs: userState.bodyWeightLbs || 175,
-      recoveryMomentum: 1 - (userState.heatLoad ?? 0),
-      symptoms,
-      urineSignal: userState.urineSignal ?? 2,
-      energyState:
-        userState.energyState === 'crashed' ? 'crashed'
-        : userState.energyState === 'low' ? 'low'
-        : userState.energyState === 'peak' ? 'peak' : 'steady',
-      sleepDeficitHrs: 0,
-      recentHeatEvent: false,
-    });
+    const heat = evaluateHeatRisk(buildHeatSignalInput(userState, score));
 
     // Sweat-driven autopilot drives cadence for the duration of the
     // recovery window (spec §4). Outside that window we fall back to a
@@ -136,8 +121,9 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       autopilotActive,
     };
   }, [
-    score, userState.lastIntakeTime, userState.heatLoad, userState.activityLevel,
-    userState.sweatRate, userState.bodyWeightLbs, userState.symptoms,
+    score, userState.lastIntakeTime, userState.weatherTempC,
+    userState.weatherHumidity, userState.activityLevel,
+    userState.bodyWeightLbs, userState.symptoms,
     userState.urineSignal, userState.energyState,
     autopilot, setAt,
   ]);

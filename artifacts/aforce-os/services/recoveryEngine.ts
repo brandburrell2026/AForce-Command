@@ -31,6 +31,7 @@
  */
 
 import type { ScoreEngineOutput, UserState } from '../types';
+import { fraction01FromScale10 } from '../utils/quantities';
 
 export type RecoveryTrend = 'rising' | 'stable' | 'declining';
 
@@ -192,13 +193,24 @@ export function recoveryInputsFromState(
   user: UserState,
   engine: Pick<ScoreEngineOutput, 'score' | 'prediction'>,
 ): RecoveryInputs {
+  // RecoveryInputs documents heatLoad/activityLevel on a 0–100 axis
+  // (derivePressure clamps 0–100; deriveFingerprint bands at >66/>33).
+  // The store fields are the canonical 0–10 drives, so feeding them raw
+  // permanently understated pressure (heat 4 contributed 1.4 pts, not 14)
+  // and made the fingerprint's M/H heat and activity bands unreachable.
+  // Map through the ONLY sanctioned bridge onto the engine's documented
+  // axis — no engine math or band threshold changes; non-finite → 0.
+  const heatLoad100 =
+    fraction01FromScale10(Number.isFinite(user.heatLoad) ? user.heatLoad : 0) * 100;
+  const activityLevel100 =
+    fraction01FromScale10(Number.isFinite(user.activityLevel) ? user.activityLevel : 0) * 100;
   return {
     score: engine.score,
     decayPerMinute: engine.prediction.decayPerMinute,
     waterCycles: user.unitsConsumedToday,
     urineSignal: user.urineSignal,
-    heatLoad: user.heatLoad,
-    activityLevel: user.activityLevel,
+    heatLoad: heatLoad100,
+    activityLevel: activityLevel100,
     overnightLossOz: user.overnightLossOz,
     drinkCount: user.socialMode?.drinks?.length ?? 0,
     complianceStreak: user.complianceStreak,
