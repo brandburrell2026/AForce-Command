@@ -49,7 +49,8 @@ export interface CategorizeCommandInput {
 }
 
 /**
- * Faithful re-home of `services/videoEngine.ts` `inferCommandType` so the video
+ * Faithful re-home of the retired `services/videoEngine.ts` `inferCommandType` — since the
+ * orphan-tree retirement this module is the ONLY home. Originally kept so the video
  * engine and the learning layer classify a command identically. The video
  * engine handles `morning_reset` via a separate trigger in `matchVideo`; this
  * seam mirrors the four state-derived outcomes `inferCommandType` produced.

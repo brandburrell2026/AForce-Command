@@ -5,7 +5,8 @@
  * ("Berry Blast") and the full PRODUCT_FLAVORS label
  * ("Berry Blast + Dulse") resolve to the same flavor.
  *
- * Used by the store's `logIntake` to translate the FlavorPickerModal
+ * Used by the store's `logIntake` to translate the (since-retired
+ * FlavorPickerModal's) label format — records minted in that shape persist
  * choice into the right flavor key before calling `computeEventImpact`,
  * which is what unlocks the Heat Guard / Soursop bonuses.
  */

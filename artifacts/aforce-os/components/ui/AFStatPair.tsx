@@ -3,8 +3,8 @@
  * (RC-1 Wave-5, a11y-breadth item 1).
  *
  * The RC-1 audit found ~18 hand-rolled "numeral + label" call sites
- * (BiometricCard footer cells, RecoveryCapacityCard's Breakdown, StreakCard's
- * day count, HydrationStatusCard's StatRow, KPISummary, ScanResultCard,
+ * (RecoveryCapacityCard's Breakdown, StreakCard's
+ * day count, KPISummary, ScanResultCard,
  * ProfileScreenV2/ProfileLegacy's SnapshotCell, ...) each rendering two
  * separate, unlinked `<Text>` nodes. VoiceOver/TalkBack reads them as two
  * disconnected swipes (or skips them outright when neither carries an
