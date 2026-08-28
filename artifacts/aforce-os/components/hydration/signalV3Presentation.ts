@@ -13,6 +13,9 @@
  */
 
 import type { JournalRollup, PerformanceLevel } from '@/types';
+
+/** Honest-data glyph for a reading nobody took (Home/Protocol convention). */
+export const EM_DASH = '—';
 import { resolveHomePresentation } from '@/components/home/homePresentation';
 import {
   PARTIAL_MIN_RATIO,

@@ -39,11 +39,11 @@ import {
   AFSecondaryButton,
   AFSectionLabel,
   AFListRow,
-  AFStatusBadge,
   AFEmptyState,
   AFOfflineBanner,
 } from '@/components/ui';
 import { af, afType } from '@/theme';
+import { EM_DASH } from './signalV3Presentation';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
@@ -203,17 +203,23 @@ export function HydrationScreenV2() {
               label={t('hydration.v2.stat_electrolytes')}
               value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
             />
+            {/* CORRECTION-6 TWIN (command-authority wave 1, founder-authorized).
+                This badge was NOT a recovery reading: it restated
+                engine.performanceState.level — the band the engine already
+                owns — title-cased under a "Recovery" label: a second verdict
+                beside the intake hero, presenting a measurement nobody took.
+                Home's identical Recovery tile was ruled out twice (founder §1
+                2026-08-13; Correction 6, build-61 device QA). This mirrors
+                Correction 6 exactly: the honest-data em dash until a real
+                recovery input exists. The engine and its band are untouched —
+                this is a presentation decision belonging to this screen. */}
             <View
               style={styles.recoveryRow}
               accessible
-              accessibilityLabel={`${t('hydration.v2.recovery_label')} ${titleCase(engine.performanceState.level)}`}
+              accessibilityLabel={`${t('hydration.v2.recovery_label')} ${EM_DASH}`}
             >
               <Text style={styles.statLabel}>{t('hydration.v2.recovery_label')}</Text>
-              <AFStatusBadge
-                label={titleCase(engine.performanceState.level)}
-                tone={engine.performanceState.level === 'DEPLETED' ? 'critical' : 'neutral'}
-                icon={null}
-              />
+              <Text style={styles.statValue}>{EM_DASH}</Text>
             </View>
           </View>
         </View>
@@ -351,9 +357,6 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function titleCase(level: string): string {
-  return level.charAt(0) + level.slice(1).toLowerCase();
-}
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
