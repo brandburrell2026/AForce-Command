@@ -1,7 +1,7 @@
 # AForce OS — Privacy Policy
 
 **Effective date:** April 26, 2026
-**Last updated:** April 26, 2026
+**Last updated:** August 28, 2026
 
 AForce, Inc. ("AForce," "we," "us," or "our") operates the AForce OS mobile application (the "App"). This Privacy Policy describes how we collect, use, share, and protect information when you use the App.
 
@@ -107,7 +107,7 @@ To exercise these rights, contact us at **privacy@drinkaforce.com**. We will res
 
 ## 7. Children's privacy
 
-AForce OS is not directed to children under 13, and we do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, please contact us at **privacy@drinkaforce.com** and we will delete it.
+AForce OS is not directed to children under 16, and we do not knowingly collect personal information from children under 16. If you believe a child has provided us with personal information, please contact us at **privacy@drinkaforce.com** and we will delete it.
 
 ---
 

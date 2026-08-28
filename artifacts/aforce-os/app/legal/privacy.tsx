@@ -100,7 +100,7 @@ const CONTACT =
   'AForce Hydration\n' +
   '535 Fifth Avenue, 4th Floor #1004\n' +
   'New York, NY 10017\n' +
-  'Email: bburrell@alkalineforce.com\n' +
+  'Email: privacy@drinkaforce.com\n' +
   'Website: https://www.drinkaforce.com';
 
 export default function PrivacyScreen() {
@@ -108,7 +108,7 @@ export default function PrivacyScreen() {
     <LegalDocumentScreen
       eyebrow="LEGAL"
       title="Privacy Policy"
-      updatedAt="June 24, 2026"
+      updatedAt="August 28, 2026"
       intro="We collect what we need to make the product work, store it carefully, and give you control. This policy explains what AForce OS collects, how we use it, and the rights you have over your information."
       sections={SECTIONS}
       footer={CONTACT}
