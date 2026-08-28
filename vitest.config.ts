@@ -63,6 +63,13 @@ export default defineConfig({
       // (`a11yContrastAndTargets.test.ts`, a plain `.test.ts` source scan)
       // silently never ran — an unenforced beta gate. Accessibility is a beta
       // gate; its lock has to be able to fail CI.
+      // Restore-error truthfulness lane (founder-authorized): these two
+      // directories matched NO include glob, so their locks SILENTLY NEVER
+      // RAN — keptPromisesS23 (the S2-3 kept-promises gate) since #823, and
+      // onboardingLocationAsk since it was written. Same class as the
+      // Wave-5 a11y-lock gap above: a gate has to be able to fail CI.
+      'artifacts/aforce-os/components/auth/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/onboarding/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/nightOut/__tests__/**/*.render.test.tsx',

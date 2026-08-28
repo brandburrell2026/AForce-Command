@@ -61,8 +61,15 @@ function useRestorePurchases() {
   const restore = React.useCallback(async () => {
     setRestoreState('busy');
     try {
-      await refreshEntitlement();
-      setRestoreState('done');
+      // RESTORE-ERROR TRUTHFULNESS (founder-authorized): refreshEntitlement
+      // used to resolve void on EVERY outcome — offline, HTTP failure, even
+      // no mounted hook — so this control always landed 'done' and told the
+      // member "Plan re-synced from your account" over a fetch that never
+      // happened; the error branch below was dead code. The promise now
+      // reports whether the server was actually reached; 'done' is only
+      // claimed for a real re-sync.
+      const synced = await refreshEntitlement();
+      setRestoreState(synced ? 'done' : 'error');
     } catch {
       setRestoreState('error');
     }

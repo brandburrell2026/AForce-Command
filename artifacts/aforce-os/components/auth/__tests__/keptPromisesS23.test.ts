@@ -75,12 +75,32 @@ describe('S2-3(C) — restore purchases re-syncs the real entitlement authority'
   it('the control exists and calls refreshEntitlement — the server source of truth', () => {
     expect(sub).toContain('testID="subscription-restore"');
     expect(sub).toMatch(/import \{ refreshEntitlement \} from '@\/hooks\/useEntitlement';/);
-    expect(sub).toMatch(/await refreshEntitlement\(\);/);
+    // CONSCIOUS REPIN (restore-error truthfulness, founder-authorized):
+    // this previously pinned a bare `await refreshEntitlement();` whose
+    // resolution was unconditionally read as success — the promise
+    // resolved void on every outcome, so 'error' was dead code and an
+    // offline restore reported "re-synced". The pinned shape is now the
+    // outcome-checked one: 'done' only when the server was truly reached.
+    expect(sub).toMatch(
+      /const synced = await refreshEntitlement\(\);[\s\S]{0,120}?setRestoreState\(synced \? 'done' : 'error'\)/,
+    );
   });
 
   it('the outcome is reported from the re-synced entitlement slice, not assumed', () => {
     expect(sub).toMatch(/restore_done', \{ plan: entitlementNow\.planId/);
     expect(sub).toContain("t('subscription.v2.restore_error')");
+  });
+
+  it('the refresh promise reports its outcome truthfully at every branch (hook side)', () => {
+    const hook = stripComments(read('hooks/useEntitlement.ts'));
+    // No mounted hook = nothing re-synced — never a success.
+    expect(hook).toMatch(/activeRefresh \? activeRefresh\(\) : Promise\.resolve\(false\)/);
+    // Signed out / HTTP failure / network failure = false.
+    expect(hook).toMatch(/if \(!isSignedIn\) return false;/);
+    expect(hook).toMatch(/if \(!res\.ok\) return false;/);
+    expect(hook).toMatch(/catch \{[\s\S]{0,300}?return false;/);
+    // Fetched-and-confirmed-current is a REAL re-sync — still true.
+    expect(hook).toMatch(/\) return true; \/\/ fetched and confirmed current/);
   });
 
   it('busy state disables the control (no double-fire, no fake instant success)', () => {
