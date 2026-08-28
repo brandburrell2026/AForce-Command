@@ -43,8 +43,18 @@ describe('Home — the NEXT moment, singular', () => {
     expect(NEXT_CARD).not.toContain('TodaysMomentsList');
   });
 
-  it('renders nothing at all when there is no next moment', () => {
-    expect(HOME_SECTION).toMatch(/if \(!data\.hydrated \|\| !data\.next\) return null;/);
+  it('says nothing until the store is hydrated (never flashes an empty doorway)', () => {
+    expect(HOME_SECTION).toMatch(/if \(!data\.hydrated\) return null;/);
+  });
+
+  it('with no imminent moment, offers ONLY the subtle doorway — never a card or a list', () => {
+    // Founder ruling 2026-08-28: keep the single-NEXT experience, but a member
+    // who wants to inspect upcoming moments gets one quiet, persistent way in.
+    // The no-next branch renders the parametrized AllTodayLink and nothing else
+    // (no NextMomentCard, no list).
+    expect(HOME_SECTION).toMatch(/if \(!data\.next\) \{\s*return <AllTodayLink labelKey="moments\.home_entry" \/>;\s*\}/);
+    // The full card is still gated on an actual next moment.
+    expect(HOME_SECTION).toMatch(/<NextMomentCard moment=\{data\.next\}/);
   });
 
   it('no longer heads a section of its own on Home', () => {
@@ -59,8 +69,13 @@ describe('Home — the NEXT moment, singular', () => {
     // Deleting the list must not orphan /moments (and with it PREPARE MY DAY
     // and ADD A MOMENT) — it was the only route in.
     expect(NEXT_CARD).toMatch(/router\.push\('\/moments'\)/);
-    expect(NEXT_CARD).toContain("t('moments.all_today')");
+    // The link renders t(labelKey); its default is the 'All of today' copy, so
+    // the with-next-moment tap still reads exactly as before.
+    expect(NEXT_CARD).toContain("labelKey = 'moments.all_today'");
+    expect(NEXT_CARD).toContain('t(labelKey)');
     expect(moments).toHaveProperty('all_today');
+    // The no-next doorway copy also exists.
+    expect(moments).toHaveProperty('home_entry');
     // Quietest register the type scale has, and still a 44pt target.
     expect(NEXT_CARD).toMatch(/allTodayText: \{ \.\.\.afType\.caption, color: af\.textTertiary \}/);
     expect(NEXT_CARD).toMatch(/allToday: \{[\s\S]*?minHeight: afLayout\.controlMinHeight/);

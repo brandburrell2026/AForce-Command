@@ -99,7 +99,7 @@ export function NextMomentCard({
  * it PREPARE MY DAY / ADD A MOMENT) reachable without heading a section Home
  * no longer has.
  */
-export function AllTodayLink() {
+export function AllTodayLink({ labelKey = 'moments.all_today' }: { labelKey?: string } = {}) {
   const { t } = useTranslation();
   const router = useRouter();
   return (
@@ -110,7 +110,7 @@ export function AllTodayLink() {
       hitSlop={8}
       testID="home-moments-all-today"
     >
-      <Text style={styles.allTodayText}>{t('moments.all_today')}</Text>
+      <Text style={styles.allTodayText}>{t(labelKey)}</Text>
     </Pressable>
   );
 }
