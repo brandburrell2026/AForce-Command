@@ -59,21 +59,29 @@ export function classifyHumidity(humidityPct: number): HumidityBand {
 
 /**
  * Pure helper: pick a hydration insight string keyed off the humidity band.
- * These are short, actionable, and never alarmist — AForce coaches, doesn't
+ * These are short, factual, and never alarmist — AForce coaches, doesn't
  * scare. Exported so the UI and tests can share the same copy source.
+ *
+ * COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized): this
+ * copy renders on HeatRiskScreen and ClimateLine as climate CONTEXT. It
+ * previously carried a sip-cadence instruction ("Sip every 15 min") — a
+ * competing hydration clock authored outside canonical seams. Insights are
+ * now environmental OBSERVATION only: what the air is doing to the body,
+ * never how much or how often to drink — the member's current command owns
+ * that (services/__tests__/commandAuthorityContainment.test.ts).
  */
 export function hydrationInsightForHumidity(band: HumidityBand): string {
   switch (band) {
     case 'very_dry':
-      return 'Dry air pulls moisture out invisibly. Sip every 15 min — you will not feel the loss.';
+      return 'Dry air pulls moisture out invisibly — losses build before you feel them.';
     case 'dry':
-      return 'Low humidity speeds evaporation. Stay ahead of thirst, not behind it.';
+      return 'Low humidity speeds evaporation. Fluid demand runs ahead of thirst here.';
     case 'comfortable':
-      return 'Humidity in the comfort band. Maintain your normal cadence.';
+      return 'Humidity in the comfort band. No added load from the air today.';
     case 'humid':
-      return 'Sweat evaporates slower in humid air. Lean into electrolytes — water alone will not cool you.';
+      return 'Sweat evaporates slower in humid air — electrolyte demand climbs, and water alone will not cool you.';
     case 'oppressive':
-      return 'Heavy humidity blocks cooling. Prioritize electrolytes, shade, and shorter work blocks.';
+      return 'Heavy humidity blocks cooling. Electrolyte demand peaks — shade and shorter work blocks matter here.';
   }
 }
 

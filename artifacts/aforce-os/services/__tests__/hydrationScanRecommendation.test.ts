@@ -3,7 +3,10 @@
  *
  * Locks the natural-recommend tone for the on-card verdict line:
  * - headlines read as system observations, never as "buy this"
- * - the recommended pour is standardized at 12 oz water
+ * - commands defer amount and cadence to the member's current command
+ *   (re-plumb wave: the old standardized "12 oz / recheck in 20" pour
+ *   was a second recommendation engine — see
+ *   commandAuthorityContainment.test.ts)
  * - AForce is positioned as system fuel / performance support
  *
  * Targets the pure `buildRecommendation()` seam so we don't depend on
@@ -98,7 +101,7 @@ const bestAforce = makeFit({
   whyItFits: 'Dense mineral profile, fast absorption.',
 });
 
-describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
+describe('buildRecommendation — AForce positioning + command deference', () => {
   it('CASE 1 (scanned AForce + optimal) frames product as active system fuel', () => {
     const selfFit = makeFit({
       product: bestAforce.product,
@@ -109,7 +112,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     const rec = buildRecommendation(scannedAForceStick, baseInputs, selfFit, bestAforce);
     expect(rec.headline).toContain('active system fuel');
     expect(rec.headline).toContain('Balanced');
-    expect(rec.command).toBe('Pair with 12 oz water. Recheck in 20 minutes.');
+    expect(rec.command).toBe('Pair with water — your current command sets the amount.');
     expect(rec.shouldLog).toBe(true);
   });
 
@@ -117,9 +120,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     const selfFit = makeFit({ fitScore: 60 });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, bestAforce);
     expect(rec.headline).toBe('Current intake may increase hydration demand.');
-    expect(rec.command).toBe(
-      'Recommended: 12 oz water + AForce Stick.',
-    );
+    expect(rec.command).toBe('Switch to AForce Stick — water first.');
     expect(rec.aforceEquivalentId).toBe('aforce_stick');
     expect(rec.shouldLog).toBe(false);
   });
@@ -134,7 +135,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAforce);
     expect(rec.headline).toContain('supports your Balanced state');
-    expect(rec.command).toBe('Pair with 12 oz water. Recheck in 20 minutes.');
+    expect(rec.command).toBe('Pair with water — your current command sets the amount.');
     expect(rec.shouldLog).toBe(true);
   });
 
@@ -148,7 +149,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAforce);
     expect(rec.headline).toContain('supports your Balanced state');
     expect(rec.headline).not.toMatch(/may increase hydration demand/);
-    expect(rec.command).toBe('Pair with 12 oz water. Recheck in 20 minutes.');
+    expect(rec.command).toBe('Pair with water — your current command sets the amount.');
     expect(rec.shouldLog).toBe(true);
   });
 
@@ -164,9 +165,7 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAforce);
     expect(rec.headline).toBe('Current intake may increase hydration demand.');
-    expect(rec.command).toBe(
-      'Recommended: 12 oz water + AForce Stick.',
-    );
+    expect(rec.command).toBe('Switch to AForce Stick — water first.');
     expect(rec.aforceEquivalentId).toBe('aforce_stick');
     expect(rec.shouldLog).toBe(false);
   });
@@ -175,11 +174,11 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
     const selfFit = makeFit({ fitScore: 40, verdict: 'suboptimal' });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, undefined);
     expect(rec.headline).toBe('Current intake may increase hydration demand.');
-    expect(rec.command).toBe('Recommended: 12 oz water. Recheck in 20 minutes.');
+    expect(rec.command).toBe('Water first — your current command sets the amount.');
     expect(rec.aforceEquivalentId).toBeUndefined();
   });
 
-  it('NO aggressive-sell verbs or stale 16-ounce pours in any case', () => {
+  it('NO aggressive-sell verbs, stale pours, or dose/clock residue in any case', () => {
     const cases = [
       buildRecommendation(scannedAForceStick, baseInputs, makeFit({ product: bestAforce.product, fitScore: 92, verdict: 'optimal' }), bestAforce),
       buildRecommendation(scannedGatorade, baseInputs, makeFit({ fitScore: 60 }), bestAforce),
@@ -192,6 +191,8 @@ describe('buildRecommendation — AForce positioning + 12 oz pour', () => {
       expect(rec.headline).not.toMatch(/\bstronger fit\b/);
       expect(rec.command).not.toMatch(/^Take 1\b/);
       expect(rec.command).not.toMatch(/16 ounces/);
+      expect(rec.command).not.toMatch(/12 oz/);
+      expect(rec.command).not.toMatch(/Recheck in \d/);
     }
   });
 });

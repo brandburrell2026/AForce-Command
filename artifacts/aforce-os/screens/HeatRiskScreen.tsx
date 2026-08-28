@@ -173,7 +173,7 @@ export default function HeatRiskScreen() {
               { borderColor: `${display.color}88`, backgroundColor: `${display.color}1A` },
             ]}
           >
-            <Text style={[styles.commandEyebrow, { color: display.color }]}>AI COMMAND</Text>
+            <Text style={[styles.commandEyebrow, { color: display.color }]}>HEAT RESPONSE</Text>
             <Text style={styles.commandText}>{score.command}</Text>
             <Text style={styles.commandDetail}>{score.commandDetail}</Text>
             <View style={styles.commandMetaRow}>

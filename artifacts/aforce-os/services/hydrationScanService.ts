@@ -88,8 +88,17 @@ export function buildRecommendation(
 ): ScanRecommendation {
   const stateLabel = inputs.state.charAt(0) + inputs.state.slice(1).toLowerCase();
   // Tone — AForce is positioned as system fuel / performance support.
-  // Headlines read as natural system observations, never as a
-  // hard sell. Recommended pour standardized at 12 oz water.
+  // Headlines read as natural system observations, never as a hard sell.
+  //
+  // COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized):
+  // these command strings previously attached a locally-authored dose
+  // ("12 oz water") and a competing recheck clock ("Recheck in 20
+  // minutes") to a product card — commerce-adjacent advice generated
+  // outside canonical seams. The product-EQUIVALENCE logic stays (that
+  // is comparison, this module's job); the amount and cadence defer to
+  // the member's current command. Water-first ordering preserved. No
+  // dose numbers or clock clauses may return here
+  // (services/__tests__/commandAuthorityContainment.test.ts).
 
   // CASE 1: scanned product is AForce and already optimal → log it.
   // Frame as "active system fuel" — the user is already on it.
@@ -97,7 +106,7 @@ export function buildRecommendation(
     return {
       headline: `${scanned.productName} is active system fuel for your ${stateLabel} state.`,
       detail: selfFit.whyItFits,
-      command: `Pair with 12 oz water. Recheck in 20 minutes.`,
+      command: `Pair with water — your current command sets the amount.`,
       shouldLog: true,
     };
   }
@@ -109,13 +118,13 @@ export function buildRecommendation(
       headline: `Current intake may increase hydration demand.`,
       detail: bestAforce.whyItFits,
       aforceEquivalentId: bestAforce.product.id,
-      command: `Recommended: 12 oz water + ${bestAforce.product.name}.`,
+      command: `Switch to ${bestAforce.product.name} — water first.`,
       shouldLog: false,
     };
   }
   // CASE 3: scanned product is acceptable, no clearly stronger
-  // AForce upgrade. Frame as supporting their current state; offer
-  // the standard 12 oz water pairing. Includes 'acceptable' so a
+  // AForce upgrade. Frame as supporting their current state; pair
+  // with water, amount deferred. Includes 'acceptable' so a
   // workable-but-not-stellar product still gets the supportive
   // framing, not the sub-par observation copy.
   if (
@@ -126,7 +135,7 @@ export function buildRecommendation(
     return {
       headline: `${scanned.productName} supports your ${stateLabel} state.`,
       detail: selfFit.whyItFits,
-      command: `Pair with 12 oz water. Recheck in 20 minutes.`,
+      command: `Pair with water — your current command sets the amount.`,
       shouldLog: true,
     };
   }
@@ -138,8 +147,8 @@ export function buildRecommendation(
     detail: selfFit.whyItFits,
     aforceEquivalentId: bestAforce?.product.id,
     command: bestAforce
-      ? `Recommended: 12 oz water + ${bestAforce.product.name}.`
-      : `Recommended: 12 oz water. Recheck in 20 minutes.`,
+      ? `Switch to ${bestAforce.product.name} — water first.`
+      : `Water first — your current command sets the amount.`,
     shouldLog: false,
   };
 }
