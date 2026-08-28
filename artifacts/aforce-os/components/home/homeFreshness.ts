@@ -219,16 +219,45 @@ export function freshestBiometricsFetchedAt(
 }
 
 /**
+ * True when the member has ANY provider artifact at all — an Apple Health
+ * snapshot or at least one provider biometrics snapshot. Both exist only
+ * after a real read, so their complete absence is the honest signal that
+ * no wearable/provider has ever been connected on this account.
+ */
+export function hasAnyProviderArtifact(
+  appleHealth: unknown | null | undefined,
+  biometrics: ProviderBiometrics | null | undefined,
+): boolean {
+  if (appleHealth != null) return true;
+  if (biometrics && Object.values(biometrics).some((s) => s != null)) return true;
+  return false;
+}
+
+/**
  * Bucket a fetch age into graduated, truthful copy. `now` is injected
  * (never `Date.now()`) so this stays deterministic under test.
+ *
+ * Returns `null` — render NOTHING — for a member with no provider artifact
+ * at all (P1 trust set, founder-authorized): "Awaiting first sync" was
+ * previously shown unconditionally when `fetchedAtMs` was null, so a
+ * member who never connected any wearable read a permanent promise of a
+ * sync that would never come (and support heard "why won't it sync").
+ * Silence is the honest state there. "Awaiting first sync" remains for
+ * the member who HAS provider artifacts but no valid fetch stamp.
  */
-export function resolveHomeFreshness(now: number, fetchedAtMs: number | null): HomeFreshness {
+export function resolveHomeFreshness(
+  now: number,
+  fetchedAtMs: number | null,
+  hasProviderArtifact: boolean,
+): HomeFreshness | null {
   // `<= 0` catches the same sentinel/negative case as `freshestBiometricsFetchedAt`'s
   // `consider` guard above — kept here too because callers may pass a raw
   // provider `fetchedAt` (e.g. a single-provider check) straight into this
   // resolver without going through the aggregator first.
   if (fetchedAtMs == null || !Number.isFinite(fetchedAtMs) || fetchedAtMs <= 0) {
-    return { key: 'home.v2.freshness.unavailable' };
+    // Never-connected: no claim at all. Connected-but-unstamped: the
+    // honest waiting state.
+    return hasProviderArtifact ? { key: 'home.v2.freshness.unavailable' } : null;
   }
 
   const ageMs = Math.max(0, now - fetchedAtMs);

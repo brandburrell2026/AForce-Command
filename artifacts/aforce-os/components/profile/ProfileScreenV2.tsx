@@ -83,6 +83,7 @@ import { DEFAULT_FLAGS, demoUnlockAllFlags, developerControlsAvailable } from '@
 import { resolveInitialFeatureFlags } from '@/featureFlags/internalTestflightOverlay';
 import type { FeatureFlags, AuraState } from '@/types';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { LanguageSelector } from '@/components/LanguageSelector';
 import {
   COACH_MODES,
@@ -810,7 +811,12 @@ export function ProfileScreenV2() {
   );
 
   const topPadding = Platform.OS === 'web' ? 67 : insets.top;
-  const bottomPadding = Platform.OS === 'web' ? 34 + 84 : insets.bottom + 84;
+  // P1 trust set (founder-authorized): Profile is a VISIBLE tab, but it was
+  // the last tab surface clearing the bar with a device-blind additive guess
+  // over the bottom inset — the exact class S2-5 retired everywhere else.
+  // One rule for every tab: the navigator's PUBLISHED bar height + one
+  // breathing token (useTabBarClearance, Home's founder-ratified rule).
+  const tabClearance = useTabBarClearance();
   // S2-2: the identity chip now reads the SAME server-authoritative
   // entitlement the subscription panel below always has (state.subscription,
   // Stripe-webhook-fed via useEntitlement) — the mock hardcoded 'core', so a
@@ -840,7 +846,7 @@ export function ProfileScreenV2() {
             styles.content,
             {
               paddingTop: topPadding + 8,
-              paddingBottom: bottomPadding + 24,
+              paddingBottom: tabClearance,
               ...(layout.isWide
                 ? { maxWidth: layout.contentMaxWidth, alignSelf: 'center', width: '100%' }
                 : null),

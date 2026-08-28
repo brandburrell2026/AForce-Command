@@ -99,6 +99,7 @@
   },
   "home": {
     "welcome": "Welcome, {{name}}",
+    "welcome_anonymous": "Welcome back",
     "subtitle_eyebrow": "HYDRATION CONTROL CENTER",
     "subtitle_title": "AForce OS",
     "cta_become_aforce": "BECOME AFORCE",
@@ -175,8 +176,7 @@
       "signal_recovery": "Recovery",
       "heat_high": "High",
       "heat_moderate": "Moderate",
-      "heat_low": "Low",
-      "greeting_default": "there"
+      "heat_low": "Low"
     },
     "live_status": {
       "last_label": "LAST",

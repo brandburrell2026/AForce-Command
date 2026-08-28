@@ -79,22 +79,22 @@ afterEach(() => {
 
 describe('HomeFreshnessLabel — graduated states (ticket-specified fake timestamps)', () => {
   it('1 minute old → "Checked just now" (<2 min threshold)', () => {
-    renderLabel({ fetchedAtMs: START - 1 * MINUTE, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 1 * MINUTE, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked just now');
   });
 
   it('30 minutes old → "Checked 30m ago"', () => {
-    renderLabel({ fetchedAtMs: START - 30 * MINUTE, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 30 * MINUTE, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 30m ago');
   });
 
   it('5 hours old → "Checked 5h ago"', () => {
-    renderLabel({ fetchedAtMs: START - 5 * HOUR, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 5 * HOUR, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 5h ago');
   });
 
   it('extension beyond the ticket\'s literal 3 states: multi-day age → explicit "stale" copy (S3), not a neutral "Checked Nd ago"', () => {
-    renderLabel({ fetchedAtMs: START - 3 * DAY, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 3 * DAY, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 3d ago — data is stale');
   });
 
@@ -102,25 +102,33 @@ describe('HomeFreshnessLabel — graduated states (ticket-specified fake timesta
   // (24h) is where the days bucket first fires — the explicit stale copy
   // must appear starting there, not only for "very stale" multi-day ages.
   it('exactly at the 24h stale boundary → explicit "stale" copy already applies, not a neutral "Checked 1d ago"', () => {
-    renderLabel({ fetchedAtMs: START - 24 * HOUR, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 24 * HOUR, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 1d ago — data is stale');
   });
 
   it('one millisecond before the boundary is still the neutral hours copy, not stale', () => {
-    renderLabel({ fetchedAtMs: START - (24 * HOUR - 1), testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - (24 * HOUR - 1), hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 23h ago');
   });
 
   it('never fabricates: no fetch has ever happened (null) → honest "Awaiting first sync", never a bogus age', () => {
-    renderLabel({ fetchedAtMs: null, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: null, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Awaiting first sync');
+  });
+
+  it('never-connected member (no provider artifact at all) → renders NOTHING, not a false promise', () => {
+    // P1 trust set (founder-authorized): "Awaiting first sync" used to render
+    // unconditionally on null — a permanent promise of a sync that would
+    // never come for a member with no wearable. Silence is the honest state.
+    renderLabel({ fetchedAtMs: null, hasProviderArtifact: false, testID: 'freshness' });
+    expect(host.textContent).toBe('');
   });
 });
 
 describe('HomeFreshnessLabel — updates as time passes (no remount, no prop change)', () => {
   it('a mounted label crosses from "just now" to "Xm ago" purely from its own tick, with the SAME fetchedAtMs prop throughout', () => {
     // Mounted 90s after the fetch — still within the <2min "just now" window.
-    renderLabel({ fetchedAtMs: START - 90_000, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 90_000, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked just now');
 
     // Advance real elapsed time past the 2-minute boundary (90s + 45s =
@@ -131,7 +139,7 @@ describe('HomeFreshnessLabel — updates as time passes (no remount, no prop cha
   });
 
   it('continues ticking across multiple intervals into the hour bucket', () => {
-    renderLabel({ fetchedAtMs: START - 55 * MINUTE, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 55 * MINUTE, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).toBe('Checked 55m ago');
 
     // 5 more minutes of real time, delivered across several recheck ticks.
@@ -160,9 +168,9 @@ describe('HomeFreshnessLabel — mutation-verify: the two ways this fix could re
   });
 
   it('MUTATION 2 (off-by-one boundary regression): exactly 2:00.000 min old must already read "2m ago", not "just now" — a `<=` threshold bug would fail this', () => {
-    const freshness = resolveHomeFreshness(START, START - 2 * MINUTE);
+    const freshness = resolveHomeFreshness(START, START - 2 * MINUTE, true);
     expect(freshness).toEqual({ key: 'home.v2.freshness.minutes_ago', params: { count: 2 } });
-    expect(freshness.key).not.toBe('home.v2.freshness.just_now');
+    expect(freshness?.key).not.toBe('home.v2.freshness.just_now');
   });
 
   // S3 (#586 verdict close-out) MUTATION 3: proves this suite is actually
@@ -197,7 +205,7 @@ describe('HomeFreshnessLabel — mutation-verify: the two ways this fix could re
         React.createElement(
           I18nextProvider,
           { i18n: regressedI18n },
-          React.createElement(HomeFreshnessLabel, { fetchedAtMs: START - 3 * DAY, testID: 'freshness' }),
+          React.createElement(HomeFreshnessLabel, { fetchedAtMs: START - 3 * DAY, hasProviderArtifact: true, testID: 'freshness' }),
         ),
       ),
     );
@@ -207,7 +215,7 @@ describe('HomeFreshnessLabel — mutation-verify: the two ways this fix could re
 
     // The real component, against the real locale, must NOT match that —
     // this is the assertion a regressed `en.json` is expected to fail.
-    renderLabel({ fetchedAtMs: START - 3 * DAY, testID: 'freshness' });
+    renderLabel({ fetchedAtMs: START - 3 * DAY, hasProviderArtifact: true, testID: 'freshness' });
     expect(host.textContent).not.toBe('Checked 3d ago');
     expect(host.textContent).toBe('Checked 3d ago — data is stale');
   });

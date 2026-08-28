@@ -208,46 +208,54 @@ describe('freshestBiometricsFetchedAt — S2 observation-axis conservatism (#586
 
 describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
   it('never fabricates: null fetchedAtMs → the honest "unavailable" state, never an age', () => {
-    expect(resolveHomeFreshness(NOW, null)).toEqual({ key: 'home.v2.freshness.unavailable' });
+    // CONSCIOUS REPIN (P1 trust set, founder-authorized): "unavailable"
+    // ("Awaiting first sync") is now reserved for members WITH provider
+    // artifacts and no valid fetch stamp. A never-connected member gets
+    // NULL — render nothing — because "Awaiting first sync" was a
+    // permanent false promise of a sync that would never come.
+    expect(resolveHomeFreshness(NOW, null, true)).toEqual({ key: 'home.v2.freshness.unavailable' });
+    expect(resolveHomeFreshness(NOW, null, false)).toBeNull();
+    expect(resolveHomeFreshness(NOW, -5, false)).toBeNull();
+    expect(resolveHomeFreshness(NOW, Number.NaN, false)).toBeNull();
   });
 
   it('<2 min → "just_now" (ruling E\'s explicit threshold, wider than the 1-min convention used elsewhere in this codebase)', () => {
-    expect(resolveHomeFreshness(NOW, NOW)).toEqual({ key: 'home.v2.freshness.just_now' });
-    expect(resolveHomeFreshness(NOW, NOW - 1 * MINUTE)).toEqual({ key: 'home.v2.freshness.just_now' });
-    expect(resolveHomeFreshness(NOW, NOW - (2 * MINUTE - 1))).toEqual({ key: 'home.v2.freshness.just_now' });
+    expect(resolveHomeFreshness(NOW, NOW, true)).toEqual({ key: 'home.v2.freshness.just_now' });
+    expect(resolveHomeFreshness(NOW, NOW - 1 * MINUTE, true)).toEqual({ key: 'home.v2.freshness.just_now' });
+    expect(resolveHomeFreshness(NOW, NOW - (2 * MINUTE - 1), true)).toEqual({ key: 'home.v2.freshness.just_now' });
   });
 
   it('boundary: exactly 2 minutes old is ALREADY "minutes_ago", not "just_now"', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 2 * MINUTE)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 2 * MINUTE, true)).toEqual({
       key: 'home.v2.freshness.minutes_ago',
       params: { count: 2 },
     });
   });
 
   it('minutes bucket up to (not including) 60', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 30 * MINUTE)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 30 * MINUTE, true)).toEqual({
       key: 'home.v2.freshness.minutes_ago',
       params: { count: 30 },
     });
-    expect(resolveHomeFreshness(NOW, NOW - 59 * MINUTE)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 59 * MINUTE, true)).toEqual({
       key: 'home.v2.freshness.minutes_ago',
       params: { count: 59 },
     });
   });
 
   it('boundary: exactly 60 minutes rolls over to hours', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 60 * MINUTE)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 60 * MINUTE, true)).toEqual({
       key: 'home.v2.freshness.hours_ago',
       params: { count: 1 },
     });
   });
 
   it('hours bucket up to (not including) 24', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 5 * HOUR)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 5 * HOUR, true)).toEqual({
       key: 'home.v2.freshness.hours_ago',
       params: { count: 5 },
     });
-    expect(resolveHomeFreshness(NOW, NOW - 23 * HOUR)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 23 * HOUR, true)).toEqual({
       key: 'home.v2.freshness.hours_ago',
       params: { count: 23 },
     });
@@ -260,33 +268,33 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
   // so the boundary test doubles as proof the explicit-stale key fires
   // exactly where the neutral `days_ago` key used to.
   it('boundary: exactly 24 hours rolls over to the explicit-stale days bucket (S3)', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR, true)).toEqual({
       key: 'home.v2.freshness.days_ago_stale',
       params: { count: 1 },
     });
   });
 
   it('23h59m59.999s is still the neutral hours bucket, NOT stale — the boundary is exact, one side only (S3)', () => {
-    expect(resolveHomeFreshness(NOW, NOW - (24 * HOUR - 1))).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - (24 * HOUR - 1), true)).toEqual({
       key: 'home.v2.freshness.hours_ago',
       params: { count: 23 },
     });
   });
 
   it('days bucket for very stale data (e.g. permission revoked, no sync in a week) — never an absurd raw hour count', () => {
-    expect(resolveHomeFreshness(NOW, NOW - 9 * DAY)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 9 * DAY, true)).toEqual({
       key: 'home.v2.freshness.days_ago_stale',
       params: { count: 9 },
     });
   });
 
   it('a future fetchedAtMs (clock skew) clamps to "just_now" rather than a negative/garbage age', () => {
-    expect(resolveHomeFreshness(NOW, NOW + 5 * MINUTE)).toEqual({ key: 'home.v2.freshness.just_now' });
+    expect(resolveHomeFreshness(NOW, NOW + 5 * MINUTE, true)).toEqual({ key: 'home.v2.freshness.just_now' });
   });
 
   it('deterministic: never reaches for Date.now() — identical (now, fetchedAtMs) always resolves identically', () => {
-    const a = resolveHomeFreshness(NOW, NOW - 47 * MINUTE);
-    const b = resolveHomeFreshness(NOW, NOW - 47 * MINUTE);
+    const a = resolveHomeFreshness(NOW, NOW - 47 * MINUTE, true);
+    const b = resolveHomeFreshness(NOW, NOW - 47 * MINUTE, true);
     expect(a).toEqual(b);
   });
 
@@ -301,7 +309,7 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
   // `NOW`; the mechanism, not the exact digit, is what's under test). This
   // must resolve to `unavailable`, never a rendered age.
   it('#586: fetchedAtMs of 0 (the sentinel epoch) resolves to "unavailable", NOT a tens-of-thousands-of-days rendered age', () => {
-    const result = resolveHomeFreshness(NOW, 0);
+    const result = resolveHomeFreshness(NOW, 0, true);
     expect(result).toEqual({ key: 'home.v2.freshness.unavailable' });
     // Guard the regression itself: prove 0 would in fact bucket to a
     // multi-thousand-day defect if the epoch-0 guard were absent, so this
@@ -310,8 +318,8 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
   });
 
   it('a negative fetchedAtMs (clock corruption / bad restore) also resolves to "unavailable"', () => {
-    expect(resolveHomeFreshness(NOW, -1)).toEqual({ key: 'home.v2.freshness.unavailable' });
-    expect(resolveHomeFreshness(NOW, -86_400_000)).toEqual({ key: 'home.v2.freshness.unavailable' });
+    expect(resolveHomeFreshness(NOW, -1, true)).toEqual({ key: 'home.v2.freshness.unavailable' });
+    expect(resolveHomeFreshness(NOW, -86_400_000, true)).toEqual({ key: 'home.v2.freshness.unavailable' });
   });
 
   // S3 (#586 verdict close-out): the days bucket must never again present as
@@ -327,8 +335,8 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
     };
     const buggyResult = preS3Resolver(NOW, NOW - 24 * HOUR);
     expect(buggyResult).toEqual({ key: 'home.v2.freshness.days_ago', params: { count: 1 } });
-    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).not.toEqual(buggyResult);
-    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR)).toEqual({
+    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR, true)).not.toEqual(buggyResult);
+    expect(resolveHomeFreshness(NOW, NOW - 24 * HOUR, true)).toEqual({
       key: 'home.v2.freshness.days_ago_stale',
       params: { count: 1 },
     });
@@ -338,9 +346,9 @@ describe('resolveHomeFreshness — graduated, never-fabricated copy', () => {
 describe('mutation-verify: reverting to the static-freshness bug', () => {
   it('a resolver that ignores fetchedAtMs and always returns just_now would fail every non-just_now case above', () => {
     const staticBug = (_now: number, _fetchedAtMs: number | null) => ({ key: 'home.v2.freshness.just_now' as const });
-    expect(staticBug(NOW, NOW - 30 * MINUTE)).not.toEqual(resolveHomeFreshness(NOW, NOW - 30 * MINUTE));
-    expect(staticBug(NOW, NOW - 5 * HOUR)).not.toEqual(resolveHomeFreshness(NOW, NOW - 5 * HOUR));
-    expect(staticBug(NOW, null)).not.toEqual(resolveHomeFreshness(NOW, null));
+    expect(staticBug(NOW, NOW - 30 * MINUTE)).not.toEqual(resolveHomeFreshness(NOW, NOW - 30 * MINUTE, true));
+    expect(staticBug(NOW, NOW - 5 * HOUR)).not.toEqual(resolveHomeFreshness(NOW, NOW - 5 * HOUR, true));
+    expect(staticBug(NOW, null)).not.toEqual(resolveHomeFreshness(NOW, null, true));
   });
 
   // #586 mutation-verify: a resolver with ONLY the pre-fix `Number.isFinite`
@@ -366,7 +374,7 @@ describe('mutation-verify: reverting to the static-freshness bug', () => {
     expect(buggyResult).toEqual({ key: 'home.v2.freshness.days_ago', params: { count: 20671 } });
     // The fixed resolver must NOT reproduce that — this is the assertion a
     // reverted guard is expected to fail.
-    expect(resolveHomeFreshness(NOW, 0)).not.toEqual(buggyResult);
-    expect(resolveHomeFreshness(NOW, 0)).toEqual({ key: 'home.v2.freshness.unavailable' });
+    expect(resolveHomeFreshness(NOW, 0, true)).not.toEqual(buggyResult);
+    expect(resolveHomeFreshness(NOW, 0, true)).toEqual({ key: 'home.v2.freshness.unavailable' });
   });
 });
