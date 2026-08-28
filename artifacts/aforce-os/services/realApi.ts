@@ -40,7 +40,7 @@ import { mergeBiometrics } from '../utils/biometricsMerge';
 import { calculateScore } from '../utils/scoringEngine';
 import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
-import { defaultUserState } from '../data/mockData';
+import { resolveInitialUserState } from '../data/initialUserState';
 import { getAuthHeaders, getAuthToken } from './authToken';
 
 // ─── Base URL resolution ─────────────────────────────────────────────────────
@@ -228,7 +228,10 @@ export interface HomePayload {
   stale?: boolean;
 }
 
-let lastKnownState: UserState = defaultUserState;
+// PR-2 production-seed honesty: the pre-first-fetch fallback state is the
+// honest empty seed in production (demo builds keep the tuned demo day —
+// their fetches 401 and echo this state back as their whole data story).
+let lastKnownState: UserState = resolveInitialUserState();
 
 /**
  * Read the server-side provider biometrics blob DIRECTLY (before the

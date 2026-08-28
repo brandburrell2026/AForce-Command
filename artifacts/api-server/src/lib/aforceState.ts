@@ -75,38 +75,48 @@ async function applyDayRollover(userId: string, current: AforceUserStateRow): Pr
   return fresh ?? current;
 }
 
-function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
-  // Mirrors `artifacts/aforce-os/data/mockData.ts:defaultUserState` so
-  // first-load behavior matches what the old in-memory mock produced.
-  const lastIntake = new Date(Date.now() - 12 * 60 * 1000);
-  const wake = new Date();
-  wake.setHours(6, 30, 0, 0);
+export function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
+  // PR-2 production-seed honesty (founder-authorized): a brand-new
+  // account's row is the HONEST empty day — nothing consumed, no streak,
+  // no fabricated freshness. This row previously mirrored the DEMO-tuned
+  // client seed (5 units / 45 oz / streak 5, engineered to score
+  // BALANCED 76), which meant every fresh production account was born
+  // with a fabricated day the client then presented as real. The demo
+  // seed now lives only in the client's env-gated DEMO/CAPTURE builds
+  // (artifacts/aforce-os/data/mockData.ts); this seed mirrors
+  // artifacts/aforce-os/data/initialUserState.ts:productionInitialUserState.
+  //
+  // lastIntakeTime is non-nullable through the scoring engine (recorded
+  // W3-PR10 decision — the client's normalizeUserState coalesces null to
+  // `new Date()`); seeding "now" matches that recorded behavior rather
+  // than an epoch sentinel that renders decades-old "ago" copy.
+  // bodyWeightLbs 180 is the recorded default at three client layers —
+  // a flagged residual, not a new fabrication.
+  const lastIntake = new Date();
   return {
     userId: DEFAULT_USER_ID,
-    unitsConsumedToday: 5,
-    // 45 of 96 oz keeps the seeded engine score at a BALANCED 76 (matches
-    // artifacts/aforce-os/data/mockData.ts:defaultUserState).
-    ozConsumedToday: 45,
-    aforceUnitsToday: 3,
+    unitsConsumedToday: 0,
+    ozConsumedToday: 0,
+    aforceUnitsToday: 0,
     lastIntakeTime: lastIntake,
-    lastIntakeType: "aforce_stick",
+    lastIntakeType: "water",
     symptomState: "none",
     symptoms: [],
-    urineSignal: 2,
+    urineSignal: 3,
     energyState: "steady",
-    heatLoad: 3,
+    heatLoad: 4,
     sweatRate: 3,
-    activityLevel: 4,
-    complianceStreak: 5,
+    activityLevel: 5,
+    complianceStreak: 0,
     dailyTarget: 8,
     ozTarget: 96,
     isSnoozed: false,
     snoozeUntil: null,
     bodyWeightLbs: 180,
     isAwake: true,
-    wakeTime: wake,
-    overnightLossOz: 6,
-    hasSeenMorningCommand: true,
+    wakeTime: null,
+    overnightLossOz: 0,
+    hasSeenMorningCommand: false,
     appleHealth: null,
     confirmationDelta: null,
     confirmationDeltaSetAt: null,
