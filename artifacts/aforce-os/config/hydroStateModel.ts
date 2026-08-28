@@ -555,3 +555,15 @@ export const MOMENT_FEEDBACK_ASK_MAX_PER_DAY = 1;
 
 /** Max stored feedback records (oldest dropped past the cap). */
 export const MOMENT_FEEDBACK_MAX_RECORDS = 200;
+
+/* ─── Decision Guard (directive §2 invariants, §11 lifecycle, §21 release gates) ─── */
+
+/**
+ * Upper bound for any single dose token ("N oz" / "N ounces") the Decision
+ * Guard will approve in delivered command copy. Mirrors the existing
+ * parseDoseOz contract (utils/recovery/recoveryCommandFromStore.ts:
+ * 0 < oz <= 200) — one shared sanity ceiling, not a new threshold.
+ * "Impossible or unsafe numerical recommendation" is a zero-tolerance
+ * release category; the guard blocks any dose token outside (0, this].
+ */
+export const DECISION_GUARD_MAX_DOSE_OZ = 200;

@@ -51,8 +51,10 @@ import { resolveInitialUserState } from '../data/initialUserState';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
 import { CAPTURE_MODE } from '../services/demoMode';
-import { getCommandLedgerState } from '../services/commandLedger';
+import { getCommandLedgerState, appendCommandEvents } from '../services/commandLedger';
 import { adaptEngineOutputForRecheck } from '../utils/intelligence/adaptEngineOutput';
+import { guardEngineOutput } from '../utils/intelligence/decisionGuard';
+import { decisionGuardResultToCommandEvent } from '../utils/intelligence/commandEventAdapters';
 import {
   fetchHome,
   postIntakeLog,
@@ -192,6 +194,45 @@ export const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  // DECISION GUARD — the directive's final seam before delivery
+  // ("Context Arbitration → RecoveryCommand → Evidence Engine → Decision
+  // Guard"; "Decision Guard can block every output"). Every delivery path
+  // out of this provider — the facade, the slices, the voice effect, and
+  // the journal snapshot — consumes `deliveredState`/`guardedDelivery`
+  // instead of raw reducer state, so all eight engine-output ingress
+  // points are covered at ONE seam (the adaptEngineOutput precedent
+  // showed per-dispatch wrapping drifts). Approved commands pass through
+  // by REFERENCE (production is byte-identical); a blocked command is
+  // replaced with the neutral fallback and the verdict is appended to the
+  // command ledger below. Pinned by
+  // store/__tests__/decisionGuardSeam.lock.test.ts.
+  const guardedDelivery = useMemo(() => guardEngineOutput(state.engineOutput), [state.engineOutput]);
+  const deliveredState = useMemo<AppState>(
+    () =>
+      guardedDelivery.engineOutput === state.engineOutput
+        ? state
+        : { ...state, engineOutput: guardedDelivery.engineOutput },
+    [state, guardedDelivery],
+  );
+  // Directive §11: the ledger records a "Decision Guard result" per
+  // command. One row per (commandId, verdict[, reason]) transition —
+  // command ids are stable semantic ids, so volume stays bounded well
+  // under the ledger cap. Advisory audit only (execution_event subtype is
+  // invisible to every kind-filtered reader) — never selection input.
+  const lastGuardLedgerKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    const r = guardedDelivery.result;
+    const cmdId = state.engineOutput.command?.id ?? '';
+    const key = r.verdict === 'approved' ? `approved:${cmdId}` : `blocked:${r.reason}:${cmdId}`;
+    if (lastGuardLedgerKeyRef.current === key) return;
+    lastGuardLedgerKeyRef.current = key;
+    const ev = decisionGuardResultToCommandEvent({
+      result: r,
+      commandId: cmdId || undefined,
+      atMs: Date.now(),
+    });
+    if (ev) void appendCommandEvents([ev]);
+  }, [guardedDelivery, state.engineOutput.command?.id]);
   // Voice Coach toggle (T3) — defaults ON; mirrored to AsyncStorage +
   // the textToSpeech playback flag so non-React consumers see the same
   // value. Hydrated from storage on first effect.
@@ -756,7 +797,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const sodiumLostMg = 0;
     const deficitPct = 0;
     const socialActive = !!state.userState.socialMode?.active;
-    const reason = state.engineOutput.command?.action?.slice(0, 240) ?? '';
+    const reason = guardedDelivery.engineOutput.command?.action?.slice(0, 240) ?? '';
     // Recovery Layer — only attached when `spec_recovery` is on, so
     // production snapshots are byte-identical to before the layer landed.
     const recoveryFields = state.featureFlags.spec_recovery
@@ -815,7 +856,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state.userState.clutchActive,
     state.userState.socialMode?.active,
     state.sweatAutopilot,
-    state.engineOutput.command?.action,
+    guardedDelivery.engineOutput.command?.action,
   ]);
 
   // ─── T1: Phantom Band auto-log ─────────────────────────────────────────
@@ -854,7 +895,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!voiceCoachEnabled) return;
     if (!categoryAllowedForScope('system_command', voiceScopeRef.current)) return;
-    const cmd = state.engineOutput.command;
+    const cmd = guardedDelivery.engineOutput.command;
     if (!cmd?.action) return;
     if (lastSpokenCommandIdRef.current === cmd.id) return;
     lastSpokenCommandIdRef.current = cmd.id;
@@ -867,8 +908,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     commandSpeak(line, { level, intensity, category: 'system_command' });
   }, [
     voiceCoachEnabled,
-    state.engineOutput.command?.id,
-    state.engineOutput.command?.action,
+    guardedDelivery.engineOutput.command?.id,
+    guardedDelivery.engineOutput.command?.action,
     state.engineOutput.performanceState.level,
     state.userState.language,
   ]);
@@ -1209,8 +1250,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // dependency array lists each forwarded field individually — depending
   // on `state` itself would reintroduce the per-second churn this fix
   // removes. Countdown readers use `useTimerSlice()`.
-  const facadeState = useMemo<FacadeState>(() => pickFacadeState(state), [
-    state.userState, state.engineOutput, state.history, state.lastCycleResult,
+  const facadeState = useMemo<FacadeState>(() => pickFacadeState(deliveredState), [
+    state.userState, guardedDelivery.engineOutput, state.history, state.lastCycleResult,
     state.isCompletingCycle, state.showCycleSuccess, state.pendingConfirmation,
     state.featureFlags, state.subscription, state.lastIntakeBurstAt,
     state.hasSeenOnboarding, state.sweatAutopilot, state.sweatAutopilotSetAt,
@@ -1264,7 +1305,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={value}>
       <SliceProvider
-        state={state}
+        state={deliveredState}
         actions={actions}
         isHydrated={isHydrated}
         selectedVoiceId={selectedVoiceId}
