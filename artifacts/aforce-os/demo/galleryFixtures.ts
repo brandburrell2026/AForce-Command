@@ -378,7 +378,7 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
   {
     id: 'home-depleted',
     label: 'Home — Depleted',
-    driver: 'engineOutput.score=38 (DEPLETED band, 0-59) + userState low-intake/high-heat overrides; flags.spec_home=true',
+    driver: 'engineOutput.score=38 (DEPLETED band, 0-59) + userState low-intake/high-heat overrides',
     surface: 'home',
     appState: baseAppState({
       userState: baseUserState({
@@ -396,18 +396,18 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
         complianceStreak: 0,
       }),
       engineOutput: depletedEngine(),
-      featureFlags: baseFlags({ spec_home: true }),
+      featureFlags: baseFlags(),
     }),
   },
   {
     id: 'home-balanced',
     label: 'Home — Balanced',
-    driver: 'engineOutput.score=76 (BALANCED band, 75-89), the same tuned defaultUserState mockData ships; flags.spec_home=true',
+    driver: 'engineOutput.score=76 (BALANCED band, 75-89), the same tuned defaultUserState mockData ships',
     surface: 'home',
     appState: baseAppState({
       userState: baseUserState(),
       engineOutput: balancedEngine(),
-      featureFlags: baseFlags({ spec_home: true }),
+      featureFlags: baseFlags(),
     }),
   },
   {

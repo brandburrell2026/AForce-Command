@@ -109,12 +109,12 @@ describe('applyInternalPreviewOverlay — reference-identity contract (§6.1.1, 
   });
 
   it('is a union, not a merge: an already-true field elsewhere in base is left exactly as-is', () => {
-    const base = freshBase({ spec_home: true, cruise_mode_enabled: true });
+    const base = freshBase({ sleep_mode_enabled: true, cruise_mode_enabled: true });
     const result = applyInternalPreviewOverlay(base, overlay(['health_garmin_enabled']), NOW);
 
     expect(result).not.toBe(base);
     expect(result.health_garmin_enabled).toBe(true);
-    expect(result.spec_home).toBe(true);
+    expect(result.sleep_mode_enabled).toBe(true);
     expect(result.cruise_mode_enabled).toBe(true);
   });
 
