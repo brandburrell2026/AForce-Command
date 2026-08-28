@@ -47,7 +47,7 @@ import {
   flushPendingProfileSync,
 } from '../services/profileSyncService';
 import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
-import { defaultUserState } from '../data/mockData';
+import { resolveInitialUserState } from '../data/initialUserState';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
 import { CAPTURE_MODE } from '../services/demoMode';
@@ -136,10 +136,17 @@ import { useAppStateGatedInterval } from '../hooks/useAppStateGatedInterval';
 
 // Initial render only — engine output is then immediately refreshed via
 // /v1/home from the service layer in an effect (see AppProvider mount).
-const initialEngineOutput = _initialOnly(defaultUserState);
+//
+// PR-2 production-seed honesty: production builds seed the honest empty
+// state (0 units / 0 oz / streak 0 — byte-shaped like a fresh server
+// account post-fetch); only env-gated DEMO/CAPTURE builds seed the tuned
+// demo day (their entire data story is this seed — fetches 401 and echo
+// it back). See data/initialUserState.ts for the full contract.
+const initialUserState = resolveInitialUserState();
+const initialEngineOutput = _initialOnly(initialUserState);
 
 const initialState: AppState = {
-  userState: defaultUserState,
+  userState: initialUserState,
   engineOutput: initialEngineOutput,
   // Wave-3 PR10 (W2-N1): the store previously seeded five FABRICATED
   // history entries with always-fresh "Nm ago" stamps — and their lack of

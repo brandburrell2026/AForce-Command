@@ -8,9 +8,12 @@ import type { UserState, UserProfile, HistoryEntry, RosterPlayer } from '../type
 
 // ─── Mock User State ──────────────────────────────────────────────────────────
 export const defaultUserState: UserState = {
-  // Demo seed: tuned so the scoring engine yields a BALANCED score
-  // (76) on first home view after the lobby splash, matching the
-  // teal "Performance stable" reference design.
+  // DEMO/CAPTURE seed ONLY (PR-2 production-seed honesty): tuned so the
+  // scoring engine yields a BALANCED score (76), matching the teal
+  // "Performance stable" reference design. Production builds seed
+  // `data/initialUserState.ts:productionInitialUserState` instead — this
+  // tuned day reaches the store only in env-gated DEMO_MODE/CAPTURE_MODE
+  // builds (and the __DEV__/demo-gated Screen Gallery fixtures).
   unitsConsumedToday: 5,
   aforceUnitsToday: 3,
   language: 'en',

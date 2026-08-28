@@ -3,14 +3,18 @@
  * show a fabricated personal HydroState such as BALANCED 76 before sufficient
  * evidence exists").
  *
- * WHY THIS EXISTS. `data/mockData.ts`'s `defaultUserState` seeds a demo day —
- * `unitsConsumedToday: 5`, `ozConsumedToday: 45` — and the scoring engine
- * faithfully turns that seed into a confident BALANCED 76. A member who has
- * never logged anything therefore met AForce with a personal physiological
- * reading of a day they never had. The seed and the scoring engine are both
- * off-limits and both stay exactly as they are: nothing here computes, reads
- * into, or alters a score. This module decides ONE thing — whether Home has
- * earned the right to PRESENT that number as the member's state yet.
+ * WHY THIS EXISTS. When this gate was built, `data/mockData.ts`'s
+ * `defaultUserState` seeded a demo day — `unitsConsumedToday: 5`,
+ * `ozConsumedToday: 45` — and the scoring engine faithfully turned that seed
+ * into a confident BALANCED 76 for members who had never logged anything.
+ * (PR-2 production-seed honesty, founder-authorized 2026-08-28, later moved
+ * production to the honest empty seed in `data/initialUserState.ts` — the
+ * tuned day now reaches the store only in DEMO/CAPTURE builds — superseding
+ * the "seed stays exactly as it is" half of the original premise. The
+ * scoring engine remains off-limits and untouched.) This gate stays either
+ * way: nothing here computes, reads into, or alters a score. This module
+ * decides ONE thing — whether Home has earned the right to PRESENT the
+ * engine's number as the member's state yet.
  *
  * The three states are deliberate, and `pending` is the one that matters most.
  * The local intake list answers the question synchronously; the journal read
