@@ -45,9 +45,10 @@ interface ToggleRow {
 // challengeDeadlines, remote push for circleActivity.
 // S1-4 (notification honesty) extends the same rule to the remaining
 // three legacy rows: `recheckReminders` and `scoreDecayAlerts` are
-// consumed only by useRiskTimerVoice / useScoreBandVoice, which mount
-// exclusively in HomeScreenLegacy — unreachable while `spec_home` is
-// on — and `lowInventoryAlert` has NO consumer anywhere. A toggle whose
+// consumed only by useRiskTimerVoice / useScoreBandVoice, whose one host
+// was the since-deleted HomeScreenLegacy (the `spec_home` flag that hid
+// it is retired too) — no reachable producer exists —
+// and `lowInventoryAlert` has NO consumer anywhere. A toggle whose
 // producer cannot fire is a broken promise, so the rows are hidden, not
 // wired-by-invention. Keys and persisted choices stay untouched;
 // restoring a row is a one-line change the day its producer mounts on

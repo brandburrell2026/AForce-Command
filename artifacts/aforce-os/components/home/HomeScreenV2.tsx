@@ -1,34 +1,30 @@
 /**
- * HomeScreenV2 — the Phase 2 · S3 Home redesign (spec §8.2), rendered only when
- * `spec_home` is on. The spec's reduced hierarchy: wordmark + freshness →
+ * HomeScreenV2 — the Phase 2 · S3 Home redesign (spec §8.2), rendered
+ * UNCONDITIONALLY as the Home tab (the `spec_home` flag that once gated it
+ * was retired with its fallback twin). The spec's reduced hierarchy: wordmark + freshness →
  * dominant readiness value with a thin arc → one "Your next move" command card →
  * three quiet signal metrics. One score, one command, one CTA.
  *
  * Same live engine data as the legacy Home (score, command, signals) — no
  * scoring change (statusColor/scoringEngine untouched).
  *
- * HONEST STATUS (RC-1 verdict-pass correction — a prior version of this
+ * HONEST STATUS (RC-1 verdict-pass correction; wording updated after the
+ * flag-key prune and the legacy-Home retirement — a prior version of this
  * comment claimed the legacy Home's four detail zones were "relocated" into
  * Readiness Insights with "nothing missing," then a later version claimed
- * they were "still reachable" because `spec_home` defaults OFF; both claims
- * are false): the legacy Home's four detail zones — MetabolicReadinessZone,
- * PerformanceAgeZone, VoiceCheckInZone, ActivationJourneyZone (all in
- * components/home/) — are rendered ONLY by HomeScreenLegacy
- * (`components/home/HomeScreenLegacy.tsx`, React.lazy-loaded from
- * `app/(tabs)/index.tsx`). Tapping the arc opens Readiness Insights, which
- * shows a chart + drivers + insight, not those four zones.
- *
- * `featureFlags/flags.ts` sets `spec_home: true` in `DEFAULT_FLAGS`, and
- * `app/(tabs)/index.tsx`'s `HomeScreen` is a ternary —
- * `specHome ? <HomeScreenV2 /> : <HomeScreenLegacy />` — that
- * renders EITHER this component OR the legacy screen, never both. There is
- * no code path today where both render "alongside" each other. That means
- * the four legacy detail zones are ALREADY orphaned/unreachable in today's
- * default build, not merely "at risk of becoming orphaned" on some future
- * flag flip. Restoring them (in some form, somewhere) or explicitly retiring
- * them needs a founder decision — this file must not claim that decision
- * has already happened, and must not understate that the orphaning has
- * already occurred.
+ * they were "still reachable" behind the since-retired `spec_home` flag;
+ * both claims were false): the legacy Home's four detail zones —
+ * MetabolicReadinessZone, PerformanceAgeZone, VoiceCheckInZone,
+ * ActivationJourneyZone (all in components/home/) — have NO renderer at
+ * all. Their only host, `HomeScreenLegacy`, was retired with the
+ * fifteen-twin sweep, and the `spec_home` flag key that selected between
+ * the two Homes was pruned afterward; this component is the Home tab,
+ * unconditionally. Tapping the arc opens Readiness Insights (chart +
+ * drivers + insight), not those four zones. The four zone FILES are
+ * orphaned and were deliberately HELD OUT of the orphan-tree retirement:
+ * restoring them (in some form, somewhere) or explicitly retiring them
+ * needs a founder decision — this file must not claim that decision has
+ * already happened.
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
  * PRESENTATION-ONLY elevation layered on the exact same data. When on, it adds a
@@ -128,8 +124,9 @@
  * amount, no confirm, no cancel, so a mis-tap was a durable intake event and
  * the member never said how much they drank. (2) `silent: true` sets
  * `showCycleSuccess: false` in the reducer, and the repo's only
- * `<CycleSuccessOverlay>` mount lived in `HomeScreenLegacy`, which
- * `spec_home: true` makes unreachable — so even without `silent` there was no
+ * `<CycleSuccessOverlay>` mount lived in `HomeScreenLegacy` — which the
+ * since-retired `spec_home` flag made unreachable, and which has itself
+ * since been deleted — so even without `silent` there was no
  * renderer. Nothing acknowledged the act. (3) The haptic fired on PRESS, so the
  * hand was told "logged" before the write had even been attempted, and it still
  * said "logged" when the write failed.
@@ -908,7 +905,8 @@ export function HomeScreenV2() {
 
       {/* CORRECTION 2 — the acknowledgement. This overlay is the repo's
           shipped confirmation moment and its ONLY previous mount was inside
-          `HomeScreenLegacy`, which `spec_home: true` makes unreachable — so a
+          the since-deleted `HomeScreenLegacy` (unreachable even then, behind
+          the since-retired `spec_home` flag) — so a
           member on the live Home logged water and the product said nothing.
           Rendered from the cycle slice's own settled result (never from local
           state), so it can only appear for a write the store actually

@@ -1,6 +1,7 @@
 /**
  * UrineCheckScreenV2 — Phase 3 redesign of the Urine Hydration Check (spec §5),
- * rendered when `spec_urine` is on. Same data + the SAME live write path as the
+ * rendered unconditionally (the `spec_urine` flag that once gated it was
+ * retired with its fallback twin). Same data + the SAME live write path as the
  * legacy screen (`updateSymptoms` / `updateEnergyState` / `confirmStatus`) — this
  * screen mutates the hydration/readiness store, so those calls are preserved
  * verbatim (must not regress). Presentation only on the af.* system.
