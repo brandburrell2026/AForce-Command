@@ -126,8 +126,14 @@ describe('recoveryEngine — recoveryInputsFromState (store bridge)', () => {
       decayPerMinute: baseEngine.prediction.decayPerMinute,
       waterCycles: baseUser.unitsConsumedToday,
       urineSignal: baseUser.urineSignal,
-      heatLoad: baseUser.heatLoad,
-      activityLevel: baseUser.activityLevel,
+      // Wrong-scale close-out (founder-authorized): the store drives are the
+      // canonical 0–10 scale, while RecoveryInputs documents a 0–100 axis
+      // (derivePressure clamps 0–100; deriveFingerprint bands at >66/>33).
+      // The adapter now maps through fraction01FromScale10 × 100 — the raw
+      // pass-through this lock previously pinned was the scale-mismatch bug
+      // (heat 4 contributed 1.4 pressure pts instead of 14).
+      heatLoad: (baseUser.heatLoad / 10) * 100,
+      activityLevel: (baseUser.activityLevel / 10) * 100,
       overnightLossOz: baseUser.overnightLossOz,
       drinkCount: 0,
       complianceStreak: baseUser.complianceStreak,

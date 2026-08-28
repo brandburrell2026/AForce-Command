@@ -257,6 +257,7 @@ import { LiveStatusLine } from './LiveStatusLine';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { getStatusVerb } from '@/services/statusVerb';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
+import { fraction01FromScale10 } from '@/utils/quantities';
 import {
   formatSleepHours,
   formatHrvMs,
@@ -275,10 +276,16 @@ interface HomeActions {
   dismissSuccess: () => void;
 }
 
-/** Heat-load band → i18n key suffix (translated at the call site). */
-function heatBand(heatLoad: number): 'high' | 'moderate' | 'low' {
-  if (heatLoad >= 60) return 'high';
-  if (heatLoad >= 30) return 'moderate';
+/**
+ * Heat-load band → i18n key suffix (translated at the call site).
+ * Takes the NORMALIZED 0–100 axis — the call site bridges the store's
+ * canonical 0–10 drive through `fraction01FromScale10` first. Fed raw,
+ * the 60/30 thresholds were unreachable (max raw value 10 → forever
+ * "low"); the thresholds themselves are unchanged.
+ */
+function heatBand(heatLoad100: number): 'high' | 'moderate' | 'low' {
+  if (heatLoad100 >= 60) return 'high';
+  if (heatLoad100 >= 30) return 'moderate';
   return 'low';
 }
 
@@ -570,7 +577,18 @@ export function HomeScreenV2() {
 
   const signalTiles: Record<SignalKey, React.ReactNode> = {
     hydration: <Signal label={t('home.v2.signal_hydration')} value={`${hydrationPct}%`} />,
-    heat: <Signal label={t('home.v2.signal_heat')} value={t(`home.v2.heat_${heatBand(userState.heatLoad)}`)} />,
+    heat: (
+      <Signal
+        label={t('home.v2.signal_heat')}
+        value={t(
+          `home.v2.heat_${heatBand(
+            fraction01FromScale10(
+              Number.isFinite(userState.heatLoad) ? userState.heatLoad : 0,
+            ) * 100,
+          )}`,
+        )}
+      />
+    ),
     recovery: <Signal label={t('home.v2.signal_recovery')} value={recoveryText} />,
   };
   const signalOrder: SignalKey[] = elite
