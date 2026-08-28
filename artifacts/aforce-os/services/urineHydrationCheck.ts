@@ -2,10 +2,21 @@
  * Urine Hydration Check — pure assessment helper.
  *
  * Maps a urine color signal to a hydration verdict and recommendation.
- * Not a medical test — see DISCLAIMER. Tone matches the HydroScan
- * rebrand: natural observation framing, never an aggressive sell,
- * 12 oz water as the standard pour, AForce positioned as system
- * fuel / performance support.
+ * Not a medical test — see DISCLAIMER. Tone: natural observation
+ * framing, never an aggressive sell.
+ *
+ * COMMAND-AUTHORITY CONTAINMENT (wave 1, founder-authorized): this
+ * module OBSERVES; it does not command. Its recommendations previously
+ * issued their own doses ("12 oz water + AForce") and their own recheck
+ * clock ("Recheck in 30 minutes") — a second command authority rendered
+ * on the same screen as the canonical engine command, able to contradict
+ * it. RecoveryCommand is the ONE authoritative action; the canonical
+ * riskTimer owns recheck cadence. Recording the reading here feeds
+ * `urineSignal` into the scoring engine, so the canonical command
+ * already reflects this observation — the recommendation's job is to
+ * point at that command, never to compete with it. No dose numbers, no
+ * product pushes, no recheck clocks may return to these strings
+ * (pinned by services/__tests__/urineHydrationCheck.test.ts).
  *
  * Inputs (per spec):
  *   clear | light_yellow | yellow | dark_yellow
@@ -130,7 +141,7 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         severity: 'stable',
         verdict: 'Hydration Appears Stable',
         detail: 'Fluid balance is holding. Excess clear can signal over-dilution — pace your next intake.',
-        recommendation: 'Sip as needed. Recheck before your next event.',
+        recommendation: 'No extra fluids indicated by this signal. Your current command stays the guide.',
       };
     case 'light_yellow':
       return {
@@ -140,7 +151,7 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         severity: 'good',
         verdict: 'Good Hydration Range',
         detail: 'Healthy hydration window. The system is in balance.',
-        recommendation: 'Pair your next intake with 12 oz water to hold this range.',
+        recommendation: 'In range. Follow your current command to hold it.',
       };
     case 'yellow':
       return {
@@ -150,8 +161,7 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         severity: 'support',
         verdict: 'Hydration Support Suggested',
         detail: 'Fluids are trending behind demand. A good moment to top up.',
-        recommendation:
-          '12 oz water + AForce.',
+        recommendation: 'A good moment to act on your current command.',
       };
     case 'dark_yellow':
       return {
@@ -161,8 +171,7 @@ export function assessUrineColor(color: UrineColor): UrineCheckResult {
         severity: 'correction',
         verdict: 'Deeper Color — A Good Time for Fluids',
         detail: 'Deeper urine color often tracks with lower recent fluid intake.',
-        recommendation:
-          '16 oz water + AForce. Recheck in 30 minutes.',
+        recommendation: 'Act on your current command now. Saving this reading updates it.',
       };
     default: {
       // Compile-time exhaustiveness guard. If a new UrineColor value

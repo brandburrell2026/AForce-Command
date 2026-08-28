@@ -44,9 +44,46 @@ describe('Urine Hydration Check — color → verdict mapping (spec)', () => {
     expect(result.hex).toMatch(/^#[0-9A-F]{6}$/i);
   });
 
-  it('recommends AForce + water without unsubstantiated efficacy tails or diagnosis language (CR-1)', () => {
-    expect(assessUrineColor('yellow').recommendation).toMatch(/AForce/);
-    expect(assessUrineColor('dark_yellow').recommendation).toMatch(/AForce/);
+  // ── COMMAND-AUTHORITY CONTAINMENT (wave 1, founder-authorized) ────────────
+  // CONSCIOUS REPIN. The assertions this block replaces pinned the OLD
+  // behavior — "/AForce/" product pushes and the "12 oz water" pour on the
+  // corrective recommendations — which was a second command authority: this
+  // observation helper issued its own doses and its own "Recheck in 30
+  // minutes" clock on the same screen that renders the canonical engine
+  // command. RecoveryCommand is the ONE authoritative action; the canonical
+  // riskTimer owns recheck cadence; recording the reading feeds urineSignal
+  // into the engine so the canonical command already reflects it. The pins
+  // below are the new invariant: observe, defer, never command.
+
+  it('CONTAINMENT: no recommendation issues a dose (no oz / stick / serving numbers)', () => {
+    for (const opt of URINE_COLOR_OPTIONS) {
+      const r = assessUrineColor(opt.color);
+      expect(r.recommendation, `${opt.color} must not carry a dose`).not.toMatch(/\d+\s*(oz|ounce|stick|serving)/i);
+      expect(r.detail, `${opt.color} detail must not carry a dose`).not.toMatch(/\d+\s*(oz|ounce|stick|serving)/i);
+    }
+  });
+
+  it('CONTAINMENT: no recommendation runs its own recheck clock (canonical riskTimer owns cadence)', () => {
+    for (const opt of URINE_COLOR_OPTIONS) {
+      const r = assessUrineColor(opt.color);
+      expect(r.recommendation, `${opt.color} must not schedule a recheck`).not.toMatch(/recheck\s+(in|before)\b/i);
+      expect(r.recommendation).not.toMatch(/\bin \d+\s*(min|minute|hour)/i);
+    }
+  });
+
+  it('CONTAINMENT: no recommendation pushes product (observation, never a sell)', () => {
+    for (const opt of URINE_COLOR_OPTIONS) {
+      expect(assessUrineColor(opt.color).recommendation).not.toMatch(/AForce/);
+    }
+  });
+
+  it('every recommendation defers to the ONE canonical command', () => {
+    for (const opt of URINE_COLOR_OPTIONS) {
+      expect(assessUrineColor(opt.color).recommendation).toMatch(/current command/);
+    }
+  });
+
+  it('keeps the CR-1 claims guards: no efficacy tails or diagnosis-adjacent framing', () => {
     for (const c of ['yellow', 'dark_yellow'] as const) {
       expect(assessUrineColor(c).recommendation).not.toMatch(/efficiency support|mineral recovery support/);
     }
@@ -54,18 +91,11 @@ describe('Urine Hydration Check — color → verdict mapping (spec)', () => {
     expect(assessUrineColor('dark_yellow').detail).not.toMatch(/before performance is affected/);
   });
 
-  it('does not push AForce when hydration is already stable / good', () => {
-    expect(assessUrineColor('clear').recommendation).not.toMatch(/AForce/);
-    expect(assessUrineColor('light_yellow').recommendation).not.toMatch(/AForce/);
-  });
-
-  it('never uses aggressive "Take 1" verbs and prefers 12 oz pour where applicable', () => {
+  it('never uses aggressive "Take 1" verbs or alarmist verdict framing', () => {
     for (const opt of URINE_COLOR_OPTIONS) {
       const r = assessUrineColor(opt.color);
       expect(r.recommendation).not.toMatch(/^Take 1\b/);
       expect(r.verdict).not.toMatch(/\bnot optimal\b/);
     }
-    expect(assessUrineColor('light_yellow').recommendation).toMatch(/12 oz water/);
-    expect(assessUrineColor('yellow').recommendation).toMatch(/12 oz water/);
   });
 });
