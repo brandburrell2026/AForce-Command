@@ -12,8 +12,10 @@
  *   Optional support second.
  *
  * Hidden architecture only this turn — no UI changes, no edits to
- * HydrationScanScreen, urineHydrationCheck, beverageComparisonEngine,
- * or the existing hydrationScanRecommendation tests. The canonical
+ * HydrationScanScreen, urineHydrationCheck, or the existing
+ * hydrationScanRecommendation tests. (beverageComparisonEngine, once
+ * listed here, was retired as an orphan — its Compare-vs-Competitors
+ * screen was never wired.) The canonical
  * 7-step flow, the Current Moment vocabulary (3 environments × 3
  * states), the confidence clamp, and the water-first recommendation
  * ordering land here so a follow-up rule pass can wire them into
