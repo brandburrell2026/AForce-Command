@@ -23,10 +23,17 @@
  *    amount) + defer.
  *  - hydrationScanService commands ("Recommended: 12 oz water + X.
  *    Recheck in 20 minutes.") → equivalence + water-first + defer.
+ *  - comparisonEngine CompareCommand (follow-up wave): six physiology
+ *    buckets of dose+clock action copy that NO surface rendered — the
+ *    sole caller reads `results` only. Retired outright (type, builder,
+ *    field); the block below pins both the mechanism absence and a
+ *    comment-stripped source scan so a dose-carrying action line cannot
+ *    quietly return.
  */
 import { describe, expect, it } from 'vitest';
 
 import { evaluateHeatRisk } from '../heatRiskEngine';
+import { computeComparison } from '../comparisonEngine';
 import { buildHeatSignalInput } from '../heatGuardInput';
 import { HEAT_PROTOCOLS } from '../heatProtocolService';
 import { buildRecommendation } from '../hydrationScanService';
@@ -164,5 +171,40 @@ describe('scan — commerce-adjacent commands are equivalence + water-first + de
     for (const [, rec] of cases) {
       expect(rec.command.toLowerCase()).toContain('water');
     }
+  });
+});
+
+describe('comparison — the engine compares; it no longer authors a command', () => {
+  const inputs = {
+    state: 'BALANCED', score: 70, protocol: 'maintenance', goal: 'performance',
+    heatLoad: 0.4, sweatRate: 0.3, symptomCount: 0, hoursSinceLastIntake: 1,
+  } as never;
+
+  it('output carries results + winner and NO command key (populated and empty catalogs)', () => {
+    const populated = computeComparison({ inputs });
+    expect(populated.results.length).toBeGreaterThan(0); // non-vacuous
+    expect(populated.winner).toBeDefined();
+    expect('command' in populated).toBe(false);
+
+    const empty = computeComparison({ inputs, catalog: [] });
+    expect(empty.results).toEqual([]);
+    expect('command' in empty).toBe(false);
+  });
+
+  it('source holds no dose or clock copy (comments stripped)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const raw = fs.readFileSync(
+      path.join(__dirname, '..', 'comparisonEngine.ts'),
+      'utf8',
+    );
+    const stripped = raw
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    expect(stripped.length).toBeGreaterThan(1000); // non-vacuous strip
+    expect(stripped, 'dose copy returned to comparisonEngine').not.toMatch(DOSE);
+    expect(stripped, 'clock copy returned to comparisonEngine').not.toMatch(CLOCK);
+    expect(stripped, 'a minutes-clock returned to comparisonEngine').not.toMatch(/\b\d+\s*min\b/i);
+    expect(stripped, 'CompareCommand returned to comparisonEngine').not.toMatch(/CompareCommand/);
   });
 });

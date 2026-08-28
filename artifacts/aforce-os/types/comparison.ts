@@ -68,19 +68,18 @@ export interface CompareInputs {
   hoursSinceLastIntake?: number;
 }
 
-export interface CompareCommand {
-  /** WHAT + WHEN/HOW MUCH + OUTCOME. */
-  action: string;
-  explanation: string;
-  productId: string;
-  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
-}
-
+// COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized):
+// `CompareCommand` is retired. The comparison engine COMPARES — fit
+// scores, ranking, and factual why-it-fits explanations. It no longer
+// authors an action line: the old `command` field carried its own doses
+// and recheck clocks, was rendered by NO surface (its sole caller, the
+// scan service, reads `results` only), and stood as a second command
+// authority beside the canonical RecoveryCommand
+// (services/__tests__/commandAuthorityContainment.test.ts).
 export interface CompareEngineOutput {
   generatedAt: string;
   inputs: CompareInputs;
   results: CompareResult[];   // sorted by fitScore desc
   /** Undefined when catalog is empty/invalid. UI must guard. */
   winner?: CompareResult;
-  command: CompareCommand;
 }

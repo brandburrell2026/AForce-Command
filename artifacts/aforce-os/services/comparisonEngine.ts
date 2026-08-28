@@ -1,8 +1,18 @@
 /**
  * Comparison Engine.
  *
- * Pure function: takes user state + product catalog → ranked results + a
- * decisive AI command. No bias to AForce — products win on physiology.
+ * Pure function: takes user state + product catalog → ranked results with
+ * factual why-it-fits explanations. No bias to AForce — products win on
+ * physiology.
+ *
+ * COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized): this
+ * engine used to also compose a "decisive AI command" — bucketed action
+ * copy carrying its own doses and recheck clocks. No surface ever
+ * rendered it (the scan service, the only caller, consumes `results`
+ * alone), so it was a dead second command authority beside the canonical
+ * RecoveryCommand and was retired rather than re-copywritten. The engine
+ * CALCULATES; the one command decides
+ * (services/__tests__/commandAuthorityContainment.test.ts).
  *
  * Weighting strategy: each protocol has its own weight profile so the
  * engine adapts when the user's physiological state changes (this is what
@@ -14,7 +24,6 @@ import type {
   CompareInputs,
   CompareProduct,
   CompareResult,
-  CompareCommand,
   ProtocolKind,
 } from '../types/comparison';
 import type { ScoreEngineOutput, UserState } from '../types';
@@ -129,85 +138,6 @@ function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult
   return 'Acceptable for general use. Not optimized for current protocol.';
 }
 
-// ─── Command builder ─────────────────────────────────────────────────────────
-/**
- * Compose a situational AI command. Voice is direct and operational, but
- * varies by urgency, heat load, and time-since-last-intake so it doesn't read
- * like a single boilerplate over repeated views. Templates remain symmetric
- * across brands — verdict and physiology drive tone, not marketing.
- */
-function buildCommand(winner: CompareResult, inputs: CompareInputs): CompareCommand {
-  const p = winner.product;
-  const urgent = inputs.protocol === 'depletion_correction' || inputs.score < 40;
-  const hot = inputs.heatLoad >= 0.6;
-  const sweaty = inputs.sweatRate >= 0.6;
-  const stale = (inputs.hoursSinceLastIntake ?? 0) >= 2;
-
-  // Pick a template bucket from physiology — not random — so the same state
-  // produces the same advice across renders within a cycle.
-  const buckets = {
-    critical: [
-      `${p.name} now. 16 ounces water. You're depleted — recheck in 15 min.`,
-      `Hit ${p.name} immediately with 16 ounces water. Reassess in 15 min.`,
-      `${p.name} is critical right now. Take 1 serving with 16 ounces. 15 min recheck.`,
-    ],
-    heat: [
-      `${p.name} now. 16 ounces water. Heat load is high — pace through the next 20 min.`,
-      `${p.name} + 20 ounces water. You're carrying heat. Recheck in 20 min.`,
-    ],
-    sweat: [
-      `${p.name} + 20 ounces water. Sweat rate elevated — stay ahead of the loss.`,
-      `Take 1 ${p.name} now with 20 ounces. Replace what you're moving out.`,
-    ],
-    stale: [
-      `It's been a stretch — 1 ${p.name} with 16 ounces water. Recheck in 20 min.`,
-      `${p.name} now. 16 ounces water. Reset the cycle.`,
-    ],
-    optimal: [
-      `${p.name} is optimal. 1 serving with 16 ounces water. Recheck in 20 min.`,
-      `Lock it in: ${p.name} + 16 ounces water. Hold this curve for 20 min.`,
-    ],
-    default: [
-      `${p.name} is the best fit. Take 1 serving with 16 ounces water. Recheck in 20 min.`,
-      `Go with ${p.name}: 1 serving + 16 ounces water. Reassess in 20 min.`,
-    ],
-  } as const;
-
-  const list =
-    urgent ? buckets.critical
-    : hot ? buckets.heat
-    : sweaty ? buckets.sweat
-    : stale ? buckets.stale
-    : winner.verdict === 'optimal' ? buckets.optimal
-    : buckets.default;
-
-  // Stable "rotation" within the bucket — derived from inputs, not Math.random,
-  // so the same state always picks the same line until the state changes.
-  const seed =
-    Math.round(inputs.score) +
-    Math.round(inputs.heatLoad * 10) * 7 +
-    Math.round(inputs.sweatRate * 10) * 13 +
-    (inputs.symptomCount ?? 0) * 17;
-  const action = list[seed % list.length];
-
-  return {
-    action,
-    explanation: winner.whyItFits,
-    productId: p.id,
-    urgencyLevel: urgent ? 'critical' : (winner.fitScore < 78 ? 'high' : 'medium'),
-  };
-}
-
-// Safe fallback for empty / fully-invalid catalog.
-function emptyCommand(): CompareCommand {
-  return {
-    action: 'No suitable products available. Take 16 ounces water now and recheck in 20 minutes.',
-    explanation: 'Catalog is empty or unavailable. Defaulting to baseline hydration.',
-    productId: '',
-    urgencyLevel: 'medium',
-  };
-}
-
 // ─── Public API ──────────────────────────────────────────────────────────────
 export interface ComputeArgs {
   inputs: CompareInputs;
@@ -236,7 +166,6 @@ export function computeComparison({ inputs, catalog = COMPARE_PRODUCTS }: Comput
       inputs: safeInputs,
       results: [],
       winner: undefined,
-      command: emptyCommand(),
     };
   }
 
@@ -262,7 +191,6 @@ export function computeComparison({ inputs, catalog = COMPARE_PRODUCTS }: Comput
     inputs: safeInputs,
     results: scored,
     winner,
-    command: buildCommand(winner, safeInputs),
   };
 }
 
@@ -271,9 +199,9 @@ export function inferInputs(engineOutput: ScoreEngineOutput, userState: UserStat
   const { performanceState, score } = engineOutput;
 
   // Store drives are on the canonical 0–10 scale (realApi defaults 3/5/4);
-  // CompareInputs' axis is 0–1 (normalizeInputs pins it, buildCommand's
-  // 0.6 buckets assume it). Reading them raw made EVERY default member
-  // `heat_stress` (4 >= 0.7) and pinned the hot/sweaty copy buckets on.
+  // CompareInputs' axis is 0–1 (normalizeInputs pins it, and the
+  // heat_stress protocol threshold below assumes it). Reading them raw
+  // made EVERY default member `heat_stress` (4 >= 0.7).
   // Bridge at this boundary via the ONLY sanctioned scale conversion —
   // non-finite degrades to 0, matching normalizeInputs' prior semantic.
   const heatLoad01 = fraction01FromScale10(
