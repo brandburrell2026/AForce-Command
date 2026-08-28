@@ -235,7 +235,7 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { HomeSkeleton } from './HomeSkeleton';
 import { HomeBaselineHero } from './HomeBaselineHero';
 import { HomeFreshnessLabel } from './HomeFreshnessLabel';
-import { freshestBiometricsFetchedAt } from './homeFreshness';
+import { freshestBiometricsFetchedAt, hasAnyProviderArtifact } from './homeFreshness';
 import { countRealHistoryEntries, resolveHomeEvidence } from './homeBaselineState';
 import { resolveHomeScrollBottomPadding } from './homeSafeArea';
 import { resolveHomeConfidence } from './homeConfidence';
@@ -483,7 +483,10 @@ export function HomeScreenV2() {
     userState.dailyTarget > 0
       ? Math.round((userState.unitsConsumedToday / userState.dailyTarget) * 100)
       : 0;
-  const greeting = clerkUser?.firstName ?? t('home.v2.greeting_default');
+  // P1 trust set (founder-authorized): an unnamed member used to read
+  // "Welcome, {greeting_default}" = "Welcome, there" — template-bug copy on
+  // the app's first line. No name → the name-less variant instead.
+  const greeting = clerkUser?.firstName ?? null;
 
   // ── E1 elite presentation (flag-gated, presentation-only) ──────────────────
   const elite = flags.elite_home_experience_enabled;
@@ -657,7 +660,7 @@ export function HomeScreenV2() {
             approved sequence — quiet contextual greeting → subordinate brand →
             dominant HYDROSTATE — is exactly what the eye and VoiceOver get. */}
         <View style={styles.header}>
-          <Text style={styles.welcome}>{t('home.welcome', { name: greeting })}</Text>
+          <Text style={styles.welcome}>{greeting ? t('home.welcome', { name: greeting }) : t('home.welcome_anonymous')}</Text>
           <View style={styles.brandRow}>
             <Text style={styles.brand}>{t('home.subtitle_title')}</Text>
             {v3Data?.chip ? (
@@ -676,6 +679,7 @@ export function HomeScreenV2() {
           </View>
           <HomeFreshnessLabel
             fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
+            hasProviderArtifact={hasAnyProviderArtifact(userState.appleHealth, userState.biometrics)}
             style={styles.freshness}
             testID="home-v2-freshness"
           />

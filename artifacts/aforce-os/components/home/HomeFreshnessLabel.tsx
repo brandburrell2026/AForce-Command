@@ -34,17 +34,25 @@ const RECHECK_INTERVAL_MS = 15_000;
 export interface HomeFreshnessLabelProps {
   /** Freshest known biometrics fetch time (epoch ms), or null when nothing has ever synced. */
   fetchedAtMs: number | null;
+  /**
+   * Whether ANY provider artifact exists (Apple Health snapshot or a
+   * provider biometrics snapshot). Never-connected members render NOTHING
+   * here — "Awaiting first sync" was a permanent false promise for them
+   * (P1 trust set, founder-authorized).
+   */
+  hasProviderArtifact: boolean;
   style?: StyleProp<TextStyle>;
   testID?: string;
 }
 
-export function HomeFreshnessLabel({ fetchedAtMs, style, testID }: HomeFreshnessLabelProps) {
+export function HomeFreshnessLabel({ fetchedAtMs, hasProviderArtifact, style, testID }: HomeFreshnessLabelProps) {
   const { t } = useTranslation();
   const [now, setNow] = React.useState(() => Date.now());
 
   useAppStateGatedInterval(() => setNow(Date.now()), RECHECK_INTERVAL_MS);
 
-  const freshness = resolveHomeFreshness(now, fetchedAtMs);
+  const freshness = resolveHomeFreshness(now, fetchedAtMs, hasProviderArtifact);
+  if (freshness === null) return null; // never-connected: no claim at all
   return (
     <Text style={style} testID={testID}>
       {t(freshness.key, freshness.params)}

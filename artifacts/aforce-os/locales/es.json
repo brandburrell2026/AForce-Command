@@ -58,6 +58,7 @@
   },
   "home": {
     "welcome": "Bienvenido, {{name}}",
+    "welcome_anonymous": "Bienvenido de nuevo",
     "subtitle_eyebrow": "CENTRO DE CONTROL DE HIDRATACIÓN",
     "subtitle_title": "AForce OS",
     "snooze": "Posponer 20 minutos",
@@ -111,8 +112,7 @@
       "signal_recovery": "Recovery",
       "heat_high": "High",
       "heat_moderate": "Moderate",
-      "heat_low": "Low",
-      "greeting_default": "there"
+      "heat_low": "Low"
     },
     "live_status": {
       "last_label": "LAST",

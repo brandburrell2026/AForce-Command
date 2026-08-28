@@ -20,6 +20,10 @@ const SCREENS = [
   'components/protocol/ProtocolScreenV2.tsx',
   'components/community/CircleScreenV3.tsx',
   'screens/SleepModeScreen.tsx',
+  // P1 trust set (founder-authorized): the visible Profile tab was never in
+  // the original S2-5 five and kept a device-blind `insets.bottom + 84` — the
+  // last tab surface off the one rule.
+  'components/profile/ProfileScreenV2.tsx',
 ];
 
 describe('S2-5 — tab screens derive clearance from the published bar height', () => {
@@ -37,6 +41,7 @@ describe('S2-5 — tab screens derive clearance from the published bar height', 
       expect(src, rel).not.toMatch(/height:\s*40\s*\}/);
       expect(src, rel).not.toMatch(/paddingBottom:\s*Spacing\[24\] \+ Spacing\[8\]/);
       if (rel.includes('Sleep')) expect(src).not.toContain('TAB_BAR_HEIGHT');
+      if (rel.includes('ProfileScreenV2')) expect(src, rel).not.toMatch(/insets\.bottom \+ 84/);
     }
   });
 
