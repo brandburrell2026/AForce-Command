@@ -497,6 +497,13 @@ function MapSection({ cityName, cityScore, onOpen }: MapProps) {
                 ? t('community.v2.map_composite', { score: cityScore })
                 : t('community.v2.map_tap_explore')}
             </Text>
+            {/* Sample-truth disclosure (standing sample-data-caption ruling —
+                the #712/Circle pattern): the map's cities, scores and the
+                "leading" line come from illustrative sample data, and the
+                card has to say so where the claim is made. */}
+            <Text style={styles.mapSampleNote} testID="competition-map-sample-note">
+              {t('community.v2.map_sample_note')}
+            </Text>
           </View>
           <Icon name="arrow-up-right" size={18} color={af.textPrimary} />
         </View>
@@ -696,6 +703,8 @@ const styles = StyleSheet.create({
   },
   mapTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', color: af.textPrimary, letterSpacing: -0.2 },
   mapSub: { fontSize: 12, fontFamily: 'Inter_500Medium', color: af.textTertiary, marginTop: 3 },
+  // Same quiet register as sampleNote above — a disclosure, not a status.
+  mapSampleNote: { fontSize: 11, lineHeight: 15, color: af.textTertiary, marginTop: 6 },
 
   // Empty block
   empty: {

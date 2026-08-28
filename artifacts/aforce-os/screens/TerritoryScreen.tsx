@@ -1,11 +1,20 @@
 /**
- * TerritoryScreen — live competition map. Top: layer + scope toggles.
- * Middle: stylized US map with region markers. Below: selected region
- * detail card, then active battles, then trending regions.
+ * TerritoryScreen — the competition map, rendered over SAMPLE data.
+ * Top: layer + scope toggles. Middle: stylized US map with region
+ * markers. Below: selected region detail card, then active battles,
+ * then trending regions.
+ *
+ * SAMPLE-TRUTH (PR-3, standing sample-data-caption ruling): every city/
+ * state/team standing here comes from data/mockTerritoryData.ts via
+ * mapAggregationService — illustrative, not a measurement of real
+ * regions or people. The screen says so with the same canonical
+ * disclosure the Circle standings carry (community.v3.sample_note);
+ * the prior header copy framed this as a live map, which was false.
  */
 
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Icon } from '../components/Icon';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,6 +60,7 @@ function momentumBand(score: number): MomentumBand {
 export const TerritoryScreen: React.FC = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [scope, setScope] = React.useState<RegionKind>('city');
   const [layer, setLayer] = React.useState<TerritoryLayer>('territory');
@@ -113,6 +123,15 @@ export const TerritoryScreen: React.FC = () => {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Sample-truth disclosure (standing sample-data-caption ruling).
+            Everything below — map regions, ranks, participants, battles,
+            trending momentum — derives from illustrative sample data, and
+            the screen must say so before it says anything else. Same
+            canonical string the Circle standings carry. */}
+        <Text style={styles.sampleNote} testID="territory-sample-note">
+          {t('community.v3.sample_note')}
+        </Text>
+
         <View style={styles.section}>
           <View style={styles.scopeRow}>
             {SCOPES.map(s => {
@@ -200,6 +219,8 @@ const styles = StyleSheet.create({
   eyebrow: { color: Colors.text.muted, fontSize: 10, letterSpacing: 3, fontWeight: '600' },
   title: { color: Colors.text.primary, fontSize: 14, letterSpacing: 4, fontWeight: '700' },
   content: { paddingHorizontal: 20, paddingTop: 12, gap: 18 },
+  // Disclosure register — quiet, uncolored, unmistakably not a status.
+  sampleNote: { color: Colors.text.muted, fontSize: 11, lineHeight: 15 },
   section: { gap: 10 },
   sectionLabel: { color: Colors.text.muted, fontSize: 11, letterSpacing: 3, fontWeight: '600' },
   scopeRow: { flexDirection: 'row', gap: 6 },

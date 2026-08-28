@@ -1847,9 +1847,10 @@
       "map_open_a11y": "Open Performance Map",
       "map_hero": "HYDRATION HEAT MAP",
       "map_leading": "{{city}} leading",
-      "map_live_ranking": "Live ranking",
+      "map_live_ranking": "Sample standings",
       "map_composite": "Composite score {{score}} · tap to explore",
-      "map_tap_explore": "Tap to explore the full map"
+      "map_tap_explore": "Tap to explore the full map",
+      "map_sample_note": "Sample data · Illustrative standings · Not a live ranking"
     }
   },
   "share": {
