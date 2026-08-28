@@ -290,10 +290,6 @@ describe('S2-12 — Dynamic Type is never opted out of, app-wide', () => {
       // Route-imported flag-OFF fallbacks (rollback paths): retirement is
       // a founder ruling, not a cleanup — S2-13's census corrected the
       // earlier 'S2-13 deletes' note.
-      // Fifteen-twin retirement (2026-08-27): the legacy sweat screen is
-      // deleted. CirclesScreen stays — the /circles island is HELD for the
-      // founder's relocation ruling, not retired.
-      'screens/CirclesScreen.tsx',
     ]);
     const hits = files
       .filter((f) => f.code.includes('adjustsFontSizeToFit') && !ALLOW.has(f.rel))

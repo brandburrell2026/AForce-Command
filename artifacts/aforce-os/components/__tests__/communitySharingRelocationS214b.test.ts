@@ -19,7 +19,7 @@
  *   6. Every locale carries the screen's keys.
  */
 import { describe, expect, it } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { DEFAULT_PRIVACY } from '../../data/mockCircleData';
 
@@ -103,19 +103,8 @@ describe('community sharing — the preview eyebrow tells the scope truth', () =
   });
 });
 
-describe('community sharing — the island is held, not retired', () => {
-  it('/circles and its screens still exist pending the deletion-eligibility call', () => {
-    for (const rel of [
-      'app/circles.tsx',
-      'screens/CirclesScreen.tsx',
-      'screens/MySharedStatusScreen.tsx',
-      'screens/ManageCircleScreen.tsx',
-      'screens/FriendDetailScreen.tsx',
-    ]) {
-      expect(existsSync(resolve(__dirname, '..', '..', rel)), rel).toBe(true);
-    }
-  });
-});
+// (The /circles island was RETIRED in the deletion PR — its 'held, not
+// retired' guard retired with it. The relocation target below is what stands.)
 
 describe('community sharing — locales', () => {
   it('every locale carries the screen keys', () => {

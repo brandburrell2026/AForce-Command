@@ -11,7 +11,7 @@
  *   3. AForce OS (OPEN_SCREEN → NAVIGATE)
  *   4. Smart Coaching (GET_COMMAND, GET_STATUS, START_PROTOCOL, COMPARE_PRODUCTS)
  *   5. Product Reorder (REORDER → NAVIGATE /store)
- *   6. Rewards / Social (OPEN_SCREEN → /achievements, /circles, /share, /competition)
+ *   6. Rewards / Social (OPEN_SCREEN → /achievements, /share, /competition)
  *   7. Performance Mode (SET_AUTOPILOT, ACTIVATE_SOCIAL, DEACTIVATE_SOCIAL)
  */
 
@@ -50,7 +50,7 @@ export type VoiceSymptomId =
 /** Friendly screen handle the classifier uses; voiceService maps to a route. */
 export type VoiceScreenTarget =
   | 'home' | 'profile' | 'journal' | 'store' | 'protocol'
-  | 'scan' | 'cart' | 'rewards' | 'circles' | 'share' | 'ring'
+  | 'scan' | 'cart' | 'rewards' | 'share' | 'ring'
   | 'competition' | 'territory' | 'science' | 'sweat' | 'heat'
   | 'cruise' | 'subscription';
 
