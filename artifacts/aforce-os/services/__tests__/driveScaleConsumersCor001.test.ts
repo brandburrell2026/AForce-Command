@@ -104,12 +104,17 @@ describe('comparisonEngine — drives bridged at inferInputs', () => {
     expect(inputs.protocol).not.toBe('heat_stress');
   });
 
-  it('default-state command copy comes from the non-hot buckets', () => {
+  it('default-state drives land on the normalized 0-1 axis, below hot/sweaty thresholds', () => {
     const out = computeComparison({ inputs: inferInputs(engineStub(), defaultUser()) });
-    // hot/sweaty buckets trigger at >= 0.6 on the normalized axis; a default
-    // member (0.4/0.3) must not read heat-flavored command copy.
-    expect(out.command.action.toLowerCase()).not.toContain('carrying heat');
-    expect(out.command.action.toLowerCase()).not.toContain('sweat rate elevated');
+    // CONSCIOUS REPIN (comparison containment): this previously proved the
+    // same invariant through the engine's command copy ("carrying heat" /
+    // "sweat rate elevated" buckets at >= 0.6). That command mouth is
+    // retired with CompareCommand; assert the mechanism directly — a
+    // default member (drives 4/3 on 0-10) must normalize to 0.4/0.3.
+    expect(out.inputs.heatLoad).toBeCloseTo(0.4, 10);
+    expect(out.inputs.sweatRate).toBeCloseTo(0.3, 10);
+    expect(out.inputs.heatLoad).toBeLessThan(0.6);
+    expect(out.inputs.sweatRate).toBeLessThan(0.6);
   });
 });
 
