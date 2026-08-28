@@ -25,6 +25,16 @@ A Change Record is required for any change to:
 | F9 | **Public visibility** — any capability status change toward exposure | `CAPABILITY-STATUS-REGISTER.md` |
 | F10 | **Terminology, section allocation, status labels** | `TERMINOLOGY-REGISTRY.md` · `Architecture-Appendix.md` |
 
+**Calendar classifier keyword list (F4 — under change control). ⟦Draft — counsel
+review required⟧** The fixed keyword list that maps calendar event titles to
+preparation categories (`artifacts/aforce-os/services/momentClassification.ts`,
+`CATEGORY_KEYWORDS`) is an Event-vocabulary (F4) surface tied to the consumer-
+health-data determination in **PR-002 Appendix A §2a**. Because the derived
+category can carry a health inference, **any addition to this list reopens
+Appendix A determination 2a and must be re-signed by Legal + Privacy before that
+change ships.** Counsel signs 2a against the exact list reproduced verbatim in
+Appendix A §2a.1.
+
 ## 2. Change Record — required content
 
 No change proceeds without all of these:
