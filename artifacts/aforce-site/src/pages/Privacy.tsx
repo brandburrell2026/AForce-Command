@@ -10,7 +10,7 @@ const FONT_MONO = '"IBM Plex Mono", ui-monospace, SFMono-Regular, monospace';
 const FONT_BODY = '"Inter", system-ui, -apple-system, sans-serif';
 
 const CANONICAL_URL = 'https://www.drinkaforce.com/privacy';
-const CONTACT_EMAIL = 'bburrell@alkalineforce.com';
+const CONTACT_EMAIL = 'privacy@drinkaforce.com';
 const WEBSITE_URL = 'https://www.drinkaforce.com';
 
 const EFFECTIVE_DATE = 'April 26, 2026';
