@@ -183,6 +183,19 @@ describe('accessibility lock — source rules for components/editorial/', () => 
     }
   });
 
+  it('display-voice roles cap at the existing house boundary (no mid-word breaks at AX) — body/caption stay unlimited', () => {
+    const core = stripComments(read(join(ED_DIR, 'core.tsx')));
+    // The only multiplier value the layer may use is the accepted af-layer
+    // boundary; statements + command + numbers reference it, and no
+    // hand-rolled numeric cap may appear anywhere in the directory.
+    expect(core.match(/maxFontSizeMultiplier=\{AF_MAX_DISPLAY_FONT_SCALE\}/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
+    for (const { file, src } of edSources) {
+      expect(src, `${file} — only the house boundary may cap scaling`).not.toMatch(
+        /maxFontSizeMultiplier=\{[0-9]/,
+      );
+    }
+  });
+
   it('the И state word and the empty number announce truthfully to screen readers', () => {
     const core = read(join(ED_DIR, 'core.tsx'));
     expect(core).toMatch(/accessibilityLabel=\{word\}/);

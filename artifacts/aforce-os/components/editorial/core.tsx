@@ -163,9 +163,13 @@ export function EdStatement({
   style?: TextStyle;
 }) {
   const ink = useEdInk();
+  // All statement roles are display-voice: they cap at the existing house
+  // boundary (AF_MAX_DISPLAY_FONT_SCALE, same as the accepted af layer) so a
+  // single oversized word can never force an iOS mid-word break — body,
+  // caption, and micro keep unlimited Dynamic Type and carry the reading.
   return (
     <Text
-      maxFontSizeMultiplier={role === 'display' ? AF_MAX_DISPLAY_FONT_SCALE : undefined}
+      maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
       style={[edType[role] as TextStyle, { color: ink.primary }, style]}
     >
       {children}
@@ -265,7 +269,12 @@ export function EdCommandBlock({
         <Text style={{ color: edAccent.red }}>{'— '}</Text>
         {kicker}
       </Text>
-      <Text style={[edType.command as TextStyle, { color: ink.primary, marginTop: 8 }]}>{command}</Text>
+      <Text
+        maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+        style={[edType.command as TextStyle, { color: ink.primary, marginTop: 8 }]}
+      >
+        {command}
+      </Text>
       {evidence ? (
         <Text style={[edType.caption as TextStyle, { color: ink.quiet, marginTop: 8 }]}>{evidence}</Text>
       ) : null}
