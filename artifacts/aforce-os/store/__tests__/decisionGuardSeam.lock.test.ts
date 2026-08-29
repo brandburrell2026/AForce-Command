@@ -32,6 +32,10 @@ import { decisionGuardResultToCommandEvent } from '../../utils/intelligence/comm
 import { normalizeCommandEvent } from '../../utils/intelligence/commandEvents';
 
 const SRC = readFileSync(join(__dirname, '..', 'useAppStore.tsx'), 'utf8');
+const MOMENTS_SRC = readFileSync(
+  join(__dirname, '..', '..', 'services', 'momentNotifications.ts'),
+  'utf8',
+);
 
 describe('AppProvider delivers only guarded engine output', () => {
   it('guards once per engine-output change', () => {
@@ -106,5 +110,44 @@ describe('ledger row — schema-safe and normalizer-stable', () => {
       atMs: 1_700_000_000_001,
     });
     expect(a?.id).not.toBe(b?.id);
+  });
+});
+
+describe('Moments notification lane — guard wired at qualification and delivery', () => {
+  // Founder-authorized extension of the seam (#876 follow-up). The pure
+  // planner runs the guard's structural check as the LAST qualification
+  // step (after the DR-010 budget gates, before push), and the sync
+  // bridge runs the deliverable-copy check on rendered title/body beside
+  // the §42 scan, BEFORE the schedule call (notificationHonesty idiom:
+  // source order proves gate-precedes-schedule in an IO layer).
+
+  it('planner: guard step sits after the day-cap gate and before planned.push', () => {
+    const gate = MOMENTS_SRC.indexOf('if (dayCount >= MOMENT_NOTIFY_MAX_PER_DAY) continue;');
+    const guard = MOMENTS_SRC.indexOf(
+      "if (evaluateMomentAction(rec.primaryAction).verdict === 'blocked') continue;",
+    );
+    const push = MOMENTS_SRC.indexOf('planned.push({');
+    expect(gate).toBeGreaterThan(-1);
+    expect(guard).toBeGreaterThan(gate);
+    expect(push).toBeGreaterThan(guard);
+  });
+
+  it('sync: rendered-copy guard sits beside the §42 scan and before scheduling', () => {
+    const scan = MOMENTS_SRC.indexOf(
+      'if (consumerCopyBlocked(title) || consumerCopyBlocked(body)) continue;',
+    );
+    const guardTitle = MOMENTS_SRC.indexOf("evaluateDeliverableCopy(title).verdict === 'blocked'");
+    const guardBody = MOMENTS_SRC.indexOf("evaluateDeliverableCopy(body).verdict === 'blocked'");
+    const schedule = MOMENTS_SRC.indexOf('await Notif.scheduleNotificationAsync({');
+    expect(scan).toBeGreaterThan(-1);
+    expect(guardTitle).toBeGreaterThan(scan);
+    expect(guardBody).toBeGreaterThan(guardTitle);
+    expect(schedule).toBeGreaterThan(guardBody);
+  });
+
+  it('both checks import from the one guard module (no forked authority)', () => {
+    expect(MOMENTS_SRC).toMatch(
+      /import \{ evaluateDeliverableCopy, evaluateMomentAction \} from '@\/utils\/intelligence\/decisionGuard';/,
+    );
   });
 });
