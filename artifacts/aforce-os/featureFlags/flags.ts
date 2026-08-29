@@ -183,6 +183,15 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // count-up / ordering only; never reads into or mutates score, command,
   // eligibility, timing, or safety. Reduced-motion → static Home.
   elite_home_experience_enabled: false,
+  // Editorial Home — The Cover (E2, founder ruling 2026-08-29). Whole-screen
+  // presentation swap at app/(tabs)/index.tsx: editorial composition of the
+  // SAME truth (guarded engine slice, evidence gate, guarded moments lane,
+  // V3 signal resolvers). Score-Protection: presentation only — never reads
+  // into or mutates score, command, eligibility, timing, or safety; the
+  // pressure field consumes the canonical score and computes nothing.
+  // HomeScreenV2 is the live rollback fallback (flag OFF). Locked by
+  // components/__tests__/editorialHomeLaw.test.ts.
+  editorial_home_enabled: false,
   // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
   // sections inside HomeScreenV2: health-connection chip, four live-signal
   // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
@@ -486,6 +495,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   location_intelligence_enabled: true,
   signal_hierarchy_enabled: true,
   elite_home_experience_enabled: true,
+  editorial_home_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,

@@ -177,8 +177,13 @@ describe('accessibility lock — source rules for components/editorial/', () => 
     expect(src).toMatch(/useNativeDriver: true/);
   });
 
-  it('ships no interactive primitives in E1 — target rules land with the first interactive step', () => {
+  it('foundation primitives stay non-interactive; the E2 home layer meets the target floor instead', () => {
+    // E1 shipped no interactive primitives. E2 (founder ruling 2026-08-29)
+    // consciously introduces interactivity in components/editorial/home/ —
+    // that layer is governed by editorialHomeLaw.test.ts (44pt floor,
+    // hitSlop, parity pins). The FOUNDATION files stay non-interactive.
     for (const { file, src } of edSources) {
+      if (file.includes(join('editorial', 'home'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -236,6 +241,10 @@ describe('И state language — pure split logic', () => {
 describe('E1 isolation — zero production consumers (zero-behavioral-diff proof)', () => {
   const ALLOWED = new Set([
     'app/(hidden)/editorial-sheet.tsx', // the dev/demo reference sheet
+    // E2 (founder ruling 2026-08-29): the Home route's flag seam is the
+    // first authorized production consumer — HomeScreenV2 remains the
+    // flag-OFF branch, locked by editorialHomeLaw.test.ts.
+    'app/(tabs)/index.tsx',
   ]);
   const PRODUCTION_ROOTS = [
     'app',
