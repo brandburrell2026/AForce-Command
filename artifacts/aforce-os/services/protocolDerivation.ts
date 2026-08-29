@@ -21,12 +21,26 @@ export interface ProtocolPayload {
   weeklyCompliancePct: number | null;
 }
 
+// COMMAND-AUTHORITY CONTAINMENT (founder P0, 2026-08-29, polish tranche
+// #2): these descriptions previously authored stage-owned doses ("Drink
+// 12–16 ounces now"), clock prescriptions ("recheck 45–60 min", "Forced
+// 15-min recheck"), product pushes ("Stick if signals appear"), and the
+// CLAIM-001-gated phrase "Electrolytes critical" — a second command
+// authority on the Protocol tab. Protocol is BRIEF/CONTEXT/EXPLANATION:
+// each stage now states its context and defers amount, timing, and
+// cadence to the member's current command. The recheck cadence Protocol
+// displays elsewhere (nextRecheckMinutes, the s2 step window) already
+// mirrors the canonical engine riskTimer and is unchanged. The first
+// sentence doubles as the active-step WHY line (commandReasonLine), so
+// it carries the stage identity. No dose numbers, clocks, product
+// pushes, or gated claims may return here
+// (services/__tests__/commandAuthorityContainment.test.ts, class ban).
 const PROTOCOL_DESCRIPTION: Record<ProtocolPayload['stage'], string> = {
-  'Maintain': 'Drink 8–12 ounces, recheck 45–60 min. Hold rhythm.',
-  'Peak Support': 'Maintain fluid. Stick during exertion. Defend Peak.',
-  'Recovery': 'Drink 12–16 ounces now. Stick if signals appear.',
-  'Depletion Correction': 'Drink 16–24 ounces. Electrolytes critical. Recheck 20–30 min.',
-  'Heat Stress': 'Aggressive cadence. Forced 15-min recheck.',
+  'Maintain': 'Steady state. Hold rhythm — your current command sets the amount.',
+  'Peak Support': 'Defend Peak. Maintain fluid — your current command stays the guide.',
+  'Recovery': 'Recovery window open. Act on your current command now.',
+  'Depletion Correction': 'Correction protocol active. Electrolyte demand is elevated — act on your current command now.',
+  'Heat Stress': 'Heat protocol active. Cadence tightens — your current command sets the pace.',
 };
 
 /**

@@ -38,6 +38,7 @@ import { buildHeatSignalInput } from '../heatGuardInput';
 import { HEAT_PROTOCOLS } from '../heatProtocolService';
 import { buildRecommendation } from '../hydrationScanService';
 import { buildScanCoachScript } from '../scanCoachVoice';
+import { deriveProtocol } from '../protocolDerivation';
 import { hydrationInsightForHumidity } from '../cityClimateService';
 import type { HumidityBand } from '../cityClimateService';
 import type { UserState } from '../../types';
@@ -324,4 +325,73 @@ describe('scan coach — explains and mirrors; never authors a dose, clock, or i
       expect(script.transcript.endsWith(mirror), `transcript must end with the verbatim on-screen recommendation.\n  transcript: ${script.transcript}\n  expected suffix: ${mirror}`).toBe(true);
     },
   );
+});
+
+describe('protocol — brief/context/explanation only; never a dose authority', () => {
+  // Founder P0 (2026-08-29 screenshot review, polish tranche #2): the
+  // Protocol tab's PROTOCOL_DESCRIPTION table authored stage-owned doses
+  // ("Drink 12–16 ounces now"), clock prescriptions ("recheck 45–60
+  // min", "Forced 15-min recheck"), product pushes ("Stick if signals
+  // appear"), and the CLAIM-001-gated phrase "Electrolytes critical".
+  // Contract: Protocol briefs and explains; the amount, timing, urgency,
+  // and cadence belong to the canonical RecoveryCommand (the step
+  // windows' "Within N min" is the canonical riskTimer and stays). CLASS
+  // ban — new wordings fail, not just today's strings. The
+  // comment-stripped source scan also covers the UNREACHABLE 'Heat
+  // Stress' table row the runtime matrix cannot select.
+  const PROTOCOL_CLOCK = /(recheck\s*\d)|(\d+\s*[-–]?\s*min\S*\s+recheck)/i;
+  const IMPERATIVE = /\b(take|drink|sip|grab|down)\s+(\d|one|two|a\s|another)/i;
+  const PRODUCT_PUSH = /\bsticks?\b/i;
+  const CLAIM_GATED = /electrolytes?\s+critical/i;
+
+  const fakeEngine = (level: string) =>
+    ({ performanceState: { level }, riskTimer: { minutes: 18 } }) as never;
+  const fakeUser = { urineSignal: 0, unitsConsumedToday: 0, dailyTarget: 8 } as never;
+  const LEVELS = ['PEAK', 'BALANCED', 'RECOVERING', 'DEPLETED'] as const;
+
+  it.each(LEVELS)('%s — description is contained and defers to the one command', (level) => {
+    const p = deriveProtocol(fakeUser, fakeEngine(level), null);
+    const d = p.description;
+    expect(d, `dose in: ${d}`).not.toMatch(DOSE);
+    expect(d, `protocol-owned clock in: ${d}`).not.toMatch(PROTOCOL_CLOCK);
+    expect(d, `shared clock in: ${d}`).not.toMatch(CLOCK);
+    expect(d, `imperative dose in: ${d}`).not.toMatch(IMPERATIVE);
+    expect(d, `product push in: ${d}`).not.toMatch(PRODUCT_PUSH);
+    expect(d, `CLAIM-001-gated phrase in: ${d}`).not.toMatch(CLAIM_GATED);
+    expect(d.toLowerCase(), `no deference in: ${d}`).toContain('current command');
+  });
+
+  it.each(LEVELS)('%s — step labels carry no dose, imperative dose, or product push', (level) => {
+    const p = deriveProtocol(fakeUser, fakeEngine(level), null);
+    expect(p.steps.length).toBeGreaterThan(0); // non-vacuous
+    for (const s of p.steps) {
+      expect(s.label, `dose in step: ${s.label}`).not.toMatch(DOSE);
+      expect(s.label, `imperative dose in step: ${s.label}`).not.toMatch(IMPERATIVE);
+      expect(s.label, `product push in step: ${s.label}`).not.toMatch(PRODUCT_PUSH);
+      expect(s.window, `dose in window: ${s.window}`).not.toMatch(DOSE);
+    }
+  });
+
+  it('cadence fields mirror the canonical riskTimer (no protocol-owned clock)', () => {
+    const p = deriveProtocol(fakeUser, fakeEngine('BALANCED'), null);
+    expect(p.nextRecheckMinutes).toBe(18);
+    expect(p.steps.find((s) => s.id === 's2')?.window).toBe('Within 18 min');
+  });
+
+  it('source holds no dose/clock/product/claim copy anywhere in the table (comments stripped)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const raw = fs.readFileSync(
+      path.join(__dirname, '..', 'protocolDerivation.ts'),
+      'utf8',
+    );
+    const stripped = raw
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    expect(stripped.length).toBeGreaterThan(800); // non-vacuous strip
+    expect(stripped, 'dose copy returned to protocolDerivation').not.toMatch(DOSE);
+    expect(stripped, 'protocol-owned clock returned').not.toMatch(PROTOCOL_CLOCK);
+    expect(stripped, 'product push returned').not.toMatch(PRODUCT_PUSH);
+    expect(stripped, 'CLAIM-001-gated phrase returned').not.toMatch(CLAIM_GATED);
+  });
 });

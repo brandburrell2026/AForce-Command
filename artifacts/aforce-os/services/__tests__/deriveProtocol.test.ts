@@ -84,7 +84,12 @@ describe('deriveProtocol — PerformanceLevel → stage mapping', () => {
   it('DEPLETED → "Depletion Correction" (the headline real-time stage)', () => {
     const p = deriveProtocol(fakeUserState(), fakeEngine('DEPLETED'), null);
     expect(p.stage).toBe('Depletion Correction');
-    expect(p.description).toContain('Electrolytes');
+    // CONSCIOUS REPIN (protocol containment, 2026-08-29): the old pin
+    // held the CLAIM-001-gated "Electrolytes critical" dose copy. The
+    // stage now briefs the elevated electrolyte DEMAND (observation) and
+    // defers the action to the one command.
+    expect(p.description.toLowerCase()).toContain('electrolyte demand');
+    expect(p.description.toLowerCase()).toContain('current command');
   });
 
   it('is synchronous — returns a payload, never a Promise', () => {
