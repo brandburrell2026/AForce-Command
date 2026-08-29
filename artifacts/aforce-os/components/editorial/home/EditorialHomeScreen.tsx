@@ -97,7 +97,12 @@ interface HomeActions {
   dismissSuccess: () => void;
 }
 
-export function EditorialHomeScreen() {
+export function EditorialHomeScreen({
+  momentsFixture,
+}: {
+  /** Gallery-only deterministic override (the momentsFixture idiom). */
+  momentsFixture?: { moments: import('@/types/moments').Moment[]; nowIso: string };
+} = {}) {
   const { t } = useTranslation();
   const userState = useUserSlice();
   const { isHydrated } = useBootstrapSlice();
@@ -301,7 +306,10 @@ export function EditorialHomeScreen() {
 
                 {momentsOn ? (
                   <View style={styles.momentsSection}>
-                    <EdNextMomentLine />
+                    <EdNextMomentLine
+                      fixtureMoments={momentsFixture?.moments}
+                      fixtureNowIso={momentsFixture?.nowIso}
+                    />
                   </View>
                 ) : null}
 

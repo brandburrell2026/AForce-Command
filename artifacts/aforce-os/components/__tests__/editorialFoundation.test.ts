@@ -245,6 +245,9 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // first authorized production consumer — HomeScreenV2 remains the
     // flag-OFF branch, locked by editorialHomeLaw.test.ts.
     'app/(tabs)/index.tsx',
+    // E2 acceptance stage: the dev/demo screen gallery hosts the Cover
+    // fixtures (lazy-loaded behind the (hidden)/gallery guard).
+    'demo/AForceScreenGallery.tsx',
   ]);
   const PRODUCTION_ROOTS = [
     'app',

@@ -89,6 +89,7 @@ export const GALLERY_VIEWPORTS: readonly GalleryViewport[] = [
 
 export type GallerySurface =
   | 'home'
+  | 'editorialHome'
   | 'hydration'
   | 'signal'
   | 'weekly'
@@ -292,6 +293,70 @@ function balancedEngine(): ScoreEngineOutput {
   };
 }
 
+// E2 acceptance bands (founder ruling 2026-08-29) — RECOVERING and PEAK
+// hand-built in the same literal idiom as the two fixtures above, for the
+// editorial-home acceptance matrix. Command strings follow the engine's real
+// per-band coach copy shape.
+function recoveringEngine(): ScoreEngineOutput {
+  const score = 68; // RECOVERING band: 60-74
+  return {
+    ...balancedEngine(),
+    score,
+    performanceState: {
+      level: 'RECOVERING',
+      score,
+      color: Colors.states.RECOVERING.primary,
+      glowColor: Colors.states.RECOVERING.glow,
+      urgency: 'high',
+      pulseSpeed: 'medium',
+      animationStyle: 'pulse',
+    },
+    riskTimer: { minutes: 15, seconds: 0, urgency: 'high' },
+    command: {
+      id: 'gallery-cmd-recovering',
+      action: 'Drink 16oz water now',
+      explanation: 'Recovery window opening — steady intake brings you back ahead of your next block.',
+      urgencyLevel: 'high',
+      estimatedImpact: '+10 score',
+      confidence: 'high',
+    },
+    reasons: [
+      { id: 'recovery', text: 'Recovering from a low-intake stretch', weight: 'negative' },
+    ],
+    prediction: { decayPerMinute: 0.6, minutesToDepleted: 40, label: 'Recovering' },
+  };
+}
+
+function peakEngine(): ScoreEngineOutput {
+  const score = 94; // PEAK band: 90-100 — the "no action needed" acceptance
+  // state renders this band's own maintenance command verbatim; nothing is
+  // invented to say "all clear".
+  return {
+    ...balancedEngine(),
+    score,
+    performanceState: {
+      level: 'PEAK',
+      score,
+      color: Colors.states.PEAK.primary,
+      glowColor: Colors.states.PEAK.glow,
+      urgency: 'calm',
+      pulseSpeed: 'slow',
+      animationStyle: 'breathe',
+    },
+    riskTimer: { minutes: 45, seconds: 0, urgency: 'low' },
+    command: {
+      id: 'gallery-cmd-peak',
+      action: 'Maintain. Sip 8oz water before your next session',
+      explanation: 'You are locked in — small steady sips hold the peak.',
+      urgencyLevel: 'low',
+      estimatedImpact: '+2 score',
+      confidence: 'high',
+    },
+    reasons: [{ id: 'peak', text: 'Fully hydrated and on rhythm', weight: 'positive' }],
+    prediction: { decayPerMinute: 0.2, minutesToDepleted: 180, label: 'Peak' },
+  };
+}
+
 /** Very low score used only to feed `guardianRiskScore()` past the CRITICAL
  * threshold (>=75) inside `app/guardian.tsx` — see that screen's own
  * `guardianRiskScore({ hydrationPercent: state.engineOutput.score, ... })`
@@ -409,6 +474,103 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       engineOutput: balancedEngine(),
       featureFlags: baseFlags(),
     }),
+  },
+  // ─── E2 acceptance matrix — Editorial Home (The Cover), founder ruling
+  // 2026-08-29. Same StoreOverride idiom as the two home fixtures above with
+  // editorial_home_enabled on; momentsFixture pins the NEXT line
+  // deterministically. All fixtures ship with no provider biometrics, so the
+  // footer's Sleep/HRV em-dashes and the absent chip/freshness line double as
+  // the missing-wearable acceptance state.
+  {
+    id: 'editorial-home-balanced',
+    label: 'Editorial Home — Balanced + Moment',
+    driver: 'engineOutput=balancedEngine (76); editorial_home_enabled=true; momentsFixture=demo day @ GALLERY_NOW',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: {
+      moments: buildDemoMoments(GALLERY_NOW.toISOString()),
+      nowIso: GALLERY_NOW.toISOString(),
+    },
+  },
+  {
+    id: 'editorial-home-recovering',
+    label: 'Editorial Home — Recovering',
+    driver: 'engineOutput=recoveringEngine (68, RECOVERING band — the И frame); moment present',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      engineOutput: recoveringEngine(),
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: {
+      moments: buildDemoMoments(GALLERY_NOW.toISOString()),
+      nowIso: GALLERY_NOW.toISOString(),
+    },
+  },
+  {
+    id: 'editorial-home-peak',
+    label: 'Editorial Home — Peak (no action needed)',
+    driver: 'engineOutput=peakEngine (94) — renders the PEAK maintenance command verbatim; no invented all-clear',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      engineOutput: peakEngine(),
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
+  },
+  {
+    id: 'editorial-home-depleted',
+    label: 'Editorial Home — Depleted (action required)',
+    driver: 'engineOutput=depletedEngine (38) + the home-depleted userState overrides; no upcoming moment (doorway line)',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      userState: baseUserState({
+        unitsConsumedToday: 1,
+        aforceUnitsToday: 0,
+        ozConsumedToday: 12,
+        lastIntakeTime: new Date(GALLERY_NOW.getTime() - 3 * 60 * 60 * 1000),
+        lastIntakeType: 'water',
+        symptomState: 'moderate',
+        symptoms: ['headache', 'fatigue'],
+        urineSignal: 6,
+        energyState: 'low',
+        heatLoad: 8,
+        sweatRate: 7,
+        complianceStreak: 0,
+      }),
+      engineOutput: depletedEngine(),
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
+  },
+  {
+    id: 'editorial-home-building',
+    label: 'Editorial Home — Building baseline',
+    driver: 'intakeEvents=[] + history=[] → evidence "building": statement hero, no numeral, no И, no pressure field',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      userState: baseUserState({
+        intakeEvents: [],
+        unitsConsumedToday: 0,
+        aforceUnitsToday: 0,
+        ozConsumedToday: 0,
+        complianceStreak: 0,
+      }),
+      history: [],
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
+  },
+  {
+    id: 'editorial-home-no-moment',
+    label: 'Editorial Home — No upcoming moment',
+    driver: 'momentsFixture=[] → the single quiet doorway line (founder ruling 2026-08-28); balanced band',
+    surface: 'editorialHome',
+    appState: baseAppState({
+      featureFlags: baseFlags({ editorial_home_enabled: true }),
+    }),
+    momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
   },
   {
     id: 'hydration-empty',

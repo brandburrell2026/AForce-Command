@@ -23,8 +23,17 @@ import { edPositive, edRhythm, edType } from '@/theme/editorialTokens';
 
 import { EdRule, useEdInk } from '../core';
 
-export function EdNextMomentLine() {
-  const data = useMomentsData();
+export function EdNextMomentLine({
+  fixtureMoments,
+  fixtureNowIso,
+}: {
+  /** Gallery-only deterministic override (the momentsFixture idiom). */
+  fixtureMoments?: import('@/types/moments').Moment[];
+  fixtureNowIso?: string;
+} = {}) {
+  const data = useMomentsData(
+    fixtureMoments ? { fixtureMoments, fixtureNowIso } : undefined,
+  );
   useMomentPrepScheduling();
   const { t } = useTranslation();
   const router = useRouter();
