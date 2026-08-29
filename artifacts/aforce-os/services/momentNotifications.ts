@@ -16,9 +16,18 @@
  * Copy is BEHAVIORAL ONLY (DR-010 constraint 1): moment title, time, one
  * action — never a predicted value, score, or band. This stream is separate
  * from the Day-0/1/3/7 cadence; both caps bind independently.
+ *
+ * DECISION GUARD (founder-authorized extension of the #876 seam): the
+ * planner runs the guard's structural check as the LAST qualification
+ * step per candidate, and the sync bridge runs the guard's deliverable-
+ * copy check on the rendered title/body beside the §42 scan. Both are
+ * fail-closed drops — never reworded. Pinned by
+ * components/moments/__tests__/momentsDecisionGuard.test.ts and the
+ * wiring lock in store/__tests__/decisionGuardSeam.lock.test.ts.
  */
 import { Platform } from 'react-native';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
+import { evaluateDeliverableCopy, evaluateMomentAction } from '@/utils/intelligence/decisionGuard';
 import { scopedStorage } from './scopedStorage';
 
 import type { Moment } from '@/types/moments';
@@ -121,6 +130,14 @@ export function planMomentNotifications(
     const dayKey = localDayKey(fireMs);
     const dayCount = perDay.get(dayKey) ?? 0;
     if (dayCount >= MOMENT_NOTIFY_MAX_PER_DAY) continue;
+    // DECISION GUARD qualification step (directive §10 order: … recent
+    // commands → notification fatigue → safety → Decision Guard →
+    // eligibility — the budget gates above are the fatigue checks, so the
+    // guard judges last). Structural check on the candidate's deliverable
+    // action: numeric oz params inside the guard's dose contract. Drop,
+    // don't rewrite — the same fail-closed semantics as the quiet-hours
+    // gate. Rendered-copy judgment happens at the sync seam below.
+    if (evaluateMomentAction(rec.primaryAction).verdict === 'blocked') continue;
 
     const minutesUntil = Math.round((startMs - fireMs) / MIN_MS);
     const action = rec.primaryAction;
@@ -215,6 +232,17 @@ export async function syncMomentNotifications(
       // here. This adds NO new command authority: the copy is the
       // existing Moments plan's, only scanned.
       if (consumerCopyBlocked(title) || consumerCopyBlocked(body)) continue;
+      // DECISION GUARD delivery backstop: the §42 scan above catches
+      // block-severity language; the guard adds its dose-bound and
+      // commercial-steering checks on the RENDERED strings — member-
+      // authored moment titles are untrusted free text interpolated into
+      // this copy. Same fail-closed contract: skip, never reword.
+      if (
+        evaluateDeliverableCopy(title).verdict === 'blocked' ||
+        evaluateDeliverableCopy(body).verdict === 'blocked'
+      ) {
+        continue;
+      }
       await Notif.scheduleNotificationAsync({
         identifier: p.tag,
         content: {

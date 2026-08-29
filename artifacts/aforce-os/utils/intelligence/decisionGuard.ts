@@ -96,23 +96,62 @@ function doseOutOfBounds(text: string): boolean {
 }
 
 /**
+ * Judge one string of member-facing copy as delivered (a rendered
+ * notification title/body, a command line). Pure and deterministic:
+ * dose bounds → commercial steering → §42 block-severity scan. This is
+ * the guard's text primitive — the Moments sync seam runs it on rendered
+ * OS-notification strings (member-authored moment titles are untrusted
+ * free text) and evaluateEngineCommand composes it per surface.
+ */
+export function evaluateDeliverableCopy(text: string): DecisionGuardResult {
+  if (doseOutOfBounds(text)) return { verdict: 'blocked', reason: 'unsafe_dose' };
+  if (COMMERCIAL_STEERING.some((p) => p.test(text))) {
+    return { verdict: 'blocked', reason: 'commercial_bias' };
+  }
+  if (text && consumerCopyBlocked(text)) return { verdict: 'blocked', reason: 'blocked_language' };
+  return { verdict: 'approved' };
+}
+
+/**
+ * Judge one structured Moments action before it may qualify for an OS
+ * notification (directive §10: qualification ends "… notification fatigue
+ * → safety → Decision Guard → RecoveryCommand eligibility"). The action's
+ * copy is an i18n key; the deliverable numerics are its oz params — each
+ * must sit inside the guard's dose contract. Defense-in-depth: the values
+ * come from the MOMENT_HYDRATE_OZ config table today, so a block here
+ * means the table (or a future producer) left contract.
+ */
+export function evaluateMomentAction(action: {
+  labelKey: string;
+  labelParams?: Record<string, string | number>;
+}): DecisionGuardResult {
+  if (!action || !action.labelKey) return { verdict: 'blocked', reason: 'malformed' };
+  const params = action.labelParams ?? {};
+  for (const key of ['oz', 'ozMin', 'ozMax'] as const) {
+    const value = params[key];
+    if (value === undefined) continue;
+    if (
+      typeof value !== 'number' ||
+      !Number.isFinite(value) ||
+      value <= 0 ||
+      value > DECISION_GUARD_MAX_DOSE_OZ
+    ) {
+      return { verdict: 'blocked', reason: 'unsafe_dose' };
+    }
+  }
+  return { verdict: 'approved' };
+}
+
+/**
  * Judge one deliverable command. Pure and deterministic; the reason is
  * diagnostics/ledger material and is never surfaced to the member
  * (validateRecoveryCommand precedent).
  */
 export function evaluateEngineCommand(cmd: Command | null | undefined): DecisionGuardResult {
   if (!cmd || !cmd.id || !cmd.action) return { verdict: 'blocked', reason: 'malformed' };
-  const surfaces = [cmd.action, cmd.explanation ?? ''];
-  for (const text of surfaces) {
-    if (doseOutOfBounds(text)) return { verdict: 'blocked', reason: 'unsafe_dose' };
-  }
-  for (const text of surfaces) {
-    if (COMMERCIAL_STEERING.some((p) => p.test(text))) {
-      return { verdict: 'blocked', reason: 'commercial_bias' };
-    }
-  }
-  for (const text of surfaces) {
-    if (text && consumerCopyBlocked(text)) return { verdict: 'blocked', reason: 'blocked_language' };
+  for (const text of [cmd.action, cmd.explanation ?? '']) {
+    const res = evaluateDeliverableCopy(text);
+    if (res.verdict === 'blocked') return res;
   }
   return { verdict: 'approved' };
 }
