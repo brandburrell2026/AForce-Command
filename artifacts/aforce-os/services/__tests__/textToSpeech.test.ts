@@ -5,7 +5,7 @@
  * Before this fix, `speak()` only checked the "Voice coach" mute toggle
  * (`enabled`); it did NOT check Coach Mode (silent/ambient/spoken), even
  * though `DEFAULT_COACH_MODE = 'ambient'` promises no speech. Most call
- * sites (VoiceOverlay, VoiceCheckInOverlay, useHeatGuard,
+ * sites (VoiceCheckInOverlay, useHeatGuard,
  * PerformanceStatementMount, the system-command voice effect in
  * useAppStore.tsx) called speak() directly with no gate of their own, so
  * the default "no speech" mode did not actually stay silent.
