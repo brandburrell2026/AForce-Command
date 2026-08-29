@@ -113,10 +113,18 @@ export const VOICE_TEMPLATES: Readonly<TemplateMap> = Object.freeze({
     recovering: t('intake_confirmation', 'recovering', 'Logged {fluid}. Score {score}. Continue recovery.', 'Recheck {recheck} min.'),
     depleted:   t('intake_confirmation', 'depleted',   'Logged {fluid}. Score {score}. Take 1 more stick.', 'Recheck {recheck} min.'),
   },
+  // COMMAND-AUTHORITY CONTAINMENT (useHeatGuard rehost, founder-authorized):
+  // heat_warning's only caller is the heat-guard escalation. These lines
+  // previously authored a dose ("Drink {oz} ounces now" — {oz} defaults to
+  // a HARDCODED 16 when the context carries none) and a fixed clock
+  // ("Recheck 10 min") — a second command authority on a safety escalation.
+  // Heat speech is now safety behavior + deference; {recheck} is the
+  // band-derived monitoring cadence the hook threads in
+  // (services/__tests__/commandAuthorityContainment.test.ts bans {oz} here).
   heat_warning: {
     peak:       t('heat_warning', 'peak',       'Heat load rising. Maintain cooling.',                'Recheck {recheck} min.'),
-    balanced:   t('heat_warning', 'balanced',   'Heat stress climbing. Drink {oz} ounces now.',           'Recheck {recheck} min.'),
-    recovering: t('heat_warning', 'recovering', 'Heat risk. Stop and hydrate now. Recheck 10 min.',   'Score {score}.'),
+    balanced:   t('heat_warning', 'balanced',   'Heat stress climbing. Act on your current command now.', 'Recheck {recheck} min.'),
+    recovering: t('heat_warning', 'recovering', 'Heat risk. Stop and act on your current command.',   'Recheck {recheck} min.'),
     depleted:   t('heat_warning', 'depleted',   'Critical heat. Stop now. Begin cooling immediately.','Score {score}.'),
   },
   competition_update: {

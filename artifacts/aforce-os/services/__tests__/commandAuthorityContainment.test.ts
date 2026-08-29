@@ -208,3 +208,30 @@ describe('comparison — the engine compares; it no longer authors a command', (
     expect(stripped, 'CompareCommand returned to comparisonEngine').not.toMatch(/CompareCommand/);
   });
 });
+
+describe('heat_warning voice templates — safety speech, never a dose author', () => {
+  // useHeatGuard rehost (founder ruling 2026-08-28): the escalation speech
+  // went live with the /heat rehost. These templates previously carried
+  // "Drink {oz} ounces now" — and the template engine fills {oz} with a
+  // HARDCODED 16 when the context carries none, i.e. a fabricated dose on
+  // a safety escalation. Structural ban: the heat_warning category may
+  // never take a dose parameter or a fixed clock again.
+  it('no {oz} parameter and no dose/clock copy in any heat_warning line', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const src = fs.readFileSync(
+      path.join(__dirname, '..', '..', 'data', 'voiceTemplates.ts'),
+      'utf8',
+    );
+    const start = src.indexOf('heat_warning: {');
+    expect(start).toBeGreaterThan(-1);
+    const block = src.slice(start, src.indexOf('},', start) + 2);
+    expect(block.length).toBeGreaterThan(100); // non-vacuous slice
+    expect(block, 'a dose parameter returned to heat_warning').not.toMatch(/\{oz\}/);
+    expect(block, 'dose copy returned to heat_warning').not.toMatch(DOSE);
+    expect(block, 'a fixed clock returned to heat_warning').not.toMatch(/Recheck \d+ min/i);
+    // The parameterized monitoring cadence stays — the hook threads the
+    // band's safety-clamped interval into {recheck}.
+    expect(block).toMatch(/\{recheck\}/);
+  });
+});

@@ -325,7 +325,10 @@ describe('INVARIANT 14 — sample social data is confined and disclosed', () => 
   const MOCK_IMPORT_ALLOWLIST = [
     'components/Leaderboard.tsx', // CURRENT_USER_KEY — which row is "you"
     'screens/GuardianHeatScreen.tsx', // mocks/heatData roster + alert feed
-    'screens/HeatRiskScreen.tsx', // mocks/heatData sample inputs
+    // (screens/HeatRiskScreen.tsx left this list with the useHeatGuard
+    // rehost — founder ruling 2026-08-28: /heat now renders the member's
+    // LIVE heat evaluation, not SAMPLE_INPUTS. The ratchet direction is
+    // down; heatScreenTruth.test.ts bans the sample feed's return.)
     'services/competitionEngine.ts', // the ranked cohort itself
     // (services/videoEngine.ts retired with the legacy-Home orphan tree —
     // mocks/videoLibrary died with it.)
