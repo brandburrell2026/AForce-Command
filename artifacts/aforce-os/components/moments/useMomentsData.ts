@@ -14,7 +14,7 @@ import React from 'react';
 import type { Moment, MomentRecommendation } from '@/types/moments';
 import { useMomentsStore, hydrateMoments, addMoment } from '@/services/momentsStore';
 import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
-import { buildDemoMoments } from '@/data/demoMoments';
+import { buildDemoMoments, buildDemoCalendarMoments } from '@/data/demoMoments';
 import {
   buildRecommendation,
   surfaceableMoments,
@@ -71,17 +71,31 @@ export function useMomentsData(options?: {
   // Phase 3b (DR-011): merge in-memory calendar moments when the flag is
   // on. The 30s tick doubles as the throttled foreground refresh driver
   // (refreshCalendarMoments self-throttles to 60s; zero background work).
+  //
+  // DEMO/CAPTURE VISUAL PREVIEW (founder-authorized 2026-08-29): the
+  // calendar lane's PRODUCTION data stays legally gated OFF. Demo builds
+  // preview the finished calendar experience with the explicitly
+  // synthetic buildDemoCalendarMoments set, merged IN-MEMORY exactly like
+  // real calendar moments — never persisted, never through addMoment —
+  // and the device bridge is never touched: the refresh effect below is
+  // skipped, so no permission or EventKit path can run in the demo lane
+  // (components/moments/__tests__/demoCalendarPreview.test.ts).
   const calendarOn = flags.moments_calendar_enabled;
+  const [demoCalendarMoments] = React.useState<Moment[]>(() =>
+    DEMO_MODE || CAPTURE_MODE ? buildDemoCalendarMoments(new Date().toISOString()) : [],
+  );
   React.useEffect(() => {
+    if (DEMO_MODE || CAPTURE_MODE) return; // synthetic preview — no bridge
     if (options?.fixtureMoments || !calendarOn) return;
     void refreshCalendarMoments();
   }, [options?.fixtureMoments, calendarOn, tickIso]);
 
   const fixture = options?.fixtureMoments;
   const nowIso = options?.fixtureNowIso ?? tickIso;
+  const mergedCalendar = DEMO_MODE || CAPTURE_MODE ? demoCalendarMoments : calendarDerived;
   const moments = React.useMemo(
-    () => fixture ?? (calendarOn ? [...store.moments, ...calendarDerived] : store.moments),
-    [fixture, calendarOn, store.moments, calendarDerived],
+    () => fixture ?? (calendarOn ? [...store.moments, ...mergedCalendar] : store.moments),
+    [fixture, calendarOn, store.moments, mergedCalendar],
   );
 
   const signals: MomentSignals = React.useMemo(

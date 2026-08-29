@@ -42,7 +42,7 @@ import type { WeeklyV3Inputs } from '../components/insights/weeklyV3Presentation
 import type { CircleV3Inputs } from '../components/community/circleV3Presentation';
 import { buildSnapshot } from '../services/competitionEngine';
 import type { Moment } from '../types/moments';
-import { buildDemoMoments } from '../data/demoMoments';
+import { buildDemoMoments, buildDemoCalendarMoments } from '../data/demoMoments';
 import type { AnalyticsEvent } from '../utils/analytics/metrics';
 import type { PerformanceAgeResult } from '../utils/performanceAge';
 
@@ -607,6 +607,20 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
     surface: 'moments',
     momentsFixture: {
       moments: buildDemoMoments('2026-08-12T17:38:00.000Z'),
+      nowIso: '2026-08-12T17:38:00.000Z',
+    },
+  },
+  {
+    id: 'moments-calendar-day',
+    label: 'Moments — Calendar preview day',
+    driver:
+      'fixture: buildDemoCalendarMoments around fixed nowISO 2026-08-12T17:38Z — synthetic calendar-derived day (Workout completed, Investor Call active prep, Board Meeting upcoming, PRIVATE EVENT masked, low-importance Dinner). Production calendar data stays legally gated OFF; this is the founder-authorized visual preview.',
+    surface: 'moments',
+    momentsFixture: {
+      moments: [
+        ...buildDemoMoments('2026-08-12T17:38:00.000Z'),
+        ...buildDemoCalendarMoments('2026-08-12T17:38:00.000Z'),
+      ],
       nowIso: '2026-08-12T17:38:00.000Z',
     },
   },
