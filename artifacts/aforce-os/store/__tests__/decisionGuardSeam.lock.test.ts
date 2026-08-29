@@ -151,3 +151,28 @@ describe('Moments notification lane — guard wired at qualification and deliver
     );
   });
 });
+
+describe('Moments in-app lane — recFor delivers only guarded recommendations', () => {
+  // Founder-authorized #877 follow-up: useMomentsData.recFor is the ONE
+  // seam every in-app Moments surface consumes (NextMomentCard,
+  // MomentsScreen, MomentDetailScreen, PrepareMyDayScreen). The raw
+  // builder may not reach the cache or a renderer.
+  const HOOK_SRC = readFileSync(
+    join(__dirname, '..', '..', 'components', 'moments', 'useMomentsData.ts'),
+    'utf8',
+  );
+
+  it('recFor routes the builder through guardMomentRecommendation before caching', () => {
+    expect(HOOK_SRC).toMatch(
+      /const \{ rec \} = guardMomentRecommendation\(buildRecommendation\(moment, signals, nowIso\)\);/,
+    );
+    expect(HOOK_SRC).not.toMatch(/const rec = buildRecommendation\(/);
+  });
+
+  it('single guard import; the raw builder has no other call site in the hook', () => {
+    expect(HOOK_SRC).toMatch(
+      /import \{ guardMomentRecommendation \} from '@\/utils\/intelligence\/decisionGuard';/,
+    );
+    expect(HOOK_SRC.match(/buildRecommendation\(/g)?.length).toBe(1);
+  });
+});

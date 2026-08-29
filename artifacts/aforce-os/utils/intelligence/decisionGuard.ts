@@ -49,6 +49,7 @@
  */
 
 import type { Command, ScoreEngineOutput } from '../../types';
+import type { MomentAction, MomentRecommendation, RitualStage } from '../../types/moments';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '../../config/hydroStateModel';
 import { consumerCopyBlocked } from './languageGate/runtimeClaimScan';
 
@@ -121,12 +122,8 @@ export function evaluateDeliverableCopy(text: string): DecisionGuardResult {
  * come from the MOMENT_HYDRATE_OZ config table today, so a block here
  * means the table (or a future producer) left contract.
  */
-export function evaluateMomentAction(action: {
-  labelKey: string;
-  labelParams?: Record<string, string | number>;
-}): DecisionGuardResult {
-  if (!action || !action.labelKey) return { verdict: 'blocked', reason: 'malformed' };
-  const params = action.labelParams ?? {};
+function ozParamsOutOfContract(params: Record<string, string | number> | undefined): boolean {
+  if (!params) return false;
   for (const key of ['oz', 'ozMin', 'ozMax'] as const) {
     const value = params[key];
     if (value === undefined) continue;
@@ -136,10 +133,94 @@ export function evaluateMomentAction(action: {
       value <= 0 ||
       value > DECISION_GUARD_MAX_DOSE_OZ
     ) {
-      return { verdict: 'blocked', reason: 'unsafe_dose' };
+      return true;
     }
   }
+  return false;
+}
+
+export function evaluateMomentAction(action: {
+  labelKey: string;
+  labelParams?: Record<string, string | number>;
+}): DecisionGuardResult {
+  if (!action || !action.labelKey) return { verdict: 'blocked', reason: 'malformed' };
+  if (ozParamsOutOfContract(action.labelParams)) {
+    return { verdict: 'blocked', reason: 'unsafe_dose' };
+  }
   return { verdict: 'approved' };
+}
+
+/**
+ * Neutral in-app fallbacks for a Moments surface whose deliverable copy
+ * left contract. EN-only keys — the moments.* namespace is EN-with-
+ * fallback across all locales by design. Dose-free, clock-free,
+ * product-free (pinned in momentsDecisionGuard.test.ts).
+ */
+export const DECISION_GUARD_MOMENT_ACTION_FALLBACK_KEY = 'moments.action.hydrate_fallback';
+export const DECISION_GUARD_MOMENT_RITUAL_FALLBACK_KEY = 'moments.ritual.hydrate_fallback';
+
+/**
+ * Guard one MomentRecommendation as DELIVERED to the in-app surfaces
+ * (NextMomentCard, MomentsScreen, MomentDetailScreen, PrepareMyDayScreen
+ * all consume useMomentsData.recFor). The moment itself is member data —
+ * it stays visible; only out-of-contract DOSE surfaces degrade:
+ *  - blocked primaryAction → neutral water-first action (kind 'hydrate'
+ *    survives the Water-First pin; bestBeforeIso kept — timing is window
+ *    math, not a dose);
+ *  - blocked secondaryAction → dropped (optional everywhere);
+ *  - a ritual stage whose instructionParams carry an out-of-contract oz →
+ *    neutral instruction, params dropped (stage count and order preserved
+ *    — the 4-stage ritual pin holds).
+ * Approved → the SAME rec reference (production byte-identical; today's
+ * values come from the MOMENT_HYDRATE_OZ config table, proven in
+ * contract). This mirrors the notification lane's semantics with one
+ * deliberate difference: a notification candidate is an interruption and
+ * is DROPPED; an in-app rec annotates the member's own moment and
+ * DEGRADES to neutral copy instead of hiding their data.
+ */
+export function guardMomentRecommendation(rec: MomentRecommendation): {
+  rec: MomentRecommendation;
+  result: DecisionGuardResult;
+} {
+  let reason: DecisionGuardReason | null = null;
+
+  let primary: MomentAction = rec.primaryAction;
+  const primaryVerdict = evaluateMomentAction(rec.primaryAction);
+  if (primaryVerdict.verdict === 'blocked') {
+    reason = primaryVerdict.reason;
+    primary = {
+      kind: 'hydrate',
+      labelKey: DECISION_GUARD_MOMENT_ACTION_FALLBACK_KEY,
+      ...(rec.primaryAction?.bestBeforeIso
+        ? { bestBeforeIso: rec.primaryAction.bestBeforeIso }
+        : {}),
+    };
+  }
+
+  let secondary = rec.secondaryAction;
+  if (secondary) {
+    const secondaryVerdict = evaluateMomentAction(secondary);
+    if (secondaryVerdict.verdict === 'blocked') {
+      reason = reason ?? secondaryVerdict.reason;
+      secondary = undefined;
+    }
+  }
+
+  let ritual: RitualStage[] = rec.ritual;
+  if (rec.ritual.some((s) => ozParamsOutOfContract(s.instructionParams))) {
+    reason = reason ?? 'unsafe_dose';
+    ritual = rec.ritual.map((s) =>
+      ozParamsOutOfContract(s.instructionParams)
+        ? { ...s, instructionKey: DECISION_GUARD_MOMENT_RITUAL_FALLBACK_KEY, instructionParams: undefined }
+        : s,
+    );
+  }
+
+  if (reason === null) return { rec, result: { verdict: 'approved' } };
+  return {
+    rec: { ...rec, primaryAction: primary, secondaryAction: secondary, ritual },
+    result: { verdict: 'blocked', reason },
+  };
 }
 
 /**

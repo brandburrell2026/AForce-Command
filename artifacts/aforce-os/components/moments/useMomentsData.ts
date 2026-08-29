@@ -25,6 +25,7 @@ import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { useCalendarMoments, refreshCalendarMoments } from '@/services/calendarMoments';
 import { useAppStateGatedInterval } from '@/hooks/useAppStateGatedInterval';
+import { guardMomentRecommendation } from '@/utils/intelligence/decisionGuard';
 
 const TICK_MS = 30_000;
 
@@ -103,7 +104,14 @@ export function useMomentsData(options?: {
     const recFor = (moment: Moment): MomentRecommendation => {
       const hit = cache.get(moment.id);
       if (hit) return hit;
-      const rec = buildRecommendation(moment, signals, nowIso);
+      // DECISION GUARD — in-app delivery boundary (founder-authorized
+      // #877 follow-up). Every Moments surface consumes recFor, so this
+      // is the one seam covering NextMomentCard, MomentsScreen,
+      // MomentDetailScreen, and PrepareMyDayScreen. Approved recs pass
+      // by reference (today's doses come from the in-contract config
+      // table); an out-of-contract dose surface degrades to neutral
+      // water-first copy — the member's moment stays visible.
+      const { rec } = guardMomentRecommendation(buildRecommendation(moment, signals, nowIso));
       cache.set(moment.id, rec);
       return rec;
     };

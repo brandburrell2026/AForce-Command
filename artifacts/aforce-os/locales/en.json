@@ -2466,6 +2466,7 @@
     "status_recovery": "Recovery window · {{window}}",
     "action": {
       "hydrate_exact": "Hydrate {{oz}} oz",
+      "hydrate_fallback": "Hydrate — water first",
       "hydrate_range": "Begin hydration · {{ozMin}}–{{ozMax}} oz",
       "electrolytes": "Add electrolytes",
       "electrolytes_sub": "If sweating > 45 min",
@@ -2474,6 +2475,7 @@
     "ritual": {
       "pause": "{{seconds}}-second reset",
       "hydrate": "Drink {{ozMin}} oz of water",
+      "hydrate_fallback": "Hydrate steadily — water first",
       "lock_in": "Focus mode · {{minutes}} min",
       "perform_work": "Enter the meeting prepared",
       "perform_performance": "Enter the moment prepared",
