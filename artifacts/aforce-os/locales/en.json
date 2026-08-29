@@ -1132,16 +1132,6 @@
       "recovering_sub": "Steady and controlled.",
       "notToday_label": "Not Today",
       "notToday_sub": "Protect and recover."
-    },
-    "brainEnergy": {
-      "eyebrow": "BRAIN ENERGY",
-      "collecting": "Complete your morning check-in to read Brain Energy."
-    },
-    "memory": {
-      "eyebrow": "PERFORMANCE MEMORY",
-      "empty": "Your first check-in starts your performance memory.",
-      "streak": "DAY STREAK",
-      "logged": "CHECK-INS"
     }
   },
   "performanceStatements": {

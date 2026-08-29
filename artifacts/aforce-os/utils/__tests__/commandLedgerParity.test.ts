@@ -11,7 +11,7 @@
  *   1. Command Confidence inputs — `commandConfidenceInputsFromState` (live)
  *      vs `ledgerToCommandConfidenceInputs` over a ledger built from the same
  *      state the way `useCommandLedgerSync` builds it.
- *   2. Performance Memory entries — the live `VoiceCheckInZone` mapping vs
+ *   2. Performance Memory entries — the canonical `computePerformanceMemory` mapping vs
  *      `ledgerToPerformanceMemoryEntries`, both fed through the consumed
  *      `computePerformanceMemory`.
  *
@@ -241,7 +241,7 @@ describe('parity: holds AFTER source expiry (no late-observation freshness)', ()
 });
 
 describe('parity: performance memory entries (live vs ledger)', () => {
-  // Mirrors components/home/VoiceCheckInZone.tsx — the live derivation that
+  // Mirrors the canonical computePerformanceMemory derivation that
   // ships today.
   function liveEntries(records: VoiceCheckInRecord[]): PerformanceMemoryEntry[] {
     return records.map((r) => ({

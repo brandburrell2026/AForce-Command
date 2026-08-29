@@ -1034,17 +1034,7 @@
     "closing_spoken": "Hydrate now. Start with water. Your {{goal}} plan is locked. Let's perform.",
     "closing_title": "CALIBRATION LOCKED",
     "closing_body": "HYDRATE NOW — start with water. {{coach}} has your {{goal}} plan ready.",
-    "cta_done": "LOCK IN",
-    "brainEnergy": {
-      "eyebrow": "BRAIN ENERGY",
-      "collecting": "Complete your morning check-in to read Brain Energy."
-    },
-    "memory": {
-      "eyebrow": "PERFORMANCE MEMORY",
-      "empty": "Your first check-in starts your performance memory.",
-      "streak": "DAY STREAK",
-      "logged": "CHECK-INS"
-    }
+    "cta_done": "LOCK IN"
   },
   "hydroScan2": {
     "impact": {
