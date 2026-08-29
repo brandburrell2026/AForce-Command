@@ -33,7 +33,7 @@ import type { FluidType } from '../types';
 type EventName =
   | 'state'           // connection / battery / led changes
   | 'gesture'         // any gesture observed
-  | 'voice_trigger'   // voice mode should open
+  | 'voice_trigger'   // voice-mode request; NO subscriber since the VoiceOverlay retirement (founder ruling 2026-08-28) — a future voice-input surface re-subscribes here
   | 'status_request'  // user requested a silent status pulse
   | 'signal'          // any new BandSignal entry
   | 'sip';            // BLE notification: user took a sip from the band

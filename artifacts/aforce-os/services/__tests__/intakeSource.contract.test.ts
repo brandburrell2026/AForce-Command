@@ -79,7 +79,11 @@ describe('every intake entry point names its surface', () => {
     { file: 'components/hydration/HydrationScreenV2.tsx', expected: 'hydration', what: 'Hydration' },
     { file: 'components/scan/HydrationScanScreenV2.tsx', expected: 'scan', what: 'Scan' },
     { file: 'app/recovery-coach.tsx', expected: 'recovery', what: 'Recovery Coach' },
-    { file: 'components/VoiceOverlay.tsx', expected: 'voice', what: 'Voice overlay' },
+    // VoiceOverlay ruling (founder, 2026-08-28): the voice capture sheet
+    // (source 'voice') was unmounted since #858 and is RETIRED with its
+    // exclusive STT stack; its row retires with the subject, same
+    // protocol as the rows below. A future voice-input surface must add
+    // its own row here when it lands.
     // S2-13: LogIntakeRow (source 'manual') was a proven orphan — mounted
     // nowhere since Build 61 — and is deleted; the live member-initiated
     // entries are the Home/Hydration picker rows above.

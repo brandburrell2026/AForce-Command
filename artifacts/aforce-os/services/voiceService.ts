@@ -514,8 +514,10 @@ export function buildProactiveCoachLine(
 
 /**
  * Everything the proactive path needs, as plain values — so the whole wiring is
- * pure and testable without a React renderer. `useProactiveCoach` is a thin hook
- * that gathers these from the store and calls this.
+ * pure and testable without a React renderer. (The thin `useProactiveCoach`
+ * hook that once gathered these from the store retired with the VoiceOverlay
+ * — founder ruling 2026-08-28; a future voice-input surface would re-wire a
+ * caller over this same pure seam.)
  */
 export interface ProactiveCoachInputs {
   engineOutput: ScoreEngineOutput;

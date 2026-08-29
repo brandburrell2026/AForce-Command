@@ -4,7 +4,7 @@
  *
  * The RC-1 audit found 16 ungated `<Modal>` call sites (AddDrinkModal,
  * FlavorPickerModal, EditProfileModal, WaterAmountModal, SmartCaptureModal,
- * VoiceOverlay, UpgradePrompt, ErrorFallback, ZoomableProductImage,
+ * UpgradePrompt, ErrorFallback, ZoomableProductImage,
  * InvestorDemoOverlay, AIVideoPlayer, HydrationScanScreen(V2)'s inline
  * picker, AFDisclosureSheet, RecoveryCircleMembersModal, CameraScanModal)
  * each hand-rolling `animationType` with no reduced-motion gate and no
