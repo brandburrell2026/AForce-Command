@@ -176,3 +176,42 @@ describe('Moments in-app lane — recFor delivers only guarded recommendations',
     expect(HOOK_SRC.match(/buildRecommendation\(/g)?.length).toBe(1);
   });
 });
+
+describe('Day-cadence lane — one guarded copy source, no raw-table delivery', () => {
+  // Founder-authorized Day-cadence coverage ruling (#878 follow-up): the
+  // slot derivation in services/notifications.ts judges every day's copy;
+  // the OS bridge must deliver slot.title/slot.body and never re-read the
+  // raw NOTIFICATION_COPY table (a second, unguarded copy path).
+  const CADENCE_SRC = readFileSync(
+    join(__dirname, '..', '..', 'services', 'notifications.ts'),
+    'utf8',
+  );
+  const BRIDGE_SRC = readFileSync(
+    join(__dirname, '..', '..', 'services', 'pushNotifications.ts'),
+    'utf8',
+  );
+
+  it('the derivation guards every slot before it enters the schedule', () => {
+    const guardTitle = CADENCE_SRC.indexOf("evaluateDeliverableCopy(copy.title).verdict === 'blocked'");
+    const guardBody = CADENCE_SRC.indexOf("evaluateDeliverableCopy(copy.body).verdict === 'blocked'");
+    const push = CADENCE_SRC.indexOf('slots.push({');
+    expect(guardTitle).toBeGreaterThan(-1);
+    expect(guardBody).toBeGreaterThan(guardTitle);
+    expect(push).toBeGreaterThan(guardBody);
+  });
+
+  it('the OS bridge consumes guarded slots only — the raw table never reaches delivery', () => {
+    expect(BRIDGE_SRC).toMatch(/title: slot\.title,/);
+    expect(BRIDGE_SRC).toMatch(/body: slot\.body,/);
+    expect(BRIDGE_SRC).not.toMatch(/NOTIFICATION_COPY/);
+  });
+
+  it('the banner path shares the same guarded slots (no separate copy source)', () => {
+    const BANNER_SRC = readFileSync(
+      join(__dirname, '..', '..', 'components', 'home', 'NotificationBanner.tsx'),
+      'utf8',
+    );
+    expect(BANNER_SRC).toMatch(/deriveScheduledNotifications\(/);
+    expect(BANNER_SRC).not.toMatch(/NOTIFICATION_COPY/);
+  });
+});

@@ -10,7 +10,8 @@
  *     day; cancel a slot when the in-app banner records delivery
  *
  * No remote push, no device-token registration, no marketing copy —
- * everything stays on-device and verbatim from `NOTIFICATION_COPY`.
+ * everything stays on-device; copy arrives on the guarded slots from
+ * `deriveScheduledNotifications` (the one Decision-Guard-judged source).
  *
  * Web + simulator: every call no-ops cleanly so the in-app banner
  * remains the only visible surface there.
@@ -18,7 +19,6 @@
 import { Platform } from 'react-native';
 
 import {
-  NOTIFICATION_COPY,
   deriveScheduledNotifications,
   type NotificationDay,
   type NotificationDelivery,
@@ -139,8 +139,12 @@ export async function scheduleCadenceNotifications(
         await Notif.scheduleNotificationAsync({
           identifier: slotTag(slot.day),
           content: {
-            title: NOTIFICATION_COPY[slot.day].title,
-            body: NOTIFICATION_COPY[slot.day].body,
+            // Copy comes from the slot itself — deriveScheduledNotifications
+            // is the ONE guarded copy source (Decision Guard judges every
+            // slot there); re-reading the raw table here would be a second,
+            // unguarded copy path (pinned in decisionGuardSeam.lock).
+            title: slot.title,
+            body: slot.body,
           },
           trigger: {
             type: Notif.SchedulableTriggerInputTypes.TIME_INTERVAL,

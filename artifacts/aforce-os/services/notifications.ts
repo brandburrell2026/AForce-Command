@@ -21,6 +21,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { useFeatureFlags } from '@/store/useAppStore';
+import { evaluateDeliverableCopy } from '@/utils/intelligence/decisionGuard';
 
 /** Spec cadence in days since the user's notifications start. */
 export const NOTIFICATION_DAYS = [0, 1, 3, 7] as const;
@@ -66,21 +67,45 @@ export const NOTIFICATION_COPY: Readonly<
   7: { title: 'Recovery Story', body: 'Your recovery story is here.' },
 };
 
-/** Pure: derive the 4 scheduled notifications from a start timestamp. */
-export function deriveScheduledNotifications(startAtIso: string): ScheduledNotification[] {
+/**
+ * Pure: derive the scheduled notifications from a start timestamp.
+ *
+ * DECISION GUARD (founder-authorized Day-cadence coverage ruling): this
+ * derivation is the ONE copy source both delivery paths consume — the OS
+ * bridge (pushNotifications.scheduleCadenceNotifications) and the in-app
+ * banner (NotificationBanner via dueNotifications). Every slot's copy is
+ * judged here; a day whose copy leaves contract is DROPPED from the
+ * schedule (fail-closed, never reworded — the notification-lane
+ * semantics). All four spec copies are in contract, so production
+ * schedules are byte-identical (pinned in
+ * services/__tests__/cadenceDecisionGuard.test.ts). `copyTable` is pure
+ * DI for that suite only; production callers never pass it.
+ */
+export function deriveScheduledNotifications(
+  startAtIso: string,
+  copyTable: Readonly<Record<NotificationDay, { title: string; body: string }>> = NOTIFICATION_COPY,
+): ScheduledNotification[] {
   const start = Date.parse(startAtIso);
   const baseValid = Number.isFinite(start);
-  return NOTIFICATION_DAYS.map((day) => {
-    const copy = NOTIFICATION_COPY[day];
-    return {
+  const slots: ScheduledNotification[] = [];
+  for (const day of NOTIFICATION_DAYS) {
+    const copy = copyTable[day];
+    if (
+      evaluateDeliverableCopy(copy.title).verdict === 'blocked' ||
+      evaluateDeliverableCopy(copy.body).verdict === 'blocked'
+    ) {
+      continue;
+    }
+    slots.push({
       day,
       dueAt: baseValid
         ? new Date(start + day * MS_PER_DAY).toISOString()
         : startAtIso,
       title: copy.title,
       body: copy.body,
-    };
-  });
+    });
+  }
+  return slots;
 }
 
 /** UTC calendar-day key (YYYY-MM-DD) for throttling. */
