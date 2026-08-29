@@ -80,7 +80,7 @@ export function EdNextMomentLine({
           </Text>
           <Text
             style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
-            numberOfLines={1}
+            numberOfLines={2}
           >
             {title}
           </Text>
@@ -139,6 +139,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     columnGap: 10,
+    // AX ruling: reflow, not clip — at accessibility sizes the eyebrow,
+    // title, and clock wrap onto their own lines instead of squeezing the
+    // clock off-screen (caught in the AX-XXXL capture pass).
+    flexWrap: 'wrap',
+    rowGap: 2,
   },
   underRow: {
     flexDirection: 'row',
