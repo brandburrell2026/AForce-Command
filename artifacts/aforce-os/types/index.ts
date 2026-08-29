@@ -799,6 +799,14 @@ export interface FeatureFlags {
    */
   elite_home_experience_enabled: boolean;
   /**
+   * Editorial Home — The Cover (E2, founder ruling 2026-08-29). Whole-screen
+   * presentation swap of the Home tab to the Editorial OS composition,
+   * consuming the same guarded truth (engine slice, evidence gate, moments
+   * lane, V3 signal resolvers). Presentation only; HomeScreenV2 remains the
+   * flag-OFF rollback path. Default OFF; ON in the demo profile.
+   */
+  editorial_home_enabled: boolean;
+  /**
    * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
    * sections inside HomeScreenV2: health-connection chip, four live-signal
    * tiles, derived Completed-today protocol list, streak/trend stat tiles.

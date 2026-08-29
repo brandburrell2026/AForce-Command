@@ -173,12 +173,23 @@ describe('accessibility lock — source rules for components/editorial/', () => 
     const src = read(join(ED_DIR, 'instruments.tsx'));
     expect(src).toMatch(/isReduceMotionEnabled/);
     expect(src).toMatch(/reduceMotionChanged/);
-    expect(src).toMatch(/if \(reduce\)/);
+    // Strengthened in E2 after the adversarial review caught a race: the
+    // preference is async, so "not answered yet" is a third state. The
+    // settle holds the FINAL frame until the OS answers, and an unknown
+    // answer resolves to reduce=true for anything else that asks.
+    expect(src).toMatch(/if \(reduce === null\) return;/);
+    expect(src).toMatch(/if \(reduce \|\| playedRef\.current\)/);
+    expect(src).toMatch(/useReduceMotionState\(\) \?\? true/);
     expect(src).toMatch(/useNativeDriver: true/);
   });
 
-  it('ships no interactive primitives in E1 — target rules land with the first interactive step', () => {
+  it('foundation primitives stay non-interactive; the E2 home layer meets the target floor instead', () => {
+    // E1 shipped no interactive primitives. E2 (founder ruling 2026-08-29)
+    // consciously introduces interactivity in components/editorial/home/ —
+    // that layer is governed by editorialHomeLaw.test.ts (44pt floor,
+    // hitSlop, parity pins). The FOUNDATION files stay non-interactive.
     for (const { file, src } of edSources) {
+      if (file.includes(join('editorial', 'home'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -236,6 +247,13 @@ describe('И state language — pure split logic', () => {
 describe('E1 isolation — zero production consumers (zero-behavioral-diff proof)', () => {
   const ALLOWED = new Set([
     'app/(hidden)/editorial-sheet.tsx', // the dev/demo reference sheet
+    // E2 (founder ruling 2026-08-29): the Home route's flag seam is the
+    // first authorized production consumer — HomeScreenV2 remains the
+    // flag-OFF branch, locked by editorialHomeLaw.test.ts.
+    'app/(tabs)/index.tsx',
+    // E2 acceptance stage: the dev/demo screen gallery hosts the Cover
+    // fixtures (lazy-loaded behind the (hidden)/gallery guard).
+    'demo/AForceScreenGallery.tsx',
   ]);
   const PRODUCTION_ROOTS = [
     'app',

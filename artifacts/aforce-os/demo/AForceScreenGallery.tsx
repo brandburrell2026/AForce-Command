@@ -41,6 +41,7 @@ import type { AppContextValue } from '../store/app/types';
 import type { AppState as StoreAppState } from '../store/appStoreTypes';
 
 import { HomeScreenV2 } from '../components/home/HomeScreenV2';
+import { EditorialHomeScreen } from '../components/editorial/home/EditorialHomeScreen';
 import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
 import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
 import { WeeklyReportV3 } from '../components/insights/WeeklyReportV3';
@@ -197,6 +198,15 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       return (
         <StoreOverride state={fixture.appState!}>
           <HomeScreenV2 />
+        </StoreOverride>
+      );
+    case 'editorialHome':
+      // E2 acceptance stage (founder ruling 2026-08-29): the SAME
+      // StoreOverride idiom as 'home', rendering the Cover with the
+      // fixture's deterministic moments.
+      return (
+        <StoreOverride state={fixture.appState!}>
+          <EditorialHomeScreen momentsFixture={fixture.momentsFixture} />
         </StoreOverride>
       );
     case 'signal':

@@ -19,9 +19,18 @@ import { edAccent, edStock, type EdStockName } from '@/theme/editorialTokens';
 
 import { EdStockContext, useEdInk } from './core';
 
-/** Live OS Reduce Motion preference (listens for changes). */
-export function useReduceMotion(): boolean {
-  const [reduce, setReduce] = React.useState(false);
+/**
+ * Live OS Reduce Motion preference, with its RESOLUTION state.
+ *
+ * `AccessibilityInfo.isReduceMotionEnabled()` is async, so for the first
+ * frames the answer is genuinely unknown — not "false". Seeding `false` and
+ * animating immediately is exactly the race the E2 review caught: a
+ * reduce-motion member saw the entrance play (or half-play, then snap)
+ * before the promise resolved. `null` means "not answered yet"; callers
+ * that animate must WAIT rather than assume.
+ */
+export function useReduceMotionState(): boolean | null {
+  const [reduce, setReduce] = React.useState<boolean | null>(null);
   React.useEffect(() => {
     let mounted = true;
     AccessibilityInfo.isReduceMotionEnabled().then((v) => {
@@ -37,19 +46,34 @@ export function useReduceMotion(): boolean {
 }
 
 /**
+ * Live OS Reduce Motion preference. Unknown resolves to the SAFE answer —
+ * `true` (assume reduce) — so nothing decorative can start on a hunch.
+ */
+export function useReduceMotion(): boolean {
+  return useReduceMotionState() ?? true;
+}
+
+/**
  * useEdSettle — the system's one entrance: content settles into place
  * (8pt rise + fade, 420ms, decelerating). Returns an animated style to
  * spread onto an Animated.View. With Reduce Motion on, the value starts
  * at 1 — the final frame, no movement.
  */
 export function useEdSettle(delayMs = 0): { opacity: Animated.Value; transform: { translateY: Animated.AnimatedInterpolation<number> }[] } {
-  const reduce = useReduceMotion();
-  const t = React.useRef(new Animated.Value(0)).current;
+  const reduce = useReduceMotionState();
+  // Start at the FINAL frame and hold there until the OS has actually
+  // answered: an unresolved preference must never animate, and content is
+  // never invisible while we wait.
+  const t = React.useRef(new Animated.Value(1)).current;
+  const playedRef = React.useRef(false);
   React.useEffect(() => {
-    if (reduce) {
+    if (reduce === null) return; // not answered yet — stay on the final frame
+    if (reduce || playedRef.current) {
       t.setValue(1);
       return;
     }
+    playedRef.current = true;
+    t.setValue(0);
     const anim = Animated.timing(t, {
       toValue: 1,
       duration: 420,
