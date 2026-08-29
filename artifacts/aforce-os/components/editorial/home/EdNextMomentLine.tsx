@@ -148,6 +148,9 @@ const styles = StyleSheet.create({
   underRow: {
     flexDirection: 'row',
     columnGap: 24,
+    // Same AX reflow rule as titleRow: the two quiet links wrap onto their
+    // own lines at accessibility sizes instead of clipping at the edge.
+    flexWrap: 'wrap',
   },
   underTarget: {
     minHeight: edRhythm.minTarget,
