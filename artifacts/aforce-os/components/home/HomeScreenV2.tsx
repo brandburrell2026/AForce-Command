@@ -8,23 +8,24 @@
  * Same live engine data as the legacy Home (score, command, signals) — no
  * scoring change (statusColor/scoringEngine untouched).
  *
- * HONEST STATUS (RC-1 verdict-pass correction; wording updated after the
- * flag-key prune and the legacy-Home retirement — a prior version of this
- * comment claimed the legacy Home's four detail zones were "relocated" into
- * Readiness Insights with "nothing missing," then a later version claimed
- * they were "still reachable" behind the since-retired `spec_home` flag;
- * both claims were false): the legacy Home's four detail zones —
- * MetabolicReadinessZone, PerformanceAgeZone, VoiceCheckInZone,
- * ActivationJourneyZone (all in components/home/) — have NO renderer at
- * all. Their only host, `HomeScreenLegacy`, was retired with the
- * fifteen-twin sweep, and the `spec_home` flag key that selected between
- * the two Homes was pruned afterward; this component is the Home tab,
- * unconditionally. Tapping the arc opens Readiness Insights (chart +
- * drivers + insight), not those four zones. The four zone FILES are
- * orphaned and were deliberately HELD OUT of the orphan-tree retirement:
- * restoring them (in some form, somewhere) or explicitly retiring them
- * needs a founder decision — this file must not claim that decision has
- * already happened.
+ * HONEST STATUS (RC-1 verdict-pass correction; updated as the record
+ * changed — a prior version of this comment claimed the legacy Home's
+ * four detail zones were "relocated" into Readiness Insights with
+ * "nothing missing," then a later version claimed they were "still
+ * reachable" behind the since-retired `spec_home` flag; both claims were
+ * false): the legacy Home's four detail zones — MetabolicReadinessZone,
+ * PerformanceAgeZone, VoiceCheckInZone, ActivationJourneyZone — lost
+ * their only host when `HomeScreenLegacy` was retired with the
+ * fifteen-twin sweep, sat orphaned through the orphan-tree retirement
+ * under an explicit hold, and were then RETIRED by founder decision
+ * (2026-08-28 ruling: retire; every underlying capability stays live —
+ * usePerformanceAge powers the weekly report and insights,
+ * useMetabolicReadiness powers the health signals, and the voice
+ * check-in data layer powers Performance Statement and unified memory).
+ * This component is the Home tab, unconditionally; tapping the arc opens
+ * Readiness Insights (chart + drivers + insight). Restoring any zone
+ * later means re-creating a thin wrapper over those still-live engines —
+ * a new design decision, not a revert.
  *
  * E1 — Elite Home (flag `elite_home_experience_enabled`, default OFF):
  * PRESENTATION-ONLY elevation layered on the exact same data. When on, it adds a

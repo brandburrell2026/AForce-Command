@@ -986,16 +986,6 @@
       "recovering_sub": "Firme y controlado.",
       "notToday_label": "Hoy no",
       "notToday_sub": "Proteger y recuperar."
-    },
-    "brainEnergy": {
-      "eyebrow": "ENERGÍA MENTAL",
-      "collecting": "Completa tu chequeo matinal para ver tu Energía Mental."
-    },
-    "memory": {
-      "eyebrow": "MEMORIA DE RENDIMIENTO",
-      "empty": "Tu primer chequeo inicia tu memoria de rendimiento.",
-      "streak": "DÍAS SEGUIDOS",
-      "logged": "CHEQUEOS"
     }
   },
   "performanceStatements": {

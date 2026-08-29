@@ -986,16 +986,6 @@
       "recovering_sub": "Régulier et maîtrisé.",
       "notToday_label": "Pas aujourd'hui",
       "notToday_sub": "Protéger et récupérer."
-    },
-    "brainEnergy": {
-      "eyebrow": "ÉNERGIE MENTALE",
-      "collecting": "Termine ton bilan du matin pour lire ton Énergie Mentale."
-    },
-    "memory": {
-      "eyebrow": "MÉMOIRE DE PERFORMANCE",
-      "empty": "Ton premier bilan lance ta mémoire de performance.",
-      "streak": "JOURS D'AFFILÉE",
-      "logged": "BILANS"
     }
   },
   "performanceStatements": {

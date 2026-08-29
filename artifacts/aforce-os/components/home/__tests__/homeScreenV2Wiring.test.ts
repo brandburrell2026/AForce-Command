@@ -378,8 +378,13 @@ describe('HomeScreenV2 — doc-comment honesty guard (RC-1 P0)', () => {
     expect(SOURCE).not.toMatch(/nothing users had access to on\s*\* the legacy Home went missing/);
   });
 
-  it('the file header states the zones are orphaned pending a founder decision', () => {
+  it('the file header records the zones ruling honestly (retired by founder decision)', () => {
+    // CONSCIOUS REPIN (legacy-zones ruling, 2026-08-28): the prior pin
+    // required the header to say the zones were orphaned PENDING a
+    // decision. The founder ruled: retire. The header must now record
+    // the resolved ruling — and must never regress to the disproven
+    // "relocated / nothing missing" claims (guarded above).
+    expect(SOURCE.toLowerCase()).toContain('retired by founder decision');
     expect(SOURCE.toLowerCase()).toContain('orphaned');
-    expect(SOURCE.toLowerCase()).toContain('founder decision');
   });
 });

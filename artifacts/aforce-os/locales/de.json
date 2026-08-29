@@ -986,16 +986,6 @@
       "recovering_sub": "Ruhig und kontrolliert.",
       "notToday_label": "Heute nicht",
       "notToday_sub": "Schützen und erholen."
-    },
-    "brainEnergy": {
-      "eyebrow": "MENTALE ENERGIE",
-      "collecting": "Schließe deinen Morgen-Check-in ab, um deine Mentale Energie zu sehen."
-    },
-    "memory": {
-      "eyebrow": "LEISTUNGS-GEDÄCHTNIS",
-      "empty": "Dein erster Check-in startet dein Leistungs-Gedächtnis.",
-      "streak": "TAGE IN FOLGE",
-      "logged": "CHECK-INS"
     }
   },
   "performanceStatements": {
