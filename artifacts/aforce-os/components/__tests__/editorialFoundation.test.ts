@@ -190,6 +190,9 @@ describe('accessibility lock — source rules for components/editorial/', () => 
     // hitSlop, parity pins). The FOUNDATION files stay non-interactive.
     for (const { file, src } of edSources) {
       if (file.includes(join('editorial', 'home'))) continue;
+      // E3: the Moments layer is likewise interactive and governed by
+      // editorialMomentsLaw.test.ts.
+      if (file.includes(join('editorial', 'moments'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -254,6 +257,11 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // E2 acceptance stage: the dev/demo screen gallery hosts the Cover
     // fixtures (lazy-loaded behind the (hidden)/gallery guard).
     'demo/AForceScreenGallery.tsx',
+    // E3 (founder ruling 2026-08-29): the two Moments route seams. The
+    // legacy screens remain the flag-OFF branches, locked by
+    // editorialMomentsLaw.test.ts.
+    'app/moments.tsx',
+    join('app', 'moment', '[id].tsx'),
   ]);
   const PRODUCTION_ROOTS = [
     'app',

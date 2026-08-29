@@ -192,6 +192,17 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // HomeScreenV2 is the live rollback fallback (flag OFF). Locked by
   // components/__tests__/editorialHomeLaw.test.ts.
   editorial_home_enabled: false,
+  // Editorial Moments — The Day + The Performance Story (E3, founder ruling
+  // 2026-08-29). ONE flag for both Moments surfaces (they are one
+  // experience): whole-screen presentation swaps at app/moments.tsx and
+  // app/moment/[id].tsx over the SAME guarded truth (useMomentsData's
+  // Decision-Guard-wrapped recFor, the charter-locked four-stage ritual, the
+  // same prepared write). Presentation only — never reads or mutates score,
+  // command, eligibility, timing, or safety, and it does not widen the
+  // moments_enabled or moments_calendar_enabled gates. The legacy screens
+  // remain the live rollback branch. Locked by
+  // components/__tests__/editorialMomentsLaw.test.ts.
+  editorial_moments_enabled: false,
   // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
   // sections inside HomeScreenV2: health-connection chip, four live-signal
   // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
@@ -496,6 +507,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   signal_hierarchy_enabled: true,
   elite_home_experience_enabled: true,
   editorial_home_enabled: true,
+  editorial_moments_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,

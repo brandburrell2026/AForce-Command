@@ -42,6 +42,9 @@ import type { AppState as StoreAppState } from '../store/appStoreTypes';
 
 import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { EditorialHomeScreen } from '../components/editorial/home/EditorialHomeScreen';
+import { EditorialMomentsScreen } from '../components/editorial/moments/EditorialMomentsScreen';
+import { EditorialMomentDetailScreen } from '../components/editorial/moments/EditorialMomentDetailScreen';
+import { guardMomentRecommendation } from '../utils/intelligence/decisionGuard';
 import { HydrationScreenV2 } from '../components/hydration/HydrationScreenV2';
 import { PerformanceSignalV3 } from '../components/hydration/PerformanceSignalV3';
 import { WeeklyReportV3 } from '../components/insights/WeeklyReportV3';
@@ -232,6 +235,26 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
           nowIso={fx.nowIso}
           readOnly
         />
+      );
+    }
+    case 'editorialMoments':
+      return (
+        <EditorialMomentsScreen
+          fixtureMoments={fixture.momentsFixture!.moments}
+          fixtureNowIso={fixture.momentsFixture!.nowIso}
+        />
+      );
+    case 'editorialMomentDetail': {
+      const fx = fixture.momentsFixture!;
+      const moment = fx.moments.find((m) => m.id === fx.detailId) ?? fx.moments[0]!;
+      // Routed through the guard, matching the production path
+      // (useMomentsData.recFor) — the legacy 'momentDetail' case above still
+      // builds unguarded, which is a fidelity gap in that stage, not here.
+      const { rec } = guardMomentRecommendation(
+        buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso),
+      );
+      return (
+        <EditorialMomentDetailScreen moment={moment} rec={rec} nowIso={fx.nowIso} readOnly />
       );
     }
     case 'hydration':
