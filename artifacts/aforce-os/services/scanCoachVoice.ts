@@ -16,6 +16,20 @@
  *   D. scanned product sub-par + no AForce uplift available
  *
  * Numbers are written as digits — TTS pronounces them naturally.
+ *
+ * COMMAND-AUTHORITY CONTAINMENT (founder P0, 2026-08-29 screenshot
+ * review): this module previously AUTHORED its own prescriptions on the
+ * AI Coach card ("Take 1 with 16 ounces water and recheck in 20
+ * minutes") — a second command authority on a commerce surface. The
+ * authority hierarchy is HydroState = state, RecoveryCommand =
+ * authoritative action, AI Coach = explanation, commerce = subordinate.
+ * Every case now closes by MIRRORING `result.recommendation.command`
+ * VERBATIM — the already-contained on-screen line, which itself defers
+ * amount and cadence to the member's current command. The coach may
+ * never independently introduce a dose, a recheck clock, a timing
+ * window, or an imperative action, and a product must never create or
+ * amplify a hydration command
+ * (services/__tests__/commandAuthorityContainment.test.ts, class ban).
  */
 
 import type { CompareProduct } from '../types/comparison';
@@ -111,7 +125,7 @@ function buildScanCoachScriptUnchecked(
       transcript:
         `${scanned.productName} is locked in for your ${state} state. ` +
         `This is a strong match — stay with it. ` +
-        `Take 1 with 16 ounces water and recheck in 20 minutes.`,
+        `${result.recommendation.command}`,
       bullets: [],
       hasComparison: false,
     };
@@ -145,7 +159,7 @@ function buildScanCoachScriptUnchecked(
       transcript:
         `${opener} ` +
         `${aforceEquivalent.name} delivers ${winsLine}. ` +
-        `Take 1 ${aforceEquivalent.name} now with 16 ounces water.`,
+        `${result.recommendation.command}`,
       bullets,
       hasComparison: true,
     };
@@ -162,7 +176,7 @@ function buildScanCoachScriptUnchecked(
       transcript:
         `${scanned.productName} fits your ${state} state. ` +
         `A solid choice right now. ` +
-        `Take 1 with 16 ounces water and recheck in 20 minutes.`,
+        `${result.recommendation.command}`,
       bullets: [],
       hasComparison: false,
     };
@@ -189,7 +203,7 @@ function buildScanCoachScriptUnchecked(
     transcript:
       `${scanned.productName} is not optimal for your ${state} state. ` +
       `Water alone is the safer move here. ` +
-      `Take 16 ounces water now and recheck in 20 minutes.`,
+      `${result.recommendation.command}`,
     bullets: [],
     hasComparison: false,
   };

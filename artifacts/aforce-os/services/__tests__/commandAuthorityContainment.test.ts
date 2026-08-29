@@ -37,6 +37,7 @@ import { computeComparison } from '../comparisonEngine';
 import { buildHeatSignalInput } from '../heatGuardInput';
 import { HEAT_PROTOCOLS } from '../heatProtocolService';
 import { buildRecommendation } from '../hydrationScanService';
+import { buildScanCoachScript } from '../scanCoachVoice';
 import { hydrationInsightForHumidity } from '../cityClimateService';
 import type { HumidityBand } from '../cityClimateService';
 import type { UserState } from '../../types';
@@ -234,4 +235,93 @@ describe('heat_warning voice templates — safety speech, never a dose author', 
     // band's safety-clamped interval into {recheck}.
     expect(block).toMatch(/\{recheck\}/);
   });
+});
+
+describe('scan coach — explains and mirrors; never authors a dose, clock, or imperative', () => {
+  // Founder P0 (2026-08-29 screenshot review, D finding): scanCoachVoice
+  // authored its own prescriptions ("Take 1 with 16 ounces water and
+  // recheck in 20 minutes") on the AI Coach card — a second command
+  // authority on a commerce surface. Contract: the coach EXPLAINS the
+  // verdict and MIRRORS the already-contained on-screen recommendation
+  // verbatim; it may not independently introduce oz/ml doses, take/drink
+  // prescriptions, recheck clocks, hydration timing windows, or
+  // imperative actions. This is a CLASS ban, not a string pin.
+  const AUTHORED_IMPERATIVE = /\b(take|drink|sip|grab|down)\s+(\d|one|two|a\s|another)/i;
+  const ML_DOSE = /\d+\s*ml\b/i;
+  const TIMING_WINDOW = /within\s+(the\s+next\s+)?\d+\s*(min|minute|hour)/i;
+
+  const scannedOther = {
+    productId: 'gatorade', productName: 'Gatorade', brand: 'Gatorade',
+    category: 'sports_drink', hydrationSpeed: 60, electrolyteDensity: 50,
+    sugarLevel: 78, stimulantLevel: 0, recoveryFit: 55, performanceFit: 50,
+    isAForce: false,
+  } as never;
+  const scannedAforce = {
+    ...({} as object), productId: 'aforce_stick', productName: 'AForce Stick',
+    brand: 'AForce', category: 'electrolyte_mix', hydrationSpeed: 95,
+    electrolyteDensity: 90, sugarLevel: 10, stimulantLevel: 0,
+    recoveryFit: 94, performanceFit: 92, isAForce: true,
+  } as never;
+  const aforceCompare = {
+    id: 'aforce_stick', name: 'AForce Stick', brand: 'AForce',
+    category: 'electrolyte_mix', hydrationSpeed: 95, electrolytes: 90,
+    sugar: 10, absorptionRate: 92, recoveryEfficiency: 94,
+    compatibleProtocols: ['recovery'], factualNote: 'Test', isAForce: true,
+  } as never;
+
+  // recommendation.command values are the REAL contained strings the scan
+  // service produces post-#873 — the coach's job is to mirror them.
+  const res = (over: Record<string, unknown>, command: string, aforceEquivalentId?: string) =>
+    ({
+      scannedAt: '2026-08-29T12:00:00Z',
+      source: { kind: 'barcode', rawValue: 'x' },
+      product: scannedOther,
+      currentFitScore: 38,
+      verdict: 'suboptimal',
+      evaluatedAgainstState: 'RECOVERING',
+      recommendation: {
+        headline: 'h', detail: 'd', command, shouldLog: false,
+        ...(aforceEquivalentId ? { aforceEquivalentId } : {}),
+      },
+      efficiency: 0.43,
+      efficiencyLabel: 'Hydrates at 43% efficiency',
+      ...over,
+    }) as never;
+
+  const PAIR = 'Pair with water — your current command sets the amount.';
+  const SWITCH = 'Switch to AForce Stick — water first.';
+  const WATER = 'Water first — your current command sets the amount.';
+
+  const CASES: ReadonlyArray<[string, ReturnType<typeof buildScanCoachScript>, string]> = [
+    ['A aforce-optimal', buildScanCoachScript(
+      res({ product: scannedAforce, verdict: 'optimal', currentFitScore: 92 }, PAIR), aforceCompare), PAIR],
+    ['B compare', buildScanCoachScript(
+      res({}, SWITCH, 'aforce_stick'), aforceCompare), SWITCH],
+    ['C acceptable', buildScanCoachScript(
+      res({ verdict: 'acceptable', currentFitScore: 70 }, PAIR), undefined), PAIR],
+    ['D dynamic-equivalent', buildScanCoachScript(
+      res({}, SWITCH, 'aforce_stick'), undefined), SWITCH],
+    ['D water-only', buildScanCoachScript(
+      res({}, WATER), undefined), WATER],
+  ];
+
+  it.each(CASES.map(([n, s, m]) => [n, s, m] as const))(
+    '%s — no authored dose, clock, timing, or imperative',
+    (_n, script, _mirror) => {
+      for (const text of [script.headline, script.transcript]) {
+        expect(text, `dose in: ${text}`).not.toMatch(DOSE);
+        expect(text, `ml dose in: ${text}`).not.toMatch(ML_DOSE);
+        expect(text, `clock in: ${text}`).not.toMatch(CLOCK);
+        expect(text, `timing window in: ${text}`).not.toMatch(TIMING_WINDOW);
+        expect(text, `authored imperative in: ${text}`).not.toMatch(AUTHORED_IMPERATIVE);
+      }
+    },
+  );
+
+  it.each(CASES.map(([n, s, m]) => [n, s, m] as const))(
+    '%s — transcript MIRRORS the contained recommendation verbatim (no alteration, no amplification)',
+    (_n, script, mirror) => {
+      expect(script.transcript.endsWith(mirror), `transcript must end with the verbatim on-screen recommendation.\n  transcript: ${script.transcript}\n  expected suffix: ${mirror}`).toBe(true);
+    },
+  );
 });
