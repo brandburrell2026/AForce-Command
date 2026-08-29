@@ -10,7 +10,7 @@
  * an action the user may need to take, not as a medical determination.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -27,16 +27,15 @@ import { GradientBackground } from "@/components/GradientBackground";
 import { HeatPulse } from "@/components/HeatPulse";
 import { HeatRiskCard } from "@/components/HeatRiskCard";
 import { Colors } from "@/theme/colors";
-import { evaluateHeatRisk, HEAT_BANDS } from "@/services/heatRiskEngine";
+import { HEAT_BANDS } from "@/services/heatRiskEngine";
+import { useHeatGuard } from "@/hooks/useHeatGuard";
 import { activeProtocolFor } from "@/services/heatProtocolService";
 import {
   getCurrentCityClimate,
   getCurrentCityClimateSync,
   type CityClimate,
 } from "@/services/cityClimateService";
-import { SAMPLE_INPUTS } from "@/mocks/heatData";
 import { useAppStore } from "@/store/useAppStore";
-import type { HeatRiskBand } from "@/types/heat";
 
 const TONE_COLOR: Record<"info" | "warn" | "alert" | "critical", string> = {
   info: Colors.states.BALANCED.primary,
@@ -53,8 +52,13 @@ export default function HeatRiskScreen() {
   const { state } = useAppStore();
   const guardianEnabled = state.featureFlags.guardian_intelligence_enabled;
   const insets = useSafeAreaInsets();
-  const [bandPattern, setBandPattern] = useState<HeatRiskBand>("ELEVATED");
-  const previousScoreRef = useRef<number | null>(null);
+  // LIVE FEED (useHeatGuard rehost, founder ruling 2026-08-28): the
+  // member's real heat evaluation — honest inputs (real weather, real
+  // member signals, unknown-stays-unknown neutrals per the #862 truth
+  // contract) with the sweat-autopilot safety clamp on the recheck
+  // cadence. The unlabeled sample-pattern simulator this replaced is
+  // banned from returning (components/__tests__/heatScreenTruth.test.ts).
+  const guard = useHeatGuard();
 
   // Live local climate — drives the city-humidity insight panel below.
   const [climate, setClimate] = useState<CityClimate>(() => getCurrentCityClimateSync());
@@ -66,17 +70,7 @@ export default function HeatRiskScreen() {
     return () => { cancelled = true; };
   }, []);
 
-  const score = useMemo(() => {
-    const out = evaluateHeatRisk(SAMPLE_INPUTS[bandPattern], {
-      previousScore: previousScoreRef.current ?? undefined,
-    });
-    return out;
-  }, [bandPattern]);
-
-  // Track previous score for trend calc on pattern changes.
-  useEffect(() => {
-    previousScoreRef.current = score.score;
-  }, [score.score]);
+  const score = guard.heat;
 
   const protocol = activeProtocolFor(score.band);
   const display = HEAT_BANDS.find((b) => b.band === score.band) ?? HEAT_BANDS[0];
@@ -179,7 +173,7 @@ export default function HeatRiskScreen() {
             <View style={styles.commandMetaRow}>
               <View style={styles.commandMetaItem}>
                 <Icon name="clock" size={12} color={Colors.text.secondary} />
-                <Text style={styles.commandMetaText}>Recheck in {score.recheckMinutes} min</Text>
+                <Text style={styles.commandMetaText}>Recheck in {guard.recheckIntervalMin} min</Text>
               </View>
               {score.cooldownMinutes > 0 && (
                 <View style={styles.commandMetaItem}>
@@ -236,47 +230,6 @@ export default function HeatRiskScreen() {
               )}
             </View>
           )}
-
-          {/* Band simulator */}
-          <View style={styles.simCard}>
-            <Text style={styles.simLabel}>SIMULATE RISK PATTERN</Text>
-            <Text style={styles.simHint}>
-              Until wearable / weather feeds are wired, tap a band to preview the response.
-            </Text>
-            <View style={styles.simRow}>
-              {(["STABLE", "ELEVATED", "WARNING", "HIGH_RISK", "CRITICAL"] as HeatRiskBand[]).map(
-                (b) => {
-                  const d = HEAT_BANDS.find((x) => x.band === b)!;
-                  const active = b === bandPattern;
-                  return (
-                    <Pressable
-                      key={b}
-                      onPress={() => setBandPattern(b)}
-                      style={[
-                        styles.simChip,
-                        active && {
-                          borderColor: d.color,
-                          backgroundColor: `${d.color}22`,
-                        },
-                      ]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <View style={[styles.simDot, { backgroundColor: d.color }]} />
-                      <Text
-                        style={[
-                          styles.simChipText,
-                          active && { color: Colors.text.primary },
-                        ]}
-                      >
-                        {d.label}
-                      </Text>
-                    </Pressable>
-                  );
-                },
-              )}
-            </View>
-          </View>
 
           {/* Cross-link → Sweat Calculator */}
           <Pressable
@@ -403,22 +356,6 @@ const styles = StyleSheet.create({
   returnGateLabel: { fontSize: 9, letterSpacing: 1.4, color: Colors.text.muted, fontWeight: "700" },
   returnGateText: { fontSize: 11, color: Colors.text.secondary, marginTop: 4, lineHeight: 16 },
 
-  simCard: {
-    marginTop: 18, padding: 14,
-    borderRadius: 12, borderWidth: 1, borderColor: Colors.border.medium,
-    backgroundColor: Colors.fill.light,
-  },
-  simLabel: { fontSize: 10, letterSpacing: 1.6, color: Colors.text.muted, fontWeight: "700" },
-  simHint: { fontSize: 11, color: Colors.text.secondary, marginTop: 4, marginBottom: 10 },
-  simRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  simChip: {
-    flexDirection: "row", alignItems: "center", gap: 6,
-    paddingHorizontal: 10, paddingVertical: 7,
-    borderRadius: 8, borderWidth: 1, borderColor: Colors.border.medium,
-    backgroundColor: Colors.fill.medium,
-  },
-  simDot: { width: 8, height: 8, borderRadius: 4 },
-  simChipText: { fontSize: 10, fontWeight: "700", color: Colors.text.secondary, letterSpacing: 0.6 },
 
   sweatCta: {
     flexDirection: "row",

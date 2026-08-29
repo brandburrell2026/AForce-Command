@@ -30,6 +30,7 @@ import { Platform } from 'react-native';
 import { hapticNotify } from '@/services/haptics';
 
 import { evaluateHeatRisk } from '../services/heatRiskEngine';
+import type { HeatRiskScore } from '../types/heat';
 import { buildHeatSignalInput } from '../services/heatGuardInput';
 import { renderTemplate } from '../services/voiceTemplateEngine';
 import { speak } from '../services/textToSpeech';
@@ -45,11 +46,18 @@ const SEVERITY: Record<HeatRiskBand, number> = {
 };
 
 export interface UseHeatGuardOptions {
-  /** Called when an escalation should open the voice overlay. */
-  onEscalate: () => void;
+  /**
+   * Called on an escalation crossing. Optional since the VoiceOverlay —
+   * the original escalation target — retired (founder ruling, #881); the
+   * spoken line + haptic fire inside this hook either way, and a future
+   * voice-input surface can re-subscribe here.
+   */
+  onEscalate?: () => void;
 }
 
 export interface HeatGuardResult {
+  /** The full engine evaluation — hosts render command/detail/drivers from this. */
+  heat: HeatRiskScore;
   score: number;
   band: HeatRiskBand;
   /**
@@ -79,13 +87,19 @@ function defaultCadenceForBand(band: HeatRiskBand): { intervalMin: number; urgen
   return { intervalMin: 20, urgency: 'moderate' };
 }
 
-export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResult {
+export function useHeatGuard({ onEscalate }: UseHeatGuardOptions = {}): HeatGuardResult {
   const { performanceState, score } = useEngineSlice();
   const userState = useUserSlice();
   const { autopilot, setAt } = useSweatAutopilotSlice();
 
+  // Trend continuity across re-evaluations — the engine's trend option
+  // compares against the previous live score (the retired simulator kept
+  // this per band-pattern; live data keeps it per evaluation).
+  const prevScoreRef = React.useRef<number | undefined>(undefined);
   const heatScore = React.useMemo<HeatGuardResult>(() => {
-    const heat = evaluateHeatRisk(buildHeatSignalInput(userState, score));
+    const heat = evaluateHeatRisk(buildHeatSignalInput(userState, score), {
+      previousScore: prevScoreRef.current,
+    });
 
     // Sweat-driven autopilot drives cadence for the duration of the
     // recovery window (spec §4). Outside that window we fall back to a
@@ -116,6 +130,7 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       : fallback.urgency;
 
     return {
+      heat,
       score: heat.score,
       band: heat.band,
       recheckIntervalMin,
@@ -132,6 +147,10 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
 
   // Escalation effect — fires only on STABLE → non-STABLE upward crossings.
   // First observed band seeds the ref silently (never alert on mount).
+  React.useEffect(() => {
+    prevScoreRef.current = heatScore.score;
+  }, [heatScore.score]);
+
   const prevBandRef = React.useRef<HeatRiskBand>('STABLE');
   const didMountRef = React.useRef(false);
   React.useEffect(() => {
@@ -153,16 +172,24 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions): HeatGuardResu
       shouldEscalateForBand(tempBand)
     ) {
       const persona = resolvePersona(performanceState.level);
-      const ctx: VoiceContext = { mode: persona.mode, score: heatScore.score, heat_band: next };
+      // recheck_minutes = the safety-clamped monitoring cadence, so the
+      // spoken "Recheck N min" is the band's real re-assessment ladder —
+      // never the template engine's hardcoded default.
+      const ctx: VoiceContext = {
+        mode: persona.mode,
+        score: heatScore.score,
+        heat_band: next,
+        recheck_minutes: heatScore.recheckIntervalMin,
+      };
       const line = renderTemplate('heat_warning', ctx);
       speak(line.spoken);
       if (Platform.OS !== 'web') {
         hapticNotify('warning');
       }
-      onEscalate();
+      onEscalate?.();
     }
     prevBandRef.current = next;
-  }, [heatScore.band, heatScore.score, performanceState.level, userState.weatherTempC, onEscalate]);
+  }, [heatScore.band, heatScore.score, heatScore.recheckIntervalMin, performanceState.level, userState.weatherTempC, onEscalate]);
 
   return heatScore;
 }
