@@ -1,3 +1,10 @@
+// CONSCIOUS REPIN (founder P0 containment, 2026-08-29): scanCoachVoice no
+// longer AUTHORS dose/clock closes ("Take 1 with 16 ounces water and
+// recheck in 20 minutes") — every case mirrors the already-contained
+// result.recommendation.command VERBATIM. Fixture commands below use the
+// real contained strings the scan service produces post-#873; the old
+// dose-copy pins retire with the behavior they pinned. The class ban
+// lives in services/__tests__/commandAuthorityContainment.test.ts.
 import { describe, it, expect } from 'vitest';
 import { buildScanCoachScript } from '../scanCoachVoice';
 import type { ScanResult, ScannedProduct } from '../../types/scan';
@@ -59,7 +66,7 @@ const baseResult = (over: Partial<ScanResult> = {}): ScanResult => ({
     headline: 'Sub-par',
     detail: 'High sugar load',
     aforceEquivalentId: 'aforce_stick',
-    command: 'Take 1 AForce Stick',
+    command: 'Switch to AForce Stick — water first.',
     shouldLog: false,
   },
   efficiency: 0.43,
@@ -78,7 +85,7 @@ describe('buildScanCoachScript', () => {
       recommendation: {
         headline: 'Optimal',
         detail: 'Locked in',
-        command: 'Take 1 AForce Stick',
+        command: 'Pair with water — your current command sets the amount.',
         shouldLog: true,
       },
     });
@@ -90,7 +97,9 @@ describe('buildScanCoachScript', () => {
     expect(script.transcript).toContain('strong match — stay with it');
     expect(script.transcript).not.toContain('Fit score');
     expect(script.transcript).not.toMatch(/\d+%\s+efficiency/);
-    expect(script.transcript).toContain('16 ounces water');
+    expect(
+      script.transcript.endsWith('Pair with water — your current command sets the amount.'),
+    ).toBe(true); // mirrors the contained on-screen line verbatim
   });
 
   it('CASE B: AForce equivalent stronger → comparison narrative + 4 bullets', () => {
@@ -104,7 +113,9 @@ describe('buildScanCoachScript', () => {
     expect(script.transcript).toContain('40 points stronger on electrolytes');
     // Sugar advantage = 78-10 = 68
     expect(script.transcript).toContain('68 points lower on sugar');
-    expect(script.transcript).toContain('Take 1 AForce Stick now');
+    expect(
+      script.transcript.endsWith('Switch to AForce Stick — water first.'),
+    ).toBe(true); // mirrors — the coach may not amplify commerce into a dose
     expect(script.transcript).toContain('Depleted state');
   });
 
@@ -150,7 +161,7 @@ describe('buildScanCoachScript', () => {
       recommendation: {
         headline: 'LMNT fits',
         detail: 'Strong fit',
-        command: 'Take 1 LMNT',
+        command: 'Pair with water — your current command sets the amount.',
         shouldLog: true,
       },
     });
@@ -160,7 +171,9 @@ describe('buildScanCoachScript', () => {
     expect(script.headline).toContain('LMNT fits');
     expect(script.transcript).toContain('A solid choice right now');
     expect(script.transcript).not.toMatch(/\d+ fit, \d+%/);
-    expect(script.transcript).toContain('16 ounces water');
+    expect(
+      script.transcript.endsWith('Pair with water — your current command sets the amount.'),
+    ).toBe(true); // mirrors the contained on-screen line verbatim
   });
 
   it('CASE D: sub-par scanned, no AForce uplift → water-only fallback', () => {
@@ -171,7 +184,7 @@ describe('buildScanCoachScript', () => {
       recommendation: {
         headline: 'Avoid',
         detail: 'High sugar',
-        command: 'Take 16 ounces water now',
+        command: 'Water first — your current command sets the amount.',
         shouldLog: false,
       },
     });
@@ -181,7 +194,9 @@ describe('buildScanCoachScript', () => {
     expect(script.headline).toContain('not optimal');
     expect(script.transcript).toContain('Water alone is the safer move here');
     expect(script.transcript).not.toContain('Fit score');
-    expect(script.transcript).toContain('Take 16 ounces water now');
+    expect(
+      script.transcript.endsWith('Water first — your current command sets the amount.'),
+    ).toBe(true); // mirrors the contained water-only line verbatim
   });
 
   it('CASE D′: sub-par scanned WITH unresolved aforceEquivalentId → mentions AForce, mirrors recommendation command', () => {
@@ -196,7 +211,7 @@ describe('buildScanCoachScript', () => {
         headline: 'Sub-par',
         detail: 'High sugar',
         aforceEquivalentId: 'aforce_stick',
-        command: 'Take 1 AForce Stick now with 16 ounces water. Recheck in 20 minutes.',
+        command: 'Switch to AForce Stick — water first.',
         shouldLog: false,
       },
     });
@@ -205,8 +220,9 @@ describe('buildScanCoachScript', () => {
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('switch to AForce');
     expect(script.transcript).toContain('not optimal');
-    expect(script.transcript).toContain('Take 1 AForce Stick now');
-    expect(script.transcript).not.toContain('Take 16 ounces water now and recheck');
+    expect(
+      script.transcript.endsWith('Switch to AForce Stick — water first.'),
+    ).toBe(true); // mirrors the on-screen AForceReplacementCard line verbatim
   });
 
   it('treats same-id "equivalent" as no-comparison (does not loop on itself)', () => {
