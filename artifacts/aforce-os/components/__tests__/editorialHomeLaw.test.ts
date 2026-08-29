@@ -227,6 +227,46 @@ describe('PARITY — no member action is stranded', () => {
     expect(all).toContain('WhyThisSheet');
   });
 
+  // ── E2 adversarial-review fixes, pinned so they cannot regress ──────────
+  it('the hero speaks once: its children are hidden from the screen reader', () => {
+    const screen = stripComments(read(join(ED_HOME, 'EditorialHomeScreen.tsx')));
+    expect(screen).toMatch(/accessibilityElementsHidden/);
+    expect(screen).toMatch(/importantForAccessibility="no-hide-descendants"/);
+  });
+
+  it('borrowed production components are given editorial ink (never unstyled on black)', () => {
+    const screen = stripComments(read(join(ED_HOME, 'EditorialHomeScreen.tsx')));
+    // HomeFreshnessLabel renders a bare <Text style={style}> — an unstyled
+    // pass paints RN's default near-black on the black stock.
+    expect(screen).toMatch(/<HomeFreshnessLabel[\s\S]*?style=\{styles\.freshness\}[\s\S]*?\/>/);
+    expect(screen).toMatch(/freshness:\s*\{[\s\S]*?color:/);
+  });
+
+  it('date furniture re-derives on the foreground tick (never mount-frozen)', () => {
+    const screen = stripComments(read(join(ED_HOME, 'EditorialHomeScreen.tsx')));
+    expect(screen).toMatch(/useAppStateGatedInterval\(\(\) => setDateTick/);
+    expect(screen).toMatch(/mastheadDateLabel\(new Date\(dateTick\)\), \[dateTick\]/);
+  });
+
+  it('display-voice command text carries the house font-scale cap', () => {
+    const cmd = stripComments(read(join(ED_HOME, 'EdHomeCommand.tsx')));
+    expect(cmd.match(/maxFontSizeMultiplier=\{AF_MAX_DISPLAY_FONT_SCALE\}/g)?.length ?? 0)
+      .toBeGreaterThanOrEqual(2);
+  });
+
+  it('the settle never animates before Reduce Motion has actually answered', () => {
+    const inst = stripComments(read(join(AOS, 'components', 'editorial', 'instruments.tsx')));
+    // Unknown preference = wait on the final frame; unknown never means "no".
+    expect(inst).toMatch(/useReduceMotionState\(\)/);
+    expect(inst).toMatch(/if \(reduce === null\) return;/);
+    expect(inst).toMatch(/useReduceMotionState\(\) \?\? true/);
+  });
+
+  it('the editorial home tree adds no new untranslated member-facing copy', () => {
+    const screen = stripComments(read(join(ED_HOME, 'EditorialHomeScreen.tsx')));
+    expect(screen).not.toContain('MEMBER EDITION');
+  });
+
   it('interactive targets meet the 44pt floor via the editorial rhythm token', () => {
     const all = homeFiles().map((f) => stripComments(read(f))).join('\n');
     expect(all).toContain('edRhythm.minTarget');

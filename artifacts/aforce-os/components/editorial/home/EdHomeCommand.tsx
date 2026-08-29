@@ -12,6 +12,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 
 import { commandReasonLine } from '@/components/ui/afPrimitives.logic';
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edAccent, edRhythm, edType } from '@/theme/editorialTokens';
 
 import { useEdInk } from '../core';
@@ -44,7 +45,10 @@ export function EdHomeCommand({
         <Text style={{ color: edAccent.red }}>{'—— '}</Text>
         {kicker}
       </Text>
-      <Text style={[edType.command as TextStyle, { color: ink.primary, marginTop: 10 }]}>
+      <Text
+        maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+        style={[edType.command as TextStyle, { color: ink.primary, marginTop: 10 }]}
+      >
         {title}
       </Text>
       {instruction ? (
@@ -84,7 +88,12 @@ export function EdHomeCommand({
         ]}
         testID="editorial-log-water"
       >
-        <Text style={[edType.confirm as TextStyle, { color: ink.primary }]}>{primaryLabel}</Text>
+        <Text
+          maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+          style={[edType.confirm as TextStyle, { color: ink.primary }]}
+        >
+          {primaryLabel}
+        </Text>
       </Pressable>
     </View>
   );

@@ -293,10 +293,14 @@ function balancedEngine(): ScoreEngineOutput {
   };
 }
 
-// E2 acceptance bands (founder ruling 2026-08-29) — RECOVERING and PEAK
-// hand-built in the same literal idiom as the two fixtures above, for the
-// editorial-home acceptance matrix. Command strings follow the engine's real
-// per-band coach copy shape.
+// E2 acceptance bands (founder ruling 2026-08-29) — RECOVERING and PEAK for
+// the editorial-home acceptance matrix, hand-built in the same literal idiom
+// as depletedEngine/balancedEngine above (this file must never import
+// calculateScore). NOTE: like those two, the command strings are FIXTURE
+// copy, not the engine's own i18n band copy (coach.recovering_action etc.) —
+// they exercise the presentation contract, they do not assert what the engine
+// would say. The acceptance captures prove the Cover renders the command it
+// is handed verbatim; they are not a claim about band copy.
 function recoveringEngine(): ScoreEngineOutput {
   const score = 68; // RECOVERING band: 60-74
   return {

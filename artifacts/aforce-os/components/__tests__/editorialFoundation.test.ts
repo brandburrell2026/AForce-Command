@@ -173,7 +173,13 @@ describe('accessibility lock — source rules for components/editorial/', () => 
     const src = read(join(ED_DIR, 'instruments.tsx'));
     expect(src).toMatch(/isReduceMotionEnabled/);
     expect(src).toMatch(/reduceMotionChanged/);
-    expect(src).toMatch(/if \(reduce\)/);
+    // Strengthened in E2 after the adversarial review caught a race: the
+    // preference is async, so "not answered yet" is a third state. The
+    // settle holds the FINAL frame until the OS answers, and an unknown
+    // answer resolves to reduce=true for anything else that asks.
+    expect(src).toMatch(/if \(reduce === null\) return;/);
+    expect(src).toMatch(/if \(reduce \|\| playedRef\.current\)/);
+    expect(src).toMatch(/useReduceMotionState\(\) \?\? true/);
     expect(src).toMatch(/useNativeDriver: true/);
   });
 

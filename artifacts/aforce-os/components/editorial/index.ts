@@ -32,6 +32,7 @@ export {
   EdStockTurn,
   useEdSettle,
   useReduceMotion,
+  useReduceMotionState,
   type EdNodeState,
 } from './instruments';
 export { edNumberDisplay, splitMirrorWord, edFolioIndex } from './editorialLogic';

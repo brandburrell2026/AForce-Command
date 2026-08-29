@@ -22,6 +22,24 @@
  * settled-cycle haptic, store-settled confirmation overlay) is duplicated
  * verbatim from HomeScreenV2 so the flag-OFF path stays byte-untouched —
  * both screens dispatch the identical single `logIntake`.
+ *
+ * TWO DELIBERATE DIVERGENCES FROM HomeScreenV2 (both surfaced in the E2
+ * review; neither changes production behavior, since both flags below are
+ * OFF in DEFAULT_FLAGS — recorded here so they are decisions, not drift):
+ *
+ *  1. `elite_voice_coach_enabled` is NOT wired. V2 re-voices the command
+ *     through coachPhrasing when that flag is on — a POST-guard rewrite of
+ *     delivered copy. The E2 command ruling is that the Cover renders the
+ *     guarded canonical command verbatim, so the editorial path deliberately
+ *     has no re-voicing lane. In the demo profile (where the flag is on) the
+ *     two Home paths therefore phrase the same command differently.
+ *  2. `home_v3_dashboard_enabled` does not gate the signal surfaces here.
+ *     V2 treats the chip + Sleep/HRV as additive V3 sections; on the Cover
+ *     the honest-signals footer IS the composition's signal register, so it
+ *     always renders — from the same resolvers, with the same em-dashes and
+ *     the same never-connected silence. The flag is ON in production, so
+ *     production sees no difference. (The V2-only heat tile has no Cover
+ *     equivalent — it exists solely on V2's flag-OFF path.)
  */
 import React from 'react';
 import { useRouter } from 'expo-router';
@@ -51,6 +69,7 @@ import {
 } from '@/components/home/homeV3Presentation';
 import { fireMoment } from '@/services/haptics';
 import { getStatusVerb } from '@/services/statusVerb';
+import { useAppStateGatedInterval } from '@/hooks/useAppStateGatedInterval';
 import { useScoreTrend } from '@/hooks/useScoreTrend';
 import { useFeatureFlags } from '@/store/useAppStore';
 import {
@@ -64,7 +83,7 @@ import {
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
 import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
-import { edRhythm, edStock, edType } from '@/theme/editorialTokens';
+import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 import type { FluidType } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
 
@@ -77,7 +96,6 @@ import {
   EdStateWord,
   EdStatement,
   EdSurface,
-  useEdInk,
   useEdSettle,
 } from '../index';
 import { EdHomeCommand } from './EdHomeCommand';
@@ -88,6 +106,10 @@ import {
   memberFurniture,
   pressureIntensity,
 } from './editorialHomePresentation';
+
+/** Date furniture re-check cadence — foreground-gated, like every other
+ *  Home tick. One minute is enough to cross midnight honestly. */
+const DATE_RECHECK_MS = 60 * 1000;
 
 interface HomeActions {
   logIntake: (
@@ -111,7 +133,10 @@ export function EditorialHomeScreen({
   const { logIntake, dismissSuccess } = useActionsSlice<HomeActions>();
   const clerkUser = useUser().user;
   const router = useRouter();
-  const ink = useEdInk();
+  // This screen IS the black stock it renders below, so its inks are resolved
+  // explicitly rather than through useEdInk() — a hook here would read the
+  // context ABOVE this component, not the EdSurface it owns.
+  const ink = edInkFor('black');
   const settle = useEdSettle();
 
   const tabBarHeight = React.useContext(BottomTabBarHeightContext) ?? 0;
@@ -210,7 +235,13 @@ export function EditorialHomeScreen({
     userState.dailyTarget,
   ]);
 
-  const dateLabel = React.useMemo(() => mastheadDateLabel(new Date()), []);
+  // R1 — truthful date furniture. Home is the resident tab, so a mount-frozen
+  // date would still read yesterday after a member returns the next morning
+  // (caught in E2 review). The same app-state-gated tick the rest of Home
+  // uses re-derives it; no timer runs in the background.
+  const [dateTick, setDateTick] = React.useState(() => Date.now());
+  useAppStateGatedInterval(() => setDateTick(Date.now()), DATE_RECHECK_MS);
+  const dateLabel = React.useMemo(() => mastheadDateLabel(new Date(dateTick)), [dateTick]);
   const member = memberFurniture(clerkUser?.firstName);
   const intensity = pressureIntensity(score);
   const momentsOn = flags.moments_enabled;
@@ -231,9 +262,14 @@ export function EditorialHomeScreen({
                   {signalData.chip.label} · {signalData.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
                 </Text>
               ) : null}
+              {/* HomeFreshnessLabel renders a bare <Text style={style}> with
+                  no color of its own — an unstyled pass would paint RN's
+                  default near-black on the black stock (caught in E2 review).
+                  The editorial micro/quiet pairing is passed explicitly. */}
               <HomeFreshnessLabel
                 fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
                 hasProviderArtifact={hasAnyProviderArtifact(userState.appleHealth, userState.biometrics)}
+                style={styles.freshness}
                 testID="editorial-freshness"
               />
             </View>
@@ -267,10 +303,20 @@ export function EditorialHomeScreen({
                       style={styles.heroPress}
                       testID="editorial-hydrostate"
                     >
-                      <EdPressureField size={300} intensity={intensity ?? 0}>
-                        <EdNumber value={score} role="numberHero" caption={t('home.v2.readiness_label')} />
-                      </EdPressureField>
-                      <EdStateWord word={engine.performanceState.level} style={styles.stateWord} />
+                      {/* Single announcement: the Pressable above speaks the
+                          score + band once. Its children are hidden from the
+                          reader so the hero cannot speak twice — the same
+                          rule HomeScreenV2 applies via the arc's a11yHidden. */}
+                      <View
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                        style={styles.heroInner}
+                      >
+                        <EdPressureField size={300} intensity={intensity ?? 0}>
+                          <EdNumber value={score} role="numberHero" caption={t('home.v2.readiness_label')} />
+                        </EdPressureField>
+                        <EdStateWord word={engine.performanceState.level} style={styles.stateWord} />
+                      </View>
                     </Pressable>
                     <View style={styles.evidenceRow}>
                       <ConfidenceChip
@@ -322,8 +368,11 @@ export function EditorialHomeScreen({
                       { label: t('home.v3.signal_hrv'), value: signalData.hrvText },
                     ]}
                   />
+                  {/* Folio furniture is the locale-formatted date alone: no
+                      issue number (R1) and no new untranslated English in an
+                      11-locale app. */}
                   <View style={styles.folio}>
-                    <EdEvidenceLine parts={['MEMBER EDITION', dateLabel]} />
+                    <EdEvidenceLine parts={[dateLabel]} />
                   </View>
                 </View>
               </>
@@ -355,6 +404,14 @@ const styles = StyleSheet.create({
   heroSlot: {
     marginTop: 26,
     marginBottom: 8,
+  },
+  heroInner: {
+    alignItems: 'center',
+  },
+  freshness: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+    marginTop: 2,
   },
   heroPress: {
     alignItems: 'center',
