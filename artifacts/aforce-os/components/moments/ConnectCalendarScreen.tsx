@@ -28,7 +28,29 @@ import {
   type DeviceCalendarInfo,
 } from '@/services/calendarBridge';
 import { refreshCalendarMoments } from '@/services/calendarMoments';
+import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
 import type { MomentCategoryToggle } from '@/services/momentClassification';
+
+/**
+ * DEMO/CAPTURE VISUAL PREVIEW (founder-authorized 2026-08-29). Production
+ * calendar data remains legally gated OFF; demo builds render this screen's
+ * CONNECTED posture from the synthetic fixture calendars below so the team
+ * can see and screenshot the finished experience. In the preview branch the
+ * device bridge is NEVER called — no permission request, no EventKit — and
+ * every toggle is local component state only. The preview is labeled on
+ * screen. Pinned by components/moments/__tests__/demoCalendarPreview.test.ts.
+ */
+const DEMO_PREVIEW = DEMO_MODE || CAPTURE_MODE;
+const DEMO_PREVIEW_CALENDARS: DeviceCalendarInfo[] = [
+  { id: 'demo-cal-personal', title: 'Personal', sourceName: 'iCloud', color: af.cyan },
+  { id: 'demo-cal-family', title: 'Family', sourceName: 'iCloud', color: af.green },
+  { id: 'demo-cal-work', title: 'Work', sourceName: 'Google', color: af.red },
+];
+const DEMO_PREVIEW_PREFS: CalendarPrefs = {
+  connected: true,
+  selectedCalendarIds: ['demo-cal-personal', 'demo-cal-work'],
+  categories: ['work', 'training', 'travel'],
+};
 
 const CATEGORY_ROWS: { key: MomentCategoryToggle; labelKey: string; hintKey: string }[] = [
   { key: 'work', labelKey: 'moments.calendar.cat_work', hintKey: 'moments.calendar.cat_work_hint' },
@@ -44,6 +66,13 @@ export function ConnectCalendarScreen() {
   const [calendars, setCalendars] = React.useState<DeviceCalendarInfo[]>([]);
 
   const reload = React.useCallback(async () => {
+    if (DEMO_PREVIEW) {
+      // Synthetic connected posture — no bridge, no permission prompt.
+      setPermission('granted');
+      setPrefs(DEMO_PREVIEW_PREFS);
+      setCalendars(DEMO_PREVIEW_CALENDARS);
+      return;
+    }
     const [perm, p] = await Promise.all([getCalendarPermission(), getCalendarPrefs()]);
     setPermission(perm);
     setPrefs(p);
@@ -64,6 +93,7 @@ export function ConnectCalendarScreen() {
   }, [reload]);
 
   const connect = async () => {
+    if (DEMO_PREVIEW) return; // preview is already "connected"; never prompt
     const perm = await requestCalendarPermission();
     setPermission(perm);
     if (perm !== 'granted') return;
@@ -77,11 +107,19 @@ export function ConnectCalendarScreen() {
 
   const update = async (next: CalendarPrefs) => {
     setPrefs(next);
+    if (DEMO_PREVIEW) return; // toggles are local preview state only
     await setCalendarPrefs(next);
     void refreshCalendarMoments(true);
   };
 
   const disconnect = async () => {
+    if (DEMO_PREVIEW) {
+      // Preview the disconnected posture locally; nothing to forget.
+      setPrefs({ ...DEFAULT_CALENDAR_PREFS });
+      setCalendars([]);
+      setPermission('undetermined');
+      return;
+    }
     await disconnectCalendar();
     setPrefs(DEFAULT_CALENDAR_PREFS);
     setCalendars([]);
@@ -106,6 +144,15 @@ export function ConnectCalendarScreen() {
         onBack={() => router.back()}
       />
       <Text style={styles.subtitle}>{t('moments.calendar.subtitle')}</Text>
+
+      {DEMO_PREVIEW ? (
+        <View style={styles.previewBanner} testID="calendar-demo-preview">
+          <Text style={styles.previewBannerText}>
+            DEMO PREVIEW · SYNTHETIC CALENDARS — production calendar access is
+            off pending Legal/Privacy sign-off. No device calendar is read.
+          </Text>
+        </View>
+      ) : null}
 
       {permission === 'unavailable' ? (
         <AFCard style={styles.postureCard} testID="calendar-unavailable">
@@ -232,6 +279,19 @@ export function ConnectCalendarScreen() {
 }
 
 const styles = StyleSheet.create({
+  previewBanner: {
+    borderWidth: 1,
+    borderColor: af.textTertiary,
+    borderRadius: 8,
+    paddingVertical: Spacing[2],
+    paddingHorizontal: Spacing[3],
+    marginBottom: Spacing[4],
+  },
+  previewBannerText: {
+    ...afType.caption,
+    color: af.textTertiary,
+    letterSpacing: 0.4,
+  },
   scrollContent: { paddingBottom: Spacing[24] + Spacing[8], gap: 16 },
   subtitle: { ...afType.body, color: af.textSecondary, marginTop: 6 },
   postureCard: { gap: 10 },
