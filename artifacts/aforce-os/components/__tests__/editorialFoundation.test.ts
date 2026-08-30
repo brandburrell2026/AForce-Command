@@ -33,6 +33,7 @@ import {
   edRule,
   edStock,
   edType,
+  edPositive,
 } from '../../theme/editorialTokens';
 import { edFolioIndex, edNumberDisplay, splitMirrorWord } from '../editorial/editorialLogic';
 
@@ -97,6 +98,17 @@ describe('editorial tokens — brand fidelity and WCAG contrast on each stock', 
     expect(contrast(edAccent.red, edStock.black)).toBeGreaterThanOrEqual(3);
     expect(contrast(edAccent.red, edStock.paper)).toBeGreaterThanOrEqual(3);
     expect(contrast(edAccent.lockIn, edStock.black)).toBeGreaterThanOrEqual(3);
+  });
+
+  // E5 gap closure (2026-08-30): edPositive shipped on three editorial screens
+  // with NO contrast coverage on either stock. Measured, it clears the text
+  // floor on black at ~5.96:1 but reaches only ~2.48:1 on paper — below the
+  // 4.5:1 text floor AND below the 3:1 graphical floor. That is why founder
+  // Decision D1 withholds positive hue from the paper register entirely; this
+  // test is the lock that makes the gap visible instead of silent.
+  it('the positive state token is measured on BOTH stocks — and fails paper, by measurement', () => {
+    expect(contrast(edPositive, edStock.black)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(edPositive, edStock.paper)).toBeLessThan(3);
   });
 
   it('hairline rules are visible but subordinate (below text contrast)', () => {
@@ -197,6 +209,10 @@ describe('accessibility lock — source rules for components/editorial/', () => 
       // too (the WHY disclosure) and is governed by
       // editorialProtocolLaw.test.ts.
       if (file.includes(join('editorial', 'protocol'))) continue;
+      // E5 (founder decisions 2026-08-30): the Weekly layer carries the
+      // degraded-source retry control and is governed by
+      // editorialWeeklyLaw.test.ts (44pt floor, labelled target).
+      if (file.includes(join('editorial', 'weekly'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -269,6 +285,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // E4 (founder decisions 2026-08-30): the Protocol route's three-way seam.
     // ProtocolScreenV2 and ProtocolScreenLegacy both remain rollback branches.
     join('app', '(tabs)', 'protocol.tsx'),
+    // E5 (founder decisions 2026-08-30): the Weekly Report route's four-way
+    // seam. WeeklyReportV3, ReadinessInsightsV2 and WeeklyReportLegacy all
+    // remain rollback branches, locked by editorialWeeklyLaw.test.ts.
+    'app/weekly-report.tsx',
   ]);
   const PRODUCTION_ROOTS = [
     'app',

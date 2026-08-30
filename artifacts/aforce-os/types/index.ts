@@ -820,6 +820,8 @@ export interface FeatureFlags {
    * ON in the demo profile.
    */
   editorial_protocol_enabled: boolean;
+  /** E5 — Editorial OS Weekly Report (The Feature), paper stock. */
+  editorial_weekly_enabled: boolean;
   /**
    * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
    * sections inside HomeScreenV2: health-connection chip, four live-signal
