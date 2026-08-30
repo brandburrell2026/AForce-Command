@@ -350,7 +350,7 @@ export function HomeScreenV2() {
   const { t } = useTranslation();
   const userState = useUserSlice();
   const { selectedVoiceId } = useVoiceSettingsSlice();
-  const { isHydrated } = useBootstrapSlice();
+  const { isHydrated, lastRefreshStale } = useBootstrapSlice();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const { logIntake, dismissSuccess } = useActionsSlice<HomeActions>();
@@ -545,8 +545,15 @@ export function HomeScreenV2() {
   // change to what the verb means. Two withholdings, one rule: Home renders a
   // verb only when the trend has a real direction to report, and never the one
   // that merely restates the band. With neither, the line renders nothing.
+  // Lane A (2026-08-30) — a THIRD withholding, same rule as the two above.
+  // On a stale delivery the score is a LOCAL recompute the server never
+  // confirmed, so momentum ("+3 pts, ASCENDING") would be the app asserting
+  // movement it cannot vouch for. The reading itself still shows; only the
+  // claim about its motion is withheld.
   const trendVerb =
-    trend.direction === 'flat' || statusVerb === 'CRITICAL' ? undefined : statusVerb;
+    trend.direction === 'flat' || statusVerb === 'CRITICAL' || lastRefreshStale
+      ? undefined
+      : statusVerb;
 
   // ── E4 elite voice-coach delivery (flag-gated; phrasing/delivery ONLY) ──────
   // Same command/dose/timing/evidence for every coach — only the eyebrow + tone
@@ -681,6 +688,15 @@ export function HomeScreenV2() {
             style={styles.freshness}
             testID="home-v2-freshness"
           />
+          {/* Lane A — the last /state delivery never reached the server, so
+              this screen is showing last-known data. Deliberately NOT an
+              "offline" claim: fetchHome cannot distinguish an unreachable
+              server from a rejecting one. No retry promise, no timestamp. */}
+          {lastRefreshStale ? (
+            <Text style={styles.staleNotice} testID="home-v2-stale-notice">
+              {t('home.v2.stale_notice')}
+            </Text>
+          ) : null}
         </View>
 
         {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
@@ -944,6 +960,7 @@ const styles = StyleSheet.create({
   // written, in every language.
   brand: { ...afType.eyebrow, color: af.textSecondary, marginTop: Spacing[1] },
   freshness: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
+  staleNotice: { ...afType.caption, color: af.textTertiary, marginTop: 2 },
   // The hero owns the most negative space on the screen — above the ring, so
   // the reading arrives clear of the header; tight below it, so the evidence
   // chip reads as a caption ON the instrument (§4) rather than as the next

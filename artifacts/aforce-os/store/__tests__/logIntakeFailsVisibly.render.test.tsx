@@ -107,6 +107,7 @@ function Harness() {
     voiceScopeRef: React.useRef('all' as never),
     voiceIntensityRef: React.useRef('standard' as never),
     selectedVoiceIdRef: React.useRef<string | null>(null),
+    markRefreshStale: () => {},
     eliteVoiceCoachRef: React.useRef(false),
   });
   logIntake = actions.logIntake as typeof logIntake;

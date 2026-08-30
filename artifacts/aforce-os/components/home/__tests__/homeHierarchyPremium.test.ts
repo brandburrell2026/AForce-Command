@@ -61,9 +61,16 @@ describe('§1 — CRITICAL is absent from the Home hierarchy', () => {
     // second half matters most — `useScoreTrend` initialises to 'flat', which
     // is why a DEPLETED member met CRITICAL on the very first frame with no
     // delta and no window behind it.
-    expect(CODE).toMatch(
-      /const\s+trendVerb\s*=\s*\n?\s*trend\.direction === 'flat' \|\| statusVerb === 'CRITICAL' \? undefined : statusVerb;/,
-    );
+    // CONSCIOUS REPIN (Lane A, 2026-08-30): a THIRD withholding joined the
+    // same expression — `lastRefreshStale`, so momentum is not asserted over a
+    // score the server never confirmed (store/__tests__/staleDeliveryTruth).
+    // The two founder-§1 conditions are pinned individually so neither can be
+    // dropped while the expression keeps growing.
+    const expr = /const\s+trendVerb\s*=[\s\S]{0,260}?;/.exec(CODE)?.[0] ?? '';
+    expect(expr).toMatch(/trend\.direction === 'flat'/);
+    expect(expr).toMatch(/statusVerb === 'CRITICAL'/);
+    expect(expr).toMatch(/undefined/);
+    expect(expr).toMatch(/statusVerb;/);
   });
 
   it('the SERVICE is untouched: statusVerb.ts still produces CRITICAL for other consumers', () => {

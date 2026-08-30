@@ -88,6 +88,13 @@ interface StoreActionsDeps {
   /** Elite Voice Coach (flag-gated, delivery-only) — coach id + master switch. */
   selectedVoiceIdRef: MutableRefObject<string | null>;
   eliteVoiceCoachRef: MutableRefObject<boolean>;
+  /**
+   * Stale delivery truth (founder Lane A, 2026-08-30). `fetchHome` resolves
+   * even when the server was unreachable, so these health-snapshot writes can
+   * land a locally recomputed engineOutput exactly like the poll can. Report
+   * the delivery so Home can lower its authority honestly.
+   */
+  markRefreshStale: (stale: boolean) => void;
 }
 
 /**
@@ -107,6 +114,7 @@ export function useStoreActions({
   voiceIntensityRef,
   selectedVoiceIdRef,
   eliteVoiceCoachRef,
+  markRefreshStale,
 }: StoreActionsDeps) {
   const logIntake = useCallback(async (
     fluidType: FluidType,
@@ -609,7 +617,8 @@ export function useStoreActions({
           return { ...(rest as UserState), biometrics: restBio };
         })();
     fetchHome(merged)
-      .then(({ engineOutput }) => {
+      .then(({ engineOutput, stale }) => {
+        markRefreshStale(stale === true);
         dispatch({ type: 'SET_APPLE_HEALTH', payload: { snapshot, engineOutput } });
       })
       .catch((err) => {
@@ -635,7 +644,8 @@ export function useStoreActions({
     }
     const merged: UserState = { ...state.userState, biometrics: nextBio };
     fetchHome(merged)
-      .then(({ engineOutput }) => {
+      .then(({ engineOutput, stale }) => {
+        markRefreshStale(stale === true);
         dispatch({ type: 'SET_PROVIDER_BIOMETRICS', payload: { providerId, snapshot, engineOutput } });
       })
       .catch((err) => {

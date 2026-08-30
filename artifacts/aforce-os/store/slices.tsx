@@ -107,6 +107,15 @@ export interface BootstrapSlice {
    * `AppProvider` for where it flips.
    */
   isHydrated: boolean;
+  /**
+   * True when the LAST `/state` delivery never reached the server and the
+   * app is showing the caller's own last-known state with a locally
+   * recomputed score (`services/realApi.ts` returns `stale: true` and
+   * RESOLVES, so no caller's catch runs). A delivery fact, not a body fact —
+   * it lives beside `isHydrated` for that reason. NOT monotonic: a
+   * successful refresh clears it.
+   */
+  lastRefreshStale: boolean;
 }
 
 export interface VoiceSettingsSlice {
@@ -255,6 +264,8 @@ interface SliceProviderProps {
    * — `SliceProvider` still owns memoizing them into their own slices.
    */
   isHydrated: boolean;
+  /** Stale delivery truth — same plain-provider-state shape as isHydrated. */
+  lastRefreshStale: boolean;
   selectedVoiceId: string | null;
   voiceCoachEnabled: boolean;
   voiceIntensity: VoiceIntensity;
@@ -276,6 +287,7 @@ export function SliceProvider({
   state,
   actions,
   isHydrated,
+  lastRefreshStale,
   selectedVoiceId,
   voiceCoachEnabled,
   voiceIntensity,
@@ -366,7 +378,10 @@ export function SliceProvider({
 
   const historyValue = useMemo<HistorySlice>(() => state.history, [state.history]);
 
-  const bootstrapValue = useMemo<BootstrapSlice>(() => ({ isHydrated }), [isHydrated]);
+  const bootstrapValue = useMemo<BootstrapSlice>(
+    () => ({ isHydrated, lastRefreshStale }),
+    [isHydrated, lastRefreshStale],
+  );
 
   const voiceSettingsValue = useMemo<VoiceSettingsSlice>(
     () => ({ selectedVoiceId, voiceCoachEnabled, voiceIntensity, voiceScope }),
