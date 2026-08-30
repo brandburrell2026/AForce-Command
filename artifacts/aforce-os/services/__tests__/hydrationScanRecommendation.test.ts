@@ -101,27 +101,39 @@ const bestAforce = makeFit({
   whyItFits: 'Dense mineral profile, fast absorption.',
 });
 
-describe('buildRecommendation — AForce positioning + command deference', () => {
-  it('CASE 1 (scanned AForce + optimal) frames product as active system fuel', () => {
+describe('buildRecommendation — brand-neutral framing + command deference', () => {
+  // CONSCIOUS REPIN — founder rulings D4 + D6 (2026-08-30). Four assertions in
+  // this describe encoded the behaviour those rulings removed: a copy branch
+  // reachable only when `scanned.isAForce`, an AForce-only alternative pool,
+  // and the retired physiological claim. They are re-pinned to the corrected
+  // behaviour; every guarantee they legitimately protected (command deference,
+  // no dose or clock, water-first, no aggressive sell) is retained below and
+  // in the unchanged cases.
+
+  it('a strong scanned product is framed as supporting the state — regardless of brand', () => {
     const selfFit = makeFit({
       product: bestAforce.product,
       fitScore: 92,
       verdict: 'optimal',
       whyItFits: 'Optimal for current state.',
     });
-    const rec = buildRecommendation(scannedAForceStick, baseInputs, selfFit, bestAforce);
-    expect(rec.headline).toContain('active system fuel');
-    expect(rec.headline).toContain('Balanced');
+    // D6: the framing follows the VERDICT, never `isAForce`. "active system
+    // fuel" was reachable only by AForce products; a rival holding an
+    // identical optimal verdict could not receive it.
+    const rec = buildRecommendation(scannedAForceStick, baseInputs, selfFit, undefined);
+    expect(rec.headline).toContain('supports your Balanced state');
     expect(rec.command).toBe('Pair with water — your current command sets the amount.');
     expect(rec.shouldLog).toBe(true);
+    expect(rec.noChangeNeeded).toBe(true);
   });
 
-  it('CASE 2 (AForce alternative outperforms scanned) — natural observation, no efficacy tail', () => {
+  it('a genuinely stronger alternative is named without a physiological claim', () => {
     const selfFit = makeFit({ fitScore: 60 });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, bestAforce);
-    expect(rec.headline).toBe('Current intake may increase hydration demand.');
-    expect(rec.command).toBe('Switch to AForce Stick — water first.');
-    expect(rec.aforceEquivalentId).toBe('aforce_stick');
+    // D4: the retired claim is replaced by a statement about the COMPARISON.
+    expect(rec.headline).toBe('This product ranked lower under the current comparison criteria.');
+    expect(rec.command).toBe('Consider AForce Stick — water first.');
+    expect(rec.alternativeProductId).toBe('aforce_stick');
     expect(rec.shouldLog).toBe(false);
   });
 
@@ -153,29 +165,29 @@ describe('buildRecommendation — AForce positioning + command deference', () =>
     expect(rec.shouldLog).toBe(true);
   });
 
-  it('CASE 4a (sub-par scanned, marginal AForce uplift available) — plain AForce recommendation', () => {
-    // Sub-par selfFit (weak verdict), AForce only +2 better → skips
-    // CASE 2 (+4 threshold) and CASE 3 (verdict not strong/optimal),
-    // falls through to CASE 4 with bestAforce present.
+  it('a marginal alternative does NOT trigger a switch — the margin still holds', () => {
+    // +2 is inside the +4 margin, so nothing is nominated and the honest
+    // outcome is that no change is needed (D6).
     const selfFit = makeFit({ fitScore: 86, verdict: 'suboptimal' });
-    const closeAforce = makeFit({
+    const closeAlternative = makeFit({
       product: bestAforce.product,
       fitScore: 88,
       verdict: 'suboptimal',
     });
-    const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAforce);
-    expect(rec.headline).toBe('Current intake may increase hydration demand.');
-    expect(rec.command).toBe('Switch to AForce Stick — water first.');
-    expect(rec.aforceEquivalentId).toBe('aforce_stick');
+    const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, closeAlternative);
+    expect(rec.headline).toBe('This product ranked lower under the current comparison criteria.');
+    expect(rec.command).toBe('Water first — your current command sets the amount.');
+    expect(rec.alternativeProductId).toBeUndefined();
+    expect(rec.noChangeNeeded).toBe(true);
     expect(rec.shouldLog).toBe(false);
   });
 
-  it('CASE 4b (sub-par scanned, no AForce uplift) — water-only fallback', () => {
+  it('ranked low with nothing better on file — water first, no claim, no product pushed', () => {
     const selfFit = makeFit({ fitScore: 40, verdict: 'suboptimal' });
     const rec = buildRecommendation(scannedGatorade, baseInputs, selfFit, undefined);
-    expect(rec.headline).toBe('Current intake may increase hydration demand.');
+    expect(rec.headline).toBe('This product ranked lower under the current comparison criteria.');
     expect(rec.command).toBe('Water first — your current command sets the amount.');
-    expect(rec.aforceEquivalentId).toBeUndefined();
+    expect(rec.alternativeProductId).toBeUndefined();
   });
 
   it('NO aggressive-sell verbs, stale pours, or dose/clock residue in any case', () => {

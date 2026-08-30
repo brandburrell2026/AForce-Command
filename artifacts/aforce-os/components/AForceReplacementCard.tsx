@@ -21,7 +21,7 @@ interface Props {
 
 export function AForceReplacementCard({ result, onTakeAction, isLogging }: Props) {
   const { t } = useTranslation();
-  const replacementId = result.recommendation.aforceEquivalentId;
+  const replacementId = result.recommendation.alternativeProductId;
   if (!replacementId) return null;
   const product = COMPARE_PRODUCTS.find((p) => p.id === replacementId);
   if (!product) return null;

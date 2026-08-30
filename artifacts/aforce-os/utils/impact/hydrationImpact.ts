@@ -31,15 +31,18 @@ import type { PerformanceLevel } from '../../types';
 import type { BiologicalSex } from '../profileIdentity';
 
 export interface HydrationImpactProduct {
-  /** 0..100 — water-availability / hydration-speed proxy. */
-  hydrationSpeed: number;
-  /** 0..100 — mineral / electrolyte content. */
-  electrolyteDensity: number;
-  /** 0..100 — sugar load (higher = more osmotic load). */
-  sugarLevel: number;
-  /** 0..100 — stimulant / caffeine load (0 = none). */
-  stimulantLevel: number;
-  /** True for AForce products — adds intrinsic mineral support. */
+  /** 0..100 — water-availability / hydration-speed proxy. `null` = UNKNOWN (D5). */
+  hydrationSpeed: number | null;
+  /** 0..100 — mineral / electrolyte content. `null` = UNKNOWN (D5). */
+  electrolyteDensity: number | null;
+  /** 0..100 — sugar load (higher = more osmotic load). `null` = UNKNOWN. */
+  sugarLevel: number | null;
+  /** 0..100 — stimulant load. A measured `0` means none; `null` = UNKNOWN. */
+  stimulantLevel: number | null;
+  /**
+   * Retained for the driver chips only. Since founder ruling D6 this no longer
+   * moves the score — see the note above `AFORCE_SUPPORT_BUMP`'s removal.
+   */
   isAForce: boolean;
   /**
    * True when the item is plain water. Forces the result to never read
@@ -89,7 +92,13 @@ const PRODUCT_WEIGHTS = {
 } as const;
 
 /** AForce intrinsic mineral-support bump. */
-const AFORCE_SUPPORT_BUMP = 0.15;
+// COMMERCIAL NEUTRALITY — founder ruling D6, 2026-08-30. A brand flag used to
+// add 0.15 to `support` here, worth up to ~10.5 points on the member-visible
+// 0-100 impact score (the amplifier is driven by the member's own body weight,
+// sex, activity and heat, so the bump's leverage GREW with member need). The
+// arithmetic is otherwise brand-blind; this was the one place ownership moved
+// the number. AForce may receive premium presentation, not privileged
+// decision authority.
 /** Plain water support floor (before demand amplification). */
 const WATER_SUPPORT_FLOOR = 0.85;
 
@@ -108,20 +117,40 @@ export function computeHydrationImpact(
   const { product, profile, state, environment } = input;
 
   // ── Product intrinsic support vs load (0..1 sub-scores) ──────────
-  const water = clamp01(product.hydrationSpeed / 100);
-  const minerals = clamp01(product.electrolyteDensity / 100);
-  const sugar = clamp01(product.sugarLevel / 100);
-  const stim = clamp01(product.stimulantLevel / 100);
+  // UNKNOWN contributes nothing rather than a substituted zero (D5). A zero
+  // here is a real reading — "contains none" — and must stay distinguishable
+  // from "we have no reading", which is why each term is weighed only when its
+  // input is known and the weights are renormalized over what remains.
+  const known = (v: number | null): number | null => (v == null ? null : clamp01(v / 100));
+  const water = known(product.hydrationSpeed);
+  const minerals = known(product.electrolyteDensity);
+  const sugar = known(product.sugarLevel);
+  const stim = known(product.stimulantLevel);
 
   const isWater = product.isWater === true;
 
-  let support = PRODUCT_WEIGHTS.water * water + PRODUCT_WEIGHTS.minerals * minerals;
+  const blend = (terms: { v: number | null; w: number }[]): number => {
+    const present = terms.filter((t): t is { v: number; w: number } => t.v != null);
+    if (present.length === 0) return 0;
+    const wSum = present.reduce((a, t) => a + t.w, 0);
+    const total = terms.reduce((a, t) => a + t.w, 0);
+    // Renormalize onto the full weight span so a partially-known product is
+    // not silently scaled down for what it does not report.
+    return (present.reduce((a, t) => a + t.v * t.w, 0) / wSum) * total;
+  };
+
+  let support = blend([
+    { v: water, w: PRODUCT_WEIGHTS.water },
+    { v: minerals, w: PRODUCT_WEIGHTS.minerals },
+  ]);
   if (isWater) support = Math.max(support, WATER_SUPPORT_FLOOR);
-  if (product.isAForce) support += AFORCE_SUPPORT_BUMP;
   support = clamp(support, 0, 1.2);
 
   const load = clamp(
-    PRODUCT_WEIGHTS.sugar * sugar + PRODUCT_WEIGHTS.stimulant * stim,
+    blend([
+      { v: sugar, w: PRODUCT_WEIGHTS.sugar },
+      { v: stim, w: PRODUCT_WEIGHTS.stimulant },
+    ]),
     0,
     1.2,
   );
@@ -242,10 +271,10 @@ function sexDemand(sex: BiologicalSex): number {
 // ─── drivers ───────────────────────────────────────────────────────
 
 interface DriverInputs {
-  water: number;
-  minerals: number;
-  sugar: number;
-  stim: number;
+  water: number | null;
+  minerals: number | null;
+  sugar: number | null;
+  stim: number | null;
   isWater: boolean;
   isAForce: boolean;
   netSupportive: boolean;
@@ -267,16 +296,21 @@ function buildDrivers(i: DriverInputs): HydrationImpactDriver[] {
   const contextDir: 'support' | 'load' = i.netSupportive ? 'support' : 'load';
   const candidates: { key: string; direction: 'support' | 'load'; weight: number }[] = [];
 
+  // An UNKNOWN term cannot cross a threshold it has no value for, so it never
+  // becomes a driver (D5). `over()` is false for null by construction.
+  const over = (v: number | null, bar: number): v is number => v != null && v >= bar;
+
   if (i.isWater) candidates.push({ key: 'water', direction: 'support', weight: 1 });
-  if (!i.isWater && i.water >= 0.5)
+  if (!i.isWater && over(i.water, 0.5))
     candidates.push({ key: 'water', direction: 'support', weight: i.water });
-  if (i.minerals >= 0.4)
+  if (over(i.minerals, 0.4))
     candidates.push({ key: 'electrolytes', direction: 'support', weight: i.minerals });
-  if (i.isAForce)
-    candidates.push({ key: 'aforce', direction: 'support', weight: 0.6 });
-  if (i.sugar >= 0.3)
+  // COMMERCIAL NEUTRALITY (D6): brand ownership was also a named DRIVER of the
+  // member-facing score, weighted 0.6 — the attribution half of the support
+  // bump removed above. Both are gone; drivers are product characteristics.
+  if (over(i.sugar, 0.3))
     candidates.push({ key: 'sugar', direction: 'load', weight: i.sugar });
-  if (i.stim >= 0.2)
+  if (over(i.stim, 0.2))
     candidates.push({ key: 'stimulant', direction: 'load', weight: i.stim });
 
   // Context drivers — only meaningful when they reinforce the net lean.

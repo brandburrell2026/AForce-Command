@@ -65,7 +65,7 @@ const baseResult = (over: Partial<ScanResult> = {}): ScanResult => ({
   recommendation: {
     headline: 'Sub-par',
     detail: 'High sugar load',
-    aforceEquivalentId: 'aforce_stick',
+    alternativeProductId: 'aforce_stick',
     command: 'Switch to AForce Stick — water first.',
     shouldLog: false,
   },
@@ -199,8 +199,8 @@ describe('buildScanCoachScript', () => {
     ).toBe(true); // mirrors the contained water-only line verbatim
   });
 
-  it('CASE D′: sub-par scanned WITH unresolved aforceEquivalentId → mentions AForce, mirrors recommendation command', () => {
-    // hydrationScanService.buildRecommendation Case 4 sets aforceEquivalentId
+  it('CASE D′: sub-par scanned WITH unresolved alternativeProductId → mentions AForce, mirrors recommendation command', () => {
+    // hydrationScanService.buildRecommendation Case 4 sets alternativeProductId
     // even when we can't load full nutrition data (e.g. dynamic OFF entry).
     // The narrative must stay in sync with the on-screen AForceReplacementCard.
     const result = baseResult({
@@ -210,7 +210,7 @@ describe('buildScanCoachScript', () => {
       recommendation: {
         headline: 'Sub-par',
         detail: 'High sugar',
-        aforceEquivalentId: 'aforce_stick',
+        alternativeProductId: 'aforce_stick',
         command: 'Switch to AForce Stick — water first.',
         shouldLog: false,
       },
@@ -266,7 +266,7 @@ describe('buildScanCoachScript', () => {
       baseResult({ verdict: 'avoid' }),
     ];
     for (const c of cases) {
-      const equiv = c.recommendation.aforceEquivalentId ? aforceProduct : undefined;
+      const equiv = c.recommendation.alternativeProductId ? aforceProduct : undefined;
       const script = buildScanCoachScript(c, equiv);
       const sentences = script.transcript
         .split(/\.(?:\s+|$)/)

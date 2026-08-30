@@ -244,11 +244,12 @@ export function HydrationScanScreenV2() {
           brand: out.result.product.brand ?? null,
           isAForce: out.result.product.isAForce,
           verdict: out.result.verdict,
-          fitScore: out.result.currentFitScore,
+          // UNKNOWN posts as null rather than a fabricated number (D5).
+          fitScore: out.result.currentFitScore ?? null,
           scoreBefore: state.engineOutput.score,
           scoreAfter: state.engineOutput.score,
           performanceState: state.engineOutput.performanceState.level,
-          recommendedProductId: out.result.recommendation.aforceEquivalentId ?? null,
+          recommendedProductId: out.result.recommendation.alternativeProductId ?? null,
         });
         // MEANINGFUL STATE TRANSITION — and only when there is one. A good
         // verdict used to buzz too, which made every single scan vibrate; the
@@ -301,10 +302,10 @@ export function HydrationScanScreenV2() {
   // narrative once per scan. Pure derivation — re-computed only when the
   // scan changes, so the spoken transcript is stable for replay.
   const aforceEquivalent = useMemo(() => {
-    const id = result?.recommendation.aforceEquivalentId;
+    const id = result?.recommendation.alternativeProductId;
     if (!id) return undefined;
     return COMPARE_PRODUCTS.find((p) => p.id === id);
-  }, [result?.recommendation.aforceEquivalentId]);
+  }, [result?.recommendation.alternativeProductId]);
 
   const coachScript = useMemo(
     () => (result ? buildScanCoachScript(result, aforceEquivalent) : null),
@@ -355,9 +356,9 @@ export function HydrationScanScreenV2() {
   };
 
   const onLogReplacement = async () => {
-    if (!result?.recommendation.aforceEquivalentId) return;
+    if (!result?.recommendation.alternativeProductId) return;
     // The replacement id IS the FluidType for AForce items in our catalog.
-    const fluid = result.recommendation.aforceEquivalentId as
+    const fluid = result.recommendation.alternativeProductId as
       | 'aforce_stick' | 'aforce_rtd' | 'aforce_canister' | 'aforce_bulk_bag';
     setLogging(true);
     try {
@@ -800,7 +801,7 @@ export function HydrationScanScreenV2() {
                 />
               )}
 
-              {result.recommendation.aforceEquivalentId && (
+              {result.recommendation.alternativeProductId && (
                 <AForceReplacementCard
                   result={result}
                   onTakeAction={onLogReplacement}

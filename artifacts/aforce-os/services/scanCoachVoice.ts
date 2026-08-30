@@ -68,8 +68,8 @@ function compareBullets(
 ): ScanCoachBullet[] {
   const rows: Array<{
     label: string;
-    s: number;
-    a: number;
+    s: number | null;
+    a: number | null;
     higherWins: boolean;
   }> = [
     { label: 'Electrolytes', s: scanned.electrolyteDensity, a: aforce.electrolytes,       higherWins: true  },
@@ -77,7 +77,12 @@ function compareBullets(
     { label: 'Uptake speed', s: scanned.hydrationSpeed,     a: aforce.hydrationSpeed,     higherWins: true  },
     { label: 'Recovery fit', s: scanned.recoveryFit,        a: aforce.recoveryEfficiency, higherWins: true  },
   ];
-  return rows.map((r) => {
+  // A row where either side is UNKNOWN is not a comparison — it is omitted
+  // rather than compared against a substituted zero (D5).
+  return rows
+    .filter((r): r is { label: string; s: number; a: number; higherWins: boolean } =>
+      r.s != null && r.a != null)
+    .map((r) => {
     const tie = r.s === r.a;
     const aforceWins = r.higherWins ? r.a > r.s : r.a < r.s;
     return {
@@ -137,14 +142,18 @@ function buildScanCoachScriptUnchecked(
   // CASE B — AForce alternative recommended: the comparison narrative.
   if (isComparing && aforceEquivalent) {
     const bullets = compareBullets(scanned, aforceEquivalent);
-    const electrolyteDelta = round(aforceEquivalent.electrolytes - scanned.electrolyteDensity);
-    const sugarDelta = round(scanned.sugarLevel - aforceEquivalent.sugar);
-    const speedDelta = round(aforceEquivalent.hydrationSpeed - scanned.hydrationSpeed);
+    // A delta needs BOTH sides. Where either is UNKNOWN there is no
+    // comparison to state, so the phrase is simply not offered (D5).
+    const delta = (a: number | null, b: number | null): number | null =>
+      a == null || b == null ? null : round(a - b);
+    const electrolyteDelta = delta(aforceEquivalent.electrolytes, scanned.electrolyteDensity);
+    const sugarDelta = delta(scanned.sugarLevel, aforceEquivalent.sugar);
+    const speedDelta = delta(aforceEquivalent.hydrationSpeed, scanned.hydrationSpeed);
 
     const wins: string[] = [];
-    if (electrolyteDelta > 0) wins.push(`${electrolyteDelta} points stronger on electrolytes`);
-    if (sugarDelta > 0) wins.push(`${sugarDelta} points lower on sugar`);
-    if (wins.length === 0 && speedDelta > 0) {
+    if (electrolyteDelta != null && electrolyteDelta > 0) wins.push(`${electrolyteDelta} points stronger on electrolytes`);
+    if (sugarDelta != null && sugarDelta > 0) wins.push(`${sugarDelta} points lower on sugar`);
+    if (wins.length === 0 && speedDelta != null && speedDelta > 0) {
       wins.push(`${speedDelta} points faster uptake`);
     }
     const winsLine = wins.length > 0 ? wins.join(' and ') : 'a cleaner overall profile';
@@ -187,7 +196,7 @@ function buildScanCoachScriptUnchecked(
   // dynamic OFF entry not in COMPARE_PRODUCTS). In that situation we keep
   // the spoken narrative in sync with the AForceReplacementCard by reading
   // the recommendation's own command line instead of falling back to water.
-  const aforceId = result.recommendation.aforceEquivalentId;
+  const aforceId = result.recommendation.alternativeProductId;
   if (aforceId) {
     return {
       headline: `${scanned.productName} is not optimal — switch to AForce.`,

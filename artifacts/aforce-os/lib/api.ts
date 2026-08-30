@@ -148,7 +148,8 @@ export interface ServerScan {
    *  not echoed back in the GET response (kept out of the legacy shape). */
   isAForce?: boolean;
   verdict: string;
-  fitScore: number;
+  /** 0-100, or null when nothing was known to compare on (D5). */
+  fitScore: number | null;
   scoreBefore: number;
   scoreAfter: number;
   performanceState: string;
