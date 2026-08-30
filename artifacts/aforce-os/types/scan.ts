@@ -24,13 +24,17 @@ export interface ScannedProduct {
   productName: string;
   brand: string;
   category: CompareProduct['category'];
-  /** 0-100 sub-scores (mirrors comparison engine model). */
-  hydrationSpeed: number;
-  electrolyteDensity: number;
-  sugarLevel: number;        // higher = more sugar (worse)
-  stimulantLevel: number;    // 0 = none. Reserved for future stim products.
-  recoveryFit: number;
-  performanceFit: number;
+  /**
+   * 0-100 sub-scores (mirrors comparison engine model).
+   * `null` = UNKNOWN — no value on file. Never a zero (D5).
+   */
+  hydrationSpeed: number | null;
+  electrolyteDensity: number | null;
+  sugarLevel: number | null;        // higher = more sugar (worse)
+  /** `null` = UNKNOWN. A measured 0 means "contains none". */
+  stimulantLevel: number | null;
+  recoveryFit: number | null;
+  performanceFit: number | null;
   isAForce: boolean;
   /** Mapped fluid type (only set for items the user can log). */
   fluidType?: FluidType;
@@ -41,8 +45,18 @@ export interface ScanRecommendation {
   headline: string;
   /** Detailed explanation. */
   detail: string;
-  /** Suggested AForce alternative product id (when scanned product is non-AForce). */
-  aforceEquivalentId?: string;
+  /**
+   * The strongest eligible alternative, if one genuinely outranked what was
+   * scanned. Selected across the WHOLE catalog — any brand, plain water
+   * included (D6). Was `aforceEquivalentId`, a name that encoded the
+   * assumption the alternative is always AForce.
+   */
+  alternativeProductId?: string;
+  /**
+   * True when nothing on file outranked the scanned product. An explicit
+   * outcome, not the absence of one (D6).
+   */
+  noChangeNeeded?: boolean;
   /** Decisive AI command (WHAT + WHEN + OUTCOME). */
   command: string;
   /** Whether logging the scanned product as-is is recommended. */
@@ -89,7 +103,8 @@ export interface ScanResult {
   source: ScanSource;
   product: ScannedProduct;
   /** 0-100. Reflects fit for the user's CURRENT state. */
-  currentFitScore: number;
+  /** 0-100, or `null` when nothing was known to compare on (D5). */
+  currentFitScore: number | null;
   /** Coarse verdict bucket. */
   verdict: 'optimal' | 'strong' | 'acceptable' | 'suboptimal' | 'avoid';
   /** State the score was generated against (so the UI can label the verdict). */

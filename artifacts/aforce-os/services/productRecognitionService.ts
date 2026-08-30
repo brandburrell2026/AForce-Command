@@ -116,9 +116,16 @@ function toScanned(product: CompareProduct): ScannedProduct {
     hydrationSpeed: product.hydrationSpeed,
     electrolyteDensity: product.electrolytes,
     sugarLevel: product.sugar,
-    stimulantLevel: 0,
+    // UNKNOWN, not zero (D5). The catalog schema has no stimulant field, so
+    // no row can report one — previously every catalog product, including a
+    // scanned energy drink, claimed a measured zero stimulant load.
+    stimulantLevel: null,
     recoveryFit: product.recoveryEfficiency,
-    performanceFit: Math.round((product.hydrationSpeed + product.absorptionRate) / 2),
+    // Derived: UNKNOWN when either input is unknown (D5).
+    performanceFit:
+      product.hydrationSpeed == null || product.absorptionRate == null
+        ? null
+        : Math.round((product.hydrationSpeed + product.absorptionRate) / 2),
     isAForce: product.isAForce,
     fluidType: PRODUCT_TO_FLUID[product.id],
   };
@@ -166,11 +173,26 @@ export async function recognize(source: ScanSource): Promise<ScannedProduct | un
   // Manual — local name match first, otherwise treat numeric input as
   // a barcode and pass to OFF (covers users typing in a UPC by hand).
   if (source.kind === 'manual') {
-    const lowered = raw.toLowerCase();
-    const p = COMPARE_PRODUCTS.find((it) =>
-      it.name.toLowerCase().includes(lowered) ||
-      it.brand.toLowerCase().includes(lowered)
+    const lowered = raw.toLowerCase().trim();
+    // COMMERCIAL NEUTRALITY — founder ruling D6, 2026-08-30. Matching was a
+    // raw substring sweep in array order, so "water" matched *Water*melon
+    // Surge at index 9 and the canonical plain-water row at index 21 was
+    // unreachable by its own name. A member typing the word "water" was handed
+    // a flavoured AForce SKU.
+    //
+    // An EXACT name or brand match now wins before any substring match, for
+    // every product. That fixes the water case as an instance of a general
+    // rule rather than special-casing one row, and a specific query like
+    // "watermelon" still reaches the product it names.
+    const exact = COMPARE_PRODUCTS.find(
+      (it) => it.name.toLowerCase() === lowered || it.brand.toLowerCase() === lowered,
     );
+    const p =
+      exact ??
+      COMPARE_PRODUCTS.find(
+        (it) =>
+          it.name.toLowerCase().includes(lowered) || it.brand.toLowerCase().includes(lowered),
+      );
     if (p) return toScanned(p);
     if (/^[0-9]{6,14}$/.test(raw)) {
       return await lookupBarcode(raw);

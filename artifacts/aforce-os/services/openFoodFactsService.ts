@@ -96,31 +96,54 @@ function inferCategory(tags: string[] = []): CompareProduct['category'] {
  * correct so AForce vs scanned comparisons are believable.
  */
 function synthesizeScores(off: OFFProduct, category: CompareProduct['category']) {
-  const sugars100 = off.nutriments?.sugars_100g ?? 0;
-  // Sodium can come as `sodium_100g` (g) or salt_100g (g, multiply by 0.4).
-  const sodium100 = off.nutriments?.sodium_100g ?? (off.nutriments?.salt_100g ?? 0) * 0.4;
-  // sugar score: 0g → 0; ≥10g/100g → 100 (very sugary).
-  const sugar = num(Math.round((sugars100 / 10) * 100), 30);
-  // electrolyte score: 0mg → 0; ≥0.4g/100g (~400mg) → 100.
-  const electrolytes = num(Math.round((sodium100 / 0.4) * 100), 25);
+  // UNKNOWN ≠ ZERO (founder ruling D5, 2026-08-30).
+  //
+  // These three lines used to read `?? 0`, which substituted a finite zero for
+  // ABSENT data before `num()`'s fallback could ever fire — so the declared
+  // defaults (30, 25) were unreachable dead code and the file documented a
+  // behaviour it did not have. The consequence was directional and asymmetric:
+  // a missing sugar reading scored sugarImpact 100 (the BEST possible, +19 on
+  // a typical match) while a missing sodium reading scored electrolytes 0 (the
+  // WORST, -30), because sugar is inverted and sodium is not. Absence moved
+  // the number in opposite directions depending on which field was missing,
+  // and "no data" was indistinguishable from "measured zero".
+  //
+  // Absent now stays absent. A measured 0 is still 0 and still counts as data.
+  const sugars100 = off.nutriments?.sugars_100g ?? null;
+  const salt100 = off.nutriments?.salt_100g;
+  const sodium100 =
+    off.nutriments?.sodium_100g ?? (typeof salt100 === 'number' ? salt100 * 0.4 : null);
+
+  const sugar = sugars100 == null ? null : clamp01to100(Math.round((sugars100 / 10) * 100));
+  const electrolytes =
+    sodium100 == null ? null : clamp01to100(Math.round((sodium100 / 0.4) * 100));
   // hydration speed: water is fast; high-sugar sports drinks slower.
+  // A derived value is only as known as its inputs. Where an input is absent
+  // the derived score is absent too — it is not computed from a substituted
+  // zero, which would launder the same defect one layer down.
   const hydrationSpeed =
     category === 'plain_water'
       ? 80
       : category === 'medical_oral_rehydration'
         ? 88
-        : Math.max(35, 80 - sugar * 0.45);
-  // absorption: tracks electrolyte balance & inverse sugar.
-  const absorptionRate = Math.max(35, Math.min(95, 50 + electrolytes * 0.4 - sugar * 0.25));
-  // recovery: blend of electrolytes + low sugar.
-  const recoveryEfficiency = Math.max(30, Math.min(95, 40 + electrolytes * 0.5 - sugar * 0.2));
-  return {
-    sugar: Math.round(sugar),
-    electrolytes: Math.round(electrolytes),
-    hydrationSpeed: Math.round(hydrationSpeed),
-    absorptionRate: Math.round(absorptionRate),
-    recoveryEfficiency: Math.round(recoveryEfficiency),
-  };
+        : sugar == null
+          ? null
+          : Math.round(Math.max(35, 80 - sugar * 0.45));
+  const absorptionRate =
+    electrolytes == null || sugar == null
+      ? null
+      : Math.round(Math.max(35, Math.min(95, 50 + electrolytes * 0.4 - sugar * 0.25)));
+  const recoveryEfficiency =
+    electrolytes == null || sugar == null
+      ? null
+      : Math.round(Math.max(30, Math.min(95, 40 + electrolytes * 0.5 - sugar * 0.2)));
+
+  return { sugar, electrolytes, hydrationSpeed, absorptionRate, recoveryEfficiency };
+}
+
+/** Clamp a synthesized 0-100 score. Only ever called with a real number. */
+function clamp01to100(n: number): number {
+  return Math.max(0, Math.min(100, n));
 }
 
 function dynamicId(barcode: string): string {
@@ -164,9 +187,15 @@ function build(barcode: string, off: OFFProduct): { compare: CompareProduct; sca
     hydrationSpeed: scores.hydrationSpeed,
     electrolyteDensity: scores.electrolytes,
     sugarLevel: scores.sugar,
-    stimulantLevel: off.nutriments?.caffeine_100g ? 50 : 0,
+    // A caffeine reading present means 50; ABSENT means unknown, not zero (D5).
+    stimulantLevel:
+      off.nutriments?.caffeine_100g == null ? null : off.nutriments.caffeine_100g ? 50 : 0,
     recoveryFit: scores.recoveryEfficiency,
-    performanceFit: Math.round((scores.hydrationSpeed + scores.absorptionRate) / 2),
+    // Derived: UNKNOWN when either input is unknown (D5).
+    performanceFit:
+      scores.hydrationSpeed == null || scores.absorptionRate == null
+        ? null
+        : Math.round((scores.hydrationSpeed + scores.absorptionRate) / 2),
     isAForce: false,
   };
 
@@ -187,9 +216,17 @@ export async function lookupBarcode(barcode: string): Promise<ScannedProduct | u
       hydrationSpeed: cached.hydrationSpeed,
       electrolyteDensity: cached.electrolytes,
       sugarLevel: cached.sugar,
-      stimulantLevel: 0,
+      // The session cache stores a CompareProduct, which carries no stimulant
+      // field — so a cache hit genuinely does not know it (D5). It previously
+      // reported a measured zero, meaning the SAME barcode scanned twice
+      // produced two different products.
+      stimulantLevel: null,
       recoveryFit: cached.recoveryEfficiency,
-      performanceFit: Math.round((cached.hydrationSpeed + cached.absorptionRate) / 2),
+      // Derived: UNKNOWN when either input is unknown (D5).
+    performanceFit:
+      cached.hydrationSpeed == null || cached.absorptionRate == null
+        ? null
+        : Math.round((cached.hydrationSpeed + cached.absorptionRate) / 2),
       isAForce: false,
     };
   }

@@ -73,10 +73,35 @@ export function efficiencyLabel(efficiency: number): string {
   return `Hydrates at ${Math.round(efficiency * 100)}% efficiency`;
 }
 
-function bestAforceFor(inputs: CompareInputs): CompareResult | undefined {
-  const aforce = COMPARE_PRODUCTS.filter((p) => p.isAForce);
-  if (aforce.length === 0) return undefined;
-  const { results } = computeComparison({ inputs, catalog: aforce });
+/**
+ * The strongest eligible alternative to what was scanned — across the WHOLE
+ * catalog (founder ruling D6, 2026-08-30).
+ *
+ * This used to filter to `isAForce`, so an AForce SKU was the only product
+ * that could ever be nominated: a rival could win the comparison outright and
+ * still be told to switch. The scoring engine has always been brand-blind; the
+ * bias lived here, in the pool it was allowed to choose from.
+ *
+ * Plain water is eligible. The scanned product is excluded so a product cannot
+ * be offered as an alternative to itself.
+ */
+/**
+ * The candidate pool the alternative is chosen from — every product except the
+ * one just scanned. Exported so the neutrality invariant can assert on the POOL
+ * itself rather than on the source text: a brand filter reintroduced here is
+ * observable, where a regex over the source is not.
+ */
+export function eligibleAlternatives(scannedProductId: string): CompareProduct[] {
+  return COMPARE_PRODUCTS.filter((p) => p.id !== scannedProductId);
+}
+
+export function bestAlternativeFor(
+  inputs: CompareInputs,
+  scannedProductId: string,
+): CompareResult | undefined {
+  const catalog = eligibleAlternatives(scannedProductId);
+  if (catalog.length === 0) return undefined;
+  const { results } = computeComparison({ inputs, catalog });
   return results[0];
 }
 
@@ -84,49 +109,55 @@ export function buildRecommendation(
   scanned: ScannedProduct,
   inputs: CompareInputs,
   selfFit: CompareResult,
-  bestAforce: CompareResult | undefined,
+  bestAlternative: CompareResult | undefined,
 ): ScanRecommendation {
   const stateLabel = inputs.state.charAt(0) + inputs.state.slice(1).toLowerCase();
-  // Tone — AForce is positioned as system fuel / performance support.
-  // Headlines read as natural system observations, never as a hard sell.
-  //
-  // COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized):
-  // these command strings previously attached a locally-authored dose
-  // ("12 oz water") and a competing recheck clock ("Recheck in 20
-  // minutes") to a product card — commerce-adjacent advice generated
-  // outside canonical seams. The product-EQUIVALENCE logic stays (that
-  // is comparison, this module's job); the amount and cadence defer to
-  // the member's current command. Water-first ordering preserved. No
-  // dose numbers or clock clauses may return here
-  // (services/__tests__/commandAuthorityContainment.test.ts).
 
-  // CASE 1: scanned product is AForce and already optimal → log it.
-  // Frame as "active system fuel" — the user is already on it.
-  if (scanned.isAForce && selfFit.verdict === 'optimal') {
+  // COMMAND-AUTHORITY CONTAINMENT (re-plumb wave, founder-authorized): these
+  // strings once carried a locally-authored dose and a competing recheck clock.
+  // The product-EQUIVALENCE logic stays (that is comparison, this module's
+  // job); amount and cadence defer to the member's current command. No dose
+  // numbers or clock clauses may return here
+  // (services/__tests__/commandAuthorityContainment.test.ts).
+  //
+  // COMMERCIAL NEUTRALITY — founder ruling D6, 2026-08-30. Two brand gates
+  // used to live in this function and are now gone:
+  //   1. the most favourable branch was reachable only when `scanned.isAForce`,
+  //      so a rival holding an IDENTICAL verdict could not receive it;
+  //   2. the alternative was drawn from an AForce-only pool.
+  // `isAForce` is deliberately not read anywhere below. Identical deterministic
+  // outcomes now produce identical copy, whatever the brand.
+  //
+  // PHYSIOLOGICAL CLAIM — founder ruling D4. "Current intake may increase
+  // hydration demand." is retired. It asserted a consequence inside the
+  // member's body from a product lookup plus arithmetic, with nothing
+  // measured and no canonical source behind it. Its replacement describes the
+  // COMPARISON, which is the only thing that actually happened.
+  const RANKED_LOWER = 'This product ranked lower under the current comparison criteria.';
+
+  const MARGIN = 4;
+  const outranked =
+    bestAlternative != null &&
+    bestAlternative.product.id !== scanned.productId &&
+    bestAlternative.fitScore != null &&
+    selfFit.fitScore != null &&
+    bestAlternative.fitScore > selfFit.fitScore + MARGIN;
+
+  // A genuinely stronger alternative exists — of ANY brand, plain water
+  // included. `whyItFits` is itself brand-agnostic and generated from axis
+  // values, so the explanation stays factual.
+  if (outranked && bestAlternative) {
     return {
-      headline: `${scanned.productName} is active system fuel for your ${stateLabel} state.`,
-      detail: selfFit.whyItFits,
-      command: `Pair with water — your current command sets the amount.`,
-      shouldLog: true,
-    };
-  }
-  // CASE 2: AForce alternative exists and outperforms.
-  // Lead with a system observation, then surface the recommended
-  // pairing — water + AForce.
-  if (bestAforce && bestAforce.product.id !== scanned.productId && bestAforce.fitScore > selfFit.fitScore + 4) {
-    return {
-      headline: `Current intake may increase hydration demand.`,
-      detail: bestAforce.whyItFits,
-      aforceEquivalentId: bestAforce.product.id,
-      command: `Switch to ${bestAforce.product.name} — water first.`,
+      headline: RANKED_LOWER,
+      detail: bestAlternative.whyItFits,
+      alternativeProductId: bestAlternative.product.id,
+      command: `Consider ${bestAlternative.product.name} — water first.`,
       shouldLog: false,
     };
   }
-  // CASE 3: scanned product is acceptable, no clearly stronger
-  // AForce upgrade. Frame as supporting their current state; pair
-  // with water, amount deferred. Includes 'acceptable' so a
-  // workable-but-not-stellar product still gets the supportive
-  // framing, not the sub-par observation copy.
+
+  // Nothing on file outranks what was scanned. NO CHANGE NEEDED is an explicit
+  // outcome (D6), not merely the absence of a switch card.
   if (
     selfFit.verdict === 'optimal' ||
     selfFit.verdict === 'strong' ||
@@ -137,19 +168,19 @@ export function buildRecommendation(
       detail: selfFit.whyItFits,
       command: `Pair with water — your current command sets the amount.`,
       shouldLog: true,
+      noChangeNeeded: true,
     };
   }
-  // CASE 4: scanned product is sub-par. Use the natural observation
-  // framing. When an AForce uplift exists, position it as hydration
-  // efficiency support; otherwise recommend water alone.
+
+  // Ranked low, and nothing better on file either. Prefer the specific factual
+  // explanation the engine already produced; the neutral comparison sentence
+  // carries the headline. No physiological assertion is made.
   return {
-    headline: `Current intake may increase hydration demand.`,
+    headline: RANKED_LOWER,
     detail: selfFit.whyItFits,
-    aforceEquivalentId: bestAforce?.product.id,
-    command: bestAforce
-      ? `Switch to ${bestAforce.product.name} — water first.`
-      : `Water first — your current command sets the amount.`,
+    command: `Water first — your current command sets the amount.`,
     shouldLog: false,
+    noChangeNeeded: true,
   };
 }
 
@@ -203,8 +234,8 @@ export async function scan(
       },
     };
   }
-  const bestAforce = bestAforceFor(inputs);
-  const recommendation = buildRecommendation(scanned, inputs, selfFit, bestAforce);
+  const bestAlternative = bestAlternativeFor(inputs, scanned.productId);
+  const recommendation = buildRecommendation(scanned, inputs, selfFit, bestAlternative);
   // Personalization layer — derive the dominant signals (heat, humidity,
   // activity, recovery, alcohol, consistency, mass) from current user
   // state + engine output and attach them so the UI can render

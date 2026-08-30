@@ -20,6 +20,8 @@
  */
 
 import type {
+  AttributeProvenance,
+  CompareAttribute,
   CompareEngineOutput,
   CompareInputs,
   CompareProduct,
@@ -53,8 +55,49 @@ const WEIGHTS: Record<ProtocolKind, Weights> = {
   morning_reset:         { speed: 0.20, electrolyteBalance: 0.25, sugarImpact: 0.15, absorption: 0.15, recovery: 0.25, protocolBoost: 5 },
 };
 
+// ─── Provenance (D3) ─────────────────────────────────────────────────────────
+
+/** The five scored attributes, in scoring order. */
+const ALL_ATTRIBUTES: CompareAttribute[] = [
+  'hydrationSpeed',
+  'electrolytes',
+  'sugar',
+  'absorptionRate',
+  'recoveryEfficiency',
+];
+
+export const knownAttributes = { ALL: ALL_ATTRIBUTES } as const;
+
+/**
+ * Evidence quality for one attribute (founder ruling D3).
+ *
+ * Resolution order, deliberately explicit:
+ *   1. an explicit provenance entry wins;
+ *   2. a `null` value is UNKNOWN by definition — there is nothing to grade;
+ *   3. otherwise ESTIMATED, the catalog default.
+ *
+ * VERIFIED is never inferred. It must be declared against a canonical source,
+ * and brand ownership is not one (`isAForce` is not read here, by design).
+ */
+export function attributeProvenance(
+  p: CompareProduct,
+  attr: CompareAttribute,
+): AttributeProvenance {
+  const declared = p.provenance?.[attr];
+  if (declared) return declared;
+  return p[attr] == null ? 'unknown' : 'estimated';
+}
+
+/** True when the attribute has a real value the engine may score. */
+function isKnown(p: CompareProduct, attr: CompareAttribute): boolean {
+  return p[attr] != null && attributeProvenance(p, attr) !== 'unknown';
+}
+
 // ─── Verdict mapping ─────────────────────────────────────────────────────────
-function verdictFor(score: number): CompareResult['verdict'] {
+function verdictFor(score: number | null): CompareResult['verdict'] {
+  // Nothing known — the honest verdict is the lowest one, not a flattering
+  // guess. The surface renders coverage alongside it (D5).
+  if (score == null) return 'avoid';
   if (score >= 90) return 'optimal';
   if (score >= 78) return 'strong';
   if (score >= 65) return 'acceptable';
@@ -63,59 +106,82 @@ function verdictFor(score: number): CompareResult['verdict'] {
 }
 
 // ─── Per-product scoring ─────────────────────────────────────────────────────
-function scoreProduct(p: CompareProduct, inputs: CompareInputs): { fit: number; axes: CompareResult['axes'] } {
+function scoreProduct(
+  p: CompareProduct,
+  inputs: CompareInputs,
+): { fit: number | null; axes: CompareResult['axes']; coverage: { known: number; total: number } } {
   const w = WEIGHTS[inputs.protocol];
-  const sugarImpact = 100 - p.sugar; // higher is better
-  const axes = {
-    speed: p.hydrationSpeed,
-    electrolyteBalance: p.electrolytes,
-    sugarImpact,
-    absorption: p.absorptionRate,
-    recovery: p.recoveryEfficiency,
+
+  // UNKNOWN attributes carry no value and therefore do not vote (D5). The
+  // previous behaviour defaulted them to 0, which — because sugar is inverted
+  // and the rest are not — made the SAME absence reward some products and
+  // penalize others. Excluding the axis and renormalizing over the weights
+  // that remain makes absence genuinely neutral.
+  const sugarKnown = isKnown(p, 'sugar');
+  const axes: CompareResult['axes'] = {
+    speed: isKnown(p, 'hydrationSpeed') ? p.hydrationSpeed : null,
+    electrolyteBalance: isKnown(p, 'electrolytes') ? p.electrolytes : null,
+    sugarImpact: sugarKnown ? 100 - (p.sugar as number) : null,
+    absorption: isKnown(p, 'absorptionRate') ? p.absorptionRate : null,
+    recovery: isKnown(p, 'recoveryEfficiency') ? p.recoveryEfficiency : null,
   };
 
-  let fit =
-    axes.speed * w.speed +
-    axes.electrolyteBalance * w.electrolyteBalance +
-    sugarImpact * w.sugarImpact +
-    axes.absorption * w.absorption +
-    axes.recovery * w.recovery;
+  const contributions: { value: number; weight: number }[] = [
+    { value: axes.speed, weight: w.speed },
+    { value: axes.electrolyteBalance, weight: w.electrolyteBalance },
+    { value: axes.sugarImpact, weight: w.sugarImpact },
+    { value: axes.absorption, weight: w.absorption },
+    { value: axes.recovery, weight: w.recovery },
+  ].filter((c): c is { value: number; weight: number } => c.value != null);
+
+  const coverage = { known: contributions.length, total: ALL_ATTRIBUTES.length };
+
+  // Nothing known at all — the engine says so rather than inventing a number.
+  if (contributions.length === 0) return { fit: null, axes, coverage };
+
+  const weightSum = contributions.reduce((acc, c) => acc + c.weight, 0);
+  let fit = contributions.reduce((acc, c) => acc + c.value * c.weight, 0) / weightSum;
 
   if (p.compatibleProtocols.includes(inputs.protocol)) {
     fit += w.protocolBoost;
   }
 
-  // Heat stress hurts sugar-heavy products further
-  if (inputs.protocol === 'heat_stress' && p.sugar >= 60) {
+  // Every conditional penalty below is gated on a KNOWN attribute. An unknown
+  // value must never be read as "low" — that is the silent-penalty failure the
+  // ruling names explicitly.
+  if (inputs.protocol === 'heat_stress' && sugarKnown && (p.sugar as number) >= 60) {
     fit -= 6;
   }
-  // Plain water is never enough during depletion correction
   if (inputs.protocol === 'depletion_correction' && p.category === 'plain_water') {
     fit -= 10;
   }
-  // Score severity floor — extreme depletion penalizes weak electrolyte products
-  if (inputs.score < 40 && p.electrolytes < 60) {
+  if (inputs.score < 40 && isKnown(p, 'electrolytes') && (p.electrolytes as number) < 60) {
     fit -= 4;
   }
 
-  return { fit: Math.max(0, Math.min(100, Math.round(fit))), axes };
+  return { fit: Math.max(0, Math.min(100, Math.round(fit))), axes, coverage };
 }
 
 // ─── Why-it-fits text ────────────────────────────────────────────────────────
 // Symmetric, brand-agnostic phrasing. Text is generated strictly from
 // axis values vs the protocol's needs — never from `isAForce`.
 function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult['axes']): string {
+  // An UNKNOWN axis may not satisfy or fail a threshold — absence is not a
+  // low reading (D5). `at()` answers "is this KNOWN and past the bar?", so
+  // every comparison below is false when the value is simply not on file.
+  const at = (v: number | null, cmp: (n: number) => boolean) => v != null && cmp(v);
+
   if (p.category === 'plain_water') {
     return inputs.protocol === 'depletion_correction'
       ? 'Hydrates volume; contains no electrolytes.'
       : 'Baseline hydration only. No electrolyte support.';
   }
-  if (axes.sugarImpact <= 40) {
+  if (at(axes.sugarImpact, (n) => n <= 40)) {
     return 'High sugar load slows uptake. Misaligned with current protocol.';
   }
   const compatible = p.compatibleProtocols.includes(inputs.protocol);
-  const fastUptake = axes.speed >= 85 && axes.absorption >= 85;
-  const strongElectrolytes = axes.electrolyteBalance >= 85;
+  const fastUptake = at(axes.speed, (n) => n >= 85) && at(axes.absorption, (n) => n >= 85);
+  const strongElectrolytes = at(axes.electrolyteBalance, (n) => n >= 85);
 
   if (inputs.protocol === 'depletion_correction' || inputs.score < 50) {
     if (compatible && fastUptake && strongElectrolytes) return 'High electrolyte density and a fast-uptake profile for depletion protocols.';
@@ -123,12 +189,12 @@ function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult
     return 'Slower uptake than the depletion state requires.';
   }
   if (inputs.protocol === 'heat_stress') {
-    if (strongElectrolytes && axes.sugarImpact >= 80) return 'Electrolyte density and low sugar load fit hot-conditions protocols.';
+    if (strongElectrolytes && at(axes.sugarImpact, (n) => n >= 80)) return 'Electrolyte density and low sugar load fit hot-conditions protocols.';
     if (strongElectrolytes) return 'Strong electrolyte density. Sugar load reduces fit for heat stress.';
     return 'Electrolyte density below the heat-stress threshold.';
   }
   if (inputs.protocol === 'recovery') {
-    if (compatible && axes.recovery >= 85) return 'Recovery-protocol fit with balanced electrolytes.';
+    if (compatible && at(axes.recovery, (n) => n >= 85)) return 'Recovery-protocol fit with balanced electrolytes.';
     return 'Acceptable hydration but recovery efficiency below target.';
   }
   if (p.category === 'medical_oral_rehydration') {
@@ -170,19 +236,22 @@ export function computeComparison({ inputs, catalog = COMPARE_PRODUCTS }: Comput
   }
 
   const scored = catalog.map((product) => {
-    const { fit, axes } = scoreProduct(product, safeInputs);
+    const { fit, axes, coverage } = scoreProduct(product, safeInputs);
     const result: CompareResult = {
       product,
       fitScore: fit,
       rank: 0,
       whyItFits: whyItFits(product, safeInputs, axes),
       axes,
+      coverage,
       verdict: verdictFor(fit),
     };
     return result;
   });
 
-  scored.sort((a, b) => b.fitScore - a.fitScore);
+  // An uncomparable product (nothing known) sorts last rather than winning by
+  // virtue of having no data to hold against it.
+  scored.sort((a, b) => (b.fitScore ?? -1) - (a.fitScore ?? -1));
   scored.forEach((r, i) => { r.rank = i + 1; });
 
   const winner = scored[0];

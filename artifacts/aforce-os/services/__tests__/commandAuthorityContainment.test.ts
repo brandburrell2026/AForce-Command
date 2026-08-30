@@ -272,7 +272,7 @@ describe('scan coach — explains and mirrors; never authors a dose, clock, or i
 
   // recommendation.command values are the REAL contained strings the scan
   // service produces post-#873 — the coach's job is to mirror them.
-  const res = (over: Record<string, unknown>, command: string, aforceEquivalentId?: string) =>
+  const res = (over: Record<string, unknown>, command: string, alternativeProductId?: string) =>
     ({
       scannedAt: '2026-08-29T12:00:00Z',
       source: { kind: 'barcode', rawValue: 'x' },
@@ -282,7 +282,7 @@ describe('scan coach — explains and mirrors; never authors a dose, clock, or i
       evaluatedAgainstState: 'RECOVERING',
       recommendation: {
         headline: 'h', detail: 'd', command, shouldLog: false,
-        ...(aforceEquivalentId ? { aforceEquivalentId } : {}),
+        ...(alternativeProductId ? { alternativeProductId } : {}),
       },
       efficiency: 0.43,
       efficiencyLabel: 'Hydrates at 43% efficiency',

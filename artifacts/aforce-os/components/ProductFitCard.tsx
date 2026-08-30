@@ -28,16 +28,20 @@ interface Axis {
   labelKey: string;
   /** hydroScan2.cards.* key suffix for the axis hint. */
   hintKey: string;
-  /** 0–100, higher = better. */
-  value: number;
+  /** 0–100, higher = better. `null` = UNKNOWN — renders a dash, not a bar. */
+  value: number | null;
 }
 
 function axesFor(result: ScanResult): Axis[] {
   const p = result.product;
+  // An UNKNOWN attribute carries `null` and renders no bar (D5). Previously a
+  // missing value arrived here as 0, so an absent sugar reading drew the bar
+  // at 100 — the best possible score — and absence was indistinguishable from
+  // a measured zero.
   return [
     { labelKey: 'axis_hydration_speed', hintKey: 'axis_hydration_speed_hint', value: p.hydrationSpeed },
     { labelKey: 'axis_electrolyte',     hintKey: 'axis_electrolyte_hint',     value: p.electrolyteDensity },
-    { labelKey: 'axis_sugar',           hintKey: 'axis_sugar_hint',           value: 100 - p.sugarLevel },
+    { labelKey: 'axis_sugar',           hintKey: 'axis_sugar_hint',           value: p.sugarLevel == null ? null : 100 - p.sugarLevel },
     { labelKey: 'axis_recovery',        hintKey: 'axis_recovery_hint',        value: p.recoveryFit },
     { labelKey: 'axis_performance',     hintKey: 'axis_performance_hint',     value: p.performanceFit },
   ];
@@ -88,15 +92,20 @@ export function ProductFitCard({ result, onConfidencePress }: Props) {
 
       <View style={styles.axes}>
         {axes.map((a) => {
-          const color = colorFor(a.value);
+          // UNKNOWN renders the honest-absence dash and NO bar — a bar drawn
+          // at any width would be a measurement we do not have (D5).
+          const unknown = a.value == null;
+          const color = unknown ? Colors.text.muted : colorFor(a.value as number);
           return (
             <View key={a.labelKey} style={styles.axisRow}>
               <View style={styles.axisHead}>
                 <Text style={styles.axisLabel}>{t(`hydroScan2.cards.${a.labelKey}`)}</Text>
-                <Text style={[styles.axisValue, { color }]}>{a.value}</Text>
+                <Text style={[styles.axisValue, { color }]}>{unknown ? '—' : a.value}</Text>
               </View>
               <View style={styles.barTrack}>
-                <View style={[styles.barFill, { width: `${Math.max(2, a.value)}%`, backgroundColor: color }]} />
+                {unknown ? null : (
+                  <View style={[styles.barFill, { width: `${Math.max(2, a.value as number)}%`, backgroundColor: color }]} />
+                )}
               </View>
               <Text style={styles.axisHint}>{t(`hydroScan2.cards.${a.hintKey}`)}</Text>
             </View>
