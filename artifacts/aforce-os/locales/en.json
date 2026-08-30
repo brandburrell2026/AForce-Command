@@ -815,7 +815,7 @@
     "depleted_explanation": "Deep recovery window. Water and electrolytes support your recovery.",
     "depleted_explanation_heat": "Deep recovery window, and the heat is pulling harder than usual. Electrolytes now are the priority.",
     "depleted_explanation_sleep": "Deep recovery window after a short night. Electrolytes now help you catch up.",
-    "context_heat_high": "Heat is opening your recovery window faster. Add 20% to your intake.",
+    "context_heat_high": "Heat is opening your recovery window faster.",
     "context_heat_elevated": "Heat load elevated. Stay ahead of your next water cycle.",
     "context_late_night": "It's late, and this window sets up your tomorrow.",
     "context_long_gap": "{{minutes}} min since your last sip. Recovery window opening.",

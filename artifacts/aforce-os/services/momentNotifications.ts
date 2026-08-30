@@ -27,7 +27,7 @@
  */
 import { Platform } from 'react-native';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
-import { evaluateDeliverableCopy, evaluateMomentAction } from '@/utils/intelligence/decisionGuard';
+import { evaluateDeliverableCopy, evaluateDeliverableLabel, evaluateMomentAction } from '@/utils/intelligence/decisionGuard';
 import { scopedStorage } from './scopedStorage';
 
 import type { Moment } from '@/types/moments';
@@ -238,7 +238,7 @@ export async function syncMomentNotifications(
       // authored moment titles are untrusted free text interpolated into
       // this copy. Same fail-closed contract: skip, never reword.
       if (
-        evaluateDeliverableCopy(title).verdict === 'blocked' ||
+        evaluateDeliverableLabel(title).verdict === 'blocked' ||
         evaluateDeliverableCopy(body).verdict === 'blocked'
       ) {
         continue;
