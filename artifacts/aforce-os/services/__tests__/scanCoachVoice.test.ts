@@ -142,7 +142,16 @@ describe('buildScanCoachScript', () => {
     expect(script.transcript).not.toContain('not optimal');
   });
 
-  it('CASE C: acceptable scanned + no AForce equivalent → fits-as-is narrative', () => {
+  it('a RIVAL with a strong verdict gets the SAME lock-in register an AForce product gets', () => {
+    // CONSCIOUS REPIN — founder ruling D6 (2026-08-30). This fixture is LMNT
+    // at verdict 'strong', and it used to assert the CASE C wording ("LMNT
+    // fits… a solid choice right now") because the warmer lock-in register was
+    // gated on `scanned.isAForce`. That gate is the twin of the CASE D one
+    // corrected in this lane, and it survived in the SPOKEN channel after the
+    // visible composition was neutralized.
+    //
+    // The assertion now states the invariant directly: identical deterministic
+    // outcomes get identical copy, whatever the brand.
     const lmnt: ScannedProduct = baseScanned({
       productId: 'lmnt',
       productName: 'LMNT',
@@ -168,12 +177,31 @@ describe('buildScanCoachScript', () => {
     const script = buildScanCoachScript(result); // no aforceEquivalent passed
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
-    expect(script.headline).toContain('LMNT fits');
-    expect(script.transcript).toContain('A solid choice right now');
+    expect(script.headline).toContain('LMNT is locked in');
+    expect(script.transcript).toContain('This is a strong match — stay with it');
     expect(script.transcript).not.toMatch(/\d+ fit, \d+%/);
     expect(
       script.transcript.endsWith('Pair with water — your current command sets the amount.'),
     ).toBe(true); // mirrors the contained on-screen line verbatim
+
+    // SYMMETRY, asserted rather than assumed: the same product as an AForce
+    // SKU produces byte-identical copy.
+    const asAForce = buildScanCoachScript(
+      baseResult({
+        product: { ...lmnt, isAForce: true },
+        currentFitScore: 78,
+        verdict: 'strong',
+        efficiency: 0.78,
+        recommendation: {
+          headline: 'LMNT fits',
+          detail: 'Strong fit',
+          command: 'Pair with water — your current command sets the amount.',
+          shouldLog: true,
+        },
+      }),
+    );
+    expect(asAForce.headline).toBe(script.headline);
+    expect(asAForce.transcript).toBe(script.transcript);
   });
 
   it('CASE D: sub-par scanned, no AForce uplift → water-only fallback', () => {

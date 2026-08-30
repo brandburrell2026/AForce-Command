@@ -266,6 +266,24 @@ describe('D6 — presentation may not undo the neutralized decision path', () =>
     }
   });
 
+  it('nor does any COPY MODULE this screen speaks or renders from', () => {
+    // The gap that let a real D6 violation through. This sweep walked only
+    // components/editorial/scan/, so a brand gate reached through an IMPORT
+    // passed clean — and the coach voice held one: the warmer "is locked in…"
+    // register was reachable by AForce products only, while a rival with an
+    // IDENTICAL verdict got "fits…". The visible composition was neutral; the
+    // spoken one was not, and the lock could not see it.
+    //
+    // Presentation is wherever the member meets the words, including audio.
+    const SPOKEN_SOURCES = [join('services', 'scanCoachVoice.ts')];
+    for (const rel of SPOKEN_SOURCES) {
+      const src = strip(read(join(AOS, rel)));
+      expect(src, `${rel} — copy may not branch on brand`).not.toMatch(
+        /if\s*\([^)]*\bisAForce\b|\bisAForce\s*\?/,
+      );
+    }
+  });
+
   it('the alternative is rendered from the canonical field, whatever brand won', () => {
     const src = body();
     expect(src).toMatch(/alternativeProductId/);
