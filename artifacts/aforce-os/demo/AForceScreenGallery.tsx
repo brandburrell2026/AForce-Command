@@ -228,10 +228,17 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
     case 'momentDetail': {
       const fx = fixture.momentsFixture!;
       const moment = fx.moments.find((m) => m.id === fx.detailId) ?? fx.moments[0]!;
+      // Routed through the guard, matching production (useMomentsData.recFor)
+      // and the editorial stage below. An unguarded build here meant the one
+      // surface reviewers use to judge Moment Detail could show copy the
+      // Decision Guard had never seen.
+      const { rec: guardedRec } = guardMomentRecommendation(
+        buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso),
+      );
       return (
         <MomentDetailScreen
           moment={moment}
-          rec={buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso)}
+          rec={guardedRec}
           nowIso={fx.nowIso}
           readOnly
         />
