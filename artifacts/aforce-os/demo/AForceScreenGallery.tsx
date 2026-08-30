@@ -45,6 +45,7 @@ import { EditorialHomeScreen } from '../components/editorial/home/EditorialHomeS
 import { ProtocolScreenV2 } from '../components/protocol/ProtocolScreenV2';
 import { EditorialProtocolScreen } from '../components/editorial/protocol/EditorialProtocolScreen';
 import { EditorialWeeklyScreen } from '@/components/editorial/weekly/EditorialWeeklyScreen';
+import { EditorialScanScreen } from '@/components/editorial/scan/EditorialScanScreen';
 import { EditorialMomentsScreen } from '../components/editorial/moments/EditorialMomentsScreen';
 import { EditorialMomentDetailScreen } from '../components/editorial/moments/EditorialMomentDetailScreen';
 import { guardMomentRecommendation } from '../utils/intelligence/decisionGuard';
@@ -222,6 +223,12 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       return <WeeklyReportV3 fixture={fixture.weeklyInputs} />;
     case 'editorialWeekly':
       return <EditorialWeeklyScreen fixture={fixture.weeklyInputs} />;
+    case 'editorialScan':
+      return (
+        <StoreOverride state={fixture.appState!}>
+          <EditorialScanScreen />
+        </StoreOverride>
+      );
     case 'circle':
       return <CircleScreenV3 fixture={fixture.circleInputs} />;
     case 'moments':

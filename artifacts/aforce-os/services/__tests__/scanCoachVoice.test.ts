@@ -199,10 +199,17 @@ describe('buildScanCoachScript', () => {
     ).toBe(true); // mirrors the contained water-only line verbatim
   });
 
-  it('CASE D′: sub-par scanned WITH unresolved alternativeProductId → mentions AForce, mirrors recommendation command', () => {
-    // hydrationScanService.buildRecommendation Case 4 sets alternativeProductId
-    // even when we can't load full nutrition data (e.g. dynamic OFF entry).
-    // The narrative must stay in sync with the on-screen AForceReplacementCard.
+  it('CASE D′: sub-par scanned WITH an unresolved alternative → brand-neutral headline, mirrors the command', () => {
+    // CONSCIOUS REPIN — founder ruling D6 (2026-08-30). This assertion pinned
+    // `headline` containing "switch to AForce", which was reachable whenever
+    // ANY alternative existed. Before E6-B0 that was merely biased; after the
+    // alternative pool was neutralized it became factually WRONG — the spoken
+    // line could name AForce while the screen named Pedialyte or plain water.
+    // The headline is now brand-neutral and the canonical command, which
+    // carries the real product name, is still mirrored verbatim.
+    //
+    // buildRecommendation still sets alternativeProductId even when full
+    // nutrition data cannot be loaded (e.g. a dynamic OFF entry).
     const result = baseResult({
       verdict: 'avoid',
       currentFitScore: 22,
@@ -218,7 +225,9 @@ describe('buildScanCoachScript', () => {
     const script = buildScanCoachScript(result); // aforceEquivalent UNRESOLVED
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
-    expect(script.headline).toContain('switch to AForce');
+    expect(script.headline).toContain('a stronger option is on file');
+    expect(script.headline, 'the headline may not name a brand the decision did not pick')
+      .not.toContain('AForce');
     expect(script.transcript).toContain('not optimal');
     expect(
       script.transcript.endsWith('Switch to AForce Stick — water first.'),
