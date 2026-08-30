@@ -203,6 +203,17 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // remain the live rollback branch. Locked by
   // components/__tests__/editorialMomentsLaw.test.ts.
   editorial_moments_enabled: false,
+  // Editorial Protocol — The Brief (E4, founder decisions 2026-08-30).
+  // Whole-screen presentation swap of the Protocol tab over the SAME truth
+  // (deriveProtocol stage/description/steps/nextRecheckMinutes, the
+  // protocolV3Presentation resolvers, the shared biometrics arbitration).
+  // The completion ring is folded into the canonical riskTimer gauge — one
+  // instrument, no new metric. Presentation only: never reads or mutates
+  // score, command, eligibility, timing or safety, and it does not widen
+  // spec_protocol. ProtocolScreenV2 and ProtocolScreenLegacy both remain
+  // reachable rollback branches (three-way seam). Locked by
+  // components/__tests__/editorialProtocolLaw.test.ts.
+  editorial_protocol_enabled: false,
   // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
   // sections inside HomeScreenV2: health-connection chip, four live-signal
   // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
@@ -508,6 +519,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   elite_home_experience_enabled: true,
   editorial_home_enabled: true,
   editorial_moments_enabled: true,
+  editorial_protocol_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,

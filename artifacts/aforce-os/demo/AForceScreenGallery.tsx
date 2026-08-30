@@ -42,6 +42,8 @@ import type { AppState as StoreAppState } from '../store/appStoreTypes';
 
 import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { EditorialHomeScreen } from '../components/editorial/home/EditorialHomeScreen';
+import { ProtocolScreenV2 } from '../components/protocol/ProtocolScreenV2';
+import { EditorialProtocolScreen } from '../components/editorial/protocol/EditorialProtocolScreen';
 import { EditorialMomentsScreen } from '../components/editorial/moments/EditorialMomentsScreen';
 import { EditorialMomentDetailScreen } from '../components/editorial/moments/EditorialMomentDetailScreen';
 import { guardMomentRecommendation } from '../utils/intelligence/decisionGuard';
@@ -245,6 +247,18 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
         />
       );
     }
+    case 'protocol':
+      return (
+        <StoreOverride state={fixture.appState!}>
+          <ProtocolScreenV2 />
+        </StoreOverride>
+      );
+    case 'editorialProtocol':
+      return (
+        <StoreOverride state={fixture.appState!}>
+          <EditorialProtocolScreen />
+        </StoreOverride>
+      );
     case 'editorialMoments':
       return (
         <EditorialMomentsScreen

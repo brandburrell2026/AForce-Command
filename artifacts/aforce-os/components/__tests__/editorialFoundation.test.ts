@@ -193,6 +193,10 @@ describe('accessibility lock — source rules for components/editorial/', () => 
       // E3: the Moments layer is likewise interactive and governed by
       // editorialMomentsLaw.test.ts.
       if (file.includes(join('editorial', 'moments'))) continue;
+      // E4 (founder decisions 2026-08-30): the Protocol layer is interactive
+      // too (the WHY disclosure) and is governed by
+      // editorialProtocolLaw.test.ts.
+      if (file.includes(join('editorial', 'protocol'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -262,6 +266,9 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // editorialMomentsLaw.test.ts.
     'app/moments.tsx',
     join('app', 'moment', '[id].tsx'),
+    // E4 (founder decisions 2026-08-30): the Protocol route's three-way seam.
+    // ProtocolScreenV2 and ProtocolScreenLegacy both remain rollback branches.
+    join('app', '(tabs)', 'protocol.tsx'),
   ]);
   const PRODUCTION_ROOTS = [
     'app',

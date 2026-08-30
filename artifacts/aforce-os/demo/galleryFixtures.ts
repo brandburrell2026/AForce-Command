@@ -90,6 +90,8 @@ export const GALLERY_VIEWPORTS: readonly GalleryViewport[] = [
 export type GallerySurface =
   | 'home'
   | 'editorialHome'
+  | 'protocol'
+  | 'editorialProtocol'
   | 'editorialMoments'
   | 'editorialMomentDetail'
   | 'hydration'
@@ -577,6 +579,94 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       featureFlags: baseFlags({ editorial_home_enabled: true }),
     }),
     momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
+  },
+  // ─── E4 acceptance matrix — Editorial Protocol / The Brief (founder
+  // decisions 2026-08-30). Same StoreOverride idiom as the home fixtures.
+  // Step completion is driven off userState (unitsConsumedToday vs
+  // dailyTarget, urineSignal), so each row below produces a real checklist
+  // state rather than a hand-written one.
+  {
+    id: 'protocol-v2-rollback',
+    label: 'Protocol — V2 (flag-OFF rollback)',
+    driver: 'editorial_protocol_enabled=false → the three-way seam falls through to ProtocolScreenV2, unchanged by E4. The rollback render.',
+    surface: 'protocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 2, ozConsumedToday: 24, urineSignal: 3 }),
+      engineOutput: recoveringEngine(),
+      featureFlags: baseFlags({ editorial_protocol_enabled: false }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-recovery',
+    label: 'Editorial Protocol — Recovery',
+    driver: 'recoveringEngine (68) → stage Recovery; 2 of 8 units logged → first two steps complete; riskTimer 15 → the canonical clock',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 2, ozConsumedToday: 24, urineSignal: 3 }),
+      engineOutput: recoveringEngine(),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-maintain',
+    label: 'Editorial Protocol — Maintain',
+    driver: 'balancedEngine (76) → stage Maintain; the containment description renders verbatim',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 4, ozConsumedToday: 48, urineSignal: 3 }),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-peak',
+    label: 'Editorial Protocol — Peak Support',
+    driver: 'peakEngine (94) → stage Peak Support; riskTimer 45',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 6, ozConsumedToday: 72, urineSignal: 2 }),
+      engineOutput: peakEngine(),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-depletion',
+    label: 'Editorial Protocol — Depletion Correction',
+    driver: 'depletedEngine (38) → stage Depletion Correction; 1 unit logged; riskTimer 8',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 1, ozConsumedToday: 12, urineSignal: 6 }),
+      engineOutput: depletedEngine(),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-complete',
+    label: 'Editorial Protocol — Plan complete',
+    driver: 'unitsConsumedToday = dailyTarget (8) → every step complete; the gauge is full and the checklist says so in words',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({ unitsConsumedToday: 8, ozConsumedToday: 96, urineSignal: 2 }),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-protocol-sparse',
+    label: 'Editorial Protocol — Sparse day',
+    driver: 'nothing logged, no urine signal, no biometrics, ozTarget 0 → no step complete, hydration block omitted (no invented denominator), signals empty sentence',
+    surface: 'editorialProtocol',
+    appState: baseAppState({
+      userState: baseUserState({
+        unitsConsumedToday: 0,
+        aforceUnitsToday: 0,
+        ozConsumedToday: 0,
+        ozTarget: 0,
+        urineSignal: 0,
+        complianceStreak: 0,
+        biometrics: undefined,
+        appleHealth: undefined,
+      }),
+      featureFlags: baseFlags({ editorial_protocol_enabled: true }),
+    }),
   },
   // ─── E3 acceptance matrix — Editorial Moments (founder ruling 2026-08-29).
   // Same momentsFixture idiom as the legacy 'moments'/'momentDetail' surfaces,

@@ -19,15 +19,27 @@ import { WEB_TOP_PADDING, WEB_BOTTOM_PADDING, TAB_BAR_HEIGHT } from '@/constants
 import { RecoveryCircleChip } from '@/components/protocol/RecoveryCircleChip';
 import { useRecoverySnapshotFromStore } from '@/services/useRecoverySnapshot';
 import { ProtocolScreenV2 } from '@/components/protocol/ProtocolScreenV2';
+import { EditorialProtocolScreen } from '@/components/editorial/protocol/EditorialProtocolScreen';
 
 /**
- * Protocol route — renders the Phase 2 redesign when `spec_protocol` is on,
- * else the legacy screen below (unchanged). Flipping the flag is the go-live
- * switch; nothing changes for users until then.
+ * Protocol route — a THREE-WAY seam (E4, founder decisions 2026-08-30).
+ *
+ * `editorial_protocol_enabled` renders the Editorial OS "Brief"; otherwise
+ * the existing two-way switch is untouched: `spec_protocol` selects the
+ * Phase 2 redesign, else the legacy screen below. Founder Decision 4 keeps
+ * BOTH as rollback branches for the duration of the Editorial migration —
+ * legacy is retired only after acceptance and soak, in its own PR.
  */
 export default function ProtocolScreen() {
   const { state } = useAppStore();
-  return state.featureFlags.spec_protocol ? <ProtocolScreenV2 /> : <ProtocolScreenLegacy />;
+  const flags = state.featureFlags;
+  return flags.editorial_protocol_enabled ? (
+    <EditorialProtocolScreen />
+  ) : flags.spec_protocol ? (
+    <ProtocolScreenV2 />
+  ) : (
+    <ProtocolScreenLegacy />
+  );
 }
 
 function ProtocolScreenLegacy() {
