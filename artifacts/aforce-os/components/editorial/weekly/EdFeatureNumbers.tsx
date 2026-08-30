@@ -25,8 +25,11 @@ import { EdNumber } from '../index';
 export interface FeatureNumber {
   /** Null when the source did not answer — prints as the em dash. */
   value: number | null;
-  /** Unit furniture, e.g. "DAY STREAK". EdNumber speaks it as the caption. */
+  /** Caption furniture, e.g. "CURRENT STREAK". EdNumber speaks it. */
   label: string;
+  /** Optional inline unit ("days") — set on the value, not the caption, so a
+   *  two-word caption never wraps under its own number. */
+  unit?: string;
   testID?: string;
 }
 
@@ -38,7 +41,7 @@ export function EdFeatureNumbers({ numbers }: { numbers: FeatureNumber[] }) {
         // reading" label for an unmeasured value), so this wrapper carries
         // only layout — nesting a second accessible node would flatten it.
         <View key={n.label} style={styles.cell} testID={n.testID}>
-          <EdNumber value={n.value} role="numberFeature" caption={n.label} />
+          <EdNumber value={n.value} unit={n.unit} role="numberFeature" caption={n.label} />
         </View>
       ))}
     </View>

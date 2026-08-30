@@ -33,6 +33,17 @@ function shortDayUpper(iso: string, locale?: string): string | null {
 }
 
 /**
+ * A single day as short editorial furniture — "AUG 4".
+ *
+ * The same UTC-anchored short form the live weekly surface uses for its
+ * timeline, exported so a screen-reader label never has to speak a raw ISO
+ * string ("2026-08-04") where a sighted reader sees a weekday.
+ */
+export function featureShortDate(iso: string, locale?: string): string | null {
+  return shortDayUpper(iso, locale);
+}
+
+/**
  * The reported window as editorial period furniture — "AUG 2 – AUG 8".
  *
  * Returns `null` when either boundary is unparseable: the masthead then renders

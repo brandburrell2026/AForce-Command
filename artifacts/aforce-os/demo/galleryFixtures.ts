@@ -896,14 +896,14 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
   {
     id: 'editorial-weekly-feature',
     label: 'Editorial Weekly — The Feature',
-    driver: 'buildWeeklyReviewInputs: week Aug 2-8, streak 5, 7 tracked days, 5 wins, PA 47->44 over 8 days',
+    driver: 'buildWeeklyReviewInputs: week Aug 2-8; 7 tracked days, 5 wins, PA 47->44 over 8 days; habit streak 10 (daily opens Aug 2-11, from the habitVelocity section — NOT complianceStreak)',
     surface: 'editorialWeekly',
     weeklyInputs: buildWeeklyReviewInputs(),
   },
   {
     id: 'editorial-weekly-sparse',
     label: 'Editorial Weekly — Sparse week',
-    driver: 'two rollup days, one win, no PA series: the pull numbers print measured values, the PA chart falls to its collecting posture',
+    driver: 'two rollup days, one win, and a ONE-point PA series: the pull numbers print measured values, and the PA chart falls to its collecting posture because a single reading is not a trend',
     surface: 'editorialWeekly',
     weeklyInputs: buildWeeklySparseInputs(),
   },
@@ -1012,9 +1012,10 @@ function buildWeeklySparseInputs(): WeeklyV3Inputs {
       pctTimeRecovering: 35,
       pctTimeDepleted: 15,
     })) as JournalRollup[],
-    // A SINGLE snapshot: `performanceAgeBarAxis` needs ≥2 points, so the chart
-    // correctly falls back to `pa_collecting` rather than drawing a trend from
-    // one reading.
+    // A SINGLE snapshot. `performanceAgeBarAxis` still returns an axis here
+    // (it returns null only for an EMPTY series) — it is the screen's
+    // `bars.length >= 2` gate that correctly falls back to `pa_collecting`
+    // rather than drawing a trend from one reading.
     paSnapshots: [{ dayIndex: dayIdx('2026-08-10T00:00:00.000Z'), performanceAge: 45 }],
     paResult: {
       status: 'provisional',

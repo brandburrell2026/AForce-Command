@@ -106,9 +106,18 @@ describe('editorial tokens — brand fidelity and WCAG contrast on each stock', 
   // 4.5:1 text floor AND below the 3:1 graphical floor. That is why founder
   // Decision D1 withholds positive hue from the paper register entirely; this
   // test is the lock that makes the gap visible instead of silent.
-  it('the positive state token is measured on BOTH stocks — and fails paper, by measurement', () => {
+  it('the positive state token meets AA on the stock it actually ships on', () => {
+    // edPositive shipped on three editorial screens with NO contrast coverage
+    // on either stock. On black it clears the text floor comfortably.
     expect(contrast(edPositive, edStock.black)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(edPositive, edStock.paper)).toBeLessThan(3);
+    // It measures ~2.48:1 on paper — below the 4.5:1 text floor and below even
+    // the 3:1 graphical floor — which is why founder Decision D1 withholds
+    // positive hue from the paper register. The BAN lives in
+    // editorialWeeklyLaw.test.ts (the layer may not reference edPositive at
+    // all). Deliberately NOT asserted as `toBeLessThan(3)` here: that would
+    // lock the defect in and fail the moment anyone darkens the token to fix
+    // it, which is a remediation this lock must never forbid.
+    expect(contrast(edPositive, edStock.paper)).toBeGreaterThan(1);
   });
 
   it('hairline rules are visible but subordinate (below text contrast)', () => {

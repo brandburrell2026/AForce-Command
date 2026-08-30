@@ -54,6 +54,10 @@ const strip = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|\s)\/\/[^\n]*/g, '$1');
 const sources = () => walk(ED_WEEKLY).map((f) => ({ file: relative(AOS, f), src: strip(read(f)) }));
 const screen = () => strip(read(join(ED_WEEKLY, 'EditorialWeeklyScreen.tsx')));
+/** The screen WITHOUT its import block. Six "keeps X" locks were satisfiable
+ *  by the import line alone — a migration could import a symbol and never use
+ *  it and every one of them stayed green. */
+const body = () => screen().replace(/^\s*import[\s\S]*?from\s+'[^']+';\s*$/gm, '');
 const route = () => strip(read(join(AOS, 'app', 'weekly-report.tsx')));
 const v3 = () => strip(read(join(AOS, 'components', 'insights', 'WeeklyReportV3.tsx')));
 
@@ -124,12 +128,20 @@ describe('D1 — no positive hue on paper (Soursop is 2.48:1 there)', () => {
     }
   });
 
-  it('positive movement is still SAID, not merely coloured', () => {
-    // Removing the hue must not remove the meaning: the direction of the
-    // Performance Age move has to survive as text/glyph + an a11y label.
-    const src = screen();
+  it('positive movement is still SAID and SHOWN, not merely coloured', () => {
+    // Removing the hue must not remove the meaning. Both halves are pinned:
+    // the spoken sentence AND the sighted direction glyph. Checking only the
+    // a11y key names left the visible half completely unlocked.
+    const src = body();
     expect(src).toMatch(/pa_row_a11y_moved/);
     expect(src).toMatch(/pa_row_a11y_current/);
+    // The sighted carrier: a direction glyph chosen by the sign of the delta.
+    expect(src, 'the direction must be visible without colour').toMatch(
+      /paDelta <= 0 \? '▼' : '▲'/,
+    );
+    // …and the provisional qualifier must be folded INTO the grouped label,
+    // because a grouped node's label replaces its children.
+    expect(src).toMatch(/provisional \? t\('reports\.v3\.pa_provisional'\)/);
   });
 });
 
@@ -185,19 +197,19 @@ describe('PARITY — no V3 behaviour is stranded (the E3/E4 P0 class)', () => {
     // This screen is not a pure reader. usePerformanceAge appends one
     // idempotent Performance Age event per day; for a member whose only visit
     // is this screen, dropping it stops the series accruing altogether.
-    expect(s()).toMatch(/usePerformanceAge\(\)/);
+    expect(body(), 'imported but never called is the same as dropped').toMatch(/usePerformanceAge\(\)/);
   });
 
   it('reads the command ledger — the sole feed for the Performance Age chart', () => {
     // The single most dangerous line to drop: NO test anywhere pinned this on
     // V3, so losing it leaves the whole suite green while the chart silently
     // degrades to its collecting posture.
-    const src = s();
+    const src = body();
     expect(src).toMatch(/ledgerToPerformanceAgeSnapshots\(\s*getCommandLedgerState\(\)\.events\s*\)/);
   });
 
   it('keeps BOTH remaining sources and the single-fetch retry idiom', () => {
-    const src = s();
+    const src = body();
     expect(src.match(/getAnalyticsSnapshot\(/g)?.length ?? 0).toBe(1);
     expect(src.match(/fetchJournalRollups\(/g)?.length ?? 0).toBe(1);
     // One loader, re-run by a nonce — never a second divergent fetch path.
@@ -238,7 +250,7 @@ describe('PARITY — no V3 behaviour is stranded (the E3/E4 P0 class)', () => {
   });
 
   it('keeps the Performance Age disclaimer wherever the age is shown', () => {
-    expect(s()).toMatch(/PERFORMANCE_AGE_DISCLAIMER/);
+    expect(body(), 'the disclosure must be RENDERED, not merely imported').toMatch(/\{PERFORMANCE_AGE_DISCLAIMER\}/);
   });
 
   it('keeps the fixture short-circuit so the gallery performs no I/O', () => {
@@ -249,7 +261,7 @@ describe('PARITY — no V3 behaviour is stranded (the E3/E4 P0 class)', () => {
 
   it('keeps the guarded back idiom (Weekly is a PUSHED route, unlike Protocol)', () => {
     // EdReturn owns the guard; the screen must actually mount it.
-    expect(s()).toMatch(/EdReturn/);
+    expect(body(), 'EdReturn must be MOUNTED, not just imported').toMatch(/<EdReturn/);
     const ret = strip(read(join(AOS, 'components', 'editorial', 'moments', 'EdReturn.tsx')));
     expect(ret).toMatch(/canGoBack\(\)\s*\?\s*router\.back\(\)\s*:\s*router\.replace/);
   });
@@ -278,6 +290,13 @@ describe('PAPER — the first surface to turn the stock', () => {
       if (!/edInkFor\(/.test(src)) continue;
       expect(src, `${file} — this screen's stock is paper`).not.toMatch(/edInkFor\('black'\)/);
     }
+  });
+
+  it('overrides the app-wide LIGHT status bar, which is illegible on paper', () => {
+    // app/_layout.tsx sets <StatusBar style="light" /> globally. Correct on the
+    // black stock; on paper the system glyphs land at ~1.3:1.
+    const src = body();
+    expect(src.match(/<StatusBar style="dark" \/>/g)?.length ?? 0).toBe(2);
   });
 
   it('the paper background comes from the token, never a literal', () => {
@@ -370,12 +389,16 @@ describe('HONEST ABSENCE — a dash is a claim about our data, a zero about the 
     expect(screen()).toMatch(/rollupsUnavailable \|\| model\.daysTracked === 0\s*\?\s*'—'/);
   });
 
-  it('recovery keeps its hardcoded collecting posture — it never earns a number', () => {
-    const src = screen();
-    expect(src).toMatch(/reports\.v3\.collecting/);
-    expect(src, 'recovery has no persisted series anywhere in the app').not.toMatch(
-      /recovery(Score|Value|Trend)\s*=/,
-    );
+  it('recovery keeps its collecting posture — it never earns a number', () => {
+    // Scoped to the recovery block. The unscoped form matched
+    // `reports.v3.collecting` in the HABIT block and passed even with the
+    // recovery row deleted outright.
+    const flat = screen().replace(/\s+/g, ' ');
+    const block = /editorial-weekly-recovery[\s\S]*?<\/View>/.exec(flat)?.[0] ?? '';
+    expect(block, 'the recovery row must exist').not.toBe('');
+    expect(block).toMatch(/reports\.v3\.tile_recovery/);
+    expect(block).toMatch(/reports\.v3\.collecting/);
+    expect(block, 'recovery has no persisted series anywhere in the app').not.toMatch(/\{[^}]*\bmodel\.[a-z]/i);
   });
 
   it('the Performance Age block is omitted entirely without a real current age', () => {
@@ -390,6 +413,16 @@ describe('HONEST ABSENCE — a dash is a claim about our data, a zero about the 
 
   it('the timeline is omitted rather than drawn empty', () => {
     expect(screen()).toMatch(/timeline\.length > 0/);
+  });
+
+  it('the timeline speaks a formatted date, never a raw ISO string', () => {
+    // `d.date` is "2026-08-04"; spoken verbatim a screen reader reads the
+    // digits where a sighted reader sees "TUE".
+    const src = body();
+    expect(src).toMatch(/date: featureShortDate\(d\.date/);
+    expect(src, 'the raw ISO string must not be the spoken value').not.toMatch(
+      /date: d\.date,/,
+    );
   });
 });
 
@@ -425,10 +458,15 @@ describe('RESOLVER REUSE — the honest-data rules stay enforced, never re-deriv
 // ————————————————————————————————————————————————— D5 / D6 scope guards
 
 describe('D5 + D6 — the scope boundary holds', () => {
-  it('D5 — the live V3 analytics asymmetry is left for its own lane', () => {
-    // Deliberate: fixing it here would bury the fix behind a flag that is
-    // false, leaving production wrong. The shape must therefore be UNCHANGED.
-    expect(v3()).toMatch(/getAnalyticsSnapshot\(\)\.catch\(\(\) => null\)/);
+  it('D5 — E5 adds no second analytics path and does not diverge from V3', () => {
+    // D5 is a SCOPE decision, not an invariant: the analytics-failure
+    // asymmetry is a defect on the live surface and the founder authorized a
+    // separate lane to fix it. This lock therefore pins what E5 owes —
+    // exactly one analytics read, no competing fetch path — and deliberately
+    // does NOT pin V3's current shape, which would fail that very lane.
+    const src = screen();
+    expect(src.match(/getAnalyticsSnapshot\(/g)?.length ?? 0).toBe(1);
+    expect(src, 'no second, divergent loader').not.toMatch(/useEffect\([\s\S]*getAnalyticsSnapshot[\s\S]*getAnalyticsSnapshot/);
   });
 
   it('D6 — no global stale banner; lastRefreshStale is not threaded here', () => {
@@ -510,8 +548,17 @@ describe('A11Y — the standing rules carry forward onto paper', () => {
     const src = screen();
     // Each evidence row is label + value + caption in sibling Text nodes;
     // ungrouped, VoiceOver reads three unrelated fragments.
-    expect(src.match(/accessible\b/g)?.length ?? 0).toBeGreaterThanOrEqual(4);
-    expect(src.match(/accessibilityLabel=/g)?.length ?? 0).toBeGreaterThanOrEqual(4);
+    // Named, not counted: a >= threshold below the real number lets groups be
+    // deleted silently. Each row that speaks as a unit is pinned by its testID.
+    for (const id of [
+      'editorial-weekly-recovery',
+      'editorial-weekly-hydration-days',
+      'editorial-weekly-habit',
+      'editorial-weekly-timeline-',
+    ]) {
+      expect(src, `${id} must exist`).toContain(id);
+    }
+    expect(src.match(/accessibilityLabel=/g)?.length ?? 0).toBeGreaterThanOrEqual(6);
   });
 
   it('no weekly component hand-rolls a font cap or a raw size', () => {

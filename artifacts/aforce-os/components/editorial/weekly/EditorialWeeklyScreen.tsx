@@ -51,6 +51,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { StatusBar } from 'expo-status-bar';
 
 import { AFScreen } from '@/components/ui';
 import { getAnalyticsSnapshot } from '@/services/analytics';
@@ -74,7 +75,7 @@ import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 import { EdCaption, EdEvidenceLine, EdKicker, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from '../moments/EdReturn';
 import { EdFeatureNumbers } from './EdFeatureNumbers';
-import { featureDateRange } from './editorialWeeklyPresentation';
+import { featureDateRange, featureShortDate } from './editorialWeeklyPresentation';
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const MS_PER_DAY = 86_400_000;
@@ -155,6 +156,10 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
   if (!model) {
     return (
       <EdSurface stock="paper" style={styles.fill}>
+        {/* The app sets a LIGHT status bar globally (app/_layout.tsx). On the
+            black stock that is correct; on paper the system glyphs land at
+            ~1.3:1. expo-status-bar is declarative and last-mount-wins. */}
+        <StatusBar style="dark" />
         {/* AFScreen paints af.canvas (#0D0D0D) on its own shell. On the black
             stock that is invisible; on paper it would cover the sheet entirely
             and leave paper ink at ~1.1:1 — the E2 invisible-text defect at
@@ -173,7 +178,9 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             accessibilityLiveRegion="polite"
             testID="editorial-weekly-loading"
           >
-            <EdRule style={styles.spacedRule} />
+            <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 20 }]}>
+              {t('reports.v3.loading_a11y')}
+            </Text>
             <EdRule style={styles.spacedRule} />
             <EdRule style={styles.spacedRule} />
           </View>
@@ -184,7 +191,6 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
 
   const { report, performanceAge: paView } = model;
   const habit = getWeeklyReportSection(report, 'habitVelocity');
-  const recovery = getWeeklyReportSection(report, 'recovery');
   const nextFocus = getWeeklyReportSection(report, 'nextWeekFocus');
   const habitStreak = Number((habit.params as { streak?: number } | undefined)?.streak ?? 0);
 
@@ -208,6 +214,7 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
 
   return (
     <EdSurface stock="paper" style={styles.fill}>
+      <StatusBar style="dark" />
       {/* See the loading branch: the stock is restated on the AFScreen shell
           because AFScreen paints af.canvas over whatever it sits inside. */}
       <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
@@ -256,7 +263,8 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             numbers={[
               {
                 value: habitStreak,
-                label: `${t('reports.v3.tile_streak')}\n${t('reports.v3.days_unit')}`,
+                label: t('reports.v3.tile_streak'),
+                unit: t('reports.v3.days_unit'),
                 testID: 'editorial-weekly-streak',
               },
               {
@@ -328,14 +336,20 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
               <EdCaption text={t('reports.v3.pa_label')} />
               <View
                 accessible
-                accessibilityLabel={
+                accessibilityLabel={[
                   paView.previousAge != null
                     ? t('reports.v3.pa_row_a11y_moved', {
                         previous: paView.previousAge,
                         current: paView.currentAge,
                       })
-                    : t('reports.v3.pa_row_a11y_current', { current: paView.currentAge })
-                }
+                    : t('reports.v3.pa_row_a11y_current', { current: paView.currentAge }),
+                  // A grouped node's label REPLACES its children, so the
+                  // qualifier rendered beside the numbers has to be folded in
+                  // or it is never announced at all.
+                  paDelta == null && paView.provisional ? t('reports.v3.pa_provisional') : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 style={styles.paRow}
               >
                 {paView.previousAge != null ? (
@@ -427,7 +441,7 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
                     accessible
                     accessibilityLabel={t('reports.v3.timeline_day_a11y', {
                       day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
-                      date: d.date,
+                      date: featureShortDate(d.date, i18n.language) ?? d.date,
                       score: d.score,
                     })}
                     style={styles.timelineDay}
