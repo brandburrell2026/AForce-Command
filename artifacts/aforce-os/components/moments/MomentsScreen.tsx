@@ -48,7 +48,7 @@ export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoment
       <AFTopBar
         eyebrow={t('moments.overview_eyebrow')}
         title={t('moments.overview_title')}
-        onBack={() => router.back()}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         actions={
           calendarOn
             ? [{ icon: 'calendar', onPress: () => router.push('/calendar-settings'), label: t('moments.calendar.title') }]
@@ -132,20 +132,26 @@ function MomentOverviewCard({
   const accent = posture === 'active' ? af.green : accentForType(moment.type);
   const eta = startsIn(moment.startAtIso, nowIso);
   const active = posture === 'active';
+  // Resolve the displayable title ONCE. The accessibility label below used to
+  // interpolate the raw `moment.title` while the visible Text masked it — and
+  // because AFCard with onPress renders a Pressable (an accessibility
+  // element), that label REPLACES its children for a screen reader, so the
+  // masked Text was never spoken and the private title was.
+  const title = moment.masked ? t('moments.private_event') : moment.title;
 
   return (
     <View style={styles.cardWrap}>
       <View style={[styles.cardRail, { backgroundColor: accent }]} />
       <AFCard
         onPress={() => router.push(`/moment/${moment.id}`)}
-        accessibilityLabel={`${clockLabel(moment.startAtIso)} ${moment.title}`}
+        accessibilityLabel={`${clockLabel(moment.startAtIso)} ${title}`}
         style={styles.card}
       >
         <View style={styles.cardHeader}>
           <View style={styles.cardHeadLeft}>
             <Text style={styles.cardTime}>{clockLabel(moment.startAtIso)}</Text>
             <Text style={styles.cardTitle} numberOfLines={1}>
-              {moment.masked ? t('moments.private_event') : moment.title}
+              {title}
             </Text>
           </View>
           {eta ? (
