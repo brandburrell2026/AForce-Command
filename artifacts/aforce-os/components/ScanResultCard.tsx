@@ -18,6 +18,7 @@ import Animated, {
 import { Icon } from './Icon';
 
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme/afTokens';
 import { afMotion } from '@/theme/afTokens';
 import type { ScanResult } from '@/types/scan';
 import { AFStatPair } from './ui/AFStatPair';
@@ -28,6 +29,10 @@ const VERDICT_COLOR: Record<ScanResult['verdict'], string> = {
   acceptable: Colors.states.BALANCED.primary,
   suboptimal: Colors.states.RECOVERING.primary,
   avoid:      Colors.states.DEPLETED.primary,
+  // Evidence state, not a judgement — muted, never a warning hue (R3).
+  // Must be a HEX token: every use below composes `${color}55`-style
+  // hex+alpha templates, which silently break on an rgba() value.
+  uncomparable: af.textTertiary,
 };
 
 // verdict → hydroScan2.cards.verdict_* key suffix (translated at render).
@@ -37,6 +42,7 @@ const VERDICT_KEY: Record<ScanResult['verdict'], string> = {
   acceptable: 'verdict_acceptable',
   suboptimal: 'verdict_suboptimal',
   avoid:      'verdict_avoid',
+  uncomparable: 'verdict_uncomparable',
 };
 
 interface Props {
@@ -88,22 +94,24 @@ export function ScanResultCard({ result }: Props) {
       </View>
 
       <View style={styles.fitRow}>
-        <Text style={[styles.fitScore, { color }]}>{result.currentFitScore}</Text>
+        <Text style={[styles.fitScore, { color }]}>{result.currentFitScore ?? '—'}</Text>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={styles.fitLabel}>{t('hydroScan2.cards.fit_score', { state: result.evaluatedAgainstState })}</Text>
           <Text style={styles.fitHeadline}>{result.recommendation.headline}</Text>
         </View>
       </View>
 
-      <AFStatPair
-        label={t('hydroScan2.cards.efficiency')}
-        value={result.efficiencyLabel}
-        direction="column"
-        style={styles.efficiencyRow}
-        labelStyle={styles.fitLabel}
-        valueStyle={[styles.efficiencyText, { color }]}
-        testID="scan-efficiency-row"
-      />
+      {result.efficiencyLabel ? (
+        <AFStatPair
+          label={t('hydroScan2.cards.efficiency')}
+          value={result.efficiencyLabel}
+          direction="column"
+          style={styles.efficiencyRow}
+          labelStyle={styles.fitLabel}
+          valueStyle={[styles.efficiencyText, { color }]}
+          testID="scan-efficiency-row"
+        />
+      ) : null}
     </Animated.View>
   );
 }

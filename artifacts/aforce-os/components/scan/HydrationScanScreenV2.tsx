@@ -868,11 +868,15 @@ export function HydrationScanScreenV2() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.historyTitle} numberOfLines={1}>{s.productName}</Text>
                     <Text style={styles.historyMeta} numberOfLines={1}>
-                      {formatRelativeTime(s.loggedAt, t)} · {t('hydroScan2.v2.history_fit', { score: s.fitScore })}
+                      {s.fitScore == null
+                        ? formatRelativeTime(s.loggedAt, t)
+                        : `${formatRelativeTime(s.loggedAt, t)} · ${t('hydroScan2.v2.history_fit', { score: s.fitScore })}`}
                     </Text>
                   </View>
                   <Text style={[styles.historyVerdict, { color: toTextSafeColor(verdictColor(s.verdict)) }]}>
-                    {s.verdict.toUpperCase()}
+                    {/* One state, one name: the same key the result-card pill
+                        uses. Raw enum only for unknown historical values. */}
+                    {t(`hydroScan2.cards.verdict_${s.verdict}`, { defaultValue: s.verdict.toUpperCase() })}
                   </Text>
                 </View>
               ))}

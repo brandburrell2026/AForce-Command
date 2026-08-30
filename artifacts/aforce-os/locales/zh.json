@@ -1139,6 +1139,7 @@
       "verdict_acceptable": "ACCEPTABLE",
       "verdict_suboptimal": "SUBOPTIMAL",
       "verdict_avoid": "AVOID",
+      "verdict_uncomparable": "NOT COMPARED",
       "scan_identified": "SCAN IDENTIFIED",
       "fit_score": "FIT SCORE — {{state}}",
       "efficiency": "EFFICIENCY",

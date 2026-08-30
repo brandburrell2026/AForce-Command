@@ -37,7 +37,7 @@ interface ScanResponse {
   productName: string;
   brand: string | null;
   verdict: string;
-  fitScore: number;
+  fitScore: number | null;
   scoreBefore: number;
   scoreAfter: number;
   performanceState: string;
@@ -171,7 +171,9 @@ router.post("/scans", requireAuth, async (req, res) => {
       category: typeof body.category === "string" ? body.category : null,
       isAForce: body.isAForce === true,
       verdict: typeof body.verdict === "string" ? body.verdict : "unknown",
-      currentFitScore: typeof body.fitScore === "number" ? body.fitScore : 0,
+      // null-preserving (client ruling R3/D5): an uncomparable scan has NO
+      // fit — coercing to 0 manufactured a stored, displayed measurement.
+      currentFitScore: typeof body.fitScore === "number" ? body.fitScore : null,
       efficiency: typeof body.efficiency === "number" ? body.efficiency : 0,
       efficiencyLabel:
         typeof body.efficiencyLabel === "string" ? body.efficiencyLabel : "",

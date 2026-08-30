@@ -44,7 +44,8 @@ export interface HydroScanInsert {
   category: string | null;
   isAForce: boolean;
   verdict: string;
-  currentFitScore: number;
+  /** null = uncomparable — no fit exists (R3/D5). */
+  currentFitScore: number | null;
   efficiency: number;
   efficiencyLabel: string;
   evaluatedAgainstState: string;

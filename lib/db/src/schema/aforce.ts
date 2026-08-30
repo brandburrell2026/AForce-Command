@@ -593,8 +593,12 @@ export const aforceHydroScans = pgTable(
     brand: text("brand"),
     category: text("category"),
     isAForce: boolean("is_aforce").notNull().default(false),
-    verdict: text("verdict").notNull(), // optimal | strong | acceptable | suboptimal | avoid
-    currentFitScore: integer("current_fit_score").notNull(),
+    verdict: text("verdict").notNull(), // optimal | strong | acceptable | suboptimal | avoid | uncomparable
+    // Nullable (client ruling R3/D5, 2026-08-30): an uncomparable scan has NO
+    // fit. The old NOT NULL forced the route to coerce null → 0, storing a
+    // fabricated measurement. Requires `drizzle-kit push` at deploy
+    // (ALTER ... DROP NOT NULL — non-destructive).
+    currentFitScore: integer("current_fit_score"),
     efficiency: real("efficiency").notNull(),
     efficiencyLabel: text("efficiency_label").notNull().default(""),
     evaluatedAgainstState: text("evaluated_against_state").notNull(),

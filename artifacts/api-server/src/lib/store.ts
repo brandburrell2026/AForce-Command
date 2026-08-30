@@ -16,7 +16,7 @@ export interface ScanRecord {
   productName: string;
   brand: string | null;
   verdict: string;
-  fitScore: number;
+  fitScore: number | null;
   scoreBefore: number;
   scoreAfter: number;
   performanceState: string;

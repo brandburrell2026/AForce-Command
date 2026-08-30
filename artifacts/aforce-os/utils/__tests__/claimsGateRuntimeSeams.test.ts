@@ -93,6 +93,7 @@ describe('C6 buildScanCoachScript() — strict surface with external interpolati
       recommendation: { command: 'Take 1 now.' },
     } as never;
     const script = buildScanCoachScript(result);
+    if (!script) throw new Error('expected a coach script for this fixture'); // RP-1: nullable for uncomparable
     expect(script.headline).toBe('Scan complete.');
     expect(script.transcript).toBe('');
   });
@@ -115,6 +116,7 @@ describe('C6 buildScanCoachScript() — strict surface with external interpolati
       recommendation: { command: 'Take 1 now.' },
     } as never;
     const script = buildScanCoachScript(result);
+    if (!script) throw new Error('expected a coach script for this fixture'); // RP-1: nullable for uncomparable
     expect(script.headline).toContain('AForce Watermelon');
     expect(script.transcript.length).toBeGreaterThan(0);
   });
