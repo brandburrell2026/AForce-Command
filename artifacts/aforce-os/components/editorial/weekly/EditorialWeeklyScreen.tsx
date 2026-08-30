@@ -38,6 +38,15 @@
  * one would be the class of fabrication Ruling R3 bans. The Feature therefore
  * carries the real title in the display voice with the reported period above
  * it. Flagged for a founder ruling; not invented here.
+ *
+ * OMITTED, DELIBERATELY — the TOP COMMAND banner. V3 renders it, but it has no
+ * command-usage instrumentation anywhere in the app, so its posture is
+ * permanently 'awaiting': a banner whose only content is that it has nothing to
+ * report. The approved comp does not include it, and a standing "nothing yet"
+ * panel is the opposite of what the Feature register is for. Nothing is
+ * stranded by this — the section has no producer and no data, only a
+ * placeholder — but it IS a V3 element this surface does not carry, so it is
+ * recorded here rather than dropped silently. Flagged for a founder ruling.
  */
 import React from 'react';
 import {
