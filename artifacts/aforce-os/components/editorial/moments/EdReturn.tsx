@@ -8,6 +8,7 @@
  */
 import React from 'react';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, type TextStyle } from 'react-native';
 
 import { Icon } from '@/components/Icon';
@@ -25,13 +26,17 @@ export function EdReturn({
   fallback?: '/' | '/moments';
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const ink = useEdInk();
   const label = returnLabel(now);
   return (
     <Pressable
       onPress={() => (router.canGoBack() ? router.back() : router.replace(fallback))}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      /* The date alone names WHERE, not WHAT: a reader announcing
+         "SAT · AUG 29, button" says nothing about going back. The existing
+         common.back string carries the purpose. */
+      accessibilityLabel={`${t('common.back')}, ${label}`}
       hitSlop={8}
       style={styles.wrap}
       testID="editorial-return"

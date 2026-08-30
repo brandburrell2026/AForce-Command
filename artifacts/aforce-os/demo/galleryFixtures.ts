@@ -605,7 +605,7 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
     id: 'editorial-moment-story',
     label: 'Editorial Moment — The Performance Story',
     driver:
-      'fixture: demo-investor-meeting @ 2026-08-12T17:38Z, rec routed through guardMomentRecommendation (the production path) — four charter-locked chapters with one live.',
+      'fixture: demo-investor-meeting @ 2026-08-12T17:38Z, rec routed through guardMomentRecommendation (the production path) — the four charter-locked chapters as the real window math resolves them at that clock (PAUSE + HYDRATE done, LOCK IN and PERFORM still ahead; the dead gap between best-before and start−15 is production truth, faithfully rendered).',
     surface: 'editorialMomentDetail',
     momentsFixture: {
       moments: buildDemoMoments('2026-08-12T17:38:00.000Z'),

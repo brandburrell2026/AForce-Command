@@ -199,6 +199,59 @@ describe('NONE — absent data stays absent', () => {
   });
 });
 
+describe('PARITY FIXES — pinned from the E3 adversarial review', () => {
+  it('the DR-012 prep-feedback ask survives the migration (the learning corpus keeps its only writer)', () => {
+    const s = story();
+    expect(s).toMatch(/recordMomentFeedback/);
+    expect(s).toMatch(/shouldAskFeedback/);
+    expect(s).toMatch(/moments_learning_enabled/);
+    // Same guards as production: learning on, not read-only, selective ask.
+    expect(s).toMatch(/learningOn &&\s*!readOnly/);
+  });
+
+  it('both Wave-5 announcement guards are kept: iOS-only and mount-seeded', () => {
+    const s = story();
+    expect(s).toMatch(/Platform\.OS !== 'ios'/);
+    expect(s).toMatch(/mountedRef/);
+  });
+
+  it('the priority row keeps best-before and the OPTIONAL secondary action', () => {
+    const d = day();
+    expect(d).toMatch(/moments\.best_before/);
+    expect(d).toMatch(/moments\.optional_label/);
+    expect(d).toMatch(/rec\.secondaryAction/);
+  });
+
+  it('the countdown keeps the label that names it', () => {
+    expect(story()).toMatch(/moments\.starts_in/);
+  });
+
+  it('spine rows compose a FULL accessible label — the Pressable groups its children', () => {
+    const d = day();
+    expect(d).toMatch(/accessibilityLabel=\{a11yLabel\}/);
+    // The composed label carries state and window, not just time + title.
+    expect(d).toMatch(/const a11yLabel = \[/);
+    expect(d).toMatch(/stateWord/);
+    expect(d).toMatch(/prepText/);
+  });
+
+  it('the return control announces its purpose, not only the date', () => {
+    expect(stripComments(read(join(ED_MOMENTS, 'EdReturn.tsx')))).toMatch(
+      /accessibilityLabel=\{`\$\{t\('common\.back'\)\}/,
+    );
+  });
+
+  it('both surfaces expose a header landmark', () => {
+    for (const src of [day(), story()]) {
+      expect(src).toMatch(/accessibilityRole="header"/);
+    }
+  });
+
+  it('display-voice text carries the house font-scale cap', () => {
+    expect(story()).toMatch(/maxFontSizeMultiplier=\{AF_MAX_DISPLAY_FONT_SCALE\}/);
+  });
+});
+
 describe('A11Y — the E2 rules carry forward', () => {
   it('never disables font scaling, never manufactures caps', () => {
     for (const { file, src } of sources()) {

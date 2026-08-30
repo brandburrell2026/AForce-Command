@@ -16,10 +16,18 @@
  *       to mark, and the mark is never introduced to increase its own use.
  *  CMD— the live row's action renders the guarded label verbatim.
  *
- * Everything the legacy overview shows is preserved (§ information
- * classification in the PR): summary counts, PREPARE MY DAY, the priority
- * moment's prep window + action + WHY THIS, the quiet later rows, the
- * calendar entry behind its legal gate, and the empty/skeleton states.
+ * INFORMATION CARRIED OVER (verified element-by-element against
+ * MomentsScreen in the E3 review): summary counts, PREPARE MY DAY, the
+ * priority moment's prep window + guarded action + best-before + OPTIONAL
+ * secondary + WHY THIS, the quiet later rows, the calendar entry behind its
+ * legal gate, and the empty/skeleton states.
+ *
+ * DELIBERATELY NOT CARRIED OVER (presentation, not truth): the legacy card's
+ * category · importance line and its per-row "Starts in" cell. Both are
+ * restated by the spine itself — the row's own clock and its position on the
+ * day — and the category/importance pair is the one piece of legacy copy that
+ * duplicates what the moment's title and placement already say. Recorded here
+ * so it is a decision, not drift.
  */
 import React from 'react';
 import { useRouter } from 'expo-router';
@@ -120,8 +128,7 @@ export function EditorialMomentsScreen({
             <>
               {/* The day announced, not listed. */}
               <View style={styles.statementWrap}>
-                <EdCaption text={t('moments.up_next')} />
-                <EdStatement style={styles.statement}>
+                <EdStatement style={styles.statement} accessibilityRole="header">
                   {t('moments.overview_summary', { total: summary.total })}
                 </EdStatement>
                 <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 6 }]}>
@@ -141,6 +148,13 @@ export function EditorialMomentsScreen({
                 </Pressable>
               </View>
 
+              {upNext.length > 0 ? (
+                <View style={styles.spineLabel}>
+                  {/* The section label belongs to the list it heads — not to
+                      the summary statement above it. */}
+                  <EdCaption text={t('moments.up_next')} />
+                </View>
+              ) : null}
               {upNext.length > 0 ? (
                 <EdNodeSpine style={styles.spine}>
                   {upNext.map((moment, i) => (
@@ -197,13 +211,34 @@ function SpineMoment({
   const live = state === 'live';
   const title = moment.masked ? t('moments.private_event') : moment.title;
   const action = rec.primaryAction;
+  const stateWord = t(live ? 'moments.do_this_now' : 'moments.do_this');
+  const prepText = `${t('moments.prep_window')} ${prepWindowLabel(rec)}`;
+  // The Pressable groups its children, so the composed label IS the whole
+  // spoken row: time, title, state, window, and — on the priority row — the
+  // action and its best-before. Without this the reader hears only the time
+  // and title while the screen shows four more facts.
+  const a11yLabel = [
+    clockLabel(moment.startAtIso),
+    title,
+    stateWord,
+    prepText,
+    priority ? t(action.labelKey, action.labelParams) : '',
+    priority && action.bestBeforeIso
+      ? t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })
+      : '',
+    priority && rec.secondaryAction
+      ? `${t('moments.optional_label')}: ${t(rec.secondaryAction.labelKey, rec.secondaryAction.labelParams)}`
+      : '',
+  ]
+    .filter((part) => part.trim().length > 0)
+    .join(', ');
 
   return (
     <EdSpineRow state={state}>
       <Pressable
         onPress={() => router.push(`/moment/${moment.id}`)}
         accessibilityRole="button"
-        accessibilityLabel={`${clockLabel(moment.startAtIso)}, ${title}`}
+        accessibilityLabel={a11yLabel}
         style={styles.rowPress}
         testID={`editorial-moment-row-${moment.id}`}
       >
@@ -218,15 +253,29 @@ function SpineMoment({
             {title}
           </Text>
         </View>
-        {/* State is said in words, never carried by the node colour alone. */}
+        {/* The window, with its label. Colour marks the live row but never
+            carries it alone — the node's own form differs, and the composed
+            accessibility label above says the state in words. */}
         <Text style={[edType.micro as TextStyle, { color: live ? edAccent.red : ink.quiet, marginTop: 4 }]}>
-          {t('moments.prep_window')} {prepWindowLabel(rec)}
+          {prepText}
         </Text>
         {priority ? (
-          <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
-            {t(live ? 'moments.do_this_now' : 'moments.do_this')}{' '}
-            {t(action.labelKey, action.labelParams)}
-          </Text>
+          <>
+            <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
+              {stateWord} {t(action.labelKey, action.labelParams)}
+            </Text>
+            {action.bestBeforeIso ? (
+              <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 2 }]}>
+                {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
+              </Text>
+            ) : null}
+            {rec.secondaryAction ? (
+              <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 2 }]}>
+                {t('moments.optional_label')}{' '}
+                {t(rec.secondaryAction.labelKey, rec.secondaryAction.labelParams)}
+              </Text>
+            ) : null}
+          </>
         ) : null}
       </Pressable>
       {priority ? (
@@ -270,7 +319,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'flex-start',
   },
-  spine: { marginTop: 22 },
+  spineLabel: { marginTop: 26 },
+  spine: { marginTop: 10 },
   rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center' },
   rowHead: {
     flexDirection: 'row',

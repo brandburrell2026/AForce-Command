@@ -20,6 +20,10 @@
  *    path, no un-prepare control.
  *  • WHY stays the inline fail-closed caption. The dead WhyThisSheet that
  *    Wave 5 deleted from this surface is NOT resurrected.
+ *  • The DR-012 selective prep-feedback ask is carried over with its exact
+ *    guards — it is the only write path for the Moments learning corpus.
+ *  • Both Wave-5 announcement guards are kept: iOS-only (Android has the
+ *    live region) and mount-seeded (announce on ADVANCE, never on open).
  *  • The И is absent: this surface has no canonical single-token state word.
  *    (The spec's "И flips on confirm" is a motion flourish with no state to
  *    attach to — see the PR's prototype-vs-production conflicts.)
@@ -27,12 +31,30 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  type TextStyle,
+  View,
+} from 'react-native';
 
 import { AFScreen } from '@/components/ui';
 import { markCalendarMomentPrepared } from '@/services/calendarMoments';
 import { cancelMomentNotification } from '@/services/momentNotifications';
 import { updateMoment } from '@/services/momentsStore';
+import {
+  useMomentFeedback,
+  hydrateMomentFeedback,
+  recordMomentFeedback,
+  shouldAskFeedback,
+  type MomentPrepFeedback,
+} from '@/services/momentFeedback';
+import { useFeatureFlags } from '@/store/useAppStore';
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import {
   clockLabel,
   prepWindowLabel,
@@ -90,13 +112,59 @@ export function EditorialMomentDetailScreen({
     : null;
   const activeAnnouncementRef = React.useRef(activeAnnouncement);
   activeAnnouncementRef.current = activeAnnouncement;
+  // Both Wave-5 guards, carried over verbatim from the legacy screen:
+  //  • iOS only — Android already gets the polite live region below, so
+  //    announcing here as well would double-speak every advance.
+  //  • Seed the ref on mount, so the FIRST commit is not treated as an
+  //    advance: the ritual announces when it MOVES, never on open.
+  const mountedRef = React.useRef(false);
   React.useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      announcedStageRef.current = activeStageKey;
+      return;
+    }
+    if (Platform.OS !== 'ios') return;
     if (announcedStageRef.current === activeStageKey) return;
     announcedStageRef.current = activeStageKey;
     if (activeAnnouncementRef.current) {
       AccessibilityInfo.announceForAccessibility(activeAnnouncementRef.current);
     }
   }, [activeStageKey]);
+
+  // DR-012 Ruling 2 — the selective prep-feedback ask. Ported verbatim from
+  // the legacy screen: this is the ONLY write path for the Moments learning
+  // corpus (services/momentFeedback.ts), which feeds deriveLeadAdjustments →
+  // planMomentNotifications. Dropping it would have quietly starved a live
+  // production subsystem the moment this flag flipped.
+  const learningOn = useFeatureFlags().moments_learning_enabled;
+  const feedback = useMomentFeedback();
+  React.useEffect(() => {
+    if (learningOn) void hydrateMomentFeedback();
+  }, [learningOn]);
+  const answered = feedback.find((r) => r.momentId === moment.id);
+  const askFeedback =
+    learningOn &&
+    !readOnly &&
+    (answered != null ||
+      shouldAskFeedback(
+        {
+          momentId: moment.id,
+          importance: moment.importance,
+          prepared,
+          momentStartIso: moment.startAtIso,
+        },
+        feedback,
+        nowIso,
+      ));
+  const giveFeedback = (value: MomentPrepFeedback) => {
+    recordMomentFeedback({
+      momentId: moment.id,
+      momentType: moment.type,
+      feedback: value,
+      atIso: new Date().toISOString(),
+    });
+  };
 
   const confirm = () => {
     if (!prepared && !readOnly) {
@@ -116,16 +184,20 @@ export function EditorialMomentDetailScreen({
           <EdReturn now={new Date(nowIso)} fallback="/moments" />
           <EdRule />
 
-          <EdStatement style={styles.title}>{title}</EdStatement>
+          <EdStatement style={styles.title} accessibilityRole="header">
+            {title}
+          </EdStatement>
+          {/* Mono meta. Every value keeps the label that names it — a bare
+              "22 min" says nothing on its own, in print or to a reader. */}
           <View style={styles.metaRow}>
             <EdCaption text={clockLabel(moment.startAtIso)} />
             {eta ? (
               <EdCaption
-                text={
+                text={`${t('moments.starts_in')} ${
                   eta.hours > 0
                     ? t('moments.in_h_m', { h: eta.hours, m: eta.minutes })
                     : t('moments.in_m', { m: eta.minutes })
-                }
+                }`}
               />
             ) : null}
             <EdCaption text={`${t('moments.prep_window')} ${prepWindowLabel(rec)}`} />
@@ -170,6 +242,7 @@ export function EditorialMomentDetailScreen({
             testID="editorial-moment-im-ready"
           >
             <Text
+              maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
               style={[
                 edType.confirm as TextStyle,
                 { color: prepared ? ink.quiet : ink.primary },
@@ -178,6 +251,36 @@ export function EditorialMomentDetailScreen({
               {prepared ? t('moments.status_completed') : t('moments.im_ready')}
             </Text>
           </Pressable>
+
+          {askFeedback ? (
+            <View style={styles.feedback} testID="editorial-moment-feedback">
+              <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                {t('moments.feedback.title')}
+              </Text>
+              {answered ? (
+                <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 8 }]}>
+                  {t('moments.feedback.thanks')}
+                </Text>
+              ) : (
+                <View style={styles.feedbackRow}>
+                  {(['just_right', 'too_early', 'too_late'] as const).map((k) => (
+                    <Pressable
+                      key={k}
+                      onPress={() => giveFeedback(k)}
+                      accessibilityRole="button"
+                      hitSlop={8}
+                      style={styles.feedbackPill}
+                      testID={`editorial-moment-feedback-${k}`}
+                    >
+                      <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>
+                        {t(`moments.feedback.${k}`)}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+            </View>
+          ) : null}
 
           <View style={styles.folio}>
             <EdEvidenceLine parts={[clockLabel(moment.startAtIso)]} />
@@ -211,6 +314,10 @@ function Chapter({ stage, index }: { stage: RitualStage; index: number }) {
           {chapterNumber(index)}
         </Text>
         <Text
+          /* Display-voice text caps at the house boundary, like every other
+             editorial statement — an oversized single word must never force
+             an iOS mid-word break. */
+          maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
           style={[
             (live ? edType.command : edType.body) as TextStyle,
             { color: done ? ink.quiet : ink.primary, flexShrink: 1 },
@@ -267,6 +374,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,
+  },
+  feedback: { marginTop: 26 },
+  feedbackRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: 10,
+    rowGap: 8,
+    marginTop: 8,
+  },
+  feedbackPill: {
+    minHeight: edRhythm.minTarget,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: edInkFor('black').rule,
+    borderRadius: 2,
   },
   folio: { marginTop: 30 },
 });

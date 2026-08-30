@@ -157,10 +157,15 @@ export function EdStatement({
   children,
   role = 'statement',
   style,
+  accessibilityRole,
 }: {
   children: React.ReactNode;
   role?: 'display' | 'statement' | 'command' | 'confirm';
   style?: TextStyle;
+  /** Pass 'header' when this statement heads its screen — screen-reader
+   *  users navigate by landmark, and an editorial screen with no header
+   *  role has none. */
+  accessibilityRole?: 'header';
 }) {
   const ink = useEdInk();
   // All statement roles are display-voice: they cap at the existing house
@@ -169,6 +174,7 @@ export function EdStatement({
   // caption, and micro keep unlimited Dynamic Type and carry the reading.
   return (
     <Text
+      accessibilityRole={accessibilityRole}
       maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
       style={[edType[role] as TextStyle, { color: ink.primary }, style]}
     >
