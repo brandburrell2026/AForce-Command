@@ -172,6 +172,81 @@ describe('D2 — real date range; no week number, no issue number', () => {
   });
 });
 
+// ————————————————————————————————————————————— DR-014 R1 + R2
+
+describe('DR-014 R1 — no invented weekly headline', () => {
+  it('the display voice carries the REAL report title, not a generated story headline', () => {
+    // R1 (founder ruling 2026-08-30): "Do not invent, synthesize, or
+    // editorialize a weekly headline without an approved canonical source."
+    // The approved comp shows an authored headline ("The week you started
+    // logging"); no module produces one, and asserting a narrative about the
+    // member's week is the fabrication class E2's R3 already bans.
+    const src = body();
+    // The statement is the real title key — not a literal, not a composed
+    // sentence, not a branch over the member's data.
+    expect(src).toMatch(/<EdStatement accessibilityRole="header">\s*\{t\('reports\.v3\.title'\)\}/);
+  });
+
+  it('no weekly component synthesizes headline copy from the member’s data', () => {
+    for (const { file, src } of sources()) {
+      expect(src, `${file} — R1 bans a generated story headline`).not.toMatch(
+        /\bheadline\b|storyLine|buildTitle|weekTitle|narrat/i,
+      );
+    }
+  });
+});
+
+describe('DR-014 R2 — TOP COMMAND stays omitted while its instrumentation is absent', () => {
+  it('the Feature renders no top-command section at all', () => {
+    // R2 (founder ruling 2026-08-30): "Do not render an empty/awaiting section
+    // merely to preserve parity with V3." Top command has no command-usage
+    // instrumentation anywhere in the app, so its posture is permanently
+    // 'awaiting' — a panel whose only content is that it has nothing to
+    // report. Trust over attention: absence is not worth the member's eye.
+    for (const { file, src } of sources()) {
+      expect(src, `${file} — R2 keeps TOP COMMAND omitted`).not.toMatch(
+        /top_command|topCommand/,
+      );
+    }
+  });
+
+  it('and renders no OTHER valueless awaiting/placeholder panel either', () => {
+    // The general form of the ruling, not just the one section it named.
+    const src = body();
+    expect(src, 'R2 bans awaiting-state furniture as a section').not.toMatch(
+      /awaiting/i,
+    );
+  });
+
+  it('the section it omits is genuinely a placeholder — nothing supplies its data', () => {
+    // TRIPWIRE. The omission is only safe while `commandUsage` has no
+    // producer: buildWeeklyReport reads it (utils/weeklyReport.ts:279) and
+    // falls to 'awaiting' when it is empty, and no production file anywhere
+    // passes it. If a real governed source ever lands, this fails loudly and
+    // R2 is revisited — rather than the Feature silently continuing to hide a
+    // section that by then has something true to say.
+    const suppliers: string[] = [];
+    for (const root of ['app', 'components', 'services', 'store', 'hooks', 'utils']) {
+      let files: string[] = [];
+      try {
+        files = walk(join(AOS, root));
+      } catch {
+        continue;
+      }
+      for (const f of files) {
+        const rel = relative(AOS, f);
+        // The declaration + read site is the consumer, not a supplier.
+        if (rel === join('utils', 'weeklyReport.ts')) continue;
+        if (/commandUsage/.test(strip(read(f)))) suppliers.push(rel);
+      }
+    }
+    expect(
+      suppliers,
+      'a top-command source now exists — DR-014 R2 must be revisited',
+    ).toEqual([]);
+  });
+});
+
 // ————————————————————————————————————————————————— D3 share
 
 describe('D3 — no share affordance', () => {
