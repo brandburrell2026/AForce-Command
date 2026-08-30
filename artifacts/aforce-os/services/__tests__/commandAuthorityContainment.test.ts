@@ -43,6 +43,15 @@ import { hydrationInsightForHumidity } from '../cityClimateService';
 import type { HumidityBand } from '../cityClimateService';
 import type { UserState } from '../../types';
 
+/** RP-1: buildScanCoachScript is now nullable (uncomparable → silence). These
+ *  cases all expect a script, so absence is a hard failure, not a skip. */
+function mustScript(...args: Parameters<typeof buildScanCoachScript>) {
+  const s = buildScanCoachScript(...args);
+  if (!s) throw new Error('expected a coach script for this fixture');
+  return s;
+}
+
+
 const DOSE = /\d+\s*(oz|ounce|stick|serving)/i;
 const CLOCK = /recheck in \d/i;
 
@@ -293,16 +302,16 @@ describe('scan coach — explains and mirrors; never authors a dose, clock, or i
   const SWITCH = 'Switch to AForce Stick — water first.';
   const WATER = 'Water first — your current command sets the amount.';
 
-  const CASES: ReadonlyArray<[string, ReturnType<typeof buildScanCoachScript>, string]> = [
-    ['A aforce-optimal', buildScanCoachScript(
+  const CASES: ReadonlyArray<[string, NonNullable<ReturnType<typeof buildScanCoachScript>>, string]> = [
+    ['A aforce-optimal', mustScript(
       res({ product: scannedAforce, verdict: 'optimal', currentFitScore: 92 }, PAIR), aforceCompare), PAIR],
-    ['B compare', buildScanCoachScript(
+    ['B compare', mustScript(
       res({}, SWITCH, 'aforce_stick'), aforceCompare), SWITCH],
-    ['C acceptable', buildScanCoachScript(
+    ['C acceptable', mustScript(
       res({ verdict: 'acceptable', currentFitScore: 70 }, PAIR), undefined), PAIR],
-    ['D dynamic-equivalent', buildScanCoachScript(
+    ['D dynamic-equivalent', mustScript(
       res({}, SWITCH, 'aforce_stick'), undefined), SWITCH],
-    ['D water-only', buildScanCoachScript(
+    ['D water-only', mustScript(
       res({}, WATER), undefined), WATER],
   ];
 

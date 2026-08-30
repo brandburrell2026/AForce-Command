@@ -219,6 +219,159 @@ describe('D5 — UNKNOWN is never a measured zero', () => {
   });
 });
 
+// ─────────────────────────────────────── R3 · uncomparable is not AVOID
+
+describe('R3 — null evidence is UNCOMPARABLE, never AVOID (founder ruling, E7)', () => {
+  const nothingKnown = () =>
+    known({
+      id: 'nothing', name: 'Nothing Known', brand: 'X',
+      hydrationSpeed: null, electrolytes: null, sugar: null,
+      absorptionRate: null, recoveryEfficiency: null,
+      provenance: {
+        hydrationSpeed: 'unknown', electrolytes: 'unknown', sugar: 'unknown',
+        absorptionRate: 'unknown', recoveryEfficiency: 'unknown',
+      },
+    });
+
+  it('zero known attributes ⟺ verdict "uncomparable" — the biconditional', () => {
+    const none = computeComparison({ inputs: INPUTS, catalog: [nothingKnown()] }).results[0]!;
+    expect(none.coverage).toEqual({ known: 0, total: 5 });
+    expect(none.fitScore).toBeNull();
+    // The E7 P0: this used to return 'avoid' — absence punished as though a
+    // bad measurement existed. UNKNOWN ≠ ZERO ≠ BAD.
+    expect(none.verdict).toBe('uncomparable');
+  });
+
+  it('ANY known attribute forbids "uncomparable" — property over every subset size', () => {
+    const attrs = ['hydrationSpeed', 'electrolytes', 'sugar', 'absorptionRate', 'recoveryEfficiency'] as const;
+    for (let keep = 1; keep <= attrs.length; keep++) {
+      const over: Record<string, number | null> = {};
+      const prov: Record<string, 'unknown'> = {};
+      attrs.forEach((a, i) => {
+        if (i >= keep) { over[a] = null; prov[a] = 'unknown'; }
+      });
+      const p = known({ ...(over as object), provenance: prov as never });
+      const r = computeComparison({ inputs: INPUTS, catalog: [p] }).results[0]!;
+      expect(r.coverage.known, `${keep} known`).toBe(keep);
+      expect(r.verdict, `${keep} known attributes must earn a real verdict`).not.toBe('uncomparable');
+      expect(r.fitScore, `${keep} known`).not.toBeNull();
+    }
+  });
+
+  it('a measured all-zero product still earns a REAL verdict — zero is data', () => {
+    const zeros = known({ hydrationSpeed: 0, electrolytes: 0, sugar: 100, absorptionRate: 0, recoveryEfficiency: 0 });
+    const r = computeComparison({ inputs: INPUTS, catalog: [zeros] }).results[0]!;
+    expect(r.verdict).not.toBe('uncomparable');
+  });
+
+  it('the recommendation from ignorance is honest: no ranking claim, no nominee, no log', () => {
+    const selfFit = computeComparison({ inputs: INPUTS, catalog: [nothingKnown()] }).results[0]!;
+    const alt = bestAlternativeFor(INPUTS, 'nothing');
+    const rec = buildRecommendation(scannedFrom(nothingKnown()), INPUTS, selfFit, alt);
+    // "Ranked lower" would be a false statement — nothing was ranked.
+    expect(rec.headline).not.toMatch(/ranked lower/i);
+    expect(rec.headline).toMatch(/not enough on file/i);
+    expect(rec.alternativeProductId, 'no nominee may be offered from ignorance').toBeUndefined();
+    expect(rec.shouldLog).toBe(false);
+    // The one allowed action defers to the canonical command.
+    expect(rec.command).toBe('Water first — your current command sets the amount.');
+  });
+
+  it('the coach is SILENT for an uncomparable scan — silence is a valid state', async () => {
+    const { buildScanCoachScript } = await import('../scanCoachVoice');
+    const selfFit = computeComparison({ inputs: INPUTS, catalog: [nothingKnown()] }).results[0]!;
+    const rec = buildRecommendation(scannedFrom(nothingKnown()), INPUTS, selfFit, undefined);
+    const script = buildScanCoachScript({
+      scannedAt: '2026-08-30T12:00:00.000Z',
+      source: { kind: 'barcode', rawValue: '000' },
+      product: scannedFrom(nothingKnown()),
+      currentFitScore: selfFit.fitScore,
+      verdict: selfFit.verdict,
+      evaluatedAgainstState: 'BALANCED',
+      recommendation: rec,
+      efficiency: null,
+      efficiencyLabel: '',
+    } as never);
+    // "X is not optimal for your state" would be a claim about a product we
+    // know nothing about.
+    expect(script).toBeNull();
+  });
+
+  it('zero evidence produces zero judgement — whyItFits states the file, not a verdict', () => {
+    const r = computeComparison({ inputs: INPUTS, catalog: [nothingKnown()] }).results[0]!;
+    expect(r.whyItFits).toBe('No product characteristics are on file.');
+    // The fall-through used to fabricate "Acceptable for general use…".
+    expect(r.whyItFits).not.toMatch(/acceptable|optimized|protocol/i);
+  });
+
+  it('efficiency is NULL when nothing feeds it — never a fabricated 20%', async () => {
+    const { computeHydrationEfficiency, efficiencyLabel } = await import('../hydrationScanService');
+    const none = computeHydrationEfficiency(nothingKnown());
+    // The `?? 0` coercions here were the E6-B0 defect class surviving one
+    // function over: all-unknown computed to 0.2 → "Hydrates at 20% efficiency".
+    expect(none).toBeNull();
+    expect(efficiencyLabel(none)).toBe('');
+    // Fully known stays byte-identical to the historical formula.
+    const full = computeHydrationEfficiency(known());
+    expect(full).toBeCloseTo(
+      Math.max(0, Math.min(1, (70 / 100) * 0.4 + (70 / 100) * 0.3 + (1 - 0.3) * 0.2 - 0.3 * 0.1)),
+      10,
+    );
+    // Partially known: computed over the known terms, renormalized — a real
+    // number, not a null and not a zero-coerced blend.
+    const partial = computeHydrationEfficiency(known({ sugar: null, provenance: { sugar: 'unknown' } }));
+    expect(partial).not.toBeNull();
+  });
+
+  it('the uncomparable pill colour resolves to HEX — the card composes hex+alpha templates', async () => {
+    // The first draft used Colors.text.muted — an rgba() string — which the
+    // card's `${color}55` templates silently turn into an invalid colour.
+    const { af } = await import('../../theme/afTokens');
+    expect(af.textTertiary).toMatch(/^#[0-9a-fA-F]{6}$/);
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', '..', 'components', 'ScanResultCard.tsx'),
+      'utf8',
+    );
+    expect(/uncomparable:\s*af\.textTertiary/.test(src)).toBe(true);
+  });
+
+  it('every locale carries the uncomparable pill label — as the ENGLISH source token', () => {
+    // Two rules meet here. File-local convention: every sibling verdict_*
+    // value is an untranslated English token in all 11 locales (the pill set
+    // is a data dialect, not prose). House rule (TRANSLATION-REVIEW.md):
+    // never machine-translate — carry the English source and log the key for
+    // human review. A machine-translated pill would be the lone translated
+    // value in the set AND an unreviewed translation.
+    const { readdirSync } = require('node:fs') as typeof import('node:fs');
+    const { join } = require('node:path') as typeof import('node:path');
+    const dir = join(__dirname, '..', '..', 'locales');
+    const files = readdirSync(dir).filter((f: string) => f.endsWith('.json'));
+    expect(files.length).toBe(11);
+    for (const f of files) {
+      const j = require(join(dir, f));
+      expect(
+        j?.hydroScan2?.cards?.verdict_uncomparable,
+        `${f} must carry the English source token per house rule`,
+      ).toBe('NOT COMPARED');
+    }
+  });
+
+  it('one state, one name: the history row renders the verdict through the SAME key as the pill', () => {
+    // The raw enum would print "UNCOMPARABLE" beside a pill saying
+    // "NOT COMPARED" — the same evidence state under two names on one screen.
+    const src = require('node:fs').readFileSync(
+      require('node:path').join(
+        __dirname, '..', '..', 'components', 'scan', 'HydrationScanScreenV2.tsx',
+      ),
+      'utf8',
+    );
+    expect(src).toContain('hydroScan2.cards.verdict_${s.verdict}');
+    // The raw enum survives only as the fallback for unknown historical
+    // values, never as the primary render.
+    expect(/\{s\.verdict\.toUpperCase\(\)\}\s*<\/Text>/.test(src)).toBe(false);
+  });
+});
+
 // ───────────────────────────────────────────────── D4 · the claim
 
 describe('D4 — the physiological claim is retired, not replaced', () => {

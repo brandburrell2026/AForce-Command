@@ -182,6 +182,32 @@ describe.runIf(DB)("/api/scans — IDOR / authorization", () => {
 });
 
 describe.runIf(DB)("/api/scans — legacy contract preservation", () => {
+  it("an absent fitScore round-trips as null — never a stored 0 (R3/D5)", async () => {
+    // The route used to coerce a missing/null fitScore to 0, and the schema's
+    // NOT NULL forced it: an uncomparable scan came back as a fabricated
+    // "fit 0" in every member's history. Null in → null stored → null out.
+    const u = user("uncomparable_null");
+    const res = await fetch(`${baseUrl}/api/scans`, {
+      method: "POST",
+      headers: authHeaders(u),
+      body: JSON.stringify({
+        productName: "Mystery Drink",
+        verdict: "uncomparable",
+        fitScore: null,
+      }),
+    });
+    expect(res.status).toBe(201);
+    const created = (await res.json()) as { scan: { fitScore: number | null } };
+    expect(created.scan.fitScore).toBeNull();
+
+    const listed = (await (
+      await fetch(`${baseUrl}/api/scans?limit=5`, { headers: authHeaders(u) })
+    ).json()) as { scans: Array<{ fitScore: number | null; verdict: string }> };
+    const row = listed.scans.find((x) => x.verdict === "uncomparable");
+    expect(row).toBeTruthy();
+    expect(row!.fitScore).toBeNull();
+  });
+
   it("body.id === '' is accepted verbatim (not regenerated)", async () => {
     const u = user("empty_id");
     const res = await fetch(`${baseUrl}/api/scans`, {

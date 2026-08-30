@@ -10,6 +10,15 @@ import { buildScanCoachScript } from '../scanCoachVoice';
 import type { ScanResult, ScannedProduct } from '../../types/scan';
 import type { CompareProduct } from '../../types/comparison';
 
+/** RP-1: buildScanCoachScript is now nullable (uncomparable → silence). These
+ *  cases all expect a script, so absence is a hard failure, not a skip. */
+function mustScript(...args: Parameters<typeof buildScanCoachScript>) {
+  const s = buildScanCoachScript(...args);
+  if (!s) throw new Error('expected a coach script for this fixture');
+  return s;
+}
+
+
 const baseScanned = (over: Partial<ScannedProduct> = {}): ScannedProduct => ({
   productId: 'gatorade',
   productName: 'Gatorade',
@@ -89,7 +98,7 @@ describe('buildScanCoachScript', () => {
         shouldLog: true,
       },
     });
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('AForce Stick');
@@ -104,7 +113,7 @@ describe('buildScanCoachScript', () => {
 
   it('CASE B: AForce equivalent stronger → comparison narrative + 4 bullets', () => {
     const result = baseResult();
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     expect(script.hasComparison).toBe(true);
     expect(script.bullets).toHaveLength(4);
     expect(script.headline).toContain('AForce Stick');
@@ -121,7 +130,7 @@ describe('buildScanCoachScript', () => {
 
   it('CASE B bullets identify per-metric winners correctly', () => {
     const result = baseResult();
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     const byLabel = Object.fromEntries(script.bullets.map((b) => [b.label, b]));
     expect(byLabel['Electrolytes'].winner).toBe('aforce');     // 90 > 50
     expect(byLabel['Sugar load'].winner).toBe('aforce');       // 10 < 78 (lower wins)
@@ -137,7 +146,7 @@ describe('buildScanCoachScript', () => {
       currentFitScore: 70,
       efficiency: 0.6,
     });
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     expect(script.transcript).toContain('but there\'s a stronger option');
     expect(script.transcript).not.toContain('not optimal');
   });
@@ -174,7 +183,7 @@ describe('buildScanCoachScript', () => {
         shouldLog: true,
       },
     });
-    const script = buildScanCoachScript(result); // no aforceEquivalent passed
+    const script = mustScript(result); // no aforceEquivalent passed
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('LMNT is locked in');
@@ -186,7 +195,7 @@ describe('buildScanCoachScript', () => {
 
     // SYMMETRY, asserted rather than assumed: the same product as an AForce
     // SKU produces byte-identical copy.
-    const asAForce = buildScanCoachScript(
+    const asAForce = mustScript(
       baseResult({
         product: { ...lmnt, isAForce: true },
         currentFitScore: 78,
@@ -216,7 +225,7 @@ describe('buildScanCoachScript', () => {
         shouldLog: false,
       },
     });
-    const script = buildScanCoachScript(result); // no aforceEquivalent passed
+    const script = mustScript(result); // no aforceEquivalent passed
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('not optimal');
@@ -250,7 +259,7 @@ describe('buildScanCoachScript', () => {
         shouldLog: false,
       },
     });
-    const script = buildScanCoachScript(result); // aforceEquivalent UNRESOLVED
+    const script = mustScript(result); // aforceEquivalent UNRESOLVED
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
     expect(script.headline).toContain('a stronger option is on file');
@@ -270,7 +279,7 @@ describe('buildScanCoachScript', () => {
       verdict: 'acceptable',
       efficiency: 0.7,
     });
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     expect(script.hasComparison).toBe(false);
     expect(script.bullets).toHaveLength(0);
   });
@@ -291,7 +300,7 @@ describe('buildScanCoachScript', () => {
       verdict: 'suboptimal',
       currentFitScore: 40,
     });
-    const script = buildScanCoachScript(result, aforceProduct);
+    const script = mustScript(result, aforceProduct);
     expect(script.transcript).toContain('cleaner overall profile');
   });
 
@@ -304,7 +313,7 @@ describe('buildScanCoachScript', () => {
     ];
     for (const c of cases) {
       const equiv = c.recommendation.alternativeProductId ? aforceProduct : undefined;
-      const script = buildScanCoachScript(c, equiv);
+      const script = mustScript(c, equiv);
       const sentences = script.transcript
         .split(/\.(?:\s+|$)/)
         .filter((s) => s.trim().length > 0);

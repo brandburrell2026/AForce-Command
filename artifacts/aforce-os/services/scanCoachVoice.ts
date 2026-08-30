@@ -97,7 +97,11 @@ function compareBullets(
 export function buildScanCoachScript(
   result: ScanResult,
   aforceEquivalent?: CompareProduct,
-): ScanCoachScript {
+): ScanCoachScript | null {
+  // UNCOMPARABLE (founder ruling R3, E7): the coach says nothing. Any spoken
+  // line here would be a claim about a product we know nothing about, and
+  // silence is a valid successful state.
+  if (result.verdict === 'uncomparable' || result.currentFitScore == null) return null;
   const script = buildScanCoachScriptUnchecked(result, aforceEquivalent);
   // §42 claims gate (Wave-2 PR5): HydroScan is a STRICT surface and this
   // module interpolates EXTERNAL text (scanned product names) into raw
@@ -121,7 +125,11 @@ function buildScanCoachScriptUnchecked(
   const scanned = result.product;
   const state = stateLabel(result.evaluatedAgainstState);
   const fit = result.currentFitScore;
-  const eff = pct(result.efficiency);
+  // A comparable product can still lack every efficiency input (fit computed
+  // from absorption/recovery alone) — the clause simply omits what is not on
+  // file rather than speaking a fabricated percentage (R3/D5).
+  const fitClause =
+    result.efficiency == null ? `${fit} fit` : `${fit} fit, ${pct(result.efficiency)} efficiency`;
 
   const isComparing =
     !!aforceEquivalent && aforceEquivalent.id !== scanned.productId;
@@ -147,8 +155,8 @@ function buildScanCoachScriptUnchecked(
 
     const opener =
       result.verdict === 'avoid' || result.verdict === 'suboptimal'
-        ? `${scanned.productName} is not optimal for your ${state} state at ${fit} fit, ${eff} efficiency.`
-        : `${scanned.productName} fits your ${state} state at ${fit} fit, ${eff} efficiency, but there's a stronger option.`;
+        ? `${scanned.productName} is not optimal for your ${state} state at ${fitClause}.`
+        : `${scanned.productName} fits your ${state} state at ${fitClause}, but there's a stronger option.`;
 
     return {
       headline: `${aforceEquivalent.name} beats ${scanned.productName} — ${winsLine}.`,
@@ -218,7 +226,7 @@ function buildScanCoachScriptUnchecked(
     return {
       headline: `${scanned.productName} is not optimal — a stronger option is on file.`,
       transcript:
-        `${scanned.productName} is not optimal for your ${state} state at ${fit} fit, ${eff} efficiency. ` +
+        `${scanned.productName} is not optimal for your ${state} state at ${fitClause}. ` +
         `${result.recommendation.command}`,
       bullets: [],
       hasComparison: false,

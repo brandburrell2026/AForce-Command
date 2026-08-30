@@ -95,9 +95,11 @@ function isKnown(p: CompareProduct, attr: CompareAttribute): boolean {
 
 // ─── Verdict mapping ─────────────────────────────────────────────────────────
 function verdictFor(score: number | null): CompareResult['verdict'] {
-  // Nothing known — the honest verdict is the lowest one, not a flattering
-  // guess. The surface renders coverage alongside it (D5).
-  if (score == null) return 'avoid';
+  // Nothing known — the honest verdict is that there IS no verdict (founder
+  // ruling R3, E7). The earlier form returned 'avoid' here, which punished
+  // absence as though a bad measurement existed — the exact silent penalty
+  // ruling D5 forbids. UNKNOWN ≠ ZERO ≠ BAD.
+  if (score == null) return 'uncomparable';
   if (score >= 90) return 'optimal';
   if (score >= 78) return 'strong';
   if (score >= 65) return 'acceptable';
@@ -166,6 +168,12 @@ function scoreProduct(
 // Symmetric, brand-agnostic phrasing. Text is generated strictly from
 // axis values vs the protocol's needs — never from `isAForce`.
 function whyItFits(p: CompareProduct, inputs: CompareInputs, axes: CompareResult['axes']): string {
+  // Zero evidence → zero judgement (founder ruling R3). Without this branch
+  // the fall-through below fabricated "Acceptable for general use. Not
+  // optimized for current protocol." for a product NOTHING is known about.
+  if (Object.values(axes).every((v) => v == null)) {
+    return 'No product characteristics are on file.';
+  }
   // An UNKNOWN axis may not satisfy or fail a threshold — absence is not a
   // low reading (D5). `at()` answers "is this KNOWN and past the bar?", so
   // every comparison below is false when the value is simply not on file.

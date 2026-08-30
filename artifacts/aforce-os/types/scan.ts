@@ -108,7 +108,8 @@ export interface ScanResult {
   /** 0-100, or `null` when nothing was known to compare on (D5). */
   currentFitScore: number | null;
   /** Coarse verdict bucket. */
-  verdict: 'optimal' | 'strong' | 'acceptable' | 'suboptimal' | 'avoid';
+  /** Mirrors CompareResult.verdict — 'uncomparable' = no evidence, not bad. */
+  verdict: 'optimal' | 'strong' | 'acceptable' | 'suboptimal' | 'avoid' | 'uncomparable';
   /** State the score was generated against (so the UI can label the verdict). */
   evaluatedAgainstState: PerformanceLevel;
   recommendation: ScanRecommendation;
@@ -119,7 +120,8 @@ export interface ScanResult {
    * proxy (hydration speed), LS = low-sugar quality, S = sugar load.
    * Surfaced on the result card as "Hydrates at X% efficiency".
    */
-  efficiency: number;
+  /** 0..1, or null when no efficiency input is on file (R3/D5). */
+  efficiency: number | null;
   efficiencyLabel: string;
   /**
    * HydroScan 2.0™ — profile-aware hydration impact headline (4-level).

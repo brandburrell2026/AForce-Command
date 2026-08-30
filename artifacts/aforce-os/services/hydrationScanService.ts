@@ -59,17 +59,36 @@ function fitFor(product: CompareProduct, inputs: CompareInputs): CompareResult |
  * Result is clamped to [0, 1] and returned as a fraction so the UI
  * can format it as "Hydrates at X% efficiency".
  */
-export function computeHydrationEfficiency(product: CompareProduct): number {
-  const M = Math.max(0, Math.min(1, (product.electrolytes ?? 0) / 100));
-  const W = Math.max(0, Math.min(1, (product.hydrationSpeed ?? 0) / 100));
-  const sugar01 = Math.max(0, Math.min(1, (product.sugar ?? 0) / 100));
-  const LS = 1 - sugar01;
-  const S = sugar01;
-  const raw = M * 0.4 + W * 0.3 + LS * 0.2 - S * 0.1;
+export function computeHydrationEfficiency(product: CompareProduct): number | null {
+  // UNKNOWN ≠ ZERO (rulings D5/R3). The `?? 0` coercions this function
+  // carried were the exact defect class E6-B0 removed from the OFF synthesis:
+  // a product with NOTHING known computed to raw = 0.2 and rendered
+  // "Hydrates at 20% efficiency" — a fabricated measurement from absence.
+  // Unknown terms now contribute nothing, the known terms are renormalized
+  // onto the full positive-weight scale (so a fully-known product is
+  // byte-identical to before), and an all-unknown product has NO efficiency.
+  const terms: Array<{ known: boolean; pos: number; contrib: number }> = [];
+  const M = product.electrolytes;
+  const W = product.hydrationSpeed;
+  const G = product.sugar;
+  terms.push({ known: M != null, pos: 0.4, contrib: M != null ? Math.max(0, Math.min(1, M / 100)) * 0.4 : 0 });
+  terms.push({ known: W != null, pos: 0.3, contrib: W != null ? Math.max(0, Math.min(1, W / 100)) * 0.3 : 0 });
+  const sugar01 = G != null ? Math.max(0, Math.min(1, G / 100)) : null;
+  terms.push({
+    known: sugar01 != null,
+    pos: 0.2,
+    contrib: sugar01 != null ? (1 - sugar01) * 0.2 - sugar01 * 0.1 : 0,
+  });
+  const known = terms.filter((t) => t.known);
+  if (known.length === 0) return null;
+  const posKnown = known.reduce((a, t) => a + t.pos, 0);
+  const raw = known.reduce((a, t) => a + t.contrib, 0) * (0.9 / posKnown);
   return Math.max(0, Math.min(1, raw));
 }
 
-export function efficiencyLabel(efficiency: number): string {
+export function efficiencyLabel(efficiency: number | null): string {
+  // '' = no label rendered — absence is not a percentage.
+  if (efficiency == null) return '';
   return `Hydrates at ${Math.round(efficiency * 100)}% efficiency`;
 }
 
@@ -134,6 +153,20 @@ export function buildRecommendation(
   // measured and no canonical source behind it. Its replacement describes the
   // COMPARISON, which is the only thing that actually happened.
   const RANKED_LOWER = 'This product ranked lower under the current comparison criteria.';
+
+  // UNCOMPARABLE (founder ruling R3, E7): nothing was known, so nothing was
+  // ranked. "Ranked lower" would be a false statement, and nominating an
+  // alternative from ignorance would be a recommendation with no evidence
+  // behind it. State the evidence situation; defer the action to the
+  // canonical command; recommend nothing.
+  if (selfFit.fitScore == null || selfFit.verdict === 'uncomparable') {
+    return {
+      headline: 'Not enough on file to compare this product.',
+      detail: selfFit.whyItFits,
+      command: `Water first — your current command sets the amount.`,
+      shouldLog: false,
+    };
+  }
 
   const MARGIN = 4;
   const outranked =

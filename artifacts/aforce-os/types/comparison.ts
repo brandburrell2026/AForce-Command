@@ -98,7 +98,11 @@ export interface CompareResult {
    * thin comparison can never present itself as a complete one.
    */
   coverage: { known: number; total: number };
-  verdict: 'optimal' | 'strong' | 'acceptable' | 'suboptimal' | 'avoid';
+  /**
+   * 'uncomparable' — NOTHING was known to compare on (founder ruling R3, E7).
+   * It is an evidence state, not a quality judgement: UNKNOWN ≠ ZERO ≠ BAD.
+   */
+  verdict: 'optimal' | 'strong' | 'acceptable' | 'suboptimal' | 'avoid' | 'uncomparable';
 }
 
 export interface CompareInputs {
