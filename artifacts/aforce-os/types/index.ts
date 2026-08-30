@@ -814,6 +814,13 @@ export interface FeatureFlags {
    */
   editorial_moments_enabled: boolean;
   /**
+   * Editorial Protocol — The Brief (E4, founder decisions 2026-08-30).
+   * Whole-screen presentation swap over the same Protocol truth; the legacy
+   * and V2 screens both stay reachable as rollback branches. Default OFF;
+   * ON in the demo profile.
+   */
+  editorial_protocol_enabled: boolean;
+  /**
    * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
    * sections inside HomeScreenV2: health-connection chip, four live-signal
    * tiles, derived Completed-today protocol list, streak/trend stat tiles.
