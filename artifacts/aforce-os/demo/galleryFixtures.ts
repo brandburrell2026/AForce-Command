@@ -90,6 +90,8 @@ export const GALLERY_VIEWPORTS: readonly GalleryViewport[] = [
 export type GallerySurface =
   | 'home'
   | 'editorialHome'
+  | 'editorialMoments'
+  | 'editorialMomentDetail'
   | 'hydration'
   | 'signal'
   | 'weekly'
@@ -575,6 +577,57 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
       featureFlags: baseFlags({ editorial_home_enabled: true }),
     }),
     momentsFixture: { moments: [], nowIso: GALLERY_NOW.toISOString() },
+  },
+  // ─── E3 acceptance matrix — Editorial Moments (founder ruling 2026-08-29).
+  // Same momentsFixture idiom as the legacy 'moments'/'momentDetail' surfaces,
+  // around the SAME fixed nowIso, so the day's postures (completed / active /
+  // upcoming) reproduce exactly.
+  {
+    id: 'editorial-moments-day',
+    label: 'Editorial Moments — The Day',
+    driver:
+      'fixture: buildDemoMoments @ 2026-08-12T17:38Z — the node spine over the canonical postures (completed / active / upcoming). No CLEAR row and no Lock-In: neither exists in the production posture vocabulary (R2).',
+    surface: 'editorialMoments',
+    momentsFixture: {
+      moments: buildDemoMoments('2026-08-12T17:38:00.000Z'),
+      nowIso: '2026-08-12T17:38:00.000Z',
+    },
+  },
+  {
+    id: 'editorial-moments-empty',
+    label: 'Editorial Moments — Empty day',
+    driver:
+      'fixture: [] — the existing empty state in editorial register (no manufactured rows, no fabricated counts).',
+    surface: 'editorialMoments',
+    momentsFixture: { moments: [], nowIso: '2026-08-12T17:38:00.000Z' },
+  },
+  {
+    id: 'editorial-moment-story',
+    label: 'Editorial Moment — The Performance Story',
+    driver:
+      'fixture: demo-investor-meeting @ 2026-08-12T17:38Z, rec routed through guardMomentRecommendation (the production path) — the four charter-locked chapters as the real window math resolves them at that clock (PAUSE + HYDRATE done, LOCK IN and PERFORM still ahead; the dead gap between best-before and start−15 is production truth, faithfully rendered).',
+    surface: 'editorialMomentDetail',
+    momentsFixture: {
+      moments: buildDemoMoments('2026-08-12T17:38:00.000Z'),
+      nowIso: '2026-08-12T17:38:00.000Z',
+      detailId: 'demo-investor-meeting',
+    },
+  },
+  {
+    id: 'editorial-moment-story-prepared',
+    label: 'Editorial Moment — Prepared',
+    driver:
+      'same moment with preparedAtIso set: PAUSE/HYDRATE/LOCK IN forced complete, PERFORM live, CONFIRM disabled — the production prepared contract.',
+    surface: 'editorialMomentDetail',
+    momentsFixture: {
+      moments: buildDemoMoments('2026-08-12T17:38:00.000Z').map((m) =>
+        m.id === 'demo-investor-meeting'
+          ? { ...m, preparedAtIso: '2026-08-12T17:20:00.000Z' }
+          : m,
+      ),
+      nowIso: '2026-08-12T17:38:00.000Z',
+      detailId: 'demo-investor-meeting',
+    },
   },
   {
     id: 'hydration-empty',

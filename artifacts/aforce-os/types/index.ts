@@ -807,6 +807,13 @@ export interface FeatureFlags {
    */
   editorial_home_enabled: boolean;
   /**
+   * Editorial Moments — The Day + The Performance Story (E3, founder ruling
+   * 2026-08-29). One flag for both Moments surfaces; whole-screen
+   * presentation swaps over the same guarded truth. The legacy screens stay
+   * the flag-OFF rollback path. Default OFF; ON in the demo profile.
+   */
+  editorial_moments_enabled: boolean;
+  /**
    * Home V3 dashboard (founder comps, 2026-08-10) — additive, flag-gated
    * sections inside HomeScreenV2: health-connection chip, four live-signal
    * tiles, derived Completed-today protocol list, streak/trend stat tiles.
