@@ -95,6 +95,7 @@ export const baseFlags: FeatureFlags = {
   editorial_moments_enabled: false,
   editorial_protocol_enabled: false,
   editorial_weekly_enabled: false,
+  editorial_scan_enabled: false,
   home_v3_dashboard_enabled: false,
   protocol_v3_dashboard_enabled: false,
   signal_v3_dashboard_enabled: false,

@@ -222,6 +222,10 @@ describe('accessibility lock — source rules for components/editorial/', () => 
       // degraded-source retry control and is governed by
       // editorialWeeklyLaw.test.ts (44pt floor, labelled target).
       if (file.includes(join('editorial', 'weekly'))) continue;
+      // E6-B (founder authorization 2026-08-30): the Scan layer is interactive
+      // (the reader target, retry and audio stop) and is governed by
+      // editorialScanLaw.test.ts.
+      if (file.includes(join('editorial', 'scan'))) continue;
       expect(src, file).not.toMatch(/Pressable|TouchableOpacity|TouchableHighlight|onPress/);
     }
   });
@@ -298,6 +302,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // seam. WeeklyReportV3, ReadinessInsightsV2 and WeeklyReportLegacy all
     // remain rollback branches, locked by editorialWeeklyLaw.test.ts.
     'app/weekly-report.tsx',
+    // E6-B (founder authorization 2026-08-30): BOTH Scan route seams.
+    // HydrationScanScreenV2 remains the flag-OFF rollback on each.
+    'app/scan.tsx',
+    join('app', '(tabs)', 'scan.tsx'),
   ]);
   const PRODUCTION_ROOTS = [
     'app',

@@ -224,6 +224,15 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // branches (four-way seam). Locked by
   // components/__tests__/editorialWeeklyLaw.test.ts.
   editorial_weekly_enabled: false,
+  // SCAN — The Tool (E6-B, founder authorization 2026-08-30). The Editorial OS
+  // composition of the SAME Scan truth, on BLACK stock. Built on E6-A (the
+  // three producer locks) and E6-B0 (unknown-never-zero, per-attribute
+  // provenance, the retired physiological claim, and the neutralized decision
+  // path). Presentation only: it consumes the corrected data and adds no
+  // metric, no claim and no decision authority. Scan is The Tool, not The
+  // Diagnostician. HydrationScanScreenV2 remains the flag-OFF rollback on BOTH
+  // routes. Locked by components/__tests__/editorialScanLaw.test.ts.
+  editorial_scan_enabled: false,
   // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
   // sections inside HomeScreenV2: health-connection chip, four live-signal
   // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
@@ -531,6 +540,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   editorial_moments_enabled: true,
   editorial_protocol_enabled: true,
   editorial_weekly_enabled: true,
+  editorial_scan_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,

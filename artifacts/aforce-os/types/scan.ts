@@ -36,6 +36,8 @@ export interface ScannedProduct {
   recoveryFit: number | null;
   performanceFit: number | null;
   isAForce: boolean;
+  /** Per-attribute evidence quality, carried from the catalog row (D3). */
+  provenance?: import('./comparison').ProvenanceMap;
   /** Mapped fluid type (only set for items the user can log). */
   fluidType?: FluidType;
 }

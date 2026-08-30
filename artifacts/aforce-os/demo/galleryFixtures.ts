@@ -93,6 +93,7 @@ export type GallerySurface =
   | 'protocol'
   | 'editorialProtocol'
   | 'editorialWeekly'
+  | 'editorialScan'
   | 'editorialMoments'
   | 'editorialMomentDetail'
   | 'hydration'
@@ -913,6 +914,36 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
     driver: 'no rollups, no events, no PA result: measured zeroes stay 0, hydration days is the em dash, the PA card and the timeline are omitted entirely',
     surface: 'editorialWeekly',
     weeklyInputs: buildWeeklyEmptyInputs(),
+  },
+  // E6-B (founder authorization 2026-08-30) — SCAN, The Tool, on black stock.
+  // Prop-less: the screen drives itself from the store, so these fixtures set
+  // the member context the PRODUCT MATCH is contextualized against.
+  {
+    id: 'editorial-scan-waiting',
+    label: 'Editorial Scan — Waiting',
+    driver: 'no scan yet: the registration target, POINT AT BARCODE, and the line stating the reader decodes the pack and nothing about the member',
+    surface: 'editorialScan',
+    appState: baseAppState({ featureFlags: baseFlags({ editorial_scan_enabled: true }) }),
+  },
+  {
+    id: 'editorial-scan-recovering',
+    label: 'Editorial Scan — Recovering context',
+    driver: 'recoveringEngine (68): the same product would contextualize differently here than at Peak — the point of the CONTEXTUALIZED class',
+    surface: 'editorialScan',
+    appState: baseAppState({
+      engineOutput: recoveringEngine(),
+      featureFlags: baseFlags({ editorial_scan_enabled: true }),
+    }),
+  },
+  {
+    id: 'editorial-scan-peak',
+    label: 'Editorial Scan — Peak context',
+    driver: 'peakEngine: same catalog, different member state, so PRODUCT MATCH moves without anything about the product changing',
+    surface: 'editorialScan',
+    appState: baseAppState({
+      engineOutput: peakEngine(),
+      featureFlags: baseFlags({ editorial_scan_enabled: true }),
+    }),
   },
   {
     id: 'circle-hub',

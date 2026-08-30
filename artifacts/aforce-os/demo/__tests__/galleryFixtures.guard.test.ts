@@ -48,7 +48,7 @@ describe('demo/galleryFixtures — production guard', () => {
 
     const mod = await import(FIXTURES_MODULE);
     expect(mod.GALLERY_FIXTURES).toBeDefined();
-    expect(mod.GALLERY_FIXTURES.length).toBe(39); // +3 editorial-weekly, E5 (founder decisions 2026-08-30)
+    expect(mod.GALLERY_FIXTURES.length).toBe(42); // +3 editorial-scan, E6-B (founder authorization 2026-08-30)
   });
 
   it('loads cleanly under EXPO_PUBLIC_DEMO_MODE=true even when __DEV__ is false', async () => {
@@ -56,7 +56,7 @@ describe('demo/galleryFixtures — production guard', () => {
     process.env['EXPO_PUBLIC_DEMO_MODE'] = 'true';
 
     const mod = await import(FIXTURES_MODULE);
-    expect(mod.GALLERY_FIXTURES.length).toBe(39); // +3 editorial-weekly, E5 (founder decisions 2026-08-30)
+    expect(mod.GALLERY_FIXTURES.length).toBe(42); // +3 editorial-scan, E6-B (founder authorization 2026-08-30)
   });
 
   it('every fixture has a unique id and a non-empty driver note', async () => {
@@ -70,7 +70,7 @@ describe('demo/galleryFixtures — production guard', () => {
       expect(ids.has(fixture.id)).toBe(false);
       ids.add(fixture.id);
     }
-    expect(ids.size).toBe(39); // +3 editorial-weekly, E5
+    expect(ids.size).toBe(42); // +3 editorial-scan, E6-B
   });
 });
 

@@ -49,6 +49,9 @@ const strip = (src: string) =>
  */
 const SCAN_EXPERIENCE_SCREENS: { component: string; file: string }[] = [
   { component: 'HydrationScanScreenV2', file: join('components', 'scan', 'HydrationScanScreenV2.tsx') },
+  // E6-B (founder authorization 2026-08-30): the Editorial Scan joins the
+  // registry, so every producer contract below runs against it unchanged.
+  { component: 'EditorialScanScreen', file: join('components', 'editorial', 'scan', 'EditorialScanScreen.tsx') },
 ];
 
 /** Route files that mount the Scan experience. Both must move together. */

@@ -196,10 +196,17 @@ function buildScanCoachScriptUnchecked(
   // dynamic OFF entry not in COMPARE_PRODUCTS). In that situation we keep
   // the spoken narrative in sync with the AForceReplacementCard by reading
   // the recommendation's own command line instead of falling back to water.
-  const aforceId = result.recommendation.alternativeProductId;
-  if (aforceId) {
+  // COMMERCIAL NEUTRALITY (founder ruling D6, 2026-08-30). This headline read
+  // "switch to AForce" whenever ANY alternative existed. Before E6-B0 that was
+  // merely biased; after it, the alternative pool is the whole catalog, so the
+  // spoken line could name AForce while the screen named Pedialyte or water —
+  // biased AND factually wrong. The command below already carries the real
+  // product name, so the headline states that an option exists and lets the
+  // canonical command say which.
+  const alternativeId = result.recommendation.alternativeProductId;
+  if (alternativeId) {
     return {
-      headline: `${scanned.productName} is not optimal — switch to AForce.`,
+      headline: `${scanned.productName} is not optimal — a stronger option is on file.`,
       transcript:
         `${scanned.productName} is not optimal for your ${state} state at ${fit} fit, ${eff} efficiency. ` +
         `${result.recommendation.command}`,

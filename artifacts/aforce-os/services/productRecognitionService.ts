@@ -127,6 +127,7 @@ function toScanned(product: CompareProduct): ScannedProduct {
         ? null
         : Math.round((product.hydrationSpeed + product.absorptionRate) / 2),
     isAForce: product.isAForce,
+    provenance: product.provenance,
     fluidType: PRODUCT_TO_FLUID[product.id],
   };
 }
