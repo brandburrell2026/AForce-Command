@@ -56,6 +56,7 @@ import { consumerCopyBlocked } from './languageGate/runtimeClaimScan';
 export type DecisionGuardReason =
   | 'malformed'
   | 'unsafe_dose'
+  | 'dose_modifier'
   | 'commercial_bias'
   | 'blocked_language';
 
@@ -86,6 +87,74 @@ const DOSE_TOKEN = /(\d+(?:\.\d+)?)\s*(?:oz\b|ounces?\b)/gi;
 /** §13-named commercial steering phrase class — verbatim from the directive. */
 const COMMERCIAL_STEERING = [/stick\s+preferred/i, /bring\s+an\s+aforce\s+stick/i];
 
+// ─── Dose-MODIFIER class (founder ruling R5, E7) ─────────────────────────
+//
+// "Add 20% to your intake" reached a delivered command explanation because the
+// dose check above knows only absolute oz tokens. Relative dose-modifying
+// language — percentages, multipliers, increase/decrease verbs — is command
+// authority exactly as much as an absolute dose is, so it is modelled as a
+// CLASS, not a blocklisted string.
+//
+// Deterministic, sentence-scoped, three sub-classes:
+//   A  a percentage beside a delta verb, an intake noun, or a comparative
+//   B  a multiplier lexeme beside an intake noun
+//   C  a delta verb near an intake noun, carrying a number or a comparative
+//
+// Deliberate exclusions, proven by the live-copy sweep in decisionGuard.test:
+// measurements ("Hydration 63% of target"), consequences ("score drops to
+// 52"), and canonical absolute doses ("Sip 12 oz") are observations or the
+// command's own job, and must keep passing.
+//
+// KNOWN LIMIT: the verb/multiplier lexicons are English. The one historical
+// offender exists only as English text (it falls back to en in every locale),
+// so coverage is complete today; per-locale lexicons are recorded follow-up
+// debt, not silently claimed.
+const INTAKE_NOUN = /\b(intake|dose|dosage|amount|water|oz|ounces?|ml|fluids?|electrolytes?|hydration|sticks?)\b/i;
+// A spoken number counts for a PERCENTAGE ("twenty percent") but deliberately
+// NOT as a bare count: "one more article about hydration" is prose, and
+// widening NUMBER_TOKEN to words would block it.
+const WORD_NUMBER =
+  'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred';
+const PERCENT_TOKEN = new RegExp(`(?:\\d+(?:\\.\\d+)?|\\b(?:${WORD_NUMBER})\\b)\\s*(?:%|％|percent\\b)`, 'i');
+const MULTIPLIER =
+  /\b(doubl(?:e[ds]?|ing)|tripl(?:e[ds]?|ing)|quadrupl(?:e[ds]?|ing)|twice|halv(?:e[sd]?|ing)|half)\b|\b\d+(?:\.\d+)?x\b|\bx\s?\d+\b/i;
+const DELTA_VERB = /\b(add|increase|decrease|reduce|cut|boost|raise|lower|bump|take)\b/i;
+// "Up your intake …" is a delta verb in disguise. The lookbehind keeps the
+// phrasal verbs out ("set up your water reminder" is configuration, not dose).
+const UP_DIRECTIVE = /(?<!\b(?:set|warm|follow|pick|back|open|make|wake|catch|light|sign|line|speed)\s)\bup\s+(?:your|the)\b/i;
+const COMPARATIVE = /\b(more|less|extra|additional|further)\b/i;
+const NUMBER_TOKEN = /\d/;
+// "an extra stick" — the article IS the count when it rides a comparative.
+const ARTICLE_COUNT = /\b(?:an?|another)\s+(?:extra|additional)\b/i;
+
+function isDoseModifier(text: string): boolean {
+  // Newlines are boundaries too: a rendered notification is often
+  // "title\nbody", and without this split the two lines fused into one
+  // "sentence" — a member title's noun could combine with the body's verb
+  // into a false positive (and vice versa).
+  for (const sentence of text.split(/(?<=[.!?])\s+|\n+/)) {
+    const pct = PERCENT_TOKEN.test(sentence);
+    const noun = INTAKE_NOUN.test(sentence);
+    const mult = MULTIPLIER.test(sentence);
+    const delta = DELTA_VERB.test(sentence) || UP_DIRECTIVE.test(sentence);
+    const comp = COMPARATIVE.test(sentence);
+    // A — a percentage beside DIRECTIVE vocabulary is a relative dose. A
+    //     percentage beside a bare noun is a measurement ("Hydration 63% of
+    //     target") and must keep passing — the negative table caught the
+    //     wider form blocking exactly that.
+    if (pct && (delta || comp)) return true;
+    // B — "double / halve / twice the <intake noun>".
+    if (mult && noun) return true;
+    // C — "increase your water by 8 oz" / "boost your hydration with extra…".
+    if (delta && noun && (NUMBER_TOKEN.test(sentence) || comp)) return true;
+    // D — a comparative riding a QUANTIFIED intake noun is a modifier even on
+    //     a canonical verb: "Drink an extra 12 oz", "Sip 8 oz more". Without
+    //     the quantity it stays prose ("more article about hydration…").
+    if (comp && noun && (NUMBER_TOKEN.test(sentence) || ARTICLE_COUNT.test(sentence))) return true;
+  }
+  return false;
+}
+
 function doseOutOfBounds(text: string): boolean {
   DOSE_TOKEN.lastIndex = 0;
   let m: RegExpExecArray | null;
@@ -104,8 +173,26 @@ function doseOutOfBounds(text: string): boolean {
  * OS-notification strings (member-authored moment titles are untrusted
  * free text) and evaluateEngineCommand composes it per surface.
  */
+/**
+ * Judge one member-authored LABEL (a calendar-derived moment title in a
+ * notification). A label names an event; it is not an instruction — so the
+ * dose-MODIFIER class does not apply, or "Double water polo practice" and
+ * "Halve marathon split review" would silently kill their own reminders.
+ * Every other protection (dose bounds, commercial steering, §42 language)
+ * still applies to untrusted text.
+ */
+export function evaluateDeliverableLabel(text: string): DecisionGuardResult {
+  if (doseOutOfBounds(text)) return { verdict: 'blocked', reason: 'unsafe_dose' };
+  if (COMMERCIAL_STEERING.some((p) => p.test(text))) {
+    return { verdict: 'blocked', reason: 'commercial_bias' };
+  }
+  if (text && consumerCopyBlocked(text)) return { verdict: 'blocked', reason: 'blocked_language' };
+  return { verdict: 'approved' };
+}
+
 export function evaluateDeliverableCopy(text: string): DecisionGuardResult {
   if (doseOutOfBounds(text)) return { verdict: 'blocked', reason: 'unsafe_dose' };
+  if (isDoseModifier(text)) return { verdict: 'blocked', reason: 'dose_modifier' };
   if (COMMERCIAL_STEERING.some((p) => p.test(text))) {
     return { verdict: 'blocked', reason: 'commercial_bias' };
   }

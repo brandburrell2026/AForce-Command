@@ -136,7 +136,10 @@ describe('Moments notification lane — guard wired at qualification and deliver
     const scan = MOMENTS_SRC.indexOf(
       'if (consumerCopyBlocked(title) || consumerCopyBlocked(body)) continue;',
     );
-    const guardTitle = MOMENTS_SRC.indexOf("evaluateDeliverableCopy(title).verdict === 'blocked'");
+    // CONSCIOUS REPIN (R5, 2026-08-30): the TITLE is a member-authored label
+    // and routes through evaluateDeliverableLabel — same guard module, so the
+    // no-forked-authority rule below still holds; the BODY keeps the full check.
+    const guardTitle = MOMENTS_SRC.indexOf("evaluateDeliverableLabel(title).verdict === 'blocked'");
     const guardBody = MOMENTS_SRC.indexOf("evaluateDeliverableCopy(body).verdict === 'blocked'");
     const schedule = MOMENTS_SRC.indexOf('await Notif.scheduleNotificationAsync({');
     expect(scan).toBeGreaterThan(-1);
@@ -147,7 +150,7 @@ describe('Moments notification lane — guard wired at qualification and deliver
 
   it('both checks import from the one guard module (no forked authority)', () => {
     expect(MOMENTS_SRC).toMatch(
-      /import \{ evaluateDeliverableCopy, evaluateMomentAction \} from '@\/utils\/intelligence\/decisionGuard';/,
+      /import \{ evaluateDeliverableCopy, evaluateDeliverableLabel, evaluateMomentAction \} from '@\/utils\/intelligence\/decisionGuard';/,
     );
   });
 });
@@ -192,7 +195,8 @@ describe('Day-cadence lane — one guarded copy source, no raw-table delivery', 
   );
 
   it('the derivation guards every slot before it enters the schedule', () => {
-    const guardTitle = CADENCE_SRC.indexOf("evaluateDeliverableCopy(copy.title).verdict === 'blocked'");
+    // CONSCIOUS REPIN (R5): title → label evaluator, body → full check.
+    const guardTitle = CADENCE_SRC.indexOf("evaluateDeliverableLabel(copy.title).verdict === 'blocked'");
     const guardBody = CADENCE_SRC.indexOf("evaluateDeliverableCopy(copy.body).verdict === 'blocked'");
     const push = CADENCE_SRC.indexOf('slots.push({');
     expect(guardTitle).toBeGreaterThan(-1);

@@ -21,7 +21,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
 import { useFeatureFlags } from '@/store/useAppStore';
-import { evaluateDeliverableCopy } from '@/utils/intelligence/decisionGuard';
+import { evaluateDeliverableCopy, evaluateDeliverableLabel } from '@/utils/intelligence/decisionGuard';
 
 /** Spec cadence in days since the user's notifications start. */
 export const NOTIFICATION_DAYS = [0, 1, 3, 7] as const;
@@ -91,7 +91,7 @@ export function deriveScheduledNotifications(
   for (const day of NOTIFICATION_DAYS) {
     const copy = copyTable[day];
     if (
-      evaluateDeliverableCopy(copy.title).verdict === 'blocked' ||
+      evaluateDeliverableLabel(copy.title).verdict === 'blocked' ||
       evaluateDeliverableCopy(copy.body).verdict === 'blocked'
     ) {
       continue;
