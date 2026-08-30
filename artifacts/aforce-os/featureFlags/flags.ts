@@ -214,6 +214,16 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // reachable rollback branches (three-way seam). Locked by
   // components/__tests__/editorialProtocolLaw.test.ts.
   editorial_protocol_enabled: false,
+  // WEEKLY REPORT — The Feature (E5, founder decisions 2026-08-30). The
+  // Editorial OS composition of the SAME weekly truth WeeklyReportV3 renders,
+  // on PAPER stock — the first surface in the migration to turn the stock.
+  // Every number is reused from buildWeeklyV3Model / performanceAgeBarAxis;
+  // nothing is re-derived and no metric is added. Positive states carry NO hue
+  // here (Soursop measures 2.48:1 on paper). WeeklyReportV3,
+  // ReadinessInsightsV2 and WeeklyReportLegacy all remain reachable rollback
+  // branches (four-way seam). Locked by
+  // components/__tests__/editorialWeeklyLaw.test.ts.
+  editorial_weekly_enabled: false,
   // Home V3 dashboard (founder comps, 2026-08-10) — flag-gated ADDITIVE
   // sections inside HomeScreenV2: health-connection chip, four live-signal
   // tiles (Hydration / Recovery / Sleep / HRV), the derived Completed-today
@@ -520,6 +530,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   editorial_home_enabled: true,
   editorial_moments_enabled: true,
   editorial_protocol_enabled: true,
+  editorial_weekly_enabled: true,
   home_v3_dashboard_enabled: true,
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,

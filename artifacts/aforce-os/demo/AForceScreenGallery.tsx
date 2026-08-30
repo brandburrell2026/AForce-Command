@@ -44,6 +44,7 @@ import { HomeScreenV2 } from '../components/home/HomeScreenV2';
 import { EditorialHomeScreen } from '../components/editorial/home/EditorialHomeScreen';
 import { ProtocolScreenV2 } from '../components/protocol/ProtocolScreenV2';
 import { EditorialProtocolScreen } from '../components/editorial/protocol/EditorialProtocolScreen';
+import { EditorialWeeklyScreen } from '@/components/editorial/weekly/EditorialWeeklyScreen';
 import { EditorialMomentsScreen } from '../components/editorial/moments/EditorialMomentsScreen';
 import { EditorialMomentDetailScreen } from '../components/editorial/moments/EditorialMomentDetailScreen';
 import { guardMomentRecommendation } from '../utils/intelligence/decisionGuard';
@@ -219,6 +220,8 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       return <PerformanceSignalV3 fixtureRollups={fixture.rollups} />;
     case 'weekly':
       return <WeeklyReportV3 fixture={fixture.weeklyInputs} />;
+    case 'editorialWeekly':
+      return <EditorialWeeklyScreen fixture={fixture.weeklyInputs} />;
     case 'circle':
       return <CircleScreenV3 fixture={fixture.circleInputs} />;
     case 'moments':

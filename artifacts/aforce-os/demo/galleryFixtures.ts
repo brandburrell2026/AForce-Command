@@ -92,6 +92,7 @@ export type GallerySurface =
   | 'editorialHome'
   | 'protocol'
   | 'editorialProtocol'
+  | 'editorialWeekly'
   | 'editorialMoments'
   | 'editorialMomentDetail'
   | 'hydration'
@@ -889,6 +890,30 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
     surface: 'weekly',
     weeklyInputs: buildWeeklyReviewInputs(),
   },
+  // E5 (founder decisions 2026-08-30) — WEEKLY REPORT, The Feature, on paper.
+  // Same WeeklyV3Inputs the V3 dashboard consumes: the register changes, the
+  // truth does not.
+  {
+    id: 'editorial-weekly-feature',
+    label: 'Editorial Weekly — The Feature',
+    driver: 'buildWeeklyReviewInputs: week Aug 2-8; 7 tracked days, 5 wins, PA 47->44 over 8 days; habit streak 10 (daily opens Aug 2-11, from the habitVelocity section — NOT complianceStreak)',
+    surface: 'editorialWeekly',
+    weeklyInputs: buildWeeklyReviewInputs(),
+  },
+  {
+    id: 'editorial-weekly-sparse',
+    label: 'Editorial Weekly — Sparse week',
+    driver: 'two rollup days, one win, and a ONE-point PA series: the pull numbers print measured values, and the PA chart falls to its collecting posture because a single reading is not a trend',
+    surface: 'editorialWeekly',
+    weeklyInputs: buildWeeklySparseInputs(),
+  },
+  {
+    id: 'editorial-weekly-empty',
+    label: 'Editorial Weekly — Nothing logged',
+    driver: 'no rollups, no events, no PA result: measured zeroes stay 0, hydration days is the em dash, the PA card and the timeline are omitted entirely',
+    surface: 'editorialWeekly',
+    weeklyInputs: buildWeeklyEmptyInputs(),
+  },
   {
     id: 'circle-hub',
     label: 'Community — Ranked cohort',
@@ -952,6 +977,78 @@ export const GALLERY_FIXTURES: readonly GalleryFixture[] = [
  * only — but shaped exactly like the real sources: analytics events with real
  * types, server-shaped rollups, ledger-shaped PA day snapshots.
  */
+/**
+ * E5 sparse week — real but thin. Two tracked days and one win, and a PA
+ * result with a SINGLE snapshot, so `performanceAgeBarAxis` returns null and
+ * the chart correctly falls back to `pa_collecting` instead of drawing a
+ * one-point trend.
+ */
+function buildWeeklySparseInputs(): WeeklyV3Inputs {
+  const dayIdx = (iso: string) => Math.floor(Date.parse(iso) / 86_400_000);
+  return {
+    nowISO: '2026-08-11T09:00:00.000Z',
+    analyticsEvents: [
+      { type: 'session_open', at: '2026-08-04T14:00:00.000Z' },
+      { type: 'session_open', at: '2026-08-07T14:00:00.000Z' },
+      { type: 'win', at: '2026-08-07T20:00:00.000Z' },
+    ],
+    rollups: ([
+      ['2026-08-04', 61, 44, 2],
+      ['2026-08-07', 73, 0, 0],
+    ] as const).map(([date, avgScore, oz, units]) => ({
+      date,
+      snapshotsCount: 3,
+      avgScore,
+      minScore: Math.max(0, avgScore - 10),
+      maxScore: Math.min(100, avgScore + 6),
+      endOzConsumed: oz,
+      endAforceUnits: 1,
+      endUnitsConsumed: units,
+      endSodiumDelivered: 220,
+      endSodiumLost: 260,
+      endDeficitPct: Math.max(0, 100 - avgScore),
+      pctTimePeak: 10,
+      pctTimeBalanced: 40,
+      pctTimeRecovering: 35,
+      pctTimeDepleted: 15,
+    })) as JournalRollup[],
+    // A SINGLE snapshot. `performanceAgeBarAxis` still returns an axis here
+    // (it returns null only for an EMPTY series) — it is the screen's
+    // `bars.length >= 2` gate that correctly falls back to `pa_collecting`
+    // rather than drawing a trend from one reading.
+    paSnapshots: [{ dayIndex: dayIdx('2026-08-10T00:00:00.000Z'), performanceAge: 45 }],
+    paResult: {
+      status: 'provisional',
+      hasEnoughData: false,
+      provisional: true,
+      performanceAge: 45,
+      actualAge: 41,
+      yearsDelta: 4,
+      composite: 48,
+      band: 'RECOVERING',
+      availableSignals: 1,
+    } satisfies PerformanceAgeResult,
+    complianceStreak: 2,
+  };
+}
+
+/**
+ * E5 empty week — the honest floor. Nothing logged, nothing measured, no
+ * Performance Age. Days tracked and wins are MEASURED zeroes and print `0`;
+ * hydration days has no denominator and prints the em dash; the PA card and
+ * the timeline are omitted rather than drawn empty.
+ */
+function buildWeeklyEmptyInputs(): WeeklyV3Inputs {
+  return {
+    nowISO: '2026-08-11T09:00:00.000Z',
+    analyticsEvents: [],
+    rollups: [],
+    paSnapshots: [],
+    paResult: null,
+    complianceStreak: 0,
+  };
+}
+
 function buildWeeklyReviewInputs(): WeeklyV3Inputs {
   const dayIdx = (iso: string) => Math.floor(Date.parse(iso) / 86_400_000);
   const events: AnalyticsEvent[] = [];
