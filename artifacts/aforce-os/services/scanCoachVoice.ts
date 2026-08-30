@@ -123,19 +123,6 @@ function buildScanCoachScriptUnchecked(
   const fit = result.currentFitScore;
   const eff = pct(result.efficiency);
 
-  // CASE A — scanned IS AForce and already strong/optimal: lock it in.
-  if (scanned.isAForce && (result.verdict === 'optimal' || result.verdict === 'strong')) {
-    return {
-      headline: `${scanned.productName} is locked in for your ${state} state.`,
-      transcript:
-        `${scanned.productName} is locked in for your ${state} state. ` +
-        `This is a strong match — stay with it. ` +
-        `${result.recommendation.command}`,
-      bullets: [],
-      hasComparison: false,
-    };
-  }
-
   const isComparing =
     !!aforceEquivalent && aforceEquivalent.id !== scanned.productId;
 
@@ -174,12 +161,35 @@ function buildScanCoachScriptUnchecked(
     };
   }
 
-  // CASE C — scanned acceptable + no upgrade: log it.
-  if (
-    result.verdict === 'optimal' ||
-    result.verdict === 'strong' ||
-    result.verdict === 'acceptable'
-  ) {
+  // CASE A — the scanned product is already strong or optimal: lock it in.
+  //
+  // COMMERCIAL NEUTRALITY (founder ruling D6, 2026-08-30). This gate read
+  // `scanned.isAForce && (verdict optimal|strong)`, so the warmer register —
+  // "is locked in… a strong match, stay with it" — was reachable by AForce
+  // products ONLY. A rival holding the IDENTICAL verdict fell through to CASE
+  // C's "fits… a solid choice". Same deterministic outcome, brand-conditional
+  // warmth: the copy-hierarchy asymmetry D6 forbids, surviving in the spoken
+  // channel after the visible one was neutralized.
+  //
+  // This is the twin of the CASE D gate corrected below. The register is kept
+  // because it is useful; the brand condition is gone, and the block now sits
+  // AFTER the comparison branch so a genuine alternative still leads.
+  if (result.verdict === 'optimal' || result.verdict === 'strong') {
+    return {
+      headline: `${scanned.productName} is locked in for your ${state} state.`,
+      transcript:
+        `${scanned.productName} is locked in for your ${state} state. ` +
+        `This is a strong match — stay with it. ` +
+        `${result.recommendation.command}`,
+      bullets: [],
+      hasComparison: false,
+    };
+  }
+
+  // CASE C — scanned acceptable + no upgrade: log it. `optimal` and `strong`
+  // are handled above and the compiler now narrows them out, which is the
+  // reordering proving itself exhaustive.
+  if (result.verdict === 'acceptable') {
     return {
       headline: `${scanned.productName} fits your ${state} state.`,
       transcript:
