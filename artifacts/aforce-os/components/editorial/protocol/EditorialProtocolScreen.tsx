@@ -43,14 +43,18 @@ import {
   hydrationProgress,
   signalsAreLive,
   anySignalReported,
+  shouldAcknowledgeProgress,
 } from '@/components/protocol/protocolV3Presentation';
+import { formatTimeAgo } from '@/data/mockData';
+import { fireMoment } from '@/services/haptics';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useWeeklyCompliance } from '@/hooks/useWeeklyCompliance';
 import { deriveProtocol } from '@/services/protocolDerivation';
 import { useAppStore } from '@/store/useAppStore';
 import { useBootstrapSlice } from '@/store/slices';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
-import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { edInkFor, edPositive, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
 import { EdCaption, EdEvidenceLine, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
 import { EdBriefChecklist } from './EdBriefChecklist';
@@ -60,7 +64,7 @@ import { briefGaugeFraction } from './editorialProtocolPresentation';
 export function EditorialProtocolScreen() {
   const { t } = useTranslation();
   const { state } = useAppStore();
-  const { engineOutput, userState } = state;
+  const { engineOutput, userState, history } = state;
   const { lastRefreshStale } = useBootstrapSlice();
   const [whyOpen, setWhyOpen] = React.useState(false);
   const tabClearance = useTabBarClearance();
@@ -79,6 +83,18 @@ export function EditorialProtocolScreen() {
   const steps = protocol.steps;
   const total = steps.length;
   const completedCount = steps.filter((s) => s.complete).length;
+
+  // SIGNATURE MOMENT — RITUAL PROGRESSION, carried over verbatim from
+  // ProtocolScreenV2. `ritual_progressed` is the only named haptic moment
+  // Protocol owns; dropping it would have made it unreachable app-wide the
+  // moment this flag flipped (the E4 review caught exactly that). Same pure
+  // rule, same ref baseline, so establishing the baseline never re-renders.
+  const prevCompletedRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    const prev = prevCompletedRef.current;
+    prevCompletedRef.current = completedCount;
+    if (shouldAcknowledgeProgress(prev, completedCount)) fireMoment('ritual_progressed');
+  }, [completedCount]);
 
   // Same resolvers the V3 dashboard uses — reused, never reimplemented, so
   // the honest-data rules they encode stay enforced on this surface too.
@@ -138,11 +154,24 @@ export function EditorialProtocolScreen() {
           />
 
           <View style={styles.section}>
-            <EdCaption text={t('protocol.v2.today_section')} />
+            <View style={styles.sectionHead}>
+              <EdCaption text={t('protocol.v2.today_section')} />
+              {/* The count V2 renders beside its Completed-today header. A
+                  count, not a percentage — D1 bans derived metrics, not the
+                  step tally the checklist already states. */}
+              <Text
+                maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+                style={[edType.data as TextStyle, { color: ink.quiet }]}
+                testID="editorial-protocol-count"
+              >
+                {completedCount} / {total}
+              </Text>
+            </View>
             <EdBriefChecklist
               steps={steps}
               doneLabel={t('protocol.v3.completed_today')}
               activeLabel={t('protocol.v2.active_step')}
+              pendingLabel={t('protocol.v2.timeline_upcoming')}
             />
           </View>
 
@@ -164,11 +193,23 @@ export function EditorialProtocolScreen() {
           <View style={styles.section}>
             <EdCaption text={t('protocol.v3.recovery_signals')} />
             {anySignal ? (
-              <View style={styles.signalRow}>
-                <Signal label={t('protocol.v3.heart_rate')} value={signals.hrText} />
-                <Signal label={t('protocol.v3.hrv')} value={signals.hrvText} />
-                {signals.live ? <Signal label={t('protocol.v3.live')} value="" /> : null}
-              </View>
+              <>
+                {/* Live is a freshness qualifier on the section, not a third
+                    reading — V2 renders it as a chip beside the header, and a
+                    valueless tile would read as a signal with no value. */}
+                {signals.live ? (
+                  <Text
+                    style={[edType.micro as TextStyle, { color: edPositive, marginTop: 6 }]}
+                    testID="editorial-protocol-live"
+                  >
+                    {t('protocol.v3.live')}
+                  </Text>
+                ) : null}
+                <View style={styles.signalRow}>
+                  <Signal label={t('protocol.v3.heart_rate')} value={signals.hrText} />
+                  <Signal label={t('protocol.v3.hrv')} value={signals.hrvText} />
+                </View>
+              </>
             ) : (
               <Text
                 style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 6 }]}
@@ -178,6 +219,39 @@ export function EditorialProtocolScreen() {
               </Text>
             )}
           </View>
+
+          {/* Command history, relocated — NOT deleted. ProtocolScreenV2's own
+              header records the standing founder ruling ("relocate, never
+              delete"); the E4 review caught this surface dropping it. Same
+              slice, same five entries, same fields. */}
+          {history.length > 0 ? (
+            <View style={styles.section} testID="editorial-protocol-history">
+              <EdCaption text={t('protocol.v2.recent_activity')} />
+              {history.slice(0, 5).map((entry) => (
+                <View key={entry.id}>
+                  <EdRule />
+                  <View
+                    accessible
+                    accessibilityLabel={`${entry.action} ${formatTimeAgo(entry.timestamp)} ${entry.score}`}
+                    style={styles.historyRow}
+                  >
+                    <Text
+                      style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
+                      numberOfLines={1}
+                    >
+                      {entry.action}
+                    </Text>
+                    <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                      {formatTimeAgo(entry.timestamp)}
+                    </Text>
+                    <Text style={[edType.data as TextStyle, { color: ink.quiet }]}>
+                      {entry.score}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
 
           {/* WHY — progressive disclosure, unchanged in substance. */}
           <Pressable
@@ -235,6 +309,21 @@ function Signal({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: edStock.black },
   section: { marginTop: 26 },
+  sectionHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    columnGap: 12,
+    flexWrap: 'wrap',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    columnGap: 10,
+    flexWrap: 'wrap',
+    rowGap: 2,
+    paddingVertical: 4,
+  },
   signalRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

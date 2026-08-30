@@ -82,9 +82,20 @@ describe('D1 — one instrument: the canonical clock', () => {
 
   it('no second completion instrument: no ring, no percentage, no derived progress metric', () => {
     for (const { file, src } of sources()) {
-      expect(src, `${file} reintroduces a ring`).not.toMatch(/AFReadinessArc|ringFraction|ringPct/);
-      // A rendered "%" would be a derived progress metric the decision bans.
+      // No ring INSTRUMENT. `ringFraction` is allowed in the pure module
+      // only, where it is the delegation the resolver-reuse rule requires —
+      // banning it outright would have forced the forked arithmetic the
+      // review already caught.
+      expect(src, `${file} reintroduces a ring`).not.toMatch(/AFReadinessArc|ringPct/);
+      if (!file.endsWith('editorialProtocolPresentation.ts')) {
+        expect(src, `${file} computes a ring fraction itself`).not.toMatch(/ringFraction/);
+      }
+      // Source-text denylist: it cannot evaluate a runtime string, so it is
+      // paired with the structural guarantee below rather than trusted alone.
       expect(src, `${file} renders a percentage`).not.toMatch(/\}%|'%'|`%`|%<\/Text>/);
+      // Structural: no percent-typed style value anywhere either, so the
+      // gauge cannot be re-expressed as a percentage by the back door.
+      expect(src, `${file} uses a percentage style value`).not.toMatch(/:\s*`\$\{[^`]*\}%`/);
     }
   });
 
@@ -96,6 +107,31 @@ describe('D1 — one instrument: the canonical clock', () => {
         /setInterval|setTimeout|useTimerSlice|requestAnimationFrame/,
       );
     }
+  });
+});
+
+describe('PARITY — no V2 behaviour is stranded (the E3 P0 class)', () => {
+  it('the ritual_progressed haptic survives — Protocol owns the only producer', () => {
+    const s = screen();
+    expect(s).toMatch(/shouldAcknowledgeProgress/);
+    expect(s).toMatch(/fireMoment\('ritual_progressed'\)/);
+    // Same ref-baseline idiom as V2, so establishing the baseline never fires.
+    expect(s).toMatch(/prevCompletedRef/);
+  });
+
+  it('the relocated command history survives (founder ruling: relocate, never delete)', () => {
+    const s = screen();
+    expect(s).toMatch(/history\.slice\(0, 5\)/);
+    expect(s).toMatch(/formatTimeAgo/);
+    expect(s).toMatch(/protocol\.v2\.recent_activity/);
+  });
+
+  it('the completed-step count survives', () => {
+    expect(screen()).toMatch(/\{completedCount\} \/ \{total\}/);
+  });
+
+  it('the lazy weekly-compliance fetch condition is preserved', () => {
+    expect(screen()).toMatch(/useWeeklyCompliance\(whyOpen\)/);
   });
 });
 
@@ -121,6 +157,14 @@ describe('RESOLVER REUSE — the honest-data rules stay enforced', () => {
 
   it('the biometrics winners come from the shared arbitration, not a local pick', () => {
     expect(screen()).toMatch(/explainFieldArbitration/);
+  });
+
+  it('the gauge delegates to the shipped ringFraction — no forked arithmetic', () => {
+    const pres = strip(read(join(ED_PROTOCOL, 'editorialProtocolPresentation.ts')));
+    expect(pres).toMatch(/from '@\/components\/protocol\/protocolV3Presentation'/);
+    expect(pres).toMatch(/return ringFraction\(completed, total\);/);
+    // No re-authored clamp/divide in this tree.
+    expect(pres).not.toMatch(/Math\.min\(1,|completed \/ total/);
   });
 });
 
@@ -196,8 +240,11 @@ describe('ROOT TAB — no back control (Protocol is not a pushed route)', () => 
 describe('WHY — progressive disclosure survives', () => {
   it('the WHY control and its sheet are present', () => {
     const s = screen();
-    expect(s).toMatch(/whyOpen|setWhyOpen/);
-    expect(s).toMatch(/protocol\.v2\.why|AFDisclosureSheet|EdBrief/);
+    expect(s).toMatch(/setWhyOpen\(true\)/);
+    // The old alternation included `EdBrief`, which is a substring of
+    // EdBriefChecklist — it could never fail. Assert the sheet itself.
+    expect(s).toMatch(/<AFDisclosureSheet[\s\S]{0,200}?visible=\{whyOpen\}/);
+    expect(s).toMatch(/protocol\.v2\.why_this_plan/);
   });
 });
 
@@ -229,11 +276,29 @@ describe('A11Y — the standing rules carry forward', () => {
     }
   });
 
-  it('interactive targets meet the 44pt floor, and rows wrap rather than clip', () => {
+  it('interactive targets meet the 44pt floor', () => {
     const all = sources().map((s) => s.src).join('\n');
     expect(all).toContain('edRhythm.minTarget');
     for (const { file, src } of sources()) {
       expect(src, `${file} shrinks a target`).not.toMatch(/minHeight:\s*(?:[1-3]?\d)\b/);
+    }
+  });
+
+  it('every horizontal row wraps — AX reflow, not clipping', () => {
+    // The previous version of this case only checked targets and never
+    // looked at wrapping at all, while claiming to (E4 review). Every
+    // flexDirection:'row' style block in this tree must declare flexWrap.
+    // Scoped to CONTENT rows (style keys ending in `Row`). A graphical
+    // element like the clock's gauge track is also flexDirection:'row' and
+    // must NOT wrap — wrapping a hairline bar would break it.
+    for (const { file, src } of sources()) {
+      const rows = [
+        ...src.matchAll(/\b\w*[Rr]ow:\s*\{[^{}]*flexDirection:\s*'row'[^{}]*\}/g),
+      ].map((m) => m[0]);
+      for (const block of rows) {
+        expect(block, `${file} has a content row that cannot wrap: ${block}`).toMatch(/flexWrap/);
+      }
+      expect(rows.length, `${file}: no content rows found to check`).toBeGreaterThanOrEqual(0);
     }
   });
 

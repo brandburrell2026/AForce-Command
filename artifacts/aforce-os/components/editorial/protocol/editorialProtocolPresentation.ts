@@ -1,18 +1,20 @@
 /**
  * Editorial Protocol — pure presentation logic (E4, founder decisions
- * 2026-08-30). No react-native import, so the law lock exercises it directly.
+ * 2026-08-30).
  */
+import { ringFraction } from '@/components/protocol/protocolV3Presentation';
 
 /**
- * The canonical clock's hairline gauge (founder Decision 1). The completion
- * ring is FOLDED INTO this gauge — there is no second dominant completion
- * instrument, and this is not a new metric: it is the same completed/total
- * the checklist already states in words, expressed as the gauge's length.
+ * The canonical clock's hairline gauge (Decision 1). The completion ring is
+ * FOLDED INTO this gauge — one dominant instrument, and NOT a new metric:
+ * it is the same completed/total the checklist states in words.
  *
- * Deliberately NOT rendered as a percentage anywhere; the checklist remains
- * the truthful step-completion representation.
+ * DELEGATES to `ringFraction`, the shipped resolver the V3 ring already
+ * used, rather than re-authoring the arithmetic. The E4 review caught the
+ * duplicate: a forked copy would drift from the canonical rule silently and
+ * would defeat the resolver-reuse constraint this migration is built on.
+ * Not rendered as a percentage anywhere.
  */
 export function briefGaugeFraction(completed: number, total: number): number {
-  if (!Number.isFinite(completed) || !Number.isFinite(total) || total <= 0) return 0;
-  return Math.max(0, Math.min(1, completed / total));
+  return ringFraction(completed, total);
 }

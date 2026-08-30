@@ -25,7 +25,12 @@ export function EdCanonicalClock({
 }: {
   /** engine riskTimer, via deriveProtocol.nextRecheckMinutes. */
   minutes: number;
-  /** Localized "{{min}} min"-style unit line, passed in already resolved. */
+  /**
+   * The localized "{{min}} min" string. Used for the SCREEN READER only —
+   * rendering it under the numeral printed the number twice (the E4 review
+   * caught "15" above "15 min"). There is no bare unit key to render, and
+   * D3 forbids adding one, so the visible unit is carried by the caption.
+   */
   minutesLabel: string;
   /** Mono caption naming what the number is. */
   caption: string;
@@ -37,14 +42,12 @@ export function EdCanonicalClock({
   const pct = Math.max(0, Math.min(1, gaugeFraction));
   return (
     <View accessible accessibilityLabel={a11yLabel} style={styles.wrap} testID="editorial-canonical-clock">
+      {/* minutesLabel is deliberately not rendered — see its prop doc. */}
       <Text
         maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
         style={[edType.numberHero as TextStyle, { color: ink.primary }]}
       >
         {minutes}
-      </Text>
-      <Text style={[edType.caption as TextStyle, { color: ink.quiet, marginTop: 2 }]}>
-        {minutesLabel}
       </Text>
       {/* The hairline gauge — the folded-in completion ring. Decorative:
           the checklist below says the same thing in words. */}

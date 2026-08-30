@@ -10,6 +10,7 @@
 import React from 'react';
 import { StyleSheet, Text, type TextStyle, View } from 'react-native';
 
+import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edInkFor, edPositive, edType } from '@/theme/editorialTokens';
 
 import { EdRule } from '../core';
@@ -25,11 +26,14 @@ export function EdBriefChecklist({
   steps,
   doneLabel,
   activeLabel,
+  pendingLabel,
 }: {
   steps: readonly BriefStep[];
   /** Localized state words, resolved by the caller. */
   doneLabel: string;
   activeLabel: string;
+  /** State word for a not-yet-active step — its window is a TIME, not a state. */
+  pendingLabel: string;
 }) {
   const ink = edInkFor('black');
   const activeIndex = steps.findIndex((s) => !s.complete);
@@ -40,12 +44,20 @@ export function EdBriefChecklist({
         // State is said in words on every row — the mark is never the only
         // carrier of whether a step is done.
         const state = step.complete ? doneLabel : live ? activeLabel : step.window;
+        // ...but a pending row's trailing slot is its WINDOW, which is a time,
+        // not a state. The spoken label therefore always carries a real state
+        // word AND the window, so a reader is never left to infer the state
+        // from a clock (E4 review).
+        const spokenState = step.complete ? doneLabel : live ? activeLabel : pendingLabel;
+        const a11y = [step.label, spokenState, step.complete || live ? '' : step.window]
+          .filter((part) => part.trim().length > 0)
+          .join(', ');
         return (
           <View key={step.id}>
             <EdRule />
             <View
               accessible
-              accessibilityLabel={`${step.label}, ${state}`}
+              accessibilityLabel={a11y}
               style={styles.row}
               testID={`editorial-brief-step-${step.id}`}
             >
@@ -58,6 +70,10 @@ export function EdBriefChecklist({
                 {step.complete ? '✓' : '—'}
               </Text>
               <Text
+                /* The live row is display-voice (edType.command), so it caps
+                   at the house boundary like every other statement — an
+                   oversized word must never force an iOS mid-word break. */
+                maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
                 style={[
                   (live ? edType.command : edType.body) as TextStyle,
                   { color: step.complete ? ink.quiet : ink.primary, flexShrink: 1 },
