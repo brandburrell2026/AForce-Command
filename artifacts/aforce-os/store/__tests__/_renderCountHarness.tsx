@@ -165,6 +165,7 @@ export function FacadeAndSliceHarness({
         state={state}
         actions={actions}
         isHydrated
+        lastRefreshStale={false}
         selectedVoiceId={null}
         voiceCoachEnabled={false}
         voiceIntensity="standard"

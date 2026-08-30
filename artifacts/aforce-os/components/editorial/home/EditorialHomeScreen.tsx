@@ -127,7 +127,7 @@ export function EditorialHomeScreen({
 } = {}) {
   const { t } = useTranslation();
   const userState = useUserSlice();
-  const { isHydrated } = useBootstrapSlice();
+  const { isHydrated, lastRefreshStale } = useBootstrapSlice();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
   const { logIntake, dismissSuccess } = useActionsSlice<HomeActions>();
@@ -203,8 +203,13 @@ export function EditorialHomeScreen({
     () => getStatusVerb(engine.performanceState.level, trend.direction),
     [engine.performanceState.level, trend.direction],
   );
+  // Lane A (2026-08-30) — a third withholding beside the two founder §1
+  // rules: a stale delivery's score is a local recompute the server never
+  // confirmed, so the momentum claim is withheld. The reading still shows.
   const trendVerb =
-    trend.direction === 'flat' || statusVerb === 'CRITICAL' ? undefined : statusVerb;
+    trend.direction === 'flat' || statusVerb === 'CRITICAL' || lastRefreshStale
+      ? undefined
+      : statusVerb;
 
   // ── Signals — the SAME arbitration winners and honest formatters the V3
   // grid consumes. Computed unconditionally here (the editorial footer is
@@ -272,6 +277,14 @@ export function EditorialHomeScreen({
                 style={styles.freshness}
                 testID="editorial-freshness"
               />
+              {/* Lane A — last-known delivery. Not an "offline" claim (the
+                  producer cannot tell unreachable from rejecting), no retry
+                  promise, no timestamp. */}
+              {lastRefreshStale ? (
+                <Text style={styles.staleNotice} testID="editorial-stale-notice">
+                  {t('home.v2.stale_notice')}
+                </Text>
+              ) : null}
             </View>
             <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
@@ -409,6 +422,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   freshness: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+    marginTop: 2,
+  },
+  staleNotice: {
     ...edType.micro,
     color: edInkFor('black').quiet,
     marginTop: 2,

@@ -125,7 +125,10 @@ describe('HomeScreenV2 — pre-hydration skeleton wiring (RC-1 Wave-2B, item 2a)
   });
 
   it('reads isHydrated off the sliced bootstrap context (migrated off the useAppStore facade in RC-1 W3P2)', () => {
-    expect(CODE).toMatch(/const\s*\{\s*isHydrated\s*\}\s*=\s*useBootstrapSlice\(\);/);
+    // CONSCIOUS REPIN (Lane A, 2026-08-30): the same bootstrap destructure now
+    // also carries `lastRefreshStale` — the delivery-status flag lives beside
+    // isHydrated by design (see store/slices.tsx BootstrapSlice).
+    expect(CODE).toMatch(/const\s*\{[^}]*\bisHydrated\b[^}]*\}\s*=\s*useBootstrapSlice\(\);/);
   });
 
   it('never calls the useAppStore() facade (RC-1 W3P2 regression guard — see the render-count harness for the behavioral proof)', () => {

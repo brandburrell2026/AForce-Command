@@ -260,6 +260,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // values read this (see `HomeScreenV2`). Never reset back to false —
   // monotonic for the lifetime of the provider.
   const [isHydrated, setIsHydrated] = React.useState<boolean>(false);
+  // ── Stale delivery truth (founder Lane A, 2026-08-30) ─────────────────────
+  // `fetchHome` RESOLVES on an unreachable server, echoing the caller's own
+  // state back with the score recomputed locally and `stale: true`
+  // (services/realApi.ts) — so a caller's catch never runs and, until now,
+  // every call site discarded the flag. Home therefore presented last-known
+  // data with the authority of a server-fresh read.
+  //
+  // This is the `isHydrated` shape deliberately: plain provider state, NOT a
+  // reducer AppState field. It is a fact about the last DELIVERY, not about
+  // the member's body — putting it in AppState would push it through the
+  // facade, the fixtures and the persistence surface for no truth gained.
+  // Non-monotonic on purpose: a successful refresh clears it.
+  const [lastRefreshStale, setLastRefreshStale] = React.useState<boolean>(false);
+  const markRefreshStale = useCallback((stale: boolean) => {
+    setLastRefreshStale(Boolean(stale));
+  }, []);
   // Investor Demo overlay — purely transient UI flag. Never persisted
   // (every demo run starts fresh) and never reads/writes engine state.
   const [isInvestorDemoActive, setInvestorDemoActiveState] = React.useState<boolean>(false);
@@ -485,7 +501,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       // reducer state (which still includes pending intakes) stays in place.
       if (selectPendingCount(getIntakeOutboxState()) === 0) {
         try {
-          const { engineOutput, userState } = await fetchHome(userStateRef.current);
+          const { engineOutput, userState, stale } = await fetchHome(userStateRef.current);
+          markRefreshStale(stale === true);
           applyServerUserState(userState, engineOutput);
         } catch {
           // offline again — keep last known state; the next trigger reconciles.
@@ -514,8 +531,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshState = useCallback(async () => {
     const current = userStateRef.current;
     try {
-      const { engineOutput, userState } = await fetchHome(current);
+      const { engineOutput, userState, stale } = await fetchHome(current);
       if (!stateRefreshMountedRef.current) return;
+      // Report the delivery BEFORE adopting it: the state below is honest
+      // either way, but only this bit says whether the server confirmed it.
+      markRefreshStale(stale === true);
       // If server returned a newer state (e.g. from another device or
       // a fresh weather lookup), adopt it; otherwise just refresh the
       // engine. We compare a few fields rather than deep-equal to keep
@@ -759,6 +779,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     voiceIntensityRef,
     selectedVoiceIdRef,
     eliteVoiceCoachRef,
+    markRefreshStale,
   });
 
   // ─── Hydration Journal snapshot writer ──────────────────────────────
@@ -1308,6 +1329,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         state={deliveredState}
         actions={actions}
         isHydrated={isHydrated}
+        lastRefreshStale={lastRefreshStale}
         selectedVoiceId={selectedVoiceId}
         voiceCoachEnabled={voiceCoachEnabled}
         voiceIntensity={voiceIntensity}

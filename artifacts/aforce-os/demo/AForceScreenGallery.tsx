@@ -151,6 +151,7 @@ function StoreOverride({ state, children }: { state: StoreAppState; children: Re
         state={state}
         actions={actions}
         isHydrated={contextValue.isHydrated}
+        lastRefreshStale={false}
         selectedVoiceId={contextValue.selectedVoiceId}
         voiceCoachEnabled={contextValue.voiceCoachEnabled}
         voiceIntensity={contextValue.voiceIntensity}

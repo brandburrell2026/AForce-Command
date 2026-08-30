@@ -164,6 +164,7 @@
         "days_ago_stale": "Checked {{count}}d ago — data is stale",
         "unavailable": "Awaiting first sync"
       },
+      "stale_notice": "Last known data — may be out of date",
       "readiness_label": "HYDROSTATE",
       "readiness_a11y": "Readiness {{score}} of 100. Tap for insights.",
       "confidence_chip": "EVIDENCE: {{rating}}",
