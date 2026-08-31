@@ -140,7 +140,12 @@ describe('RISK_THRESHOLDS + thresholdFor', () => {
 
 describe('riskTimerLine', () => {
   it('returns the spec phrase verbatim at standard intensity', () => {
-    expect(riskTimerLine(16)).toBe('Recommended next step. Recheck in 15 minutes.');
+    // CONSCIOUS REPIN (RP-5 × R2, 2026-08-31): the 16-minute line no longer
+    // bakes a static "15" — it speaks the LIVE riskTimer minutes when the
+    // caller provides them, and degrades to the threshold itself when not.
+    // A static number here was a second clock spoken over the canonical one.
+    expect(riskTimerLine(16)).toBe('Recommended next step. Recheck in 16 minutes.');
+    expect(riskTimerLine(16, 'standard', 12)).toBe('Recommended next step. Recheck in 12 minutes.');
     expect(riskTimerLine(8)).toBe('Recovery window opening. Time for a water cycle.');
     expect(riskTimerLine(4)).toBe('Recovery window open. Time for hydration.');
     expect(riskTimerLine(0)).toBe('Recovery still pending. Open a water cycle to reset.');
@@ -226,12 +231,22 @@ describe('pressureCommandLine', () => {
     expect(pressureCommandLine('Drink water!')).toMatch(/!$/);
   });
 
-  it('clips lines to roughly ten words', () => {
+  it('clips at CLAUSE boundaries — a single long sentence stays whole', () => {
+    // CONSCIOUS REPIN (RP-5, ruling R6): the old hard 10-word clip amputated
+    // mid-clause ("… 2 sticks. Recheck in."). Pressure Mode now drops WHOLE
+    // trailing clauses past the 10-word cadence but never severs inside one,
+    // so this single 13-word clause survives complete.
     const out = pressureCommandLine(
       'Drink eight ounces of water with one AForce stick and one electrolyte pack now.',
     );
-    const wordCount = out.replace(/[.!?]$/, '').split(/\s+/).length;
-    expect(wordCount).toBeLessThanOrEqual(10);
+    expect(out.endsWith('now.')).toBe(true);
+  });
+
+  it('drops whole trailing clauses past the cadence', () => {
+    const out = pressureCommandLine(
+      'Drink 12 ounces of water with 1 stick right now. Then log the intake on the journal screen when you are done.',
+    );
+    expect(out).toBe('Drink 12 ounces with 1 stick now.');
   });
 
   it('returns "" on empty / whitespace input', () => {
@@ -258,13 +273,20 @@ describe('effectiveCommandLine', () => {
     expect(effectiveCommandLine(cmd, 'calm', 'DEPLETED')).toBe(cmd);
   });
 
-  it('swaps to Pressure Mode at pressure intensity for any level', () => {
+  it('swaps to Pressure Mode at pressure intensity for any non-DEPLETED level', () => {
     expect(effectiveCommandLine(cmd, 'pressure', 'PEAK')).toBe(pressureCommandLine(cmd));
     expect(effectiveCommandLine(cmd, 'pressure', 'BALANCED')).toBe(pressureCommandLine(cmd));
+    expect(effectiveCommandLine(cmd, 'pressure', 'RECOVERING')).toBe(pressureCommandLine(cmd));
   });
 
-  it('auto-engages Pressure Mode at standard intensity when level is DEPLETED', () => {
-    expect(effectiveCommandLine(cmd, 'standard', 'DEPLETED')).toBe(pressureCommandLine(cmd));
+  it('DEPLETED is spoken VERBATIM at every intensity — never transformed', () => {
+    // CONSCIOUS REPIN (RP-5, ruling R6): the old contract auto-engaged
+    // Pressure Mode at standard+DEPLETED, clipping the canonical instruction
+    // for the highest-risk band. Safety-critical truth does not adapt to
+    // presentation — DEPLETED bypasses the replacement table AND the clip.
+    expect(effectiveCommandLine(cmd, 'calm', 'DEPLETED')).toBe(cmd);
+    expect(effectiveCommandLine(cmd, 'standard', 'DEPLETED')).toBe(cmd);
+    expect(effectiveCommandLine(cmd, 'pressure', 'DEPLETED')).toBe(cmd);
   });
 
   it('keeps the original line at standard intensity for non-DEPLETED levels', () => {
