@@ -278,4 +278,18 @@ describe('A11Y — the E2 rules carry forward', () => {
       expect(src).toMatch(/<EdReturn/);
     }
   });
+
+  it('VoiceOver never speaks a bare "Do this now" with no action behind it (RP-3 review)', () => {
+    // Adversarial finding: the composed a11yLabel array included stateWord
+    // ("Do this now") unconditionally on every priority row, while the
+    // VISIBLE row already gates the same words on `action` existing. Under
+    // RP-3 silence (no eligible command, or a blocked mirror dropped) the
+    // priority row was announced as "…, Do this now, …" with nothing
+    // following — an imperative with no action, which sighted members never
+    // see. The spoken composition must mirror the visible one: the state
+    // word introduces the action on priority rows and must be silent
+    // exactly when the action is.
+    const src = day();
+    expect(src).toMatch(/priority\s*\?\s*\(action\s*\?\s*stateWord\s*:\s*''\)\s*:\s*stateWord/);
+  });
 });

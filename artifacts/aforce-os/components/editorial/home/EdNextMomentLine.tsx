@@ -88,10 +88,13 @@ export function EdNextMomentLine({
             {clockLabel(moment.startAtIso)}
           </Text>
         </View>
+        {/* RP-3: the action mirrors the canonical command; no command →
+            context only (the prep window is the Moment's own to state). */}
         <Text style={[edType.micro as TextStyle, { color: active ? edPositive : ink.quiet, marginTop: 6 }]}>
-          {t('moments.prep_window')} {prepWindowLabel(rec)} · {t(action.labelKey, action.labelParams)}
+          {t('moments.prep_window')} {prepWindowLabel(rec)}
+          {action ? ` · ${t(action.labelKey, action.labelParams)}` : ''}
         </Text>
-        {action.bestBeforeIso ? (
+        {action?.bestBeforeIso ? (
           <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
             {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
           </Text>

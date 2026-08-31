@@ -16,10 +16,7 @@ import {
   surfaceableMoments,
   nextMoment,
 } from '@/services/momentRecommendation';
-import {
-  MOMENT_PREP_WINDOW_MIN,
-  MOMENT_HYDRATE_OZ,
-} from '@/config/hydroStateModel';
+import { MOMENT_PREP_WINDOW_MIN } from '@/config/hydroStateModel';
 import {
   accentForType,
   windowPosture,
@@ -45,8 +42,16 @@ function moment(overrides: Partial<Moment> = {}): Moment {
   };
 }
 
+// CONSCIOUS REPIN (RP-3, 2026-08-31): this suite used to assert the exact
+// coupling ruling RP-3 severed — "primary is always hydration with config
+// ounces" pinned the action's oz to MOMENT_HYDRATE_OZ. The table is deleted;
+// the action is now the canonical guarded command's verbatim mirror, or
+// absent when no command was provided (silence is valid). Windows remain
+// Moments-owned context and keep their config pins.
+const CANON = { id: 'cmd-balanced', action: 'Sip 12 oz of water now.' };
+
 describe('buildRecommendation — windows and actions from config', () => {
-  const rec = buildRecommendation(moment(), { hydrationPct: 62, streakDays: 5 }, NOW);
+  const rec = buildRecommendation(moment(), { hydrationPct: 62, streakDays: 5, canonicalCommand: CANON }, NOW);
 
   it('derives the prep window from MOMENT_PREP_WINDOW_MIN (work: 60→30 before)', () => {
     expect(MOMENT_PREP_WINDOW_MIN.work).toEqual({ startBefore: 60, endBefore: 30 });
@@ -54,27 +59,35 @@ describe('buildRecommendation — windows and actions from config', () => {
     expect(rec.prepWindowEndIso).toBe('2026-08-12T17:30:00.000Z');
   });
 
-  it('is Water-First: primary is always hydration with config ounces + best-before', () => {
-    expect(rec.primaryAction.kind).toBe('hydrate');
-    expect(rec.primaryAction.labelParams).toMatchObject({ oz: MOMENT_HYDRATE_OZ.work[0] });
-    // best-before = window midpoint (fraction 0.5 in config)
-    expect(rec.primaryAction.bestBeforeIso).toBe('2026-08-12T17:15:00.000Z');
+  it('the primary action is the canonical command mirrored verbatim, with NO deadline attached', () => {
+    expect(rec.primaryAction?.kind).toBe('hydrate');
+    expect(rec.primaryAction?.labelParams).toMatchObject({ action: CANON.action });
+    // CONSCIOUS REPIN (Wave-3 adversarial review, 2026-08-31): best-before
+    // used to ride ON the mirrored action and render as "Best before
+    // {{time}}" directly under the command text — a Moment-authored
+    // deadline on a command whose timing is supposed to be unchangeable
+    // (confirmed live against a Social Mode safety command: a do-not-drive
+    // instruction gained an invented expiry). The prep-window row already
+    // carries this timing separately; the mirror itself carries none.
+    expect(rec.primaryAction?.bestBeforeIso).toBeUndefined();
   });
 
-  it('never exceeds two actions; work carries only the primary', () => {
+  it('never exceeds two actions; the electrolytes secondary is retired (RP-3)', () => {
     expect(rec.secondaryAction).toBeUndefined();
-    expect(buildRecommendation(moment({ type: 'training' }), {}, NOW).secondaryAction?.kind).toBe(
-      'electrolytes',
-    );
-    expect(buildRecommendation(moment({ type: 'travel' }), {}, NOW).secondaryAction?.kind).toBe(
-      'breathe',
-    );
+    expect(
+      buildRecommendation(moment({ type: 'training' }), { canonicalCommand: CANON }, NOW)
+        .secondaryAction,
+    ).toBeUndefined();
+    expect(
+      buildRecommendation(moment({ type: 'travel' }), { canonicalCommand: CANON }, NOW)
+        .secondaryAction?.kind,
+    ).toBe('breathe');
   });
 });
 
 describe('buildRecommendation — the four-stage ritual', () => {
-  it('is always PAUSE → HYDRATE → LOCK IN → PERFORM with time-derived states', () => {
-    const rec = buildRecommendation(moment(), {}, NOW);
+  it('is PAUSE → HYDRATE → LOCK IN → PERFORM with time-derived states (command present)', () => {
+    const rec = buildRecommendation(moment(), { canonicalCommand: CANON }, NOW);
     expect(rec.ritual.map((s) => s.key)).toEqual(['pause', 'hydrate', 'lock_in', 'perform']);
     // At NOW (17:38Z): pause window passed, hydrate best-before passed,
     // lock-in (17:45Z) not yet reached, perform upcoming.
@@ -86,13 +99,19 @@ describe('buildRecommendation — the four-stage ritual', () => {
     ]);
   });
 
-  it('inside the hydrate window the hydrate stage is active', () => {
-    const rec = buildRecommendation(moment(), {}, '2026-08-12T17:05:00.000Z');
+  it('inside the hydrate window the hydrate stage is active (mirror present)', () => {
+    const rec = buildRecommendation(moment(), { canonicalCommand: CANON }, '2026-08-12T17:05:00.000Z');
     expect(rec.ritual[1]).toMatchObject({ key: 'hydrate', state: 'active' });
   });
 
+  it('with no canonical command the ritual is three stages — no invented hydrate', () => {
+    // RP-3: the hydrate stage exists only as the command's mirror.
+    const rec = buildRecommendation(moment(), {}, NOW);
+    expect(rec.ritual.map((s) => s.key)).toEqual(['pause', 'lock_in', 'perform']);
+  });
+
   it('I\'M READY (preparedAtIso) completes the prep stages', () => {
-    const rec = buildRecommendation(moment({ preparedAtIso: NOW }), {}, NOW);
+    const rec = buildRecommendation(moment({ preparedAtIso: NOW }), { canonicalCommand: CANON }, NOW);
     expect(rec.ritual.slice(0, 3).every((s) => s.state === 'completed')).toBe(true);
     expect(rec.ritual[3]!.state).toBe('active'); // perform armed
   });

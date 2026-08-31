@@ -11,9 +11,13 @@
  * CONTRACTS
  *  • Stage titles reuse the shipped `opening.ritual_*` identity — one ritual
  *    across the OS. Order and membership come from `rec.ritual`; nothing is
- *    re-derived, filtered, or sorted here.
- *  • Instructions render the GUARDED label + params verbatim (a degraded
- *    stage shows its neutral water-first copy, exactly as production does).
+ *    re-derived, filtered, or sorted here. RP-3 (Wave 3, 2026-08-31): the
+ *    HYDRATE chapter mirrors the canonical command and is OMITTED — not
+ *    degraded — when no eligible command exists; a three-chapter ritual
+ *    (PAUSE → LOCK IN → PERFORM) is correct rendering, not a bug.
+ *  • Instructions render the GUARDED label + params verbatim. A blocked
+ *    mirror is DROPPED (the stage disappears), never replaced with neutral
+ *    fallback copy — silence, not a Moment-minted substitute (RP-3).
  *  • "I'm ready" performs the identical three effects as the legacy screen —
  *    calendar-prepared mark OR store write, plus the notification cancel —
  *    under the identical `!prepared && !readOnly` guard. No second write

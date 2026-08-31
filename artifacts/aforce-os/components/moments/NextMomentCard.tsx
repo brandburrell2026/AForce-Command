@@ -64,18 +64,23 @@ export function NextMomentCard({
           </Text>
         </View>
 
-        <View style={styles.block}>
-          <Text style={styles.blockLabel}>{t('moments.do_this_now')}</Text>
-          <View style={styles.actionRow}>
-            <Icon name="droplet" size={16} color={active ? af.green : af.textSecondary} />
-            <Text style={styles.actionText}>{t(action.labelKey, action.labelParams)}</Text>
+        {/* RP-3: the action is the canonical command's MIRROR — when no
+            eligible command exists a Moment shows context only (silence is
+            valid; a Moment never manufactures a hydration action). */}
+        {action ? (
+          <View style={styles.block}>
+            <Text style={styles.blockLabel}>{t('moments.do_this_now')}</Text>
+            <View style={styles.actionRow}>
+              <Icon name="droplet" size={16} color={active ? af.green : af.textSecondary} />
+              <Text style={styles.actionText}>{t(action.labelKey, action.labelParams)}</Text>
+            </View>
+            {action.bestBeforeIso ? (
+              <Text style={styles.bestBefore}>
+                {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
+              </Text>
+            ) : null}
           </View>
-          {action.bestBeforeIso ? (
-            <Text style={styles.bestBefore}>
-              {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
-            </Text>
-          ) : null}
-        </View>
+        ) : null}
 
         <Pressable
           onPress={() => setWhyOpen(true)}

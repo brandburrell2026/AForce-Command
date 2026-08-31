@@ -121,15 +121,23 @@ describe('Moments notification lane — guard wired at qualification and deliver
   // the §42 scan, BEFORE the schedule call (notificationHonesty idiom:
   // source order proves gate-precedes-schedule in an IO layer).
 
-  it('planner: guard step sits after the day-cap gate and before planned.push', () => {
+  it('planner: scheduled bodies are CONTEXT-ONLY — no action ever reaches a plan', () => {
+    // CONSCIOUS REPIN (RP-3, 2026-08-31): the old per-candidate
+    // evaluateMomentAction step guarded the action riding in the body.
+    // Ruling RP-3 removed the action from the notification lane entirely
+    // (a body frozen at schedule time cannot mirror the live command), so
+    // the qualification chain ends at the budget gates and the plan carries
+    // prep-window context only. The rendered-copy guards below remain the
+    // lane's delivery protection.
     const gate = MOMENTS_SRC.indexOf('if (dayCount >= MOMENT_NOTIFY_MAX_PER_DAY) continue;');
-    const guard = MOMENTS_SRC.indexOf(
-      "if (evaluateMomentAction(rec.primaryAction).verdict === 'blocked') continue;",
-    );
     const push = MOMENTS_SRC.indexOf('planned.push({');
     expect(gate).toBeGreaterThan(-1);
-    expect(guard).toBeGreaterThan(gate);
-    expect(push).toBeGreaterThan(guard);
+    expect(push).toBeGreaterThan(gate);
+    expect(MOMENTS_SRC).not.toMatch(/actionKey|labelParams/);
+    // CONSCIOUS REPIN (RP-3 review, 2026-08-31): body_prep_until could be
+    // false at delivery (fire time isn't bounded to the window); the body
+    // now states the moment's own start time, which cannot become false.
+    expect(MOMENTS_SRC).toContain("bodyKey: 'moments.notify.body_starts_at'");
   });
 
   it('sync: rendered-copy guard sits beside the §42 scan and before scheduling', () => {
@@ -149,8 +157,11 @@ describe('Moments notification lane — guard wired at qualification and deliver
   });
 
   it('both checks import from the one guard module (no forked authority)', () => {
+    // CONSCIOUS REPIN (RP-3): evaluateMomentAction left with the action it
+    // used to judge; the two rendered-copy checks remain, from the ONE
+    // guard module.
     expect(MOMENTS_SRC).toMatch(
-      /import \{ evaluateDeliverableCopy, evaluateDeliverableLabel, evaluateMomentAction \} from '@\/utils\/intelligence\/decisionGuard';/,
+      /import \{ evaluateDeliverableCopy, evaluateDeliverableLabel \} from '@\/utils\/intelligence\/decisionGuard';/,
     );
   });
 });

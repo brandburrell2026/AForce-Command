@@ -247,7 +247,18 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       // surface reviewers use to judge Moment Detail could show copy the
       // Decision Guard had never seen.
       const { rec: guardedRec } = guardMomentRecommendation(
-        buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso),
+        buildRecommendation(
+          moment,
+          {
+            hydrationPct: 62,
+            streakDays: 5,
+            // RP-3: the mirror source. The gallery pins the canonical
+            // BALANCED command so captures show production truth — a demo
+            // stage may not mint its own hydration action either.
+            canonicalCommand: { id: 'cmd-balanced', action: 'Sip 12 oz of water now.' },
+          },
+          fx.nowIso,
+        ),
       );
       return (
         <MomentDetailScreen
@@ -284,7 +295,18 @@ function FixtureStage({ fixture }: { fixture: GalleryFixture }) {
       // (useMomentsData.recFor) — the legacy 'momentDetail' case above still
       // builds unguarded, which is a fidelity gap in that stage, not here.
       const { rec } = guardMomentRecommendation(
-        buildRecommendation(moment, { hydrationPct: 62, streakDays: 5 }, fx.nowIso),
+        buildRecommendation(
+          moment,
+          {
+            hydrationPct: 62,
+            streakDays: 5,
+            // RP-3: the mirror source. The gallery pins the canonical
+            // BALANCED command so captures show production truth — a demo
+            // stage may not mint its own hydration action either.
+            canonicalCommand: { id: 'cmd-balanced', action: 'Sip 12 oz of water now.' },
+          },
+          fx.nowIso,
+        ),
       );
       return (
         <EditorialMomentDetailScreen moment={moment} rec={rec} nowIso={fx.nowIso} readOnly />

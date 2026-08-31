@@ -172,29 +172,30 @@ function MomentOverviewCard({
           <Text style={styles.cardMetaValue}>{prepWindowLabel(rec)}</Text>
         </View>
 
-        <View style={styles.cardAction}>
-          <Text style={styles.cardMetaLabel}>{t(active ? 'moments.do_this_now' : 'moments.do_this')}</Text>
-          <View style={styles.cardActionRow}>
-            <Icon name="droplet" size={15} color={accent} />
-            <Text style={styles.cardActionText}>
-              {t(rec.primaryAction.labelKey, rec.primaryAction.labelParams)}
-            </Text>
+        {/* RP-3: the action mirrors the canonical command; absent command →
+            context only. */}
+        {rec.primaryAction ? (
+          <View style={styles.cardAction}>
+            <Text style={styles.cardMetaLabel}>{t(active ? 'moments.do_this_now' : 'moments.do_this')}</Text>
+            <View style={styles.cardActionRow}>
+              <Icon name="droplet" size={15} color={accent} />
+              <Text style={styles.cardActionText}>
+                {t(rec.primaryAction.labelKey, rec.primaryAction.labelParams)}
+              </Text>
+            </View>
+            {rec.primaryAction.bestBeforeIso && active ? (
+              <Text style={styles.cardBestBefore}>
+                {t('moments.best_before', { time: clockLabel(rec.primaryAction.bestBeforeIso) })}
+              </Text>
+            ) : null}
           </View>
-          {rec.primaryAction.bestBeforeIso && active ? (
-            <Text style={styles.cardBestBefore}>
-              {t('moments.best_before', { time: clockLabel(rec.primaryAction.bestBeforeIso) })}
-            </Text>
-          ) : null}
-        </View>
+        ) : null}
 
         {rec.secondaryAction ? (
           <View style={styles.cardAction}>
             <Text style={styles.cardMetaLabel}>{t('moments.optional_label')}</Text>
             <Text style={styles.cardSecondary}>
               {t(rec.secondaryAction.labelKey, rec.secondaryAction.labelParams)}
-              {rec.secondaryAction.kind === 'electrolytes'
-                ? ` — ${t('moments.action.electrolytes_sub')}`
-                : ''}
             </Text>
           </View>
         ) : null}

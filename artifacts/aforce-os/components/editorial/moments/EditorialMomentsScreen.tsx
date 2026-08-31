@@ -220,10 +220,15 @@ function SpineMoment({
   const a11yLabel = [
     clockLabel(moment.startAtIso),
     title,
-    stateWord,
+    // RP-3 review: stateWord ("Do this now") used to always introduce a
+    // real action on priority rows — now that the mirror can be absent
+    // (no eligible command / a blocked mirror dropped), speaking the
+    // imperative alone with nothing following it is a dangling command.
+    // Mirror the visible composition: silent exactly when the action is.
+    priority ? (action ? stateWord : '') : stateWord,
     prepText,
-    priority ? t(action.labelKey, action.labelParams) : '',
-    priority && action.bestBeforeIso
+    priority && action ? t(action.labelKey, action.labelParams) : '',
+    priority && action?.bestBeforeIso
       ? t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })
       : '',
     priority && rec.secondaryAction
@@ -261,10 +266,14 @@ function SpineMoment({
         </Text>
         {priority ? (
           <>
-            <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
-              {stateWord} {t(action.labelKey, action.labelParams)}
-            </Text>
-            {action.bestBeforeIso ? (
+            {/* RP-3: mirror or silence — the Moment never words its own
+                hydration action. */}
+            {action ? (
+              <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
+                {stateWord} {t(action.labelKey, action.labelParams)}
+              </Text>
+            ) : null}
+            {action?.bestBeforeIso ? (
               <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 2 }]}>
                 {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
               </Text>
