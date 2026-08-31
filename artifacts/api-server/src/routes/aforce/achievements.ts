@@ -5,7 +5,7 @@ import {
   db,
   aforceIntakeLogs, aforceScoreSnapshots, aforceAchievements,
 } from "@workspace/db";
-import { ne, eq, and, gte, asc, desc, inArray } from "drizzle-orm";
+import { ne, eq, and, gte, asc, desc, inArray, isNull, isNotNull } from "drizzle-orm";
 import { logger } from "../../lib/logger";
 import { resolveUserId, ACH_CODES, unlockAchievementCode } from "./shared";
 import type { AchCode } from "./shared";
@@ -37,7 +37,7 @@ router.get("/achievements", async (req, res) => {
     // Pull the snapshots + intakes window we need to compute progress.
     // 60 days is plenty for the longest streak (30) plus headroom.
     const since = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
-    const [snapshots, intakes, persisted] = await Promise.all([
+    const [snapshots, intakes, correctionRows, persisted] = await Promise.all([
       db
         .select()
         .from(aforceScoreSnapshots)
@@ -54,8 +54,19 @@ router.get("/achievements", async (req, res) => {
       db
         .select({ id: aforceIntakeLogs.id, loggedAt: aforceIntakeLogs.loggedAt, fluidType: aforceIntakeLogs.fluidType })
         .from(aforceIntakeLogs)
-        .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, since)))
+        // Correction rows are §10 bookkeeping, never consumption — and a
+        // corrected ORIGINAL earns no streak credit either (Wave-2 review:
+        // a log+undo loop must not manufacture achievement days).
+        .where(and(
+          eq(aforceIntakeLogs.userId, userId),
+          gte(aforceIntakeLogs.loggedAt, since),
+          isNull(aforceIntakeLogs.correctsIntakeId),
+        ))
         .orderBy(asc(aforceIntakeLogs.loggedAt)),
+      db
+        .select({ corrected: aforceIntakeLogs.correctsIntakeId })
+        .from(aforceIntakeLogs)
+        .where(and(eq(aforceIntakeLogs.userId, userId), isNotNull(aforceIntakeLogs.correctsIntakeId))),
       db
         .select()
         .from(aforceAchievements)
@@ -71,8 +82,13 @@ router.get("/achievements", async (req, res) => {
       return `${y}-${m}-${dd}`;
     }
 
+    // Ids of originals that were later corrected — they consumed nothing.
+    const correctedIds = new Set(correctionRows.map((r) => r.corrected));
     const intakeDays = new Set<string>();
-    for (const i of intakes) intakeDays.add(dayKey(i.loggedAt));
+    for (const i of intakes) {
+      if (correctedIds.has(i.id)) continue;
+      intakeDays.add(dayKey(i.loggedAt));
+    }
 
     // Longest current trailing streak (back from today).
     function trailingStreak(): number {

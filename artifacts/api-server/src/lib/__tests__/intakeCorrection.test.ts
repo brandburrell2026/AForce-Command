@@ -2,12 +2,20 @@ import { describe, it, expect } from "vitest";
 import { planIntakeCorrection, CORRECTION_LIVE_WINDOW_MS } from "../intakeCorrection";
 
 const NOW = 1_800_000_000_000;
+// CONSCIOUS REPIN (Wave-2 review, 2026-08-31): the old fixture minted
+// clientEventId as "evt-1" — the WRONG namespace. Real rows carry
+// clientEventId "cid-…" (the idempotency key, deliberately distinct from the
+// JSONB event id "evt-…"), so the old plan's removeEventId = clientEventId
+// could NEVER match an intake_events entry: counters reversed, the scoring
+// event survived, and the score kept the undone intake. The fixture now uses
+// both namespaces distinctly and the plan removes by the EVENT id.
 const log = (over: Partial<Parameters<typeof planIntakeCorrection>[0]["log"] & object> = {}) => ({
   id: 1,
   userId: "u1",
   fluidType: "water",
   ozAmount: 12,
-  clientEventId: "evt-1",
+  clientEventId: "cid-1",
+  eventId: "evt-1",
   correctsIntakeId: null,
   loggedAt: new Date(NOW - 60_000),
   ...over,
@@ -34,9 +42,18 @@ describe("planIntakeCorrection (§10 / RC-L12)", () => {
     expect(plan).toMatchObject({ ok: true, reverseCounters: false });
   });
 
-  it("legacy keyless row: counters reverse, no event linkage (documented residual)", () => {
-    const plan = planIntakeCorrection({ ...base, log: log({ clientEventId: null }) });
+  it("legacy row without a stored event id: counters reverse, no event linkage (documented residual)", () => {
+    // Rows written before event_id existed. The clientEventId is present but
+    // is NEVER a removal target — it lives in a different namespace.
+    const plan = planIntakeCorrection({ ...base, log: log({ eventId: null }) });
     expect(plan).toMatchObject({ ok: true, reverseCounters: true, removeEventId: null });
+  });
+
+  it("the removal target is the EVENT id — the idempotency key can never be one", () => {
+    const plan = planIntakeCorrection({ ...base, log: log() });
+    expect(plan).toMatchObject({ ok: true, removeEventId: "evt-1" });
+    const p2 = planIntakeCorrection({ ...base, log: log({ clientEventId: "cid-different" }) });
+    expect(p2).toMatchObject({ ok: true, removeEventId: "evt-1" });
   });
 
   it("aforce fluid flags the aforce counter for reversal", () => {

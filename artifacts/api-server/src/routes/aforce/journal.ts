@@ -7,7 +7,7 @@ import {
   aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations,
   createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
-import { inArray, eq, sql, and, gte, asc, desc } from "drizzle-orm";
+import { inArray, eq, sql, and, gte, asc, desc, isNull, isNotNull } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import {
   resolveScoreProtectionMode,
@@ -76,7 +76,12 @@ router.post("/journal/snapshot", snapshotLimiter, async (req, res) => {
           db
             .select({ n: sql<number>`count(*)::int` })
             .from(aforceIntakeLogs)
-            .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, evidenceSince))),
+            // A §10 correction row is bookkeeping, not intake evidence.
+            .where(and(
+              eq(aforceIntakeLogs.userId, userId),
+              gte(aforceIntakeLogs.loggedAt, evidenceSince),
+              isNull(aforceIntakeLogs.correctsIntakeId),
+            )),
         ]);
         const verdict = evaluateScoreWrite({
           proposed: { score: parsed.data.score },
@@ -170,7 +175,12 @@ router.get("/journal/timeline", async (req, res) => {
       db
         .select()
         .from(aforceIntakeLogs)
-        .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, since)))
+        // Correction rows are §10 bookkeeping, never intake entries.
+        .where(and(
+          eq(aforceIntakeLogs.userId, userId),
+          gte(aforceIntakeLogs.loggedAt, since),
+          isNull(aforceIntakeLogs.correctsIntakeId),
+        ))
         .orderBy(asc(aforceIntakeLogs.loggedAt)),
     ]);
 
@@ -247,7 +257,7 @@ router.get("/journal/rollups", async (req, res) => {
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const [snapshots, intakes] = await Promise.all([
+    const [snapshots, intakes, correctionRows] = await Promise.all([
       db
         .select()
         .from(aforceScoreSnapshots)
@@ -263,9 +273,18 @@ router.get("/journal/rollups", async (req, res) => {
       db
         .select()
         .from(aforceIntakeLogs)
-        .where(and(eq(aforceIntakeLogs.userId, userId), gte(aforceIntakeLogs.loggedAt, since)))
+        // Correction rows are §10 bookkeeping, never intake entries.
+        .where(and(
+          eq(aforceIntakeLogs.userId, userId),
+          gte(aforceIntakeLogs.loggedAt, since),
+          isNull(aforceIntakeLogs.correctsIntakeId),
+        ))
         .orderBy(asc(aforceIntakeLogs.loggedAt)),
-    ]);
+          db
+        .select({ corrected: aforceIntakeLogs.correctsIntakeId })
+        .from(aforceIntakeLogs)
+        .where(and(eq(aforceIntakeLogs.userId, userId), isNotNull(aforceIntakeLogs.correctsIntakeId))),
+]);
 
     function dayKey(d: Date): string {
       const y = d.getUTCFullYear();
@@ -390,7 +409,11 @@ router.get("/journal/rollups", async (req, res) => {
       attributeInterval(lastTs, tailEnd, last.level);
     }
 
+    // intakeCount means what COUNTED: a corrected original consumed nothing
+    // (Wave-2 review — undo must not leave the day's count inflated).
+    const correctedIds = new Set(correctionRows.map((r) => r.corrected));
     for (const i of intakes) {
+      if (correctedIds.has(i.id)) continue;
       const date = dayKey(i.loggedAt);
       const d = ensure(date);
       d.intakeCount += 1;

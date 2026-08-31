@@ -335,22 +335,97 @@ describe('COMMAND AUTHORITY — Scan explains; RecoveryCommand decides (DR-013)'
 
 // ───────────────────────────────────────── hydration credit
 
-describe('HYDRATION CREDIT — recognition is not consumption', () => {
-  it('the layer never writes intake itself', () => {
-    for (const { file, src } of sources()) {
-      expect(src, `${file} — Scan may not log intake directly`).not.toMatch(/logIntake\s*\(/);
+describe('HYDRATION CREDIT — the explicit intake lifecycle (RP-6, ruling R4)', () => {
+  // CONSCIOUS REPIN (2026-08-31): E6-B banned logIntake from this layer
+  // entirely — right while the screen had no lifecycle, but flag-on it
+  // removed scan logging app-wide (E7 P0-4). Ruling R4 supersedes the ban
+  // with the canonical lifecycle: recognition → review → quantity → member
+  // confirmation → idempotent intake (correct fluidType) → undo.
+  // Recognition still awards ZERO credit — the write exists only inside the
+  // confirmation handler.
+
+  it('logIntake is called in EXACTLY ONE place: the confirmation handler', () => {
+    const src = screen();
+    expect((src.match(/logIntake\(/g) ?? []).length).toBe(1);
+    const handler = /const onConfirmLog = [\s\S]*?\n  };/.exec(src)?.[0] ?? '';
+    expect(handler, 'the confirmation handler must exist and own the write').toMatch(/logIntake\(/);
+    // The write carries the member-adjusted quantity, the PRODUCT fluid type
+    // (never hardcoded water), and provenance.
+    expect(handler).toMatch(/ozOverride/);
+    expect(handler).toMatch(/source:\s*'scan'/);
+    // The scanned identity travels with the write — without it every stick
+    // SKU logs as the catalog default flavor and flavor-specific score
+    // impacts land on the wrong product (Wave-2 review).
+    expect(handler).toMatch(/flavorLabel:\s*result\.product\.productName/);
+    expect(handler).not.toMatch(/logIntake\(\s*'water'/);
+    // Every other file in the layer stays write-free.
+    for (const { file, src: s } of sources()) {
+      if (file.endsWith('EditorialScanScreen.tsx')) continue;
+      expect(s, `${file} — only the screen's confirmation handler writes`).not.toMatch(
+        /logIntake\s*\(/,
+      );
     }
   });
 
-  it('logging stays behind the canonical confirmation the production screen owns', () => {
-    // The editorial screen may PRESENT the log affordance, but the write goes
-    // through the same reviewed pipeline — never fired by identification.
-    const src = body();
-    if (/shouldLog/.test(src)) {
-      expect(src, 'a log affordance must be gated on the canonical flag').toMatch(
-        /recommendation\.shouldLog/,
-      );
+  it('recognition NEVER writes: the ok-branch of runScan contains no intake call', () => {
+    // Balanced-brace extraction of `if (out.ok) { … }` — the E6-A producer
+    // block. Moving the write in there would award hydration credit for
+    // pointing a camera at a barcode.
+    const src = screen();
+    const start = src.indexOf('if (out.ok)');
+    expect(start).toBeGreaterThan(-1);
+    let depth = 0;
+    let end = start;
+    for (let i = src.indexOf('{', start); i < src.length; i++) {
+      if (src[i] === '{') depth++;
+      if (src[i] === '}') depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
     }
+    expect(src.slice(start, end + 1), 'recognition must award zero credit').not.toMatch(
+      /logIntake/,
+    );
+  });
+
+  it("the affordance is outcome-gated on the canonical flags — exactly V2's gate", () => {
+    expect(screen()).toMatch(/recommendation\.shouldLog\s*&&\s*result\.product\.fluidType/);
+  });
+
+  it('the write is idempotent under re-entry: ref + store guard, control disabled', () => {
+    const src = screen();
+    expect(src, 'synchronous same-frame guard').toMatch(/confirmInFlightRef/);
+    expect(src, 'store re-entrancy guard').toMatch(/isCompletingCycle/);
+  });
+
+  it('the member can UNDO — and only after a log exists to undo', () => {
+    const src = screen();
+    expect((src.match(/undoIntake\(/g) ?? []).length).toBe(1);
+    // The undo affordance renders only while a logged cycle id is held.
+    expect(src).toMatch(/loggedCycleId/);
+  });
+
+  it('the durable success confirmation mounts locally (S21 contract)', () => {
+    expect(screen()).toMatch(/<CycleSuccessOverlay/);
+  });
+
+  it('the quantity ceiling is the documented CLIENT max, inside the guard envelope', () => {
+    // The Decision Guard bound (200 oz) is the forgery-rejection threshold,
+    // not a plausible single intake; the member ceiling is the documented
+    // 64-oz client max, clamped inside the guard as defense-in-depth
+    // (Wave-2 review).
+    const src = screen();
+    expect(src).toMatch(/Math\.min\(64, DECISION_GUARD_MAX_DOSE_OZ\)/);
+    expect(src).toMatch(/MAX_LOG_OZ/);
+  });
+
+  it('resolutions are epoch-guarded — a write for product A never paints product B', () => {
+    const src = screen();
+    expect(src).toMatch(/lifecycleEpochRef\.current \+= 1/);
+    expect((src.match(/lifecycleEpochRef\.current !== epoch\) return/g) ?? []).length).toBe(2);
+    // And a rescan cannot start while a write is in flight.
+    expect(src).toMatch(/disabled=\{writeInFlight\}/);
   });
 });
 

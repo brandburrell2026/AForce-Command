@@ -58,7 +58,21 @@ export interface AppContextValue {
        */
       categoryId?: string;
     },
-  ) => Promise<void>;
+    /**
+     * RP-6 (ruling R4): resolves to the logged cycle id (`intake-<serverId>`)
+     * on a landed write — the handle an UNDO window needs — and null on every
+     * guard/failure path, so an undo can never target a write that did not
+     * land.
+     */
+  ) => Promise<string | null>;
+  /**
+   * RP-6 (ruling R4): undo a just-logged intake through the server's
+   * append-only correction endpoint. True when the correction landed.
+   */
+  undoIntake: (
+    cycleResultId: string,
+    reason?: 'mistake' | 'spill' | 'wrong_product' | 'duplicate',
+  ) => Promise<boolean>;
   completeCycle: () => Promise<void>;
   snooze: () => void;
   dismissSuccess: () => void;

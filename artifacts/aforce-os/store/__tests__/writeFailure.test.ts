@@ -296,12 +296,14 @@ describe('locale parity for the new block', () => {
 describe('both write failure sites are wired to the classifier', () => {
   const src = read('store/app/actions.ts');
 
-  it('logIntake and confirmCommand both classify before they alert', () => {
-    // Two call sites, one behaviour: the pair that raised identical copy for
-    // every cause must now raise identical copy for the SAME cause.
-    expect(src.match(/classifyWriteFailure\(err\)/g)?.length).toBe(2);
-    expect(src.match(/common\.action_failed_title\.\$\{failure\.kind\}/g)?.length).toBe(2);
-    expect(src.match(/common\.action_failed_body\.\$\{failure\.kind\}/g)?.length).toBe(2);
+  it('every write site classifies before it alerts — logIntake, confirmCommand, undoIntake', () => {
+    // CONSCIOUS REPIN (Wave-2 review, 2026-08-31): the census grows from two
+    // to three — RP-6's undoIntake is a server write and inherits the same
+    // fail-visibly doctrine (a silent undo failure means the member says
+    // "I didn't drink that" and the system keeps counting it, wordlessly).
+    expect(src.match(/classifyWriteFailure\(err\)/g)?.length).toBe(3);
+    expect(src.match(/common\.action_failed_title\.\$\{failure\.kind\}/g)?.length).toBe(3);
+    expect(src.match(/common\.action_failed_body\.\$\{failure\.kind\}/g)?.length).toBe(3);
   });
 
   it('neither site can fall back to a single hard-coded sentence', () => {

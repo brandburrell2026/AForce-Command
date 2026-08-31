@@ -136,8 +136,11 @@ export const RISK_THRESHOLDS: ReadonlyArray<RiskThreshold> = Object.freeze([16, 
 
 const RISK_TIMER_LINES: Readonly<Record<RiskThreshold, Readonly<Record<VoiceIntensity, string>>>> = Object.freeze({
   16: Object.freeze({
-    calm:     'Recommended next step. Recheck in 15 minutes.',
-    standard: 'Recommended next step. Recheck in 15 minutes.',
+    // {{minutes}} is filled with the LIVE riskTimer minutes by riskTimerLine
+    // (RP-5 × ruling R2): the old static "15" was a second clock spoken over
+    // the canonical timer, wrong by construction at the 16-minute crossing.
+    calm:     'Recommended next step. Recheck in {{minutes}} minutes.',
+    standard: 'Recommended next step. Recheck in {{minutes}} minutes.',
     pressure: 'Next step. Hydrate soon.',
   }),
   8: Object.freeze({
@@ -192,10 +195,19 @@ export function thresholdFor(minutes: number): RiskThreshold | null {
 }
 
 /**
- * Spoken line for a discrete risk threshold and intensity. Pure lookup.
+ * Spoken line for a discrete risk threshold and intensity. Pure lookup,
+ * except that a line may reference the LIVE canonical timer: pass
+ * `liveMinutes` (the current riskTimer.minutes) and it is spoken as-is;
+ * without it the line degrades to the threshold value itself — never a
+ * third, invented number (RP-5 × ruling R2).
  */
-export function riskTimerLine(threshold: RiskThreshold, intensity: VoiceIntensity = 'standard'): string {
-  return RISK_TIMER_LINES[threshold][intensity];
+export function riskTimerLine(
+  threshold: RiskThreshold,
+  intensity: VoiceIntensity = 'standard',
+  liveMinutes?: number,
+): string {
+  const minutes = Number.isFinite(liveMinutes) ? Math.max(1, Math.round(liveMinutes!)) : threshold;
+  return RISK_TIMER_LINES[threshold][intensity].split('{{minutes}}').join(String(minutes));
 }
 
 /* ------------------------------------------------------------------ *
@@ -276,6 +288,11 @@ const PRESSURE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = Object.f
  *   "Drink twelve ounces of water with one AForce stick now."
  *     → "Drink 12 ounces with 1 AForce stick now."
  */
+/** A sentence carrying one of these is an instruction, never trimmable
+ *  cadence. Units are English across the whole locale corpus (the command
+ *  strings keep 'ounces'/'sticks'/'RTD' verbatim in every locale). */
+const DOSE_BEARING = /\d+\s*(?:oz\b|ounces?\b|ml\b|sticks?\b|rtds?\b|units?\b)/i;
+
 export function pressureCommandLine(command: string): string {
   if (!command || !command.trim()) return '';
   let out = command;
@@ -294,11 +311,29 @@ export function pressureCommandLine(command: string): string {
   // like a command rather than a fragment ("drink 12 ounces." → "Drink 12 ounces.").
   if (out.length > 0) out = out[0].toUpperCase() + out.slice(1);
 
-  // Clip to 10 words for a sharper command-center cadence.
-  const words = out.split(/\s+/);
-  if (words.length > 10) {
-    out = words.slice(0, 10).join(' ').replace(/[,.;:]+$/, '');
+  // CLAUSE-SAFE cadence clip (RP-5, ruling R6): the old hard 10-word cut
+  // amputated mid-clause ("… 2 sticks. Recheck in." / Spanish lost "ahora").
+  // Pressure Mode may drop WHOLE trailing clauses past the 10-word cadence,
+  // but it never severs inside one — a single long sentence stays whole —
+  // and it never drops SUBSTANCE: any sentence carrying a dose token is
+  // kept regardless of budget (the Wave-2 review executed the corpus and
+  // found Spanish PEAK reduced to 'Puntaje 22. Pico.' and social_take_rtd
+  // losing its 16-oz water pairing in every locale — status trimmed to
+  // cadence is fine; instructions are not cadence).
+  const sentences = out.split(/(?<=[.!?])\s+/);
+  const keep: boolean[] = sentences.map(() => false);
+  keep[0] = true;
+  let wordCount = sentences[0].split(/\s+/).length;
+  for (let i = 1; i < sentences.length; i++) {
+    const w = sentences[i].split(/\s+/).length;
+    if (wordCount + w > 10) break;
+    keep[i] = true;
+    wordCount += w;
   }
+  for (let i = 1; i < sentences.length; i++) {
+    if (!keep[i] && DOSE_BEARING.test(sentences[i])) keep[i] = true;
+  }
+  out = sentences.filter((_, i) => keep[i]).join(' ');
   // Always terminate so TTS pauses naturally.
   if (!/[.!?]$/.test(out)) out += '.';
   return out;
@@ -317,8 +352,13 @@ export function effectiveCommandLine(
   intensity: VoiceIntensity,
   level: 'PEAK' | 'BALANCED' | 'RECOVERING' | 'DEPLETED',
 ): string {
+  // RP-5 (ruling R6): DEPLETED is the highest-risk guidance in the app —
+  // it is spoken VERBATIM under every intensity. No replacement table, no
+  // clip. Safety-critical truth does not adapt to presentation. (The old
+  // behavior auto-engaged Pressure Mode at standard+DEPLETED, clipping the
+  // canonical instruction mid-clause.)
+  if (level === 'DEPLETED') return command;
   if (intensity === 'pressure') return pressureCommandLine(command);
-  if (intensity === 'standard' && level === 'DEPLETED') return pressureCommandLine(command);
   return command;
 }
 

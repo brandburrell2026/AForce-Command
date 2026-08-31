@@ -19,6 +19,9 @@ export interface CorrectableLog {
   fluidType: string;
   ozAmount: number;
   clientEventId: string | null;
+  /** The intake_events JSONB entry this log created ("evt-…"); null on rows
+   *  written before the column existed. */
+  eventId: string | null;
   correctsIntakeId: number | null;
   loggedAt: Date;
 }
@@ -34,8 +37,12 @@ export interface CorrectionPlan {
   /** Reverse today's counters only when the original applied to them. */
   reverseCounters: boolean;
   /** Remove this event id from the intake_events JSONB (null = no linkage —
-   *  legacy keyless row; counters reverse but the stored event, if any,
-   *  cannot be precisely identified. Documented §10 residual). */
+   *  a row written before event_id existed; counters reverse but the stored
+   *  event, if any, cannot be precisely identified. Documented §10 residual).
+   *  ALWAYS the JSONB event id ("evt-…") — NEVER clientEventId ("cid-…"),
+   *  which is the idempotency key in a different namespace and can never
+   *  match an event (the Wave-2 review's P0: the old plan used it, so undo
+   *  reversed counters while the score kept the undone intake). */
   removeEventId: string | null;
   ozToReverse: number;
   isAforce: boolean;
@@ -60,7 +67,7 @@ export function planIntakeCorrection(args: {
   return {
     ok: true,
     reverseCounters,
-    removeEventId: log.clientEventId,
+    removeEventId: log.eventId,
     ozToReverse: log.ozAmount,
     isAforce: args.isAforceFluid,
   };

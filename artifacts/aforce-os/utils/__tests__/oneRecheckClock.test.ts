@@ -49,8 +49,11 @@ const localeJson = (f: string) => JSON.parse(read(join(LOCALES_DIR, f)));
  * Class 2: a recheck verb-phrase carrying a bare number — "I'll recheck in
  * 15." has NO minute token and taught this law its second class.
  */
+// `\+?` — the adversarial review found '30+ minutes' (all 11 locales'
+// social_slow_intake_explanation) invisible to the original token: the plus
+// sat between the digits and the unit. The law must see that grammar class.
 const MINUTE_TOKEN =
-  /\d+\s*(?:min(?:ute)?s?\b|minutos?\b|minuti\b|Minuten\b|минут\w*|分钟|分|분|मिनट|دقائق|دقيقة)/i;
+  /\d+\s*\+?\s*(?:min(?:ute)?s?\b|minutos?\b|minuti\b|Minuten\b|минут\w*|分钟|分|분|मिनट|دقائق|دقيقة)/i;
 const RECHECK_PHRASE =
   /(?:recheck in|vuelve a comprobar en|erneut prüfen in|reprends dans|ricontrolla tra|verifique novamente em)\s*\d/i;
 
@@ -96,6 +99,11 @@ describe('R2 — the coach command family is clock-free in every locale', () => 
     expect(coach.social_recovery_loop_action).toBe('Start with water — 20 oz now.');
     expect(coach.social_recovery_loop_explanation).toBe(
       'Recovery window is open. Ease in — 20 oz now keeps you ahead.',
+    );
+    // The review-found twin: the pacing-education line loses its static
+    // number the same way its sibling action did.
+    expect(coach.social_slow_intake_explanation).toBe(
+      'Spacing your drinks keeps the rhythm steady and the morning clean.',
     );
   });
 });

@@ -85,7 +85,8 @@ function buildDemoContextValue(state: StoreAppState): AppContextValue {
     // their real content for visual inspection instead of a permanent
     // pre-hydration skeleton.
     isHydrated: true,
-    logIntake: asyncNoop,
+    logIntake: async () => null,
+    undoIntake: async () => false,
     completeCycle: asyncNoop,
     snooze: noop,
     dismissSuccess: noop,
