@@ -92,7 +92,7 @@ let host: HTMLElement;
 let root: Root;
 let dispatched: Action[];
 /** The live `logIntake` from the mounted hook. */
-let logIntake: (fluidType: 'aforce_stick' | 'water', opts?: Record<string, unknown>) => Promise<void>;
+let logIntake: (fluidType: 'aforce_stick' | 'water', opts?: Record<string, unknown>) => Promise<string | null>;
 
 function Harness() {
   const state = makeState();

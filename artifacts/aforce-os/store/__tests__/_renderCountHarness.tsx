@@ -56,6 +56,7 @@ const asyncNoop = async (): Promise<void> => {};
 export function buildHarnessActions(): ActionsSlice {
   return {
     logIntake: asyncNoop,
+    undoIntake: asyncNoop,
     completeCycle: asyncNoop,
     snooze: noop,
     dismissSuccess: noop,

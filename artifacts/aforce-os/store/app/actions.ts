@@ -32,6 +32,7 @@ import { recordCaffeineSignal } from '../../services/performanceMemoryCapture';
 import {
   fetchHome,
   postIntakeLog,
+  postIntakeCorrection,
   prepareIntake,
   sendPreparedIntake,
   isOfflineError,
@@ -133,7 +134,7 @@ export function useStoreActions({
       source?: IntakeSource;
     },
   ) => {
-    if (state.isCompletingCycle) return;
+    if (state.isCompletingCycle) return null;
     dispatch({ type: 'CYCLE_START' });
     if (!opts?.silent) {
       // Internal analytics pipeline (Task #39) — a user-initiated intake
@@ -355,6 +356,9 @@ export function useStoreActions({
         // executed badge so the two cinematic moments end together.
         setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
       }
+      // RP-6 (ruling R4): hand the logged cycle id back so the calling
+      // surface can offer an UNDO window. Only a landed write returns an id.
+      return result.id;
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.
       // Must dispatch CYCLE_FAILURE (not DISMISS_SUCCESS) — DISMISS_SUCCESS
@@ -380,10 +384,45 @@ export function useStoreActions({
         }),
       );
     }
+    return null;
   }, [state.userState, state.isCompletingCycle, state.featureFlags.offline_intake_outbox_enabled]);
 
   // Generic "complete cycle" — defaults to AForce stick (primary intake)
-  const completeCycle = useCallback(() => logIntake('aforce_stick'), [logIntake]);
+  const completeCycle = useCallback(async () => {
+    await logIntake('aforce_stick');
+  }, [logIntake]);
+
+  /**
+   * RP-6 (ruling R4) — the UNDO half of the intake lifecycle. First client
+   * consumer of the server's append-only POST /intake/correction (§10
+   * RC-L12): the original row is never mutated, today's counters reverse
+   * floor-0 under a per-user lock, so a double-tapped undo cannot reverse
+   * twice. The client does NO reversal arithmetic — server truth returns and
+   * the engine recomputes, committed through applyServerUserState, the same
+   * allowlisted path every server-state write uses.
+   */
+  const undoIntake = useCallback(async (
+    cycleResultId: string,
+    reason: 'mistake' | 'spill' | 'wrong_product' | 'duplicate' = 'mistake',
+  ): Promise<boolean> => {
+    if (state.isCompletingCycle) return false;
+    // Only the canonical `intake-<serverId>` shape is accepted — anything
+    // else is refused, never guessed at.
+    const m = /^intake-(\d+)$/.exec(cycleResultId);
+    if (!m) return false;
+    try {
+      const { newUserState, engineOutput } = await postIntakeCorrection(
+        state.userState,
+        Number(m[1]),
+        reason,
+      );
+      applyServerUserState(newUserState, engineOutput);
+      return true;
+    } catch (err) {
+      console.warn('[AForce] undoIntake failed', err);
+      return false;
+    }
+  }, [state.isCompletingCycle, state.userState, applyServerUserState]);
 
   const snooze = useCallback(() => dispatch({ type: 'SNOOZE' }), []);
   const dismissSuccess = useCallback(() => dispatch({ type: 'DISMISS_SUCCESS' }), []);
@@ -660,6 +699,7 @@ export function useStoreActions({
 
   return {
     logIntake,
+    undoIntake,
     completeCycle,
     snooze,
     dismissSuccess,

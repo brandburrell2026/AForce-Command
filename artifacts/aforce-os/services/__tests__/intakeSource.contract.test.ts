@@ -79,6 +79,9 @@ describe('every intake entry point names its surface', () => {
     { file: 'components/hydration/HydrationScreenV2.tsx', expected: 'hydration', what: 'Hydration' },
     { file: 'components/scan/HydrationScanScreenV2.tsx', expected: 'scan', what: 'Scan' },
     { file: 'app/recovery-coach.tsx', expected: 'recovery', what: 'Recovery Coach' },
+    // RP-6 (ruling R4): the Editorial Scan confirmation handler — the
+    // flag-dark editorial twin of the V2 scan row above.
+    { file: 'components/editorial/scan/EditorialScanScreen.tsx', expected: 'scan', what: 'Editorial Scan' },
     // VoiceOverlay ruling (founder, 2026-08-28): the voice capture sheet
     // (source 'voice') was unmounted since #858 and is RETIRED with its
     // exclusive STT stack; its row retires with the subject, same

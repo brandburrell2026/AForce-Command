@@ -533,6 +533,22 @@ async function postAndRecompute(
   return { newUserState, engineOutput: calculateScore(newUserState) };
 }
 
+/**
+ * RP-6 (ruling R4): undo a mistaken intake through the server's APPEND-ONLY
+ * correction endpoint (§10 RC-L12 — the original row is never mutated or
+ * deleted; the server reverses today's counters floor-0 under a per-user
+ * lock, so a double-tapped Undo can never reverse twice). The client does no
+ * reversal arithmetic of its own: server truth comes back and the engine
+ * recomputes, exactly like every other server-state write.
+ */
+export function postIntakeCorrection(
+  userState: UserState,
+  intakeLogId: number,
+  reason: 'mistake' | 'spill' | 'wrong_product' | 'duplicate',
+) {
+  return postAndRecompute('/intake/correction', { intakeLogId, reason }, userState);
+}
+
 export function postSignalsUpdate(userState: UserState, symptoms: string[]) {
   return postAndRecompute('/signals', { symptoms }, userState);
 }
