@@ -80,7 +80,9 @@ export function useRiskTimerVoice(): void {
     if (!categoryAllowedForScope('risk_timer', voiceScope)) return;
 
     // Elite Voice Coach (flag-gated, delivery-only) — see useScoreBandVoice.
-    const line = riskTimerLine(current, voiceIntensity);
+    // The live minutes ride along so the spoken clock IS the canonical timer
+    // (RP-5 × ruling R2), not a static approximation of it.
+    const line = riskTimerLine(current, voiceIntensity, minutes);
     const spoken =
       eliteVoice
         ? formatSpokenLineForCoach(line, findVoice(selectedVoiceId)?.archetype ?? 'push')
