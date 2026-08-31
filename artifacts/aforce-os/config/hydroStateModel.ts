@@ -431,7 +431,7 @@ export const GRAPH_QUERY_MAX_EDGES = 1000;
 
 /* ─── AForce Moments (Phases 1–2, founder approval 2026-08-12) ────────────── */
 /* Preparation-window and action tunables for the flag-gated Moments feature
- * (`moments_enabled`, OFF in production). Manual/demo moments only in these
+ * (`moments_enabled`, ON in production — founder flip 2026-08-12). Manual/demo moments only in these
  * phases — no calendar access, no notification scheduling, no new raw data
  * collection (Phase 3 requires an explicit founder decision record; see
  * governance/proposals/PR-002-aforce-moments.md). Values follow the founder
@@ -460,16 +460,6 @@ export const MOMENT_IMPORTANCE_WINDOW_SCALE: Record<MomentImportance, number> = 
   high: 1,
   moderate: 1,
   low: 0.5,
-};
-
-/** Hydrate primary-action ounce ranges per Moment type ([min, max]). */
-export const MOMENT_HYDRATE_OZ: Record<MomentType, [number, number]> = {
-  work: [14, 14],
-  performance: [14, 16],
-  training: [16, 20],
-  travel: [12, 16],
-  recovery: [8, 12],
-  personal: [8, 12],
 };
 
 /** LOCK IN lead: minutes before the moment start. */

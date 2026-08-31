@@ -98,18 +98,29 @@ export function useMomentsData(options?: {
     [fixture, calendarOn, store.moments, mergedCalendar],
   );
 
+  // RP-3 (one hydration action): the mirror source. `engine` here is the
+  // GUARDED slice (guardEngineOutput ran at the store boundary), so the
+  // command a Moment mirrors is the exact command Home renders — one
+  // authority, every surface. Fixture mode pins moments/now for capture but
+  // the command still mirrors the host's engine state (a fixture may not
+  // mint a dose either).
+  const canonicalCommand = React.useMemo(
+    () => ({ id: engine.command.id, action: engine.command.action }),
+    [engine.command.id, engine.command.action],
+  );
   const signals: MomentSignals = React.useMemo(
     () =>
       fixture
-        ? { hydrationPct: 62, streakDays: 5 } // deterministic fixture signals
+        ? { hydrationPct: 62, streakDays: 5, canonicalCommand } // deterministic fixture signals
         : {
             hydrationPct: Math.round(
               (userState.unitsConsumedToday / Math.max(1, userState.dailyTarget)) * 100,
             ),
             performanceLevel: engine.performanceState.level,
             streakDays: userState.complianceStreak,
+            canonicalCommand,
           },
-    [fixture, userState.unitsConsumedToday, userState.dailyTarget, engine.performanceState.level, userState.complianceStreak],
+    [fixture, userState.unitsConsumedToday, userState.dailyTarget, engine.performanceState.level, userState.complianceStreak, canonicalCommand],
   );
 
   return React.useMemo(() => {
@@ -119,12 +130,13 @@ export function useMomentsData(options?: {
       const hit = cache.get(moment.id);
       if (hit) return hit;
       // DECISION GUARD — in-app delivery boundary (founder-authorized
-      // #877 follow-up). Every Moments surface consumes recFor, so this
-      // is the one seam covering NextMomentCard, MomentsScreen,
-      // MomentDetailScreen, and PrepareMyDayScreen. Approved recs pass
-      // by reference (today's doses come from the in-contract config
-      // table); an out-of-contract dose surface degrades to neutral
-      // water-first copy — the member's moment stays visible.
+      // #877 follow-up; RP-3 conscious repin 2026-08-31). Every Moments
+      // surface consumes recFor, so this is the one seam covering
+      // NextMomentCard, MomentsScreen, MomentDetailScreen, and
+      // PrepareMyDayScreen. The rec's only amount is the mirrored
+      // canonical command; the guard judges that mirror structurally AND
+      // textually, and a blocked mirror is DROPPED — silence, never a
+      // Moment-minted substitute. The member's moment stays visible.
       const { rec } = guardMomentRecommendation(buildRecommendation(moment, signals, nowIso));
       cache.set(moment.id, rec);
       return rec;

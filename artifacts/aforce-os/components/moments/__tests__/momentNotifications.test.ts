@@ -14,6 +14,7 @@ import {
 } from '@/services/momentNotifications';
 import {
   MOMENT_NOTIFY_MAX_PER_DAY,
+  MOMENT_NOTIFY_LEAD_PRESETS_MIN,
   MOMENT_PREP_WINDOW_MIN,
 } from '@/config/hydroStateModel';
 
@@ -93,13 +94,36 @@ describe('planMomentNotifications — budget', () => {
 });
 
 describe('planMomentNotifications — behavioral copy only', () => {
-  it('params carry title/time/action pieces and no score-like fields', () => {
+  it('params carry title/time context ONLY — no action, no oz, no score-like fields', () => {
+    // CONSCIOUS REPIN (RP-3 review, 2026-08-31): body_prep_until asserted
+    // "Prep window open until {{time}}" — a present-tense claim that was
+    // FALSE whenever the fire time landed outside the window (any lead
+    // preset shorter than the type's endBefore fires after close; a long
+    // lead fires before open). The body now states the moment's OWN start
+    // time, which cannot become false regardless of when the notification
+    // actually fires.
     const [p] = planMomentNotifications([localMoment(3)], DEFAULT_MOMENT_NOTIFY_PREFS, NOW);
-    expect(p!.bodyKey).toBe('moments.notify.body_best_before');
-    expect(p!.bodyParams['actionKey']).toBe('moments.action.hydrate_exact');
+    expect(p!.bodyKey).toBe('moments.notify.body_starts_at');
+    expect(p!.bodyParams['time']).toBeTruthy();
     const allParams = { ...p!.titleParams, ...p!.bodyParams };
     for (const k of Object.keys(allParams)) {
       expect(k).not.toMatch(/score|band|forecast|predict/i);
+      expect(k).not.toMatch(/^oz|actionKey|action$/);
+    }
+  });
+
+  it('the body cannot become false: it is invariant across every lead preset, inside or outside the window', () => {
+    // The old body's truth depended on WHEN it fired relative to the prep
+    // window; this law proves the new body's content does not depend on
+    // fire time at all, so no fire position — before, inside, or after the
+    // window — can falsify it.
+    const m = localMoment(3);
+    const withinWindow = planMomentNotifications([m], { mode: 'all', leadMin: null }, NOW)[0]!;
+    for (const leadMin of MOMENT_NOTIFY_LEAD_PRESETS_MIN) {
+      const withLead = planMomentNotifications([m], { mode: 'all', leadMin }, NOW)[0];
+      if (!withLead) continue; // some presets legitimately drop (past-due, etc.)
+      expect(withLead.bodyKey, `lead ${leadMin}`).toBe(withinWindow.bodyKey);
+      expect(withLead.bodyParams, `lead ${leadMin}`).toEqual(withinWindow.bodyParams);
     }
   });
 });

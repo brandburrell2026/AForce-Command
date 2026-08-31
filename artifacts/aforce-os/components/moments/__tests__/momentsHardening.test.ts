@@ -109,10 +109,14 @@ describe('3 — the gallery cannot show unguarded recommendation copy', () => {
   });
 
   it('the notification lane keeps its own (different, correct) guard', () => {
-    // Scope proof: this file calls buildRecommendation directly by design.
+    // Scope proof: this file calls buildRecommendation directly by design
+    // (window math only — RP-3 made notifications CONTEXT-ONLY, so the old
+    // per-candidate evaluateMomentAction step had nothing left to judge;
+    // the rendered-copy guards at the sync seam are the lane's protection).
     const notif = strip(read(join(AOS, 'services', 'momentNotifications.ts')));
     expect(notif).toMatch(/buildRecommendation\(/);
-    expect(notif).toMatch(/evaluateMomentAction\(/);
+    expect(notif).toMatch(/evaluateDeliverableLabel\(/);
+    expect(notif).toMatch(/evaluateDeliverableCopy\(/);
   });
 });
 

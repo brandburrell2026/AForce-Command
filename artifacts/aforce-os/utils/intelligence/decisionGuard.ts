@@ -41,6 +41,13 @@
  * the engine output — score, riskTimer, performance state, social —
  * passes through by reference, untouched.
  *
+ * This ENGINE lane's degrade-to-fallback semantics are NOT the Moments
+ * seam's: guardMomentRecommendation (below) judges a mirrored copy of this
+ * same command and, on block, DROPS the mirror — silence, not a
+ * Moment-minted substitute (RP-3, Wave 3, 2026-08-31). Two different
+ * consumers of one verdict, two different — and each correct —
+ * delivery semantics.
+ *
  * Wiring: store/useAppStore.tsx guards once per engine-output change and
  * feeds the guarded output to the facade, the slices, the voice effect,
  * and the journal snapshot; the result is appended to the command ledger
@@ -205,9 +212,9 @@ export function evaluateDeliverableCopy(text: string): DecisionGuardResult {
  * notification (directive §10: qualification ends "… notification fatigue
  * → safety → Decision Guard → RecoveryCommand eligibility"). The action's
  * copy is an i18n key; the deliverable numerics are its oz params — each
- * must sit inside the guard's dose contract. Defense-in-depth: the values
- * come from the MOMENT_HYDRATE_OZ config table today, so a block here
- * means the table (or a future producer) left contract.
+ * must sit inside the guard's dose contract. Defense-in-depth: since RP-3
+ * the only amount a Moment carries is the mirrored canonical command's own
+ * text, so a block here means a producer left the mirror contract.
  */
 function ozParamsOutOfContract(params: Record<string, string | number> | undefined): boolean {
   if (!params) return false;
@@ -238,32 +245,23 @@ export function evaluateMomentAction(action: {
 }
 
 /**
- * Neutral in-app fallbacks for a Moments surface whose deliverable copy
- * left contract. EN-only keys — the moments.* namespace is EN-with-
- * fallback across all locales by design. Dose-free, clock-free,
- * product-free (pinned in momentsDecisionGuard.test.ts).
- */
-export const DECISION_GUARD_MOMENT_ACTION_FALLBACK_KEY = 'moments.action.hydrate_fallback';
-export const DECISION_GUARD_MOMENT_RITUAL_FALLBACK_KEY = 'moments.ritual.hydrate_fallback';
-
-/**
  * Guard one MomentRecommendation as DELIVERED to the in-app surfaces
  * (NextMomentCard, MomentsScreen, MomentDetailScreen, PrepareMyDayScreen
- * all consume useMomentsData.recFor). The moment itself is member data —
- * it stays visible; only out-of-contract DOSE surfaces degrade:
- *  - blocked primaryAction → neutral water-first action (kind 'hydrate'
- *    survives the Water-First pin; bestBeforeIso kept — timing is window
- *    math, not a dose);
- *  - blocked secondaryAction → dropped (optional everywhere);
- *  - a ritual stage whose instructionParams carry an out-of-contract oz →
- *    neutral instruction, params dropped (stage count and order preserved
- *    — the 4-stage ritual pin holds).
- * Approved → the SAME rec reference (production byte-identical; today's
- * values come from the MOMENT_HYDRATE_OZ config table, proven in
- * contract). This mirrors the notification lane's semantics with one
- * deliberate difference: a notification candidate is an interruption and
- * is DROPPED; an in-app rec annotates the member's own moment and
- * DEGRADES to neutral copy instead of hiding their data.
+ * all consume useMomentsData.recFor). RP-3 (Wave 3, 2026-08-31) reshaped
+ * this seam around the ONE-hydration-action law:
+ *
+ *  - the primary action, when present, is a VERBATIM MIRROR of the
+ *    canonical guarded command (labelParams.action). It is judged
+ *    structurally AND textually — evaluateDeliverableCopy runs on the
+ *    mirrored text, closing the old gap where in-app moments copy was
+ *    never text-scanned. The genuine guarded command is a fixed point.
+ *  - a BLOCKED mirror is DROPPED — action and hydrate ritual stage both.
+ *    The old degrade path minted "Hydrate — water first", which was itself
+ *    a Moment-originated hydration action; under RP-3 a Moment that cannot
+ *    faithfully mirror the command says nothing (silence is valid).
+ *  - blocked secondaryAction → dropped (optional everywhere).
+ *  - the moment itself is member data — it stays visible either way.
+ * Approved → the SAME rec reference (production byte-identical).
  */
 export function guardMomentRecommendation(rec: MomentRecommendation): {
   rec: MomentRecommendation;
@@ -271,17 +269,16 @@ export function guardMomentRecommendation(rec: MomentRecommendation): {
 } {
   let reason: DecisionGuardReason | null = null;
 
-  let primary: MomentAction = rec.primaryAction;
-  const primaryVerdict = evaluateMomentAction(rec.primaryAction);
-  if (primaryVerdict.verdict === 'blocked') {
-    reason = primaryVerdict.reason;
-    primary = {
-      kind: 'hydrate',
-      labelKey: DECISION_GUARD_MOMENT_ACTION_FALLBACK_KEY,
-      ...(rec.primaryAction?.bestBeforeIso
-        ? { bestBeforeIso: rec.primaryAction.bestBeforeIso }
-        : {}),
-    };
+  let primary: MomentAction | undefined = rec.primaryAction;
+  if (primary) {
+    const structural = evaluateMomentAction(primary);
+    const mirrored = primary.labelParams?.action;
+    const textual =
+      typeof mirrored === 'string' ? evaluateDeliverableCopy(mirrored) : { verdict: 'approved' as const };
+    if (structural.verdict === 'blocked' || textual.verdict === 'blocked') {
+      reason = structural.verdict === 'blocked' ? structural.reason : (textual as { verdict: 'blocked'; reason: DecisionGuardReason }).reason;
+      primary = undefined;
+    }
   }
 
   let secondary = rec.secondaryAction;
@@ -294,13 +291,17 @@ export function guardMomentRecommendation(rec: MomentRecommendation): {
   }
 
   let ritual: RitualStage[] = rec.ritual;
-  if (rec.ritual.some((s) => ozParamsOutOfContract(s.instructionParams))) {
+  const stageBlocked = (s: RitualStage): boolean => {
+    if (ozParamsOutOfContract(s.instructionParams)) return true;
+    // The hydrate stage mirrors the same command text as the primary — a
+    // blocked mirror silences BOTH carriers.
+    if (s.key === 'hydrate' && primary === undefined && rec.primaryAction !== undefined) return true;
+    const text = s.instructionParams?.action;
+    return typeof text === 'string' && evaluateDeliverableCopy(text).verdict === 'blocked';
+  };
+  if (rec.ritual.some(stageBlocked)) {
     reason = reason ?? 'unsafe_dose';
-    ritual = rec.ritual.map((s) =>
-      ozParamsOutOfContract(s.instructionParams)
-        ? { ...s, instructionKey: DECISION_GUARD_MOMENT_RITUAL_FALLBACK_KEY, instructionParams: undefined }
-        : s,
-    );
+    ritual = rec.ritual.filter((s) => !stageBlocked(s));
   }
 
   if (reason === null) return { rec, result: { verdict: 'approved' } };

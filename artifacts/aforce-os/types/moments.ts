@@ -82,7 +82,14 @@ export interface MomentRecommendation {
   momentId: string;
   prepWindowStartIso: string;
   prepWindowEndIso: string;
-  primaryAction: MomentAction;
+  /**
+   * The hydration action — a VERBATIM MIRROR of the canonical guarded
+   * RecoveryCommand (ruling RP-3: Moments owns context; RecoveryCommand owns
+   * the hydration action). Absent when no eligible canonical command was
+   * provided: a Moment never manufactures a hydration action — silence is
+   * valid.
+   */
+  primaryAction?: MomentAction;
   secondaryAction?: MomentAction;
   ritual: RitualStage[];
   /** Fail-closed WHY THIS payload (Evidence Engine shape). */

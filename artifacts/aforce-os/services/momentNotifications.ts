@@ -13,21 +13,25 @@
  *      `aforce.moment.<id>` tags and wipe-own-tags idempotency. Local only;
  *      no remote push; no background execution; web/sim no-op.
  *
- * Copy is BEHAVIORAL ONLY (DR-010 constraint 1): moment title, time, one
- * action — never a predicted value, score, or band. This stream is separate
- * from the Day-0/1/3/7 cadence; both caps bind independently.
+ * Copy is BEHAVIORAL ONLY (DR-010 constraint 1): moment title and time —
+ * never a predicted value, score, or band. This stream is separate from the
+ * Day-0/1/3/7 cadence; both caps bind independently.
  *
- * DECISION GUARD (founder-authorized extension of the #876 seam): the
- * planner runs the guard's structural check as the LAST qualification
- * step per candidate, and the sync bridge runs the guard's deliverable-
- * copy check on the rendered title/body beside the §42 scan. Both are
- * fail-closed drops — never reworded. Pinned by
+ * RP-3 (Wave 3, 2026-08-31): scheduled bodies carry NO hydration action.
+ * A body frozen at plan time cannot track the LIVE canonical command, so a
+ * stale mirror would be exactly the retained-advice defect the ruling
+ * bans — the body states the moment's own start time instead (invariant,
+ * cannot become false regardless of when the notification actually fires).
+ * The planner's per-candidate guard STRUCTURAL check went with the action
+ * it existed to judge; the sync bridge still runs the guard's deliverable-
+ * copy check on the rendered title/body beside the §42 scan — fail-closed
+ * drop, never reworded. Pinned by
  * components/moments/__tests__/momentsDecisionGuard.test.ts and the
  * wiring lock in store/__tests__/decisionGuardSeam.lock.test.ts.
  */
 import { Platform } from 'react-native';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
-import { evaluateDeliverableCopy, evaluateDeliverableLabel, evaluateMomentAction } from '@/utils/intelligence/decisionGuard';
+import { evaluateDeliverableCopy, evaluateDeliverableLabel } from '@/utils/intelligence/decisionGuard';
 import { scopedStorage } from './scopedStorage';
 
 import type { Moment } from '@/types/moments';
@@ -130,30 +134,33 @@ export function planMomentNotifications(
     const dayKey = localDayKey(fireMs);
     const dayCount = perDay.get(dayKey) ?? 0;
     if (dayCount >= MOMENT_NOTIFY_MAX_PER_DAY) continue;
-    // DECISION GUARD qualification step (directive §10 order: … recent
-    // commands → notification fatigue → safety → Decision Guard →
-    // eligibility — the budget gates above are the fatigue checks, so the
-    // guard judges last). Structural check on the candidate's deliverable
-    // action: numeric oz params inside the guard's dose contract. Drop,
-    // don't rewrite — the same fail-closed semantics as the quiet-hours
-    // gate. Rendered-copy judgment happens at the sync seam below.
-    if (evaluateMomentAction(rec.primaryAction).verdict === 'blocked') continue;
+    // RP-3 (Wave 3, 2026-08-31 — conscious repin of the old Decision
+    // Guard qualification step): scheduled notifications are CONTEXT-ONLY.
+    // The planner deliberately builds its rec with NO canonical command —
+    // a body frozen at schedule time cannot faithfully mirror the LIVE
+    // command, and a stale mirror is exactly the retained-advice defect
+    // ruling RP-3 bans. So the notification carries the prep window, never
+    // a hydration action; the old per-candidate evaluateMomentAction check
+    // had nothing left to judge and was removed with it. Rendered-copy
+    // judgment (§42 + label/copy guard) still runs at the sync seam below.
+    //
+    // The body states the moment's OWN start time (Wave-3 review, same
+    // date): the first version said "Prep window open until {{time}}",
+    // frozen at PLAN time — but fireMs is lead-preset/adaptive-driven, not
+    // window-bounded, so it could fire before the window opened or after it
+    // closed, asserting a present-tense claim that was false at delivery.
+    // Start time is invariant regardless of when the notification actually
+    // fires — no fire position can falsify it.
 
     const minutesUntil = Math.round((startMs - fireMs) / MIN_MS);
-    const action = rec.primaryAction;
     planned.push({
       momentId: m.id,
       tag: `${TAG_PREFIX}${m.id}`,
       fireAtIso: new Date(fireMs).toISOString(),
       titleKey: 'moments.notify.title',
       titleParams: { title: m.title, minutes: minutesUntil },
-      bodyKey: action.bestBeforeIso ? 'moments.notify.body_best_before' : 'moments.notify.body',
-      bodyParams: {
-        action: '', // resolved at schedule time with the action label
-        actionKey: action.labelKey,
-        ...(action.labelParams ?? {}),
-        ...(action.bestBeforeIso ? { time: clockLabel(action.bestBeforeIso) } : {}),
-      },
+      bodyKey: 'moments.notify.body_starts_at',
+      bodyParams: { time: clockLabel(m.startAtIso) },
     });
     perDay.set(dayKey, dayCount + 1);
     lastFireMs = fireMs;
@@ -223,9 +230,8 @@ export async function syncMomentNotifications(
     const nowMs = Date.now();
     for (const p of plan) {
       const seconds = Math.max(1, Math.round((Date.parse(p.fireAtIso) - nowMs) / 1000));
-      const actionLabel = translate(String(p.bodyParams['actionKey']), p.bodyParams);
       const title = translate(p.titleKey, p.titleParams);
-      const body = translate(p.bodyKey, { ...p.bodyParams, action: actionLabel });
+      const body = translate(p.bodyKey, p.bodyParams);
       // S1-4: OS-channel copy runs through the same §42 seam as the
       // other emit paths (speak/tts/scan/overlays). Fail closed — a
       // blocked line means the notification is skipped, not reworded

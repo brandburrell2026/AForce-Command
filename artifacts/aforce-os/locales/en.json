@@ -2458,24 +2458,19 @@
     "status_prep": "Prep window · {{window}}",
     "status_recovery": "Recovery window · {{window}}",
     "action": {
-      "hydrate_exact": "Hydrate {{oz}} oz",
-      "hydrate_fallback": "Hydrate — water first",
-      "hydrate_range": "Begin hydration · {{ozMin}}–{{ozMax}} oz",
-      "electrolytes": "Add electrolytes",
-      "electrolytes_sub": "If sweating > 45 min",
-      "breathe": "Breathe & relax · 2–3 min"
+      "breathe": "Breathe & relax · 2–3 min",
+      "canonical_command": "{{action}}"
     },
     "ritual": {
       "pause": "{{seconds}}-second reset",
-      "hydrate": "Drink {{ozMin}} oz of water",
-      "hydrate_fallback": "Hydrate steadily — water first",
       "lock_in": "Focus mode · {{minutes}} min",
       "perform_work": "Enter the meeting prepared",
       "perform_performance": "Enter the moment prepared",
       "perform_training": "Enter the session prepared",
       "perform_travel": "Depart prepared",
       "perform_recovery": "Begin recovery prepared",
-      "perform_personal": "Be present, prepared"
+      "perform_personal": "Be present, prepared",
+      "canonical_command": "{{action}}"
     },
     "im_ready": "I'M READY",
     "evidence": {
@@ -2539,8 +2534,6 @@
     "home_empty_hint": "Your next important moment will appear here.",
     "notify": {
       "title": "{{title}} in {{minutes}} min",
-      "body": "{{action}}.",
-      "body_best_before": "{{action}}. Best before {{time}}.",
       "prefs_label": "MOMENT PREP",
       "mode_important": "Important moments only",
       "mode_all": "All suggested moments",
@@ -2549,7 +2542,8 @@
       "lead_min": "{{n}} min",
       "lead_adaptive_locked": "Adaptive timing unlocks with prep learning.",
       "lead_adaptive": "Adaptive",
-      "lead_adaptive_on": "Prep timing tunes itself from your feedback — always inside quiet hours and never past the moment."
+      "lead_adaptive_on": "Prep timing tunes itself from your feedback — always inside quiet hours and never past the moment.",
+      "body_starts_at": "Starts at {{time}}."
     },
     "private_event": "PRIVATE EVENT",
     "calendar": {

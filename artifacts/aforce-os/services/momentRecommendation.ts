@@ -7,10 +7,15 @@
  * CONTRACT
  *  - Advisory only (Score Protection, DR-001): output is a read-only
  *    projection; nothing mutates score, and no numeric moment score exists.
- *  - Water-First: the primary action of every ritual is hydration; optional
- *    support (electrolytes / breathe) only ever rides second.
- *  - All tunables come from config/hydroStateModel.ts (Build Rule 13):
- *    MOMENT_PREP_WINDOW_MIN, MOMENT_HYDRATE_OZ, MOMENT_LOCK_IN_BEFORE_MIN,
+ *  - ONE HYDRATION ACTION (ruling RP-3, Wave 3 2026-08-31): Moments owns
+ *    context — windows, timing, relevance, lifecycle. RecoveryCommand owns
+ *    the hydration action. The primary action is a VERBATIM MIRROR of the
+ *    canonical guarded command passed in via signals.canonicalCommand;
+ *    with no eligible command a Moment renders NO hydration action at all.
+ *    The old per-type ounce table — a parallel authority computed blind
+ *    to the command (the E7 12-vs-14 oz contradiction) — is deleted.
+ *  - Window tunables come from config/hydroStateModel.ts (Build Rule 13):
+ *    MOMENT_PREP_WINDOW_MIN, MOMENT_LOCK_IN_BEFORE_MIN,
  *    MOMENT_PAUSE_SECONDS, MOMENT_HYDRATE_BEST_BEFORE_FRACTION,
  *    MOMENT_SURFACE_HORIZON_HOURS.
  *  - WHY THIS reuses the Evidence Engine's fail-closed CommandEvidence shape:
@@ -31,7 +36,6 @@ import type { CommandEvidence, EvidenceItem } from '@/utils/scoring/commandEvide
 import {
   MOMENT_PREP_WINDOW_MIN,
   MOMENT_IMPORTANCE_WINDOW_SCALE,
-  MOMENT_HYDRATE_OZ,
   MOMENT_LOCK_IN_BEFORE_MIN,
   MOMENT_PAUSE_SECONDS,
   MOMENT_HYDRATE_BEST_BEFORE_FRACTION,
@@ -49,6 +53,14 @@ export interface MomentSignals {
   performanceLevel?: string;
   /** Current compliance streak in days. */
   streakDays?: number;
+  /**
+   * RP-3 (Wave 3, 2026-08-31): the ONE hydration action — the canonical
+   * GUARDED RecoveryCommand, passed by callers who hold the guarded engine
+   * slice. Moments mirror it verbatim; they never derive, adjust, or invent
+   * an amount, unit, timing, urgency, or product. Absent ⇒ the Moment
+   * renders no hydration action at all (silence is valid).
+   */
+  canonicalCommand?: { id: string; action: string };
 }
 
 function iso(ms: number): string {
@@ -118,20 +130,38 @@ function buildEvidence(moment: Moment, signals: MomentSignals, nowMs: number): C
   };
 }
 
-function primaryActionFor(moment: Moment, bestBeforeIso: string): MomentAction {
-  const [ozMin, ozMax] = MOMENT_HYDRATE_OZ[moment.type];
+/**
+ * The mirror (ruling RP-3): the hydration action IS the canonical guarded
+ * command, byte-verbatim, for every MomentType alike. No command ⇒ no
+ * action: a Moment never manufactures hydration.
+ *
+ * NO bestBeforeIso here (Wave-3 adversarial review, 2026-08-31): the prep
+ * window's midpoint is Moment-owned CONTEXT, but attaching it to the action
+ * itself rendered as "Best before {{time}}" directly under the command
+ * text — a Moment-authored deadline laid over whatever the command says.
+ * Executed against a real Social Mode safety command, this produced
+ * "Please don't drive. Use a rideshare or call a friend." / "Best before
+ * 5:15 PM" — a do-not-drive instruction given an expiry the command
+ * authority never gave it. RP-3 declares timing unchangeable; the
+ * prep-window row (rendered separately, on every surface, always) already
+ * carries the Moment's own timing.
+ */
+function primaryActionFor(signals: MomentSignals): MomentAction | undefined {
+  const cmd = signals.canonicalCommand;
+  if (!cmd || !cmd.action) return undefined;
   return {
     kind: 'hydrate',
-    labelKey: ozMin === ozMax ? 'moments.action.hydrate_exact' : 'moments.action.hydrate_range',
-    labelParams: { ozMin, ozMax, oz: ozMin },
-    bestBeforeIso,
+    labelKey: 'moments.action.canonical_command',
+    labelParams: { action: cmd.action, commandId: cmd.id },
   };
 }
 
 function secondaryActionFor(moment: Moment): MomentAction | undefined {
   switch (moment.type) {
-    case 'training':
-      return { kind: 'electrolytes', labelKey: 'moments.action.electrolytes' };
+    // RP-3: the old training 'electrolytes' secondary was a Moment-minted
+    // product-class hydration recommendation — removed. When electrolytes
+    // are right, the canonical command already says so and the mirror
+    // carries it.
     case 'travel':
       return { kind: 'breathe', labelKey: 'moments.action.breathe' };
     default:
@@ -164,16 +194,20 @@ export function buildRecommendation(
       instructionKey: 'moments.ritual.pause',
       instructionParams: { seconds: MOMENT_PAUSE_SECONDS },
     },
-    {
-      key: 'hydrate',
-      atIso: iso(prepStartMs),
-      state: prepared ? 'completed' : stageState(prepStartMs, bestBeforeMs, nowMs),
-      instructionKey: 'moments.ritual.hydrate',
-      instructionParams: {
-        ozMin: MOMENT_HYDRATE_OZ[moment.type][0],
-        ozMax: MOMENT_HYDRATE_OZ[moment.type][1],
-      },
-    },
+    // The HYDRATE stage exists only as the canonical command's mirror —
+    // with no eligible command there is nothing a Moment may instruct
+    // (RP-3: silence is valid), so the stage is omitted below.
+    ...(signals.canonicalCommand?.action
+      ? [
+          {
+            key: 'hydrate' as const,
+            atIso: iso(prepStartMs),
+            state: prepared ? 'completed' : stageState(prepStartMs, bestBeforeMs, nowMs),
+            instructionKey: 'moments.ritual.canonical_command',
+            instructionParams: { action: signals.canonicalCommand.action },
+          },
+        ]
+      : []),
     {
       key: 'lock_in',
       atIso: iso(lockInMs),
@@ -193,7 +227,7 @@ export function buildRecommendation(
     momentId: moment.id,
     prepWindowStartIso: iso(prepStartMs),
     prepWindowEndIso: iso(prepEndMs),
-    primaryAction: primaryActionFor(moment, iso(bestBeforeMs)),
+    primaryAction: primaryActionFor(signals),
     secondaryAction: secondaryActionFor(moment),
     ritual,
     evidence: buildEvidence(moment, signals, nowMs),
