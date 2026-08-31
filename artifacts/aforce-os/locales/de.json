@@ -678,7 +678,7 @@
     "social_take_rtd_action": "Nimm jetzt 1 RTD. Trinke 16 ounces Wasser vor der nächsten Runde.",
     "social_take_rtd_explanation": "Recovery window opening. Electrolytes now make tomorrow morning easier.",
     "social_slow_intake_action": "Trinke Wasser zwischen den Drinks. Du bist bei {{count}} — gib das Tempo vor.",
-    "social_slow_intake_explanation": "30+ Minuten Abstand zwischen Drinks hält den Score stabil und den Morgen klar.",
+    "social_slow_intake_explanation": "Abstand zwischen Drinks hält den Score stabil und den Morgen klar.",
     "social_recovery_action": "Trinke 20 ounces Wasser und nimm 1 RTD vor dem Schlafen.",
     "social_recovery_explanation": "Erholungsfenster geöffnet. Zwei Einheiten Flüssigkeit + Elektrolyte jetzt machen den Unterschied.",
     "social_stop_action": "Alkoholzufuhr stoppen. Erholung nötig.",

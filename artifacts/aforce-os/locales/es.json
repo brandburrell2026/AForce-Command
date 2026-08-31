@@ -678,7 +678,7 @@
     "social_take_rtd_action": "Toma 1 RTD ahora. Bebe 16 ounces de agua antes de la siguiente ronda.",
     "social_take_rtd_explanation": "Recovery window opening. Electrolytes now make tomorrow morning easier.",
     "social_slow_intake_action": "Bebe agua entre copas. Llevas {{count}} hasta ahora — marca el ritmo.",
-    "social_slow_intake_explanation": "Espaciar las copas 30+ minutos mantiene la puntuación firme y la mañana limpia.",
+    "social_slow_intake_explanation": "Espaciar las copas mantiene la puntuación firme y la mañana limpia.",
     "social_recovery_action": "Bebe 20 ounces de agua y toma 1 RTD antes de dormir.",
     "social_recovery_explanation": "Ventana de recuperación abierta. Dos unidades de líquido + electrolitos marcan la diferencia.",
     "social_stop_action": "Detén el alcohol. Recuperación necesaria.",
