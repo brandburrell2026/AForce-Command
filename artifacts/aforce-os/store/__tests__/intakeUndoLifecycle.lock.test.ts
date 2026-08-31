@@ -70,6 +70,15 @@ describe('R4 — undoIntake routes through the append-only correction endpoint',
     // The success return is the CycleResult id (the `intake-<n>` shape undo
     // consumes); the reentrancy guard and the failure path return null.
     expect(src).toMatch(/if \(state\.isCompletingCycle\) return null;/);
-    expect(src).toMatch(/return result\.id;/);
+    // The offline-queued path resolves optimistically with a client event id
+    // the correction endpoint could never reference — it returns null.
+    expect(src).toMatch(/return offlinePending \? null : result\.id;/);
+  });
+
+  it('undo fails VISIBLY — the same classified Alert doctrine as logIntake', () => {
+    const src = read('store/app/actions.ts');
+    const fn = /const undoIntake = useCallback\([\s\S]*?\n  \}, \[/.exec(src)?.[0] ?? '';
+    expect(fn).toMatch(/classifyWriteFailure\(/);
+    expect(fn).toMatch(/Alert\.alert\(/);
   });
 });

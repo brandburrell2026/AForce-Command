@@ -357,8 +357,11 @@ export function useStoreActions({
         setTimeout(() => dispatch({ type: 'DISMISS_SUCCESS' }), 2400);
       }
       // RP-6 (ruling R4): hand the logged cycle id back so the calling
-      // surface can offer an UNDO window. Only a landed write returns an id.
-      return result.id;
+      // surface can offer an UNDO window. Only a LANDED write returns an id —
+      // the offline-queued path (flag-gated) resolves optimistically with a
+      // client event id the correction endpoint could never reference, so it
+      // returns null and no undo is offered until server truth exists.
+      return offlinePending ? null : result.id;
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.
       // Must dispatch CYCLE_FAILURE (not DISMISS_SUCCESS) — DISMISS_SUCCESS
@@ -416,10 +419,27 @@ export function useStoreActions({
         Number(m[1]),
         reason,
       );
+      // KNOWN flag-gated window (Wave-2 review, recorded): while the
+      // offline outbox holds queued intakes, applyServerUserState defers to
+      // the pending queue and the corrected snapshot lands at drain-time
+      // reconciliation instead — server truth is already corrected; the
+      // local view catches up when the outbox flushes.
       applyServerUserState(newUserState, engineOutput);
       return true;
     } catch (err) {
+      // Fail VISIBLY, same doctrine as logIntake one function above: a
+      // silent undo failure means the member says "I didn't drink that"
+      // and the system keeps counting it with no signal to retry.
       console.warn('[AForce] undoIntake failed', err);
+      const failure = classifyWriteFailure(err);
+      Alert.alert(
+        i18n.t(`common.action_failed_title.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].title,
+        }),
+        i18n.t(`common.action_failed_body.${failure.kind}`, {
+          defaultValue: WRITE_FAILURE_COPY[failure.kind].body,
+        }),
+      );
       return false;
     }
   }, [state.isCompletingCycle, state.userState, applyServerUserState]);

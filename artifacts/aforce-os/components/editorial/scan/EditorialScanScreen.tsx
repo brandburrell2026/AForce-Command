@@ -107,9 +107,23 @@ export function EditorialScanScreen() {
   // intake → undo. Recognition awards ZERO credit: nothing below runs from
   // the scan path — only from the member's explicit confirmation.
   const OZ_STEP = 2;
+  // The member's single-confirm ceiling is the documented client UI max
+  // (64 oz — api-server intakeSchema: 'client UI max is 64oz'), NOT the
+  // Decision Guard's rejection envelope: the guard bound is the forgery
+  // threshold, three times any plausible single intake. The guard ceiling
+  // still clamps above as defense-in-depth.
+  const MAX_LOG_OZ = Math.min(64, DECISION_GUARD_MAX_DOSE_OZ);
   const [qtyOz, setQtyOz] = useState(0);
   const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
   const [undone, setUndone] = useState(false);
+  // One write on screen at a time — drives busy states AND freezes SCAN
+  // AGAIN so a slow round-trip cannot race a rescan (see the epoch below).
+  const [writeInFlight, setWriteInFlight] = useState(false);
+  // Cross-product attribution guard (Wave-2 review): a confirm/undo started
+  // against product A must never paint its RECORDED/REMOVED state onto
+  // product B's lifecycle. The epoch advances with every new result; a
+  // resolution from an older epoch is discarded.
+  const lifecycleEpochRef = useRef(0);
   // A ref, not state: two same-frame taps both close over a pre-render
   // logIntake whose own isCompletingCycle guard has not seen the first tap
   // yet (the HomeScreenV2 duplicate-log lesson, verbatim).
@@ -179,17 +193,16 @@ export function EditorialScanScreen() {
   // serving size (bounded by the Decision Guard ceiling), and any previous
   // log/undo state belongs to the previous product.
   useEffect(() => {
+    lifecycleEpochRef.current += 1;
     const fluid = result?.product.fluidType;
-    setQtyOz(fluid ? Math.min(PRODUCTS[fluid].ozPerServing, DECISION_GUARD_MAX_DOSE_OZ) : 0);
+    setQtyOz(fluid ? Math.min(PRODUCTS[fluid].ozPerServing, MAX_LOG_OZ) : 0);
     setLoggedCycleId(null);
     setUndone(false);
   }, [result]);
 
   const onAdjustQty = useCallback((deltaOz: number) => {
-    setQtyOz((prev) =>
-      Math.max(OZ_STEP, Math.min(DECISION_GUARD_MAX_DOSE_OZ, prev + deltaOz)),
-    );
-  }, []);
+    setQtyOz((prev) => Math.max(OZ_STEP, Math.min(MAX_LOG_OZ, prev + deltaOz)));
+  }, [MAX_LOG_OZ]);
 
   // THE ONE WRITE in this layer (locked by editorialScanLaw): the member's
   // explicit confirmation, carrying the reviewed quantity and the PRODUCT's
@@ -199,28 +212,44 @@ export function EditorialScanScreen() {
     if (!result || !fluid) return;
     if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return;
     confirmInFlightRef.current = true;
+    const epoch = lifecycleEpochRef.current;
+    setWriteInFlight(true);
     try {
-      const cycleId = await logIntake(fluid, { source: 'scan', ozOverride: qtyOz });
+      // flavorLabel: the scanned identity travels with the write. Without it
+      // every stick SKU logs as the catalog default flavor (watermelon) and
+      // the score's flavor-specific impacts land on the wrong product
+      // (Wave-2 review: Soursop Edge scored as watermelon).
+      const cycleId = await logIntake(fluid, {
+        source: 'scan',
+        ozOverride: qtyOz,
+        flavorLabel: result.product.productName,
+      });
+      if (lifecycleEpochRef.current !== epoch) return;
       if (cycleId) {
         setLoggedCycleId(cycleId);
         setUndone(false);
       }
     } finally {
       confirmInFlightRef.current = false;
+      setWriteInFlight(false);
     }
   };
 
   const onUndoLog = async () => {
     if (!loggedCycleId || confirmInFlightRef.current) return;
     confirmInFlightRef.current = true;
+    const epoch = lifecycleEpochRef.current;
+    setWriteInFlight(true);
     try {
       const ok = await undoIntake(loggedCycleId);
+      if (lifecycleEpochRef.current !== epoch) return;
       if (ok) {
         setLoggedCycleId(null);
         setUndone(true);
       }
     } finally {
       confirmInFlightRef.current = false;
+      setWriteInFlight(false);
     }
   };
 
@@ -503,9 +532,9 @@ export function EditorialScanScreen() {
                   productName={result.product.productName}
                   oz={qtyOz}
                   minOz={OZ_STEP}
-                  maxOz={DECISION_GUARD_MAX_DOSE_OZ}
+                  maxOz={MAX_LOG_OZ}
                   stepOz={OZ_STEP}
-                  busy={state.isCompletingCycle}
+                  busy={state.isCompletingCycle || writeInFlight}
                   logged={loggedCycleId != null}
                   undoable={loggedCycleId != null && /^intake-\d+$/.test(loggedCycleId)}
                   undone={undone}
@@ -528,8 +557,10 @@ export function EditorialScanScreen() {
                   setOutcome(null);
                   setCameraOpen(true);
                 }}
+                disabled={writeInFlight}
                 accessibilityRole="button"
                 accessibilityLabel="Scan another product"
+                accessibilityState={{ disabled: writeInFlight }}
                 hitSlop={8}
                 style={styles.target}
                 testID="ed-scan-again"

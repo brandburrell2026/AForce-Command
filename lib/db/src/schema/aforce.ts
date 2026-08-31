@@ -168,6 +168,14 @@ export const aforceIntakeLogs = pgTable(
      *  NULLS DISTINCT means those rows never collide, so the dedupe applies
      *  ONLY to keyed offline-outbox replays. Score-Protection on replay. */
     clientEventId: text("client_event_id"),
+    /** The intake_events JSONB entry this log created ("evt-…"). The
+     *  correction path removes the scoring event by THIS id — clientEventId
+     *  ("cid-…") is the idempotency key, a different namespace that can never
+     *  match an event (the Wave-2 review's P0). Nullable/additive: requires
+     *  `drizzle-kit push` at deploy (ADD COLUMN — non-destructive); legacy
+     *  rows stay null and their corrections reverse counters only (documented
+     *  §10 residual). */
+    eventId: text("event_id"),
     // ── Lock §10 honesty + corrections (RC-L12, all nullable/additive) ──
     /** When set, this row is an auditable CORRECTION reversing the referenced
      *  log (append-only: the original row is never mutated or deleted). */

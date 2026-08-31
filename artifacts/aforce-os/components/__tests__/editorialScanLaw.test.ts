@@ -353,6 +353,10 @@ describe('HYDRATION CREDIT — the explicit intake lifecycle (RP-6, ruling R4)',
     // (never hardcoded water), and provenance.
     expect(handler).toMatch(/ozOverride/);
     expect(handler).toMatch(/source:\s*'scan'/);
+    // The scanned identity travels with the write — without it every stick
+    // SKU logs as the catalog default flavor and flavor-specific score
+    // impacts land on the wrong product (Wave-2 review).
+    expect(handler).toMatch(/flavorLabel:\s*result\.product\.productName/);
     expect(handler).not.toMatch(/logIntake\(\s*'water'/);
     // Every other file in the layer stays write-free.
     for (const { file, src: s } of sources()) {
@@ -406,8 +410,22 @@ describe('HYDRATION CREDIT — the explicit intake lifecycle (RP-6, ruling R4)',
     expect(screen()).toMatch(/<CycleSuccessOverlay/);
   });
 
-  it('the quantity is bounded by the Decision Guard ceiling — no UI can exceed it', () => {
-    expect(screen()).toMatch(/DECISION_GUARD_MAX_DOSE_OZ/);
+  it('the quantity ceiling is the documented CLIENT max, inside the guard envelope', () => {
+    // The Decision Guard bound (200 oz) is the forgery-rejection threshold,
+    // not a plausible single intake; the member ceiling is the documented
+    // 64-oz client max, clamped inside the guard as defense-in-depth
+    // (Wave-2 review).
+    const src = screen();
+    expect(src).toMatch(/Math\.min\(64, DECISION_GUARD_MAX_DOSE_OZ\)/);
+    expect(src).toMatch(/MAX_LOG_OZ/);
+  });
+
+  it('resolutions are epoch-guarded — a write for product A never paints product B', () => {
+    const src = screen();
+    expect(src).toMatch(/lifecycleEpochRef\.current \+= 1/);
+    expect((src.match(/lifecycleEpochRef\.current !== epoch\) return/g) ?? []).length).toBe(2);
+    // And a rescan cannot start while a write is in flight.
+    expect(src).toMatch(/disabled=\{writeInFlight\}/);
   });
 });
 

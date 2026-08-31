@@ -131,6 +131,10 @@ router.post("/intake", intakeLimiter, async (req, res) => {
           scoreBefore: body.scoreBefore,
           scoreAfter: body.scoreAfter,
           ...(body.clientEventId ? { clientEventId: body.clientEventId } : {}),
+          // The correction linkage: which intake_events entry this log
+          // created. Without it an undo can reverse counters but never
+          // remove the scoring event (Wave-2 review P0).
+          ...(body.event ? { eventId: body.event.id } : {}),
           ...(body.entrySource ? { entrySource: body.entrySource } : {}),
           ...(body.confirmationLevel ? { confirmationLevel: body.confirmationLevel } : {}),
           // Keyed replays keep the original capture time for an accurate
