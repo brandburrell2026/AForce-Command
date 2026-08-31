@@ -30,6 +30,13 @@ interface Props {
   stepOz: number;
   busy: boolean;
   logged: boolean;
+  /**
+   * Whether the logged id names a LANDED server row (`intake-<serverId>`).
+   * A flag-gated offline-queued write carries a client event id instead —
+   * the server has nothing to correct yet, so no undo is offered rather
+   * than a control that can only fail (undoIntake refuses non-landed ids).
+   */
+  undoable: boolean;
   undone: boolean;
   onAdjust: (deltaOz: number) => void;
   onConfirm: () => void;
@@ -44,6 +51,7 @@ export function EdIntakeConfirm({
   stepOz,
   busy,
   logged,
+  undoable,
   undone,
   onAdjust,
   onConfirm,
@@ -69,6 +77,7 @@ export function EdIntakeConfirm({
         <Text style={[edType.body as TextStyle, { color: ink.primary, marginTop: 8 }]}>
           {`${oz} oz · ${productName}`}
         </Text>
+        {undoable ? (
         <Pressable
           onPress={onUndo}
           disabled={busy}
@@ -81,6 +90,7 @@ export function EdIntakeConfirm({
         >
           <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>UNDO</Text>
         </Pressable>
+        ) : null}
       </View>
     );
   }

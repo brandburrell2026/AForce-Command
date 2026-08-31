@@ -507,6 +507,7 @@ export function EditorialScanScreen() {
                   stepOz={OZ_STEP}
                   busy={state.isCompletingCycle}
                   logged={loggedCycleId != null}
+                  undoable={loggedCycleId != null && /^intake-\d+$/.test(loggedCycleId)}
                   undone={undone}
                   onAdjust={onAdjustQty}
                   onConfirm={() => {
