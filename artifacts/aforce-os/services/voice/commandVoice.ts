@@ -288,6 +288,11 @@ const PRESSURE_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = Object.f
  *   "Drink twelve ounces of water with one AForce stick now."
  *     → "Drink 12 ounces with 1 AForce stick now."
  */
+/** A sentence carrying one of these is an instruction, never trimmable
+ *  cadence. Units are English across the whole locale corpus (the command
+ *  strings keep 'ounces'/'sticks'/'RTD' verbatim in every locale). */
+const DOSE_BEARING = /\d+\s*(?:oz\b|ounces?\b|ml\b|sticks?\b|rtds?\b|units?\b)/i;
+
 export function pressureCommandLine(command: string): string {
   if (!command || !command.trim()) return '';
   let out = command;
@@ -309,17 +314,26 @@ export function pressureCommandLine(command: string): string {
   // CLAUSE-SAFE cadence clip (RP-5, ruling R6): the old hard 10-word cut
   // amputated mid-clause ("… 2 sticks. Recheck in." / Spanish lost "ahora").
   // Pressure Mode may drop WHOLE trailing clauses past the 10-word cadence,
-  // but it never severs inside one — a single long sentence stays whole.
+  // but it never severs inside one — a single long sentence stays whole —
+  // and it never drops SUBSTANCE: any sentence carrying a dose token is
+  // kept regardless of budget (the Wave-2 review executed the corpus and
+  // found Spanish PEAK reduced to 'Puntaje 22. Pico.' and social_take_rtd
+  // losing its 16-oz water pairing in every locale — status trimmed to
+  // cadence is fine; instructions are not cadence).
   const sentences = out.split(/(?<=[.!?])\s+/);
-  let kept = sentences[0];
-  let wordCount = kept.split(/\s+/).length;
+  const keep: boolean[] = sentences.map(() => false);
+  keep[0] = true;
+  let wordCount = sentences[0].split(/\s+/).length;
   for (let i = 1; i < sentences.length; i++) {
     const w = sentences[i].split(/\s+/).length;
     if (wordCount + w > 10) break;
-    kept = `${kept} ${sentences[i]}`;
+    keep[i] = true;
     wordCount += w;
   }
-  out = kept;
+  for (let i = 1; i < sentences.length; i++) {
+    if (!keep[i] && DOSE_BEARING.test(sentences[i])) keep[i] = true;
+  }
+  out = sentences.filter((_, i) => keep[i]).join(' ');
   // Always terminate so TTS pauses naturally.
   if (!/[.!?]$/.test(out)) out += '.';
   return out;

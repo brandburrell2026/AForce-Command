@@ -98,6 +98,54 @@ describe('R6 — the pressure clip is clause-safe for the other bands', () => {
   });
 });
 
+describe('R6 — the WIDENED dose-survival law (Wave-2 review)', () => {
+  // The adversarial review executed the clause-safe clip against the REAL
+  // locale corpus and found whole dose clauses dropping: Spanish PEAK lost
+  // its entire instruction ('Puntaje 22. Pico.' — no directive, no dose),
+  // and social_take_rtd lost 'Sip 16 ounces of water before the next round.'
+  // in every locale — the harm-reduction half of an alcohol-context command.
+  // The original L3 ran en-only over four band keys: the Lane-B lesson again.
+  // This law runs EVERY locale × EVERY coach *_action key at every intensity.
+  it('every dose token survives, all locales × all action keys × all intensities', () => {
+    const offenders: string[] = [];
+    for (const f of localeFiles()) {
+      const coach = coachOf(f);
+      for (const [key, raw] of Object.entries(coach)) {
+        if (typeof raw !== 'string' || !key.endsWith('_action')) continue;
+        const action = interpolate(raw);
+        const doses = action.match(/\d+\s*(?:oz|ounces?|ml|sticks?|rtds?|units?)\b/gi) ?? [];
+        if (doses.length === 0) continue;
+        for (const level of [...LEVELS, 'DEPLETED' as const]) {
+          for (const intensity of INTENSITIES) {
+            const spoken = effectiveCommandLine(action, intensity, level);
+            for (const dose of doses) {
+              const num = dose.match(/\d+/)![0];
+              if (!spoken.includes(num)) {
+                offenders.push(`${f} ${key} @ ${level}/${intensity}: lost '${dose}' — spoke: ${spoken}`);
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(offenders, `doses lost in the voice path:\n  ${offenders.join('\n  ')}`).toEqual([]);
+  });
+});
+
+describe('R6 — the settings copy tells the truth about the new routing', () => {
+  it('no locale still promises auto-Pressure-at-DEPLETED', () => {
+    for (const f of localeFiles()) {
+      const v2 = JSON.parse(readFileSync(join(LOCALES_DIR, f), 'utf8')).profile?.v2 ?? {};
+      expect(v2.vintensity_desc_standard, `${f} standard`).toBe(
+        'Default — spec phrases, spoken in full.',
+      );
+      expect(v2.vintensity_desc_pressure, `${f} pressure`).toBe(
+        '{{mode}} active. Short, sharp, direct. Depleted guidance always speaks in full.',
+      );
+    }
+  });
+});
+
 describe('R2×R6 — the risk-timer alert speaks the live canonical minutes', () => {
   it('the 16-minute threshold line carries the ACTUAL minutes, not a static 15', () => {
     expect(riskTimerLine(16, 'calm', 12)).toContain('12');
