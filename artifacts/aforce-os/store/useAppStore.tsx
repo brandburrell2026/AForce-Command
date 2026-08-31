@@ -745,6 +745,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // callbacks (bodies byte-identical to before).
   const {
     logIntake,
+    undoIntake,
     completeCycle,
     snooze,
     dismissSuccess,
@@ -1279,7 +1280,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   const value = useMemo<AppContextValue>(() => ({
-    state: facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess,
+    state: facadeState, isHydrated, logIntake, undoIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
@@ -1293,7 +1294,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     notificationSettings: state.notificationSettings, setNotificationSetting,
     unitPreferences: state.unitPreferences, setUnitPreference,
     profileIdentity: state.profileIdentity, setProfileIdentity,
-  }), [facadeState, isHydrated, logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
+  }), [facadeState, isHydrated, logIntake, undoIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, voiceCoachEnabled, setVoiceCoachEnabled, selectedVoiceId, setSelectedVoiceId, voiceIntensity, setVoiceIntensity, voiceScope, setVoiceScope, isInvestorDemoActive, setInvestorDemoActive, setNotificationSetting, setUnitPreference, setProfileIdentity]);
 
   // Stable actions value for the sliced ActionsContext — same callbacks
   // as `value` minus `state`, so action consumers don't re-render when
@@ -1306,7 +1307,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // `useCallback`-stable with empty/near-empty deps (declared above), so
   // adding them doesn't change how often this memo's identity changes.
   const actions = useMemo<ActionsSlice>(() => ({
-    logIntake, completeCycle, snooze, dismissSuccess,
+    logIntake, undoIntake, completeCycle, snooze, dismissSuccess,
     updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags,
     setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage,
     activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext,
@@ -1320,7 +1321,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setVoiceIntensity,
     setVoiceScope,
     setInvestorDemoActive,
-  }), [logIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity, setVoiceCoachEnabled, setSelectedVoiceId, setVoiceIntensity, setVoiceScope, setInvestorDemoActive]);
+  }), [logIntake, undoIntake, completeCycle, snooze, dismissSuccess, updateSymptoms, updateUrineSignal, updateEnergyState, confirmStatus, setFeatureFlags, setSubscription, completeOnboarding, setAppleHealthSnapshot, setProviderBiometrics, confirmCommand, setLanguage, activateSocialMode, logSocialDrink, confirmSocialHydration, deactivateSocialMode, setSocialContext, activateCruiseMode, activateVoyageShield, setSweatAutopilot, setNotificationSetting, setUnitPreference, setProfileIdentity, setVoiceCoachEnabled, setSelectedVoiceId, setVoiceIntensity, setVoiceScope, setInvestorDemoActive]);
 
   return (
     <AppContext.Provider value={value}>

@@ -60,6 +60,9 @@ import { StatusBar } from 'expo-status-bar';
 
 import { AFScreen } from '@/components/ui';
 import { CameraScanModal } from '@/components/CameraScanModal';
+import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
+import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
+import { PRODUCTS } from '@/data/products';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -78,6 +81,7 @@ import type { CompareProduct } from '@/types/comparison';
 
 import { EdCaption, EdEvidenceLine, EdKicker, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from '../moments/EdReturn';
+import { EdIntakeConfirm } from './EdIntakeConfirm';
 import { EdProductFactors, type ProductFactor } from './EdProductFactors';
 import { EdRegistrationTarget } from './EdRegistrationTarget';
 import {
@@ -91,12 +95,25 @@ export function EditorialScanScreen() {
   const { t } = useTranslation();
   const ink = edInkFor('black');
   const settle = useEdSettle();
-  const { state } = useAppStore();
+  const { state, logIntake, undoIntake, dismissSuccess } = useAppStore();
 
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [scanning, setScanning] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const postScanMut = usePostScan();
+
+  // ── RP-6 (ruling R4) · the intake lifecycle ──────────────────────────
+  // recognition → review → quantity → member confirmation → idempotent
+  // intake → undo. Recognition awards ZERO credit: nothing below runs from
+  // the scan path — only from the member's explicit confirmation.
+  const OZ_STEP = 2;
+  const [qtyOz, setQtyOz] = useState(0);
+  const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
+  const [undone, setUndone] = useState(false);
+  // A ref, not state: two same-frame taps both close over a pre-render
+  // logIntake whose own isCompletingCycle guard has not seen the first tap
+  // yet (the HomeScreenV2 duplicate-log lesson, verbatim).
+  const confirmInFlightRef = useRef(false);
 
   // ── PRODUCER 3 · speech teardown (E6-A) ──────────────────────────────
   // Stop any in-flight narrative if the screen unmounts mid-sentence.
@@ -157,6 +174,55 @@ export function EditorialScanScreen() {
   };
 
   const result = outcome?.ok ? outcome.result : null;
+
+  // A new result resets the lifecycle: quantity returns to the product's own
+  // serving size (bounded by the Decision Guard ceiling), and any previous
+  // log/undo state belongs to the previous product.
+  useEffect(() => {
+    const fluid = result?.product.fluidType;
+    setQtyOz(fluid ? Math.min(PRODUCTS[fluid].ozPerServing, DECISION_GUARD_MAX_DOSE_OZ) : 0);
+    setLoggedCycleId(null);
+    setUndone(false);
+  }, [result]);
+
+  const onAdjustQty = useCallback((deltaOz: number) => {
+    setQtyOz((prev) =>
+      Math.max(OZ_STEP, Math.min(DECISION_GUARD_MAX_DOSE_OZ, prev + deltaOz)),
+    );
+  }, []);
+
+  // THE ONE WRITE in this layer (locked by editorialScanLaw): the member's
+  // explicit confirmation, carrying the reviewed quantity and the PRODUCT's
+  // fluid type — never hardcoded water (ruling R4).
+  const onConfirmLog = async () => {
+    const fluid = result?.product.fluidType;
+    if (!result || !fluid) return;
+    if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return;
+    confirmInFlightRef.current = true;
+    try {
+      const cycleId = await logIntake(fluid, { source: 'scan', ozOverride: qtyOz });
+      if (cycleId) {
+        setLoggedCycleId(cycleId);
+        setUndone(false);
+      }
+    } finally {
+      confirmInFlightRef.current = false;
+    }
+  };
+
+  const onUndoLog = async () => {
+    if (!loggedCycleId || confirmInFlightRef.current) return;
+    confirmInFlightRef.current = true;
+    try {
+      const ok = await undoIntake(loggedCycleId);
+      if (ok) {
+        setLoggedCycleId(null);
+        setUndone(true);
+      }
+    } finally {
+      confirmInFlightRef.current = false;
+    }
+  };
 
   // The coach mirror, spoken only in the member's chosen posture. It explains
   // the comparison; it authors no instruction (DR-013).
@@ -427,6 +493,31 @@ export function EditorialScanScreen() {
                 ) : null}
               </View>
 
+              {/* ── REVIEW & CONFIRM (RP-6, ruling R4) ───────────────
+                  Subordinate and outcome-gated — exactly V2's gate: the
+                  canonical recommendation says logging makes sense AND the
+                  catalog knows what fluid this product logs as. Recognition
+                  never opens this block; only the outcome does. */}
+              {result.recommendation.shouldLog && result.product.fluidType ? (
+                <EdIntakeConfirm
+                  productName={result.product.productName}
+                  oz={qtyOz}
+                  minOz={OZ_STEP}
+                  maxOz={DECISION_GUARD_MAX_DOSE_OZ}
+                  stepOz={OZ_STEP}
+                  busy={state.isCompletingCycle}
+                  logged={loggedCycleId != null}
+                  undone={undone}
+                  onAdjust={onAdjustQty}
+                  onConfirm={() => {
+                    void onConfirmLog();
+                  }}
+                  onUndo={() => {
+                    void onUndoLog();
+                  }}
+                />
+              ) : null}
+
               {/* Scan again. Without this the screen was a dead end after a
                   result: the reader opener lived in the `!result` branch, so
                   the only way to scan a second product was to leave the route
@@ -476,6 +567,12 @@ export function EditorialScanScreen() {
           void runScan({ kind: res.kind === 'qr' ? 'qr' : 'barcode', rawValue: res.data });
         }}
       />
+      {/* Durable success confirmation — the S21 contract: every reachable
+          non-silent intake writer mounts the overlay locally, so a capped
+          score can never make a landed write look like nothing happened. */}
+      {state.showCycleSuccess && state.lastCycleResult && (
+        <CycleSuccessOverlay result={state.lastCycleResult} onDismiss={dismissSuccess} />
+      )}
     </EdSurface>
   );
 }
