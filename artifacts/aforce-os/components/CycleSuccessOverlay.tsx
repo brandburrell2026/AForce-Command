@@ -9,6 +9,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export function CycleSuccessOverlay({ result, onDismiss }: Props) {
+  const { t } = useTranslation();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.85);
   const gainScale = useSharedValue(0);
@@ -165,10 +167,12 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
           <Text style={[styles.deltaTo, { color }]}>now {result.scoreAfter}</Text>
         </View>
 
-        {/* Next hint */}
+        {/* Next check — the LIVE riskTimer minutes of the same adapted engine
+            output that seeded the countdown (ruling R2: one clock). Never a
+            pre-rendered static string. */}
         <View style={[styles.hintRow, { borderColor: Colors.border.subtle }]}>
           <Icon name="clock" size={12} color={Colors.text.muted} />
-          <Text style={styles.hintText}>{result.nextCycleHint}</Text>
+          <Text style={styles.hintText}>{t('coach.next_check', { minutes: result.nextCheckMinutes })}</Text>
         </View>
 
         {/* Dismiss */}

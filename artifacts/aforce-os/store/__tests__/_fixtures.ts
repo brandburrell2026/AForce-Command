@@ -251,7 +251,7 @@ export function makeCycleResult(scoreAfter = 80): CycleResult {
     scoreAfter,
     gainDisplay: scoreAfter >= 70 ? `+${scoreAfter - 70}` : `${scoreAfter - 70}`,
     identityMessage: 'You are AForce.',
-    nextCycleHint: 'Stay sharp.',
+    nextCheckMinutes: 20,
     state: 'PEAK',
     recordedLabel: '12 oz Water',
   };

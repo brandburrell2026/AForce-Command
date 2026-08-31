@@ -513,6 +513,14 @@ export function generateCycleIdentityMessage(level: PerformanceLevel): string {
   }
 }
 
+/**
+ * @deprecated DEAD as of RP-2 (ruling R2, 2026-08-31): its hardcoded
+ * 20/15/10/5-minute copy was a second clock beside the canonical riskTimer —
+ * CycleResult now carries `nextCheckMinutes` from the adapted engine output.
+ * The function survives ONLY because the off-limits scoringEngine.ts imports
+ * and re-exports it; removing both lines needs founder approval (flagged in
+ * the RP-2 PR). Zero consumers is locked by oneRecheckClock.test.ts.
+ */
 export function generateNextCycleHint(level: PerformanceLevel): string {
   switch (level) {
     case 'PEAK': return 'Next check in 20 minutes.';
