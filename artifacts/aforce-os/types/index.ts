@@ -400,7 +400,12 @@ export interface CycleResult {
   scoreAfter: number;
   gainDisplay: string;
   identityMessage: string;
-  nextCycleHint: string;
+  /**
+   * Minutes until the next check, taken from the SAME adapted
+   * `engineOutput.riskTimer` the reducer commits as the countdown — one clock,
+   * one number (ruling R2). The overlay localizes it; nothing pre-renders it.
+   */
+  nextCheckMinutes: number;
   state: PerformanceLevel;
   /**
    * What was actually recorded, e.g. "12 oz Water". Stated independently of the

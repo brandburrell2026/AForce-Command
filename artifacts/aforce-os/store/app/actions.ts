@@ -22,7 +22,6 @@ import type { HealthProviderId } from '../../data/healthProviders';
 import type { AppState, Action } from '../appStoreTypes';
 import {
   generateCycleIdentityMessage,
-  generateNextCycleHint,
   calculateScore as _initialOnly,
 } from '../../utils/scoringEngine';
 import { inferFlavorFromLabel } from '../../utils/inferFlavorFromLabel';
@@ -211,7 +210,7 @@ export function useStoreActions({
         scoreAfter: log.scoreAfter,
         gainDisplay: `${log.scoreAfter - log.scoreBefore >= 0 ? '+' : ''}${log.scoreAfter - log.scoreBefore}`,
         identityMessage: generateCycleIdentityMessage(engineOutput.performanceState.level),
-        nextCycleHint: generateNextCycleHint(engineOutput.performanceState.level),
+        nextCheckMinutes: engineOutput.riskTimer.minutes,
         state: engineOutput.performanceState.level,
         // Built from the CONFIRMED log the server returned, so the confirmation
         // can never claim a write that did not land.
@@ -261,7 +260,13 @@ export function useStoreActions({
       // 'BALANCED' level in the success card).
       result.state = mergedEngine.performanceState.level;
       result.identityMessage = generateCycleIdentityMessage(mergedEngine.performanceState.level);
-      result.nextCycleHint = generateNextCycleHint(mergedEngine.performanceState.level);
+      // ONE CLOCK (ruling R2): the overlay's minutes and the reducer's
+      // countdown must be the same number, so both read the SAME adapted
+      // engine output — adaptEngineOutput can LENGTHEN riskTimer.minutes, and
+      // deriving the overlay from the pre-adapt merge would split the clocks
+      // one layer down.
+      const adapted = adaptEngineOutput(mergedEngine);
+      result.nextCheckMinutes = adapted.riskTimer.minutes;
       const historyEntry: HistoryEntry = {
         id: log.id,
         timestamp: log.loggedAt,
@@ -279,7 +284,7 @@ export function useStoreActions({
         fluidType,
         ...(offlinePending ? { pending: true } : {}),
       };
-      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: adaptEngineOutput(mergedEngine), historyEntry, silent: opts?.silent } });
+      dispatch({ type: 'CYCLE_SUCCESS', payload: { result, newUserState: mergedUserState, engineOutput: adapted, historyEntry, silent: opts?.silent } });
       // Performance Memory capture (OBSERVATIONAL only — never touches score).
       // A caffeinated intake is one of the three behaviour streams Performance
       // Memory needs; record it idempotently by the intake event id.

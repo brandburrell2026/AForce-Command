@@ -46,7 +46,6 @@ import {
   hydrateProfileFromServer,
   flushPendingProfileSync,
 } from '../services/profileSyncService';
-import { generateCycleIdentityMessage, generateNextCycleHint } from '../utils/scoringEngine';
 import { resolveInitialUserState } from '../data/initialUserState';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
