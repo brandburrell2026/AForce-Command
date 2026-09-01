@@ -18,7 +18,7 @@
  * be averaged into one anchor, or joined by one stroke.
  */
 import type { JournalSnapshot, JournalRollup } from '../../types';
-import { spansModelBoundary } from './modelBoundary';
+import { spansModelBoundary, isComparableModelVersion } from './modelBoundary';
 
 /* ── rendering segmentation ───────────────────────────────────────────────── */
 
@@ -217,32 +217,27 @@ export function recapStatsScope(
   rollups: readonly JournalRollup[],
 ): readonly JournalRollup[] {
   if (rollups.length === 0) return rollups;
-  // Gate on the TRUTH predicate, not a "real boundary" shortcut. An earlier
-  // version asked a "real boundary" predicate that ignored unstamped days and
-  // was false when only ONE known version was present — so an
-  // unstamped-history-then-v1.0 range (the actual
-  // rollout shape: every existing member, the day v1.0 lands) reported a single
-  // blended headline across the seam. Unstamped days are comparable to nothing,
-  // including to v1.0, so that range does need narrowing.
-  if (!spansModelBoundary(rollups.map(dayVersion))) return rollups;
-  const segs = segmentForRender(rollups, dayVersion);
-  // Walk back past any TRAILING unstamped or mixed run.
-  //
-  // `dayVersion` maps a mixed day AND a day with no versions at all to `null`,
-  // and a day with a logged intake but no captured snapshot legitimately has
-  // `modelVersions: []` (api-server builds a rollup from intakes alone). So a
-  // 30-day range that genuinely crosses v0->v1 and happens to END on such a day
-  // narrowed the headline to that single trailing day: the card read
-  // "30-DAY TIMELINE / DAYS 1". Taking the last segment outright was wrong; the
-  // population we want is the newest run that is comparable to ITSELF.
-  //
-  // Note the trailing unstamped days are excluded rather than folded in. They
-  // are comparable to nothing, so including them would reintroduce exactly the
-  // blending the narrowing exists to prevent.
-  for (let i = segs.length - 1; i >= 0; i--) {
-    const seg = segs[i]!;
-    if (seg.modelVersion !== null) return seg.points;
+  const versions = rollups.map(dayVersion);
+  if (!spansModelBoundary(versions)) return rollups;
+
+  // The newest KNOWN version anchors the population. Walking back past trailing
+  // unstamped or mixed days matters because `dayVersion` collapses a mixed day,
+  // an absent list and an empty list all to null, and a day with a logged
+  // intake but no captured snapshot legitimately has `modelVersions: []`.
+  let newestKnown: string | null = null;
+  for (let i = versions.length - 1; i >= 0; i--) {
+    const v = versions[i]!;
+    if (v != null) { newestKnown = v; break; }
   }
-  // No known-version run anywhere: nothing to narrow to, so do not narrow.
-  return rollups;
+  // Nothing known anywhere: there is no comparable anchor, so do not narrow.
+  if (newestKnown === null) return rollups;
+
+  // COMPARABILITY, not render identity. Rendering uses exact identity by
+  // founder ruling — v1.0 and v1.1 get separate visual runs — but a statistics
+  // population is a scientific question, and the registry says same-major
+  // versions ARE comparable. Reusing the render predicate here under-selected:
+  // [v1.0 x10, unstamped x5, v1.1 x5] kept only the trailing 5 rather than the
+  // 15 that are genuinely comparable. Visual continuity and statistical
+  // comparability are separate contracts, and this is the statistical one.
+  return rollups.filter((r) => isComparableModelVersion(dayVersion(r), newestKnown));
 }

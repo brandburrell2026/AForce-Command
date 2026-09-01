@@ -236,12 +236,27 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
       data: versioned([...Array.from({ length: 6 }, () => V0),
                        ...Array.from({ length: 6 }, () => V1)]),
     });
-    // ANTI-VACUITY: two distinct strokes, and neither is empty.
+    // ANTI-VACUITY: two distinct strokes, and each must actually DRAW.
+    // `/^M[\d.]+,[\d.]+/` accepted a bare moveto — a path that renders
+    // nothing — which is the same vacuity class this file was added to stop.
     const shapes = strokeShapes();
     expect(shapes.length).toBe(2);
-    for (const d of shapes) expect(d).toMatch(/^M[\d.]+,[\d.]+/);
+    for (const d of shapes) expect(d, `path must draw, not just move: ${d}`).toMatch(/[CL]/);
     // A rejoined path would be ONE shape containing every anchor.
     expect(shapes.some((d) => d.split('C').length - 1 >= 4)).toBe(false);
+  });
+
+  it('ROLLOUT DAY 1 — a ONE-ANCHOR run renders a DRAWN stroke, not a moveto', () => {
+    // 29 unstamped + 1 stamped gives anchor shares [5, 1]; the lone anchor used
+    // to emit `M x,y`, which strokes nothing. The constellation dot still
+    // appeared, so the day was not invisible — but the segmented-line contract
+    // silently did not hold for the one shape a rollout guarantees.
+    renderChart({
+      data: versioned([...Array.from({ length: 29 }, () => null), V1]),
+    });
+    const shapes = strokeShapes();
+    expect(shapes.length).toBe(2);
+    for (const d of shapes) expect(d, `must draw: ${d}`).toMatch(/[CL]/);
   });
 
   it('unstamped history followed by v1 renders TWO stroke shapes', () => {

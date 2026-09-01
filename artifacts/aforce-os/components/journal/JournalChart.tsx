@@ -83,9 +83,25 @@ function formatBubbleDate(iso: string): string {
 }
 
 /** Smooth Catmull-Rom curve, intentionally soft. */
+/**
+ * Half-width of the mark a single-anchor segment is drawn as.
+ *
+ * A one-day version run used to render as `M x,y` — a moveto, which strokes
+ * NOTHING. The constellation dot still appeared at that anchor, so the day was
+ * not invisible, but the segmented-line contract said a segment draws a stroke
+ * and for this case it silently did not. A one-day run is exactly what the
+ * first day of a model rollout produces, so it is the case that must be
+ * explicit rather than incidental.
+ */
+const LONE_ANCHOR_TICK_PX = 1.5;
+
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
-  if (points.length === 1) return `M${points[0].x},${points[0].y}`;
+  if (points.length === 1) {
+    const p = points[0]!;
+    return `M${(p.x - LONE_ANCHOR_TICK_PX).toFixed(2)},${p.y.toFixed(2)}`
+      + ` L${(p.x + LONE_ANCHOR_TICK_PX).toFixed(2)},${p.y.toFixed(2)}`;
+  }
   let d = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i];

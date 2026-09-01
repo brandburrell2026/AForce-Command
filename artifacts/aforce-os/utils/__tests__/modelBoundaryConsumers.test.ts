@@ -24,13 +24,14 @@ import {
   segmentByModelVersion,
   spansModelBoundary,
   isMixedModelDay,
+  isComparableModelVersion,
 } from '../scoring/modelBoundary';
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
   recapStatsScope, dayVersion,
 } from '../scoring/boundarySeries';
-import { computeRecapStats } from '../journalRecapStats';
+import { computeRecapStats, computeRecapStatsSplit } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
 
 const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
@@ -559,5 +560,105 @@ describe('FIX 4 — JournalChart is proven to ROUTE THROUGH the shared logic', (
     expect(src).toMatch(/pathDs\.map\(/);
     expect(src).not.toMatch(/\{pathD && \(/);
     expect(src).not.toMatch(/pathD: smoothPath\(pts\)/);
+  });
+});
+
+/* ═══════════ ROLLOUT-DAY SHAPES — first-class cases, not edge cases ═══════════
+ *
+ * B1 shipped because every FIX-3 fixture used a comfortable 9 or 10 comparable
+ * days. The first day of a model rollout has exactly ONE, and that shape made a
+ * 30-day card report "DAYS 1". The shapes a rollout actually produces are
+ * enumerated here so none of them can be the case nobody tried.
+ */
+describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
+  const V11 = 'hydrostate-v1.1';
+  const range = (versions: string[][]) =>
+    versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
+  const spec = (parts: Array<[number, string[]]>) =>
+    range(parts.flatMap(([n, vs]) => Array.from({ length: n }, () => vs)));
+
+  const SHAPES: Array<[string, Array<[number, string[]]>, number]> = [
+    ['rollout day 1  — 29 unstamped + 1 v1', [[29, []], [1, [V1]]], 1],
+    ['rollout day 1  — 29 v0 + 1 v1',        [[29, [V0]], [1, [V1]]], 1],
+    ['rollout day 2  — 28 unstamped + 2 v1', [[28, []], [2, [V1]]], 2],
+    ['settled        — 20 unstamped + 10 v1',[[20, []], [10, [V1]]], 10],
+    ['minor bump     — 15 v1.0 + 15 v1.1',   [[15, [V1]], [15, [V11]]], 30],
+    ['mixed stamped/unstamped interleaved',  [[10, [V0]], [5, []], [15, [V1]]], 15],
+  ];
+
+  for (const [label, parts, expectedScore] of SHAPES) {
+    it(`${label}: score population ${expectedScore}, totals over all 30`, () => {
+      const rows = spec(parts);
+      expect(rows.length).toBe(30);
+      const scope = recapStatsScope(rows);
+      const split = computeRecapStatsSplit(rows, scope);
+      const whole = computeRecapStats(rows);
+
+      // 1 · score metrics never blend incomparable model versions
+      expect(scope.length, 'score population').toBe(expectedScore);
+      const anchor = dayVersion(scope[scope.length - 1]!);
+      for (const r of scope) {
+        expect(isComparableModelVersion(dayVersion(r), anchor), 'all comparable').toBe(true);
+      }
+
+      // 2 · non-score totals still represent the WHOLE reporting range
+      expect(split.daysTracked, 'daysTracked').toBe(30);
+      expect(split.totalOunces).toBe(whole.totalOunces);
+      expect(split.totalSticks).toBe(whole.totalSticks);
+
+      // 3 · a one-day score run must not make the card look like a one-day report
+      expect(split.daysTracked).toBeGreaterThan(1);
+
+      // 4 · no observation disappears
+      expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBeGreaterThanOrEqual(1);
+      const segs = segmentForRender(rows, dayVersion);
+      expect(segs.flatMap((s) => s.points).length).toBe(30);
+    });
+  }
+
+  it('v1.0 and v1.1: ONE score population, TWO visual runs', () => {
+    const rows = spec([[15, [V1]], [15, [V11]]]);
+    // Statistical comparability — the registry says same-major is comparable.
+    expect(recapStatsScope(rows).length).toBe(30);
+    // Visual continuity — a separate contract, exact identity by founder ruling.
+    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
+  });
+
+  it('a REAL boundary plus a minor bump: the comparable pair stays together', () => {
+    // THE FIXTURE THAT ACTUALLY REACHES THE COMPARABILITY FILTER.
+    // `[v1.0, v1.1]` alone does NOT span a boundary — they are comparable — so
+    // `recapStatsScope` returns early and the filter never runs. A law built on
+    // that shape passes whatever the filter does, which is how a mutation
+    // swapping comparability for exact identity survived. Adding v0 makes the
+    // range genuinely non-comparable, so the filter runs and must keep BOTH
+    // same-major versions.
+    const rows = spec([[10, [V0]], [10, [V1]], [10, [V11]]]);
+    expect(spansModelBoundary(rows.map(dayVersion)), 'filter must be reached').toBe(true);
+    const scope = recapStatsScope(rows);
+    expect(scope.length, 'v1.0 + v1.1 are one score population').toBe(20);
+    expect(scope.some((r) => r.modelVersions?.[0] === V1)).toBe(true);
+    expect(scope.some((r) => r.modelVersions?.[0] === V11)).toBe(true);
+    expect(scope.every((r) => r.modelVersions?.[0] !== V0)).toBe(true);
+    // ...while the RENDER still seams all three (exact identity, by ruling).
+    expect(segmentForRender(rows, dayVersion).length).toBe(3);
+  });
+
+  it('duplicate version entries on one day are not a boundary', () => {
+    // `[v1, v1]` is length 2 but names ONE version. `dayVersion` returns null
+    // for it (length !== 1), so it is treated as unstamped rather than mixed —
+    // conservative, and it must not be mistaken for a real boundary.
+    expect(isMixedModelDay([V1, V1])).toBe(false);
+    const rows = range([...Array.from({ length: 29 }, () => [V1]), [V1, V1]]);
+    // The trailing duplicate day is unstamped-by-collapse; the score population
+    // is the 29 known v1 days and the totals still cover all 30.
+    expect(computeRecapStatsSplit(rows, recapStatsScope(rows)).daysTracked).toBe(30);
+  });
+
+  it('a one-day score run still produces a DRAWN stroke, not a bare moveto', () => {
+    const rows = spec([[29, []], [1, [V1]]]);
+    const paths = buildRecapSegmentPaths(rows, 300, 100, PAD);
+    expect(paths.length).toBe(2);
+    for (const d of paths) expect(d, `must draw: ${d}`).toMatch(/L/);
   });
 });

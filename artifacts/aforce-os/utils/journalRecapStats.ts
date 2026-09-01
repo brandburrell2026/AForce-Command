@@ -101,3 +101,43 @@ function parseDateUTC(s: string): Date | null {
 function diffInDaysUTC(later: Date, earlier: Date): number {
   return Math.round((later.getTime() - earlier.getTime()) / 86_400_000);
 }
+
+/**
+ * Recap statistics with the two populations kept SEPARATE.
+ *
+ * A recap mixes two different kinds of number and they do not share a
+ * population:
+ *
+ *   SCORE-DERIVED — `avgScore`, `peakScore`, and `bestStreak` (a run of days at
+ *   or above a HydroState threshold, so it depends on the score too). These may
+ *   only be computed over rows whose model version is comparable, or the
+ *   headline blends two different measurements.
+ *
+ *   ACTIVITY TOTALS — `daysTracked`, `totalOunces`, `totalSticks`. These are not
+ *   HydroState measurements at all. A recalibration of the scoring model says
+ *   nothing about how many days a member showed up or how many ounces they
+ *   drank, so narrowing them discards true participation for no reason.
+ *
+ * Collapsing both onto one narrowed population is what made a 30-day card read
+ * "DAYS 1" on the first day of the v1.0 rollout: 29 unstamped days plus one
+ * stamped day left a single comparable row, and every tile inherited it.
+ */
+export function computeRecapStatsSplit(
+  fullRange: readonly JournalRollup[],
+  scorePopulation: readonly JournalRollup[],
+): RecapStats {
+  const whole = computeRecapStats(fullRange);
+  const scored = computeRecapStats(scorePopulation);
+  return {
+    // score-derived → comparable rows only
+    avgScore: scored.avgScore,
+    peakScore: scored.peakScore,
+    bestStreak: scored.bestStreak,
+    // activity totals → the whole reporting range, so the label stays true.
+    // `totalOunces`/`totalSticks` read the END-OF-WINDOW cumulative row, so
+    // narrowing the array would silently report a stale older row's totals.
+    daysTracked: whole.daysTracked,
+    totalOunces: whole.totalOunces,
+    totalSticks: whole.totalSticks,
+  };
+}

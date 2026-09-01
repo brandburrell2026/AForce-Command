@@ -17,7 +17,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
-import { computeRecapStats } from '@/utils/journalRecapStats';
+import { computeRecapStatsSplit } from '@/utils/journalRecapStats';
 import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
 
 
@@ -46,8 +46,15 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // Headline statistics are scoped by the shipped decision function, not by an
   // inline predicate — an earlier inline version narrowed an all-unstamped
   // range to a single row and reported one day under a 30-day label.
+  // TWO populations, deliberately. Score-derived tiles use only rows comparable
+  // to the newest known model version; activity totals use the whole requested
+  // range, so the "30-DAY TIMELINE" label stays true and a member's real
+  // participation is never discarded because the scoring model changed.
   const statsScope = useMemo(() => recapStatsScope(rollups), [rollups]);
-  const stats = useMemo(() => computeRecapStats(statsScope), [statsScope]);
+  const stats = useMemo(
+    () => computeRecapStatsSplit(rollups, statsScope),
+    [rollups, statsScope],
+  );
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 
