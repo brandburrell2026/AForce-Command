@@ -22,4 +22,4 @@
  * When the app constant changes, change this one in the same commit. The parity
  * test fails otherwise.
  */
-export const HYDROSTATE_MODEL_VERSION = "hydrostate-v0";
+export const HYDROSTATE_MODEL_VERSION = "hydrostate-v1.0";

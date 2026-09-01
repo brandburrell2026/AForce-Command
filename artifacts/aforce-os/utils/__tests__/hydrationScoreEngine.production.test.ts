@@ -24,15 +24,13 @@ import {
   baseEventImpact,
   computeEventImpact,
   materializedIntakePoints,
-  AFORCE_BASE_IMPACT,
+
   ABSORPTION_CAP_UNITS,
   EXCESS_EFFICIENCY,
   HYDRATION_UNIT_OZ,
-  WATER_PTS_PER_OZ,
-  WATER_IMMEDIATE_PCT,
-  WATER_DELAYED_DURATION_MIN,
-  AFORCE_IMMEDIATE_PCT,
-  AFORCE_DELAYED_DURATION_MIN,
+  HYDRATION_PTS_PER_OZ,
+  HYDRATION_IMMEDIATE_PCT,
+  HYDRATION_DELAYED_DURATION_MIN,
 } from '../../services/hydrationScoreService';
 import type { FluidType, IntakeEvent, ProductFlavor } from '../../types';
 
@@ -59,8 +57,8 @@ describe('water — every WaterAmountModal preset', () => {
   const PRESETS = [8, 12, 16, 20, 24, 32] as const;
 
   for (const oz of PRESETS) {
-    it(`${oz}oz water → ${oz * WATER_PTS_PER_OZ} base pts (0.5 pts/oz)`, () => {
-      expect(baseEventImpact('water', undefined, oz, ctx())).toBe(oz * WATER_PTS_PER_OZ);
+    it(`${oz}oz water → ${oz * HYDRATION_PTS_PER_OZ} base pts (0.5 pts/oz)`, () => {
+      expect(baseEventImpact('water', undefined, oz, ctx())).toBe(oz * HYDRATION_PTS_PER_OZ);
     });
   }
 
@@ -68,9 +66,9 @@ describe('water — every WaterAmountModal preset', () => {
     for (const oz of PRESETS) {
       const r = computeEventImpact('water', undefined, oz, [], new Date(), ctx());
       // capAdjusted may be < base if oz > 18 (1.5 units), but split ratio is fixed
-      expect(r.immediate).toBeCloseTo(r.capAdjusted * WATER_IMMEDIATE_PCT, 5);
-      expect(r.delayed).toBeCloseTo(r.capAdjusted * (1 - WATER_IMMEDIATE_PCT), 5);
-      expect(r.delayedDurationMin).toBe(WATER_DELAYED_DURATION_MIN);
+      expect(r.immediate).toBeCloseTo(r.capAdjusted * HYDRATION_IMMEDIATE_PCT, 5);
+      expect(r.delayed).toBeCloseTo(r.capAdjusted * (1 - HYDRATION_IMMEDIATE_PCT), 5);
+      expect(r.delayedDurationMin).toBe(HYDRATION_DELAYED_DURATION_MIN);
     }
   });
 
@@ -92,7 +90,7 @@ describe('water — every WaterAmountModal preset', () => {
     for (const oz of [8, 12, 16] as const) {
       const r = computeEventImpact('water', undefined, oz, [], new Date(), ctx());
       expect(r.absorptionEfficiency).toBe(1);
-      expect(r.capAdjusted).toBe(oz * WATER_PTS_PER_OZ);
+      expect(r.capAdjusted).toBe(oz * HYDRATION_PTS_PER_OZ);
     }
   });
 });
@@ -105,10 +103,12 @@ describe('AForce — every PRODUCTS format at every flavor', () => {
   for (const fluid of AFORCE_FORMATS) {
     const oz = PRODUCT_OZ_PER_SERVING[fluid as Exclude<FluidType, 'water'>];
     for (const flavor of FLAVORS) {
-      it(`${fluid} (${oz}oz) ${flavor} → flavor base ${AFORCE_BASE_IMPACT[flavor]}`, () => {
-        // Base impact is flavor-driven, NOT oz-scaled (per AForce IP rubric).
-        // Canister 18oz / bulk-bag 16oz still carry the per-flavor base.
-        expect(baseEventImpact(fluid, flavor, oz, ctx())).toBe(AFORCE_BASE_IMPACT[flavor]);
+      // CONSCIOUS REPIN (RP-8b): base impact was flavor-driven and NOT
+      // oz-scaled — the AForce IP rubric paid the same points for an 18 oz
+      // canister and a 12 oz stick, and more than water for both. It is now
+      // oz-scaled for every fluid alike.
+      it(`${fluid} (${oz}oz) ${flavor} → volume base ${oz * HYDRATION_PTS_PER_OZ}`, () => {
+        expect(baseEventImpact(fluid, flavor, oz, ctx())).toBe(oz * HYDRATION_PTS_PER_OZ);
       });
     }
   }
@@ -116,49 +116,53 @@ describe('AForce — every PRODUCTS format at every flavor', () => {
   it('canister (18oz = exactly 1.5 units = at-cap) gets full efficiency on its own', () => {
     const r = computeEventImpact('aforce_canister', 'watermelon', 18, [], new Date(), ctx());
     expect(r.absorptionEfficiency).toBe(1);
-    expect(r.capAdjusted).toBe(10);
+    expect(r.capAdjusted).toBe(18 * HYDRATION_PTS_PER_OZ);
   });
 
   it('bulk-bag (16oz = 1.33 units) is full efficiency on its own', () => {
     const r = computeEventImpact('aforce_bulk_bag', 'soursop', 16, [], new Date(), ctx());
     expect(r.absorptionEfficiency).toBe(1);
-    expect(r.capAdjusted).toBe(11);
+    expect(r.capAdjusted).toBe(16 * HYDRATION_PTS_PER_OZ);
   });
 
-  it('AForce always splits 70% immediate / 30% delayed over 25 min, every format', () => {
+  it('every format splits on the ONE curve — 60% immediate / 40% over 12.5 min', () => {
     for (const fluid of AFORCE_FORMATS) {
       const oz = PRODUCT_OZ_PER_SERVING[fluid as Exclude<FluidType, 'water'>];
       const r = computeEventImpact(fluid, 'berry', oz, [], new Date(), ctx());
-      expect(r.immediate).toBeCloseTo(r.capAdjusted * AFORCE_IMMEDIATE_PCT, 5);
-      expect(r.delayed).toBeCloseTo(r.capAdjusted * (1 - AFORCE_IMMEDIATE_PCT), 5);
-      expect(r.delayedDurationMin).toBe(AFORCE_DELAYED_DURATION_MIN);
+      expect(r.immediate).toBeCloseTo(r.capAdjusted * HYDRATION_IMMEDIATE_PCT, 5);
+      expect(r.delayed).toBeCloseTo(r.capAdjusted * (1 - HYDRATION_IMMEDIATE_PCT), 5);
+      expect(r.delayedDurationMin).toBe(HYDRATION_DELAYED_DURATION_MIN);
     }
   });
 
-  it('Heat Guard bonus ONLY applies to watermelon (not berry, not soursop)', () => {
+  // CONSCIOUS REPIN (RP-8b, founder ruling 2026-08-31). These three tests
+  // pinned the situational brand bonuses — +2 for watermelon under Heat
+  // Guard and +2 for soursop below 40. Both were reachable only through a
+  // branded fluid, and the depletion one paid MORE the worse the member's
+  // state was. They now assert the bonuses are unreachable.
+  it('Heat Guard buys nothing, for any flavor', () => {
     const heatCtx = ctx({ heatGuardActive: true });
-    expect(baseEventImpact('aforce_stick', 'watermelon', 12, heatCtx)).toBe(12); // +2
-    expect(baseEventImpact('aforce_stick', 'berry', 12, heatCtx)).toBe(10);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, heatCtx)).toBe(11);
+    for (const flavor of ['watermelon', 'berry', 'soursop'] as const) {
+      expect(baseEventImpact('aforce_stick', flavor, 12, heatCtx)).toBe(6);
+    }
   });
 
-  it('Soursop depleted bonus is strict scoreBefore < 40', () => {
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 39 }))).toBe(13);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 40 }))).toBe(11);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 0 }))).toBe(13);
+  it('depletion buys nothing, at any score', () => {
+    for (const scoreBefore of [0, 39, 40, 70]) {
+      expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore }))).toBe(6);
+    }
   });
 
-  it('Heat Guard + Soursop: bonuses are independent and do NOT stack on the same flavor', () => {
+  it('heat and depletion together still buy nothing', () => {
     const both = ctx({ heatGuardActive: true, scoreBefore: 20 });
-    // Heat Guard only triggers on watermelon; Soursop only on soursop.
-    expect(baseEventImpact('aforce_stick', 'watermelon', 12, both)).toBe(12);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, both)).toBe(13);
-    expect(baseEventImpact('aforce_stick', 'berry', 12, both)).toBe(10);
+    for (const flavor of ['watermelon', 'soursop', 'berry'] as const) {
+      expect(baseEventImpact('aforce_stick', flavor, 12, both)).toBe(6);
+    }
   });
 
-  it('unknown flavor falls back to "unflavored" (+10) — never NaN, never undefined', () => {
-    expect(baseEventImpact('aforce_stick', undefined, 12, ctx())).toBe(10);
-    expect(baseEventImpact('aforce_rtd', undefined, 12, ctx())).toBe(10);
+  it('an unknown flavor is simply volume — never NaN, never undefined', () => {
+    expect(baseEventImpact('aforce_stick', undefined, 12, ctx())).toBe(6);
+    expect(baseEventImpact('aforce_rtd', undefined, 12, ctx())).toBe(6);
   });
 });
 
@@ -204,7 +208,8 @@ describe('realistic logging sequence over 30 min', () => {
     // prevUnits in 20-min window = 16/12 = 1.33; new = 1; cap=1.5 → headroom=0.17
     // eff = (0.17 + 0.83*0.75)/1 = 0.79166...
     const r2 = computeEventImpact('aforce_stick', 'berry', 12, history, new Date(now.getTime() - 10 * 60_000), ctx());
-    expect(r2.baseImpact).toBe(10);
+    // Same 12 oz as the water logs → same base (RP-8b volume parity).
+    expect(r2.baseImpact).toBe(6);
     expect(r2.absorptionEfficiency).toBeCloseTo((0.5 / 3 + (1 - 0.5 / 3) * EXCESS_EFFICIENCY) / 1, 5);
     history.push(evt(10, 'aforce_stick', 12, { base: r2.baseImpact, cap: r2.capAdjusted, imm: r2.immediate, del: r2.delayed, dur: r2.delayedDurationMin }));
 

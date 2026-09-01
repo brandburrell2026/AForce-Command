@@ -6,7 +6,13 @@ import type {
 } from '../../types';
 import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } from '../hangoverRisk';
 import { aggregateBiometrics } from '../biometricsAggregator';
-import { materializedIntakePoints } from '../../services/hydrationScoreService';
+import { materializedIntakePoints, HYDRATION_PTS_PER_OZ } from '../../services/hydrationScoreService';
+import {
+  HYDROSTATE_V1_VOLUME_CEILING,
+  HYDROSTATE_V1_COVERAGE_CAP,
+} from '../../config/hydroStateModel';
+import { urineContribution, evaluateEvidence, resolveStateV1 } from './hydroStateV1';
+import type { EvidenceVerdict } from './hydroStateV1';
 import { depletionRatePerMinute } from '../depletionRate';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
 
@@ -24,32 +30,65 @@ export function resolveState(score: number): PerformanceLevel {
 // It defaults to `Date.now()`, so every existing caller is behaviourally
 // unchanged. Score-Protection is untouched: the clock only decides how much
 // time has elapsed for decay/recency, never what behaviour counts.
-export function buildBreakdown(state: UserState, now: number = Date.now()): { score: number; contributions: ScoreContribution[]; decayPerMinute: number; minutesSinceLast: number; factorDeltas: Record<string, number> } {
+export function buildBreakdown(state: UserState, now: number = Date.now()): {
+  score: number;
+  contributions: ScoreContribution[];
+  decayPerMinute: number;
+  minutesSinceLast: number;
+  factorDeltas: Record<string, number>;
+  /**
+   * HydroState v1.0 — the physiological evidence behind the number, and the
+   * band that evidence supports. `level` is the v1.0 band: it is the ONLY
+   * place PEAK eligibility is decided, because PEAK is a claim about the
+   * member's physiology and volume alone must never be able to assert it.
+   *
+   * NOT YET CONSUMED BY THE ENGINE. `utils/scoringEngine.ts` still derives its
+   * level from `resolveState(score)`, which is score-only. That file is
+   * OFF-LIMITS under CLAUDE.md, so the one-line change that would consume this
+   * is flagged for founder approval rather than made here. See the PR body.
+   */
+  evidence: EvidenceVerdict;
+  level: PerformanceLevel;
+} {
   const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
 
   // Per-event hydration scoring (replaces the old running-aggregate
-  // baseIntake + aforceBonus model). Each event carries its own
+  // running-aggregate model). Each event carries its own
   // pre-computed impact decomposition; the materializer ramps the
   // delayed portion in linearly over the absorption window so the orb
   // keeps moving for ~10–25 min after a log — feels like the body
   // absorbing in real time. When `intakeEvents` is empty (legacy
   // state pre-migration), we fall back to the running-aggregate so
   // the score still renders.
-  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
-  // fallback. Safe to delete once we've confirmed no production rows
-  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  // TODO(remove): legacy running-aggregate fallback. Safe to delete once
+  // we've confirmed no production rows are missing `intakeEvents`
+  // (migration shipped 2026-Q1). Since RP-8b this branch is volume-only —
+  // it no longer carries a brand term either.
+  // HydroState v1.0 — intake is TARGET-RELATIVE and SATURATING.
+  //
+  // v0 credited absolute ounces on a flat per-ounce curve, so the intake side
+  // could only ever restore ~48 of the 100 points the loss side is documented
+  // to represent; the brand bonus was numerically bridging that gap. With the
+  // commercial term gone the gap has to close honestly. Coverage is measured
+  // against the member's OWN requirement and saturates there, so the top of the
+  // scale is reached by MEETING the target rather than by drinking the most.
+  // The ceiling sits one point below PEAK, which is what makes "volume alone
+  // cannot reach PEAK" arithmetic rather than policy.
+  //
+  // VOLUME PARITY (RP-8b): water and product points ride the identical
+  // per-ounce curve, so they are ONE physiological term. The split survives
+  // inside the materializer for provenance reporting only.
   const events = state.intakeEvents ?? [];
-  let baseIntake: number;
-  let aforceBonus: number;
-  if (events.length > 0) {
-    const m = materializedIntakePoints(events, new Date(now));
-    baseIntake = Math.round(m.waterPoints);
-    aforceBonus = Math.round(m.aforcePoints);
-  } else {
-    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-    baseIntake = Math.round(45 * ozRatio);
-    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
-  }
+  const targetPoints = state.ozTarget > 0 ? state.ozTarget * HYDRATION_PTS_PER_OZ : 0;
+  const materialized = events.length > 0
+    ? materializedIntakePoints(events, new Date(now)).total
+    : state.ozConsumedToday * HYDRATION_PTS_PER_OZ;
+  // No invented denominator: an unset target yields zero coverage rather than
+  // a divide-by-zero or a fabricated 100%.
+  const coverage = targetPoints > 0
+    ? Math.min(HYDROSTATE_V1_COVERAGE_CAP, materialized / targetPoints)
+    : 0;
+  const baseIntake = HYDROSTATE_V1_VOLUME_CEILING * coverage;
 
   // Per spec: continuous decay model (replaces the old tiered "recency").
   // Score(t) = previous − decay × time + inputs. We translate that into
@@ -72,17 +111,8 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   // upgraded to match the spec.
   const recency = decayContribution;
 
-  const consistency = Math.min(15, state.complianceStreak * 2);
 
-  let context = 5;
-  if (state.heatLoad >= 8) context -= 12;
-  else if (state.heatLoad >= 6) context -= 7;
-  else if (state.heatLoad >= 4) context -= 3;
-  if (state.sweatRate >= 6) context -= 4;
-  if (state.activityLevel >= 8) context -= 5;
-  else if (state.activityLevel >= 5) context -= 2;
 
-  const recoveryMomentum = Math.min(15, Math.max(0, 15 - minutesSinceLast / 4));
 
   let symptomPenalty = 0;
   if (state.symptomState === 'severe') symptomPenalty = -22;
@@ -90,14 +120,14 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   else if (state.symptomState === 'mild') symptomPenalty = -6;
   symptomPenalty -= Math.min(8, state.symptoms.length * 2);
 
-  const urinePenalty = -Math.max(0, (state.urineSignal - 3)) * 4;
-  const outputStress = -Math.min(10, Math.floor(state.sweatRate * state.activityLevel / 12));
-  const sleepCarry = state.overnightLossOz > 8 && !state.hasSeenMorningCommand
-    ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
-    : 0;
+  // Observed-gated Variant C (founder ruling 1). Symmetric around neutral, so a
+  // genuinely clear reading is positive corroboration rather than merely the
+  // absence of a penalty — but ONLY for a value production could have emitted.
+  // An unobserved signal contributes nothing: UNKNOWN is not FAVOURABLE.
+  const urine = urineContribution(state.urineSignal);
+  const urinePoints = urine.points;
 
   const recovery = computeRecoverySignal(state);
-  const confirmation = computeConfirmationDelta(state, now);
 
   // Per-event social-mode penalty: each logged alcohol drink moves the
   // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
@@ -106,9 +136,22 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   const socialDrinks = state.socialMode?.drinks ?? [];
   const socialIntake = socialIntakePoints(socialDrinks, now);
 
-  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
-            + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta + confirmation + socialIntake.penalty;
+  // HydroState v1.0 — PHYSIOLOGY ONLY.
+  //
+  // Gone from the score: `consistency` (compliance streak), `confirmation`
+  // (did you obey the last command) and `recoveryMomentum` (drank recently).
+  // Those measure conduct, not hydration, and together they supplied 33 of the
+  // 48 available non-intake positive points in v0 — a member could look
+  // physiologically strong for being obedient. Adherence remains a real
+  // product concept; it is simply not a physiological measurement and no
+  // longer moves HydroState.
+  //
+  // Also folded out: `context` and `outputStress` (heat / sweat / activity are
+  // already priced by `computeDecayPoints`, so a separate term double-counted
+  // them) and `sleepCarry` (overnight loss is priced by the same decay model's
+  // sleep multiplier).
+  const raw = baseIntake + recency + symptomPenalty + urinePoints
+            + recovery.delta + socialIntake.penalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   // Instrumentation vector (founder-approved 2026-08-18): the EXACT unrounded
@@ -123,48 +166,32 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   // JSON never carries `-0`.
   const factorDeltas: Record<string, number> = {
     base: baseIntake + 0,
-    aforce_bonus: aforceBonus + 0,
     recency: recency + 0,
-    confirmation: confirmation + 0,
-    consistency: consistency + 0,
-    context: context + 0,
-    recovery: recoveryMomentum + 0,
     symptom: symptomPenalty + 0,
-    urine: urinePenalty + 0,
-    output: outputStress + 0,
-    sleep: sleepCarry + 0,
+    urine: urinePoints + 0,
     health_signals: recovery.delta + 0,
     social_intake: socialIntake.penalty + 0,
     raw: raw + 0,
     clamped: score - Math.round(raw) + 0,
   };
 
-  const aforceUnits = state.aforceUnitsToday ?? 0;
   const contributions: ScoreContribution[] = [
-    { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
-      hint: `${state.ozConsumedToday} of ${state.ozTarget} ounces` },
-    { id: 'aforce_bonus', label: 'Protocol bonus', delta: aforceBonus, maxMagnitude: 50,
-      hint: aforceUnits === 0
-        ? 'Log a stick or RTD'
-        : `${aforceUnits} intake${aforceUnits === 1 ? '' : 's'} today` },
+    // ONE hydration term (RP-8b). The old second row, "Protocol bonus",
+    // named a brand premium as a physiological contributor — and because it
+    // carried the largest positive weight in the whole vector, the weekly
+    // report's "biggest lift" line picked it structurally more often than
+    // any real driver. Volume is the contributor; the product is not.
+    { id: 'base', label: 'Hydration (vs your target)', delta: Math.round(baseIntake),
+      maxMagnitude: HYDROSTATE_V1_VOLUME_CEILING,
+      hint: state.ozTarget > 0
+        ? `${state.ozConsumedToday} of ${state.ozTarget} ounces · ${Math.round(coverage * 100)}% of target`
+        : 'No target set' },
     { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
       hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}${effectiveActivity.flooredByHealthPlatform ? ` · Activity floor ${effectiveActivity.level.toFixed(1)} (connected platform)` : ''}` },
-    { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
-      hint: confirmation > 0 ? 'Followed last recheck' : confirmation < 0 ? 'Missed last recheck' : 'No recent recheck' },
-    { id: 'consistency', label: 'Compliance streak', delta: consistency, maxMagnitude: 15,
-      hint: `${state.complianceStreak}-day streak` },
-    { id: 'context', label: 'Context (heat / sweat / activity)', delta: context, maxMagnitude: 20,
-      hint: `Heat ${state.heatLoad} · Sweat ${state.sweatRate} · Activity ${state.activityLevel}` },
-    { id: 'recovery', label: 'Recovery momentum', delta: Math.round(recoveryMomentum), maxMagnitude: 15,
-      hint: 'Aggressive restoration after deficit' },
     { id: 'symptom', label: 'Performance signals', delta: symptomPenalty, maxMagnitude: 30,
       hint: state.symptoms.length ? `${state.symptoms.length} active` : 'None active' },
-    { id: 'urine', label: 'Hydration signal (1-8)', delta: urinePenalty, maxMagnitude: 20,
-      hint: `Level ${state.urineSignal}/8` },
-    { id: 'output', label: 'Output stress', delta: outputStress, maxMagnitude: 10,
-      hint: 'Sweat × activity load' },
-    { id: 'sleep', label: 'Overnight carryover', delta: sleepCarry, maxMagnitude: 10,
-      hint: state.overnightLossOz > 8 ? `${state.overnightLossOz} ounces loss` : 'No deficit carry' },
+    { id: 'urine', label: 'Hydration signal (1-8)', delta: urinePoints, maxMagnitude: 20,
+      hint: urine.observed ? `Level ${state.urineSignal}/8` : 'Not recorded' },
     { id: 'health_signals', label: recovery.label, delta: recovery.delta, maxMagnitude: 10,
       hint: recovery.hint },
   ];
@@ -184,7 +211,21 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
     });
   }
 
-  return { score, contributions, decayPerMinute, minutesSinceLast, factorDeltas };
+  const evidence = evaluateEvidence({
+    urine,
+    // Presence is read from the STATE, not from the delta: a connected device
+    // reporting a neutral reading is still an observed source, and must not be
+    // mistaken for "no wearable". Ruling 5 — absence of hardware may lower
+    // confidence, never HydroState.
+    biometricsPresent: hasBiometricSource(state),
+    biometricsFavourable: recovery.delta > 0,
+    biometricsAdverse: recovery.delta < 0,
+    symptomState: state.symptomState,
+    minutesSinceLastIntake: minutesSinceLast,
+  });
+  const level = resolveStateV1(score, evidence);
+
+  return { score, contributions, decayPerMinute, minutesSinceLast, factorDeltas, evidence, level };
 }
 
 /**
@@ -291,18 +332,6 @@ function computeDecayPoints(state: UserState, minutesSinceLast: number, now: num
   return baseline + boost;
 }
 
-/**
- * ±3 swing from the post-recheck confirmation loop (T2). Stale entries
- * (older than 30 minutes) are ignored so the bonus / penalty does not
- * stick to the score forever.
- */
-function computeConfirmationDelta(state: UserState, now: number = Date.now()): number {
-  if (state.confirmationDelta == null) return 0;
-  if (!state.confirmationDeltaSetAt) return 0;
-  const ageMin = (now - state.confirmationDeltaSetAt.getTime()) / 60000;
-  if (ageMin > 30) return 0;
-  return Math.max(-3, Math.min(3, Math.round(state.confirmationDelta)));
-}
 
 export function buildPrediction(score: number, decayPerMinute: number): ScorePrediction {
   // System-language prediction copy (Performance Command Engine spec).
@@ -339,6 +368,17 @@ export function buildPrediction(score: number, decayPerMinute: number): ScorePre
  * The ±10 clamp is preserved end-to-end so multi-provider data can
  * never dominate the score.
  */
+/**
+ * Did any biometric source actually report? Distinct from whether it was
+ * FAVOURABLE — a connected wearable showing a neutral night is still evidence
+ * coverage, and a member with no wearable at all is a different situation that
+ * must never be scored as a bad reading.
+ */
+export function hasBiometricSource(state: UserState): boolean {
+  if (state.biometrics && Object.keys(state.biometrics).length > 0) return true;
+  return state.appleHealth != null;
+}
+
 export function computeRecoverySignal(state: UserState): { delta: number; hint: string; label: string } {
   // Prefer the multi-provider record when present.
   if (state.biometrics && Object.keys(state.biometrics).length > 0) {
@@ -402,40 +442,43 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   // Per-event hydration scoring — mirrors buildBreakdown so the score
   // and the prediction strip agree. Falls back to the legacy running-
   // aggregate when no events are present.
-  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
-  // fallback. Safe to delete once we've confirmed no production rows
-  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  // TODO(remove): legacy running-aggregate fallback. Safe to delete once
+  // we've confirmed no production rows are missing `intakeEvents`
+  // (migration shipped 2026-Q1). Since RP-8b this branch is volume-only —
+  // it no longer carries a brand term either.
+  // HydroState v1.0 — intake is TARGET-RELATIVE and SATURATING.
+  //
+  // v0 credited absolute ounces on a flat per-ounce curve, so the intake side
+  // could only ever restore ~48 of the 100 points the loss side is documented
+  // to represent; the brand bonus was numerically bridging that gap. With the
+  // commercial term gone the gap has to close honestly. Coverage is measured
+  // against the member's OWN requirement and saturates there, so the top of the
+  // scale is reached by MEETING the target rather than by drinking the most.
+  // The ceiling sits one point below PEAK, which is what makes "volume alone
+  // cannot reach PEAK" arithmetic rather than policy.
+  //
+  // VOLUME PARITY (RP-8b): water and product points ride the identical
+  // per-ounce curve, so they are ONE physiological term. The split survives
+  // inside the materializer for provenance reporting only.
   const events = state.intakeEvents ?? [];
-  let baseIntake: number;
-  let aforceBonus: number;
-  if (events.length > 0) {
-    const m = materializedIntakePoints(events, new Date(now));
-    baseIntake = Math.round(m.waterPoints);
-    aforceBonus = Math.round(m.aforcePoints);
-  } else {
-    const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
-    baseIntake = Math.round(45 * ozRatio);
-    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
-  }
+  const targetPoints = state.ozTarget > 0 ? state.ozTarget * HYDRATION_PTS_PER_OZ : 0;
+  const materialized = events.length > 0
+    ? materializedIntakePoints(events, new Date(now)).total
+    : state.ozConsumedToday * HYDRATION_PTS_PER_OZ;
+  // No invented denominator: an unset target yields zero coverage rather than
+  // a divide-by-zero or a fabricated 100%.
+  const coverage = targetPoints > 0
+    ? Math.min(HYDROSTATE_V1_COVERAGE_CAP, materialized / targetPoints)
+    : 0;
+  const baseIntake = HYDROSTATE_V1_VOLUME_CEILING * coverage;
 
   // Continuous decay (per spec) replaces the tiered recency tier.
   const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
   const recency = -Math.round(computeDecayPoints(state, minutesSinceLast, now));
 
-  // consistency_score: 0–15 based on streak
-  const consistency = Math.min(15, state.complianceStreak * 2);
 
-  // context_modifier: -15..+5 from heat/sweat/activity
-  let context = 5;
-  if (state.heatLoad >= 8) context -= 12;
-  else if (state.heatLoad >= 6) context -= 7;
-  else if (state.heatLoad >= 4) context -= 3;
-  if (state.sweatRate >= 6) context -= 4;
-  if (state.activityLevel >= 8) context -= 5;
-  else if (state.activityLevel >= 5) context -= 2;
 
   // recovery_momentum: 0–15 — how aggressively recent intake is restoring deficit
-  const recoveryMomentum = Math.min(15, Math.max(0, 15 - minutesSinceLast / 4));
 
   // symptom_penalty
   let symptomPenalty = 0;
@@ -445,27 +488,40 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   symptomPenalty -= Math.min(8, state.symptoms.length * 2);
 
   // urine_signal_penalty: 1 = optimal, 8 = critical
-  const urinePenalty = -Math.max(0, (state.urineSignal - 3)) * 4;
+  // Observed-gated Variant C (founder ruling 1). Symmetric around neutral, so a
+  // genuinely clear reading is positive corroboration rather than merely the
+  // absence of a penalty — but ONLY for a value production could have emitted.
+  // An unobserved signal contributes nothing: UNKNOWN is not FAVOURABLE.
+  const urine = urineContribution(state.urineSignal);
+  const urinePoints = urine.points;
 
   // output_stress_penalty (sweat × activity)
-  const outputStress = -Math.min(10, Math.floor(state.sweatRate * state.activityLevel / 12));
 
   // Sleep mode carryover deficit
-  const sleepCarry = state.overnightLossOz > 8 && !state.hasSeenMorningCommand
-    ? -Math.min(10, Math.floor((state.overnightLossOz - 8) * 0.8))
-    : 0;
 
   const recovery = computeRecoverySignal(state);
 
-  const confirmation = computeConfirmationDelta(state, now);
 
   // Per-event social-mode penalty — must mirror buildBreakdown so that
   // ScoreEngineOutput.score and the contribution sum agree.
   const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? [], now);
 
-  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
-            + symptomPenalty + urinePenalty + outputStress + sleepCarry
-            + recovery.delta + confirmation + socialIntake.penalty;
+  // HydroState v1.0 — PHYSIOLOGY ONLY.
+  //
+  // Gone from the score: `consistency` (compliance streak), `confirmation`
+  // (did you obey the last command) and `recoveryMomentum` (drank recently).
+  // Those measure conduct, not hydration, and together they supplied 33 of the
+  // 48 available non-intake positive points in v0 — a member could look
+  // physiologically strong for being obedient. Adherence remains a real
+  // product concept; it is simply not a physiological measurement and no
+  // longer moves HydroState.
+  //
+  // Also folded out: `context` and `outputStress` (heat / sweat / activity are
+  // already priced by `computeDecayPoints`, so a separate term double-counted
+  // them) and `sleepCarry` (overnight loss is priced by the same decay model's
+  // sleep multiplier).
+  const raw = baseIntake + recency + symptomPenalty + urinePoints
+            + recovery.delta + socialIntake.penalty;
 
   return Math.max(0, Math.min(100, Math.round(raw)));
 }

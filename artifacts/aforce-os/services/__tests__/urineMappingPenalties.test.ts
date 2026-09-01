@@ -49,13 +49,25 @@ const MUST_STAY_NEUTRAL: UrineColor[] = ['clear', 'light_yellow', 'yellow'];
 describe('the mirrored formulas still match their source', () => {
   // If an approved formula is edited upstream, these oracles go stale and every
   // table below silently starts asserting the wrong thing. Pin them to source.
-  it('HydroState penalty formula is unchanged', () => {
-    const src = readFileSync(resolve(PKG, 'utils', 'scoring', 'breakdown.ts'), 'utf8');
+  it('HydroState urine formula is the ratified v1.0 one', () => {
+    // RE-RATIFIED (founder ruling 1, 2026-09-01). This law used to pin the v0
+    // penalty-only mapping `-Math.max(0, (state.urineSignal - 3)) * 4` and told
+    // its reader that the mapping had to be re-ratified before the pin moved.
+    // It has been: v1.0 makes the term symmetric (a genuinely clear reading is
+    // positive corroboration, not merely the absence of a penalty) and gates it
+    // on observation, so an unrecorded signal cannot read as favourable.
+    //
+    // The formula now lives in ONE place rather than inline in the breakdown,
+    // which is what this law pins — a second copy is how the two halves drift.
+    const src = readFileSync(resolve(PKG, 'utils', 'scoring', 'hydroStateV1.ts'), 'utf8');
     expect(
-      src.includes('-Math.max(0, (state.urineSignal - 3)) * 4'),
-      'utils/scoring/breakdown.ts urine penalty changed — the mapping must be re-ratified ' +
-        'against the new formula before this test is updated.',
+      src.includes('URINE_PTS_PER_STEP * (URINE_NEUTRAL_SIGNAL - s)'),
+      'utils/scoring/hydroStateV1.ts urine formula changed — the mapping must be ' +
+        're-ratified against the new formula before this test is updated.',
     ).toBe(true);
+    // and the breakdown must NOT carry its own inline copy any more
+    const bd = readFileSync(resolve(PKG, 'utils', 'scoring', 'breakdown.ts'), 'utf8');
+    expect(bd.includes('-Math.max(0, (state.urineSignal - 3)) * 4')).toBe(false);
   });
 
   it('heat-risk formula is unchanged', () => {

@@ -8,10 +8,8 @@ import {
   HYDRATION_UNIT_OZ,
   ABSORPTION_CAP_UNITS,
   EXCESS_EFFICIENCY,
-  WATER_IMMEDIATE_PCT,
-  WATER_DELAYED_DURATION_MIN,
-  AFORCE_IMMEDIATE_PCT,
-  AFORCE_DELAYED_DURATION_MIN,
+  HYDRATION_IMMEDIATE_PCT,
+  HYDRATION_DELAYED_DURATION_MIN,
 } from '../../services/hydrationScoreService';
 import type { IntakeEvent } from '../../types';
 
@@ -29,39 +27,46 @@ describe('hydrationScoreService — water', () => {
     expect(baseEventImpact('water', undefined, 32, ctx())).toBe(16);
   });
 
-  it('splits water 60% immediate / 40% delayed over 12.5 min', () => {
+  it('splits 60% immediate / 40% delayed over 12.5 min', () => {
     const r = computeEventImpact('water', undefined, 12, [], new Date(), ctx());
     expect(r.baseImpact).toBe(6);
     expect(r.capAdjusted).toBe(6);
-    expect(r.immediate).toBeCloseTo(6 * WATER_IMMEDIATE_PCT, 5);
-    expect(r.delayed).toBeCloseTo(6 * (1 - WATER_IMMEDIATE_PCT), 5);
-    expect(r.delayedDurationMin).toBe(WATER_DELAYED_DURATION_MIN);
+    expect(r.immediate).toBeCloseTo(6 * HYDRATION_IMMEDIATE_PCT, 5);
+    expect(r.delayed).toBeCloseTo(6 * (1 - HYDRATION_IMMEDIATE_PCT), 5);
+    expect(r.delayedDurationMin).toBe(HYDRATION_DELAYED_DURATION_MIN);
   });
 });
 
-describe('hydrationScoreService — AForce flavors', () => {
-  it('Berry Blast → +10 (always)', () => {
-    expect(baseEventImpact('aforce_stick', 'berry', 12, ctx())).toBe(10);
-    expect(baseEventImpact('aforce_stick', 'berry', 12, ctx({ heatGuardActive: true }))).toBe(10);
-    expect(baseEventImpact('aforce_stick', 'berry', 12, ctx({ scoreBefore: 10 }))).toBe(10);
+// CONSCIOUS REPIN (RP-8b, founder ruling 2026-08-31). This block pinned the
+// brand premium itself: a flat +10/+11 per AForce serving regardless of
+// volume, +2 when Heat Guard was on, +2 when the member was below 40, and a
+// faster absorption curve. All of it keyed on product identity, none of it on
+// a physiological input. The rows below now assert the OPPOSITE — that the
+// premium is gone — so the old behaviour cannot return unnoticed.
+describe('hydrationScoreService — volume parity (formerly the AForce flavor table)', () => {
+  it('every flavor earns the volume rate, and NO flavor earns more', () => {
+    for (const flavor of ['berry', 'watermelon', 'soursop', 'unflavored'] as const) {
+      expect(baseEventImpact('aforce_stick', flavor, 12, ctx())).toBe(6);
+    }
+    expect(baseEventImpact('aforce_stick', undefined, 12, ctx())).toBe(6);
   });
 
-  it('Watermelon Surge → +10, +12 if Heat Guard active', () => {
-    expect(baseEventImpact('aforce_stick', 'watermelon', 12, ctx())).toBe(10);
-    expect(baseEventImpact('aforce_stick', 'watermelon', 12, ctx({ heatGuardActive: true }))).toBe(12);
+  it('Heat Guard buys nothing — the watermelon bonus is unreachable', () => {
+    expect(baseEventImpact('aforce_stick', 'watermelon', 12, ctx())).toBe(6);
+    expect(baseEventImpact('aforce_stick', 'watermelon', 12, ctx({ heatGuardActive: true }))).toBe(6);
   });
 
-  it('Soursop Edge → +11, +13 if score < 40', () => {
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 70 }))).toBe(11);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 39 }))).toBe(13);
-    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 40 }))).toBe(11); // strict <
+  it('depletion buys nothing — the soursop bonus is unreachable', () => {
+    // The old rule paid MORE precisely when the member was most depleted.
+    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 70 }))).toBe(6);
+    expect(baseEventImpact('aforce_stick', 'soursop', 12, ctx({ scoreBefore: 39 }))).toBe(6);
   });
 
-  it('splits AForce 70% immediate / 30% delayed over 25 min', () => {
+  it('the absorption curve is the same one water gets', () => {
     const r = computeEventImpact('aforce_stick', 'berry', 12, [], new Date(), ctx());
-    expect(r.immediate).toBeCloseTo(10 * AFORCE_IMMEDIATE_PCT, 5);
-    expect(r.delayed).toBeCloseTo(10 * (1 - AFORCE_IMMEDIATE_PCT), 5);
-    expect(r.delayedDurationMin).toBe(AFORCE_DELAYED_DURATION_MIN);
+    expect(r.immediate).toBeCloseTo(6 * HYDRATION_IMMEDIATE_PCT, 5);
+    expect(r.delayed).toBeCloseTo(6 * (1 - HYDRATION_IMMEDIATE_PCT), 5);
+    expect(r.delayedDurationMin).toBe(HYDRATION_DELAYED_DURATION_MIN);
   });
 });
 
@@ -89,9 +94,11 @@ describe('hydrationScoreService — 20-min absorption cap', () => {
       heatGuardActiveAtLog: false, scoreBeforeAtLog: 60,
     };
     const r = computeEventImpact('aforce_stick', 'berry', 12, [earlier], now, ctx());
-    // prevUnits = 1 (one 12oz stick), thisUnits = 1, eff = 0.875, base = 10 → cap = 8.75
+    // prevUnits = 1 (one 12oz stick), thisUnits = 1, eff = 0.875.
+    // The CAP is unchanged by RP-8b; only the base it scales moved from the
+    // old flat brand 10 to the volume rate (12 oz x 0.5 = 6) → 6 x 0.875.
     expect(r.absorptionEfficiency).toBeCloseTo(0.875, 5);
-    expect(r.capAdjusted).toBeCloseTo(8.75, 5);
+    expect(r.capAdjusted).toBeCloseTo(5.25, 5);
   });
 
   it('clamps a single 32oz water: 2.67 units → eff < 1', () => {
@@ -186,7 +193,8 @@ describe('hydrationScoreService — anti-game', () => {
       });
       prevPoints = r.capAdjusted;
     }
-    // Last event: prev = 3 units, new = 1 unit → all over cap → eff = 0.75
-    expect(prevPoints).toBeCloseTo(7.5, 5);
+    // Last event: prev = 3 units, new = 1 unit → all over cap → eff = 0.75.
+    // Base is now the volume rate (6), not the old flat brand 10 → 6 x 0.75.
+    expect(prevPoints).toBeCloseTo(4.5, 5);
   });
 });
