@@ -1118,6 +1118,13 @@ export interface JournalSnapshot {
   socialActive: boolean;
   autopilotActive: boolean;
   reason: string;
+  /**
+   * The HydroState model version that produced this score. NULL on rows
+   * written before the column existed. Two scores are only comparable when
+   * their versions are — ask `utils/scoring/modelBoundary`, never compare
+   * the strings inline.
+   */
+  modelVersion?: string | null;
   /** Recovery Layer — null/undefined on rows written before `spec_recovery`. */
   recoveryScore?: number | null;
   pressureScore?: number | null;
@@ -1158,6 +1165,12 @@ export interface JournalRollup {
   intakeCount: number;
   autopilotSessions: number;
   socialSessions: number;
+  /**
+   * Every distinct model version contributing to this day. More than one
+   * entry means the day straddles a model boundary and its aggregates are
+   * not comparable with single-version days.
+   */
+  modelVersions?: string[];
 }
 
 // ─── Notifications / Hardware ─────────────────────────────────────────────────

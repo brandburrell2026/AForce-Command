@@ -202,6 +202,12 @@ router.get("/journal/timeline", async (req, res) => {
           socialActive: boolean;
           autopilotActive: boolean;
           reason: string;
+          /** The HydroState model that produced this score. NULL on rows
+           *  written before the column existed — "not recorded", which is
+           *  weaker than any known version and never coerced to one. A v0
+           *  score and a v1 score are different measurements sharing a unit;
+           *  the client decides comparability from this field. */
+          modelVersion: string | null;
         }
       | {
           type: "intake";
@@ -233,6 +239,7 @@ router.get("/journal/timeline", async (req, res) => {
         socialActive: s.socialActive,
         autopilotActive: s.autopilotActive,
         reason: s.reason,
+        modelVersion: s.hydroStateModelVersion,
       })),
       ...intakes.map<Entry>((i) => ({
         type: "intake",
@@ -311,6 +318,10 @@ router.get("/journal/rollups", async (req, res) => {
       socialSessions: number;
       autopilotPrev: boolean;
       socialPrev: boolean;
+      /** Every distinct HydroState model version contributing to this day.
+       *  A day can straddle a model boundary; one field would have to pick a
+       *  winner and silently hide that the day is mixed. Insertion-ordered. */
+      modelVersions: Set<string | null>;
     }
 
     const acc = new Map<string, DayAcc>();
@@ -335,6 +346,7 @@ router.get("/journal/rollups", async (req, res) => {
           socialSessions: 0,
           autopilotPrev: false,
           socialPrev: false,
+          modelVersions: new Set<string | null>(),
         };
         acc.set(date, d);
       }
@@ -387,6 +399,7 @@ router.get("/journal/rollups", async (req, res) => {
       if (s.socialActive && !d.socialPrev) d.socialSessions += 1;
       d.autopilotPrev = s.autopilotActive;
       d.socialPrev = s.socialActive;
+      d.modelVersions.add(s.hydroStateModelVersion);
     }
 
     // Second pass: continuous band-time attribution across the whole
@@ -443,6 +456,10 @@ router.get("/journal/rollups", async (req, res) => {
           intakeCount: d.intakeCount,
           autopilotSessions: d.autopilotSessions,
           socialSessions: d.socialSessions,
+          // Aggregates over a day that spans a model boundary are not
+          // comparable to single-version days; the consumer needs to see
+          // that rather than infer it (PR 3 acts on it).
+          modelVersions: [...d.modelVersions],
         };
       });
 
