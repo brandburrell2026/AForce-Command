@@ -18,9 +18,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
 import { computeRecapStats } from '@/utils/journalRecapStats';
-import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
-import { segmentByModelVersion } from '@/utils/scoring/modelBoundary';
-import { buildRecapSegmentPaths, dayVersion } from '@/utils/scoring/boundarySeries';
+import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
 
 
 interface Props {
@@ -45,17 +43,10 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // outlives the app session and gets shared. It therefore carries the same
   // boundary guarantees as the in-app chart: no stroke across a recalibration,
   // and no headline average blended from two different measurements.
-  const segments = useMemo(
-    () => segmentByModelVersion(rollups, dayVersion),
-    [rollups],
-  );
-  const crossesModelBoundary = useMemo(
-    () => spansModelBoundary(rollups.map(dayVersion)),
-    [rollups],
-  );
-  const statsScope = crossesModelBoundary
-    ? (segments.at(-1)?.points ?? rollups)
-    : rollups;
+  // Headline statistics are scoped by the shipped decision function, not by an
+  // inline predicate — an earlier inline version narrowed an all-unstamped
+  // range to a single row and reported one day under a 30-day label.
+  const statsScope = useMemo(() => recapStatsScope(rollups), [rollups]);
   const stats = useMemo(() => computeRecapStats(statsScope), [statsScope]);
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;

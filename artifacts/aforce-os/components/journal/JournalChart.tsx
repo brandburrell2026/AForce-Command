@@ -36,8 +36,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import type { JournalSnapshot } from '@/types';
-import { segmentByModelVersion, spansModelBoundary } from '@/utils/scoring/modelBoundary';
-import { bucketizeSegmented } from '@/utils/scoring/boundarySeries';
+import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
+import { bucketizeSegmented, segmentForRender } from '@/utils/scoring/boundarySeries';
 import { Colors } from '@/theme/colors';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -227,7 +227,7 @@ export default function JournalChart({
     // is mixed the summary is scoped to the newest comparable run rather than
     // silently reporting a number that describes neither model.
     const summaryScope = crossed
-      ? (segmentByModelVersion(renderedData, (d) => d.modelVersion ?? null).at(-1)?.points ?? renderedData)
+      ? (segmentForRender(renderedData, (d) => d.modelVersion ?? null).at(-1)?.points ?? renderedData)
       : renderedData;
     const avgScore = Math.round(
       summaryScope.reduce((acc, d) => acc + d.score, 0) / summaryScope.length,
