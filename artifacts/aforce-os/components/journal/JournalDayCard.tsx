@@ -10,6 +10,7 @@ import { hapticSelection } from '@/services/haptics';
 import { Icon } from '../Icon';
 import { useTranslation } from 'react-i18next';
 import type { JournalRollup } from '@/types';
+import { isMixedModelDay } from '@/utils/scoring/modelBoundary';
 import { Colors } from '@/theme/colors';
 
 interface Props {
@@ -68,7 +69,21 @@ function formatDate(ymd: string): string {
 export default function JournalDayCard({ rollup }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const color = avgColor(rollup.avgScore);
+  // A day that straddles a model boundary has an average built from two
+  // different measurements. The number is not wrong so much as not ABOUT
+  // anything, so it is marked non-comparable rather than presented as a
+  // like-for-like daily score. (Member-facing explanation is PR 4; this is the
+  // structural marking the rest of the app can key off.)
+  const mixedModelDay = isMixedModelDay(rollup.modelVersions);
+  // The band COLOUR is itself a comparability claim: it asserts this average
+  // lands in a real band. On a mixed-model day it does not, so the score is
+  // rendered in the neutral meta tone instead of a band colour. That is the
+  // marking — no explanatory copy here, which belongs to PR 4.
+  // Reuses the metadata tone already defined in `styles` rather than
+  // introducing a new colour literal — the brand-token ratchet correctly
+  // rejects added raw hex, and an aggregate that spans a boundary should read
+  // as informational anyway, which is exactly what that tone already means.
+  const color = mixedModelDay ? String(styles.meta.color) : avgColor(rollup.avgScore);
 
   // Hide rule (spec §6/7): a day with zero snapshots AND zero intakes
   // adds noise — collapse it entirely so the journal only renders days
@@ -104,7 +119,13 @@ export default function JournalDayCard({ rollup }: Props) {
             {rollup.snapshotsCount} snapshots · {rollup.intakeCount} intakes
           </Text>
         </View>
-        <View style={styles.scoreCol}>
+        <View
+          style={styles.scoreCol}
+          testID={mixedModelDay ? 'journal-day-avg-mixed-model' : 'journal-day-avg'}
+          accessibilityLabel={mixedModelDay
+            ? `${rollup.avgScore}, not comparable`
+            : undefined}
+        >
           <Text style={[styles.scoreVal, { color }]}>{rollup.avgScore}</Text>
           <Text style={styles.scoreLabel}>{t('journal.day_card_avg')}</Text>
         </View>
