@@ -154,18 +154,33 @@ describe('R6 — comparability is decided once, not re-invented per surface', ()
 
 // ─────────────────── PR-1 scope fence
 
-describe('PR 1 — infrastructure only: no model change ships here', () => {
-  it('the version value is UNCHANGED — the bump belongs with the engine', () => {
-    // Stamping v1.0 before the engine computes v1.0 would mislabel v0 scores
-    // as v1 — the precise dishonesty this PR exists to prevent.
-    expect(HYDROSTATE_MODEL_VERSION).toBe('hydrostate-v0');
+describe('PR 2 — the boundary is now REAL, and the fences that guarded it are spent', () => {
+  // These two laws inverted deliberately. In PR 1 they asserted that nothing
+  // had moved yet, and their whole purpose was to fail the moment PR 2 landed
+  // the engine. Leaving them would have meant either a red suite or a silently
+  // weakened fence, so they assert the other side of the same boundary.
+  it('the version declares a MAJOR bump, because the contract materially changed', () => {
+    expect(HYDROSTATE_MODEL_VERSION).toBe('hydrostate-v1.0');
+    // The boundary helper must agree this is NOT comparable to v0 — a minor
+    // bump would let a chart draw a line straight across the recalibration.
+    expect(isComparableModelVersion('hydrostate-v0', HYDROSTATE_MODEL_VERSION)).toBe(false);
   });
 
-  it('the scoring math is untouched by this PR', () => {
+  it('the commercial term is gone from BOTH copies of the formula', () => {
     const breakdown = read('utils/scoring/breakdown.ts');
-    // The v0 terms are all still present and summed; PR 2 removes them.
-    expect(breakdown).toMatch(/const raw = baseIntake \+ aforceBonus \+ recency/);
-    expect(breakdown).toMatch(/aforce_bonus: aforceBonus/);
+    expect(breakdown).not.toMatch(/aforceBonus/);
+    expect(breakdown).not.toMatch(/aforce_bonus/);
+    const sums = breakdown.match(/const raw = baseIntake \+ recency \+ symptomPenalty/g) ?? [];
+    expect(sums.length).toBe(2);
+  });
+
+  it('behavioural physiology no longer reaches the score', () => {
+    const breakdown = read('utils/scoring/breakdown.ts');
+    // Comments may still explain the removal; the CODE must not sum them.
+    const code = breakdown.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    for (const term of ['consistency', 'recoveryMomentum', 'confirmation']) {
+      expect(code).not.toMatch(new RegExp(`\\+ ${term}\\b`));
+    }
   });
 
   it('the boundary helper is PURE — it may not import the engine', () => {

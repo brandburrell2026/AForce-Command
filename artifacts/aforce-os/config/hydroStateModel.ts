@@ -37,10 +37,13 @@ import type {
  *                     any behavior change, so trend readers must not present
  *                     a v0→v0.1 delta as a real regression.
  *
- * NOTE: the registry reserves `hydrostate-v1.0` for the first fully governed
- * scoring release (Founder + Engineering + Scientific + Governance). This
- * bump deliberately does NOT claim that milestone — scientific ratification
- * of the parity model is still outstanding.
+ * v1.0 is a MAJOR bump, and it has to be. Brand identity stops contributing
+ * physiological points, the behavioural terms (streak, confirmation, recovery
+ * momentum) leave the score entirely, and intake becomes target-relative and
+ * saturating. A member's number moves without their body moving. A v0 score
+ * and a v1.0 score are two different measurements sharing a unit, and
+ * `utils/scoring/modelBoundary.ts` is what stops a chart from drawing a line
+ * between them.
  *
  * Format: `hydrostate-v<major>[.<minor>]`. Changing this value requires
  * Founder + Engineering approval (+ Scientific review where the change is
@@ -48,7 +51,59 @@ import type {
  * (`src/lib/hydroStateModelVersion.ts`) guarded by a parity test — update
  * BOTH together.
  */
-export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v0.1';
+export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v1.0';
+
+/* ─── HydroState v1.0 — model constants ───────────────────────────────────── */
+
+/** Band floors. Unchanged from v0; what it takes to REACH them is what changed. */
+export const HYDROSTATE_PEAK_THRESHOLD = 90;
+export const HYDROSTATE_BALANCED_THRESHOLD = 75;
+export const HYDROSTATE_RECOVERING_THRESHOLD = 60;
+
+/**
+ * Volume alone tops out one point below PEAK. DERIVED, not chosen: it is what
+ * makes "PEAK cannot be reached by drinking more" arithmetic rather than
+ * policy. Crossing into PEAK requires a positive physiological term.
+ */
+export const HYDROSTATE_V1_VOLUME_CEILING = HYDROSTATE_PEAK_THRESHOLD - 1;
+
+/** Coverage saturates at the personalized requirement — nothing beyond it scores. */
+export const HYDROSTATE_V1_COVERAGE_CAP = 1.0;
+
+/**
+ * Urine, symmetric around the neutral point (founder ruling 1, 2026-09-01).
+ *
+ * PROVISIONAL / VALIDATION REQUIRED IN BOTH DIRECTIONS. The 4-points-per-step
+ * magnitude is inherited from v0, where it existed only as a penalty. Making it
+ * symmetric reuses the slope rather than inventing a constant, but the slope
+ * itself has never been validated against a hydration reference standard in
+ * either direction. Do not represent this magnitude as clinically established.
+ */
+export const URINE_PTS_PER_STEP = 4;
+export const URINE_NEUTRAL_SIGNAL = 3;
+/** The production API accepts 1..8 and nothing else (aforce/status.ts). */
+export const URINE_OBSERVED_MIN = 1;
+export const URINE_OBSERVED_MAX = 8;
+export const URINE_MIN_POINTS = -20;
+export const URINE_MAX_POINTS = 8;
+/** At or below this, an OBSERVED reading is positive physiological corroboration. */
+export const URINE_CORROBORATING_AT_OR_BELOW = 2;
+/** At or above this, an OBSERVED reading materially contradicts a strong state. */
+export const URINE_CONTRADICTING_AT_OR_ABOVE = 5;
+
+/**
+ * INTAKE RECENCY — deliberately NOT called evidence freshness (founder ruling 2).
+ *
+ * This window measures how long ago the member last DRANK. It cannot establish
+ * the freshness of a urine reading or a biometric sample, because neither
+ * carries an independent observation timestamp anywhere in the current
+ * architecture: a three-day-old urine observation is indistinguishable from one
+ * taken a minute ago. Per-signal observation age is recorded as model debt.
+ *
+ * PROVISIONAL. Measurement showed this gate is very nearly inert in realistic
+ * states — losses drive the score to DEPLETED long before the window expires.
+ */
+export const INTAKE_RECENCY_WINDOW_MIN = 120;
 
 /* ─── Section 18 — Adaptive Profile Engine™ / Profile Versioning™ ──────────── */
 

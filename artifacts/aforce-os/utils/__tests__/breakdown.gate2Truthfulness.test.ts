@@ -162,7 +162,13 @@ describe('buildBreakdown — activity-floor disclosure (Build-50 Gate 2, item 3)
     expect(hint).not.toContain('Activity floor');
   });
 
-  it('the "context" row keeps reading the raw manual slider even when the floor fires elsewhere (context stays internally consistent, decay is what gets annotated)', () => {
+  it('decay still discloses the activity floor — and the "context" row it used to be paired with is gone', () => {
+    // Under v0 this law guarded a two-row story: `context` showed the raw
+    // manual slider while `recency` disclosed the inferred floor, so the two
+    // rows stayed internally consistent. HydroState v1.0 folds `context` into
+    // the decay model — heat, sweat and activity were being priced twice — so
+    // only the disclosure half of the law survives, and the absence of the row
+    // is now itself asserted rather than left to silently pass.
     const state = makeState({
       activityLevel: 5,
       biometrics: {
@@ -170,8 +176,7 @@ describe('buildBreakdown — activity-floor disclosure (Build-50 Gate 2, item 3)
       } as ProviderBiometrics,
     });
     const { contributions } = buildBreakdown(state, NOW);
-    const context = contributions.find((c) => c.id === 'context');
-    expect(context?.hint).toBe('Heat 4 · Sweat 3 · Activity 5');
+    expect(contributions.find((c) => c.id === 'context')).toBeUndefined();
     const recency = contributions.find((c) => c.id === 'recency');
     expect(recency?.hint).toContain('Activity floor 9.0 (connected platform)');
   });

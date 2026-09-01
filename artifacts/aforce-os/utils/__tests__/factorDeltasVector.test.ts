@@ -66,17 +66,18 @@ function makeState(over: Partial<UserState> = {}): UserState {
 // identical per-ounce curve, so they are ONE physiological term — `base`.
 // This array is a TWO-SIDED lock (a missing key fails, a stale key fails),
 // which is exactly what makes the removal reviewable rather than silent.
+// CONSCIOUS REPIN #2 (HydroState v1.0, founder ruling 2026-09-01): the
+// behavioural terms leave the score entirely. `confirmation` (did you obey the
+// last command), `consistency` (compliance streak) and `recovery` (recovery
+// momentum — drank recently) measured conduct, not hydration. `context` and
+// `output` are folded into the decay model, which already prices heat, sweat
+// and activity, and `sleep` into the same model's overnight multiplier — a
+// separate term double-counted them. What remains is physiology.
 const FACTOR_KEYS = [
   'base',
   'recency',
-  'confirmation',
-  'consistency',
-  'context',
-  'recovery',
   'symptom',
   'urine',
-  'output',
-  'sleep',
   'health_signals',
   'social_intake',
 ] as const;

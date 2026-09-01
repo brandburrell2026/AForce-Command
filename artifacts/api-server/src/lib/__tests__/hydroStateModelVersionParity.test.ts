@@ -23,14 +23,22 @@ describe('HydroState model-version parity (server mirror ↔ app canonical)', ()
   });
 
   it('is the approved identifier', () => {
-    // CONSCIOUS REPIN (RP-8b, founder ruling 2026-08-31). Changing this
-    // requires Founder + Engineering approval (+ Scientific where
-    // physiological) — DR-009 §3. RP-8b is a physiological change: brand
-    // identity no longer earns hydration credit, so scores either side of
-    // this boundary are not comparable and the stamp must differ.
-    // `hydrostate-v1.0` stays RESERVED for the first fully governed release
-    // (scientific ratification of the parity model is still outstanding).
-    expect(APP_CANONICAL).toBe('hydrostate-v0.1');
+    // CONSCIOUS REPIN (HydroState v1.0, founder final candidate ruling
+    // 2026-09-01). Changing this requires Founder + Engineering approval
+    // (+ Scientific where physiological) — DR-009 §3.
+    //
+    // v0.1 was the RP-8b staging stamp and was never released. It also
+    // understated the change: a MINOR bump declares the two sides COMPARABLE,
+    // and they are not. Brand identity no longer earns hydration credit, the
+    // behavioural terms have left the score, and intake is now target-relative
+    // and saturating — a member's number moves without their body moving.
+    // That is the definition of a MAJOR bump in this registry.
+    //
+    // The reservation on `hydrostate-v1.0` is hereby consumed: the founder has
+    // ruled on the urine treatment, PEAK eligibility and the confidence split.
+    // Scientific validation of the individual MAGNITUDES remains outstanding
+    // and is carried as model debt — see config/hydroStateModel.ts.
+    expect(APP_CANONICAL).toBe('hydrostate-v1.0');
   });
 
   it('follows the canonical hydrostate-v<major>[.<minor>] format', () => {

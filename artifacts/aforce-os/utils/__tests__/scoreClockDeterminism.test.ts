@@ -110,20 +110,19 @@ describe('score clock — purity & determinism', () => {
     expect(t2).toBeLessThanOrEqual(t1);
   });
 
-  it('the confirmation ±delta expires by the same injected clock', () => {
-    // delta set 10 min before NOW → live within the 30-min window.
-    const fresh = makeState({ confirmationDelta: 3, confirmationDeltaSetAt: new Date(NOW - 10 * MIN) });
-    // …and stale 40 min later relative to NOW.
-    const freshScore = buildBreakdown(fresh, NOW).score;
-    const staleScore = buildBreakdown(fresh, NOW + 40 * MIN).score;
-    // The +3 confirmation no longer applies once stale, so its standalone
-    // contribution drops to 0 (decay is held identical by re-anchoring intake).
-    const freshConf = buildBreakdown(fresh, NOW).contributions.find((c) => c.id === 'confirmation');
-    const staleConf = buildBreakdown(fresh, NOW + 40 * MIN).contributions.find((c) => c.id === 'confirmation');
-    expect(freshConf?.delta).toBe(3);
-    expect(staleConf?.delta).toBe(0);
-    // Sanity: the rest of the score still moved only via the shared clock.
-    expect(staleScore).toBeLessThanOrEqual(freshScore);
+  it('the confirmation ±delta no longer reaches the score at all (v1.0)', () => {
+    // This law used to prove the confirmation bonus EXPIRED on the injected
+    // clock. Under HydroState v1.0 it does not expire — it is not there.
+    // Confirming that you obeyed the last command is conduct, not physiology,
+    // and the founder ruling removed it from the score entirely. The law is
+    // kept, inverted, so the term cannot quietly return.
+    const withDelta = makeState({ confirmationDelta: 3, confirmationDeltaSetAt: new Date(NOW - 10 * MIN) });
+    const without = makeState({});
+    expect(buildBreakdown(withDelta, NOW).score).toBe(buildBreakdown(without, NOW).score);
+    expect(buildBreakdown(withDelta, NOW).contributions.find((c) => c.id === 'confirmation')).toBeUndefined();
+    // A maximal streak must be equally inert.
+    const streaky = makeState({ complianceStreak: 30 });
+    expect(buildBreakdown(streaky, NOW).score).toBe(buildBreakdown(without, NOW).score);
   });
 });
 
@@ -185,11 +184,11 @@ describe('score clock — golden breakdown (locks exact numbers)', () => {
       {
         "contributions": [
           {
-            "delta": 23,
-            "hint": "48 of 96 ounces",
+            "delta": 45,
+            "hint": "48 of 96 ounces · 50% of target",
             "id": "base",
-            "label": "Hydration (ounces vs target)",
-            "maxMagnitude": 45,
+            "label": "Hydration (vs your target)",
+            "maxMagnitude": 89,
           },
           {
             "delta": -37,
@@ -197,34 +196,6 @@ describe('score clock — golden breakdown (locks exact numbers)', () => {
             "id": "recency",
             "label": "Decay since last intake",
             "maxMagnitude": 35,
-          },
-          {
-            "delta": 0,
-            "hint": "No recent recheck",
-            "id": "confirmation",
-            "label": "Last command confirmation",
-            "maxMagnitude": 3,
-          },
-          {
-            "delta": 6,
-            "hint": "3-day streak",
-            "id": "consistency",
-            "label": "Compliance streak",
-            "maxMagnitude": 15,
-          },
-          {
-            "delta": -4,
-            "hint": "Heat 6 · Sweat 4 · Activity 5",
-            "id": "context",
-            "label": "Context (heat / sweat / activity)",
-            "maxMagnitude": 20,
-          },
-          {
-            "delta": 4,
-            "hint": "Aggressive restoration after deficit",
-            "id": "recovery",
-            "label": "Recovery momentum",
-            "maxMagnitude": 15,
           },
           {
             "delta": -8,
@@ -241,20 +212,6 @@ describe('score clock — golden breakdown (locks exact numbers)', () => {
             "maxMagnitude": 20,
           },
           {
-            "delta": -1,
-            "hint": "Sweat × activity load",
-            "id": "output",
-            "label": "Output stress",
-            "maxMagnitude": 10,
-          },
-          {
-            "delta": 0,
-            "hint": "No deficit carry",
-            "id": "sleep",
-            "label": "Overnight carryover",
-            "maxMagnitude": 10,
-          },
-          {
             "delta": 0,
             "hint": "Not connected",
             "id": "health_signals",
@@ -263,22 +220,25 @@ describe('score clock — golden breakdown (locks exact numbers)', () => {
           },
         ],
         "decayPerMinute": 0.8202472,
+        "evidence": {
+          "confidence": "low",
+          "intakeRecent": true,
+          "materialContradiction": true,
+          "observedSources": 1,
+          "peakEligible": false,
+          "positiveCorroborations": 0,
+        },
         "factorDeltas": {
-          "base": 23,
-          "clamped": 21,
-          "confirmation": 0,
-          "consistency": 6,
-          "context": -4,
+          "base": 44.5,
+          "clamped": 4,
           "health_signals": 0,
-          "output": -1,
-          "raw": -21.25,
+          "raw": -4.5,
           "recency": -37,
-          "recovery": 3.75,
-          "sleep": 0,
           "social_intake": 0,
           "symptom": -8,
           "urine": -4,
         },
+        "level": "DEPLETED",
         "minutesSinceLast": 45,
         "score": 0,
       }
