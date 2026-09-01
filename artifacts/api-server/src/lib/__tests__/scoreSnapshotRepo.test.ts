@@ -47,7 +47,7 @@ describe('central stamping', () => {
   it('stamps new snapshots with the authoritative model version', async () => {
     const repo = createInMemoryScoreSnapshotRepo(V);
     const row = await repo.create(snapshot());
-    expect(row.hydroStateModelVersion).toBe('hydrostate-v0');
+    expect(row.hydroStateModelVersion).toBe(V);
   });
 
   it('stamps every row of a batch (sensors path)', async () => {
@@ -55,7 +55,7 @@ describe('central stamping', () => {
     const n = await repo.createMany([snapshot(), snapshot({ score: 55 }), snapshot({ score: 91 })]);
     expect(n).toBe(3);
     expect(repo.rows).toHaveLength(3);
-    for (const r of repo.rows) expect(r.hydroStateModelVersion).toBe('hydrostate-v0');
+    for (const r of repo.rows) expect(r.hydroStateModelVersion).toBe(V);
   });
 
   it('an empty batch writes nothing', async () => {
@@ -85,7 +85,7 @@ describe('callers cannot omit or override the stamp', () => {
     // Force a rogue field past the type boundary, as an untyped caller might.
     const rogue = { ...snapshot(), hydroStateModelVersion: 'hydrostate-v999' } as NewScoreSnapshot;
     const row = await repo.create(rogue);
-    expect(row.hydroStateModelVersion).toBe('hydrostate-v0');
+    expect(row.hydroStateModelVersion).toBe(V);
   });
 
   it('the input type does not expose the version field', () => {
@@ -99,19 +99,19 @@ describe('callers cannot omit or override the stamp', () => {
 /* ── historical null preservation ─────────────────────────────────────────── */
 
 describe('historical null behaviour', () => {
-  it('null means "not recorded" and is never converted to hydrostate-v0 on read', () => {
+  it('null means "not recorded" and is never converted to a version on read', () => {
     // A legacy row as it exists in the database today.
     const legacy = { id: 1, score: 64, level: 'RECOVERING', hydroStateModelVersion: null };
     // Reading performs no coercion anywhere in the repo contract.
     expect(legacy.hydroStateModelVersion).toBeNull();
-    expect(legacy.hydroStateModelVersion).not.toBe('hydrostate-v0');
+    expect(legacy.hydroStateModelVersion).not.toBe(V);
   });
 
   it('a historical null stays distinguishable from an explicit v0 stamp', async () => {
     const repo = createInMemoryScoreSnapshotRepo(V);
     const fresh = await repo.create(snapshot());
     const legacy = { hydroStateModelVersion: null };
-    expect(fresh.hydroStateModelVersion).toBe('hydrostate-v0');
+    expect(fresh.hydroStateModelVersion).toBe(V);
     expect(legacy.hydroStateModelVersion).toBeNull();
     expect(fresh.hydroStateModelVersion).not.toBe(legacy.hydroStateModelVersion);
   });
@@ -212,6 +212,6 @@ describe('transaction support (sensors path stays atomic)', () => {
     expect(calls).toHaveLength(1);
     const rows = calls[0] as Array<{ hydroStateModelVersion: string }>;
     expect(rows).toHaveLength(2);
-    for (const r of rows) expect(r.hydroStateModelVersion).toBe('hydrostate-v0');
+    for (const r of rows) expect(r.hydroStateModelVersion).toBe(V);
   });
 });

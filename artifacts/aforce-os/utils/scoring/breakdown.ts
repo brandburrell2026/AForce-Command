@@ -28,27 +28,28 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
 
   // Per-event hydration scoring (replaces the old running-aggregate
-  // baseIntake + aforceBonus model). Each event carries its own
+  // running-aggregate model). Each event carries its own
   // pre-computed impact decomposition; the materializer ramps the
   // delayed portion in linearly over the absorption window so the orb
   // keeps moving for ~10–25 min after a log — feels like the body
   // absorbing in real time. When `intakeEvents` is empty (legacy
   // state pre-migration), we fall back to the running-aggregate so
   // the score still renders.
-  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
-  // fallback. Safe to delete once we've confirmed no production rows
-  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  // TODO(remove): legacy running-aggregate fallback. Safe to delete once
+  // we've confirmed no production rows are missing `intakeEvents`
+  // (migration shipped 2026-Q1). Since RP-8b this branch is volume-only —
+  // it no longer carries a brand term either.
   const events = state.intakeEvents ?? [];
   let baseIntake: number;
-  let aforceBonus: number;
   if (events.length > 0) {
+    // VOLUME PARITY (RP-8b): water and product points are earned on the
+    // identical per-ounce curve, so they are ONE physiological term. The
+    // split survives inside the materializer for provenance reporting only.
     const m = materializedIntakePoints(events, new Date(now));
-    baseIntake = Math.round(m.waterPoints);
-    aforceBonus = Math.round(m.aforcePoints);
+    baseIntake = Math.round(m.total);
   } else {
     const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
     baseIntake = Math.round(45 * ozRatio);
-    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
   }
 
   // Per spec: continuous decay model (replaces the old tiered "recency").
@@ -106,7 +107,7 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   const socialDrinks = state.socialMode?.drinks ?? [];
   const socialIntake = socialIntakePoints(socialDrinks, now);
 
-  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
+  const raw = baseIntake + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
             + recovery.delta + confirmation + socialIntake.penalty;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
@@ -123,7 +124,6 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
   // JSON never carries `-0`.
   const factorDeltas: Record<string, number> = {
     base: baseIntake + 0,
-    aforce_bonus: aforceBonus + 0,
     recency: recency + 0,
     confirmation: confirmation + 0,
     consistency: consistency + 0,
@@ -139,14 +139,14 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): { sc
     clamped: score - Math.round(raw) + 0,
   };
 
-  const aforceUnits = state.aforceUnitsToday ?? 0;
   const contributions: ScoreContribution[] = [
-    { id: 'base', label: 'Base intake (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
+    // ONE hydration term (RP-8b). The old second row, "Protocol bonus",
+    // named a brand premium as a physiological contributor — and because it
+    // carried the largest positive weight in the whole vector, the weekly
+    // report's "biggest lift" line picked it structurally more often than
+    // any real driver. Volume is the contributor; the product is not.
+    { id: 'base', label: 'Hydration (ounces vs target)', delta: baseIntake, maxMagnitude: 45,
       hint: `${state.ozConsumedToday} of ${state.ozTarget} ounces` },
-    { id: 'aforce_bonus', label: 'Protocol bonus', delta: aforceBonus, maxMagnitude: 50,
-      hint: aforceUnits === 0
-        ? 'Log a stick or RTD'
-        : `${aforceUnits} intake${aforceUnits === 1 ? '' : 's'} today` },
     { id: 'recency', label: 'Decay since last intake', delta: recency, maxMagnitude: 35,
       hint: `${minutesSinceLast} min · ${decayPerMinute.toFixed(2)} pts/min${state.clutchActive ? ' (clutch ×1.3)' : ''}${effectiveActivity.flooredByHealthPlatform ? ` · Activity floor ${effectiveActivity.level.toFixed(1)} (connected platform)` : ''}` },
     { id: 'confirmation', label: 'Last command confirmation', delta: confirmation, maxMagnitude: 3,
@@ -402,20 +402,21 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   // Per-event hydration scoring — mirrors buildBreakdown so the score
   // and the prediction strip agree. Falls back to the legacy running-
   // aggregate when no events are present.
-  // TODO(remove): legacy baseIntake/aforceBonus running-aggregate
-  // fallback. Safe to delete once we've confirmed no production rows
-  // are missing `intakeEvents` (migration shipped 2026-Q1).
+  // TODO(remove): legacy running-aggregate fallback. Safe to delete once
+  // we've confirmed no production rows are missing `intakeEvents`
+  // (migration shipped 2026-Q1). Since RP-8b this branch is volume-only —
+  // it no longer carries a brand term either.
   const events = state.intakeEvents ?? [];
   let baseIntake: number;
-  let aforceBonus: number;
   if (events.length > 0) {
+    // VOLUME PARITY (RP-8b): water and product points are earned on the
+    // identical per-ounce curve, so they are ONE physiological term. The
+    // split survives inside the materializer for provenance reporting only.
     const m = materializedIntakePoints(events, new Date(now));
-    baseIntake = Math.round(m.waterPoints);
-    aforceBonus = Math.round(m.aforcePoints);
+    baseIntake = Math.round(m.total);
   } else {
     const ozRatio = Math.min(1, state.ozConsumedToday / state.ozTarget);
     baseIntake = Math.round(45 * ozRatio);
-    aforceBonus = Math.min(50, Math.max(0, (state.aforceUnitsToday ?? 0) * 12));
   }
 
   // Continuous decay (per spec) replaces the tiered recency tier.
@@ -463,7 +464,7 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   // ScoreEngineOutput.score and the contribution sum agree.
   const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? [], now);
 
-  const raw = baseIntake + aforceBonus + recency + consistency + context + recoveryMomentum
+  const raw = baseIntake + recency + consistency + context + recoveryMomentum
             + symptomPenalty + urinePenalty + outputStress + sleepCarry
             + recovery.delta + confirmation + socialIntake.penalty;
 

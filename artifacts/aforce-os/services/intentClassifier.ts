@@ -38,11 +38,20 @@ const SYMPTOM_KEYWORDS: Record<VoiceSymptomId, RegExp> = {
   fatigue:    /\b(tired|exhausted|fatigued|drained|wiped|burnt\s*out)\b/,
 };
 
+/**
+ * RP-8b (founder ruling 2026-08-31): a brand mapping requires the BRAND to
+ * be spoken. Bare vessel words — "stick", "packet", "bottle", "can", "jar",
+ * "tub" — describe a container, not a product, and were previously matched
+ * BEFORE the water pattern, so "log a bottle" asserted an AForce RTD. That
+ * inflated `aforceUnitsToday` (a product fact) from evidence incapable of
+ * establishing it. Unqualified vessels now fall through to unattributed
+ * fluid; only an explicit "aforce" qualifier names the product.
+ */
 const FLUID_KEYWORDS: Array<{ fluid: FluidType; pattern: RegExp }> = [
-  { fluid: 'aforce_stick', pattern: /\b(aforce\s*stick|a\s*force\s*stick|stick|packet|sachet)\b/ },
-  { fluid: 'aforce_rtd',   pattern: /\b(rtd|ready\s*to\s*drink|bottle|can(?!ister))\b/ },
-  { fluid: 'aforce_canister', pattern: /\b(canister|tub|jar)\b/ },
-  { fluid: 'water',        pattern: /\b(water|h2o|sip|drank)\b/ },
+  { fluid: 'aforce_stick', pattern: /\b(aforce|a\s*force)\s*(stick|packet|sachet)\b/ },
+  { fluid: 'aforce_rtd',   pattern: /\b(aforce|a\s*force)\s*(rtd|ready\s*to\s*drink|bottle|can(?!ister))\b/ },
+  { fluid: 'aforce_canister', pattern: /\b(aforce|a\s*force)\s*(canister|tub|jar)\b/ },
+  { fluid: 'water',        pattern: /\b(water|h2o|sip|drank|bottle|can(?!ister)|stick|packet|sachet|jar|tub)\b/ },
 ];
 
 /** Word→digit mapping for "log two sticks" / "drink twelve ounces". */

@@ -124,7 +124,6 @@ export interface HydrationScoreOutput {
   dailyHydrationProgress:      number;          // 0..1+
   dailyHydrationProgressBoost: number;
   recentWaterBoost:            number;
-  aforceBoost:                 number;
   hydrationCycleBoost:         number;
   totalPositiveBoost:          number;
   riskPenalty:                 number;
@@ -326,7 +325,6 @@ export function calculateNegativeRiskPenalty(inputs: HydrationScoreInputs, score
 // ─── Positive Boosts ──────────────────────────────────────────────────
 
 const WATER_BOOST_CAP = 18;
-const AFORCE_BOOST_CAP = 18;
 const CYCLE_BOOST_CAP = 15;
 const PROGRESS_BOOST_CAP = 20;
 const TOTAL_BOOST_CAP = 40;
@@ -365,41 +363,29 @@ export function calculateRecentWaterBoost(inputs: IntakeInputs): number {
   return Math.min(WATER_BOOST_CAP, Math.round(boost));
 }
 
-export function calculateAForceBoost(inputs: IntakeInputs): number {
-  const sticks2 = inputs.aforceSticksLoggedLast2Hours ?? 0;
-  const rtds2   = inputs.aforceRTDsLoggedLast2Hours ?? 0;
-  const cans2   = inputs.aforceCanisterServingsLast2Hours ?? 0;
-  const energy2 = inputs.aforceEnergyDrinksLast2Hours ?? 0;
-
-  const recent = sticks2 * 12 + rtds2 * 14 + cans2 * 10 + energy2 * 8;
-
-  // Approximate 2–4h window via today minus recent counts.
-  const sticks24 = Math.max(0, (inputs.aforceSticksLoggedToday ?? 0) - sticks2);
-  const rtds24   = Math.max(0, (inputs.aforceRTDsLoggedToday ?? 0) - rtds2);
-  const cans24   = Math.max(0, (inputs.aforceCanisterServingsToday ?? 0) - cans2);
-  // Older boost decays at 50% (and we have no >4h tracker; conservative).
-  const aged = (sticks24 * 12 + rtds24 * 14 + cans24 * 10) * 0.5;
-
-  return Math.min(AFORCE_BOOST_CAP, Math.round(recent + aged));
-}
+/*
+ * `calculateAForceBoost` — REMOVED (RP-8b, founder ruling 2026-08-31).
+ *
+ * It awarded sticks x12 / RTD x14 / canister x10 / energy x8, capped at 18,
+ * purely for product identity. This module has no production importers, but
+ * dead code that encodes a forbidden rule is a loaded barrel: the program has
+ * repeatedly been bitten by a premium surviving in one branch while its twin
+ * was swept. Brand earns zero physiological points here too.
+ */
 
 export function calculateHydrationCycleBoost(
   inputs: IntakeInputs,
   currentStatus: HydrationStatus,
 ): number {
+  // RP-8b: a "cycle" is recent hydration, not a branded purchase. This
+  // previously required BOTH a water log AND an AForce log — so the bonus
+  // was unreachable without buying product.
   const water2 = inputs.waterOuncesLoggedLast2Hours ?? 0;
-  const af2 = (inputs.aforceSticksLoggedLast2Hours ?? 0)
-            + (inputs.aforceRTDsLoggedLast2Hours ?? 0)
-            + (inputs.aforceCanisterServingsLast2Hours ?? 0)
-            + (inputs.aforceEnergyDrinksLast2Hours ?? 0);
+  if (water2 <= 0) return 0;
 
-  // Cycle requires both a recent water log and a recent AForce log.
-  if (water2 <= 0 || af2 <= 0) return 0;
-
-  // 30-minute window proxy: both logged within the last 30 min.
+  // 30-minute window proxy.
   const wMins = inputs.minutesSinceLastWater ?? Number.POSITIVE_INFINITY;
-  const aMins = inputs.aforceMinutesSinceLast ?? Number.POSITIVE_INFINITY;
-  if (wMins > 30 || aMins > 30) return 0;
+  if (wMins > 30) return 0;
 
   let bonus = 8;
   if (currentStatus === 'DECLINING') bonus += 5;
@@ -576,8 +562,7 @@ export function getHydrationScore(
   // 5. Recent water boost
   const recentWaterBoost = calculateRecentWaterBoost(inputs);
 
-  // 6. AForce boost
-  const aforceBoost = calculateAForceBoost(inputs);
+  // 6. (was: AForce boost — removed, RP-8b)
 
   // 7. Cycle boost — uses the band derived from the score after risk only,
   //    so the bonus actually rewards completing a cycle while declining.
@@ -588,7 +573,6 @@ export function getHydrationScore(
   const rawTotal =
     dailyHydrationProgressBoost
     + recentWaterBoost
-    + aforceBoost
     + hydrationCycleBoost;
   const totalPositiveBoost = Math.min(TOTAL_BOOST_CAP, rawTotal);
   score += totalPositiveBoost;
@@ -624,7 +608,6 @@ export function getHydrationScore(
     dailyHydrationProgress,
     dailyHydrationProgressBoost,
     recentWaterBoost,
-    aforceBoost,
     hydrationCycleBoost,
     totalPositiveBoost,
     riskPenalty,

@@ -126,7 +126,9 @@ function buildResponse(
 
   switch (intent) {
     case 'LOG_INTAKE': {
-      const fluid = entities.fluidType ?? 'aforce_stick';
+      // No brand default (RP-8b): an unclassified intake is unattributed
+      // fluid, never an assumed product.
+      const fluid = entities.fluidType ?? 'water';
       const oz = entities.ozOverride;
       const repeat = entities.repeat ?? 1;
       const personaCtx = buildPersonaContext(ctx, { fluid: FLUID_LABEL[fluid] ?? 'intake' });

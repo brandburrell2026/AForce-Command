@@ -121,7 +121,8 @@ export function createMockBleAdapter(): BleAdapter {
         at: Date.now(),
         oz,
         ...(flavor ? { flavor } : {}),
-        fluidType: 'aforce_stick',
+        // Simulate what the real device can actually establish (RP-8b).
+        fluidType: 'water',
         source: 'phantom_band:simulator',
       });
     }, SIM_AUTO_INTERVAL_MS);
@@ -160,7 +161,8 @@ export function createMockBleAdapter(): BleAdapter {
         at: Date.now(),
         oz: opts.oz ?? 8,
         ...(opts.flavor ? { flavor: opts.flavor } : { flavor: 'watermelon' }),
-        fluidType: opts.fluidType ?? 'aforce_stick',
+        // Explicit override only — no brand default (RP-8b).
+        fluidType: opts.fluidType ?? 'water',
         source: 'phantom_band:simulator',
       });
     },
@@ -280,7 +282,15 @@ export function createRealBleAdapter(): BleAdapter | null {
               at: Date.now(),
               oz: decoded.oz,
               ...(decoded.flavor ? { flavor: decoded.flavor } : {}),
-              fluidType: 'aforce_stick',
+              // RP-8b (founder ruling 2026-08-31): the band measures VOLUME.
+              // Its wire payload carries no product identity at all — the
+              // decoder's own signature omits `fluidType` — so naming an
+              // AForce format here was an assertion the hardware cannot
+              // support. It also silently incremented `aforceUnitsToday`,
+              // manufacturing a product fact from a plain sip. Unattributed
+              // fluid is logged as 'water'; under volume parity that is
+              // score-identical, and it claims nothing untrue.
+              fluidType: 'water',
               source: 'phantom_band:real',
             });
           } catch { /* malformed payload — ignore */ }

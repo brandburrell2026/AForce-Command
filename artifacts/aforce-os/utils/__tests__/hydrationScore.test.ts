@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  calculateAForceBoost,
   calculateConfidence,
   calculateDailyHydrationProgressBoost,
   calculateDailyWaterTarget,
@@ -206,52 +205,34 @@ describe('calculateRecentWaterBoost', () => {
   });
 });
 
-describe('calculateAForceBoost', () => {
-  it('credits per-product spec values within 2h', () => {
-    expect(calculateAForceBoost({ aforceSticksLoggedLast2Hours: 1 })).toBe(12);
-    expect(calculateAForceBoost({ aforceRTDsLoggedLast2Hours: 1 })).toBe(14);
-    expect(calculateAForceBoost({ aforceCanisterServingsLast2Hours: 1 })).toBe(10);
-    expect(calculateAForceBoost({ aforceEnergyDrinksLast2Hours: 1 })).toBe(8);
-  });
-  it('caps at +18', () => {
-    expect(calculateAForceBoost({
-      aforceSticksLoggedLast2Hours: 5,
-    })).toBe(18);
-  });
-  it('halves older AForce intake', () => {
-    // 0 in last 2h, 1 stick today → 12 * 0.5 = 6
-    expect(calculateAForceBoost({
-      aforceSticksLoggedToday: 1,
-      aforceSticksLoggedLast2Hours: 0,
-    })).toBe(6);
-  });
-});
+// `calculateAForceBoost` — REMOVED (RP-8b, founder ruling 2026-08-31). Its
+// suite pinned the brand premium itself: sticks x12 / RTD x14 / canister x10
+// / energy x8, capped at 18, awarded for product identity alone. This module
+// is dormant (no production importers), but a forbidden rule living on in
+// dead code is a loaded barrel — the twin-survival defect this program has
+// hit repeatedly. The removal is locked by volumeParity.test.ts.
 
 describe('calculateHydrationCycleBoost', () => {
-  it('returns 0 without both kinds of intake in the 30-min window', () => {
+  // CONSCIOUS REPIN (RP-8b): the cycle previously required BOTH a water log
+  // AND an AForce log, so the bonus was unreachable without buying product.
+  // A "cycle" is now recent hydration — a behaviour, not a purchase.
+  it('returns 0 without recent hydration in the window', () => {
+    expect(calculateHydrationCycleBoost({}, 'STABLE')).toBe(0);
+  });
+  it('returns 0 when the log is older than 30 min', () => {
     expect(calculateHydrationCycleBoost({
-      waterOuncesLoggedLast2Hours: 16,
-    }, 'STABLE')).toBe(0);
-    expect(calculateHydrationCycleBoost({
-      aforceSticksLoggedLast2Hours: 1,
+      waterOuncesLoggedLast2Hours: 16, minutesSinceLastWater: 35,
     }, 'STABLE')).toBe(0);
   });
-  it('returns 0 when either log is older than 30 min', () => {
+  it('grants +8 in stable — with NO product purchase required', () => {
     expect(calculateHydrationCycleBoost({
-      waterOuncesLoggedLast2Hours: 16, aforceSticksLoggedLast2Hours: 1,
-      minutesSinceLastWater: 25, aforceMinutesSinceLast: 35,
-    }, 'STABLE')).toBe(0);
-  });
-  it('grants +8 in stable', () => {
-    expect(calculateHydrationCycleBoost({
-      waterOuncesLoggedLast2Hours: 16, aforceSticksLoggedLast2Hours: 1,
-      minutesSinceLastWater: 5, aforceMinutesSinceLast: 10,
+      waterOuncesLoggedLast2Hours: 16, minutesSinceLastWater: 5,
     }, 'STABLE')).toBe(8);
   });
   it('amplifies for declining/risk/critical', () => {
     const ctx = {
-      waterOuncesLoggedLast2Hours: 16, aforceSticksLoggedLast2Hours: 1,
-      minutesSinceLastWater: 5, aforceMinutesSinceLast: 10,
+      waterOuncesLoggedLast2Hours: 16,
+      minutesSinceLastWater: 5,
     };
     expect(calculateHydrationCycleBoost(ctx, 'DECLINING')).toBe(13);
     expect(calculateHydrationCycleBoost(ctx, 'RISK')).toBe(15);    // 8+8 capped at 15

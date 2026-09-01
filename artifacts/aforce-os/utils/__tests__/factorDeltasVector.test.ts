@@ -61,9 +61,13 @@ function makeState(over: Partial<UserState> = {}): UserState {
   return { ...base, ...over } as unknown as UserState;
 }
 
+// CONSCIOUS REPIN (RP-8b, founder ruling 2026-08-31): `aforce_bonus` is
+// gone. Under volume parity, water and product points are earned on the
+// identical per-ounce curve, so they are ONE physiological term — `base`.
+// This array is a TWO-SIDED lock (a missing key fails, a stale key fails),
+// which is exactly what makes the removal reviewable rather than silent.
 const FACTOR_KEYS = [
   'base',
-  'aforce_bonus',
   'recency',
   'confirmation',
   'consistency',

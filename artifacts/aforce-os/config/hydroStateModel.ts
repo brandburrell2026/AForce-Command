@@ -26,14 +26,29 @@ import type {
  * (`lib/db/src/scoreSnapshotRepo.ts`) so any historical score can be traced to
  * the exact model that produced it.
  *
- * `hydrostate-v0` = the current pre-governance model (founder Decision 2,
- * Option C — DR-009). Format: `hydrostate-v<major>[.<minor>]`. Changing this
- * value requires Founder + Engineering approval (+ Scientific review where the
- * change is physiological) per DR-009 §3. The api-server keeps a hand-written
- * mirror (`src/lib/hydroStateModelVersion.ts`) guarded by a parity test —
- * update BOTH together.
+ * `hydrostate-v0`   = the pre-governance model (founder Decision 2, Option C
+ *                     — DR-009).
+ * `hydrostate-v0.1` = VOLUME PARITY (RP-8b, founder ruling 2026-08-31).
+ *                     Product identity no longer earns physiological credit:
+ *                     the per-serving brand impact table, the two situational
+ *                     brand bonuses, and the brand-only absorption curve are
+ *                     gone. Scores either side of this boundary are NOT
+ *                     directly comparable — a member's score can move without
+ *                     any behavior change, so trend readers must not present
+ *                     a v0→v0.1 delta as a real regression.
+ *
+ * NOTE: the registry reserves `hydrostate-v1.0` for the first fully governed
+ * scoring release (Founder + Engineering + Scientific + Governance). This
+ * bump deliberately does NOT claim that milestone — scientific ratification
+ * of the parity model is still outstanding.
+ *
+ * Format: `hydrostate-v<major>[.<minor>]`. Changing this value requires
+ * Founder + Engineering approval (+ Scientific review where the change is
+ * physiological) per DR-009 §3. The api-server keeps a hand-written mirror
+ * (`src/lib/hydroStateModelVersion.ts`) guarded by a parity test — update
+ * BOTH together.
  */
-export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v0';
+export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v0.1';
 
 /* ─── Section 18 — Adaptive Profile Engine™ / Profile Versioning™ ──────────── */
 

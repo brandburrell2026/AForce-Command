@@ -22,10 +22,15 @@ describe('HydroState model-version parity (server mirror ↔ app canonical)', ()
     expect(SERVER_MIRROR).toBe(APP_CANONICAL);
   });
 
-  it('is the approved pre-governance identifier', () => {
-    // Founder Decision 2, Option C. Changing this requires Founder +
-    // Engineering approval (+ Scientific where physiological) — DR-009 §3.
-    expect(APP_CANONICAL).toBe('hydrostate-v0');
+  it('is the approved identifier', () => {
+    // CONSCIOUS REPIN (RP-8b, founder ruling 2026-08-31). Changing this
+    // requires Founder + Engineering approval (+ Scientific where
+    // physiological) — DR-009 §3. RP-8b is a physiological change: brand
+    // identity no longer earns hydration credit, so scores either side of
+    // this boundary are not comparable and the stamp must differ.
+    // `hydrostate-v1.0` stays RESERVED for the first fully governed release
+    // (scientific ratification of the parity model is still outstanding).
+    expect(APP_CANONICAL).toBe('hydrostate-v0.1');
   });
 
   it('follows the canonical hydrostate-v<major>[.<minor>] format', () => {

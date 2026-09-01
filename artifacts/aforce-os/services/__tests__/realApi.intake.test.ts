@@ -84,10 +84,8 @@ vi.mock('../authToken', () => ({
 import { postIntakeLog } from '../realApi';
 import type { UserState } from '../../types';
 import {
-  AFORCE_BASE_IMPACT,
-  WATER_PTS_PER_OZ,
-  WATER_IMMEDIATE_PCT,
-  AFORCE_IMMEDIATE_PCT,
+  HYDRATION_PTS_PER_OZ,
+  HYDRATION_IMMEDIATE_PCT,
 } from '../hydrationScoreService';
 
 // ─── Test harness ────────────────────────────────────────────────────────────
@@ -186,7 +184,7 @@ afterEach(() => {
 // ─── Water — every WaterAmountModal preset ───────────────────────────────────
 describe('postIntakeLog — water', () => {
   for (const oz of [8, 12, 16, 20, 24, 32] as const) {
-    it(`water at ${oz}oz: sends correct ozAmount and baseImpact (= ${oz * WATER_PTS_PER_OZ})`, async () => {
+    it(`water at ${oz}oz: sends correct ozAmount and baseImpact (= ${oz * HYDRATION_PTS_PER_OZ})`, async () => {
       const { log } = await postIntakeLog(freshUserState(), { fluidType: 'water', ozAmount: oz });
       expect(captured).toHaveLength(1);
       const sent = captured[0]!.body;
@@ -194,10 +192,10 @@ describe('postIntakeLog — water', () => {
       expect(sent.ozAmount).toBe(oz);
       expect(sent.event.flavor).toBeUndefined();
       expect(sent.event.oz).toBe(oz);
-      expect(sent.event.baseImpact).toBe(oz * WATER_PTS_PER_OZ);
+      expect(sent.event.baseImpact).toBe(oz * HYDRATION_PTS_PER_OZ);
       // Water uses 60/40 split over 12.5 min
-      expect(sent.event.immediate).toBeCloseTo(sent.event.capAdjusted * WATER_IMMEDIATE_PCT, 5);
-      expect(sent.event.delayed).toBeCloseTo(sent.event.capAdjusted * (1 - WATER_IMMEDIATE_PCT), 5);
+      expect(sent.event.immediate).toBeCloseTo(sent.event.capAdjusted * HYDRATION_IMMEDIATE_PCT, 5);
+      expect(sent.event.delayed).toBeCloseTo(sent.event.capAdjusted * (1 - HYDRATION_IMMEDIATE_PCT), 5);
       expect(sent.event.delayedDurationMin).toBe(12.5);
       // The +N popup the user sees comes from this delta
       expect(log.scoreAfter - log.scoreBefore).toBeGreaterThanOrEqual(0);
@@ -218,25 +216,26 @@ describe('postIntakeLog — AForce stick', () => {
     const sent = captured[0]!.body;
     expect(sent.fluidType).toBe('aforce_stick');
     expect(sent.event.flavor).toBe('berry');
-    expect(sent.event.baseImpact).toBe(AFORCE_BASE_IMPACT.berry); // 10
+    // CONSCIOUS REPIN (RP-8b): the wire now carries the VOLUME base, and the
+    // one shared absorption curve. The audit fields (heatGuardActiveAtLog,
+    // scoreBeforeAtLog) are still persisted — they are audit trail, and no
+    // longer inputs to impact.
+    expect(sent.event.baseImpact).toBe(12 * HYDRATION_PTS_PER_OZ);
     expect(sent.event.heatGuardActiveAtLog).toBe(false);
-    // AForce uses 70/30 split over 25 min
-    expect(sent.event.immediate).toBeCloseTo(sent.event.capAdjusted * AFORCE_IMMEDIATE_PCT, 5);
-    expect(sent.event.delayedDurationMin).toBe(25);
+    expect(sent.event.immediate).toBeCloseTo(sent.event.capAdjusted * HYDRATION_IMMEDIATE_PCT, 5);
+    expect(sent.event.delayedDurationMin).toBe(12.5);
   });
 
-  it('watermelon stick + Heat Guard ON (heatLoad >= 6): baseImpact = 12 (+2 bonus)', async () => {
+  it('Heat Guard is RECORDED but no longer paid: same baseImpact on or off', async () => {
     await postIntakeLog(freshUserState({ heatLoad: 7 }), { fluidType: 'aforce_stick', flavor: 'watermelon' });
-    const sent = captured[0]!.body;
-    expect(sent.event.flavor).toBe('watermelon');
-    expect(sent.event.heatGuardActiveAtLog).toBe(true);
-    expect(sent.event.baseImpact).toBe(12); // 10 + 2 Heat Guard
-  });
-
-  it('watermelon stick, Heat Guard OFF (heatLoad < 6): baseImpact = 10 (no bonus)', async () => {
+    const hot = captured[0]!.body;
+    expect(hot.event.heatGuardActiveAtLog).toBe(true); // audit trail survives
+    expect(hot.event.baseImpact).toBe(12 * HYDRATION_PTS_PER_OZ);
+    captured.length = 0;
     await postIntakeLog(freshUserState({ heatLoad: 5 }), { fluidType: 'aforce_stick', flavor: 'watermelon' });
-    expect(captured[0]!.body.event.heatGuardActiveAtLog).toBe(false);
-    expect(captured[0]!.body.event.baseImpact).toBe(10);
+    const cool = captured[0]!.body;
+    expect(cool.event.heatGuardActiveAtLog).toBe(false);
+    expect(cool.event.baseImpact).toBe(hot.event.baseImpact);
   });
 
   it('soursop stick + low score (<40): baseImpact = 13 (+2 depleted bonus)', async () => {
@@ -258,8 +257,9 @@ describe('postIntakeLog — AForce stick', () => {
     await postIntakeLog(freshUserState(), { fluidType: 'aforce_stick', flavor: 'soursop' });
     const sent = captured[0]!.body;
     expect(sent.event.flavor).toBe('soursop');
-    expect(sent.event.scoreBeforeAtLog).toBe(30);
-    expect(sent.event.baseImpact).toBe(13); // 11 + 2 depleted
+    expect(sent.event.scoreBeforeAtLog).toBe(30); // audit trail survives
+    // RP-8b: a depleted member no longer earns MORE for choosing a flavor.
+    expect(sent.event.baseImpact).toBe(12 * HYDRATION_PTS_PER_OZ);
   });
 });
 
@@ -271,7 +271,7 @@ describe('postIntakeLog — AForce non-stick formats', () => {
     expect(sent.fluidType).toBe('aforce_rtd');
     expect(sent.ozAmount).toBe(12);
     expect(sent.event.oz).toBe(12);
-    expect(sent.event.baseImpact).toBe(10);
+    expect(sent.event.baseImpact).toBe(12 * HYDRATION_PTS_PER_OZ);
   });
 
   it('aforce_canister (18oz default = exactly 1.5 units = at-cap)', async () => {
@@ -279,8 +279,10 @@ describe('postIntakeLog — AForce non-stick formats', () => {
     const sent = captured[0]!.body;
     expect(sent.fluidType).toBe('aforce_canister');
     expect(sent.ozAmount).toBe(18);
-    expect(sent.event.baseImpact).toBe(10);
-    expect(sent.event.capAdjusted).toBe(10); // exactly at cap, full efficiency
+    // 18 oz now earns 18 oz of credit — the old flat 10 undercharged a big
+    // serving as badly as it overcharged a small one.
+    expect(sent.event.baseImpact).toBe(18 * HYDRATION_PTS_PER_OZ);
+    expect(sent.event.capAdjusted).toBe(18 * HYDRATION_PTS_PER_OZ); // at cap, full efficiency
   });
 
   it('aforce_bulk_bag (16oz default, soursop default flavor)', async () => {
@@ -289,8 +291,8 @@ describe('postIntakeLog — AForce non-stick formats', () => {
     expect(sent.fluidType).toBe('aforce_bulk_bag');
     expect(sent.ozAmount).toBe(16);
     // No explicit flavor passed → falls back to PRODUCTS[bulk_bag].flavor = 'soursop'
-    expect(sent.event.flavor).toBe('soursop');
-    expect(sent.event.baseImpact).toBe(11); // soursop base
+    expect(sent.event.flavor).toBe('soursop'); // still recorded as a product fact
+    expect(sent.event.baseImpact).toBe(16 * HYDRATION_PTS_PER_OZ);
   });
 
   it('AForce stick with no flavor falls back to PRODUCTS[stick].flavor (watermelon)', async () => {
@@ -313,10 +315,13 @@ describe('postIntakeLog — phantom-band auto-log path (ozOverride)', () => {
     const sent = captured[0]!.body;
     expect(sent.ozAmount).toBe(24);
     expect(sent.event.oz).toBe(24);
-    expect(sent.event.baseImpact).toBe(10); // berry flavor base, NOT oz-scaled
+    // CONSCIOUS REPIN (RP-8b): base IS oz-scaled now. The old comment
+    // ("NOT oz-scaled") named the exact incoherence — a member who drank
+    // 24 oz of product was credited the same as one who drank 4.
+    expect(sent.event.baseImpact).toBe(24 * HYDRATION_PTS_PER_OZ);
     // 24oz = 2 units, prevUnits=0, cap=1.5 → headroom 1.5 + 0.5 over at 0.75
-    // eff = (1.5 + 0.5*0.75)/2 = 0.9375
-    expect(sent.event.capAdjusted).toBeCloseTo(10 * 0.9375, 5);
+    // eff = (1.5 + 0.5*0.75)/2 = 0.9375 — the cap itself is unchanged.
+    expect(sent.event.capAdjusted).toBeCloseTo(24 * HYDRATION_PTS_PER_OZ * 0.9375, 5);
   });
 });
 
