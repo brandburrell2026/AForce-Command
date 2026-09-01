@@ -110,7 +110,12 @@ export function segmentByModelVersion<T>(
  * a like-for-like daily score.
  *
  * An absent or empty list means "not recorded", which is NOT evidence of
- * mixing. Only two or more distinct known versions count.
+ * mixing. Beyond that the question is COMPARABILITY, not distinctness: a known
+ * version alongside an unrecorded one IS mixed (`[null, 'hydrostate-v1.0']` →
+ * true), because an unstamped score is comparable to nothing — while two
+ * versions sharing a major are not (`['hydrostate-v1.0', 'hydrostate-v1.1']` →
+ * false). The previous wording said "only two or more distinct KNOWN versions
+ * count", which contradicts both of those pinned behaviours.
  */
 export function isMixedModelDay(versions: readonly (string | null)[] | undefined): boolean {
   if (!versions || versions.length <= 1) return false;

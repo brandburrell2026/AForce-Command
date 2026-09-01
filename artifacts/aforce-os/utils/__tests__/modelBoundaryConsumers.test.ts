@@ -26,7 +26,11 @@ import {
   isMixedModelDay,
 } from '../scoring/modelBoundary';
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
-import { bucketizeSegmented, buildRecapSegmentPaths } from '../scoring/boundarySeries';
+import {
+  bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
+  recapStatsScope, dayVersion,
+} from '../scoring/boundarySeries';
+import { computeRecapStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
 
 const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
@@ -38,6 +42,13 @@ function snap(at: string, score: number, modelVersion: string | null): JournalSn
     unitsConsumedToday: 5, sodiumDeliveredMg: 0, sodiumLostMg: 0, deficitPct: 0,
     clutchActive: false, socialActive: false, autopilotActive: false, reason: '',
     modelVersion } as unknown as JournalSnapshot;
+}
+
+/** A rollup with NO modelVersions field at all — the server emits this shape. */
+function rollupNoVersions(date: string): JournalRollup {
+  const r = rollup(date, 70, []) as unknown as Record<string, unknown>;
+  delete r.modelVersions;
+  return r as unknown as JournalRollup;
 }
 
 function rollup(date: string, avgScore: number, modelVersions: string[]): JournalRollup {
@@ -246,13 +257,23 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
     }
     // A boundary-free range stays one unbroken stroke.
     const uniform = rows.map((r) => ({ ...r, modelVersions: [V1] }));
-    expect(buildRecapSegmentPaths(uniform, 300, 100, PAD).length).toBe(1);
+    const whole = buildRecapSegmentPaths(uniform, 300, 100, PAD);
+    expect(whole.length).toBe(1);
+    // X-AXIS INVARIANT, pinned exactly: segmenting changes which strokes exist,
+    // never where a day sits on the timeline. Collapsing the cursor would
+    // overlay the segments and this comparison is what notices.
+    const split = buildRecapSegmentPaths(rows, 300, 100, PAD);
+    const xsOf = (ds: string[]) =>
+      [...ds.join(' ').matchAll(/[ML]([\d.]+),/g)].map((m) => m[1]);
+    expect(xsOf(split)).toEqual(xsOf(whole));
   });
 
-  it('scopes the headline average away from a blended figure', () => {
+  it('the recap uses the SHIPPED scope decision, not an inline predicate', () => {
     const src = read('components/ShareJournalRecap.tsx');
-    expect(src).toMatch(/statsScope/);
-    expect(src).toMatch(/crossesModelBoundary/);
+    expect(src).toMatch(/recapStatsScope\(rollups\)/);
+    // The inline predicate that narrowed an all-unstamped range must be gone.
+    expect(src).not.toMatch(/crossesModelBoundary/);
+    expect(src).not.toMatch(/segments\.at\(-1\)/);
   });
 
   it('a mixed day isolates rather than joining a neighbouring segment', () => {
@@ -261,11 +282,12 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
       rollup('2026-08-26', 74, [V0, V1]),   // mixed → comparable to nothing
       rollup('2026-08-27', 85, [V1]),
     ];
-    const dayVersion = (r: JournalRollup) =>
-      r.modelVersions && r.modelVersions.length === 1 ? r.modelVersions[0]! : null;
-    const segs = segmentByModelVersion(rows, dayVersion);
+    // Uses the SHIPPED dayVersion + render segmentation, not a test-local copy:
+    // two earlier laws re-implemented the predicate inline and therefore
+    // asserted nothing about production behaviour.
+    const segs = segmentForRender(rows, dayVersion);
     expect(segs.length).toBe(3);
-    for (const s of segs) expect(s.points.length).toBe(1);
+    for (const seg of segs) expect(seg.points.length).toBe(1);
   });
 
   it('a single-day segment still gets its own stroke — no day is dropped', () => {
@@ -276,7 +298,15 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
       rollup('2026-08-26', 74, [V0, V1]),   // mixed → its own one-day segment
       rollup('2026-08-27', 85, [V1]),
     ];
-    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(3);
+    const paths = buildRecapSegmentPaths(rows, 300, 100, PAD);
+    expect(paths.length).toBe(3);
+    // ...and every one of them must actually STROKE. An svg path of `M x,y`
+    // alone draws nothing, so counting paths is not enough: that is the same
+    // root cause as the shattered history, one layer down. A lone day rendered
+    // as a bare moveto is a day that exists in the data and not in the export.
+    for (const d of paths) {
+      expect(d, `path must stroke, not just move: ${d}`).toMatch(/L/);
+    }
   });
 
   it('every exported day survives segmentation — no data is dropped', () => {
@@ -285,10 +315,8 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
       rollup('2026-08-26', 72, [V0]),
       rollup('2026-08-27', 85, [V1]),
     ];
-    const dayVersion = (r: JournalRollup) =>
-      r.modelVersions && r.modelVersions.length === 1 ? r.modelVersions[0]! : null;
-    const segs = segmentByModelVersion(rows, dayVersion);
-    expect(segs.flatMap((s) => s.points).map((r) => r.date))
+    const segs = segmentForRender(rows, dayVersion);
+    expect(segs.flatMap((seg) => seg.points).map((r) => r.date))
       .toEqual(rows.map((r) => r.date));
   });
 });
@@ -327,3 +355,209 @@ function read(rel: string): string {
   const { join } = require('path');
   return readFileSync(join(__dirname, '..', '..', rel), 'utf8');
 }
+
+/* ═══════════════ REMEDIATION — the four post-merge defects ═══════════════
+ *
+ * #909 passed every automated gate it was given and then failed a delayed
+ * substantive review. Four defects shipped. The laws below are the ones that
+ * should have existed, written so that each FAILS on the old implementation
+ * and PASSES on the repaired one.
+ */
+
+describe('FIX 1 — the weekly trend itself is unavailable across a boundary', () => {
+  const LATEST_DAY = Math.floor(Date.parse('2026-09-01T12:00:00Z') / 86_400_000);
+  const withTrend = {
+    nowISO: '2026-09-01T12:00:00Z',
+    analyticsEvents: [] as never[],
+    paSnapshots: [
+      { dayIndex: LATEST_DAY - 30, performanceAge: 47 },
+      { dayIndex: LATEST_DAY, performanceAge: 44 },
+    ],
+    paResult: { performanceAge: 44 },
+    complianceStreak: 0,
+  };
+
+  it('ANTI-VACUITY — the same fixture yields an AVAILABLE trend with no boundary', () => {
+    const m = buildWeeklyV3Model({ ...withTrend, rollups: [
+      rollup('2026-08-25', 70, [V1]),
+      rollup('2026-08-26', 72, [V1]),
+    ] } as never);
+    expect(m.performanceAge.trend.available).toBe(true);
+    expect(m.performanceAge.trend.deltaYears).toBe(-3);
+    // This is the number the pill renders: consumers do
+    // `trend.available ? trend.deltaYears : null`.
+    const paDelta = m.performanceAge.trend.available ? m.performanceAge.trend.deltaYears : null;
+    expect(paDelta).toBe(-3);
+  });
+
+  it('a boundary-crossing week makes the MEMBER-FACING trend unavailable', () => {
+    const m = buildWeeklyV3Model({ ...withTrend, rollups: [
+      rollup('2026-08-25', 70, [V0]),
+      rollup('2026-08-26', 85, [V1]),
+    ] } as never);
+    // The exact expression both live consumers evaluate.
+    const paDelta = m.performanceAge.trend.available ? m.performanceAge.trend.deltaYears : null;
+    expect(paDelta).toBeNull();               // no "▼ 3 years" pill
+    expect(m.performanceAge.trend.available).toBe(false);
+    expect(m.performanceAge.trend.deltaYears).toBeNull();
+    expect(m.performanceAge.previousAge).toBeNull();
+  });
+
+  it('both live consumers read the delta off `trend`, so gating it there is what matters', () => {
+    for (const f of ['components/insights/WeeklyReportV3.tsx',
+                     'components/editorial/weekly/EditorialWeeklyScreen.tsx']) {
+      expect(read(f)).toMatch(/trend\.available \? \w+\.trend\.deltaYears : null/);
+    }
+  });
+});
+
+describe('FIX 2 — unstamped history is ONE continuous run', () => {
+  const unstamped = (n: number) =>
+    Array.from({ length: n }, (_, i) => snap(`2026-08-${String(i + 1).padStart(2, '0')}T09:00:00Z`, 70 + (i % 7), null));
+  const stamped = (n: number, v: string, from = 1) =>
+    Array.from({ length: n }, (_, i) => snap(`2026-09-${String(from + i).padStart(2, '0')}T09:00:00Z`, 80 + (i % 5), v));
+
+  it('30 unstamped observations form ONE run, not 30', () => {
+    const data = unstamped(30);
+    expect(segmentForRender(data, (d) => d.modelVersion ?? null).length).toBe(1);
+    // and the chart returns the DESIGNED anchor count, not one per point
+    expect(bucketizeSegmented(data, 5).length).toBe(1);
+    expect(bucketizeSegmented(data, 5).flat().length).toBe(5);
+  });
+
+  it('20 unstamped then 10 v1 observations form EXACTLY two visual runs', () => {
+    const data = [...unstamped(20), ...stamped(10, V1)];
+    const segs = segmentForRender(data, (d) => d.modelVersion ?? null);
+    expect(segs.length).toBe(2);
+    expect(segs[0]!.points.length).toBe(20);
+    expect(segs[1]!.points.length).toBe(10);
+    expect(segs[0]!.modelVersion).toBeNull();
+    expect(segs[1]!.modelVersion).toBe(V1);
+    // both runs must be strokeable (>= 2 points), not moveto-only stubs
+    for (const g of bucketizeSegmented(data, 5)) expect(g.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('a known v0 → known v1 transition forms two runs', () => {
+    const data = [...stamped(5, V0), ...stamped(5, V1, 10)];
+    const segs = segmentForRender(data, (d) => d.modelVersion ?? null);
+    expect(segs.length).toBe(2);
+    expect(segs.map((x) => x.modelVersion)).toEqual([V0, V1]);
+  });
+
+  it('a single known version history stays ONE run', () => {
+    expect(segmentForRender(stamped(12, V1), (d) => d.modelVersion ?? null).length).toBe(1);
+  });
+
+  it('no observation is lost during segmentation', () => {
+    const data = [...unstamped(20), ...stamped(10, V1)];
+    const segs = segmentForRender(data, (d) => d.modelVersion ?? null);
+    expect(segs.flatMap((x) => x.points).map((p) => p.at)).toEqual(data.map((p) => p.at));
+  });
+
+  it('grouping nulls for RENDER does not make them comparable for TRUTH', () => {
+    // The two concepts stay separate: one stroke, still not comparable.
+    expect(segmentForRender(unstamped(5), (d) => d.modelVersion ?? null).length).toBe(1);
+    expect(spansModelBoundary([null, null])).toBe(true);
+    expect(isMixedModelDay([null, V1])).toBe(true);
+  });
+});
+
+describe('FIX 2b — LEGACY REGRESSION: pre-version history renders as it did before PR 3', () => {
+  it('a boundary-free unstamped history keeps its pre-PR-3 continuity', () => {
+    // The exact population every existing member has: `hydrostate_model_version`
+    // is nullable with no backfill, so ALL history predating the column is null.
+    const legacy = Array.from({ length: 30 }, (_, i) =>
+      snap(`2026-08-${String(i + 1).padStart(2, '0')}T09:00:00Z`, 60 + (i % 25), null));
+    const groups = bucketizeSegmented(legacy, 5);
+    expect(groups.length).toBe(1);              // ONE stroke, as before PR 3
+    expect(groups.flat().length).toBe(5);       // 5 anchors, as before PR 3
+    // and a single stroke of 5 anchors is drawable, not a moveto-only stub
+    expect(groups[0]!.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('FIX 3 — the recap headline is never narrowed by absent stamps', () => {
+  const range = (versions: string[][]) =>
+    versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
+
+  it('all-unstamped 30-day history: ONE run, headline over ALL 30 days', () => {
+    const rows = range(Array.from({ length: 30 }, () => []));
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(1);   // visual
+    expect(recapStatsScope(rows).length).toBe(30);                        // population
+    // THE HEADLINE CLAIM: a card labelled 30-DAY must not report one day.
+    expect(computeRecapStats(recapStatsScope(rows)).daysTracked)
+      .toBe(computeRecapStats(rows).daysTracked);
+  });
+
+  it('unstamped history followed by v1: TWO runs, headline over the V1 RUN ONLY', () => {
+    // THE ACTUAL ROLLOUT SHAPE — every existing member on the day v1.0 lands.
+    // An earlier revision returned all 30 here on the reasoning that "null is
+    // not a real boundary". That was wrong in the direction that matters: an
+    // unstamped day is comparable to NOTHING, including to a v1.0 day, so a
+    // single blended headline across that seam is exactly the defect this
+    // function exists to prevent.
+    const rows = range([...Array.from({ length: 20 }, () => [] as string[]),
+                        ...Array.from({ length: 10 }, () => [V1])]);
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
+    const scope = recapStatsScope(rows);
+    expect(scope.length).toBe(10);
+    expect(scope.every((r) => r.modelVersions?.[0] === V1)).toBe(true);
+  });
+
+  it('single known version history: ONE run, headline over everything', () => {
+    const rows = range(Array.from({ length: 30 }, () => [V1]));
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(1);
+    expect(recapStatsScope(rows).length).toBe(30);
+  });
+
+  it('a REAL boundary ending on a mixed/unstamped day does NOT narrow to that day', () => {
+    // The residual defect the first remediation left behind. `dayVersion` maps a
+    // mixed day, an absent list and an empty list all to null, and a day with a
+    // logged intake but no captured snapshot legitimately has `modelVersions: []`
+    // (api-server builds that rollup from intakes alone). Taking the LAST segment
+    // outright made a 30-day card report a single day.
+    const base = [...Array.from({ length: 20 }, () => [V0]),
+                  ...Array.from({ length: 9 }, () => [V1])];
+    for (const [label, trailing] of [
+      ['mixed', [V0, V1]], ['empty', []],
+    ] as Array<[string, string[]]>) {
+      const rows = range([...base, trailing]);
+      const scope = recapStatsScope(rows);
+      expect(scope.length, `${label}: must not collapse to the trailing day`).toBe(9);
+      expect(scope.every((r) => r.modelVersions?.[0] === V1), label).toBe(true);
+      // and the headline must not read as one day under a 30-day label
+      expect(computeRecapStats(scope).daysTracked, label).toBeGreaterThan(1);
+    }
+    // an ABSENT modelVersions field behaves identically
+    const absent = range([...base]).concat([rollupNoVersions('2026-08-30')]);
+    expect(recapStatsScope(absent).length).toBe(9);
+  });
+
+  it('a range with NO known-version run anywhere is never narrowed', () => {
+    const rows = range(Array.from({ length: 10 }, () => []));
+    expect(recapStatsScope(rows).length).toBe(10);
+  });
+
+  it('known v0 then known v1: TWO runs, headline narrowed to the v1 run', () => {
+    const rows = range([...Array.from({ length: 20 }, () => [V0]),
+                        ...Array.from({ length: 10 }, () => [V1])]);
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
+    expect(recapStatsScope(rows).length).toBe(10);                   // v1 run only
+    expect(recapStatsScope(rows).every((r) => r.modelVersions?.[0] === V1)).toBe(true);
+  });
+});
+
+describe('FIX 4 — JournalChart is proven to ROUTE THROUGH the shared logic', () => {
+  it('fails if the component is reverted to its pre-PR-3 implementation', () => {
+    const src = read('components/journal/JournalChart.tsx');
+    // imports and CALLS the shared segmented bucketizer
+    expect(src).toMatch(/import \{[^}]*\bbucketizeSegmented\b[^}]*\} from '@\/utils\/scoring\/boundarySeries'/);
+    expect(src).toMatch(/bucketizeSegmented\(renderedData, TARGET_ANCHORS\)/);
+    // the private pre-PR-3 bucketizer has NOT returned
+    expect(src).not.toMatch(/^function bucketize\(/m);
+    // renders a stroke PER SEGMENT, not one scalar path across everything
+    expect(src).toMatch(/pathDs\.map\(/);
+    expect(src).not.toMatch(/\{pathD && \(/);
+    expect(src).not.toMatch(/pathD: smoothPath\(pts\)/);
+  });
+});

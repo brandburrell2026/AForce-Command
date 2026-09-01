@@ -18,7 +18,61 @@
  * be averaged into one anchor, or joined by one stroke.
  */
 import type { JournalSnapshot, JournalRollup } from '../../types';
-import { segmentByModelVersion } from './modelBoundary';
+import { spansModelBoundary } from './modelBoundary';
+
+/* ── rendering segmentation ───────────────────────────────────────────────── */
+
+/**
+ * RENDER segmentation — deliberately NOT the same predicate as comparability.
+ *
+ * `isComparableModelVersion` answers a truth question: may I difference or
+ * average these two scores? It answers `false` for two NULLs, and it is right
+ * to: an unrecorded score is not evidence that it is comparable to anything.
+ *
+ * Using that predicate to decide STROKES was the defect. It started a new
+ * segment at every unstamped point, so a member's pre-stamp history — the
+ * default for all history, since `hydrostate_model_version` is nullable with no
+ * backfill — shattered into one-point segments. A one-point segment produces a
+ * moveto-only path, which strokes nothing: 30 days of history rendered as loose
+ * dots with no line, at 30 anchors instead of the designed 5.
+ *
+ * Rendering asks a different question: do these two observations belong to one
+ * continuous run? The two concepts must stay separate, and this helper is the
+ * named place where the rendering one lives.
+ *
+ * The rule is EXACT-IDENTITY grouping:
+ *   - consecutive nulls group together (one unstamped run, one stroke)
+ *   - consecutive identical known versions group together
+ *   - a null run never joins a known run
+ *   - two different known versions never join
+ *
+ * Identity is deliberately stricter than comparability. Two versions sharing a
+ * major (v1.0 / v1.1) ARE comparable per the registry, so joining them would
+ * also be defensible — this helper splits them instead, because a seam where
+ * none was needed is a cosmetic cost, while a join where none was warranted is
+ * a truth claim. See the PR body: this is flagged for founder ruling.
+ *
+ * Grouping nulls for rendering says only "these are one continuous run of
+ * unstamped history". It asserts nothing about whether that history is
+ * comparable to a stamped v1 observation — `spansModelBoundary` still answers
+ * that, unchanged, and still says no.
+ */
+export interface RenderSegment<T> { modelVersion: string | null; points: T[] }
+
+export function segmentForRender<T>(
+  points: readonly T[],
+  versionOf: (p: T) => string | null,
+): RenderSegment<T>[] {
+  const out: RenderSegment<T>[] = [];
+  for (const point of points) {
+    const v = versionOf(point);
+    const current = out[out.length - 1];
+    // Exact identity — `null === null` groups, and that is the whole fix.
+    if (current && current.modelVersion === v) current.points.push(point);
+    else out.push({ modelVersion: v, points: [point] });
+  }
+  return out;
+}
 
 /* ── the trend chart ──────────────────────────────────────────────────────── */
 
@@ -67,7 +121,7 @@ export function bucketizeSegmented(
   data: JournalSnapshot[],
   targetBuckets: number,
 ): Bucket[][] {
-  const segments = segmentByModelVersion(data, (d) => d.modelVersion ?? null);
+  const segments = segmentForRender(data, (d) => d.modelVersion ?? null);
   if (segments.length === 0) return [];
   const total = data.length || 1;
   return segments
@@ -94,6 +148,17 @@ export function dayVersion(r: JournalRollup): string | null {
 export interface RecapPadding { top: number; right: number; bottom: number; left: number }
 
 /**
+ * Half-width of the tick a single-observation segment is drawn as.
+ *
+ * An svg path of `M x,y` alone strokes NOTHING. That is the same root cause as
+ * the shattered-history defect, surviving one layer down: an isolated day —
+ * a mixed day between two known runs, or a lone stamped day among unstamped
+ * ones — was emitted as a moveto and rendered invisibly. A day that exists in
+ * the data must be visible in the export.
+ */
+const LONE_POINT_TICK_PX = 1.5;
+
+/**
  * Build ONE svg path per model-version segment of the exported range.
  *
  * `x` stays keyed to each day's index in the WHOLE range, so segmenting changes
@@ -111,7 +176,7 @@ export function buildRecapSegmentPaths(
     return [`M${padding.left.toFixed(1)},${y.toFixed(1)} L${(padding.left + innerW).toFixed(1)},${y.toFixed(1)}`];
   }
   const span = rollups.length - 1;
-  const segs = segmentByModelVersion(rollups, dayVersion);
+  const segs = segmentForRender(rollups, dayVersion);
   let cursor = 0;
   const out: string[] = [];
   for (const seg of segs) {
@@ -122,7 +187,62 @@ export function buildRecapSegmentPaths(
       return `${j === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
     });
     cursor += seg.points.length;
-    if (cmds.length > 0) out.push(cmds.join(' '));
+    if (cmds.length === 1) {
+      // A lone day gets a minimum-length tick so it strokes instead of
+      // vanishing. Same treatment the single-rollup case above already gets.
+      const r = seg.points[0]!;
+      const x = padding.left + ((cursor - 1) / span) * innerW;
+      const y = padding.top + (1 - Math.max(0, Math.min(100, r.avgScore)) / 100) * innerH;
+      out.push(`M${(x - LONE_POINT_TICK_PX).toFixed(1)},${y.toFixed(1)} L${(x + LONE_POINT_TICK_PX).toFixed(1)},${y.toFixed(1)}`);
+    } else if (cmds.length > 1) out.push(cmds.join(' '));
   }
   return out;
+}
+
+/**
+ * The rollups a recap's HEADLINE statistics should be computed over.
+ *
+ * Narrowing exists so a headline number is not blended across two different
+ * measurements. It must therefore trigger on a REAL boundary only. The first
+ * implementation asked `spansModelBoundary`, which answers `true` for an
+ * all-unstamped range — so a 30-day export with no stamps anywhere narrowed to
+ * its final row and rendered that single day's score and streak under a
+ * "30-DAY TIMELINE" label. A fabricated headline in the most shareable
+ * artifact the app produces, caused by a boundary that did not exist.
+ *
+ * Absence of stamps is not a boundary. Only genuinely incomparable known
+ * versions narrow the population.
+ */
+export function recapStatsScope(
+  rollups: readonly JournalRollup[],
+): readonly JournalRollup[] {
+  if (rollups.length === 0) return rollups;
+  // Gate on the TRUTH predicate, not a "real boundary" shortcut. An earlier
+  // version asked a "real boundary" predicate that ignored unstamped days and
+  // was false when only ONE known version was present — so an
+  // unstamped-history-then-v1.0 range (the actual
+  // rollout shape: every existing member, the day v1.0 lands) reported a single
+  // blended headline across the seam. Unstamped days are comparable to nothing,
+  // including to v1.0, so that range does need narrowing.
+  if (!spansModelBoundary(rollups.map(dayVersion))) return rollups;
+  const segs = segmentForRender(rollups, dayVersion);
+  // Walk back past any TRAILING unstamped or mixed run.
+  //
+  // `dayVersion` maps a mixed day AND a day with no versions at all to `null`,
+  // and a day with a logged intake but no captured snapshot legitimately has
+  // `modelVersions: []` (api-server builds a rollup from intakes alone). So a
+  // 30-day range that genuinely crosses v0->v1 and happens to END on such a day
+  // narrowed the headline to that single trailing day: the card read
+  // "30-DAY TIMELINE / DAYS 1". Taking the last segment outright was wrong; the
+  // population we want is the newest run that is comparable to ITSELF.
+  //
+  // Note the trailing unstamped days are excluded rather than folded in. They
+  // are comparable to nothing, so including them would reintroduce exactly the
+  // blending the narrowing exists to prevent.
+  for (let i = segs.length - 1; i >= 0; i--) {
+    const seg = segs[i]!;
+    if (seg.modelVersion !== null) return seg.points;
+  }
+  // No known-version run anywhere: nothing to narrow to, so do not narrow.
+  return rollups;
 }

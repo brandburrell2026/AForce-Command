@@ -126,17 +126,36 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
   for (const list of dayVersionLists) {
     for (const v of list) if (!allVersions.includes(v)) allVersions.push(v);
   }
+  // `containsMixedDay` was previously OR-ed into the suppression decision. It is
+  // provably redundant: a mixed day contributes two mutually non-comparable
+  // versions to `allVersions`, which forces `spansModelBoundary` true. No
+  // fixture can isolate the term, so no law can pin it — and redundant logic
+  // kept only to serve as a mutation target teaches the next reader that the
+  // suite covers something it does not. It is retained as REPORTING (consumers
+  // may want to know why a week was suppressed) and removed from the decision.
   const containsMixedDay = dayVersionLists.some((l) => isMixedModelDay(l));
   const crossesBoundary = spansModelBoundary(allVersions);
-  const weekOverWeekSuppressed = containsMixedDay || crossesBoundary;
+  const weekOverWeekSuppressed = crossesBoundary;
   const modelBoundary: WeeklyV3ModelBoundary = {
     containsMixedDay, crossesBoundary, versions: allVersions, weekOverWeekSuppressed,
   };
 
-  const trend = computePerformanceAgeTrend(input.paSnapshots, WEEKLY_TREND_DAYS);
+  // SUPPRESS AT THE SOURCE. The previous fix gated only `previousAge`, and the
+  // trend object itself was returned intact — so both live consumers
+  // (`WeeklyReportV3.tsx` and `EditorialWeeklyScreen.tsx`, each doing
+  // `trend.available ? trend.deltaYears : null`) still rendered a "▼ 3 years"
+  // pill on a boundary-crossing week. The member was told their Performance Age
+  // improved by three years when only the model had changed. Gating the trend
+  // here means every consumer inherits the suppression without edits, including
+  // consumers that do not exist yet.
+  const rawTrend = computePerformanceAgeTrend(input.paSnapshots, WEEKLY_TREND_DAYS);
+  const trend: PerformanceAgeTrend = weekOverWeekSuppressed
+    ? { available: false, deltaYears: null, direction: null,
+        daysOfHistory: rawTrend.daysOfHistory }
+    : rawTrend;
   const currentAge = input.paResult?.performanceAge ?? null;
   const previousAge =
-    !weekOverWeekSuppressed && trend.available && trend.deltaYears != null && currentAge != null
+    trend.available && trend.deltaYears != null && currentAge != null
       ? currentAge - trend.deltaYears
       : null;
   const bars = [...input.paSnapshots]

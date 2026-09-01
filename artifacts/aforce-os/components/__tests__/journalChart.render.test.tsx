@@ -186,3 +186,69 @@ describe('JournalChart — the three ambient oscillators are GONE (Wave-5)', () 
     expect(host.querySelector('svg-stub[data-stub="Svg"]')).not.toBeNull();
   });
 });
+
+/* ═══════════════ MODEL BOUNDARY — rendered strokes, not vocabulary ═══════════
+ *
+ * The PR-3 remediation's chart law is a source-routing regex. It catches a
+ * wholesale revert of the component (verified), but a regex asserts vocabulary:
+ * a mutation that keeps every identifier and rejoins the strokes survives it.
+ *
+ * These laws render the component and count the actual <Path> elements, so the
+ * invariant "no path is drawn across a model boundary" is asserted on what the
+ * member would actually see.
+ */
+describe('JournalChart — no stroke crosses a model boundary (rendered)', () => {
+  const V0 = 'hydrostate-v0';
+  const V1 = 'hydrostate-v1.0';
+
+  function versioned(spec: (string | null)[]): JournalSnapshot[] {
+    const base = Date.parse('2026-07-01T00:00:00.000Z');
+    return spec.map((modelVersion, i) => ({
+      at: new Date(base + i * 86_400_000).toISOString(),
+      score: 60 + (i % 20),
+      modelVersion,
+    } as unknown as JournalSnapshot));
+  }
+
+  /** Distinct `d` attributes across every rendered trend <Path>. */
+  function strokeShapes(): string[] {
+    const paths = Array.from(host.querySelectorAll('[data-stub="Path"]'));
+    const ds = paths
+      .map((p) => p.getAttribute('d') ?? '')
+      .filter((d) => d.startsWith('M'));
+    return [...new Set(ds)];
+  }
+
+  it('a single-version history renders ONE stroke shape', () => {
+    renderChart({ data: versioned(Array.from({ length: 10 }, () => V1)) });
+    expect(strokeShapes().length).toBe(1);
+  });
+
+  it('an all-UNSTAMPED history renders ONE stroke shape (legacy regression)', () => {
+    // Every member predating the version column. Pre-PR-3 this was one line;
+    // PR 3 shattered it into moveto-only stubs.
+    renderChart({ data: versioned(Array.from({ length: 30 }, () => null)) });
+    expect(strokeShapes().length).toBe(1);
+  });
+
+  it('a v0 → v1 history renders TWO stroke shapes, never one joined path', () => {
+    renderChart({
+      data: versioned([...Array.from({ length: 6 }, () => V0),
+                       ...Array.from({ length: 6 }, () => V1)]),
+    });
+    // ANTI-VACUITY: two distinct strokes, and neither is empty.
+    const shapes = strokeShapes();
+    expect(shapes.length).toBe(2);
+    for (const d of shapes) expect(d).toMatch(/^M[\d.]+,[\d.]+/);
+    // A rejoined path would be ONE shape containing every anchor.
+    expect(shapes.some((d) => d.split('C').length - 1 >= 4)).toBe(false);
+  });
+
+  it('unstamped history followed by v1 renders TWO stroke shapes', () => {
+    renderChart({
+      data: versioned([...Array.from({ length: 20 }, () => null),
+                       ...Array.from({ length: 10 }, () => V1)]),
+    });
+    expect(strokeShapes().length).toBe(2);
+  });
+});
