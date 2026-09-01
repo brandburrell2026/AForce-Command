@@ -65,6 +65,9 @@ import { formatSpokenLineForCoach } from '../../services/voice/coachPhrasing';
 import { emit } from '../../analytics/event_dispatcher';
 import { markFirstCommandCompleted } from '../../analytics/activation_anchor';
 import { categorizeCommand } from '../../utils/intelligence/commandCategory';
+// Stamps every emitted score with the model that produced it — see the module
+// header for why a score without its model version is not interpretable.
+import { HYDROSTATE_MODEL_VERSION } from '../../utils/scoring/modelBoundary';
 import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
 import { appendCommandEvents } from '../../services/commandLedger';
 import { enqueueIntake } from '../../services/intakeOutbox';
@@ -339,6 +342,10 @@ export function useStoreActions({
         void emit('hydration_score_updated', {
           score: log.scoreAfter,
           level: mergedEngine.performanceState.level,
+          // A score is only interpretable against the model that produced
+          // it — without this, an analysis spanning a model boundary reads a
+          // recalibration as a change in members' behaviour.
+          modelVersion: HYDROSTATE_MODEL_VERSION,
         });
         void emit('ritual_completed', { ritualId: fluidType });
         // Daily hydration goal just reached — emit only on the crossing

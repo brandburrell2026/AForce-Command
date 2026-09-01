@@ -10,7 +10,7 @@
     { "eventType": "ritual_completed", "owner": "mobile", "trigger": "User completes a hydration ritual / protocol", "payloadFields": ["ritualId"] },
     { "eventType": "water_cycle_logged", "owner": "mobile", "trigger": "User logs a water / AForce intake", "payloadFields": ["fluidType", "oz"] },
     { "eventType": "water_goal_completed", "owner": "mobile", "trigger": "Daily hydration goal is reached", "payloadFields": [] },
-    { "eventType": "hydration_score_updated", "owner": "mobile", "trigger": "Engine recomputes the hydration score band", "payloadFields": ["score", "level"] },
+    { "eventType": "hydration_score_updated", "owner": "mobile", "trigger": "Engine recomputes the hydration score band", "payloadFields": ["score", "level", "modelVersion"] },
     { "eventType": "command_followed", "owner": "mobile", "trigger": "User follows the coach command / recommendation", "payloadFields": ["commandId"] },
     { "eventType": "first_win_confirmed", "owner": "mobile", "trigger": "The user earns their first Daily Win — the activation funnel's First Win milestone; emitted at most once, ever (persistent client flag)", "payloadFields": ["winId"] },
     { "eventType": "impact_shown", "owner": "mobile", "trigger": "An impact / explainability surface is shown", "payloadFields": ["impactKey"] },
