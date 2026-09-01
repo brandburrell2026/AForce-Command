@@ -18,6 +18,7 @@
  */
 
 import type { JournalRollup } from '@/types';
+import { isMixedModelDay, spansModelBoundary } from '@/utils/scoring/modelBoundary';
 import type { AnalyticsEvent } from '@/utils/analytics/metrics';
 import type {
   PerformanceAgeDailySnapshot,
@@ -61,6 +62,21 @@ export interface WeeklyV3TimelineDay {
   accent: string;
 }
 
+export interface WeeklyV3ModelBoundary {
+  /** Any day in the window whose own rollup mixes versions. */
+  containsMixedDay: boolean;
+  /** The window as a whole spans more than one model version. */
+  crossesBoundary: boolean;
+  /** Distinct versions present, in the order first seen. */
+  versions: (string | null)[];
+  /**
+   * True when a week-over-week comparison would compare across the boundary,
+   * and has therefore been suppressed. Consumers must not compute their own
+   * delta when this is set.
+   */
+  weekOverWeekSuppressed: boolean;
+}
+
 export interface WeeklyV3Model {
   week: WeekWindow;
   report: WeeklyReport;
@@ -72,6 +88,12 @@ export interface WeeklyV3Model {
   /** Rollup days present at all in the window. */
   daysTracked: number;
   timeline: WeeklyV3TimelineDay[];
+  /**
+   * Model-boundary state for this window. A week that crosses a recalibration
+   * cannot be compared with the week before it, and a day inside it that mixes
+   * versions is not a like-for-like day.
+   */
+  modelBoundary: WeeklyV3ModelBoundary;
 }
 
 function isoWeekdayUTC(iso: string): number {
@@ -94,10 +116,27 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     history: { performanceAgeSnapshots: input.paSnapshots },
   });
 
+  // ── model boundary ───────────────────────────────────────────────────────
+  // A week-over-week delta whose two sides were produced by different models
+  // reports a recalibration as if the member had changed. Detect it from the
+  // rollups' own version stamps and suppress the comparison rather than
+  // rendering a number that means nothing.
+  const dayVersionLists = input.rollups.map((r) => r.modelVersions ?? []);
+  const allVersions: (string | null)[] = [];
+  for (const list of dayVersionLists) {
+    for (const v of list) if (!allVersions.includes(v)) allVersions.push(v);
+  }
+  const containsMixedDay = dayVersionLists.some((l) => isMixedModelDay(l));
+  const crossesBoundary = spansModelBoundary(allVersions);
+  const weekOverWeekSuppressed = containsMixedDay || crossesBoundary;
+  const modelBoundary: WeeklyV3ModelBoundary = {
+    containsMixedDay, crossesBoundary, versions: allVersions, weekOverWeekSuppressed,
+  };
+
   const trend = computePerformanceAgeTrend(input.paSnapshots, WEEKLY_TREND_DAYS);
   const currentAge = input.paResult?.performanceAge ?? null;
   const previousAge =
-    trend.available && trend.deltaYears != null && currentAge != null
+    !weekOverWeekSuppressed && trend.available && trend.deltaYears != null && currentAge != null
       ? currentAge - trend.deltaYears
       : null;
   const bars = [...input.paSnapshots]
@@ -136,6 +175,7 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     hydrationDays: input.rollups.filter((r) => r.endUnitsConsumed > 0).length,
     daysTracked: input.rollups.length,
     timeline,
+    modelBoundary,
   };
 }
 

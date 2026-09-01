@@ -100,3 +100,19 @@ export function segmentByModelVersion<T>(
   }
   return out;
 }
+
+/**
+ * Does one day's rollup contain scores from more than one model version?
+ *
+ * A day can straddle the boundary, and its aggregate is then built from two
+ * different measurements — an average that describes neither. Consumers use
+ * this to mark such a day non-comparable rather than presenting its number as
+ * a like-for-like daily score.
+ *
+ * An absent or empty list means "not recorded", which is NOT evidence of
+ * mixing. Only two or more distinct known versions count.
+ */
+export function isMixedModelDay(versions: readonly (string | null)[] | undefined): boolean {
+  if (!versions || versions.length <= 1) return false;
+  return spansModelBoundary(versions);
+}

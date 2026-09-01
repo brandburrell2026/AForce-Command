@@ -36,6 +36,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import type { JournalSnapshot } from '@/types';
+import { segmentByModelVersion, spansModelBoundary } from '@/utils/scoring/modelBoundary';
+import { bucketizeSegmented } from '@/utils/scoring/boundarySeries';
 import { Colors } from '@/theme/colors';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -71,32 +73,6 @@ function classify(score: number): DotKind {
   if (score >= 85) return 'completed';
   if (score >= 65) return 'ontrack';
   return 'missed';
-}
-
-function bucketize(
-  data: JournalSnapshot[],
-  targetBuckets: number,
-): { t: number; score: number; at: string }[] {
-  if (data.length === 0) return [];
-  if (data.length <= targetBuckets) {
-    return data.map((d) => ({ t: new Date(d.at).getTime(), score: d.score, at: d.at }));
-  }
-  const buckets: { t: number; score: number; at: string }[] = [];
-  const size = data.length / targetBuckets;
-  for (let i = 0; i < targetBuckets; i++) {
-    const start = Math.floor(i * size);
-    const end = Math.floor((i + 1) * size);
-    const slice = data.slice(start, end);
-    if (slice.length === 0) continue;
-    const sum = slice.reduce((a, d) => a + d.score, 0);
-    const midIdx = Math.floor((start + end) / 2);
-    buckets.push({
-      t: new Date(data[midIdx].at).getTime(),
-      score: sum / slice.length,
-      at: data[midIdx].at,
-    });
-  }
-  return buckets;
 }
 
 /** Short, friendly label for the tap-to-reveal bubble. */
@@ -208,46 +184,72 @@ export default function JournalChart({
   // on the UI thread past unmount (Wave-4 rule).
   useEffect(() => () => cancelAnimation(fade), [fade]);
 
-  const { points, pathD, avg, trendDiff } = useMemo(() => {
+  const { points, pathDs, avg, trendDiff, crossesModelBoundary } = useMemo(() => {
     if (renderedData.length === 0) {
       return {
         points: [] as { x: number; y: number; score: number; kind: DotKind; at: string }[],
-        pathD: '',
+        pathDs: [] as string[],
         avg: 0,
         trendDiff: 0,
+        crossesModelBoundary: false,
       };
     }
-    const buckets = bucketize(renderedData, TARGET_ANCHORS);
-    const tMin = buckets[0].t;
-    const tMax = buckets[buckets.length - 1].t;
-    const tSpan = Math.max(1, tMax - tMin);
 
-    const pts = buckets.map((b) => {
+    // A v0 score and a v1.0 score are different measurements sharing a unit.
+    // Everything below is computed so that no anchor, no stroke and no summary
+    // number ever mixes the two.
+    const crossed = spansModelBoundary(renderedData.map((d) => d.modelVersion ?? null));
+    const segments = bucketizeSegmented(renderedData, TARGET_ANCHORS);
+    const flat = segments.flat();
+
+    const tMin = flat[0].t;
+    const tMax = flat[flat.length - 1].t;
+    const tSpan = Math.max(1, tMax - tMin);
+    const project = (b: { t: number; score: number; at: string }) => {
       const x =
-        buckets.length === 1
+        flat.length === 1
           ? PADDING.left + innerW / 2
           : PADDING.left + ((b.t - tMin) / tSpan) * innerW;
       const y =
         PADDING.top +
         (1 - (b.score - SCORE_MIN) / (SCORE_MAX - SCORE_MIN)) * innerH;
       return { x, y, score: b.score, kind: classify(b.score), at: b.at };
-    });
+    };
 
-    const sumScore = renderedData.reduce((acc, d) => acc + d.score, 0);
-    const avgScore = Math.round(sumScore / renderedData.length);
+    const pts = flat.map(project);
+    // ONE PATH PER SEGMENT. Joining them would assert a continuity across the
+    // recalibration that does not exist — the line itself is the claim.
+    const ds = segments
+      .map((seg) => smoothPath(seg.map(project)))
+      .filter((d) => d !== '');
 
-    const mid = Math.floor(renderedData.length / 2);
+    // Averaging across the boundary would blend two scales, so when the series
+    // is mixed the summary is scoped to the newest comparable run rather than
+    // silently reporting a number that describes neither model.
+    const summaryScope = crossed
+      ? (segmentByModelVersion(renderedData, (d) => d.modelVersion ?? null).at(-1)?.points ?? renderedData)
+      : renderedData;
+    const avgScore = Math.round(
+      summaryScope.reduce((acc, d) => acc + d.score, 0) / summaryScope.length,
+    );
+
+    // A first-half/second-half delta straddling the boundary is a comparison
+    // between two different measurements. Suppressed rather than shown wrong.
     let trend = 0;
-    if (renderedData.length >= 2 && mid > 0) {
-      const firstAvg =
-        renderedData.slice(0, mid).reduce((a, d) => a + d.score, 0) / mid;
-      const secondAvg =
-        renderedData.slice(mid).reduce((a, d) => a + d.score, 0) /
-        (renderedData.length - mid);
-      trend = secondAvg - firstAvg;
+    if (!crossed) {
+      const mid = Math.floor(renderedData.length / 2);
+      if (renderedData.length >= 2 && mid > 0) {
+        const firstAvg =
+          renderedData.slice(0, mid).reduce((a, d) => a + d.score, 0) / mid;
+        const secondAvg =
+          renderedData.slice(mid).reduce((a, d) => a + d.score, 0) /
+          (renderedData.length - mid);
+        trend = secondAvg - firstAvg;
+      }
     }
 
-    return { points: pts, pathD: smoothPath(pts), avg: avgScore, trendDiff: trend };
+    return { points: pts, pathDs: ds, avg: avgScore, trendDiff: trend,
+      crossesModelBoundary: crossed };
   }, [renderedData, innerH, innerW]);
 
   if (renderedData.length === 0) {
@@ -261,7 +263,11 @@ export default function JournalChart({
   // Legend stats below the chart were removed per latest spec — the
   // KPI summary cards above the chart already cover Avg / Consistency /
   // Streak. Trend is implied by the chart's slope.
-  void avg; void trendDiff; void weeklyCompliancePct; void complianceStreak;
+  // `avg`/`trendDiff` are computed but not currently rendered by this card.
+  // They are kept boundary-correct anyway so that whichever surface starts
+  // showing them inherits the guarantee rather than reintroducing the defect.
+  void avg; void trendDiff; void crossesModelBoundary;
+  void weeklyCompliancePct; void complianceStreak;
 
   // Tap-to-reveal: tapping a constellation node shows a small floating
   // bubble with that node's date + score. Tap again (or tap a different
@@ -376,9 +382,10 @@ export default function JournalChart({
           {/* Softened trend line — three stacked strokes simulate a
               gaussian-blurred glow without needing SVG filters (which
               are unreliable across react-native-svg backends). */}
-          {pathD && (
+          {pathDs.map((d, si) => (
             <Path
-              d={pathD}
+              key={`glow-outer-${si}`}
+              d={d}
               stroke="url(#trendGlow)"
               strokeWidth={5}
               fill="none"
@@ -386,10 +393,11 @@ export default function JournalChart({
               strokeLinejoin="round"
               opacity={LINE_OPACITY}
             />
-          )}
-          {pathD && (
+          ))}
+          {pathDs.map((d, si) => (
             <Path
-              d={pathD}
+              key={`glow-mid-${si}`}
+              d={d}
               stroke="url(#trendGlow)"
               strokeWidth={2.4}
               fill="none"
@@ -397,10 +405,11 @@ export default function JournalChart({
               strokeLinejoin="round"
               opacity={LINE_OPACITY}
             />
-          )}
-          {pathD && (
+          ))}
+          {pathDs.map((d, si) => (
             <Path
-              d={pathD}
+              key={`stroke-${si}`}
+              d={d}
               stroke="url(#trendStroke)"
               strokeWidth={0.8}
               fill="none"
@@ -408,7 +417,7 @@ export default function JournalChart({
               strokeLinejoin="round"
               opacity={LINE_OPACITY}
             />
-          )}
+          ))}
 
           {/* Constellation anchors — 5 depth-layered rings simulate
               the holographic falloff: ultra-soft outer atmosphere →

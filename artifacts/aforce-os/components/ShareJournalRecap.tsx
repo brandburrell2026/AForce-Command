@@ -18,6 +18,10 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
 import { computeRecapStats } from '@/utils/journalRecapStats';
+import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
+import { segmentByModelVersion } from '@/utils/scoring/modelBoundary';
+import { buildRecapSegmentPaths, dayVersion } from '@/utils/scoring/boundarySeries';
+
 
 interface Props {
   rollups: readonly JournalRollup[];
@@ -37,26 +41,29 @@ const BANDS = [
 ];
 
 export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
-  const stats = useMemo(() => computeRecapStats(rollups), [rollups]);
+  // An exported recap is the most durable artifact a member produces — it
+  // outlives the app session and gets shared. It therefore carries the same
+  // boundary guarantees as the in-app chart: no stroke across a recalibration,
+  // and no headline average blended from two different measurements.
+  const segments = useMemo(
+    () => segmentByModelVersion(rollups, dayVersion),
+    [rollups],
+  );
+  const crossesModelBoundary = useMemo(
+    () => spansModelBoundary(rollups.map(dayVersion)),
+    [rollups],
+  );
+  const statsScope = crossesModelBoundary
+    ? (segments.at(-1)?.points ?? rollups)
+    : rollups;
+  const stats = useMemo(() => computeRecapStats(statsScope), [statsScope]);
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 
-  const pathD = useMemo(() => {
-    if (rollups.length === 0) return '';
-    if (rollups.length === 1) {
-      // Single point — draw a flat segment so the chart never looks empty.
-      const y = PADDING.top + (1 - rollups[0].avgScore / 100) * innerH;
-      return `M${PADDING.left.toFixed(1)},${y.toFixed(1)} L${(PADDING.left + innerW).toFixed(1)},${y.toFixed(1)}`;
-    }
-    const span = rollups.length - 1;
-    return rollups
-      .map((r, i) => {
-        const x = PADDING.left + (i / span) * innerW;
-        const y = PADDING.top + (1 - Math.max(0, Math.min(100, r.avgScore)) / 100) * innerH;
-        return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(' ');
-  }, [rollups, innerH, innerW]);
+  const pathDs = useMemo(
+    () => buildRecapSegmentPaths(rollups, innerW, innerH, PADDING),
+    [rollups, innerW, innerH],
+  );
 
   const yFor = (score: number) => PADDING.top + (1 - score / 100) * innerH;
 
@@ -93,7 +100,9 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
                 />
               );
             })}
-            <Path d={pathD} stroke="#C1281B" strokeWidth={2} fill="none" />
+            {pathDs.map((d, i) => (
+              <Path key={`seg-${i}`} d={d} stroke="#C1281B" strokeWidth={2} fill="none" />
+            ))}
           </Svg>
         )}
       </View>
