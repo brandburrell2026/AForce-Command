@@ -24,7 +24,6 @@ import type {
 } from '../types';
 import { buildSocialRollup } from '../services/socialModeEngine';
 import {
-  resolveState,
   buildBreakdown,
   buildPrediction,
   minutesSince,
@@ -48,8 +47,16 @@ import {
 // caller is behaviourally identical; tests and the ledger-hybrid input
 // projection can pin a deterministic clock without forking the engine.
 export function calculateScore(userState: UserState, now: number = Date.now()): ScoreEngineOutput {
-  const { score, contributions, decayPerMinute } = buildBreakdown(userState, now);
-  const level = resolveState(score);
+  // HydroState v1.0 band resolution (founder narrow protected-file exception,
+  // 2026-09-01 — this call is the ONLY authorized change in this file).
+  //
+  // `resolveState(score)` read the band off the score alone, which cannot
+  // express the v1.0 rule: PEAK is a claim about the member's physiology, so it
+  // requires the score threshold AND an eligible positive physiological
+  // corroboration AND no material contradiction. `buildBreakdown` already
+  // evaluates that evidence, so the canonical band comes back with it rather
+  // than being re-derived here from a number that has forgotten why it is high.
+  const { score, contributions, decayPerMinute, level } = buildBreakdown(userState, now);
   const performanceState = buildPerformanceState(level, score);
   const pulseConfig = buildPulseConfig(level);
   const reasons = generateReasons(userState);
