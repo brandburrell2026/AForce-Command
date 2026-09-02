@@ -61,10 +61,28 @@ export function statsDayVersion(r: JournalRollup): string | null {
  * shares its version's key, and anything else gets a key unique to its own
  * index and can never join a neighbour.
  */
+/**
+ * The RENDER key for a chart snapshot — also TOTAL, for the same reason.
+ *
+ * A snapshot carries a single version, so it cannot straddle; but a nullable
+ * scalar is still the shape that welded three states together on the rollup
+ * side, and no consumer may reconstruct render identity from one.
+ */
+export function snapshotRenderKeyOf(s: { modelVersion?: string | null }): string {
+  return s.modelVersion == null ? 'unrecorded' : `v:${s.modelVersion}`;
+}
+
 export function renderKeyOf(r: JournalRollup, index: number): string {
   const p = dayProvenance(r);
   if (p.kind === 'unrecorded') return 'unrecorded';
-  if (p.kind === 'known' && p.recordedVersions.length === 1) return `v:${p.recordedVersions[0]!}`;
+  // A KNOWN day keys on its EXACT recorded set, which preserves the ruled
+  // visual semantics (v1.0 and v1.1 are separate runs) while letting two days
+  // carrying the SAME set share one — keying on the index alone would have
+  // fragmented a continuous stretch of identical straddle days into one run
+  // each, which is over-isolation rather than honesty.
+  if (p.kind === 'known') return `v:${p.recordedVersions.join('|')}`;
+  // Incompatible: no set can be shared, because the day is comparable to
+  // nothing — including to another incompatible day.
   return `isolated:${index}`;
 }
 
@@ -175,7 +193,7 @@ export function bucketizeSegmented(
   data: JournalSnapshot[],
   targetBuckets: number,
 ): Bucket[][] {
-  const segments = segmentForRender(data, (d) => d.modelVersion ?? null);
+  const segments = segmentForRender(data, snapshotRenderKeyOf);
   if (segments.length === 0) return [];
   const total = data.length || 1;
   return segments
@@ -187,28 +205,6 @@ export function bucketizeSegmented(
 }
 
 /* ── the exported recap ───────────────────────────────────────────────────── */
-
-/**
- * The single model version a day's rollup represents, or `null` when the day
- * itself mixes versions. `null` is comparable to nothing, so a mixed day
- * isolates into its own segment rather than silently joining a neighbour —
- * which is exactly the treatment it deserves.
- */
-export function dayVersion(r: JournalRollup): string | null {
-  // Q4 — RENDER identity. Deliberately NOT `scoreableVersion`, which answers Q1
-  // and would join two comparable-but-distinct versions into one stroke.
-  //
-  // The `kind` gate is load-bearing. `recordedVersions` holds only KNOWN
-  // versions, so a day recorded as [null, v1.0] reduces to ['v1.0'] — length 1,
-  // indistinguishable from a clean [v1.0] day. Reading the length alone drew
-  // the api-server deploy day INSIDE the v1.0 stroke: 30 continuous points
-  // under a caption saying 29 comparable days, while the day card marked the
-  // same row non-comparable. An incompatible day is always its own run.
-  const p = dayProvenance(r);
-  return p.kind === 'known' && p.recordedVersions.length === 1
-    ? p.recordedVersions[0]!
-    : null;
-}
 
 export interface RecapPadding { top: number; right: number; bottom: number; left: number }
 

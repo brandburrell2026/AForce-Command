@@ -30,7 +30,7 @@ import {
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
-  recapStatsScope, dayVersion, statsDayVersion, isRecordedIncompatibleDay,
+  recapStatsScope, statsDayVersion, isRecordedIncompatibleDay,
   dayProvenance, classifyRecapProvenance, renderKeyOf,
 } from '../scoring/boundarySeries';
 import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
@@ -315,7 +315,7 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
     // Uses the SHIPPED dayVersion + render segmentation, not a test-local copy:
     // two earlier laws re-implemented the predicate inline and therefore
     // asserted nothing about production behaviour.
-    const segs = segmentForRender(rows, dayVersion);
+    const segs = segmentForRender(rows, renderKeyOf);
     expect(segs.length).toBe(3);
     for (const seg of segs) expect(seg.points.length).toBe(1);
   });
@@ -351,7 +351,7 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
       rollup('2026-08-26', 72, [V0]),
       rollup('2026-08-27', 85, [V1]),
     ];
-    const segs = segmentForRender(rows, dayVersion);
+    const segs = segmentForRender(rows, renderKeyOf);
     expect(segs.flatMap((seg) => seg.points).map((r) => r.date))
       .toEqual(rows.map((r) => r.date));
   });
@@ -656,7 +656,7 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
 
       // 5 · no observation disappears
       expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBeGreaterThanOrEqual(1);
-      const segs = segmentForRender(rows, dayVersion);
+      const segs = segmentForRender(rows, renderKeyOf);
       expect(segs.flatMap((s) => s.points).length).toBe(30);
     });
   }
@@ -666,7 +666,7 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     // Statistical comparability — the registry says same-major is comparable.
     expect(recapStatsScope(rows).length).toBe(30);
     // Visual continuity — a separate contract, exact identity by founder ruling.
-    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(2);
     expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
   });
 
@@ -679,14 +679,14 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     // range genuinely non-comparable, so the filter runs and must keep BOTH
     // same-major versions.
     const rows = spec([[10, [V0]], [10, [V1]], [10, [V11]]]);
-    expect(spansModelBoundary(rows.map(dayVersion)), 'filter must be reached').toBe(true);
+    expect(spansModelBoundary(rows.map(statsDayVersion)), 'filter must be reached').toBe(true);
     const scope = recapStatsScope(rows);
     expect(scope.length, 'v1.0 + v1.1 are one score population').toBe(20);
     expect(scope.some((r) => r.modelVersions?.[0] === V1)).toBe(true);
     expect(scope.some((r) => r.modelVersions?.[0] === V11)).toBe(true);
     expect(scope.every((r) => r.modelVersions?.[0] !== V0)).toBe(true);
     // ...while the RENDER still seams all three (exact identity, by ruling).
-    expect(segmentForRender(rows, dayVersion).length).toBe(3);
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(3);
   });
 
   it('recapStatsScope routes through statsDayVersion, NOT the render predicate', () => {
@@ -696,12 +696,15 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     // Without this fixture the swap survived the entire suite.
     const rows = range([...Array.from({ length: 15 }, () => [V1]),
                         ...Array.from({ length: 15 }, () => [V1, V11])]);
-    expect(statsDayVersion(rows[29]!)).toBe(V1);   // comparable -> resolved
-    expect(dayVersion(rows[29]!)).toBeNull();      // render identity -> null
+    expect(statsDayVersion(rows[29]!)).toBe(V1);            // comparable -> resolved
+    // Render identity is a TOTAL key, never a nullable version. What matters is
+    // that a same-major straddle day cannot SHARE a run with a clean v1.0 day —
+    // not that it is "isolated"; two identical straddle days may group.
+    expect(renderKeyOf(rows[29]!, 29)).not.toBe(renderKeyOf(rows[0]!, 0));
     // The population must follow the STATISTICAL predicate: all 30 days.
     expect(recapStatsScope(rows).length).toBe(30);
     // ...while rendering still seams them, by founder ruling.
-    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(2);
   });
 
   it('a recorded-incompatible day never enters the score population', () => {
@@ -790,11 +793,12 @@ describe('DayModelProvenance — canonical classification', () => {
     expect(deployDay.kind).not.toBe('unrecorded');          // Q2: IS recorded
     expect(deployDay.recordedVersions).toEqual([V0, V1]);   // Q3: witnesses it
     // Q4: render identity is exact — a two-version day is its own run.
-    const rollupOf = (vs: string[]) => rollup('2026-08-01', 70, vs);
-    expect(dayVersion(rollupOf([V0, V1]))).toBeNull();
+    const rollupOf = (vs: (string | null)[]) => rollup('2026-08-01', 70, vs);
+    expect(renderKeyOf(rollupOf([V0, V1]), 0)).toMatch(/^isolated:/);
     // ...and a same-major pair is ONE score population but still its own run.
     expect(P([V1, V11]).scoreableVersion).toBe(V1);
-    expect(dayVersion(rollupOf([V1, V11]))).toBeNull();
+    expect(renderKeyOf(rollupOf([V1, V11]), 0))
+      .not.toBe(renderKeyOf(rollupOf([V1]), 1));
   });
 
   it('an EXCLUDED incompatible day cannot make unknown survivors "comparable"', () => {
@@ -840,7 +844,7 @@ describe('DayModelProvenance — canonical classification', () => {
     const rows = range([...Array.from({ length: 15 }, () => [V1]),
                         ...Array.from({ length: 15 }, () => [V11])]);
     expect(recapStatsScope(rows).length).toBe(30);                 // one population
-    expect(segmentForRender(rows, dayVersion).length).toBe(2);     // two visual runs
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(2);     // two visual runs
   });
 });
 
@@ -867,8 +871,8 @@ describe('null-bearing days render and score honestly', () => {
     // recordedVersions is length 1 — the trap. Render identity must consult
     // `kind`, not that length.
     expect(p.recordedVersions).toEqual([V1]);
-    expect(dayVersion(rows[29]!), 'must not join the v1.0 run').toBeNull();
-    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+    expect(renderKeyOf(rows[29]!, 29), 'must not join the v1.0 run').toMatch(/^isolated:/);
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(2);
     expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
   });
 
@@ -876,7 +880,7 @@ describe('null-bearing days render and score honestly', () => {
     // The defect drew 30 continuous points under "29 COMPARABLE DAYS".
     const rows = mk([...Array.from({ length: 29 }, () => [V1]), [null, V1]]);
     const scope = recapStatsScope(rows);
-    const runs = segmentForRender(rows, dayVersion);
+    const runs = segmentForRender(rows, renderKeyOf);
     expect(scope.length).toBe(29);
     // The excluded day is visually separated, not welded into the run.
     const largest = Math.max(...runs.map((r) => r.points.length));
@@ -899,7 +903,7 @@ describe('null-bearing days render and score honestly', () => {
     // while the share card drew it inside the v1.0 stroke.
     const row = rollup('2026-08-30', 80, [null, V1]);
     expect(isMixedModelDay(row.modelVersions)).toBe(true);   // JournalDayCard
-    expect(dayVersion(row)).toBeNull();                      // render
+    expect(renderKeyOf(row, 0)).toMatch(/^isolated:/);       // render
     expect(statsDayVersion(row)).toBeNull();                 // population
     expect(dayProvenance(row).kind).toBe('incompatible');    // canonical
   });
@@ -976,5 +980,56 @@ describe('a non-clean day never joins an UNSTAMPED run', () => {
     expect(segmentForRender(rows, renderKeyOf).length).toBe(1);
     const unstamped = mk(Array.from({ length: 10 }, () => [null]));
     expect(segmentForRender(unstamped, renderKeyOf).length).toBe(1);
+  });
+});
+
+describe('SCOPE LAW — no lossy render predicate survives', () => {
+  it('`dayVersion` no longer exists or is exported anywhere in the boundary module', () => {
+    // It collapsed unrecorded, incompatible and known-multi-version days onto
+    // `null`, and `null === null` welded three semantically distinct states
+    // into one visual run. The value must not survive as a shortcut for the
+    // next consumer to reach for.
+    const src = read('utils/scoring/boundarySeries.ts');
+    const code = src.split('\n')
+      .filter((l) => !l.trim().startsWith('*') && !l.trim().startsWith('//') && !l.trim().startsWith('/*'))
+      .join('\n');
+    expect(code).not.toMatch(/export function dayVersion\b/);
+    expect(code).not.toMatch(/\bdayVersion\s*\(/);
+  });
+
+  it('no render grouping is keyed on a nullable version anywhere', () => {
+    const src = read('utils/scoring/boundarySeries.ts')
+      .split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    // Every segmentForRender call must pass a TOTAL key function.
+    const calls = [...src.matchAll(/segmentForRender\([^,]+,\s*([^)]+)\)/g)].map((m) => m[1]!.trim());
+    expect(calls.length).toBeGreaterThan(0);                 // ANTI-VACUITY
+    for (const arg of calls) {
+      expect(arg, `render key must be total, got: ${arg}`)
+        .toMatch(/renderKeyOf|snapshotRenderKeyOf/);
+    }
+    expect(src).not.toMatch(/segmentForRender\([^)]*modelVersion \?\? null/);
+  });
+
+  it('the render key is TOTAL over every provenance kind', () => {
+    const V11 = 'hydrostate-v1.1';
+    const key = (vs: (string | null)[], i = 0) =>
+      renderKeyOf(rollup('2026-08-01', 70, vs), i);
+    // Distinct provenance states must not collapse onto one key.
+    const unrecorded = key([]);
+    const knownV1 = key([V1]);
+    const straddle = key([V1, V11]);
+    const incompatible = key([V0, V1], 5);
+    expect(new Set([unrecorded, knownV1, straddle, incompatible]).size).toBe(4);
+    // ...and no key is null or empty.
+    for (const k of [unrecorded, knownV1, straddle, incompatible]) {
+      expect(typeof k).toBe('string');
+      expect(k.length).toBeGreaterThan(0);
+    }
+    // Identical states DO share, so this is not blanket isolation.
+    expect(key([])).toBe(key([]));
+    expect(key([V1])).toBe(key([V1], 9));
+    expect(key([V1, V11])).toBe(key([V1, V11], 9));
+    // Incompatible days never share, even with each other.
+    expect(key([V0, V1], 1)).not.toBe(key([V0, V1], 2));
   });
 });
