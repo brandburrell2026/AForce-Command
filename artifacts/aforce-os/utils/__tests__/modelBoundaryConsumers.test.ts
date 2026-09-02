@@ -57,8 +57,25 @@ function rollupNoVersions(date: string): JournalRollup {
   return r as unknown as JournalRollup;
 }
 
-function rollup(date: string, avgScore: number, modelVersions: (string | null)[]): JournalRollup {
-  return { date, avgScore, minScore: avgScore, maxScore: avgScore, snapshotsCount: 4,
+/**
+ * Observation presence is EXPLICIT. Every fixture used to hardcode
+ * `snapshotsCount: 4`, so a scoreless day — the server's real
+ * intake-without-snapshot row — was unconstructible and its whole defect class
+ * invisible. `snapshotsCount` is now a parameter, and `scorelessRollup` builds
+ * the sentinel shape the server actually emits.
+ */
+function scorelessRollup(date: string): JournalRollup {
+  // Exactly what journal.ts emits for a day with intakes and no snapshot.
+  return rollup(date, 0, [], 0);
+}
+
+function rollup(
+  date: string,
+  avgScore: number,
+  modelVersions: (string | null)[],
+  snapshotsCount = 4,
+): JournalRollup {
+  return { date, avgScore, minScore: avgScore, maxScore: avgScore, snapshotsCount,
     endOzConsumed: 60, endAforceUnits: 0, endUnitsConsumed: 5, endSodiumDelivered: 0,
     endSodiumLost: 0, endDeficitPct: 0, pctTimePeak: 0, pctTimeBalanced: 100,
     pctTimeRecovering: 0, pctTimeDepleted: 0, intakeCount: 3, autopilotSessions: 0,
@@ -1031,5 +1048,142 @@ describe('SCOPE LAW — no lossy render predicate survives', () => {
     expect(key([V1, V11])).toBe(key([V1, V11], 9));
     // Incompatible days never share, even with each other.
     expect(key([V0, V1], 1)).not.toBe(key([V0, V1], 2));
+  });
+});
+
+/* ═══════ SENTINEL GATE — ABSENT ≠ ZERO ≠ UNKNOWN ≠ INCOMPATIBLE ═══════
+ *
+ * The wire audit named these states in prose and never fed them to a consumer.
+ * Every recap fixture hardcoded `snapshotsCount: 4`, so the server's real
+ * intake-without-snapshot row was unconstructible and 149 laws stayed green
+ * while one missed sync dragged a 30-day average from 90 to 87 and — after the
+ * rollout — printed "MODEL HISTORY UNAVAILABLE" over a fully-stamped run.
+ * These laws run the sentinel THROUGH the production consumers.
+ */
+describe('SENTINEL GATE — a scoreless day is not a score', () => {
+  const mk = (n: number, vs: (string | null)[], score = 90) =>
+    Array.from({ length: n }, (_, i) =>
+      rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, score, vs));
+  const withGapAt = (rows: JournalRollup[], i: number) => {
+    const copy = [...rows];
+    copy[i] = scorelessRollup(copy[i]!.date);
+    return copy;
+  };
+  const cardFor = (rows: JournalRollup[]) => {
+    const scope = recapStatsScope(rows);
+    const observed = rows.filter((r) => r.snapshotsCount > 0);
+    return computeRecapCardStats(rows, scope, { streakComparable: scope.length === observed.length });
+  };
+
+  it('H1 — a scoreless day never drags the average toward zero', () => {
+    const clean = mk(30, [], 90);
+    const gap = withGapAt(clean, 14);
+    expect(cardFor(clean).avgScore).toBe(90);
+    expect(cardFor(gap).avgScore, 'the sentinel must not be averaged in').toBe(90);
+    // ANTI-VACUITY: the sentinel really is present and really is excluded.
+    expect(gap[14]!.snapshotsCount).toBe(0);
+    expect(gap[14]!.avgScore).toBe(0);
+    expect(recapStatsScope(gap).length).toBe(29);
+    // ...and it is still a tracked day of the reporting range.
+    expect(cardFor(gap).daysTracked).toBe(30);
+  });
+
+  it('H2 — a scoreless day never announces model uncertainty', () => {
+    const clean = mk(30, [V1], 90);
+    const gap = withGapAt(clean, 14);
+    expect(classifyRecapProvenance(clean).kind).toBe('fully_comparable');
+    expect(classifyRecapProvenance(gap).kind,
+      'a missing snapshot is not a comparability event').toBe('fully_comparable');
+    expect(cardFor(gap).avgScore).toBe(90);
+  });
+
+  it('a scoreless day is a GAP in the chart, never a plotted zero', () => {
+    const gap = withGapAt(mk(30, [V1], 90), 14);
+    const paths = buildRecapSegmentPaths(gap, 300, 100, PAD);
+    expect(paths.length, 'the stroke breaks at the gap').toBe(2);
+    // No geometry may sit on the score-0 baseline.
+    const baselineY = PAD.top + (100 - PAD.top - PAD.bottom);
+    for (const d of paths) {
+      const ys = [...d.matchAll(/[ML][\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
+      for (const y of ys) expect(y, `plotted at the zero baseline: ${d}`).toBeLessThan(baselineY);
+    }
+  });
+
+  it('gap position: first, last, middle, and several consecutive', () => {
+    const base = mk(30, [V1], 90);
+    for (const [label, idxs, expectPaths] of [
+      ['first', [0], 1], ['last', [29], 1], ['middle', [14], 2],
+      ['three consecutive', [10, 11, 12], 2],
+    ] as Array<[string, number[], number]>) {
+      let rows = base;
+      for (const i of idxs) rows = withGapAt(rows, i);
+      const c = cardFor(rows);
+      expect(c.avgScore, `${label}: average unaffected`).toBe(90);
+      expect(c.daysTracked, `${label}: still 30 tracked days`).toBe(30);
+      expect(classifyRecapProvenance(rows).kind, `${label}: no model uncertainty`)
+        .toBe('fully_comparable');
+      expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length, `${label}: strokes`)
+        .toBe(expectPaths);
+    }
+  });
+
+  it('ABSENT ≠ ZERO — a MEASURED zero behaves completely differently', () => {
+    const measuredZero = mk(30, [V1], 90);
+    measuredZero[14] = rollup(measuredZero[14]!.date, 0, [V1], 4);   // real 0, observed
+    const absent = withGapAt(mk(30, [V1], 90), 14);
+    // The measured zero IS a score: it enters the population and moves the mean.
+    expect(recapStatsScope(measuredZero).length).toBe(30);
+    expect(cardFor(measuredZero).avgScore).toBeLessThan(90);
+    // The absent day does neither.
+    expect(recapStatsScope(absent).length).toBe(29);
+    expect(cardFor(absent).avgScore).toBe(90);
+  });
+
+  it('ZERO ≠ UNKNOWN ≠ INCOMPATIBLE — four states, four behaviours', () => {
+    const at = (r: JournalRollup) => ({
+      inScope: recapStatsScope([rollup('2026-08-01', 90, [V1]), r]).length,
+      kind: classifyRecapProvenance([rollup('2026-08-01', 90, [V1]), r]).kind,
+    });
+    const scoreless = at(scorelessRollup('2026-08-02'));
+    const measured0 = at(rollup('2026-08-02', 0, [V1], 4));
+    const unknown = at(rollup('2026-08-02', 90, [], 4));
+    const incompatible = at(rollup('2026-08-02', 90, [V0, V1], 4));
+    // ABSENT: excluded from the population, and NOT a comparability event.
+    expect(scoreless).toEqual({ inScope: 1, kind: 'fully_comparable' });
+    // MEASURED ZERO: a real score — enters the population, no uncertainty.
+    expect(measured0).toEqual({ inScope: 2, kind: 'fully_comparable' });
+    // UNKNOWN PROVENANCE: excluded, and comparability WAS decided for the
+    // survivor, so this narrows rather than reporting unknown history.
+    expect(unknown).toEqual({ inScope: 1, kind: 'partially_comparable' });
+    // INCOMPATIBLE: excluded, and it carries transition evidence the others
+    // do not — so it is a different state again.
+    expect(incompatible.inScope).toBe(1);
+    expect(incompatible.kind).toBe('partially_comparable');
+    const inc = classifyRecapProvenance([rollup('2026-08-01', 90, [V1]), rollup('2026-08-02', 90, [V0, V1], 4)]);
+    expect(hasKnownTransition(inc), 'only the incompatible day witnesses a transition').toBe(true);
+    const unk = classifyRecapProvenance([rollup('2026-08-01', 90, [V1]), rollup('2026-08-02', 90, [], 4)]);
+    expect(hasKnownTransition(unk)).toBe(false);
+    // All four are genuinely distinct.
+    // Four genuinely distinct behaviours across (inScope, kind, transition).
+    const sig = (o: { inScope: number; kind: string }, t: boolean) => `${o.inScope}|${o.kind}|${t}`;
+    expect(new Set([
+      sig(scoreless, false), sig(measured0, false),
+      sig(unknown, hasKnownTransition(unk)), sig(incompatible, hasKnownTransition(inc)),
+    ]).size).toBe(4);
+  });
+
+  it('a scoreless day with REAL intake keeps its activity', () => {
+    // PR B will source authoritative totals from intake rows; the day must
+    // survive in the reporting range for that to be possible.
+    const gap = withGapAt(mk(30, [V1], 90), 14);
+    expect(gap[14]!.intakeCount).toBeGreaterThanOrEqual(0);
+    expect(cardFor(gap).daysTracked).toBe(30);
+  });
+
+  it('an entirely scoreless range has NO history, not unknown history', () => {
+    const rows = Array.from({ length: 10 }, (_, i) =>
+      scorelessRollup(`2026-08-${String(i + 1).padStart(2, '0')}`));
+    expect(classifyRecapProvenance(rows).kind).toBe('no_history');
+    expect(recapStatsScope(rows).length).toBe(0);
   });
 });

@@ -36,6 +36,27 @@ export function dayProvenance(r: JournalRollup): DayModelProvenance {
   return provenanceOfVersions(r.modelVersions);
 }
 
+/**
+ * THE SCORE-OBSERVATION SEAM — asked before any provenance question.
+ *
+ * `snapshotsCount === 0` means NO HYDROSTATE OBSERVATION EXISTS for that day.
+ * The server still emits a row (a day with intakes but no captured snapshot is
+ * real activity), and it fills the score fields with a SENTINEL:
+ * `avgScore: snapshotsCount > 0 ? real : 0` (journal.ts:443).
+ *
+ * NO OBSERVATION != SCORE ZERO. Read without this seam, one missed sync
+ * dragged a member's 30-day average from 90 to 87, halved their streak, was
+ * plotted at the very bottom of the chart on a day they logged water — and,
+ * after the v1.0 rollout, made the card announce "MODEL HISTORY UNAVAILABLE"
+ * because a day with no score has no version stamp either. A day with no
+ * observation has no provenance to be unknown about.
+ *
+ * Declared ONCE here; no consumer re-encodes it.
+ */
+export function hasHydroStateObservation(r: JournalRollup): boolean {
+  return r.snapshotsCount > 0;
+}
+
 /** Q1 — may this day's score enter a statistical population, and under which version? */
 export function statsDayVersion(r: JournalRollup): string | null {
   return dayProvenance(r).scoreableVersion;
@@ -73,6 +94,10 @@ export function snapshotRenderKeyOf(s: { modelVersion?: string | null }): string
 }
 
 export function renderKeyOf(r: JournalRollup, index: number): string {
+  // A day with no observation is a GAP in the score series, never a point.
+  // Plotting the server's sentinel drew a hard zero on a day the member simply
+  // did not sync — inventing an observation, and the worst possible one.
+  if (!hasHydroStateObservation(r)) return `gap:${index}`;
   const p = dayProvenance(r);
   if (p.kind === 'unrecorded') return 'unrecorded';
   // A KNOWN day keys on its EXACT recorded set, which preserves the ruled
@@ -241,6 +266,10 @@ export function buildRecapSegmentPaths(
   let cursor = 0;
   const out: string[] = [];
   for (const seg of segs) {
+    // A gap emits no geometry at all — and, being its own segment, it also
+    // breaks the stroke rather than letting a line be drawn THROUGH the
+    // missing day, which would interpolate an observation that never existed.
+    if (seg.modelVersion?.startsWith('gap:')) { cursor += seg.points.length; continue; }
     const cmds = seg.points.map((r, j) => {
       const i = cursor + j;
       const x = padding.left + (i / span) * innerW;
@@ -278,12 +307,17 @@ export function recapStatsScope(
   rollups: readonly JournalRollup[],
 ): readonly JournalRollup[] {
   if (rollups.length === 0) return rollups;
+  // OBSERVATION FIRST, provenance second. A day with no HydroState observation
+  // is not an unknown-provenance day — it is not a score at all, so no
+  // comparability question applies to it.
+  const observed = rollups.filter(hasHydroStateObservation);
+  if (observed.length === 0) return [];
   // A day whose own recorded versions disagree can NEVER contribute to an
   // aggregate: its `avgScore` is already a blend of two measurements, so
   // including it publishes exactly the claim this module exists to prevent.
   // Unrecorded days are NOT excluded — unknown is not incompatible, and the
   // existing behaviour for an all-unstamped history is preserved.
-  const eligible = rollups.filter((r) => dayProvenance(r).kind !== 'incompatible');
+  const eligible = observed.filter((r) => dayProvenance(r).kind !== 'incompatible');
   if (eligible.length === 0) return eligible;   // caller must suppress aggregates
   const versions = eligible.map(statsDayVersion);
   if (!spansModelBoundary(versions)) return eligible;
@@ -353,7 +387,11 @@ export function classifyRecapProvenance(
 
   // ONE pass, ONE classification per day. Each question below reads the field
   // that answers it; none re-derives another's meaning.
-  const days = rollups.map(dayProvenance);
+  // Only OBSERVED days carry provenance. A scoreless day contributes no
+  // version evidence and must not make an otherwise-known run look uncertain.
+  const observedRows = rollups.filter(hasHydroStateObservation);
+  if (observedRows.length === 0) return { kind: 'no_history' };
+  const days = observedRows.map(dayProvenance);
 
   // Q3 — a transition is witnessed by RECORDED versions, including those on a
   // day that is itself unusable for scoring. A deploy day is evidence even
@@ -380,7 +418,7 @@ export function classifyRecapProvenance(
     const trulyIncompatible = hasIncompatible && knownTransition;
     if (trulyIncompatible) return { kind: 'recorded_incompatible', knownTransition };
     return hasIncompatible || hasUnrecorded
-      ? { kind: 'provenance_unknown', knownTransition, comparableDays: 0, observedDays: rollups.length }
+      ? { kind: 'provenance_unknown', knownTransition, comparableDays: 0, observedDays: observedRows.length }
       : { kind: 'no_history' };
   }
 
@@ -389,7 +427,10 @@ export function classifyRecapProvenance(
   // narrowing caused solely by dropping incompatible days leaves survivors
   // that may all be unrecorded, for which nothing was decided at all.
   const scopeAllKnown = scope.every((r) => dayProvenance(r).kind === 'known');
-  if (scope.length < rollups.length && scopeAllKnown) {
+  // Narrowing is measured against OBSERVED days, not the reporting range: a
+  // missing snapshot is not a comparability event, and comparing to
+  // `rollups.length` is what made one missed sync print "29 COMPARABLE DAYS".
+  if (scope.length < observedRows.length && scopeAllKnown) {
     return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
   }
   if (hasUnrecorded || !scopeAllKnown) {
@@ -397,7 +438,7 @@ export function classifyRecapProvenance(
     // Dropping it let AVG/PEAK describe 1 of 30 days silently.
     return {
       kind: 'provenance_unknown', knownTransition,
-      comparableDays: scope.length, observedDays: rollups.length,
+      comparableDays: scope.length, observedDays: observedRows.length,
     };
   }
   return { kind: 'fully_comparable' };
