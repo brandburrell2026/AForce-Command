@@ -289,9 +289,28 @@ export function classifyRecapProvenance(
   if (rollups.length === 0) return { kind: 'fully_comparable' };
   const versions = rollups.map(statsDayVersion);
   const hasUnknown = versions.some((v) => v == null);
-  const known = [...new Set(versions.filter((v): v is string => v != null))];
+
+  // EVIDENCE COMES FROM THE RAW PER-DAY LISTS, not the collapsed value.
+  //
+  // `statsDayVersion` answers "is this day's aggregate score usable?" and
+  // correctly collapses a day whose versions disagree to `null`. Reading the
+  // known-version evidence out of THAT vector answered a different question
+  // with it — "is this day's provenance recorded?" — and destroyed both stamps
+  // of a transition that happened inside a single day.
+  //
+  // That is the literal rollout shape: the rollups route accumulates every
+  // snapshot's version into ONE per-UTC-day Set, so the deploy day is
+  // ['hydrostate-v0', 'hydrostate-v1.0'] for every member who logged on both
+  // sides of it. The card said MODEL HISTORY UNAVAILABLE on the one day the
+  // transition notice exists for — and whether it did so depended on whether
+  // the transition happened to be redundantly duplicated as whole days
+  // elsewhere in the window, which is not a property anything guarantees.
+  const known = [...new Set(
+    rollups.flatMap((r) => r.modelVersions ?? []).filter((v): v is string => v != null),
+  )];
   // A transition is KNOWN only when two known versions genuinely disagree.
-  // Unrecorded days are not evidence that the model changed.
+  // Unrecorded days are not evidence that the model changed, and same-major
+  // versions (v1.0 / v1.1) are comparable, so neither counts as a transition.
   const knownTransition = known.length >= 2 && spansModelBoundary(known);
 
   const scope = recapStatsScope(rollups);

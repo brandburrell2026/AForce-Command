@@ -336,6 +336,24 @@ describe('D3A — qualifier classification', () => {
       { qualifier: null, streakNote: null, streakShown: true }],
     ['entirely mixed [v0, v1]', Array.from({ length: 30 }, () => [V0, V1]),
       { qualifier: /MODEL HISTORY UNAVAILABLE/, streakNote: null, streakShown: true }],
+    // THE LITERAL ROLLOUT DAY. The server accumulates a day's snapshot versions
+    // into one Set, so the deploy day is ['v0','v1.0'] for anyone who logged on
+    // both sides of it. Both versions are RECORDED — nothing about this day is
+    // unknown — so the transition notice is exactly what it must show. Reading
+    // the evidence from the collapsed day-version erased both stamps and said
+    // MODEL HISTORY UNAVAILABLE instead.
+    ['rollout day: 6× v0 then [v0, v1.0]',
+      [...Array.from({ length: 6 }, () => [V0]), [V0, V1]],
+      { qualifier: /6 COMPARABLE DAYS/, streakNote: /NEW MODEL PERIOD/, streakShown: false }],
+    // ...and the same day at the START of the window, where the transition is
+    // likewise present only inside the mixed day.
+    ['rollout day first: [v0, v1.0] then v1.0',
+      [[V0, V1], ...Array.from({ length: 6 }, () => [V1])],
+      { qualifier: /6 COMPARABLE DAYS/, streakNote: /NEW MODEL PERIOD/, streakShown: false }],
+    // A same-major straddle is NOT a transition — it must not borrow C's words.
+    ['same-major straddle [v1.0, v1.1]',
+      [[V1], [V1, V11], [V11]],
+      { qualifier: null, streakNote: null, streakShown: true }],
   ];
 
   for (const [label, spec, want] of CASES) {
