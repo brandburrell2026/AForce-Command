@@ -258,3 +258,46 @@ export function recapStatsScope(
   // comparability are separate contracts, and this is the statistical one.
   return rollups.filter((r) => isComparableModelVersion(statsDayVersion(r), newestKnown));
 }
+
+/* ── model provenance classification (founder ruling D3A) ─────────────────── */
+
+/**
+ * Unknown provenance is NOT known comparability.
+ *
+ * One boolean cannot carry this: `recapStatsScope` returns the full range both
+ * when every day is proven comparable AND when no day's provenance can be
+ * established at all, and those two states owe the member different words. The
+ * second must not silently imply the first, and neither may claim a model
+ * TRANSITION that is not known to have happened.
+ *
+ *   fully_comparable      every day's version is known and mutually comparable
+ *   partially_comparable  the population narrowed; `knownTransition` says
+ *                         whether two mutually incomparable KNOWN versions are
+ *                         actually present, or whether the narrowing is merely
+ *                         the consequence of days whose provenance is unknown
+ *   provenance_unknown    at least one day is unrecorded and the population did
+ *                         NOT narrow — nothing was proven either way
+ */
+export type RecapProvenance =
+  | { kind: 'fully_comparable' }
+  | { kind: 'partially_comparable'; comparableDays: number; knownTransition: boolean }
+  | { kind: 'provenance_unknown' };
+
+export function classifyRecapProvenance(
+  rollups: readonly JournalRollup[],
+): RecapProvenance {
+  if (rollups.length === 0) return { kind: 'fully_comparable' };
+  const versions = rollups.map(statsDayVersion);
+  const hasUnknown = versions.some((v) => v == null);
+  const known = [...new Set(versions.filter((v): v is string => v != null))];
+  // A transition is KNOWN only when two known versions genuinely disagree.
+  // Unrecorded days are not evidence that the model changed.
+  const knownTransition = known.length >= 2 && spansModelBoundary(known);
+
+  const scope = recapStatsScope(rollups);
+  if (scope.length < rollups.length) {
+    return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
+  }
+  if (hasUnknown) return { kind: 'provenance_unknown' };
+  return { kind: 'fully_comparable' };
+}

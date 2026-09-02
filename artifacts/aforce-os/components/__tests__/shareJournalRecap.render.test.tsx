@@ -42,7 +42,7 @@ vi.mock('react-native-svg', () => {
 });
 
 import ShareJournalRecap from '../ShareJournalRecap';
-import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
+import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance } from '@/utils/scoring/boundarySeries';
 import { computeRecapStats } from '@/utils/journalRecapStats';
 
 /** A path must have VISIBLE LENGTH — a draw command alone is not the contract. */
@@ -305,5 +305,83 @@ describe('ShareJournalRecap — the card only shows what it can support', () => 
     expect(recapStatsScope(rows).length).toBe(30);
     expect(statValue('DAYS')).toBe('30');
     expect(host.textContent).not.toMatch(/COMPARABLE DAY/);   // nothing to disclose
+  });
+});
+
+/* ═════════ D3A — four semantic states, never one boolean ═════════
+ *
+ * Unknown provenance is not known comparability. `recapStatsScope` returns the
+ * full range BOTH when every day is proven comparable and when no day's
+ * provenance can be established, and those states owe the member different
+ * words — one of them must not borrow the other's silence, and neither may
+ * assert a model transition that is not known to have happened.
+ */
+describe('D3A — qualifier classification', () => {
+  const CASES: Array<[string, string[][], {
+    qualifier: RegExp | null; streakNote: RegExp | null; streakShown: boolean;
+  }]> = [
+    ['all unstamped', Array.from({ length: 30 }, () => []),
+      { qualifier: /MODEL HISTORY UNAVAILABLE/, streakNote: null, streakShown: true }],
+    ['all v1', Array.from({ length: 30 }, () => [V1]),
+      { qualifier: null, streakNote: null, streakShown: true }],
+    ['v0 → v1', [...Array.from({ length: 20 }, () => [V0]), ...Array.from({ length: 10 }, () => [V1])],
+      { qualifier: /10 COMPARABLE DAYS/, streakNote: /NEW MODEL PERIOD/, streakShown: false }],
+    ['v1.0 → v1.1', [...Array.from({ length: 15 }, () => [V1]), ...Array.from({ length: 15 }, () => [V11])],
+      { qualifier: null, streakNote: null, streakShown: true }],
+    ['known + trailing unstamped', [...Array.from({ length: 29 }, () => [V1]), []],
+      { qualifier: /29 COMPARABLE DAYS/, streakNote: /MODEL HISTORY UNAVAILABLE/, streakShown: false }],
+    ['known + leading unstamped', [[], ...Array.from({ length: 29 }, () => [V1])],
+      { qualifier: /29 COMPARABLE DAYS/, streakNote: /MODEL HISTORY UNAVAILABLE/, streakShown: false }],
+    ['same-day mixed [v1.0, v1.1]', Array.from({ length: 30 }, () => [V1, V11]),
+      { qualifier: null, streakNote: null, streakShown: true }],
+    ['entirely mixed [v0, v1]', Array.from({ length: 30 }, () => [V0, V1]),
+      { qualifier: /MODEL HISTORY UNAVAILABLE/, streakNote: null, streakShown: true }],
+  ];
+
+  for (const [label, spec, want] of CASES) {
+    it(`${label}: qualifier and streak note are the RIGHT ones`, () => {
+      render(range(spec));
+      const txt = host.textContent ?? '';
+
+      if (want.qualifier) expect(txt, 'qualifier').toMatch(want.qualifier);
+      else expect(txt, 'no qualifier expected').not.toMatch(/HYDROSTATE ·/);
+
+      // A false transition claim is the specific harm: never say NEW MODEL
+      // PERIOD unless a transition between two KNOWN versions is present.
+      if (want.streakNote?.source.includes('NEW MODEL')) {
+        expect(txt).toMatch(/NEW MODEL PERIOD/);
+      } else {
+        expect(txt, 'must not claim an unproven model transition')
+          .not.toMatch(/NEW MODEL PERIOD/);
+      }
+      if (want.streakNote) expect(txt, 'streak note').toMatch(want.streakNote);
+
+      if (want.streakShown) {
+        expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).toBeNull();
+        expect(Number(statValue('STREAK'))).toBeGreaterThan(0);
+      } else {
+        expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).not.toBeNull();
+      }
+
+      // 'N COMPARABLE DAYS' may only appear when comparability was DECIDED.
+      if (/COMPARABLE DAY/.test(txt)) {
+        const p = classifyRecapProvenance(range(spec));
+        expect(p.kind).toBe('partially_comparable');
+      }
+    });
+  }
+
+  it('the four states are genuinely distinct — no two collapse', () => {
+    const kinds = CASES.map(([, spec]) => {
+      const p = classifyRecapProvenance(range(spec));
+      return p.kind === 'partially_comparable'
+        ? `partial:${p.knownTransition ? 'transition' : 'unknown'}` : p.kind;
+    });
+    // ANTI-VACUITY: all four semantic states must actually occur above, or the
+    // table proves nothing about the classifier's ability to tell them apart.
+    expect(new Set(kinds)).toEqual(new Set([
+      'provenance_unknown', 'fully_comparable',
+      'partial:transition', 'partial:unknown',
+    ]));
   });
 });

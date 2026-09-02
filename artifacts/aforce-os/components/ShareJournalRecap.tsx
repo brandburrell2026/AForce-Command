@@ -18,7 +18,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
 import { computeRecapCardStats } from '@/utils/journalRecapStats';
-import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
+import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance } from '@/utils/scoring/boundarySeries';
 
 /** Rendered wherever the card cannot support a number. */
 const UNAVAILABLE = '—';
@@ -69,13 +69,37 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // Deriving the gate from the population makes "streak suppressed ⟺ scoring
   // population narrowed" true by construction, so the two cannot diverge again.
   const streakComparable = statsScope.length === rollups.length;
+
+  // FOUR semantic states, never collapsed into one boolean (founder D3A):
+  //   A no qualifier            every day proven comparable
+  //   B N COMPARABLE DAY(S)     population narrowed — comparability WAS decided
+  //   C NEW MODEL PERIOD        a real transition between known versions
+  //   D MODEL HISTORY UNAVAILABLE  provenance could not be established at all
+  // D must never wear A's silence or C's words: an unrecorded day is not
+  // evidence that the model changed, and saying so would tell a member their
+  // history crossed a recalibration that may never have happened.
+  const provenance = classifyRecapProvenance(rollups);
   const stats = useMemo(
     () => computeRecapCardStats(rollups, statsScope, { streakComparable }),
     [rollups, statsScope, streakComparable],
   );
   // D3 — a smaller scoring population may not be silent. Shown only when the
   // score figures actually describe fewer days than the label does.
-  const showComparableDays = stats.comparableDays < stats.daysTracked;
+  const qualifier =
+    provenance.kind === 'partially_comparable'
+      ? `HYDROSTATE · ${provenance.comparableDays} COMPARABLE `
+        + (provenance.comparableDays === 1 ? 'DAY' : 'DAYS')
+      : provenance.kind === 'provenance_unknown'
+        ? 'HYDROSTATE · MODEL HISTORY UNAVAILABLE'
+        : null;
+  // The streak is only ever labelled a MODEL PERIOD when a transition between
+  // two known versions is actually present. Narrowing caused by unrecorded
+  // provenance says "unavailable", not "new model".
+  const streakNote =
+    stats.bestStreak != null ? null
+      : provenance.kind === 'partially_comparable' && provenance.knownTransition
+        ? 'NEW MODEL PERIOD'
+        : 'MODEL HISTORY UNAVAILABLE';
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 
@@ -126,10 +150,14 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
         )}
       </View>
 
-      {showComparableDays && (
-        <Text style={[styles.statK, styles.qualifier]} testID="recap-comparable-days">
-          HYDROSTATE · {stats.comparableDays} COMPARABLE{' '}
-          {stats.comparableDays === 1 ? 'DAY' : 'DAYS'}
+      {qualifier != null && (
+        <Text
+          style={[styles.statK, styles.qualifier]}
+          testID={provenance.kind === 'provenance_unknown'
+            ? 'recap-model-history-unavailable'
+            : 'recap-comparable-days'}
+        >
+          {qualifier}
         </Text>
       )}
 
@@ -142,9 +170,9 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
           v={stats.bestStreak == null ? UNAVAILABLE : String(stats.bestStreak)}
         />
       </View>
-      {stats.bestStreak == null && (
+      {streakNote != null && (
         <Text style={[styles.statK, styles.qualifier]} testID="recap-streak-unavailable">
-          NEW MODEL PERIOD
+          {streakNote}
         </Text>
       )}
 
