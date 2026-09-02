@@ -309,3 +309,51 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
     expect(strokeShapes().length).toBe(2);
   });
 });
+
+describe('adjacent one-anchor runs never merge into one mark', () => {
+  const V0x = 'hydrostate-v0';
+  const V1x = 'hydrostate-v1.0';
+  const V11x = 'hydrostate-v1.1';
+
+  function versionedLocal(spec: (string | null)[]): JournalSnapshot[] {
+    const base = Date.parse('2026-07-01T00:00:00.000Z');
+    return spec.map((modelVersion, i) => ({
+      at: new Date(base + i * 86_400_000).toISOString(),
+      score: 60 + (i % 20), modelVersion,
+    } as unknown as JournalSnapshot));
+  }
+  const spans = () =>
+    Array.from(host.querySelectorAll('[data-stub="Path"]'))
+      .map((p) => p.getAttribute('d') ?? '')
+      .filter((d) => d.startsWith('M'))
+      .filter((d, i, a) => a.indexOf(d) === i)
+      .map((d) => {
+        const xs = [...d.matchAll(/[MLC]([\d.]+),/g)].map((m) => Number(m[1]));
+        return [Math.min(...xs), Math.max(...xs)] as [number, number];
+      });
+
+  it('many consecutive one-day runs draw SEPARATED marks', () => {
+    // A boundary drawn as one continuous mark is the claim segmentation exists
+    // to prevent — reintroduced by the fix that made a lone run visible.
+    //
+    // The fixture must pack the anchors CLOSE: with only three runs they land
+    // ~134px apart and a fixed 22px mark never overlaps, so the law passed
+    // whatever the width rule did. Twenty alternating runs put them ~14px
+    // apart, where a fixed 22px mark genuinely merges.
+    const alternating = Array.from({ length: 20 }, (_, i) => (i % 2 ? V1x : V0x));
+    renderChart({ data: versionedLocal(alternating), width: 320 });
+    const s = spans();
+    expect(s.length).toBeGreaterThanOrEqual(3);   // ANTI-VACUITY
+    const sorted = [...s].sort((a, b) => a[0] - b[0]);
+    for (let i = 1; i < sorted.length; i++) {
+      expect(sorted[i]![0], `run ${i} must start after run ${i - 1} ends`)
+        .toBeGreaterThan(sorted[i - 1]![1]);
+    }
+  });
+
+  it('each mark still has real visible width', () => {
+    const alternating = Array.from({ length: 20 }, (_, i) => (i % 2 ? V1x : V0x));
+    renderChart({ data: versionedLocal(alternating), width: 320 });
+    for (const [lo, hi] of spans()) expect(hi - lo).toBeGreaterThan(1);
+  });
+});

@@ -472,3 +472,59 @@ describe('D3A — qualifier classification', () => {
     ]));
   });
 });
+
+/* ═══════ LOCKED WORDING TAXONOMY (founder ruling 3) ═══════
+ * These four states may never substitute for one another.
+ */
+describe('wording taxonomy — locked', () => {
+  const TAXONOMY: Array<[string, (string | null)[][], {
+    shows: RegExp | null; forbids: RegExp[];
+  }]> = [
+    ['no data at all', [],
+      { shows: null, forbids: [/MODEL HISTORY UNAVAILABLE/, /NOT COMPARABLE/, /COMPARABLE DAY/, /NEW MODEL PERIOD/] }],
+    ['unrecorded provenance', Array.from({ length: 10 }, () => []),
+      { shows: /MODEL HISTORY UNAVAILABLE/, forbids: [/NOT COMPARABLE/] }],
+    ['recorded incompatible', Array.from({ length: 10 }, () => [V0, V1]),
+      { shows: /MODEL VERSIONS NOT COMPARABLE/, forbids: [/MODEL HISTORY UNAVAILABLE/] }],
+    ['known transition, usable subset',
+      [...Array.from({ length: 6 }, () => [V0]), ...Array.from({ length: 4 }, () => [V1])],
+      { shows: /COMPARABLE DAYS/, forbids: [/NOT COMPARABLE/] }],
+    // Missing provenance may NOT wear the incompatible wording, even though the
+    // day is unusable: only ONE known version was ever recorded here.
+    ['known + null only (missing, not incompatible)',
+      Array.from({ length: 10 }, () => [null, V1]),
+      { shows: /MODEL HISTORY UNAVAILABLE/, forbids: [/NOT COMPARABLE/] }],
+  ];
+
+  for (const [label, spec, want] of TAXONOMY) {
+    it(`${label}: says the right thing and only that`, () => {
+      render(range(spec));
+      const txt = host.textContent ?? '';
+      if (want.shows) expect(txt, 'expected wording').toMatch(want.shows);
+      for (const f of want.forbids) {
+        expect(txt, `must not say ${f}`).not.toMatch(f);
+      }
+    });
+  }
+
+  it('an EMPTY range carries no provenance qualifier at all', () => {
+    render([]);
+    expect(host.textContent).toMatch(/No data yet/);
+    expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).toBeNull();
+    expect(host.querySelector('[data-testid="recap-model-history-unavailable"]')).toBeNull();
+  });
+
+  it('an N-of-M population is NEVER silent, even when provenance is unknown', () => {
+    // Ruling B. The survivors are unrecorded, so they are not called
+    // "comparable" — but the count is disclosed rather than dropped.
+    const rows = range([...Array.from({ length: 20 }, () => []), [V0, V1]]);
+    render(rows);
+    const scope = recapStatsScope(rows);
+    expect(scope.length).toBeLessThan(rows.length);      // ANTI-VACUITY
+    expect(host.textContent).toMatch(/MODEL HISTORY UNAVAILABLE/);
+    expect(host.textContent, 'the count must appear')
+      .toMatch(new RegExp(`${scope.length} OF ${rows.length} DAYS`));
+    expect(host.textContent, 'unrecorded days are not "comparable"')
+      .not.toMatch(/COMPARABLE DAY/);
+  });
+});

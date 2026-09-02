@@ -104,18 +104,36 @@ function formatBubbleDate(iso: string): string {
  */
 const LONE_ANCHOR_TICK_PX = 11;
 
-/** Build the lone-anchor mark, clamped so it cannot escape the plot area. */
+/** Minimum clear space between two adjacent marks, so a boundary stays visible. */
+const RUN_SEPARATION_PX = 3;
+
+/**
+ * Build the lone-anchor mark: clamped inside the plot, and never wide enough to
+ * touch its neighbour.
+ *
+ * Two ADJACENT one-anchor runs each drawing a fixed ±11px tick painted onto
+ * overlapping spans, so a real model boundary rendered as one continuous mark —
+ * the exact claim segmentation exists to prevent, reintroduced by the fix that
+ * made a lone run visible in the first place. The half-width now yields to the
+ * spacing available, keeping a guaranteed gap.
+ */
 function loneAnchorPath(
   p: { x: number; y: number },
   minX: number,
   maxX: number,
+  nearestNeighbourPx = Number.POSITIVE_INFINITY,
 ): string {
   // SHIFT into bounds rather than truncating. A lone anchor sits at the far
   // right whenever the newest run is one day — the rollout-day shape — so
   // clamping each end independently halved the mark exactly where it matters
   // and put it back under the dot.
-  let x1 = p.x - LONE_ANCHOR_TICK_PX;
-  let x2 = p.x + LONE_ANCHOR_TICK_PX;
+  // Never more than half the gap to the nearest anchor, less the separation.
+  const halfWidth = Math.max(
+    1,
+    Math.min(LONE_ANCHOR_TICK_PX, nearestNeighbourPx / 2 - RUN_SEPARATION_PX),
+  );
+  let x1 = p.x - halfWidth;
+  let x2 = p.x + halfWidth;
   if (x1 < minX) { x2 += minX - x1; x1 = minX; }
   if (x2 > maxX) { x1 -= x2 - maxX; x2 = maxX; }
   // Only if the plot itself is narrower than the mark does length give way.
@@ -262,9 +280,19 @@ export default function JournalChart({
     const ds = segments
       .map((seg) => {
         const pts = seg.map(project);
-        return pts.length === 1
-          ? loneAnchorPath(pts[0]!, PADDING.left, PADDING.left + innerW)
-          : smoothPath(pts);
+        if (pts.length !== 1) return smoothPath(pts);
+        // Distance to the closest anchor in ANY other segment — a lone mark may
+        // not grow into its neighbour.
+        const me = pts[0]!;
+        let nearest = Number.POSITIVE_INFINITY;
+        for (const other of segments) {
+          for (const b of other) {
+            const q = project(b);
+            if (q.x === me.x && q.y === me.y) continue;
+            nearest = Math.min(nearest, Math.abs(q.x - me.x));
+          }
+        }
+        return loneAnchorPath(me, PADDING.left, PADDING.left + innerW, nearest);
       })
       .filter((d) => d !== '');
 

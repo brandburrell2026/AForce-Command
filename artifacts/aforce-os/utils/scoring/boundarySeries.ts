@@ -308,7 +308,9 @@ export function recapStatsScope(
 export type RecapProvenance =
   | { kind: 'fully_comparable' }
   | { kind: 'partially_comparable'; comparableDays: number; knownTransition: boolean }
-  | { kind: 'provenance_unknown'; knownTransition: boolean }
+  /** No score observations at all — nothing to have provenance FOR. */
+  | { kind: 'no_history' }
+  | { kind: 'provenance_unknown'; knownTransition: boolean; comparableDays: number; observedDays: number }
   /**
    * Provenance IS recorded; the recorded versions simply cannot be compared
    * under the active rules. Distinct from `provenance_unknown` because nothing
@@ -321,7 +323,9 @@ export type RecapProvenance =
 export function classifyRecapProvenance(
   rollups: readonly JournalRollup[],
 ): RecapProvenance {
-  if (rollups.length === 0) return { kind: 'fully_comparable' };
+  // Ruling 1: model-history qualifiers apply only when score observations
+  // exist. An empty range has no provenance to report, not unknown provenance.
+  if (rollups.length === 0) return { kind: 'no_history' };
 
   // ONE pass, ONE classification per day. Each question below reads the field
   // that answers it; none re-derives another's meaning.
@@ -345,9 +349,15 @@ export function classifyRecapProvenance(
 
   // No comparable subset: aggregates must be suppressed, never rendered as 0.
   if (scope.length === 0) {
-    return hasIncompatible
-      ? { kind: 'recorded_incompatible', knownTransition }
-      : { kind: 'fully_comparable' };
+    // Ruling 3/C: the INCOMPATIBLE wording requires two mutually incomparable
+    // KNOWN versions. A range unusable only because recorded days sit beside
+    // unrecorded ones is MISSING provenance, and must not wear the incompatible
+    // wording — that is the D3A error inverted.
+    const trulyIncompatible = hasIncompatible && knownTransition;
+    if (trulyIncompatible) return { kind: 'recorded_incompatible', knownTransition };
+    return hasIncompatible || hasUnrecorded
+      ? { kind: 'provenance_unknown', knownTransition, comparableDays: 0, observedDays: rollups.length }
+      : { kind: 'no_history' };
   }
 
   // "N COMPARABLE DAYS" asserts comparability was DECIDED for each of the N.
@@ -359,7 +369,12 @@ export function classifyRecapProvenance(
     return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
   }
   if (hasUnrecorded || !scopeAllKnown) {
-    return { kind: 'provenance_unknown', knownTransition };
+    // Ruling B: the count is disclosed even when provenance is partly unknown.
+    // Dropping it let AVG/PEAK describe 1 of 30 days silently.
+    return {
+      kind: 'provenance_unknown', knownTransition,
+      comparableDays: scope.length, observedDays: rollups.length,
+    };
   }
   return { kind: 'fully_comparable' };
 }

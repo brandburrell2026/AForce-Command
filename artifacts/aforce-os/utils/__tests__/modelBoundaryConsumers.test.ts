@@ -37,6 +37,9 @@ import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
 
 const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
+/** Safe reader — `fully_comparable` and `no_history` carry no transition flag. */
+const hasKnownTransition = (p: ReturnType<typeof classifyRecapProvenance>): boolean =>
+  p.kind !== 'fully_comparable' && p.kind !== 'no_history' && p.knownTransition;
 const V0 = 'hydrostate-v0';
 const V1 = 'hydrostate-v1.0';
 
@@ -807,13 +810,12 @@ describe('DayModelProvenance — canonical classification', () => {
   it('unknown provenance never becomes NEW MODEL PERIOD', () => {
     const p = classifyRecapProvenance(range(Array.from({ length: 30 }, () => [])));
     expect(p.kind).toBe('provenance_unknown');
-    expect(p.kind !== 'fully_comparable' && p.knownTransition).toBe(false);
+    expect(hasKnownTransition(p)).toBe(false);
   });
 
   it('knownTransition requires actual mutually INCOMPARABLE known versions', () => {
     const t = (spec: string[][]) => {
-      const p = classifyRecapProvenance(range(spec));
-      return p.kind === 'fully_comparable' ? false : p.knownTransition;
+      return hasKnownTransition(classifyRecapProvenance(range(spec)));
     };
     expect(t(Array.from({ length: 5 }, () => [V1]))).toBe(false);            // one version
     expect(t([[V1], [V11]])).toBe(false);                                    // same major
@@ -906,12 +908,12 @@ describe('null-bearing days render and score honestly', () => {
     const rows = mk([...Array.from({ length: 5 }, () => [] as (string | null)[]), [null, V1]]);
     const p = classifyRecapProvenance(rows);
     // Only ONE known version is present, so this is NOT a transition...
-    expect(p.kind !== 'fully_comparable' && p.knownTransition).toBe(false);
+    expect(hasKnownTransition(p)).toBe(false);
     // ...but a genuine v0/v1 straddle inside one day IS.
     const t = classifyRecapProvenance(mk([[V0], [null, V0, V1]]));
-    expect(t.kind !== 'fully_comparable' && t.knownTransition).toBe(true);
+    expect(hasKnownTransition(t)).toBe(true);
     // ...and a same-major straddle is not.
     const sm = classifyRecapProvenance(mk([[V1], [V1, V11]]));
-    expect(sm.kind !== 'fully_comparable' && sm.knownTransition).toBe(false);
+    expect(hasKnownTransition(sm)).toBe(false);
   });
 });

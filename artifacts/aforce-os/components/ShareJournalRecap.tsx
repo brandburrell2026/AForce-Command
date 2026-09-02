@@ -85,12 +85,24 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   );
   // D3 — a smaller scoring population may not be silent. Shown only when the
   // score figures actually describe fewer days than the label does.
+  // WORDING TAXONOMY, locked (founder ruling 3). These four states may never
+  // substitute for one another:
+  //   no_history            -> no qualifier at all
+  //   provenance_unknown    -> MODEL HISTORY UNAVAILABLE  (+ the count, ruling B)
+  //   recorded_incompatible -> MODEL VERSIONS NOT COMPARABLE
+  //   partially_comparable  -> N COMPARABLE DAY(S)
+  const comparableDaysLabel = (n: number) =>
+    `HYDROSTATE · ${n} COMPARABLE ${n === 1 ? 'DAY' : 'DAYS'}`;
   const qualifier =
     provenance.kind === 'partially_comparable'
-      ? `HYDROSTATE · ${provenance.comparableDays} COMPARABLE `
-        + (provenance.comparableDays === 1 ? 'DAY' : 'DAYS')
+      ? comparableDaysLabel(provenance.comparableDays)
       : provenance.kind === 'provenance_unknown'
-        ? 'HYDROSTATE · MODEL HISTORY UNAVAILABLE'
+        // Ruling B: never silently present an N-of-M population. The days that
+        // survived are unrecorded, so they are NOT called "comparable" — the
+        // count is disclosed alongside the honest unavailable wording.
+        ? provenance.comparableDays < provenance.observedDays
+          ? `HYDROSTATE · MODEL HISTORY UNAVAILABLE · ${provenance.comparableDays} OF ${provenance.observedDays} DAYS`
+          : 'HYDROSTATE · MODEL HISTORY UNAVAILABLE'
         // Recorded, and recorded as incomparable — never "unavailable".
         : provenance.kind === 'recorded_incompatible'
           ? 'HYDROSTATE · MODEL VERSIONS NOT COMPARABLE'
@@ -99,10 +111,12 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // two known versions is actually present. Narrowing caused by unrecorded
   // provenance says "unavailable", not "new model".
   const streakNote =
-    stats.bestStreak != null ? null
+    // Ruling 1: with no history there is nothing to qualify.
+    stats.bestStreak != null || provenance.kind === 'no_history'
+      || provenance.kind === 'fully_comparable' ? null
       // A transition that IS recorded is announced whatever else is uncertain —
       // it is the one thing we actually know happened.
-      : provenance.kind !== 'fully_comparable' && provenance.knownTransition
+      : provenance.knownTransition
         ? 'NEW MODEL PERIOD'
         : provenance.kind === 'recorded_incompatible'
           ? 'MODEL VERSIONS NOT COMPARABLE'
