@@ -140,6 +140,23 @@ export function bucketizeSegmented(
  * isolates into its own segment rather than silently joining a neighbour —
  * which is exactly the treatment it deserves.
  */
+/**
+ * Is this day's own recorded evidence mutually INCOMPATIBLE?
+ *
+ * Distinct from "unknown". `statsDayVersion` returns `null` for two different
+ * reasons — nothing was recorded, or several things were recorded and they
+ * disagree — and treating those as one answered "is provenance missing?" with a
+ * vector built to answer "is this day's score usable?". A day recorded as
+ * [v0, v1.0] is not unknown: it is known, and known to be incomparable, and its
+ * own `avgScore` is already a blend of two different measurements.
+ */
+export function isRecordedIncompatibleDay(r: JournalRollup): boolean {
+  const vs = r.modelVersions;
+  if (!vs || vs.length <= 1) return false;
+  const first = vs[0]!;
+  return !vs.every((v) => isComparableModelVersion(v, first));
+}
+
 export function statsDayVersion(r: JournalRollup): string | null {
   const vs = r.modelVersions;
   if (!vs || vs.length === 0) return null;
@@ -234,8 +251,15 @@ export function recapStatsScope(
   rollups: readonly JournalRollup[],
 ): readonly JournalRollup[] {
   if (rollups.length === 0) return rollups;
-  const versions = rollups.map(statsDayVersion);
-  if (!spansModelBoundary(versions)) return rollups;
+  // A day whose own recorded versions disagree can NEVER contribute to an
+  // aggregate: its `avgScore` is already a blend of two measurements, so
+  // including it publishes exactly the claim this module exists to prevent.
+  // Unrecorded days are NOT excluded — unknown is not incompatible, and the
+  // existing behaviour for an all-unstamped history is preserved.
+  const eligible = rollups.filter((r) => !isRecordedIncompatibleDay(r));
+  if (eligible.length === 0) return eligible;   // caller must suppress aggregates
+  const versions = eligible.map(statsDayVersion);
+  if (!spansModelBoundary(versions)) return eligible;
 
   // The newest KNOWN version anchors the population. Walking back past trailing
   // unstamped or mixed days matters because `dayVersion` collapses a mixed day,
@@ -247,7 +271,7 @@ export function recapStatsScope(
     if (v != null) { newestKnown = v; break; }
   }
   // Nothing known anywhere: there is no comparable anchor, so do not narrow.
-  if (newestKnown === null) return rollups;
+  if (newestKnown === null) return eligible;
 
   // COMPARABILITY, not render identity. Rendering uses exact identity by
   // founder ruling — v1.0 and v1.1 get separate visual runs — but a statistics
@@ -256,7 +280,7 @@ export function recapStatsScope(
   // [v1.0 x10, unstamped x5, v1.1 x5] kept only the trailing 5 rather than the
   // 15 that are genuinely comparable. Visual continuity and statistical
   // comparability are separate contracts, and this is the statistical one.
-  return rollups.filter((r) => isComparableModelVersion(statsDayVersion(r), newestKnown));
+  return eligible.filter((r) => isComparableModelVersion(statsDayVersion(r), newestKnown));
 }
 
 /* ── model provenance classification (founder ruling D3A) ─────────────────── */
@@ -281,14 +305,27 @@ export function recapStatsScope(
 export type RecapProvenance =
   | { kind: 'fully_comparable' }
   | { kind: 'partially_comparable'; comparableDays: number; knownTransition: boolean }
-  | { kind: 'provenance_unknown' };
+  | { kind: 'provenance_unknown' }
+  /**
+   * Provenance IS recorded; the recorded versions simply cannot be compared
+   * under the active rules. Distinct from `provenance_unknown` because nothing
+   * here is missing — and it must never wear that state's words, which would
+   * tell the member their history could not be established when in fact it was
+   * established and found incomparable.
+   */
+  | { kind: 'recorded_incompatible'; knownTransition: boolean };
 
 export function classifyRecapProvenance(
   rollups: readonly JournalRollup[],
 ): RecapProvenance {
   if (rollups.length === 0) return { kind: 'fully_comparable' };
   const versions = rollups.map(statsDayVersion);
-  const hasUnknown = versions.some((v) => v == null);
+  // "Unknown" means NOTHING was recorded — not that what was recorded
+  // disagrees. Conflating the two is what published a full-confidence average
+  // over days that were each internally a v0+v1 blend.
+  const hasUnknown = versions.some(
+    (v, i) => v == null && !isRecordedIncompatibleDay(rollups[i]!),
+  );
 
   // EVIDENCE COMES FROM THE RAW PER-DAY LISTS, not the collapsed value.
   //
@@ -314,6 +351,14 @@ export function classifyRecapProvenance(
   const knownTransition = known.length >= 2 && spansModelBoundary(known);
 
   const scope = recapStatsScope(rollups);
+  // No comparable subset at all — the aggregates must be suppressed, not
+  // rendered as zeros. `recorded_incompatible` is the only way to get here with
+  // a non-empty range, because unrecorded days stay eligible.
+  if (scope.length === 0) {
+    return rollups.some(isRecordedIncompatibleDay)
+      ? { kind: 'recorded_incompatible', knownTransition }
+      : { kind: 'fully_comparable' };
+  }
   if (scope.length < rollups.length) {
     return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
   }

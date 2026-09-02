@@ -91,15 +91,21 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
         + (provenance.comparableDays === 1 ? 'DAY' : 'DAYS')
       : provenance.kind === 'provenance_unknown'
         ? 'HYDROSTATE · MODEL HISTORY UNAVAILABLE'
-        : null;
+        // Recorded, and recorded as incomparable — never "unavailable".
+        : provenance.kind === 'recorded_incompatible'
+          ? 'HYDROSTATE · MODEL VERSIONS NOT COMPARABLE'
+          : null;
   // The streak is only ever labelled a MODEL PERIOD when a transition between
   // two known versions is actually present. Narrowing caused by unrecorded
   // provenance says "unavailable", not "new model".
   const streakNote =
     stats.bestStreak != null ? null
-      : provenance.kind === 'partially_comparable' && provenance.knownTransition
+      : (provenance.kind === 'partially_comparable'
+          || provenance.kind === 'recorded_incompatible') && provenance.knownTransition
         ? 'NEW MODEL PERIOD'
-        : 'MODEL HISTORY UNAVAILABLE';
+        : provenance.kind === 'recorded_incompatible'
+          ? 'MODEL VERSIONS NOT COMPARABLE'
+          : 'MODEL HISTORY UNAVAILABLE';
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 
@@ -118,7 +124,9 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
           <Text style={styles.eyebrow}>AFORCE · {rangeDays}-DAY TIMELINE</Text>
         </View>
         <View style={styles.scoreBadge}>
-          <Text style={styles.scoreBadgeText}>{stats.avgScore}</Text>
+          <Text style={styles.scoreBadgeText}>
+            {stats.avgScore == null ? UNAVAILABLE : stats.avgScore}
+          </Text>
         </View>
       </View>
 
@@ -153,17 +161,18 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
       {qualifier != null && (
         <Text
           style={[styles.statK, styles.qualifier]}
-          testID={provenance.kind === 'provenance_unknown'
-            ? 'recap-model-history-unavailable'
-            : 'recap-comparable-days'}
+          testID={
+            provenance.kind === 'provenance_unknown' ? 'recap-model-history-unavailable'
+              : provenance.kind === 'recorded_incompatible' ? 'recap-versions-not-comparable'
+                : 'recap-comparable-days'}
         >
           {qualifier}
         </Text>
       )}
 
       <View style={styles.statsGrid}>
-        <Stat k="AVG" v={String(stats.avgScore)} />
-        <Stat k="PEAK AVG" v={String(stats.peakScore)} />
+        <Stat k="AVG" v={stats.avgScore == null ? UNAVAILABLE : String(stats.avgScore)} />
+        <Stat k="PEAK AVG" v={stats.peakScore == null ? UNAVAILABLE : String(stats.peakScore)} />
         <Stat k="DAYS" v={String(stats.daysTracked)} />
         <Stat
           k="STREAK"

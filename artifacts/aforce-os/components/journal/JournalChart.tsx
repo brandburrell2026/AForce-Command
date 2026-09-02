@@ -93,15 +93,39 @@ function formatBubbleDate(iso: string): string {
  * first day of a model rollout produces, so it is the case that must be
  * explicit rather than incidental.
  */
-const LONE_ANCHOR_TICK_PX = 1.5;
+/**
+ * Half-width of the mark a single-anchor segment is drawn as.
+ *
+ * MUST clear the constellation dot. The dot stack is a solid r=3.5 core inside
+ * an r=8 halo, so the previous 1.5px tick was painted entirely UNDERNEATH it —
+ * geometrically non-zero, visually absent. A one-day model run is exactly what
+ * the first day of a rollout produces, so its mark has to survive the dot that
+ * sits on top of it.
+ */
+const LONE_ANCHOR_TICK_PX = 11;
+
+/** Build the lone-anchor mark, clamped so it cannot escape the plot area. */
+function loneAnchorPath(
+  p: { x: number; y: number },
+  minX: number,
+  maxX: number,
+): string {
+  // SHIFT into bounds rather than truncating. A lone anchor sits at the far
+  // right whenever the newest run is one day — the rollout-day shape — so
+  // clamping each end independently halved the mark exactly where it matters
+  // and put it back under the dot.
+  let x1 = p.x - LONE_ANCHOR_TICK_PX;
+  let x2 = p.x + LONE_ANCHOR_TICK_PX;
+  if (x1 < minX) { x2 += minX - x1; x1 = minX; }
+  if (x2 > maxX) { x1 -= x2 - maxX; x2 = maxX; }
+  // Only if the plot itself is narrower than the mark does length give way.
+  x1 = Math.max(minX, x1);
+  return `M${x1.toFixed(2)},${p.y.toFixed(2)} L${x2.toFixed(2)},${p.y.toFixed(2)}`;
+}
 
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
-  if (points.length === 1) {
-    const p = points[0]!;
-    return `M${(p.x - LONE_ANCHOR_TICK_PX).toFixed(2)},${p.y.toFixed(2)}`
-      + ` L${(p.x + LONE_ANCHOR_TICK_PX).toFixed(2)},${p.y.toFixed(2)}`;
-  }
+  if (points.length === 1) return '';   // callers use `loneAnchorPath`
   let d = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i];
@@ -236,7 +260,12 @@ export default function JournalChart({
     // ONE PATH PER SEGMENT. Joining them would assert a continuity across the
     // recalibration that does not exist — the line itself is the claim.
     const ds = segments
-      .map((seg) => smoothPath(seg.map(project)))
+      .map((seg) => {
+        const pts = seg.map(project);
+        return pts.length === 1
+          ? loneAnchorPath(pts[0]!, PADDING.left, PADDING.left + innerW)
+          : smoothPath(pts);
+      })
       .filter((d) => d !== '');
 
     // Averaging across the boundary would blend two scales, so when the series

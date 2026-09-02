@@ -199,8 +199,9 @@ describe('ShareJournalRecap — the card only shows what it can support', () => 
     render(rows);
     expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).not.toBeNull();
     expect(host.textContent).toMatch(/NEW MODEL PERIOD/);
-    // and the tile itself must not print a collapsed number
-    expect(host.textContent).not.toMatch(/STREAK[^0-9]*1\b/);
+    // BEHAVIOURAL, not a regex that can never match: the tile must render the
+    // unavailable state, so `statValue` (which returns null for '—') is null.
+    expect(statValue('STREAK'), 'STREAK tile must be unavailable').toBeNull();
   });
 
   it('ALL-UNSTAMPED legacy history keeps its real streak — no NEW MODEL PERIOD', () => {
@@ -319,6 +320,7 @@ describe('ShareJournalRecap — the card only shows what it can support', () => 
 describe('D3A — qualifier classification', () => {
   const CASES: Array<[string, string[][], {
     qualifier: RegExp | null; streakNote: RegExp | null; streakShown: boolean;
+    aggregatesSuppressed?: boolean;
   }]> = [
     ['all unstamped', Array.from({ length: 30 }, () => []),
       { qualifier: /MODEL HISTORY UNAVAILABLE/, streakNote: null, streakShown: true }],
@@ -334,8 +336,13 @@ describe('D3A — qualifier classification', () => {
       { qualifier: /29 COMPARABLE DAYS/, streakNote: /MODEL HISTORY UNAVAILABLE/, streakShown: false }],
     ['same-day mixed [v1.0, v1.1]', Array.from({ length: 30 }, () => [V1, V11]),
       { qualifier: null, streakNote: null, streakShown: true }],
-    ['entirely mixed [v0, v1]', Array.from({ length: 30 }, () => [V0, V1]),
-      { qualifier: /MODEL HISTORY UNAVAILABLE/, streakNote: null, streakShown: true }],
+    // FIFTH STATE. Every day is fully RECORDED as [v0, v1.0] — nothing is
+    // unknown. Each day's own avgScore is already a v0+v1 blend, so no
+    // comparable subset exists and every aggregate must be suppressed rather
+    // than published. It must never wear provenance_unknown's words.
+    ['entirely recorded-incompatible [v0, v1]', Array.from({ length: 30 }, () => [V0, V1]),
+      { qualifier: /MODEL VERSIONS NOT COMPARABLE/, streakNote: /NEW MODEL PERIOD/,
+        streakShown: false, aggregatesSuppressed: true }],
     // THE LITERAL ROLLOUT DAY. The server accumulates a day's snapshot versions
     // into one Set, so the deploy day is ['v0','v1.0'] for anyone who logged on
     // both sides of it. Both versions are RECORDED — nothing about this day is
@@ -381,6 +388,19 @@ describe('D3A — qualifier classification', () => {
         expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).not.toBeNull();
       }
 
+      // An empty comparable population must SUPPRESS aggregates, never print 0.
+      if (want.aggregatesSuppressed) {
+        expect(statValue('AVG'), 'AVG must be suppressed').toBeNull();
+        expect(statValue('PEAK AVG'), 'PEAK must be suppressed').toBeNull();
+        expect(txt, 'never a fabricated zero').not.toMatch(/AVG\s*0\b/);
+        expect(recapStatsScope(range(spec)).length).toBe(0);
+      } else {
+        expect(statValue('AVG'), 'AVG must render').not.toBeNull();
+      }
+      // `MODEL HISTORY UNAVAILABLE` is reserved for genuinely missing evidence.
+      if (/MODEL VERSIONS NOT COMPARABLE/.test(txt)) {
+        expect(txt).not.toMatch(/MODEL HISTORY UNAVAILABLE/);
+      }
       // 'N COMPARABLE DAYS' may only appear when comparability was DECIDED.
       if (/COMPARABLE DAY/.test(txt)) {
         const p = classifyRecapProvenance(range(spec));
@@ -399,7 +419,7 @@ describe('D3A — qualifier classification', () => {
     // table proves nothing about the classifier's ability to tell them apart.
     expect(new Set(kinds)).toEqual(new Set([
       'provenance_unknown', 'fully_comparable',
-      'partial:transition', 'partial:unknown',
+      'partial:transition', 'partial:unknown', 'recorded_incompatible',
     ]));
   });
 });

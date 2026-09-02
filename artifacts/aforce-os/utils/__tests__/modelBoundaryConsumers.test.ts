@@ -29,7 +29,7 @@ import {
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
-  recapStatsScope, dayVersion, statsDayVersion,
+  recapStatsScope, dayVersion, statsDayVersion, isRecordedIncompatibleDay,
 } from '../scoring/boundarySeries';
 import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
@@ -367,8 +367,14 @@ describe('PR 3 scope fence — the consumer layer only', () => {
       const src = read(f)
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+      // AUTHORIZED (founder D3 / D3A, this branch): the boundary QUALIFIERS —
+      // "N COMPARABLE DAY(S)", "MODEL HISTORY UNAVAILABLE", "MODEL VERSIONS NOT
+      // COMPARABLE", "NEW MODEL PERIOD" — are member-facing copy and ship here.
+      // Still forbidden: the first-v1 notice, any individualized score-shift
+      // explanation, and the |delta| >= 12 trigger, all of which remain PR 4.
       expect(src).not.toMatch(/we changed how|how we measure|recalibrat/i);
       expect(src).not.toMatch(/DELTA_EXPLAIN|SHIFT_THRESHOLD|>= ?12\b/);
+      expect(src).not.toMatch(/your (score|hydration) (went|got|is now)/i);
     }
   });
 
@@ -676,6 +682,33 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     expect(scope.every((r) => r.modelVersions?.[0] !== V0)).toBe(true);
     // ...while the RENDER still seams all three (exact identity, by ruling).
     expect(segmentForRender(rows, dayVersion).length).toBe(3);
+  });
+
+  it('recapStatsScope routes through statsDayVersion, NOT the render predicate', () => {
+    // The distinguishing shape: days carrying [v1.0, v1.1]. `statsDayVersion`
+    // resolves them to v1.0 (same major, comparable) and keeps them in the
+    // score population; `dayVersion` collapses them to null and drops them.
+    // Without this fixture the swap survived the entire suite.
+    const rows = range([...Array.from({ length: 15 }, () => [V1]),
+                        ...Array.from({ length: 15 }, () => [V1, V11])]);
+    expect(statsDayVersion(rows[29]!)).toBe(V1);   // comparable -> resolved
+    expect(dayVersion(rows[29]!)).toBeNull();      // render identity -> null
+    // The population must follow the STATISTICAL predicate: all 30 days.
+    expect(recapStatsScope(rows).length).toBe(30);
+    // ...while rendering still seams them, by founder ruling.
+    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+  });
+
+  it('a recorded-incompatible day never enters the score population', () => {
+    const rows = range([...Array.from({ length: 10 }, () => [V1]),
+                        ...Array.from({ length: 5 }, () => [V0, V1])]);
+    const scope = recapStatsScope(rows);
+    expect(scope.length).toBe(10);
+    for (const r of scope) expect(isRecordedIncompatibleDay(r)).toBe(false);
+    // An ENTIRELY incompatible range leaves no comparable subset at all.
+    expect(recapStatsScope(range(Array.from({ length: 30 }, () => [V0, V1]))).length).toBe(0);
+    // ...but an all-unstamped range is NOT incompatible and stays whole.
+    expect(recapStatsScope(range(Array.from({ length: 30 }, () => []))).length).toBe(30);
   });
 
   it('duplicate version entries on one day are not a boundary', () => {

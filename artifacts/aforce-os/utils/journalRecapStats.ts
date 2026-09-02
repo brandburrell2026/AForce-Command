@@ -124,8 +124,10 @@ function diffInDaysUTC(later: Date, earlier: Date): number {
  *   See `activityTotalsUnavailable` below.
  */
 export interface RecapCardStats {
-  avgScore: number;
-  peakScore: number;
+  /** NULL when no comparable day exists — never 0 as a fallback. */
+  avgScore: number | null;
+  /** NULL when no comparable day exists — never 0 as a fallback. */
+  peakScore: number | null;
   /** Days contributing to the score figures; may be fewer than the range. */
   comparableDays: number;
   /** Days in the whole reporting range — the number the label describes. */
@@ -167,12 +169,17 @@ export function computeRecapCardStats(
 ): RecapCardStats {
   const whole = computeRecapStats(fullRange);
   const scored = computeRecapStats(scorePopulation);
+  // An empty comparable population must SUPPRESS the aggregates. Rendering
+  // `computeRecapStats([]).avgScore` — which is 0 — would publish a confident
+  // "AVG 0 / PEAK 0" as a fallback for "we have nothing comparable to say",
+  // i.e. a fabricated claim in the place reserved for a real one.
+  const hasComparable = scorePopulation.length > 0;
   return {
-    avgScore: scored.avgScore,
-    peakScore: scored.peakScore,
+    avgScore: hasComparable ? scored.avgScore : null,
+    peakScore: hasComparable ? scored.peakScore : null,
     comparableDays: scorePopulation.length,
     daysTracked: whole.daysTracked,
-    bestStreak: opts.streakComparable ? scored.bestStreak : null,
+    bestStreak: hasComparable && opts.streakComparable ? scored.bestStreak : null,
     totalOunces: ACTIVITY_TOTALS_UNAVAILABLE,
     totalSticks: ACTIVITY_TOTALS_UNAVAILABLE,
   };

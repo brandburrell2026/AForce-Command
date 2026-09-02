@@ -275,6 +275,32 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
     }
   });
 
+  it('a lone-anchor mark CLEARS the dot and stays inside the plot', () => {
+    // Geometric non-zero length is not the contract — VISIBILITY is. The
+    // constellation dot is a solid r=3.5 core inside an r=8 halo, so a 1.5px
+    // tick was painted entirely underneath it: measurably present, visually
+    // absent. And a mark near the edge must not escape the plot area.
+    renderChart({
+      data: versioned([...Array.from({ length: 29 }, () => null), V1]),
+      width: 320,
+    });
+    const shapes = strokeShapes();
+    const lone = shapes[shapes.length - 1]!;
+    const xs = [...lone.matchAll(/[ML]([\d.]+),/g)].map((m) => Number(m[1]));
+    expect(xs.length).toBe(2);
+    const halfWidth = Math.abs(xs[1]! - xs[0]!) / 2;
+    // Must extend past the r=8 halo, or the dot hides it entirely.
+    expect(halfWidth, `lone mark half-width ${halfWidth} must clear the r=8 dot`)
+      .toBeGreaterThan(8);
+    // ...and must stay within the plot bounds.
+    const PAD_L = 26, PAD_R = 26;
+    const innerW = Math.max(40, 320 - PAD_L - PAD_R);
+    for (const x of xs) {
+      expect(x, `x=${x} outside plot`).toBeGreaterThanOrEqual(PAD_L);
+      expect(x, `x=${x} outside plot`).toBeLessThanOrEqual(PAD_L + innerW);
+    }
+  });
+
   it('unstamped history followed by v1 renders TWO stroke shapes', () => {
     renderChart({
       data: versioned([...Array.from({ length: 20 }, () => null),
