@@ -100,8 +100,9 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // provenance says "unavailable", not "new model".
   const streakNote =
     stats.bestStreak != null ? null
-      : (provenance.kind === 'partially_comparable'
-          || provenance.kind === 'recorded_incompatible') && provenance.knownTransition
+      // A transition that IS recorded is announced whatever else is uncertain —
+      // it is the one thing we actually know happened.
+      : provenance.kind !== 'fully_comparable' && provenance.knownTransition
         ? 'NEW MODEL PERIOD'
         : provenance.kind === 'recorded_incompatible'
           ? 'MODEL VERSIONS NOT COMPARABLE'

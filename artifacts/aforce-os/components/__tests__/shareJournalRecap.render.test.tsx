@@ -42,7 +42,7 @@ vi.mock('react-native-svg', () => {
 });
 
 import ShareJournalRecap from '../ShareJournalRecap';
-import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance } from '@/utils/scoring/boundarySeries';
+import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance, statsDayVersion } from '@/utils/scoring/boundarySeries';
 import { computeRecapStats } from '@/utils/journalRecapStats';
 
 /** A path must have VISIBLE LENGTH — a draw command alone is not the contract. */
@@ -408,6 +408,55 @@ describe('D3A — qualifier classification', () => {
       }
     });
   }
+
+  it('N COMPARABLE DAYS is never claimed over UNKNOWN days', () => {
+    // The control that exposes it: 20 unstamped days alone correctly say
+    // MODEL HISTORY UNAVAILABLE. Add ONE recorded-incompatible day — which is
+    // then EXCLUDED from the population — and the very same 20 unknown days
+    // used to flip to "20 COMPARABLE DAYS". Comparability had been decided for
+    // none of them; `isComparableModelVersion(null, null)` is false by design.
+    const unknownOnly = range(Array.from({ length: 20 }, () => []));
+    const plusDeployDay = range([...Array.from({ length: 20 }, () => []), [V0, V1]]);
+
+    render(unknownOnly);
+    expect(host.textContent).toMatch(/MODEL HISTORY UNAVAILABLE/);
+    expect(host.textContent).not.toMatch(/COMPARABLE DAY/);
+
+    flushSync(() => root.unmount());
+    host = document.createElement('div'); document.body.appendChild(host);
+    render(plusDeployDay);
+    // The population is still entirely unknown, so the claim must not appear.
+    expect(recapStatsScope(plusDeployDay).every((r) => statsDayVersion(r) == null)).toBe(true);
+    expect(host.textContent, 'must not claim comparability over unknown days')
+      .not.toMatch(/COMPARABLE DAY/);
+    expect(host.textContent).toMatch(/MODEL HISTORY UNAVAILABLE/);
+    // ...but the transition IS recorded, so it is still announced.
+    expect(host.textContent).toMatch(/NEW MODEL PERIOD/);
+  });
+
+  it('every COMPARABLE DAYS claim is backed by known-version days', () => {
+    // Swept: wherever the qualifier appears, every counted day must have a
+    // known version. A claim about comparability requires decided evidence.
+    for (const spec of [
+      [...Array.from({ length: 20 }, () => [V0]), ...Array.from({ length: 10 }, () => [V1])],
+      [...Array.from({ length: 6 }, () => [V0]), [V0, V1]],
+      [...Array.from({ length: 29 }, () => [V1]), []],
+      [...Array.from({ length: 20 }, () => [] as string[]), [V0, V1]],
+      Array.from({ length: 10 }, () => [V0, V1]),
+    ]) {
+      flushSync(() => root?.unmount());
+      host = document.createElement('div'); document.body.appendChild(host);
+      const rows = range(spec);
+      render(rows);
+      if (/COMPARABLE DAY/.test(host.textContent ?? '')) {
+        const scope = recapStatsScope(rows);
+        expect(scope.length).toBeGreaterThan(0);
+        for (const r of scope) {
+          expect(statsDayVersion(r), 'counted day must have a known version').not.toBeNull();
+        }
+      }
+    }
+  });
 
   it('the four states are genuinely distinct — no two collapse', () => {
     const kinds = CASES.map(([, spec]) => {

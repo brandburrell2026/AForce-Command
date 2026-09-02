@@ -305,7 +305,7 @@ export function recapStatsScope(
 export type RecapProvenance =
   | { kind: 'fully_comparable' }
   | { kind: 'partially_comparable'; comparableDays: number; knownTransition: boolean }
-  | { kind: 'provenance_unknown' }
+  | { kind: 'provenance_unknown'; knownTransition: boolean }
   /**
    * Provenance IS recorded; the recorded versions simply cannot be compared
    * under the active rules. Distinct from `provenance_unknown` because nothing
@@ -359,9 +359,20 @@ export function classifyRecapProvenance(
       ? { kind: 'recorded_incompatible', knownTransition }
       : { kind: 'fully_comparable' };
   }
-  if (scope.length < rollups.length) {
+  // "N COMPARABLE DAYS" is a claim that comparability was DECIDED for each of
+  // the N. Narrowing has two independent causes and only one decides it: the
+  // comparability filter against `newestKnown`, and the eligibility filter that
+  // merely drops recorded-incompatible days. When there is no known anchor the
+  // second acts alone, and the survivors can be entirely unstamped — so adding
+  // one EXCLUDED incompatible day flipped the very same unknown population from
+  // "MODEL HISTORY UNAVAILABLE" to "20 COMPARABLE DAYS". Comparability had been
+  // decided for none of them.
+  const scopeFullyKnown = scope.every((r) => statsDayVersion(r) != null);
+  if (scope.length < rollups.length && scopeFullyKnown) {
     return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
   }
-  if (hasUnknown) return { kind: 'provenance_unknown' };
+  if (hasUnknown || !scopeFullyKnown) {
+    return { kind: 'provenance_unknown', knownTransition };
+  }
   return { kind: 'fully_comparable' };
 }
