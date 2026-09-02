@@ -31,7 +31,7 @@ import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
   recapStatsScope, dayVersion, statsDayVersion, isRecordedIncompatibleDay,
-  dayProvenance, classifyRecapProvenance,
+  dayProvenance, classifyRecapProvenance, renderKeyOf,
 } from '../scoring/boundarySeries';
 import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
@@ -915,5 +915,66 @@ describe('null-bearing days render and score honestly', () => {
     // ...and a same-major straddle is not.
     const sm = classifyRecapProvenance(mk([[V1], [V1, V11]]));
     expect(hasKnownTransition(sm)).toBe(false);
+  });
+});
+
+/* ═══════ RENDER WELD — isolation must hold beside UNSTAMPED neighbours ═══════
+ *
+ * Every earlier isolation law placed the non-clean day between STAMPED
+ * neighbours — the one arrangement where exact-identity grouping isolates it by
+ * accident. Beside unstamped days, which is the modal shape while the version
+ * column has no backfill, `null === null` welded three disjoint provenance
+ * kinds into one visual run.
+ */
+describe('a non-clean day never joins an UNSTAMPED run', () => {
+  const V11 = 'hydrostate-v1.1';
+  const mk = (spec: (string | null)[][]) =>
+    spec.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 75, vs));
+
+  const CASES: Array<[string, (string | null)[][], number]> = [
+    ['column-deploy day after unstamped history',
+      [...Array.from({ length: 9 }, () => [null]), [null, V1]], 2],
+    ['minor-bump day after unstamped history',
+      [...Array.from({ length: 9 }, () => [null]), [V1, V11]], 2],
+    ['incompatible day after unstamped history',
+      [...Array.from({ length: 9 }, () => [null]), [V0, V1]], 2],
+    ['straddle day BETWEEN unstamped runs',
+      [...Array.from({ length: 5 }, () => [null]), [V1, V11],
+       ...Array.from({ length: 4 }, () => [null])], 3],
+    ['two adjacent non-clean days never share a run',
+      [[null], [V0, V1], [V1, V11], [null]], 4],
+  ];
+
+  for (const [label, spec, expectedRuns] of CASES) {
+    it(`${label}: ${expectedRuns} runs`, () => {
+      const rows = mk(spec);
+      const runs = segmentForRender(rows, renderKeyOf);
+      expect(runs.length, 'visual runs').toBe(expectedRuns);
+      expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(expectedRuns);
+      // No run may contain both a scoreable day and a non-scoreable one.
+      for (const run of runs) {
+        const kinds = new Set(run.points.map((r) => dayProvenance(r).kind));
+        expect(kinds.size, `run mixes kinds: ${[...kinds]}`).toBe(1);
+      }
+      // ...and no observation is lost.
+      expect(runs.flatMap((r) => r.points).length).toBe(rows.length);
+    });
+  }
+
+  it('the picture and the caption agree BESIDE UNSTAMPED days too', () => {
+    // The exact shape the earlier law forbade but never constructed.
+    const rows = mk([...Array.from({ length: 29 }, () => [null]), [null, V1]]);
+    const scope = recapStatsScope(rows);
+    const runs = segmentForRender(rows, renderKeyOf);
+    expect(scope.length).toBe(29);                      // one day excluded
+    expect(runs.length).toBe(2);                        // and visually separated
+    expect(Math.max(...runs.map((r) => r.points.length))).toBe(scope.length);
+  });
+
+  it('a clean single-version run still groups (anti-over-isolation)', () => {
+    const rows = mk(Array.from({ length: 10 }, () => [V1]));
+    expect(segmentForRender(rows, renderKeyOf).length).toBe(1);
+    const unstamped = mk(Array.from({ length: 10 }, () => [null]));
+    expect(segmentForRender(unstamped, renderKeyOf).length).toBe(1);
   });
 });

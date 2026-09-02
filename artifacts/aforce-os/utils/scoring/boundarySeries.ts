@@ -41,6 +41,33 @@ export function statsDayVersion(r: JournalRollup): string | null {
   return dayProvenance(r).scoreableVersion;
 }
 
+/**
+ * The RENDER key for a rollup day — TOTAL over the three provenance kinds.
+ *
+ * `dayVersion` returns `null` for three DISJOINT states: an unrecorded day, an
+ * incompatible day, and a `known` day carrying two same-major versions. Segment
+ * grouping compares with `===`, and `null === null`, so all three shared one
+ * visual run: on the column-deploy day the chart drew ONE unbroken 30-point
+ * stroke beneath a caption reading "29 OF 30 DAYS", and at the first minor bump
+ * the single fully-known day in the population was welded into the unstamped
+ * history beneath "1 COMPARABLE DAY".
+ *
+ * Every isolation law placed the non-clean day between STAMPED neighbours,
+ * which is the one arrangement where exact-identity grouping isolates it by
+ * accident. Beside unstamped days — the modal shape while the column has no
+ * backfill — it welds.
+ *
+ * So the key is total: unrecorded days share one key, a cleanly-stamped day
+ * shares its version's key, and anything else gets a key unique to its own
+ * index and can never join a neighbour.
+ */
+export function renderKeyOf(r: JournalRollup, index: number): string {
+  const p = dayProvenance(r);
+  if (p.kind === 'unrecorded') return 'unrecorded';
+  if (p.kind === 'known' && p.recordedVersions.length === 1) return `v:${p.recordedVersions[0]!}`;
+  return `isolated:${index}`;
+}
+
 /** Q3 helper — a day whose recorded versions cannot collapse to one. */
 export function isRecordedIncompatibleDay(r: JournalRollup): boolean {
   return dayProvenance(r).kind === 'incompatible';
@@ -87,11 +114,12 @@ export interface RenderSegment<T> { modelVersion: string | null; points: T[] }
 
 export function segmentForRender<T>(
   points: readonly T[],
-  versionOf: (p: T) => string | null,
+  versionOf: (p: T, index: number) => string | null,
 ): RenderSegment<T>[] {
   const out: RenderSegment<T>[] = [];
-  for (const point of points) {
-    const v = versionOf(point);
+  for (let i = 0; i < points.length; i++) {
+    const point = points[i]!;
+    const v = versionOf(point, i);
     const current = out[out.length - 1];
     // Exact identity — `null === null` groups, and that is the whole fix.
     if (current && current.modelVersion === v) current.points.push(point);
@@ -213,7 +241,7 @@ export function buildRecapSegmentPaths(
     return [`M${padding.left.toFixed(1)},${y.toFixed(1)} L${(padding.left + innerW).toFixed(1)},${y.toFixed(1)}`];
   }
   const span = rollups.length - 1;
-  const segs = segmentForRender(rollups, dayVersion);
+  const segs = segmentForRender(rollups, renderKeyOf);
   let cursor = 0;
   const out: string[] = [];
   for (const seg of segs) {
