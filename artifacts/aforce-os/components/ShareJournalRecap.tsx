@@ -18,8 +18,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
 import { computeRecapCardStats } from '@/utils/journalRecapStats';
-import { buildRecapSegmentPaths, recapStatsScope, statsDayVersion } from '@/utils/scoring/boundarySeries';
-import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
+import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
 
 /** Rendered wherever the card cannot support a number. */
 const UNAVAILABLE = '—';
@@ -55,12 +54,21 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // range, so the "30-DAY TIMELINE" label stays true and a member's real
   // participation is never discarded because the scoring model changed.
   const statsScope = useMemo(() => recapStatsScope(rollups), [rollups]);
-  // The streak is only meaningful when the WHOLE reporting range shares one
-  // model's semantics — see `computeRecapCardStats`.
-  const streakComparable = useMemo(
-    () => !spansModelBoundary(rollups.map(statsDayVersion)),
-    [rollups],
-  );
+  // The streak shows exactly when the score population IS the whole range.
+  //
+  // Asking `spansModelBoundary` here instead was a regression on the modal
+  // case: `isComparableModelVersion(null, null)` is false by design, so an
+  // all-unstamped history — which is EVERY member's history until v1.0 lands,
+  // the column being nullable with no backfill — always "spanned a boundary"
+  // and the card printed "NEW MODEL PERIOD" over a range containing no model
+  // version at all. Worse, it contradicted `recapStatsScope`, which rules the
+  // opposite on the identical array (no known anchor, so do not narrow): the
+  // card held two answers about the same 30 rows in one frame, rendering
+  // confident AVG/PEAK over rows the streak gate had just called incomparable.
+  //
+  // Deriving the gate from the population makes "streak suppressed ⟺ scoring
+  // population narrowed" true by construction, so the two cannot diverge again.
+  const streakComparable = statsScope.length === rollups.length;
   const stats = useMemo(
     () => computeRecapCardStats(rollups, statsScope, { streakComparable }),
     [rollups, statsScope, streakComparable],

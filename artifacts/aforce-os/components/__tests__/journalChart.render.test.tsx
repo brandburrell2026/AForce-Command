@@ -210,6 +210,14 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
     } as unknown as JournalSnapshot));
   }
 
+  /** A stroke must have VISIBLE LENGTH — a draw command alone is not enough. */
+  function expectNonZeroLength(d: string): void {
+    const xs = [...d.matchAll(/[MLC]([\d.]+),/g)].map((m) => Number(m[1]));
+    expect(xs.length, `two endpoints expected: ${d}`).toBeGreaterThanOrEqual(2);
+    expect(Math.abs(xs[xs.length - 1]! - xs[0]!), `zero-length stroke: ${d}`)
+      .toBeGreaterThan(0);
+  }
+
   /** Distinct `d` attributes across every rendered trend <Path>. */
   function strokeShapes(): string[] {
     const paths = Array.from(host.querySelectorAll('[data-stub="Path"]'));
@@ -241,7 +249,10 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
     // nothing — which is the same vacuity class this file was added to stop.
     const shapes = strokeShapes();
     expect(shapes.length).toBe(2);
-    for (const d of shapes) expect(d, `path must draw, not just move: ${d}`).toMatch(/[CL]/);
+    for (const d of shapes) {
+      expect(d, `path must draw, not just move: ${d}`).toMatch(/[CL]/);
+      expectNonZeroLength(d);
+    }
     // A rejoined path would be ONE shape containing every anchor.
     expect(shapes.some((d) => d.split('C').length - 1 >= 4)).toBe(false);
   });
@@ -256,7 +267,12 @@ describe('JournalChart — no stroke crosses a model boundary (rendered)', () =>
     });
     const shapes = strokeShapes();
     expect(shapes.length).toBe(2);
-    for (const d of shapes) expect(d, `must draw: ${d}`).toMatch(/[CL]/);
+    for (const d of shapes) {
+      expect(d, `must draw: ${d}`).toMatch(/[CL]/);
+      // `M x,y L x,y` contains an L and strokes NOTHING — the same vacuity this
+      // file exists to stop, which survived a first pass here.
+      expectNonZeroLength(d);
+    }
   });
 
   it('unstamped history followed by v1 renders TWO stroke shapes', () => {

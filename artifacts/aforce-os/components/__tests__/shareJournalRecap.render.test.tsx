@@ -45,6 +45,14 @@ import ShareJournalRecap from '../ShareJournalRecap';
 import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
 import { computeRecapStats } from '@/utils/journalRecapStats';
 
+/** A path must have VISIBLE LENGTH — a draw command alone is not the contract. */
+function expectNonZeroLength(d: string): void {
+  const xs = [...d.matchAll(/[MLC]([\d.]+),/g)].map((m) => Number(m[1]));
+  expect(xs.length, `two endpoints expected: ${d}`).toBeGreaterThanOrEqual(2);
+  expect(Math.abs(xs[xs.length - 1]! - xs[0]!), `zero-length stroke: ${d}`)
+    .toBeGreaterThan(0);
+}
+
 const V0 = 'hydrostate-v0';
 const V1 = 'hydrostate-v1.0';
 const V11 = 'hydrostate-v1.1';
@@ -93,9 +101,19 @@ function renderedPaths(): string[] {
 
 /** The value rendered under a given stat label, e.g. "DAYS". */
 function statValue(label: string): string | null {
-  const text = host.textContent ?? '';
-  const m = new RegExp(`${label}[^0-9-]*(-?\\d+)`).exec(text);
-  return m ? m[1]! : null;
+  // Anchored on the tile, NOT on the first occurrence of the word in the card.
+  // The qualifier "…COMPARABLE DAYS" contains "DAYS", so a text-wide search for
+  // `DAYS` silently read the AVG tile's number on any fixture that renders a
+  // plural qualifier — a latent way for these laws to assert the wrong number.
+  const tiles = Array.from(host.querySelectorAll('div, span, [data-testid]'));
+  for (const el of tiles) {
+    const t = el.textContent ?? '';
+    if (!t.startsWith(label)) continue;
+    const rest = t.slice(label.length);
+    const m = /^\s*(—|-?\d+)/.exec(rest);
+    if (m) return m[1] === '—' ? null : m[1]!;
+  }
+  return null;
 }
 
 beforeEach(() => {
@@ -125,7 +143,10 @@ describe('ShareJournalRecap — the shared segmentation DRIVES the render', () =
     const paths = renderedPaths();
     expect(paths.length).toBe(2);
     // Each stroke must actually draw — a bare moveto renders nothing.
-    for (const d of paths) expect(d, `must draw: ${d}`).toMatch(/L/);
+    for (const d of paths) {
+      expect(d, `must draw: ${d}`).toMatch(/L/);
+      expectNonZeroLength(d);
+    }
     // and neither stroke may contain every day (that would be a rejoin)
     for (const d of paths) expect((d.match(/L/g) ?? []).length).toBeLessThan(29);
   });
@@ -137,6 +158,7 @@ describe('ShareJournalRecap — the shared segmentation DRIVES the render', () =
     expect(paths.length).toBe(2);
     const lone = paths[paths.length - 1]!;
     expect(lone, 'a one-day run must draw, not just move').toMatch(/L/);
+    expectNonZeroLength(lone);   // `M x,y L x,y` has an L and draws nothing
   });
 
   it('a boundary-free range renders ONE unbroken stroke', () => {
@@ -179,6 +201,56 @@ describe('ShareJournalRecap — the card only shows what it can support', () => 
     expect(host.textContent).toMatch(/NEW MODEL PERIOD/);
     // and the tile itself must not print a collapsed number
     expect(host.textContent).not.toMatch(/STREAK[^0-9]*1\b/);
+  });
+
+  it('ALL-UNSTAMPED legacy history keeps its real streak — no NEW MODEL PERIOD', () => {
+    // THE MODAL CASE. `hydrostate_model_version` is nullable with no backfill,
+    // so every member's history is entirely unstamped until v1.0 lands. An
+    // earlier gate asked `spansModelBoundary`, which is true for an all-null
+    // array, and printed "NEW MODEL PERIOD" over a range containing no model
+    // version at all — while the scoring population said the opposite.
+    render(range(Array.from({ length: 30 }, () => [])));
+    expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).toBeNull();
+    expect(host.textContent).not.toMatch(/NEW MODEL PERIOD/);
+    expect(host.textContent).not.toMatch(/COMPARABLE DAY/);
+    expect(Number(statValue('STREAK'))).toBe(30);
+  });
+
+  it('a same-day v1.0 + v1.1 range keeps its streak (D4 at the card level)', () => {
+    // Every day carries BOTH comparable versions. The day is a full member of
+    // the score population, so the streak stands. Pins the gate against being
+    // re-derived from the render predicate, which would suppress it.
+    render(range(Array.from({ length: 30 }, () => [V1, V11])));
+    expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).toBeNull();
+    expect(Number(statValue('STREAK'))).toBe(30);
+  });
+
+  it('SUPPRESSED ⟺ NARROWED — the two signals can never disagree', () => {
+    // The invariant the regression violated: the card must not call a range
+    // incomparable for the streak while treating it as whole for AVG/PEAK.
+    for (const spec of [
+      Array.from({ length: 30 }, () => [] as string[]),
+      Array.from({ length: 30 }, () => [V1]),
+      [...Array.from({ length: 29 }, () => [] as string[]), [V1]],
+      [...Array.from({ length: 20 }, () => [V0]), ...Array.from({ length: 10 }, () => [V1])],
+      Array.from({ length: 30 }, () => [V1, V11]),
+      // THE DISTINGUISHING SHAPE: render segmentation says TWO runs (exact
+      // identity) while the score population says ONE (comparability). A gate
+      // derived from the render predicate suppresses the streak here and is
+      // wrong; only a population-derived gate gets it right.
+      [...Array.from({ length: 15 }, () => [V1]), ...Array.from({ length: 15 }, () => [V11])],
+    ]) {
+      flushSync(() => root?.unmount());
+      host = document.createElement('div'); document.body.appendChild(host);
+      const rows = range(spec);
+      render(rows);
+      const suppressed = host.querySelector('[data-testid="recap-streak-unavailable"]') !== null;
+      const narrowed = recapStatsScope(rows).length !== rows.length;
+      expect(suppressed, `suppressed must equal narrowed for ${JSON.stringify(spec[0])}…`)
+        .toBe(narrowed);
+      const qualifier = host.textContent?.includes('COMPARABLE DAY') ?? false;
+      expect(qualifier, 'qualifier must equal narrowed').toBe(narrowed);
+    }
   });
 
   it('D2 — a wholly comparable range still renders a real streak', () => {
