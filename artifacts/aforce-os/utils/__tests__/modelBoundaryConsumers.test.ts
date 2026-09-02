@@ -54,7 +54,7 @@ function rollupNoVersions(date: string): JournalRollup {
   return r as unknown as JournalRollup;
 }
 
-function rollup(date: string, avgScore: number, modelVersions: string[]): JournalRollup {
+function rollup(date: string, avgScore: number, modelVersions: (string | null)[]): JournalRollup {
   return { date, avgScore, minScore: avgScore, maxScore: avgScore, snapshotsCount: 4,
     endOzConsumed: 60, endAforceUnits: 0, endUnitsConsumed: 5, endSodiumDeliveredMg: 0,
     endSodiumLostMg: 0, endDeficitPct: 0, pctTimePeak: 0, pctTimeBalanced: 100,
@@ -516,7 +516,7 @@ describe('FIX 2b — LEGACY REGRESSION: pre-version history renders as it did be
 });
 
 describe('FIX 3 — the recap headline is never narrowed by absent stamps', () => {
-  const range = (versions: string[][]) =>
+  const range = (versions: (string | null)[][]) =>
     versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
 
   it('all-unstamped 30-day history: ONE run, headline over ALL 30 days', () => {
@@ -610,7 +610,7 @@ describe('FIX 4 — JournalChart is proven to ROUTE THROUGH the shared logic', (
  */
 describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
   const V11 = 'hydrostate-v1.1';
-  const range = (versions: string[][]) =>
+  const range = (versions: (string | null)[][]) =>
     versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
   const spec = (parts: Array<[number, string[]]>) =>
     range(parts.flatMap(([n, vs]) => Array.from({ length: n }, () => vs)));
@@ -747,7 +747,7 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
 describe('DayModelProvenance — canonical classification', () => {
   const P = (vs: (string | null)[] | undefined) => provenanceOfVersions(vs);
   const V11 = 'hydrostate-v1.1';
-  const range = (versions: string[][]) =>
+  const range = (versions: (string | null)[][]) =>
     versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
 
   const TABLE: Array<[string, (string | null)[] | undefined,
@@ -839,5 +839,79 @@ describe('DayModelProvenance — canonical classification', () => {
                         ...Array.from({ length: 15 }, () => [V11])]);
     expect(recapStatsScope(rows).length).toBe(30);                 // one population
     expect(segmentForRender(rows, dayVersion).length).toBe(2);     // two visual runs
+  });
+});
+
+/* ═══════ NULL-BEARING DAYS — the shape the fixtures could not express ═══════
+ *
+ * `JournalRollup.modelVersions` was typed `string[]` while the server emits
+ * `[...Set<string | null>]` unfiltered. No fixture could construct a
+ * null-bearing day, so an entire class of defect was invisible to every law —
+ * and one shipped: `dayVersion` read `recordedVersions.length`, which drops
+ * nulls, so [null, v1.0] reduced to ['v1.0'] and drew the api-server deploy day
+ * INSIDE the v1.0 stroke. The type now admits null; these are the laws it makes
+ * possible.
+ */
+describe('null-bearing days render and score honestly', () => {
+  const V11 = 'hydrostate-v1.1';
+  const mk = (spec: (string | null)[][]) =>
+    spec.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 80, vs));
+
+  it('[null, v1.0] is INCOMPATIBLE and renders as its OWN run', () => {
+    const rows = mk([...Array.from({ length: 29 }, () => [V1]), [null, V1]]);
+    const p = dayProvenance(rows[29]!);
+    expect(p.kind).toBe('incompatible');
+    expect(p.scoreableVersion).toBeNull();
+    // recordedVersions is length 1 — the trap. Render identity must consult
+    // `kind`, not that length.
+    expect(p.recordedVersions).toEqual([V1]);
+    expect(dayVersion(rows[29]!), 'must not join the v1.0 run').toBeNull();
+    expect(segmentForRender(rows, dayVersion).length).toBe(2);
+    expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBe(2);
+  });
+
+  it('the picture and the caption agree about which days count', () => {
+    // The defect drew 30 continuous points under "29 COMPARABLE DAYS".
+    const rows = mk([...Array.from({ length: 29 }, () => [V1]), [null, V1]]);
+    const scope = recapStatsScope(rows);
+    const runs = segmentForRender(rows, dayVersion);
+    expect(scope.length).toBe(29);
+    // The excluded day is visually separated, not welded into the run.
+    const largest = Math.max(...runs.map((r) => r.points.length));
+    expect(largest).toBe(scope.length);
+  });
+
+  it('a null-bearing day is not silently readmitted anywhere', () => {
+    const rows = mk([[V1], [null, V1], [V1]]);
+    for (const r of recapStatsScope(rows)) {
+      expect(dayProvenance(r).kind).toBe('known');
+    }
+    expect(isMixedModelDay([null, V1])).toBe(true);
+    // ...while a day that is merely UNRECORDED still is not "incompatible".
+    expect(isMixedModelDay([null])).toBe(false);
+    expect(isMixedModelDay([null, null])).toBe(false);
+  });
+
+  it('every surface agrees about one null-bearing day', () => {
+    // The two-surface contradiction: the day card marked it non-comparable
+    // while the share card drew it inside the v1.0 stroke.
+    const row = rollup('2026-08-30', 80, [null, V1]);
+    expect(isMixedModelDay(row.modelVersions)).toBe(true);   // JournalDayCard
+    expect(dayVersion(row)).toBeNull();                      // render
+    expect(statsDayVersion(row)).toBeNull();                 // population
+    expect(dayProvenance(row).kind).toBe('incompatible');    // canonical
+  });
+
+  it('null-bearing days still witness a transition', () => {
+    const rows = mk([...Array.from({ length: 5 }, () => [] as (string | null)[]), [null, V1]]);
+    const p = classifyRecapProvenance(rows);
+    // Only ONE known version is present, so this is NOT a transition...
+    expect(p.kind !== 'fully_comparable' && p.knownTransition).toBe(false);
+    // ...but a genuine v0/v1 straddle inside one day IS.
+    const t = classifyRecapProvenance(mk([[V0], [null, V0, V1]]));
+    expect(t.kind !== 'fully_comparable' && t.knownTransition).toBe(true);
+    // ...and a same-major straddle is not.
+    const sm = classifyRecapProvenance(mk([[V1], [V1, V11]]));
+    expect(sm.kind !== 'fully_comparable' && sm.knownTransition).toBe(false);
   });
 });

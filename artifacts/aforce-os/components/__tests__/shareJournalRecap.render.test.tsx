@@ -65,7 +65,7 @@ const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
 const INNER_W = CHART_W - PAD.left - PAD.right;
 const INNER_H = CHART_H - PAD.top - PAD.bottom;
 
-function rollup(i: number, modelVersions: string[]): JournalRollup {
+function rollup(i: number, modelVersions: (string | null)[]): JournalRollup {
   return {
     date: `2026-08-${String(i + 1).padStart(2, '0')}`,
     avgScore: 70 + (i % 15), minScore: 50, maxScore: 90, snapshotsCount: 4,
@@ -75,7 +75,7 @@ function rollup(i: number, modelVersions: string[]): JournalRollup {
     intakeCount: 3, autopilotSessions: 0, socialSessions: 0, modelVersions,
   } as unknown as JournalRollup;
 }
-const range = (spec: string[][]) => spec.map((vs, i) => rollup(i, vs));
+const range = (spec: (string | null)[][]) => spec.map((vs, i) => rollup(i, vs));
 /** Explicit per-day scores — required whenever a law must prove the scored and
  *  whole-range populations genuinely DIFFER. With the default score curve they
  *  can coincide, and an assertion that compares them then passes either way. */

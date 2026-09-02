@@ -167,12 +167,19 @@ export function bucketizeSegmented(
  * which is exactly the treatment it deserves.
  */
 export function dayVersion(r: JournalRollup): string | null {
-  // Q4 — RENDER identity. Exact recorded signature: a day is its own visual run
-  // unless exactly one version was recorded for it. Deliberately NOT
-  // `scoreableVersion`, which answers Q1 and would join two comparable-but-
-  // distinct versions into one stroke.
-  const { recordedVersions } = dayProvenance(r);
-  return recordedVersions.length === 1 ? recordedVersions[0]! : null;
+  // Q4 — RENDER identity. Deliberately NOT `scoreableVersion`, which answers Q1
+  // and would join two comparable-but-distinct versions into one stroke.
+  //
+  // The `kind` gate is load-bearing. `recordedVersions` holds only KNOWN
+  // versions, so a day recorded as [null, v1.0] reduces to ['v1.0'] — length 1,
+  // indistinguishable from a clean [v1.0] day. Reading the length alone drew
+  // the api-server deploy day INSIDE the v1.0 stroke: 30 continuous points
+  // under a caption saying 29 comparable days, while the day card marked the
+  // same row non-comparable. An incompatible day is always its own run.
+  const p = dayProvenance(r);
+  return p.kind === 'known' && p.recordedVersions.length === 1
+    ? p.recordedVersions[0]!
+    : null;
 }
 
 export interface RecapPadding { top: number; right: number; bottom: number; left: number }
