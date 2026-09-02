@@ -70,7 +70,7 @@ function rollup(i: number, modelVersions: (string | null)[]): JournalRollup {
     date: `2026-08-${String(i + 1).padStart(2, '0')}`,
     avgScore: 70 + (i % 15), minScore: 50, maxScore: 90, snapshotsCount: 4,
     endOzConsumed: 60 + i, endAforceUnits: i, endUnitsConsumed: 5,
-    endSodiumDeliveredMg: 0, endSodiumLostMg: 0, endDeficitPct: 0,
+    endSodiumDelivered: 0, endSodiumLost: 0, endDeficitPct: 0,
     pctTimePeak: 0, pctTimeBalanced: 100, pctTimeRecovering: 0, pctTimeDepleted: 0,
     intakeCount: 3, autopilotSessions: 0, socialSessions: 0, modelVersions,
   } as unknown as JournalRollup;

@@ -56,8 +56,8 @@ function rollupNoVersions(date: string): JournalRollup {
 
 function rollup(date: string, avgScore: number, modelVersions: (string | null)[]): JournalRollup {
   return { date, avgScore, minScore: avgScore, maxScore: avgScore, snapshotsCount: 4,
-    endOzConsumed: 60, endAforceUnits: 0, endUnitsConsumed: 5, endSodiumDeliveredMg: 0,
-    endSodiumLostMg: 0, endDeficitPct: 0, pctTimePeak: 0, pctTimeBalanced: 100,
+    endOzConsumed: 60, endAforceUnits: 0, endUnitsConsumed: 5, endSodiumDelivered: 0,
+    endSodiumLost: 0, endDeficitPct: 0, pctTimePeak: 0, pctTimeBalanced: 100,
     pctTimeRecovering: 0, pctTimeDepleted: 0, intakeCount: 3, autopilotSessions: 0,
     socialSessions: 0, modelVersions } as unknown as JournalRollup;
 }
