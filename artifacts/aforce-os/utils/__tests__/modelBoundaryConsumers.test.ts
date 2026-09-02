@@ -25,11 +25,13 @@ import {
   spansModelBoundary,
   isMixedModelDay,
   isComparableModelVersion,
+  provenanceOfVersions,
 } from '../scoring/modelBoundary';
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
   recapStatsScope, dayVersion, statsDayVersion, isRecordedIncompatibleDay,
+  dayProvenance, classifyRecapProvenance,
 } from '../scoring/boundarySeries';
 import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
@@ -732,5 +734,110 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     const paths = buildRecapSegmentPaths(rows, 300, 100, PAD);
     expect(paths.length).toBe(2);
     for (const d of paths) expect(d, `must draw: ${d}`).toMatch(/L/);
+  });
+});
+
+/* ═══════ CANONICAL DAY PROVENANCE — the structure, and the four questions ═══════
+ *
+ * Seven review rounds found the same conflation in seven costumes, because a
+ * day answered four different questions through one nullable collapse. These
+ * laws pin the structure that replaced it: one classification per day, four
+ * fields, and no consumer answering one question with another's predicate.
+ */
+describe('DayModelProvenance — canonical classification', () => {
+  const P = (vs: (string | null)[] | undefined) => provenanceOfVersions(vs);
+  const V11 = 'hydrostate-v1.1';
+  const range = (versions: string[][]) =>
+    versions.map((vs, i) => rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 60 + i, vs));
+
+  const TABLE: Array<[string, (string | null)[] | undefined,
+    { kind: string; scoreable: string | null; recorded: string[] }]> = [
+    ['absent field',            undefined,      { kind: 'unrecorded',   scoreable: null, recorded: [] }],
+    ['empty list',              [],             { kind: 'unrecorded',   scoreable: null, recorded: [] }],
+    ['[null]',                  [null],         { kind: 'unrecorded',   scoreable: null, recorded: [] }],
+    ['[null, null]',            [null, null],   { kind: 'unrecorded',   scoreable: null, recorded: [] }],
+    ['one known',               [V1],           { kind: 'known',        scoreable: V1,   recorded: [V1] }],
+    ['duplicate known',         [V1, V1],       { kind: 'known',        scoreable: V1,   recorded: [V1] }],
+    ['same-major pair',         [V1, V11],      { kind: 'known',        scoreable: V1,   recorded: [V1, V11] }],
+    ['incompatible pair',       [V0, V1],       { kind: 'incompatible', scoreable: null, recorded: [V0, V1] }],
+    ['known + unrecorded',      [null, V1],     { kind: 'incompatible', scoreable: null, recorded: [V1] }],
+    ['three, one disagreeing',  [V1, V11, V0],  { kind: 'incompatible', scoreable: null, recorded: [V1, V11, V0] }],
+  ];
+
+  for (const [label, input, want] of TABLE) {
+    it(`${label} → ${want.kind}`, () => {
+      const p = P(input);
+      expect(p.kind, 'kind').toBe(want.kind);
+      expect(p.scoreableVersion, 'scoreableVersion').toBe(want.scoreable);
+      expect(p.recordedVersions, 'recordedVersions').toEqual(want.recorded);
+    });
+  }
+
+  it('unrecorded is NEVER silently treated as incompatible', () => {
+    for (const vs of [undefined, [], [null], [null, null]] as Array<(string | null)[] | undefined>) {
+      expect(P(vs).kind, JSON.stringify(vs)).toBe('unrecorded');
+      expect(isMixedModelDay(vs), 'not a mixed day').toBe(false);
+    }
+  });
+
+  it('the four questions use four different fields', () => {
+    // Q1 population, Q2 known?, Q3 transition evidence, Q4 render identity.
+    const deployDay = P([V0, V1]);
+    expect(deployDay.scoreableVersion).toBeNull();          // Q1: cannot score
+    expect(deployDay.kind).not.toBe('unrecorded');          // Q2: IS recorded
+    expect(deployDay.recordedVersions).toEqual([V0, V1]);   // Q3: witnesses it
+    // Q4: render identity is exact — a two-version day is its own run.
+    const rollupOf = (vs: string[]) => rollup('2026-08-01', 70, vs);
+    expect(dayVersion(rollupOf([V0, V1]))).toBeNull();
+    // ...and a same-major pair is ONE score population but still its own run.
+    expect(P([V1, V11]).scoreableVersion).toBe(V1);
+    expect(dayVersion(rollupOf([V1, V11]))).toBeNull();
+  });
+
+  it('an EXCLUDED incompatible day cannot make unknown survivors "comparable"', () => {
+    const unknownOnly = range(Array.from({ length: 20 }, () => []));
+    const plusDeploy = range([...Array.from({ length: 20 }, () => []), [V0, V1]]);
+    // The added day is excluded from the population...
+    expect(recapStatsScope(plusDeploy).length).toBe(20);
+    // ...and the twenty that remain are still unknown, so no claim is made.
+    expect(classifyRecapProvenance(unknownOnly).kind).toBe('provenance_unknown');
+    expect(classifyRecapProvenance(plusDeploy).kind).toBe('provenance_unknown');
+  });
+
+  it('unknown provenance never becomes NEW MODEL PERIOD', () => {
+    const p = classifyRecapProvenance(range(Array.from({ length: 30 }, () => [])));
+    expect(p.kind).toBe('provenance_unknown');
+    expect(p.kind !== 'fully_comparable' && p.knownTransition).toBe(false);
+  });
+
+  it('knownTransition requires actual mutually INCOMPARABLE known versions', () => {
+    const t = (spec: string[][]) => {
+      const p = classifyRecapProvenance(range(spec));
+      return p.kind === 'fully_comparable' ? false : p.knownTransition;
+    };
+    expect(t(Array.from({ length: 5 }, () => [V1]))).toBe(false);            // one version
+    expect(t([[V1], [V11]])).toBe(false);                                    // same major
+    expect(t(Array.from({ length: 5 }, () => []))).toBe(false);              // unrecorded
+    expect(t([[V0], [V1]])).toBe(true);                                      // real transition
+    expect(t([...Array.from({ length: 5 }, () => []), [V0, V1]])).toBe(true); // inside one day
+  });
+
+  it('incompatible days NEVER enter a score population', () => {
+    for (const spec of [
+      [[V1], [V0, V1], [V1]],
+      [[V0, V1]],
+      [...Array.from({ length: 10 }, () => [V1]), ...Array.from({ length: 3 }, () => [V0, V1])],
+    ]) {
+      for (const r of recapStatsScope(range(spec))) {
+        expect(dayProvenance(r).kind, 'no incompatible day in population').not.toBe('incompatible');
+      }
+    }
+  });
+
+  it('render identity and statistical comparability stay separate', () => {
+    const rows = range([...Array.from({ length: 15 }, () => [V1]),
+                        ...Array.from({ length: 15 }, () => [V11])]);
+    expect(recapStatsScope(rows).length).toBe(30);                 // one population
+    expect(segmentForRender(rows, dayVersion).length).toBe(2);     // two visual runs
   });
 });

@@ -117,21 +117,72 @@ export function segmentByModelVersion<T>(
  * false). The previous wording said "only two or more distinct KNOWN versions
  * count", which contradicts both of those pinned behaviours.
  */
+/* ── canonical per-day provenance ─────────────────────────────────────────── */
+
+/**
+ * ONE classification of a day's model provenance, computed once and consumed
+ * everywhere.
+ *
+ * WHY THIS EXISTS. A day was being asked four different questions through one
+ * nullable collapse: can its score join a population, is its provenance
+ * recorded, does it witness a transition, and how should it draw. Every
+ * consumer re-derived a different answer from that same lossy value, so each
+ * fix was right about its own question and wrong about the next one asked.
+ * Seven rounds of review found the same conflation in seven costumes.
+ *
+ * The four questions now have four fields, and no consumer may answer one with
+ * another's:
+ *   1. may this day's score enter a population?  -> `scoreableVersion`
+ *   2. is provenance known?                      -> `kind !== 'unrecorded'`
+ *   3. does it witness a transition?             -> `recordedVersions`
+ *   4. how does it render?                       -> exact recorded identity
+ */
+export interface DayModelProvenance {
+  /** Every KNOWN version recorded for the day, deduped, in first-seen order. */
+  recordedVersions: string[];
+  /** The single version this day's score may be associated with, else null. */
+  scoreableVersion: string | null;
+  kind: 'known' | 'unrecorded' | 'incompatible';
+}
+
+/**
+ * Classify a raw per-day version list.
+ *
+ * `unrecorded` and `incompatible` are deliberately distinct: absence of
+ * evidence is not evidence of disagreement, and collapsing them is the single
+ * error this whole structure exists to prevent.
+ *
+ * A day carrying BOTH a known version and an unrecorded observation is
+ * `incompatible`, not `unrecorded`: its aggregate blends a scoreable reading
+ * with one that is comparable to nothing, so it cannot truthfully collapse to
+ * a single scoreable version.
+ */
+export function provenanceOfVersions(
+  raw: readonly (string | null)[] | undefined,
+): DayModelProvenance {
+  const list = raw ?? [];
+  const known: string[] = [];
+  for (const v of list) if (v != null && !known.includes(v)) known.push(v);
+  const hasUnrecordedEntry = list.some((v) => v == null);
+
+  if (known.length === 0) {
+    return { recordedVersions: [], scoreableVersion: null, kind: 'unrecorded' };
+  }
+  if (hasUnrecordedEntry) {
+    return { recordedVersions: known, scoreableVersion: null, kind: 'incompatible' };
+  }
+  const anchor = known[0]!;
+  const collapses = known.every((v) => isComparableModelVersion(v, anchor));
+  return collapses
+    ? { recordedVersions: known, scoreableVersion: anchor, kind: 'known' }
+    : { recordedVersions: known, scoreableVersion: null, kind: 'incompatible' };
+}
+
+/**
+ * Does one day's rollup contain scores that cannot collapse to one comparable
+ * model version? Now a thin reading of the canonical classification rather than
+ * an independent derivation.
+ */
 export function isMixedModelDay(versions: readonly (string | null)[] | undefined): boolean {
-  if (!versions || versions.length <= 1) return false;
-  // DEDUPE FIRST — this is the mechanical protection, not a prose assumption.
-  // `[null, null]` and `['x', 'x']` each name ONE version, so neither is a
-  // mixed day; without this they answered `true` because `spansModelBoundary`
-  // correctly reports that an unrecorded score is comparable to nothing —
-  // including to another unrecorded score. That is the right answer to the
-  // COMPARABILITY question and the wrong answer to the MIXED-DAY question.
-  //
-  // It also makes `containsMixedDay => crossesBoundary` a theorem for arbitrary
-  // input rather than something that merely happens to hold because the only
-  // current producer emits a deduped Set. The safety of downstream consumers no
-  // longer depends on an upstream invariant nothing enforces.
-  const distinct: (string | null)[] = [];
-  for (const v of versions) if (!distinct.includes(v)) distinct.push(v);
-  if (distinct.length <= 1) return false;
-  return spansModelBoundary(distinct);
+  return provenanceOfVersions(versions).kind === 'incompatible';
 }
