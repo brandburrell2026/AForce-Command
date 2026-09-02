@@ -17,8 +17,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
-import { computeRecapStatsSplit } from '@/utils/journalRecapStats';
-import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
+import { computeRecapCardStats } from '@/utils/journalRecapStats';
+import { buildRecapSegmentPaths, recapStatsScope, statsDayVersion } from '@/utils/scoring/boundarySeries';
+import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
+
+/** Rendered wherever the card cannot support a number. */
+const UNAVAILABLE = '—';
 
 
 interface Props {
@@ -51,10 +55,19 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // range, so the "30-DAY TIMELINE" label stays true and a member's real
   // participation is never discarded because the scoring model changed.
   const statsScope = useMemo(() => recapStatsScope(rollups), [rollups]);
-  const stats = useMemo(
-    () => computeRecapStatsSplit(rollups, statsScope),
-    [rollups, statsScope],
+  // The streak is only meaningful when the WHOLE reporting range shares one
+  // model's semantics — see `computeRecapCardStats`.
+  const streakComparable = useMemo(
+    () => !spansModelBoundary(rollups.map(statsDayVersion)),
+    [rollups],
   );
+  const stats = useMemo(
+    () => computeRecapCardStats(rollups, statsScope, { streakComparable }),
+    [rollups, statsScope, streakComparable],
+  );
+  // D3 — a smaller scoring population may not be silent. Shown only when the
+  // score figures actually describe fewer days than the label does.
+  const showComparableDays = stats.comparableDays < stats.daysTracked;
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 
@@ -105,16 +118,38 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
         )}
       </View>
 
+      {showComparableDays && (
+        <Text style={[styles.statK, styles.qualifier]} testID="recap-comparable-days">
+          HYDROSTATE · {stats.comparableDays} COMPARABLE{' '}
+          {stats.comparableDays === 1 ? 'DAY' : 'DAYS'}
+        </Text>
+      )}
+
       <View style={styles.statsGrid}>
         <Stat k="AVG" v={String(stats.avgScore)} />
         <Stat k="PEAK AVG" v={String(stats.peakScore)} />
         <Stat k="DAYS" v={String(stats.daysTracked)} />
-        <Stat k="STREAK" v={String(stats.bestStreak)} />
+        <Stat
+          k="STREAK"
+          v={stats.bestStreak == null ? UNAVAILABLE : String(stats.bestStreak)}
+        />
       </View>
+      {stats.bestStreak == null && (
+        <Text style={[styles.statK, styles.qualifier]} testID="recap-streak-unavailable">
+          NEW MODEL PERIOD
+        </Text>
+      )}
 
       <View style={styles.statsRow}>
-        <Stat k="OUNCES" v={String(stats.totalOunces)} wide />
-        <Stat k="STICKS" v={String(stats.totalSticks)} wide />
+        {/* SUPPRESSED (founder ruling 2026-09-01). `endOzConsumed` /
+            `endAforceUnits` are per-UTC-day counters captured at an arbitrary
+            client sync, not window cumulatives — so neither the last row, a sum
+            of rows, nor a narrowed row can support a 30-day total. The card
+            renders the unavailable state rather than a number it cannot back.
+            Restored when the rollups route returns authoritative per-day
+            intake ounces from `aforceIntakeLogs`. */}
+        <Stat k="OUNCES" v={stats.totalOunces == null ? UNAVAILABLE : String(stats.totalOunces)} wide />
+        <Stat k="STICKS" v={stats.totalSticks == null ? UNAVAILABLE : String(stats.totalSticks)} wide />
       </View>
 
       <View style={styles.footer}>
@@ -132,6 +167,15 @@ const Stat: React.FC<{ k: string; v: string; wide?: boolean }> = ({ k, v, wide }
 );
 
 const styles = StyleSheet.create({
+  // Reuses the stat-label tone rather than introducing a colour literal — the
+  // brand-token ratchet correctly rejects added raw hex, and a qualifier should
+  // read as metadata anyway, which is exactly what that tone already means.
+  qualifier: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 9,
+    letterSpacing: 0.7,
+    marginTop: 6,
+  },
   card: {
     width: CARD_W,
     aspectRatio: 1,

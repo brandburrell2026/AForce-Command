@@ -140,6 +140,23 @@ export function bucketizeSegmented(
  * isolates into its own segment rather than silently joining a neighbour —
  * which is exactly the treatment it deserves.
  */
+export function statsDayVersion(r: JournalRollup): string | null {
+  const vs = r.modelVersions;
+  if (!vs || vs.length === 0) return null;
+  if (vs.length === 1) return vs[0]!;
+  // A day carrying SEVERAL versions is only a hole when they disagree. At a
+  // v1.0 -> v1.1 transition every version on the day is comparable, so the day
+  // is a perfectly good member of the score population — collapsing it to
+  // `null` excluded it and punched a gap through the middle of the run, which
+  // halved the reported streak for no physiological reason.
+  //
+  // Distinct from `dayVersion`, which RENDERING uses: a mixed day still gets
+  // its own visual run under exact identity, because a seam is cheap and a
+  // false continuity claim is not.
+  const anchor = vs[0]!;
+  return vs.every((v) => isComparableModelVersion(v, anchor)) ? anchor : null;
+}
+
 export function dayVersion(r: JournalRollup): string | null {
   const vs = r.modelVersions;
   return vs && vs.length === 1 ? vs[0]! : null;
@@ -217,7 +234,7 @@ export function recapStatsScope(
   rollups: readonly JournalRollup[],
 ): readonly JournalRollup[] {
   if (rollups.length === 0) return rollups;
-  const versions = rollups.map(dayVersion);
+  const versions = rollups.map(statsDayVersion);
   if (!spansModelBoundary(versions)) return rollups;
 
   // The newest KNOWN version anchors the population. Walking back past trailing
@@ -239,5 +256,5 @@ export function recapStatsScope(
   // [v1.0 x10, unstamped x5, v1.1 x5] kept only the trailing 5 rather than the
   // 15 that are genuinely comparable. Visual continuity and statistical
   // comparability are separate contracts, and this is the statistical one.
-  return rollups.filter((r) => isComparableModelVersion(dayVersion(r), newestKnown));
+  return rollups.filter((r) => isComparableModelVersion(statsDayVersion(r), newestKnown));
 }

@@ -119,5 +119,19 @@ export function segmentByModelVersion<T>(
  */
 export function isMixedModelDay(versions: readonly (string | null)[] | undefined): boolean {
   if (!versions || versions.length <= 1) return false;
-  return spansModelBoundary(versions);
+  // DEDUPE FIRST — this is the mechanical protection, not a prose assumption.
+  // `[null, null]` and `['x', 'x']` each name ONE version, so neither is a
+  // mixed day; without this they answered `true` because `spansModelBoundary`
+  // correctly reports that an unrecorded score is comparable to nothing —
+  // including to another unrecorded score. That is the right answer to the
+  // COMPARABILITY question and the wrong answer to the MIXED-DAY question.
+  //
+  // It also makes `containsMixedDay => crossesBoundary` a theorem for arbitrary
+  // input rather than something that merely happens to hold because the only
+  // current producer emits a deduped Set. The safety of downstream consumers no
+  // longer depends on an upstream invariant nothing enforces.
+  const distinct: (string | null)[] = [];
+  for (const v of versions) if (!distinct.includes(v)) distinct.push(v);
+  if (distinct.length <= 1) return false;
+  return spansModelBoundary(distinct);
 }

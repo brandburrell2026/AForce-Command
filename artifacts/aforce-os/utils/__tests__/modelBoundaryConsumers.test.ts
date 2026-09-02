@@ -29,9 +29,9 @@ import {
 import { buildWeeklyV3Model } from '@/components/insights/weeklyV3Presentation';
 import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
-  recapStatsScope, dayVersion,
+  recapStatsScope, dayVersion, statsDayVersion,
 } from '../scoring/boundarySeries';
-import { computeRecapStats, computeRecapStatsSplit } from '../journalRecapStats';
+import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
 
 const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
@@ -150,6 +150,30 @@ describe('LAW 4 — a mixed-model day is marked non-comparable', () => {
     expect(isMixedModelDay(undefined)).toBe(false);
     // "not recorded" is not evidence of mixing — it is absence of evidence.
     expect(isMixedModelDay([null])).toBe(false);
+    // TWO unstamped readings on one day are ONE unstamped day, not a mixed one.
+    // Without deduping, this answered `true` because an unrecorded score is
+    // comparable to nothing — including to another unrecorded score. Correct
+    // for comparability, wrong for "is this day mixed".
+    expect(isMixedModelDay([null, null])).toBe(false);
+    expect(isMixedModelDay([V1, V1, V1])).toBe(false);
+  });
+
+  it('containsMixedDay => crossesBoundary holds for ARBITRARY input', () => {
+    // The weekly suppression drops the `containsMixedDay` term as redundant.
+    // That is only sound if the implication is a theorem rather than a habit of
+    // the current producer. Deduping makes it one; this law is the proof, run
+    // over the shapes that previously broke it.
+    const shapes: (string | null)[][] = [
+      [null, null], [V1, V1], [V0, V0, V0],
+      [null, V1], [V0, V1], [V1, 'hydrostate-v1.1'],
+      [], [null], [V1],
+    ];
+    for (const vs of shapes) {
+      if (isMixedModelDay(vs)) {
+        expect(spansModelBoundary(vs), `mixed must imply boundary: ${JSON.stringify(vs)}`)
+          .toBe(true);
+      }
+    }
   });
 
   it('an unrecorded version alongside a known one IS non-comparable', () => {
@@ -307,6 +331,12 @@ describe('LAW 6 — an exported recap carries the same boundary semantics', () =
     // as a bare moveto is a day that exists in the data and not in the export.
     for (const d of paths) {
       expect(d, `path must stroke, not just move: ${d}`).toMatch(/L/);
+      // NON-ZERO GEOMETRY. `M x,y L x,y` contains an L and draws nothing, so
+      // presence of a draw command is not the contract — visible length is.
+      const xs = [...d.matchAll(/[ML]([\d.]+),/g)].map((m) => Number(m[1]));
+      expect(xs.length, `two endpoints expected: ${d}`).toBeGreaterThanOrEqual(2);
+      expect(Math.abs(xs[xs.length - 1]! - xs[0]!), `zero-length stroke: ${d}`)
+        .toBeGreaterThan(0);
     }
   });
 
@@ -591,25 +621,29 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
       const rows = spec(parts);
       expect(rows.length).toBe(30);
       const scope = recapStatsScope(rows);
-      const split = computeRecapStatsSplit(rows, scope);
-      const whole = computeRecapStats(rows);
+      const streakComparable = !spansModelBoundary(rows.map(statsDayVersion));
+      const card = computeRecapCardStats(rows, scope, { streakComparable });
 
       // 1 · score metrics never blend incomparable model versions
       expect(scope.length, 'score population').toBe(expectedScore);
-      const anchor = dayVersion(scope[scope.length - 1]!);
+      const anchor = statsDayVersion(scope[scope.length - 1]!);
       for (const r of scope) {
-        expect(isComparableModelVersion(dayVersion(r), anchor), 'all comparable').toBe(true);
+        expect(isComparableModelVersion(statsDayVersion(r), anchor), 'all comparable').toBe(true);
       }
 
-      // 2 · non-score totals still represent the WHOLE reporting range
-      expect(split.daysTracked, 'daysTracked').toBe(30);
-      expect(split.totalOunces).toBe(whole.totalOunces);
-      expect(split.totalSticks).toBe(whole.totalSticks);
+      // 2 · the reporting range is reported in full
+      expect(card.daysTracked, 'daysTracked').toBe(30);
 
       // 3 · a one-day score run must not make the card look like a one-day report
-      expect(split.daysTracked).toBeGreaterThan(1);
+      expect(card.daysTracked).toBeGreaterThan(1);
+      // ...and the smaller scoring population is DISCLOSED, never silent.
+      expect(card.comparableDays).toBe(expectedScore);
 
-      // 4 · no observation disappears
+      // 4 · activity totals are suppressed until an authoritative source exists
+      expect(card.totalOunces, 'ounces must not be fabricated').toBeNull();
+      expect(card.totalSticks, 'sticks must not be fabricated').toBeNull();
+
+      // 5 · no observation disappears
       expect(buildRecapSegmentPaths(rows, 300, 100, PAD).length).toBeGreaterThanOrEqual(1);
       const segs = segmentForRender(rows, dayVersion);
       expect(segs.flatMap((s) => s.points).length).toBe(30);
@@ -650,9 +684,14 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     // conservative, and it must not be mistaken for a real boundary.
     expect(isMixedModelDay([V1, V1])).toBe(false);
     const rows = range([...Array.from({ length: 29 }, () => [V1]), [V1, V1]]);
-    // The trailing duplicate day is unstamped-by-collapse; the score population
-    // is the 29 known v1 days and the totals still cover all 30.
-    expect(computeRecapStatsSplit(rows, recapStatsScope(rows)).daysTracked).toBe(30);
+    // A duplicate-version day names ONE version, so it is a full member of the
+    // score population — not a hole. (Before the dedup fix it collapsed to null
+    // and was excluded, which is the D4 transition-day defect in miniature.)
+    expect(statsDayVersion(rows[29]!)).toBe(V1);
+    expect(recapStatsScope(rows).length).toBe(30);
+    const card = computeRecapCardStats(rows, recapStatsScope(rows), { streakComparable: true });
+    expect(card.daysTracked).toBe(30);
+    expect(card.comparableDays).toBe(30);
   });
 
   it('a one-day score run still produces a DRAWN stroke, not a bare moveto', () => {

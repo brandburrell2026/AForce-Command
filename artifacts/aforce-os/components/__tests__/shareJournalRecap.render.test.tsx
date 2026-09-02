@@ -43,7 +43,7 @@ vi.mock('react-native-svg', () => {
 
 import ShareJournalRecap from '../ShareJournalRecap';
 import { buildRecapSegmentPaths, recapStatsScope } from '@/utils/scoring/boundarySeries';
-import { computeRecapStats, computeRecapStatsSplit } from '@/utils/journalRecapStats';
+import { computeRecapStats } from '@/utils/journalRecapStats';
 
 const V0 = 'hydrostate-v0';
 const V1 = 'hydrostate-v1.0';
@@ -68,6 +68,11 @@ function rollup(i: number, modelVersions: string[]): JournalRollup {
   } as unknown as JournalRollup;
 }
 const range = (spec: string[][]) => spec.map((vs, i) => rollup(i, vs));
+/** Explicit per-day scores — required whenever a law must prove the scored and
+ *  whole-range populations genuinely DIFFER. With the default score curve they
+ *  can coincide, and an assertion that compares them then passes either way. */
+const rangeScored = (spec: Array<[string[], number]>) =>
+  spec.map(([vs, score], i) => ({ ...rollup(i, vs), avgScore: score, maxScore: score }));
 
 let host: HTMLElement;
 let root: Root;
@@ -145,59 +150,88 @@ describe('ShareJournalRecap — the shared segmentation DRIVES the render', () =
   });
 });
 
-describe('ShareJournalRecap — the two populations reach the right tiles', () => {
-  it('ROLLOUT DAY 1: DAYS is 30, not 1', () => {
-    // 29 unstamped days + the first v1.0 day. The defect this replaces made
-    // every tile inherit the single comparable row, so a card headed
-    // "30-DAY TIMELINE" reported DAYS 1 / STREAK 1.
+describe('ShareJournalRecap — the card only shows what it can support', () => {
+  it('ROLLOUT DAY 1: DAYS is 30, and the 1-day scoring population is DISCLOSED', () => {
     const rows = range([...Array.from({ length: 29 }, () => [] as string[]), [V1]]);
     render(rows);
     expect(statValue('DAYS')).toBe('30');
-    // and the score tile is computed from the comparable rows only
-    const split = computeRecapStatsSplit(rows, recapStatsScope(rows));
-    expect(statValue('AVG')).toBe(String(split.avgScore));
-    // which is NOT the blended whole-range average
-    expect(split.avgScore).not.toBe(computeRecapStats(rows).avgScore);
+    // D3 — the smaller scoring population may not be silent.
+    expect(host.textContent).toMatch(/HYDROSTATE · 1 COMPARABLE DAY/);
+    expect(host.querySelector('[data-testid="recap-comparable-days"]')).not.toBeNull();
   });
 
-  it('activity totals follow the FULL range, never the narrowed one', () => {
-    // Fixture chosen so the narrowed population does NOT end on the last row.
-    // `totalOunces`/`totalSticks` read the END-OF-WINDOW cumulative row, so
-    // when the comparable run is TRAILING the two populations coincide and the
-    // anti-vacuity check below would be satisfied for the wrong reason. Here
-    // the v1 run is at the START, so narrowing would report 20-day-old totals.
-    const rows = range([...Array.from({ length: 10 }, () => [V1]),
-                        ...Array.from({ length: 20 }, () => [] as string[])]);
+  it('the disclosure pluralises and is ABSENT when every day is comparable', () => {
+    render(range([...Array.from({ length: 20 }, () => [V0]),
+                  ...Array.from({ length: 10 }, () => [V1])]));
+    expect(host.textContent).toMatch(/HYDROSTATE · 10 COMPARABLE DAYS/);
+    flushSync(() => root.unmount());
+    host = document.createElement('div');
+    document.body.appendChild(host);
+    render(range(Array.from({ length: 30 }, () => [V1])));
+    // ANTI-VACUITY: a wholly comparable range must NOT carry the qualifier.
+    expect(host.textContent).not.toMatch(/COMPARABLE DAY/);
+  });
+
+  it('D2 — a cross-model range renders the STREAK as unavailable, not as 1', () => {
+    const rows = range([...Array.from({ length: 29 }, () => [V0]), [V1]]);
     render(rows);
-    const whole = computeRecapStats(rows);
-    expect(statValue('DAYS')).toBe(String(whole.daysTracked));
-    expect(statValue('OUNCES')).toBe(String(whole.totalOunces));
-    expect(statValue('STICKS')).toBe(String(whole.totalSticks));
-    // ANTI-VACUITY: the narrowed population gives genuinely different totals.
-    const narrowed = computeRecapStats(recapStatsScope(rows));
-    expect(narrowed.daysTracked).not.toBe(whole.daysTracked);
-    expect(narrowed.totalOunces).not.toBe(whole.totalOunces);
+    expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).not.toBeNull();
+    expect(host.textContent).toMatch(/NEW MODEL PERIOD/);
+    // and the tile itself must not print a collapsed number
+    expect(host.textContent).not.toMatch(/STREAK[^0-9]*1\b/);
+  });
+
+  it('D2 — a wholly comparable range still renders a real streak', () => {
+    // ANTI-VACUITY for the law above: suppression must not be unconditional.
+    render(range(Array.from({ length: 30 }, () => [V1])));
+    expect(host.querySelector('[data-testid="recap-streak-unavailable"]')).toBeNull();
+    expect(statValue('STREAK')).not.toBeNull();
+    expect(Number(statValue('STREAK'))).toBeGreaterThan(1);
+  });
+
+  it('OUNCES and STICKS render the unavailable state, never a number', () => {
+    for (const rows of [
+      range(Array.from({ length: 30 }, () => [V1])),
+      range([...Array.from({ length: 29 }, () => [] as string[]), [V1]]),
+    ]) {
+      flushSync(() => root?.unmount());
+      host = document.createElement('div'); document.body.appendChild(host);
+      render(rows);
+      const txt = host.textContent ?? '';
+      expect(txt).toMatch(/OUNCES\s*—/);
+      expect(txt).toMatch(/STICKS\s*—/);
+      // the card must not print ANY digit against those labels
+      expect(statValue('OUNCES')).toBeNull();
+      expect(statValue('STICKS')).toBeNull();
+    }
   });
 
   it('score tiles never blend across an incomparable boundary', () => {
-    const rows = range([...Array.from({ length: 20 }, () => [V0]),
-                        ...Array.from({ length: 10 }, () => [V1])]);
+    // The v0 run scores HIGH and the v1 run LOW on purpose, so the scored and
+    // whole-range figures cannot coincide. With the default curve they did
+    // (84 === 84), and the law passed whichever population the component used —
+    // which is precisely how `peakScore` went unpinned.
+    const rows = rangeScored([
+      ...Array.from({ length: 20 }, () => [[V0], 95] as [string[], number]),
+      ...Array.from({ length: 10 }, () => [[V1], 61] as [string[], number]),
+    ]);
     render(rows);
     const scoped = computeRecapStats(recapStatsScope(rows));
+    const whole = computeRecapStats(rows);
+    // ANTI-VACUITY FIRST: prove the populations differ before asserting which.
+    expect(scoped.avgScore).not.toBe(whole.avgScore);
+    expect(scoped.peakScore).not.toBe(whole.peakScore);
     expect(statValue('AVG')).toBe(String(scoped.avgScore));
     expect(statValue('PEAK AVG')).toBe(String(scoped.peakScore));
-    expect(statValue('STREAK')).toBe(String(scoped.bestStreak));
   });
 
   it('v1.0 and v1.1 are ONE score population but TWO visual runs', () => {
-    // Comparability and visual continuity are separate contracts (founder
-    // ruling): same-major versions are statistically comparable, and the render
-    // still seams them so nothing implies an identical measurement.
     const rows = range([...Array.from({ length: 15 }, () => [V1]),
                         ...Array.from({ length: 15 }, () => [V11])]);
     render(rows);
-    expect(renderedPaths().length).toBe(2);              // two visual runs
-    expect(recapStatsScope(rows).length).toBe(30);       // one score population
+    expect(renderedPaths().length).toBe(2);
+    expect(recapStatsScope(rows).length).toBe(30);
     expect(statValue('DAYS')).toBe('30');
+    expect(host.textContent).not.toMatch(/COMPARABLE DAY/);   // nothing to disclose
   });
 });
