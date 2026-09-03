@@ -113,12 +113,16 @@ function diffInDaysUTC(later: Date, earlier: Date): number {
  *   measurements. `comparableDays` reports how many rows that was, because a
  *   smaller scoring population may not be silent.
  *
- *   `bestStreak` — NULL whenever the range spans incomparable model semantics.
- *   The metric is a run of days above a HydroState threshold, and that
- *   threshold's meaning changed at v1.0. Narrowing it collapsed a genuine
- *   30-day narrative to "STREAK 1" on rollout day; keeping it whole would count
- *   a v0 crossing and a v1 crossing as the same event. Neither is true, so the
- *   card says nothing instead.
+ *   `bestStreak` — NULL for TWO independent reasons, and the caller decides
+ *   which by passing `streakEligible`. (1) The range spans incomparable model
+ *   semantics: the metric is a run of days above a HydroState threshold, and
+ *   that threshold's meaning changed at v1.0, so counting a v0 crossing and a
+ *   v1 crossing as the same event is not one metric. (2) A day in the range has
+ *   no HydroState observation at all, which makes continuity UNKNOWABLE across
+ *   it — the run may not be broken (that asserts a failure) and the day may not
+ *   be skipped (that asserts qualification nobody observed). Either way the
+ *   card says nothing rather than publishing a number it cannot support; the
+ *   REASON is classified by `classifyStreakEligibility`, not here.
  *
  *   ACTIVITY TOTALS (`totalOunces`, `totalSticks`) — currently ALWAYS null.
  *   See `activityTotalsUnavailable` below.
@@ -132,7 +136,7 @@ export interface RecapCardStats {
   comparableDays: number;
   /** Days in the whole reporting range — the number the label describes. */
   daysTracked: number;
-  /** NULL when the range spans incomparable model semantics. */
+  /** NULL when the range is incomparable OR any day went unobserved. */
   bestStreak: number | null;
   /** NULL until authoritative per-day intake totals exist server-side. */
   totalOunces: number | null;
@@ -165,7 +169,10 @@ export const ACTIVITY_TOTALS_UNAVAILABLE = null;
 export function computeRecapCardStats(
   fullRange: readonly JournalRollup[],
   scorePopulation: readonly JournalRollup[],
-  opts: { streakComparable: boolean },
+  // `streakEligible`, not `streakComparable`: comparability is only ONE of the
+  // two things that can withhold the streak, and naming the parameter after it
+  // is what invited a caller to compute it from a comparability comparison.
+  opts: { streakEligible: boolean },
 ): RecapCardStats {
   const whole = computeRecapStats(fullRange);
   const scored = computeRecapStats(scorePopulation);
@@ -179,7 +186,7 @@ export function computeRecapCardStats(
     peakScore: hasComparable ? scored.peakScore : null,
     comparableDays: scorePopulation.length,
     daysTracked: whole.daysTracked,
-    bestStreak: hasComparable && opts.streakComparable ? scored.bestStreak : null,
+    bestStreak: hasComparable && opts.streakEligible ? scored.bestStreak : null,
     totalOunces: ACTIVITY_TOTALS_UNAVAILABLE,
     totalSticks: ACTIVITY_TOTALS_UNAVAILABLE,
   };

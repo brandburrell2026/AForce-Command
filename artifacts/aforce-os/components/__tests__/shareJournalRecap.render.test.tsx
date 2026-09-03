@@ -44,6 +44,8 @@ vi.mock('react-native-svg', () => {
 import ShareJournalRecap from '../ShareJournalRecap';
 import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance, statsDayVersion } from '@/utils/scoring/boundarySeries';
 import { computeRecapStats } from '@/utils/journalRecapStats';
+import { classifyStreakEligibility } from '@/utils/scoring/boundarySeries';
+import { deriveJournalShareContext, toShareRouteParams } from '@/services/journalShareContext';
 
 /** A path must have VISIBLE LENGTH — a draw command alone is not the contract. */
 function expectNonZeroLength(d: string): void {
@@ -65,15 +67,45 @@ const PAD = { top: 8, right: 4, bottom: 8, left: 4 };
 const INNER_W = CHART_W - PAD.left - PAD.right;
 const INNER_H = CHART_H - PAD.top - PAD.bottom;
 
-function rollup(i: number, modelVersions: (string | null)[]): JournalRollup {
+/**
+ * OBSERVATION IS EXPLICIT, and the fixture is TYPE-CHECKED.
+ *
+ * This factory used to hardcode `snapshotsCount: 4` behind an
+ * `as unknown as JournalRollup` cast. Both were load-bearing defects: the cast
+ * meant the compiler never confirmed the fixture was a production row, and the
+ * hardcoded count meant the server's real intake-without-snapshot row was
+ * UNCONSTRUCTIBLE here — so no render law in this file could reach the
+ * observation seam, and the streak-denominator defect shipped under 36 green
+ * laws. `snapshotsCount` is now a parameter and the cast is gone.
+ */
+function rollup(
+  i: number,
+  modelVersions: (string | null)[],
+  snapshotsCount = 4,
+): JournalRollup {
   return {
     date: `2026-08-${String(i + 1).padStart(2, '0')}`,
-    avgScore: 70 + (i % 15), minScore: 50, maxScore: 90, snapshotsCount: 4,
+    avgScore: 70 + (i % 15), minScore: 50, maxScore: 90, snapshotsCount,
     endOzConsumed: 60 + i, endAforceUnits: i, endUnitsConsumed: 5,
     endSodiumDelivered: 0, endSodiumLost: 0, endDeficitPct: 0,
     pctTimePeak: 0, pctTimeBalanced: 100, pctTimeRecovering: 0, pctTimeDepleted: 0,
     intakeCount: 3, autopilotSessions: 0, socialSessions: 0, modelVersions,
-  } as unknown as JournalRollup;
+  };
+}
+
+/**
+ * Field-for-field what `routes/aforce/journal.ts` emits for a day with logged
+ * intakes and no captured snapshot: `snapshotsCount: 0`, every score field at
+ * the sentinel zero, no version stamps — and REAL activity (`intakeCount`,
+ * `endOzConsumed`) carried over from the factory, because that activity is
+ * exactly what makes the row a member's real day rather than an empty one.
+ */
+function scorelessAt(i: number): JournalRollup {
+  return {
+    ...rollup(i, [], 0),
+    avgScore: 0, minScore: 0, maxScore: 0,
+    pctTimePeak: 0, pctTimeBalanced: 0, pctTimeRecovering: 0, pctTimeDepleted: 0,
+  };
 }
 const range = (spec: (string | null)[][]) => spec.map((vs, i) => rollup(i, vs));
 /** Explicit per-day scores — required whenever a law must prove the scored and
@@ -114,6 +146,14 @@ function statValue(label: string): string | null {
     if (m) return m[1] === '—' ? null : m[1]!;
   }
   return null;
+}
+
+/** Tear down and re-create the host so one `it` can render several fixtures. */
+function remount(): void {
+  flushSync(() => root?.unmount());
+  host.remove();
+  host = document.createElement('div');
+  document.body.appendChild(host);
 }
 
 beforeEach(() => {
@@ -226,32 +266,68 @@ describe('ShareJournalRecap — the card only shows what it can support', () => 
     expect(Number(statValue('STREAK'))).toBe(30);
   });
 
-  it('SUPPRESSED ⟺ NARROWED — the two signals can never disagree', () => {
+  it('SUPPRESSED ⟺ UNCOVERED OR NARROWED — the signals can never disagree', () => {
     // The invariant the regression violated: the card must not call a range
     // incomparable for the streak while treating it as whole for AVG/PEAK.
-    for (const spec of [
-      Array.from({ length: 30 }, () => [] as string[]),
-      Array.from({ length: 30 }, () => [V1]),
-      [...Array.from({ length: 29 }, () => [] as string[]), [V1]],
-      [...Array.from({ length: 20 }, () => [V0]), ...Array.from({ length: 10 }, () => [V1])],
-      Array.from({ length: 30 }, () => [V1, V11]),
-      // THE DISTINGUISHING SHAPE: render segmentation says TWO runs (exact
-      // identity) while the score population says ONE (comparability). A gate
-      // derived from the render predicate suppresses the streak here and is
-      // wrong; only a population-derived gate gets it right.
-      [...Array.from({ length: 15 }, () => [V1]), ...Array.from({ length: 15 }, () => [V11])],
-    ]) {
-      flushSync(() => root?.unmount());
-      host = document.createElement('div'); document.body.appendChild(host);
-      const rows = range(spec);
+    //
+    // RESTATED for the observation seam. Suppression now has TWO causes, and
+    // the earlier one-sided form — `scope.length !== rollups.length` — was the
+    // defect itself written as a law: it measured narrowing against the
+    // reporting range, so it agreed with the buggy gate on every fixture and
+    // could never have caught it. Both denominators are computed here from the
+    // raw wire field, INDEPENDENTLY of the helper the implementation uses, so
+    // this is an oracle rather than a mirror.
+    let sawNarrowed = false;
+    let sawUncovered = false;
+    for (const [label, rows] of [
+      ['all unstamped', range(Array.from({ length: 30 }, () => []))],
+      ['all v1', range(Array.from({ length: 30 }, () => [V1]))],
+      ['29 unstamped + 1 v1', range([...Array.from({ length: 29 }, () => [] as string[]), [V1]])],
+      ['v0 -> v1', range([...Array.from({ length: 20 }, () => [V0]),
+                          ...Array.from({ length: 10 }, () => [V1])])],
+      ['same-day [v1.0, v1.1]', range(Array.from({ length: 30 }, () => [V1, V11]))],
+      // THE COMPARABILITY-vs-RENDER SHAPE: render segmentation says TWO runs
+      // (exact identity) while the score population says ONE (comparability). A
+      // gate derived from the render predicate suppresses the streak here and
+      // is wrong; only a population-derived gate gets it right.
+      ['v1.0 -> v1.1', range([...Array.from({ length: 15 }, () => [V1]),
+                              ...Array.from({ length: 15 }, () => [V11])])],
+      // THE COVERAGE SHAPES the old form could not distinguish. Fully
+      // comparable, so nothing narrowed against the OBSERVED population — the
+      // suppression here is coverage and nothing else.
+      ['v1 with a middle gap', (() => {
+        const r = range(Array.from({ length: 30 }, () => [V1])); r[14] = scorelessAt(14); return r;
+      })()],
+      ['unstamped with a leading gap', (() => {
+        const r = range(Array.from({ length: 30 }, () => [])); r[0] = scorelessAt(0); return r;
+      })()],
+      ['gap AND a real transition', (() => {
+        const r = range([...Array.from({ length: 20 }, () => [V0]),
+                         ...Array.from({ length: 10 }, () => [V1])]);
+        r[25] = scorelessAt(25); return r;
+      })()],
+    ] as Array<[string, JournalRollup[]]>) {
+      remount();
       render(rows);
       const suppressed = host.querySelector('[data-testid="recap-streak-unavailable"]') !== null;
-      const narrowed = recapStatsScope(rows).length !== rows.length;
-      expect(suppressed, `suppressed must equal narrowed for ${JSON.stringify(spec[0])}…`)
-        .toBe(narrowed);
+      const observed = rows.filter((r) => r.snapshotsCount > 0);
+      const uncovered = observed.length !== rows.length;
+      const narrowed = recapStatsScope(rows).length !== observed.length;
+      sawNarrowed ||= narrowed;
+      sawUncovered ||= uncovered;
+      expect(suppressed, `${label}: suppressed ⟺ uncovered OR narrowed`)
+        .toBe(uncovered || narrowed);
+      // A comparability CLAIM still requires comparability to have narrowed;
+      // missing coverage is not evidence about any model.
       const qualifier = host.textContent?.includes('COMPARABLE DAY') ?? false;
-      expect(qualifier, 'qualifier must equal narrowed').toBe(narrowed);
+      if (qualifier) {
+        expect(narrowed, `${label}: "N COMPARABLE DAYS" requires real narrowing`).toBe(true);
+      }
     }
+    // ANTI-VACUITY: both causes must actually occur, or the disjunction above
+    // proves only that one of them works.
+    expect(sawNarrowed, 'the sweep must contain a narrowed range').toBe(true);
+    expect(sawUncovered, 'the sweep must contain an uncovered range').toBe(true);
   });
 
   it('D2 — a wholly comparable range still renders a real streak', () => {
@@ -340,8 +416,15 @@ describe('D3A — qualifier classification', () => {
     // unknown. Each day's own avgScore is already a v0+v1 blend, so no
     // comparable subset exists and every aggregate must be suppressed rather
     // than published. It must never wear provenance_unknown's words.
+    // SUPERSEDED (founder ruling §8, 2026-09-02): this used to expect the
+    // streak note `NEW MODEL PERIOD`. `recorded_incompatible` is only ever
+    // returned WITH a known transition, so testing `knownTransition` before
+    // `kind` made the `MODEL VERSIONS NOT COMPARABLE` arm dead code and the
+    // card printed TWO different names for one state on one export. The
+    // transition is how we know the versions are incomparable; it is not what
+    // to call the state.
     ['entirely recorded-incompatible [v0, v1]', Array.from({ length: 30 }, () => [V0, V1]),
-      { qualifier: /MODEL VERSIONS NOT COMPARABLE/, streakNote: /NEW MODEL PERIOD/,
+      { qualifier: /MODEL VERSIONS NOT COMPARABLE/, streakNote: /MODEL VERSIONS NOT COMPARABLE/,
         streakShown: false, aggregatesSuppressed: true }],
     // THE LITERAL ROLLOUT DAY. The server accumulates a day's snapshot versions
     // into one Set, so the deploy day is ['v0','v1.0'] for anyone who logged on
@@ -526,5 +609,308 @@ describe('wording taxonomy — locked', () => {
       .toMatch(new RegExp(`${scope.length} OF ${rows.length} DAYS`));
     expect(host.textContent, 'unrecorded days are not "comparable"')
       .not.toMatch(/COMPARABLE DAY/);
+  });
+});
+
+/* ═══════ STREAK — OBSERVATION COVERAGE vs MODEL COMPARABILITY ═══════
+ *
+ * FOUNDER RULING, 2026-09-02. A missing HydroState observation makes a
+ * HydroState-derived streak UNKNOWABLE across that gap. So the card may not:
+ *   - treat the day as score 0
+ *   - break the run and imply the member failed
+ *   - skip the day and claim continuous qualification nobody observed
+ * It suppresses the streak for the window and gives the REAL reason.
+ *
+ * THREE CAUSES, THREE ANSWERS, never one explanation:
+ *   missing observation    -> continuity cannot be established
+ *   incomparable models    -> scores are not comparable
+ *   complete + comparable  -> compute the real streak
+ *
+ * WHY THESE LAWS EXIST. The component gated the streak on
+ * `statsScope.length === rollups.length` while `recapStatsScope` and
+ * `classifyRecapProvenance` had already moved to the OBSERVED denominator. One
+ * boolean answered two questions, so a single missed sync either deleted a real
+ * streak in SILENCE (a fully-stamped month: no qualifier, no note, STREAK —) or
+ * blamed the MODEL for it (an unstamped month: "MODEL HISTORY UNAVAILABLE").
+ * Both survived 36 render laws, because every fixture in this file hardcoded
+ * `snapshotsCount: 4` and could not build the row that triggers it.
+ *
+ * Note the shape of the trap: the shipped gate produces the SAME suppressed
+ * VALUE on these fixtures. Only the REASON differs. A law that asserts the
+ * number alone cannot see this defect, so every law below asserts the reason.
+ */
+describe('STREAK — coverage and comparability are different causes', () => {
+  const clean = (n = 30, vs: (string | null)[] = [V1]) =>
+    range(Array.from({ length: n }, () => vs));
+  const gapAt = (rows: JournalRollup[], ...idxs: number[]) => {
+    const copy = [...rows];
+    for (const i of idxs) copy[i] = scorelessAt(i);
+    return copy;
+  };
+  /** The rendered streak note, or null when the card says nothing. */
+  const streakNote = () =>
+    host.querySelector('[data-testid="recap-streak-unavailable"]')?.textContent ?? null;
+  const MODEL_WORDS = /MODEL HISTORY UNAVAILABLE|NEW MODEL PERIOD|VERSIONS NOT COMPARABLE/;
+
+  it('1 — 30 observed qualifying days render the REAL streak, with no note', () => {
+    render(clean());
+    expect(Number(statValue('STREAK'))).toBe(30);
+    expect(streakNote(), 'nothing to explain').toBeNull();
+    expect(host.textContent, 'no coverage note when coverage is complete')
+      .not.toMatch(/DAYS MEASURED/);
+  });
+
+  it('2 — ONE middle scoreless day suppresses the streak and names COVERAGE', () => {
+    const rows = gapAt(clean(), 14);
+    render(rows);
+    expect(statValue('STREAK'), 'unknowable, not zero and not broken').toBeNull();
+    expect(streakNote()).toBe('HYDROSTATE · 29 OF 30 DAYS MEASURED');
+    // The cause is missing observation. Blaming the model would be a false
+    // claim about the member's history, which is the harm that shipped.
+    expect(host.textContent, 'must not blame the model').not.toMatch(MODEL_WORDS);
+    // The member's participation is untouched: the range is still reported whole.
+    expect(statValue('DAYS')).toBe('30');
+  });
+
+  it('3 — the missing day carries REAL intake: still unavailable, never a failure', () => {
+    const rows = gapAt(clean(), 14);
+    // ANTI-VACUITY: this is the server's intake-without-snapshot row, not an
+    // empty day. The member drank; the phone did not capture a score.
+    expect(rows[14]!.snapshotsCount).toBe(0);
+    expect(rows[14]!.intakeCount).toBeGreaterThan(0);
+    expect(rows[14]!.endOzConsumed).toBeGreaterThan(0);
+    render(rows);
+    expect(statValue('STREAK')).toBeNull();
+    // THE FORBIDDEN ALTERNATIVE, PROVEN TO EXIST: dropping the day and walking
+    // the remainder yields a real, smaller number — 15 — and rendering it would
+    // tell the member they broke a streak they did not break.
+    const broken = computeRecapStats(recapStatsScope(rows)).bestStreak;
+    expect(broken, 'the misleading number is genuinely reachable').toBeLessThan(30);
+    expect(statValue('STREAK'), 'and must not be shown').not.toBe(String(broken));
+    expect(streakNote()).toMatch(/29 OF 30 DAYS MEASURED/);
+  });
+
+  it('4·5·6 — first, last, and several consecutive scoreless days', () => {
+    for (const [label, idxs, measured] of [
+      ['first', [0], 29],
+      ['last', [29], 29],
+      ['three consecutive', [10, 11, 12], 27],
+    ] as Array<[string, number[], number]>) {
+      remount();
+      render(gapAt(clean(), ...idxs));
+      expect(statValue('STREAK'), `${label}: suppressed`).toBeNull();
+      expect(streakNote(), `${label}: names coverage`)
+        .toBe(`HYDROSTATE · ${measured} OF 30 DAYS MEASURED`);
+      expect(statValue('DAYS'), `${label}: range intact`).toBe('30');
+      expect(host.textContent, `${label}: not the model`).not.toMatch(MODEL_WORDS);
+    }
+  });
+
+  it('7 — a MEASURED zero is a measurement: the streak is COMPUTED, not suppressed', () => {
+    const rows = clean();
+    // Observed (snapshotsCount 4) and genuinely zero — the member was measured
+    // and scored 0. That is data, and it must behave nothing like an absence.
+    rows[14] = { ...rows[14]!, avgScore: 0, minScore: 0, maxScore: 0 };
+    render(rows);
+    expect(rows[14]!.snapshotsCount).toBe(4);       // ANTI-VACUITY: observed
+    expect(streakNote(), 'a measured zero is not missing coverage').toBeNull();
+    expect(host.textContent).not.toMatch(/DAYS MEASURED/);
+    const shown = Number(statValue('STREAK'));
+    expect(shown, 'a real streak is published').toBeGreaterThan(0);
+    expect(shown, 'and the measured zero really did break the run').toBeLessThan(30);
+  });
+
+  it('8 — fully-known v1 history + a missing observation is NOT model uncertainty', () => {
+    const rows = gapAt(clean(30, [V1]), 14);
+    render(rows);
+    // The provenance of every OBSERVED day is known and comparable...
+    expect(classifyRecapProvenance(rows).kind).toBe('fully_comparable');
+    // ...so no model wording may appear anywhere on the card.
+    expect(host.textContent).not.toMatch(/MODEL HISTORY UNAVAILABLE/);
+    expect(host.querySelector('[data-testid="recap-model-history-unavailable"]')).toBeNull();
+    expect(host.querySelector('[data-testid="recap-comparable-days"]')).toBeNull();
+    // The one thing that IS true gets said.
+    expect(streakNote()).toBe('HYDROSTATE · 29 OF 30 DAYS MEASURED');
+  });
+
+  it('9 — unrecorded provenance keeps its qualifier; coverage is a SEPARATE line', () => {
+    const rows = gapAt(clean(30, []), 14);
+    render(rows);
+    // The provenance qualifier is about the SCORE POPULATION and is retained...
+    expect(host.querySelector('[data-testid="recap-model-history-unavailable"]')).not.toBeNull();
+    // ...while the STREAK's reason is coverage. Two questions, two lines.
+    expect(streakNote()).toBe('HYDROSTATE · 29 OF 30 DAYS MEASURED');
+    expect(statValue('STREAK')).toBeNull();
+
+    // CONTROL: the identical range WITHOUT the gap keeps the same qualifier and
+    // its real streak — proving the qualifier tracks provenance only, and that
+    // the streak was not suppressed by the unrecorded versions.
+    remount();
+    render(clean(30, []));
+    expect(host.querySelector('[data-testid="recap-model-history-unavailable"]')).not.toBeNull();
+    expect(Number(statValue('STREAK'))).toBe(30);
+    expect(streakNote()).toBeNull();
+  });
+
+  it('an INCOMPARABLE model period still says so — coverage did not replace it', () => {
+    // ANTI-VACUITY for the whole block: the model reason must survive. If the
+    // coverage note simply replaced every streak note, cases 2-6 would pass for
+    // the wrong reason and this fails.
+    render(range([...Array.from({ length: 29 }, () => [V0]), [V1]]));
+    expect(statValue('STREAK')).toBeNull();
+    expect(streakNote()).toBe('NEW MODEL PERIOD');
+    expect(host.textContent, 'coverage is complete here').not.toMatch(/DAYS MEASURED/);
+  });
+
+  it('the denominator is OBSERVED days — the raw reporting range is not a substitute', () => {
+    // The shipped gate was `statsScope.length === rollups.length`. On this
+    // fixture it yields the SAME suppressed value, so only the reason exposes
+    // it: with the raw range the card fell through `fully_comparable` and
+    // rendered NO note at all — a genuine 29-day streak deleted in silence.
+    const rows = gapAt(clean(30, [V1]), 14);
+    expect(rows.length, 'raw reporting range').toBe(30);
+    expect(recapStatsScope(rows).length, 'observed and comparable').toBe(29);
+    render(rows);
+    expect(streakNote(), 'silence is the defect; the card must give a reason')
+      .not.toBeNull();
+    expect(streakNote()).toMatch(/OF 30 DAYS MEASURED/);
+  });
+
+  it('a suppressed streak is NEVER silent, across every suppressing shape', () => {
+    // Total sweep: whenever the tile renders unavailable, a reason is present.
+    for (const [label, rows] of [
+      ['middle gap', gapAt(clean(30, [V1]), 14)],
+      ['gap in unstamped history', gapAt(clean(30, []), 3)],
+      ['all days scoreless', range(Array.from({ length: 10 }, () => [V1]))
+        .map((_, i) => scorelessAt(i))],
+      ['v0 -> v1 transition', range([...Array.from({ length: 20 }, () => [V0]),
+                                     ...Array.from({ length: 10 }, () => [V1])])],
+      ['entirely incompatible', range(Array.from({ length: 10 }, () => [V0, V1]))],
+      ['gap AND transition', gapAt(range([...Array.from({ length: 20 }, () => [V0]),
+                                          ...Array.from({ length: 10 }, () => [V1])]), 25)],
+    ] as Array<[string, JournalRollup[]]>) {
+      remount();
+      render(rows);
+      if (statValue('STREAK') === null) {
+        expect(streakNote(), `${label}: suppressed streaks must carry a reason`)
+          .not.toBeNull();
+      }
+    }
+  });
+});
+
+/* ═══════ CROSS-OUTPUT AGREEMENT (founder ruling §7, 2026-09-02) ═══════
+ *
+ * `ShareJournalRecap` and `deriveJournalShareContext` are two outputs of the
+ * SAME user action. `JournalScreen.onShareJournal` calls `publishJournalShare`
+ * and `deriveJournalShareContext` on the identical array in one handler, and
+ * `SharePreviewScreenV2` renders both into the same ViewShot slot behind a
+ * format picker — so a member can see them one tap apart.
+ *
+ * They were disagreeing. The card correctly rendered "STREAK —" while the route
+ * params from that same press said `streakDays=14`, which the template engine
+ * turned into the copy the member posts publicly; and the card's AVG excluded
+ * the sentinel while the payload averaged it in. One array, two answers, and
+ * the wrong one was the one that left the app.
+ *
+ * These laws make the two surfaces provably one. They must fail if either
+ * surface is fixed alone.
+ */
+describe('the recap card and the share payload cannot disagree', () => {
+  const clean = (n = 30, vs: (string | null)[] = [V1]) =>
+    range(Array.from({ length: n }, () => vs));
+  const gapAt = (rows: JournalRollup[], ...idxs: number[]) => {
+    const copy = [...rows];
+    for (const i of idxs) copy[i] = scorelessAt(i);
+    return copy;
+  };
+  /** Every shape that reaches a different corner of the two implementations. */
+  const SHAPES: Array<[string, JournalRollup[]]> = [
+    ['fully comparable', clean()],
+    ['all unstamped', clean(30, [])],
+    ['one middle scoreless day', gapAt(clean(), 14)],
+    ['scoreless first day', gapAt(clean(), 0)],
+    ['scoreless last day', gapAt(clean(), 29)],
+    ['three consecutive scoreless', gapAt(clean(), 10, 11, 12)],
+    ['v0 -> v1 transition', range([...Array.from({ length: 20 }, () => [V0]),
+                                   ...Array.from({ length: 10 }, () => [V1])])],
+    ['entirely incompatible', range(Array.from({ length: 10 }, () => [V0, V1]))],
+    ['gap AND transition', gapAt(range([...Array.from({ length: 20 }, () => [V0]),
+                                        ...Array.from({ length: 10 }, () => [V1])]), 25)],
+    // A CALENDAR gap — the row is absent entirely, not merely scoreless. This is
+    // what a server that has not shipped densification still sends.
+    ['a day missing from the wire', clean().filter((_, i) => i !== 14)],
+    ['empty', []],
+  ];
+
+  it('AVG agrees exactly, or neither publishes one', () => {
+    let sawNumber = false, sawSuppressed = false;
+    for (const [label, rows] of SHAPES) {
+      remount();
+      render(rows);
+      const ctx = deriveJournalShareContext(rows, 30);
+      const cardAvg = statValue('AVG');
+      if (cardAvg === null) {
+        sawSuppressed = true;
+        expect(ctx.score, `${label}: card says "—", payload must publish nothing`).toBeNull();
+        expect(toShareRouteParams(ctx).score, `${label}: and omit the param`).toBeUndefined();
+      } else {
+        sawNumber = true;
+        expect(ctx.score, `${label}: the two AVGs must be the same number`)
+          .toBe(Number(cardAvg));
+      }
+    }
+    // ANTI-VACUITY: both branches must occur, or this proves only one of them.
+    expect(sawNumber && sawSuppressed, 'the sweep must reach both branches').toBe(true);
+  });
+
+  it('a suppressed STREAK never leaves the app in the payload', () => {
+    let sawPublished = false, sawSuppressed = false;
+    for (const [label, rows] of SHAPES) {
+      remount();
+      render(rows);
+      const ctx = deriveJournalShareContext(rows, 30);
+      const cardStreak = statValue('STREAK');
+      if (cardStreak === null) {
+        sawSuppressed = true;
+        // THE DEFECT, PINNED: the card rendered "—" and the payload said
+        // `streakDays=14` from the same tap.
+        expect(ctx.streakDays, `${label}: card suppressed, payload must too`).toBeUndefined();
+        expect(toShareRouteParams(ctx).streakDays, `${label}: no param`).toBeUndefined();
+        expect(ctx.type, `${label}: and it may not lead with a streak`).toBe('score');
+      } else {
+        sawPublished = true;
+      }
+    }
+    expect(sawPublished && sawSuppressed, 'the sweep must reach both branches').toBe(true);
+  });
+
+  it('both surfaces read the SAME eligibility — proven on the exact failing shape', () => {
+    // The shape that shipped the contradiction: 29 stamped days and one day the
+    // member logged water on without a captured snapshot.
+    const rows = gapAt(clean(), 14);
+    render(rows);
+    expect(classifyStreakEligibility(rows).kind).toBe('coverage_incomplete');
+    expect(statValue('STREAK'), 'card').toBeNull();
+    const ctx = deriveJournalShareContext(rows, 30);
+    expect(ctx.streakDays, 'payload').toBeUndefined();
+    // ...and the control: remove the gap and BOTH publish again.
+    remount();
+    const whole = clean();
+    render(whole);
+    expect(Number(statValue('STREAK'))).toBe(30);
+    expect(deriveJournalShareContext(whole, 30).streakDays).toBe(30);
+  });
+
+  it('the payload never averages the sentinel — the card never did', () => {
+    // ANTI-VACUITY with real arithmetic: the gapped and clean windows must
+    // produce the SAME average, because the missing day is not a zero.
+    const rows = gapAt(clean(30, [V1]), 14);
+    render(rows);
+    const ctx = deriveJournalShareContext(rows, 30);
+    const naive = Math.round(rows.reduce((a, r) => a + r.avgScore, 0) / rows.length);
+    // The old implementation produced `naive`; it must be visibly different.
+    expect(ctx.score).not.toBe(naive);
+    expect(ctx.score).toBe(Number(statValue('AVG')));
   });
 });

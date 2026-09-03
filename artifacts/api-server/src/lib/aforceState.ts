@@ -134,6 +134,12 @@ export function defaultSeed(): Omit<AforceUserStateRow, "updatedAt"> {
     // seed starts empty so the demand engine falls back to its
     // heatLoad-derived defaults until the first provider write.
     biometrics: null,
+    // NOT stamped here. The seed describes the CONTENT of a fresh day; the
+    // history stamp is an event ("this row was created now"), and its one
+    // legitimate writer is the insert in `getUserState` below. Putting a
+    // `new Date()` here would also make `defaultSeed()` impure and let any
+    // caller mint a start date without creating a row.
+    historyStartAt: null,
   };
 }
 
@@ -142,9 +148,15 @@ export async function getUserState(userId: string = DEFAULT_USER_ID): Promise<Af
   if (existing) return applyDayRollover(userId, existing);
 
   const seed = defaultSeed();
+  // THE ONE PLACE A MEMBER'S HISTORY START IS WRITTEN (founder ruling
+  // 2026-09-02). This insert is the moment AForce could first have observed
+  // this member — before it there is no HydroState state to observe. It is
+  // stamped once here and never again: `onConflictDoNothing` means a losing
+  // race writes nothing, and `updateUserState` cannot express a patch that
+  // touches the column.
   const [created] = await db
     .insert(aforceUserState)
-    .values({ ...seed, userId })
+    .values({ ...seed, userId, historyStartAt: new Date() })
     .onConflictDoNothing()
     .returning();
   if (created) return created;
@@ -156,14 +168,22 @@ export async function getUserState(userId: string = DEFAULT_USER_ID): Promise<Af
 
 export async function updateUserState(
   userId: string,
-  patch: Partial<Omit<AforceUserStateRow, "userId" | "updatedAt">>,
+  // `historyStartAt` is excluded so the immutability is a COMPILE ERROR rather
+  // than a convention: the one moment it may be written is the seed insert in
+  // `getUserState`. A member's history cannot begin twice, and a patch that
+  // moved it would silently reshape every window computed from it.
+  patch: Partial<Omit<AforceUserStateRow, "userId" | "updatedAt" | "historyStartAt">>,
 ): Promise<AforceUserStateRow> {
   // Ensure row exists (idempotent).
   await getUserState(userId);
 
+  // Defence in depth: the type above stops every typed caller, and this stops
+  // an `any`-typed one. Both are cheap; a moved history start is not.
+  const { historyStartAt: _immutable, ...safe } =
+    patch as Partial<AforceUserStateRow>;
   const [updated] = await db
     .update(aforceUserState)
-    .set({ ...patch, updatedAt: new Date() })
+    .set({ ...safe, updatedAt: new Date() })
     .where(eq(aforceUserState.userId, userId))
     .returning();
   if (!updated) throw new Error(`AForce user state not found for ${userId}`);

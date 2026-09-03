@@ -18,7 +18,10 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { Colors } from '@/theme/colors';
 import type { JournalRollup } from '@/types';
 import { computeRecapCardStats } from '@/utils/journalRecapStats';
-import { buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance } from '@/utils/scoring/boundarySeries';
+import {
+  buildRecapSegmentPaths, recapStatsScope, classifyRecapProvenance,
+  classifyStreakEligibility,
+} from '@/utils/scoring/boundarySeries';
 
 /** Rendered wherever the card cannot support a number. */
 const UNAVAILABLE = '—';
@@ -54,21 +57,18 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // range, so the "30-DAY TIMELINE" label stays true and a member's real
   // participation is never discarded because the scoring model changed.
   const statsScope = useMemo(() => recapStatsScope(rollups), [rollups]);
-  // The streak shows exactly when the score population IS the whole range.
+  // WHY the streak may be withheld — classified, never re-derived here.
   //
-  // Asking `spansModelBoundary` here instead was a regression on the modal
-  // case: `isComparableModelVersion(null, null)` is false by design, so an
-  // all-unstamped history — which is EVERY member's history until v1.0 lands,
-  // the column being nullable with no backfill — always "spanned a boundary"
-  // and the card printed "NEW MODEL PERIOD" over a range containing no model
-  // version at all. Worse, it contradicted `recapStatsScope`, which rules the
-  // opposite on the identical array (no known anchor, so do not narrow): the
-  // card held two answers about the same 30 rows in one frame, rendering
-  // confident AVG/PEAK over rows the streak gate had just called incomparable.
+  // This line used to read `statsScope.length === rollups.length`: ONE boolean
+  // standing in for two different questions, with the reporting range as the
+  // denominator for both. `recapStatsScope` and `classifyRecapProvenance` had
+  // already moved to the OBSERVED population, so the card held two answers
+  // about the same array, and a single missed sync landed on whichever was
+  // wrong — deleting a genuine 29-day streak in silence on a fully-stamped
+  // month, or blaming "MODEL HISTORY UNAVAILABLE" on an unstamped one.
   //
-  // Deriving the gate from the population makes "streak suppressed ⟺ scoring
-  // population narrowed" true by construction, so the two cannot diverge again.
-  const streakComparable = statsScope.length === rollups.length;
+  // The component now asks for the CAUSE and never computes a denominator.
+  const streak = classifyStreakEligibility(rollups);
 
   // FOUR semantic states, never collapsed into one boolean (founder D3A):
   //   A no qualifier            every day proven comparable
@@ -80,8 +80,8 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
   // history crossed a recalibration that may never have happened.
   const provenance = classifyRecapProvenance(rollups);
   const stats = useMemo(
-    () => computeRecapCardStats(rollups, statsScope, { streakComparable }),
-    [rollups, statsScope, streakComparable],
+    () => computeRecapCardStats(rollups, statsScope, { streakEligible: streak.kind === 'eligible' }),
+    [rollups, statsScope, streak.kind],
   );
   // D3 — a smaller scoring population may not be silent. Shown only when the
   // score figures actually describe fewer days than the label does.
@@ -107,20 +107,51 @@ export const ShareJournalRecap: React.FC<Props> = ({ rollups, rangeDays }) => {
         : provenance.kind === 'recorded_incompatible'
           ? 'HYDROSTATE · MODEL VERSIONS NOT COMPARABLE'
           : null;
-  // The streak is only ever labelled a MODEL PERIOD when a transition between
-  // two known versions is actually present. Narrowing caused by unrecorded
-  // provenance says "unavailable", not "new model".
-  const streakNote =
-    // Ruling 1: with no history there is nothing to qualify.
-    stats.bestStreak != null || provenance.kind === 'no_history'
-      || provenance.kind === 'fully_comparable' ? null
-      // A transition that IS recorded is announced whatever else is uncertain —
-      // it is the one thing we actually know happened.
-      : provenance.knownTransition
-        ? 'NEW MODEL PERIOD'
-        : provenance.kind === 'recorded_incompatible'
-          ? 'MODEL VERSIONS NOT COMPARABLE'
+  // The MODEL half of the explanation. Only ever labelled a MODEL PERIOD when a
+  // transition between two known versions is actually present; narrowing caused
+  // by unrecorded provenance says "unavailable", not "new model".
+  //
+  // BRANCH ON `kind` FIRST (founder ruling §8, 2026-09-02). Testing
+  // `knownTransition` before `kind` made the `recorded_incompatible` arm DEAD
+  // CODE — that state is only ever returned WITH a known transition, so it
+  // always matched the transition branch first. The card then printed
+  // "MODEL VERSIONS NOT COMPARABLE" as its qualifier and "NEW MODEL PERIOD" as
+  // its streak note: two different names for one state, on one export. A
+  // transition is how we KNOW the versions are incomparable; it is not what to
+  // call the state.
+  const modelStreakNote =
+    provenance.kind === 'no_history' || provenance.kind === 'fully_comparable'
+      ? null
+      : provenance.kind === 'recorded_incompatible'
+        ? 'MODEL VERSIONS NOT COMPARABLE'
+        // partially_comparable / provenance_unknown: a transition between two
+        // KNOWN versions is the one thing we actually know happened, so it is
+        // announced. Without one, the cause is provenance we never recorded.
+        : provenance.knownTransition
+          ? 'NEW MODEL PERIOD'
           : 'MODEL HISTORY UNAVAILABLE';
+  // THREE CAUSES, THREE ANSWERS (founder ruling, 2026-09-02). A withheld streak
+  // must never wear another cause's words, and must never be silent:
+  //   coverage_incomplete -> N OF M DAYS MEASURED   (continuity unknowable)
+  //   not_comparable      -> the model wording above (scores are not one metric)
+  //   eligible/no_history -> nothing to explain
+  //
+  // "MEASURED" is the Editorial system's own word for "we have a reading"
+  // (`EdNumber` splits measured from unmeasured ink; `editorialLogic` renders an
+  // unmeasured value as the em-dash), so the preferred wording is carried by
+  // existing vocabulary rather than introducing a new term.
+  //
+  // Coverage is named FIRST when both are true. It is the more primitive
+  // failure — an unobserved day has no score to be incomparable — and blaming
+  // the model for a missing snapshot is the specific harm this ruling closes.
+  // No fact is lost: the provenance qualifier above still discloses the model
+  // state independently, on its own line.
+  const streakNote =
+    streak.kind === 'eligible' || streak.kind === 'no_history'
+      ? null
+      : streak.kind === 'coverage_incomplete'
+        ? `HYDROSTATE · ${streak.measuredDays} OF ${streak.rangeDays} DAYS MEASURED`
+        : modelStreakNote;
   const innerW = CHART_W - PADDING.left - PADDING.right;
   const innerH = CHART_H - PADDING.top - PADDING.bottom;
 

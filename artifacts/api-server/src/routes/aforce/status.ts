@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { serializeError } from "../../lib/serializeError";
 import { z } from "zod";
-import { db, aforceConfirmations, aforceUserState } from "@workspace/db";
+import { db, aforceConfirmations, aforceUserState, type SafeUserStatePatch } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { getUserState, updateUserState } from "../../lib/aforceState";
 import { fetchWeather } from "../../lib/openWeather";
@@ -94,7 +94,7 @@ router.post("/confirm", async (req, res) => {
       const [current] = await tx.select().from(aforceUserState).where(eq(aforceUserState.userId, userId)).limit(1);
       if (!current) throw new Error("user_state_missing");
       const inClutch = current.clutchActive || clientInClutch;
-      const patch: Partial<typeof aforceUserState.$inferInsert> = {
+      const patch: SafeUserStatePatch = {
         confirmationDelta: followed ? 3 : -3,
         confirmationDeltaSetAt: now,
         updatedAt: now,

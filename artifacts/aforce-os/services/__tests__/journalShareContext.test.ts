@@ -3,7 +3,7 @@
  * turns a window of rollups into a `/share` payload.
  *
  * Critical contracts:
- *  - Empty rollups never throw; they yield a safe zero-score share.
+ *  - Empty rollups never throw and publish NOTHING (no fabricated zero).
  *  - `score` is the integer-rounded mean of `avgScore` across the window.
  *  - `state` is the band label derived from that mean
  *    (Peak >= 90, Balanced >= 70, Recovering >= 50, else Depleted).
@@ -22,6 +22,7 @@ import {
   BALANCED_THRESHOLD,
   MIN_STREAK_FOR_HEADLINE,
 } from '../journalShareContext';
+import { classifyStreakEligibility } from '../../utils/scoring/boundarySeries';
 import type { JournalRollup } from '../../types';
 
 function rollup(date: string, avgScore: number): JournalRollup {
@@ -56,13 +57,23 @@ describe('scoreToStateLabel', () => {
 });
 
 describe('deriveJournalShareContext', () => {
-  it('handles empty rollups without throwing — safe zero-score share', () => {
+  it('empty rollups publish NOTHING — a zero is a claim, not a safe default', () => {
+    // SUPERSEDED (founder ruling 2026-09-02). This used to assert
+    // `score: 0, state: 'Recovering'` and called it "safe". It is not safe: it
+    // is a fabricated public claim manufactured out of having no data, in the
+    // payload that leaves the app for social media. Nothing measured, nothing
+    // published — `/share` then falls back to the member's LIVE score, which
+    // is a true present-tense statement.
     const ctx = deriveJournalShareContext([], 7);
     expect(ctx.type).toBe('score');
-    expect(ctx.score).toBe(0);
-    expect(ctx.state).toBe('Recovering');
+    expect(ctx.score, 'never a fabricated zero').toBeNull();
+    expect(ctx.state, 'never a fabricated band').toBeNull();
     expect(ctx.streakDays).toBeUndefined();
     expect(ctx.rangeDays).toBe(7);
+    // ...and the wire params omit them entirely rather than stringifying null.
+    const params = toShareRouteParams(ctx);
+    expect(params.score).toBeUndefined();
+    expect(params.state).toBeUndefined();
   });
 
   it('rounds the window average to an integer', () => {
@@ -95,18 +106,27 @@ describe('deriveJournalShareContext', () => {
     expect(ctx.streakDays).toBe(2);
   });
 
-  it('breaks the streak across a missing-calendar-day gap (rollups can omit zero-data days)', () => {
-    // Three "high score" rows but a one-day gap between 04-25 and 04-27 —
-    // rolling up consecutive rows would lie about a 3-day streak. The
-    // helper must require calendar-day adjacency.
+  it('a missing calendar day makes the streak UNAVAILABLE, not shortened', () => {
+    // SUPERSEDED (founder ruling 2026-09-02). This used to assert
+    // `streakDays === 2` — the run "broken" at the gap. That is one of the
+    // three forbidden answers: a day HydroState never observed may not be
+    // scored 0, may not break the run (which asserts a failure the member did
+    // not have), and may not be skipped (which asserts qualification nobody
+    // observed). It is unknowable, so nothing is published.
     const r = [
       rollup('2026-04-25', 88),
       rollup('2026-04-27', 90),
       rollup('2026-04-28', 92),
     ];
+    // ANTI-VACUITY: the gap is real and the old answer is genuinely reachable.
+    expect(classifyStreakEligibility(r)).toEqual({
+      kind: 'coverage_incomplete', measuredDays: 3, rangeDays: 4,
+    });
     const ctx = deriveJournalShareContext(r, 7);
-    expect(ctx.streakDays).toBe(2); // only 04-27 and 04-28 are adjacent
-    expect(ctx.type).toBe('score'); // 2 < MIN_STREAK_FOR_HEADLINE
+    expect(ctx.streakDays, 'no streak leaves the app').toBeUndefined();
+    expect(ctx.type).toBe('score');
+    // The member's AVERAGE is still publishable — only the streak is unknowable.
+    expect(ctx.score).toBe(90);
   });
 
   it('counts a true 7-day calendar streak as a streak headline', () => {

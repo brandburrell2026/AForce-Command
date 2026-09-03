@@ -228,3 +228,69 @@ describe('WIRE CONTRACT — snapshot entries', () => {
     expect(zero.level).toBe('DEPLETED');
   });
 });
+
+/* ── historyStartAt — the additive field the Journal share seam depends on ── */
+
+/**
+ * WHY THIS BLOCK EXISTS. `fetchJournalRollupsWithHistory` (realApi.ts)
+ * declared its own inline response type, disconnected from the server's
+ * actual `res.json({ rollups, days, historyStartAt })` shape — the exact
+ * defect class this whole file exists to catch, just not yet extended to the
+ * one field this branch (PR A, Option B) added to the wire. A silent
+ * key-name mismatch here would make `historyStartAt` permanently `null` for
+ * every member — wire-indistinguishable from the legitimate "row seeded
+ * before the column existed" state — and would silently collapse every
+ * member onto the conservative epoch floor forever, with the entire suite
+ * still green (verified: swapping the field to `history_start_at` on both
+ * sides of `parseJournalRollupsWithHistory` compiled clean and passed every
+ * existing law before this block was added).
+ */
+import { parseJournalRollupsWithHistory, type JournalRollupsWireResponse } from '../../services/realApi';
+
+describe('WIRE CONTRACT — historyStartAt round-trips through the real parser', () => {
+  /** The server's literal top-level response, transcribed independently from
+   *  journal.ts's `res.json({ rollups, days, historyStartAt })` — not derived
+   *  from the client's request/response types. */
+  const serverResponse = (historyStartAt: string | null): JournalRollupsWireResponse => ({
+    rollups: [serverRollup()],
+    days: 7,
+    historyStartAt,
+  });
+
+  it('a stamped member: the ISO string survives, unaltered', () => {
+    const iso = '2026-08-22T00:00:00.000Z';
+    const { historyStartAt } = parseJournalRollupsWithHistory(serverResponse(iso));
+    expect(historyStartAt).toBe(iso);
+  });
+
+  it('an unstamped legacy member: null survives as null, never a fallback value', () => {
+    const { historyStartAt } = parseJournalRollupsWithHistory(serverResponse(null));
+    expect(historyStartAt).toBeNull();
+  });
+
+  it('the field is OPTIONAL on the wire (an older server that omits it entirely)', () => {
+    // The additive-field guarantee: a response with no `historyStartAt` key at
+    // all (not even `null`) must parse identically to one that sends `null`.
+    const { rollups, days, ...withoutField } = serverResponse(null);
+    void days;
+    const { historyStartAt } = parseJournalRollupsWithHistory({ rollups, ...withoutField } as JournalRollupsWireResponse);
+    expect(historyStartAt).toBeNull();
+  });
+
+  it('the rollups array survives untouched alongside the new field', () => {
+    const { rollups } = parseJournalRollupsWithHistory(serverResponse('2026-08-22T00:00:00.000Z'));
+    expect(rollups).toHaveLength(1);
+    expect(rollups[0]!.date).toBe('2026-08-01');
+  });
+
+  it('mutation-verify: a key-name mismatch between server and client is caught', () => {
+    // Simulates the exact drift this block exists to prevent: the server
+    // field renamed (or the client reading the wrong key) with NOTHING else
+    // changed. `as any` is required to construct the wire-wrong shape at
+    // all — TypeScript itself refuses a same-file rename, which is the
+    // compile-time half of this guarantee; this is the runtime half.
+    const wireWrong = { rollups: [serverRollup()], days: 7, history_start_at: '2026-08-22T00:00:00.000Z' } as any;
+    const { historyStartAt } = parseJournalRollupsWithHistory(wireWrong);
+    expect(historyStartAt, 'a mismatched key must not silently read as the epoch fallback').toBeNull();
+  });
+});

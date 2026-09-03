@@ -43,12 +43,11 @@ import {
   deriveSectionSummary,
   deriveWinMoments,
 } from '@/services/performanceTimeline';
-import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
+import { fetchJournalRollupsWithHistory, fetchJournalTimeline } from '@/services/realApi';
 import { useUserSlice } from '@/store/slices';
-import {
-  deriveJournalShareContext,
-  toShareRouteParams,
-} from '@/services/journalShareContext';
+import { toShareRouteParams } from '@/services/journalShareContext';
+import { prepareJournalShare } from '@/services/journalShareWindow';
+import { parseHistoryStartAt } from '@/config/hydroStateHistoryEpoch';
 import { publishJournalShare } from '@/services/journalShareCache';
 import type { JournalRollup, JournalSnapshot, JournalTimelineEntry } from '@/types';
 import { Colors } from '@/theme/colors';
@@ -61,6 +60,9 @@ export default function JournalScreen() {
   const [range, setRange] = useState<JournalRange>(7);
   const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
   const [rollups, setRollups] = useState<JournalRollup[]>([]);
+  // The member's HydroState history stamp, straight off the wire. Only the
+  // share seam reads it; null is normal for a state row predating the column.
+  const [historyStartAt, setHistoryStartAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -81,10 +83,13 @@ export default function JournalScreen() {
     try {
       const [tl, rl] = await Promise.all([
         fetchJournalTimeline(r),
-        fetchJournalRollups(r),
+        fetchJournalRollupsWithHistory(r),
       ]);
       setTimeline(tl);
-      setRollups(rl);
+      // The SPARSE array, unchanged, is what every other consumer on this
+      // screen keeps receiving. Only the share seam below densifies.
+      setRollups(rl.rollups);
+      setHistoryStartAt(rl.historyStartAt);
     } catch (err) {
       console.warn('[Journal] load failed', err);
       setError(t('journal.load_failed'));
@@ -142,10 +147,18 @@ export default function JournalScreen() {
     // payload to the in-memory share cache so the Recap format on the
     // share screen can render the actual chart + day-by-day stats
     // (URL params can only carry the small summary headline).
-    publishJournalShare(rollups, range);
-    const ctx = deriveJournalShareContext(rollups, range);
-    router.push({ pathname: '/share', params: toShareRouteParams(ctx) });
-  }, [rollups, range, router]);
+    // ONE call builds the dense effective window and derives the payload FROM
+    // that same window, so the card and the post cannot disagree. Densifying
+    // here — and only here — leaves every other consumer of `rollups` on the
+    // unchanged sparse contract (founder ruling, Option B).
+    const { window, context } = prepareJournalShare(rollups, {
+      rangeDays: range,
+      historyStartAt: parseHistoryStartAt(historyStartAt),
+      now: new Date(),
+    });
+    publishJournalShare(window, range);
+    router.push({ pathname: '/share', params: toShareRouteParams(context) });
+  }, [rollups, range, historyStartAt, router]);
 
   const onExport = useCallback(async () => {
     if (exporting) return;

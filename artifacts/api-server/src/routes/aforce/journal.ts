@@ -4,7 +4,7 @@ import { incCounter } from "../../observability/metrics";
 import { z } from "zod";
 import {
   db,
-  aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations,
+  aforceIntakeLogs, aforceScoreSnapshots, aforceConfirmations, aforceUserState,
   createDrizzleScoreSnapshotRepo,
 } from "@workspace/db";
 import { inArray, eq, sql, and, gte, asc, desc, isNull, isNotNull } from "drizzle-orm";
@@ -264,7 +264,7 @@ router.get("/journal/rollups", async (req, res) => {
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const [snapshots, intakes, correctionRows] = await Promise.all([
+    const [snapshots, intakes, correctionRows, stateRows] = await Promise.all([
       db
         .select()
         .from(aforceScoreSnapshots)
@@ -291,6 +291,15 @@ router.get("/journal/rollups", async (req, res) => {
         .select({ corrected: aforceIntakeLogs.correctsIntakeId })
         .from(aforceIntakeLogs)
         .where(and(eq(aforceIntakeLogs.userId, userId), isNotNull(aforceIntakeLogs.correctsIntakeId))),
+      // The member's own history stamp, for the densification floor below.
+      // NULL (or no row at all) means "seeded before the column existed" and
+      // falls back to the repository-owned epoch — never to an inference from
+      // the journal data itself, which a sparse wire makes appear late.
+      db
+        .select({ historyStartAt: aforceUserState.historyStartAt })
+        .from(aforceUserState)
+        .where(eq(aforceUserState.userId, userId))
+        .limit(1),
 ]);
 
     function dayKey(d: Date): string {
@@ -463,7 +472,27 @@ router.get("/journal/rollups", async (req, res) => {
         };
       });
 
-    return res.json({ rollups, days });
+    /* ── historyStartAt: ADDITIVE, and the array stays SPARSE ────────────────
+     *
+     * This route deliberately still returns ONLY the days it has data for. A
+     * densified array would change what `rollups.length` means for every live
+     * consumer at once — and six of them read it as an observation count, so
+     * densifying here painted unobserved days as Signal-Red DEPLETED bars,
+     * reported them as "days tracked", and counted them as compliance
+     * failures. A shared wire contract cannot be migrated one caller at a
+     * time; that migration is its own PR (founder ruling, Option B).
+     *
+     * What ships here is the FACT the client needs and cannot derive: when
+     * this member's HydroState history begins. NULL means the member's state
+     * row predates the column (or has no row yet) — never "no history", and
+     * never a tenure claim. Only the Journal share/recap seam consumes it, and
+     * only that seam densifies.
+     */
+    return res.json({
+      rollups,
+      days,
+      historyStartAt: stateRows[0]?.historyStartAt?.toISOString() ?? null,
+    });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "GET /aforce/journal/rollups failed");
     return res.status(400).json({ error: "rollups_failed" });

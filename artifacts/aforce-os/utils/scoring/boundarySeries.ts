@@ -57,6 +57,77 @@ export function hasHydroStateObservation(r: JournalRollup): boolean {
   return r.snapshotsCount > 0;
 }
 
+/**
+ * THE OBSERVATION POPULATION — the one denominator, declared once.
+ *
+ * A seam enforced at four call sites is a convention, not a seam. The previous
+ * round installed `hasHydroStateObservation` and wired it into `recapStatsScope`
+ * and `classifyRecapProvenance`; `ShareJournalRecap` kept asking
+ * `statsScope.length === rollups.length`, and the card held two answers about
+ * the same array. One missed sync then either deleted a real streak in silence
+ * or announced "MODEL HISTORY UNAVAILABLE" over a fully-stamped month.
+ *
+ * So the population itself is a named value, not a filter every consumer
+ * repeats. Whenever the question is "how many days did HydroState actually
+ * measure", it is answered here — never by `rollups.length`, which answers the
+ * different question of how many days the label covers.
+ */
+export function observedRows(
+  rollups: readonly JournalRollup[],
+): readonly JournalRollup[] {
+  return rollups.filter(hasHydroStateObservation);
+}
+
+export function observedCount(rollups: readonly JournalRollup[]): number {
+  return observedRows(rollups).length;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** A `YYYY-MM-DD` day key as a UTC instant, or null if it is not one. */
+function parseDayUTC(s: string): number | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return null;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const t = Date.UTC(y, mo - 1, d);
+  const back = new Date(t);
+  // Rejects 2026-02-30 and friends, which `Date.UTC` silently rolls forward.
+  return back.getUTCFullYear() === y && back.getUTCMonth() === mo - 1 && back.getUTCDate() === d
+    ? t
+    : null;
+}
+
+/**
+ * THE REPORTING WINDOW, measured in CALENDAR days rather than rows.
+ *
+ * `rollups.length` counts the rows the SERVER MATERIALISED. That is a different
+ * question from how many days the window covers, and reading one as the other
+ * is the defect this function exists to make unspellable: the route used to
+ * omit any day with neither a snapshot nor an intake, so a day the member
+ * skipped entirely VANISHED from the array. Its absence was then invisible —
+ * the streak walked straight across it and published a BROKEN streak for a day
+ * HydroState had never observed.
+ *
+ * The route now densifies, so the two numbers agree by construction. This is
+ * the belt to that braces: client and server are separate deployables, and a
+ * client running against a server that has not shipped densification must
+ * still see the gap rather than silently miss it. Measuring the calendar makes
+ * that automatic.
+ */
+export function reportedSpanDays(rollups: readonly JournalRollup[]): number {
+  if (rollups.length === 0) return 0;
+  const first = parseDayUTC(rollups[0]!.date);
+  const last = parseDayUTC(rollups[rollups.length - 1]!.date);
+  // A malformed day key is a wire violation, not a production state (the server
+  // emits `YYYY-MM-DD` and the wire-contract laws pin it). Falling back to the
+  // row count keeps the answer a lower bound rather than inventing a span.
+  if (first == null || last == null) return rollups.length;
+  // `Math.max` guards the degenerate cases a span alone cannot: duplicate dates
+  // and an unsorted array both compute a span SHORTER than the rows present,
+  // and a window can never be smaller than the days it contains.
+  return Math.max(rollups.length, Math.round((last - first) / DAY_MS) + 1);
+}
+
 /** Q1 — may this day's score enter a statistical population, and under which version? */
 export function statsDayVersion(r: JournalRollup): string | null {
   return dayProvenance(r).scoreableVersion;
@@ -245,10 +316,30 @@ export interface RecapPadding { top: number; right: number; bottom: number; left
 const LONE_POINT_TICK_PX = 1.5;
 
 /**
+ * THE ONE PLACE A ROLLUP'S SCORE BECOMES A COORDINATE.
+ *
+ * Three call sites below used to compute this, and one of them — the deleted
+ * single-row shortcut — did it without the clamp and, far worse, without the
+ * observation seam. A row's score may be read for geometry only here, so a
+ * fourth reader cannot appear without touching this function.
+ */
+function yForRow(r: JournalRollup, innerH: number, padding: RecapPadding): number {
+  return padding.top + (1 - Math.max(0, Math.min(100, r.avgScore)) / 100) * innerH;
+}
+
+/**
  * Build ONE svg path per model-version segment of the exported range.
  *
  * `x` stays keyed to each day's index in the WHOLE range, so segmenting changes
  * which strokes exist, never where a day sits on the timeline.
+ *
+ * THERE IS NO SINGLE-ROW FAST PATH (founder ruling B, 2026-09-02). A
+ * `rollups.length === 1` branch used to read `rollups[0].avgScore` directly and
+ * return a full-width stroke. It predated the observation seam and never
+ * learned it, so a lone intake-without-snapshot day — real activity, sentinel
+ * score — was drawn as a hard line across the whole card at the score-0
+ * baseline, beneath tiles that all correctly read "—". A second scoring path is
+ * how a seam drifts; the fix is to have one path, not two gates.
  */
 export function buildRecapSegmentPaths(
   rollups: readonly JournalRollup[],
@@ -257,11 +348,9 @@ export function buildRecapSegmentPaths(
   padding: RecapPadding,
 ): string[] {
   if (rollups.length === 0) return [];
-  if (rollups.length === 1) {
-    const y = padding.top + (1 - rollups[0]!.avgScore / 100) * innerH;
-    return [`M${padding.left.toFixed(1)},${y.toFixed(1)} L${(padding.left + innerW).toFixed(1)},${y.toFixed(1)}`];
-  }
-  const span = rollups.length - 1;
+  // A one-row range has no span to divide by. It is still one segment through
+  // the same pipeline, so it gets the same seam, key and clamp as every other.
+  const span = Math.max(1, rollups.length - 1);
   const segs = segmentForRender(rollups, renderKeyOf);
   let cursor = 0;
   const out: string[] = [];
@@ -273,17 +362,21 @@ export function buildRecapSegmentPaths(
     const cmds = seg.points.map((r, j) => {
       const i = cursor + j;
       const x = padding.left + (i / span) * innerW;
-      const y = padding.top + (1 - Math.max(0, Math.min(100, r.avgScore)) / 100) * innerH;
-      return `${j === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+      return `${j === 0 ? 'M' : 'L'}${x.toFixed(1)},${yForRow(r, innerH, padding).toFixed(1)}`;
     });
     cursor += seg.points.length;
     if (cmds.length === 1) {
       // A lone day gets a minimum-length tick so it strokes instead of
-      // vanishing. Same treatment the single-rollup case above already gets.
-      const r = seg.points[0]!;
-      const x = padding.left + ((cursor - 1) / span) * innerW;
-      const y = padding.top + (1 - Math.max(0, Math.min(100, r.avgScore)) / 100) * innerH;
-      out.push(`M${(x - LONE_POINT_TICK_PX).toFixed(1)},${y.toFixed(1)} L${(x + LONE_POINT_TICK_PX).toFixed(1)},${y.toFixed(1)}`);
+      // vanishing — held inside the plot area, because the first and last days
+      // of a range sit exactly on its edges and half the tick would otherwise
+      // be drawn outside the chart. Reachable from a one-row range, where the
+      // lone day IS the first and last day.
+      const x = Math.min(
+        Math.max(padding.left + ((cursor - 1) / span) * innerW, padding.left + LONE_POINT_TICK_PX),
+        padding.left + innerW - LONE_POINT_TICK_PX,
+      );
+      const y = yForRow(seg.points[0]!, innerH, padding).toFixed(1);
+      out.push(`M${(x - LONE_POINT_TICK_PX).toFixed(1)},${y} L${(x + LONE_POINT_TICK_PX).toFixed(1)},${y}`);
     } else if (cmds.length > 1) out.push(cmds.join(' '));
   }
   return out;
@@ -310,7 +403,7 @@ export function recapStatsScope(
   // OBSERVATION FIRST, provenance second. A day with no HydroState observation
   // is not an unknown-provenance day — it is not a score at all, so no
   // comparability question applies to it.
-  const observed = rollups.filter(hasHydroStateObservation);
+  const observed = observedRows(rollups);
   if (observed.length === 0) return [];
   // A day whose own recorded versions disagree can NEVER contribute to an
   // aggregate: its `avgScore` is already a blend of two measurements, so
@@ -389,9 +482,9 @@ export function classifyRecapProvenance(
   // that answers it; none re-derives another's meaning.
   // Only OBSERVED days carry provenance. A scoreless day contributes no
   // version evidence and must not make an otherwise-known run look uncertain.
-  const observedRows = rollups.filter(hasHydroStateObservation);
-  if (observedRows.length === 0) return { kind: 'no_history' };
-  const days = observedRows.map(dayProvenance);
+  const observed = observedRows(rollups);
+  if (observed.length === 0) return { kind: 'no_history' };
+  const days = observed.map(dayProvenance);
 
   // Q3 — a transition is witnessed by RECORDED versions, including those on a
   // day that is itself unusable for scoring. A deploy day is evidence even
@@ -418,7 +511,7 @@ export function classifyRecapProvenance(
     const trulyIncompatible = hasIncompatible && knownTransition;
     if (trulyIncompatible) return { kind: 'recorded_incompatible', knownTransition };
     return hasIncompatible || hasUnrecorded
-      ? { kind: 'provenance_unknown', knownTransition, comparableDays: 0, observedDays: observedRows.length }
+      ? { kind: 'provenance_unknown', knownTransition, comparableDays: 0, observedDays: observed.length }
       : { kind: 'no_history' };
   }
 
@@ -430,7 +523,7 @@ export function classifyRecapProvenance(
   // Narrowing is measured against OBSERVED days, not the reporting range: a
   // missing snapshot is not a comparability event, and comparing to
   // `rollups.length` is what made one missed sync print "29 COMPARABLE DAYS".
-  if (scope.length < observedRows.length && scopeAllKnown) {
+  if (scope.length < observed.length && scopeAllKnown) {
     return { kind: 'partially_comparable', comparableDays: scope.length, knownTransition };
   }
   if (hasUnrecorded || !scopeAllKnown) {
@@ -438,8 +531,89 @@ export function classifyRecapProvenance(
     // Dropping it let AVG/PEAK describe 1 of 30 days silently.
     return {
       kind: 'provenance_unknown', knownTransition,
-      comparableDays: scope.length, observedDays: observedRows.length,
+      comparableDays: scope.length, observedDays: observed.length,
     };
   }
   return { kind: 'fully_comparable' };
+}
+
+/* ── streak eligibility (founder ruling, 2026-09-02) ──────────────────────── */
+
+/**
+ * WHY a recap may or may not publish a HydroState-derived streak.
+ *
+ * A missing observation makes the streak UNKNOWABLE across that gap, and the
+ * founder ruling closes every dishonest way out of that: the day may not be
+ * scored 0, the run may not be broken (which asserts a failure the member did
+ * not have), and the day may not be skipped (which asserts continuous
+ * qualification nobody observed). The streak is suppressed for the window.
+ *
+ * THE REASON IS PART OF THE ANSWER. `ShareJournalRecap` used to derive
+ * suppression from `statsScope.length === rollups.length` — ONE boolean
+ * answering two different questions. Both a missed sync and a model boundary
+ * make it false, so the card could not tell the member which had happened, and
+ * chose wrong in both directions: a fully-stamped month with one gap fell
+ * through to `fully_comparable` and said NOTHING, while an unstamped month with
+ * one gap said "MODEL HISTORY UNAVAILABLE" — blaming a recalibration for a
+ * missing snapshot.
+ *
+ * Three causes, three answers, and the union makes the collapse unspellable:
+ *
+ *   no_history           nothing was reported; there is nothing to explain
+ *   coverage_incomplete  a day in the window has no observation, so continuity
+ *                        cannot be established — NOT the member's fault and NOT
+ *                        the model's
+ *   not_comparable       every day was observed, but their scores are not one
+ *                        population, so a run across them is not one metric
+ *   eligible             complete coverage and one comparable population
+ */
+export type StreakEligibility =
+  | { kind: 'eligible' }
+  | { kind: 'no_history' }
+  | { kind: 'coverage_incomplete'; measuredDays: number; rangeDays: number }
+  | { kind: 'not_comparable' };
+
+export function classifyStreakEligibility(
+  rollups: readonly JournalRollup[],
+): StreakEligibility {
+  // IS THERE A WINDOW TO REPORT ON? This is a WINDOW question, so it is asked
+  // of the calendar — not of `rollups.length`, which answers "how many rows did
+  // the server materialise" and is the row count this whole module refuses to
+  // read as anything else.
+  //
+  // It is deliberately NOT `observedCount(rollups) === 0`. That was tried: it
+  // made a window with zero observations go SILENT — no streak, no reason —
+  // which is precisely the harm the coverage note exists to prevent. A window
+  // of N days with nothing measured is `0 OF N DAYS MEASURED`, an honest and
+  // useful statement; only a window with no DAYS in it has nothing to say.
+  //
+  // This is why the sibling `classifyRecapProvenance` can legitimately answer
+  // `no_history` for the same array: it is asked "is there PROVENANCE to
+  // report" (an observation question), and this one is asked "is there a
+  // WINDOW to report on". Different questions, different denominators — which
+  // is the distinction the whole module is built on, not a violation of it.
+  const rangeDays = reportedSpanDays(rollups);
+  if (rangeDays === 0) return { kind: 'no_history' };
+
+  // COVERAGE FIRST, comparability second — the same ordering as the score
+  // population, and for the same reason: comparability is a question ABOUT
+  // observations, so it cannot be asked of a day that has none. Answering in
+  // the other order is what let a missing snapshot be reported as a model
+  // event. When BOTH are true the model state is still disclosed, on the
+  // provenance qualifier line, so naming coverage here loses no fact.
+  //
+  // The denominator is the CALENDAR SPAN, never `rollups.length`. The row count
+  // answers "how many days did the server materialise", and reading it as the
+  // window is what let a day the member skipped disappear from the array
+  // entirely — taking its own absence with it.
+  const measuredDays = observedCount(rollups);
+  if (measuredDays < rangeDays) {
+    return { kind: 'coverage_incomplete', measuredDays, rangeDays };
+  }
+
+  // Every day in the window was measured. The remaining question is whether
+  // those measurements are one population.
+  return recapStatsScope(rollups).length < measuredDays
+    ? { kind: 'not_comparable' }
+    : { kind: 'eligible' };
 }

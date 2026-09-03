@@ -32,6 +32,8 @@ import {
   bucketizeSegmented, buildRecapSegmentPaths, segmentForRender,
   recapStatsScope, statsDayVersion, isRecordedIncompatibleDay,
   dayProvenance, classifyRecapProvenance, renderKeyOf,
+  hasHydroStateObservation, observedRows, observedCount,
+  classifyStreakEligibility, reportedSpanDays,
 } from '../scoring/boundarySeries';
 import { computeRecapStats, computeRecapCardStats } from '../journalRecapStats';
 import type { JournalRollup, JournalSnapshot } from '@/types';
@@ -649,8 +651,8 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
       const rows = spec(parts);
       expect(rows.length).toBe(30);
       const scope = recapStatsScope(rows);
-      const streakComparable = !spansModelBoundary(rows.map(statsDayVersion));
-      const card = computeRecapCardStats(rows, scope, { streakComparable });
+      const streakEligible = classifyStreakEligibility(rows).kind === 'eligible';
+      const card = computeRecapCardStats(rows, scope, { streakEligible });
 
       // 1 · score metrics never blend incomparable model versions
       expect(scope.length, 'score population').toBe(expectedScore);
@@ -747,7 +749,7 @@ describe('ROLLOUT SHAPES — score population vs full reporting range', () => {
     // and was excluded, which is the D4 transition-day defect in miniature.)
     expect(statsDayVersion(rows[29]!)).toBe(V1);
     expect(recapStatsScope(rows).length).toBe(30);
-    const card = computeRecapCardStats(rows, recapStatsScope(rows), { streakComparable: true });
+    const card = computeRecapCardStats(rows, recapStatsScope(rows), { streakEligible: true });
     expect(card.daysTracked).toBe(30);
     expect(card.comparableDays).toBe(30);
   });
@@ -1069,11 +1071,16 @@ describe('SENTINEL GATE — a scoreless day is not a score', () => {
     copy[i] = scorelessRollup(copy[i]!.date);
     return copy;
   };
-  const cardFor = (rows: JournalRollup[]) => {
-    const scope = recapStatsScope(rows);
-    const observed = rows.filter((r) => r.snapshotsCount > 0);
-    return computeRecapCardStats(rows, scope, { streakComparable: scope.length === observed.length });
-  };
+  // The helper must ask the PRODUCTION classifier. Computing its own gate here
+  // is what hid the shipped defect: this file's `scope.length === observed.length`
+  // was the correct comparison, the component's `scope.length === rollups.length`
+  // was not, and no law could see the divergence because no law used the
+  // component's version. A test helper that re-derives production logic is
+  // testing itself.
+  const cardFor = (rows: JournalRollup[]) =>
+    computeRecapCardStats(rows, recapStatsScope(rows), {
+      streakEligible: classifyStreakEligibility(rows).kind === 'eligible',
+    });
 
   it('H1 — a scoreless day never drags the average toward zero', () => {
     const clean = mk(30, [], 90);
@@ -1104,7 +1111,10 @@ describe('SENTINEL GATE — a scoreless day is not a score', () => {
     // No geometry may sit on the score-0 baseline.
     const baselineY = PAD.top + (100 - PAD.top - PAD.bottom);
     for (const d of paths) {
-      const ys = [...d.matchAll(/[ML][\d.]+,([\d.]+)/g)].map((m) => Number(m[1]));
+      const ys = [...d.matchAll(/[ML][\d.]+,(-?[\d.]+)/g)].map((m) => Number(m[1]));
+      // ANTI-VACUITY: `for (const y of [])` asserts nothing, and a regex that
+      // cannot match a negative coordinate produces exactly that.
+      expect(ys.length, `no coordinates parsed from: ${d}`).toBeGreaterThan(0);
       for (const y of ys) expect(y, `plotted at the zero baseline: ${d}`).toBeLessThan(baselineY);
     }
   });
@@ -1185,5 +1195,379 @@ describe('SENTINEL GATE — a scoreless day is not a score', () => {
       scorelessRollup(`2026-08-${String(i + 1).padStart(2, '0')}`));
     expect(classifyRecapProvenance(rows).kind).toBe('no_history');
     expect(recapStatsScope(rows).length).toBe(0);
+  });
+});
+
+/* ═══════ ONE OBSERVATION DENOMINATOR (founder ruling A, 2026-09-02) ═══════
+ *
+ * `hasHydroStateObservation` was installed last round and wired into
+ * `recapStatsScope` and `classifyRecapProvenance`. `ShareJournalRecap` was left
+ * asking `statsScope.length === rollups.length`, so the card held two answers
+ * about the same array: one missed sync either deleted a genuine 29-day streak
+ * in SILENCE (fully-stamped month — no qualifier, no note) or reported it as
+ * "MODEL HISTORY UNAVAILABLE" (unstamped month), blaming a recalibration for a
+ * missing snapshot.
+ *
+ * A seam asked at some call sites is a convention. These laws pin the
+ * population as a NAMED VALUE and pin the three causes apart.
+ */
+describe('OBSERVATION DENOMINATOR — one population, three streak causes', () => {
+  const day = (i: number, vs: (string | null)[], score = 90, snaps = 4) =>
+    rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, score, vs, snaps);
+  type DaySpec = { vs: (string | null)[]; score?: number; snaps?: number };
+  const rowsOf = (specs: DaySpec[]) =>
+    specs.map((s, i) => day(i, s.vs, s.score ?? 90, s.snaps ?? 4));
+  const many = (n: number, vs: (string | null)[], extra: Partial<DaySpec> = {}): DaySpec[] =>
+    Array.from({ length: n }, () => ({ vs, ...extra }));
+  /** The server's real intake-without-snapshot row. */
+  const SCORELESS: DaySpec = { vs: [], score: 0, snaps: 0 };
+  const cardFor = (rows: JournalRollup[]) =>
+    computeRecapCardStats(rows, recapStatsScope(rows), {
+      streakEligible: classifyStreakEligibility(rows).kind === 'eligible',
+    });
+
+  it('observedRows / observedCount ARE the seam — nothing re-encodes it', () => {
+    const rows = rowsOf([...many(14, [V1]), SCORELESS, ...many(15, [V1])]);
+    expect(observedCount(rows)).toBe(29);
+    expect(observedRows(rows).every(hasHydroStateObservation)).toBe(true);
+    expect(observedRows(rows).some((r) => r === rows[14])).toBe(false);
+    // The two questions have DIFFERENT answers on this row set, which is the
+    // whole point: `rollups.length` answers "how many days does the label
+    // cover", `observedCount` answers "how many did HydroState measure".
+    expect(observedCount(rows)).not.toBe(rows.length);
+  });
+
+  it('the streak denominator is OBSERVED days, not the reporting range', () => {
+    const rows = rowsOf([...many(14, [V1]), SCORELESS, ...many(15, [V1])]);
+    // ANTI-VACUITY: the fixture reaches the divergence. Score population and
+    // observed population agree (29); only the raw range differs (30).
+    expect(recapStatsScope(rows).length).toBe(29);
+    expect(observedCount(rows)).toBe(29);
+    expect(rows.length).toBe(30);
+
+    expect(classifyStreakEligibility(rows)).toEqual({
+      kind: 'coverage_incomplete', measuredDays: 29, rangeDays: 30,
+    });
+    // The reported numerator is the OBSERVED count. Substituting the reporting
+    // range for it changes both the kind and the number this law asserts.
+    const e = classifyStreakEligibility(rows);
+    expect(e.kind === 'coverage_incomplete' && e.measuredDays).toBe(observedCount(rows));
+    expect(e.kind === 'coverage_incomplete' && e.rangeDays).toBe(rows.length);
+  });
+
+  it('THREE causes are three distinct answers', () => {
+    const complete = rowsOf(many(30, [V1]));
+    const uncovered = rowsOf([...many(14, [V1]), SCORELESS, ...many(15, [V1])]);
+    const incomparable = rowsOf([...many(20, [V0]), ...many(10, [V1])]);
+
+    expect(classifyStreakEligibility(complete).kind).toBe('eligible');
+    expect(classifyStreakEligibility(uncovered).kind).toBe('coverage_incomplete');
+    expect(classifyStreakEligibility(incomparable).kind).toBe('not_comparable');
+    expect(classifyStreakEligibility([]).kind).toBe('no_history');
+
+    // ANTI-VACUITY: all four are genuinely reachable and genuinely distinct.
+    expect(new Set([complete, uncovered, incomparable, []]
+      .map((r) => classifyStreakEligibility(r).kind)).size).toBe(4);
+
+    // ...and the model cause survives coverage being complete: a boundary is
+    // still a boundary. If coverage had swallowed every cause, this would fail.
+    expect(observedCount(incomparable)).toBe(incomparable.length);
+  });
+
+  it('COVERAGE is asked before COMPARABILITY — a gap is never a model event', () => {
+    // Both defects present at once. The streak cause is coverage, because a day
+    // with no observation has no score for comparability to rule on.
+    const rows = rowsOf([...many(20, [V0]), SCORELESS, ...many(9, [V1])]);
+    expect(classifyStreakEligibility(rows).kind).toBe('coverage_incomplete');
+    // ...and the model fact is NOT lost — it is still classified, on the
+    // provenance channel, which is what the card discloses separately.
+    expect(hasKnownTransition(classifyRecapProvenance(rows))).toBe(true);
+  });
+
+  it('a MEASURED zero keeps the streak ELIGIBLE — absence and zero differ', () => {
+    const measured = rowsOf([...many(14, [V1]), { vs: [V1], score: 0 }, ...many(15, [V1])]);
+    const absent = rowsOf([...many(14, [V1]), SCORELESS, ...many(15, [V1])]);
+    expect(observedCount(measured)).toBe(30);
+    expect(classifyStreakEligibility(measured).kind).toBe('eligible');
+    expect(classifyStreakEligibility(absent).kind).toBe('coverage_incomplete');
+    // The measured zero is published as a real, shorter streak; the absence is
+    // not published at all.
+    const shown = cardFor(measured).bestStreak;
+    expect(shown).not.toBeNull();
+    expect(shown!).toBeGreaterThan(0);
+    expect(shown!).toBeLessThan(30);
+    expect(cardFor(absent).bestStreak).toBeNull();
+  });
+
+  it('gap position does not change the cause: first, last, middle, consecutive', () => {
+    for (const [label, idxs, measured] of [
+      ['first', [0], 29], ['last', [29], 29], ['middle', [14], 29],
+      ['three consecutive', [10, 11, 12], 27],
+    ] as Array<[string, number[], number]>) {
+      const specs: DaySpec[] = many(30, [V1]);
+      for (const i of idxs) specs[i] = SCORELESS;
+      const rows = rowsOf(specs);
+      expect(classifyStreakEligibility(rows), label).toEqual({
+        kind: 'coverage_incomplete', measuredDays: measured, rangeDays: 30,
+      });
+      expect(cardFor(rows).bestStreak, `${label}: unknowable`).toBeNull();
+      // The member's participation is never discarded by a missing snapshot.
+      expect(cardFor(rows).daysTracked, `${label}: range intact`).toBe(30);
+      // ...nor is the average dragged toward the sentinel.
+      expect(cardFor(rows).avgScore, `${label}: average intact`).toBe(90);
+    }
+  });
+
+  it('an entirely scoreless range reports 0 OF N measured, not silence', () => {
+    const rows = rowsOf(many(10, [V1], { score: 0, snaps: 0 }));
+    expect(classifyStreakEligibility(rows)).toEqual({
+      kind: 'coverage_incomplete', measuredDays: 0, rangeDays: 10,
+    });
+    // ...while an EMPTY range genuinely has nothing to explain.
+    expect(classifyStreakEligibility([]).kind).toBe('no_history');
+  });
+
+  it('complete coverage + entirely UNRECORDED provenance keeps the real streak', () => {
+    // The modal shape while `hydrostate_model_version` is nullable with no
+    // backfill. Unknown provenance is not a coverage failure and not a
+    // boundary, so the streak stands — with the qualifier still disclosed.
+    const rows = rowsOf(many(30, []));
+    expect(observedCount(rows)).toBe(30);
+    expect(classifyStreakEligibility(rows).kind).toBe('eligible');
+    expect(cardFor(rows).bestStreak).toBe(30);
+    expect(classifyRecapProvenance(rows).kind).toBe('provenance_unknown');
+  });
+
+  it('computeRecapCardStats publishes the streak EXACTLY when eligible', () => {
+    let sawEligible = false, sawSuppressed = false;
+    for (const [label, rows] of [
+      ['complete v1', rowsOf(many(30, [V1]))],
+      ['complete unstamped', rowsOf(many(30, []))],
+      ['one gap', rowsOf([...many(14, [V1]), SCORELESS, ...many(15, [V1])])],
+      ['all scoreless', rowsOf(many(10, [V1], { score: 0, snaps: 0 }))],
+      ['v0 -> v1', rowsOf([...many(20, [V0]), ...many(10, [V1])])],
+      ['entirely incompatible', rowsOf(many(10, [V0, V1]))],
+      ['gap AND transition', rowsOf([...many(20, [V0]), SCORELESS, ...many(9, [V1])])],
+    ] as Array<[string, JournalRollup[]]>) {
+      const eligible = classifyStreakEligibility(rows).kind === 'eligible';
+      sawEligible ||= eligible;
+      sawSuppressed ||= !eligible;
+      expect(cardFor(rows).bestStreak !== null, `${label}: published ⟺ eligible`)
+        .toBe(eligible);
+    }
+    // ANTI-VACUITY: suppression must not be unconditional, nor publication.
+    expect(sawEligible && sawSuppressed).toBe(true);
+  });
+});
+
+/* ═══════ NO SECOND SCORING PATH (founder ruling B, 2026-09-02) ═══════
+ *
+ * `buildRecapSegmentPaths` carried a `rollups.length === 1` shortcut that read
+ * `rollups[0].avgScore` directly and returned a full-width stroke. It predated
+ * the observation seam and never learned it, so a lone intake-without-snapshot
+ * day was drawn as a hard line across the card at the score-0 baseline, under
+ * tiles that all correctly read "—". It also skipped the clamp the multi-row
+ * branch applies, so a score outside 0..100 escaped the plot area.
+ *
+ * The branch is gone. These laws pin that every range — one row included —
+ * comes through the same segmentation.
+ */
+describe('recap geometry — one path through the pipeline, for every length', () => {
+  const INNER_W = 300, INNER_H = 100;
+  const BASELINE_Y = PAD.top + INNER_H;      // where a score of 0 is drawn
+  const paths = (rows: JournalRollup[]) =>
+    buildRecapSegmentPaths(rows, INNER_W, INNER_H, PAD);
+  // NEGATIVES MUST MATCH. `([\d.]+)` cannot match `-372.0`, so an UNCLAMPED
+  // coordinate — the exact value these laws exist to catch — extracted as an
+  // EMPTY array and every `for (const y of ys)` assertion passed vacuously. A
+  // mutation removing the clamp survived the whole suite on that alone.
+  const coords = (d: string, group: 1 | 2) => {
+    const out = [...d.matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)].map((m) => Number(m[group]));
+    expect(out.length, `no coordinates parsed from: ${d}`).toBeGreaterThan(0);
+    return out;
+  };
+  const xsOf = (d: string) => coords(d, 1);
+  const ysOf = (d: string) => coords(d, 2);
+
+  it('a SCORELESS single day renders no geometry at all', () => {
+    const rows = [scorelessRollup('2026-08-01')];
+    // ANTI-VACUITY: the sentinel is present and would plot at the baseline.
+    expect(rows[0]!.snapshotsCount).toBe(0);
+    expect(rows[0]!.avgScore).toBe(0);
+    expect(paths(rows)).toEqual([]);
+  });
+
+  it('an OBSERVED single day renders a drawn mark, inside the plot area', () => {
+    const d = paths([rollup('2026-08-01', 90, [V1])]);
+    expect(d.length).toBe(1);
+    expect(d[0]!, 'a bare moveto strokes nothing').toMatch(/L/);
+    const xs = xsOf(d[0]!);
+    expect(Math.min(...xs), 'left edge').toBeGreaterThanOrEqual(PAD.left);
+    expect(Math.max(...xs), 'right edge').toBeLessThanOrEqual(PAD.left + INNER_W);
+    expect(Math.abs(xs[xs.length - 1]! - xs[0]!), 'zero-length stroke').toBeGreaterThan(0);
+    for (const y of ysOf(d[0]!)) expect(y, 'never the score-0 baseline').toBeLessThan(BASELINE_Y);
+  });
+
+  it('a two-row range with one scoreless day draws only the observed day', () => {
+    const rows = [rollup('2026-08-01', 90, [V1]), scorelessRollup('2026-08-02')];
+    const d = paths(rows);
+    expect(d.length).toBe(1);
+    for (const y of ysOf(d[0]!)) expect(y).toBeLessThan(BASELINE_Y);
+    // ...and the surviving mark stays inside the plot even at the range edge.
+    for (const x of xsOf(d[0]!)) {
+      expect(x).toBeGreaterThanOrEqual(PAD.left);
+      expect(x).toBeLessThanOrEqual(PAD.left + INNER_W);
+    }
+  });
+
+  it('EVERY length routes through segmentForRender — no special case survives', () => {
+    // TOTAL law. The number of drawn paths equals the number of non-gap
+    // segments, for ranges of 1, 2 and 30 rows. The deleted shortcut returned
+    // one path for a zero-segment range, so it cannot satisfy this.
+    const mk = (n: number, vs: (string | null)[]) =>
+      Array.from({ length: n }, (_, i) =>
+        rollup(`2026-08-${String(i + 1).padStart(2, '0')}`, 90, vs));
+    const withGap = (rows: JournalRollup[], i: number) => {
+      const c = [...rows]; c[i] = scorelessRollup(c[i]!.date); return c;
+    };
+    for (const [label, rows] of [
+      ['one observed row', mk(1, [V1])],
+      ['one scoreless row', [scorelessRollup('2026-08-01')]],
+      ['two rows, one gap', withGap(mk(2, [V1]), 1)],
+      ['thirty clean rows', mk(30, [V1])],
+      ['thirty rows, middle gap', withGap(mk(30, [V1]), 14)],
+      ['thirty rows, all scoreless', mk(30, [V1]).map((r) => scorelessRollup(r.date))],
+      ['a real boundary', [...mk(15, [V0]),
+        ...Array.from({ length: 15 }, (_, i) =>
+          rollup(`2026-09-${String(i + 1).padStart(2, '0')}`, 90, [V1]))]],
+    ] as Array<[string, JournalRollup[]]>) {
+      const drawable = segmentForRender(rows, renderKeyOf)
+        .filter((s) => !s.modelVersion!.startsWith('gap:'));
+      expect(paths(rows).length, `${label}: one path per drawable segment`)
+        .toBe(drawable.length);
+    }
+  });
+
+  it('a single row never spans the whole plot width — that was the shortcut', () => {
+    // The deleted branch emitted `M left,y L left+innerW,y`. A lone observation
+    // is one mark, the same as a lone observation anywhere else in a range.
+    const d = paths([rollup('2026-08-01', 90, [V1])])[0]!;
+    const xs = xsOf(d);
+    expect(Math.max(...xs) - Math.min(...xs), 'a full-width stroke is back')
+      .toBeLessThan(INNER_W / 2);
+  });
+
+  it('an out-of-range score is clamped, on every path length', () => {
+    // The multi-row branch clamped; the deleted single-row branch did not, so a
+    // corrupt score drew outside the chart entirely.
+    for (const rows of [
+      [rollup('2026-08-01', 480, [V1])],
+      [rollup('2026-08-01', 480, [V1]), rollup('2026-08-02', 90, [V1])],
+    ]) {
+      expect(rows[0]!.avgScore, 'the fixture must be out of range').toBeGreaterThan(100);
+      expect(paths(rows).length, 'geometry must exist to assert on').toBeGreaterThan(0);
+      for (const d of paths(rows)) {
+        for (const y of ysOf(d)) {
+          expect(y, 'above the plot').toBeGreaterThanOrEqual(PAD.top);
+          expect(y, 'below the plot').toBeLessThanOrEqual(BASELINE_Y);
+        }
+      }
+    }
+  });
+});
+
+/* ═══════ THE WINDOW IS A CALENDAR, NOT A ROW COUNT ═══════
+ *
+ * `rollups.length` answers "how many days did the SERVER MATERIALISE a row
+ * for". Reading it as "how many days does the window cover" was the twelfth
+ * instance of this program's defect family, and the worst-behaved: the route
+ * omitted any day with neither a snapshot nor an intake, so a day the member
+ * skipped ENTIRELY vanished from the array — taking its own absence with it.
+ * The streak then walked straight across the hole and published a BROKEN
+ * streak for a day HydroState had never observed.
+ *
+ * The route now densifies the effective window, so row count and calendar span
+ * agree by construction. These laws pin the client half: it measures the
+ * CALENDAR, so a client running against a server that has not shipped
+ * densification still sees the gap instead of silently missing it.
+ */
+describe('reportedSpanDays — the reporting window in calendar days', () => {
+  const day = (i: number, score = 90, snaps = 4) =>
+    rollup(`2026-08-${String(i).padStart(2, '0')}`, score, [V1], snaps);
+
+  it('a DENSE array: span equals the row count', () => {
+    const rows = Array.from({ length: 30 }, (_, i) => day(i + 1));
+    expect(reportedSpanDays(rows)).toBe(30);
+    expect(reportedSpanDays(rows)).toBe(rows.length);
+  });
+
+  it('a SPARSE array: span counts the missing day the rows cannot', () => {
+    // The exact production shape: 2026-08-15 produced no row at all.
+    const rows = Array.from({ length: 30 }, (_, i) => day(i + 1)).filter((r) => r.date !== '2026-08-15');
+    expect(rows.length, 'the row count is blind to it').toBe(29);
+    expect(reportedSpanDays(rows), 'the calendar is not').toBe(30);
+  });
+
+  it('THE DEFECT: a day absent from the wire suppresses the streak', () => {
+    const dense = Array.from({ length: 30 }, (_, i) => day(i + 1));
+    const sparse = dense.filter((r) => r.date !== '2026-08-15');
+    // Dense and fully observed -> a real streak.
+    expect(classifyStreakEligibility(dense).kind).toBe('eligible');
+    // The SAME missing observation, delivered as an absent row instead of a
+    // scoreless one, must reach the SAME answer. Under `rollups.length` it
+    // reached `eligible` and published a broken streak.
+    expect(classifyStreakEligibility(sparse)).toEqual({
+      kind: 'coverage_incomplete', measuredDays: 29, rangeDays: 30,
+    });
+    // ANTI-VACUITY: the misleading number really is reachable and really is
+    // withheld — `computeRecapStats` breaks the run at the calendar gap.
+    expect(computeRecapStats(sparse).bestStreak).toBeLessThan(30);
+    expect(computeRecapCardStats(sparse, recapStatsScope(sparse), {
+      streakEligible: classifyStreakEligibility(sparse).kind === 'eligible',
+    }).bestStreak).toBeNull();
+  });
+
+  it('an ABSENT day and a SCORELESS day are the same HydroState question', () => {
+    // Founder ruling: "the latter two must have the same HydroState-observation
+    // semantics". A member who logged water without a snapshot and a member who
+    // logged nothing at all were both unobserved that day.
+    const base = Array.from({ length: 30 }, (_, i) => day(i + 1));
+    const scoreless = base.map((r, i) => (i === 14 ? scorelessRollup(r.date) : r));
+    const absent = base.filter((_, i) => i !== 14);
+    expect(classifyStreakEligibility(scoreless)).toEqual(classifyStreakEligibility(absent));
+  });
+
+  it('an empty range spans nothing; one row spans one day', () => {
+    expect(reportedSpanDays([])).toBe(0);
+    expect(reportedSpanDays([day(1)])).toBe(1);
+  });
+
+  it('duplicate or unsorted dates can never shrink the window below the rows', () => {
+    // A span alone computes SHORTER than the rows present for both shapes, and
+    // a window can never contain fewer days than the days it holds.
+    const dupes = [day(1), day(1), day(1)];
+    expect(reportedSpanDays(dupes)).toBe(3);
+    const unsorted = [day(30), day(1)];
+    expect(reportedSpanDays(unsorted)).toBeGreaterThanOrEqual(2);
+  });
+
+  it('a malformed day key falls back to a lower bound, never to an invented span', () => {
+    const bad = [{ ...day(1), date: 'not-a-date' }, day(2)];
+    expect(reportedSpanDays(bad)).toBe(2);
+    // ...and an impossible calendar date is rejected rather than rolled forward.
+    const feb30 = [{ ...day(1), date: '2026-02-30' }, day(2)];
+    expect(reportedSpanDays(feb30)).toBe(2);
+  });
+
+  it('the window is measured, never assumed — row count is not consulted', () => {
+    // STRUCTURAL: for a sparse array the two answers differ, and eligibility
+    // must follow the calendar. Swapping `reportedSpanDays` for
+    // `rollups.length` in the classifier changes this result.
+    const sparse = [day(1), day(2), day(10)];
+    expect(sparse.length).toBe(3);
+    expect(reportedSpanDays(sparse)).toBe(10);
+    expect(classifyStreakEligibility(sparse)).toEqual({
+      kind: 'coverage_incomplete', measuredDays: 3, rangeDays: 10,
+    });
   });
 });
