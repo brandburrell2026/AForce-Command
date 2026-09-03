@@ -126,13 +126,22 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
   for (const list of dayVersionLists) {
     for (const v of list) if (!allVersions.includes(v)) allVersions.push(v);
   }
-  // `containsMixedDay` was previously OR-ed into the suppression decision. It is
-  // provably redundant: a mixed day contributes two mutually non-comparable
-  // versions to `allVersions`, which forces `spansModelBoundary` true. No
-  // fixture can isolate the term, so no law can pin it — and redundant logic
-  // kept only to serve as a mutation target teaches the next reader that the
-  // suite covers something it does not. It is retained as REPORTING (consumers
-  // may want to know why a week was suppressed) and removed from the decision.
+  // `containsMixedDay` was previously OR-ed into the suppression decision and is
+  // now REPORTING ONLY. The earlier justification here claimed the term was
+  // "provably redundant" because a mixed day always forces `spansModelBoundary`
+  // true. THAT PROOF WAS WRONG, and the corrected reasoning matters more than
+  // the conclusion:
+  //
+  //   `allVersions` is DEDUPED before the boundary question is asked, while
+  //   `isMixedModelDay` is not. So `[null, null]` and `['x', 'x']` are "mixed"
+  //   by the day predicate yet collapse to a single entry in `allVersions` —
+  //   two fixtures that DO isolate the term. The redundancy is not a theorem.
+  //
+  // The conclusion still holds, but for a narrower reason: the only producer of
+  // this field accumulates into a `Set<string | null>` and emits `[...set]`
+  // (api-server/src/routes/aforce/journal.ts), so a duplicate-bearing list
+  // cannot reach us. The term is redundant UNDER THAT INVARIANT, not in general.
+  // If the server ever emits a non-deduped list, restore the OR.
   const containsMixedDay = dayVersionLists.some((l) => isMixedModelDay(l));
   const crossesBoundary = spansModelBoundary(allVersions);
   const weekOverWeekSuppressed = crossesBoundary;
@@ -146,8 +155,19 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
   // `trend.available ? trend.deltaYears : null`) still rendered a "▼ 3 years"
   // pill on a boundary-crossing week. The member was told their Performance Age
   // improved by three years when only the model had changed. Gating the trend
-  // here means every consumer inherits the suppression without edits, including
-  // consumers that do not exist yet.
+  // here means every consumer of `trend` inherits the suppression without edits,
+  // including consumers that do not exist yet. (See the `report` debt above for
+  // the one path this does NOT cover.)
+  // KNOWN DEBT (audited 2026-09-01, deliberately NOT fixed here): `report` is
+  // built by `buildWeeklyReport` above, BEFORE the boundary is known, and its
+  // `performanceAge` section still carries a raw `deltaYears` plus
+  // `performance_age_younger` findings. It is LATENT — an exhaustive search
+  // found no consumer reading it: `WeeklyReportV3` and `EditorialWeeklyScreen`
+  // request only habitVelocity / recovery / topCommand / nextWeekFocus. Gating
+  // it would mean changing shared `buildWeeklyReport` output that other
+  // surfaces also consume, which is out of scope for this remediation. The
+  // guarantee below is therefore precise: every consumer of `trend` inherits
+  // the suppression. A future consumer of `report.performanceAge` would not.
   const rawTrend = computePerformanceAgeTrend(input.paSnapshots, WEEKLY_TREND_DAYS);
   const trend: PerformanceAgeTrend = weekOverWeekSuppressed
     ? { available: false, deltaYears: null, direction: null,

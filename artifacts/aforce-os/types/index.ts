@@ -1166,11 +1166,19 @@ export interface JournalRollup {
   autopilotSessions: number;
   socialSessions: number;
   /**
-   * Every distinct model version contributing to this day. More than one
-   * entry means the day straddles a model boundary and its aggregates are
-   * not comparable with single-version days.
+   * Every distinct model version contributing to this day. More than one entry
+   * means the day straddles a model boundary and its aggregates are not
+   * comparable with single-version days.
+   *
+   * `null` IS a possible entry and the type must say so. The server builds this
+   * from a `Set<string | null>` and emits it unfiltered, so a day whose
+   * snapshots straddle the version column's own deploy ships as
+   * `[null, 'hydrostate-v1.0']`. Typing it `string[]` was a lie about the wire
+   * shape, and the cost was structural rather than cosmetic: no test fixture
+   * could construct a null-bearing day, so an entire class of defect was
+   * invisible to every law in the suite.
    */
-  modelVersions?: string[];
+  modelVersions?: (string | null)[];
 }
 
 // ─── Notifications / Hardware ─────────────────────────────────────────────────

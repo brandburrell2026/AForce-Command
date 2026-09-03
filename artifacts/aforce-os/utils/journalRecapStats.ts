@@ -101,3 +101,93 @@ function parseDateUTC(s: string): Date | null {
 function diffInDaysUTC(later: Date, earlier: Date): number {
   return Math.round((later.getTime() - earlier.getTime()) / 86_400_000);
 }
+
+/**
+ * What the share card may honestly display.
+ *
+ * Deliberately a DIFFERENT shape from `RecapStats`: three of its fields can be
+ * unavailable, and the type says so rather than letting a component decide.
+ *
+ *   SCORE-DERIVED (`avgScore`, `peakScore`) — computed only over rows whose
+ *   model version is comparable, so a headline never blends two different
+ *   measurements. `comparableDays` reports how many rows that was, because a
+ *   smaller scoring population may not be silent.
+ *
+ *   `bestStreak` — NULL for TWO independent reasons, and the caller decides
+ *   which by passing `streakEligible`. (1) The range spans incomparable model
+ *   semantics: the metric is a run of days above a HydroState threshold, and
+ *   that threshold's meaning changed at v1.0, so counting a v0 crossing and a
+ *   v1 crossing as the same event is not one metric. (2) A day in the range has
+ *   no HydroState observation at all, which makes continuity UNKNOWABLE across
+ *   it — the run may not be broken (that asserts a failure) and the day may not
+ *   be skipped (that asserts qualification nobody observed). Either way the
+ *   card says nothing rather than publishing a number it cannot support; the
+ *   REASON is classified by `classifyStreakEligibility`, not here.
+ *
+ *   ACTIVITY TOTALS (`totalOunces`, `totalSticks`) — currently ALWAYS null.
+ *   See `activityTotalsUnavailable` below.
+ */
+export interface RecapCardStats {
+  /** NULL when no comparable day exists — never 0 as a fallback. */
+  avgScore: number | null;
+  /** NULL when no comparable day exists — never 0 as a fallback. */
+  peakScore: number | null;
+  /** Days contributing to the score figures; may be fewer than the range. */
+  comparableDays: number;
+  /** Days in the whole reporting range — the number the label describes. */
+  daysTracked: number;
+  /** NULL when the range is incomparable OR any day went unobserved. */
+  bestStreak: number | null;
+  /** NULL until authoritative per-day intake totals exist server-side. */
+  totalOunces: number | null;
+  /** NULL until authoritative per-day intake totals exist server-side. */
+  totalSticks: number | null;
+}
+
+/**
+ * WHY ACTIVITY TOTALS ARE SUPPRESSED (founder ruling, 2026-09-01).
+ *
+ * `endOzConsumed` / `endAforceUnits` are NOT window cumulatives. Each is
+ * `ozConsumedToday` / `aforceUnitsToday` captured at whatever moment the client
+ * last POSTed a snapshot that day, and `applyDayRollover` zeroes both every UTC
+ * midnight. Three ways to derive a "30-day total" from them, all dishonest:
+ *
+ *   - read the last row  -> ONE day's figure under a 30-day label
+ *   - sum the rows       -> a LOWER BOUND: every ounce logged after a day's
+ *                           final sync is dropped, and a day with intakes but
+ *                           no snapshot contributes zero
+ *   - read the last row after narrowing -> a stale older day's figure
+ *
+ * The 30-day card must not present a number it cannot support, so it presents
+ * none. The authoritative source is `aforceIntakeLogs.ozAmount`, already
+ * queried by the rollups route and currently discarded; surfacing it is a
+ * separate, bounded api-server change. When it lands, these two fields become
+ * real sums over the full reporting range and this constant goes away.
+ */
+export const ACTIVITY_TOTALS_UNAVAILABLE = null;
+
+export function computeRecapCardStats(
+  fullRange: readonly JournalRollup[],
+  scorePopulation: readonly JournalRollup[],
+  // `streakEligible`, not `streakComparable`: comparability is only ONE of the
+  // two things that can withhold the streak, and naming the parameter after it
+  // is what invited a caller to compute it from a comparability comparison.
+  opts: { streakEligible: boolean },
+): RecapCardStats {
+  const whole = computeRecapStats(fullRange);
+  const scored = computeRecapStats(scorePopulation);
+  // An empty comparable population must SUPPRESS the aggregates. Rendering
+  // `computeRecapStats([]).avgScore` — which is 0 — would publish a confident
+  // "AVG 0 / PEAK 0" as a fallback for "we have nothing comparable to say",
+  // i.e. a fabricated claim in the place reserved for a real one.
+  const hasComparable = scorePopulation.length > 0;
+  return {
+    avgScore: hasComparable ? scored.avgScore : null,
+    peakScore: hasComparable ? scored.peakScore : null,
+    comparableDays: scorePopulation.length,
+    daysTracked: whole.daysTracked,
+    bestStreak: hasComparable && opts.streakEligible ? scored.bestStreak : null,
+    totalOunces: ACTIVITY_TOTALS_UNAVAILABLE,
+    totalSticks: ACTIVITY_TOTALS_UNAVAILABLE,
+  };
+}

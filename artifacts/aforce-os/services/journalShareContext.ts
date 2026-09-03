@@ -19,11 +19,20 @@
 
 import type { JournalRollup } from '../types';
 import type { ShareType, StateLabel } from '../types/share';
+import { recapStatsScope, classifyStreakEligibility } from '../utils/scoring/boundarySeries';
+import { computeRecapStats } from '../utils/journalRecapStats';
 
 export interface JournalShareContext {
   type: Extract<ShareType, 'score' | 'streak'>;
-  score: number;
-  state: StateLabel;
+  /**
+   * NULL when no comparable observation exists — the same condition under which
+   * the recap card renders its AVG tile as "—". A number here is a claim the
+   * member will post publicly, so it must never be a fallback for "nothing to
+   * say": `/share` falls back to the member's LIVE score when this is absent,
+   * which is a true present-tense statement rather than a fabricated average.
+   */
+  score: number | null;
+  state: StateLabel | null;
   streakDays?: number;
   rangeDays: number;
 }
@@ -42,33 +51,55 @@ export function deriveJournalShareContext(
   rollups: readonly JournalRollup[],
   rangeDays: number,
 ): JournalShareContext {
+  // An empty window has nothing to publish. It used to return
+  // `score: 0, state: 'Recovering'` — a fabricated claim in the payload that
+  // leaves the app, manufactured out of having no data at all.
   if (rollups.length === 0) {
-    return { type: 'score', score: 0, state: 'Recovering', rangeDays };
+    return { type: 'score', score: null, state: null, rangeDays };
   }
 
-  const avgScore = Math.round(
-    rollups.reduce((acc, r) => acc + r.avgScore, 0) / rollups.length,
-  );
-  const state = scoreToStateLabel(avgScore);
+  // ONE SET OF POPULATIONS, SHARED WITH THE CARD (founder ruling §7,
+  // 2026-09-02). The recap card and this payload are two outputs of the SAME
+  // tap on the same array, and they were disagreeing: the card rendered
+  // "STREAK —" while the params from that same press said `streakDays=14`,
+  // which the template engine turned into the copy the member posted publicly.
+  //
+  // The cause was that this function read the wire directly. It averaged
+  // `avgScore` over every row — including the server's sentinel 0 for a day
+  // with intakes and no captured snapshot — and its streak walk broke on that
+  // same sentinel (`avgScore < BALANCED_THRESHOLD`), scoring an unobserved day
+  // as a failure. Both are exactly what the ruling forbids, one function away
+  // from the card that had just been fixed.
+  //
+  // So it now asks the same two questions the card asks, through the same
+  // helpers. Neither surface can move without the other.
+  const scope = recapStatsScope(rollups);
+  const avgScore = scope.length > 0 ? computeRecapStats(scope).avgScore : null;
+  const state = avgScore == null ? null : scoreToStateLabel(avgScore);
 
-  // Rollups arrive oldest→newest. Walk from the most recent day backwards
-  // and count consecutive *calendar* days that cleared the Balanced
-  // threshold. /journal/rollups omits days with no data, so we cannot
-  // simply count consecutive rows — a high-score row separated from the
-  // next high-score row by a missing calendar day must break the streak.
-  // Otherwise we would post a "5 day streak" that actually spans a gap,
-  // which is exactly the kind of integrity risk worth avoiding when the
-  // payload exits the app to social media.
+  // A HydroState-derived streak is UNKNOWABLE across a day HydroState did not
+  // observe — it may not be broken (that asserts a failure the member did not
+  // have) and may not be skipped (that asserts qualification nobody observed).
+  // When it is not eligible, no streak leaves the app at all.
+  const eligible = classifyStreakEligibility(rollups).kind === 'eligible';
+
+  // Rollups arrive oldest→newest. Walk from the most recent day backwards and
+  // count consecutive *calendar* days that cleared the Balanced threshold.
+  // This stays a TRAILING streak, not the card's best-in-window streak: a
+  // shared post is a present-tense claim, and posting a best run the member is
+  // no longer on would be false in the other direction.
   let streakDays = 0;
-  let prevDate: Date | null = null;
-  for (let i = rollups.length - 1; i >= 0; i--) {
-    const r = rollups[i];
-    if (r.avgScore < BALANCED_THRESHOLD) break;
-    const d = parseDateUTC(r.date);
-    if (!d) break; // malformed date — refuse to count
-    if (prevDate && diffInDaysUTC(prevDate, d) !== 1) break;
-    streakDays++;
-    prevDate = d;
+  if (eligible) {
+    let prevDate: Date | null = null;
+    for (let i = rollups.length - 1; i >= 0; i--) {
+      const r = rollups[i]!;
+      if (r.avgScore < BALANCED_THRESHOLD) break;
+      const d = parseDateUTC(r.date);
+      if (!d) break; // malformed date — refuse to count
+      if (prevDate && diffInDaysUTC(prevDate, d) !== 1) break;
+      streakDays++;
+      prevDate = d;
+    }
   }
 
   const type: JournalShareContext['type'] =
@@ -116,11 +147,12 @@ function diffInDaysUTC(later: Date, earlier: Date): number {
  * coerces these back to numbers via the screen's allowlist.
  */
 export function toShareRouteParams(ctx: JournalShareContext): Record<string, string> {
-  const params: Record<string, string> = {
-    type: ctx.type,
-    score: String(ctx.score),
-    state: ctx.state,
-  };
+  const params: Record<string, string> = { type: ctx.type };
+  // OMITTED, not zeroed. `SharePreviewScreenV2` falls back to the member's LIVE
+  // score when `score` is absent — a true present-tense statement — whereas a
+  // `String(null)` or a 0 would post a number nothing measured.
+  if (ctx.score != null) params.score = String(ctx.score);
+  if (ctx.state != null) params.state = ctx.state;
   if (ctx.streakDays != null) params.streakDays = String(ctx.streakDays);
   return params;
 }

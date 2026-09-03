@@ -37,7 +37,7 @@ import Svg, {
 } from 'react-native-svg';
 import type { JournalSnapshot } from '@/types';
 import { spansModelBoundary } from '@/utils/scoring/modelBoundary';
-import { bucketizeSegmented, segmentForRender } from '@/utils/scoring/boundarySeries';
+import { bucketizeSegmented, segmentForRender, snapshotRenderKeyOf } from '@/utils/scoring/boundarySeries';
 import { Colors } from '@/theme/colors';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
@@ -83,9 +83,67 @@ function formatBubbleDate(iso: string): string {
 }
 
 /** Smooth Catmull-Rom curve, intentionally soft. */
+/**
+ * Half-width of the mark a single-anchor segment is drawn as.
+ *
+ * A one-day version run used to render as `M x,y` — a moveto, which strokes
+ * NOTHING. The constellation dot still appeared at that anchor, so the day was
+ * not invisible, but the segmented-line contract said a segment draws a stroke
+ * and for this case it silently did not. A one-day run is exactly what the
+ * first day of a model rollout produces, so it is the case that must be
+ * explicit rather than incidental.
+ */
+/**
+ * Half-width of the mark a single-anchor segment is drawn as.
+ *
+ * MUST clear the constellation dot. The dot stack is a solid r=3.5 core inside
+ * an r=8 halo, so the previous 1.5px tick was painted entirely UNDERNEATH it —
+ * geometrically non-zero, visually absent. A one-day model run is exactly what
+ * the first day of a rollout produces, so its mark has to survive the dot that
+ * sits on top of it.
+ */
+const LONE_ANCHOR_TICK_PX = 11;
+
+/** Minimum clear space between two adjacent marks, so a boundary stays visible. */
+const RUN_SEPARATION_PX = 3;
+
+/**
+ * Build the lone-anchor mark: clamped inside the plot, and never wide enough to
+ * touch its neighbour.
+ *
+ * Two ADJACENT one-anchor runs each drawing a fixed ±11px tick painted onto
+ * overlapping spans, so a real model boundary rendered as one continuous mark —
+ * the exact claim segmentation exists to prevent, reintroduced by the fix that
+ * made a lone run visible in the first place. The half-width now yields to the
+ * spacing available, keeping a guaranteed gap.
+ */
+function loneAnchorPath(
+  p: { x: number; y: number },
+  minX: number,
+  maxX: number,
+  nearestNeighbourPx = Number.POSITIVE_INFINITY,
+): string {
+  // SHIFT into bounds rather than truncating. A lone anchor sits at the far
+  // right whenever the newest run is one day — the rollout-day shape — so
+  // clamping each end independently halved the mark exactly where it matters
+  // and put it back under the dot.
+  // Never more than half the gap to the nearest anchor, less the separation.
+  const halfWidth = Math.max(
+    1,
+    Math.min(LONE_ANCHOR_TICK_PX, nearestNeighbourPx / 2 - RUN_SEPARATION_PX),
+  );
+  let x1 = p.x - halfWidth;
+  let x2 = p.x + halfWidth;
+  if (x1 < minX) { x2 += minX - x1; x1 = minX; }
+  if (x2 > maxX) { x1 -= x2 - maxX; x2 = maxX; }
+  // Only if the plot itself is narrower than the mark does length give way.
+  x1 = Math.max(minX, x1);
+  return `M${x1.toFixed(2)},${p.y.toFixed(2)} L${x2.toFixed(2)},${p.y.toFixed(2)}`;
+}
+
 function smoothPath(points: { x: number; y: number }[]): string {
   if (points.length === 0) return '';
-  if (points.length === 1) return `M${points[0].x},${points[0].y}`;
+  if (points.length === 1) return '';   // callers use `loneAnchorPath`
   let d = `M${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i];
@@ -220,14 +278,29 @@ export default function JournalChart({
     // ONE PATH PER SEGMENT. Joining them would assert a continuity across the
     // recalibration that does not exist — the line itself is the claim.
     const ds = segments
-      .map((seg) => smoothPath(seg.map(project)))
+      .map((seg) => {
+        const pts = seg.map(project);
+        if (pts.length !== 1) return smoothPath(pts);
+        // Distance to the closest anchor in ANY other segment — a lone mark may
+        // not grow into its neighbour.
+        const me = pts[0]!;
+        let nearest = Number.POSITIVE_INFINITY;
+        for (const other of segments) {
+          for (const b of other) {
+            const q = project(b);
+            if (q.x === me.x && q.y === me.y) continue;
+            nearest = Math.min(nearest, Math.abs(q.x - me.x));
+          }
+        }
+        return loneAnchorPath(me, PADDING.left, PADDING.left + innerW, nearest);
+      })
       .filter((d) => d !== '');
 
     // Averaging across the boundary would blend two scales, so when the series
     // is mixed the summary is scoped to the newest comparable run rather than
     // silently reporting a number that describes neither model.
     const summaryScope = crossed
-      ? (segmentForRender(renderedData, (d) => d.modelVersion ?? null).at(-1)?.points ?? renderedData)
+      ? (segmentForRender(renderedData, snapshotRenderKeyOf).at(-1)?.points ?? renderedData)
       : renderedData;
     const avgScore = Math.round(
       summaryScope.reduce((acc, d) => acc + d.score, 0) / summaryScope.length,

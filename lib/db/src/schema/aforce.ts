@@ -151,6 +151,23 @@ export const aforceUserState = pgTable("aforce_user_state", {
     sex?: "male" | "female" | "unspecified";
     ateRecently?: boolean;
   } | null>(),
+  /**
+   * When this member's HydroState history begins — stamped ONCE, when
+   * `getUserState` first seeds this row, and never written again.
+   *
+   * NULLABLE ON PURPOSE, and it must stay that way. This repo has no migration
+   * files (`drizzle-kit push` only — see docs/SCHEMA_DRIFT.md), so a
+   * `NOT NULL DEFAULT now()` column would stamp the push date onto every
+   * pre-existing row and fabricate tenure for every member who came before it.
+   * NULL therefore means "seeded before this column existed", never "started
+   * at the epoch" — those members fall back to HYDROSTATE_HISTORY_EPOCH as a
+   * conservative floor, and no backfill is authorized (founder, 2026-09-02).
+   *
+   * It is NOT a signup date and NOT derived from journal activity: inferring a
+   * start from the first rollup, snapshot, intake or entitlement call is
+   * explicitly forbidden, because a sparse wire makes all four appear late.
+   */
+  historyStartAt: timestamp("history_start_at", { withTimezone: true }),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -331,6 +348,23 @@ export type InsertAforceReferralClaim = typeof aforceReferralClaims.$inferInsert
 
 export type AforceUserStateRow = typeof aforceUserState.$inferSelect;
 export type InsertAforceUserState = typeof aforceUserState.$inferInsert;
+/**
+ * The safe shape for any `.set()` patch against `aforceUserState` OUTSIDE the
+ * one authorized seed insert in `getUserState` (founder ruling, 2026-09-02:
+ * `historyStartAt` is stamped once and never again).
+ *
+ * `historyStartAt` is a plain nullable timestamp with no branding of its own,
+ * so `Partial<InsertAforceUserState>` — the type every ad-hoc patch object in
+ * this codebase reaches for — permits writing it with zero compiler error.
+ * Several call sites already build such a patch directly (status.ts's
+ * `/confirm` route, intake.ts's apply/undo paths, the provider-kit
+ * repos) rather than routing through `updateUserState`, so excluding the
+ * column there alone protects only that one function. Branding it out HERE
+ * means every current and future raw writer gets a compile error the moment
+ * it tries to include the field, instead of silently being allowed to move a
+ * member's history stamp.
+ */
+export type SafeUserStatePatch = Partial<Omit<InsertAforceUserState, 'historyStartAt'>>;
 export type AforceIntakeLogRow = typeof aforceIntakeLogs.$inferSelect;
 export type AforceConfirmationRow = typeof aforceConfirmations.$inferSelect;
 export type AforceUserRow = typeof aforceUsers.$inferSelect;

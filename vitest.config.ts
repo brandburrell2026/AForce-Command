@@ -77,6 +77,11 @@ export default defineConfig({
       'artifacts/aforce-os/components/health/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/sleep/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/journal/__tests__/**/*.render.test.tsx',
+      // PR A — Journal share/recap densification seam. Source-guard convention
+      // (see components/home/__tests__/homeScreenV2Wiring.test.ts): JournalScreen
+      // is store/router-connected, so its wiring is pinned on source text with
+      // mutation-verify assertions rather than a fabricated render harness.
+      'artifacts/aforce-os/screens/__tests__/**/*.test.ts',
       'artifacts/aforce-os/store/__tests__/**/*.test.ts',
       'artifacts/aforce-os/store/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/hooks/__tests__/**/*.test.ts',

@@ -76,7 +76,11 @@ describe('R6 — the model version is READ, not merely written', () => {
   it('the client types carry it through', () => {
     const t = read('types/index.ts');
     expect(t).toMatch(/modelVersion\?:\s*string \| null/);
-    expect(t).toMatch(/modelVersions\?:\s*string\[\]/);
+    // Widened deliberately: the server builds this from a `Set<string | null>`
+    // and emits it unfiltered, so `null` IS a possible entry. Typing it
+    // `string[]` was a lie about the wire shape, and it made an entire class of
+    // defect impossible to write a fixture for.
+    expect(t).toMatch(/modelVersions\?:\s*\(string \| null\)\[\]/);
   });
 
   it('the score analytics event names the model that produced the score', () => {

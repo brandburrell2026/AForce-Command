@@ -778,6 +778,50 @@ export async function fetchJournalRollups(days: number): Promise<JournalRollup[]
   return resp.rollups ?? [];
 }
 
+/**
+ * The same rollups PLUS the member's HydroState history stamp.
+ *
+ * The array is byte-identical to `fetchJournalRollups` — deliberately, because
+ * the shared wire contract is unchanged in this PR. `historyStartAt` is an
+ * ADDITIVE field only the Journal share/recap seam needs: it is the one fact
+ * the client cannot derive, and deriving it from the data (first rollup, first
+ * snapshot, first intake) is forbidden precisely because a sparse wire makes
+ * all three appear late.
+ *
+ * NULL is normal and permanent for members whose state row predates the column.
+ * It means "not recorded", never "no history" and never a tenure claim.
+ */
+/**
+ * The server's ACTUAL `/journal/rollups` response shape, transcribed field-
+ * for-field from `routes/aforce/journal.ts`'s `res.json({ rollups, days,
+ * historyStartAt })` — not derived from the client's own parsing, so a
+ * divergence between the two is a type error at the call site below rather
+ * than a silent mismatch discoverable only in production. Mirrors the
+ * convention in `utils/__tests__/journalWireContract.test.ts`.
+ */
+export interface JournalRollupsWireResponse {
+  rollups: JournalRollup[];
+  days: number;
+  historyStartAt?: string | null;
+}
+
+/**
+ * Pure parsing step, separated from the network call so it is directly
+ * testable against a literal server payload — no `fetch` mock required.
+ */
+export function parseJournalRollupsWithHistory(
+  resp: JournalRollupsWireResponse,
+): { rollups: JournalRollup[]; historyStartAt: string | null } {
+  return { rollups: resp.rollups ?? [], historyStartAt: resp.historyStartAt ?? null };
+}
+
+export async function fetchJournalRollupsWithHistory(
+  days: number,
+): Promise<{ rollups: JournalRollup[]; historyStartAt: string | null }> {
+  const resp = await getJson<JournalRollupsWireResponse>(`/journal/rollups?days=${days}`);
+  return parseJournalRollupsWithHistory(resp);
+}
+
 // ─── Sweat-sensor import ─────────────────────────────────────────────────────
 import type { SensorRow, SensorSource } from './sensorImportService';
 import type { AchievementCode, AchievementUnlockState } from './achievementsCatalog';
