@@ -436,26 +436,41 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           <View style={styles.timeline}>
             {model.timeline.map((d) => {
               const weekday = t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`);
+              // A day HydroState never observed keeps its COLUMN — the
+              // timeline is a calendar and dropping it would reshape the week
+              // — but draws no fill and speaks "no reading". Rendering the
+              // server's sentinel here instead would paint a full-height
+              // Signal-Red DEPLETED bar on a day nothing was measured.
+              const unmeasured = d.score == null || d.accent == null;
               return (
                 <AFCard
                   key={d.date}
                   padded={false}
                   style={styles.timelineDay}
-                  accessibilityLabel={t('reports.v3.timeline_day_a11y', {
-                    day: weekday,
-                    date: shortDate(d.date),
-                    score: d.score,
-                  })}
+                  accessibilityLabel={
+                    unmeasured
+                      ? t('reports.v3.timeline_day_unmeasured_a11y', {
+                          day: weekday,
+                          date: shortDate(d.date),
+                        })
+                      : t('reports.v3.timeline_day_a11y', {
+                          day: weekday,
+                          date: shortDate(d.date),
+                          score: d.score,
+                        })
+                  }
                   testID={`weekly-v3-timeline-${d.date}`}
                 >
                   <Text style={styles.timelineWeekday}>{weekday}</Text>
                   <View style={styles.timelineTrack}>
-                    <View
-                      style={[
-                        styles.timelineFill,
-                        { height: `${Math.max(10, Math.min(100, d.score))}%`, backgroundColor: d.accent },
-                      ]}
-                    />
+                    {unmeasured ? null : (
+                      <View
+                        style={[
+                          styles.timelineFill,
+                          { height: `${Math.max(10, Math.min(100, d.score!))}%`, backgroundColor: d.accent! },
+                        ]}
+                      />
+                    )}
                   </View>
                 </AFCard>
               );

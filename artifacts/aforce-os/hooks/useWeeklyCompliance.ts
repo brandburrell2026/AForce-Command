@@ -18,16 +18,30 @@ import React from 'react';
 
 import { fetchJournalRollups } from '@/services/realApi';
 import type { JournalRollup } from '@/types';
+import { observedRows } from '@/utils/scoring/boundarySeries';
 
-/** A day counts as compliant with ≥1 snapshot and avgScore ≥ 65. */
+/**
+ * A day counts as compliant with ≥1 snapshot and avgScore ≥ 65.
+ *
+ * BOTH SIDES OF THE RATIO ARE OBSERVED DAYS. The numerator always required an
+ * observation; the denominator used to be `rollups.length`. On the dense wire
+ * that is the width of the member's eligible window, so a day HydroState never
+ * observed counted as a failed day — dropping a member who was compliant on
+ * every measured day from 100% to 29% and telling them so in the second
+ * person ("You're 29% consistent this week"). A day with no measurement is not
+ * a day the member failed; it is a day we cannot speak about.
+ *
+ * Returns `null` when nothing was observed at all — the Protocol sheet makes a
+ * second-person claim, and with no measurements the claim must not be made
+ * rather than rendered as 0%.
+ */
 export function computeWeeklyCompliancePct(
   rollups: readonly JournalRollup[],
 ): number | null {
-  if (rollups.length === 0) return null;
-  const compliantDays = rollups.filter(
-    (r) => r.snapshotsCount > 0 && r.avgScore >= 65,
-  ).length;
-  return Math.round((compliantDays / rollups.length) * 100);
+  const observed = observedRows(rollups);
+  if (observed.length === 0) return null;
+  const compliantDays = observed.filter((r) => r.avgScore >= 65).length;
+  return Math.round((compliantDays / observed.length) * 100);
 }
 
 export function useWeeklyCompliance(active: boolean): number | null {

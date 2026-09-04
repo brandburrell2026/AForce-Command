@@ -45,6 +45,7 @@ import { af, afType, Spacing } from '@/theme';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { buildSnapshot } from '@/services/competitionEngine';
 import { fetchJournalRollups } from '@/services/realApi';
+import { hasHydroStateObservation } from '@/utils/scoring/boundarySeries';
 import type { JournalRollup } from '@/types';
 import { useRouter } from 'expo-router';
 import {
@@ -79,7 +80,12 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
     fetchJournalRollups(7)
       .then((rollups: JournalRollup[]) => {
         if (cancelled) return;
-        setRollupDays(rollups.filter((r) => r.endUnitsConsumed > 0).length);
+        // Explicit observation gate — see countLoggedRollupDays. The dense
+        // wire materialises days the member was never measured on, and this
+        // must not count them as ritual days.
+        setRollupDays(
+          rollups.filter((r) => hasHydroStateObservation(r) && r.endUnitsConsumed > 0).length,
+        );
       })
       .catch(() => {
         // S2-7: the bar being silently absent was indistinguishable from

@@ -430,13 +430,16 @@ describe('PAPER — the first surface to turn the stock', () => {
 
     const tl = /styles\.timelineTrack.*?<\/View>/.exec(flat)?.[0] ?? '';
     expect(tl, 'timeline track must be found at all').not.toBe('');
+    // `d.score!` — the score is nullable now (an unobserved day has no
+    // reading and draws no bar at all), so the non-null assertion appears
+    // inside the measured branch. The ordering guarantee is unchanged.
     expect(tl, 'timeline: spacer must precede the fill').toMatch(
-      /1 - Math\.min\(100, d\.score\).*?styles\.timelineFill/,
+      /1 - Math\.min\(100, d\.score!?\).*?styles\.timelineFill/,
     );
     // And a HIGH score must produce a TALL bar: the fill takes the score
     // fraction itself, never its complement.
     expect(tl, 'the fill must take the score, not 1 − score').toMatch(
-      /styles\.timelineFill.*?flex: Math\.max\(0\.1, Math\.min\(100, d\.score\) \/ 100\)/,
+      /styles\.timelineFill.*?flex: Math\.max\(0\.1, Math\.min\(100, d\.score!?\) \/ 100\)/,
     );
   });
 });

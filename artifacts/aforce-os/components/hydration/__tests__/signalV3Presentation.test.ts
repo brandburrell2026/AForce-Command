@@ -22,9 +22,18 @@ import {
   isoWeekday,
 } from '../signalV3Presentation';
 
+/**
+ * A day WITH a HydroState observation by default.
+ *
+ * This factory used to default `snapshotsCount: 0`, which — now that the wire
+ * is dense and `buildDayViews` renders observed days only — described a day
+ * that has no reading at all. Every fixture built on it was therefore asserting
+ * scores and bands for days nothing was measured. Tests that specifically want
+ * the unobserved case pass `snapshotsCount: 0` explicitly.
+ */
 function rollup(partial: Partial<JournalRollup> & { date: string; avgScore: number }): JournalRollup {
   return {
-    snapshotsCount: 0,
+    snapshotsCount: 4,
     minScore: 0,
     maxScore: 100,
     endOzConsumed: 0,
@@ -56,6 +65,42 @@ describe('bandForScore / accentForScore', () => {
     expect(accentForScore(70)).toBe(af.cyan);
     expect(accentForScore(50)).toBe(af.amber);
     expect(accentForScore(20)).toBe(af.red);
+  });
+});
+
+describe('buildDayViews — unobserved days are not readings', () => {
+  it('a day with no HydroState observation produces NO row', () => {
+    // The dense wire always includes the day; it carries the server's
+    // sentinel `avgScore: 0`. Rendering it would put a real DEPLETED row on
+    // a day nothing was measured. This list has no calendar obligation (unlike
+    // the weekly timeline), so the honest answer is simply no row.
+    const days = buildDayViews(
+      [
+        rollup({ date: '2026-08-05', avgScore: 82, snapshotsCount: 4 }),
+        rollup({ date: '2026-08-06', avgScore: 0, snapshotsCount: 0 }),
+      ],
+      '2026-08-07',
+    );
+    expect(days.map((d) => d.date)).toEqual(['2026-08-05']);
+  });
+
+  it('an all-unobserved window produces an empty list, not a week of zeros', () => {
+    const days = buildDayViews(
+      [
+        rollup({ date: '2026-08-05', avgScore: 0, snapshotsCount: 0 }),
+        rollup({ date: '2026-08-06', avgScore: 0, snapshotsCount: 0 }),
+      ],
+      '2026-08-07',
+    );
+    expect(days).toEqual([]);
+  });
+
+  it('an intake-only day (real activity, no snapshot) is still not a reading', () => {
+    const days = buildDayViews(
+      [rollup({ date: '2026-08-06', avgScore: 0, snapshotsCount: 0, intakeCount: 3, endOzConsumed: 40 })],
+      '2026-08-07',
+    );
+    expect(days).toEqual([]);
   });
 });
 

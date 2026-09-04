@@ -11,7 +11,11 @@ import { Icon } from '../Icon';
 import { useTranslation } from 'react-i18next';
 import type { JournalRollup } from '@/types';
 import { isMixedModelDay } from '@/utils/scoring/modelBoundary';
+import { hasHydroStateObservation } from '@/utils/scoring/boundarySeries';
 import { Colors } from '@/theme/colors';
+
+/** Honest-data glyph for a reading nobody took (app-wide convention). */
+const EM_DASH = '—';
 
 interface Props {
   rollup: JournalRollup;
@@ -75,6 +79,13 @@ export default function JournalDayCard({ rollup }: Props) {
   // like-for-like daily score. (Member-facing explanation is PR 4; this is the
   // structural marking the rest of the app can key off.)
   const mixedModelDay = isMixedModelDay(rollup.modelVersions);
+  // A day with no HydroState observation has no score to show. This was
+  // already wrong before the wire densified: a day with a logged intake and
+  // no captured snapshot has always shipped with the sentinel `avgScore: 0`,
+  // which `avgColor` painted as a real DEPLETED red 0 — telling a member who
+  // drank all day that they had bottomed out. The row still renders (the
+  // intake is real and belongs in the log); only the SCORE is withheld.
+  const measured = hasHydroStateObservation(rollup);
   // The band COLOUR is itself a comparability claim: it asserts this average
   // lands in a real band. On a mixed-model day it does not, so the score is
   // rendered in the neutral meta tone instead of a band colour. That is the
@@ -83,7 +94,9 @@ export default function JournalDayCard({ rollup }: Props) {
   // introducing a new colour literal — the brand-token ratchet correctly
   // rejects added raw hex, and an aggregate that spans a boundary should read
   // as informational anyway, which is exactly what that tone already means.
-  const color = mixedModelDay ? String(styles.meta.color) : avgColor(rollup.avgScore);
+  const color = mixedModelDay || !measured
+    ? String(styles.meta.color)
+    : avgColor(rollup.avgScore);
 
   // Hide rule (spec §6/7): a day with zero snapshots AND zero intakes
   // adds noise — collapse it entirely so the journal only renders days
@@ -92,7 +105,10 @@ export default function JournalDayCard({ rollup }: Props) {
     return null;
   }
 
-  const lesson = getTodaysLesson(rollup);
+  // The "lesson" is derived entirely from band percentages, which are all zero
+  // on an unobserved day — so it would confidently coach a member about a day
+  // nothing was measured ("Mixed day across bands…"). No observation, no lesson.
+  const lesson = measured ? getTodaysLesson(rollup) : null;
 
   // Light tactile tick on expand/collapse — matches the WHOOP-style
   // selection feedback used elsewhere in the app (tab switch, range
@@ -121,12 +137,20 @@ export default function JournalDayCard({ rollup }: Props) {
         </View>
         <View
           style={styles.scoreCol}
-          testID={mixedModelDay ? 'journal-day-avg-mixed-model' : 'journal-day-avg'}
-          accessibilityLabel={mixedModelDay
-            ? `${rollup.avgScore}, not comparable`
-            : undefined}
+          testID={
+            !measured
+              ? 'journal-day-avg-unmeasured'
+              : mixedModelDay ? 'journal-day-avg-mixed-model' : 'journal-day-avg'
+          }
+          accessibilityLabel={
+            !measured
+              ? 'No reading'
+              : mixedModelDay ? `${rollup.avgScore}, not comparable` : undefined
+          }
         >
-          <Text style={[styles.scoreVal, { color }]}>{rollup.avgScore}</Text>
+          <Text style={[styles.scoreVal, { color }]}>
+            {measured ? rollup.avgScore : EM_DASH}
+          </Text>
           <Text style={styles.scoreLabel}>{t('journal.day_card_avg')}</Text>
         </View>
         <Icon
@@ -146,10 +170,12 @@ export default function JournalDayCard({ rollup }: Props) {
           {rollup.endDeficitPct > 0 && (
             <Row label={t('journal.day_card_deficit')} value={`${rollup.endDeficitPct.toFixed(1)}%`} />
           )}
-          <View style={styles.lessonRow}>
-            <Icon name="zap" size={11} color="#C1281B" />
-            <Text style={styles.lessonText}>{lesson}</Text>
-          </View>
+          {lesson != null && (
+            <View style={styles.lessonRow}>
+              <Icon name="zap" size={11} color="#C1281B" />
+              <Text style={styles.lessonText}>{lesson}</Text>
+            </View>
+          )}
           {(rollup.autopilotSessions > 0 || rollup.socialSessions > 0) && (
             <View style={styles.sessionsRow}>
               {rollup.autopilotSessions > 0 && (

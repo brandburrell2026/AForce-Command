@@ -1,119 +1,116 @@
 /**
  * `prepareJournalShare` — the ONE seam, proven as a seam.
  *
- * WHY THIS FILE EXISTS. `journalDenseRange.test.ts` proves the window
- * arithmetic is correct; `journalShareContext.test.ts` proves the context
- * derivation is correct. Neither proves the thing this function exists FOR:
- * that `context` is derived from the SAME dense `window` the screen publishes,
- * rather than from the raw sparse `rollups` it was called with. A mutation
- * that re-introduced `deriveJournalShareContext(rollups, ...)` — reaching past
- * the seam back to the raw array — passed every other law in this branch and
- * was only caught here.
+ * WHY THIS FILE EXISTS. `ShareJournalRecap` and `deriveJournalShareContext`
+ * are two outputs of the same tap, and they were disagreeing: the card
+ * rendered "STREAK —" while the route params said `streakDays=14`. Nothing
+ * proved they were computed from the same array, because they were computed
+ * at two call sites.
+ *
+ * The seam's job is narrower than it once was — densification moved into the
+ * route in the consumer-completeness PR, so `window` is no longer derived
+ * here — but the guarantee it exists for is unchanged and is what these laws
+ * pin: BOTH outputs come from ONE array, and neither can be quietly given a
+ * different one.
  */
 import { describe, it, expect } from 'vitest';
 import { prepareJournalShare } from '../journalShareWindow';
+import { deriveJournalShareContext } from '../journalShareContext';
+import { observedRows } from '@/utils/scoring/boundarySeries';
 import type { JournalRollup } from '@/types';
 
 const V1 = 'hydrostate-v1.0';
-const sparse = (date: string, score: number): JournalRollup => ({
+
+/** An OBSERVED day. */
+const day = (date: string, score: number): JournalRollup => ({
   date, avgScore: score, minScore: score, maxScore: score, snapshotsCount: 4,
   endOzConsumed: 60, endAforceUnits: 0, endUnitsConsumed: 5, endSodiumDelivered: 0,
   endSodiumLost: 0, endDeficitPct: 0, pctTimePeak: 0, pctTimeBalanced: 100,
   pctTimeRecovering: 0, pctTimeDepleted: 0, intakeCount: 3, autopilotSessions: 0,
   socialSessions: 0, modelVersions: [V1],
 });
-const NOW = new Date('2026-09-02T14:30:00.000Z');
-/** A `YYYY-MM-DD` calendar day N days after a UTC date — real date
- *  arithmetic, so it crosses a month boundary correctly (a naive
- *  string-padded day-of-month generator silently overflows past 31). */
-const dayAfter = (startIso: string, n: number): string => {
-  const d = new Date(`${startIso}T00:00:00.000Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
+
+/** A day the route materialised but HydroState never observed. */
+const gap = (date: string): JournalRollup => ({
+  ...day(date, 0), snapshotsCount: 0, intakeCount: 0,
+  endOzConsumed: 0, endUnitsConsumed: 0, pctTimeBalanced: 0, modelVersions: [],
+});
 
 describe('prepareJournalShare — window and context can never diverge', () => {
-  it('densifies a sparse array into the dense effective window', () => {
-    const rows = [sparse('2026-08-27', 90), sparse('2026-08-29', 90), sparse('2026-09-02', 90)];
-    const { window } = prepareJournalShare(rows, { rangeDays: 7, historyStartAt: null, now: NOW });
-    expect(window.length, 'dense, not the raw 3 sparse rows').toBe(7);
-    expect(window.length).not.toBe(rows.length);
-    expect(window.filter((r) => r.snapshotsCount === 0).map((r) => r.date)).toEqual([
-      '2026-08-28', '2026-08-30', '2026-08-31', '2026-09-01',
-    ]);
+  it('the window is the rollups it was given — the route already densified them', () => {
+    const rows = [day('2026-08-27', 90), gap('2026-08-28'), day('2026-08-29', 90)];
+    const { window } = prepareJournalShare(rows, { rangeDays: 7 });
+    expect(window.map((r) => r.date)).toEqual(rows.map((r) => r.date));
+    // Copied, not aliased: neither output may mutate what the other sees.
+    expect(window).not.toBe(rows);
   });
 
-  it('THE WIRING PROOF: context excludes a row the raw array still has, once it falls before the eligible start', () => {
-    // `classifyStreakEligibility` measures the CALENDAR SPAN of whatever array
-    // it is given, which makes it robust to plain compaction (dropping a row
-    // changes the span too) — so a fixture that only removes a row is not
-    // enough to catch `deriveJournalShareContext(rollups, ...)` reaching past
-    // the seam. The row here is PRE-ELIGIBILITY: a correct dense window drops
-    // it entirely (it is before `historyStartAt`), while a mutant reading the
-    // raw array still has it and lets its low score and its 2-day gap corrupt
-    // both the average and the streak.
-    const rows = [
-      sparse('2026-08-20', 40),   // BEFORE the eligible start — must not count
-      sparse('2026-08-22', 90), sparse('2026-08-23', 90), sparse('2026-08-24', 90),
-    ];
-    const { window, context } = prepareJournalShare(rows, {
-      rangeDays: 3,
-      historyStartAt: new Date('2026-08-22T00:00:00.000Z'),
-      now: new Date('2026-08-24T12:00:00.000Z'),
-    });
-    expect(window.map((r) => r.date)).toEqual(['2026-08-22', '2026-08-23', '2026-08-24']);
-    expect(window.some((r) => r.date === '2026-08-20'), 'the pre-eligibility row is gone').toBe(false);
-    // The mutant's answer (averaging/streaking over all 4 raw rows) would be
-    // score < 90 and streakDays < 3 (the 08-20→08-22 gap breaks continuity at
-    // the earliest point the walk reaches it). The correct answer is neither.
-    expect(context.score).toBe(90);
+  it('THE WIRING PROOF: context is computed from the SAME array the window exposes', () => {
+    // Deriving the context from anything else is the defect this seam exists
+    // to prevent.
+    // THE FIXTURE HAS TO DISCRIMINATE, and most do not: with an INTERIOR gap,
+    // filtering to observed rows produces an identical context, because
+    // `reportedSpanDays` measures the calendar distance between the first and
+    // last rows either way. A LEADING gap is the shape that separates them —
+    // filtering moves the window's start forward onto the first observed day,
+    // which turns an incompletely-covered window into an apparently-eligible
+    // one and publishes a streak the real window withholds.
+    const rows = [gap('2026-08-27'), day('2026-08-28', 90), day('2026-08-29', 90)];
+    const { window, context } = prepareJournalShare(rows, { rangeDays: 7 });
+    expect(context).toEqual(deriveJournalShareContext(window, 7));
+
+    // ANTI-VACUITY. Densification moved into the route, so `window` is now
+    // just a copy of the input and the equality above could hold for reasons
+    // that have nothing to do with wiring. These two make it discriminating:
+    // the comparison DOES separate a differently-derived array...
+    expect(context.streakDays).toBeUndefined();
+    const filtered = deriveJournalShareContext([...observedRows(window)], 7);
+    expect(filtered.streakDays).toBe(2); // the fabrication filtering would cause
+    expect(context).not.toEqual(filtered);
+    // ...and it DOES separate a different rangeDays, so neither side is inert.
+    expect(context).not.toEqual(deriveJournalShareContext(window, 3));
+  });
+
+  it('rangeDays is threaded from the caller, not assumed', () => {
+    // The proof above pins `7` on both sides, so a seam that ignored its input
+    // and hardcoded 7 would satisfy it. A picker length the default cannot be
+    // confused with settles that independently.
+    const rows = [day('2026-08-27', 90), day('2026-08-28', 90), day('2026-08-29', 90)];
+    expect(prepareJournalShare(rows, { rangeDays: 30 }).context.rangeDays).toBe(30);
+    expect(prepareJournalShare(rows, { rangeDays: 14 }).context.rangeDays).toBe(14);
+  });
+
+  it('an unobserved day suppresses the streak in the payload, not just on the card', () => {
+    // The gap is a real row on the dense wire. The card withholds the streak
+    // for it; the payload must withhold it too, or the member posts a streak
+    // the card just declined to show them.
+    const rows = [day('2026-08-27', 90), gap('2026-08-28'), day('2026-08-29', 90)];
+    const { context } = prepareJournalShare(rows, { rangeDays: 3 });
+    expect(context.streakDays).toBeUndefined();
+  });
+
+  it('a fully-observed window still publishes its real streak', () => {
+    // ANTI-VACUITY for the law above: suppression must not be unconditional.
+    const rows = [day('2026-08-27', 90), day('2026-08-28', 90), day('2026-08-29', 90)];
+    const { context } = prepareJournalShare(rows, { rangeDays: 3 });
     expect(context.streakDays).toBe(3);
-  });
-
-  it('a streak withheld in the window is withheld in the context — not recomputed from the raw rows', () => {
-    // Raw sparse rows show two dates two calendar days apart with no row for
-    // the day between (the sparse wire's silent omission). The dense window
-    // materialises that day as an explicit gap, which must suppress the
-    // streak; feeding `deriveJournalShareContext` the raw 2-element array
-    // would (by coincidence) reach the same coverage verdict via span
-    // measurement, so this fixture instead adds a pre-eligibility row to force
-    // the two arrays to disagree on the RESULT, not just the verdict shape.
-    const rows = [
-      sparse('2026-08-20', 90),   // BEFORE the eligible start
-      sparse('2026-08-27', 90), sparse('2026-08-29', 90),
-    ];
-    const { context } = prepareJournalShare(rows, {
-      rangeDays: 3,
-      historyStartAt: new Date('2026-08-27T00:00:00.000Z'),
-      now: new Date('2026-08-29T12:00:00.000Z'),
-    });
-    expect(context.streakDays, 'the omitted 08-28 must suppress it').toBeUndefined();
-    // A mutant reading the raw 3-row array would compute a DIFFERENT (wrong)
-    // average by including the pre-eligibility 08-20 row.
-    expect(context.score).not.toBeNull();
-  });
-
-  it('a stamped 12-day-old member gets a 12-row window feeding the context, not 30', () => {
-    // ANTI-VACUITY (caught by this file itself): a naive
-    // `` `2026-08-${22 + i}` `` generator overflows past August's 31 days for
-    // i=9,10 and produces the malformed dates "2026-08-32"/"33" — two rows
-    // that then match NOTHING in the dense window, silently turning a
-    // "12 stamped days" fixture into 10 measured + 2 phantom gaps. `dayAfter`
-    // does real UTC date arithmetic so the fixture crosses the Aug→Sep
-    // boundary correctly.
-    const rows = Array.from({ length: 12 }, (_, i) => sparse(dayAfter('2026-08-22', i), 90));
-    const { window, context } = prepareJournalShare(rows, {
-      rangeDays: 30, historyStartAt: new Date('2026-08-22T00:00:00.000Z'), now: NOW,
-    });
-    expect(window.length).toBe(12);
-    expect(window.every((r) => r.snapshotsCount > 0), 'no phantom gaps').toBe(true);
     expect(context.score).toBe(90);
-    expect(context.streakDays).toBe(12);
   });
 
-  it('an unstamped legacy member keeps the full requested window', () => {
-    const rows = [sparse('2026-08-31', 90), sparse('2026-09-02', 90)];
-    const { window } = prepareJournalShare(rows, { rangeDays: 7, historyStartAt: null, now: NOW });
-    expect(window.length).toBe(7);
+  it('the average excludes unobserved days rather than averaging their sentinel', () => {
+    const rows = [day('2026-08-27', 90), gap('2026-08-28'), day('2026-08-29', 90)];
+    const { context } = prepareJournalShare(rows, { rangeDays: 3 });
+    // The naive answer — averaging the sentinel 0 across all three rows — is
+    // 60. The honest answer is 90.
+    expect(context.score).toBe(90);
+    expect(context.score).not.toBe(60);
+  });
+
+  it('an all-unobserved window publishes nothing rather than a fabricated zero', () => {
+    const rows = [gap('2026-08-27'), gap('2026-08-28')];
+    const { context } = prepareJournalShare(rows, { rangeDays: 2 });
+    expect(context.score).toBeNull();
+    expect(context.state).toBeNull();
+    expect(context.streakDays).toBeUndefined();
   });
 });

@@ -35,7 +35,12 @@ describe('correction rows never masquerade as intakes', () => {
   });
 
   it('rollups: intakeCount means what COUNTED — corrections and corrected originals excluded', () => {
-    const src = read('routes/aforce/journal.ts');
+    // The aggregation (and `correctedIds` with it) moved to
+    // journalRollupsAggregation.ts when the route was thinned to delegate its
+    // whole response to one extracted, execution-tested function — see
+    // journalRollupsAggregation.test.ts's own "a corrected intake does not
+    // count" law for the behavioral proof.
+    const src = read('lib/journalRollupsAggregation.ts');
     expect(src).toMatch(/correctedIds/);
   });
 
@@ -56,63 +61,21 @@ describe('correction rows never masquerade as intakes', () => {
   });
 });
 
-/* ═══════ ROLLUPS STAY SPARSE — historyStartAt is ADDITIVE ONLY ═══════
+/* ═══════ ROLLUPS DENSIFY GLOBALLY — superseded ruling ═══════
  *
- * Founder ruling (Option B, 2026-09-02): densifying the shared
- * `/journal/rollups` response was tried and REVERTED. Six live consumers read
- * `rollups.length` as an observation count and the empty day's sentinel
- * `avgScore: 0` as a measurement, so densifying the shared wire painted
- * unobserved days as Signal-Red DEPLETED bars and counted them as compliance
- * failures. Densification now happens ONLY at the client's Journal
- * share/recap seam (journalShareWindow.ts); the route contract itself must
- * stay exactly what every other consumer already expects, plus one additive
- * field.
+ * Option B (2026-09-02) kept this route sparse after densifying it broke six
+ * live consumers. The follow-up consumer-completeness PR (2026-09-03)
+ * migrates every one of them onto `observedRows`/`observedCount` in the SAME
+ * change and restores global densification — this time for real, with
+ * execution-tested proof. The sparse-contract laws that lived here are
+ * SUPERSEDED, not merely deleted: see
+ * `lib/__tests__/journalRollupsAggregation.test.ts` (the real aggregation
+ * pipeline, executed) and
+ * `routes/aforce/__tests__/journalRollupsRouteWiring.test.ts` (the honest
+ * route-wiring proof, now meaningful because the route delegates its entire
+ * response to one extracted function instead of building it inline).
+ *
+ * `historyStartAt` is no longer a top-level wire field: once the route
+ * applies the member's eligible-history floor for every consumer, nothing
+ * client-side needs to compute that floor itself.
  */
-describe('rollups stays sparse; historyStartAt is additive-only', () => {
-  /**
-   * THE REAL GUARD, extracted so it can run against more than one string.
-   * Throws (via a failing `expect`) on anything that imports/invokes a
-   * densification helper or stops building `rollups` from `acc.values()` —
-   * so `expect(() => assertStaysSparse(mutated)).toThrow()` below is a direct
-   * re-run of these exact checks, not a second, disconnected assertion that
-   * only proves a `.replace()` call executed.
-   */
-  function assertStaysSparse(src: string): void {
-    expect(src, 'no dense-range import').not.toMatch(/journalDenseRange/);
-    expect(src, 'no effectiveRangeKeys call').not.toMatch(/effectiveRangeKeys/);
-    expect(src, 'no densifyRollups call').not.toMatch(/densifyRollups/);
-    expect(src, 'built ONLY from acc.values()').toMatch(/const rollups = Array\.from\(acc\.values\(\)\)/);
-  }
-
-  it('the route does not import or invoke a densification helper', () => {
-    assertStaysSparse(read('routes/aforce/journal.ts'));
-  });
-
-  it('the rollups array is still built ONLY from acc.values() — one row per day WITH data', () => {
-    const src = read('routes/aforce/journal.ts');
-    expect(src).toMatch(/const rollups = Array\.from\(acc\.values\(\)\)/);
-  });
-
-  it('historyStartAt is queried and returned, additively', () => {
-    const src = read('routes/aforce/journal.ts');
-    expect(src, 'the state query for the stamp').toMatch(
-      /select\(\{\s*historyStartAt:\s*aforceUserState\.historyStartAt\s*\}\)/,
-    );
-    const responseBlock = /return res\.json\(\{\s*rollups,\s*days,\s*historyStartAt:[\s\S]*?\}\);/.exec(src)?.[0] ?? '';
-    expect(responseBlock, 'the json() call must be locatable').not.toBe('');
-    expect(responseBlock).toMatch(/historyStartAt:\s*stateRows\[0\]\?\.historyStartAt\?\.toISOString\(\)\s*\?\?\s*null/);
-  });
-
-  it('mutation-verify: a densifying route is detectable by this guard', () => {
-    // A HAND-WRITTEN mutated line — not a `.replace()` against the real
-    // source, whose success at inserting the substrings said nothing about
-    // whether the actual guard would flag them. This re-runs the SAME
-    // assertion function the real law above uses, so drift between the two
-    // is structurally impossible.
-    const mutated = read('routes/aforce/journal.ts').replace(
-      'const rollups = Array.from(acc.values())',
-      'const rollups = densifyRollups(Array.from(acc.values()), effectiveRangeKeys({}))',
-    );
-    expect(() => assertStaysSparse(mutated)).toThrow();
-  });
-});

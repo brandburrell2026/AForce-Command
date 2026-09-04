@@ -33,6 +33,7 @@ import {
   type WeekWindow,
 } from '@/utils/weeklyReport';
 import { accentForScore } from '@/components/hydration/signalV3Presentation';
+import { hasHydroStateObservation, observedCount, observedRows } from '@/utils/scoring/boundarySeries';
 
 export interface WeeklyV3Inputs {
   nowISO: string;
@@ -58,8 +59,19 @@ export interface WeeklyV3PerformanceAgeView {
 export interface WeeklyV3TimelineDay {
   date: string;
   weekday: number; // 0=Sun…6=Sat
-  score: number;
-  accent: string;
+  /**
+   * NULL when HydroState did not observe this day.
+   *
+   * The rollups wire is DENSE — one row per calendar day of the member's
+   * eligible window — so a day with no observation is PRESENT and carries the
+   * server's sentinel `avgScore: 0`. Typing this `number` and filling it from
+   * that sentinel would paint an unobserved day as a real DEPLETED zero: a
+   * full-height Signal-Red bar on a day the member was simply never measured.
+   * The null is what makes the renderer's "no reading" branch reachable.
+   */
+  score: number | null;
+  /** NULL alongside a null score — an unmeasured day has no band to tint. */
+  accent: string | null;
 }
 
 export interface WeeklyV3ModelBoundary {
@@ -85,7 +97,14 @@ export interface WeeklyV3Model {
   weeklyWins: number;
   /** Rollup days with any logged intake (endUnitsConsumed > 0). */
   hydrationDays: number;
-  /** Rollup days present at all in the window. */
+  /**
+   * Days HydroState actually OBSERVED — never `rollups.length`.
+   *
+   * The wire is dense, so `rollups.length` is the width of the eligible
+   * window, not a count of measurements. Reading it as "days tracked" told a
+   * member with a silent week they had 7 tracked days and lit all seven
+   * progress dots.
+   */
   daysTracked: number;
   timeline: WeeklyV3TimelineDay[];
   /**
@@ -121,7 +140,13 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
   // reports a recalibration as if the member had changed. Detect it from the
   // rollups' own version stamps and suppress the comparison rather than
   // rendering a number that means nothing.
-  const dayVersionLists = input.rollups.map((r) => r.modelVersions ?? []);
+  // OBSERVED days only. An unobserved day carries `modelVersions: []` because
+  // nothing was measured to stamp — not because its provenance is unknown. On
+  // the dense wire those days are always present, so including them here would
+  // let a silent stretch masquerade as version evidence and suppress a
+  // perfectly valid week-over-week comparison. A day with no observation has
+  // no provenance to contribute.
+  const dayVersionLists = observedRows(input.rollups).map((r) => r.modelVersions ?? []);
   const allVersions: (string | null)[] = [];
   for (const list of dayVersionLists) {
     for (const v of list) if (!allVersions.includes(v)) allVersions.push(v);
@@ -192,13 +217,19 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     return Number.isFinite(t) && t >= weekStartMs && t <= weekEndMs;
   }).length;
 
+  // Every calendar day in the window still gets a COLUMN — the timeline is a
+  // calendar, and dropping unobserved days would silently reshape the week.
+  // But only an OBSERVED day gets a score and a band tint; an unobserved day
+  // carries nulls so the renderer shows it as unmeasured rather than as a
+  // measured zero.
   const sortedRollups = [...input.rollups].sort((a, b) => (a.date < b.date ? -1 : 1)).slice(-7);
-  const timeline: WeeklyV3TimelineDay[] = sortedRollups.map((r) => ({
-    date: r.date,
-    weekday: isoWeekdayUTC(r.date),
-    score: Math.round(r.avgScore),
-    accent: accentForScore(Math.round(r.avgScore)),
-  }));
+  const timeline: WeeklyV3TimelineDay[] = sortedRollups.map((r) => {
+    if (!hasHydroStateObservation(r)) {
+      return { date: r.date, weekday: isoWeekdayUTC(r.date), score: null, accent: null };
+    }
+    const score = Math.round(r.avgScore);
+    return { date: r.date, weekday: isoWeekdayUTC(r.date), score, accent: accentForScore(score) };
+  });
 
   return {
     week,
@@ -212,7 +243,7 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
     },
     weeklyWins,
     hydrationDays: input.rollups.filter((r) => r.endUnitsConsumed > 0).length,
-    daysTracked: input.rollups.length,
+    daysTracked: observedCount(input.rollups),
     timeline,
     modelBoundary,
   };

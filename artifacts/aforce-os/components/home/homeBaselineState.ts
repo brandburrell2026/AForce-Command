@@ -79,8 +79,19 @@ export function resolveHomeEvidence({
  * Structurally typed so this module stays import-free; `JournalRollup[]`
  * satisfies it.
  */
-export function countLoggedRollupDays(rollups: readonly { endUnitsConsumed: number }[]): number {
-  return rollups.filter((r) => Number.isFinite(r.endUnitsConsumed) && r.endUnitsConsumed > 0).length;
+import { hasHydroStateObservation } from '@/utils/scoring/boundarySeries';
+
+export function countLoggedRollupDays(
+  rollups: readonly { endUnitsConsumed: number; snapshotsCount: number }[],
+): number {
+  // The observation gate is explicit rather than implied. On the dense wire
+  // `endUnitsConsumed > 0` happens to imply an observation — it is assigned
+  // only inside the aggregation's snapshot loop, and `emptyDay` zeroes it —
+  // but that is an invariant of a file two packages away, and this filter
+  // would silently start counting synthetic days the moment it changed.
+  return rollups.filter(
+    (r) => hasHydroStateObservation(r) && Number.isFinite(r.endUnitsConsumed) && r.endUnitsConsumed > 0,
+  ).length;
 }
 
 /**

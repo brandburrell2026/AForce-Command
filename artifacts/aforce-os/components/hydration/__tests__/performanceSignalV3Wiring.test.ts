@@ -113,8 +113,21 @@ describe('PerformanceSignalV3 — the average never appears without its evidence
   });
 
   it('drives the chip from the window coverage the rollups already carry', () => {
+    // THE DENOMINATOR IS THE ELIGIBLE WINDOW, NOT THE REQUESTED CONSTANT.
+    // This law previously pinned `RANGE_DAYS`, which contradicted its own name:
+    // 7 is what the picker ASKS the server for, not coverage the rollups carry.
+    // The response is clamped to the member's history floor, so a member three
+    // days old receives three rows and was being told "2 of 7 days tracked" —
+    // rated against four days that predate their account, and handed a
+    // sparse-evidence chip for a window they had covered completely.
     expect(CODE).toMatch(
-      /completenessChip\(historyCompletenessLevel\(recap\.daysTracked, RANGE_DAYS\)\)/,
+      /completenessChip\(historyCompletenessLevel\(recap\.daysTracked, eligibleDays\)\)/,
+    );
+    expect(CODE).toMatch(
+      /const eligibleDays = React\.useMemo\(\(\) => reportedSpanDays\(rollups \?\? \[\]\), \[rollups\]\);/,
+    );
+    expect(CODE, 'the requested constant is not a coverage denominator').not.toMatch(
+      /historyCompletenessLevel\([^)]*RANGE_DAYS\)/,
     );
   });
 

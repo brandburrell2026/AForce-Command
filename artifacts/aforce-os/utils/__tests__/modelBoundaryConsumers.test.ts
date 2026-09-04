@@ -209,7 +209,11 @@ describe('LAW 4 — a mixed-model day is marked non-comparable', () => {
     expect(src).toMatch(/isMixedModelDay/);
     // The band colour is itself a comparability claim; a mixed day must not
     // receive one.
-    expect(src).toMatch(/mixedModelDay \? String\(styles\.meta\.color\) : avgColor/);
+    // The condition now also covers the UNMEASURED case (`!measured`) — a day
+    // with no HydroState observation has no band either, and used to be
+    // painted DEPLETED red from the server's sentinel zero. Both suppressions
+    // route to the same neutral meta tone.
+    expect(src).toMatch(/mixedModelDay \|\| !measured\s*\n?\s*\? String\(styles\.meta\.color\)\s*\n?\s*: avgColor/);
     expect(src).toMatch(/journal-day-avg-mixed-model/);
   });
 });

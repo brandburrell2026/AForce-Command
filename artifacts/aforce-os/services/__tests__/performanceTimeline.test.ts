@@ -9,6 +9,16 @@ import {
   deriveWinMoments,
 } from '../performanceTimeline';
 
+/**
+ * A rollup for a given calendar day.
+ *
+ * `day` is now a REQUIRED-in-practice override for any fixture that feeds
+ * `deriveWinMoments`: every day-over-day moment is phrased as a claim about
+ * "yesterday", so the two rows being compared must be calendar-adjacent. The
+ * old default gave every row the SAME date — a shape the route cannot
+ * produce (it keys by date, so dates are unique) and one that silently made
+ * these fixtures non-adjacent once the adjacency precondition landed.
+ */
 function rollup(overrides: Partial<JournalRollup> = {}): JournalRollup {
   return {
     date: '2026-05-19',
@@ -104,8 +114,8 @@ describe('deriveWinMoments', () => {
   it('surfaces recovery-after-corrections when avg jumps ≥10 with ≥3 intakes', () => {
     const out = deriveWinMoments(
       [
-        rollup({ avgScore: 55, intakeCount: 2 }),
-        rollup({ avgScore: 70, intakeCount: 4 }),
+        rollup({ date: '2026-05-19', avgScore: 55, intakeCount: 2 }),
+        rollup({ date: '2026-05-20', avgScore: 70, intakeCount: 4 }),
       ],
       0,
     );
@@ -116,8 +126,8 @@ describe('deriveWinMoments', () => {
   it('surfaces heat recovery when sodium-in rose and losses held steady', () => {
     const out = deriveWinMoments(
       [
-        rollup({ endSodiumDelivered: 800, endSodiumLost: 1000 }),
-        rollup({ endSodiumDelivered: 1300, endSodiumLost: 1050 }),
+        rollup({ date: '2026-05-19', endSodiumDelivered: 800, endSodiumLost: 1000 }),
+        rollup({ date: '2026-05-20', endSodiumDelivered: 1300, endSodiumLost: 1050 }),
       ],
       0,
     );
@@ -127,8 +137,8 @@ describe('deriveWinMoments', () => {
   it('surfaces territory momentum when sessions increased', () => {
     const out = deriveWinMoments(
       [
-        rollup({ autopilotSessions: 0, socialSessions: 0 }),
-        rollup({ autopilotSessions: 1, socialSessions: 1 }),
+        rollup({ date: '2026-05-19', autopilotSessions: 0, socialSessions: 0 }),
+        rollup({ date: '2026-05-20', autopilotSessions: 1, socialSessions: 1 }),
       ],
       0,
     );
@@ -138,8 +148,8 @@ describe('deriveWinMoments', () => {
   it('surfaces stabilized-faster when deficit shrank ≥5 points', () => {
     const out = deriveWinMoments(
       [
-        rollup({ endDeficitPct: 15 }),
-        rollup({ endDeficitPct: 8 }),
+        rollup({ date: '2026-05-19', endDeficitPct: 15 }),
+        rollup({ date: '2026-05-20', endDeficitPct: 8 }),
       ],
       0,
     );
@@ -150,6 +160,7 @@ describe('deriveWinMoments', () => {
     const out = deriveWinMoments(
       [
         rollup({
+          date: '2026-05-19',
           avgScore: 50,
           intakeCount: 2,
           endSodiumDelivered: 500,
@@ -159,6 +170,7 @@ describe('deriveWinMoments', () => {
           endDeficitPct: 20,
         }),
         rollup({
+          date: '2026-05-20',
           avgScore: 75, // +25 → recovery
           intakeCount: 4,
           endSodiumDelivered: 1200, // +700 → heat

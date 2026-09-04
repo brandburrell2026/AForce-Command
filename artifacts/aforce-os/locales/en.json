@@ -1492,6 +1492,7 @@
       "timeline_label": "WEEKLY TIMELINE",
       "timeline_hint": "Daily average score",
       "timeline_day_a11y": "{{day}} {{date}}: daily average score {{score}}.",
+      "timeline_day_unmeasured_a11y": "{{day}} {{date}}: no reading.",
       "loading_a11y": "Loading your week in review.",
       "loaded_a11y": "Week in review ready.",
       "rollups_unavailable": "Couldn't load your day-by-day hydration for this week. Everything else in this report is current.",

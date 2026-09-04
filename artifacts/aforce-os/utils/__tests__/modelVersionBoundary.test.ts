@@ -69,8 +69,16 @@ describe('R6 — the model version is READ, not merely written', () => {
   it('a day rollup declares EVERY model version it contains', () => {
     // A single day can straddle the boundary. One version field would have to
     // pick a winner and silently discard the fact that the day is mixed.
-    const src = server('src/routes/aforce/journal.ts');
+    //
+    // The emission moved out of the route and into the extracted aggregation
+    // module when `/journal/rollups` was thinned to delegate its whole
+    // response — see journalRollupsAggregation.test.ts's "a model-boundary day
+    // keeps every distinct version" law for the behavioral proof this
+    // source pin stands in front of.
+    const src = server('src/lib/journalRollupsAggregation.ts');
     expect(src).toMatch(/modelVersions:\s*\[/);
+    // ...accumulated as a Set, so a straddling day cannot lose either version.
+    expect(src).toMatch(/modelVersions:\s*new Set<string \| null>\(\)/);
   });
 
   it('the client types carry it through', () => {

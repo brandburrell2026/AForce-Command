@@ -19,7 +19,7 @@
 
 import type { JournalRollup } from '../types';
 import type { ShareType, StateLabel } from '../types/share';
-import { recapStatsScope, classifyStreakEligibility } from '../utils/scoring/boundarySeries';
+import { recapStatsScope, classifyStreakEligibility, observedRows } from '../utils/scoring/boundarySeries';
 import { computeRecapStats } from '../utils/journalRecapStats';
 
 export interface JournalShareContext {
@@ -90,9 +90,16 @@ export function deriveJournalShareContext(
   // no longer on would be false in the other direction.
   let streakDays = 0;
   if (eligible) {
+    // OBSERVED ROWS ONLY. The dense window always ends at today, which carries
+    // the sentinel `avgScore: 0` until the member's first sync after midnight
+    // — so walking the raw array broke on that sentinel at the very first step
+    // and published a streak of 0 for a member with six qualifying days behind
+    // them. A day with no measurement is not a day below the threshold.
+    // Adjacency between the OBSERVED days is what still enforces continuity.
+    const walk = observedRows(rollups);
     let prevDate: Date | null = null;
-    for (let i = rollups.length - 1; i >= 0; i--) {
-      const r = rollups[i]!;
+    for (let i = walk.length - 1; i >= 0; i--) {
+      const r = walk[i]!;
       if (r.avgScore < BALANCED_THRESHOLD) break;
       const d = parseDateUTC(r.date);
       if (!d) break; // malformed date — refuse to count
