@@ -11,6 +11,7 @@ import { inArray, eq, sql, and, gte, asc, desc, isNull, isNotNull } from "drizzl
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import { buildJournalRollupsResponse } from "../../lib/journalRollupsAggregation";
 import { rollupsQuery } from "../../lib/journalRollupsQuery";
+import { classifyRollupsFailure } from "../../lib/rollupsFailureClass";
 import {
   resolveScoreProtectionMode,
   evaluateScoreWrite,
@@ -263,6 +264,11 @@ router.get("/journal/timeline", async (req, res) => {
 router.get("/journal/rollups", async (req, res) => {
   try {
     const { days, dense } = rollupsQuery.parse(req.query);
+    // WHAT WAS ASKED FOR. Both arms are counted, not just dense — without the
+    // sparse arm you cannot tell "no dense-capable builds are in the field yet"
+    // from "nobody called rollups at all", which is precisely the question a
+    // staged client rollout needs answered.
+    incCounter(dense === 1 ? "rollups_requested.dense" : "rollups_requested.sparse");
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -326,20 +332,41 @@ router.get("/journal/rollups", async (req, res) => {
      * fetch, call, respond — is honestly thin enough for a source-level
      * wiring law to mean something.
      */
-    return res.json(
-      buildJournalRollupsResponse({
-        snapshots,
-        intakes,
-        correctionRows,
-        historyStartAt: stateRows[0]?.historyStartAt ?? null,
-        days,
-        dense: dense === 1,
-        now: new Date(),
-      }),
-    );
+    const built = buildJournalRollupsResponse({
+      snapshots,
+      intakes,
+      correctionRows,
+      historyStartAt: stateRows[0]?.historyStartAt ?? null,
+      days,
+      dense: dense === 1,
+      now: new Date(),
+    });
+    // WHAT WAS ACTUALLY SERVED — read off the BUILT response, never off the
+    // request flag. Counting the flag here would make this a tautology of the
+    // counter above and the pair worthless; `built.dense` is set from the same
+    // branch that shaped the rows, so it cannot drift from what was sent.
+    incCounter(built.dense ? "rollups_served.dense" : "rollups_served.sparse");
+    // AN INVARIANT TRIPWIRE. On this server it should read zero forever: the
+    // capability is honoured whenever it is requested. A non-zero value means
+    // a sparse fallback appeared inside the dense path — the precise condition
+    // that makes a migrated client hard-fail, and the one thing the client
+    // cannot distinguish from talking to an older server.
+    if (dense === 1 && built.dense !== true) {
+      incCounter("rollups_contract_violation.dense_not_served");
+    }
+    return res.json(built);
   } catch (err) {
-    logger.error({ err: serializeError(err) }, "GET /aforce/journal/rollups failed");
-    return res.status(400).json({ error: "rollups_failed" });
+    // WHOSE FAULT WAS IT? Every throw here used to answer 400, so a total
+    // schema outage was indistinguishable from a bad query string — see
+    // lib/rollupsFailureClass.ts for what that cost. The SQLSTATE is logged as
+    // its own field because `serializeError` drops `.code` and `.cause`.
+    const failure = classifyRollupsFailure(err);
+    incCounter(`rollups_failures.${failure.kind}`);
+    logger.error(
+      { err: serializeError(err), failureKind: failure.kind, sqlState: failure.sqlState },
+      "GET /aforce/journal/rollups failed",
+    );
+    return res.status(failure.status).json({ error: "rollups_failed" });
   }
 });
 

@@ -38,8 +38,19 @@ function assertRouteDelegatesToAggregation(code: string): void {
 
   // The response is EXACTLY the extracted function's return value — not a
   // locally reconstructed object, and not a partial pass-through.
+  //
+  // The canary PR bound it to a const so the served-counter can read the BUILT
+  // response rather than the request flag (counting the flag would make
+  // `rollups_served` a restatement of `rollups_requested`). The guarantee is
+  // unchanged and both prohibitions below still hold: what is returned is the
+  // function's own return value, whole and unmodified.
   expect(handler).toMatch(
-    /return res\.json\(\s*buildJournalRollupsResponse\(\{/,
+    /const built = buildJournalRollupsResponse\(\{/,
+  );
+  expect(handler).toMatch(/return res\.json\(built\);/);
+  // Nothing may be spread, patched or reshaped on the way out.
+  expect(handler, 'the built response must not be reshaped').not.toMatch(
+    /res\.json\(\{\s*\.\.\.built/,
   );
   // Every field the aggregation needs is threaded through from the real fetch
   // results. THE ASSERTIONS MUST BE SCOPED TO THE CALL: `snapshots,` /
