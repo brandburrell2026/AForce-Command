@@ -49,10 +49,27 @@ export function hydroStateHistoryEpochDate(): Date {
  * history" — so the epoch stands in as a conservative floor rather than a
  * claim about that member.
  */
-export function canonicalHistoryStart(historyStartAt: Date | null | undefined): Date {
+export function canonicalHistoryStart(
+  historyStartAt: Date | null | undefined,
+  now: Date,
+): Date {
   const epoch = hydroStateHistoryEpochDate();
   if (historyStartAt == null) return epoch;
+  const t = historyStartAt.getTime();
   // A stamp can never legitimately predate the epoch; if one does (clock
   // skew, a hand-edited row), the epoch is the safer of the two.
-  return historyStartAt.getTime() > epoch.getTime() ? historyStartAt : epoch;
+  //
+  // AND IT CAN NEVER BE IN THE FUTURE, which this guard used to allow. The
+  // asymmetry was the bug: one impossible direction was defended and the
+  // other was trusted. A future stamp made the effective window's start
+  // later than its end, `effectiveRangeKeys` returned `[]`, and a member with
+  // real measured days got an EMPTY journal — total data loss from a single
+  // bad timestamp, with no error anywhere. Sparse was unaffected, so it would
+  // have looked like a densification bug rather than a bad row.
+  //
+  // A member who has data demonstrably has history, so a stamp that says
+  // otherwise is not evidence about them — it is a broken value, and the
+  // epoch is what an unstamped member already falls back to.
+  if (!Number.isFinite(t) || t > now.getTime()) return epoch;
+  return t > epoch.getTime() ? historyStartAt : epoch;
 }

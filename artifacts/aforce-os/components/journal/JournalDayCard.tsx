@@ -163,11 +163,20 @@ export default function JournalDayCard({ rollup }: Props) {
 
       {open && (
         <View style={styles.body}>
-          <Row label={t('journal.day_card_oz')} value={`${rollup.endOzConsumed.toFixed(0)}`} />
-          <Row label={t('journal.day_card_aforce')} value={`${rollup.endAforceUnits}`} />
-          <Row label={t('journal.day_card_sodium_in')} value={`${rollup.endSodiumDelivered.toFixed(0)}`} />
-          <Row label={t('journal.day_card_sodium_lost')} value={`${rollup.endSodiumLost.toFixed(0)}`} />
-          {rollup.endDeficitPct > 0 && (
+          {/* EVERY `end*` FIELD IS SNAPSHOT-DERIVED. They are assigned only
+              inside the aggregation's snapshot loop, so on a day with no
+              snapshot they are all the sentinel 0 — for a member who logged
+              three drinks and genuinely drank. Gating only the score above
+              left this body reading "0 oz · 0 units · 0 mg sodium in · 0 mg
+              sodium lost" directly under "0 snapshots · 3 intakes": four
+              fabricated measurements, one of them ("sodium lost") a
+              physiological claim about a day nothing was measured. Same harm
+              the PDF export withholds, one file over. */}
+          <Row label={t('journal.day_card_oz')} value={measured ? `${rollup.endOzConsumed.toFixed(0)}` : EM_DASH} />
+          <Row label={t('journal.day_card_aforce')} value={measured ? `${rollup.endAforceUnits}` : EM_DASH} />
+          <Row label={t('journal.day_card_sodium_in')} value={measured ? `${rollup.endSodiumDelivered.toFixed(0)}` : EM_DASH} />
+          <Row label={t('journal.day_card_sodium_lost')} value={measured ? `${rollup.endSodiumLost.toFixed(0)}` : EM_DASH} />
+          {measured && rollup.endDeficitPct > 0 && (
             <Row label={t('journal.day_card_deficit')} value={`${rollup.endDeficitPct.toFixed(1)}%`} />
           )}
           {lesson != null && (
@@ -176,7 +185,7 @@ export default function JournalDayCard({ rollup }: Props) {
               <Text style={styles.lessonText}>{lesson}</Text>
             </View>
           )}
-          {(rollup.autopilotSessions > 0 || rollup.socialSessions > 0) && (
+          {measured && (rollup.autopilotSessions > 0 || rollup.socialSessions > 0) && (
             <View style={styles.sessionsRow}>
               {rollup.autopilotSessions > 0 && (
                 <Text style={styles.sessionPill}>

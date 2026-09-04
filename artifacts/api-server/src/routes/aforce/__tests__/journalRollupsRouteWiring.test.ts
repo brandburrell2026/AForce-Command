@@ -57,6 +57,11 @@ function assertRouteDelegatesToAggregation(code: string): void {
   expect(call).toMatch(/historyStartAt:\s*stateRows\[0\]\?\.historyStartAt\s*\?\?\s*null,/);
   expect(call).toMatch(/\bdays,/);
   expect(call).toMatch(/now:\s*new Date\(\),/);
+  // THE CAPABILITY REACHES THE AGGREGATION. Parsing `dense` and then not
+  // passing it would leave the aggregation on its own default and make the
+  // whole opt-in cosmetic.
+  expect(call).toMatch(/dense:\s*dense === 1,/);
+  expect(call, 'the capability must not be hardcoded on').not.toMatch(/dense:\s*true/);
   // ...and nothing in the call is hardcoded away from the fetched values.
   expect(call, 'snapshots must not be stubbed').not.toMatch(/snapshots:\s*\[\]/);
   expect(call, 'intakes must not be stubbed').not.toMatch(/intakes:\s*\[\]/);
@@ -67,6 +72,39 @@ function assertRouteDelegatesToAggregation(code: string): void {
   expect(handler).not.toMatch(/const\s+acc\s*=\s*new Map/);
   expect(handler).not.toMatch(/function ensure\(/);
   expect(handler).not.toMatch(/densifyRollups\(/);
+}
+
+/**
+ * THE CAPABILITY IS OPT-IN AT THE ROUTE.
+ *
+ * The schema itself is executed in lib/__tests__/journalRollupsQuery.test.ts —
+ * that is where "no param means sparse" is actually proven. What CANNOT be
+ * executed here (the route imports `db` at module scope, which is why its own
+ * suites are DB-gated) is that this handler uses that schema rather than a
+ * second, looser one of its own. That is what this guard holds.
+ */
+function assertCapabilityIsOptIn(code: string): void {
+  expect(code).toContain(
+    'import { rollupsQuery } from "../../lib/journalRollupsQuery";',
+  );
+  // The handler parses through the extracted contract...
+  expect(code).toMatch(/const \{ days, dense \} = rollupsQuery\.parse\(req\.query\);/);
+  // ...and NOT through a locally redeclared schema that could drift from it.
+  expect(code, 'the capability schema must not be redeclared inline').not.toMatch(
+    /dense:\s*z\.coerce/,
+  );
+
+  // THE CAPABILITY MUST NOT LEAK ONTO A ROUTE THAT IGNORES IT. `daysQuery` is
+  // shared with /journal/timeline; folding `dense` into it would advertise a
+  // contract that route does not honour.
+  expect(code).toMatch(/const daysQuery = z\.object\(\{\s*days:/);
+  const daysDecl = code.slice(code.indexOf("const daysQuery"), code.indexOf("const daysQuery") + 200);
+  expect(daysDecl).not.toMatch(/dense/);
+  const timelineStart = code.indexOf('router.get("/journal/timeline"');
+  expect(timelineStart, "the timeline handler must be locatable").toBeGreaterThan(-1);
+  const timeline = code.slice(timelineStart, timelineStart + 400);
+  expect(timeline).toMatch(/daysQuery\.parse\(req\.query\)/);
+  expect(timeline).not.toMatch(/rollupsQuery/);
 }
 
 describe("GET /journal/rollups delegates its entire response to buildJournalRollupsResponse", () => {
@@ -112,6 +150,39 @@ describe("GET /journal/rollups delegates its entire response to buildJournalRoll
       "historyStartAt: null,",
     );
     expect(regressed).not.toBe(CODE); // the replacement must have actually applied
+    expect(() => assertRouteDelegatesToAggregation(regressed)).toThrow();
+  });
+
+  it("the dense contract is requested by the caller, never assumed by the route", () => {
+    assertCapabilityIsOptIn(CODE);
+  });
+
+  it("mutation-verify: folding the capability into the shared schema is detectable", () => {
+    // ONLY the leak is introduced. The earlier version ALSO deleted the
+    // `rollupsQuery` import, and since the guard checks that import first, the
+    // throw was guaranteed by the deletion — the leak assertion was never
+    // reached and could have been broken without anyone noticing.
+    const regressed = CODE.replace(
+      "const daysQuery = z.object({",
+      "const daysQuery = z.object({\n  dense: z.coerce.number().default(1),",
+    );
+    expect(regressed).not.toBe(CODE);
+    expect(regressed).toContain('import { rollupsQuery } from "../../lib/journalRollupsQuery";');
+    expect(() => assertCapabilityIsOptIn(regressed)).toThrow();
+  });
+
+  it("mutation-verify: dropping the extracted schema import is SEPARATELY detectable", () => {
+    const regressed = CODE.replace(
+      'import { rollupsQuery } from "../../lib/journalRollupsQuery";',
+      "",
+    );
+    expect(regressed).not.toBe(CODE);
+    expect(() => assertCapabilityIsOptIn(regressed)).toThrow();
+  });
+
+  it("mutation-verify: parsing the capability and not forwarding it is detectable", () => {
+    const regressed = CODE.replace("dense: dense === 1,", "dense: true,");
+    expect(regressed).not.toBe(CODE);
     expect(() => assertRouteDelegatesToAggregation(regressed)).toThrow();
   });
 });

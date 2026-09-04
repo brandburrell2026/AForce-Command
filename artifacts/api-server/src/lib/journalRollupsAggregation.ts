@@ -55,6 +55,22 @@ export interface BuildJournalRollupsInput {
   correctionRows: readonly RollupCorrectionRow[];
   historyStartAt: Date | null;
   days: number;
+  /**
+   * THE CAPABILITY. `false` is the wire as it has always been: only the days
+   * the member has data for, in date order, with nothing synthesised. `true`
+   * is the dense effective window — one row per eligible calendar day.
+   *
+   * This is a COMPATIBILITY SURFACE, not a second intelligence model. Both
+   * paths run the identical aggregation over the identical rows; the flag
+   * decides only WHICH DAYS ARE PRESENTED. Every per-day value a client reads
+   * is computed the same way either way, so a day that appears in both
+   * responses is byte-identical in both.
+   *
+   * Default-off is the whole point: an already-installed build sends no
+   * `dense` param and must keep receiving exactly what it receives today
+   * (founder rollout ruling, PR #912).
+   */
+  dense: boolean;
   /** Injected so this is deterministic under test — the route passes `new Date()`. */
   now: Date;
 }
@@ -62,6 +78,37 @@ export interface BuildJournalRollupsInput {
 export interface BuildJournalRollupsResult {
   rollups: DenseRollupRow[];
   days: number;
+  /**
+   * ADDITIVE, AND PRESENT ON BOTH PATHS. #911 shipped this field on the sparse
+   * wire, and the installed client reads it (`setHistoryStartAt(rl.historyStartAt)`)
+   * to floor its share window. Extracting the aggregation out of the route
+   * dropped it from the response — a silent break for every build in the
+   * field, which is precisely the class of harm the default-sparse ruling
+   * exists to prevent. ISO string, or null for a member whose state row
+   * predates the column: "not recorded", never "no history".
+   */
+  historyStartAt: string | null;
+  /**
+   * WHICH CONTRACT WAS ACTUALLY SERVED — not which one was asked for.
+   *
+   * Without this the two responses are indistinguishable on the wire: the same
+   * keys, `days` echoing the REQUESTED window either way, and a sparse array
+   * that is simply shorter. "The caller never asked for dense" and "the caller
+   * asked and was served sparse anyway" collapse into one state, and only the
+   * client knows which it expected.
+   *
+   * That gap is reachable in ordinary operation: an api-server predating this
+   * change ignores `?dense=1` and answers 200 with the sparse array, and so
+   * does a rollback. A dense-assuming client then reads OBSERVED days as the
+   * ELIGIBLE window — the coverage chip flips `partial` → `rich`, the streak
+   * verdict flips `coverage_incomplete` → `eligible`, and the share sheet
+   * publishes a streak the dense wire deliberately withholds. Nothing errors,
+   * because nothing is wrong with the data — only with the assumption about it.
+   *
+   * Declaring it lets the client verify what it GOT instead of trusting what
+   * it asked for. Additive, so old builds ignore it.
+   */
+  dense: boolean;
 }
 
 function dayKey(d: Date): string {
@@ -106,7 +153,7 @@ interface DayAcc {
 export function buildJournalRollupsResponse(
   input: BuildJournalRollupsInput,
 ): BuildJournalRollupsResult {
-  const { snapshots, intakes, correctionRows, historyStartAt, days, now } = input;
+  const { snapshots, intakes, correctionRows, historyStartAt, days, dense, now } = input;
 
   const acc = new Map<string, DayAcc>();
   function ensure(date: string): DayAcc {
@@ -216,9 +263,6 @@ export function buildJournalRollupsResponse(
     d.intakeCount += 1;
   }
 
-  const rangeInput: EffectiveRangeInput = { now, days, historyStartAt };
-  const rangeKeys = effectiveRangeKeys(rangeInput);
-
   const measured = new Map(
     Array.from(acc.values()).map((d): [string, DenseRollupRow] => {
       const totalBand = d.bandMillis.PEAK + d.bandMillis.BALANCED + d.bandMillis.RECOVERING + d.bandMillis.DEPLETED;
@@ -250,8 +294,37 @@ export function buildJournalRollupsResponse(
     }),
   );
 
-  // The array IS the effective window: one row per calendar day, real data
-  // where it exists, an honest empty day (never fabricated) everywhere else.
-  const rollups = densifyRollups(measured, rangeKeys);
-  return { rollups, days };
+  /* ── WHICH DAYS ARE PRESENTED ────────────────────────────────────────────
+   *
+   * The ONLY thing the capability decides. Everything above this point ran
+   * identically for both callers, so a day present in both responses carries
+   * byte-identical values in both.
+   *
+   * SPARSE is the legacy contract, reproduced exactly: every day the
+   * accumulator touched, in date order, nothing synthesised and no window
+   * clamp. Note "days the accumulator touched" is NOT "days with a snapshot
+   * or an intake" — `attributeInterval` calls `ensure()`, so a day carrying
+   * only band time spilled past UTC midnight from the previous day's last
+   * snapshot has always been a row on this wire. Filtering to snapshots and
+   * intakes here would silently drop it and change legacy behavior.
+   *
+   * DENSE is the effective window: one row per eligible calendar day, real
+   * data where it exists, an honest empty day (never fabricated) elsewhere.
+   * The `historyStartAt`/epoch floor and the always-ends-at-today rule belong
+   * to THIS branch only — they describe a window, and the sparse contract has
+   * never had one.
+   */
+  const rollups = dense
+    ? densifyRollups(measured, effectiveRangeKeys({ now, days, historyStartAt } satisfies EffectiveRangeInput))
+    : Array.from(measured.values()).sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    rollups,
+    days,
+    historyStartAt: historyStartAt?.toISOString() ?? null,
+    // What was SERVED. Deliberately the same value the branch above used, so
+    // it cannot drift from reality — reporting the request instead would be
+    // the very confusion this field exists to remove.
+    dense,
+  };
 }

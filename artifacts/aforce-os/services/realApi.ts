@@ -785,8 +785,46 @@ export async function fetchJournalTimeline(days: number): Promise<JournalTimelin
  * Consumers must ask `observedRows` / `observedCount` / `hasHydroStateObservation`
  * (utils/scoring/boundarySeries.ts) before reading any score-derived field.
  */
+/**
+ * THE DENSE CAPABILITY IS REQUESTED EXPLICITLY.
+ *
+ * `?dense=1` asks for one row per calendar day of the member's eligible
+ * window; without it the server returns the legacy sparse array. Every
+ * consumer of this function reads the result through the observation seam in
+ * `utils/scoring/boundarySeries.ts`, so this client is a dense client and says
+ * so, rather than letting the server guess from a version string or from when
+ * it happened to be deployed.
+ *
+ * Dropping `dense=1` here does not fail loudly — it silently returns the
+ * sparse array to consumers that now assume one row per day, which is why
+ * `realApi.journalRollups.test.ts` executes this function against a stubbed
+ * fetch and asserts the query string.
+ */
 export async function fetchJournalRollups(days: number): Promise<JournalRollup[]> {
-  const resp = await getJson<{ rollups: JournalRollup[] }>(`/journal/rollups?days=${days}`);
+  const resp = await getJson<{ rollups: JournalRollup[]; dense?: boolean }>(
+    `/journal/rollups?days=${days}&dense=1`,
+  );
+  // VERIFY WHAT WE GOT, DO NOT TRUST WHAT WE ASKED FOR.
+  //
+  // An api-server that predates the dense capability ignores `?dense=1` and
+  // answers 200 with the sparse array — and so does a rollback. The rows are
+  // well-formed and nothing errors; only the ASSUMPTION about them is wrong.
+  // Every consumer downstream reads this array as one row per calendar day,
+  // so a silent sparse response makes OBSERVED days masquerade as the ELIGIBLE
+  // window: the coverage chip flips `partial` → `rich`, the streak verdict
+  // flips `coverage_incomplete` → `eligible`, and the share sheet publishes a
+  // streak the dense wire withholds.
+  //
+  // Failing here is the honest outcome and the one every caller already
+  // handles: each treats a rejection as "unavailable" rather than as "no
+  // data" (PerformanceSignalV3 deliberately leaves `rollups` null so a failed
+  // read can never be mistaken for an empty week). A wrong number the member
+  // might post publicly is worse than a surface that says it cannot answer.
+  if (resp.dense !== true) {
+    throw new Error(
+      'journal/rollups: dense contract requested but not served — server predates the capability',
+    );
+  }
   return resp.rollups ?? [];
 }
 

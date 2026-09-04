@@ -10,6 +10,7 @@ import {
 import { inArray, eq, sql, and, gte, asc, desc, isNull, isNotNull } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
 import { buildJournalRollupsResponse } from "../../lib/journalRollupsAggregation";
+import { rollupsQuery } from "../../lib/journalRollupsQuery";
 import {
   resolveScoreProtectionMode,
   evaluateScoreWrite,
@@ -261,7 +262,7 @@ router.get("/journal/timeline", async (req, res) => {
 
 router.get("/journal/rollups", async (req, res) => {
   try {
-    const { days } = daysQuery.parse(req.query);
+    const { days, dense } = rollupsQuery.parse(req.query);
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -332,6 +333,7 @@ router.get("/journal/rollups", async (req, res) => {
         correctionRows,
         historyStartAt: stateRows[0]?.historyStartAt ?? null,
         days,
+        dense: dense === 1,
         now: new Date(),
       }),
     );

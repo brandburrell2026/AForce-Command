@@ -71,7 +71,7 @@ export function effectiveRangeKeys(input: EffectiveRangeInput): string[] {
   const todayKey = dayKey(now);
   // The window INCLUDES today, so N days is today plus the previous N-1.
   const requestedStartKey = dayKey(new Date(now.getTime() - (days - 1) * DAY_MS));
-  const canonicalStartKey = dayKey(canonicalHistoryStart(historyStartAt));
+  const canonicalStartKey = dayKey(canonicalHistoryStart(historyStartAt, now));
   // `YYYY-MM-DD` sorts lexicographically, so `>` IS chronological here.
   const startKey =
     requestedStartKey > canonicalStartKey ? requestedStartKey : canonicalStartKey;

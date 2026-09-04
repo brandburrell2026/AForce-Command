@@ -23,11 +23,15 @@
  * itself or call a veteran a beginner. `pending` says only what is true: not
  * known yet, so present nothing.
  *
- * Pure — no store reads, no clock, no i18n, no imports (the screen supplies
+ * Pure — no store reads, no clock, no i18n. The single import is the shared
+ * observation seam, which is itself pure; keeping the gate explicit here is
+ * worth more than the zero-import claim (the screen supplies
  * both inputs and translates the copy), so every branch is unit-testable in
  * the node vitest environment. Same convention as `homePresentation.ts` /
  * `homeV3Presentation.ts`.
  */
+
+import { hasHydroStateObservation } from '@/utils/scoring/boundarySeries';
 
 /** Journal window the evidence read asks for — one week, matching CircleScreenV3's. */
 export const BASELINE_LOOKBACK_DAYS = 7;
@@ -79,8 +83,6 @@ export function resolveHomeEvidence({
  * Structurally typed so this module stays import-free; `JournalRollup[]`
  * satisfies it.
  */
-import { hasHydroStateObservation } from '@/utils/scoring/boundarySeries';
-
 export function countLoggedRollupDays(
   rollups: readonly { endUnitsConsumed: number; snapshotsCount: number }[],
 ): number {

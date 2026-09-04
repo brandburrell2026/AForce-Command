@@ -143,11 +143,22 @@ function parseDayUTC(s: string): number | null {
  * the streak walked straight across it and published a BROKEN streak for a day
  * HydroState had never observed.
  *
- * The route now densifies, so the two numbers agree by construction. This is
- * the belt to that braces: client and server are separate deployables, and a
- * client running against a server that has not shipped densification must
- * still see the gap rather than silently miss it. Measuring the calendar makes
- * that automatic.
+ * The route densifies on request, so on the dense wire the two numbers agree
+ * by construction.
+ *
+ * THIS IS NOT A SAFETY NET FOR A SPARSE RESPONSE, and an earlier version of
+ * this note claimed it was. Measuring first-row-to-last-row catches an
+ * INTERIOR gap on a sparse array, but it cannot see a LEADING one: drop the
+ * first day and the span shrinks with it, so a window whose first day was
+ * never observed reports itself fully covered. Client and server are separate
+ * deployables, so that gap was reachable by a rollback or a deploy ordered the
+ * wrong way.
+ *
+ * What actually closes it is upstream: the response declares which contract it
+ * served, and `fetchJournalRollups` REJECTS anything that is not dense rather
+ * than reinterpreting sparse rows. This function's job is narrower — turn the
+ * dense window into a span — and a leading gap is visible here only because
+ * the row for that day is present.
  */
 export function reportedSpanDays(rollups: readonly JournalRollup[]): number {
   if (rollups.length === 0) return 0;

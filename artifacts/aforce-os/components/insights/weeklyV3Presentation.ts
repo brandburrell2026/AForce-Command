@@ -242,7 +242,14 @@ export function buildWeeklyV3Model(input: WeeklyV3Inputs): WeeklyV3Model {
       bars,
     },
     weeklyWins,
-    hydrationDays: input.rollups.filter((r) => r.endUnitsConsumed > 0).length,
+    // The observation gate its two siblings gained in this same change
+    // (CircleScreenV3, homeBaselineState). `endUnitsConsumed > 0` implies a
+    // snapshot only by an invariant of the server aggregation two packages
+    // away; stating it here means a wire change cannot silently turn
+    // synthetic days into hydration days.
+    hydrationDays: input.rollups.filter(
+      (r) => hasHydroStateObservation(r) && r.endUnitsConsumed > 0,
+    ).length,
     daysTracked: observedCount(input.rollups),
     timeline,
     modelBoundary,

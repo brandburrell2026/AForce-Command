@@ -18,6 +18,8 @@ import {
 const NOW = new Date("2026-09-02T14:30:00.000Z");
 const at = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
 
+const NOW_FOR_STAMP = new Date("2026-09-02T14:30:00.000Z");
+
 describe("HYDROSTATE_HISTORY_EPOCH", () => {
   it("is the ruled date — the day the product could first persist an observation", () => {
     expect(HYDROSTATE_HISTORY_EPOCH).toBe("2026-04-29");
@@ -25,13 +27,13 @@ describe("HYDROSTATE_HISTORY_EPOCH", () => {
   });
 
   it("an UNSTAMPED member falls back to the epoch — never to now()", () => {
-    expect(canonicalHistoryStart(null)).toEqual(hydroStateHistoryEpochDate());
-    expect(canonicalHistoryStart(undefined)).toEqual(hydroStateHistoryEpochDate());
+    expect(canonicalHistoryStart(null, NOW_FOR_STAMP)).toEqual(hydroStateHistoryEpochDate());
+    expect(canonicalHistoryStart(undefined, NOW_FOR_STAMP)).toEqual(hydroStateHistoryEpochDate());
   });
 
   it("a STAMPED member uses their own start; an impossible stamp cannot win", () => {
-    expect(canonicalHistoryStart(at("2026-08-22"))).toEqual(at("2026-08-22"));
-    expect(canonicalHistoryStart(at("2020-01-01"))).toEqual(hydroStateHistoryEpochDate());
+    expect(canonicalHistoryStart(at("2026-08-22"), NOW_FOR_STAMP)).toEqual(at("2026-08-22"));
+    expect(canonicalHistoryStart(at("2020-01-01"), NOW_FOR_STAMP)).toEqual(hydroStateHistoryEpochDate());
   });
 });
 
@@ -81,9 +83,38 @@ describe("effective window — requested vs eligible vs observed", () => {
     }
   });
 
-  it("a member seeded TODAY gets one day; a start in the FUTURE gets none", () => {
+  it("a member seeded TODAY gets exactly one day", () => {
     expect(effectiveRangeKeys({ now: NOW, days: 30, historyStartAt: NOW })).toEqual(["2026-09-02"]);
-    expect(effectiveRangeKeys({ now: NOW, days: 30, historyStartAt: at("2026-09-20") })).toEqual([]);
+  });
+
+  it("a stamp in the FUTURE is a broken value, not a claim of no history", () => {
+    // THIS LAW PREVIOUSLY PINNED A DATA-LOSS BUG. It asserted `[]`, which is
+    // what the code did — a member with real measured days got an EMPTY dense
+    // window from a single bad timestamp, silently, while the sparse path
+    // returned their data intact. Asserting the buggy behavior made it look
+    // deliberate.
+    //
+    // A member who has data demonstrably HAS history, so a stamp saying it
+    // begins later is not evidence about that member — it is a broken row
+    // (clock skew, a hand edit, a bad backfill), and the honest fallback is
+    // the one an unstamped member already gets: the epoch.
+    const keys = effectiveRangeKeys({ now: NOW, days: 30, historyStartAt: at("2026-09-20") });
+    expect(keys).not.toEqual([]);
+    expect(keys).toHaveLength(30);
+    expect(keys[keys.length - 1]).toBe("2026-09-02");
+    // ANTI-VACUITY: a stamp INSIDE the window is still honoured, so the
+    // fallback is not swallowing every stamp.
+    expect(
+      effectiveRangeKeys({ now: NOW, days: 30, historyStartAt: at("2026-08-30") }),
+    ).toHaveLength(4);
+  });
+
+  it("an unparseable stamp falls back to the epoch rather than emptying the window", () => {
+    const keys = effectiveRangeKeys({
+      now: NOW, days: 30, historyStartAt: new Date("not-a-date"),
+    });
+    expect(keys).toHaveLength(30);
+    expect(keys[keys.length - 1]).toBe("2026-09-02");
   });
 
   it("the stamp is a DATE, not a day count — midnight and 23:59 are one day", () => {
