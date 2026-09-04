@@ -42,6 +42,7 @@ import { computeEventImpact } from './hydrationScoreService';
 import { PRODUCTS } from '../data/products';
 import { resolveInitialUserState } from '../data/initialUserState';
 import { getAuthHeaders, getAuthToken } from './authToken';
+import { recordClientPolicy } from './clientSupport';
 
 // ─── Base URL resolution ─────────────────────────────────────────────────────
 // Wave-3 PR1: the canonical resolver lives in lib/apiBase (one copy for the
@@ -256,7 +257,16 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
   // biometrics) forward by merging them onto whatever the server
   // returns. The server is the source of truth for everything else.
   try {
-    const { userState: row, serverTime } = await getJson<{ userState: Record<string, unknown>; serverTime: string }>('/state');
+    const { userState: row, serverTime, clientPolicy } = await getJson<{
+      userState: Record<string, unknown>;
+      serverTime: string;
+      /** Additive; absent when talking to a server that predates PR-1. */
+      clientPolicy?: unknown;
+    }>('/state');
+    // Recorded from the response we already make. No new endpoint, no new
+    // retry path, and an older server simply sends nothing — which stays
+    // `unknown` and gates no one.
+    recordClientPolicy(clientPolicy);
     const normalized = normalizeUserState(row);
     const merged: UserState = {
       ...normalized,

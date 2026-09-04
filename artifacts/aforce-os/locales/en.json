@@ -2605,5 +2605,12 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "update": {
+    "required_title": "This version needs an update",
+    "required_body": "A newer version of AForce OS is required to keep going. Your history is safe and will be exactly where you left it.",
+    "required_cta": "Update AForce OS",
+    "required_hint": "Opens the app store listing for AForce OS",
+    "required_offline_note": "If the store will not open, check your connection and try again. Nothing has been lost."
   }
 }
