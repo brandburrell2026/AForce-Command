@@ -148,9 +148,11 @@ function parseDayUTC(s: string): number | null {
  *
  * THIS IS NOT A SAFETY NET FOR A SPARSE RESPONSE, and an earlier version of
  * this note claimed it was. Measuring first-row-to-last-row catches an
- * INTERIOR gap on a sparse array, but it cannot see a LEADING one: drop the
- * first day and the span shrinks with it, so a window whose first day was
- * never observed reports itself fully covered. Client and server are separate
+ * INTERIOR gap on a sparse array, but it cannot see one at either EDGE: drop
+ * the first or last day and the span shrinks with it, so a window whose first
+ * or last day was never observed reports itself fully covered. The trailing
+ * case is the more dangerous of the two — it is what turns a run that ended
+ * days ago into a live streak. Client and server are separate
  * deployables, so that gap was reachable by a rollback or a deploy ordered the
  * wrong way.
  *

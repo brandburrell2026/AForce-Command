@@ -356,17 +356,49 @@ describe('unprotected migrations are now held', () => {
     expect(() => assertEditorialWithholdsUnmeasured(regressed)).toThrow();
   });
 
-  it('JournalDayCard shows an em-dash and no lesson on an unobserved day', () => {
-    // One of the two ALREADY-LIVE defects this PR fixes: an intake-only day
-    // has always shipped sentinel zeros, so the card painted a DEPLETED red 0
-    // for a member who drank all day, and coached them about it.
-    const code = src('components/journal/JournalDayCard.tsx');
+  function assertDayCardWithholdsUnmeasured(code: string): void {
     expect(code).toMatch(/const measured = hasHydroStateObservation\(rollup\);/);
     expect(code).toMatch(/\{measured \? rollup\.avgScore : EM_DASH\}/);
     expect(code).toMatch(/const lesson = measured \? getTodaysLesson\(rollup\) : null;/);
     expect(code).toMatch(/\{lesson != null && \(/);
     // The score cell is also announced honestly, not read as a literal zero.
     expect(code).toMatch(/'journal-day-avg-unmeasured'/);
+    // EVERY SNAPSHOT-DERIVED ROW, to the PDF guard's per-field standard. This
+    // guard used to stop at the score, and was therefore indifferent — in BOTH
+    // directions — to the expanded body printing "0 oz · 0 units · 0 mg sodium
+    // in · 0 mg sodium lost" beneath "0 snapshots · 3 intakes".
+    for (const f of ['endOzConsumed\\.toFixed\\(0\\)', 'endAforceUnits',
+                     'endSodiumDelivered\\.toFixed\\(0\\)', 'endSodiumLost\\.toFixed\\(0\\)']) {
+      expect(code, `${f} must be gated`).toMatch(
+        new RegExp(`measured \\? \`\\$\\{rollup\\.${f}\\}\` : EM_DASH`),
+      );
+    }
+    expect(code).toMatch(/\{measured && rollup\.endDeficitPct > 0 && \(/);
+    expect(code).toMatch(/\{measured && \(rollup\.autopilotSessions > 0/);
+    // `intakeCount` comes from the intake table, not a snapshot — it stays.
+    expect(code).toMatch(/\{rollup\.intakeCount\} intakes/);
+  }
+
+  it('JournalDayCard shows an em-dash and no lesson on an unobserved day', () => {
+    // One of the two ALREADY-LIVE defects this PR fixes: an intake-only day
+    // has always shipped sentinel zeros, so the card painted a DEPLETED red 0
+    // for a member who drank all day, and coached them about it.
+    assertDayCardWithholdsUnmeasured(src('components/journal/JournalDayCard.tsx'));
+  });
+
+  it('mutation-verify: ungating any snapshot-derived row on the card is detectable', () => {
+    const code = src('components/journal/JournalDayCard.tsx');
+    for (const [from, to] of [
+      ['value={measured ? `${rollup.endSodiumLost.toFixed(0)}` : EM_DASH}',
+       'value={`${rollup.endSodiumLost.toFixed(0)}`}'],
+      ['value={measured ? `${rollup.endOzConsumed.toFixed(0)}` : EM_DASH}',
+       'value={`${rollup.endOzConsumed.toFixed(0)}`}'],
+      ['{measured && rollup.endDeficitPct > 0 && (', '{rollup.endDeficitPct > 0 && ('],
+    ] as const) {
+      const regressed = code.replace(from, to);
+      expect(regressed, `mutation must apply: ${from}`).not.toBe(code);
+      expect(() => assertDayCardWithholdsUnmeasured(regressed)).toThrow();
+    }
   });
 
   function assertPdfWithholdsUnmeasured(code: string): void {

@@ -7,6 +7,7 @@
  */
 import { describe, it, expect } from "vitest";
 import { rollupsQuery } from "../journalRollupsQuery";
+import { daysQuery } from "../../routes/aforce/journal";
 
 describe("dense is opt-in: the legacy request parses as sparse", () => {
   it("THE LEGACY REQUEST — no params at all — is sparse", () => {
@@ -58,4 +59,20 @@ describe("dense is opt-in: the legacy request parses as sparse", () => {
     expect(() => rollupsQuery.parse({ days: "366" })).toThrow();
     expect(() => rollupsQuery.parse({ days: "abc" })).toThrow();
   });
+
+  it("THE SHARED SCHEMA CARRIES NO CAPABILITY — /journal/timeline parses this too", () => {
+    // EXECUTED, because the source-scan guard in journalRollupsRouteWiring was
+    // the ONLY thing holding this: folding `dense` into `daysQuery` leaves the
+    // whole capability HTTP suite green, since zod strips unknown keys and the
+    // leak has no wire-observable effect on the route that ignores it. Running
+    // the shared schema is the direct proof.
+    const parsed = daysQuery.parse({ days: "7", dense: "1" }) as Record<string, unknown>;
+    expect(parsed).toEqual({ days: 7 });
+    expect(parsed).not.toHaveProperty("dense");
+    // ANTI-VACUITY: the rollups schema, parsing the identical input, DOES
+    // carry it — so this is a real difference between the two contracts and
+    // not an artifact of how the assertion is written.
+    expect(rollupsQuery.parse({ days: "7", dense: "1" }).dense).toBe(1);
+  });
 });
+

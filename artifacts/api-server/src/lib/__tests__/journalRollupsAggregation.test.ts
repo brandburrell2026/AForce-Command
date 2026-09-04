@@ -349,6 +349,24 @@ describe("dense is an opt-in capability; sparse is the unchanged legacy wire", (
     expect(added.every((d) => d.snapshotsCount === 0 && d.intakeCount === 0)).toBe(true);
   });
 
+  it("the result declares which contract it SERVED, on both paths", () => {
+    // Held only by the HTTP capability suite before this — the aggregation is
+    // where the value is produced, so it belongs here too.
+    expect(sparseResponse(WINDOW).dense).toBe(false);
+    expect(denseResponse(WINDOW).dense).toBe(true);
+  });
+
+  it("the declared flag matches the array actually returned, never the request", () => {
+    // The whole point of the field: it must be derived from the same branch
+    // that shaped the rows, so it cannot drift into reporting an intention.
+    for (const dense of [true, false]) {
+      const r = buildJournalRollupsResponse({ ...WINDOW, dense });
+      expect(r.dense).toBe(dense);
+      // dense ⇒ one row per calendar day; sparse ⇒ only days with data.
+      expect(r.rollups.length === 7).toBe(dense);
+    }
+  });
+
   it("historyStartAt is ADDITIVE and present on BOTH paths", () => {
     // #911 shipped this on the sparse wire and the installed client reads it
     // (`setHistoryStartAt(rl.historyStartAt)`) to floor its share window.

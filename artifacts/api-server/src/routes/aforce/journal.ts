@@ -158,7 +158,7 @@ router.get("/recovery/snapshot", async (req, res) => {
   }
 });
 
-const daysQuery = z.object({
+export const daysQuery = z.object({
   days: z.coerce.number().int().min(1).max(365).default(7),
 });
 

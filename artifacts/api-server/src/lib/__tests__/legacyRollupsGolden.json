@@ -1,0 +1,604 @@
+{
+  "empty": {
+    "rollups": [],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "noStateRow": {
+    "rollups": [
+      {
+        "date": "2026-08-31",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": null
+  },
+  "twoDays": {
+    "rollups": [
+      {
+        "date": "2026-08-28",
+        "snapshotsCount": 1,
+        "avgScore": 70,
+        "minScore": 70,
+        "maxScore": 70,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-08-31",
+        "snapshotsCount": 1,
+        "avgScore": 90,
+        "minScore": 90,
+        "maxScore": 90,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "intakeOnly": {
+    "rollups": [
+      {
+        "date": "2026-09-01",
+        "snapshotsCount": 0,
+        "avgScore": 0,
+        "minScore": 0,
+        "maxScore": 0,
+        "endOzConsumed": 0,
+        "endAforceUnits": 0,
+        "endUnitsConsumed": 0,
+        "endSodiumDelivered": 0,
+        "endSodiumLost": 0,
+        "endDeficitPct": 0,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 2,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": []
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "correctedIntake": {
+    "rollups": [
+      {
+        "date": "2026-09-01",
+        "snapshotsCount": 0,
+        "avgScore": 0,
+        "minScore": 0,
+        "maxScore": 0,
+        "endOzConsumed": 0,
+        "endAforceUnits": 0,
+        "endUnitsConsumed": 0,
+        "endSodiumDelivered": 0,
+        "endSodiumLost": 0,
+        "endDeficitPct": 0,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 1,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": []
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "bandCarry": {
+    "rollups": [
+      {
+        "date": "2026-09-01",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 100,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 0,
+        "avgScore": 0,
+        "minScore": 0,
+        "maxScore": 0,
+        "endOzConsumed": 0,
+        "endAforceUnits": 0,
+        "endUnitsConsumed": 0,
+        "endSodiumDelivered": 0,
+        "endSodiumLost": 0,
+        "endDeficitPct": 0,
+        "pctTimePeak": 100,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": []
+      }
+    ],
+    "days": 3,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "eighthDayEdge": {
+    "rollups": [
+      {
+        "date": "2026-08-26",
+        "snapshotsCount": 1,
+        "avgScore": 55,
+        "minScore": 55,
+        "maxScore": 55,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "beforeStamp": {
+    "rollups": [
+      {
+        "date": "2026-08-20",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 30,
+    "historyStartAt": "2026-08-25T00:00:00.000Z"
+  },
+  "beforeEpoch": {
+    "rollups": [
+      {
+        "date": "2026-01-15",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-08-31",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 365,
+    "historyStartAt": null
+  },
+  "futureStamp": {
+    "rollups": [
+      {
+        "date": "2026-08-28",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-09-20T00:00:00.000Z"
+  },
+  "modelBoundary": {
+    "rollups": [
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 2,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v0",
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "minMaxSessions": {
+    "rollups": [
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 3,
+        "avgScore": 70,
+        "minScore": 40,
+        "maxScore": 100,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 1,
+        "socialSessions": 1,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "gapCap": {
+    "rollups": [
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 2,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 50,
+        "pctTimeRecovering": 50,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 2,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "nowTailClamp": {
+    "rollups": [
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 2,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 25,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 75,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 2,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "monthBoundary": {
+    "rollups": [
+      {
+        "date": "2026-08-31",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-09-01",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 5,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "daysOne": {
+    "rollups": [
+      {
+        "date": "2026-09-02",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 1,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  },
+  "unsortedInput": {
+    "rollups": [
+      {
+        "date": "2026-08-28",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 100,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      },
+      {
+        "date": "2026-08-31",
+        "snapshotsCount": 1,
+        "avgScore": 80,
+        "minScore": 80,
+        "maxScore": 80,
+        "endOzConsumed": 60,
+        "endAforceUnits": 2,
+        "endUnitsConsumed": 5,
+        "endSodiumDelivered": 900,
+        "endSodiumLost": 400,
+        "endDeficitPct": 12,
+        "pctTimePeak": 0,
+        "pctTimeBalanced": 0,
+        "pctTimeRecovering": 0,
+        "pctTimeDepleted": 0,
+        "intakeCount": 0,
+        "autopilotSessions": 0,
+        "socialSessions": 0,
+        "modelVersions": [
+          "hydrostate-v1.0"
+        ]
+      }
+    ],
+    "days": 7,
+    "historyStartAt": "2026-06-01T00:00:00.000Z"
+  }
+}
