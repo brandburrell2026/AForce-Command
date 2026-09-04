@@ -19,6 +19,25 @@ import { z } from "zod";
  * Kept OUT of the shared `daysQuery` that `/journal/timeline` also parses: a
  * capability belongs to the one route that honours it, and advertising
  * `dense` on a route that ignores it would be a contract that does not exist.
+ *
+ * ── THE SPARSE RESPONSE IS A SUPPORTED CONTRACT, INDEFINITELY (ruling R3) ──
+ *
+ * It is NOT scaffolding to be removed once the first dense-capable client
+ * ships. Do not delete the sparse branch, do not flip this default, and do not
+ * "simplify" the two paths into one. Every build in the field that predates the
+ * capability depends on it, and the app currently has no way to make those
+ * builds update: there is no minimum-version gate and no OTA update path.
+ *
+ * RETIREMENT REQUIRES A SEPARATE FOUNDER-APPROVED PLAN containing all five of:
+ *   1. the known minimum dense-capable app version;
+ *   2. a working force-update / min-version capability;
+ *   3. installed-version evidence from the field;
+ *   4. a rollback plan;
+ *   5. explicit authorization to remove sparse.
+ *
+ * Until every one of those exists: no capability → sparse; capability → dense;
+ * and a migrated client that asked for dense and did not get it fails closed
+ * rather than reinterpreting the legacy rows.
  */
 export const rollupsQuery = z.object({
   days: z.coerce.number().int().min(1).max(365).default(7),

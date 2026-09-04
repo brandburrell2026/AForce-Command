@@ -47,6 +47,7 @@ import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
 import { useUserSlice } from '@/store/slices';
 import { toShareRouteParams } from '@/services/journalShareContext';
 import { prepareJournalShare } from '@/services/journalShareWindow';
+import { settleJournalLoad } from './journalLoadState';
 import { hasHydroStateObservation, isEmptyWindow, observedRows } from '@/utils/scoring/boundarySeries';
 import { publishJournalShare } from '@/services/journalShareCache';
 import type { JournalRollup, JournalSnapshot, JournalTimelineEntry } from '@/types';
@@ -63,8 +64,10 @@ export default function JournalScreen() {
   const { width: layoutWidth } = useResponsiveLayout();
   const userState = useUserSlice();
   const [range, setRange] = useState<JournalRange>(7);
-  const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
-  const [rollups, setRollups] = useState<JournalRollup[]>([]);
+  // NULL = UNAVAILABLE, and deliberately not `[]`. An empty array is a claim
+  // ("we looked, there is nothing"); after a failed read that claim is false.
+  const [timeline, setTimeline] = useState<JournalTimelineEntry[] | null>(null);
+  const [rollups, setRollups] = useState<JournalRollup[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -82,37 +85,45 @@ export default function JournalScreen() {
   const load = useCallback(async (r: JournalRange) => {
     setLoading(true);
     setError(null);
-    try {
-      const [tl, rl] = await Promise.all([
-        fetchJournalTimeline(r),
-        fetchJournalRollups(r),
-      ]);
-      setTimeline(tl);
+    // TWO INDEPENDENT READS, SETTLED INDEPENDENTLY. `Promise.all` rejects on
+    // the first rejection, so a failed rollups read used to discard a timeline
+    // that had already arrived — and with the dense hard-fail in place, a
+    // server without the capability made that the every-load case, taking the
+    // trend chart (drawn from the TIMELINE, needing no rollup at all) down
+    // with it. See screens/journalLoadState.ts.
+    const [tlResult, rlResult] = await Promise.allSettled([
+      fetchJournalTimeline(r),
       // Already the DENSE effective window — one row per calendar day of the
       // member's eligible range, with the epoch/history floor applied
       // server-side. Every consumer on this screen reads it through the
       // observation seam (`observedRows`) rather than assuming a row means a
-      // measurement.
-      setRollups(rl);
-    } catch (err) {
-      console.warn('[Journal] load failed', err);
-      setError(t('journal.load_failed'));
-    } finally {
-      setLoading(false);
-    }
+      // measurement. It throws rather than reinterpreting a sparse response.
+      fetchJournalRollups(r),
+    ]);
+    if (tlResult.status === 'rejected') console.warn('[Journal] timeline failed', tlResult.reason);
+    if (rlResult.status === 'rejected') console.warn('[Journal] rollups failed', rlResult.reason);
+    const settled = settleJournalLoad(tlResult, rlResult);
+    setTimeline(settled.timeline);
+    setRollups(settled.rollups);
+    if (settled.bothFailed) setError(t('journal.load_failed'));
+    setLoading(false);
   }, [t]);
 
   useEffect(() => {
     load(range);
   }, [range, load]);
 
-  const snapshots = useMemo<JournalSnapshot[]>(
-    () => timeline.filter((e): e is JournalSnapshot => e.type === 'snapshot'),
+  // NULL propagates: an unavailable timeline must not become an empty chart,
+  // which would claim the member was never measured.
+  const snapshots = useMemo<JournalSnapshot[] | null>(
+    () => (timeline == null
+      ? null
+      : timeline.filter((e): e is JournalSnapshot => e.type === 'snapshot')),
     [timeline],
   );
 
   // Reverse for the daily list (most recent at the top).
-  const reversedRollups = useMemo(() => [...rollups].reverse(), [rollups]);
+  const reversedRollups = useMemo(() => (rollups == null ? [] : [...rollups].reverse()), [rollups]);
 
   const chartWidth = Math.min(layoutWidth - 32, 720);
 
@@ -125,7 +136,7 @@ export default function JournalScreen() {
   // `hooks/useWeeklyCompliance.ts`. On the dense wire `rollups.length` is the
   // width of the eligible window, so dividing by it counted a day HydroState
   // never observed as a day the member failed.
-  const observed = useMemo(() => observedRows(rollups), [rollups]);
+  const observed = useMemo(() => (rollups == null ? [] : observedRows(rollups)), [rollups]);
   // NULL, not 0 — identical to `computeWeeklyCompliancePct`, which this PR
   // migrated for exactly this reason: "0% consistent" is a claim about the
   // member, and a window with nothing measured cannot support it. These two
@@ -142,11 +153,11 @@ export default function JournalScreen() {
   // Win Moments. Both are pure functions of the visible rollup
   // window and the current compliance streak.
   const sectionSummary = useMemo(
-    () => deriveSectionSummary(rollups, complianceStreak),
+    () => (rollups == null ? [] : deriveSectionSummary(rollups, complianceStreak)),
     [rollups, complianceStreak],
   );
   const winMoments = useMemo(
-    () => deriveWinMoments(rollups, complianceStreak),
+    () => (rollups == null ? [] : deriveWinMoments(rollups, complianceStreak)),
     [rollups, complianceStreak],
   );
 
@@ -162,13 +173,18 @@ export default function JournalScreen() {
     // window, so the card and the post cannot disagree. The window arrives
     // already dense from the route — every consumer gets the same effective
     // range now, so nothing is re-derived here.
+    // No rollups, no share. Sharing an unavailable window would publish a
+    // fabricated recap card rather than fail.
+    if (rollups == null) return;
     const { window, context } = prepareJournalShare(rollups, { rangeDays: range });
     publishJournalShare(window, range);
     router.push({ pathname: '/share', params: toShareRouteParams(context) });
   }, [rollups, range, router]);
 
   const onExport = useCallback(async () => {
-    if (exporting) return;
+    // The PDF LEAVES THE APP. An unavailable window must not become an
+    // export full of blanks that reads as a record of nothing.
+    if (exporting || rollups == null || snapshots == null) return;
     setExporting(true);
     setExportNote(null);
     setPdfError(null);
@@ -262,7 +278,18 @@ export default function JournalScreen() {
             derived data alongside the empty-state copy — per the
             "performance OS, not an e-commerce app" tone, the user
             either sees a complete timeline or sees the welcome line. */}
-        {error || (!loading && isEmptyWindow(rollups)) ? (
+        {/* THREE DISTINCT STATES, not one collapse. `error` means BOTH reads
+            failed and there is genuinely nothing to show. An EMPTY WINDOW is a
+            fact about the member and keeps its welcome copy. A single failed
+            read is neither: the surviving half still renders below, and only
+            the surfaces backed by the failed read say they cannot answer. */}
+        {error ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyBody} accessibilityRole="alert">
+              {t('journal.load_failed')}
+            </Text>
+          </View>
+        ) : !loading && rollups != null && isEmptyWindow(rollups) ? (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyBody}>
               {t('journal.empty_state')}
@@ -270,7 +297,15 @@ export default function JournalScreen() {
           </View>
         ) : (
           <>
-            {!loading && (
+            {!loading && rollups == null && (
+              <View style={styles.emptyCard} testID="journal-rollups-unavailable">
+                <Text style={styles.emptyBody} accessibilityRole="alert">
+                  {t('journal.rollups_unavailable')}
+                </Text>
+              </View>
+            )}
+
+            {!loading && rollups != null && (
               <>
                 {/* Section 1 — pulsing streak hero */}
                 <StreakHero streakDays={complianceStreak} />
@@ -321,6 +356,14 @@ export default function JournalScreen() {
                 <View style={[styles.chartPlaceholder, { width: chartWidth }]}>
                   <ActivityIndicator color="#C1281B" />
                 </View>
+              ) : snapshots == null ? (
+                /* An unavailable timeline must not render as an empty chart —
+                   that draws "you were never measured" over a failed read. */
+                <View style={[styles.chartPlaceholder, { width: chartWidth }]} testID="journal-chart-unavailable">
+                  <Text style={styles.emptyBody} accessibilityRole="alert">
+                    {t('journal.timeline_unavailable')}
+                  </Text>
+                </View>
               ) : (
                 <JournalChart
                   data={snapshots}
@@ -332,7 +375,7 @@ export default function JournalScreen() {
               )}
             </View>
 
-            {!loading && (
+            {!loading && rollups != null && (
               <View style={{ marginTop: 16 }}>
                 <PerformanceSections
                   sections={sectionSummary}
