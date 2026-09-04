@@ -70,10 +70,12 @@ import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import type { JournalRollup } from '@/types';
 import { fetchJournalRollups } from '@/services/realApi';
 import { computeRecapStats } from '@/utils/journalRecapStats';
+import { classifyStreakEligibility, observedRows, reportedSpanDays } from '@/utils/scoring/boundarySeries';
 import {
   buildDayViews,
   buildBars,
   accentTextForScore,
+  EM_DASH,
   historyCompletenessLevel,
   weeklyChecks,
   weeklyInBandAvg,
@@ -173,10 +175,41 @@ export function PerformanceSignalV3({
     [rollups],
   );
   const bars = React.useMemo(() => buildBars(days), [days]);
-  const recap = React.useMemo(() => computeRecapStats(rollups ?? []), [rollups]);
+  // OBSERVED DAYS ONLY, on the way in. `computeRecapStats` is a naive
+  // aggregator — it reads `avgScore` and `.length` with no observation gate —
+  // and every other caller in the app hands it a pre-filtered population
+  // (`journalShareContext` passes `recapStatsScope`; `computeRecapCardStats`
+  // passes its `scorePopulation`). This screen was the one place that passed
+  // the raw wire, which on the dense contract folds the server's sentinel
+  // zeros into the week average, the peak, the best streak AND pins the
+  // coverage chip to `rich` — the chip specifically is supposed to report how
+  // much evidence is behind that average.
+  const observed = React.useMemo(() => observedRows(rollups ?? []), [rollups]);
+  const recap = React.useMemo(() => computeRecapStats([...observed]), [observed]);
+  // THE DENOMINATOR IS THE MEMBER'S ELIGIBLE WINDOW, NOT THE REQUESTED ONE.
+  // `RANGE_DAYS` is what the picker ASKED the server for; the response is
+  // clamped to the member's own history floor, so a member three days old gets
+  // three rows. Dividing their coverage by 7 told them "2 of 7 days tracked"
+  // and handed them a sparse-evidence chip for a window they had covered
+  // completely — measuring them against days that predate their account.
+  // These are the same three windows this program keeps having to hold apart:
+  // REQUESTED, ELIGIBLE, and OBSERVED. `reportedSpanDays` answers the middle
+  // one; `recap.daysTracked` (from `observed`) answers the last.
+  const eligibleDays = React.useMemo(() => reportedSpanDays(rollups ?? []), [rollups]);
   const chip = React.useMemo(
-    () => completenessChip(historyCompletenessLevel(recap.daysTracked, RANGE_DAYS)),
-    [recap.daysTracked],
+    () => completenessChip(historyCompletenessLevel(recap.daysTracked, eligibleDays)),
+    [recap.daysTracked, eligibleDays],
+  );
+  // THE SAME QUESTION THE RECAP CARD ASKS, through the same helper. A
+  // HydroState-derived streak is UNKNOWABLE across a day HydroState did not
+  // observe — it may not be broken (that asserts a failure the member did not
+  // have) and may not be skipped. `computeRecapStats` breaks the run at the
+  // calendar gap and returns a real, smaller number; publishing it here while
+  // the recap card suppresses the very same streak for the very same array is
+  // the cross-surface disagreement this program keeps having to remove.
+  const streakEligible = React.useMemo(
+    () => classifyStreakEligibility(rollups ?? []).kind === 'eligible',
+    [rollups],
   );
 
   // The spinner and the history occupy the same place, so a VoiceOver member
@@ -208,7 +241,7 @@ export function PerformanceSignalV3({
 
   const daysTrackedText = t('signal.v3.days_tracked', {
     n: recap.daysTracked,
-    total: RANGE_DAYS,
+    total: eligibleDays,
   });
   const detailDay = detail?.kind === 'day' ? days.find((d) => d.date === detail.date) : undefined;
 
@@ -476,7 +509,11 @@ export function PerformanceSignalV3({
             <SheetRow label={t('signal.v3.recap_peak')} value={`${Math.round(recap.peakScore)}`} />
             <SheetRow
               label={t('signal.v3.recap_best_streak')}
-              value={t('signal.v3.recap_days', { n: recap.bestStreak })}
+              value={
+                streakEligible
+                  ? t('signal.v3.recap_days', { n: recap.bestStreak })
+                  : EM_DASH
+              }
             />
             <SheetRow
               label={t('signal.v3.recap_total_oz')}

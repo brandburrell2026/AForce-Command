@@ -14,7 +14,14 @@ export interface RecapStats {
   avgScore: number;
   /** Highest avgScore observed in the window. */
   peakScore: number;
-  /** Count of rollup days actually present (not the calendar window). */
+  /**
+   * Count of rows in the array this was given. Whether that is the calendar
+   * window or only the observed days depends entirely on the POPULATION the
+   * caller passes — this is a naive aggregator with no observation gate of its
+   * own, and every caller now hands it a pre-filtered population. On the dense
+   * wire an unfiltered array IS the calendar window, so the old note here
+   * ("not the calendar window") no longer described anything.
+   */
   daysTracked: number;
   /** Longest run of consecutive *calendar* days at avgScore >= BALANCED. */
   bestStreak: number;

@@ -21,6 +21,10 @@
  */
 
 import type { JournalRollup } from '@/types';
+import { observedRows } from '@/utils/scoring/boundarySeries';
+
+/** Honest-data glyph for a reading nobody took (app-wide convention). */
+const EM_DASH = '—';
 
 export type SectionKey =
   | 'recovery'
@@ -64,18 +68,32 @@ export function deriveSectionSummary(
   rollups: JournalRollup[],
   complianceStreak: number,
 ): SectionSummary[] {
+  // The WINDOW width — every calendar day the range covers. Correct as the
+  // label on a SUM (the hydration tile totals ounces across the whole window,
+  // and an unobserved day contributes 0, which is true). It is NOT a count of
+  // measurements: `observed.length` below answers that.
   const days = rollups.length;
-  const safeDays = days || 1;
 
-  // Recovery: average % of time spent in BALANCED or PEAK bands
-  // across the window. This is the "in-the-green" share of the user's
-  // day-to-day — the headline recovery metric.
-  const recoveryPct = Math.round(
-    rollups.reduce(
-      (acc, r) => acc + (r.pctTimeBalanced + r.pctTimePeak),
-      0,
-    ) / safeDays,
-  );
+  // RECOVERY IS AN AVERAGE, so its denominator must be OBSERVED days. The
+  // sums below (heat / hydration / corrections / territory) are safe against
+  // the dense wire by construction — an unobserved day contributes 0 to a
+  // total, which is correct — but averaging over `rollups.length` divides real
+  // band-time by the width of the eligible window, diluting a member's
+  // "time in green" with days nothing was measured.
+  const observed = observedRows(rollups);
+  // NULL when nothing was measured. "0% — Time in green" is a claim about the
+  // member's physiology, and a window with no observations cannot support it:
+  // the honest answer is that we do not know, not that they spent none of
+  // their time in the green. The SUM tiles below are different — 0 oz
+  // consumed is TRUE — which is why only this one withholds.
+  const recoveryPct: number | null = observed.length === 0
+    ? null
+    : Math.round(
+        observed.reduce(
+          (acc, r) => acc + (r.pctTimeBalanced + r.pctTimePeak),
+          0,
+        ) / observed.length,
+      );
 
   // Heat: total sodium lost (mg) over the window. Sodium loss is the
   // canonical proxy for heat-driven sweat output in the engine.
@@ -105,7 +123,7 @@ export function deriveSectionSummary(
     {
       key: 'recovery',
       label: 'Recovery',
-      value: `${recoveryPct}%`,
+      value: recoveryPct == null ? EM_DASH : `${recoveryPct}%`,
       hint: 'Time in green',
     },
     {
@@ -148,6 +166,25 @@ function formatMg(mg: number): string {
   return `${mg}mg`;
 }
 
+/** Whole-day UTC difference between two `YYYY-MM-DD` keys, or null if either
+ *  is not a valid calendar date. */
+function isPreviousCalendarDay(earlier: string, later: string): boolean {
+  const parse = (v: string): number | null => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v);
+    if (!m) return null;
+    const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+    const t = Date.UTC(y, mo - 1, d);
+    const back = new Date(t);
+    return back.getUTCFullYear() === y && back.getUTCMonth() === mo - 1 && back.getUTCDate() === d
+      ? t
+      : null;
+  };
+  const a = parse(earlier);
+  const b = parse(later);
+  if (a == null || b == null) return false;
+  return b - a === 24 * 60 * 60 * 1000;
+}
+
 // ────────────────────────────────────────────────────────────────────
 // Win moments
 // ────────────────────────────────────────────────────────────────────
@@ -167,8 +204,42 @@ export function deriveWinMoments(
   complianceStreak: number,
 ): WinMoment[] {
   const moments: WinMoment[] = [];
-  const last = rollups[rollups.length - 1];
-  const prev = rollups.length >= 2 ? rollups[rollups.length - 2] : null;
+  // A win is a claim about a MEASURED change, so both sides of every
+  // day-over-day comparison below must be observed days — and they must be
+  // the two most recent OBSERVED days, not merely the last two rows.
+  //
+  // This was already wrong before the wire densified: a day with a logged
+  // intake and no captured snapshot has always shipped with the sentinel
+  // `endDeficitPct: 0`, so "Stabilized faster than yesterday" (a ≥5-point
+  // deficit drop) could fire on a day HydroState never observed — awarding an
+  // achievement for a measurement that does not exist. Densification would
+  // have made it routine rather than merely possible.
+  const observed = observedRows(rollups);
+  const last = observed[observed.length - 1];
+  const prevObserved = observed.length >= 2 ? observed[observed.length - 2] : null;
+  // ...AND THEY MUST BE CALENDAR-ADJACENT. Every moment below is phrased as a
+  // day-over-day claim — "Recovery restored", "Heat recovery improved",
+  // "Territory momentum increased", "Stabilized faster than yesterday". Once
+  // unobserved days are filtered out, the two most recent OBSERVED days can
+  // be a week apart, and comparing them still produced copy that says
+  // "yesterday". Adjacency is what makes the sentence true, so it is a
+  // precondition rather than a detail.
+  const adjacent = prevObserved != null && isPreviousCalendarDay(prevObserved.date, last!.date);
+
+  // ...AND THE PAIR MUST STILL BE CURRENT. Adjacency to EACH OTHER does not
+  // make a pair recent: a member who measured Monday and Tuesday and then went
+  // quiet was still shown "Stabilized faster than yesterday" on Friday. Before
+  // the observed-rows filter above, `last` was necessarily the final row, so
+  // this could not happen; filtering is what let the pair drift into the past,
+  // and the copy is phrased in the present tense throughout.
+  //
+  // The dense window always ends at today, so trailing unobserved rows are
+  // days since the last sync. ONE is today-not-yet-synced — pending, not
+  // absent, the same distinction `classifyStreakEligibility` draws. More than
+  // one means the member has been away a full day or longer, and a
+  // "yesterday" claim about their last two measured days is stale.
+  const trailingUnmeasured = last == null ? 0 : rollups.length - 1 - rollups.lastIndexOf(last);
+  const prev = adjacent && trailingUnmeasured <= 1 ? prevObserved : null;
 
   // 1. Active streak — universal, even on a single day of data.
   if (complianceStreak >= 2) {

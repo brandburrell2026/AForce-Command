@@ -100,9 +100,21 @@ describe('WeeklyReportV3 — chart text alternatives (a11y)', () => {
     // AFCard is used purely for its Wave-5 composed-label fix; `padded={false}`
     // plus the existing tile style keep it pixel-identical to the old View.
     expect(CODE).toMatch(/<AFCard[\s\S]*?padded=\{false\}[\s\S]*?style=\{styles\.timelineDay\}/);
+    // A MEASURED day still speaks its score.
     expect(CODE).toMatch(
-      /accessibilityLabel=\{t\('reports\.v3\.timeline_day_a11y',\s*\{[\s\S]*?day:\s*weekday,[\s\S]*?date:\s*shortDate\(d\.date\),[\s\S]*?score:\s*d\.score,/,
+      /t\('reports\.v3\.timeline_day_a11y',\s*\{[\s\S]*?day:\s*weekday,[\s\S]*?date:\s*shortDate\(d\.date\),[\s\S]*?score:\s*d\.score,/,
     );
+  });
+
+  it('an UNMEASURED day says "no reading" instead of speaking a sentinel zero', () => {
+    // The dense wire always includes a day HydroState never observed; its
+    // `avgScore` is the server's sentinel. Speaking it would announce "daily
+    // average score 0" for a day nothing was measured, and paint a
+    // full-height Signal-Red bar to match.
+    expect(CODE).toMatch(/const unmeasured = d\.score == null \|\| d\.accent == null;/);
+    expect(CODE).toMatch(/t\('reports\.v3\.timeline_day_unmeasured_a11y',\s*\{[\s\S]*?day:\s*weekday,[\s\S]*?date:\s*shortDate\(d\.date\),/);
+    // ...and draws no fill at all on that day.
+    expect(CODE).toMatch(/\{unmeasured \? null : \(/);
   });
 
   it('gives the Performance Age bars a composed label with each day and the axis, instead of hiding them', () => {

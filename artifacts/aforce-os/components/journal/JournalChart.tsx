@@ -52,7 +52,14 @@ interface Props {
   data: JournalSnapshot[];
   width: number;
   height?: number;
-  weeklyCompliancePct: number;
+  /**
+   * NULL when nothing in the window was measured — the chart is currently
+   * inert on this prop (see the `void` below), but the type carries the
+   * "unknown" state rather than coercing it to a fabricated 0, so whichever
+   * surface starts rendering it inherits the honesty instead of having to
+   * rediscover it.
+   */
+  weeklyCompliancePct: number | null;
   complianceStreak: number;
 }
 

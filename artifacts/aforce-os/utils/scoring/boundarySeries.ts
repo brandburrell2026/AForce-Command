@@ -42,7 +42,8 @@ export function dayProvenance(r: JournalRollup): DayModelProvenance {
  * `snapshotsCount === 0` means NO HYDROSTATE OBSERVATION EXISTS for that day.
  * The server still emits a row (a day with intakes but no captured snapshot is
  * real activity), and it fills the score fields with a SENTINEL:
- * `avgScore: snapshotsCount > 0 ? real : 0` (journal.ts:443).
+ * `avgScore: snapshotsCount > 0 ? real : 0`
+ * (api-server lib/journalRollupsAggregation.ts).
  *
  * NO OBSERVATION != SCORE ZERO. Read without this seam, one missed sync
  * dragged a member's 30-day average from 90 to 87, halved their streak, was
@@ -53,7 +54,7 @@ export function dayProvenance(r: JournalRollup): DayModelProvenance {
  *
  * Declared ONCE here; no consumer re-encodes it.
  */
-export function hasHydroStateObservation(r: JournalRollup): boolean {
+export function hasHydroStateObservation(r: { snapshotsCount: number }): boolean {
   return r.snapshotsCount > 0;
 }
 
@@ -82,6 +83,40 @@ export function observedCount(rollups: readonly JournalRollup[]): number {
   return observedRows(rollups).length;
 }
 
+/**
+ * Did ANYTHING happen on this day — a measurement, or an intake the member
+ * logged without a snapshot being captured?
+ *
+ * DISTINCT FROM `hasHydroStateObservation`, and the distinction is the whole
+ * point. A day with a logged drink and no captured snapshot has no SCORE (so
+ * it must never reach a score-derived number) but it is emphatically not an
+ * empty day: the member did something, `JournalDayCard` renders it, and the
+ * journal would be lying to collapse it.
+ *
+ * This exists because the dense wire made the two questions look alike. Every
+ * day of the effective window is now a row, so "is there anything to show"
+ * can no longer be asked as `rollups.length > 0` — that is the width of the
+ * window and is essentially never zero. Asked wrongly, a member with no
+ * history saw a full dashboard of the server's sentinel zeros instead of the
+ * welcome line.
+ *
+ * Kept in the same module as the observation seam so the screen-level "is
+ * this window empty" question and the card-level "should this row render"
+ * question cannot drift apart — they are the same predicate.
+ */
+export function hasAnyActivity(r: JournalRollup): boolean {
+  return r.snapshotsCount > 0 || r.intakeCount > 0;
+}
+
+/**
+ * True when NOTHING happened across the whole window — no measurement and no
+ * logged intake on any day. This is the honest "empty timeline" test, and the
+ * only condition under which a surface may show its empty state.
+ */
+export function isEmptyWindow(rollups: readonly JournalRollup[]): boolean {
+  return !rollups.some(hasAnyActivity);
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** A `YYYY-MM-DD` day key as a UTC instant, or null if it is not one. */
@@ -108,11 +143,24 @@ function parseDayUTC(s: string): number | null {
  * the streak walked straight across it and published a BROKEN streak for a day
  * HydroState had never observed.
  *
- * The route now densifies, so the two numbers agree by construction. This is
- * the belt to that braces: client and server are separate deployables, and a
- * client running against a server that has not shipped densification must
- * still see the gap rather than silently miss it. Measuring the calendar makes
- * that automatic.
+ * The route densifies on request, so on the dense wire the two numbers agree
+ * by construction.
+ *
+ * THIS IS NOT A SAFETY NET FOR A SPARSE RESPONSE, and an earlier version of
+ * this note claimed it was. Measuring first-row-to-last-row catches an
+ * INTERIOR gap on a sparse array, but it cannot see one at either EDGE: drop
+ * the first or last day and the span shrinks with it, so a window whose first
+ * or last day was never observed reports itself fully covered. The trailing
+ * case is the more dangerous of the two — it is what turns a run that ended
+ * days ago into a live streak. Client and server are separate
+ * deployables, so that gap was reachable by a rollback or a deploy ordered the
+ * wrong way.
+ *
+ * What actually closes it is upstream: the response declares which contract it
+ * served, and `fetchJournalRollups` REJECTS anything that is not dense rather
+ * than reinterpreting sparse rows. This function's job is narrower — turn the
+ * dense window into a span — and a leading gap is visible here only because
+ * the row for that day is present.
  */
 export function reportedSpanDays(rollups: readonly JournalRollup[]): number {
   if (rollups.length === 0) return 0;
@@ -573,6 +621,49 @@ export type StreakEligibility =
   | { kind: 'coverage_incomplete'; measuredDays: number; rangeDays: number }
   | { kind: 'not_comparable' };
 
+/**
+ * The window with any trailing unobserved days removed.
+ *
+ * Used to decide what a streak may be JUDGED over: the last observed day is
+ * the edge of what has been measured, and rows after it are pending rather
+ * than absent.
+ *
+ * ONLY THE TAIL. Leading and interior empty days are kept, and both must be:
+ * they are days inside the member's eligible history that HydroState did not
+ * observe. Filtering to `observedRows` here instead would narrow the window to
+ * first-observed..last-observed and quietly hide a leading gap — the window
+ * would report itself fully covered when its first day never was.
+ *
+ * AND ONLY A DAY WITH NOTHING IN IT. The test is `hasAnyActivity`, NOT
+ * `hasHydroStateObservation`, and the difference is the whole ruling. A
+ * trailing day carrying a logged intake with no captured snapshot is a day the
+ * member PARTICIPATED IN and HydroState failed to measure — a genuine coverage
+ * hole, and the founder ruled explicitly that it suppresses wherever it falls,
+ * last included. A trailing day with no snapshot AND no intake is a day on
+ * which nothing has happened yet.
+ *
+ * Trimming on observation alone would have collapsed those two into one — the
+ * same lossy-collapse this module exists to prevent, committed while fixing an
+ * instance of it.
+ */
+function trimTrailingEmpty(
+  rollups: readonly JournalRollup[],
+): readonly JournalRollup[] {
+  // EXACTLY ONE ROW, NEVER A RUN. The dense window always ends at today, so
+  // today is the ONLY day that can still be pending — every earlier empty day
+  // is a day that happened and went unmeasured.
+  //
+  // Walking back an unbounded run collapsed those two again: a member last
+  // measured twenty days ago trimmed all twenty, judged a fully-covered
+  // ten-day window, and was handed `eligible` — publishing a share payload
+  // claiming a LIVE 10-day streak and a recap card reading STREAK 10 / DAYS 30
+  // with no coverage note at all, because the note only prints when coverage
+  // is incomplete. Worse, it inverted the incentive: logging anything today
+  // revealed a suppression that staying silent hid.
+  const n = rollups.length;
+  return n > 0 && !hasAnyActivity(rollups[n - 1]!) ? rollups.slice(0, n - 1) : rollups;
+}
+
 export function classifyStreakEligibility(
   rollups: readonly JournalRollup[],
 ): StreakEligibility {
@@ -607,8 +698,34 @@ export function classifyStreakEligibility(
   // window is what let a day the member skipped disappear from the array
   // entirely — taking its own absence with it.
   const measuredDays = observedCount(rollups);
-  if (measuredDays < rangeDays) {
-    return { kind: 'coverage_incomplete', measuredDays, rangeDays };
+
+  // A TRAILING **EMPTY** DAY IS **PENDING**, NOT **MISSING**.
+  //
+  // The dense window ALWAYS ends at today, and today is materialised empty
+  // from the moment UTC midnight passes. Measured against the raw span, that
+  // not-yet-happened day is indistinguishable from a hole inside the run — so a member with six fully-observed qualifying
+  // days woke up every morning to a blanked streak on the Signal sheet and a
+  // share payload that had silently dropped from `type: 'streak'` to
+  // `type: 'score'`. Before densification the wire simply had no row for today
+  // yet and the same member was `eligible`.
+  //
+  // That is the same lossy collapse this module exists to prevent, one level
+  // out: `measuredDays < rangeDays` was answering "is there a gap in this
+  // streak" with "has the last day of the window started yet". A streak is
+  // judged over the window up to the last day something happened on; days
+  // after that have not failed to be measured, they have not come yet.
+  //
+  // An entirely unmeasured window is NOT trimmed: there is no measured day to
+  // judge up to, and reporting "0 OF N DAYS MEASURED" is the honest answer
+  // (founder ruling — a window with nothing measured must not go silent).
+  // ONE guarded expression, not two agreeing ones: the guard was written twice
+  // and mutating a single copy left the other holding, so the mutation read as
+  // killed when it was only half-applied.
+  const judged = measuredDays === 0 ? rollups : trimTrailingEmpty(rollups);
+  const judgedRangeDays = reportedSpanDays(judged);
+
+  if (measuredDays < judgedRangeDays) {
+    return { kind: 'coverage_incomplete', measuredDays, rangeDays: judgedRangeDays };
   }
 
   // Every day in the window was measured. The remaining question is whether

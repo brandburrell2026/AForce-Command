@@ -9,6 +9,8 @@ import {
 } from "@workspace/db";
 import { inArray, eq, sql, and, gte, asc, desc, isNull, isNotNull } from "drizzle-orm";
 import { HYDROSTATE_MODEL_VERSION } from "../../lib/hydroStateModelVersion";
+import { buildJournalRollupsResponse } from "../../lib/journalRollupsAggregation";
+import { rollupsQuery } from "../../lib/journalRollupsQuery";
 import {
   resolveScoreProtectionMode,
   evaluateScoreWrite,
@@ -156,7 +158,7 @@ router.get("/recovery/snapshot", async (req, res) => {
   }
 });
 
-const daysQuery = z.object({
+export const daysQuery = z.object({
   days: z.coerce.number().int().min(1).max(365).default(7),
 });
 
@@ -260,7 +262,7 @@ router.get("/journal/timeline", async (req, res) => {
 
 router.get("/journal/rollups", async (req, res) => {
   try {
-    const { days } = daysQuery.parse(req.query);
+    const { days, dense } = rollupsQuery.parse(req.query);
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -302,197 +304,39 @@ router.get("/journal/rollups", async (req, res) => {
         .limit(1),
 ]);
 
-    function dayKey(d: Date): string {
-      const y = d.getUTCFullYear();
-      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const dd = String(d.getUTCDate()).padStart(2, "0");
-      return `${y}-${m}-${dd}`;
-    }
-
-    interface DayAcc {
-      date: string;
-      snapshotsCount: number;
-      sumScore: number;
-      minScore: number;
-      maxScore: number;
-      lastOzConsumed: number;
-      lastAforceUnits: number;
-      lastUnitsConsumed: number;
-      lastSodiumDelivered: number;
-      lastSodiumLost: number;
-      lastDeficitPct: number;
-      bandMillis: { PEAK: number; BALANCED: number; RECOVERING: number; DEPLETED: number };
-      intakeCount: number;
-      autopilotSessions: number;
-      socialSessions: number;
-      autopilotPrev: boolean;
-      socialPrev: boolean;
-      /** Every distinct HydroState model version contributing to this day.
-       *  A day can straddle a model boundary; one field would have to pick a
-       *  winner and silently hide that the day is mixed. Insertion-ordered. */
-      modelVersions: Set<string | null>;
-    }
-
-    const acc = new Map<string, DayAcc>();
-    function ensure(date: string): DayAcc {
-      let d = acc.get(date);
-      if (!d) {
-        d = {
-          date,
-          snapshotsCount: 0,
-          sumScore: 0,
-          minScore: Number.POSITIVE_INFINITY,
-          maxScore: Number.NEGATIVE_INFINITY,
-          lastOzConsumed: 0,
-          lastAforceUnits: 0,
-          lastUnitsConsumed: 0,
-          lastSodiumDelivered: 0,
-          lastSodiumLost: 0,
-          lastDeficitPct: 0,
-          bandMillis: { PEAK: 0, BALANCED: 0, RECOVERING: 0, DEPLETED: 0 },
-          intakeCount: 0,
-          autopilotSessions: 0,
-          socialSessions: 0,
-          autopilotPrev: false,
-          socialPrev: false,
-          modelVersions: new Set<string | null>(),
-        };
-        acc.set(date, d);
-      }
-      return d;
-    }
-
-    /**
-     * Attribute a half-open interval `[fromMs, toMs)` to a single level,
-     * splitting at UTC day boundaries so each calendar day gets the
-     * portion that fell within it. Caller is responsible for capping
-     * the interval length (gap policy).
-     */
-    function attributeInterval(fromMs: number, toMs: number, level: string) {
-      if (toMs <= fromMs) return;
-      const k = level as keyof DayAcc["bandMillis"];
-      let cursor = fromMs;
-      while (cursor < toMs) {
-        const cursorDate = new Date(cursor);
-        const nextMidnight = Date.UTC(
-          cursorDate.getUTCFullYear(),
-          cursorDate.getUTCMonth(),
-          cursorDate.getUTCDate() + 1,
-        );
-        const segEnd = Math.min(toMs, nextMidnight);
-        const dt = segEnd - cursor;
-        if (dt > 0) {
-          const d = ensure(dayKey(cursorDate));
-          if (k in d.bandMillis) d.bandMillis[k] += dt;
-        }
-        cursor = segEnd;
-      }
-    }
-
-    // First pass: per-day stats (avg / min / max / end-of-day totals,
-    // session edge counts).
-    for (const s of snapshots) {
-      const date = dayKey(s.capturedAt);
-      const d = ensure(date);
-      d.snapshotsCount += 1;
-      d.sumScore += s.score;
-      d.minScore = Math.min(d.minScore, s.score);
-      d.maxScore = Math.max(d.maxScore, s.score);
-      d.lastOzConsumed = s.ozConsumedToday;
-      d.lastAforceUnits = s.aforceUnitsToday;
-      d.lastUnitsConsumed = s.unitsConsumedToday;
-      d.lastSodiumDelivered = s.sodiumDeliveredMg;
-      d.lastSodiumLost = s.sodiumLostMg;
-      d.lastDeficitPct = s.deficitPct;
-      if (s.autopilotActive && !d.autopilotPrev) d.autopilotSessions += 1;
-      if (s.socialActive && !d.socialPrev) d.socialSessions += 1;
-      d.autopilotPrev = s.autopilotActive;
-      d.socialPrev = s.socialActive;
-      d.modelVersions.add(s.hydroStateModelVersion);
-    }
-
-    // Second pass: continuous band-time attribution across the whole
-    // window. Each segment between consecutive samples is held at the
-    // previous sample's level, capped at 1 h (to avoid attributing
-    // overnight idle time as "still in this band"), and split at UTC
-    // day boundaries so single-snapshot days still get their share.
-    const GAP_CAP_MS = 60 * 60 * 1000;
-    for (let i = 0; i < snapshots.length - 1; i++) {
-      const cur = snapshots[i]!;
-      const next = snapshots[i + 1]!;
-      const fromMs = cur.capturedAt.getTime();
-      const toMs = Math.min(next.capturedAt.getTime(), fromMs + GAP_CAP_MS);
-      attributeInterval(fromMs, toMs, cur.level);
-    }
-    if (snapshots.length > 0) {
-      const last = snapshots[snapshots.length - 1]!;
-      const lastTs = last.capturedAt.getTime();
-      const tailEnd = Math.min(Date.now(), lastTs + GAP_CAP_MS);
-      attributeInterval(lastTs, tailEnd, last.level);
-    }
-
-    // intakeCount means what COUNTED: a corrected original consumed nothing
-    // (Wave-2 review — undo must not leave the day's count inflated).
-    const correctedIds = new Set(correctionRows.map((r) => r.corrected));
-    for (const i of intakes) {
-      if (correctedIds.has(i.id)) continue;
-      const date = dayKey(i.loggedAt);
-      const d = ensure(date);
-      d.intakeCount += 1;
-    }
-
-    const rollups = Array.from(acc.values())
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .map((d) => {
-        const totalBand = d.bandMillis.PEAK + d.bandMillis.BALANCED + d.bandMillis.RECOVERING + d.bandMillis.DEPLETED;
-        const pct = (n: number) => (totalBand > 0 ? Math.round((n / totalBand) * 100) : 0);
-        return {
-          date: d.date,
-          snapshotsCount: d.snapshotsCount,
-          avgScore: d.snapshotsCount > 0 ? Math.round(d.sumScore / d.snapshotsCount) : 0,
-          minScore: d.snapshotsCount > 0 ? d.minScore : 0,
-          maxScore: d.snapshotsCount > 0 ? d.maxScore : 0,
-          endOzConsumed: d.lastOzConsumed,
-          endAforceUnits: d.lastAforceUnits,
-          endUnitsConsumed: d.lastUnitsConsumed,
-          endSodiumDelivered: d.lastSodiumDelivered,
-          endSodiumLost: d.lastSodiumLost,
-          endDeficitPct: d.lastDeficitPct,
-          pctTimePeak: pct(d.bandMillis.PEAK),
-          pctTimeBalanced: pct(d.bandMillis.BALANCED),
-          pctTimeRecovering: pct(d.bandMillis.RECOVERING),
-          pctTimeDepleted: pct(d.bandMillis.DEPLETED),
-          intakeCount: d.intakeCount,
-          autopilotSessions: d.autopilotSessions,
-          socialSessions: d.socialSessions,
-          // Aggregates over a day that spans a model boundary are not
-          // comparable to single-version days; the consumer needs to see
-          // that rather than infer it (PR 3 acts on it).
-          modelVersions: [...d.modelVersions],
-        };
-      });
-
-    /* ── historyStartAt: ADDITIVE, and the array stays SPARSE ────────────────
+    /* ── DENSE EFFECTIVE RANGE — the canonical rollup contract ───────────────
      *
-     * This route deliberately still returns ONLY the days it has data for. A
-     * densified array would change what `rollups.length` means for every live
-     * consumer at once — and six of them read it as an observation count, so
-     * densifying here painted unobserved days as Signal-Red DEPLETED bars,
-     * reported them as "days tracked", and counted them as compliance
-     * failures. A shared wire contract cannot be migrated one caller at a
-     * time; that migration is its own PR (founder ruling, Option B).
+     * `GET /aforce/journal/rollups` used to return only the days it had data
+     * for. Every consumer then had to independently decide what an absent
+     * day meant, and several got it wrong — a missing observation read as a
+     * comparability event, a compliance failure, a broken streak, or (via
+     * the sentinel `avgScore: 0` this route already emits for a real "intake
+     * logged, no snapshot captured" day) a measured zero.
      *
-     * What ships here is the FACT the client needs and cannot derive: when
-     * this member's HydroState history begins. NULL means the member's state
-     * row predates the column (or has no row yet) — never "no history", and
-     * never a tenure claim. Only the Journal share/recap seam consumes it, and
-     * only that seam densifies.
+     * A prior attempt densified this route and reverted it because six live
+     * consumers read `rollups.length` as an observation count. This time
+     * every one of them is migrated onto `observedRows`/`observedCount`
+     * (utils/scoring/boundarySeries.ts) in the SAME change.
+     *
+     * The aggregation itself lives in `buildJournalRollupsResponse`
+     * (lib/journalRollupsAggregation.ts) — this route's own suites are
+     * DB-gated and skipped locally, so anything left inline here could only
+     * be proven by scanning source text. Extracting it means the real logic
+     * gets full execution tests, and this handler's only remaining job —
+     * fetch, call, respond — is honestly thin enough for a source-level
+     * wiring law to mean something.
      */
-    return res.json({
-      rollups,
-      days,
-      historyStartAt: stateRows[0]?.historyStartAt?.toISOString() ?? null,
-    });
+    return res.json(
+      buildJournalRollupsResponse({
+        snapshots,
+        intakes,
+        correctionRows,
+        historyStartAt: stateRows[0]?.historyStartAt ?? null,
+        days,
+        dense: dense === 1,
+        now: new Date(),
+      }),
+    );
   } catch (err) {
     logger.error({ err: serializeError(err) }, "GET /aforce/journal/rollups failed");
     return res.status(400).json({ error: "rollups_failed" });

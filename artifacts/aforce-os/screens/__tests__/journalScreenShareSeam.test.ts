@@ -1,31 +1,23 @@
 /**
- * JournalScreen — SHARE SEAM WIRING (founder ruling, Option B / PR A repair).
+ * JournalScreen — SHARE SEAM WIRING.
  *
  * `JournalScreen` pulls in `useRouter` / `useUserSlice` / `expo-print` /
  * `expo-sharing` — the same category of store+router-connected container this
  * repo's existing tests deliberately never mount directly (see
  * `components/home/__tests__/homeScreenV2Wiring.test.ts`'s header, which
- * documents the convention and points at
- * `components/cruise/__tests__/cruiseModeView.render.test.tsx` mounting the
- * presentational view, never the connected screen). This file applies that
- * same established pattern: a source-text guard, with MUTATION-VERIFY
- * assertions proving the guard actually detects the regression it exists for
- * — not a fabricated store+router+i18n harness this suite has no precedent for.
+ * documents the convention). This file applies that same established pattern:
+ * a source-text guard, with MUTATION-VERIFY assertions proving the guard
+ * actually detects the regression it exists for.
  *
- * WHY THIS FILE EXISTS. The server-side densification shipped with NO law
- * proving the route actually invoked the helper it built: a call-and-discard
- * mutation left all 1182 api-server tests green. That risk moved to the client
- * when densification relocated to the Journal share seam: `journalShareWindow`
- * and `journalDenseRange` are fully covered PURE modules, but nothing pinned
- * that `onShareJournal` actually calls `prepareJournalShare` instead of the old
- * direct pair —
+ * WHY THIS FILE EXISTS. `journalShareWindow` is a fully covered pure module,
+ * but nothing pinned that `onShareJournal` actually calls it instead of the
+ * old direct pair —
  *
  *     publishJournalShare(rollups, range);
  *     const ctx = deriveJournalShareContext(rollups, range);
  *
  * — which is exactly the shape that let the recap card and the share payload
- * disagree from one tap (the array `rollups` is SPARSE; the seam's whole job is
- * to hand both outputs the same DENSE `window` instead).
+ * disagree from one tap.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -35,53 +27,95 @@ const SOURCE = readFileSync(join(__dirname, '..', 'JournalScreen.tsx'), 'utf8');
 const CODE = SOURCE.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
 describe('JournalScreen — onShareJournal routes through the seam, not the old direct calls', () => {
-  it('imports the seam and the two pure modules it depends on', () => {
+  it('imports the seam and the observation helpers', () => {
     expect(CODE).toContain("import { prepareJournalShare } from '@/services/journalShareWindow';");
-    expect(CODE).toContain("import { fetchJournalRollupsWithHistory, fetchJournalTimeline } from '@/services/realApi';");
-    expect(CODE).toContain("import { parseHistoryStartAt } from '@/config/hydroStateHistoryEpoch';");
-  });
-
-  it('no longer imports the OLD direct wire fetch or the raw share-context deriver', () => {
-    // The old fetch returned only the sparse array with no history stamp — the
-    // seam needs both, so it must be gone, not merely unused alongside the new
-    // one (a stray import would let a future edit silently revert to it).
-    expect(CODE).not.toContain("import { fetchJournalRollups,");
-    expect(CODE).not.toMatch(/import\s*\{\s*fetchJournalRollups\s*,/);
-    expect(CODE).not.toContain(
-      "import {\n  deriveJournalShareContext,\n  toShareRouteParams,\n} from '@/services/journalShareContext';",
+    expect(CODE).toContain("import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';");
+    // Every score-derived number on this screen goes through the seam.
+    expect(CODE).toContain(
+      "import { hasHydroStateObservation, isEmptyWindow, observedRows } from '@/utils/scoring/boundarySeries';",
     );
   });
 
-  it('the load effect stores the SPARSE rollups AND the history stamp separately', () => {
-    // Every other consumer on this screen (compliance %, section summary, win
-    // moments, the chart, the day-card list) keeps reading the unchanged sparse
-    // array — only the share seam below is allowed to densify it.
-    expect(CODE).toMatch(/const\s*\[tl,\s*rl\]\s*=\s*await\s*Promise\.all\(\[\s*fetchJournalTimeline\(r\),\s*fetchJournalRollupsWithHistory\(r\),\s*\]\);/);
-    expect(CODE).toMatch(/setRollups\(rl\.rollups\);/);
-    expect(CODE).toMatch(/setHistoryStartAt\(rl\.historyStartAt\);/);
+  it('does not re-derive the share context outside the seam', () => {
+    // A stray `deriveJournalShareContext` import would let a future edit
+    // silently revert to computing the payload from a different array than
+    // the card renders.
+    expect(CODE).not.toMatch(/import\s*\{[^}]*deriveJournalShareContext/);
+  });
+
+  it('the load effect stores the DENSE window the route returns', () => {
+    expect(CODE).toMatch(
+      /const\s*\[tl,\s*rl\]\s*=\s*await\s*Promise\.all\(\[\s*fetchJournalTimeline\(r\),\s*fetchJournalRollups\(r\),\s*\]\);/,
+    );
+    expect(CODE).toMatch(/setRollups\(rl\);/);
+  });
+
+  it('every score-derived number on the screen reads OBSERVED days, not the row count', () => {
+    // The dense wire makes `rollups.length` the window width. These four were
+    // the screen's own readers of it, and each would otherwise fold the
+    // server's sentinel zeros into a member-facing number.
+    expect(CODE).toMatch(/const observed = useMemo\(\(\) => observedRows\(rollups\), \[rollups\]\);/);
+    // Compliance: both sides of the ratio, and it WITHHOLDS rather than
+    // fabricating 0% — the same honesty its sibling hook was migrated to.
+    // This assertion previously pinned `return 0;`, locking in a defect the
+    // adversarial gate had to catch: two tiles on one card, same array,
+    // opposite honesty.
+    expect(CODE).toMatch(/if \(observed\.length === 0\) return null;/);
+    expect(CODE).toMatch(/observed\.filter\(\(r\) => r\.avgScore >= 65\)\.length/);
+    expect(CODE).toMatch(/compliantDays \/ observed\.length/);
+    expect(CODE).toMatch(/value: weeklyCompliancePct == null \? EM_DASH/);
+    // The headline average, and the trend beside it.
+    expect(CODE).toMatch(/observed\.reduce\(\(a, r\) => a \+ r\.avgScore, 0\) \/\s*observed\.length/);
+    expect(CODE).toMatch(/kpiTrend\(observed, 'avgScore'\)/);
+    // The exported PDF's per-row score cells.
+    expect(CODE).toMatch(/const measured = hasHydroStateObservation\(r\);/);
+  });
+
+  it('the RENDER GATES ask what happened, not how wide the window is', () => {
+    // THE DEFECT THE GATE CAUGHT. `rollups.length === 0` was the empty-state
+    // test. On the dense wire that is the WIDTH OF THE WINDOW and is
+    // essentially never zero, so the welcome line became unreachable and a
+    // member with no history was shown a full dashboard built from the
+    // server's sentinel zeros.
+    expect(CODE).toMatch(/error \|\| \(!loading && isEmptyWindow\(rollups\)\)/);
+    // ...and no gate anywhere on this screen reads the row count as content.
+    expect(CODE).not.toMatch(/rollups\.length === 0/);
+    expect(CODE).not.toMatch(/rollups\.length > 0/);
+  });
+
+  it('mutation-verify: a row-count render gate is detectable', () => {
+    // Re-runs the SAME assertions against a hand-written regressed source, so
+    // the guard above cannot drift from what it claims to check.
+    const regressed = `
+      {error || (!loading && rollups.length === 0) ? (
+        <View style={styles.emptyCard} />
+      ) : (
+        <>{!loading && rollups.length > 0 && (<StreakHero />)}</>
+      )}
+    `;
+    expect(() => {
+      expect(regressed).toMatch(/error \|\| \(!loading && isEmptyWindow\(rollups\)\)/);
+      expect(regressed).not.toMatch(/rollups\.length === 0/);
+    }).toThrow();
   });
 
   /**
    * THE WIRING PROOF, extracted so it can be run against MORE than one
    * string. Both downstream calls must consume the SEAM's output —
-   * `window`/`context` — never the raw sparse `rollups`, and never a
+   * `window`/`context` — never the raw `rollups`, and never a
    * `deriveJournalShareContext` call re-derived outside the seam. A
    * call-and-discard mutant (import `prepareJournalShare`, never use its
    * result) would still show `publishJournalShare(rollups, range)`.
    *
-   * Throws (via `expect(...).toMatch`/`.not.toMatch` failing) rather than
-   * returning a boolean, so `assertRoutesThroughSeam(mutated)` inside
-   * `expect(() => ...).toThrow()` is a direct re-run of the SAME checks the
-   * real law above uses — not a second, hand-rolled comparison that could
-   * silently drift from what the real law actually checks.
+   * Throws (via a failing `expect`) rather than returning a boolean, so
+   * `assertRoutesThroughSeam(mutated)` inside `expect(() => ...).toThrow()`
+   * is a direct re-run of the SAME checks the real law uses — not a second,
+   * hand-rolled comparison that could silently drift.
    */
   function assertRoutesThroughSeam(handler: string): void {
     expect(handler).toMatch(
-      /const\s*\{\s*window,\s*context\s*\}\s*=\s*prepareJournalShare\(\s*rollups,\s*\{/,
+      /const\s*\{\s*window,\s*context\s*\}\s*=\s*prepareJournalShare\(\s*rollups,\s*\{\s*rangeDays:\s*range\s*\}\)/,
     );
-    expect(handler).toMatch(/rangeDays:\s*range,/);
-    expect(handler).toMatch(/historyStartAt:\s*parseHistoryStartAt\(historyStartAt\),/);
-    expect(handler).toMatch(/now:\s*new Date\(\),/);
     expect(handler).toMatch(/publishJournalShare\(window,\s*range\)/);
     expect(handler).not.toMatch(/publishJournalShare\(rollups,/);
     expect(handler).toMatch(/toShareRouteParams\(context\)/);
@@ -90,7 +124,7 @@ describe('JournalScreen — onShareJournal routes through the seam, not the old 
 
   function extractHandler(code: string): string {
     const start = code.indexOf('const onShareJournal = useCallback(');
-    const end = code.indexOf('}, [rollups, range, historyStartAt, router]);', start);
+    const end = code.indexOf('}, [rollups, range, router]);', start);
     return code.slice(start, end);
   }
 
@@ -102,13 +136,10 @@ describe('JournalScreen — onShareJournal routes through the seam, not the old 
 
   it('mutation-verify: reverting to the old direct pair is detectable', () => {
     // A HAND-WRITTEN pre-seam handler — not derived from the correct one via
-    // `.replace()`, which is exactly what made the previous version of this
-    // test vacuous: its replacements silently became no-ops the moment the
-    // real handler text changed shape, so it kept "detecting" a regression
-    // that had already broken its own detector. This is the literal old
-    // shape (verified against git history) run through the SAME assertion
-    // function the real law above uses, so drift between the two is
-    // structurally impossible.
+    // `.replace()`, whose replacements silently become no-ops the moment the
+    // real handler changes shape (that is exactly how an earlier version of
+    // this test went vacuous). Run through the SAME assertion function the
+    // real law uses, so drift between the two is structurally impossible.
     const reverted = `
       const onShareJournal = useCallback(() => {
         publishJournalShare(rollups, range);

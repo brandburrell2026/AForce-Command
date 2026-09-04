@@ -79,31 +79,39 @@ describe('resolveHomeEvidence — Score-Protection', () => {
 });
 
 describe('countLoggedRollupDays', () => {
+  /** An OBSERVED day that ended with `units` on the books. */
+  const d = (endUnitsConsumed: number, snapshotsCount = 4) => ({ endUnitsConsumed, snapshotsCount });
+
   it('counts only days that ended with real intake on the books', () => {
-    expect(
-      countLoggedRollupDays([
-        { endUnitsConsumed: 0 },
-        { endUnitsConsumed: 4 },
-        { endUnitsConsumed: 0 },
-        { endUnitsConsumed: 1 },
-      ]),
-    ).toBe(2);
+    expect(countLoggedRollupDays([d(0), d(4), d(0), d(1)])).toBe(2);
   });
 
   it('an empty week is zero, not a falsy surprise', () => {
     expect(countLoggedRollupDays([])).toBe(0);
-    expect(countLoggedRollupDays([{ endUnitsConsumed: 0 }])).toBe(0);
+    expect(countLoggedRollupDays([d(0)])).toBe(0);
   });
 
   it('ignores non-finite values rather than counting them as a logged day', () => {
-    expect(countLoggedRollupDays([{ endUnitsConsumed: Number.NaN }, { endUnitsConsumed: 2 }])).toBe(1);
+    expect(countLoggedRollupDays([d(Number.NaN), d(2)])).toBe(1);
   });
 
   it('mutation-verify: an "app was open" day with nothing consumed must not count', () => {
     // The regression this guards: relaxing the predicate to `!= null` (or to
     // snapshot presence) would call a browsing session a day of evidence and
     // hand a brand-new member the fabricated score back.
-    expect(countLoggedRollupDays([{ endUnitsConsumed: 0 }, { endUnitsConsumed: 0 }])).toBe(0);
+    expect(countLoggedRollupDays([d(0), d(0)])).toBe(0);
+  });
+
+  it('a synthetic day the wire materialised is not a day of evidence', () => {
+    // The dense `/journal/rollups` contract emits one row per calendar day,
+    // including days HydroState never observed. This filter previously leaned
+    // on an invariant of the server aggregation two packages away — that
+    // `endUnitsConsumed > 0` implies a snapshot — which held, but silently.
+    // The gate is explicit now, so a wire change cannot turn synthetic days
+    // into baseline evidence without failing here first.
+    expect(countLoggedRollupDays([d(4, 0), d(3, 0)])).toBe(0);
+    // ANTI-VACUITY: identical units, observed — these DO count.
+    expect(countLoggedRollupDays([d(4), d(3)])).toBe(2);
   });
 });
 

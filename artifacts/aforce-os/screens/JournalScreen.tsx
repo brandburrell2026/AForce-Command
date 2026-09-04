@@ -43,14 +43,19 @@ import {
   deriveSectionSummary,
   deriveWinMoments,
 } from '@/services/performanceTimeline';
-import { fetchJournalRollupsWithHistory, fetchJournalTimeline } from '@/services/realApi';
+import { fetchJournalRollups, fetchJournalTimeline } from '@/services/realApi';
 import { useUserSlice } from '@/store/slices';
 import { toShareRouteParams } from '@/services/journalShareContext';
 import { prepareJournalShare } from '@/services/journalShareWindow';
-import { parseHistoryStartAt } from '@/config/hydroStateHistoryEpoch';
+import { hasHydroStateObservation, isEmptyWindow, observedRows } from '@/utils/scoring/boundarySeries';
 import { publishJournalShare } from '@/services/journalShareCache';
 import type { JournalRollup, JournalSnapshot, JournalTimelineEntry } from '@/types';
 import { Colors } from '@/theme/colors';
+
+/** Honest-data glyph: a reading nobody took (the app-wide convention). */
+const EM_DASH = '—';
+/** The PDF's own "no reading" cell — same claim, plain-text for print. */
+const NO_READING = '&mdash;';
 
 export default function JournalScreen() {
   const { t } = useTranslation();
@@ -60,9 +65,6 @@ export default function JournalScreen() {
   const [range, setRange] = useState<JournalRange>(7);
   const [timeline, setTimeline] = useState<JournalTimelineEntry[]>([]);
   const [rollups, setRollups] = useState<JournalRollup[]>([]);
-  // The member's HydroState history stamp, straight off the wire. Only the
-  // share seam reads it; null is normal for a state row predating the column.
-  const [historyStartAt, setHistoryStartAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
@@ -83,13 +85,15 @@ export default function JournalScreen() {
     try {
       const [tl, rl] = await Promise.all([
         fetchJournalTimeline(r),
-        fetchJournalRollupsWithHistory(r),
+        fetchJournalRollups(r),
       ]);
       setTimeline(tl);
-      // The SPARSE array, unchanged, is what every other consumer on this
-      // screen keeps receiving. Only the share seam below densifies.
-      setRollups(rl.rollups);
-      setHistoryStartAt(rl.historyStartAt);
+      // Already the DENSE effective window — one row per calendar day of the
+      // member's eligible range, with the epoch/history floor applied
+      // server-side. Every consumer on this screen reads it through the
+      // observation seam (`observedRows`) rather than assuming a row means a
+      // measurement.
+      setRollups(rl);
     } catch (err) {
       console.warn('[Journal] load failed', err);
       setError(t('journal.load_failed'));
@@ -117,13 +121,20 @@ export default function JournalScreen() {
   // compute it here from the rollups (rather than reading
   // `weeklyCompliancePct` from `deriveProtocol`) so the metric stays in
   // sync with whatever range the user has selected (7 / 30 / 90 days).
-  const weeklyCompliancePct = useMemo(() => {
-    if (rollups.length === 0) return 0;
-    const compliantDays = rollups.filter(
-      (r) => r.snapshotsCount > 0 && r.avgScore >= 65,
-    ).length;
-    return Math.round((compliantDays / rollups.length) * 100);
-  }, [rollups]);
+  // BOTH SIDES OF THE RATIO ARE OBSERVED DAYS — see the same correction in
+  // `hooks/useWeeklyCompliance.ts`. On the dense wire `rollups.length` is the
+  // width of the eligible window, so dividing by it counted a day HydroState
+  // never observed as a day the member failed.
+  const observed = useMemo(() => observedRows(rollups), [rollups]);
+  // NULL, not 0 — identical to `computeWeeklyCompliancePct`, which this PR
+  // migrated for exactly this reason: "0% consistent" is a claim about the
+  // member, and a window with nothing measured cannot support it. These two
+  // compute the same thing and must never disagree about honesty.
+  const weeklyCompliancePct = useMemo<number | null>(() => {
+    if (observed.length === 0) return null;
+    const compliantDays = observed.filter((r) => r.avgScore >= 65).length;
+    return Math.round((compliantDays / observed.length) * 100);
+  }, [observed]);
 
   const complianceStreak = userState.complianceStreak ?? 0;
 
@@ -147,18 +158,14 @@ export default function JournalScreen() {
     // payload to the in-memory share cache so the Recap format on the
     // share screen can render the actual chart + day-by-day stats
     // (URL params can only carry the small summary headline).
-    // ONE call builds the dense effective window and derives the payload FROM
-    // that same window, so the card and the post cannot disagree. Densifying
-    // here — and only here — leaves every other consumer of `rollups` on the
-    // unchanged sparse contract (founder ruling, Option B).
-    const { window, context } = prepareJournalShare(rollups, {
-      rangeDays: range,
-      historyStartAt: parseHistoryStartAt(historyStartAt),
-      now: new Date(),
-    });
+    // ONE call produces the window and derives the payload FROM that same
+    // window, so the card and the post cannot disagree. The window arrives
+    // already dense from the route — every consumer gets the same effective
+    // range now, so nothing is re-derived here.
+    const { window, context } = prepareJournalShare(rollups, { rangeDays: range });
     publishJournalShare(window, range);
     router.push({ pathname: '/share', params: toShareRouteParams(context) });
-  }, [rollups, range, historyStartAt, router]);
+  }, [rollups, range, router]);
 
   const onExport = useCallback(async () => {
     if (exporting) return;
@@ -255,7 +262,7 @@ export default function JournalScreen() {
             derived data alongside the empty-state copy — per the
             "performance OS, not an e-commerce app" tone, the user
             either sees a complete timeline or sees the welcome line. */}
-        {error || (!loading && rollups.length === 0) ? (
+        {error || (!loading && isEmptyWindow(rollups)) ? (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyBody}>
               {t('journal.empty_state')}
@@ -263,7 +270,7 @@ export default function JournalScreen() {
           </View>
         ) : (
           <>
-            {!loading && rollups.length > 0 && (
+            {!loading && (
               <>
                 {/* Section 1 — pulsing streak hero */}
                 <StreakHero streakDays={complianceStreak} />
@@ -273,20 +280,25 @@ export default function JournalScreen() {
                   kpis={[
                     {
                       label: 'Avg score',
-                      value: String(
-                        rollups.length > 0
-                          ? Math.round(
-                              rollups.reduce((a, r) => a + r.avgScore, 0) /
-                                rollups.length,
+                      // OBSERVED days only, on both sides. Averaging the dense
+                      // window's unobserved rows folds the server's sentinel
+                      // zero into the member's headline score — the one number
+                      // on this screen with no guard on it at all before.
+                      value:
+                        observed.length > 0
+                          ? String(
+                              Math.round(
+                                observed.reduce((a, r) => a + r.avgScore, 0) /
+                                  observed.length,
+                              ),
                             )
-                          : 0,
-                      ),
+                          : EM_DASH,
                       accent: Colors.states.PEAK.primary,
-                      delta: kpiTrend(rollups, 'avgScore'),
+                      delta: kpiTrend(observed, 'avgScore'),
                     },
                     {
                       label: 'Consistency',
-                      value: `${weeklyCompliancePct}%`,
+                      value: weeklyCompliancePct == null ? EM_DASH : `${weeklyCompliancePct}%`,
                       accent: Colors.states.BALANCED.primary,
                       delta: null,
                     },
@@ -320,7 +332,7 @@ export default function JournalScreen() {
               )}
             </View>
 
-            {!loading && rollups.length > 0 && (
+            {!loading && (
               <View style={{ marginTop: 16 }}>
                 <PerformanceSections
                   sections={sectionSummary}
@@ -346,15 +358,21 @@ export default function JournalScreen() {
  * Delta of a numeric rollup field, first-half avg vs second-half avg,
  * rounded to a whole number. Returns null when there's not enough data
  * to draw a meaningful trend (so the KPI card hides the chip).
+ *
+ * CALLERS MUST PASS OBSERVED ROWS ONLY. On the dense wire an unobserved day
+ * carries the server's sentinel `avgScore: 0`, and averaging it into either
+ * half manufactures a trend out of days nothing was measured — a member who
+ * simply stopped logging halfway through the window would be shown a steep
+ * decline they never had. The parameter is named for that requirement.
  */
 function kpiTrend(
-  rollups: JournalRollup[],
+  observedRollups: readonly JournalRollup[],
   field: 'avgScore',
 ): number | null {
-  if (rollups.length < 4) return null;
-  const mid = Math.floor(rollups.length / 2);
-  const firstHalf = rollups.slice(0, mid);
-  const secondHalf = rollups.slice(mid);
+  if (observedRollups.length < 4) return null;
+  const mid = Math.floor(observedRollups.length / 2);
+  const firstHalf = observedRollups.slice(0, mid);
+  const secondHalf = observedRollups.slice(mid);
   const fAvg = firstHalf.reduce((a, r) => a + r[field], 0) / firstHalf.length;
   const sAvg = secondHalf.reduce((a, r) => a + r[field], 0) / secondHalf.length;
   const d = Math.round(sAvg - fAvg);
@@ -375,21 +393,50 @@ function buildReportHtml(
   const minScore = totalSnaps > 0 ? Math.min(...snapshots.map((s) => s.score)) : 0;
   const maxScore = totalSnaps > 0 ? Math.max(...snapshots.map((s) => s.score)) : 0;
   const totalIntakes = rollups.reduce((acc, r) => acc + r.intakeCount, 0);
-  const totalAforce = rollups.length > 0 ? rollups[rollups.length - 1].endAforceUnits : 0;
+  // The last row with a real observation, not merely the last row — on the
+  // dense wire the window always ends at today, so a member who has not
+  // synced today would otherwise export a units total of 0.
+  const observedForReport = observedRows(rollups);
+  const totalAforce =
+    observedForReport.length > 0
+      ? observedForReport[observedForReport.length - 1]!.endAforceUnits
+      : 0;
 
-  const dailyRows = [...rollups].reverse().map((r) => `
-    <tr>
-      <td>${escapeHtml(r.date)}</td>
+  // An unobserved day still gets a ROW — this is a daily log, and silently
+  // dropping days would misrepresent the window — but its score columns read
+  // as "no reading" rather than as a measured 0/0/0. This document leaves the
+  // app, so a fabricated zero here is a claim the member cannot take back.
+  const dailyRows = [...rollups].reverse().map((r) => {
+    const measured = hasHydroStateObservation(r);
+    // EVERY `end*` FIELD IS SNAPSHOT-DERIVED. They are assigned only inside
+    // the aggregation's snapshot loop, so on a day with no snapshot they are
+    // all the sentinel 0 — including for a member who logged three intakes and
+    // genuinely drank. Gating only the score columns left this row printing
+    // "0 oz consumed / 0 mg sodium lost" beside "3 intakes": a physiological
+    // claim about a day nothing was measured, in a document that leaves the
+    // app. `intakeCount` is the one column sourced from the intake table
+    // rather than a snapshot, so it alone prints its real value.
+    const cell = (v: string) => (measured ? v : `<span class="nr">${NO_READING}</span>`);
+    const scoreCells = measured
+      ? `
       <td style="text-align:right">${r.avgScore}</td>
       <td style="text-align:right">${r.minScore}</td>
-      <td style="text-align:right">${r.maxScore}</td>
-      <td style="text-align:right">${r.endOzConsumed.toFixed(0)}</td>
-      <td style="text-align:right">${r.endAforceUnits}</td>
+      <td style="text-align:right">${r.maxScore}</td>`
+      : `
+      <td style="text-align:right" class="nr">${NO_READING}</td>
+      <td style="text-align:right" class="nr">${NO_READING}</td>
+      <td style="text-align:right" class="nr">${NO_READING}</td>`;
+    return `
+    <tr>
+      <td>${escapeHtml(r.date)}</td>${scoreCells}
+      <td style="text-align:right">${cell(r.endOzConsumed.toFixed(0))}</td>
+      <td style="text-align:right">${cell(String(r.endAforceUnits))}</td>
       <td style="text-align:right">${r.intakeCount}</td>
-      <td style="text-align:right">${r.endSodiumDelivered.toFixed(0)}</td>
-      <td style="text-align:right">${r.endSodiumLost.toFixed(0)}</td>
-      <td style="text-align:right">${r.endDeficitPct.toFixed(1)}%</td>
-    </tr>`).join('');
+      <td style="text-align:right">${cell(r.endSodiumDelivered.toFixed(0))}</td>
+      <td style="text-align:right">${cell(r.endSodiumLost.toFixed(0))}</td>
+      <td style="text-align:right">${measured ? `${r.endDeficitPct.toFixed(1)}%` : NO_READING}</td>
+    </tr>`;
+  }).join('');
 
   return `<!doctype html>
 <html><head><meta charset="utf-8" />
@@ -406,7 +453,10 @@ function buildReportHtml(
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; }
   th { background: #f7f7f7; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: #555; }
-  .footer { color: #999; font-size: 10px; margin-top: 22px; }
+  /* The PDF is a standalone document and cannot use af.* tokens; .nr shares
+     the footer grey rather than introducing another literal. */
+  .footer, .nr { color: #999; }
+  .footer { font-size: 10px; margin-top: 22px; }
 </style>
 </head>
 <body>

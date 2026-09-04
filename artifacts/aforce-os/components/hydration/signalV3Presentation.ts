@@ -17,6 +17,7 @@ import type { JournalRollup, PerformanceLevel } from '@/types';
 /** Honest-data glyph for a reading nobody took (Home/Protocol convention). */
 export const EM_DASH = '—';
 import { resolveHomePresentation } from '@/components/home/homePresentation';
+import { observedRows } from '@/utils/scoring/boundarySeries';
 import {
   PARTIAL_MIN_RATIO,
   RICH_MIN_RATIO,
@@ -81,7 +82,14 @@ export interface SignalDayView {
  * component passes its own clock; keeps this module deterministic).
  */
 export function buildDayViews(rollups: readonly JournalRollup[], todayIso: string): SignalDayView[] {
-  const sorted = [...rollups].sort((a, b) => (a.date < b.date ? 1 : -1));
+  // OBSERVED DAYS ONLY. This list is a set of readings — each row renders a
+  // score, a band pill and a band-tinted accent, all of which are claims that
+  // a measurement exists. On the dense wire an unobserved day is present and
+  // carries the server's sentinel `avgScore: 0`, which would render as a real
+  // DEPLETED day the member never had. Unlike the weekly timeline (a calendar,
+  // where the column must stay), this list has no calendar obligation: a day
+  // with no reading simply has no row.
+  const sorted = [...observedRows(rollups)].sort((a, b) => (a.date < b.date ? 1 : -1));
   const yesterdayIso = shiftIsoDay(todayIso, -1);
   return sorted.map((r) => {
     const score = Math.round(r.avgScore);
@@ -112,10 +120,15 @@ export function buildDayViews(rollups: readonly JournalRollup[], todayIso: strin
  * `completenessChip` / `ConfidenceChip` instead of a bespoke confidence widget.
  *
  * No new metric and no new thresholds: the cuts are §55's own RICH_MIN_RATIO /
- * PARTIAL_MIN_RATIO, applied to days-with-a-rollup instead of profile fields
- * (rollups omit days with no data, so `daysTracked` IS the coverage fact). This
- * reports COVERAGE — how much evidence is behind the average — and never grades
- * the score itself.
+ * PARTIAL_MIN_RATIO. This reports COVERAGE — how much evidence is behind the
+ * average — and never grades the score itself.
+ *
+ * `daysTracked` MUST be a count of OBSERVED days. It used to be justified by
+ * "rollups omit days with no data, so daysTracked IS the coverage fact" — true
+ * of the old sparse wire, false now. On the dense wire the row count equals the
+ * window width, which would pin this chip to `rich` permanently: a member with
+ * one reading in seven days would be told their evidence was rich. Callers pass
+ * `observedCount(rollups)`.
  */
 export function historyCompletenessLevel(
   daysTracked: number,

@@ -104,7 +104,14 @@ describe("historyStartAt — the immutable per-member history stamp", () => {
   const WRITE_WINDOW = 1000;
   function findHistoryStartAtWrites(text: string): number[] {
     const hits: number[] = [];
-    for (const call of text.matchAll(/\.(?:set|values)\(/g)) {
+    // AN EMPTY CALL IS NEVER A WRITE. Drizzle's `.set(...)` / `.values(...)`
+    // always take an argument, while `Map.prototype.values()` takes none — and
+    // the rollups aggregation now does `measured.values()` a few lines above
+    // its legitimate `historyStartAt:` RESPONSE field, which tripped this scan
+    // as a phantom writer. The lookahead only excludes zero-argument calls, so
+    // it cannot hide a real write: `.set({...})`, `.set(patch)`, `.values(rows)`
+    // all still match.
+    for (const call of text.matchAll(/\.(?:set|values)\(\s*(?!\))/g)) {
       const start = call.index! + call[0].length;
       const window = text.slice(start, start + WRITE_WINDOW);
       const m = /historyStartAt\s*:/.exec(window);
@@ -159,6 +166,10 @@ describe("historyStartAt — the immutable per-member history stamp", () => {
         "// A read must NOT trip the scan.",
         "db.select({ historyStartAt: aforceUserState.historyStartAt }).from(aforceUserState);",
         "res.json({ historyStartAt: row.historyStartAt });",
+        "// Nor must an ARGUMENT-LESS .values() standing near a read — this is",
+        "// the rollups aggregation's shape, and it is a Map iteration.",
+        "const rows = Array.from(measured.values());",
+        "return { rows, historyStartAt: stamp?.toISOString() ?? null };",
         "// A write MUST trip the scan.",
         "db.update(aforceUserState).set({ historyStartAt: new Date() });",
         "",
@@ -175,6 +186,20 @@ describe("historyStartAt — the immutable per-member history stamp", () => {
     } finally {
       unlinkSync(scratch);
     }
+  });
+
+  it("mutation-verify: the empty-call refinement still catches a VARIABLE write", () => {
+    // The refinement above must exclude ONLY zero-argument calls. A Drizzle
+    // write that passes a variable rather than an object literal — the shape
+    // that would slip past a naive `.set({` matcher — must still be flagged,
+    // or the loosening would have opened the hole it was meant to avoid.
+    const write = "db.update(aforceUserState).set(patchWith({ historyStartAt: d }));";
+    expect(findHistoryStartAtWrites(write).length, "a variable-argument write is caught").toBe(1);
+    const values = "db.insert(aforceUserState).values(buildRow({ historyStartAt: d }));";
+    expect(findHistoryStartAtWrites(values).length, "so is .values(expr)").toBe(1);
+    // ...while the Map read that caused the false positive stays silent.
+    const read = "const out = Array.from(m.values()); return { historyStartAt: s };";
+    expect(findHistoryStartAtWrites(read), "an argument-less .values() is not a write").toEqual([]);
   });
 
   it("updateUserState cannot express a patch that moves it", () => {

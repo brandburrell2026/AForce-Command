@@ -111,7 +111,18 @@ describe('protocol data truth (Wave-2 PR4)', () => {
     expect(computeWeeklyCompliancePct([day(80), day(70), day(50)])).toBe(67);
     expect(computeWeeklyCompliancePct([day(64.9)])).toBe(0);
     expect(computeWeeklyCompliancePct([day(65)])).toBe(100);
-    // a day with zero snapshots never counts as compliant
-    expect(computeWeeklyCompliancePct([day(90, 0)])).toBe(0);
+
+    // A day with zero snapshots is not a failed day — it is a day we cannot
+    // speak about, so it leaves BOTH sides of the ratio. This used to assert
+    // `0`, i.e. "you were 0% consistent", about a window containing nothing
+    // but an unobserved day; `null` is the same claim this file's header
+    // already demands for an empty window ("the claim must not be made at
+    // all rather than rendered as 0%").
+    expect(computeWeeklyCompliancePct([day(90, 0)])).toBeNull();
+    // ...and an unobserved day never dilutes a real one: one observed
+    // compliant day beside two unobserved days is still 100%, not 33%.
+    expect(computeWeeklyCompliancePct([day(90), day(90, 0), day(90, 0)])).toBe(100);
+    // It also cannot mask a real failure — the observed day still governs.
+    expect(computeWeeklyCompliancePct([day(50), day(90, 0)])).toBe(0);
   });
 });
