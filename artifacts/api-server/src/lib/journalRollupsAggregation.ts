@@ -153,7 +153,44 @@ interface DayAcc {
 export function buildJournalRollupsResponse(
   input: BuildJournalRollupsInput,
 ): BuildJournalRollupsResult {
-  const { snapshots, intakes, correctionRows, historyStartAt, days, dense, now } = input;
+  const { snapshots: allSnapshots, intakes: allIntakes, correctionRows, historyStartAt, days, dense, now } = input;
+
+  /* ── THE DENSE POPULATION IS THE ELIGIBLE CALENDAR WINDOW ────────────────
+   *
+   * The SQL cutoff and the dense window do not agree, and cannot: the route
+   * fetches from an INSTANT (`now - days*24h`) while the dense window is
+   * `days` CALENDAR days ending today, floored by `historyStartAt`/the epoch.
+   * At any time of day past 00:00 UTC the fetch therefore reaches further back
+   * than the window does, and a member's own `historyStartAt` can exclude more.
+   *
+   * `densifyRollups` already drops an out-of-window DAY, so its score, min,
+   * max, streak participation and share context were never at risk. Band time
+   * was: `attributeInterval` splits an interval at UTC midnight, so a snapshot
+   * captured at 23:30 on the day BEFORE the window opens spilled its
+   * carry-forward onto the window's first day — giving a day with
+   * `snapshotsCount: 0` a full-height `pctTime*` bar sourced from a
+   * measurement the window excludes.
+   *
+   * Filtering the population here rather than dropping days at the end makes
+   * every field of every dense row derive only from in-window measurements, by
+   * construction instead of by a later step happening to discard the row.
+   *
+   * SPARSE IS UNTOUCHED and keeps every fetched row — it has never had a
+   * window, and the legacy wire is frozen (founder ruling R3).
+   */
+  const rangeKeys = dense
+    ? effectiveRangeKeys({ now, days, historyStartAt } satisfies EffectiveRangeInput)
+    : null;
+  const inWindow = (d: Date): boolean => rangeKeys == null || rangeKeys.includes(dayKey(d));
+  const snapshots = rangeKeys == null ? allSnapshots : allSnapshots.filter((x) => inWindow(x.capturedAt));
+  // The snapshot filter above is LOAD-BEARING (band time crosses midnight).
+  // This one is DEFENCE IN DEPTH and has no observable effect today: an intake
+  // only ever bumps its own day's `intakeCount`, and `densifyRollups` drops
+  // that day anyway — mutating this line away is undetectable, and the honest
+  // record is that it is kept for uniformity, not because a law holds it. It
+  // means "the dense population is the window" is true of the INPUT rather
+  // than a property that happens to fall out of a later step.
+  const intakes = rangeKeys == null ? allIntakes : allIntakes.filter((x) => inWindow(x.loggedAt));
 
   const acc = new Map<string, DayAcc>();
   function ensure(date: string): DayAcc {
@@ -314,8 +351,8 @@ export function buildJournalRollupsResponse(
    * to THIS branch only — they describe a window, and the sparse contract has
    * never had one.
    */
-  const rollups = dense
-    ? densifyRollups(measured, effectiveRangeKeys({ now, days, historyStartAt } satisfies EffectiveRangeInput))
+  const rollups = rangeKeys != null
+    ? densifyRollups(measured, rangeKeys)
     : Array.from(measured.values()).sort((a, b) => a.date.localeCompare(b.date));
 
   return {

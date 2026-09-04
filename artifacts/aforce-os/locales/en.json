@@ -92,10 +92,12 @@
     "day_card_band_time": "Time per band",
     "tap_to_expand": "Tap for details",
     "no_snapshots": "No snapshots this day",
-    "load_failed": "Your performance timeline begins after your first check.",
+    "load_failed": "We couldn't load your journal just now. Your history is safe.",
     "share_failed": "Couldn't generate PDF",
     "shared": "Report ready",
-    "share_social": "Share"
+    "share_social": "Share",
+    "rollups_unavailable": "Daily history is unavailable right now. Nothing has been lost.",
+    "timeline_unavailable": "The trend chart is unavailable right now."
   },
   "home": {
     "welcome": "Welcome, {{name}}",

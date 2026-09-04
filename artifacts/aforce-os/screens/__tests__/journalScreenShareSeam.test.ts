@@ -44,17 +44,28 @@ describe('JournalScreen — onShareJournal routes through the seam, not the old 
   });
 
   it('the load effect stores the DENSE window the route returns', () => {
-    expect(CODE).toMatch(
-      /const\s*\[tl,\s*rl\]\s*=\s*await\s*Promise\.all\(\[\s*fetchJournalTimeline\(r\),\s*fetchJournalRollups\(r\),\s*\]\);/,
-    );
-    expect(CODE).toMatch(/setRollups\(rl\);/);
+    // R1 REPLACED `Promise.all` HERE, DELIBERATELY. That construct rejects on
+    // the first rejection, so a failed rollups read discarded an already-
+    // fetched timeline — and with the dense hard-fail that became the
+    // every-load case against a server without the capability. The two reads
+    // now settle independently; what this law still holds is that the rollups
+    // result is stored as the screen's window, unmodified.
+    expect(CODE).toMatch(/await Promise\.allSettled\(\[\s*\n\s*fetchJournalTimeline\(r\),/);
+    expect(CODE).toMatch(/const settled = settleJournalLoad\(tlResult, rlResult\);/);
+    expect(CODE).toMatch(/setRollups\(settled\.rollups\);/);
+    // Nothing may reinterpret or backfill the window on the way in.
+    expect(CODE).not.toMatch(/setRollups\(\[\]/);
+    expect(CODE).not.toMatch(/densif/i);
   });
 
   it('every score-derived number on the screen reads OBSERVED days, not the row count', () => {
     // The dense wire makes `rollups.length` the window width. These four were
     // the screen's own readers of it, and each would otherwise fold the
     // server's sentinel zeros into a member-facing number.
-    expect(CODE).toMatch(/const observed = useMemo\(\(\) => observedRows\(rollups\), \[rollups\]\);/);
+    // Null-guarded since R1: `rollups` is now `null` when that read FAILED,
+    // which must not be confused with an empty window. The population is
+    // still `observedRows` and nothing else.
+    expect(CODE).toMatch(/const observed = useMemo\(\(\) => \(rollups == null \? \[\] : observedRows\(rollups\)\), \[rollups\]\);/);
     // Compliance: both sides of the ratio, and it WITHHOLDS rather than
     // fabricating 0% — the same honesty its sibling hook was migrated to.
     // This assertion previously pinned `return 0;`, locking in a defect the
@@ -77,7 +88,12 @@ describe('JournalScreen — onShareJournal routes through the seam, not the old 
     // essentially never zero, so the welcome line became unreachable and a
     // member with no history was shown a full dashboard built from the
     // server's sentinel zeros.
-    expect(CODE).toMatch(/error \|\| \(!loading && isEmptyWindow\(rollups\)\)/);
+    // R1 split this into THREE states, because collapsing them was itself a
+    // conflation: `error` (both reads failed) is not the same claim as an
+    // EMPTY WINDOW (a fact about the member). The empty-window gate still asks
+    // what happened rather than how wide the window is.
+    expect(CODE).toMatch(/!loading && rollups != null && isEmptyWindow\(rollups\)/);
+    expect(CODE).toMatch(/\{error \? \(/);
     // ...and no gate anywhere on this screen reads the row count as content.
     expect(CODE).not.toMatch(/rollups\.length === 0/);
     expect(CODE).not.toMatch(/rollups\.length > 0/);
