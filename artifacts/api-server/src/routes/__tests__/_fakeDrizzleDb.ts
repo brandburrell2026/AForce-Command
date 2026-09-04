@@ -114,7 +114,8 @@ export function renderWhere(where: SQL | undefined): {
 }
 
 export interface Harness {
-  get(path: string): Promise<{ status: number; json: unknown }>;
+  /** `headers` is optional and additive — existing callers are unaffected. */
+  get(path: string, headers?: Record<string, string>): Promise<{ status: number; json: unknown }>;
   close(): Promise<void>;
 }
 
@@ -139,8 +140,8 @@ export async function serveRouter(
   const baseUrl = `http://127.0.0.1:${addr.port}`;
 
   return {
-    async get(path) {
-      const res = await fetch(`${baseUrl}${path}`);
+    async get(path, headers) {
+      const res = await fetch(`${baseUrl}${path}`, headers ? { headers } : undefined);
       const json = await res.json().catch(() => ({}));
       return { status: res.status, json };
     },
