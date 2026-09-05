@@ -65,6 +65,15 @@ export function EditorialProtocolScreen() {
   const { t } = useTranslation();
   const { state } = useAppStore();
   const { engineOutput, userState, history } = state;
+  // TRUTH FILTER (P2). The store seeds ONE synthetic baseline entry on first
+  // mount (store/useAppStore.tsx, buildSyntheticBaselineEntry) carrying a
+  // MANUFACTURED yesterday timestamp and the cold-start engine score. It is
+  // flagged `isSynthetic: true` precisely so surfaces can exclude it, and
+  // Home already does (homeBaselineState.countRealHistoryEntries). This list
+  // did not, so a member who had logged nothing saw a fabricated reading
+  // under the heading "Recent activity" — an invented observation presented
+  // as their own. Legitimate observed history is untouched.
+  const observedHistory = history.filter((h) => h.isSynthetic !== true);
   const { lastRefreshStale } = useBootstrapSlice();
   const [whyOpen, setWhyOpen] = React.useState(false);
   const tabClearance = useTabBarClearance();
@@ -224,10 +233,10 @@ export function EditorialProtocolScreen() {
               header records the standing founder ruling ("relocate, never
               delete"); the E4 review caught this surface dropping it. Same
               slice, same five entries, same fields. */}
-          {history.length > 0 ? (
+          {observedHistory.length > 0 ? (
             <View style={styles.section} testID="editorial-protocol-history">
               <EdCaption text={t('protocol.v2.recent_activity')} />
-              {history.slice(0, 5).map((entry) => (
+              {observedHistory.slice(0, 5).map((entry) => (
                 <View key={entry.id}>
                   <EdRule />
                   <View

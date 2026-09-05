@@ -70,7 +70,7 @@ import { useUserSlice } from '@/store/slices';
 import { ledgerToPerformanceAgeSnapshots } from '@/utils/intelligence/commandEventAdapters';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
 import { PERFORMANCE_AGE_DISCLAIMER } from '@/utils/performanceAge';
-import { getWeeklyReportSection } from '@/utils/weeklyReport';
+import { lastCompletedWeek, getWeeklyReportSection } from '@/utils/weeklyReport';
 import { sectionSummary } from '@/components/insights/weeklyReportCopy';
 import {
   buildWeeklyV3Model,
@@ -121,18 +121,38 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
       let rollupsFailed = false;
       const [snapshot, rollups] = await Promise.all([
         getAnalyticsSnapshot().catch(() => null),
-        fetchJournalRollups(7).catch(() => {
+        // WINDOW TRUTH (P2). The masthead states the LAST COMPLETED week
+        // (buildWeeklyV3Model derives model.week via lastCompletedWeek), but
+        // this fetched the trailing 7 days ENDING TODAY — so on any day but
+        // Sunday the period furniture and the pull numbers beneath it
+        // described different populations. Days-tracked and hydration-days
+        // were computed over a window the masthead never named.
+        //
+        // Fetching 14 days guarantees the stated week is fully covered (its
+        // start is at most 13 days back), and the filter below narrows the
+        // population to exactly the period the masthead claims. No HydroState
+        // calculation changes — this selects WHICH observed days are counted,
+        // and unobserved days stay unobserved.
+        fetchJournalRollups(14).catch(() => {
           rollupsFailed = true;
           return [] as never[];
         }),
       ]);
       if (cancelled) return;
       setRollupsUnavailable(rollupsFailed);
+      // Narrow to the period the masthead names. `date` is YYYY-MM-DD, which
+      // sorts lexicographically, so string comparison IS chronological here.
+      const week = lastCompletedWeek(nowISO);
+      const weekStartDay = week.weekStartISO.slice(0, 10);
+      const weekEndDay = week.weekEndISO.slice(0, 10);
+      const periodRollups = rollups.filter(
+        (r) => r.date >= weekStartDay && r.date <= weekEndDay,
+      );
       setModel(
         buildWeeklyV3Model({
           nowISO,
           analyticsEvents: snapshot?.events ?? [],
-          rollups,
+          rollups: periodRollups,
           paSnapshots: ledgerToPerformanceAgeSnapshots(getCommandLedgerState().events),
           paResult: pa.result,
           complianceStreak,

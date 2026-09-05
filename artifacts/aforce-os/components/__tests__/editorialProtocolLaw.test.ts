@@ -121,7 +121,7 @@ describe('PARITY — no V2 behaviour is stranded (the E3 P0 class)', () => {
 
   it('the relocated command history survives (founder ruling: relocate, never delete)', () => {
     const s = screen();
-    expect(s).toMatch(/history\.slice\(0, 5\)/);
+    expect(s).toMatch(/observedHistory\.slice\(0, 5\)/);
     expect(s).toMatch(/formatTimeAgo/);
     expect(s).toMatch(/protocol\.v2\.recent_activity/);
   });

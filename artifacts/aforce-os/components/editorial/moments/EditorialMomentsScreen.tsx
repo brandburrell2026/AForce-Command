@@ -129,7 +129,9 @@ export function EditorialMomentsScreen({
               {/* The day announced, not listed. */}
               <View style={styles.statementWrap}>
                 <EdStatement style={styles.statement} accessibilityRole="header">
-                  {t('moments.overview_summary', { total: summary.total })}
+                  {/* `count` is what i18next pluralizes on; `total` stays for the
+                      interpolation. Without count it printed "1 moments". */}
+                  {t('moments.overview_summary', { count: summary.total, total: summary.total })}
                 </EdStatement>
                 <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 6 }]}>
                   {t('moments.overview_summary_prep', { n: summary.prepWorthy })}

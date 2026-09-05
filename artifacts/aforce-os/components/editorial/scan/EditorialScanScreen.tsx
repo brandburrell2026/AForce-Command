@@ -58,11 +58,16 @@ import {
 import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 
+import { useRouter } from 'expo-router';
+
+import { af } from '@/theme';
 import { AFScreen } from '@/components/ui';
+import { AddDrinkModal } from '@/components/AddDrinkModal';
 import { CameraScanModal } from '@/components/CameraScanModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
 import { PRODUCTS } from '@/data/products';
+import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -100,6 +105,14 @@ export function EditorialScanScreen() {
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [scanning, setScanning] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  // PARITY (not new capability): both of these exist on the production Scan
+  // surface. Activating `editorial_scan_enabled` swaps this screen in for
+  // HydrationScanScreenV2, which holds the app's ONLY navigation to
+  // /urine-check and its ONLY mount of AddDrinkModal — so without them here,
+  // turning the flag on deletes the Urine Hydration Check and manual drink
+  // logging from the whole app.
+  const [addDrinkOpen, setAddDrinkOpen] = useState(false);
+  const router = useRouter();
   const postScanMut = usePostScan();
 
   // ── RP-6 (ruling R4) · the intake lifecycle ──────────────────────────
@@ -115,6 +128,28 @@ export function EditorialScanScreen() {
   const MAX_LOG_OZ = Math.min(64, DECISION_GUARD_MAX_DOSE_OZ);
   const [qtyOz, setQtyOz] = useState(0);
   const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
+
+  // Mirrors HydrationScanScreenV2's onConfirmDrink: same category lookup, same
+  // logIntake call, same overrides. Copied rather than reinvented so the two
+  // surfaces cannot drift into logging the same drink differently.
+  const onConfirmDrink = useCallback(async (args: {
+    categoryId: string;
+    name: string;
+    displayName: string;
+    enteredOz: number;
+    effectiveOz: number;
+    hydrationCoefficient: number;
+  }) => {
+    setAddDrinkOpen(false);
+    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
+    if (!cat) return;
+    await logIntake(cat.fluidType, {
+      source: 'scan',
+      ozOverride: args.effectiveOz,
+      displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
+      categoryId: args.categoryId,
+    });
+  }, [logIntake]);
   const [undone, setUndone] = useState(false);
   // One write on screen at a time — drives busy states AND freezes SCAN
   // AGAIN so a slow round-trip cannot race a rescan (see the epoch below).
@@ -343,6 +378,30 @@ export function EditorialScanScreen() {
                 The reader decodes the code on the pack. It does not read anything about you.
               </Text>
 
+              {/* OTHER WAYS — parity with the production screen's disclosure
+                  sheet. Presentation differs (a plain editorial row, not a
+                  sheet); the capabilities are identical. */}
+              <Pressable
+                onPress={() => setAddDrinkOpen(true)}
+                accessibilityRole="button"
+                accessibilityLabel={t('hydroScan2.v2.log_any_title')}
+                hitSlop={8}
+                style={styles.target}
+                testID="ed-scan-add-drink"
+              >
+                <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>ADD A DRINK MANUALLY</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/urine-check' as never)}
+                accessibilityRole="button"
+                accessibilityLabel={t('hydroScan2.v2.urine_check_title')}
+                hitSlop={8}
+                style={styles.target}
+                testID="ed-scan-urine-check"
+              >
+                <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>HYDRATION CHECK</Text>
+              </Pressable>
+
               {/* PREVIEW — dev/demo only, exactly as the production screen has
                   it. `PREVIEW_SCAN_ENABLED` folds to false in a release
                   bundle, so this is unreachable rather than merely hidden:
@@ -406,6 +465,21 @@ export function EditorialScanScreen() {
                 testID="ed-scan-retry"
               >
                 <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>TRY AGAIN</Text>
+              </Pressable>
+              {/* The service's failure copy says "Try manual search or rescan."
+                  AddDrinkModal IS that manual search (it has its own query
+                  field), so the sentence is only honest while this is
+                  reachable. Restoring the action rather than softening the
+                  copy keeps both Scan surfaces telling the truth. */}
+              <Pressable
+                onPress={() => { setOutcome(null); setAddDrinkOpen(true); }}
+                accessibilityRole="button"
+                accessibilityLabel={t('hydroScan2.v2.log_any_title')}
+                hitSlop={8}
+                style={styles.target}
+                testID="ed-scan-failure-add-drink"
+              >
+                <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>SEARCH MANUALLY</Text>
               </Pressable>
             </View>
           ) : null}
@@ -590,6 +664,13 @@ export function EditorialScanScreen() {
           </View>
         </Animated.View>
       </AFScreen>
+
+      <AddDrinkModal
+        visible={addDrinkOpen}
+        accentColor={af.green}
+        onCancel={() => setAddDrinkOpen(false)}
+        onConfirm={onConfirmDrink}
+      />
 
       <CameraScanModal
         visible={cameraOpen}
