@@ -15,15 +15,33 @@ import {
   applyInternalTestflightOverlay,
   resolveInitialFeatureFlags,
   INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+  RC2_OVERLAY_FLAGS,
+  EDITORIAL_PARTNER_OVERLAY_FLAGS,
 } from '../internalTestflightOverlay';
 
-const FIVE_FLAGS = [
+const RC2_FIVE = [
   'elite_motion_enabled',
   'elite_home_experience_enabled',
   'elite_weekly_report_enabled',
   'elite_voice_coach_enabled',
   'offline_intake_outbox_enabled',
 ] as const;
+
+/**
+ * The Editorial partner grant (founder ruling 2026-09-05). Held as its OWN
+ * list, mirroring the source, so each ruling stays separately traceable — and
+ * so adding a key to either set is a visible, reviewable diff here.
+ */
+const EDITORIAL_FIVE = [
+  'editorial_home_enabled',
+  'editorial_moments_enabled',
+  'editorial_protocol_enabled',
+  'editorial_weekly_enabled',
+  'editorial_scan_enabled',
+] as const;
+
+/** What the internal build actually flips: the union, in ruling order. */
+const ALL_TEN = [...RC2_FIVE, ...EDITORIAL_FIVE] as const;
 
 /** Every key that differs between two flag objects, sorted for a stable diff. */
 function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
@@ -38,12 +56,33 @@ function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
 }
 
 describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
-  it('is exactly the five ruling keys, in the ruling’s own order', () => {
-    expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...FIVE_FLAGS]);
+  it('is exactly the two rulings’ keys, each set intact, in ruling order', () => {
+    // Pinned as TWO sets plus their union, not one flat list: the module's
+    // contract is that each ruling stays founder-traceable, and a merged array
+    // would hide which ruling granted what.
+    expect([...RC2_OVERLAY_FLAGS]).toEqual([...RC2_FIVE]);
+    expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS]).toEqual([...EDITORIAL_FIVE]);
+    expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...ALL_TEN]);
+  });
+
+  it('THE SETS ARE DISJOINT — no key is granted twice or silently moved', () => {
+    const rc2 = new Set<string>(RC2_OVERLAY_FLAGS);
+    for (const key of EDITORIAL_PARTNER_OVERLAY_FLAGS) {
+      expect(rc2.has(key), `${key} appears in both rulings`).toBe(false);
+    }
+    expect(INTERNAL_TESTFLIGHT_OVERLAY_FLAGS.length)
+      .toBe(RC2_OVERLAY_FLAGS.length + EDITORIAL_PARTNER_OVERLAY_FLAGS.length);
+  });
+
+  it('THE CALENDAR GATE IS NOT IN THE OVERLAY — Legal/Privacy stays closed', () => {
+    // moments_calendar_enabled awaits Legal + Privacy sign-off. Granting the
+    // editorial Moments surface must never drag it along.
+    expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).not.toContain('moments_calendar_enabled');
+    expect(DEFAULT_FLAGS.moments_calendar_enabled).toBe(false);
   });
 
   it('every ruling key is OFF in DEFAULT_FLAGS today (nothing to no-op flip)', () => {
-    for (const key of FIVE_FLAGS) {
+    for (const key of ALL_TEN) {
       expect(DEFAULT_FLAGS[key]).toBe(false);
     }
   });
@@ -52,7 +91,7 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     // Founder decision NO-10 restricts flags like night_out_enabled from ANY
     // generic client-side unlock. This overlay is a distinct, build-time-only
     // mechanism — but it must never become a side-door around that restriction.
-    for (const key of FIVE_FLAGS) {
+    for (const key of ALL_TEN) {
       expect(INTERNAL_PREVIEW_RESTRICTED_FLAGS as readonly string[]).not.toContain(key);
     }
   });
@@ -87,8 +126,8 @@ describe('applyInternalTestflightOverlay — exactly five when on (internal Test
     const before = DEFAULT_FLAGS;
     const after = applyInternalTestflightOverlay(before, true);
 
-    expect(changedKeys(before, after)).toEqual([...FIVE_FLAGS].sort());
-    for (const key of FIVE_FLAGS) {
+    expect(changedKeys(before, after)).toEqual([...ALL_TEN].sort());
+    for (const key of ALL_TEN) {
       expect(after[key]).toBe(true);
     }
   });
@@ -105,13 +144,13 @@ describe('applyInternalTestflightOverlay — exactly five when on (internal Test
     const after = applyInternalTestflightOverlay(base, true);
     expect(after.sleep_mode_enabled).toBe(true);
     expect(after.city_competition_enabled).toBe(true);
-    expect(changedKeys(base, after)).toEqual([...FIVE_FLAGS].sort());
+    expect(changedKeys(base, after)).toEqual([...ALL_TEN].sort());
   });
 
   it('is idempotent: applying twice produces the same five-key diff as applying once', () => {
     const once = applyInternalTestflightOverlay(DEFAULT_FLAGS, true);
     const twice = applyInternalTestflightOverlay(once, true);
-    expect(changedKeys(DEFAULT_FLAGS, twice)).toEqual([...FIVE_FLAGS].sort());
+    expect(changedKeys(DEFAULT_FLAGS, twice)).toEqual([...ALL_TEN].sort());
   });
 
   it('does not touch DEMO_ALL_ON_FLAGS — this overlay only patches the value passed in as `base`', () => {
