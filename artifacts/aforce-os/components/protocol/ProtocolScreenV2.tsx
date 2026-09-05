@@ -63,6 +63,15 @@ export function ProtocolScreenV2() {
   const router = useRouter();
   const { state } = useAppStore();
   const { history, engineOutput, userState } = state;
+  // TRUTH FILTER (P2). The store seeds ONE synthetic baseline entry on first
+  // mount (store/useAppStore.tsx, buildSyntheticBaselineEntry) carrying a
+  // MANUFACTURED yesterday timestamp and the cold-start engine score. It is
+  // flagged `isSynthetic: true` precisely so surfaces can exclude it, and
+  // Home already does (homeBaselineState.countRealHistoryEntries). The legacy list
+  // did not either, so a member who had logged nothing saw a fabricated reading
+  // under the heading "Recent activity" — an invented observation presented
+  // as their own. Legitimate observed history is untouched.
+  const observedHistory = history.filter((h) => h.isSynthetic !== true);
   const [whyOpen, setWhyOpen] = React.useState(false);
   const tabClearance = useTabBarClearance();
 
@@ -336,11 +345,11 @@ export function ProtocolScreenV2() {
       )}
 
       {/* Relocated: command history (compact) */}
-      {history.length > 0 && (
+      {observedHistory.length > 0 && (
         <View style={styles.section}>
           <AFSectionLabel label={t('protocol.v2.recent_activity')} />
           <AFCard padded={false} style={styles.historyCard}>
-            {history.slice(0, 5).map((entry, i) => (
+            {observedHistory.slice(0, 5).map((entry, i) => (
               <View
                 key={entry.id}
                 style={[styles.historyRow, i > 0 && styles.historyDivider]}

@@ -344,9 +344,22 @@ describe('HYDRATION CREDIT — the explicit intake lifecycle (RP-6, ruling R4)',
   // Recognition still awards ZERO credit — the write exists only inside the
   // confirmation handler.
 
-  it('logIntake is called in EXACTLY ONE place: the confirmation handler', () => {
+  it('logIntake is called ONLY inside confirmation handlers — never on recognition', () => {
+    // REPINNED (P1 parity, 2026-09-05). Previously `.toBe(1)`. The screen now
+    // owns TWO member-confirmation paths, because activating
+    // `editorial_scan_enabled` otherwise deleted manual drink logging from the
+    // whole app — HydrationScanScreenV2 held the only AddDrinkModal mount.
+    // That is the SAME failure mode this law's own header records at E7 P0-4:
+    // an over-strict count removed a capability app-wide.
+    //
+    // The prohibition is unchanged and still enforced: RECOGNITION AWARDS NO
+    // CREDIT. Both writes sit behind an explicit member confirmation, and the
+    // sibling law 'recognition NEVER writes' pins the ok-branch of runScan.
     const src = screen();
-    expect((src.match(/logIntake\(/g) ?? []).length).toBe(1);
+    const calls = (src.match(/logIntake\(/g) ?? []).length;
+    expect(calls, 'every logIntake must live in a confirmation handler').toBe(2);
+    const manual = /const onConfirmDrink = [\s\S]*?\n  \}, \[logIntake\]\);/.exec(src)?.[0] ?? '';
+    expect(manual, 'the manual-logging confirmation handler must own its write').toMatch(/logIntake\(/);
     const handler = /const onConfirmLog = [\s\S]*?\n  };/.exec(src)?.[0] ?? '';
     expect(handler, 'the confirmation handler must exist and own the write').toMatch(/logIntake\(/);
     // The write carries the member-adjusted quantity, the PRODUCT fluid type

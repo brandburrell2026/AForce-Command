@@ -2479,7 +2479,7 @@
     },
     "im_ready": "I'M READY",
     "evidence": {
-      "summary_work": "You have a high-focus event coming up. Your hydration and recovery patterns suggest preparing early helps you perform at your best.",
+      "summary_work": "You have a high-focus event coming up. Preparing early is what usually helps people hold focus through one.",
       "summary_performance": "You have a performance moment coming up. Preparing early keeps you sharp when it counts.",
       "summary_training": "You have a physical session coming up. Starting hydration ahead of it supports your output.",
       "summary_travel": "Travel dehydrates. Hydrating before you depart keeps you ahead of it.",
@@ -2513,6 +2513,8 @@
     "overview_eyebrow": "AFORCE OS",
     "overview_title": "AFORCE MOMENTS",
     "overview_summary": "Today has {{total}} moments.",
+    "overview_summary_one": "Today has {{total}} moment.",
+    "overview_summary_other": "Today has {{total}} moments.",
     "overview_summary_prep": "{{n}} may benefit from preparation.",
     "up_next": "UP NEXT",
     "prepare_my_day": "PREPARE MY DAY",
