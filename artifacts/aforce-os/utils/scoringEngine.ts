@@ -39,6 +39,11 @@ import {
   generateCycleIdentityMessage,
   generateNextCycleHint,
 } from './scoring/copy';
+import {
+  type HydroEvidence,
+  EVIDENCE_OBSERVED,
+  isEvidenceUnknown,
+} from './scoring/hydroEvidence';
 
 // ─── Main Engine ──────────────────────────────────────────────────────────────
 //
@@ -46,7 +51,19 @@ import {
 // function of (state, now). It defaults to `Date.now()`, so every existing
 // caller is behaviourally identical; tests and the ledger-hybrid input
 // projection can pin a deterministic clock without forking the engine.
-export function calculateScore(userState: UserState, now: number = Date.now()): ScoreEngineOutput {
+export function calculateScore(
+  userState: UserState,
+  now: number = Date.now(),
+  // P0 evidence threading (founder narrow protected-file exception, 2026-09-04
+  // — the SECOND and only other authorized change in this file).
+  //
+  // Defaults to `observed`, so every existing caller is behaviourally
+  // IDENTICAL: measured zero still resolves DEPLETED, an observed hydrated
+  // member is untouched, and a genuinely depleted member keeps their command.
+  // Only a caller that can prove the member has never been observed passes
+  // `unknown`, and only that case changes.
+  evidence: HydroEvidence = EVIDENCE_OBSERVED,
+): ScoreEngineOutput {
   // HydroState v1.0 band resolution (founder narrow protected-file exception,
   // 2026-09-01 — this call is the ONLY authorized change in this file).
   //
@@ -62,23 +79,31 @@ export function calculateScore(userState: UserState, now: number = Date.now()): 
   const reasons = generateReasons(userState);
   const riskTimer = calculateRiskTimer(userState, level);
   const social = buildSocialRollup(userState, score);
-  const command = generateCommand(level, userState, score, social);
+  const command = generateCommand(level, userState, score, social, evidence);
   const prediction = buildPrediction(score, decayPerMinute);
 
   // Performance Command Engine overlay — fold context (heat / time-of-day),
   // pattern recognition (streak), and no-action consequence into the
   // existing explanation field so the AICommandCard renders the upgraded
   // intelligence without any UI changes.
-  const minutesSinceLast = minutesSince(userState.lastIntakeTime, now);
-  command.explanation = composeExplanation(
-    command.explanation,
-    userState,
-    score,
-    decayPerMinute,
-    level,
-    !!social && (social.active || social.inRecoveryWindow),
-    minutesSinceLast,
-  );
+  // The overlay folds heat, time-of-day, streak and no-action consequence into
+  // the explanation — all of it reasoning ABOUT a physiological reading. With
+  // no evidence there is no reading to reason about, so it would append
+  // state-derived copy ("It's late, and this window sets up your tomorrow.")
+  // onto the baseline command and re-create the defect one field over. The
+  // baseline explanation stands on its own.
+  if (!isEvidenceUnknown(evidence)) {
+    const minutesSinceLast = minutesSince(userState.lastIntakeTime, now);
+    command.explanation = composeExplanation(
+      command.explanation,
+      userState,
+      score,
+      decayPerMinute,
+      level,
+      !!social && (social.active || social.inRecoveryWindow),
+      minutesSinceLast,
+    );
+  }
 
   return { score, performanceState, pulseConfig, reasons, riskTimer, command, breakdown: contributions, prediction, social };
 }

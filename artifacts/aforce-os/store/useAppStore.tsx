@@ -47,6 +47,8 @@ import {
   flushPendingProfileSync,
 } from '../services/profileSyncService';
 import { resolveInitialUserState } from '../data/initialUserState';
+import { resolveHydroEvidence } from '../utils/scoring/hydroEvidence';
+import { countRealHistoryEntries } from '../components/home/homeBaselineState';
 import { DEFAULT_FLAGS, demoUnlockAllFlags } from '../featureFlags/flags';
 import { resolveInitialFeatureFlags } from '../featureFlags/internalTestflightOverlay';
 import { CAPTURE_MODE } from '../services/demoMode';
@@ -144,7 +146,19 @@ import { useAppStateGatedInterval } from '../hooks/useAppStateGatedInterval';
 // demo day (their entire data story is this seed — fetches 401 and echo
 // it back). See data/initialUserState.ts for the full contract.
 const initialUserState = resolveInitialUserState();
-const initialEngineOutput = _initialOnly(initialUserState);
+// P0: the command authority must know whether AForce has observed this
+// member. At module scope history has not hydrated (loggedDayCount null),
+// so a member with no persisted events is genuinely unestablished. Failing
+// toward `unknown` costs a returning member one neutral card for a tick;
+// failing toward `observed` would put an invented verdict on screen.
+const initialEngineOutput = _initialOnly(
+  initialUserState,
+  Date.now(),
+  resolveHydroEvidence({
+    intakeEventCount: initialUserState.intakeEvents?.length ?? 0,
+    loggedDayCount: null,
+  }),
+);
 
 const initialState: AppState = {
   userState: initialUserState,
@@ -430,6 +444,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     offlineOutboxEnabledRef.current = state.featureFlags.offline_intake_outbox_enabled;
   }, [state.featureFlags.offline_intake_outbox_enabled]);
 
+  // Mirrors state.history for the evidence resolver inside the callback
+  // below (same refs pattern the outbox guard uses).
+  const historyRef = useRef(state.history);
+  useEffect(() => { historyRef.current = state.history; }, [state.history]);
+
   const applyServerUserState = useCallback((
     newUserState: UserState,
     _engineOutput: ScoreEngineOutput,
@@ -456,7 +475,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     dispatch({
       type: 'SET_USER_STATE',
-      payload: { newUserState: merged, engineOutput: adaptEngineOutput(_initialOnly(merged)) },
+      payload: {
+        newUserState: merged,
+        // P0: real evidence — today's events plus REAL (non-synthetic)
+        // history. The synthetic baseline entry is filtered by
+        // countRealHistoryEntries, so seeding it can never manufacture
+        // evidence the member has not earned.
+        engineOutput: adaptEngineOutput(_initialOnly(merged, Date.now(), resolveHydroEvidence({
+          intakeEventCount: merged.intakeEvents?.length ?? 0,
+          loggedDayCount: countRealHistoryEntries(historyRef.current),
+        }))),
+      },
     });
   }, [adaptEngineOutput]);
 

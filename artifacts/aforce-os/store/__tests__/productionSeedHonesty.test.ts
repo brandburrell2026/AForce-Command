@@ -115,7 +115,12 @@ describe('the store and realApi seed through the resolver (source locks)', () =>
   it('useAppStore seeds userState + the cold-start projection from resolveInitialUserState', () => {
     const src = readFileSync(join(AOS_ROOT, 'store', 'useAppStore.tsx'), 'utf8');
     expect(src).toMatch(/const initialUserState = resolveInitialUserState\(\)/);
-    expect(src).toMatch(/_initialOnly\(initialUserState\)/);
+    // Anchored on the FIRST ARGUMENT, not on the whole call text. The P0
+    // evidence repair passes `now` and a `HydroEvidence` tag alongside it, so
+    // the call is no longer a single line — but this lock's prohibition is
+    // unchanged and still enforced: the cold-start projection must be built
+    // from the honest resolver's state and nothing else.
+    expect(src).toMatch(/_initialOnly\(\s*initialUserState\b/);
     expect(src).toMatch(/userState: initialUserState,/);
     // The demo-tuned seed must never be the unconditional store seed again.
     expect(src).not.toContain('defaultUserState');
