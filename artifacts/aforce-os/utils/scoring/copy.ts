@@ -11,6 +11,11 @@ import type {
 import { Colors } from '../../theme/colors';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import i18n from '../../services/i18nService';
+import {
+  type HydroEvidence,
+  EVIDENCE_OBSERVED,
+  isEvidenceUnknown,
+} from './hydroEvidence';
 import { minutesSince } from './breakdown';
 import {
   deriveCommandConfidence,
@@ -369,7 +374,52 @@ export function generateSocialCommand(state: UserState, social: NonNullable<Scor
   };
 }
 
-export function generateCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
+/**
+ * THE NO-EVIDENCE COMMAND. Issued when AForce has not observed the member well
+ * enough to interpret their physiology.
+ *
+ * Everything band-derived is absent BY CONSTRUCTION, not by blanking fields
+ * afterwards: no band, no ounces, no product, no score-impact claim, and an
+ * urgency that owes nothing to HydroState. It is still a real command from the
+ * single command authority — one neutral, truthful action — so no consumer
+ * needs a special case and no second recommendation system exists.
+ */
+function buildBaselineCommand(): Command {
+  return {
+    id: 'cmd-baseline-unknown',
+    // Parsed by `parseEngineActionCopy` into title + instruction on the em-dash.
+    action: i18n.t('coach.baseline_action'),
+    explanation: i18n.t('coach.baseline_explanation'),
+    // NOT derived from HydroState. An unobserved member is not urgent; claiming
+    // urgency would be the same fabrication in a different field.
+    urgencyLevel: 'low',
+    // No "+N to score": AForce cannot predict a delta on a score it has never
+    // established. Empty string, never a number.
+    estimatedImpact: '',
+  };
+}
+
+export function generateCommand(
+  level: PerformanceLevel,
+  state: UserState,
+  score: number,
+  social: ScoreEngineOutput['social'],
+  evidence: HydroEvidence = EVIDENCE_OBSERVED,
+): Command {
+  // ── THE EVIDENCE GATE, INSIDE THE COMMAND AUTHORITY ───────────────────────
+  // This must live HERE and not in a consumer. Nine surfaces read
+  // `engineOutput.command` directly — Home, Editorial Home, voice, Moments,
+  // Night Out, Recovery Coach, Urine Check, the Decision Guard and the
+  // intelligence adapter. Gating in any one of them leaves the other eight
+  // able to surface a DEPLETED verdict about a body AForce has never measured,
+  // and the tenth consumer written next month reintroduces it. Returning early
+  // here means `engine.command` is ITSELF truthful, so there is nothing for a
+  // consumer to remember to hide.
+  //
+  // Deliberately BEFORE confidence: Command Confidence™ describes how grounded
+  // a reading is, and there is no reading to ground.
+  if (isEvidenceUnknown(evidence)) return buildBaselineCommand();
+
   // Command Confidence™ — attach a data-completeness signal to every command
   // so the card can show how grounded the recommendation is. Derived ONLY
   // from real signals already in state; never fabricated and never touches
