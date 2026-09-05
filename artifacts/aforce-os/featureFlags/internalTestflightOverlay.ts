@@ -38,12 +38,49 @@ import type { FeatureFlags } from '../types';
  * Order matches the ruling's own listing. Adding a key here is a product
  * decision (a new ruling), not a refactor — keep this list founder-traceable.
  */
-export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+export const RC2_OVERLAY_FLAGS = [
   'elite_motion_enabled',
   'elite_home_experience_enabled',
   'elite_weekly_report_enabled',
   'elite_voice_coach_enabled',
   'offline_intake_outbox_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
+ * The five Editorial OS surfaces, granted to the internal partner build by the
+ * founder ruling of 2026-09-05 so partners experience the real new interface in
+ * TestFlight rather than the legacy pre-editorial UI.
+ *
+ * KEPT AS ITS OWN SET, NOT MERGED INTO RC-2's. Two rulings, two lists: this
+ * module's contract asks that each stay founder-traceable, and folding ten keys
+ * into one array would destroy which ruling granted what. The union below is
+ * what the overlay applies.
+ *
+ * Every one of these was audited and BLOCKED before activation, then repaired
+ * in #923 — Scan had deleted /urine-check and manual drink logging app-wide,
+ * Protocol showed synthetic seed data as "Recent activity", Weekly's masthead
+ * named a different window than its numbers, and Moments said "1 moments" while
+ * a static string claimed a personal finding. Home's blocker was the cold-start
+ * command, fixed at the authority in #922. Do NOT add a key here without the
+ * same audit.
+ */
+export const EDITORIAL_PARTNER_OVERLAY_FLAGS = [
+  'editorial_home_enabled',
+  'editorial_moments_enabled',
+  'editorial_protocol_enabled',
+  'editorial_weekly_enabled',
+  'editorial_scan_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
+ * What the internal-TestFlight build actually turns ON: the union of the two
+ * rulings above, in ruling order. Nothing else. `moments_calendar_enabled` is
+ * deliberately absent — it stays false pending Legal + Privacy sign-off, and
+ * the editorial Moments flag does not widen that gate.
+ */
+export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+  ...RC2_OVERLAY_FLAGS,
+  ...EDITORIAL_PARTNER_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];
