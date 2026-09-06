@@ -45,6 +45,10 @@ export function composeExplanation(
   level: PerformanceLevel,
   socialActive: boolean,
   minutesSinceLast: number,
+  // P0.5 deterministic time seam. Trailing and defaulted, so every existing
+  // caller is behaviourally identical; the engine now passes its canonical
+  // `now` so the late-night overlay below keys off the injected instant.
+  now: number = Date.now(),
 ): string {
   // Social Mode owns its own copy lane — its commands are highly
   // context-tuned (impairment, transportation, recovery window) and
@@ -88,7 +92,7 @@ export function composeExplanation(
   // don't tell a perfectly-hydrated user they're in a recovery
   // window for no reason.
   if (overlays < MAX_OVERLAYS && level !== 'PEAK') {
-    const hour = new Date().getHours();
+    const hour = new Date(now).getHours();
     if (hour >= 22 || hour < 5) {
       if (pushGated(i18n.t('coach.context_late_night'))) overlays++;
     }
@@ -198,9 +202,13 @@ function buildExplanation(level: PerformanceLevel, state: UserState): string {
 }
 
 // ─── Reasons Generation ───────────────────────────────────────────────────────
-export function generateReasons(state: UserState): ScoreReason[] {
+export function generateReasons(state: UserState, now: number = Date.now()): ScoreReason[] {
   const reasons: ScoreReason[] = [];
-  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+  // P0.5: `minutesSince` always accepted a `now`; this call site never passed
+  // it, so "Last intake N min ago" was computed from the real clock while the
+  // score beside it came from the injected one. Same defect family as the rest
+  // of this program — two sources of truth for one quantity.
+  const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
 
   if (minutesSinceLast > 60) {
     reasons.push({ id: 'intake-late', text: `Last intake ${minutesSinceLast} min ago.`, weight: 'negative' });
@@ -255,8 +263,15 @@ export function generateReasons(state: UserState): ScoreReason[] {
 }
 
 // ─── Risk Timer ───────────────────────────────────────────────────────────────
-export function calculateRiskTimer(state: UserState, level: PerformanceLevel): RiskTimer {
-  const minutesSinceLast = minutesSince(state.lastIntakeTime);
+export function calculateRiskTimer(
+  state: UserState,
+  level: PerformanceLevel,
+  now: number = Date.now(),
+): RiskTimer {
+  // P0.5: the same un-threaded `minutesSince`. Harder to notice than `reasons`
+  // because every band in `getBaseRiskMinutes` has a floor, so a wrong elapsed
+  // time is invisible whenever it saturates that floor — but not otherwise.
+  const minutesSinceLast = minutesSince(state.lastIntakeTime, now);
   const baseMinutes = state.isSnoozed ? 20 : getBaseRiskMinutes(level, minutesSinceLast);
   return {
     minutes: baseMinutes,
@@ -284,7 +299,11 @@ export function getBaseRiskMinutes(level: PerformanceLevel, minutesSinceLast: nu
 // `artifacts/aforce-os/locales/*.json`. The score engine stays sync /
 // pure from the caller's perspective — i18next.t is itself sync.
 
-export function generateSocialCommand(state: UserState, social: NonNullable<ScoreEngineOutput['social']>): Command | null {
+export function generateSocialCommand(
+  state: UserState,
+  social: NonNullable<ScoreEngineOutput['social']>,
+  now: number = Date.now(),
+): Command | null {
   // Recovery Mode (drinking ended within 8h) — coach pivots to recovery
   // protocol. Calm, non-judgmental, never "don't drink".
   //
@@ -315,7 +334,7 @@ export function generateSocialCommand(state: UserState, social: NonNullable<Scor
   const drinks = state.socialMode?.drinks ?? [];
   const lastDrink = drinks.length > 0 ? drinks[drinks.length - 1] : null;
   const minutesSinceDrink = lastDrink
-    ? (Date.now() - lastDrink.loggedAt.getTime()) / 60000
+    ? (now - lastDrink.loggedAt.getTime()) / 60000
     : Infinity;
 
   // CRITICAL impairment → strongest, most protective copy. Pulls rank
@@ -405,6 +424,7 @@ export function generateCommand(
   score: number,
   social: ScoreEngineOutput['social'],
   evidence: HydroEvidence = EVIDENCE_OBSERVED,
+  now: number = Date.now(),
 ): Command {
   // ── THE EVIDENCE GATE, INSIDE THE COMMAND AUTHORITY ───────────────────────
   // This must live HERE and not in a consumer. Nine surfaces read
@@ -425,15 +445,21 @@ export function generateCommand(
   // from real signals already in state; never fabricated and never touches
   // the score (Score-Protection).
   const confidence = deriveCommandConfidence(commandConfidenceInputsFromState(state));
-  return { ...buildBaseCommand(level, state, score, social), confidence };
+  return { ...buildBaseCommand(level, state, score, social, now), confidence };
 }
 
-function buildBaseCommand(level: PerformanceLevel, state: UserState, score: number, social: ScoreEngineOutput['social']): Command {
+function buildBaseCommand(
+  level: PerformanceLevel,
+  state: UserState,
+  score: number,
+  social: ScoreEngineOutput['social'],
+  now: number = Date.now(),
+): Command {
   // Social Mode takes precedence over the standard PEAK/BALANCED/etc
   // protocol — the user is actively drinking (or just stopped) and the
   // coach must speak to that, not generic hydration math.
   if (social) {
-    const social_cmd = generateSocialCommand(state, social);
+    const social_cmd = generateSocialCommand(state, social, now);
     if (social_cmd) return social_cmd;
   }
   // Sleep mode: morning command if overnight deficit is significant

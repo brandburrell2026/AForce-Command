@@ -76,10 +76,25 @@ export function calculateScore(
   const { score, contributions, decayPerMinute, level } = buildBreakdown(userState, now);
   const performanceState = buildPerformanceState(level, score);
   const pulseConfig = buildPulseConfig(level);
-  const reasons = generateReasons(userState);
-  const riskTimer = calculateRiskTimer(userState, level);
-  const social = buildSocialRollup(userState, score);
-  const command = generateCommand(level, userState, score, social, evidence);
+  // P0.5 deterministic time seam (founder narrow protected-file exception,
+  // 2026-09-06 — the THIRD and final authorized change in this file).
+  //
+  // These four producers all accept a `now` that defaults to `Date.now()`, and
+  // all four were called without it. `buildBreakdown` above was threaded, so
+  // the score came from the injected clock while the copy explaining the score,
+  // the risk countdown and the social rollup came from the real one. Same
+  // member, same instant, two answers — and the one a person reads was the
+  // wrong one.
+  //
+  // Arguments only. No math, threshold, band, command semantic or string is
+  // touched here or in the producers; each simply stops falling back to its
+  // default. Where the wall clock already agreed with `now`, output is
+  // unchanged — which is every production call site, since they pass no `now`
+  // and both clocks are then `Date.now()`.
+  const reasons = generateReasons(userState, now);
+  const riskTimer = calculateRiskTimer(userState, level, now);
+  const social = buildSocialRollup(userState, score, now);
+  const command = generateCommand(level, userState, score, social, evidence, now);
   const prediction = buildPrediction(score, decayPerMinute);
 
   // Performance Command Engine overlay — fold context (heat / time-of-day),
@@ -102,6 +117,7 @@ export function calculateScore(
       level,
       !!social && (social.active || social.inRecoveryWindow),
       minutesSinceLast,
+      now,
     );
   }
 
