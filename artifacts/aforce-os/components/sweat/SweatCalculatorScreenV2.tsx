@@ -62,6 +62,7 @@ import {
   getCurrentCityClimateSync,
   type CityClimate,
 } from '@/services/cityClimateService';
+import { THERMONEUTRAL_C, HUMIDITY_NEUTRAL_PCT } from '@/utils/depletionRate';
 import type {
   EstimateInputs,
   PrecisionInputs,
@@ -103,7 +104,7 @@ export function SweatCalculatorScreenV2() {
   const [mode, setMode] = useState<SweatInputMode>('quick');
 
   // Live climate snapshot — auto-fills temp/humidity for Precision + Estimate.
-  const [climate, setClimate] = useState<CityClimate>(() => getCurrentCityClimateSync());
+  const [climate, setClimate] = useState<CityClimate | null>(() => getCurrentCityClimateSync());
   useEffect(() => {
     let cancelled = false;
     void getCurrentCityClimate().then((c) => {
@@ -113,7 +114,19 @@ export function SweatCalculatorScreenV2() {
       cancelled = true;
     };
   }, []);
-  const ambientTempC = useMemo(() => Math.round((climate.tempF - 32) * (5 / 9)), [climate]);
+  // MOCK/DEMO DATA != USER ENVIRONMENTAL EVIDENCE. With no live reading this
+  // used to auto-fill the ACSM protocol from a deterministic Miami/Denver day.
+  //
+  // The protocol still needs numbers, so it falls back to the app's DOCUMENTED
+  // thermoneutral constants — the same principle as the heat engine's neutral:
+  // legitimate as a CALCULATION input, never displayed as a measurement. The
+  // ClimateLine below is suppressed entirely when there is no reading, so
+  // nothing on screen claims these are the member's conditions.
+  const ambientTempC = useMemo(
+    () => (climate ? Math.round((climate.tempF - 32) * (5 / 9)) : THERMONEUTRAL_C),
+    [climate],
+  );
+  const ambientHumidityPct = climate ? climate.humidityPct : HUMIDITY_NEUTRAL_PCT;
 
   // Quick mode state.
   const [qPre, setQPre] = useState('');
@@ -255,7 +268,7 @@ export function SweatCalculatorScreenV2() {
         urineLoss: num(pUrine),
         sportId: pSportId,
         ambientTempC,
-        ambientHumidityPct: climate.humidityPct,
+        ambientHumidityPct,
         acclimatized: pAcclimatized,
         sodiumProfile: pSodium,
         ...(pH > 0 ? { height: pH, heightUnit: 'ft' as const } : {}),
@@ -272,7 +285,7 @@ export function SweatCalculatorScreenV2() {
         durationMinutes: num(eDuration),
         intensity: eIntensity,
         ambientTempC,
-        ambientHumidityPct: climate.humidityPct,
+        ambientHumidityPct,
         acclimatized: eAcclimatized,
         sodiumProfile: eSodium,
       };
@@ -355,7 +368,7 @@ export function SweatCalculatorScreenV2() {
                   onChange={setPAcclimatized}
                   hint={t('sweat.v2.heat_acclimatized_hint')}
                 />
-                <ClimateLine climate={climate} ambientTempC={ambientTempC} />
+                {climate ? <ClimateLine climate={climate} ambientTempC={ambientTempC} /> : null}
               </Card>
             )}
 
@@ -389,7 +402,7 @@ export function SweatCalculatorScreenV2() {
                   onChange={setEAcclimatized}
                   hint={t('sweat.v2.heat_acclimatized_hint')}
                 />
-                <ClimateLine climate={climate} ambientTempC={ambientTempC} />
+                {climate ? <ClimateLine climate={climate} ambientTempC={ambientTempC} /> : null}
                 <Helper>{t('sweat.v2.helper_estimate')}</Helper>
               </Card>
             )}

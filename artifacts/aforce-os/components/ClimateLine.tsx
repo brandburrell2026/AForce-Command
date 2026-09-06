@@ -38,15 +38,18 @@ const CONDITION_ICON: Record<CityClimate['condition'], IconName> = {
 };
 
 export function ClimateLine({ onPress }: Props) {
-  const [climate, setClimate] = React.useState<CityClimate>(() => getCurrentCityClimateSync());
+  const [climate, setClimate] = React.useState<CityClimate | null>(() => getCurrentCityClimateSync());
 
   React.useEffect(() => {
     let cancelled = false;
     getCurrentCityClimate()
       .then((live) => { if (!cancelled) setClimate(live); })
-      .catch(() => { /* keep mock snapshot on failure */ });
+      .catch(() => { /* a failed refresh leaves the last real reading, or none */ });
     return () => { cancelled = true; };
   }, []);
+
+  // No reading is no line. Never another city's weather.
+  if (!climate) return null;
 
   const cityLabel = climate.region
     ? `${climate.city}, ${climate.region}`
