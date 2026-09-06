@@ -22,6 +22,8 @@ export const SAMPLE_INPUTS: Record<HeatRiskBand, HeatSignalInput> = {
     hydrationScore: 88,
     recentFluidOz: 18,
     minutesSinceLastIntake: 18,
+    // Deliberate measured scenario — a real reading, not the neutral.
+    ambientTempMeasured: true,
     ambientTempF: 78,
     humidityPct: 45,
     sunExposure: 0.2,
@@ -42,6 +44,8 @@ export const SAMPLE_INPUTS: Record<HeatRiskBand, HeatSignalInput> = {
     hydrationScore: 70,
     recentFluidOz: 8,
     minutesSinceLastIntake: 38,
+    // Deliberate measured scenario — a real reading, not the neutral.
+    ambientTempMeasured: true,
     ambientTempF: 88,
     humidityPct: 55,
     sunExposure: 0.5,
@@ -62,6 +66,8 @@ export const SAMPLE_INPUTS: Record<HeatRiskBand, HeatSignalInput> = {
     hydrationScore: 55,
     recentFluidOz: 4,
     minutesSinceLastIntake: 65,
+    // Deliberate measured scenario — a real reading, not the neutral.
+    ambientTempMeasured: true,
     ambientTempF: 94,
     humidityPct: 60,
     sunExposure: 0.7,
@@ -82,6 +88,8 @@ export const SAMPLE_INPUTS: Record<HeatRiskBand, HeatSignalInput> = {
     hydrationScore: 48,
     recentFluidOz: 4,
     minutesSinceLastIntake: 78,
+    // Deliberate measured scenario — a real reading, not the neutral.
+    ambientTempMeasured: true,
     ambientTempF: 96,
     humidityPct: 60,
     sunExposure: 0.8,
@@ -102,6 +110,8 @@ export const SAMPLE_INPUTS: Record<HeatRiskBand, HeatSignalInput> = {
     hydrationScore: 22,
     recentFluidOz: 0,
     minutesSinceLastIntake: 110,
+    // Deliberate measured scenario — a real reading, not the neutral.
+    ambientTempMeasured: true,
     ambientTempF: 104,
     humidityPct: 70,
     sunExposure: 1,

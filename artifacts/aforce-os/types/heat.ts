@@ -26,6 +26,20 @@ export type HeatVisualMode =
 
 // ─── Inputs ─────────────────────────────────────────────────────────────────
 export interface HeatSignalInput {
+  /**
+   * TRUE only when `ambientTempF` is a real reading. FALSE when it is the
+   * calculation neutral from `heatGuardInput.NEUTRAL`.
+   *
+   * CALCULATION NEUTRAL != OBSERVED ENVIRONMENTAL EVIDENCE. The neutral is a
+   * legitimate engine input — it is the value that contributes zero risk, so
+   * an unknown measurement can never inflate a heat alarm. It is NOT a
+   * measurement, and nothing member-visible may quote it as one.
+   *
+   * REQUIRED, not optional-with-a-default, deliberately: a default would let a
+   * future constructor inherit "measured" silently, which is exactly how the
+   * neutral would leak. Stating provenance is a compile-time obligation.
+   */
+  ambientTempMeasured: boolean;
   /** Hydration score 0-100 (higher = better). */
   hydrationScore: number;
   /** Oz consumed in the last 60 min. */

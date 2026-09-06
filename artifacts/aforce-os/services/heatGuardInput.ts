@@ -72,8 +72,8 @@ export function buildHeatSignalInput(
   );
   // MEASURED: real OpenWeather readings when present; neutral when absent.
   const tempC = userState.weatherTempC;
-  const ambientTempF =
-    tempC != null && Number.isFinite(tempC) ? tempC * (9 / 5) + 32 : NEUTRAL.ambientTempF;
+  const ambientTempMeasured = tempC != null && Number.isFinite(tempC);
+  const ambientTempF = ambientTempMeasured ? tempC * (9 / 5) + 32 : NEUTRAL.ambientTempF;
   const humidity = userState.weatherHumidity;
   const humidityPct =
     humidity != null && Number.isFinite(humidity)
@@ -100,6 +100,7 @@ export function buildHeatSignalInput(
     minutesSinceLastIntake,
     ambientTempF,
     humidityPct,
+    ambientTempMeasured,
     sunExposure: NEUTRAL.sunExposure,
     continuousActiveMin: NEUTRAL.continuousActiveMin,
     activityIntensity,

@@ -127,8 +127,19 @@ function heatIndexLoad(input: HeatSignalInput): HeatRiskContribution {
     label: "Heat index load",
     points: clamp(Math.round(raw), 0, 26),
     maxPoints: 26,
-    reason:
-      hi >= 103
+    // CALCULATION NEUTRAL != OBSERVED EVIDENCE. `ambientTempF` is the
+    // zero-risk neutral (70 °F) when no reading exists, so quoting it here
+    // would publish a temperature AForce never measured. The POINTS are
+    // unchanged either way — the neutral remains a legitimate engine input;
+    // only the member-visible sentence is withheld.
+    //
+    // This was reachable, not theoretical: at the neutral, heat_index scores 0
+    // and is filtered out of `topDrivers`, which is the ONLY thing that hid it.
+    // Give the engine a real `sunExposure` — precisely what an environmental
+    // UV feature supplies — and "Heat index 70°F is mild." renders.
+    reason: !input.ambientTempMeasured
+      ? 'Heat index unavailable — no local temperature reading.'
+      : hi >= 103
         ? `Heat index ${Math.round(hi)}°F — danger zone.`
         : hi >= 90
         ? `Heat index ${Math.round(hi)}°F is elevated.`
