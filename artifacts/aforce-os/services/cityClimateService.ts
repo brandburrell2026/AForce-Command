@@ -20,10 +20,16 @@
  *
  * Resilience:
  *   - Any failure (denied permission, no network, geocode miss, web env)
- *     transparently falls back to a deterministic daily mock so the UI
- *     never goes blank or shows a contradictory reading.
+ *     yields NULL in a production build. The deterministic daily mock is
+ *     reachable only in env-gated demo/capture builds — mirroring
+ *     `resolveInitialUserState(demoBuild)`. Showing another city's weather as
+ *     the member's own is worse than showing nothing: it was rendered on
+ *     /heat as "LOCAL CLIMATE · MIAMI" and auto-filled the /sweat ACSM
+ *     protocol, both stamped with a real `observedAt`.
  *   - In-memory TTL cache (10 min) prevents API hammering on every render.
  */
+
+import { DEMO_MODE, CAPTURE_MODE } from './demoMode';
 
 export interface CityClimate {
   /** Display city name. */
@@ -232,19 +238,27 @@ async function fetchLiveClimate(): Promise<CityClimate | null> {
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 /**
- * Returns the live city climate, falling back to the deterministic mock if
- * any step (permission, position, geocode, weather) fails. Cached for
+ * Returns the live city climate, or NULL when any step (permission,
+ * position, geocode, weather) fails. The deterministic mock is returned only
+ * in env-gated demo/capture builds — never as production member truth. Cached for
  * `CACHE_TTL_MS` to avoid API hammering and battery drain.
  */
-export async function getCurrentCityClimate(force = false): Promise<CityClimate> {
+export async function getCurrentCityClimate(force = false): Promise<CityClimate | null> {
   const now = Date.now();
   if (!force && cachedClimate && now - cachedAt < CACHE_TTL_MS) {
     return cachedClimate;
   }
   const live = await fetchLiveClimate();
-  const result = live ?? buildMockClimate();
-  cachedClimate = result;
-  cachedAt = now;
+  // Same rule as the sync accessor: the mock is a DEMO artifact, never the
+  // member's conditions. A failed permission / geocode / fetch in production
+  // yields null, and the surface says so rather than naming another city.
+  const result = live ?? (DEMO_MODE || CAPTURE_MODE ? buildMockClimate() : null);
+  // Only a real reading is cached — caching the demo day would make it sticky
+  // for the rest of the session and outlive the condition that produced it.
+  if (result) {
+    cachedClimate = result;
+    cachedAt = now;
+  }
   return result;
 }
 
@@ -253,6 +267,20 @@ export async function getCurrentCityClimate(force = false): Promise<CityClimate>
  * the deterministic mock. Use this for the initial render; pair with
  * `getCurrentCityClimate()` in an effect to refresh with live data.
  */
-export function getCurrentCityClimateSync(): CityClimate {
-  return cachedClimate ?? buildMockClimate();
+export function getCurrentCityClimateSync(): CityClimate | null {
+  // MOCK/DEMO DATA != USER ENVIRONMENTAL EVIDENCE.
+  //
+  // This used to return `buildMockClimate()` whenever no live reading was
+  // cached — a first render, a denied permission, an offline start. That put a
+  // deterministic Denver / Miami / New York day on screen as the member's own
+  // conditions: city, temperature, humidity band and a coaching insight, all
+  // stamped with a REAL `observedAt` timestamp. Executed, a member with no live
+  // weather was shown "Miami, FL · 87°F · 78% RH · oppressive", and /sweat
+  // auto-filled 31 °C into the ACSM protocol from it.
+  //
+  // The demo seed stays reachable for env-gated demo/capture builds, exactly
+  // as `resolveInitialUserState(demoBuild)` does for the store's cold start.
+  // Production fails closed: no reading is `null`, and a consumer must say so.
+  if (cachedClimate) return cachedClimate;
+  return DEMO_MODE || CAPTURE_MODE ? buildMockClimate() : null;
 }

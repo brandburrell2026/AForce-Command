@@ -51,33 +51,50 @@ describe('cityClimateService', () => {
   });
 
   describe('getCurrentCityClimateSync', () => {
-    it('returns a snapshot whose insight matches its humidity band', () => {
-      const snap = getCurrentCityClimateSync();
-      expect(snap.humidityBand).toBe(classifyHumidity(snap.humidityPct));
-      expect(snap.hydrationInsight).toBe(hydrationInsightForHumidity(snap.humidityBand));
+    // CONTRACT INVERTED, DELIBERATELY (Env PR2). This block previously asserted
+    // that the sync accessor always returns a snapshot — which is exactly the
+    // defect: with no live reading it returned a deterministic Denver / Miami /
+    // New York day as the member's own conditions. The demo seed now reaches
+    // only env-gated demo/capture builds; production fails closed.
+    it('RETURNS NULL in a production build with no live reading', () => {
+      expect(getCurrentCityClimateSync()).toBeNull();
     });
 
-    it('returns a city, region, and a plausible humidity number', () => {
+    it('and any snapshot it DOES return is internally consistent', () => {
+      // The original prohibition, preserved: a returned snapshot's insight must
+      // match its own band. Vacuous-safe — it only asserts when one exists.
       const snap = getCurrentCityClimateSync();
-      expect(snap.city.length).toBeGreaterThan(0);
-      expect(snap.humidityPct).toBeGreaterThanOrEqual(0);
-      expect(snap.humidityPct).toBeLessThanOrEqual(100);
+      if (snap) {
+        expect(snap.humidityBand).toBe(classifyHumidity(snap.humidityPct));
+        expect(snap.hydrationInsight).toBe(hydrationInsightForHumidity(snap.humidityBand));
+        expect(snap.city.length).toBeGreaterThan(0);
+        expect(snap.humidityPct).toBeGreaterThanOrEqual(0);
+        expect(snap.humidityPct).toBeLessThanOrEqual(100);
+      }
     });
   });
 
   describe('getCurrentCityClimate (async)', () => {
-    it('falls back to the deterministic mock when no live source is available', async () => {
-      // In the node test env, expo-location is unavailable → service must
-      // fall back to the mock without throwing.
+    it('RESOLVES NULL rather than a mock city when no live source exists', async () => {
+      // In the node test env expo-location is unavailable, which is the same
+      // shape as a denied permission or an offline device in production. The
+      // service must fail closed and never name another city.
       const snap = await getCurrentCityClimate();
-      expect(snap.source).toBe('mock');
-      expect(snap.humidityBand).toBe(classifyHumidity(snap.humidityPct));
+      expect(snap).toBeNull();
     });
 
-    it('caches: a second call within the TTL returns the same snapshot reference', async () => {
+    it('does not throw when every step fails', async () => {
+      // The original guarantee, kept: failing closed must not mean crashing.
+      await expect(getCurrentCityClimate()).resolves.toBeNull();
+    });
+
+    it('NEVER CACHES A NON-READING — the demo day must not become sticky', async () => {
+      // Caching a fallback would make it outlive the condition that produced
+      // it and survive the rest of the session as though it were observed.
       const first = await getCurrentCityClimate();
       const second = await getCurrentCityClimate();
-      expect(second).toBe(first);
+      expect(first).toBeNull();
+      expect(second).toBeNull();
     });
   });
 });

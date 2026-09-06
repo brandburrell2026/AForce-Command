@@ -61,7 +61,7 @@ export default function HeatRiskScreen() {
   const guard = useHeatGuard();
 
   // Live local climate — drives the city-humidity insight panel below.
-  const [climate, setClimate] = useState<CityClimate>(() => getCurrentCityClimateSync());
+  const [climate, setClimate] = useState<CityClimate | null>(() => getCurrentCityClimateSync());
   useEffect(() => {
     let cancelled = false;
     void getCurrentCityClimate().then((c) => {
@@ -135,7 +135,14 @@ export default function HeatRiskScreen() {
           {/* Risk card */}
           <HeatRiskCard score={score} />
 
-          {/* Local climate — humidity drives a real, named recommendation */}
+          {/* Local climate — humidity drives a real, named recommendation.
+              SUPPRESSED ENTIRELY without a live reading. This card previously
+              rendered a deterministic Denver / Miami / New York day as the
+              member's own city, temperature, humidity band and coaching
+              insight, stamped with a real observedAt. Mock/demo data is not
+              user environmental evidence, and a card that names the wrong city
+              is worse than no card. */}
+          {climate ? (
           <View style={styles.climateCard} testID="climate-card">
             <View style={styles.climateHeader}>
               <Icon name="map-pin" size={12} color={Colors.text.muted} />
@@ -159,6 +166,7 @@ export default function HeatRiskScreen() {
             </View>
             <Text style={styles.climateInsight}>{climate.hydrationInsight}</Text>
           </View>
+          ) : null}
 
           {/* Command card */}
           <View
