@@ -100,7 +100,7 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
   // applied internally — see `resolveEffectiveActivityLevel`'s doc
   // comment. Used only to disclose the floor on the 'recency' hint below;
   // does not change `decayPerMinute` or the score.
-  const effectiveActivity = resolveEffectiveActivityLevel(state);
+  const effectiveActivity = resolveEffectiveActivityLevel(state, now);
   // Continuous decay — no artificial cap. The final score is clamped
   // to 0..100 below, so a long deficit naturally pins the user at 0
   // (DEPLETED) instead of plateauing inside the band.
@@ -127,7 +127,7 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
   const urine = urineContribution(state.urineSignal);
   const urinePoints = urine.points;
 
-  const recovery = computeRecoverySignal(state);
+  const recovery = computeRecoverySignal(state, now);
 
   // Per-event social-mode penalty: each logged alcohol drink moves the
   // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
@@ -249,11 +249,16 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
  * change what the floor does or its threshold — purely a read of an
  * already-computed value for display purposes.
  */
-function resolveEffectiveActivityLevel(state: UserState): { level: number; flooredByHealthPlatform: boolean } {
+function resolveEffectiveActivityLevel(
+  state: UserState,
+  // P0.5: same unthreaded aggregator, reached from the decay path and the
+  // `recency` hint. Same clamp, same arbitration drift.
+  now: number = Date.now(),
+): { level: number; flooredByHealthPlatform: boolean } {
   let level = state.activityLevel;
   let flooredByHealthPlatform = false;
   if (state.biometrics && Object.keys(state.biometrics).length > 0) {
-    const agg = aggregateBiometrics(state.biometrics);
+    const agg = aggregateBiometrics(state.biometrics, now);
     if (agg.inferredActivityLevel > level) {
       level = agg.inferredActivityLevel;
       flooredByHealthPlatform = true;
@@ -282,7 +287,7 @@ function computeDecayPerMinute(state: UserState, now: number = Date.now()): numb
     ? activeDecayMultiplier(state.socialMode.drinks, now)
     : 1;
 
-  const { level: activityLevel } = resolveEffectiveActivityLevel(state);
+  const { level: activityLevel } = resolveEffectiveActivityLevel(state, now);
 
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
@@ -379,10 +384,20 @@ export function hasBiometricSource(state: UserState): boolean {
   return state.appleHealth != null;
 }
 
-export function computeRecoverySignal(state: UserState): { delta: number; hint: string; label: string } {
+export function computeRecoverySignal(
+  state: UserState,
+  // P0.5 deterministic time seam. `aggregateBiometrics` resolves each field's
+  // comparison timestamp as `Math.min(observedAt, now)`, so `now` decides which
+  // provider wins per-field arbitration whenever a snapshot is timestamped at
+  // or ahead of it (ordinary eager-sync skew). This function had no `now` at
+  // all, so `buildBreakdown` threading it was defeated one level down — and
+  // `recovery.delta` is summed directly into the score. Trailing and defaulted,
+  // so every existing caller is behaviourally identical.
+  now: number = Date.now(),
+): { delta: number; hint: string; label: string } {
   // Prefer the multi-provider record when present.
   if (state.biometrics && Object.keys(state.biometrics).length > 0) {
-    const agg = aggregateBiometrics(state.biometrics);
+    const agg = aggregateBiometrics(state.biometrics, now);
     // Build-50 Gate 2, item 2: this used to read the generic
     // 'Health platform (HRV / sleep / strain)' for EVERY single-provider
     // case, regardless of which provider it was — a user with only Apple
@@ -499,7 +514,7 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
 
   // Sleep mode carryover deficit
 
-  const recovery = computeRecoverySignal(state);
+  const recovery = computeRecoverySignal(state, now);
 
 
   // Per-event social-mode penalty — must mirror buildBreakdown so that

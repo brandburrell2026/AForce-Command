@@ -258,28 +258,43 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
   };
 
   /**
-   * GOLDEN VALUES, measured on a clean `origin/main` worktree at 4ead313c and
-   * on this branch — identical on all seven, including a SHA-256 digest of the
-   * ENTIRE `ScoreEngineOutput`, not just the headline number.
+   * GOLDEN VALUES — a SHA-256 digest of the ENTIRE `ScoreEngineOutput`, not
+   * just the headline number.
    *
    * A failure here is a Core behaviour change. That may be legitimate, but it
    * must be deliberate and authorized — never a side effect of an adoption PR.
+   *
+   * REPINNED ONCE, 2026-09-06, by the P0.5 deterministic time seam — and this
+   * is exactly the tripwire doing its job. P0.5 threaded the injected `now`
+   * into `calculateRiskTimer`, which had been computing elapsed time from the
+   * real wall clock. `riskTimer.minutes` is the ONLY field that moved, in all
+   * seven fixtures, and it moved to the value `getBaseRiskMinutes` has always
+   * specified for the injected instant:
+   *
+   *   cold start   (DEPLETED,   0 min elapsed)  5 -> 13   max(5, ⌊60×0.2⌋+1)
+   *   recent intake (RECOVERING, 5 min elapsed) 10 -> 22   max(10, ⌊55×0.4⌋)
+   *   30 min gap   (DEPLETED,  30 min elapsed)  5 ->  7   max(5, ⌊30×0.2⌋+1)
+   *
+   * The old numbers were the floor clamp firing on a wrong, enormous elapsed
+   * time. Score, band, command, explanation, breakdown, pulse, prediction and
+   * social are byte-identical across the repair. `getBaseRiskMinutes` itself is
+   * untouched — same formula, same floors; only its input is now correct.
    */
   const GOLDEN: Array<[string, Record<string, unknown>, number, string, string, string]> = [
     ['cold start, no weather', { ...P(), lastIntakeTime: new Date(T0) },
-      0, 'DEPLETED', 'cmd-depleted', '3bb119b0c8f60bc7'],
+      0, 'DEPLETED', 'cmd-depleted', 'dacb9b984998cc6e'],
     ['recent intake, no weather', hydrated(5, { weatherTempC: null, weatherHumidity: null }),
-      69, 'RECOVERING', 'cmd-recovering', 'a6a75727448c81a0'],
+      69, 'RECOVERING', 'cmd-recovering', 'ce4ba56a6b387ad6'],
     ['recent intake, mild 21C/45%', hydrated(5, { weatherTempC: 21, weatherHumidity: 45 }),
-      69, 'RECOVERING', 'cmd-recovering', 'a6a75727448c81a0'],
+      69, 'RECOVERING', 'cmd-recovering', 'ce4ba56a6b387ad6'],
     ['recent intake, hot 35C/80%', hydrated(5, { weatherTempC: 35, weatherHumidity: 80 }),
-      66, 'RECOVERING', 'cmd-recovering', 'fdbc9bebf523b470'],
+      66, 'RECOVERING', 'cmd-recovering', '454a9add5f7c17a5'],
     ['30min gap, hot 35C/80%', hydrated(30, { weatherTempC: 35, weatherHumidity: 80 }),
-      38, 'DEPLETED', 'cmd-depleted', '0d54829eacb42ea1'],
+      38, 'DEPLETED', 'cmd-depleted', '133f8ab5fffbfc7b'],
     ['30min gap, extreme 42C/90%', hydrated(30, { weatherTempC: 42, weatherHumidity: 90 }),
-      17, 'DEPLETED', 'cmd-depleted', '86b6e35b2de9a1ce'],
+      17, 'DEPLETED', 'cmd-depleted', 'db1fdba56f90a204'],
     ['30min gap, heatLoad seed only', hydrated(30, { weatherTempC: null, weatherHumidity: null, heatLoad: 4 }),
-      57, 'DEPLETED', 'cmd-depleted', '34efb60c9f63c715'],
+      57, 'DEPLETED', 'cmd-depleted', '1b25bdd57256f453'],
   ];
 
   it.each(GOLDEN)('%s — score, band, command and full output digest match main',
