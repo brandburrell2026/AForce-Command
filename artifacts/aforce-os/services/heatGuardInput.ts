@@ -20,6 +20,7 @@
 import type { HeatSignalInput, HeatSymptom } from '../types/heat';
 import type { UserState } from '../types';
 import { fraction01FromScale10 } from '../utils/quantities';
+import { resolveCurrentWeather } from '../utils/environment/weatherFreshness';
 
 export const SYMPTOM_IDS: HeatSymptom[] = [
   'dizziness','headache','nausea','cramping','chills','confusion','fatigue',
@@ -62,19 +63,28 @@ const NEUTRAL = {
 export function buildHeatSignalInput(
   userState: Pick<
     UserState,
-    | 'weatherTempC' | 'weatherHumidity' | 'activityLevel' | 'bodyWeightLbs'
-    | 'symptoms' | 'urineSignal' | 'energyState' | 'lastIntakeTime'
+    | 'weatherTempC' | 'weatherHumidity' | 'weatherFetchedAt' | 'activityLevel'
+    | 'bodyWeightLbs' | 'symptoms' | 'urineSignal' | 'energyState' | 'lastIntakeTime'
   >,
   hydrationScore: number,
+  // PR5: the instant the input is built for. Trailing and defaulted, so the
+  // live hook keeps its wall-clock semantics; deterministic callers inject.
+  now: number = Date.now(),
 ): HeatSignalInput {
   const symptoms: HeatSymptom[] = (userState.symptoms ?? []).filter(
     (s): s is HeatSymptom => (SYMPTOM_IDS as string[]).includes(s),
   );
-  // MEASURED: real OpenWeather readings when present; neutral when absent.
-  const tempC = userState.weatherTempC;
+  // MEASURED: real OpenWeather readings while the canonical freshness verdict
+  // (PR5 — one truth, the versioned ValidityPolicy) still calls them current;
+  // the zero-risk NEUTRAL otherwise. Heat Guard is a safety engine: a reading
+  // from yesterday evening must not raise (or suppress) a heat alarm about
+  // this afternoon. Beyond validity the engine treats ambient exactly as it
+  // treats unmeasured — the neutral element, never an invented value.
+  const weather = resolveCurrentWeather(userState, now);
+  const tempC = weather.tempC;
   const ambientTempMeasured = tempC != null && Number.isFinite(tempC);
   const ambientTempF = ambientTempMeasured ? tempC * (9 / 5) + 32 : NEUTRAL.ambientTempF;
-  const humidity = userState.weatherHumidity;
+  const humidity = weather.humidityPct;
   const humidityPct =
     humidity != null && Number.isFinite(humidity)
       ? Math.max(0, Math.min(100, humidity))
@@ -91,7 +101,7 @@ export function buildHeatSignalInput(
       : 0;
   const lastIntakeMs = new Date(userState.lastIntakeTime).getTime();
   const minutesSinceLastIntake = Number.isFinite(lastIntakeMs)
-    ? Math.max(0, Math.round((Date.now() - lastIntakeMs) / 60000))
+    ? Math.max(0, Math.round((now - lastIntakeMs) / 60000))
     : 0;
 
   return {
@@ -118,4 +128,18 @@ export function buildHeatSignalInput(
     sleepDeficitHrs: NEUTRAL.sleepDeficitHrs,
     recentHeatEvent: false,
   };
+}
+
+/**
+ * PR5 — the CURRENT ambient temperature for band-gating, or null.
+ *
+ * Pure seam for `useHeatGuard`'s voice-escalation gate, extracted so the gate
+ * is law-testable: a stale reading must not decide whether a heat warning
+ * speaks. Returns the same canonical verdict the engine input uses.
+ */
+export function currentAmbientTempC(
+  userState: Pick<UserState, 'weatherTempC' | 'weatherFetchedAt'>,
+  now: number = Date.now(),
+): number | null {
+  return resolveCurrentWeather(userState, now).tempC;
 }

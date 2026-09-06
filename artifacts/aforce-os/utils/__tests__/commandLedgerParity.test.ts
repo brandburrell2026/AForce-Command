@@ -218,14 +218,16 @@ describe('parity: holds AFTER source expiry (no late-observation freshness)', ()
     expect(live.hasWeather).toBe(false);
   });
 
-  it('weather fetched T0, observed T0+5h, evaluated T0+5.5h → both still fresh', () => {
-    const evalNow = T0 + 5.5 * HOUR;
+  it('weather inside the canonical window, late-observed → both still fresh', () => {
+    // PR5: expressed against the policy-derived window rather than literal
+    // hours, so this fixture can never quietly encode a private rule again.
+    const evalNow = T0 + Math.floor(WEATHER_FRESHNESS_MS / 2);
     const state = makeState({
       intakeEvents: [makeIntake({ id: 'a', loggedAt: new Date(evalNow - HOUR) })],
       weatherTempC: 28,
-      weatherFetchedAt: T0, // < 6h before evalNow
+      weatherFetchedAt: T0, // half the canonical window before evalNow
     });
-    const live = assertParity(state, T0 + 5 * HOUR, evalNow);
+    const live = assertParity(state, T0 + Math.floor(WEATHER_FRESHNESS_MS / 4), evalNow);
     expect(live.hasWeather).toBe(true);
   });
 

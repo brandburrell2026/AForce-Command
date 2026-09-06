@@ -12,6 +12,7 @@
  * recheck intervals, environmental modifiers) at the bottom.
  */
 
+import { weatherFreshWindowMs } from '../utils/environment/weatherFreshness';
 import type {
   TrainingLevel,
   PrimaryGoal,
@@ -387,7 +388,13 @@ export interface FreshnessWindows {
 
 export const FRESHNESS_WINDOWS: Record<FreshnessSignalKind, FreshnessWindows> = {
   // Heat/humidity drive today's demand and shift within hours; >12h is noise.
-  weather: { freshUntilMs: 1 * FRESHNESS_HOUR_MS, staleAfterMs: 3 * FRESHNESS_HOUR_MS, expireAfterMs: 12 * FRESHNESS_HOUR_MS },
+  //
+  // PR5 — the FRESH boundary is the canonical one from the versioned
+  // ValidityPolicy (PR3/3.1); it was already numerically 1h here, so this is a
+  // source unification with NO value change. `staleAfterMs`/`expireAfterMs`
+  // remain presentation refinements of the NOT-current side (aging vs stale vs
+  // expired chips) — they subdivide "not current", they never extend "current".
+  weather: { freshUntilMs: weatherFreshWindowMs(), staleAfterMs: 3 * FRESHNESS_HOUR_MS, expireAfterMs: 12 * FRESHNESS_HOUR_MS },
   // "Last night"; usable into a second day as the best proxy; never expired.
   sleep: { freshUntilMs: 12 * FRESHNESS_HOUR_MS, staleAfterMs: 36 * FRESHNESS_HOUR_MS },
   // Optical point-in-time hydration state — the most exertion-volatile signal,

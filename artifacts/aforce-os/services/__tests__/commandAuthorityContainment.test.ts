@@ -57,13 +57,15 @@ const CLOCK = /recheck in \d/i;
 
 /** Drive the heat engine across every band via hydration score + symptoms. */
 function heatAcrossBands() {
+  // PR5: readings carry a fresh anchor — a measured band now also requires
+  // the reading to be CURRENT under the canonical validity policy.
   const base: Pick<
     UserState,
-    | 'weatherTempC' | 'weatherHumidity' | 'activityLevel' | 'bodyWeightLbs'
-    | 'symptoms' | 'urineSignal' | 'energyState' | 'lastIntakeTime'
+    | 'weatherTempC' | 'weatherHumidity' | 'weatherFetchedAt' | 'activityLevel'
+    | 'bodyWeightLbs' | 'symptoms' | 'urineSignal' | 'energyState' | 'lastIntakeTime'
   > = {
-    weatherTempC: null, weatherHumidity: null, activityLevel: 5,
-    bodyWeightLbs: 180, symptoms: [], urineSignal: 3,
+    weatherTempC: null, weatherHumidity: null, weatherFetchedAt: Date.now(),
+    activityLevel: 5, bodyWeightLbs: 180, symptoms: [], urineSignal: 3,
     energyState: 'steady', lastIntakeTime: new Date(),
   };
   return [

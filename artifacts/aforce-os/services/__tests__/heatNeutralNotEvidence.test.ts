@@ -35,13 +35,21 @@ import { buildHeatSignalInput } from '../heatGuardInput';
 import { evaluateHeatRisk } from '../heatRiskEngine';
 import type { HeatSignalInput } from '../../types/heat';
 
+const T0 = Date.UTC(2026, 8, 6, 12, 0, 0);
+
 const BASE = {
   activityLevel: 3, bodyWeightLbs: 180, symptoms: [] as string[],
-  urineSignal: 3, energyState: 'steady', lastIntakeTime: new Date(),
+  urineSignal: 3, energyState: 'steady', lastIntakeTime: new Date(T0),
 };
 
+// PR5: "measured" now also requires the reading to be CURRENT under the
+// canonical validity policy — an anchored, fresh fetch. These laws are about
+// PROVENANCE (a neutral must never be quoted as a reading), so their readings
+// are anchored at `now` itself; the freshness boundary has its own laws in
+// freshnessUnificationLaw.test.ts.
 const build = (weatherTempC: number | null, weatherHumidity: number | null) =>
-  buildHeatSignalInput({ ...BASE, weatherTempC, weatherHumidity } as never, 80);
+  buildHeatSignalInput(
+    { ...BASE, weatherTempC, weatherHumidity, weatherFetchedAt: T0 } as never, 80, T0);
 
 /** Every string this engine can put in front of a member, for one input. */
 function memberVisibleStrings(input: HeatSignalInput): string[] {

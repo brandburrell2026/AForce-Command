@@ -25,6 +25,7 @@
  * capability seam is retired or re-hosted is a founder call.
  */
 
+import { currentAmbientTempC } from '../services/heatGuardInput';
 import React from 'react';
 import { Platform } from 'react-native';
 import { hapticNotify } from '@/services/haptics';
@@ -165,7 +166,10 @@ export function useHeatGuard({ onEscalate }: UseHeatGuardOptions = {}): HeatGuar
     // band: only fire when ambient temp is in HIGH (≥85 °F) or
     // CRITICAL (≥95 °F). At ELEVATED or NORMAL the engine band may
     // still update silently for downstream UI, but no voice fires.
-    const tempBand = getHeatBandFromCelsius(userState.weatherTempC);
+    // PR5 — the voice-escalation gate reads the SAME canonical verdict as the
+    // engine input; a stale reading must not decide whether a heat warning
+    // speaks. Beyond validity the band gate sees null, exactly like no weather.
+    const tempBand = getHeatBandFromCelsius(currentAmbientTempC(userState));
     if (
       SEVERITY[next] > SEVERITY[prev] &&
       next !== 'STABLE' &&

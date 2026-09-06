@@ -5,7 +5,7 @@ import type { VoiceCheckInRecord } from '../voiceCheckIn';
 import type { PerformanceAgeDailySnapshot } from '../performanceAge';
 import { computePerformanceMemory } from '../performanceMemory';
 import { computePerformanceAgeTrend } from '../performanceAge';
-import { deriveCommandConfidence } from '../scoring/commandConfidence';
+import { deriveCommandConfidence, WEATHER_FRESHNESS_MS } from '../scoring/commandConfidence';
 import {
   normalizeCommandEvent,
   mergeCommandEvents,
@@ -357,7 +357,8 @@ describe('ledgerToCommandConfidenceInputs', () => {
         atMs: NOW,
         weatherTempC: 22,
         hasFreshBiometrics: true,
-        weatherFetchedAtMs: NOW - 3 * HOUR, // < 6h → fresh
+        // PR5: half the CANONICAL window (policy-derived, no private hours).
+        weatherFetchedAtMs: NOW - Math.floor(WEATHER_FRESHNESS_MS / 2),
         biometricsFetchedAtMs: NOW - 10 * HOUR, // < 24h → fresh
       })!,
     ];

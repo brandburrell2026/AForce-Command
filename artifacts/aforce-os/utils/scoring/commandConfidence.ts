@@ -19,6 +19,7 @@
  *    an all-null Apple Health object, a NaN/Infinity reading, or a stale /
  *    future-dated timestamp does not count.
  */
+import { weatherFreshWindowMs, resolveCurrentWeather } from '../environment/weatherFreshness';
 import type {
   CommandConfidenceLevel,
   UserState,
@@ -30,8 +31,16 @@ export type { CommandConfidenceLevel };
 
 /** Recovery/sleep/HRV refresh on a daily cadence — count within 24h. */
 export const BIOMETRIC_FRESHNESS_MS = 24 * 60 * 60 * 1000;
-/** Current conditions go stale fast — count weather within 6h. */
-export const WEATHER_FRESHNESS_MS = 6 * 60 * 60 * 1000;
+/**
+ * PR5 — ONE freshness truth. This was a private 6-hour rule: for five hours
+ * after the presentation layer, the evidence contract and (post-PR5) Core had
+ * all stopped calling a reading current, confidence still counted it as
+ * grounding. Now DERIVED from the versioned ValidityPolicy (PR3/3.1), so the
+ * ledger consumers that record this as `maxAgeMs` and the replay adapters that
+ * gate on it all move with the one policy — deliberately NOT re-hard-coded to
+ * six hours to preserve legacy behavior (founder ruling, PR5).
+ */
+export const WEATHER_FRESHNESS_MS = weatherFreshWindowMs();
 /** Tolerate small clock drift between device/provider and `now`. */
 export const CLOCK_SKEW_MS = 5 * 60 * 1000;
 
@@ -131,7 +140,10 @@ export function commandConfidenceInputsFromState(
   return {
     hasTodayBehavior: (state.intakeEvents?.length ?? 0) > 0,
     hasFreshBiometrics: hasUsableBiometrics(state, now),
-    hasWeather: isFiniteNumber(state.weatherTempC) && isFresh(state.weatherFetchedAt, now, WEATHER_FRESHNESS_MS),
+    // PR5 — the verdict itself, not a private re-derivation of it. The same
+    // classifier Core's decay gate uses, so confidence can never again call
+    // grounding what the score has stopped believing (or vice versa).
+    hasWeather: resolveCurrentWeather(state, now).tempC != null,
   };
 }
 

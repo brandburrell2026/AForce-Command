@@ -264,6 +264,15 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
    * A failure here is a Core behaviour change. That may be legitimate, but it
    * must be deliberate and authorized — never a side effect of an adoption PR.
    *
+   * REPINNED (2nd) by Env PR5: the four weather-carrying fixtures gained a
+   * fresh `weatherFetchedAt: T0` anchor, because Core's decay input now passes
+   * only CURRENT readings (one canonical freshness verdict). Digests were
+   * re-measured on a clean origin/main worktree at 53ddfead WITH the same
+   * anchored fixtures and are IDENTICAL to this branch on all seven rows —
+   * current evidence crosses PR5 byte-for-byte. The three fixtures without
+   * anchored weather kept their P0.5 digests unchanged, which is itself
+   * evidence the re-pin touched only what the anchors touched.
+   *
    * REPINNED ONCE, 2026-09-06, by the P0.5 deterministic time seam — and this
    * is exactly the tripwire doing its job. P0.5 threaded the injected `now`
    * into `calculateRiskTimer`, which had been computing elapsed time from the
@@ -283,16 +292,20 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
   const GOLDEN: Array<[string, Record<string, unknown>, number, string, string, string]> = [
     ['cold start, no weather', { ...P(), lastIntakeTime: new Date(T0) },
       0, 'DEPLETED', 'cmd-depleted', 'dacb9b984998cc6e'],
+    // PR5: weather-carrying fixtures anchor their reading at `now` — Core's
+    // freshness gate (one canonical verdict) only passes CURRENT readings, and
+    // these fixtures exist to prove the WEATHER term, not the boundary (the
+    // boundary has its own laws in freshnessUnificationLaw.test.ts).
     ['recent intake, no weather', hydrated(5, { weatherTempC: null, weatherHumidity: null }),
       69, 'RECOVERING', 'cmd-recovering', 'ce4ba56a6b387ad6'],
-    ['recent intake, mild 21C/45%', hydrated(5, { weatherTempC: 21, weatherHumidity: 45 }),
-      69, 'RECOVERING', 'cmd-recovering', 'ce4ba56a6b387ad6'],
-    ['recent intake, hot 35C/80%', hydrated(5, { weatherTempC: 35, weatherHumidity: 80 }),
-      66, 'RECOVERING', 'cmd-recovering', '454a9add5f7c17a5'],
-    ['30min gap, hot 35C/80%', hydrated(30, { weatherTempC: 35, weatherHumidity: 80 }),
-      38, 'DEPLETED', 'cmd-depleted', '133f8ab5fffbfc7b'],
-    ['30min gap, extreme 42C/90%', hydrated(30, { weatherTempC: 42, weatherHumidity: 90 }),
-      17, 'DEPLETED', 'cmd-depleted', 'db1fdba56f90a204'],
+    ['recent intake, mild 21C/45%', hydrated(5, { weatherTempC: 21, weatherHumidity: 45, weatherFetchedAt: T0 }),
+      69, 'RECOVERING', 'cmd-recovering', 'c4d378465a1cd1ef'],
+    ['recent intake, hot 35C/80%', hydrated(5, { weatherTempC: 35, weatherHumidity: 80, weatherFetchedAt: T0 }),
+      66, 'RECOVERING', 'cmd-recovering', '7328efbd5a53f4e3'],
+    ['30min gap, hot 35C/80%', hydrated(30, { weatherTempC: 35, weatherHumidity: 80, weatherFetchedAt: T0 }),
+      38, 'DEPLETED', 'cmd-depleted', 'd3cd258a6df17adc'],
+    ['30min gap, extreme 42C/90%', hydrated(30, { weatherTempC: 42, weatherHumidity: 90, weatherFetchedAt: T0 }),
+      17, 'DEPLETED', 'cmd-depleted', '906bd2a2d9a81360'],
     ['30min gap, heatLoad seed only', hydrated(30, { weatherTempC: null, weatherHumidity: null, heatLoad: 4 }),
       57, 'DEPLETED', 'cmd-depleted', '1b25bdd57256f453'],
   ];

@@ -239,9 +239,12 @@ describe('heat guard input — measured facts only, unknowns stay neutral', () =
   });
 
   it('MEASURED weather flows through as measured (35 °C / 60 % → 95 °F / 60 %)', () => {
+    // PR5: measured also means CURRENT — the reading carries a fresh anchor.
+    const nowMs = Date.now();
     const input = buildHeatSignalInput(
-      defaultUser({ weatherTempC: 35, weatherHumidity: 60 }),
+      defaultUser({ weatherTempC: 35, weatherHumidity: 60, weatherFetchedAt: nowMs }),
       90,
+      nowMs,
     );
     expect(input.ambientTempF).toBeCloseTo(95, 5);
     expect(input.humidityPct).toBe(60);
@@ -256,7 +259,7 @@ describe('heat guard input — measured facts only, unknowns stay neutral', () =
     const heat = evaluateHeatRisk(
       buildHeatSignalInput(
         defaultUser({
-          weatherTempC: 41, weatherHumidity: 70,
+          weatherTempC: 41, weatherHumidity: 70, weatherFetchedAt: Date.now(),
           symptoms: ['dizziness', 'nausea', 'confusion'], urineSignal: 7,
           activityLevel: 9,
         }),
