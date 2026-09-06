@@ -137,6 +137,13 @@ interface EvidenceCore<T> {
   readonly source: string;
   readonly locationPrecision: LocationPrecision;
   readonly quality?: EvidenceQuality;
+  /**
+   * Opaque key identifying WHERE this was read. Only location-bound signals
+   * strictly need it, but any signal may carry it — moving invalidates more
+   * than altitude in practice, and a producer that knows the place should say
+   * so. Absent means the producer could not establish a location.
+   */
+  readonly locationKey?: string;
 }
 
 /**
@@ -163,60 +170,101 @@ export type EnvironmentalEvidence<T = number> =
   | ({ readonly kind: 'stale' } & EvidenceCore<T>)
   | ({ readonly kind: 'observed' } & EvidenceCore<T>);
 
-// ─── Freshness policy ───────────────────────────────────────────────────────
+// ─── Validity policy ────────────────────────────────────────────────────────
 
 /**
- * PER-SIGNAL FRESHNESS. Deliberately NOT one universal duration.
+ * HOW A SIGNAL STOPS BEING CURRENT. Two different rules, because two different
+ * things are actually true of the world.
  *
- * A single number would be convenient and wrong: a six-hour-old UV index is
- * useless because UV tracks sun angle, while a six-hour-old altitude is still
- * perfectly true. The existing code already proves the hazard — five different
- * TTLs exist for what everyone calls "current conditions", and the SCORE path
- * enforces none of them while the confidence layer enforces six hours.
+ * `time`     — the quantity itself changes. A temperature reading decays.
+ * `location` — the quantity does NOT change; it is a property of a PLACE.
+ *              Altitude is the clear case: the ground does not move, so an
+ *              altitude reading is invalidated by the member going somewhere
+ *              else, never by the clock. `maxCacheMs` on this arm is a
+ *              DEFENSIVE CACHE CEILING, not a freshness window — it exists so
+ *              a stuck reading cannot live forever, and it must never be read
+ *              as "altitude goes stale after a week."
  *
- * Each duration below is justified by how fast the underlying quantity actually
- * moves, not by implementation convenience.
+ * Encoding both rules now — even though location invalidation is only
+ * ENFORCEABLE once producers supply a location key in PR4 — keeps the
+ * normative semantics in the contract instead of leaving a plausible duration
+ * to harden into accidental truth.
  */
-export const FRESHNESS_MS: Readonly<Record<EnvironmentalSignal, number>> = {
-  /** Ambient air moves slowly; an hour-old reading still describes the hour. */
-  temperature: 60 * 60 * 1000,
-  /** Tracks temperature closely enough to share its window. */
-  humidity: 60 * 60 * 1000,
-  /** Apparent temperature is derived from both, so it cannot outlive them. */
-  apparentTemperature: 60 * 60 * 1000,
-  /**
-   * UV tracks solar angle and cloud cover — it can change materially inside an
-   * hour and is near-meaningless once the sun has moved. The shortest window
-   * here, and the clearest case against a universal duration.
-   */
-  uvIndex: 30 * 60 * 1000,
-  /** Air quality shifts on wind and traffic; hours, not minutes. */
-  airQuality: 2 * 60 * 60 * 1000,
-  /** Whether it is raining right now is a short-lived fact. */
-  precipitation: 30 * 60 * 1000,
-  /**
-   * NOT a point reading — an accumulation over a lookback window. It stays
-   * meaningful far longer precisely because it already describes the past.
-   */
-  recentRainfall: 6 * 60 * 60 * 1000,
-  wind: 60 * 60 * 1000,
-  /** Published on daily cycles by most feeds. */
-  pollen: 12 * 60 * 60 * 1000,
-  /**
-   * Sunrise and sunset are computed for a date and location. They do not decay
-   * through the day; they are simply replaced tomorrow.
-   */
-  sunrise: 24 * 60 * 60 * 1000,
-  sunset: 24 * 60 * 60 * 1000,
-  /**
-   * ALTITUDE IS NOT TIME-STALE. The ground does not move. It is invalidated by
-   * a change of LOCATION, not by the passage of time — a distinction this table
-   * cannot express, so the long duration is a floor and producers must
-   * re-evaluate on location change. Recorded here because pretending altitude
-   * behaves like weather would be its own small fabrication.
-   */
-  altitude: 7 * 24 * 60 * 60 * 1000,
+export type SignalValidity =
+  | { readonly kind: 'time'; readonly freshForMs: number }
+  | { readonly kind: 'location'; readonly maxCacheMs: number };
+
+/**
+ * A VERSIONED, REPLACEABLE POLICY — not a table of scientific constants.
+ *
+ * These windows are defensible starting defaults drawn from how fast each
+ * quantity actually moves, and nothing more. Provider cadence,
+ * forecast-versus-observation semantics and location movement may all demand
+ * tighter invalidation later, so the policy is data that travels with a
+ * version and can be overridden per call. A provider that knows better — one
+ * that states its own expiry, or publishes on a fixed cadence — wins.
+ *
+ * The ONE rule that is not a default: `observe()` never LENGTHENS validity
+ * beyond what a provider states. A policy may only shorten.
+ */
+export interface ValidityPolicy {
+  readonly version: string;
+  readonly rules: Readonly<Record<EnvironmentalSignal, SignalValidity>>;
+}
+
+export const DEFAULT_VALIDITY_POLICY: ValidityPolicy = {
+  version: 'env-validity-2026-09-06',
+  rules: {
+    /** Ambient air moves slowly; an hour-old reading still describes the hour. */
+    temperature: { kind: 'time', freshForMs: 60 * 60 * 1000 },
+    humidity: { kind: 'time', freshForMs: 60 * 60 * 1000 },
+    /** Derived from both, so it cannot outlive them. */
+    apparentTemperature: { kind: 'time', freshForMs: 60 * 60 * 1000 },
+    /**
+     * UV tracks solar angle and cloud cover — it can change materially inside
+     * an hour and is near-meaningless once the sun has moved. The shortest
+     * window here, and the clearest case against a single universal duration.
+     */
+    uvIndex: { kind: 'time', freshForMs: 30 * 60 * 1000 },
+    /** Shifts on wind and traffic; hours, not minutes. */
+    airQuality: { kind: 'time', freshForMs: 2 * 60 * 60 * 1000 },
+    /** Whether it is raining right now is a short-lived fact. */
+    precipitation: { kind: 'time', freshForMs: 30 * 60 * 1000 },
+    /**
+     * NOT a point reading — an accumulation over a lookback window. It stays
+     * meaningful far longer precisely because it already describes the past.
+     */
+    recentRainfall: { kind: 'time', freshForMs: 6 * 60 * 60 * 1000 },
+    wind: { kind: 'time', freshForMs: 60 * 60 * 1000 },
+    /** Published on daily cycles by most feeds. */
+    pollen: { kind: 'time', freshForMs: 12 * 60 * 60 * 1000 },
+    /** Computed for a date and location — replaced tomorrow, not decayed. */
+    sunrise: { kind: 'time', freshForMs: 24 * 60 * 60 * 1000 },
+    sunset: { kind: 'time', freshForMs: 24 * 60 * 60 * 1000 },
+    /**
+     * LOCATION-BOUND. Invalidated by moving, never by waiting. The ceiling is
+     * a defensive maximum cache age so a stuck value cannot persist forever.
+     */
+    altitude: { kind: 'location', maxCacheMs: 7 * 24 * 60 * 60 * 1000 },
+  },
 };
+
+/** The effective ceiling in ms for a signal, whichever rule governs it. */
+export function validityCeilingMs(
+  signal: EnvironmentalSignal,
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): number {
+  const rule = policy.rules[signal];
+  return rule.kind === 'time' ? rule.freshForMs : rule.maxCacheMs;
+}
+
+/** True when a signal's currency depends on WHERE, not WHEN. */
+export function isLocationBound(
+  signal: EnvironmentalSignal,
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): boolean {
+  return policy.rules[signal].kind === 'location';
+}
 
 /** Tolerance for device/provider clock drift, matching the existing seam. */
 export const CLOCK_SKEW_MS = 5 * 60 * 1000;
@@ -240,8 +288,9 @@ export interface ObserveInput<T> {
   readonly source: string;
   readonly locationPrecision: LocationPrecision;
   readonly quality?: EvidenceQuality;
-  /** Provider-stated expiry, when one exists. Otherwise policy decides. */
+  /** Provider-stated expiry, when one exists. Policy may shorten, never extend. */
   readonly expiresAt?: number;
+  readonly locationKey?: string;
 }
 
 /**
@@ -255,7 +304,11 @@ export interface ObserveInput<T> {
  * would otherwise sail through as observed — the exact shape of an earlier
  * defect, so it is rejected here rather than downstream.
  */
-export function observe<T>(input: ObserveInput<T>, now: number): EnvironmentalEvidence<T> {
+export function observe<T>(
+  input: ObserveInput<T>,
+  now: number,
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): EnvironmentalEvidence<T> {
   const { signal, value, observedAt } = input;
 
   if (typeof value === 'number' && !Number.isFinite(value)) {
@@ -265,12 +318,19 @@ export function observe<T>(input: ObserveInput<T>, now: number): EnvironmentalEv
     return unobserved(signal, 'provider_unavailable');
   }
 
-  const expiresAt = input.expiresAt ?? observedAt + FRESHNESS_MS[signal];
+  // A provider that states its own expiry knows its cadence better than a
+  // default does. Policy may SHORTEN that, never lengthen it — so the
+  // effective expiry is whichever comes first.
+  const policyExpiry = observedAt + validityCeilingMs(signal, policy);
+  const expiresAt = input.expiresAt != null
+    ? Math.min(input.expiresAt, policyExpiry)
+    : policyExpiry;
   const core = {
     signal, value: input.value, unit: input.unit, observedAt, expiresAt,
     provenance: input.provenance, source: input.source,
     locationPrecision: input.locationPrecision,
     ...(input.quality !== undefined ? { quality: input.quality } : {}),
+    ...(input.locationKey !== undefined ? { locationKey: input.locationKey } : {}),
   } as const;
 
   // Skew tolerance applies to expiry only. A reading is not made fresher by a
@@ -288,11 +348,33 @@ export function observe<T>(input: ObserveInput<T>, now: number): EnvironmentalEv
  * was `inferred` when fresh is still `inferred` when stale, and a demo value
  * never becomes an observed one by ageing.
  */
+export interface ReclassifyContext {
+  /** Where the member is NOW. Omitted means location is unknown/unchanged. */
+  readonly locationKey?: string;
+  readonly policy?: ValidityPolicy;
+}
+
 export function reclassify<T>(
   evidence: EnvironmentalEvidence<T>,
   now: number,
+  ctx: ReclassifyContext = {},
 ): EnvironmentalEvidence<T> {
   if (evidence.kind === 'unobserved') return evidence;
+  const policy = ctx.policy ?? DEFAULT_VALIDITY_POLICY;
+
+  // LOCATION INVALIDATION — the normative rule for location-bound signals.
+  // Altitude does not decay; it stops being true when the member moves. A
+  // reading taken somewhere else is not stale data about here, so it is not
+  // demoted to `stale` — it is not evidence about this place at all.
+  if (
+    isLocationBound(evidence.signal, policy) &&
+    ctx.locationKey !== undefined &&
+    evidence.locationKey !== undefined &&
+    ctx.locationKey !== evidence.locationKey
+  ) {
+    return unobserved(evidence.signal, 'never_requested');
+  }
+
   const fresh = now <= evidence.expiresAt + CLOCK_SKEW_MS;
   if (fresh && evidence.kind === 'observed') return evidence;
   if (!fresh && evidence.kind === 'stale') return evidence;

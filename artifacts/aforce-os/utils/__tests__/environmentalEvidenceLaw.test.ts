@@ -20,7 +20,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   observe, unobserved, reclassify, currentValue, lastKnownValue,
-  isCurrent, isMeasurement, FRESHNESS_MS, CLOCK_SKEW_MS,
+  isCurrent, isMeasurement, CLOCK_SKEW_MS,
+  DEFAULT_VALIDITY_POLICY, validityCeilingMs, isLocationBound,
   type EnvironmentalEvidence, type EnvironmentalSignal,
 } from '../environment/environmentalEvidence';
 
@@ -176,10 +177,12 @@ describe('LAW 6 — freshness expiry is DETERMINISTIC and per-signal', () => {
   it('SIGNALS DO NOT SHARE A WINDOW — the whole point of the policy', () => {
     // A universal duration would be convenient and wrong. UV tracks sun angle
     // and dies in half an hour; the ground does not move.
-    expect(FRESHNESS_MS.uvIndex).toBeLessThan(FRESHNESS_MS.temperature);
-    expect(FRESHNESS_MS.temperature).toBeLessThan(FRESHNESS_MS.airQuality);
-    expect(FRESHNESS_MS.airQuality).toBeLessThan(FRESHNESS_MS.altitude);
-    expect(new Set(Object.values(FRESHNESS_MS)).size).toBeGreaterThan(1);
+    expect(validityCeilingMs('uvIndex')).toBeLessThan(validityCeilingMs('temperature'));
+    expect(validityCeilingMs('temperature')).toBeLessThan(validityCeilingMs('airQuality'));
+    expect(validityCeilingMs('airQuality')).toBeLessThan(validityCeilingMs('altitude'));
+    const ceilings = Object.keys(DEFAULT_VALIDITY_POLICY.rules)
+      .map((k) => validityCeilingMs(k as EnvironmentalSignal));
+    expect(new Set(ceilings).size).toBeGreaterThan(1);
   });
 
   it('the SAME age gives different verdicts for different signals', () => {
@@ -198,12 +201,12 @@ describe('LAW 6 — freshness expiry is DETERMINISTIC and per-signal', () => {
       'altitude', 'apparentTemperature', 'precipitation', 'recentRainfall', 'wind', 'pollen',
       'sunrise', 'sunset'];
     for (const s of signals) {
-      expect(FRESHNESS_MS[s], `${s} has no freshness policy`).toBeGreaterThan(0);
+      expect(validityCeilingMs(s), `${s} has no validity rule`).toBeGreaterThan(0);
     }
   });
 
   it('clock skew forgives drift without inventing freshness', () => {
-    const at = T0 - FRESHNESS_MS.temperature;
+    const at = T0 - validityCeilingMs('temperature');
     const common = { signal: 'temperature', value: 22, unit: 'celsius', observedAt: at,
       provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse' } as const;
     expect(observe(common, T0 + CLOCK_SKEW_MS - 1000).kind).toBe('observed');
@@ -268,5 +271,90 @@ describe('LAW 8 — consumers cannot silently erase evidence state', () => {
   it('unobserved survives reclassification untouched', () => {
     const e = unobserved('airQuality', 'permission_denied');
     expect(reclassify(e, T0 + 99 * 60 * 60 * 1000)).toEqual(e);
+  });
+});
+
+describe('LAW 9 — altitude is LOCATION-invalidated, not time-expired', () => {
+  const atDenver = () => observe({
+    signal: 'altitude', value: 1609, unit: 'meters', observedAt: T0,
+    provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse',
+    locationKey: 'denver',
+  }, T0);
+
+  it('the rule is LOCATION-bound, and the duration is only a cache ceiling', () => {
+    // The normative semantics live in the type, not in a plausible number.
+    expect(isLocationBound('altitude')).toBe(true);
+    expect(isLocationBound('temperature')).toBe(false);
+    expect(DEFAULT_VALIDITY_POLICY.rules.altitude.kind).toBe('location');
+  });
+
+  it('MOVING invalidates it — the ground did not change, the member did', () => {
+    const moved = reclassify(atDenver(), T0 + 60_000, { locationKey: 'miami' });
+    // NOT demoted to `stale`: a Denver altitude is not out-of-date data about
+    // Miami, it is not data about Miami at all.
+    expect(moved.kind).toBe('unobserved');
+  });
+
+  it('and staying put does NOT invalidate it, even much later', () => {
+    const later = reclassify(atDenver(), T0 + 6 * 24 * 60 * 60 * 1000, { locationKey: 'denver' });
+    expect(later.kind).toBe('observed');
+  });
+
+  it('the 7-day ceiling is DEFENSIVE — a stuck reading still cannot live forever', () => {
+    const ancient = reclassify(atDenver(), T0 + 30 * 24 * 60 * 60 * 1000, { locationKey: 'denver' });
+    expect(ancient.kind).toBe('stale');
+  });
+
+  it('a TIME-bound signal is not invalidated merely by moving', () => {
+    // Temperature in a new city is stale-or-fresh on its own clock; the
+    // location rule must not leak onto signals it does not govern.
+    const temp = observe({
+      signal: 'temperature', value: 22, unit: 'celsius', observedAt: T0,
+      provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse',
+      locationKey: 'denver',
+    }, T0);
+    expect(reclassify(temp, T0 + 60_000, { locationKey: 'miami' }).kind).toBe('observed');
+  });
+});
+
+describe('LAW 10 — validity windows are POLICY, not scientific constants', () => {
+  it('the policy is versioned, so a change is visible rather than silent', () => {
+    expect(DEFAULT_VALIDITY_POLICY.version).toMatch(/^env-validity-/);
+  });
+
+  it('a caller may supply a TIGHTER policy and it takes effect', () => {
+    const strict = {
+      version: 'test-strict',
+      rules: { ...DEFAULT_VALIDITY_POLICY.rules,
+        temperature: { kind: 'time', freshForMs: 60_000 } as const },
+    };
+    const at = T0 - 10 * 60 * 1000;
+    const input = {
+      signal: 'temperature', value: 22, unit: 'celsius', observedAt: at,
+      provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse',
+    } as const;
+    expect(observe(input, T0).kind).toBe('observed');          // default 1 h
+    expect(observe(input, T0, strict).kind).toBe('stale');      // policy 1 min
+  });
+
+  it('A PROVIDER MAY SHORTEN VALIDITY — it knows its own cadence', () => {
+    const e = observe({
+      signal: 'temperature', value: 22, unit: 'celsius', observedAt: T0,
+      provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse',
+      expiresAt: T0 + 60_000,
+    }, T0);
+    expect(e.kind !== 'unobserved' && e.expiresAt).toBe(T0 + 60_000);
+  });
+
+  it('BUT A PROVIDER MAY NEVER LENGTHEN IT BEYOND POLICY', () => {
+    // The asymmetry is deliberate: a feed claiming its reading is good for a
+    // week must not override our judgement that UV dies in half an hour.
+    const e = observe({
+      signal: 'uvIndex', value: 7, unit: 'uvIndex', observedAt: T0,
+      provenance: 'provider', source: 'open-meteo', locationPrecision: 'coarse',
+      expiresAt: T0 + 7 * 24 * 60 * 60 * 1000,
+    }, T0);
+    expect(e.kind !== 'unobserved' && e.expiresAt)
+      .toBe(T0 + validityCeilingMs('uvIndex'));
   });
 });
