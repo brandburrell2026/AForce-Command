@@ -184,3 +184,57 @@ export const NIGHT_OUT_ADJUST_OZ = [8, 12, 16, 20, 24] as const;
 export function isApprovedAdjustOz(oz: number): boolean {
   return (NIGHT_OUT_ADJUST_OZ as readonly number[]).includes(oz);
 }
+
+// ─── Evidence age (Lane A) ──────────────────────────────────────────────────
+
+/** The state fields the freshness label is derived from. */
+export interface FreshnessSources {
+  readonly lastIntakeTime?: Date | string | number | null;
+  readonly weatherTempC?: number | null;
+  readonly weatherFetchedAt?: number | null;
+}
+
+function toMs(v: Date | string | number | null | undefined): number | null {
+  if (v == null) return null;
+  const ms = v instanceof Date ? v.getTime() : typeof v === 'number' ? v : new Date(v).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * Age of the evidence behind the command, in ms — the WEAKEST link.
+ *
+ * LANE A REPAIR (timestamp semantics only).
+ *
+ * This took the FRESHEST of two unlike things: `lastIntakeTime` — something
+ * the member just DID — and `weatherFetchedAt` — something the world last
+ * TOLD us. Taking the max let the most recent signal speak for the whole card,
+ * so logging a drink rewrote "Updated 180 min ago" into "Updated just now"
+ * while the conditions behind the command were three hours stale. Nothing about
+ * the environment had changed; the member simply had a drink.
+ *
+ * One line, one claim: how current is the picture behind this command. A
+ * picture is only as current as its oldest part, so the oldest PRESENT signal
+ * governs. A behavioural event can no longer launder stale environmental
+ * evidence into appearing current.
+ *
+ * "Present" is doing real work in both directions. A weather anchor with no
+ * reading behind it describes nothing and is not counted — absence must not be
+ * punished as staleness. Equally, a stale reading is not silently dropped to
+ * flatter the line: it is exactly the weak link this reports.
+ *
+ * Deliberately unchanged: the copy itself, the low-confidence override, and
+ * every confidence rule. This function decides a number, not a sentence.
+ */
+export function evidenceAgeMs(sources: FreshnessSources, now: number): number | null {
+  const ts: number[] = [];
+  const li = toMs(sources.lastIntakeTime);
+  if (li != null) ts.push(li);
+  // A timestamp only counts when there is a reading it belongs to.
+  const hasReading =
+    sources.weatherTempC != null && Number.isFinite(sources.weatherTempC);
+  const wf = sources.weatherFetchedAt;
+  if (hasReading && wf != null && Number.isFinite(wf) && wf > 0) ts.push(wf);
+  if (ts.length === 0) return null;
+  const oldest = Math.min(...ts);
+  return Math.max(0, now - oldest);
+}

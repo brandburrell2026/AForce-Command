@@ -9,6 +9,7 @@
  * (Score-Protection). Authorization is enforced by the route (`app/night-out.tsx`);
  * this container is only mounted when Night Out is authorized.
  */
+import { evidenceAgeMs } from '../services/nightOut/commandPresentation';
 import React from 'react';
 import { Platform } from 'react-native';
 import { hapticImpact, hapticNotify, hapticSelection } from '@/services/haptics';
@@ -40,15 +41,6 @@ function haptic(kind: 'light' | 'medium' | 'success') {
   if (kind === 'success') hapticNotify('success');
   else if (kind === 'medium') hapticImpact('medium');
   else hapticSelection();
-}
-
-function freshestAgeMs(state: ReturnType<typeof useAppStore>['state'], now: number): number | null {
-  const ts: number[] = [];
-  const li = state.userState.lastIntakeTime;
-  if (li) ts.push(li instanceof Date ? li.getTime() : new Date(li).getTime());
-  if (state.userState.weatherFetchedAt) ts.push(state.userState.weatherFetchedAt);
-  const freshest = ts.filter((t) => Number.isFinite(t)).sort((a, b) => b - a)[0];
-  return freshest ? Math.max(0, now - freshest) : null;
 }
 
 export default function NightOutCommandScreen() {
@@ -97,7 +89,7 @@ export default function NightOutCommandScreen() {
     doseOz,
     reason: engine.command.explanation || '',
     confidenceLevel,
-    freshnessAgeMs: freshestAgeMs(state, now),
+    freshnessAgeMs: evidenceAgeMs(state.userState, now),
     reassessMinutes,
     windowMinutes: reassessMinutes,
     timerView: timer.view,
