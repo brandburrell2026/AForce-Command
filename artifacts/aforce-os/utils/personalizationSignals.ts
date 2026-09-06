@@ -189,10 +189,25 @@ export interface DeriveArgs {
 export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationOutput {
   const { userState: u, engineOutput: e } = args;
 
-  const tempC: number | null =
-    typeof u.weatherTempC === 'number' && Number.isFinite(u.weatherTempC)
-      ? u.weatherTempC
-      : typeof u.heatLoad === 'number' && Number.isFinite(u.heatLoad)
+  // LANE B — CALCULATION ASSUMPTION ≠ OBSERVED EVIDENCE.
+  //
+  // `tempC` has two very different origins and the chip copy below could not
+  // tell them apart. A measured reading is the member's world; the fallback is
+  // `20 + clamp(heatLoad,0,10)*1.2` applied to a SEEDED CONSTANT that no code
+  // path writes from an observation (PR4 quarantined it as
+  // `legacyHeatLoadAssumption`). Rendered identically, a first-run member with
+  // no weather data at all was shown "Warm 25°C" — the seed's arithmetic
+  // image, wearing a degree sign.
+  //
+  // The value stays: bands, thresholds and every consumer of `signals.tempC`
+  // are unchanged, because the fallback is a legitimate CALCULATION. Only the
+  // provenance is now carried alongside it, so the member-facing claim can be
+  // withheld where it would be a fabrication.
+  const tempIsObserved =
+    typeof u.weatherTempC === 'number' && Number.isFinite(u.weatherTempC);
+  const tempC: number | null = tempIsObserved
+    ? (u.weatherTempC as number)
+    : typeof u.heatLoad === 'number' && Number.isFinite(u.heatLoad)
       ? heatLoadToTempCFallback(u.heatLoad)
       : null;
 
@@ -244,10 +259,20 @@ export function derivePersonalizationSignals(args: DeriveArgs): PersonalizationO
   // Order reasons by physiological dominance, most impactful first.
   const reasons: PersonalizationReason[] = [];
 
+  // The degree is quoted ONLY for an observed reading. An assumed temperature
+  // still drives the band (the calculation is legitimate) but names no number,
+  // because a number in a °C chip is a claim about the member's environment
+  // that nothing observed.
   if (signals.bands.heat === 'high' && tempC != null) {
-    reasons.push({ key: 'heat', label: `Heat ${Math.round(tempC)}°C` });
+    reasons.push({
+      key: 'heat',
+      label: tempIsObserved ? `Heat ${Math.round(tempC)}°C` : 'Heat load high',
+    });
   } else if (signals.bands.heat === 'elevated' && tempC != null) {
-    reasons.push({ key: 'heat', label: `Warm ${Math.round(tempC)}°C` });
+    reasons.push({
+      key: 'heat',
+      label: tempIsObserved ? `Warm ${Math.round(tempC)}°C` : 'Heat load elevated',
+    });
   }
 
   if (signals.bands.humidity === 'high' && humidityPct != null) {
