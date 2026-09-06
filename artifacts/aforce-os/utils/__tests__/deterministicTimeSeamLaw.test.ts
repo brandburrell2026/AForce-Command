@@ -119,6 +119,41 @@ const FIXTURES: Array<[string, Record<string, unknown>]> = [
   ['SOCIAL — night active, four drinks', socialActive()],
   ['SOCIAL — night active, awake, hot', socialActive({ weatherTempC: 33, weatherHumidity: 70 })],
   ['SOCIAL — recovery window, winding down', socialRecovering()],
+  // Command Confidence gates on FRESHNESS WINDOWS (24 h biometrics, 6 h
+  // weather). A fixture with no fetch anchor answers `low` whichever clock it
+  // reads, which is how this leak hid: the field was in the output the whole
+  // time and looked stable. These two sit INSIDE the windows at the injected
+  // `now` and far outside them at every hostile wall clock.
+  ['CONFIDENCE — fresh weather anchor, 1 h old', hydrated(15, {
+    weatherTempC: 27, weatherHumidity: 55, weatherFetchedAt: T0 - 60 * MIN })],
+  ['CONFIDENCE — weather anchor at the 6 h edge', hydrated(15, {
+    weatherTempC: 27, weatherHumidity: 55, weatherFetchedAt: T0 - 350 * MIN })],
+  // The one that moved the SCORE. Two providers reporting the same metric
+  // with snapshots timestamped AHEAD of `now` — ordinary eager-sync skew.
+  // `aggregateBiometrics` resolves each field's comparison timestamp as
+  // `Math.min(observedAt, now)`, so with a wall-clock `now` the arbitration
+  // winner flips as real time passes and a different provider's sleep value
+  // is summed into the score.
+  ['BIOMETRICS — two providers, snapshots ahead of `now`', hydrated(15, {
+    biometrics: {
+      apple_health: { provider: 'apple_health', fetchedAt: T0 + 10 * MIN, sleepHoursLastNight: 8.0 },
+      whoop: { provider: 'whoop', fetchedAt: T0 + 20 * MIN, sleepHoursLastNight: 3.0 },
+    } })],
+  ['BIOMETRICS — disagreeing HRV, snapshots ahead of `now`', hydrated(15, {
+    biometrics: {
+      apple_health: { provider: 'apple_health', fetchedAt: T0 + 5 * MIN, hrvSdnn: 72 },
+      oura: { provider: 'oura', fetchedAt: T0 + 25 * MIN, hrvSdnn: 21 },
+    } })],
+  // A SECOND, separate leak on the same aggregator: `inferredActivityLevel`
+  // FLOORS the manual activity axis, which drives the decay rate. Disagreeing
+  // step counts, snapshots ahead of `now`, so the arbitration winner — and
+  // therefore the floor — moves with the real clock.
+  ['ACTIVITY FLOOR — disagreeing steps, snapshots ahead of `now`', hydrated(15, {
+    activityLevel: 3,
+    biometrics: {
+      apple_health: { provider: 'apple_health', fetchedAt: T0 + 5 * MIN, stepsToday: 24000 },
+      garmin: { provider: 'garmin', fetchedAt: T0 + 25 * MIN, stepsToday: 900 },
+    } })],
 ];
 
 afterEach(() => { vi.useRealTimers(); });
@@ -178,6 +213,124 @@ describe('LAW 1 — same state + same `now` is byte-identical at any wall-clock 
     const at3am = JSON.parse(atWallClock(new Date(2026, 8, 6, 3, 0, 0).getTime(), state));
     const at1pm = JSON.parse(atWallClock(new Date(2026, 8, 6, 13, 0, 0).getTime(), state));
     expect(at3am.command.explanation).toBe(at1pm.command.explanation);
+  });
+});
+
+describe('LAW 1a — the SCORE ITSELF does not move with the wall clock', () => {
+  // The most serious instance found. `computeRecoverySignal` had no `now`
+  // parameter at all, so `buildBreakdown` threading `now` was defeated one
+  // level down, and `recovery.delta` is summed straight into `raw`.
+  //
+  // Reproduced before the repair: identical UserState, identical injected
+  // `now`, wall clock advanced 15 minutes — score 50 -> 40, health_signals
+  // +5 -> -5, hint "Sleep 8.0 h" -> "Sleep 3.0 h (deficit)". A wandering score
+  // for a body that had not changed.
+  const twoProviders = hydrated(15, {
+    biometrics: {
+      apple_health: { provider: 'apple_health', fetchedAt: T0 + 10 * MIN, sleepHoursLastNight: 8.0 },
+      whoop: { provider: 'whoop', fetchedAt: T0 + 20 * MIN, sleepHoursLastNight: 3.0 },
+    } });
+
+  it('the biometrics fixture actually contributes to the score', () => {
+    // Guard: with no health contribution this fixture proves nothing, exactly
+    // as the socialMode-less and anchor-less fixtures proved nothing before.
+    const out = JSON.parse(atWallClock(T0, twoProviders));
+    const hs = out.breakdown.find((c: { id: string }) => c.id === 'health_signals');
+    expect(hs).toBeDefined();
+    expect(hs.delta).not.toBe(0);
+  });
+
+  it('score, band and the health contribution are identical at any wall clock', () => {
+    const ref = JSON.parse(atWallClock(T0, twoProviders));
+    const hs = (o: { breakdown: Array<{ id: string }> }) =>
+      o.breakdown.find(c => c.id === 'health_signals');
+    for (const [when, wall] of HOSTILE_CLOCKS) {
+      const got = JSON.parse(atWallClock(wall, twoProviders));
+      expect(got.score, `score at ${when}`).toBe(ref.score);
+      expect(got.performanceState.level, `band at ${when}`).toBe(ref.performanceState.level);
+      expect(hs(got), `health_signals at ${when}`).toEqual(hs(ref));
+    }
+  });
+});
+
+describe('LAW 1d — the ACTIVITY FLOOR does not move with the wall clock', () => {
+  // A REGRESSION GUARD, and honestly labelled as one.
+  //
+  // `resolveEffectiveActivityLevel` calls the same aggregator and had the same
+  // missing `now`, so it was threaded for consistency — but unlike LAW 1a this
+  // one is NOT currently a live defect, and this law does not pretend to prove
+  // it was. `inferredActivityLevel` is computed by MAX across providers
+  // (biometricsAggregator.ts:378-393); only the recovery-delta metrics go
+  // through `freshestNonNull`, which is the sole consumer of `now`. The
+  // activity floor is therefore clock-independent by construction today.
+  //
+  // Consequence, stated rather than hidden: mutations that strip `now` from
+  // `resolveEffectiveActivityLevel` and its aggregator call are EQUIVALENT
+  // MUTANTS — behaviourally identical code — and no honest law can kill them.
+  // They are reported as survivors in the PR rather than papered over with a
+  // fabricated assertion.
+  //
+  // What this law does buy: the day a freshness-arbitrated field joins the
+  // activity path, this fails instead of shipping a wandering decay rate.
+  const steps = hydrated(15, {
+    activityLevel: 3,
+    biometrics: {
+      apple_health: { provider: 'apple_health', fetchedAt: T0 + 5 * MIN, stepsToday: 24000 },
+      garmin: { provider: 'garmin', fetchedAt: T0 + 25 * MIN, stepsToday: 900 },
+    } });
+
+  it('the fixture actually engages the floor', () => {
+    // Guard: if the inferred level never exceeds the manual `activityLevel`,
+    // the floor never fires and this fixture proves nothing.
+    const out = JSON.parse(atWallClock(T0, steps));
+    const recency = out.breakdown.find((c: { id: string }) => c.id === 'recency');
+    expect(recency).toBeDefined();
+    expect(recency.hint).toMatch(/pts\/min/);
+    expect(out.prediction.decayPerMinute).toBeGreaterThan(0);
+  });
+
+  it('decay rate, score and the recency hint are identical at any wall clock', () => {
+    const ref = JSON.parse(atWallClock(T0, steps));
+    const recency = (o: { breakdown: Array<{ id: string }> }) =>
+      o.breakdown.find(c => c.id === 'recency');
+    for (const [when, wall] of HOSTILE_CLOCKS) {
+      const got = JSON.parse(atWallClock(wall, steps));
+      expect(got.prediction.decayPerMinute, `decay at ${when}`).toBe(ref.prediction.decayPerMinute);
+      expect(got.score, `score at ${when}`).toBe(ref.score);
+      expect(recency(got), `recency row at ${when}`).toEqual(recency(ref));
+    }
+  });
+});
+
+describe('LAW 1c — Command Confidence is genuinely exercised', () => {
+  it('the confidence fixtures actually reach a non-`low` verdict', () => {
+    // Without this guard the confidence leak is invisible: every fixture
+    // lacking a fetch anchor returns `low` under any clock, so the mutation
+    // that re-opens the seam survives while the suite reports green. Same
+    // masking shape as the social lane and the riskTimer clamp.
+    const fresh = JSON.parse(atWallClock(T0, hydrated(15, {
+      weatherTempC: 27, weatherHumidity: 55, weatherFetchedAt: T0 - 60 * MIN })));
+    expect(fresh.command.confidence).not.toBe('low');
+  });
+
+  it('confidence is byte-identical at any wall-clock time', () => {
+    const state = hydrated(15, {
+      weatherTempC: 27, weatherHumidity: 55, weatherFetchedAt: T0 - 60 * MIN });
+    const reference = JSON.parse(atWallClock(T0, state)).command.confidence;
+    for (const [when, wall] of HOSTILE_CLOCKS) {
+      expect(JSON.parse(atWallClock(wall, state)).command.confidence, `wall clock at ${when}`)
+        .toBe(reference);
+    }
+  });
+
+  it('and it still tracks the INJECTED clock — the window really expires', () => {
+    // Determinism must not come from ignoring freshness. Push `now` past the
+    // 6-hour weather window and the verdict must drop.
+    const state = hydrated(15, {
+      weatherTempC: 27, weatherHumidity: 55, weatherFetchedAt: T0 - 60 * MIN });
+    const inside = JSON.parse(atWallClock(0, state, T0)).command.confidence;
+    const outside = JSON.parse(atWallClock(0, state, T0 + 600 * MIN)).command.confidence;
+    expect(inside).not.toBe(outside);
   });
 });
 

@@ -444,7 +444,12 @@ export function generateCommand(
   // so the card can show how grounded the recommendation is. Derived ONLY
   // from real signals already in state; never fabricated and never touches
   // the score (Score-Protection).
-  const confidence = deriveCommandConfidence(commandConfidenceInputsFromState(state));
+  // P0.5: `now` here too. `commandConfidenceInputsFromState` gates
+  // `hasFreshBiometrics` (24 h) and `hasWeather` (6 h) against whichever clock
+  // it is handed, so omitting it let the wall clock decide how confident the
+  // command claimed to be. Masked in fixtures without biometrics or a weather
+  // fetch anchor, where the answer is `low` either way.
+  const confidence = deriveCommandConfidence(commandConfidenceInputsFromState(state, now));
   return { ...buildBaseCommand(level, state, score, social, now), confidence };
 }
 
