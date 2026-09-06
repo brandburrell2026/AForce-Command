@@ -40,6 +40,7 @@
  * stays loadable under the vitest pure-test runner (no RN at runtime).
  */
 
+import { isWeatherObservationCurrent } from '../environment/weatherFreshness';
 import type { IntakeEvent } from '../../types';
 import type { VoiceCheckInRecord } from '../voiceCheckIn';
 import type { PerformanceAgeDailySnapshot } from '../performanceAge';
@@ -47,7 +48,6 @@ import type { PerformanceMemoryEntry } from '../performanceMemory';
 import type { CommandConfidenceInputs } from '../scoring/commandConfidence';
 import {
   BIOMETRIC_FRESHNESS_MS,
-  WEATHER_FRESHNESS_MS,
   CLOCK_SKEW_MS,
 } from '../scoring/commandConfidence';
 import {
@@ -394,10 +394,14 @@ export function ledgerToCommandConfidenceInputs(
       c.hasFreshBiometrics === true &&
       isFresh(c.biometricsFetchedAtMs ?? c.occurredAtMs, now, BIOMETRIC_FRESHNESS_MS),
   );
+  // PR5.1 — the replayed verdict is the SAME verdict, not a local re-derivation.
+  // `isFresh` below still serves BIOMETRICS, whose window and semantics are
+  // unchanged; only the weather arm is routed to the canonical classifier, so
+  // replay can no longer disagree with the live path inside the skew grace.
   const hasWeather = contexts.some(
     (c) =>
       isFiniteNumber(c.weatherTempC) &&
-      isFresh(c.weatherFetchedAtMs ?? c.occurredAtMs, now, WEATHER_FRESHNESS_MS),
+      isWeatherObservationCurrent(c.weatherFetchedAtMs ?? c.occurredAtMs, now),
   );
 
   return { hasTodayBehavior, hasFreshBiometrics, hasWeather };

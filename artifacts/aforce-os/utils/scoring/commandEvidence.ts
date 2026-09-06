@@ -46,6 +46,7 @@
  * for deterministic freshness windows.
  */
 
+import { classifyWeatherObservation, weatherEffectiveMaxAgeMs } from '../environment/weatherFreshness';
 import type {
   UserState,
   ScoreEngineOutput,
@@ -59,8 +60,6 @@ import {
   commandConfidenceInputsFromState,
   freshBiometricAnchorMs,
   BIOMETRIC_FRESHNESS_MS,
-  WEATHER_FRESHNESS_MS,
-  CLOCK_SKEW_MS,
 } from './commandConfidence';
 
 // ─── Public data model ────────────────────────────────────────────────────
@@ -147,16 +146,25 @@ function isFiniteNumber(v: unknown): v is number {
 }
 
 /**
- * Classify a source timestamp honestly: 'fresh' within the window, 'stale'
- * past it, 'none' when there is no usable/plausible timestamp (missing, ≤0, or
- * implausibly in the future beyond clock skew). Mirrors commandConfidence's
- * `isFresh` so freshness here can never out-claim Command Confidence.
+ * PR5.1 — the durable record now carries the SAME verdict the live path gives.
+ *
+ * This used to be a local re-implementation ("mirrors commandConfidence's
+ * `isFresh`"). Mirroring is how the drift happened: it applied CLOCK_SKEW_MS
+ * only to future stamps, while `observe()` also grants it on expiry, so a
+ * 61-minute-old reading was recorded `stale` here while Core and Command
+ * Confidence were still calling it current. The classifier is no longer
+ * mirrored — it is consumed.
  */
-function classifyFreshness(fetchedAt: unknown, now: number, maxAgeMs: number): EvidenceFreshnessStatus {
-  if (!isFiniteNumber(fetchedAt) || fetchedAt <= 0 || !Number.isFinite(now)) return 'none';
-  const age = now - fetchedAt;
-  if (age < -CLOCK_SKEW_MS) return 'none';
-  return age <= maxAgeMs ? 'fresh' : 'stale';
+function classifyWeatherFreshness(
+  fetchedAt: unknown,
+  now: number,
+): EvidenceFreshnessStatus {
+  if (!Number.isFinite(now)) return 'none';
+  const currency = classifyWeatherObservation(
+    isFiniteNumber(fetchedAt) ? fetchedAt : null,
+    now,
+  );
+  return currency === 'current' ? 'fresh' : currency;
 }
 
 // ─── Rule context (mirrors generateCommand inputs) ────────────────────────
@@ -291,7 +299,7 @@ function contextEvidenceItems(ctx: CommandRuleContext): EvidenceItem[] {
   // carries a real fetch timestamp. Freshness reported honestly (fresh/stale).
   const temp = state.weatherTempC;
   if (isFiniteNumber(temp) && temp >= HEAT_DEMAND_C) {
-    const status = classifyFreshness(state.weatherFetchedAt, now, WEATHER_FRESHNESS_MS);
+    const status = classifyWeatherFreshness(state.weatherFetchedAt, now);
     if (status === 'fresh' || status === 'stale') {
       items.push({
         key: 'weather_heat',
@@ -299,7 +307,9 @@ function contextEvidenceItems(ctx: CommandRuleContext): EvidenceItem[] {
         labelParams: { temp: Math.round(temp) },
         value: Math.round(temp),
         unit: '°C',
-        freshness: { status, fetchedAtMs: state.weatherFetchedAt as number, maxAgeMs: WEATHER_FRESHNESS_MS },
+        // The bound the verdict ACTUALLY used, so the permanent record and
+        // the status beside it can never describe different windows.
+        freshness: { status, fetchedAtMs: state.weatherFetchedAt as number, maxAgeMs: weatherEffectiveMaxAgeMs() },
         direction: 'raises_demand',
         provenance: 'weather',
       });
