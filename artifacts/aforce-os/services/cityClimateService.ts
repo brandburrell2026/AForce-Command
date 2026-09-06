@@ -92,7 +92,13 @@ export function hydrationInsightForHumidity(band: HumidityBand): string {
 }
 
 // ─── Cache ───────────────────────────────────────────────────────────────────
-const CACHE_TTL_MS = 10 * 60 * 1000;
+export const CACHE_TTL_MS = 10 * 60 * 1000;
+// PR5 — the TTL is a refetch-economy choice, NOT a freshness truth: a cache
+// hit returns the ORIGINAL snapshot with its ORIGINAL observedAt, so the
+// canonical validity policy still ages the evidence from the real observation
+// instant. The law in freshnessUnificationLaw.test.ts pins TTL ≤ the shortest
+// policy window this producer serves, so a cache hit can never HAND OUT data
+// the policy has already stopped calling current.
 let cachedClimate: CityClimate | null = null;
 let cachedAt = 0;
 

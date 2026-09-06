@@ -14,6 +14,7 @@ import {
 import { urineContribution, evaluateEvidence, resolveStateV1 } from './hydroStateV1';
 import type { EvidenceVerdict } from './hydroStateV1';
 import { depletionRatePerMinute } from '../depletionRate';
+import { resolveCurrentWeather } from '../environment/weatherFreshness';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
 
 export function resolveState(score: number): PerformanceLevel {
@@ -289,6 +290,15 @@ function computeDecayPerMinute(state: UserState, now: number = Date.now()): numb
 
   const { level: activityLevel } = resolveEffectiveActivityLevel(state, now);
 
+  // PR5 — ONE freshness truth. Core used the persisted reading at ANY age:
+  // a member opening the app after a night away was scored against yesterday
+  // evening's temperature as though they were still standing in it, while the
+  // confidence chip beside the score called the same reading stale. The
+  // canonical verdict (versioned ValidityPolicy, PR3/3.1) now decides; beyond
+  // it each signal is null and the rate falls back to the heatLoad seed via
+  // `depletionRatePerMinute`'s EXISTING fallback — no new math, an input gate.
+  const weather = resolveCurrentWeather(state, now);
+
   // NOTE: the +0.5 missed-command boost is NOT folded into the per-min
   // rate here, because the rate is reported to the prediction strip and
   // multiplied by elapsed time in `computeDecayPoints`. Folding it in
@@ -299,8 +309,8 @@ function computeDecayPerMinute(state: UserState, now: number = Date.now()): numb
   return depletionRatePerMinute({
     bodyWeightLbs: state.bodyWeightLbs,
     activityLevel,
-    weatherTempC: state.weatherTempC,
-    weatherHumidity: state.weatherHumidity,
+    weatherTempC: weather.tempC,
+    weatherHumidity: weather.humidityPct,
     heatLoad: state.heatLoad,
     isAwake: state.isAwake,
     clutchActive: state.clutchActive,

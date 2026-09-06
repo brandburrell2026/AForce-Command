@@ -58,7 +58,13 @@ export interface LocationSnapshot {
 // we deliberately bump the namespace — legacy anchors are ignored and the
 // first post-upgrade live reading simply has no baseline (safe: no travel).
 const STORAGE_KEY = 'aforce.location.anchor.v2';
-const CACHE_TTL_MS = 10 * 60 * 1000;
+export const CACHE_TTL_MS = 10 * 60 * 1000;
+// PR5 — the TTL is a refetch-economy choice, NOT a freshness truth: a cache
+// hit returns the ORIGINAL snapshot with its ORIGINAL observedAt, so the
+// canonical validity policy still ages the evidence from the real observation
+// instant. The law in freshnessUnificationLaw.test.ts pins TTL ≤ the shortest
+// policy window this producer serves, so a cache hit can never HAND OUT data
+// the policy has already stopped calling current.
 
 let cachedSnapshot: LocationSnapshot | null = null;
 let cachedAt = 0;

@@ -317,6 +317,17 @@ export function observe<T>(
   if (!Number.isFinite(observedAt)) {
     return unobserved(signal, 'provider_unavailable');
   }
+  // PR5 — a reading claimed from the FUTURE is not a reading. Before this,
+  // the classifiers disagreed at the edge: the old confidence `isFresh`
+  // rejected timestamps more than CLOCK_SKEW_MS ahead, while this contract
+  // accepted any future `observedAt` as observed — so the same implausible
+  // row could be "current" to Core and "not fresh" to confidence. One truth:
+  // within skew tolerance a future stamp is ordinary clock drift and stands;
+  // beyond it the provider's clock cannot be trusted, and untrustworthy is
+  // `unobserved`, never a fabricated observation.
+  if (observedAt > now + CLOCK_SKEW_MS) {
+    return unobserved(signal, 'provider_unavailable');
+  }
 
   // A provider that states its own expiry knows its cadence better than a
   // default does. Policy may SHORTEN that, never lengthen it — so the

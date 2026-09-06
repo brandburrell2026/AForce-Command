@@ -87,7 +87,9 @@ describe('commandConfidenceInputsFromState — no fabrication', () => {
     it('rejects null temp or a missing/stale fetchedAt', () => {
       expect(commandConfidenceInputsFromState(mk({ weatherTempC: null, weatherFetchedAt: NOW }), NOW).hasWeather).toBe(false);
       expect(commandConfidenceInputsFromState(mk({ weatherTempC: 25 }), NOW).hasWeather).toBe(false);
-      const stale = NOW - WEATHER_FRESHNESS_MS - 1;
+      // PR5: the canonical classifier tolerates CLOCK_SKEW_MS beyond the
+      // window (drift never condemns a reading), so "stale" starts past both.
+      const stale = NOW - WEATHER_FRESHNESS_MS - CLOCK_SKEW_MS - 1;
       expect(commandConfidenceInputsFromState(mk({ weatherTempC: 25, weatherFetchedAt: stale }), NOW).hasWeather).toBe(false);
     });
 
@@ -192,7 +194,7 @@ describe('deriveContextSnapshotFields — fail-closed flag↔anchor binding', ()
   it('drops weather (temp + anchor together) when only biometrics are fresh', () => {
     const bioAt = NOW - 60 * 1000;
     const fields = deriveContextSnapshotFields(
-      mk({ weatherTempC: 30, weatherFetchedAt: NOW - WEATHER_FRESHNESS_MS - 1, appleHealth: { hrvSdnn: 65, fetchedAt: bioAt } }),
+      mk({ weatherTempC: 30, weatherFetchedAt: NOW - WEATHER_FRESHNESS_MS - CLOCK_SKEW_MS - 1, appleHealth: { hrvSdnn: 65, fetchedAt: bioAt } }),
       NOW,
     );
     expect(fields.hasContext).toBe(true);

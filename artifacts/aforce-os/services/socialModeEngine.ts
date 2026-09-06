@@ -10,6 +10,7 @@
  * when Social Mode is neither active nor inside its 8h recovery window.
  */
 
+import { resolveCurrentWeather } from '../utils/environment/weatherFreshness';
 import type { ScoreEngineOutput, UserState } from '../types';
 import { calculateHangoverRisk, activeDecayMultiplier } from '../utils/hangoverRisk';
 import { estimateBAC } from './bacEstimationService';
@@ -54,6 +55,8 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
   // window has expired, so the shield can actually apply its floor.
   if (!sm.active && !inRecoveryWindow && !voyageShieldActive) return null;
 
+  const currentWeatherForRecovery = resolveCurrentWeather(state, now);
+
   const hangoverRisk = calculateHangoverRisk({
     drinks: sm.drinks,
     bodyWeightLbs: state.bodyWeightLbs,
@@ -80,9 +83,13 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
   const rawRecovery = computeRecoveryCapacity({
     autoPilotScore: performanceScore,
     hydrationCompliance: complianceFromStreak(state.complianceStreak),
+    // PR5 — the same canonical freshness verdict Core uses. Recovery Capacity
+    // is a member-visible band; it must not disagree with the score about
+    // whether the same weather reading is current. `environmentalStress`
+    // already treats null as "no environmental premium".
     environmentalStress: environmentalStress({
-      tempC: state.weatherTempC,
-      humidity: state.weatherHumidity,
+      tempC: currentWeatherForRecovery.tempC,
+      humidity: currentWeatherForRecovery.humidityPct,
       activityLevel: state.activityLevel,
       preset: sm.preset ?? null,
     }),
