@@ -36,6 +36,7 @@
 import {
   observe,
   unobserved,
+  CLOCK_SKEW_MS,
   DEFAULT_VALIDITY_POLICY,
   type EnvironmentalEvidence,
   type EnvironmentalSignal,
@@ -61,9 +62,13 @@ function persistedSignalEvidence(
   if (value == null || !Number.isFinite(value)) {
     return unobserved(signal, 'never_requested');
   }
-  if (fetchedAt == null || !Number.isFinite(fetchedAt)) {
+  if (fetchedAt == null || !Number.isFinite(fetchedAt) || fetchedAt <= 0) {
     // A reading with no timestamp cannot be aged, so it cannot be called
     // current. Refusing it is safer than assuming it is fresh.
+    //
+    // PR5.1: a non-positive epoch is a missing-value sentinel, not an
+    // instant. The ledger classifier already refused it; refusing it here too
+    // is what makes that ONE rule instead of two that happen to agree.
     return unobserved(signal, 'provider_unavailable');
   }
   return observe(
@@ -150,4 +155,77 @@ export function weatherFreshWindowMs(
     );
   }
   return rule.freshForMs;
+}
+
+// ─── The canonical verdict over a bare timestamp (PR5.1) ────────────────────
+
+/**
+ * What the ONE classifier says about a weather observation, addressed only by
+ * its timestamp.
+ *
+ *   current — inside the policy window (skew grace included)
+ *   stale   — a real observation, but past that window
+ *   none    — not a usable instant at all: absent, non-finite, non-positive,
+ *             or implausibly far in the future
+ */
+export type WeatherObservationCurrency = 'current' | 'stale' | 'none';
+
+/**
+ * PR5.1 — the ledger's verdict, from the SAME classifier as the live one.
+ *
+ * The command ledger and its replay adapter hold a bare `weatherFetchedAtMs`,
+ * not a `UserState`, so they could not call `resolveCurrentWeather`. Each had
+ * therefore re-implemented the arithmetic — and re-implemented it slightly
+ * differently: they applied `CLOCK_SKEW_MS` only to future-dated stamps, while
+ * `observe()` applies it to EXPIRY as well. The result was a five-minute band
+ * (window+1min ... window+skew) in which the live path called a reading
+ * current and the durable record called it stale. One reading, two verdicts —
+ * the exact defect PR5 exists to prevent, surviving inside PR5.
+ *
+ * This function closes it by ROUTING rather than by matching: it builds the
+ * same evidence through the same `observe()`, so the window, the skew grace,
+ * the future-timestamp rule and provider-expiry shortening are all inherited.
+ * There is no arithmetic here to drift.
+ *
+ * The value passed to the classifier is a sentinel: classification reads only
+ * whether a value is FINITE, never its magnitude, and the result is discarded.
+ */
+export function classifyWeatherObservation(
+  fetchedAtMs: number | null | undefined,
+  now: number,
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): WeatherObservationCurrency {
+  const CLASSIFICATION_ONLY = 0;
+  const evidence = weatherTemperatureEvidence(
+    { weatherTempC: CLASSIFICATION_ONLY, weatherFetchedAt: fetchedAtMs },
+    now,
+    policy,
+  );
+  if (evidence.kind === 'observed') return 'current';
+  if (evidence.kind === 'stale') return 'stale';
+  return 'none';
+}
+
+/** The same verdict as a boolean, for consumers that only need current-or-not. */
+export function isWeatherObservationCurrent(
+  fetchedAtMs: number | null | undefined,
+  now: number,
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): boolean {
+  return classifyWeatherObservation(fetchedAtMs, now, policy) === 'current';
+}
+
+/**
+ * The EFFECTIVE maximum age of a current weather observation — the policy
+ * window plus the skew grace `observe()` actually allows.
+ *
+ * For consumers that must RECORD the bound they were judged against (the
+ * command ledger writes `maxAgeMs` into durable evidence rows). Recording the
+ * bare window there would put a third number in the permanent record that
+ * disagrees with the verdict beside it; this is the number the verdict used.
+ */
+export function weatherEffectiveMaxAgeMs(
+  policy: ValidityPolicy = DEFAULT_VALIDITY_POLICY,
+): number {
+  return weatherFreshWindowMs(policy) + CLOCK_SKEW_MS;
 }
