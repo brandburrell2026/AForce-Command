@@ -47,7 +47,10 @@ export interface CityClimate {
   /** Short, hydration-relevant insight tied to the current humidity. */
   hydrationInsight: string;
   /** ISO timestamp the snapshot was generated. */
+  /** DEVICE instant this record was built — display/debug only. */
   observedAt: string;
+  /** PROVIDER-declared observation instant, epoch ms; null when none said. */
+  providerObservedAt?: number | null;
   /** Whether the snapshot came from a live source or the offline mock. */
   source: 'live' | 'mock';
 }
@@ -109,7 +112,7 @@ export function __resetClimateCache(): void {
 }
 
 // ─── Mock fallback ───────────────────────────────────────────────────────────
-function buildMockClimate(): CityClimate {
+export function buildMockClimate(): CityClimate {
   // Rotate across a small set of cities by day-of-year so the demo feels
   // alive without flickering within a single session.
   const CITIES: { city: string; region: string; baseHumidity: number; baseTempF: number }[] = [
@@ -139,13 +142,28 @@ function buildMockClimate(): CityClimate {
     humidityBand: band,
     hydrationInsight: hydrationInsightForHumidity(band),
     observedAt: new Date().toISOString(),
+    // A mock has no provider, therefore no provider anchor. Never invent one.
+    providerObservedAt: null,
     source: 'mock',
   };
+}
+
+/** Provider epoch SECONDS -> epoch ms, or null when the provider said nothing. */
+export function providerInstantMs(seconds: number | undefined): number | null {
+  return typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0
+    ? seconds * 1000
+    : null;
 }
 
 // ─── Live fetch ──────────────────────────────────────────────────────────────
 interface OpenMeteoResponse {
   current?: {
+    /**
+     * Provider's own observation instant, epoch SECONDS (`timeformat=unixtime`).
+     * Requested as an integer because Open-Meteo's default string form carries
+     * no UTC offset and `Date.parse` would read it as device-local.
+     */
+    time?: number;
     temperature_2m?: number;
     relative_humidity_2m?: number;
     weather_code?: number;
@@ -215,7 +233,7 @@ async function fetchLiveClimate(): Promise<CityClimate | null> {
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
       `&current=temperature_2m,relative_humidity_2m,weather_code` +
-      `&temperature_unit=fahrenheit`;
+      `&temperature_unit=fahrenheit&timeformat=unixtime`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = (await res.json()) as OpenMeteoResponse;
@@ -233,7 +251,11 @@ async function fetchLiveClimate(): Promise<CityClimate | null> {
       condition: conditionFromWeatherCode(data.current?.weather_code, band),
       humidityBand: band,
       hydrationInsight: hydrationInsightForHumidity(band),
+      // Device instant — display/debug only; NOT the evidence anchor.
       observedAt: new Date().toISOString(),
+      // The provider's assertion, or null. Parse time is when WE finished
+      // reading the answer, not when the world was measured.
+      providerObservedAt: providerInstantMs(data.current?.time),
       source: 'live',
     };
   } catch {

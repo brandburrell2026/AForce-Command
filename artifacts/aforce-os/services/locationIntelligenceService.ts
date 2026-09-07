@@ -48,8 +48,25 @@ export interface LocationSnapshot {
   travel: TravelSignal;
   /** Whether the snapshot came from a live source or the offline mock. */
   source: 'live' | 'mock';
-  /** ISO timestamp the snapshot was generated. */
+  /**
+   * DEVICE instant this snapshot was captured — when WE looked, not when the
+   * world was measured. It anchors travel detection, which is a claim about
+   * the member's position at the moment of the GPS fix and therefore genuinely
+   * device-side. It is NOT an evidence anchor and must never be used as one.
+   */
   observedAt: string;
+  /**
+   * PROVIDER-declared observation instant, epoch ms — the only honest anchor
+   * for environmental evidence, and null when no provider supplied one.
+   *
+   * These two fields were one field, and that was the defect: `observedAt` was
+   * captured BEFORE the permission prompt, the GPS fix and three network
+   * fetches, then presented as the instant the readings were true. Every
+   * reading therefore aged from a moment earlier than its own measurement, so
+   * network and prompt latency made evidence look FRESHER than it was — always
+   * in that direction.
+   */
+  providerObservedAt: number | null;
 }
 
 // v2: the v1 key may hold a synthetic MOCK anchor persisted by the pre-fix
@@ -133,13 +150,23 @@ export function emptyLocationInputs(): LocationInputs {
 
 interface OpenMeteoForecast {
   current?: {
+    /**
+     * The provider's OWN observation instant, epoch SECONDS.
+     *
+     * Requested as `timeformat=unixtime` deliberately: Open-Meteo's default
+     * string form ("2026-09-07T14:00") carries no offset and defaults to GMT,
+     * and `Date.parse` reads an offset-less ISO string as LOCAL time — so the
+     * string form would be wrong by the device's UTC offset. An integer has no
+     * such ambiguity.
+     */
+    time?: number;
     temperature_2m?: number;
     relative_humidity_2m?: number;
     uv_index?: number;
   };
 }
 interface OpenMeteoAirQuality {
-  current?: { us_aqi?: number };
+  current?: { time?: number; us_aqi?: number };
 }
 interface OpenMeteoElevation {
   elevation?: number[];
@@ -254,13 +281,16 @@ export function buildSnapshot(
   previousAnchor: LocationAnchor | null,
   source: 'live' | 'mock',
   observedAt: string,
+  // Defaulted so an omitted anchor is NULL rather than a fabricated one —
+  // absence is the honest value here, and it fails safe at the adapter.
+  providerObservedAt: number | null = null,
 ): LocationSnapshot {
   const context = deriveLocationContext(inputs);
   const travel =
     source === 'live'
       ? detectTravel(previousAnchor, anchorFromInputs(inputs, observedAt))
       : INERT_TRAVEL;
-  return { inputs, context, travel, source, observedAt };
+  return { inputs, context, travel, source, observedAt, providerObservedAt };
 }
 
 // ─── Live fetch ────────────────────────────────────────────────────────────────
@@ -275,7 +305,13 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
-async function fetchLiveInputs(): Promise<LocationInputs | null> {
+interface LiveFetch {
+  readonly inputs: LocationInputs;
+  /** Provider-declared observation instant, epoch ms — null when none said. */
+  readonly providerObservedAt: number | null;
+}
+
+async function fetchLiveInputs(): Promise<LiveFetch | null> {
   // Dynamic import so the service stays usable in node tests where the
   // expo-location native module isn't available.
   let Location: typeof import('expo-location');
@@ -314,25 +350,54 @@ async function fetchLiveInputs(): Promise<LocationInputs | null> {
     fetchJson<OpenMeteoForecast>(
       `https://api.open-meteo.com/v1/forecast` +
         `?latitude=${latStr}&longitude=${lonStr}` +
-        `&current=temperature_2m,relative_humidity_2m,uv_index`,
+        `&current=temperature_2m,relative_humidity_2m,uv_index` +
+        `&timeformat=unixtime`,
     ),
     fetchJson<OpenMeteoAirQuality>(
       `https://air-quality-api.open-meteo.com/v1/air-quality` +
-        `?latitude=${latStr}&longitude=${lonStr}&current=us_aqi`,
+        `?latitude=${latStr}&longitude=${lonStr}&current=us_aqi&timeformat=unixtime`,
     ),
     fetchJson<OpenMeteoElevation>(
       `https://api.open-meteo.com/v1/elevation?latitude=${latStr}&longitude=${lonStr}`,
     ),
   ]);
 
-  return mapLiveInputs({
-    latitude: lat,
-    longitude: lon,
-    timezone: readDeviceTimezone(),
-    forecast,
-    airQuality,
-    elevation,
-  });
+  return {
+    inputs: mapLiveInputs({
+      latitude: lat,
+      longitude: lon,
+      timezone: readDeviceTimezone(),
+      forecast,
+      airQuality,
+      elevation,
+    }),
+    // WEAKEST LINK across the providers that declare one. Two feeds answer
+    // independently; a snapshot carrying a single anchor must not claim the
+    // fresher of them for the other's values. Elevation is excluded — it
+    // publishes no time and does not decay (altitude is location-bound, not
+    // time-bound), so demanding one would refuse a signal for no reason.
+    providerObservedAt: oldestProviderInstantMs([
+      forecast?.current?.time,
+      airQuality?.current?.time,
+    ]),
+  };
+}
+
+/**
+ * The oldest provider-declared instant, in epoch ms — or null when no provider
+ * declared one.
+ *
+ * Null is the honest answer, not a cue to substitute our own clock: the
+ * adapter refuses evidence it cannot age, which is the whole point of the
+ * repair.
+ */
+export function oldestProviderInstantMs(
+  seconds: readonly (number | null | undefined)[],
+): number | null {
+  const ms = seconds
+    .filter((t): t is number => typeof t === 'number' && Number.isFinite(t) && t > 0)
+    .map((t) => t * 1000);
+  return ms.length > 0 ? Math.min(...ms) : null;
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────────
@@ -351,10 +416,15 @@ export async function getLocationSnapshot(force = false): Promise<LocationSnapsh
   const previousAnchor = await readLastAnchor();
   const live = await fetchLiveInputs();
   const source: 'live' | 'mock' = live ? 'live' : 'mock';
-  const inputs = live ?? buildMockInputs(now);
+  const inputs = live?.inputs ?? buildMockInputs(now);
+  // Device capture instant — for travel anchoring only (see the field docs).
   const observedAt = new Date(now).toISOString();
+  // The evidence anchor comes from the provider or not at all. A mock has no
+  // provider, so it has no anchor — and the adapter already refuses it twice
+  // over (source 'mock' -> demo_withheld, and a null anchor is unageable).
+  const providerObservedAt = live?.providerObservedAt ?? null;
 
-  const snapshot = buildSnapshot(inputs, previousAnchor, source, observedAt);
+  const snapshot = buildSnapshot(inputs, previousAnchor, source, observedAt, providerObservedAt);
 
   // Persist the new anchor ONLY for live readings. A mock anchor must never
   // become a future comparison baseline: a later live reading diffed against
@@ -378,7 +448,8 @@ export async function getLocationSnapshot(force = false): Promise<LocationSnapsh
 export function getLocationSnapshotSync(): LocationSnapshot {
   if (cachedSnapshot) return cachedSnapshot;
   const now = Date.now();
-  return buildSnapshot(buildMockInputs(now), null, 'mock', new Date(now).toISOString());
+  // A mock has no provider, therefore no provider anchor. Never invent one.
+  return buildSnapshot(buildMockInputs(now), null, 'mock', new Date(now).toISOString(), null);
 }
 
 // Wave-2 PR6: user-scope change → drop the cached anchor snapshot.
