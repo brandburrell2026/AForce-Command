@@ -239,6 +239,34 @@ export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[
             <Divider />
           </>
         ) : null}
+        {/* Environmental Visual OS (Lane 3). A ROW, not a new card: the
+            performance tab is IA-locked to two top-level groups. Gated on the
+            PRESENTATION flag alone — acquisition is independently flagged, so
+            evidence can be gathered internally without exposing this surface,
+            and this surface can be shown without silently enabling collection. */}
+        {flags.environmental_surface_enabled ? (
+          <>
+            <Pressable
+              onPress={() => router.push('/environment' as never)}
+              testID="profile-environment-link"
+              style={styles.settingRow}
+              accessibilityRole="button"
+              accessibilityLabel="Environment"
+            >
+              <View style={styles.settingLeft}>
+                <Icon name="wind" size={16} color={af.textSecondary} />
+                <View>
+                  <Text style={styles.settingLabel}>Environment</Text>
+                  <Text style={styles.settingSubLabel}>
+                    What the world around you is doing
+                  </Text>
+                </View>
+              </View>
+              <Icon name="chevron-right" size={16} color={af.textTertiary} />
+            </Pressable>
+            <Divider />
+          </>
+        ) : null}
         {/* Founder ruling 2026-08-27 (Build-70 validation finding): the Sweat
             Calculator's only member entry died with the legacy Home's tile
             row — this row is now its canonical member-facing path. */}
