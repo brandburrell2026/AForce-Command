@@ -2127,5 +2127,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "Umgebung",
+    "row_sub": "Was die Welt um dich herum gerade macht",
+    "eyebrow": "UMGEBUNG",
+    "aforce": "AFORCE",
+    "unresolved_headline": "NICHT\nAUFGELÖST",
+    "state": {
+      "clear": "KLAR",
+      "aware": "BEACHTEN",
+      "prepare": "VORBEREITEN",
+      "caution": "VORSICHT",
+      "insufficient": "UNZUREICHEND"
+    },
+    "line": {
+      "heat": "DIE HITZE IST DER BEGRENZENDE FAKTOR.",
+      "air": "DIE LUFT ARBEITET GEGEN DICH.",
+      "uv": "AUF UV SOLLTEST DU ACHTEN.",
+      "clear": "DIE BEDINGUNGEN ARBEITEN FÜR DICH.",
+      "insufficient": "WIR BRAUCHEN MEHR SIGNAL."
+    },
+    "signal": {
+      "heat": "HITZE",
+      "air": "LUFT",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "NIEDRIG",
+        "notable": "STEIGEND",
+        "significant": "HOCH",
+        "severe": "EXTREM"
+      },
+      "air": {
+        "benign": "GUT",
+        "notable": "MÄSSIG",
+        "significant": "SCHLECHT",
+        "severe": "SEHR SCHLECHT"
+      },
+      "uv": {
+        "benign": "NIEDRIG",
+        "notable": "MÄSSIG",
+        "significant": "HOCH",
+        "severe": "SEHR HOCH"
+      }
+    },
+    "quality": {
+      "high": "Alle drei Umweltsignale werden gelesen.",
+      "moderate": "Zwei von drei Umweltsignalen werden gelesen.",
+      "low": "Begrenztes Umweltsignal."
+    },
+    "unavailable": {
+      "permission_denied": "Standort ist für AForce deaktiviert.",
+      "never_requested": "AForce hat noch nicht nach dem Standort gefragt.",
+      "provider_unavailable": "Umgebungsdienst nicht erreichbar.",
+      "not_supported": "Auf diesem Gerät nicht verfügbar.",
+      "demo_withheld": "Demodaten werden hier nie verwendet.",
+      "stale": "Die letzte Messung ist zu alt.",
+      "incomplete": "Zu wenig, um die Hitze zu bestimmen."
+    }
   }
 }

@@ -2080,5 +2080,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "환경",
+    "row_sub": "주변 환경이 지금 어떤 상태인지",
+    "eyebrow": "환경",
+    "aforce": "AFORCE",
+    "unresolved_headline": "판단\n불가",
+    "state": {
+      "clear": "양호",
+      "aware": "주의",
+      "prepare": "준비",
+      "caution": "경계",
+      "insufficient": "판단 불가"
+    },
+    "line": {
+      "heat": "더위가 제한 요인입니다.",
+      "air": "공기가 부담이 되고 있습니다.",
+      "uv": "자외선을 주의하세요.",
+      "clear": "환경이 당신 편입니다.",
+      "insufficient": "신호가 더 필요합니다."
+    },
+    "signal": {
+      "heat": "더위",
+      "air": "공기",
+      "uv": "자외선"
+    },
+    "word": {
+      "heat": {
+        "benign": "낮음",
+        "notable": "상승",
+        "significant": "높음",
+        "severe": "매우 높음"
+      },
+      "air": {
+        "benign": "좋음",
+        "notable": "보통",
+        "significant": "나쁨",
+        "severe": "매우 나쁨"
+      },
+      "uv": {
+        "benign": "낮음",
+        "notable": "보통",
+        "significant": "높음",
+        "severe": "매우 높음"
+      }
+    },
+    "quality": {
+      "high": "세 가지 환경 신호를 모두 읽고 있습니다.",
+      "moderate": "세 가지 중 두 가지 환경 신호를 읽고 있습니다.",
+      "low": "환경 신호가 제한적입니다."
+    },
+    "unavailable": {
+      "permission_denied": "AForce의 위치 권한이 꺼져 있습니다.",
+      "never_requested": "AForce가 아직 위치를 요청하지 않았습니다.",
+      "provider_unavailable": "환경 서비스에 연결하지 못했습니다.",
+      "not_supported": "이 기기에서는 사용할 수 없습니다.",
+      "demo_withheld": "여기서는 데모 데이터를 사용하지 않습니다.",
+      "stale": "마지막 측정값이 너무 오래되었습니다.",
+      "incomplete": "더위를 판단하기에 정보가 부족합니다."
+    }
   }
 }

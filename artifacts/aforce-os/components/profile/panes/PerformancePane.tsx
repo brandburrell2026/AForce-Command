@@ -251,14 +251,14 @@ export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[
               testID="profile-environment-link"
               style={styles.settingRow}
               accessibilityRole="button"
-              accessibilityLabel="Environment"
+              accessibilityLabel={t('environment.title')}
             >
               <View style={styles.settingLeft}>
                 <Icon name="wind" size={16} color={af.textSecondary} />
                 <View>
-                  <Text style={styles.settingLabel}>Environment</Text>
+                  <Text style={styles.settingLabel}>{t('environment.title')}</Text>
                   <Text style={styles.settingSubLabel}>
-                    What the world around you is doing
+                    {t('environment.row_sub')}
                   </Text>
                 </View>
               </View>

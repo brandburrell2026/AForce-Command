@@ -24,11 +24,24 @@
  *
  * ── COPY ───────────────────────────────────────────────────────────────────
  *
- * English constants, deliberately: this surface ships flag-off and internal,
- * and the repo carries ELEVEN locales. Wiring an i18n namespace for copy the
- * founder is still shaping would translate a moving target. i18n is a gate
- * before member-facing enablement, recorded here so it is not forgotten.
+ * Localized through the `environment.*` namespace in all eleven locales. The
+ * approved English creative direction is unchanged — the translations carry
+ * the same meaning, and none of them softens a truth guarantee:
+ *
+ *   - concern WORDS still derive from `concern`, never from `factor.band`, so
+ *     no published ladder name can reach a member in any language;
+ *   - heat still resolves to no number in any locale;
+ *   - each unavailable reason keeps its own distinct sentence, so a refusal
+ *     never reads as an outage;
+ *   - INSUFFICIENT keeps a line that no other state shares.
+ *
+ * TYPOGRAPHIC NOTE, flagged rather than improvised: the approved direction is
+ * set in uppercase. Japanese, Korean, Chinese, Hindi and Arabic have no letter
+ * case, so the ALL-CAPS register simply does not exist there. The meaning is
+ * carried faithfully; the visual emphasis is a Latin-script property and the
+ * type scale does the work in the other five.
  */
+import i18n from '../../services/i18nService';
 import type {
   EnvironmentalRead,
   EnvironmentalFactor,
@@ -89,36 +102,21 @@ export function dominantFactor(
  * Groups"), typed as a bare `string`, and truncated at their top rung — they
  * are not consumer language and must never be printed.
  */
-const CONCERN_WORD: Record<InterpretedSignal, Record<SignalConcern, string>> = {
-  heat: { benign: 'LOW', notable: 'RISING', significant: 'HIGH', severe: 'SEVERE' },
-  airQuality: { benign: 'GOOD', notable: 'MODERATE', significant: 'POOR', severe: 'UNHEALTHY' },
-  uvIndex: { benign: 'LOW', notable: 'MODERATE', significant: 'HIGH', severe: 'VERY HIGH' },
+/** i18n suffix per interpreted signal. `airQuality`/`uvIndex` shorten to the
+ *  member-facing words the design uses. */
+const SIGNAL_KEY: Record<InterpretedSignal, 'heat' | 'air' | 'uv'> = {
+  heat: 'heat', airQuality: 'air', uvIndex: 'uv',
 };
 
-const SIGNAL_LABEL: Record<InterpretedSignal, string> = {
-  heat: 'HEAT', airQuality: 'AIR', uvIndex: 'UV',
-};
+const concernWord = (signal: InterpretedSignal, concern: SignalConcern): string =>
+  i18n.t(`environment.word.${SIGNAL_KEY[signal]}.${concern}`);
+
+const signalLabel = (signal: InterpretedSignal): string =>
+  i18n.t(`environment.signal.${SIGNAL_KEY[signal]}`);
 
 /** The one line that names what the environment is doing. */
-const DOMINANT_LINE: Record<InterpretedSignal, string> = {
-  heat: 'THE HEAT IS THE LIMITER.',
-  airQuality: 'AIR IS WORKING AGAINST YOU.',
-  uvIndex: 'UV IS THE FACTOR TO WATCH.',
-};
-
-const CLEAR_LINE = 'CONDITIONS ARE WORKING WITH YOU.';
-const INSUFFICIENT_LINE = 'WE NEED MORE SIGNAL.';
-
-/** Why a signal is missing, in language a member owns. */
-const UNAVAILABLE_COPY: Record<string, string> = {
-  permission_denied: 'Location is off for AForce.',
-  never_requested: 'AForce has not asked for location yet.',
-  provider_unavailable: 'Could not reach the environment service.',
-  not_supported: 'Not available on this device.',
-  demo_withheld: 'Demo data is never used here.',
-  stale: 'The last reading is too old to trust.',
-  incomplete: 'Not enough to read the heat.',
-};
+const dominantLine = (signal: InterpretedSignal): string =>
+  i18n.t(`environment.line.${SIGNAL_KEY[signal]}`);
 
 // ─── The view model ─────────────────────────────────────────────────────────
 
@@ -154,16 +152,8 @@ export interface EnvironmentalView {
   readonly showsCommand: boolean;
 }
 
-const STATE_WORD: Record<EnvironmentalState, string> = {
-  clear: 'CLEAR', aware: 'AWARE', prepare: 'PREPARE',
-  caution: 'CAUTION', insufficient: 'INSUFFICIENT',
-};
-
-const QUALITY: Record<string, string> = {
-  high: 'Reading all three environmental signals.',
-  moderate: 'Reading two of three environmental signals.',
-  low: 'Limited environmental signal.',
-};
+const stateWordFor = (state: EnvironmentalState): string =>
+  i18n.t(`environment.state.${state}`);
 
 /**
  * A number the member can legitimately read.
@@ -179,8 +169,8 @@ function displayValue(f: EnvironmentalFactor): number | null {
 
 const rowFor = (f: EnvironmentalFactor): SecondaryRow => ({
   signal: f.signal,
-  label: SIGNAL_LABEL[f.signal],
-  word: CONCERN_WORD[f.signal][f.concern],
+  label: signalLabel(f.signal),
+  word: concernWord(f.signal, f.concern),
   value: displayValue(f),
 });
 
@@ -198,30 +188,32 @@ export function buildEnvironmentalView(read: EnvironmentalRead): EnvironmentalVi
     .map(rowFor);
 
   const line = read.state === 'insufficient'
-    ? INSUFFICIENT_LINE
+    ? i18n.t('environment.line.insufficient')
     : dominantF
-      ? DOMINANT_LINE[dominantF.signal]
-      : CLEAR_LINE;
+      ? dominantLine(dominantF.signal)
+      : i18n.t('environment.line.clear');
 
   const gaps = read.unavailable.map((u: UnavailableSignal) => ({
-    label: SIGNAL_LABEL[u.signal],
-    reason: UNAVAILABLE_COPY[u.reason] ?? UNAVAILABLE_COPY['provider_unavailable']!,
+    label: signalLabel(u.signal),
+    // Each cause keeps its own sentence in every locale: a refusal must never
+    // read as an outage, and an outage must never read as a refusal.
+    reason: i18n.t(`environment.unavailable.${u.reason}`),
   }));
 
   return {
     state: read.state,
-    stateWord: STATE_WORD[read.state],
+    stateWord: stateWordFor(read.state),
     line,
     dominant: dominantF
       ? {
           signal: dominantF.signal,
-          label: SIGNAL_LABEL[dominantF.signal],
-          word: CONCERN_WORD[dominantF.signal][dominantF.concern],
+          label: signalLabel(dominantF.signal),
+          word: concernWord(dominantF.signal, dominantF.concern),
           value: displayValue(dominantF),
         }
       : null,
     secondary,
-    signalQuality: QUALITY[read.certainty] ?? QUALITY['low']!,
+    signalQuality: i18n.t(`environment.quality.${read.certainty}`),
     gaps,
     // The AForce block appears only when the environment actually warrants
     // attention. No-action is first class: a calm environment must not be

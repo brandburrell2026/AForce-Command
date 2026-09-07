@@ -2127,5 +2127,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "Environnement",
+    "row_sub": "Ce que fait le monde autour de vous",
+    "eyebrow": "ENVIRONNEMENT",
+    "aforce": "AFORCE",
+    "unresolved_headline": "NON\nRÉSOLU",
+    "state": {
+      "clear": "DÉGAGÉ",
+      "aware": "VIGILANCE",
+      "prepare": "PRÉPAREZ-VOUS",
+      "caution": "PRUDENCE",
+      "insufficient": "INSUFFISANT"
+    },
+    "line": {
+      "heat": "LA CHALEUR EST LE FACTEUR LIMITANT.",
+      "air": "L'AIR JOUE CONTRE VOUS.",
+      "uv": "L'UV EST LE FACTEUR À SURVEILLER.",
+      "clear": "LES CONDITIONS SONT AVEC VOUS.",
+      "insufficient": "IL NOUS FAUT PLUS DE SIGNAL."
+    },
+    "signal": {
+      "heat": "CHALEUR",
+      "air": "AIR",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "FAIBLE",
+        "notable": "EN HAUSSE",
+        "significant": "ÉLEVÉE",
+        "severe": "EXTRÊME"
+      },
+      "air": {
+        "benign": "BON",
+        "notable": "MODÉRÉ",
+        "significant": "MAUVAIS",
+        "severe": "TRÈS MAUVAIS"
+      },
+      "uv": {
+        "benign": "FAIBLE",
+        "notable": "MODÉRÉ",
+        "significant": "ÉLEVÉ",
+        "severe": "TRÈS ÉLEVÉ"
+      }
+    },
+    "quality": {
+      "high": "Lecture des trois signaux environnementaux.",
+      "moderate": "Lecture de deux signaux environnementaux sur trois.",
+      "low": "Signal environnemental limité."
+    },
+    "unavailable": {
+      "permission_denied": "La localisation est désactivée pour AForce.",
+      "never_requested": "AForce n'a pas encore demandé la localisation.",
+      "provider_unavailable": "Impossible de joindre le service environnemental.",
+      "not_supported": "Non disponible sur cet appareil.",
+      "demo_withheld": "Les données de démonstration ne sont jamais utilisées ici.",
+      "stale": "La dernière mesure est trop ancienne.",
+      "incomplete": "Pas assez d'éléments pour lire la chaleur."
+    }
   }
 }

@@ -2080,5 +2080,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "环境",
+    "row_sub": "你周围的世界正在发生什么",
+    "eyebrow": "环境",
+    "aforce": "AFORCE",
+    "unresolved_headline": "无法\n判定",
+    "state": {
+      "clear": "良好",
+      "aware": "留意",
+      "prepare": "准备",
+      "caution": "警戒",
+      "insufficient": "无法判定"
+    },
+    "line": {
+      "heat": "高温是限制因素。",
+      "air": "空气对你不利。",
+      "uv": "紫外线是需要留意的因素。",
+      "clear": "环境条件对你有利。",
+      "insufficient": "我们需要更多信号。"
+    },
+    "signal": {
+      "heat": "高温",
+      "air": "空气",
+      "uv": "紫外线"
+    },
+    "word": {
+      "heat": {
+        "benign": "低",
+        "notable": "上升",
+        "significant": "高",
+        "severe": "极高"
+      },
+      "air": {
+        "benign": "良好",
+        "notable": "中等",
+        "significant": "较差",
+        "severe": "很差"
+      },
+      "uv": {
+        "benign": "低",
+        "notable": "中等",
+        "significant": "高",
+        "severe": "非常高"
+      }
+    },
+    "quality": {
+      "high": "正在读取全部三项环境信号。",
+      "moderate": "正在读取三项中的两项环境信号。",
+      "low": "环境信号有限。"
+    },
+    "unavailable": {
+      "permission_denied": "AForce 的定位权限已关闭。",
+      "never_requested": "AForce 尚未请求定位权限。",
+      "provider_unavailable": "无法连接环境服务。",
+      "not_supported": "此设备不支持。",
+      "demo_withheld": "此处从不使用演示数据。",
+      "stale": "上次读数过旧。",
+      "incomplete": "信息不足，无法判断高温。"
+    }
   }
 }

@@ -2127,5 +2127,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "Ambiente",
+    "row_sub": "O que o mundo à sua volta está fazendo",
+    "eyebrow": "AMBIENTE",
+    "aforce": "AFORCE",
+    "unresolved_headline": "NÃO\nRESOLVIDO",
+    "state": {
+      "clear": "LIMPO",
+      "aware": "ATENÇÃO",
+      "prepare": "PREPARE-SE",
+      "caution": "CAUTELA",
+      "insufficient": "INSUFICIENTE"
+    },
+    "line": {
+      "heat": "O CALOR É O FATOR LIMITANTE.",
+      "air": "O AR ESTÁ CONTRA VOCÊ.",
+      "uv": "O UV É O FATOR A OBSERVAR.",
+      "clear": "AS CONDIÇÕES ESTÃO A SEU FAVOR.",
+      "insufficient": "PRECISAMOS DE MAIS SINAL."
+    },
+    "signal": {
+      "heat": "CALOR",
+      "air": "AR",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "BAIXO",
+        "notable": "SUBINDO",
+        "significant": "ALTO",
+        "severe": "EXTREMO"
+      },
+      "air": {
+        "benign": "BOM",
+        "notable": "MODERADO",
+        "significant": "RUIM",
+        "severe": "MUITO RUIM"
+      },
+      "uv": {
+        "benign": "BAIXO",
+        "notable": "MODERADO",
+        "significant": "ALTO",
+        "severe": "MUITO ALTO"
+      }
+    },
+    "quality": {
+      "high": "Lendo os três sinais ambientais.",
+      "moderate": "Lendo dois dos três sinais ambientais.",
+      "low": "Sinal ambiental limitado."
+    },
+    "unavailable": {
+      "permission_denied": "A localização está desativada para o AForce.",
+      "never_requested": "O AForce ainda não pediu a localização.",
+      "provider_unavailable": "Não foi possível contatar o serviço ambiental.",
+      "not_supported": "Indisponível neste dispositivo.",
+      "demo_withheld": "Dados de demonstração nunca são usados aqui.",
+      "stale": "A última leitura é antiga demais.",
+      "incomplete": "Não há dados suficientes para ler o calor."
+    }
   }
 }

@@ -2080,5 +2080,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "पर्यावरण",
+    "row_sub": "आपके आसपास की दुनिया क्या कर रही है",
+    "eyebrow": "पर्यावरण",
+    "aforce": "AFORCE",
+    "unresolved_headline": "अनिर्णीत",
+    "state": {
+      "clear": "स्पष्ट",
+      "aware": "सचेत",
+      "prepare": "तैयारी",
+      "caution": "सावधानी",
+      "insufficient": "अपर्याप्त"
+    },
+    "line": {
+      "heat": "गर्मी सीमित करने वाला कारक है।",
+      "air": "हवा आपके विरुद्ध काम कर रही है।",
+      "uv": "यूवी पर ध्यान देने की ज़रूरत है।",
+      "clear": "परिस्थितियाँ आपके पक्ष में हैं।",
+      "insufficient": "हमें और संकेत चाहिए।"
+    },
+    "signal": {
+      "heat": "गर्मी",
+      "air": "हवा",
+      "uv": "यूवी"
+    },
+    "word": {
+      "heat": {
+        "benign": "कम",
+        "notable": "बढ़ रही",
+        "significant": "अधिक",
+        "severe": "अत्यधिक"
+      },
+      "air": {
+        "benign": "अच्छी",
+        "notable": "मध्यम",
+        "significant": "खराब",
+        "severe": "बहुत खराब"
+      },
+      "uv": {
+        "benign": "कम",
+        "notable": "मध्यम",
+        "significant": "अधिक",
+        "severe": "बहुत अधिक"
+      }
+    },
+    "quality": {
+      "high": "तीनों पर्यावरणीय संकेत पढ़े जा रहे हैं।",
+      "moderate": "तीन में से दो पर्यावरणीय संकेत पढ़े जा रहे हैं।",
+      "low": "सीमित पर्यावरणीय संकेत।"
+    },
+    "unavailable": {
+      "permission_denied": "AForce के लिए लोकेशन बंद है।",
+      "never_requested": "AForce ने अभी तक लोकेशन नहीं माँगी है।",
+      "provider_unavailable": "पर्यावरण सेवा से संपर्क नहीं हो सका।",
+      "not_supported": "इस डिवाइस पर उपलब्ध नहीं है।",
+      "demo_withheld": "यहाँ डेमो डेटा कभी उपयोग नहीं होता।",
+      "stale": "पिछली रीडिंग बहुत पुरानी है।",
+      "incomplete": "गर्मी आँकने के लिए पर्याप्त जानकारी नहीं है।"
+    }
   }
 }

@@ -149,12 +149,15 @@ describe('LAW 2 — the surface cannot print what the read does not prove', () =
   });
 
   it('words come from CONCERN, not from the band', () => {
-    // AQI 165 is EPA "Unhealthy"; the word shown is derived from concern
-    // 'severe'. Same idea, different provenance — and the law proves which.
+    // AQI 165 sits in EPA's "Unhealthy" band, but the member sees "VERY POOR"
+    // — derived from concern 'severe', and deliberately NOT the EPA wording.
+    // Two reasons it must differ: the band string is an internal identifier,
+    // and "unhealthy" is a §42 block-severity HEALTH CLAIM the consumer-copy
+    // lint refuses. Describing the air is allowed; diagnosing the member is not.
     const v = view(FIXTURES.caution);
     const air = [v.dominant, ...v.secondary].find((r) => r?.signal === 'airQuality');
-    expect(air?.word).toBe('UNHEALTHY');
-    expect(JSON.stringify(v)).not.toContain('EPA Unhealthy');
+    expect(air?.word).toBe('VERY POOR');
+    expect(JSON.stringify(v)).not.toMatch(/unhealthy/i);
   });
 
   it('no timestamp, age, or policyVersion is exposed to the surface', () => {
