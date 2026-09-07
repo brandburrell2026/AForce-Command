@@ -38,7 +38,7 @@
  * presentation flag stays false in production until then.
  */
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import { Stack, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,7 +58,12 @@ import {
   type EnvironmentalState,
 } from '@/utils/environment/environmentalInterpretation';
 import { readingsFromLocationSnapshot } from '@/utils/environment/environmentalAdapter';
-import { getLocationSnapshotSync } from '@/services/locationIntelligenceService';
+import {
+  getLocationSnapshot,
+  getLocationSnapshotSync,
+} from '@/services/locationIntelligenceService';
+import { requestLocationAccess } from '@/services/locationPermissionRequest';
+import type { EnvironmentalResolution } from '@/utils/environment/environmentalPresentation';
 
 /** State accent. Never the ONLY carrier — see `stateWord` and the field. */
 const ACCENT: Record<EnvironmentalState, string> = {
@@ -98,6 +103,62 @@ function UnresolvedHeadline({ text }: { text: string }) {
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
+    </View>
+  );
+}
+
+/**
+ * THE RESOLUTION CTA — the member's way out of "we cannot see".
+ *
+ * Build 75's device smoke found the screen truthfully refusing to invent
+ * HEAT / UV / AIR while giving the member no way to change that. Correct, and
+ * useless. This is the way out — and it is deliberately the ONLY one:
+ *
+ *   - opening `/environment` still requests nothing. A surprise OS prompt on
+ *     mount is exactly what the acquisition lane was built to prevent, and
+ *     that guarantee survives intact;
+ *   - `enable_location` is the single path that may raise the dialog, and only
+ *     from a deliberate tap;
+ *   - `permission_denied` NEVER re-asks. iOS would not show the dialog again
+ *     anyway, so a second "Enable" button would be a button that does nothing.
+ *     Settings is the honest path;
+ *   - a provider failure never offers "Enable Location" — permission is fine,
+ *     and implying the member did something wrong is the same class of lie as
+ *     calling their refusal an outage.
+ *
+ * IT RESOLVES OUR ABILITY TO SEE, NEVER THEIRS TO HYDRATE. Nothing here is an
+ * action about the member's body; `RecoveryCommand` remains the sole author of
+ * that, and this component has no access to it.
+ */
+function ResolutionAction({
+  resolution, onEnable, onRetry,
+}: {
+  resolution: EnvironmentalResolution;
+  onEnable: () => void;
+  onRetry: () => void;
+}) {
+  const { t } = useTranslation();
+  if (resolution === 'none') return null;
+
+  const label = t(`environment.resolve.${resolution}.label`);
+  const body = t(`environment.resolve.${resolution}.body`);
+  const onPress =
+    resolution === 'enable_location' ? onEnable
+    : resolution === 'open_settings' ? () => { void Linking.openSettings(); }
+    : onRetry;
+
+  return (
+    <View style={styles.resolveWrap}>
+      <Text style={styles.resolveBody}>{body}</Text>
+      <Pressable
+        onPress={onPress}
+        style={styles.resolveCta}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={`environmental-resolve-${resolution}`}
+      >
+        <Text style={styles.resolveLabel}>{label}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -158,13 +219,19 @@ export interface EnvironmentalScreenViewProps {
   readonly view: EnvironmentalView;
   /** The canonical RecoveryCommand action, or null. NEVER authored here. */
   readonly commandAction: string | null;
+  /** Member-initiated permission request. The only path that may prompt. */
+  readonly onEnableLocation?: () => void;
+  /** Member-initiated refetch after a provider failure. */
+  readonly onRetry?: () => void;
 }
 
 /**
  * The pure presentational screen — every state is reachable from props alone,
  * which is what makes the five deterministic renders possible.
  */
-export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalScreenViewProps) {
+export function EnvironmentalScreenView({
+  view, commandAction, onEnableLocation, onRetry,
+}: EnvironmentalScreenViewProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const accent = ACCENT[view.state];
@@ -226,6 +293,12 @@ export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalSc
 
         <SignalLine rows={view.secondary} />
 
+        <ResolutionAction
+          resolution={view.resolution}
+          onEnable={onEnableLocation ?? (() => {})}
+          onRetry={onRetry ?? (() => {})}
+        />
+
         {view.gaps.length > 0 ? (
           <View style={styles.gaps} testID="environmental-gaps">
             {view.gaps.map((g) => (
@@ -254,7 +327,20 @@ export default function EnvironmentalScreen() {
   // the route is dead, so a stray deep link cannot reach an unreleased screen.
   if (!enabled) return <Redirect href={'/(tabs)/profile' as never} />;
 
+  // `nonce` re-reads the producer's cache after a member-initiated grant or
+  // retry, so the screen reflects the decision they just made. It is a render
+  // trigger, not an acquisition cadence — the store hook still owns that.
+  const [nonce, setNonce] = React.useState(0);
+
+  const onEnableLocation = React.useCallback(() => {
+    void requestLocationAccess().then(() => setNonce((n) => n + 1));
+  }, []);
+  const onRetry = React.useCallback(() => {
+    void getLocationSnapshot(true).then(() => setNonce((n) => n + 1)).catch(() => {});
+  }, []);
+
   const now = Date.now();
+  void nonce; // participates in the render, not the computation
   const readings = readingsFromLocationSnapshot(getLocationSnapshotSync() as never, now);
   const view = buildEnvironmentalView(interpretEnvironment(readings, now));
 
@@ -263,6 +349,8 @@ export default function EnvironmentalScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <EnvironmentalScreenView
         view={view}
+        onEnableLocation={onEnableLocation}
+        onRetry={onRetry}
         // THE AUTHORITY BOUNDARY. This string is the canonical command's own
         // words, read from the engine — Environmental has no action of its own
         // to offer, and `view` has no field one could live in.
@@ -298,7 +386,20 @@ const styles = StyleSheet.create({
     letterSpacing: -1, color: af.textPrimary,
   },
   unresolvedWrap: { justifyContent: 'center' },
-  unresolvedText: { color: withAlpha(af.textPrimary, 0.72) },
+  /**
+   * DEVICE REFINEMENT (build 75): on a real iPhone the 56pt headline read as a
+   * catastrophic system error rather than a considered "we cannot see yet".
+   * Scaled down to the title register and dimmed further — the FIELD already
+   * carries the unresolved feeling, so the type does not need to shout it.
+   * Deliberately still larger and quieter than the other states' labels, so it
+   * remains a state rather than an error message.
+   */
+  unresolvedText: {
+    fontSize: 34,
+    lineHeight: 36,
+    letterSpacing: -0.5,
+    color: withAlpha(af.textPrimary, 0.58),
+  },
 
   line: {
     fontFamily: afType.displayHero.fontFamily, fontSize: 23, lineHeight: 28,
@@ -322,6 +423,17 @@ const styles = StyleSheet.create({
   planeBody: { flex: 1, paddingVertical: 14, paddingHorizontal: 15 },
   planeWho: { ...afType.eyebrow, color: af.textTertiary, letterSpacing: 1.8 },
   planeAction: { ...afType.bodyStrong, color: af.textPrimary, marginTop: 6 },
+
+  resolveWrap: { marginTop: 26 },
+  resolveBody: { ...afType.secondary, color: af.textSecondary, maxWidth: 300 },
+  resolveCta: {
+    marginTop: 14, alignSelf: 'flex-start',
+    paddingVertical: 12, paddingHorizontal: 18,
+    borderRadius: afLayout.radiusButton,
+    borderWidth: 1, borderColor: af.borderStrong,
+    backgroundColor: af.surfaceRaised,
+  },
+  resolveLabel: { ...afType.eyebrow, letterSpacing: 1.6, color: af.textPrimary },
 
   gaps: { marginTop: 24, gap: 8 },
   gapRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 14 },

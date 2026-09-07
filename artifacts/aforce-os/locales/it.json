@@ -2186,6 +2186,20 @@
       "demo_withheld": "I dati dimostrativi non vengono mai usati qui.",
       "stale": "L'ultima lettura è troppo vecchia.",
       "incomplete": "Non basta per interpretare il caldo."
+    },
+    "resolve": {
+      "enable_location": {
+        "label": "ATTIVA POSIZIONE",
+        "body": "La posizione permette ad AForce di leggere le condizioni intorno a te. Nulla viene condiviso."
+      },
+      "open_settings": {
+        "label": "APRI IMPOSTAZIONI",
+        "body": "La posizione è disattivata per AForce. Puoi attivarla nelle Impostazioni."
+      },
+      "retry": {
+        "label": "RIPROVA",
+        "body": "Impossibile raggiungere il servizio ambientale."
+      }
     }
   }
 }

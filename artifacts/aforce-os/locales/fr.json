@@ -2186,6 +2186,20 @@
       "demo_withheld": "Les données de démonstration ne sont jamais utilisées ici.",
       "stale": "La dernière mesure est trop ancienne.",
       "incomplete": "Pas assez d'éléments pour lire la chaleur."
+    },
+    "resolve": {
+      "enable_location": {
+        "label": "ACTIVER LA LOCALISATION",
+        "body": "La localisation permet à AForce de lire les conditions autour de vous. Rien n'est partagé."
+      },
+      "open_settings": {
+        "label": "OUVRIR LES RÉGLAGES",
+        "body": "La localisation est désactivée pour AForce. Vous pouvez l'activer dans les Réglages."
+      },
+      "retry": {
+        "label": "RÉESSAYER",
+        "body": "Impossible de joindre le service environnemental."
+      }
     }
   }
 }

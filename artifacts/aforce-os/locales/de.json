@@ -2186,6 +2186,20 @@
       "demo_withheld": "Demodaten werden hier nie verwendet.",
       "stale": "Die letzte Messung ist zu alt.",
       "incomplete": "Zu wenig, um die Hitze zu bestimmen."
+    },
+    "resolve": {
+      "enable_location": {
+        "label": "STANDORT AKTIVIEREN",
+        "body": "Der Standort erlaubt AForce, die Bedingungen um dich herum zu lesen. Es wird nichts geteilt."
+      },
+      "open_settings": {
+        "label": "EINSTELLUNGEN ÖFFNEN",
+        "body": "Standort ist für AForce deaktiviert. Du kannst ihn in den Einstellungen aktivieren."
+      },
+      "retry": {
+        "label": "ERNEUT VERSUCHEN",
+        "body": "Umgebungsdienst nicht erreichbar."
+      }
     }
   }
 }

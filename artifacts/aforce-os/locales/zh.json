@@ -2139,6 +2139,20 @@
       "demo_withheld": "此处从不使用演示数据。",
       "stale": "上次读数过旧。",
       "incomplete": "信息不足，无法判断高温。"
+    },
+    "resolve": {
+      "enable_location": {
+        "label": "开启定位",
+        "body": "开启定位后，AForce 可以读取你周围的环境状况。不会分享任何信息。"
+      },
+      "open_settings": {
+        "label": "打开设置",
+        "body": "AForce 的定位已关闭。你可以在设置中开启。"
+      },
+      "retry": {
+        "label": "重试",
+        "body": "无法连接环境服务。"
+      }
     }
   }
 }
