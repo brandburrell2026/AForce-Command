@@ -73,7 +73,34 @@ export const EDITORIAL_PARTNER_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
- * What the internal-TestFlight build actually turns ON: the union of the two
+ * Environmental Intelligence v1, granted to the internal build by the founder
+ * ruling of 2026-09-07 ("Environmental acquisition and presentation should be
+ * enabled only for the approved internal cohort/profile"), gating the physical
+ * device smoke that is the last item before v1 is called complete.
+ *
+ * A THIRD LIST, not a merge into the two above — this module's contract asks
+ * that each ruling stay traceable to what it granted, and folding twelve keys
+ * into one array would destroy which ruling granted what.
+ *
+ * ACQUISITION AND PRESENTATION ARE BOTH LISTED, DELIBERATELY. They are
+ * independent flags precisely so one can move without the other, and the smoke
+ * needs both: presentation alone would put the member on a surface with
+ * nothing to read, and acquisition alone would collect evidence no one can
+ * see. Production DEFAULT_FLAGS keeps both false; this overlay only applies
+ * when a build sets `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true`.
+ *
+ * The audit this list's siblings demand was done across seven lanes: the
+ * evidence contract, the freshness verdict, the deterministic time seam, the
+ * provider anchor, bounded activation, deterministic interpretation, and the
+ * native surface — 273 executable laws, each mutation-tested.
+ */
+export const ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS = [
+  'environmental_acquisition_enabled',
+  'environmental_surface_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
+ * What the internal-TestFlight build actually turns ON: the union of the three
  * rulings above, in ruling order. Nothing else. `moments_calendar_enabled` is
  * deliberately absent — it stays false pending Legal + Privacy sign-off, and
  * the editorial Moments flag does not widen that gate.
@@ -81,6 +108,7 @@ export const EDITORIAL_PARTNER_OVERLAY_FLAGS = [
 export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...RC2_OVERLAY_FLAGS,
   ...EDITORIAL_PARTNER_OVERLAY_FLAGS,
+  ...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];
