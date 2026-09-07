@@ -190,10 +190,16 @@ async function fetchLiveClimate(): Promise<CityClimate | null> {
     return null;
   }
 
-  // 1. Permission gate.
+  // 1. Permission gate — CHECKED, never REQUESTED.
+  //
+  // This ran from unconditional mount effects on /heat and /sweat, so simply
+  // opening Heat Risk raised an OS location dialog with no explanation of why
+  // it was being asked. Environmental data must never buy itself a prompt by
+  // being rendered. The intentional ask lives in onboarding, which explains
+  // itself first; here we only use a grant the member already gave.
   let permissionStatus: string;
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
+    const { status } = await Location.getForegroundPermissionsAsync();
     permissionStatus = status;
   } catch {
     return null;

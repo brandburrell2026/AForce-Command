@@ -6,6 +6,7 @@
  * cycle history, feature flags, and overlay UI state.
  */
 
+import { useEnvironmentalAcquisition } from '@/hooks/useEnvironmentalAcquisition';
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
 import { AppState as RNAppState, type AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -767,6 +768,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useAppStateGatedInterval(() => {
     void weatherTick();
   }, 15 * 60 * 1000);
+
+  // Environmental acquisition (Lane 2). Owned here — beside the weather tick
+  // it mirrors — rather than by a UI component, so it cannot be started or
+  // killed by a screen mounting. Flag-gated to a true kill switch; the hook
+  // does nothing whatsoever when off.
+  useEnvironmentalAcquisition(!!state.featureFlags.environmental_acquisition_enabled);
 
   // Action handlers — extracted into a factory hook so the bodies live
   // outside this (very large) provider. The factory receives dispatch /

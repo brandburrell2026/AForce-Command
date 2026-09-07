@@ -166,6 +166,9 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // travel detection). Build 100% · Show 10%: OFF in the production
   // binary, ON in DEMO_ALL_ON. Advisory only (Score-Protection).
   location_intelligence_enabled: false,
+  // Production members acquire nothing until this is deliberately turned on.
+  environmental_acquisition_enabled: false,
+  environmental_surface_enabled: false,
 
   // Signal Hierarchy™ — deterministic per-source priority resolution
   // (Sleep / Heart Rate / Activity / Hydration Verification). Replaces
@@ -534,6 +537,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   spec_section20_calibration: true,
   hydro_scan_2_enabled: true,
   location_intelligence_enabled: true,
+  environmental_acquisition_enabled: true,
+  environmental_surface_enabled: true,
   signal_hierarchy_enabled: true,
   elite_home_experience_enabled: true,
   editorial_home_enabled: true,

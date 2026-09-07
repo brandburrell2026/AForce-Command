@@ -183,6 +183,8 @@ export const baseFlags: FeatureFlags = {
   spec_section20_calibration: false,
   hydro_scan_2_enabled: false,
   location_intelligence_enabled: false,
+  environmental_acquisition_enabled: false,
+  environmental_surface_enabled: false,
   signal_hierarchy_enabled: false,
   spec_weekly_report: false,
   scoreFromLedgerHybrid: false,

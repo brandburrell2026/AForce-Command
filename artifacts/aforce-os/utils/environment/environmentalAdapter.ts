@@ -180,7 +180,39 @@ interface LocationSnapshotLike {
   readonly observedAt: string;
   /** PROVIDER-declared observation instant, epoch ms; null when none said. */
   readonly providerObservedAt?: number | null;
+  /** Why acquisition failed, or which feeds answered when it succeeded. */
+  readonly acquisition?:
+    | { readonly kind: 'live'; readonly feeds: { readonly forecast: boolean;
+        readonly airQuality: boolean; readonly elevation: boolean } }
+    | { readonly kind: 'unavailable'; readonly reason:
+        'permission_denied' | 'permission_undetermined' | 'not_supported' | 'position_unavailable' };
 }
+
+/**
+ * Acquisition failure -> the evidence contract's vocabulary.
+ *
+ * These were ALL collapsing to one reason, which erased the distinctions the
+ * member's experience depends on. `not_supported` means the platform cannot
+ * ever give us this; `provider_unavailable` means it normally can and did not
+ * this time; `permission_denied` means the member decided; `never_requested`
+ * means nobody has asked. Four different truths.
+ */
+function reasonForFailure(
+  failure: 'permission_denied' | 'permission_undetermined' | 'not_supported' | 'position_unavailable',
+): UnobservedReason {
+  switch (failure) {
+    case 'permission_denied':
+      return 'permission_denied';
+    case 'permission_undetermined':
+      return 'never_requested';
+    case 'not_supported':
+      return 'not_supported';
+    case 'position_unavailable':
+      // Permission held and the platform supports it; this attempt failed.
+      return 'provider_unavailable';
+  }
+}
+
 
 /** Stable, coarse key for "is this the same place?". ~11 km at the equator. */
 export function coarseLocationKey(lat?: number, lon?: number): string | undefined {
@@ -211,6 +243,22 @@ export function readingsFromLocationSnapshot(
   });
 
   if (snapshot == null) return none('never_requested');
+
+  // ORDER MATTERS, and this order is the repair.
+  //
+  // A failed acquisition FALLS BACK to mock inputs, so the mock is a symptom
+  // of the failure, not an independent fact about it. Checking `source` first
+  // therefore overwrote every real cause — the member's refusal, a platform
+  // with no location module, a provider outage — with the same
+  // `demo_withheld` shrug. The cause outranks its own fallback.
+  //
+  // Nothing is weakened by this: both arms return `none(...)`, so no value is
+  // emitted either way and demo data still never becomes evidence. Only the
+  // REASON changes, from a wrong one to a true one.
+  if (snapshot.acquisition?.kind === 'unavailable') {
+    return none(reasonForFailure(snapshot.acquisition.reason));
+  }
+  // A mock with no stated acquisition failure is demo data on its own terms.
   if (snapshot.source === 'mock') return none('demo_withheld');
 
   // THE PROVIDER'S ASSERTION, or nothing. `snapshot.observedAt` is the device
@@ -230,7 +278,20 @@ export function readingsFromLocationSnapshot(
     unit: Parameters<typeof observe>[0]['unit'],
     precision: LocationPrecision,
   ): EnvironmentalEvidence<number> => {
-    if (value == null) return unobserved(signal, 'not_supported');
+    if (value == null) {
+      // A LIVE snapshot reached us, so the platform and permission are fine
+      // and every one of these signals is one this provider normally serves.
+      // A missing value therefore means the request failed THIS TIME —
+      // `provider_unavailable`, never `not_supported`. Calling a temporary
+      // outage a permanent capability gap tells the member their phone cannot
+      // do something it does every other day.
+      //
+      // The attribution is already per-signal by construction: each signal
+      // carries its own value, so a feed that fell over nulls only the signals
+      // it backs. Air quality going down cannot take temperature with it, and
+      // no cross-signal bookkeeping is needed to keep that true.
+      return unobserved(signal, 'provider_unavailable');
+    }
     // A LOCATION-BOUND signal with no location is not evidence about here.
     //
     // `reclassify` can only invalidate when BOTH the evidence and the context
