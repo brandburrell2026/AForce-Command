@@ -56,6 +56,11 @@ export interface LocationSnapshot {
    */
   observedAt: string;
   /**
+   * WHAT ACQUISITION ACHIEVED — carried so the adapter can name the RIGHT
+   * reason a signal is missing instead of collapsing every cause into one.
+   */
+  acquisition: AcquisitionOutcome;
+  /**
    * PROVIDER-declared observation instant, epoch ms — the only honest anchor
    * for environmental evidence, and null when no provider supplied one.
    *
@@ -284,13 +289,16 @@ export function buildSnapshot(
   // Defaulted so an omitted anchor is NULL rather than a fabricated one —
   // absence is the honest value here, and it fails safe at the adapter.
   providerObservedAt: number | null = null,
+  // Defaulted to the platform-unsupported arm: a snapshot built without an
+  // acquisition story is one nobody acquired.
+  acquisition: AcquisitionOutcome = { kind: 'unavailable', reason: 'not_supported' },
 ): LocationSnapshot {
   const context = deriveLocationContext(inputs);
   const travel =
     source === 'live'
       ? detectTravel(previousAnchor, anchorFromInputs(inputs, observedAt))
       : INERT_TRAVEL;
-  return { inputs, context, travel, source, observedAt, providerObservedAt };
+  return { inputs, context, travel, source, observedAt, providerObservedAt, acquisition };
 }
 
 // ─── Live fetch ────────────────────────────────────────────────────────────────
@@ -305,41 +313,101 @@ async function fetchJson<T>(url: string): Promise<T | null> {
   }
 }
 
+/**
+ * WHY ACQUISITION FAILED — the distinctions the member's evidence depends on.
+ *
+ * These were all `null` before, which is how "the member declined location"
+ * became indistinguishable from "we never asked", "this platform has no
+ * location module" and "the provider fell over". A member who refuses location
+ * is a KNOWN state, and knowing it is what lets a surface say something true
+ * instead of showing an empty shrug.
+ */
+export type AcquisitionFailure =
+  /** The member was asked and said no. */
+  | 'permission_denied'
+  /** Nobody has asked yet — not a refusal. */
+  | 'permission_undetermined'
+  /** No location module on this platform (web, node tests). */
+  | 'not_supported'
+  /** Permission held, but no position could be obtained. */
+  | 'position_unavailable';
+
+/** Which upstream feeds answered. A feed backs specific signals. */
+export interface FeedHealth {
+  /** temperature, humidity, uvIndex */
+  readonly forecast: boolean;
+  /** airQuality */
+  readonly airQuality: boolean;
+  /** altitude */
+  readonly elevation: boolean;
+}
+
+/**
+ * What acquisition achieved. `live` still carries per-feed health, because a
+ * partial failure must cost only the signals that feed backs — the others
+ * survive independently.
+ */
+export type AcquisitionOutcome =
+  | { readonly kind: 'live'; readonly feeds: FeedHealth }
+  | { readonly kind: 'unavailable'; readonly reason: AcquisitionFailure };
+
 interface LiveFetch {
   readonly inputs: LocationInputs;
   /** Provider-declared observation instant, epoch ms — null when none said. */
   readonly providerObservedAt: number | null;
+  readonly feeds: FeedHealth;
 }
 
-async function fetchLiveInputs(): Promise<LiveFetch | null> {
+type FetchResult =
+  | { readonly ok: true; readonly value: LiveFetch }
+  | { readonly ok: false; readonly reason: AcquisitionFailure };
+
+async function fetchLiveInputs(): Promise<FetchResult> {
   // Dynamic import so the service stays usable in node tests where the
   // expo-location native module isn't available.
   let Location: typeof import('expo-location');
   try {
     Location = await import('expo-location');
   } catch {
-    return null;
+    // No location module at all — genuinely unsupported on this platform.
+    return { ok: false, reason: 'not_supported' };
   }
 
-  // Permission gate.
+  // PERMISSION IS CHECKED, NEVER REQUESTED HERE.
+  //
+  // Acquisition runs on a background cadence; a component mounting or a timer
+  // firing must never raise an OS dialog the member did not ask for. The
+  // intentional ask already exists in onboarding, which explains itself first.
+  // This mirrors the server-weather path, which has always only checked.
   try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
+    const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      // Denied vs never-asked are different facts about what we know, and the
+      // member's evidence depends on which. `canAskAgain` is false once the
+      // member has actually refused.
+      return {
+        ok: false,
+        reason: canAskAgain ? 'permission_undetermined' : 'permission_denied',
+      };
+    }
   } catch {
-    return null;
+    return { ok: false, reason: 'not_supported' };
   }
 
-  // Position.
+  // Position. COARSE accuracy is sufficient: every supported signal is a
+  // ~11 km grid quantity, and the evidence contract already stores only a
+  // coarse location key. Asking for precision we do not need would be a
+  // privacy cost with no evidentiary gain.
   let lat: number;
   let lon: number;
   try {
     const pos = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
+      accuracy: Location.Accuracy.Low,
     });
     lat = pos.coords.latitude;
     lon = pos.coords.longitude;
   } catch {
-    return null;
+    return { ok: false, reason: 'position_unavailable' };
   }
 
   const latStr = lat.toFixed(4);
@@ -363,6 +431,13 @@ async function fetchLiveInputs(): Promise<LiveFetch | null> {
   ]);
 
   return {
+   ok: true,
+   value: {
+    feeds: {
+      forecast: forecast != null,
+      airQuality: airQuality != null,
+      elevation: elevation != null,
+    },
     inputs: mapLiveInputs({
       latitude: lat,
       longitude: lon,
@@ -380,6 +455,7 @@ async function fetchLiveInputs(): Promise<LiveFetch | null> {
       forecast?.current?.time,
       airQuality?.current?.time,
     ]),
+   },
   };
 }
 
@@ -414,8 +490,12 @@ export async function getLocationSnapshot(force = false): Promise<LocationSnapsh
   }
 
   const previousAnchor = await readLastAnchor();
-  const live = await fetchLiveInputs();
+  const fetched = await fetchLiveInputs();
+  const live = fetched.ok ? fetched.value : null;
   const source: 'live' | 'mock' = live ? 'live' : 'mock';
+  const acquisition: AcquisitionOutcome = fetched.ok
+    ? { kind: 'live', feeds: fetched.value.feeds }
+    : { kind: 'unavailable', reason: fetched.reason };
   const inputs = live?.inputs ?? buildMockInputs(now);
   // Device capture instant — for travel anchoring only (see the field docs).
   const observedAt = new Date(now).toISOString();
@@ -424,7 +504,7 @@ export async function getLocationSnapshot(force = false): Promise<LocationSnapsh
   // over (source 'mock' -> demo_withheld, and a null anchor is unageable).
   const providerObservedAt = live?.providerObservedAt ?? null;
 
-  const snapshot = buildSnapshot(inputs, previousAnchor, source, observedAt, providerObservedAt);
+  const snapshot = buildSnapshot(inputs, previousAnchor, source, observedAt, providerObservedAt, acquisition);
 
   // Persist the new anchor ONLY for live readings. A mock anchor must never
   // become a future comparison baseline: a later live reading diffed against

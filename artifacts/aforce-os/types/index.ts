@@ -777,6 +777,22 @@ export interface FeatureFlags {
   // never awards or mutates score.
   location_intelligence_enabled: boolean;
 
+  /**
+   * ACQUISITION — may the app fetch live environmental evidence (temperature,
+   * humidity, UV, AQI, altitude) from the location-intelligence producer?
+   *
+   * Deliberately SEPARATE from presentation: we must be able to acquire and
+   * verify real evidence internally without exposing a member-facing surface,
+   * and we must be able to kill acquisition instantly without touching the UI.
+   */
+  environmental_acquisition_enabled: boolean;
+  /**
+   * PRESENTATION — may the member-facing Environmental surface be reached?
+   * Independent of acquisition; a surface with no evidence would show its own
+   * insufficient state, which is honest but pointless.
+   */
+  environmental_surface_enabled: boolean;
+
   // Signal Hierarchy™ — headless, deterministic per-source priority
   // resolution (Sleep / Heart Rate / Activity / Hydration Verification).
   // Replaces freshest-wins for source SELECTION with a fixed ladder
