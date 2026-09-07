@@ -204,6 +204,158 @@ describe('LAW 4 — the surface preserves every earlier repair', () => {
   });
 });
 
+// ── 4b · back navigation (build 76 device finding) ─────────────────────────
+
+describe('LAW 4b — the member can always get out of the Field', () => {
+  // Scoped to the control's own body. Asserting `accessibilityRole="button"`
+  // against the whole file passed even with the back control's props deleted,
+  // because the resolution CTA carries the same props — the file-wide match
+  // was proving the CTA's accessibility, not the back control's.
+  const BACK_BODY = (() => {
+    const i = SCREEN.indexOf('function BackControl');
+    expect(i, 'BackControl is missing entirely').toBeGreaterThan(-1);
+    const end = SCREEN.indexOf('\n}', i);
+    const body = SCREEN.slice(i, end);
+    // A prettier reflow or a stray top-level `}` could truncate this slice to
+    // nothing, and every assertion below would then pass against an empty
+    // string. Pin the span so the harness cannot quietly stop testing.
+    expect(body.length, 'BackControl slice collapsed').toBeGreaterThan(200);
+    expect(body).toContain('</Pressable>');
+    return body;
+  })();
+
+  it('exposes EXACTLY ONE back control, and actually RENDERS it', () => {
+    // A second exit would be a second thing to keep consistent, and on a
+    // full-screen route with a hidden header it would also crowd the eyebrow.
+    // Counting the RENDER SITES, not the testID literal: the testID lives
+    // inside the component, so two `<BackControl />` usages would put two
+    // buttons on screen while the literal still appeared exactly once.
+    expect((SCREEN.match(/<BackControl\b/g) ?? [])).toHaveLength(1);
+    expect((SCREEN.match(/function BackControl/g) ?? [])).toHaveLength(1);
+    expect((SCREEN.match(/testID="environmental-back"/g) ?? [])).toHaveLength(1);
+
+    // `onBack` is optional, so the render site alone proves nothing: deleting
+    // `onBack={onBack}` from the routed default leaves the prop undefined, the
+    // control renders as null, and the exact Build-76 defect returns with
+    // every other law still green. The wiring IS the fix.
+    expect(SCREEN).toMatch(/onBack=\{onBack\}/);
+    expect(SCREEN).toMatch(/const onBack = React\.useCallback/);
+  });
+
+  it('uses navigation HISTORY, never a hard-coded destination', () => {
+    // Environment may later be entered from Home or Moments, so sending it to
+    // Profile would be wrong the moment a second entry point exists.
+    // Asserted against CODE, not the file: a comment saying `router.back()`
+    // satisfied the file-wide form of this law while the handler pushed a
+    // fixed route.
+    const HANDLER = SCREEN.slice(
+      SCREEN.indexOf('const onBack = React.useCallback'),
+      SCREEN.indexOf('const onRetry = React.useCallback'),
+    );
+    const CODE = HANDLER.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    expect(CODE).toMatch(/if \(router\.canGoBack\(\)\) router\.back\(\);/);
+    // No destination at all may be named in the happy path — not Profile, not
+    // any other route. Only the empty-history fallback names one.
+    expect(CODE).not.toMatch(/router\.push\(/);
+    expect((CODE.match(/router\.replace\(/g) ?? [])).toHaveLength(1);
+    expect(CODE).not.toMatch(/profile/i);
+  });
+
+  it('falls back to the repo’s established root, never leaving a member trapped', () => {
+    // Reached by deep link with no history, `canGoBack()` is false. The
+    // established guarded idiom — EdReturn, weekly-report, modules — is
+    // replace('/'), not a dead button. (performance-signal shares the idiom
+    // but falls back to its own /journal, so it is not a precedent for '/'.)
+    // '/' is a real typed route
+    // (app/index.tsx) that re-runs the root auth/onboarding gate, so it is
+    // safe from any session state rather than merely non-crashing.
+    const HANDLER = SCREEN.slice(
+      SCREEN.indexOf('const onBack = React.useCallback'),
+      SCREEN.indexOf('const onRetry = React.useCallback'),
+    );
+    const CODE = HANDLER.split('\n').filter((l) => !l.trim().startsWith('//')).join('\n');
+    expect(CODE).toMatch(/else router\.replace\('\/'\);/);
+  });
+
+  it('meets the accessible touch target — and APPLIES it', () => {
+    // Both halves matter. The stylesheet entry alone proved nothing: the
+    // control could carry a different style and the 44pt entry would sit
+    // unused while this law stayed green.
+    expect(SCREEN).toMatch(/back: \{\s*minWidth: 44,\s*minHeight: 44,/);
+    expect(BACK_BODY).toContain('style={styles.back}');
+    expect(BACK_BODY).toContain('hitSlop={12}');
+  });
+
+  it('is labelled and rolled for VoiceOver, from the existing i18n key', () => {
+    expect(BACK_BODY).toContain('accessibilityRole="button"');
+    expect(BACK_BODY).toMatch(/accessibilityLabel=\{label\}/);
+    // `common.back` is the app-wide key every other back control already uses;
+    // Environmental must not invent a second "Back" string to keep in sync.
+    expect(SCREEN).toMatch(/label=\{t\('common\.back'\)\}/);
+    const en = require('../../locales/en.json');
+    expect(en.common.back).toBe('Back');
+  });
+
+  it('sits INSIDE the safe area, which the screen owns because it hides the header', () => {
+    // headerShown:false means nothing else insets this screen. The control is
+    // the first child of the scroll content, whose paddingTop is driven by the
+    // live inset — so it cannot land under the notch or status bar.
+    expect(SCREEN).toContain('headerShown: false');
+    expect(SCREEN).toMatch(/paddingTop: insets\.top \+ \d+/);
+    const CONTENT = SCREEN.slice(SCREEN.indexOf('showsVerticalScrollIndicator'));
+    // First element in the content, above the eyebrow — the founder sanctioned
+    // "above/beside", and above is what keeps the rail (see the next law).
+    expect(CONTENT.indexOf('<BackControl')).toBeLessThan(CONTENT.indexOf('styles.eyebrow'));
+  });
+
+  it('does NOT move the approved Lane 3 composition off its rail', () => {
+    // Measured on device: putting the eyebrow in a row beside the control
+    // pushed ENVIRONMENT 42pt right of the 24pt content rail, so it no longer
+    // lined up with AWARE, AIR and the line — the approved left alignment,
+    // broken. The control stacks ABOVE instead, and the eyebrow stays exactly
+    // the direct, unwrapped child it was on main.
+    expect(SCREEN).toMatch(
+      /<Text style=\{styles\.eyebrow\} accessibilityRole="header">\{t\('environment\.eyebrow'\)\}<\/Text>/,
+    );
+    expect(SCREEN).not.toContain('eyebrowRow');
+    // And the control cannot stretch across the top swallowing taps, nor
+    // re-indent itself away from the rail it was measured onto. Scoped to the
+    // `back` style block: a file-wide match for alignSelf was satisfied by the
+    // resolution CTA's own copy of it, so deleting the control's survived.
+    const BACK_STYLE = SCREEN.slice(SCREEN.indexOf('  back: {'), SCREEN.indexOf('  eyebrow: {'));
+    expect(BACK_STYLE.length, 'back style block not found').toBeGreaterThan(80);
+    expect(BACK_STYLE).toMatch(/alignSelf: 'flex-start',/);
+    expect(BACK_STYLE).toMatch(/marginLeft: -18,/);
+  });
+
+  it('LARGE TYPE cannot shrink the control', () => {
+    // The box is fixed 44pt around a fixed-size Icon, and an Icon takes no
+    // font scaling at all — so unlike every Text on this screen it cannot
+    // reflow, wrap or clip. Assert both the fixed box and that nothing
+    // font-scaled crept into it.
+    expect(SCREEN).toMatch(/back: \{\s*minWidth: 44,\s*minHeight: 44,/);
+    expect(BACK_BODY).toContain('<Icon name="chevron-left"');
+    expect(BACK_BODY).not.toMatch(/<Text/);
+    expect(BACK_BODY).not.toMatch(/fontSize|maxFontSizeMultiplier/);
+  });
+
+  it('adding it changed NO environmental behavior', () => {
+    // The control is presentation-only: it reads no evidence, touches no flag,
+    // and cannot reach interpretation or the command.
+    for (const banned of ['view.', 'interpretEnvironment', 'command', 'flags', 'engine',
+      'environmental_acquisition_enabled', 'requestLocationAccess', 'getLocationSnapshot']) {
+      expect(BACK_BODY, banned).not.toContain(banned);
+    }
+    // And the handler is navigation only — it must not refetch, re-render the
+    // read, or bump the acquisition nonce.
+    const HANDLER = SCREEN.slice(
+      SCREEN.indexOf('const onBack = React.useCallback'),
+      SCREEN.indexOf('const onRetry = React.useCallback'),
+    );
+    expect(HANDLER).not.toContain('setNonce');
+  });
+});
+
 // ── 5 · accessibility and motion ────────────────────────────────────────────
 
 describe('LAW 5 — accessible and motion-safe by construction', () => {

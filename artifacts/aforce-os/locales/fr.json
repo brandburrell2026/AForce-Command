@@ -2143,7 +2143,7 @@
     },
     "line": {
       "heat": "LA CHALEUR EST LE FACTEUR LIMITANT.",
-      "air": "L'AIR JOUE CONTRE VOUS.",
+      "air": "L'AIR EST LE FACTEUR À SURVEILLER.",
       "uv": "L'UV EST LE FACTEUR À SURVEILLER.",
       "clear": "LES CONDITIONS SONT AVEC VOUS.",
       "insufficient": "IL NOUS FAUT PLUS DE SIGNAL."

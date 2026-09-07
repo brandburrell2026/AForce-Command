@@ -29,23 +29,25 @@
  * different authority — and the environmental view model has no field an
  * action could occupy.
  *
- * ── I18N GATE (deferred, deliberately) ─────────────────────────────────────
+ * ── I18N GATE (closed) ─────────────────────────────────────────────────────
  *
- * Copy is English constants in `environmentalPresentation`. The repo carries
- * ELEVEN locales; translating language while the visual direction was still
- * being shaped would have translated a moving target. THIS SURFACE MUST NOT
- * BECOME MEMBER-FACING UNTIL THAT COPY IS IN THE LOCALIZATION SYSTEM — the
- * presentation flag stays false in production until then.
+ * Copy was English constants while the visual direction was still moving —
+ * translating a moving target would have translated it wrong. The direction
+ * was ratified, the copy went into the locale system across all eleven
+ * languages, and the surface then shipped to the internal cohort. Every
+ * consumer string on this screen now comes through `t()`; nothing here may
+ * reintroduce a hard-coded English one.
  */
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { useTranslation } from 'react-i18next';
 
 import { af, afType, afLayout, withAlpha } from '@/theme';
+import { Icon } from '@/components/Icon';
 import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
 import { useEngineSlice, useFlagsSlice } from '@/store/slices';
 import { EnvironmentalField } from '@/components/environment/EnvironmentalField';
@@ -104,6 +106,46 @@ function UnresolvedHeadline({ text }: { text: string }) {
         pointerEvents="none"
       />
     </View>
+  );
+}
+
+/**
+ * BACK — the way out of the Field.
+ *
+ * Build 76's device test found `/environment` had no visible AForce back
+ * control. It is a full-screen route with a hidden header, so a member who
+ * arrived from Profile had nothing to tap; iOS's edge-swipe was the only exit,
+ * which is discoverable to nobody.
+ *
+ * HISTORY, NOT A HARD-CODED DESTINATION. Environment may eventually be entered
+ * from Home, Moments or elsewhere, so sending it to Profile would be wrong the
+ * moment a second entry point exists. `canGoBack()` then `replace('/')` is the
+ * repo's guarded idiom (EdReturn, weekly-report, modules), so a member reached
+ * by deep link with no history re-enters through the root gate rather than
+ * being trapped.
+ *
+ * ABOVE the eyebrow, not beside it. Beside was built first and measured on
+ * device: sharing a row pushed ENVIRONMENT 42pt right of the 24pt content
+ * rail, so it no longer lined up with AWARE, AIR and the line below — the
+ * approved Lane 3 alignment, broken. Stacking keeps every text element on the
+ * one rail, and the founder's ruling sanctioned either placement. `AFTopBar`
+ * was not an option at all: it would draw a title band across the top of the
+ * Field.
+ */
+function BackControl({ onPress, label }: { onPress: () => void; label: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      // 44pt is the accessible minimum; hitSlop widens the tappable area
+      // beyond the small glyph without enlarging its visual weight.
+      hitSlop={12}
+      style={styles.back}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      testID="environmental-back"
+    >
+      <Icon name="chevron-left" size={22} color={af.textSecondary} />
+    </Pressable>
   );
 }
 
@@ -223,6 +265,8 @@ export interface EnvironmentalScreenViewProps {
   readonly onEnableLocation?: () => void;
   /** Member-initiated refetch after a provider failure. */
   readonly onRetry?: () => void;
+  /** Navigate back. History-driven; never a hard-coded destination. */
+  readonly onBack?: () => void;
 }
 
 /**
@@ -230,7 +274,7 @@ export interface EnvironmentalScreenViewProps {
  * which is what makes the five deterministic renders possible.
  */
 export function EnvironmentalScreenView({
-  view, commandAction, onEnableLocation, onRetry,
+  view, commandAction, onEnableLocation, onRetry, onBack,
 }: EnvironmentalScreenViewProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -248,6 +292,7 @@ export function EnvironmentalScreenView({
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {onBack ? <BackControl onPress={onBack} label={t('common.back')} /> : null}
         <Text style={styles.eyebrow} accessibilityRole="header">{t('environment.eyebrow')}</Text>
 
         <View style={styles.spacer} />
@@ -335,6 +380,13 @@ export default function EnvironmentalScreen() {
   const onEnableLocation = React.useCallback(() => {
     void requestLocationAccess().then(() => setNonce((n) => n + 1));
   }, []);
+  const router = useRouter();
+  const onBack = React.useCallback(() => {
+    // The repo's established pattern: history first, root as the safe
+    // fallback. Never a hard-coded Profile.
+    if (router.canGoBack()) router.back();
+    else router.replace('/');
+  }, [router]);
   const onRetry = React.useCallback(() => {
     void getLocationSnapshot(true).then(() => setNonce((n) => n + 1)).catch(() => {});
   }, []);
@@ -351,6 +403,7 @@ export default function EnvironmentalScreen() {
         view={view}
         onEnableLocation={onEnableLocation}
         onRetry={onRetry}
+        onBack={onBack}
         // THE AUTHORITY BOUNDARY. This string is the canonical command's own
         // words, read from the engine — Environmental has no action of its own
         // to offer, and `view` has no field one could live in.
@@ -367,6 +420,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: afLayout.screenPaddingX,
   },
   spacer: { flex: 1, minHeight: 24 },
+  // ABOVE the eyebrow, not beside it. Beside was tried first and measured on
+  // device: putting the eyebrow in a row with the control pushed it 42pt right
+  // of the 24pt content rail, so ENVIRONMENT no longer lined up with AWARE,
+  // AIR and the line beneath it — the approved Lane 3 left alignment, broken.
+  // Stacking keeps every text element on the one rail; `alignSelf` stops the
+  // 44pt box from spanning the screen and swallowing taps across the top.
+  back: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    marginLeft: -18,
+    marginBottom: 2,
+  },
   eyebrow: { ...afType.eyebrow, color: af.textTertiary },
 
   stateLabel: {

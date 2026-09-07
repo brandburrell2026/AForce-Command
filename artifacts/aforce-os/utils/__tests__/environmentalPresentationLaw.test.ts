@@ -87,7 +87,7 @@ describe('LAW 1 — dominance is earned, and never invented', () => {
     // Heat notable, air severe → air dominates despite heat's priority.
     const v = view({ temperature: tempC(28), humidity: rh(55), airQuality: aqi(180) });
     expect(v.dominant?.signal).toBe('airQuality');
-    expect(v.line).toBe('AIR IS WORKING AGAINST YOU.');
+    expect(v.line).toBe('AIR IS THE FACTOR TO WATCH.');
   });
 
   it('ties break on a DECLARED order, not on array position', () => {
