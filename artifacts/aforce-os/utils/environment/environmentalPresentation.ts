@@ -129,6 +129,27 @@ export interface SecondaryRow {
   readonly value: number | null;
 }
 
+/**
+ * What the member can DO about missing evidence — the resolution path, not a
+ * command.
+ *
+ * Device smoke on build 75 found the gap this closes: the screen truthfully
+ * refused to invent HEAT / UV / AIR and said "AForce has not asked for
+ * location yet", but offered no way to change that. Correct, and useless.
+ *
+ * This is a MACHINE-READABLE hint, deliberately separate from the `gaps` copy:
+ * a surface must never parse localized prose to decide which button to show.
+ */
+export type EnvironmentalResolution =
+  /** Nobody has asked. One intentional CTA may request permission. */
+  | 'enable_location'
+  /** The member said no. Never re-ask — offer the OS settings path instead. */
+  | 'open_settings'
+  /** Permission is fine; the provider failed. An explicit retry is honest. */
+  | 'retry'
+  /** Nothing the member can usefully do. Offer nothing. */
+  | 'none';
+
 export interface EnvironmentalView {
   readonly state: EnvironmentalState;
   /** The state word the field is built around. */
@@ -150,6 +171,33 @@ export interface EnvironmentalView {
   readonly gaps: readonly { readonly label: string; readonly reason: string }[];
   /** Whether the AForce action block may appear at all. */
   readonly showsCommand: boolean;
+  /**
+   * The one thing a member can do about missing evidence, if anything.
+   *
+   * Note what this is NOT: an action about their body. It resolves OUR ability
+   * to see, never theirs to hydrate — `RecoveryCommand` remains the sole
+   * author of anything the member should do for themselves.
+   */
+  readonly resolution: EnvironmentalResolution;
+}
+
+/**
+ * Resolution precedence, and why this order.
+ *
+ * A REFUSAL OUTRANKS AN UNASKED SIGNAL: if the member has already said no to
+ * location, offering "Enable Location" would either do nothing (iOS will not
+ * re-prompt) or nag them about a decision they already made. Settings is the
+ * only honest path once denied.
+ *
+ * A PROVIDER FAILURE NEVER OFFERS ENABLE LOCATION. Permission is fine in that
+ * case, and implying the member did something wrong would be the same class of
+ * lie as calling their refusal an outage.
+ */
+function resolutionFor(reasons: readonly string[]): EnvironmentalResolution {
+  if (reasons.includes('permission_denied')) return 'open_settings';
+  if (reasons.includes('never_requested')) return 'enable_location';
+  if (reasons.includes('provider_unavailable')) return 'retry';
+  return 'none';
 }
 
 const stateWordFor = (state: EnvironmentalState): string =>
@@ -219,5 +267,6 @@ export function buildEnvironmentalView(read: EnvironmentalRead): EnvironmentalVi
     // attention. No-action is first class: a calm environment must not be
     // padded with recommendations merely because a surface exists.
     showsCommand: read.attention === 'attention',
+    resolution: resolutionFor(read.unavailable.map((u) => u.reason)),
   };
 }

@@ -2675,6 +2675,20 @@
       "demo_withheld": "Demo data is never used here.",
       "stale": "The last reading is too old to trust.",
       "incomplete": "Not enough to read the heat."
+    },
+    "resolve": {
+      "enable_location": {
+        "label": "ENABLE LOCATION",
+        "body": "Location lets AForce read the conditions around you. Nothing is shared."
+      },
+      "open_settings": {
+        "label": "OPEN SETTINGS",
+        "body": "Location is off for AForce. You can turn it on in Settings."
+      },
+      "retry": {
+        "label": "TRY AGAIN",
+        "body": "The environment service could not be reached."
+      }
     }
   }
 }
