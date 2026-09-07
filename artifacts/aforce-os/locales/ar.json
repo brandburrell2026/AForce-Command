@@ -2080,5 +2080,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "البيئة",
+    "row_sub": "ما الذي يفعله العالم من حولك",
+    "eyebrow": "البيئة",
+    "aforce": "AFORCE",
+    "unresolved_headline": "غير\nمحسوم",
+    "state": {
+      "clear": "صافٍ",
+      "aware": "انتبه",
+      "prepare": "استعد",
+      "caution": "تحذير",
+      "insufficient": "غير كافٍ"
+    },
+    "line": {
+      "heat": "الحرارة هي العامل المُقيِّد.",
+      "air": "الهواء يعمل ضدك.",
+      "uv": "الأشعة فوق البنفسجية هي العامل الذي يجب مراقبته.",
+      "clear": "الظروف في صالحك.",
+      "insufficient": "نحتاج إلى مزيد من الإشارات."
+    },
+    "signal": {
+      "heat": "الحرارة",
+      "air": "الهواء",
+      "uv": "الأشعة"
+    },
+    "word": {
+      "heat": {
+        "benign": "منخفضة",
+        "notable": "مرتفعة تدريجياً",
+        "significant": "عالية",
+        "severe": "شديدة"
+      },
+      "air": {
+        "benign": "جيد",
+        "notable": "متوسط",
+        "significant": "سيئ",
+        "severe": "سيئ جداً"
+      },
+      "uv": {
+        "benign": "منخفضة",
+        "notable": "متوسطة",
+        "significant": "عالية",
+        "severe": "عالية جداً"
+      }
+    },
+    "quality": {
+      "high": "تتم قراءة الإشارات البيئية الثلاث جميعها.",
+      "moderate": "تتم قراءة إشارتين من أصل ثلاث إشارات بيئية.",
+      "low": "إشارة بيئية محدودة."
+    },
+    "unavailable": {
+      "permission_denied": "الموقع مُعطَّل لتطبيق AForce.",
+      "never_requested": "لم يطلب AForce الموقع بعد.",
+      "provider_unavailable": "تعذَّر الوصول إلى خدمة البيئة.",
+      "not_supported": "غير متاح على هذا الجهاز.",
+      "demo_withheld": "لا تُستخدم بيانات العرض التوضيحي هنا أبداً.",
+      "stale": "آخر قراءة قديمة جداً.",
+      "incomplete": "لا تكفي البيانات لتقدير الحرارة."
+    }
   }
 }

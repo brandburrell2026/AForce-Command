@@ -2127,5 +2127,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "Entorno",
+    "row_sub": "Lo que está haciendo el mundo a tu alrededor",
+    "eyebrow": "ENTORNO",
+    "aforce": "AFORCE",
+    "unresolved_headline": "SIN\nRESOLVER",
+    "state": {
+      "clear": "DESPEJADO",
+      "aware": "ATENCIÓN",
+      "prepare": "PREPÁRATE",
+      "caution": "PRECAUCIÓN",
+      "insufficient": "INSUFICIENTE"
+    },
+    "line": {
+      "heat": "EL CALOR ES EL FACTOR LIMITANTE.",
+      "air": "EL AIRE JUEGA EN TU CONTRA.",
+      "uv": "EL UV ES EL FACTOR A VIGILAR.",
+      "clear": "LAS CONDICIONES ESTÁN A TU FAVOR.",
+      "insufficient": "NECESITAMOS MÁS SEÑAL."
+    },
+    "signal": {
+      "heat": "CALOR",
+      "air": "AIRE",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "BAJO",
+        "notable": "EN AUMENTO",
+        "significant": "ALTO",
+        "severe": "EXTREMO"
+      },
+      "air": {
+        "benign": "BUENO",
+        "notable": "MODERADO",
+        "significant": "MALO",
+        "severe": "MUY MALO"
+      },
+      "uv": {
+        "benign": "BAJO",
+        "notable": "MODERADO",
+        "significant": "ALTO",
+        "severe": "MUY ALTO"
+      }
+    },
+    "quality": {
+      "high": "Leyendo las tres señales ambientales.",
+      "moderate": "Leyendo dos de las tres señales ambientales.",
+      "low": "Señal ambiental limitada."
+    },
+    "unavailable": {
+      "permission_denied": "La ubicación está desactivada para AForce.",
+      "never_requested": "AForce aún no ha solicitado la ubicación.",
+      "provider_unavailable": "No se pudo contactar el servicio ambiental.",
+      "not_supported": "No disponible en este dispositivo.",
+      "demo_withheld": "Aquí nunca se usan datos de demostración.",
+      "stale": "La última lectura es demasiado antigua.",
+      "incomplete": "No hay suficiente para interpretar el calor."
+    }
   }
 }

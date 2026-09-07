@@ -2616,5 +2616,65 @@
     "required_cta": "Update AForce OS",
     "required_hint": "Opens the app store listing for AForce OS",
     "required_offline_note": "If the store will not open, check your connection and try again. Nothing has been lost."
+  },
+  "environment": {
+    "title": "Environment",
+    "row_sub": "What the world around you is doing",
+    "eyebrow": "ENVIRONMENT",
+    "aforce": "AFORCE",
+    "unresolved_headline": "NOT\nRESOLVED",
+    "state": {
+      "clear": "CLEAR",
+      "aware": "AWARE",
+      "prepare": "PREPARE",
+      "caution": "CAUTION",
+      "insufficient": "INSUFFICIENT"
+    },
+    "line": {
+      "heat": "THE HEAT IS THE LIMITER.",
+      "air": "AIR IS WORKING AGAINST YOU.",
+      "uv": "UV IS THE FACTOR TO WATCH.",
+      "clear": "CONDITIONS ARE WORKING WITH YOU.",
+      "insufficient": "WE NEED MORE SIGNAL."
+    },
+    "signal": {
+      "heat": "HEAT",
+      "air": "AIR",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "LOW",
+        "notable": "RISING",
+        "significant": "HIGH",
+        "severe": "SEVERE"
+      },
+      "air": {
+        "benign": "GOOD",
+        "notable": "MODERATE",
+        "significant": "POOR",
+        "severe": "VERY POOR"
+      },
+      "uv": {
+        "benign": "LOW",
+        "notable": "MODERATE",
+        "significant": "HIGH",
+        "severe": "VERY HIGH"
+      }
+    },
+    "quality": {
+      "high": "Reading all three environmental signals.",
+      "moderate": "Reading two of three environmental signals.",
+      "low": "Limited environmental signal."
+    },
+    "unavailable": {
+      "permission_denied": "Location is off for AForce.",
+      "never_requested": "AForce has not asked for location yet.",
+      "provider_unavailable": "Could not reach the environment service.",
+      "not_supported": "Not available on this device.",
+      "demo_withheld": "Demo data is never used here.",
+      "stale": "The last reading is too old to trust.",
+      "incomplete": "Not enough to read the heat."
+    }
   }
 }

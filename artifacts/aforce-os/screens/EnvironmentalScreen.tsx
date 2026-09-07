@@ -43,6 +43,8 @@ import { Stack, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 
+import { useTranslation } from 'react-i18next';
+
 import { af, afType, afLayout, withAlpha } from '@/theme';
 import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
 import { useEngineSlice, useFlagsSlice } from '@/store/slices';
@@ -134,13 +136,13 @@ function SignalLine({ rows }: { rows: EnvironmentalView['secondary'] }) {
  * command text is `engineOutput.command.action` — the canonical authority's
  * own words, passed through untouched.
  */
-function AForcePlane({ action }: { action: string }) {
+function AForcePlane({ action, label }: { action: string; label: string }) {
   return (
     <View style={styles.planeGap}>
       <View style={styles.plane} testID="environmental-aforce-plane">
         <View style={styles.planeSpine} />
         <View style={styles.planeBody}>
-          <Text style={styles.planeWho}>AFORCE</Text>
+          <Text style={styles.planeWho}>{label}</Text>
           <Text style={styles.planeAction} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
             {action}
           </Text>
@@ -163,6 +165,7 @@ export interface EnvironmentalScreenViewProps {
  * which is what makes the five deterministic renders possible.
  */
 export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalScreenViewProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const accent = ACCENT[view.state];
   const isInsufficient = view.state === 'insufficient';
@@ -178,7 +181,7 @@ export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalSc
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.eyebrow} accessibilityRole="header">ENVIRONMENT</Text>
+        <Text style={styles.eyebrow} accessibilityRole="header">{t('environment.eyebrow')}</Text>
 
         <View style={styles.spacer} />
 
@@ -203,7 +206,7 @@ export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalSc
             </View>
           </>
         ) : isInsufficient ? (
-          <UnresolvedHeadline text={view.stateWord === 'INSUFFICIENT' ? 'NOT\nRESOLVED' : view.stateWord} />
+          <UnresolvedHeadline text={t('environment.unresolved_headline')} />
         ) : (
           // CLEAR — the state itself is the hero and the frame stays open.
           <Text style={styles.openState} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
@@ -215,7 +218,9 @@ export function EnvironmentalScreenView({ view, commandAction }: EnvironmentalSc
           {view.line}
         </Text>
 
-        {commandAction != null ? <AForcePlane action={commandAction} /> : null}
+        {commandAction != null
+          ? <AForcePlane action={commandAction} label={t('environment.aforce')} />
+          : null}
 
         <View style={styles.spacer} />
 

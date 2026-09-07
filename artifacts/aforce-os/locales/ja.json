@@ -2080,5 +2080,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "環境",
+    "row_sub": "あなたの周りの環境の状態",
+    "eyebrow": "環境",
+    "aforce": "AFORCE",
+    "unresolved_headline": "判定\n不能",
+    "state": {
+      "clear": "良好",
+      "aware": "注意",
+      "prepare": "準備",
+      "caution": "警戒",
+      "insufficient": "判定不能"
+    },
+    "line": {
+      "heat": "熱が制限要因です。",
+      "air": "空気が負担になっています。",
+      "uv": "UV に注意してください。",
+      "clear": "コンディションは味方です。",
+      "insufficient": "情報が足りません。"
+    },
+    "signal": {
+      "heat": "熱",
+      "air": "空気",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "低い",
+        "notable": "上昇中",
+        "significant": "高い",
+        "severe": "極めて高い"
+      },
+      "air": {
+        "benign": "良好",
+        "notable": "中程度",
+        "significant": "悪い",
+        "severe": "非常に悪い"
+      },
+      "uv": {
+        "benign": "低い",
+        "notable": "中程度",
+        "significant": "高い",
+        "severe": "非常に高い"
+      }
+    },
+    "quality": {
+      "high": "3つの環境シグナルをすべて取得しています。",
+      "moderate": "3つのうち2つの環境シグナルを取得しています。",
+      "low": "環境シグナルが限られています。"
+    },
+    "unavailable": {
+      "permission_denied": "AForce の位置情報がオフです。",
+      "never_requested": "AForce はまだ位置情報を求めていません。",
+      "provider_unavailable": "環境サービスに接続できませんでした。",
+      "not_supported": "この端末では利用できません。",
+      "demo_withheld": "デモデータはここでは使用しません。",
+      "stale": "最後の測定値が古すぎます。",
+      "incomplete": "熱を判断するには情報が足りません。"
+    }
   }
 }

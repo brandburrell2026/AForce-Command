@@ -2127,5 +2127,65 @@
     "field_streak": "Streak",
     "field_protocol": "Protocol status",
     "field_trend": "Trend direction"
+  },
+  "environment": {
+    "title": "Ambiente",
+    "row_sub": "Cosa sta facendo il mondo intorno a te",
+    "eyebrow": "AMBIENTE",
+    "aforce": "AFORCE",
+    "unresolved_headline": "NON\nRISOLTO",
+    "state": {
+      "clear": "SERENO",
+      "aware": "ATTENZIONE",
+      "prepare": "PREPARATI",
+      "caution": "CAUTELA",
+      "insufficient": "INSUFFICIENTE"
+    },
+    "line": {
+      "heat": "IL CALDO È IL FATTORE LIMITANTE.",
+      "air": "L'ARIA GIOCA CONTRO DI TE.",
+      "uv": "L'UV È IL FATTORE DA TENERE D'OCCHIO.",
+      "clear": "LE CONDIZIONI SONO A TUO FAVORE.",
+      "insufficient": "CI SERVE PIÙ SEGNALE."
+    },
+    "signal": {
+      "heat": "CALDO",
+      "air": "ARIA",
+      "uv": "UV"
+    },
+    "word": {
+      "heat": {
+        "benign": "BASSO",
+        "notable": "IN AUMENTO",
+        "significant": "ALTO",
+        "severe": "ESTREMO"
+      },
+      "air": {
+        "benign": "BUONA",
+        "notable": "MODERATA",
+        "significant": "SCARSA",
+        "severe": "MOLTO SCARSA"
+      },
+      "uv": {
+        "benign": "BASSO",
+        "notable": "MODERATO",
+        "significant": "ALTO",
+        "severe": "MOLTO ALTO"
+      }
+    },
+    "quality": {
+      "high": "Lettura di tutti e tre i segnali ambientali.",
+      "moderate": "Lettura di due segnali ambientali su tre.",
+      "low": "Segnale ambientale limitato."
+    },
+    "unavailable": {
+      "permission_denied": "La posizione è disattivata per AForce.",
+      "never_requested": "AForce non ha ancora richiesto la posizione.",
+      "provider_unavailable": "Impossibile raggiungere il servizio ambientale.",
+      "not_supported": "Non disponibile su questo dispositivo.",
+      "demo_withheld": "I dati dimostrativi non vengono mai usati qui.",
+      "stale": "L'ultima lettura è troppo vecchia.",
+      "incomplete": "Non basta per interpretare il caldo."
+    }
   }
 }
