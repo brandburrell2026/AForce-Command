@@ -38,7 +38,12 @@ const snap = (over: Record<string, unknown> = {}) => ({
     latitude: 39.74, longitude: -104.99,
   },
   source: 'live' as const,
+  // DEVICE capture instant — travel anchoring only.
   observedAt: new Date(T0).toISOString(),
+  // PROVIDER-declared observation instant. Since the provider-anchor repair
+  // this is the ONLY thing that ages evidence; a fixture without it is a
+  // provider that declared nothing, which is correctly refused.
+  providerObservedAt: T0,
   ...over,
 });
 
@@ -61,7 +66,8 @@ describe('LAW 1 — observed readings round-trip intact', () => {
     // Unit fragmentation (°C persisted, °F here) is what the explicit `unit`
     // field exists to end.
     const r = readingsFromCityClimate(
-      { tempF: 75.2, humidityPct: 40, observedAt: new Date(T0).toISOString(), source: 'live' },
+      { tempF: 75.2, humidityPct: 40, observedAt: new Date(T0).toISOString(),
+        providerObservedAt: T0, source: 'live' },
       T0,
     );
     expect(r.temperature.kind !== 'unobserved' && r.temperature.unit).toBe('celsius');
@@ -102,7 +108,7 @@ describe('LAW 2 — the adapter can never manufacture a reading', () => {
     // just the one that happened to be written first.
     const mock = readingsFromCityClimate(
       { tempF: 88, humidityPct: 70, observedAt: new Date(T0).toISOString(),
-        source: 'mock', city: 'Denver' },
+        providerObservedAt: T0, source: 'mock', city: 'Denver' },
       T0,
     );
     for (const e of [mock.temperature, mock.humidity]) {
@@ -120,7 +126,7 @@ describe('LAW 2 — the adapter can never manufacture a reading', () => {
   it('a STALE city reading never becomes current either', () => {
     const old = readingsFromCityClimate(
       { tempF: 88, humidityPct: 70, observedAt: new Date(T0 - 9 * H).toISOString(),
-        source: 'live', city: 'Denver' },
+        providerObservedAt: T0 - 9 * H, source: 'live', city: 'Denver' },
       T0,
     );
     expect(old.temperature.kind).toBe('stale');
@@ -129,7 +135,7 @@ describe('LAW 2 — the adapter can never manufacture a reading', () => {
 
   it('PROVIDER FAILURE never becomes a fabricated reading', () => {
     expect(readingsFromLocationSnapshot(null, T0).temperature.kind).toBe('unobserved');
-    const bad = readingsFromLocationSnapshot(snap({ observedAt: 'not-a-date' }), T0);
+    const bad = readingsFromLocationSnapshot(snap({ providerObservedAt: null }), T0);
     expect(bad.temperature.kind === 'unobserved' && bad.temperature.reason)
       .toBe('provider_unavailable');
     expect(toLegacyReading(bad.temperature)).toBeNull();
@@ -358,7 +364,7 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
     const before = JSON.stringify(state);
     heatEvidenceFromLegacyState(state['weatherTempC'] as number, T0, T0);
     readingsFromCityClimate({ tempF: 75, humidityPct: 40,
-      observedAt: new Date(T0).toISOString(), source: 'live' }, T0);
+      observedAt: new Date(T0).toISOString(), providerObservedAt: T0, source: 'live' }, T0);
     expect(JSON.stringify(state)).toBe(before);
   });
 });

@@ -176,7 +176,10 @@ interface LocationSnapshotLike {
     readonly longitude?: number;
   };
   readonly source: 'live' | 'mock';
+  /** DEVICE capture instant — travel anchoring only, never evidence. */
   readonly observedAt: string;
+  /** PROVIDER-declared observation instant, epoch ms; null when none said. */
+  readonly providerObservedAt?: number | null;
 }
 
 /** Stable, coarse key for "is this the same place?". ~11 km at the equator. */
@@ -210,8 +213,15 @@ export function readingsFromLocationSnapshot(
   if (snapshot == null) return none('never_requested');
   if (snapshot.source === 'mock') return none('demo_withheld');
 
-  const observedAt = Date.parse(snapshot.observedAt);
-  if (!Number.isFinite(observedAt)) return none('provider_unavailable');
+  // THE PROVIDER'S ASSERTION, or nothing. `snapshot.observedAt` is the device
+  // instant we started looking; using it here is what let network and
+  // permission-prompt latency make readings look fresher than they were.
+  // A provider that declares no observation time gives us evidence we cannot
+  // age, and unageable evidence cannot be called current.
+  const observedAt = snapshot.providerObservedAt;
+  if (observedAt == null || !Number.isFinite(observedAt) || observedAt <= 0) {
+    return none('provider_unavailable');
+  }
 
   const locationKey = coarseLocationKey(snapshot.inputs.latitude, snapshot.inputs.longitude);
   const one = (
@@ -251,7 +261,10 @@ export function readingsFromLocationSnapshot(
 interface CityClimateLike {
   readonly tempF: number;
   readonly humidityPct: number;
+  /** DEVICE instant — display/debug only, never the evidence anchor. */
   readonly observedAt: string;
+  /** PROVIDER-declared observation instant, epoch ms; null when none said. */
+  readonly providerObservedAt?: number | null;
   readonly source: 'live' | 'mock';
   readonly city?: string;
 }
@@ -283,8 +296,9 @@ export function readingsFromCityClimate(
       humidity: unobserved('humidity', 'demo_withheld'),
     };
   }
-  const observedAt = Date.parse(climate.observedAt);
-  if (!Number.isFinite(observedAt)) {
+  // The provider's assertion, or nothing — see readingsFromLocationSnapshot.
+  const observedAt = climate.providerObservedAt;
+  if (observedAt == null || !Number.isFinite(observedAt) || observedAt <= 0) {
     return {
       temperature: unobserved('temperature', 'provider_unavailable'),
       humidity: unobserved('humidity', 'provider_unavailable'),
