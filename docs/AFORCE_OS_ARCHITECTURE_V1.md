@@ -186,13 +186,127 @@ Hydration is measured across time, not only today. Evaluates: Recovery speed, He
 
 Expand HydroState beyond skin. Observe: Dry lips, Lip cracking, Mouth dryness, Sticky mouth, Tongue moisture, Overnight mouth dryness, Recovery after hydration. These signals compare only against the user's baseline. They never create recommendations by themselves.
 
-## Section 25 — Advanced Visual Intelligence™ (Skin Performance Intelligence™)
+## Section 25 — Advanced Visual Intelligence™
 
-> **⚠️ COMPLIANCE GATE — CAMERA SURFACE FLAGGED OFF.** This section involves camera-based observation of the user's face to infer hydration state. The engine/data layer (baseline storage, signal weighting, Evidence Engine wiring) may be built now, but the **camera capture surface must remain behind a feature flag and disabled in production until legal/regulatory review is complete** (biometric-data law, Apple health/camera privacy review, medical-claims review). This matches the prior decision to keep the HydroState camera surface dark pending legal review. Do not enable face capture for beta without that sign-off.
+> **⚠️ COMPLIANCE GATE — CAMERA SURFACE FLAGGED OFF.** This section describes an optional,
+> member-initiated visual observation of the member's own skin. It does **not** infer hydration
+> state, and no output of this section may be presented as a hydration measurement or as any other
+> physiological measurement. Under Phase 1 the containment layer — the five-category read type, the
+> quality gate, the device-local baseline store, the read-only context join — may be **designed**.
+> No capture surface, no feature extraction, no model and no storage may be **built** under Phase 1.
+> The camera capture surface must remain behind a feature flag and disabled in production until
+> legal/regulatory review is complete (biometric-data law, Apple health/camera privacy review,
+> medical-claims review). Do not enable face capture for beta without that sign-off.
 
-Expand HydroState Visual Intelligence to monitor recovery over time. Supported observations: Skin hydration, Skin moisture retention, Skin texture, Skin brightness, Skin barrier recovery, Dry skin trends, Dehydration trends, Environmental stress, Heat stress, UV stress, Under-eye fatigue, Periorbital recovery, Lip hydration, Facial recovery patterns.
+**Naming.** Canonical architecture terminology is **Advanced Visual Intelligence™**. The approved
+member-facing label is **"SkinIA Visual Check"**. *Skin Performance Intelligence™* is legacy
+terminology only and must not be used in new writing. No other canonical name is registered.
 
-Every observation compares only against the user's own baseline. Never compare users to population averages. Observation only. Never diagnose.
+### 25.0 Supersession — language no longer authorized
+
+The previous text of this section authorized interpretations that are withdrawn. The following are
+**no longer authorized interpretations of a consumer face photograph**, in this section or anywhere
+else in AForce OS:
+
+- **"infer hydration state"** — a photograph does not establish hydration state.
+- **"Skin hydration"** — not measurable from a consumer RGB still.
+- **"Skin moisture retention"** — not measurable from a consumer RGB still.
+- **"Dehydration trends"** — a trend of an unmeasurable quantity is also unmeasurable.
+
+Also withdrawn from the former supported-observations list, for the same reason — each is an
+inference about internal physiological state rather than an observation of an image: skin barrier
+recovery, dry-skin trends, under-eye fatigue, periorbital recovery, lip hydration, and facial
+recovery patterns. Heat stress, UV stress and environmental stress are environmental facts; they
+belong to Environmental Intelligence, not to this section.
+
+The prior permission that "the engine/data layer … may be built now" is also withdrawn. Build
+authority under Phase 1 is design only.
+
+### 25.1 The governing model — five categories
+
+Every Advanced Visual Intelligence output is exactly one of five categories. Nothing else may be
+emitted. The category is part of the read type; a read with no category is invalid.
+
+1. **OBSERVED** — a descriptive property measured from this image alone, stated as a property of
+   the image, never of the body's internal state. Requires the quality gate to have passed.
+2. **COMPARED** — an OBSERVED property placed against this member's own prior reads under
+   equivalent capture conditions. Requires a sufficient personal baseline. Never against a
+   population, cohort, age band, or any other member. **Personal baseline outranks population
+   comparison, always** (Constitution principle 4).
+3. **CONTEXTUALIZED** — a read-only statement of what else was true at the time of the scan, drawn
+   from existing evidence. **Association only, never cause.** No causal verb may appear in a
+   CONTEXTUALIZED string. **CONTEXTUALIZED may only be emitted alongside a successful OBSERVED
+   result — never on its own**, so that a capture which observed nothing can never return a
+   statement about the member's hydration, environment or recovery.
+   - Permitted: "This scan occurred during a period of higher environmental heat and lower recorded
+     fluid intake."
+   - Prohibited: "Heat dehydrated your skin." "Your low HydroState caused this."
+4. **UNKNOWN** — the honest and expected default. Emitted whenever the quality gate fails, the
+   baseline is insufficient, capture conditions are not equivalent, or the observation family is
+   not admitted. **UNKNOWN is not zero, is not "fine", and is not a favorable band.** It may never
+   be rendered as a number, a band, a status colour, or an empty state that reads as reassurance.
+   Member-facing form: "AForce cannot make a reliable visual observation from this image."
+5. **CLINICAL** — a standing, member-initiated route to a qualified clinician. **CLINICAL is never
+   triggered by an image feature.** AForce does not detect, screen, triage or flag anything on
+   skin. This category exists so that a concerned member is routed out of the product rather than
+   answered by it, and it carries no AForce assessment of any kind.
+
+Mapping to the approved SkinIA output classifications: OBSERVATION AVAILABLE = OBSERVED (plus
+COMPARED and/or CONTEXTUALIZED where each independently qualifies); LIMITED = OBSERVED with
+COMPARED withheld; IMAGE QUALITY INSUFFICIENT and UNAVAILABLE are both UNKNOWN, distinguished only
+by an internal reason code that is never surfaced as a score.
+
+### 25.2 Admitted observation families
+
+**At v1 the admitted set is EMPTY.** No observation family currently meets the admission standard
+in 25.3. Because the admitted set is empty, OBSERVED and COMPARED are unreachable, and — by the
+conditioning rule in 25.1 — CONTEXTUALIZED is unreachable with them. The only reachable output of
+this section today is UNKNOWN.
+
+**Binding physical constraint.** On native iOS the camera stack available to this application
+exposes no exposure lock, no white-balance lock, no ISO control and no RAW capture. Device
+auto-exposure and auto-white-balance therefore normalise brightness and colour on every capture —
+precisely the quantities a brightness or tone comparison would need to hold constant. Until a
+control for this exists, no cross-session luminance or colour comparison is valid, and COMPARED
+may not be emitted for any tone or brightness family.
+
+### 25.3 Admission gate
+
+A family may be listed in 25.2 only with all of: a written definition of the measured image
+property; a named region carrying its own evidence, quality and lighting requirements; a
+capture-equivalence control that survives auto-exposure; calibration evidence across diverse skin
+tones, lighting conditions, camera hardware, age ranges, facial hair, cosmetics, tattoos, eyewear,
+occlusion, motion and image compression; a stated confidence qualification; claims approval; and a
+recorded validation status. Absent any one, the family stays out and the surface emits UNKNOWN.
+
+**Every numeric mapping in this section remains UNVALIDATED until separately calibrated and
+approved.** Numeric values are internal, are never member-facing, are never described as validated,
+and live isolated in configuration so they are replaceable in a single edit — the standard set by
+`governance/URINE-COLOR-MAPPING-MEMO.md`. Passing tests is not validation.
+
+### 25.4 Prohibited outputs
+
+Advanced Visual Intelligence may never produce, imply, or be described as producing: hydration
+diagnosis; electrolyte inference; vitamin or mineral deficiency inference; hormonal inference;
+cortisol or stress-hormone inference; disease or infection detection; cancer or melanoma detection
+or screening; internal inflammation claims; blood-flow or circulation claims; organ-health claims;
+any medical diagnosis; identity recognition or matching; inference of protected traits; any claim
+that skin, lips, eyes, under-eyes or hands prove hydration status; and any causal attribution
+unsupported by evidence.
+
+**Observation, never diagnosis** (Constitution principle 5). The OS notices patterns; it does not
+claim medical authority.
+
+### 25.5 Authority boundary
+
+No Skin Score. No beauty score. No age estimate. No attractiveness language. **No competing hero
+metric** — HydroState is the one hero metric (Constitution principle 2).
+
+Advanced Visual Intelligence **does not modify HydroState**, **creates no hydration credit**, and
+contributes **no score term**. **RecoveryCommand remains the sole personal-action authority**: this
+section may not contain a dose, an ounce figure, a supplement instruction, an urgency, a treatment,
+a diagnosis or any personal command, and may not recommend a commercial product. If a personal
+action is warranted, it is passed in from the canonical command authority unchanged.
 
 ## Section 26 — Personal Adaptive Learning™
 
