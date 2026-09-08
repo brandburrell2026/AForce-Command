@@ -114,7 +114,12 @@ function assertCapabilityIsOptIn(code: string): void {
   const timelineStart = code.indexOf('router.get("/journal/timeline"');
   expect(timelineStart, "the timeline handler must be locatable").toBeGreaterThan(-1);
   const timeline = code.slice(timelineStart, timelineStart + 400);
-  expect(timeline).toMatch(/daysQuery\.parse\(req\.query\)/);
+  // `parse` OR `safeParse`: PR 2B hoisted the timeline's validation out of its
+  // try (so a DB fault is a 500, not a 400), which changed the METHOD but not
+  // the property this guard protects — that the timeline validates with the
+  // SHARED daysQuery and therefore cannot advertise the dense capability.
+  // Both halves below remain load-bearing; neither is relaxed.
+  expect(timeline).toMatch(/daysQuery\.(safeParse|parse)\(req\.query\)/);
   expect(timeline).not.toMatch(/rollupsQuery/);
 }
 

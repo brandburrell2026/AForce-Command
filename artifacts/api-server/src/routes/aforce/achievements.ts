@@ -8,6 +8,7 @@ import {
 import { ne, eq, and, gte, asc, desc, inArray, isNull, isNotNull } from "drizzle-orm";
 import { logger } from "../../lib/logger";
 import { resolveUserId, ACH_CODES, unlockAchievementCode } from "./shared";
+import { sendApiError } from "../../lib/apiError";
 import type { AchCode } from "./shared";
 
 const router: IRouter = Router();
@@ -20,14 +21,22 @@ const router: IRouter = Router();
 const unlockSchema = z.object({ code: z.enum(ACH_CODES) });
 
 router.post("/achievements/unlock", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = unlockSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "unlock_failed");
+    return;
+  }
+  const { code } = parsed.data;
   try {
-    const { code } = unlockSchema.parse(req.body);
     const userId = resolveUserId(req);
     const newlyUnlocked = await unlockAchievementCode(userId, code);
     return res.json({ code, unlocked: true, newlyUnlocked });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/achievements/unlock failed");
-    return res.status(400).json({ error: "unlock_failed" });
+    sendApiError(req, res, 500, "unlock_failed");
+    return;
   }
 });
 
