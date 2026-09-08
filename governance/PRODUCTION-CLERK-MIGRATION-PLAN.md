@@ -108,6 +108,67 @@ Run in order; each must pass before the next is meaningful.
 5. **Cold launch** — fresh install, no cached session: the app reaches the sign-in screen rather than a black canvas. *This is the check Build 63 never got.*
 6. **Round trip** — register a new account, log an intake, force-close, relaunch: the value persists and Home and Hydration agree.
 7. **Failure mode** — confirm an unauthenticated request still 401s. `requireAuth` must not have been weakened anywhere in the process.
+8. **Handshake-query gate (added 2026-09-07, founder-required).** See the section
+   below. This step is a **blocking gate**: the migration is not complete until it
+   passes.
+
+## Handshake-query defect — migration verification gate
+
+**Status: OPEN, tracked, NOT accepted as correct behaviour.** Found 2026-09-07
+during PR 1 (`/api/smart-capture` mount order). Measured on canonical main
+`6d75cef9`, not inferred.
+
+On **every** authenticated api-server route, an attacker-supplied query parameter
+changes the refusal:
+
+| Request | Today (`pk_test_` development instance) | Required after migration |
+|---|---|---|
+| no query param | `401 {"error":"Unauthorized"}` | unchanged |
+| `?__clerk_handshake_nonce=x` | **`307`**, route never executes | must fail safely, must not suppress the route |
+| `?__clerk_handshake=y` | **`500 {"error":"internal_error"}`** | must fail safely, must not suppress the route |
+
+Verified on `GET /api/aforce/state` and `GET /api/profile` — both sit behind the
+**global** `clerkMiddleware`, so this is server-wide and pre-existing. PR 1 did not
+introduce it and does not fix it; PR 1 only brought `/api/smart-capture` to the
+same posture as its peers.
+
+**Cause, in the installed library.** `authenticateRequestWithTokenInCookie` checks
+`handshakeNonce || handshakeToken` at
+`@clerk/backend@3.2.14/dist/chunk-U7L2P4TH.mjs:5922` and calls `resolveHandshake()`
+**before** `isRequestEligibleForHandshake()`'s `method !== "GET"` gate at `:5355`.
+On a **development** instance `resolveHandshake` unconditionally appends a
+`Location` header (`:5451-5458`), which `@clerk/express`'s `setResponseForHandshake`
+turns into `res.status(307).end()`. `instanceType` derives purely from the
+publishable-key prefix — `pk_live_` ⇒ production, anything else ⇒ development.
+
+**Why this belongs to THIS migration.** The defective branch is gated on
+`instanceType === "development"`. Moving to a `pk_live_` instance should close it.
+That is a hypothesis, not a fact, and it must be **proved after the cutover, not
+assumed**.
+
+**Severity — stated precisely so it is neither over- nor under-sold.** There is
+**no authentication bypass**: protected routes stay fail-closed and never execute.
+The harm is (a) monitoring distortion — every such request books as a server fault,
+and a client retry policy keyed on 4xx-vs-5xx makes exactly the wrong decision; and
+(b) unauthenticated request suppression — anyone can force a `307` on a protected
+route without credentials.
+
+**This is also why PR 1 used a path-scoped mount** rather than hoisting the global
+`clerkMiddleware` above the webhook routers. Had it been hoisted,
+`POST /api/stripe/webhook?__clerk_handshake_nonce=x` would return `307` **with the
+handler never invoked** — an unauthenticated webhook-suppression primitive on the
+money path, from a query string.
+
+**Required proof after migration** (all four, captured — not attested):
+
+1. `GET /api/aforce/state?__clerk_handshake=y` → `401`, not `500`.
+2. `GET /api/aforce/state?__clerk_handshake_nonce=x` → `401`, not `307`.
+3. The same two against `POST /api/smart-capture`.
+4. A normal authenticated request to each still succeeds — the fix must not have
+   been bought by breaking the handshake for legitimate browser sign-in.
+
+If any case still fails after the cutover, this stays open as its own tracked
+blocker and does **not** ride out on the migration's completion.
 
 ## Rollback of the whole migration
 
