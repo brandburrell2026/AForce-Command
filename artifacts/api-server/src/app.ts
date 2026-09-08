@@ -15,6 +15,7 @@ import {
   clerkProxyMiddleware,
 } from "./middlewares/clerkProxyMiddleware";
 import { buildCorsOptions } from "./middlewares/corsPolicy";
+import { sendApiError, classifyThrown } from "./lib/apiError";
 
 const app: Express = express();
 
@@ -121,9 +122,37 @@ app.use((req, res, next) => {
 
 app.use("/api", router);
 
+// JSON 404 for unmatched /api paths. Without this they fall through to
+// Express's default handler, which answers with an HTML error page — so a
+// client calling an endpoint that does not exist yet (version skew, a typo, a
+// route removed) receives HTML where it expects JSON.
+//
+// SCOPED TO /api DELIBERATELY. Mounting it globally would also swallow
+// non-API paths, and this server is not the only thing behind that origin.
+//
+// POSITION IS LOAD-BEARING: after the router (so every real route still wins)
+// and before the error handler (so it is a normal response, not an error).
+// It cannot shadow the three routers mounted earlier — stripe webhook, shopify
+// webhook, smart capture — because those already matched and responded; a
+// request only reaches here when NOTHING matched.
+//
+// Status is unchanged at 404: the body becomes JSON, the code does not. That
+// matters because client code treats 404 as a semantic signal
+// (garmin.ts:86, whoopConnect.ts:80, healthConnectionMapping.ts:54).
+app.use("/api", (req: express.Request, res: express.Response) => {
+  sendApiError(req, res, 404, "not_found");
+});
+
 // Wave-3 PR8: the app had NO error middleware — an uncaught route throw
 // fell through to Express's default HTML error page, unlogged. Redacted
 // structured log + a fixed JSON body (never internal detail).
+//
+// PR 2: the body now also carries `code` and `requestId`, and a CLOSED
+// allowlist of body-parser faults is reported as the client error it actually
+// is instead of a blanket 500 (see classifyThrown — it deliberately does not
+// trust an arbitrary err.status). The log line is unchanged: still
+// serializeError, still never the raw error, and the response never contains
+// any part of it.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   (req as express.Request & { log?: { error?: (o: unknown, m: string) => void } }).log?.error?.(
@@ -131,9 +160,8 @@ app.use((err: unknown, req: express.Request, res: express.Response, _next: expre
     "unhandled route error",
   );
   logger.error({ err: serializeError(err), url: req.url.split("?")[0] }, "unhandled route error");
-  if (!res.headersSent) {
-    res.status(500).json({ error: "internal_error" });
-  }
+  const { status, code } = classifyThrown(err);
+  sendApiError(req, res, status, code);
 });
 
 export default app;
