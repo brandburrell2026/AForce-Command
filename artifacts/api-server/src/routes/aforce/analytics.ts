@@ -23,12 +23,20 @@ import {
   analyticsForgetSchema,
 } from "@workspace/analytics-contract/zod";
 import { logger } from "../../lib/logger";
+import { sendApiError } from "../../lib/apiError";
 
 const router: IRouter = Router();
 
 router.post("/analytics", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = analyticsBatchSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "analytics_ingest_failed");
+    return;
+  }
+  const { events } = parsed.data;
   try {
-    const { events } = analyticsBatchSchema.parse(req.body);
     const now = new Date();
     const rows: InsertAforceAnalyticsEvent[] = events.map((e) => {
       const occurred = new Date(e.occurredAt);
@@ -55,13 +63,21 @@ router.post("/analytics", async (req, res) => {
     });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/analytics failed");
-    return res.status(400).json({ error: "analytics_ingest_failed" });
+    sendApiError(req, res, 500, "analytics_ingest_failed");
+    return;
   }
 });
 
 router.post("/analytics/forget", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = analyticsForgetSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "analytics_forget_failed");
+    return;
+  }
+  const { analytics_id } = parsed.data;
   try {
-    const { analytics_id } = analyticsForgetSchema.parse(req.body);
     const deleted = await db
       .delete(aforceAnalyticsEvents)
       .where(eq(aforceAnalyticsEvents.analyticsId, analytics_id))
@@ -69,7 +85,8 @@ router.post("/analytics/forget", async (req, res) => {
     return res.json({ deleted: deleted.length });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/analytics/forget failed");
-    return res.status(400).json({ error: "analytics_forget_failed" });
+    sendApiError(req, res, 500, "analytics_forget_failed");
+    return;
   }
 });
 

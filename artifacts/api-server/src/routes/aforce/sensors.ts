@@ -11,6 +11,7 @@ import { getUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
 import { sensorImportLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, unlockAchievementCode } from "./shared";
+import { sendApiError } from "../../lib/apiError";
 
 const router: IRouter = Router();
 
@@ -99,8 +100,15 @@ const sensorImportSchema = z.object({
 });
 
 router.post("/sensors/import", sensorImportLimiter, async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = sensorImportSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "sensor_import_failed");
+    return;
+  }
+  const body = parsed.data;
   try {
-    const body = sensorImportSchema.parse(req.body);
     const userId = resolveUserId(req);
     await getUserState(userId);
     const reason = `sensor:${body.source}`;
@@ -127,7 +135,8 @@ router.post("/sensors/import", sensorImportLimiter, async (req, res) => {
     return res.json({ imported: snapshots.length, source: body.source, reason });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/sensors/import failed");
-    return res.status(400).json({ error: "sensor_import_failed" });
+    sendApiError(req, res, 500, "sensor_import_failed");
+    return;
   }
 });
 

@@ -22,6 +22,7 @@ import { logger } from "../../lib/logger";
 import { snapshotLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId } from "./shared";
 import { LEVELS, snapshotSchema } from "./journalSchema";
+import { sendApiError } from "../../lib/apiError";
 
 const router: IRouter = Router();
 
@@ -164,8 +165,15 @@ export const daysQuery = z.object({
 });
 
 router.get("/journal/timeline", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = daysQuery.safeParse(req.query);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "timeline_failed");
+    return;
+  }
+  const { days } = parsed.data;
   try {
-    const { days } = daysQuery.parse(req.query);
     const userId = resolveUserId(req);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
@@ -257,7 +265,8 @@ router.get("/journal/timeline", async (req, res) => {
     return res.json({ entries, days });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "GET /aforce/journal/timeline failed");
-    return res.status(400).json({ error: "timeline_failed" });
+    sendApiError(req, res, 500, "timeline_failed");
+    return;
   }
 });
 

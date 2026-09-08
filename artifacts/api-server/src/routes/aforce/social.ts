@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getUserState, updateUserState } from "../../lib/aforceState";
 import { logger } from "../../lib/logger";
 import { resolveUserId, broadcastState } from "./shared";
+import { sendApiError } from "../../lib/apiError";
 import { requireEntitlement } from "../../middlewares/requireEntitlement";
 
 const router: IRouter = Router();
@@ -52,9 +53,16 @@ const activateSchema = z.object({
   preset: z.enum(["travel", "heat", "hard_block"]).nullable().optional(),
 });
 router.post("/social/activate", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = activateSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "social_activate_failed");
+    return;
+  }
+  const { preset } = parsed.data;
   try {
     const userId = resolveUserId(req);
-    const { preset } = activateSchema.parse(req.body ?? {});
     const now = new Date().toISOString();
     const next: PersistedSocialMode = {
       active: true,
@@ -67,7 +75,7 @@ router.post("/social/activate", async (req, res) => {
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/social/activate failed");
-    res.status(400).json({ error: "social_activate_failed" });
+    sendApiError(req, res, 500, "social_activate_failed");
   }
 });
 
@@ -77,8 +85,15 @@ const drinkSchema = z.object({
   oz: z.number().min(0).max(64).optional(),
 });
 router.post("/social/drink", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = drinkSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "social_drink_failed");
+    return;
+  }
+  const { type, abv, oz } = parsed.data;
   try {
-    const { type, abv, oz } = drinkSchema.parse(req.body);
     const userId = resolveUserId(req);
     const now = new Date().toISOString();
     const current = (await readSocial(userId)) ?? {
@@ -109,14 +124,21 @@ router.post("/social/drink", async (req, res) => {
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/social/drink failed");
-    res.status(400).json({ error: "social_drink_failed" });
+    sendApiError(req, res, 500, "social_drink_failed");
   }
 });
 
 const hydrateSchema = z.object({ confirmed: z.boolean() });
 router.post("/social/hydrate", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = hydrateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "social_hydrate_failed");
+    return;
+  }
+  const { confirmed } = parsed.data;
   try {
-    const { confirmed } = hydrateSchema.parse(req.body);
     const userId = resolveUserId(req);
     const current = await readSocial(userId);
     if (!current) {
@@ -140,7 +162,8 @@ router.post("/social/hydrate", async (req, res) => {
     return res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/social/hydrate failed");
-    return res.status(400).json({ error: "social_hydrate_failed" });
+    sendApiError(req, res, 500, "social_hydrate_failed");
+    return;
   }
 });
 
@@ -149,8 +172,15 @@ const contextSchema = z.object({
   ateRecently: z.boolean().optional(),
 });
 router.post("/social/context", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = contextSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "social_context_failed");
+    return;
+  }
+  const patch = parsed.data;
   try {
-    const patch = contextSchema.parse(req.body);
     const userId = resolveUserId(req);
     const current = (await readSocial(userId)) ?? {
       active: false,
@@ -167,7 +197,8 @@ router.post("/social/context", async (req, res) => {
     return res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/social/context failed");
-    return res.status(400).json({ error: "social_context_failed" });
+    sendApiError(req, res, 500, "social_context_failed");
+    return;
   }
 });
 

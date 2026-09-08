@@ -8,6 +8,7 @@ import { fetchWeather } from "../../lib/openWeather";
 import { logger } from "../../lib/logger";
 import { weatherLimiter } from "../../middlewares/rateLimits";
 import { resolveUserId, broadcastState } from "./shared";
+import { sendApiError } from "../../lib/apiError";
 
 const router: IRouter = Router();
 
@@ -15,8 +16,15 @@ const router: IRouter = Router();
 const signalsSchema = z.object({ symptoms: z.array(z.string()) });
 
 router.post("/signals", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = signalsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "signals_failed");
+    return;
+  }
+  const { symptoms } = parsed.data;
   try {
-    const { symptoms } = signalsSchema.parse(req.body);
     const symptomState =
       symptoms.length === 0 ? "none" :
       symptoms.length <= 1 ? "mild" :
@@ -27,7 +35,7 @@ router.post("/signals", async (req, res) => {
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/signals failed");
-    res.status(400).json({ error: "signals_failed" });
+    sendApiError(req, res, 500, "signals_failed");
   }
 });
 
@@ -35,15 +43,22 @@ router.post("/signals", async (req, res) => {
 const urineSchema = z.object({ urineSignal: z.number().int().min(1).max(8) });
 
 router.post("/urine", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = urineSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "urine_failed");
+    return;
+  }
+  const { urineSignal } = parsed.data;
   try {
-    const { urineSignal } = urineSchema.parse(req.body);
     const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { urineSignal });
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/urine failed");
-    res.status(400).json({ error: "urine_failed" });
+    sendApiError(req, res, 500, "urine_failed");
   }
 });
 
@@ -51,15 +66,22 @@ router.post("/urine", async (req, res) => {
 const energySchema = z.object({ energyState: z.enum(["peak", "steady", "low", "crashed"]) });
 
 router.post("/energy", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = energySchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "energy_failed");
+    return;
+  }
+  const { energyState } = parsed.data;
   try {
-    const { energyState } = energySchema.parse(req.body);
     const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { energyState });
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/energy failed");
-    res.status(400).json({ error: "energy_failed" });
+    sendApiError(req, res, 500, "energy_failed");
   }
 });
 
@@ -80,8 +102,15 @@ router.post("/checkin", async (req, res) => {
 const confirmSchema = z.object({ followed: z.boolean(), inClutch: z.boolean().optional() });
 
 router.post("/confirm", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = confirmSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "confirm_failed");
+    return;
+  }
+  const { followed, inClutch: clientInClutch = false } = parsed.data;
   try {
-    const { followed, inClutch: clientInClutch = false } = confirmSchema.parse(req.body);
     const userId = resolveUserId(req);
     // Ensure row exists before opening the tx (avoids the seed dance
     // inside the transaction callback).
@@ -114,7 +143,7 @@ router.post("/confirm", async (req, res) => {
     res.json({ userState: result });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/confirm failed");
-    res.status(400).json({ error: "confirm_failed" });
+    sendApiError(req, res, 500, "confirm_failed");
   }
 });
 
@@ -122,15 +151,22 @@ router.post("/confirm", async (req, res) => {
 const flagsSchema = z.object({ clutchActive: z.boolean() });
 
 router.post("/flags", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = flagsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "flags_failed");
+    return;
+  }
+  const { clutchActive } = parsed.data;
   try {
-    const { clutchActive } = flagsSchema.parse(req.body);
     const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { clutchActive });
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/flags failed");
-    res.status(400).json({ error: "flags_failed" });
+    sendApiError(req, res, 500, "flags_failed");
   }
 });
 
@@ -142,15 +178,22 @@ const languageSchema = z.object({
 });
 
 router.post("/language", async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = languageSchema.safeParse(req.body);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "language_failed");
+    return;
+  }
+  const { language } = parsed.data;
   try {
-    const { language } = languageSchema.parse(req.body);
     const userId = resolveUserId(req);
     const updated = await updateUserState(userId, { language });
     broadcastState(userId, updated);
     res.json({ userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/language failed");
-    res.status(400).json({ error: "language_failed" });
+    sendApiError(req, res, 500, "language_failed");
   }
 });
 
@@ -161,8 +204,15 @@ const weatherQuery = z.object({
 });
 
 router.get("/weather", weatherLimiter, async (req, res) => {
+  // Validation runs BEFORE the try, so a bad body is answered 400 by a
+  // separate path and can never be confused with an operation failure.
+  const parsed = weatherQuery.safeParse(req.query);
+  if (!parsed.success) {
+    sendApiError(req, res, 400, "invalid_body", "weather_failed");
+    return;
+  }
+  const { lat, lon } = parsed.data;
   try {
-    const { lat, lon } = weatherQuery.parse(req.query);
     const snapshot = await fetchWeather(lat, lon);
     if (!snapshot) {
       return res.status(503).json({ error: "weather_unavailable" });
@@ -180,7 +230,8 @@ router.get("/weather", weatherLimiter, async (req, res) => {
     return res.json({ weather: snapshot, userState: updated });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "GET /aforce/weather failed");
-    return res.status(400).json({ error: "weather_failed" });
+    sendApiError(req, res, 500, "weather_failed");
+    return;
   }
 });
 
