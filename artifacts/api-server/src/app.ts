@@ -67,6 +67,23 @@ app.use("/api", shopifyWebhookRouter);
 // because base64-encoded photos are 100kB–6MB and would 413 otherwise.
 // The router attaches its own express.json({ limit: '8mb' }) scoped to
 // the single POST route, plus per-IP rate limiting for cost control.
+//
+// ...but its route calls requireAuth -> getAuth(req), and @clerk/express
+// THROWS `middlewareRequired("getAuth")` when the request was never
+// decorated. Mounted here — above the global clerkMiddleware() below — an
+// UNAUTHENTICATED caller therefore got 500 internal_error from the terminal
+// error handler instead of 401. Auth still ran (no imagery ever left
+// unauthenticated), but the contract was wrong and a client cannot tell a
+// refusal from an outage.
+//
+// The fix is a PATH-SCOPED clerkMiddleware in front of this one router, not
+// a relocation of the global mount: moving the router below would put it
+// behind the 64kB cap and 413 every real photo, and hoisting the global
+// clerkMiddleware above the two webhook routers would newly run Clerk — which
+// can set headers and end a response — on the Stripe and Shopify money paths.
+// Running it twice on this path is safe by construction: the middleware's
+// first line is `if (request.auth) return next()`.
+app.use("/api/smart-capture", clerkMiddleware());
 app.use("/api", smartCaptureRouter);
 
 // CORS — allowlist driven. In production, set CORS_ALLOWED_ORIGINS to a
