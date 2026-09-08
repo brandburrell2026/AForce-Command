@@ -63,7 +63,21 @@ describe("wiring locks", () => {
     expect(routerIdx).toBeGreaterThan(-1);
     expect(mwIdx).toBeGreaterThan(routerIdx);
     expect(src).toContain("serializeError(err)");
-    expect(src).toContain('res.status(500).json({ error: "internal_error" })');
+
+    // PR 2 moved the response OUT of this handler and into the shared helper,
+    // so the old literal `res.status(500).json({ error: "internal_error" })` is
+    // gone. The property this lock exists to protect is unchanged and is still
+    // asserted, in two halves:
+    //   1. the handler delegates to the one helper that builds error bodies;
+    //   2. an UNRECOGNISED throw still resolves to a JSON 500 — now the
+    //      documented default of classifyThrown rather than an inline literal.
+    // Both halves are load-bearing: dropping either would let a future edit
+    // return a non-JSON body or invent a status for an unknown error.
+    expect(src).toContain("classifyThrown(err)");
+    expect(src).toContain("sendApiError(req, res, status, code)");
+    const helper = readFileSync(resolve(__dirname, "../lib/apiError.ts"), "utf8");
+    expect(helper).toContain('return { status: 500, code: "internal_error" };');
+    expect(helper).toContain("res.status(status).json(");
   });
 
   it("index.ts registers fatal process handlers that exit non-zero", () => {
