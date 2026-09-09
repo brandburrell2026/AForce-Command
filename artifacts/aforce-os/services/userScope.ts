@@ -188,6 +188,23 @@ export type Namespace =
   /** Cannot be known: fail, definitely. */
   | { readonly kind: 'unavailable'; readonly reason: UnverifiableReason };
 
+/**
+ * Thrown when a durable operation COMPLETED under a different scope than the
+ * one that issued it (barrier W3). The value it carries belongs to a member
+ * who is no longer active, so it is refused rather than returned.
+ *
+ * Distinct from `ScopeUnavailableError`, which means identity could not be
+ * established at all. A caller may reasonably treat "unavailable" as "try
+ * later"; "changed" means this work is void and must be abandoned, never
+ * retried with the result in hand.
+ */
+export class ScopeChangedError extends Error {
+  constructor() {
+    super('user scope changed while the operation was in flight');
+    this.name = 'ScopeChangedError';
+  }
+}
+
 /** Thrown by durable facades when the scope is UNVERIFIABLE. */
 export class ScopeUnavailableError extends Error {
   readonly reason: UnverifiableReason;

@@ -29,20 +29,22 @@
  * materialize under scope B's key if the scope switches mid-flight. A write
  * issued by A lands under A — that is the correct outcome, not a bug.
  *
- * This is only one of the barriers the race needs. It protects
- * facade-entry-to-issue. It does NOT protect the window between the native
- * call completing and a store publishing the value into RAM — a read issued
- * under A can still RESOLVE after the switch and be published into B's memory
- * by a store that does not check. That barrier, and the enqueue-time barrier
- * above it, are PR B; they are named here so the gap is documented rather than
- * assumed closed.
+ * That is barrier W2 of four. On its own it is not enough, and the reads below
+ * carry W3: the generation is captured before the native call and re-checked
+ * AFTER it, because a check placed before the call cannot fire for a read whose
+ * native call is already in flight — which is precisely the read that returns
+ * the departing member's bytes after a switch. A stale read throws
+ * `ScopeChangedError` rather than returning the value.
+ *
+ * W1 (capture at write-enqueue) and W4 (publish only if still current) live in
+ * `services/scopedWriteQueue.ts`, which documents all four windows together.
  *
  * ── RAM IS THE STORE'S, DISK IS OURS ───────────────────────────────────────
  *
  * Stores that cache in memory must also `subscribeUserScope` and reset to
  * un-hydrated on a scope change. Account-scoped disk without account-scoped
- * RAM is not isolation. PR B replaces this sentence with a structural
- * guarantee; until then it is a convention and is marked as one.
+ * RAM is not isolation — the founder's ruling, and the reason W3 refuses to
+ * hand back a value rather than trusting each store to notice.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -52,9 +54,11 @@ import {
   scopeResolved,
   migrationSettled,
   ScopeUnavailableError,
+  ScopeChangedError,
   MIGRATION_CLAIMED_BY_KEY,
   getUserScopeSuffix,
 } from './userScope';
+import { captureScope, isScopeCurrent } from './scopedWriteQueue';
 
 /** `null` means "no durable home" — read as empty, drop the write. */
 type ResolvedKey = string | null;
@@ -104,8 +108,15 @@ export const scopedStorage = {
   async getItem(base: string): Promise<string | null> {
     const key = await resolveKey(base, ':');
     if (key === null) return null; // signed out: definitely empty
+    // W3 — capture BEFORE the native call, re-check AFTER it. A check placed
+    // before the call cannot fire for a read whose native call is already in
+    // flight, which is exactly the read that returns the departing member's
+    // bytes after the switch.
+    const token = captureScope();
     await migrationSettled();
-    return AsyncStorage.getItem(key);
+    const value = await AsyncStorage.getItem(key);
+    if (!isScopeCurrent(token)) throw new ScopeChangedError();
+    return value;
   },
   async setItem(base: string, value: string): Promise<void> {
     const key = await resolveKey(base, ':');
@@ -125,12 +136,20 @@ export const scopedSecureKV = {
   async getItem(base: string): Promise<string | null> {
     const key = await resolveKey(base, '.');
     if (key === null) return null;
+    const token = captureScope(); // W3 — see the AsyncStorage read above
     await migrationSettled();
     const secure = await kv();
     // Unscoped (flag off): the legacy bare key, exactly as before.
-    if (key === base) return secure.getItem(base);
+    if (key === base) {
+      const legacyValue = await secure.getItem(base);
+      if (!isScopeCurrent(token)) throw new ScopeChangedError();
+      return legacyValue;
+    }
     const scoped = await secure.getItem(key);
-    if (scoped !== null) return scoped;
+    if (scoped !== null) {
+      if (!isScopeCurrent(token)) throw new ScopeChangedError();
+      return scoped;
+    }
     // Read-through migration for the claiming scope: scoped miss + global
     // hit → move under the scoped key. FIRST-USER-CLAIMS — the founder has
     // ruled this must go; it is deleted in the cutover PR, together with
@@ -143,6 +162,7 @@ export const scopedSecureKV = {
       await secure.setItem(key, legacy);
       await secure.removeItem(base);
     }
+    if (!isScopeCurrent(token)) throw new ScopeChangedError();
     return legacy;
   },
   async setItem(base: string, value: string): Promise<void> {

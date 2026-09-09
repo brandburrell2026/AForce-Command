@@ -21,6 +21,11 @@
 import { useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
+import {
+  captureScope,
+  commitIfCurrent,
+  createScopedWriteQueue,
+} from './scopedWriteQueue';
 
 import { localDayKey } from '@/utils/voiceCheckIn';
 import {
@@ -65,15 +70,11 @@ export function getPerformanceStatementState(): PerformanceStatementState {
 
 // ─── Persistence (serialized writes, best-effort) ─────────────────────
 
-let writeQueue: Promise<unknown> = Promise.resolve();
-function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = writeQueue.then(task, task);
-  writeQueue = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
-}
+// W1 — the shared scope-bound write queue. Serialized per store exactly as
+// the hand-rolled queue this replaces was, but the scope is captured when the
+// write is ENQUEUED, so a persist decided under one member can never drain
+// under another. See services/scopedWriteQueue.ts for all four windows.
+const enqueue = createScopedWriteQueue();
 
 interface PersistedShape {
   lastSpokenDayKey: string | null;
@@ -127,6 +128,7 @@ let hydrating: Promise<void> | null = null;
 export function hydratePerformanceStatements(): Promise<void> {
   if (current.hydrated) return Promise.resolve();
   if (hydrating) return hydrating;
+  const token = captureScope(); // W4 — captured before the first await
   hydrating = (async () => {
     let loaded: PersistedShape | null = null;
     try {
@@ -134,17 +136,23 @@ export function hydratePerformanceStatements(): Promise<void> {
     } catch {
       loaded = null;
     }
-    setState({
-      lastSpokenDayKey: laterDayKey(
-        current.lastSpokenDayKey,
-        loaded?.lastSpokenDayKey ?? null,
-      ),
-      recentlyUsedIds: mergeRecentlyUsed(
-        current.recentlyUsedIds,
-        loaded?.recentlyUsedIds ?? [],
-      ),
-      hydrated: true,
-    });
+    // W4 — publish only if the scope that issued the read is still current.
+    // A stale read throws at the facade (W3), so this also covers the case
+    // where the catch above swallowed it: no publish, and the store stays
+    // UN-hydrated rather than becoming falsely empty for the new member.
+    commitIfCurrent(token, () =>
+      setState({
+        lastSpokenDayKey: laterDayKey(
+          current.lastSpokenDayKey,
+          loaded?.lastSpokenDayKey ?? null,
+        ),
+        recentlyUsedIds: mergeRecentlyUsed(
+          current.recentlyUsedIds,
+          loaded?.recentlyUsedIds ?? [],
+        ),
+        hydrated: true,
+      }),
+    );
   })();
   return hydrating;
 }

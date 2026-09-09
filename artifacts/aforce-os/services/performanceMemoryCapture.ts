@@ -26,6 +26,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
+import {
+  captureScope,
+  commitIfCurrent,
+  createScopedWriteQueue,
+} from './scopedWriteQueue';
 
 import {
   buildTravelSignal,
@@ -59,15 +64,11 @@ export function getPerformanceMemoryCaptureSnapshot(): PerformanceMemoryCaptureS
 
 // ─── Persistence (serialized writes, best-effort) ─────────────────────
 
-let writeQueue: Promise<unknown> = Promise.resolve();
-function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = writeQueue.then(task, task);
-  writeQueue = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
-}
+// W1 — the shared scope-bound write queue. Serialized per store exactly as
+// the hand-rolled queue this replaces was, but the scope is captured when the
+// write is ENQUEUED, so a persist decided under one member can never drain
+// under another. See services/scopedWriteQueue.ts for all four windows.
+const enqueue = createScopedWriteQueue();
 
 function persist(): Promise<void> {
   const snapshot = {
@@ -104,6 +105,7 @@ export function hydratePerformanceMemoryCapture(): Promise<void> {
   if (current.hydrated) return Promise.resolve();
   if (hydrating) return hydrating;
   const gen = generation;
+  const token = captureScope(); // W4 — captured before the first await
   hydrating = (async () => {
     let loaded: PerformanceMemoryCaptureState = emptyCaptureState();
     const now = Date.now();
@@ -116,12 +118,19 @@ export function hydratePerformanceMemoryCapture(): Promise<void> {
     // A clear() during the read abandons this result (no resurrection).
     if (gen !== generation) return;
     // Loaded first so persisted ids win; in-flight appends merge in after.
-    setState({
-      travel: mergeSignals(loaded.travel, current.travel, now),
-      caffeine: mergeSignals(loaded.caffeine, current.caffeine, now),
-      priorities: mergeSignals(loaded.priorities, current.priorities, now),
-      hydrated: true,
-    });
+    // W4 — publish only if the scope that issued the read is still current.
+    // A stale read throws at the facade (W3), so this also covers the case
+    // where the catch above swallowed it: no publish, and the store stays
+    // UN-hydrated rather than becoming falsely empty for the new member.
+    // Independent of the `gen !== generation` clear guard above.
+    commitIfCurrent(token, () =>
+      setState({
+        travel: mergeSignals(loaded.travel, current.travel, now),
+        caffeine: mergeSignals(loaded.caffeine, current.caffeine, now),
+        priorities: mergeSignals(loaded.priorities, current.priorities, now),
+        hydrated: true,
+      }),
+    );
   })();
   return hydrating;
 }

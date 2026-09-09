@@ -19,6 +19,11 @@
 import { useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
+import {
+  captureScope,
+  commitIfCurrent,
+  createScopedWriteQueue,
+} from './scopedWriteQueue';
 
 import type {
   ConsumptionStatus,
@@ -62,15 +67,11 @@ export function getHydroScanHistoryState(): HydroScanHistoryState {
 
 // ─── Persistence (serialized writes, best-effort) ─────────────────────
 
-let writeQueue: Promise<unknown> = Promise.resolve();
-function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = writeQueue.then(task, task);
-  writeQueue = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
-}
+// W1 — the shared scope-bound write queue. Serialized per store exactly as
+// the hand-rolled queue this replaces was, but the scope is captured when the
+// write is ENQUEUED, so a persist decided under one member can never drain
+// under another. See services/scopedWriteQueue.ts for all four windows.
+const enqueue = createScopedWriteQueue();
 
 const CONSUMPTION: readonly ConsumptionStatus[] = ['consumed', 'not_yet', 'just_curious'];
 const IMPACT_LEVELS: readonly HydrationImpactLevel[] = [
@@ -141,6 +142,7 @@ let hydrating: Promise<void> | null = null;
 export function hydrateHydroScanHistory(): Promise<void> {
   if (current.hydrated) return Promise.resolve();
   if (hydrating) return hydrating;
+  const token = captureScope(); // W4 — captured before the first await
   hydrating = (async () => {
     let loaded: HydroScanHistoryEntry[] | null = null;
     try {
@@ -152,7 +154,13 @@ export function hydrateHydroScanHistory(): Promise<void> {
     // recordScan() before this load resolved) so the late load can never
     // clobber a just-recorded scan. Dedupe by id; newest-first via sortAndCap.
     const merged = mergeById(loaded ?? [], current.entries);
-    setState({ entries: sortAndCap(merged), hydrated: true });
+    // W4 — publish only if the scope that issued the read is still current.
+    // A stale read throws at the facade (W3), so this also covers the case
+    // where the catch above swallowed it: no publish, and the store stays
+    // UN-hydrated rather than becoming falsely empty for the new member.
+    commitIfCurrent(token, () =>
+      setState({ entries: sortAndCap(merged), hydrated: true }),
+    );
   })();
   return hydrating;
 }

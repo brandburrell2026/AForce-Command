@@ -17,6 +17,7 @@
 
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
+import { captureScope, commitIfCurrent, isScopeCurrent } from './scopedWriteQueue';
 import { useSyncExternalStore } from 'react';
 
 import type { Moment } from '@/types/moments';
@@ -40,8 +41,12 @@ function notify(): void {
 function persist(): void {
   const snapshot = state.moments;
   const gen = generation;
+  // W1 — the scope is captured when the write is DECIDED, not when the queued
+  // lambda drains and binds its key.
+  const token = captureScope();
   persistQueue = persistQueue.then(async () => {
     if (gen !== generation) return; // cleared since this write was queued
+    if (!isScopeCurrent(token)) return; // account switched since it was queued
     try {
       await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
     } catch {
@@ -70,6 +75,7 @@ export function getMomentsState(): MomentsState {
 
 export async function hydrateMoments(): Promise<void> {
   const gen = generation;
+  const token = captureScope(); // W4 — captured before the first await
   let loaded: Moment[] = [];
   try {
     const raw = await scopedStorage.getItem(STORAGE_KEY);
@@ -89,8 +95,14 @@ export async function hydrateMoments(): Promise<void> {
     ...loaded.filter((m) => !inFlight.has(m.id)),
     ...state.moments,
   ];
-  state = { moments: merged, hydrated: true };
-  notify();
+  // W4 — publish only if the scope that issued the read is still current.
+  // Independent of the `gen !== generation` guard above: that one protects
+  // clear/delete semantics, this one protects member isolation.
+  const published = commitIfCurrent(token, () => {
+    state = { moments: merged, hydrated: true };
+    notify();
+  });
+  if (!published) return;
   persist();
 }
 
