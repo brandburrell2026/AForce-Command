@@ -9,6 +9,10 @@
     "types": ["node"]
   },
   "include": ["src"],
+  // S1-1 adds lib/db's first src/__tests__ directory; without this the test
+  // file is compiled into the published package as dist/**/*.test.d.ts.
+  // Mirrors lib/activation-core/tsconfig.json, which already solves this.
+  "exclude": ["src/**/__tests__/**"],
   "references": [
     {
       "path": "../health-core"
