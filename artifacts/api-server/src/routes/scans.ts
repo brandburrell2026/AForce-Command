@@ -8,7 +8,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 import {
   recordServerAnalyticsEvents,
   deterministicEventId,
-  analyticsIdFromHeader,
+  consentedAnalyticsIdForRequest,
   type ServerAnalyticsInput,
 } from "../lib/serverAnalytics";
 
@@ -197,7 +197,10 @@ router.post("/scans", requireAuth, async (req, res) => {
     // on REAL observed behavior and ONLY when the client forwarded a
     // consented pseudonymous analytics id. Fire-and-forget: never blocks
     // or fails the scan response, never alters scan behavior.
-    const analyticsId = analyticsIdFromHeader(req.header("x-aforce-analytics-id"));
+    // S1-3: resolved SERVER-side from the caller's own userId, not from the
+    // client header. A device with a stale local grant can no longer produce
+    // rows for a member who revoked elsewhere.
+    const analyticsId = await consentedAnalyticsIdForRequest(req);
     if (analyticsId) {
       const events: ServerAnalyticsInput[] = [];
       const verdict = typeof body.verdict === "string" ? body.verdict : "unknown";

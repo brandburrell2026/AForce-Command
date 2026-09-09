@@ -27,6 +27,7 @@ import sensorsRouter from "./aforce/sensors";
 import healthRecordsRouter from "./aforce/healthRecords";
 import achievementsRouter from "./aforce/achievements";
 import analyticsRouter from "./aforce/analytics";
+import analyticsIdentityRouter from "./aforce/analyticsIdentity";
 
 const router: IRouter = Router();
 
@@ -42,6 +43,10 @@ router.use(journalRouter);
 router.use(sensorsRouter);
 router.use(healthRecordsRouter);
 router.use(analyticsRouter);
+// S1-3 — identity/consent authority. Its own routes additionally require a
+// REAL member (requireMemberIdentity), so the dev DEFAULT_USER_ID sentinel
+// can never mint or resolve a pseudonym shared by everyone.
+router.use(analyticsIdentityRouter);
 router.use(achievementsRouter);
 
 export default router;

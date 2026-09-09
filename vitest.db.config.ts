@@ -54,6 +54,11 @@ export default defineConfig({
       // real PG16 in S1-2A), so a silently redefined constraint is invisible to
       // it. This asserts the POSTGRES CATALOG and the actual enforced behaviour.
       'lib/db/src/schema/__tests__/analyticsIdentityIntegrity.drizzle.test.ts',
+      // S1-3 — the identity/consent authority. Race-sensitive: the laws use
+      // two independent connections so contention happens in Postgres, not in
+      // the driver.
+      'lib/db/src/__tests__/analyticsIdentityRepo.drizzle.test.ts',
+      'artifacts/api-server/src/routes/aforce/__tests__/analyticsIdentityRoutes.drizzle.test.ts',
     ],
     // Same phantom-checkout protection as vitest.integration.config.ts.
     exclude: ['**/node_modules/**', '**/.claude/**'],
