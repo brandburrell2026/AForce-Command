@@ -158,7 +158,12 @@ export function hydrateIntentCapture(): Promise<void> {
   return hydrating;
 }
 
-void hydrateIntentCapture();
+// Hydration is LAZY. It used to run here, at MODULE EVALUATION — which
+// happens at import time, long before Clerk has answered, so the read
+// resolved to the pre-isolation GLOBAL key and cached another member's
+// data in RAM before identity existed. Consumers now trigger it (hook
+// mount / first mutation), by which time the scope is definite or the
+// facade defers until it is.
 
 // ─── Mutations ────────────────────────────────────────────────────────
 
@@ -182,9 +187,14 @@ export function recordIntent(
   const withoutToday = current.records.filter((r) => r.dayKey !== record.dayKey);
   setState({
     records: sortAndCap([...withoutToday, record]),
-    hydrated: true,
+    hydrated: current.hydrated,
   });
-  return persist();
+  // Persist only AFTER hydration has read storage: a mutation before the
+  // first read must never mark the store hydrated, or the disk read is
+  // short-circuited and this snapshot OVERWRITES the member's stored history.
+  // (Module-evaluation hydration used to mask this by always winning the
+  // race; it was removed because it read storage before identity existed.)
+  return hydrateIntentCapture().then(() => persist());
 }
 
 /** Clear all persisted intent state (reset / sign-out). */

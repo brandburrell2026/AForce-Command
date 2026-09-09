@@ -65,7 +65,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AFScreen } from '@/components/ui';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
-import { getCommandLedgerState } from '@/services/commandLedger';
+import { getCommandLedgerState, hydrateCommandLedger } from '@/services/commandLedger';
 import { useUserSlice } from '@/store/slices';
 import { ledgerToPerformanceAgeSnapshots } from '@/utils/intelligence/commandEventAdapters';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
@@ -138,6 +138,11 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
           return [] as never[];
         }),
       ]);
+      // The command ledger is the ONLY source of Performance Age snapshots and
+      // is now hydrated lazily — module-evaluation hydration was removed
+      // because it read storage before Clerk had answered. Read it before
+      // snapshotting, or the report would silently show an empty history.
+      await hydrateCommandLedger();
       if (cancelled) return;
       setRollupsUnavailable(rollupsFailed);
       // Narrow to the period the masthead names. `date` is YYYY-MM-DD, which

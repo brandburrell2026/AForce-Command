@@ -48,7 +48,7 @@ describe('consent + analytics id never leak across accounts', () => {
   it('USER B inherits nothing; USER A gets their grant and pseudonym back', async () => {
     const { userScope, privacy } = await fresh();
 
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await privacy.grantConsent();
     const idA = await privacy.getAnalyticsId();
@@ -56,14 +56,14 @@ describe('consent + analytics id never leak across accounts', () => {
     expect(idA).toMatch(/^anon_/);
 
     // account switch — the security boundary
-    userScope.setUserScope(null);
-    userScope.setUserScope('user_B');
+    userScope.__setUserScopeForTests(null);
+    userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
     expect(await privacy.isConsentGranted()).toBe(false);
     expect(await privacy.getAnalyticsId()).toBeNull();
 
     // A returns: same grant, same pseudonym (per-user id, not reset-on-switch)
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     expect(await privacy.isConsentGranted()).toBe(true);
     expect(await privacy.getAnalyticsId()).toBe(idA);
@@ -71,11 +71,11 @@ describe('consent + analytics id never leak across accounts', () => {
 
   it('the module cache cannot serve USER A grant to USER B (invalidation lock)', async () => {
     const { userScope, privacy } = await fresh();
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await privacy.grantConsent();
     // cache is hot with A's grant; switch WITHOUT any async gap
-    userScope.setUserScope('user_B');
+    userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
     expect(await privacy.isConsentGranted()).toBe(false);
   });
@@ -88,7 +88,7 @@ describe('legacy migration preserves consent evidence', () => {
     mem.set('@aforce/analytics-consent', legacyRecord);
     mem.set('@aforce/analytics-id', 'anon_legacy_abc');
 
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
 
     // scoped copies exist

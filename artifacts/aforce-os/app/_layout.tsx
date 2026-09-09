@@ -27,10 +27,18 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { ClerkProvider, ClerkLoaded } from '@clerk/expo';
+import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import {
+  beginScopeResolution,
+  getScopeState,
+  retryScopeResolution,
+  subscribeScopeState,
+  type ScopeState,
+} from '@/services/userScope';
 import { safeTokenCache } from '@/featureFlags/safeTokenCache';
-import { Text, View } from 'react-native';
+import { af } from '@/theme/afTokens';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
@@ -554,9 +562,120 @@ export default function RootLayout() {
       tokenCache={DEFAULT_FLAGS.secure_store_startup_guard ? safeTokenCache : tokenCache}
       proxyUrl={proxyUrl}
     >
-      <ClerkLoaded>
-        <AppShell />
-      </ClerkLoaded>
+      <IdentityGate />
     </ClerkProvider>
   );
 }
+
+/**
+ * Replaces a bare `<ClerkLoaded>`, which rendered `null` with NO fallback: if
+ * Clerk never resolved — no network, an expired cached session, the known
+ * handshake 500 on the development instance — the app showed a black screen
+ * forever, with no explanation and nothing to tap.
+ *
+ * The identity state machine makes that condition nameable for the first time,
+ * so it can be presented. Three renderings, in priority order:
+ *
+ *   1. Clerk answered      → the app.
+ *   2. UNVERIFIABLE        → a determinate screen with a working retry.
+ *   3. still resolving     → the black canvas, exactly as before, so the
+ *                            splash stays visually continuous.
+ *
+ * `isLoaded` wins over UNVERIFIABLE: if the watchdog fired at 8s and Clerk
+ * answers at 10s, the member gets the app, not a stale error.
+ *
+ * The watchdog is armed HERE rather than in `ClerkAuthBridge`, because the
+ * bridge mounts inside `AppShell` — precisely the subtree that does not mount
+ * when Clerk never resolves. Arming it there would mean the one state designed
+ * to catch that failure could never be reached during it.
+ */
+function IdentityGate(): React.ReactElement {
+  const { isLoaded } = useAuth();
+  const [scope, setScope] = React.useState<ScopeState>(() => getScopeState());
+
+  React.useEffect(() => {
+    beginScopeResolution();
+    return subscribeScopeState(setScope);
+  }, []);
+
+  if (isLoaded) return <AppShell />;
+  if (scope.status === 'UNVERIFIABLE') return <IdentityUnavailable />;
+  // af.canvas (#0D0D0D) is the splash background in app.json, so this frame
+  // is visually continuous with the splash rather than a slightly darker box.
+  return <View style={{ flex: 1, backgroundColor: af.canvas }} />;
+}
+
+function IdentityUnavailable(): React.ReactElement {
+  return (
+    <View style={identityGateStyles.root}>
+      <Text style={identityGateStyles.title}>We can&apos;t verify your session</Text>
+      <Text style={identityGateStyles.body}>
+        AForce couldn&apos;t reach the sign-in service, so it can&apos;t tell
+        which account this is. Your data is untouched — nothing is shown until
+        we know it&apos;s yours.
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Try again"
+        onPress={() => retryScopeResolution()}
+        style={({ pressed }) => [
+          identityGateStyles.btn,
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <Text style={identityGateStyles.btnText}>Try again</Text>
+      </Pressable>
+      <Text style={identityGateStyles.hint}>
+        If this keeps happening, check your connection and reopen AForce.
+      </Text>
+    </View>
+  );
+}
+
+const identityGateStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: af.canvas,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  title: {
+    color: af.textPrimary,
+    fontSize: 18,
+    textAlign: 'center',
+    fontFamily: 'Inter_600SemiBold',
+    marginBottom: 8,
+  },
+  body: {
+    color: af.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  btn: {
+    minHeight: 44,
+    minWidth: 160,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: af.red,
+  },
+  btnText: {
+    color: af.onRed,
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  hint: {
+    // af.textTertiary, not a low white alpha: the a11y floor is 0.45 and
+    // this is body-sized supporting copy on the canvas.
+    color: af.textTertiary,
+    fontSize: 12,
+    textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
+    marginTop: 16,
+  },
+});
