@@ -28,6 +28,11 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
+import {
+  captureScope,
+  commitIfCurrent,
+  createScopedWriteQueue,
+} from './scopedWriteQueue';
 
 import {
   mergeCommandEvents,
@@ -85,15 +90,11 @@ export function getCommandLedgerState(): CommandLedgerState {
 
 // ─── Persistence (serialized writes, best-effort) ─────────────────────
 
-let writeQueue: Promise<unknown> = Promise.resolve();
-function enqueue<T>(task: () => Promise<T>): Promise<T> {
-  const run = writeQueue.then(task, task);
-  writeQueue = run.then(
-    () => undefined,
-    () => undefined,
-  );
-  return run;
-}
+// W1 — the shared scope-bound write queue. Serialized per store exactly as
+// the hand-rolled queue this replaces was, but the scope is captured when the
+// write is ENQUEUED, so a persist decided under one member can never drain
+// under another. See services/scopedWriteQueue.ts for all four windows.
+const enqueue = createScopedWriteQueue();
 
 function persist(): Promise<void> {
   const snapshot = current.events;
@@ -137,6 +138,7 @@ export function hydrateCommandLedger(): Promise<void> {
   if (current.hydrated) return Promise.resolve();
   if (hydrating) return hydrating;
   const gen = generation;
+  const token = captureScope(); // W4 — captured before the first await
   hydrating = (async () => {
     let loaded: unknown[] = [];
     try {
@@ -148,7 +150,13 @@ export function hydrateCommandLedger(): Promise<void> {
     if (gen !== generation) return;
     // Existing (loaded) first so persisted ids win; in-flight appends merge in.
     const merged = mergeCommandEvents(loaded, current.events);
-    setState({ events: merged, hydrated: true });
+    // W4 — publish only if the scope that issued the read is still current.
+    // A stale read throws at the facade (W3), so this also covers the case
+    // where the catch above swallowed it: no publish, and the store stays
+    // UN-hydrated rather than becoming falsely empty for the new member.
+    // Independent of the `gen !== generation` clear guard above: that one
+    // protects DELETE semantics, this one protects MEMBER isolation.
+    commitIfCurrent(token, () => setState({ events: merged, hydrated: true }));
   })();
   return hydrating;
 }
