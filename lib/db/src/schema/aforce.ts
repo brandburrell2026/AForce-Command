@@ -11,7 +11,7 @@
  *   aforce_confirmations — append-only ±3 confirmation answers
  */
 
-import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, real, boolean, timestamp, jsonb, serial, bigint, bigserial, index, uniqueIndex, check, customType } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 /**
@@ -1500,3 +1500,190 @@ export const aforceHealthRecords = pgTable(
 
 export type AforceHealthRecordRow = typeof aforceHealthRecords.$inferSelect;
 export type InsertAforceHealthRecord = typeof aforceHealthRecords.$inferInsert;
+
+/* ─── S1-1 · analytics identity + consent (DECLARATIONS ONLY) ──────────────
+ *
+ * Schema declarations for the S1 analytics identity/consent lane. This PR is
+ * DECLARATIONS ONLY: no handler, no resolver, no consent logic, and NO DDL is
+ * applied. Nothing in the running system reads these tables yet, which is
+ * exactly why the declarations land first.
+ *
+ * HOW THESE OBJECTS ARE APPLIED — NOT BY `drizzle-kit push`. The rest of this
+ * schema has historically been applied by push, a DIFF against the live
+ * database. These three tables are applied by hand-reviewed SQL inside one
+ * explicit transaction (S1-2), for two reasons:
+ *
+ *   1. push is a WHOLE-SCHEMA diff. With prod drift outstanding (#916) it
+ *      would sweep unrelated backlog operations into the same apply. And
+ *      `pgPush` runs its statements in a bare loop with no transaction, inside
+ *      a catch that only console.errors — so a failure midway leaves earlier
+ *      statements committed and the process still exits 0.
+ *   2. drizzle-kit 0.31.9 serializes a CHECK predicate and a partial-index
+ *      WHERE clause TABLE-QUALIFIED, while Postgres stores them deparsed and
+ *      canonicalised. The two forms never string-compare equal, so every
+ *      subsequent push would re-emit DROP/CREATE for the unique index and both
+ *      CHECKs — a non-concurrent ACCESS EXCLUSIVE rebuild, forever. This is the
+ *      same normalization quirk docs/SCHEMA_DRIFT.md already records for
+ *      aforce_privacy's jsonb default; here the consequence is worse than a
+ *      redundant SET DEFAULT.
+ *
+ * WHY DECLARATIONS STILL MERGE FIRST. If these tables existed in the database
+ * while absent from this file, a push from main would compute DROP TABLE for
+ * all three — and because they would be EMPTY, drizzle-kit's data-loss branch
+ * (which gates on `select count(*) … if (count > 0)`) never fires, so they
+ * would be dropped with no prompt and no non-zero exit. Declarations first
+ * makes that ordering impossible.
+ *
+ * THE PRIVACY ARCHITECTURE THESE THREE TABLES ENCODE:
+ *
+ *  - WITHIN THIS DATABASE, `aforce_analytics_identities` is the only place a
+ *    Clerk user id and a live pseudonym appear together (aforce_analytics_events
+ *    carries analytics_id and no user_id). That is NOT true of the system:
+ *    checkout.ts writes the same pseudonym into Stripe subscription metadata
+ *    alongside userId, and stripe-replit-sync mirrors that object — metadata
+ *    included — back into the local `stripe` schema. So erasure has more than
+ *    one row to clear, and an implementer who reads "exactly one row" will
+ *    ship an incomplete erasure. Removing that write and scrubbing the mirror
+ *    is S1-5; the erasure path that must account for it is S1-6.
+ *  - The pseudonym is RANDOM and STORED — never derived from the Clerk id by
+ *    any function, keyed or otherwise. A derived id cannot be rotated, because
+ *    a pure function of an unchanged input cannot produce a new value.
+ *  - OPERATIVE consent (the runtime gate) and consent EVIDENCE (the durable
+ *    record of what a member was shown) are SEPARATE tables. The gate must
+ *    never be answerable from the evidence log; if they merge, deleting the
+ *    evidence would change what the app is permitted to collect.
+ *  - Deliberately absent everywhere below: device id, IP, user agent, email,
+ *    last-seen. Each would re-identify. Also absent from the identity row:
+ *    `last_rotated_at` and `rotation_count` — those are timestamp-correlation
+ *    channels (join them against any other per-member timestamp and the
+ *    retired pseudonym's owner falls out) and they serve no operation.
+ *
+ * RETENTION IS DELIBERATELY NOT ENCODED. No expiry, no trigger, no cascade,
+ * and no foreign key references these tables — so whichever way counsel rules
+ * on retaining consent evidence after a deletion request, the policy is a
+ * plain DELETE and never a destructive migration.
+ */
+
+/**
+ * The authenticated member ⇄ pseudonym resolver. One row per member,
+ * cross-device: one pseudonym per MEMBER, not per member×device (a per-device
+ * scheme reports a handset upgrade as churn plus a new member, and makes
+ * deletion unbounded).
+ *
+ * `analyticsId` is NULLABLE because a suppressed member has no pseudonym at
+ * all — the value is cleared, not tombstoned. Nothing durable survives a
+ * suppression that could re-link the member to their retired id.
+ *
+ * The two CHECK constraints are the structural half of the state machine, and
+ * they hold even against a future handler bug:
+ *   - status is exactly 'active' or 'suppressed' — no third state can be
+ *     written, so no code path can invent one that later reads as active.
+ *   - a suppressed row cannot carry a pseudonym. "Suppressed but still
+ *     holding an id" is UNREPRESENTABLE, which is what makes "a suppressed
+ *     member can never be revived by the resolver" a database guarantee
+ *     rather than a code convention.
+ */
+export const aforceAnalyticsIdentities = pgTable(
+  "aforce_analytics_identities",
+  {
+    /** Clerk user id. */
+    userId: text("user_id").primaryKey(),
+    /** The pseudonym. NULL once suppressed. */
+    analyticsId: text("analytics_id"),
+    /** 'active' | 'suppressed'. Constrained below. */
+    status: text("status").notNull().default("active"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // PARTIAL unique index: suppressed rows all hold NULL, and a plain unique
+    // index would permit only one of them. The predicate keeps global
+    // uniqueness over LIVE pseudonyms while allowing many suppressed rows.
+    // It is also the index the ingest gate WILL resolve through on every
+    // batch once S1-4 lands. No such gate exists in this PR.
+    uniqueIndex("aforce_analytics_identities_analytics_id_uq")
+      .on(t.analyticsId)
+      .where(sql`${t.analyticsId} is not null`),
+    check(
+      "aforce_analytics_identities_status_enum",
+      sql`${t.status} in ('active', 'suppressed')`,
+    ),
+    check(
+      "aforce_analytics_identities_suppressed_has_no_id",
+      sql`${t.status} <> 'suppressed' or ${t.analyticsId} is null`,
+    ),
+  ],
+);
+
+export type AforceAnalyticsIdentityRow = typeof aforceAnalyticsIdentities.$inferSelect;
+export type InsertAforceAnalyticsIdentity = typeof aforceAnalyticsIdentities.$inferInsert;
+
+/**
+ * OPERATIVE consent — the runtime gate, and nothing else.
+ *
+ * An ABSENT row means "never decided". There is deliberately no third value
+ * and no default: a member who has not answered is not a member who said no,
+ * and encoding the difference as a nullable column would invite a reader to
+ * treat one as the other.
+ *
+ * `decisionSeq` is server-issued and monotonic PER MEMBER (not globally). It
+ * is the fence that WILL stop a stale device re-granting consent a member
+ * revoked elsewhere: S1-3 will require a write to present the sequence it
+ * believes is current and refuse a mismatch rather than apply it. No endpoint
+ * enforces this yet — the column is the substrate, not the rule. Client timestamps are never used
+ * for this ordering — two devices with skewed clocks would silently reorder
+ * the member's own decisions.
+ *
+ * Sequence advancement is specified to have ONE owner (a single repository
+ * function, S1-3). Grant, revoke and suppress will be its callers; rotation is
+ * not a consent decision and will not advance it; a disclosure-version bump
+ * alone will not advance it, because a new disclosure is not a member's
+ * decision. None of that is implemented here.
+ */
+export const aforceAnalyticsConsentState = pgTable("aforce_analytics_consent_state", {
+  userId: text("user_id").primaryKey(),
+  granted: boolean("granted").notNull(),
+  /** Monotonic per member. First decision writes 1; absent row reports null. */
+  decisionSeq: integer("decision_seq").notNull(),
+  /** Which disclosure text the member acted on. */
+  disclosureVersion: integer("disclosure_version").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type AforceAnalyticsConsentStateRow = typeof aforceAnalyticsConsentState.$inferSelect;
+export type InsertAforceAnalyticsConsentState = typeof aforceAnalyticsConsentState.$inferInsert;
+
+/**
+ * CONSENT EVIDENCE — append-only. What a member was shown, and when.
+ *
+ * NEVER read by the operative gate. That separation is the point: if the gate
+ * could be answered from here, erasing the evidence would silently change
+ * what the app is permitted to collect, and the legal record and the runtime
+ * permission would be the same object with two incompatible lifetimes.
+ *
+ * Carries no pseudonym. A row here plus a row in the identity table must not
+ * combine into a member ⇄ retired-pseudonym link.
+ *
+ * `action` is 'grant' | 'revoke' | 'rotate' | 'suppress'. It is deliberately
+ * NOT constrained by a CHECK: the vocabulary is expected to grow, and unlike
+ * `status` above nothing branches on it as a security decision — it is a
+ * record, not a gate.
+ */
+export const aforceAnalyticsConsentEvents = pgTable(
+  "aforce_analytics_consent_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    userId: text("user_id").notNull(),
+    action: text("action").notNull(),
+    disclosureVersion: integer("disclosure_version").notNull(),
+    decisionSeq: integer("decision_seq").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    // Subject-access retrieval: one member's decisions in order.
+    index("aforce_analytics_consent_events_user_idx").on(t.userId, t.recordedAt),
+  ],
+);
+
+export type AforceAnalyticsConsentEventRow = typeof aforceAnalyticsConsentEvents.$inferSelect;
+export type InsertAforceAnalyticsConsentEvent = typeof aforceAnalyticsConsentEvents.$inferInsert;
