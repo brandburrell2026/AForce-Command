@@ -23,6 +23,8 @@ import {
   analyticsForgetSchema,
 } from "@workspace/analytics-contract/zod";
 import { logger } from "../../lib/logger";
+import { consentedAnalyticsIdForRequest } from "../../lib/serverAnalytics";
+import { forgetAnalyticsForMember, type Dbx } from "@workspace/db";
 import { sendApiError } from "../../lib/apiError";
 
 const router: IRouter = Router();
@@ -36,6 +38,23 @@ router.post("/analytics", async (req, res) => {
     return;
   }
   const { events } = parsed.data;
+  // S1-3 · WRITER GATE. Ingest binds to the CALLER'S resolved pseudonym
+  // rather than trusting the one in the envelope. This single check is the
+  // consent gate, the suppression gate AND the retired-id refusal: a rotated
+  // or suppressed value simply is not what the caller resolves to, so a
+  // replay from a stale device cannot match and inserts nothing.
+  const allowed = await consentedAnalyticsIdForRequest(req);
+  if (allowed === null) {
+    // Fail closed, and say nothing about WHY — whether a member exists, has
+    // revoked, or was suppressed is not something an ingest reply should leak.
+    res.json({ inserted: 0 });
+    return;
+  }
+  const foreign = events.filter((e) => e.analytics_id !== allowed);
+  if (foreign.length > 0) {
+    sendApiError(req, res, 403, "analytics_id_not_owned", "analytics_ingest_failed");
+    return;
+  }
   try {
     const now = new Date();
     const rows: InsertAforceAnalyticsEvent[] = events.map((e) => {
@@ -76,13 +95,17 @@ router.post("/analytics/forget", async (req, res) => {
     sendApiError(req, res, 400, "invalid_body", "analytics_forget_failed");
     return;
   }
-  const { analytics_id } = parsed.data;
+  // OWNERSHIP (S1-3). The caller-supplied `analytics_id` is deliberately NOT
+  // used to select rows. Before this, the route deleted
+  // `where analytics_id = <caller-supplied>` with no reference to req.userId,
+  // so any authenticated caller who supplied another member's pseudonym
+  // erased that member's history. The pseudonym is now resolved server-side
+  // from the caller's own identity, and the whole operation — delete, retire
+  // the pseudonym, suppress the identity, revoke consent, append evidence —
+  // runs in one transaction.
   try {
-    const deleted = await db
-      .delete(aforceAnalyticsEvents)
-      .where(eq(aforceAnalyticsEvents.analyticsId, analytics_id))
-      .returning({ id: aforceAnalyticsEvents.id });
-    return res.json({ deleted: deleted.length });
+    const result = await forgetAnalyticsForMember(db as unknown as Dbx, req.userId as string);
+    return res.json({ deleted: result.deleted, status: result.status });
   } catch (err) {
     logger.error({ err: serializeError(err) }, "POST /aforce/analytics/forget failed");
     sendApiError(req, res, 500, "analytics_forget_failed");

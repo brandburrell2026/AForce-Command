@@ -30,6 +30,7 @@ export * from "./garminTokenStore";
 export * from "./ouraTokenStore";
 export * from "./stravaTokenStore";
 export * from "./profileRepo";
+export * from "./analyticsIdentityRepo";
 export * from "./scoreSnapshotRepo";
 export * from "./healthRecordsRepo";
 export * from "./accountDeletionCascade";

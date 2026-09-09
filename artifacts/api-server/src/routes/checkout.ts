@@ -30,7 +30,7 @@ import { checkoutLimiter } from '../middlewares/rateLimits';
 import { requireAuth } from '../middlewares/requireAuth';
 import { db, aforceUsers } from '@workspace/db';
 import { eq, sql } from 'drizzle-orm';
-import { analyticsIdFromHeader } from '../lib/serverAnalytics';
+import { consentedAnalyticsIdForRequest } from '../lib/serverAnalytics';
 
 /**
  * Look up the active Stripe price id for a given local plan id by
@@ -332,7 +332,10 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     // since the only join key from Stripe back to the Clerk user is the
     // stored stripe_customer_id (the webhook recovery path also relies
     // on it via Customer.metadata.userId).
-    const analyticsId = analyticsIdFromHeader(req.header('x-aforce-analytics-id'));
+    // S1-3: resolved SERVER-side from the caller's own userId, not from the
+    // client header — so a revoked member's checkout no longer carries an
+    // analytics id. (Removing the Stripe metadata write itself is S1-5.)
+    const analyticsId = await consentedAnalyticsIdForRequest(req);
     const customerId = userId ? await ensureStripeCustomer(userId) : null;
     if (!customerId) {
       logger.warn({ userId, planId }, 'Refusing checkout — could not persist Stripe customer linkage');

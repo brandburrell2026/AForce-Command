@@ -32,6 +32,8 @@ import {
   db,
   aforceAnalyticsEvents,
   type InsertAforceAnalyticsEvent,
+  consentedAnalyticsIdFor,
+  type Dbx,
 } from "@workspace/db";
 import {
   assembleEnvelope,
@@ -75,6 +77,40 @@ const ANON_ANALYTICS_ID_RE = /^anon_[a-z0-9]+_[a-z0-9]+$/;
  * length bound); returns null otherwise. This is the single ingress guard —
  * a non-pseudonymous identifier can never reach Stripe metadata or the DB.
  */
+/**
+ * THE SHARED WRITER GATE (S1-3).
+ *
+ * Resolves the pseudonym analytics may be written under from the CALLER'S OWN
+ * `req.userId` — it never trusts the `x-aforce-analytics-id` header. One
+ * function is therefore simultaneously the consent gate, the suppression
+ * gate, and the retired-id refusal.
+ *
+ * WHY THIS REPLACED THE HEADER AT EVERY WRITER. `aforce_analytics_events` has
+ * THREE writers — the ingest route, and `recordServerAnalyticsEvents` called
+ * from scans and checkout — and consent was checked only CLIENT-side, by
+ * `consentedAnalyticsHeader` in the mobile app. A device holding a stale local
+ * grant kept producing rows for a member who had revoked on another device,
+ * and a revoked member's checkout still wrote `analytics_id` into Stripe
+ * metadata. Server-authoritative consent that guards only the consent ROW and
+ * not the DATA PATH is not server-authoritative.
+ *
+ * Returns null — meaning "write nothing" — for: no consent, revoked consent,
+ * a suppressed member, the DEFAULT_USER_ID sentinel, and an unauthenticated
+ * caller. It never mints: an emission path must not create an identity as a
+ * side effect of writing an event.
+ */
+export async function consentedAnalyticsIdForRequest(
+  req: { userId?: string },
+): Promise<string | null> {
+  try {
+    return await consentedAnalyticsIdFor(db as unknown as Dbx, req.userId);
+  } catch {
+    // Fail CLOSED: an identity lookup failure must not fall back to emitting
+    // under an unverified id.
+    return null;
+  }
+}
+
 export function analyticsIdFromHeader(value: string | undefined): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
