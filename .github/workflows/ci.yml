@@ -273,7 +273,17 @@ jobs:
     # real secret or reachable outside the runner.
     services:
       postgres:
-        image: postgres:16
+        # PRODUCTION PARITY. Production runs PostgreSQL 18 (Neon); this lane
+        # ran postgres:16 until the S1-2 apply, where the same reviewed DDL
+        # produced a 29-object catalog delta on prod against 14 measured here
+        # — PG17+ catalogues NOT NULL constraints in pg_constraint, PG16 does
+        # not record them at all. Nothing about the schema differed, but the
+        # lane was validating a different major version than the one we run.
+        # Verified before switching: the entire db-lane (10 suites, 97 tests)
+        # passes unchanged on 18, the S1 integrity laws hold, all six schema
+        # mutations are still caught, and drizzle-kit 0.31.9's predicate
+        # blindness behaves identically on both. Nothing was pinned to 16.
+        image: postgres:18
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -312,7 +322,7 @@ jobs:
       # --force against DATABASE_URL — safe here by construction: the target
       # is this job's throwaway container, never a shared environment.
       # The WHOOP token store encrypts at rest with pgp_sym_encrypt, which
-      # lives in the pgcrypto extension — absent from a stock postgres:16
+      # lives in the pgcrypto extension — absent from a stock postgres image
       # image. Without this, whoopTokenStore.drizzle fails with
       # "function pgp_sym_encrypt(unknown, unknown) does not exist" (42883).
       # Production provisions pgcrypto the same way.
