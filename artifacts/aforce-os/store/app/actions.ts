@@ -4,7 +4,6 @@ import i18n from '@/services/i18nService';
 import { scopedStorage } from '@/services/scopedStorage';
 import type { IntakeSource } from '@/services/intakeSource';
 import type { Dispatch, MutableRefObject } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   UserState,
   AppleHealthInputs,

@@ -9,7 +9,7 @@
 import { useEnvironmentalAcquisition } from '@/hooks/useEnvironmentalAcquisition';
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useMemo, useRef } from 'react';
 import { AppState as RNAppState, type AppStateStatus } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { subscribeUserScope, getUserScopeGeneration } from '@/services/userScope';
 import type {
   UserState,
   AppleHealthInputs,
@@ -206,6 +206,30 @@ const initialState: AppState = {
 //   value, provider, and reducer are byte-identical at runtime.
 export const AppContext = createContext<AppContextValue | null>(null);
 
+/**
+ * The current user-scope generation, as React state.
+ *
+ * Storage isolation PR C. This provider hydrates five ACCOUNT-SCOPED
+ * preference keys in `[]`-deps effects, and it does NOT remount when the
+ * account changes — `ClerkAuthBridge` is mounted INSIDE it, so nothing above
+ * it re-keys. Without this, enrolling those keys into the scoped facade would
+ * produce scoped keys with UN-scoped RAM: member A's voice and unit settings
+ * would stay in React state for B's whole session and be written under B's
+ * namespace the moment B touched one. Account-scoped disk without
+ * account-scoped RAM is not isolation.
+ *
+ * Every hydration effect below keys on this value, so a scope change re-runs
+ * hydration for the incoming member. With the isolation flag OFF the
+ * generation never moves, so this is a constant 0 and behaviour is unchanged.
+ */
+function useScopeEpoch(): number {
+  return React.useSyncExternalStore(
+    subscribeUserScope,
+    getUserScopeGeneration,
+    getUserScopeGeneration,
+  );
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   // DECISION GUARD — the directive's final seam before delivery
@@ -247,7 +271,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
     if (ev) void appendCommandEvents([ev]);
   }, [guardedDelivery, state.engineOutput.command?.id]);
-  // Voice Coach toggle (T3) — defaults ON; mirrored to AsyncStorage +
+  // Voice Coach toggle (T3) — defaults ON; mirrored to scoped storage +
   // the textToSpeech playback flag so non-React consumers see the same
   // value. Hydrated from storage on first effect.
   const [voiceCoachEnabled, setVoiceCoachEnabledState] = React.useState<boolean>(true);
@@ -259,9 +283,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [selectedVoiceId, setSelectedVoiceIdState] = React.useState<string | null>(DEFAULT_VOICE_ID);
   // AForce Command Voice Engine — intensity + scope (defaults match
   // the spec: standard tone, all categories audible). Hydrated from
-  // AsyncStorage on first effect; persisted on every setter call.
+  // scoped storage on first effect; persisted on every setter call.
   const [voiceIntensity, setVoiceIntensityState] = React.useState<VoiceIntensity>('standard');
   const [voiceScope, setVoiceScopeState] = React.useState<VoiceScope>('all');
+  // Storage isolation PR C — re-runs the ACCOUNT-SCOPED hydration effects
+  // below when the member changes. Constant while the isolation flag is off.
+  const scopeEpoch = useScopeEpoch();
   // RC-1 Wave-2B (state-matrix audit, item 2a) — first-paint hydration
   // signal. `initialState` above is a LOCAL, synchronous guess (mock data run
   // through the scoring engine once, before any network round-trip) so a
@@ -973,7 +1000,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate persisted Voice Coach preference once on mount.
   useEffect(() => {
-    AsyncStorage.getItem(VOICE_COACH_KEY)
+    // A scope change re-runs this effect. Reset to the DEFAULT first: the
+    // read below only applies a value when the key EXISTS, so without this
+    // a member with no stored preference would silently inherit the
+    // previous member's.
+    setVoiceCoachEnabledState(true);
+    setVoicePlaybackEnabled(true);
+    scopedStorage.getItem(VOICE_COACH_KEY)
       .then((raw) => {
         if (raw == null) return;
         const next = raw === 'true';
@@ -981,18 +1014,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setVoicePlaybackEnabled(next);
       })
       .catch(() => {});
-  }, []);
+  }, [scopeEpoch]);
 
   const setVoiceCoachEnabled = useCallback((next: boolean) => {
     setVoiceCoachEnabledState(next);
     setVoicePlaybackEnabled(next);
-    AsyncStorage.setItem(VOICE_COACH_KEY, String(next)).catch(() => {});
+    scopedStorage.setItem(VOICE_COACH_KEY, String(next)).catch(() => {});
   }, []);
 
   // Hydrate persisted ElevenLabs voice selection on mount + mirror into
   // textToSpeech so non-React callers see it immediately.
   useEffect(() => {
-    AsyncStorage.getItem(SELECTED_VOICE_KEY)
+    // A scope change re-runs this effect. Reset to the DEFAULT first, so a
+    // member with no stored preference cannot inherit the previous one's.
+    setSelectedVoiceIdState(DEFAULT_VOICE_ID);
+    setTtsVoiceId(DEFAULT_VOICE_ID);
+    scopedStorage.getItem(SELECTED_VOICE_KEY)
       .then((raw) => {
         // Picker no longer offers a "device default" row, so an
         // empty/missing key falls through to Coach Rock rather than
@@ -1003,16 +1040,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTtsVoiceId(next);
       })
       .catch(() => {});
-  }, []);
+  }, [scopeEpoch]);
 
   const setSelectedVoiceId = useCallback((next: string | null) => {
     const normalized = next && next.length > 0 ? next : null;
     setSelectedVoiceIdState(normalized);
     setTtsVoiceId(normalized);
     if (normalized) {
-      AsyncStorage.setItem(SELECTED_VOICE_KEY, normalized).catch(() => {});
+      scopedStorage.setItem(SELECTED_VOICE_KEY, normalized).catch(() => {});
     } else {
-      AsyncStorage.removeItem(SELECTED_VOICE_KEY).catch(() => {});
+      scopedStorage.removeItem(SELECTED_VOICE_KEY).catch(() => {});
     }
   }, []);
 
@@ -1021,32 +1058,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // their spec defaults so a forward-incompat change can never brick
   // the engine.
   useEffect(() => {
-    AsyncStorage.getItem(VOICE_INTENSITY_KEY)
+    // A scope change re-runs this effect. Reset to the DEFAULT first, so a
+    // member with no stored preference cannot inherit the previous one's.
+    setVoiceIntensityState('standard');
+    setVoiceScopeState('all');
+    scopedStorage.getItem(VOICE_INTENSITY_KEY)
       .then((raw) => {
         if (raw && VOICE_INTENSITIES.has(raw as VoiceIntensity)) {
           setVoiceIntensityState(raw as VoiceIntensity);
         }
       })
       .catch(() => {});
-    AsyncStorage.getItem(VOICE_SCOPE_KEY)
+    scopedStorage.getItem(VOICE_SCOPE_KEY)
       .then((raw) => {
         if (raw && VOICE_SCOPES.has(raw as VoiceScope)) {
           setVoiceScopeState(raw as VoiceScope);
         }
       })
       .catch(() => {});
-  }, []);
+  }, [scopeEpoch]);
 
   const setVoiceIntensity = useCallback((next: VoiceIntensity) => {
     if (!VOICE_INTENSITIES.has(next)) return;
     setVoiceIntensityState(next);
-    AsyncStorage.setItem(VOICE_INTENSITY_KEY, next).catch(() => {});
+    scopedStorage.setItem(VOICE_INTENSITY_KEY, next).catch(() => {});
   }, []);
 
   const setVoiceScope = useCallback((next: VoiceScope) => {
     if (!VOICE_SCOPES.has(next)) return;
     setVoiceScopeState(next);
-    AsyncStorage.setItem(VOICE_SCOPE_KEY, next).catch(() => {});
+    scopedStorage.setItem(VOICE_SCOPE_KEY, next).catch(() => {});
   }, []);
 
   // Hydrate persisted notification settings on mount; ignore corrupt
@@ -1079,13 +1120,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Race-safe persistence for unit preferences. Two refs guard the
   // critical path:
-  //   - `unitPrefsHydratedRef` flips true once the AsyncStorage read
+  //   - `unitPrefsHydratedRef` flips true once the scoped-storage read
   //     resolves (success OR failure). The persist effect below is
   //     gated on this so it can't write the in-memory defaults over
   //     a real value still in flight from storage.
   //   - `unitPrefsDirtyRef` flips true the moment the user toggles
   //     a preference. The hydration handler honours this so a slow
-  //     AsyncStorage read can't clobber a fast user edit.
+  //     scoped-storage read can't clobber a fast user edit.
   // Together they make both directions race-safe without coupling the
   // setter to a stale closure snapshot of `state.unitPreferences`.
   const unitPrefsHydratedRef = useRef(false);
@@ -1093,7 +1134,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    AsyncStorage.getItem(UNIT_PREFERENCES_KEY)
+    // A scope change re-runs this effect. Reset to the DEFAULT first, so a
+    // member with no stored preference cannot inherit the previous one's.
+    // Re-arm the hydration/dirty refs too: they gate the persist effect, and
+    // a stale `hydrated` would let the DEPARTING member's preferences be
+    // written under the arriving member's key on their first toggle.
+    unitPrefsHydratedRef.current = false;
+    unitPrefsDirtyRef.current = false;
+    dispatch({ type: 'SET_UNIT_PREFERENCES', payload: DEFAULT_UNIT_PREFERENCES });
+    scopedStorage.getItem(UNIT_PREFERENCES_KEY)
       .then((raw) => {
         if (cancelled) return;
         // If the user has already toggled a preference while the read
@@ -1119,7 +1168,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [scopeEpoch]);
 
   // Persist on every change to the authoritative state, but only after
   // hydration has completed. Reading from `state.unitPreferences`
@@ -1127,10 +1176,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // merged record, even under rapid back-to-back toggles.
   useEffect(() => {
     if (!unitPrefsHydratedRef.current) return;
-    AsyncStorage.setItem(
-      UNIT_PREFERENCES_KEY,
-      JSON.stringify(state.unitPreferences),
-    ).catch(() => {});
+    scopedStorage
+      .setItem(UNIT_PREFERENCES_KEY, JSON.stringify(state.unitPreferences))
+      .catch(() => {});
   }, [state.unitPreferences]);
 
   const setUnitPreference = useCallback(

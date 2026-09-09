@@ -19,9 +19,16 @@
  * `shouldSpeak()` check at a new call site — wire new voice paths through
  * `textToSpeech.speak()` and the gate applies automatically.
  *
- * Persisted to AsyncStorage so the choice survives reloads. A tiny
- * module-level store + `useSyncExternalStore` exposes the value to
- * React without pulling in another global store.
+ * Persisted PER MEMBER (storage isolation PR C: ACCOUNT-SCOPED). Whether
+ * the coach speaks aloud is a personal choice — on a shared device one
+ * member's silent mode must not silence another's coach, and the inverse
+ * is worse: a member who chose silence should never be spoken to because
+ * someone else chose otherwise.
+ *
+ * A tiny module-level store + `useSyncExternalStore` exposes the value to
+ * React without pulling in another global store. Because that store caches
+ * in RAM, it also resets on a scope change — account-scoped disk without
+ * account-scoped RAM is not isolation.
  *
  * The hidden hook `useCoachMode()` returns 'spoken' (today's
  * behavior) whenever the `spec_coachV2` feature flag is off, so the
@@ -29,8 +36,10 @@
  * raw `useCoachModeSetting()` hook always returns the stored value
  * for the Profile picker.
  */
-import { useSyncExternalStore } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useSyncExternalStore } from 'react';
+import { scopedStorage } from './scopedStorage';
+import { subscribeUserScope } from './userScope';
+import { captureScope, commitIfCurrent } from './scopedWriteQueue';
 import { useFeatureFlags } from '@/store/useAppStore';
 
 export type CoachMode = 'silent' | 'ambient' | 'spoken';
@@ -70,18 +79,32 @@ function isCoachMode(v: unknown): v is CoachMode {
 async function hydrate(): Promise<void> {
   if (hydrated) return;
   hydrated = true;
+  const token = captureScope();
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (isCoachMode(raw) && raw !== current) {
-      current = raw;
-      notify();
+      // W4 — a read issued under one member must not publish under another.
+      commitIfCurrent(token, () => {
+        current = raw;
+        notify();
+      });
     }
   } catch {
     /* ignore — defaults to DEFAULT_COACH_MODE */
   }
 }
 
-void hydrate();
+// Hydration is LAZY. It used to run at MODULE EVALUATION, which happens at
+// import time — before Clerk has answered — so the read resolved against the
+// pre-isolation GLOBAL key and cached a value before identity existed. The
+// hook below triggers it instead.
+// A scope change resets this store to un-hydrated, so the next member reads
+// their own setting rather than inheriting the previous member's.
+subscribeUserScope(() => {
+  hydrated = false;
+  current = DEFAULT_COACH_MODE;
+  notify();
+});
 
 export function getCoachMode(): CoachMode {
   return current;
@@ -92,7 +115,7 @@ export async function setCoachMode(next: CoachMode): Promise<void> {
   current = next;
   notify();
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, next);
+    await scopedStorage.setItem(STORAGE_KEY, next);
   } catch {
     /* non-fatal: state is still updated in memory */
   }
@@ -121,6 +144,11 @@ export function shouldHaptic(mode: CoachMode): boolean {
  * feature flag.
  */
 export function useCoachModeSetting(): CoachMode {
+  // Lazy hydration — module-evaluation hydration was removed because it read
+  // storage before identity existed. Every consumer triggers the read itself.
+  useEffect(() => {
+    void hydrate();
+  }, []);
   return useSyncExternalStore(subscribe, getCoachMode, getCoachMode);
 }
 

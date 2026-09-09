@@ -18,7 +18,7 @@
  *
  * No referral / invite / share copy lives here by design.
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scopedStorage } from './scopedStorage';
 import { useEffect, useState } from 'react';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { evaluateDeliverableCopy, evaluateDeliverableLabel } from '@/utils/intelligence/decisionGuard';
@@ -162,7 +162,7 @@ function isSnapshot(v: unknown): v is NotificationsSnapshot {
 
 export async function getNotificationsSnapshot(): Promise<NotificationsSnapshot | null> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await scopedStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     return isSnapshot(parsed) ? parsed : null;
@@ -173,7 +173,7 @@ export async function getNotificationsSnapshot(): Promise<NotificationsSnapshot 
 
 export async function setNotificationsSnapshot(snapshot: NotificationsSnapshot): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    await scopedStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
   } catch {
     /* non-fatal */
   }
