@@ -49,6 +49,11 @@ export default defineConfig({
       'artifacts/api-server/src/__tests__/scansRoute.test.ts',
       'artifacts/api-server/src/routes/__tests__/earlyAccess.test.ts',
       'artifacts/api-server/src/routes/aforce/__tests__/intake.test.ts',
+      // S1-2B — schema-integrity guard. `drizzle-kit push` compares CHECKs and
+      // partial-index predicates by PRESENCE, not definition (proved against a
+      // real PG16 in S1-2A), so a silently redefined constraint is invisible to
+      // it. This asserts the POSTGRES CATALOG and the actual enforced behaviour.
+      'lib/db/src/schema/__tests__/analyticsIdentityIntegrity.drizzle.test.ts',
     ],
     // Same phantom-checkout protection as vitest.integration.config.ts.
     exclude: ['**/node_modules/**', '**/.claude/**'],
