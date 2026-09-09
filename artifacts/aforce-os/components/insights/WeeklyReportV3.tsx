@@ -26,7 +26,7 @@ import { WeeklyReportSkeleton } from './WeeklyReportSkeleton';
 import { af, afType, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
-import { getCommandLedgerState } from '@/services/commandLedger';
+import { getCommandLedgerState, hydrateCommandLedger } from '@/services/commandLedger';
 import { useUserSlice } from '@/store/slices';
 import { ledgerToPerformanceAgeSnapshots } from '@/utils/intelligence/commandEventAdapters';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
@@ -94,6 +94,11 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           return [] as never[];
         }),
       ]);
+      // The command ledger is the ONLY source of Performance Age snapshots and
+      // is now hydrated lazily — module-evaluation hydration was removed
+      // because it read storage before Clerk had answered. Read it before
+      // snapshotting, or the report would silently show an empty history.
+      await hydrateCommandLedger();
       if (cancelled) return;
       setRollupsUnavailable(rollupsFailed);
       setModel(

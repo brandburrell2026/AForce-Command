@@ -23,7 +23,7 @@
  *   • A generation counter lets `clear()` abandon an in-flight hydrate so a
  *     reset / sign-out can never be undone by a late load.
  */
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
 
@@ -126,7 +126,12 @@ export function hydratePerformanceMemoryCapture(): Promise<void> {
   return hydrating;
 }
 
-void hydratePerformanceMemoryCapture();
+// Hydration is LAZY. It used to run here, at MODULE EVALUATION — which
+// happens at import time, long before Clerk has answered, so the read
+// resolved to the pre-isolation GLOBAL key and cached another member's
+// data in RAM before identity existed. Consumers now trigger it (hook
+// mount / first mutation), by which time the scope is definite or the
+// facade defers until it is.
 
 // ─── Mutations (observational only — NEVER score) ─────────────────────
 
@@ -220,6 +225,10 @@ export function subscribePerformanceMemoryCapture(l: () => void): () => void {
 }
 
 export function usePerformanceMemoryCaptureStore(): PerformanceMemoryCaptureState {
+  // Lazy hydration — see the note where module-evaluation hydration was removed.
+  useEffect(() => {
+    void hydratePerformanceMemoryCapture();
+  }, []);
   return useSyncExternalStore(
     subscribePerformanceMemoryCapture,
     getPerformanceMemoryCaptureSnapshot,

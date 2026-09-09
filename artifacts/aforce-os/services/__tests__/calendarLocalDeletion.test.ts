@@ -66,20 +66,20 @@ describe('O-1 · disconnectCalendar clears prefs AND prepared-marks', () => {
 
 describe('O-2 · sign-out purges the signing-out user\'s scoped calendar keys', () => {
   it('deletes prefs+prepared for the signing-out user; a bystander user survives', async () => {
-    const { setUserScope, migrationSettled, __resetUserScopeForTests } = await import('../userScope');
+    const { __setUserScopeForTests, migrationSettled, __resetUserScopeForTests } = await import('../userScope');
     const { wireUserScopeCleanup, __resetUserScopeCleanupForTests } = await import('../userScopeCleanup');
     __resetUserScopeForTests();
     __resetUserScopeCleanupForTests();
 
     wireUserScopeCleanup();
-    setUserScope('userA');
+    __setUserScopeForTests('userA');
     await migrationSettled();
 
     mem.set('@aforce/calendarPrefs:userA', 'A-prefs');
     mem.set('@aforce/momentPrepared:userA', 'A-marks');
     mem.set('@aforce/calendarPrefs:userB', 'B-prefs'); // bystander
 
-    setUserScope(null); // sign out
+    __setUserScopeForTests(null); // sign out
     await flush();
 
     expect(mem.has('@aforce/calendarPrefs:userA')).toBe(false);
@@ -88,14 +88,14 @@ describe('O-2 · sign-out purges the signing-out user\'s scoped calendar keys', 
   });
 
   it('a plain sign-in (null → user) purges nothing', async () => {
-    const { setUserScope, migrationSettled, __resetUserScopeForTests } = await import('../userScope');
+    const { __setUserScopeForTests, migrationSettled, __resetUserScopeForTests } = await import('../userScope');
     const { wireUserScopeCleanup, __resetUserScopeCleanupForTests } = await import('../userScopeCleanup');
     __resetUserScopeForTests();
     __resetUserScopeCleanupForTests();
 
     mem.set('@aforce/calendarPrefs:userA', 'A-prefs');
     wireUserScopeCleanup();
-    setUserScope('userA'); // sign in
+    __setUserScopeForTests('userA'); // sign in
     await migrationSettled();
     await flush();
 

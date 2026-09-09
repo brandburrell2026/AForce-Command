@@ -25,7 +25,7 @@
  * reducer or screens — population is driven by callers passing already-built
  * events (via the adapters), in a later, separately-approved step.
  */
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { scopedStorage } from './scopedStorage';
 import { subscribeUserScope } from './userScope';
 
@@ -153,7 +153,12 @@ export function hydrateCommandLedger(): Promise<void> {
   return hydrating;
 }
 
-void hydrateCommandLedger();
+// Hydration is LAZY. It used to run here, at MODULE EVALUATION — which
+// happens at import time, long before Clerk has answered, so the read
+// resolved to the pre-isolation GLOBAL key and cached another member's
+// data in RAM before identity existed. Consumers now trigger it (hook
+// mount / first mutation), by which time the scope is definite or the
+// facade defers until it is.
 
 // ─── Mutations ────────────────────────────────────────────────────────
 
@@ -229,6 +234,12 @@ export function subscribeCommandLedger(l: () => void): () => void {
 }
 
 export function useCommandLedgerStore(): CommandLedgerState {
+  // Lazy hydration: module-evaluation hydration was removed because it read
+  // storage before identity existed. Every consumer of this hook now triggers
+  // the read itself, once mounted.
+  useEffect(() => {
+    void hydrateCommandLedger();
+  }, []);
   return useSyncExternalStore(
     subscribeCommandLedger,
     getCommandLedgerState,

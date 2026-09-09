@@ -74,7 +74,7 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
     const { userScope, moments } = await fresh();
 
     // USER A signs in and writes a moment.
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
     moments.addMoment(mkMoment('m1', "A's title — private"));
@@ -82,12 +82,12 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
     await flushWrites();
 
     // Sign out → in-memory state resets to un-hydrated immediately.
-    userScope.setUserScope(null);
+    userScope.__setUserScopeForTests(null);
     expect(moments.getMomentsState().hydrated).toBe(false);
     expect(moments.getMomentsState().moments).toEqual([]);
 
     // USER B signs in → hydrates THEIR key → empty.
-    userScope.setUserScope('user_B');
+    userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
     expect(moments.getMomentsState().moments).toEqual([]);
@@ -99,7 +99,7 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
     expect(mem.get('@aforce/moments:user_B')).toContain("B's moment");
 
     // USER A returns → their data is back, B's invisible.
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
     const titles = moments.getMomentsState().moments.map((m) => m.title);
@@ -108,7 +108,7 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
 
   it('command ledger resets across accounts the same way', async () => {
     const { userScope, ledger } = await fresh();
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await ledger.hydrateCommandLedger();
     await ledger.appendCommandEvents([
@@ -123,7 +123,7 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
     expect(ledger.getCommandLedgerState().events.length).toBeGreaterThan(0);
     await flushWrites();
 
-    userScope.setUserScope('user_B');
+    userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
     await ledger.hydrateCommandLedger();
     expect(ledger.getCommandLedgerState().events).toEqual([]);
@@ -139,7 +139,7 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
       JSON.stringify([mkMoment('legacy1', 'Legacy A moment')]),
     );
 
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
     expect(moments.getMomentsState().moments.map((m) => m.title)).toEqual(['Legacy A moment']);
@@ -149,7 +149,7 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
 
     // A later orphaned global key must NOT be claimed by a different user.
     mem.set('@aforce/moments', JSON.stringify([mkMoment('orphan', 'Orphaned global')]));
-    userScope.setUserScope('user_B');
+    userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
     expect(moments.getMomentsState().moments).toEqual([]);
@@ -159,7 +159,7 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
   it('every key in the migration manifest moves for the claiming user', async () => {
     const { userScope } = await fresh();
     for (const base of userScope.MIGRATED_GLOBAL_KEYS) mem.set(base, `legacy:${base}`);
-    userScope.setUserScope('user_A');
+    userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     for (const base of userScope.MIGRATED_GLOBAL_KEYS) {
       if (userScope.RETAIN_GLOBAL_COPY.has(base)) {

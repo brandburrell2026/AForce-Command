@@ -133,6 +133,13 @@ function persist(): Promise<void> {
 }
 
 let hydrating: Promise<void> | null = null;
+/**
+ * Whether a mutation has already decided the snooze before the first disk
+ * read. `recordCheckIn` clearing it is a decision just as much as
+ * `snoozeCheckIn` setting it, so a boolean is needed — `?? loaded` cannot tell
+ * "no local opinion" from "explicitly cleared".
+ */
+let localSnoozeDecision = false;
 
 /**
  * Load persisted check-ins into memory. Idempotent — safe to call from app
@@ -148,21 +155,52 @@ export function hydrateVoiceCheckIn(): Promise<void> {
     } catch {
       loaded = null;
     }
+    // MERGE, never overwrite. A mutation issued before this first read has
+    // already updated memory (so the UI responded immediately) and is waiting
+    // on this promise to persist; overwriting here would discard it.
     setState({
-      records: loaded ? sortAndCap(loaded.records) : [],
-      snoozedUntilMs: loaded?.snoozedUntilMs ?? null,
+      records: mergeByDay(current.records, loaded?.records ?? []),
+      // A snooze decision taken before hydration is authoritative — including
+      // a deliberate CLEAR by recordCheckIn. Without this flag, falling back
+      // to the loaded value would resurrect a snooze the member just ended.
+      snoozedUntilMs: localSnoozeDecision
+        ? current.snoozedUntilMs
+        : (loaded?.snoozedUntilMs ?? null),
       hydrated: true,
     });
   })();
   return hydrating;
 }
 
-void hydrateVoiceCheckIn();
+// Hydration is LAZY. It used to run here, at MODULE EVALUATION — which
+// happens at import time, long before Clerk has answered, so the read
+// resolved to the pre-isolation GLOBAL key and cached another member's
+// data in RAM before identity existed. Consumers now trigger it (hook
+// mount / first mutation), by which time the scope is definite or the
+// facade defers until it is.
 
 // ─── Mutations ────────────────────────────────────────────────────────
 
 function sortAndCap(records: VoiceCheckInRecord[]): VoiceCheckInRecord[] {
   return [...records].sort((a, b) => a.dayIndex - b.dayIndex).slice(-MAX_RECORDS);
+}
+
+/**
+ * Union two record lists by local day, newest completion winning. Mirrors
+ * `intentCapture.mergeByDay` and `commandLedger.mergeCommandEvents`: hydration
+ * must MERGE the disk read with whatever was recorded during the hydration
+ * window, or a check-in made before the first read is silently dropped.
+ */
+function mergeByDay(
+  a: VoiceCheckInRecord[],
+  b: VoiceCheckInRecord[],
+): VoiceCheckInRecord[] {
+  const byDay = new Map<string, VoiceCheckInRecord>();
+  for (const r of [...a, ...b]) {
+    const existing = byDay.get(r.dayKey);
+    if (!existing || r.completedAtMs >= existing.completedAtMs) byDay.set(r.dayKey, r);
+  }
+  return sortAndCap([...byDay.values()]);
 }
 
 /**
@@ -192,8 +230,9 @@ export function recordCheckIn(
   setState({
     records: sortAndCap([...withoutToday, record]),
     snoozedUntilMs: null,
-    hydrated: true,
+    hydrated: current.hydrated,
   });
+  localSnoozeDecision = true;
   // Performance Memory capture (OBSERVATIONAL only — never touches score).
   // The self-reported daily priority (goal) is one of the three behaviour
   // streams Performance Memory needs; a same-day re-record is a distinct
@@ -214,13 +253,19 @@ export function recordCheckIn(
   // Never touches score — voice check-ins are display-only self-reports, so
   // this is pure engagement telemetry for the founder Command Center.
   if (isNewDay) void emit('voice_checkin_completed');
-  return persist();
+  // Persist only AFTER hydration has read storage: a mutation before the
+  // first read must never mark the store hydrated, or the disk read is
+  // short-circuited and this snapshot OVERWRITES the member's stored history.
+  // (Module-evaluation hydration used to mask this by always winning the
+  // race; it was removed because it read storage before identity existed.)
+  return hydrateVoiceCheckIn().then(() => persist());
 }
 
 /** Snooze the ritual until `untilMs` epoch ms. */
 export function snoozeCheckIn(untilMs: number): Promise<void> {
-  setState({ ...current, snoozedUntilMs: untilMs, hydrated: true });
-  return persist();
+  setState({ ...current, snoozedUntilMs: untilMs, hydrated: current.hydrated });
+  localSnoozeDecision = true;
+  return hydrateVoiceCheckIn().then(() => persist());
 }
 
 /** Clear all persisted check-in state (reset / sign-out). */
@@ -285,5 +330,8 @@ export function useVoiceCheckInStore(): VoiceCheckInState {
 // Wave-2 PR6: user-scope change → reset to un-hydrated (disk untouched).
 subscribeUserScope(() => {
   hydrating = null;
+  // The snooze decision belonged to the DEPARTING member. Carrying it across
+  // an account switch would let one member's snooze suppress another's ritual.
+  localSnoozeDecision = false;
   setState({ records: [], snoozedUntilMs: null, hydrated: false });
 });
