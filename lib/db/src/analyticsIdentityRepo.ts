@@ -383,6 +383,46 @@ export async function readConsent(dbx: Dbx, userId: string): Promise<ConsentStat
  * A member who never decided has nothing to evidence, so no consent row and
  * no evidence row is written — rather than inventing a disclosure version for
  * a decision that never happened.
+ *
+ * ── CONCURRENCY: THE SAME DEFECT THE SIBLING PATH HAD ──────────────────────
+ *
+ * Step 3 read the consent row with the UNLOCKED `readConsentTx` and then ran a
+ * compare-and-set whose affected-row count was never inspected — exactly the
+ * shape `advanceConsent` was repaired for. A member deleting their data on one
+ * device while a consent decision landed from another produced:
+ *
+ *   identity  suppressed, analytics_id NULL     ← the erase applied
+ *   consent   granted = TRUE                    ← the revocation silently did not
+ *   evidence  "4:grant", "4:suppress"           ← a duplicate seq, and a
+ *                                                 revocation that never happened
+ *
+ * Collection still failed closed, because a suppressed identity holds no
+ * pseudonym. But the compliance ledger recorded a member as opted IN at the
+ * moment of their own erasure, and claimed a revocation that never became
+ * operative. The ledger is the legal artifact; it may not say that.
+ *
+ * THE INVARIANT: the evidence ledger may never claim consent was revoked
+ * unless that revocation actually became operative in the consent state.
+ *
+ * Two mechanisms, two jobs:
+ *
+ *   `lockConsentTx` makes the revocation ACTUALLY APPLY. A concurrent
+ *   `advanceConsent` now serialises against this transaction instead of
+ *   racing it, so the seq read here is the committed truth and the CAS below
+ *   cannot be stale. This is the correctness mechanism.
+ *
+ *   The affected-row check makes the LEDGER HONEST. Evidence is written only
+ *   for a confirmed single-row update, and it carries the sequence the
+ *   database actually wrote (`RETURNING`), not one computed in advance. Under
+ *   the lock this cannot fire; it is a fail-fast guard for the day someone
+ *   removes the lock, and it is labelled as such rather than claimed as proven
+ *   — see docs/db/S1-3-LANE-1B.md.
+ *
+ * LOCK ORDER. This is the only transaction here that locks two tables:
+ * identities, then consent state. Nothing acquires them in the opposite
+ * order — `advanceConsent` touches consent state alone, `resolve` and `rotate`
+ * touch identities alone — so no cycle exists and no deadlock is possible.
+ * Proven, not asserted, in the db-lane laws.
  */
 export async function forgetAnalyticsForMember(
   dbx: Dbx,
@@ -413,15 +453,34 @@ export async function forgetAnalyticsForMember(
        where user_id = ${userId}
     `);
 
-    const current = await readConsentTx(tx, userId);
+    // Take the consent row before deciding anything about it, so a concurrent
+    // decision serialises behind this erase rather than racing it.
+    const current = await lockConsentTx(tx, userId);
     if (current !== null && current.granted) {
       const nextSeq = current.decisionSeq + 1;
-      await tx.execute(sql`
-        update ${aforceAnalyticsConsentState}
-           set granted = false, decision_seq = ${nextSeq}, updated_at = now()
-         where user_id = ${userId} and decision_seq = ${current.decisionSeq}
-      `);
-      await appendEvidence(tx, userId, "suppress", current.disclosureVersion, nextSeq);
+      const applied = rowsOf<{ decision_seq: number }>(
+        await tx.execute(sql`
+          update ${aforceAnalyticsConsentState}
+             set granted = false, decision_seq = ${nextSeq}, updated_at = now()
+           where user_id = ${userId} and decision_seq = ${current.decisionSeq}
+          returning decision_seq
+        `),
+      );
+      const row = applied[0];
+      if (applied.length !== 1 || row === undefined) {
+        // Unreachable while the row is locked. If it ever happens the erase
+        // and the ledger are about to disagree, so abort the WHOLE transaction
+        // — the member is not suppressed, no evidence is written, and the
+        // caller is told it failed. An inconsistent record is worse than a
+        // retryable failure.
+        throw new Error(
+          "forgetAnalyticsForMember: consent revocation did not apply; " +
+            "refusing to record evidence for a transition that did not happen",
+        );
+      }
+      // The sequence the DATABASE wrote, not one computed in advance: the
+      // ledger describes the transition that actually became operative.
+      await appendEvidence(tx, userId, "suppress", current.disclosureVersion, row.decision_seq);
     }
     return { deleted, status: "suppressed" as const };
   });

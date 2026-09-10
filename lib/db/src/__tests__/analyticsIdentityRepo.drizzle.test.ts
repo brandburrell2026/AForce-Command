@@ -69,13 +69,70 @@ describe.runIf(DB)("S1-3 · pseudonym minter", () => {
     expect(seen.size).toBe(200);
   });
 
-  it("carries no timestamp: ids minted together share no growing prefix", () => {
-    // The client minter embedded Date.now() in base36, so consecutive ids
-    // shared a prefix that leaked mint time. This must not.
-    const a = mintAnalyticsId(), b = mintAnalyticsId();
-    let common = 0;
-    while (common < a.length && a[common] === b[common]) common++;
-    expect(common, "shared prefix beyond 'anon_' leaks ordering").toBeLessThanOrEqual(5);
+  /**
+   * CARRIES NO TIMESTAMP — proven by denying the minter a clock.
+   *
+   * ── WHY THE PREVIOUS LAW WAS REPLACED ────────────────────────────────────
+   *
+   * It minted two ids and asserted their common prefix was <= 5. `anon_` is
+   * exactly five characters, so the assertion reduced to "the next hex digit
+   * must differ" — a 1-in-16 coin flip. Measured over 200,000 trials it failed
+   * 6.30% of the time (theory 6.25%), which is why `db-lane` went red on main
+   * at random. It also did not test the property it named: two random ids
+   * sharing a prefix is evidence of nothing, and a timestamp scheme with a
+   * coarse clock could pass it whenever the clock happened to tick.
+   *
+   * ── WHY THIS ONE CANNOT FLAKE ────────────────────────────────────────────
+   *
+   * It does not sample the OUTPUT at all, so there is no distribution to be
+   * unlucky with. It removes the clock from the environment and mints: an
+   * identifier that encodes mint time must read a clock to do so, and every
+   * way of reading one throws here. Pass and fail are both decided by control
+   * flow, not by chance — the false-failure probability is exactly zero.
+   *
+   * The control below proves the law is not vacuous: the ACTUAL previous
+   * client minter (`anon_${Date.now().toString(36)}_${random}`) is run through
+   * the same trap and is detected every time.
+   */
+  function withoutAClock<T>(fn: () => T): T {
+    const RealDate = globalThis.Date;
+    const realHrtime = process.hrtime;
+    const realPerfNow = globalThis.performance?.now;
+    const boom = () => {
+      throw new Error("CLOCK ACCESSED: this identifier can encode mint time");
+    };
+    class TrapDate {
+      constructor() { boom() }
+      static now(): number { return boom() as never }
+      static parse(): number { return boom() as never }
+      static UTC(): number { return boom() as never }
+    }
+    globalThis.Date = TrapDate as unknown as DateConstructor;
+    (process as { hrtime: unknown }).hrtime = boom;
+    if (globalThis.performance) globalThis.performance.now = boom as unknown as () => number;
+    try {
+      return fn();
+    } finally {
+      globalThis.Date = RealDate;
+      (process as { hrtime: unknown }).hrtime = realHrtime;
+      if (globalThis.performance && realPerfNow) globalThis.performance.now = realPerfNow;
+    }
+  }
+
+  it("carries no timestamp: the minter never reads a clock", () => {
+    // Collected inside the trap, asserted outside it — the assertion library
+    // is allowed a clock, the minter is not.
+    const ids = withoutAClock(() => Array.from({ length: 200 }, () => mintAnalyticsId()));
+    expect(ids).toHaveLength(200);
+    expect(new Set(ids).size, "and every one distinct").toBe(200);
+  });
+
+  it("CONTROL — the same law detects the old timestamp-derived minter", () => {
+    // Verbatim shape of the client minter this program removed. If the law
+    // above can pass for a scheme that leaks mint time, it proves nothing.
+    const timestampMinter = () =>
+      `anon_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    expect(() => withoutAClock(timestampMinter)).toThrow(/CLOCK ACCESSED/);
   });
 });
 
