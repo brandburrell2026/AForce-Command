@@ -59,6 +59,11 @@ export default defineConfig({
       // the driver.
       'lib/db/src/__tests__/analyticsIdentityRepo.drizzle.test.ts',
       'artifacts/api-server/src/routes/aforce/__tests__/analyticsIdentityRoutes.drizzle.test.ts',
+      // S1-3 CAS repair. The laws above race two callers and hope the loser's
+      // read lands inside the contended window; these FORCE it — a third
+      // connection holds the row and the loser is observed to block on a real
+      // database lock before the winner commits. Same verdict on every run.
+      'lib/db/src/__tests__/advanceConsentCas.drizzle.test.ts',
     ],
     // Same phantom-checkout protection as vitest.integration.config.ts.
     exclude: ['**/node_modules/**', '**/.claude/**'],
