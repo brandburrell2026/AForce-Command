@@ -199,6 +199,34 @@ export async function rotateAnalyticsIdentity(
  *
  * Client timestamps are never used to order decisions: two devices with skewed
  * clocks would silently reorder a member's own choices.
+ *
+ * ── CONCURRENCY: TWO MECHANISMS, TWO DISTINCT JOBS ─────────────────────────
+ *
+ * This function previously read the row with a plain SELECT and never looked
+ * at what the CAS `UPDATE` actually affected. Under READ COMMITTED that is not
+ * a compare-and-set at all: two transactions both read seq N and both pass the
+ * guard; the winner's UPDATE applies; the loser's UPDATE blocks, and when the
+ * winner commits PostgreSQL re-evaluates the loser's WHERE against the NEW row
+ * version, so it matches nothing — and the loser, never having checked,
+ * returned `ok: true` for a decision that was never written and appended
+ * evidence for it. A member's revoke could be reported confirmed and dropped.
+ *
+ * The repair uses two mechanisms, and they are NOT redundant — each answers a
+ * different question, and each is proven by its own law and its own mutant:
+ *
+ *   `FOR UPDATE` decides WHAT THE LOSER IS TOLD. It serialises the readers, so
+ *   the loser's read happens after the winner commits and therefore returns the
+ *   CANONICAL state. Without it the loser still fails, but reports the stale
+ *   value it read — and a client that reconciles against a stale seq retries
+ *   with the same losing expectation forever.
+ *
+ *   The AFFECTED-ROW CHECK decides WHETHER THE LOSER IS TOLD IT WON. The CAS
+ *   lives in the UPDATE's own WHERE clause, and only a confirmed single-row
+ *   update may report success or append evidence. Without it, a stale caller is
+ *   told `ok: true` — the original defect.
+ *
+ * Evidence is appended only AFTER the update is confirmed applied, so the
+ * append-only consent log can never describe a transition that did not happen.
  */
 export async function advanceConsent(
   dbx: Dbx,
@@ -212,15 +240,25 @@ export async function advanceConsent(
   assertRealMember(args.userId);
   const granted = args.action === "grant";
   return dbx.transaction(async (tx) => {
-    const current = await readConsentTx(tx, args.userId);
-
     if (args.expectedSeq === null) {
-      if (current !== null) return { ok: false as const, current };
-      await tx.execute(sql`
-        insert into ${aforceAnalyticsConsentState}
-          (user_id, granted, decision_seq, disclosure_version)
-        values (${args.userId}, ${granted}, 1, ${args.disclosureVersion})
-      `);
+      // "I believe no decision exists yet." The INSERT itself is the test:
+      // `on conflict do nothing` affects no row when one already exists —
+      // whether it was there all along or another transaction created it
+      // while we were running. Same idiom as the resolver above.
+      const inserted = rowsOf<{ decision_seq: number }>(
+        await tx.execute(sql`
+          insert into ${aforceAnalyticsConsentState}
+            (user_id, granted, decision_seq, disclosure_version)
+          values (${args.userId}, ${granted}, 1, ${args.disclosureVersion})
+          on conflict (user_id) do nothing
+          returning decision_seq
+        `),
+      );
+      if (inserted.length !== 1) {
+        // Refused. Report the canonical state, read under the lock so it is
+        // the committed truth and not a snapshot from before the winner.
+        return { ok: false as const, current: await lockConsentTx(tx, args.userId) };
+      }
       await appendEvidence(tx, args.userId, args.action, args.disclosureVersion, 1);
       return {
         ok: true as const,
@@ -228,18 +266,30 @@ export async function advanceConsent(
       };
     }
 
-    if (current === null || current.decisionSeq !== args.expectedSeq) {
+    // Take the row before deciding anything. A concurrent decision on the same
+    // member now serialises behind us rather than reading the same stale seq.
+    const current = await lockConsentTx(tx, args.userId);
+    if (current === null) return { ok: false as const, current: null };
+
+    // The CAS is the UPDATE's WHERE clause — the one place that both tests the
+    // expectation and applies the change, so the two can never disagree.
+    const nextSeq = current.decisionSeq + 1;
+    const applied = rowsOf<{ decision_seq: number }>(
+      await tx.execute(sql`
+        update ${aforceAnalyticsConsentState}
+           set granted = ${granted},
+               decision_seq = ${nextSeq},
+               disclosure_version = ${args.disclosureVersion},
+               updated_at = now()
+         where user_id = ${args.userId} and decision_seq = ${args.expectedSeq}
+        returning decision_seq
+      `),
+    );
+    if (applied.length !== 1) {
+      // The expectation did not match. Nothing was written, so nothing is
+      // claimed and no evidence is appended.
       return { ok: false as const, current };
     }
-    const nextSeq = current.decisionSeq + 1;
-    await tx.execute(sql`
-      update ${aforceAnalyticsConsentState}
-         set granted = ${granted},
-             decision_seq = ${nextSeq},
-             disclosure_version = ${args.disclosureVersion},
-             updated_at = now()
-       where user_id = ${args.userId} and decision_seq = ${args.expectedSeq}
-    `);
     await appendEvidence(tx, args.userId, args.action, args.disclosureVersion, nextSeq);
     return {
       ok: true as const,
@@ -278,6 +328,33 @@ async function readConsentTx(tx: Dbx, userId: string): Promise<ConsentState | nu
     await tx.execute(sql`
       select granted, decision_seq, disclosure_version
         from ${aforceAnalyticsConsentState} where user_id = ${userId}
+    `),
+  );
+  const r = rows[0];
+  return r
+    ? { granted: r.granted, decisionSeq: r.decision_seq, disclosureVersion: r.disclosure_version }
+    : null;
+}
+
+/**
+ * The same read, taking the row for the duration of the transaction.
+ *
+ * Deliberately NOT folded into `readConsentTx`. That one serves `readConsent`,
+ * which answers `GET /analytics-consent` and runs on the resolve path — making
+ * it lock would put a row lock on every read of a member's consent state, so
+ * an ordinary poll could block a decision. Locking belongs to the transaction
+ * that intends to WRITE, and only there.
+ *
+ * `FOR UPDATE` on a `where user_id = …` that matches nothing locks nothing.
+ * That is why the first-decision path uses `on conflict do nothing` as its
+ * test instead of relying on this.
+ */
+async function lockConsentTx(tx: Dbx, userId: string): Promise<ConsentState | null> {
+  const rows = rowsOf<{ granted: boolean; decision_seq: number; disclosure_version: number }>(
+    await tx.execute(sql`
+      select granted, decision_seq, disclosure_version
+        from ${aforceAnalyticsConsentState} where user_id = ${userId}
+        for update
     `),
   );
   const r = rows[0];
