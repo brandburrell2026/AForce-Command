@@ -116,9 +116,21 @@ export type AdoptedConsent = AnalyticsConsentWire;
 export function effectiveGranted(
   adopted: AdoptedConsent | null,
   pending: PendingConsentDecision | null,
+  /**
+   * A pending record exists that could not be read. It might have said
+   * "revoke", so it is treated as though it did. Defaults false so every
+   * existing caller keeps its meaning.
+   */
+  unreadable = false,
 ): boolean {
+  if (unreadable) return false;
   if (pending?.action === 'revoke') return false;
   return adopted?.granted === true;
+}
+
+/** The gate as the module sees it, with the module's own unreadable flag. */
+function effectiveGrantedNow(): boolean {
+  return effectiveGranted(adopted, pending, pendingUnreadable);
 }
 
 /**
@@ -168,6 +180,11 @@ export function classifyConsentFailure(status: number, code: string | null): Fai
 export function conflictSatisfiesIntent(
   action: ConsentAction,
   current: AdoptedConsent | null,
+  /**
+   * The disclosure the member acted under. A decision is only "already
+   * satisfied" if the server's record was made under the SAME disclosure.
+   */
+  disclosureVersion: number,
 ): boolean {
   if (current === null) return false;
   // A row with no decision on it satisfies nothing. `granted: false,
@@ -176,7 +193,14 @@ export function conflictSatisfiesIntent(
   // redundant, the server would hold no evidence of it, and the app would ask
   // again on the next launch as though they had never answered.
   if (current.decisionSeq === null) return false;
-  return current.granted === (action === 'grant');
+  if (current.granted !== (action === 'grant')) return false;
+  // AND the same disclosure. Comparing only the boolean means that the day
+  // DISCLOSURE_VERSION is bumped — which this file instructs maintainers to do
+  // "when the disclosure text materially changes" — a member re-granting under
+  // the NEW disclosure is short-circuited as already-satisfied, never POSTed,
+  // and the server's evidence permanently records them as having agreed to the
+  // OLD text. The version constant would be decoration.
+  return current.disclosureVersion === disclosureVersion;
 }
 
 /** How many 409 re-issues before the decision goes to `needs_resolution`. */
@@ -220,34 +244,69 @@ export function scopeTokenStillValid(t: ScopeToken): boolean {
 const pendingKey = (userId: string): string => `${PENDING_KEY_PREFIX}.${userId}`;
 const serverIdKey = (userId: string): string => `${SERVER_ID_KEY_PREFIX}.${userId}`;
 
-function parsePending(raw: string | null): PendingConsentDecision | null {
-  if (!raw) return null;
+/**
+ * What a read of the pending record produced.
+ *
+ * `unreadable` is NOT the same as `absent`, and collapsing them is how an
+ * unreadable privacy state silently becomes permission. A record we cannot
+ * read might have said "revoke"; answering `null` would drop that ceiling and
+ * let the next reconcile re-adopt the server's older grant.
+ */
+type PendingLoad =
+  | { kind: 'absent' }
+  | { kind: 'record'; value: PendingConsentDecision }
+  | { kind: 'unreadable'; why: 'storage' | 'corrupt' };
+
+function parsePending(raw: string | null): PendingLoad {
+  if (raw === null) return { kind: 'absent' };
+  // An empty string is a written-but-truncated record, not an absent one.
+  if (raw === '') return { kind: 'unreadable', why: 'corrupt' };
+  let p: Partial<PendingConsentDecision>;
   try {
-    const p = JSON.parse(raw) as Partial<PendingConsentDecision>;
-    if (p.action !== 'grant' && p.action !== 'revoke') return null;
-    const seq = p.basedOnSeq;
-    if (seq !== null && seq !== undefined && typeof seq !== 'number') return null;
-    return {
+    p = JSON.parse(raw) as Partial<PendingConsentDecision>;
+  } catch {
+    return { kind: 'unreadable', why: 'corrupt' };
+  }
+  // A record whose ACTION is unreadable is the dangerous case: we cannot tell
+  // a grant from a revoke, so we must not guess, and we must not discard it.
+  if (p.action !== 'grant' && p.action !== 'revoke') {
+    return { kind: 'unreadable', why: 'corrupt' };
+  }
+  const seq = p.basedOnSeq;
+  if (seq !== null && seq !== undefined && typeof seq !== 'number') {
+    return { kind: 'unreadable', why: 'corrupt' };
+  }
+  // A disclosure version we cannot read must NOT be restamped with the current
+  // constant: the server stores it as evidence of what the member agreed to,
+  // and inventing one is exactly the sentinel the server contract forbids.
+  if (p.disclosureVersion !== undefined && typeof p.disclosureVersion !== 'number') {
+    return { kind: 'unreadable', why: 'corrupt' };
+  }
+  if (p.disclosureVersion === undefined) {
+    return { kind: 'unreadable', why: 'corrupt' };
+  }
+  return {
+    kind: 'record',
+    value: {
       action: p.action,
-      disclosureVersion:
-        typeof p.disclosureVersion === 'number' ? p.disclosureVersion : DISCLOSURE_VERSION,
+      disclosureVersion: p.disclosureVersion,
       basedOnSeq: typeof seq === 'number' ? seq : null,
       // An unrecognised state is read as `queued`, never as resolved: a
       // corrupt record must not be able to CLEAR a revoke ceiling.
       state: p.state === 'inflight' || p.state === 'needs_resolution' ? p.state : 'queued',
       reissues: typeof p.reissues === 'number' ? p.reissues : 0,
       createdAtMs: typeof p.createdAtMs === 'number' ? p.createdAtMs : 0,
-    };
-  } catch {
-    return null;
-  }
+    },
+  };
 }
 
-async function loadPending(userId: string): Promise<PendingConsentDecision | null> {
+async function loadPending(userId: string): Promise<PendingLoad> {
   try {
     return parsePending(await AsyncStorage.getItem(pendingKey(userId)));
   } catch {
-    return null;
+    // The storage layer itself failed. We do not know whether a decision is
+    // waiting there, so we must not report that none is.
+    return { kind: 'unreadable', why: 'storage' };
   }
 }
 
@@ -293,6 +352,23 @@ let hydrateSeq = 0;
 let reconcileSeq = 0;
 /** Bumped whenever a decision is written to memory. Guards hydrate's write. */
 let pendingWriteSeq = 0;
+/** The same guard for the pseudonym. See `setServerId`. */
+let serverIdWriteSeq = 0;
+/**
+ * A pending record exists on disk that we could not read.
+ *
+ * Fails CLOSED: we cannot tell whether it said grant or revoke, so we assume
+ * it may have said revoke and hold the ceiling until the member resolves it.
+ * Never cleared by a read — only by a real decision replacing the record.
+ */
+let pendingUnreadable = false;
+/**
+ * The server has told us this member is terminally suppressed.
+ *
+ * Distinct from `needs_resolution`: retrying cannot succeed, ever, so the UI
+ * must not offer one.
+ */
+let identitySuppressed = false;
 
 /**
  * The ONLY way the pending record changes outside hydrate and the scope reset.
@@ -305,6 +381,24 @@ let pendingWriteSeq = 0;
 function setPending(p: PendingConsentDecision | null): void {
   pending = p;
   pendingWriteSeq += 1;
+  // A real decision supersedes an unreadable one: whatever the old bytes said,
+  // the member has just told us something newer.
+  pendingUnreadable = false;
+}
+
+/**
+ * The same discipline for the pseudonym.
+ *
+ * `serverId` had no staleness guard while `pending` did, one line apart — and
+ * that asymmetry was a live defect, not a hypothetical: a hydrate whose disk
+ * read began before a reconcile could land its stale `null` on top of a live
+ * pseudonym and then latch `hydratedFor`, so the correct value on disk was
+ * never re-read. Collection stopped for the rest of the process while the
+ * settings row still said it was on.
+ */
+function setServerId(id: string | null): void {
+  serverId = id;
+  serverIdWriteSeq += 1;
 }
 
 type Listener = () => void;
@@ -333,6 +427,8 @@ export function subscribeConsentState(l: Listener): () => void {
  */
 function resetForScopeChange(): void {
   adopted = null;
+  pendingUnreadable = false;
+  identitySuppressed = false;
   pending = null;
   serverId = null;
   hydratedFor = null;
@@ -380,7 +476,8 @@ async function hydrate(): Promise<void> {
   if (hydrating !== null) return hydrating;
   const token = captureScopeToken();
   const mine = ++hydrateSeq;
-  const writeSeqAtStart = pendingWriteSeq;
+  const pendingSeqAtStart = pendingWriteSeq;
+  const serverIdSeqAtStart = serverIdWriteSeq;
   hydrating = (async () => {
     try {
       const [p, id] = await Promise.all([loadPending(userId), loadServerId(userId)]);
@@ -390,9 +487,26 @@ async function hydrate(): Promise<void> {
       // A decision recorded WHILE the disk was answering is newer than what the
       // disk holds. Overwriting it would silently undo a revoke the member has
       // already been told is in force.
-      if (pendingWriteSeq === writeSeqAtStart) pending = p;
-      serverId = id;
-      hydratedFor = userId;
+      if (pendingWriteSeq === pendingSeqAtStart) {
+        if (p.kind === 'record') {
+          pending = p.value;
+          pendingUnreadable = false;
+        } else if (p.kind === 'unreadable') {
+          // FAIL CLOSED. Do not translate an unreadable privacy state into
+          // `pending = null` — that is permission we were never given.
+          pendingUnreadable = true;
+        } else {
+          pending = null;
+          pendingUnreadable = false;
+        }
+      }
+      // The SAME guard the pending record has always had. Without it a stale
+      // read lands `null` on a live pseudonym and `hydratedFor` then latches,
+      // so the correct value on disk is never read again.
+      if (serverIdWriteSeq === serverIdSeqAtStart) serverId = id;
+      // An unreadable record must not latch: a transient storage fault should
+      // be retried by the next read, not frozen in for the session.
+      if (p.kind !== 'unreadable') hydratedFor = userId;
       notify();
     } finally {
       // Only clear the latch if no NEWER hydrate has installed one. Clearing
@@ -417,7 +531,7 @@ async function hydrate(): Promise<void> {
 export async function resolveEmissionIdentity(): Promise<string | null> {
   if (currentMemberId() === null) return null;
   await hydrate();
-  if (!effectiveGranted(adopted, pending)) return null;
+  if (!effectiveGrantedNow()) return null;
   return serverId;
 }
 
@@ -425,7 +539,7 @@ export async function resolveEmissionIdentity(): Promise<string | null> {
 export async function isEffectivelyGranted(): Promise<boolean> {
   if (currentMemberId() === null) return false;
   await hydrate();
-  return effectiveGranted(adopted, pending);
+  return effectiveGrantedNow();
 }
 
 /** The cached server pseudonym, if one has been issued. Never mints. */
@@ -442,6 +556,18 @@ export type ConsentUiState =
   | { status: 'unknown' }
   /** Signed out or unverifiable: consent is not manageable here. */
   | { status: 'not_a_member' }
+  /**
+   * A member, but the server has not answered yet.
+   *
+   * DELIBERATELY NOT `unknown`. `unknown` disabled the switch, and the switch
+   * is the only control that calls `recordDecision`, which is the only thing
+   * that reaches the server — so a first-time member could never leave the
+   * state that was disabling their only way out of it. This state is
+   * ACTIONABLE: nothing is auto-granted or auto-revoked, the member simply
+   * decides, and `recordDecision` works without any adopted state because it
+   * bases its CAS on `null` and reconciles from whatever the server answers.
+   */
+  | { status: 'unsynced'; granted: boolean }
   /** The server's answer, adopted. `answered` drives whether to prompt. */
   | { status: 'settled'; granted: boolean; answered: boolean }
   /** A local decision is on its way to the server. */
@@ -450,21 +576,39 @@ export type ConsentUiState =
    * A local decision the server deterministically refused. Automation has
    * stopped; the ceiling still holds; only the member can move this.
    */
-  | { status: 'needs_resolution'; action: ConsentAction; granted: boolean };
+  | { status: 'needs_resolution'; action: ConsentAction; granted: boolean }
+  /**
+   * A pending record exists on disk that could not be read.
+   *
+   * The gate is CLOSED — an unreadable record might have said "revoke" — and
+   * the member is offered a way to resolve it by deciding again, which
+   * replaces the unreadable bytes. Recoverable, not terminal.
+   */
+  | { status: 'unreadable'; granted: false }
+  /**
+   * The member has been forgotten. TERMINAL, and terminal differently from
+   * `needs_resolution`: suppression is permanent, so there is no retry that
+   * could ever succeed and none is offered.
+   */
+  | { status: 'suppressed'; granted: false };
 
 export async function consentUiState(): Promise<ConsentUiState> {
   const s = getScopeState();
   if (s.status === 'UNRESOLVED') return { status: 'unknown' };
   if (s.status !== 'AUTHENTICATED') return { status: 'not_a_member' };
   await hydrate();
-  const granted = effectiveGranted(adopted, pending);
+  // Suppression outranks everything below: it is permanent and there is
+  // nothing the member can decide about it here.
+  if (identitySuppressed) return { status: 'suppressed', granted: false };
+  if (pendingUnreadable) return { status: 'unreadable', granted: false };
+  const granted = effectiveGrantedNow();
   if (pending !== null) {
     if (pending.state === 'needs_resolution') {
       return { status: 'needs_resolution', action: pending.action, granted };
     }
     return { status: 'pending', action: pending.action, granted };
   }
-  if (adopted === null) return { status: 'unknown' };
+  if (adopted === null) return { status: 'unsynced', granted };
   return { status: 'settled', granted, answered: adopted.decisionSeq !== null };
 }
 
@@ -520,7 +664,7 @@ async function completeDecision(
   await savePending(userId, record);
   await reconcile();
   const p = pending;
-  const granted = effectiveGranted(adopted, p);
+  const granted = effectiveGrantedNow();
   if (p === null) return { outcome: 'confirmed', granted };
   if (p.state === 'needs_resolution') return { outcome: 'needs_resolution', granted };
   return { outcome: 'queued', granted };
@@ -538,9 +682,13 @@ export async function retryPendingDecision(): Promise<DecisionOutcome> {
   if (userId === null) return { outcome: 'not_a_member' };
   await hydrate();
   if (currentMemberId() !== userId) return { outcome: 'not_a_member' };
+  // A suppressed member cannot be re-enrolled by any retry. The UI does not
+  // offer one; refuse here too so a stale view cannot drive an impossible
+  // request.
+  if (identitySuppressed) return { outcome: 'needs_resolution', granted: false };
   const p = pending;
   if (p === null || p.state !== 'needs_resolution') {
-    return { outcome: 'confirmed', granted: effectiveGranted(adopted, p) };
+    return { outcome: 'confirmed', granted: effectiveGrantedNow() };
   }
   const revived: PendingConsentDecision = {
     ...p,
@@ -553,7 +701,7 @@ export async function retryPendingDecision(): Promise<DecisionOutcome> {
   await savePending(userId, revived);
   await reconcile();
   const now = pending;
-  const granted = effectiveGranted(adopted, now);
+  const granted = effectiveGrantedNow();
   if (now === null) return { outcome: 'confirmed', granted };
   if (now.state === 'needs_resolution') return { outcome: 'needs_resolution', granted };
   return { outcome: 'queued', granted };
@@ -622,7 +770,8 @@ async function reconcileOnce(token: ScopeToken): Promise<void> {
   const res = await resolveIdentityOverWire();
   if (!scopeTokenStillValid(token)) return; // account switched mid-flight
   if (res.ok) {
-    serverId = res.identity.analyticsId;
+    identitySuppressed = false;
+    setServerId(res.identity.analyticsId);
     adopted = res.identity.consent;
     await saveServerId(userId, res.identity.analyticsId);
     if (!scopeTokenStillValid(token)) return;
@@ -636,20 +785,29 @@ async function reconcileOnce(token: ScopeToken): Promise<void> {
     // Deterministic: this caller will not be issued a pseudonym as things
     // stand. Emission becomes impossible (no id), which is the fail-closed
     // direction, and the cached id is dropped so it cannot be used again.
-    serverId = null;
+    setServerId(null);
     adopted = { granted: false, decisionSeq: null, disclosureVersion: null };
     await saveServerId(userId, null);
     if (!scopeTokenStillValid(token)) return;
-    if (pending !== null) {
-      if (res.code === 'analytics_identity_suppressed' && pending.action === 'revoke') {
-        // A suppressed member is not being collected. The revoke's intent is
-        // satisfied; holding a ceiling over a settled state is noise.
+
+    if (res.code === 'analytics_identity_suppressed') {
+      // TERMINAL, and terminal in a way `needs_resolution` is not: suppression
+      // is permanent, so there is no retry that could ever succeed. Offering
+      // one would be a button that is guaranteed to fail. The member is not
+      // being collected and cannot be re-enrolled here, so any pending
+      // decision — grant or revoke — is moot and is cleared rather than left
+      // sitting in a state whose only exit is an impossible retry.
+      identitySuppressed = true;
+      if (pending !== null) {
         setPending(null);
         await savePending(userId, null);
-      } else {
-        await markNeedsResolution(userId, token);
       }
+      pendingUnreadable = false;
+      notify();
+      return;
     }
+
+    if (pending !== null) await markNeedsResolution(userId, token);
     notify();
     return;
   }
@@ -677,7 +835,7 @@ async function publishPending(userId: string, token: ScopeToken): Promise<void> 
     // `needs_resolution` is terminal for automation. Nothing here may revive
     // it; only `retryPendingDecision()`, which the member triggers.
     if (p.state === 'needs_resolution') return;
-    if (conflictSatisfiesIntent(p.action, adopted)) {
+    if (conflictSatisfiesIntent(p.action, adopted, p.disclosureVersion)) {
       // The server already agrees — another device, or an earlier attempt we
       // never saw the answer to. Nothing to send.
       if (!scopeTokenStillValid(token)) return;
@@ -693,11 +851,18 @@ async function publishPending(userId: string, token: ScopeToken): Promise<void> 
       basedOnSeq: adopted?.decisionSeq ?? null,
     };
     setPending(inflight);
+    // Captured AFTER installing `inflight`, so it identifies THIS publication.
+    // Every write-back below is conditional on it: a decision the member makes
+    // while the request is in flight is newer than the snapshot this loop is
+    // carrying, and must not be erased by it. `hydrate` has had this guard
+    // since the beginning; `publishPending` did not, one function apart.
+    const publishSeq = pendingWriteSeq;
     // Persisted BEFORE the request, so a crash mid-flight is recoverable: the
     // next launch finds an `inflight` record and re-sends it. The server's
     // compare-and-set makes that duplicate harmless.
     await savePending(userId, inflight);
     if (!scopeTokenStillValid(token)) return;
+    if (pendingWriteSeq !== publishSeq) return; // superseded before we even sent
 
     const res = await postAnalyticsConsent({
       action: inflight.action,
@@ -705,6 +870,15 @@ async function publishPending(userId: string, token: ScopeToken): Promise<void> 
       expectedSeq: inflight.basedOnSeq,
     });
     if (!scopeTokenStillValid(token)) return; // account switched mid-flight
+    if (pendingWriteSeq !== publishSeq) {
+      // A newer decision was recorded while we were waiting. Adopt whatever
+      // the server told us — that is still true — but do NOT touch the pending
+      // record, which now belongs to the newer decision.
+      if (res.ok) adopted = res.consent;
+      else if (res.stale === true && res.current !== null) adopted = res.current;
+      notify();
+      return;
+    }
 
     if (res.ok) {
       adopted = res.consent;
@@ -719,7 +893,7 @@ async function publishPending(userId: string, token: ScopeToken): Promise<void> 
       // what makes the next attempt's expectedSeq correct rather than a
       // re-send of the same losing value.
       if (res.current !== null) adopted = res.current;
-      if (conflictSatisfiesIntent(inflight.action, adopted)) {
+      if (conflictSatisfiesIntent(inflight.action, adopted, inflight.disclosureVersion)) {
         setPending(null);
         await savePending(userId, null);
         notify();
@@ -760,12 +934,50 @@ async function publishPending(userId: string, token: ScopeToken): Promise<void> 
 // ─── delete-my-data support ───────────────────────────────────────────
 
 /**
+ * Raise a DURABLE restrictive ceiling before asking the server to erase.
+ *
+ * The ceiling goes up FIRST and is on disk before the request leaves, so the
+ * sequence that made a failed erasure silently re-enrol a member —
+ *
+ *   delete requested -> server failure -> local state cleared -> server grant
+ *   re-adopted on the next reconcile -> analytics resumes
+ *
+ * — cannot happen: there is nothing to re-adopt over. If the erase is never
+ * confirmed the record survives the restart, the gate stays closed, and the
+ * revoke is published to the server on the next reconcile, which is what the
+ * member asked for anyway.
+ *
+ * Phase 1 is synchronous, like `recordDecision`: the ceiling is operative
+ * against any concurrent emit before the first await.
+ */
+export function requestErasureCeiling(): Promise<void> {
+  const userId = currentMemberId();
+  if (userId === null) return Promise.resolve();
+  const record: PendingConsentDecision = {
+    action: 'revoke',
+    disclosureVersion: adopted?.disclosureVersion ?? DISCLOSURE_VERSION,
+    basedOnSeq: adopted?.decisionSeq ?? null,
+    state: 'queued',
+    reissues: 0,
+    createdAtMs: Date.now(),
+  };
+  setPending(record); // ← closed from this line onward
+  notify();
+  return savePending(userId, record);
+}
+
+/**
  * Drop every local trace this module owns for the CURRENT member, after the
- * server has erased its side. Not a consent decision: the server's forget
- * already revoked and suppressed, so a pending ceiling would be stale.
+ * server has CONFIRMED it erased its side.
+ *
+ * Only ever called on a confirmed erasure. On failure the ceiling raised by
+ * `requestErasureCeiling` must survive instead — clearing it there is what
+ * produced the silent re-enrolment.
  */
 export async function clearLocalAuthorityState(): Promise<void> {
   const userId = currentMemberId();
+  identitySuppressed = true;
+  pendingUnreadable = false;
   adopted = { granted: false, decisionSeq: null, disclosureVersion: null };
   setPending(null);
   serverId = null;
@@ -785,10 +997,12 @@ export const __keysForTests = {
 
 /** TEST-ONLY. Inspect and reset the in-memory authority. */
 export const __authorityForTests = {
-  snapshot: () => ({ adopted, pending, serverId, hydratedFor }),
+  snapshot: () => ({ adopted, pending, serverId, hydratedFor, pendingUnreadable, identitySuppressed }),
   reset: () => {
     adopted = null;
     pending = null;
+    pendingUnreadable = false;
+    identitySuppressed = false;
     serverId = null;
     hydratedFor = null;
     hydrating = null;

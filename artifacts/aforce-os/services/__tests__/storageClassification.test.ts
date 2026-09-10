@@ -234,12 +234,72 @@ describe('LAW C2 — an account-scoped key is only enrolled with scope-aware RAM
     // in analytics/__tests__/clientAnalyticsTransition.test.ts (LAW 8).
   ];
 
-  it.each(CACHING_SCOPED_MODULES)('%s resets its RAM on a scope change', (rel) => {
-    const src = readFileSync(join(ROOT, rel), 'utf8');
-    expect(src, `${rel} reads scoped storage but never subscribes to scope changes`).toMatch(
-      /subscribeUserScope\(/,
-    );
-    // MUTATION: remove the subscribeUserScope block from any of these → red.
+  /**
+   * Strip comments before matching.
+   *
+   * The previous version of this law was a bare regex over the raw source, so
+   * it matched inside a comment — `// TODO(PR D): restore subscribeUserScope(`
+   * kept it green with the subscription deleted. That is the exact
+   * "a different element satisfies the law" trap this file's own docblock
+   * warns about, in this file.
+   */
+  function code(rel: string): string {
+    return readFileSync(join(ROOT, rel), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+  }
+
+  it.each(CACHING_SCOPED_MODULES)('%s subscribes to scope changes in CODE', (rel) => {
+    expect(
+      /subscribe(UserScope|ScopeState)\(/.test(code(rel)),
+      `${rel} reads scoped storage but never subscribes to scope changes`,
+    ).toBe(true);
+    // MUTATION: replace the subscription with a comment mentioning it → red.
+  });
+
+  it('the analytics modules subscribe to the listener that ACTUALLY FIRES', () => {
+    // `subscribeUserScope` fires only when the effective storage NAMESPACE
+    // changes, and while `per_user_storage_isolation_enabled` is false that
+    // namespace is null for every state — so an A→B account switch fires those
+    // listeners ZERO times in today's production configuration. A module
+    // certified by the presence of that token is certified by nothing.
+    for (const rel of [
+      'analytics/privacy_manager.ts',
+      'analytics/event_dispatcher.ts',
+      'analytics/consentAuthority.ts',
+    ]) {
+      expect(
+        /subscribeScopeState\(/.test(code(rel)),
+        `${rel} must use subscribeScopeState — subscribeUserScope is inert ` +
+          'while the isolation flag is off',
+      ).toBe(true);
+    }
+  });
+
+  it('EXECUTABLE — an A→B switch with isolation OFF really does drop the cache', async () => {
+    // The behavioural claim the law above only gestures at, driven end to end
+    // in the production configuration (isolation flag OFF).
+    vi.resetModules();
+    const userScope = await import('../userScope');
+    const authority = await import('../../analytics/consentAuthority');
+
+    userScope.resolveScope({ status: 'AUTHENTICATED', userId: 'user_A' });
+    // Give the authority some of A's state to lose.
+    authority.__authorityForTests.reset();
+    userScope.resolveScope({ status: 'AUTHENTICATED', userId: 'user_A' });
+    await authority.recordDecision('revoke');
+    expect(
+      authority.__authorityForTests.snapshot().pending?.action,
+      'A must actually have state before the switch, or the law proves nothing',
+    ).toBe('revoke');
+
+    userScope.resolveScope({ status: 'AUTHENTICATED', userId: 'user_B' });
+    const snap = authority.__authorityForTests.snapshot();
+    expect(snap.pending, 'B must not inherit A’s pending decision').toBeNull();
+    expect(snap.adopted, 'nor A’s adopted consent').toBeNull();
+    expect(snap.serverId, 'nor A’s pseudonym').toBeNull();
+    // MUTATION: switch the reset back to subscribeUserScope → red, because
+    // with the flag off it never fires.
   });
 
   it('useAppStore re-runs its scoped hydration when the member changes', () => {
