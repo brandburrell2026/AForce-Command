@@ -1,5 +1,45 @@
 # Client analytics transition — mutation matrix
 
+> ## ⚠ CORRECTION (Lane 2) — the M1/M3 equivalence claim below was FALSE
+>
+> This document originally classified mutants **M1 and M3 as equivalent**, on
+> the strength of an "exhaustive" table arguing that
+> `adopted.granted === true && serverId === null` was unreachable.
+>
+> **That argument was wrong, and the mutants were real.** An adversarial audit
+> of the merged code reproduced the state, and it was independently reproduced
+> again before this correction was written:
+>
+> ```
+> snapshot: {"adopted":{"granted":true,"decisionSeq":1},"serverId":null,"hydratedFor":"u1"}
+> disk still holds: anon_srv_u1
+> granted=true   id=null   emit=false   ui={"status":"settled","granted":true}
+> ```
+>
+> The table missed one writer: `hydrate` nulls `serverId` from a stale disk read
+> and leaves `adopted` alone. `pending` had a staleness guard and `serverId`,
+> one line below it, did not. A transient `signed_in_without_user_id` and
+> recovery to the same member was enough — with the isolation flag off the scope
+> generation never moves, so the in-flight read's token stayed valid, its stale
+> `null` landed on a live pseudonym, and `hydratedFor` then latched so the
+> correct value on disk was never re-read.
+>
+> Effect with no mutant at all: a granted member silently stopped emitting for
+> the rest of the process while the settings row still said analytics was on.
+>
+> **M1 and M3 are therefore recorded as real, previously-uncovered paths — not
+> equivalent mutants.** Lane 2 closes the reachability at its source (the
+> `serverIdWriteSeq` guard in `hydrate`) and both now have lethal mutations; see
+> `docs/analytics/CLIENT-REMEDIATION.md`.
+>
+> **The lesson, recorded because this program keeps paying for it:** the
+> retracted argument enumerated application code paths and claimed completeness.
+> An unreachability claim is only as good as that enumeration, and mine was
+> incomplete by one function. Lane 1b's surviving mutant is labelled with a
+> claim of a different kind — a PostgreSQL guarantee that a row held under
+> `FOR UPDATE` cannot be modified — which does not depend on my having listed
+> every caller.
+
 Every safety boundary in the lane, mutated in the production source, with the
 result of running the law suites against the mutant.
 
@@ -20,13 +60,17 @@ exist because both failure modes bit this program before: a `local` declaration
 resetting `$?` in the PG18 lane, and — in this lane's first pass — a patch string
 that omitted a trailing comment, so the mutant never applied and scored MISSED.
 
-## Result: 23 KILLED / 2 MISSED (both classified EQUIVALENT, see below)
+## Result as originally recorded: 23 KILLED / 2 MISSED
+
+The two survivors were classified EQUIVALENT. **That classification is
+retracted** — see the correction at the top of this file. They were live,
+uncovered paths.
 
 | # | Mutation | Result |
 |---|---|---|
-| M1 | The gate mints an id locally when the server has not issued one | **MISSED** — equivalent, see below |
+| M1 | The gate mints an id locally when the server has not issued one | **MISSED — live path, NOT equivalent** (retracted; lethal in Lane 2) |
 | M2 | The gate ignores consent and returns the id regardless | KILLED |
-| M3 | The gate emits under a placeholder id | **MISSED** — equivalent, see below |
+| M3 | The gate emits under a placeholder id | **MISSED — live path, NOT equivalent** (retracted; lethal in Lane 2) |
 | M4 | A pending revoke no longer restricts (client becomes a pure renderer of server state) | KILLED |
 | M5 | The ceiling becomes symmetric — an unconfirmed offline GRANT opens collection | KILLED |
 | M6 | The revoke ceiling is applied after an `await` rather than synchronously | KILLED |
@@ -50,7 +94,10 @@ that omitted a trailing comment, so the mutant never applied and scored MISSED.
 | M23 | `hydrate` clobbers a newer in-memory decision with the disk value | KILLED |
 | M24 | **Non-vacuity control** — the gate refuses everything, always | KILLED |
 
-## The two survivors are equivalent mutants, and here is the proof
+## ~~The two survivors are equivalent mutants, and here is the proof~~ — RETRACTED
+
+**The reasoning below is preserved as the record of a mistake, not as a claim.**
+Its conclusion is false; see the correction at the top of this file.
 
 M1 and M3 both add a fallback to the emission gate:
 

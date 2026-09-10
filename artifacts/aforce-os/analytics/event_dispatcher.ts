@@ -16,7 +16,7 @@
  * concurrent emits cannot clobber the outbox.
  */
 import { scopedStorage } from '@/services/scopedStorage';
-import { subscribeUserScope } from '@/services/userScope';
+import { subscribeScopeState } from '@/services/userScope';
 import { Platform } from "react-native";
 
 import type {
@@ -448,10 +448,13 @@ export async function initAnalytics(): Promise<void> {
   await flush();
 }
 
-// Wave-3 PR12: reset the module-level in-flight latches on a user-scope
-// change so USER B's session can never be blocked (or double-emit) off
-// USER A's in-flight once-per-day/once-ever dedupe state.
-subscribeUserScope(() => {
+// Wave-3 PR12: reset the module-level in-flight latches on a scope change so
+// USER B's session can never be blocked (or double-emit) off USER A's
+// in-flight once-per-day/once-ever dedupe state.
+//
+// `subscribeScopeState`, NOT `subscribeUserScope`: with the isolation flag off
+// the latter fires zero times on an account switch, so this reset never ran.
+subscribeScopeState(() => {
   territoryOpenInFlight = false;
   perfAgeSnapshotInFlight = false;
   firstWinInFlight = false;

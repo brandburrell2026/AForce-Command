@@ -626,7 +626,11 @@
       "needs_resolution_note": "We couldn’t save this choice. Your analytics stay off until it succeeds.",
       "retry_btn": "Try again",
       "retry_a11y": "Retry saving your analytics choice",
-      "signed_out_note": "Sign in to manage analytics."
+      "signed_out_note": "Sign in to manage analytics.",
+      "unsynced_note": "Checking your current setting…",
+      "unreadable_note": "We couldn’t read your saved choice, so analytics stay off. Choose again to fix it.",
+      "suppressed_note": "Your analytics data was deleted. Analytics are off for this account and can’t be turned back on.",
+      "delete_failed_note": "We couldn’t confirm the deletion. Analytics stay off. Please try again."
     },
     "perfIdentity": {
       "title": "Performance Identity · Internal",

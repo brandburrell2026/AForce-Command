@@ -20,6 +20,14 @@
  *                     and the member is offered an explicit retry. Nothing
  *                     retries automatically: a 403 that will never succeed must
  *                     not be re-POSTed on every foreground forever.
+ *   unsynced          a member, but the server has not answered yet. The
+ *                     switch stays OPERABLE: this state used to disable the
+ *                     only control capable of leaving it.
+ *   unreadable        a pending record on disk could not be read. The gate is
+ *                     CLOSED — it might have said "revoke" — and deciding
+ *                     again replaces the unreadable bytes.
+ *   suppressed        the member has been forgotten. TERMINAL, and no retry is
+ *                     offered because none could ever succeed.
  *   unknown           identity not resolved yet — the switch is disabled rather
  *                     than rendering a guess as a settled answer.
  *
@@ -49,6 +57,7 @@ import {
   retryPendingDecision,
   subscribeConsentState,
   deleteMyData,
+  syncAnalyticsAuthority,
   type ConsentUiState,
 } from '@/analytics/privacy_manager';
 import { emit, clearOutbox } from '@/analytics/event_dispatcher';
@@ -60,6 +69,7 @@ export function AnalyticsConsentRow() {
   const { t } = useTranslation();
   const [ui, setUi] = React.useState<ConsentUiState>(UNKNOWN);
   const [busy, setBusy] = React.useState(false);
+  const [deleteFailed, setDeleteFailed] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -69,6 +79,12 @@ export function AnalyticsConsentRow() {
       });
     };
     read();
+    // Ask the server for the member's real state when this row opens. Without
+    // this the row can only ever show `unsynced`, because nothing else in the
+    // app currently calls reconcile — see the initAnalytics note in the PR.
+    // This is the consent screen refreshing its own data, not a new app-wide
+    // lifecycle hook.
+    void syncAnalyticsAuthority();
     // The authority changes state without the UI asking — a reconcile adopts
     // the server's answer, an account switch wipes it. Subscribe rather than
     // hold a snapshot taken at mount.
@@ -80,7 +96,14 @@ export function AnalyticsConsentRow() {
   }, []);
 
   const granted = ui.status === 'unknown' || ui.status === 'not_a_member' ? false : ui.granted;
-  const manageable = ui.status !== 'unknown' && ui.status !== 'not_a_member';
+  // The switch is disabled ONLY where there is genuinely nothing to decide:
+  // identity unresolved, signed out, or terminally suppressed. It is
+  // deliberately ENABLED for `unsynced` — that state used to disable the only
+  // control capable of leaving it, which made a first-time member's consent
+  // decision unreachable. Nothing is auto-granted or auto-revoked; the member
+  // decides, and `recordDecision` reconciles from whatever the server answers.
+  const manageable =
+    ui.status !== 'unknown' && ui.status !== 'not_a_member' && ui.status !== 'suppressed';
 
   const onToggle = React.useCallback(async (next: boolean) => {
     setBusy(true);
@@ -112,10 +135,15 @@ export function AnalyticsConsentRow() {
 
   const runDelete = React.useCallback(async () => {
     setBusy(true);
+    setDeleteFailed(false);
     try {
       await deleteMyData(clearOutbox);
     } catch {
-      /* deleteMyData already cleared local state in its finally */
+      // The server did NOT confirm the erasure. Say so. The durable ceiling
+      // raised before the request keeps analytics closed meanwhile, so the
+      // member is not collected while this is unresolved — but showing
+      // success here would be a lie about their data.
+      setDeleteFailed(true);
     } finally {
       setUi(await getConsentUiState());
       setBusy(false);
@@ -173,6 +201,27 @@ export function AnalyticsConsentRow() {
       {ui.status === 'pending' ? (
         <Text style={styles.note} testID="analytics-consent-pending">
           {t('settings.analyticsConsent.pending_note')}
+        </Text>
+      ) : null}
+      {ui.status === 'unsynced' ? (
+        <Text style={styles.note} testID="analytics-consent-unsynced">
+          {t('settings.analyticsConsent.unsynced_note')}
+        </Text>
+      ) : null}
+      {ui.status === 'unreadable' ? (
+        <Text style={styles.note} testID="analytics-consent-unreadable">
+          {t('settings.analyticsConsent.unreadable_note')}
+        </Text>
+      ) : null}
+      {/* TERMINAL. No retry is offered, because none could ever succeed. */}
+      {ui.status === 'suppressed' ? (
+        <Text style={styles.note} testID="analytics-consent-suppressed">
+          {t('settings.analyticsConsent.suppressed_note')}
+        </Text>
+      ) : null}
+      {deleteFailed ? (
+        <Text style={styles.errorNote} testID="analytics-consent-delete-failed">
+          {t('settings.analyticsConsent.delete_failed_note')}
         </Text>
       ) : null}
       {ui.status === 'needs_resolution' ? (
@@ -237,6 +286,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: Colors.text.secondary,
+  },
+  errorNote: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    lineHeight: 16,
+    color: af.redText,
+    marginTop: 8,
   },
   note: {
     fontFamily: 'Inter_400Regular',

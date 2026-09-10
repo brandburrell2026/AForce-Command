@@ -33,7 +33,7 @@
  * collection: `isConsentGranted` does not consult it.
  */
 import { scopedStorage } from '@/services/scopedStorage';
-import { subscribeUserScope } from '@/services/userScope';
+import { subscribeScopeState } from '@/services/userScope';
 
 import { forgetAnalyticsIdentity } from '@/lib/api';
 
@@ -41,6 +41,7 @@ import {
   DISCLOSURE_VERSION,
   clearLocalAuthorityState,
   consentUiState,
+  requestErasureCeiling,
   getServerAnalyticsId,
   isEffectivelyGranted,
   recordDecision,
@@ -177,21 +178,47 @@ export { retryPendingDecision };
 export async function deleteMyData(
   clearOutbox: () => Promise<void>,
 ): Promise<{ serverDeleted: number }> {
-  let serverDeleted = 0;
-  try {
-    const result = await forgetAnalyticsIdentity();
-    serverDeleted = result.deleted;
-  } finally {
-    await clearLocalAuthorityState();
-    await clearOutbox();
-    legacyAnsweredCache = null;
-  }
-  return { serverDeleted };
+  // ── THE CEILING GOES UP FIRST, AND DURABLY ──
+  //
+  // The previous shape cleared local state in a `finally`, so a network or
+  // server failure produced exactly this:
+  //
+  //   delete requested -> server failure -> local state cleared -> the next
+  //   reconcile re-adopts the server's untouched grant -> analytics resumes,
+  //   and the settings switch visibly flips itself back ON
+  //
+  // for a member who asked to be erased, with no error shown. Raising a
+  // durable restrictive ceiling before the request removes the thing that
+  // re-adoption needed: there is nothing left to re-adopt over, and the record
+  // survives a restart.
+  await requestErasureCeiling();
+
+  // Queued events are the member's own data and they asked for it gone. This
+  // is safe on both paths — the gate is closed either way, so nothing is
+  // collected to replace them.
+  await clearOutbox();
+  legacyAnsweredCache = null;
+
+  // Not caught. A failure must reach the caller so the UI can say so; the
+  // ceiling raised above is what keeps analytics closed until it is resolved.
+  const result = await forgetAnalyticsIdentity();
+
+  // CONFIRMED erased. Only now is it safe to drop the local authority state —
+  // and `clearLocalAuthorityState` marks the identity suppressed, so the UI
+  // renders the terminal state rather than offering an impossible retry.
+  await clearLocalAuthorityState();
+  return { serverDeleted: result.deleted };
 }
 
 // Wave-3 PR12: a user-scope change is a security boundary — this module cached
 // the previous member's answer. The authority resets its own state on the same
 // signal; this clears the legacy prompt-suppression cache.
-subscribeUserScope(() => {
+//
+// `subscribeScopeState`, NOT `subscribeUserScope`: the latter fires only when
+// the effective storage NAMESPACE changes, and while
+// `per_user_storage_isolation_enabled` is false that namespace is null for
+// every state — so on today's production configuration an A→B account switch
+// fired those listeners ZERO times and this reset never ran.
+subscribeScopeState(() => {
   legacyAnsweredCache = null;
 });
