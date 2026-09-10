@@ -110,6 +110,52 @@ async function request<T>(
 }
 
 /**
+ * A request whose NON-2xx answers are data, not exceptions.
+ *
+ * The analytics identity/consent endpoints are the only callers. They need the
+ * server's explicit `code` and, for a 409, its `current` state — and a thrown
+ * error that stringifies the body forces the caller to re-parse a message,
+ * which is how a client ends up classifying a permanent refusal as a network
+ * blip and retrying it forever. So the status and the parsed body are returned
+ * intact. A transport failure (offline) is reported as status 0 rather than
+ * thrown, because "we could not reach the server" is a state this caller must
+ * handle, not an error it should crash on.
+ */
+async function requestEither(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+): Promise<{ status: number; body: Record<string, unknown> | null }> {
+  const deviceId = await getDeviceId();
+  const { getAuthHeaders } = await import("../services/authToken");
+  const auth = await getAuthHeaders();
+  let res: Response;
+  try {
+    res = await fetch(`${getApiBase()}${path}`, {
+      method,
+      headers: { "content-type": "application/json", "x-device-id": deviceId, ...auth },
+      body: body == null ? undefined : JSON.stringify(body),
+    });
+  } catch {
+    return { status: 0, body: null };
+  }
+  let parsed: Record<string, unknown> | null = null;
+  try {
+    const text = await res.text();
+    const json: unknown = text ? JSON.parse(text) : null;
+    parsed = json !== null && typeof json === "object" ? (json as Record<string, unknown>) : null;
+  } catch {
+    parsed = null;
+  }
+  return { status: res.status, body: parsed };
+}
+
+/** The server's error `code`, when it sent one. Never inferred from the status. */
+function errorCode(body: Record<string, unknown> | null): string | null {
+  return typeof body?.["code"] === "string" ? (body["code"] as string) : null;
+}
+
+/**
  * Internal analytics identity header (Task #39). Returns the pseudonymous
  * analytics id under `x-aforce-analytics-id` ONLY when the user has granted
  * analytics consent AND an id already exists — so backend-owned events
@@ -284,10 +330,164 @@ export interface AnalyticsIngestResult {
   deduped: number;
 }
 
+/**
+ * What an ingest POST actually means.
+ *
+ * The route has TWO success-shaped answers and they are not the same event:
+ *   - `{received, accepted, deduped}` — the batch was stored (or was already
+ *     stored, which is what `deduped` counts).
+ *   - `{inserted: 0}` — the writer gate REFUSED the caller, and deliberately
+ *     does not say why. Nothing was stored and nothing ever will be for these
+ *     envelopes as they stand.
+ *
+ * Collapsing the second into the first is the `inserted: 0` trap: a 200 with a
+ * zero count reads as "delivered nothing to deliver" when it actually means
+ * "refused". The union forces the caller to decide.
+ */
+export type AnalyticsIngestOutcome =
+  | ({ outcome: "stored" } & AnalyticsIngestResult)
+  /** The gate refused. Terminal for this batch — never a retry signal. */
+  | { outcome: "refused" }
+  /** The envelopes name a pseudonym this caller does not own. Terminal. */
+  | { outcome: "not_owned" }
+  /** Offline, 5xx, or an unclassifiable answer. The batch is still owed. */
+  | { outcome: "unavailable"; status: number };
+
 export async function postAnalyticsBatch(
   events: AnalyticsEventEnvelope[],
-): Promise<AnalyticsIngestResult> {
-  return request<AnalyticsIngestResult>("POST", "/aforce/analytics", { events });
+): Promise<AnalyticsIngestOutcome> {
+  const { status, body } = await requestEither("POST", "/aforce/analytics", { events });
+  if (status === 200) {
+    if (typeof body?.["accepted"] === "number" && typeof body["received"] === "number") {
+      return {
+        outcome: "stored",
+        received: body["received"] as number,
+        accepted: body["accepted"] as number,
+        deduped: typeof body["deduped"] === "number" ? (body["deduped"] as number) : 0,
+      };
+    }
+    // `{inserted: 0}` — the gate's deliberately uninformative refusal.
+    if (typeof body?.["inserted"] === "number") return { outcome: "refused" };
+    return { outcome: "unavailable", status };
+  }
+  if (status === 403 && errorCode(body) === "analytics_id_not_owned") {
+    return { outcome: "not_owned" };
+  }
+  return { outcome: "unavailable", status };
+}
+
+/**
+ * S1-3 identity/consent authority. These replace the client's local mint and
+ * its local consent assertion: the server issues the pseudonym and owns the
+ * operative consent state.
+ */
+export interface AnalyticsConsentWire {
+  granted: boolean;
+  /** null = the member has NEVER decided. Never 0 — see the server's CAS. */
+  decisionSeq: number | null;
+  disclosureVersion: number | null;
+}
+
+export interface AnalyticsIdentityWire {
+  analyticsId: string;
+  status: "active" | "suppressed";
+  consent: AnalyticsConsentWire;
+}
+
+/** A refusal carrying the server's own code, so the caller never guesses. */
+export interface AnalyticsRefusal {
+  ok: false;
+  status: number;
+  code: string | null;
+}
+
+function isConsentWire(b: Record<string, unknown> | null): b is Record<string, unknown> {
+  return typeof b?.["granted"] === "boolean";
+}
+
+function consentFrom(b: Record<string, unknown>): AnalyticsConsentWire {
+  const seq = b["decisionSeq"];
+  const dv = b["disclosureVersion"];
+  return {
+    granted: b["granted"] === true,
+    decisionSeq: typeof seq === "number" ? seq : null,
+    disclosureVersion: typeof dv === "number" ? dv : null,
+  };
+}
+
+export type ResolveIdentityResult =
+  | { ok: true; identity: AnalyticsIdentityWire }
+  | AnalyticsRefusal;
+
+export async function resolveAnalyticsIdentity(): Promise<ResolveIdentityResult> {
+  const { status, body } = await requestEither("POST", "/aforce/analytics-identity/resolve");
+  if (status === 200 && typeof body?.["analyticsId"] === "string") {
+    const consentRaw = body["consent"];
+    const consent =
+      consentRaw !== null && typeof consentRaw === "object"
+        ? consentFrom(consentRaw as Record<string, unknown>)
+        : { granted: false, decisionSeq: null, disclosureVersion: null };
+    return {
+      ok: true,
+      identity: {
+        analyticsId: body["analyticsId"] as string,
+        status: body["status"] === "suppressed" ? "suppressed" : "active",
+        consent,
+      },
+    };
+  }
+  return { ok: false, status, code: errorCode(body) };
+}
+
+/**
+ * A consent decision, with the 409 as a first-class answer rather than an
+ * exception: the server hands back the CURRENT state so the client can adopt
+ * it, which is the whole point of the compare-and-set.
+ */
+export type PostConsentResult =
+  | { ok: true; consent: AnalyticsConsentWire }
+  | { ok: false; stale: true; current: AnalyticsConsentWire | null }
+  | (AnalyticsRefusal & { stale?: false });
+
+export async function postAnalyticsConsent(args: {
+  action: "grant" | "revoke";
+  disclosureVersion: number;
+  expectedSeq: number | null;
+}): Promise<PostConsentResult> {
+  const { status, body } = await requestEither("POST", "/aforce/analytics-consent", args);
+  if (status === 200 && isConsentWire(body)) return { ok: true, consent: consentFrom(body) };
+  if (status === 409 && errorCode(body) === "consent_stale") {
+    const cur = body?.["current"];
+    return {
+      ok: false,
+      stale: true,
+      current:
+        cur !== null && typeof cur === "object" && isConsentWire(cur as Record<string, unknown>)
+          ? consentFrom(cur as Record<string, unknown>)
+          : null,
+    };
+  }
+  return { ok: false, status, code: errorCode(body) };
+}
+
+/**
+ * delete-my-data, S1-3 form: the pseudonym is resolved SERVER-SIDE from the
+ * caller's own identity, so no id is sent.
+ *
+ * This replaces `forgetAnalytics(id)` on the client path for a reason the
+ * transition creates: once the client stops minting locally, a member whose id
+ * cache is empty has no id to send — and the legacy route's body schema
+ * requires a well-formed one. Gating erasure on a local cache would mean a
+ * reinstalled member could not be forgotten.
+ */
+export async function forgetAnalyticsIdentity(): Promise<{
+  deleted: number;
+  status: string;
+}> {
+  return request<{ deleted: number; status: string }>(
+    "POST",
+    "/aforce/analytics-identity/forget",
+  );
 }
 
 export async function forgetAnalytics(

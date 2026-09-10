@@ -1,171 +1,197 @@
 /**
- * Privacy manager — consent and pseudonymous identity for the INTERNAL
- * analytics pipeline.
+ * Privacy manager — the app's view onto consent and pseudonymous identity for
+ * the INTERNAL analytics pipeline.
  *
- * PRIVACY BEFORE COLLECTION: nothing is collected or sent until the
- * user has explicitly granted consent. The pseudonymous `analytics_id`
- * is created only at consent time and is never the Clerk user id, so
- * stored analytics cannot be trivially tied to a person. The user can
- * delete all their analytics data at any time (delete-my-data), which
- * also revokes consent and clears the local outbox.
+ * ── WHAT CHANGED, AND WHY IT MATTERS ───────────────────────────────────────
  *
- * Persistence mirrors the rest of the app: `@aforce/*` AsyncStorage
- * keys, best-effort (storage failures are non-fatal).
+ * This module used to be the authority: it MINTED the pseudonymous
+ * `analytics_id` locally (`newId("anon")`) and it asserted its own local
+ * consent record as operative truth. Both are gone.
+ *
+ *   - The pseudonym is now ISSUED BY THE SERVER. A locally minted id is a
+ *     second identity authority: reinstalls and multiple devices each invent
+ *     their own, so one member becomes several, and a member who asked to be
+ *     forgotten gets a brand-new identity on the next launch — silently
+ *     re-enrolled. The server mints exactly one per member and can retire it.
+ *
+ *   - Consent is now the SERVER'S state, adopted, with a local ceiling that
+ *     can only RESTRICT. A device holding a stale local grant could otherwise
+ *     keep collecting after the member revoked on another device.
+ *
+ * Both now live in `consentAuthority`. This module is the stable façade the
+ * rest of the app already imports — same function names, same signatures — so
+ * the trackers and the settings row keep working while the authority moves.
+ *
+ * ── THE LEGACY KEYS ARE READ, NEVER WRITTEN, AND NEVER PURGED ──────────────
+ *
+ * `@aforce/analytics-id` (the old local mint) is not read as an identity and
+ * not deleted: deletion is PR D's migration decision, not this lane's.
+ *
+ * `@aforce/analytics-consent` (the old local record) is read for ONE narrow
+ * purpose — answering "has this member ever been asked?" so an offline launch
+ * does not re-prompt someone who already decided. It can never open
+ * collection: `isConsentGranted` does not consult it.
  */
 import { scopedStorage } from '@/services/scopedStorage';
 import { subscribeUserScope } from '@/services/userScope';
 
-import { forgetAnalytics } from "@/lib/api";
+import { forgetAnalyticsIdentity } from '@/lib/api';
 
-import { newId } from "./event_envelope";
+import {
+  DISCLOSURE_VERSION,
+  clearLocalAuthorityState,
+  consentUiState,
+  getServerAnalyticsId,
+  isEffectivelyGranted,
+  recordDecision,
+  reconcile,
+  retryPendingDecision,
+  subscribeConsentState,
+  type ConsentUiState,
+  type DecisionOutcome,
+} from './consentAuthority';
 
-const CONSENT_KEY = "@aforce/analytics-consent";
-const ANALYTICS_ID_KEY = "@aforce/analytics-id";
+/** The legacy local consent record. Read for prompt suppression only. */
+const CONSENT_KEY = '@aforce/analytics-consent';
 
-/** Bump when the consent disclosure text materially changes. */
-export const CONSENT_VERSION = 1;
+/**
+ * Bump when the consent disclosure text materially changes.
+ *
+ * Re-exported from the authority so there is ONE version of record. The server
+ * stores it as evidence of what the member agreed to, so a second definition
+ * here could make the evidence disagree with the disclosure shown.
+ */
+export const CONSENT_VERSION = DISCLOSURE_VERSION;
 
-interface ConsentRecord {
+export type { ConsentUiState, DecisionOutcome };
+
+interface LegacyConsentRecord {
   granted: boolean;
   version: number;
   updatedAt: string;
 }
 
-let consentCache: ConsentRecord | null = null;
-let analyticsIdCache: string | null = null;
+let legacyAnsweredCache: boolean | null = null;
 
-async function readConsent(): Promise<ConsentRecord | null> {
-  if (consentCache) return consentCache;
+/**
+ * The effective consent gate: the server's adopted state with the local
+ * ceiling applied. The single definition every emit and pre-check uses.
+ */
+export async function isConsentGranted(): Promise<boolean> {
+  return isEffectivelyGranted();
+}
+
+/**
+ * Whether the member has answered the consent prompt at all, for UI that
+ * decides whether to ASK. Never a collection gate.
+ *
+ * Prefers the server's answer (`decisionSeq !== null` means a real decision is
+ * on record). Falls back to the legacy local record only when the server has
+ * not answered yet — an offline launch should not re-interrogate a member who
+ * already decided on a previous build.
+ */
+export async function hasAnsweredConsent(): Promise<boolean> {
+  const ui = await consentUiState();
+  if (ui.status === 'settled') return ui.answered;
+  if (ui.status === 'pending' || ui.status === 'needs_resolution') return true;
+  return readLegacyAnswered();
+}
+
+async function readLegacyAnswered(): Promise<boolean> {
+  if (legacyAnsweredCache !== null) return legacyAnsweredCache;
   try {
     const raw = await scopedStorage.getItem(CONSENT_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<ConsentRecord>;
-    if (typeof parsed.granted === "boolean") {
-      consentCache = {
-        granted: parsed.granted,
-        version: typeof parsed.version === "number" ? parsed.version : 0,
-        updatedAt:
-          typeof parsed.updatedAt === "string"
-            ? parsed.updatedAt
-            : new Date(0).toISOString(),
-      };
-      return consentCache;
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<LegacyConsentRecord>;
+      legacyAnsweredCache = typeof parsed.granted === 'boolean';
+      return legacyAnsweredCache;
     }
   } catch {
     /* non-fatal */
   }
-  return null;
-}
-
-async function writeConsent(record: ConsentRecord): Promise<void> {
-  consentCache = record;
-  try {
-    await scopedStorage.setItem(CONSENT_KEY, JSON.stringify(record));
-  } catch {
-    /* non-fatal — in-memory cache still gates this session */
-  }
-}
-
-/** True only after an explicit, current grant. The single gate every
- *  emit checks before doing anything. */
-export async function isConsentGranted(): Promise<boolean> {
-  const c = await readConsent();
-  return Boolean(c?.granted);
-}
-
-/** Whether the user has answered the consent prompt at all (for UI that
- *  decides whether to show it). */
-export async function hasAnsweredConsent(): Promise<boolean> {
-  const c = await readConsent();
-  return c !== null;
+  legacyAnsweredCache = false;
+  return false;
 }
 
 /**
- * Grant consent and ensure a pseudonymous analytics id exists. Returns
- * the id so the caller can emit the first `consent_granted` event.
+ * Grant consent.
+ *
+ * Returns the decision outcome rather than an id, because there is no id to
+ * hand back until the SERVER issues one — and a grant may legitimately be
+ * `queued` (offline) or `needs_resolution` (deterministically refused). The
+ * old signature returned `Promise<string>` and could only do so by minting.
  */
-export async function grantConsent(): Promise<string> {
-  await writeConsent({
-    granted: true,
-    version: CONSENT_VERSION,
-    updatedAt: new Date().toISOString(),
-  });
-  return ensureAnalyticsId();
-}
-
-/** Revoke consent. Stops all future emission; existing local/queued
- *  data is left untouched (use deleteMyData to also erase it). */
-export async function revokeConsent(): Promise<void> {
-  await writeConsent({
-    granted: false,
-    version: CONSENT_VERSION,
-    updatedAt: new Date().toISOString(),
-  });
-}
-
-/** The pseudonymous id, or null if consent has never been granted. */
-export async function getAnalyticsId(): Promise<string | null> {
-  if (analyticsIdCache) return analyticsIdCache;
-  try {
-    const existing = await scopedStorage.getItem(ANALYTICS_ID_KEY);
-    if (existing && existing.length >= 8) {
-      analyticsIdCache = existing;
-      return existing;
-    }
-  } catch {
-    /* non-fatal */
-  }
-  return null;
-}
-
-/** Get the pseudonymous id, creating one if absent. Only call from the
- *  consent path — emission paths use getAnalyticsId + the consent gate. */
-export async function ensureAnalyticsId(): Promise<string> {
-  const existing = await getAnalyticsId();
-  if (existing) return existing;
-  const fresh = newId("anon");
-  analyticsIdCache = fresh;
-  try {
-    await scopedStorage.setItem(ANALYTICS_ID_KEY, fresh);
-  } catch {
-    /* non-fatal — in-memory id still works for this session */
-  }
-  return fresh;
+export async function grantConsent(): Promise<DecisionOutcome> {
+  return recordDecision('grant');
 }
 
 /**
- * delete-my-data. Asks the server to erase every row for this id, then
- * revokes consent and wipes the local id + queued outbox. Best-effort
- * on the network call: if it fails we still clear locally and surface
- * the error to the caller.
+ * Revoke consent.
+ *
+ * Operative immediately and locally, even offline: the pending revoke is the
+ * ceiling, so emission stops before the server is told. Existing local/queued
+ * data is left untouched — `deleteMyData` is the erase path.
+ */
+export async function revokeConsent(): Promise<DecisionOutcome> {
+  return recordDecision('revoke');
+}
+
+/**
+ * The pseudonymous id, or null when the server has not issued one (or consent
+ * is not effectively granted). NEVER mints — that is the point of this lane.
+ */
+export async function getAnalyticsId(): Promise<string | null> {
+  return getServerAnalyticsId();
+}
+
+/** Resolve identity and consent against the server. Call on start/foreground. */
+export async function syncAnalyticsAuthority(): Promise<void> {
+  return reconcile();
+}
+
+/** What the consent UI should render, including the `needs_resolution` state. */
+export async function getConsentUiState(): Promise<ConsentUiState> {
+  return consentUiState();
+}
+
+/** Re-render hook for the consent UI. */
+export { subscribeConsentState };
+
+/**
+ * The member's explicit retry out of `needs_resolution`.
+ *
+ * Deliberately the ONLY route out of that state: nothing in the app may
+ * auto-retry a decision the server has deterministically refused, or the
+ * device POSTs the same impossible request on every foreground forever.
+ */
+export { retryPendingDecision };
+
+/**
+ * delete-my-data. Asks the server to erase every row for this member, then
+ * drops the local authority state and the queued outbox.
+ *
+ * No pseudonym is sent: S1-3 resolves the caller's own id server-side. That is
+ * what makes erasure possible for a member whose local cache is empty — under
+ * the old local-mint model a missing id meant the call was skipped entirely.
  */
 export async function deleteMyData(
   clearOutbox: () => Promise<void>,
 ): Promise<{ serverDeleted: number }> {
-  const id = await getAnalyticsId();
   let serverDeleted = 0;
   try {
-    if (id) {
-      const result = await forgetAnalytics(id);
-      serverDeleted = result.deleted;
-    }
+    const result = await forgetAnalyticsIdentity();
+    serverDeleted = result.deleted;
   } finally {
-    await revokeConsent();
+    await clearLocalAuthorityState();
     await clearOutbox();
-    analyticsIdCache = null;
-    try {
-      await scopedStorage.removeItem(ANALYTICS_ID_KEY);
-    } catch {
-      /* non-fatal */
-    }
+    legacyAnsweredCache = null;
   }
   return { serverDeleted };
 }
 
-// Wave-3 PR12: a user-scope change is a security boundary — the module
-// caches previously served USER A's grant (and pseudonymous id) to USER
-// B's session. Reset to unread; the next read hydrates the new scope.
+// Wave-3 PR12: a user-scope change is a security boundary — this module cached
+// the previous member's answer. The authority resets its own state on the same
+// signal; this clears the legacy prompt-suppression cache.
 subscribeUserScope(() => {
-  consentCache = null;
-  analyticsIdCache = null;
+  legacyAnsweredCache = null;
 });

@@ -108,6 +108,23 @@ const DEVICE_GLOBAL_ALLOWLIST: ReadonlyArray<{
       'PR A/B/C depends on it changing. Listed here so the exemption is ' +
       'deliberate and visible, NOT because the data is device-global.',
   },
+  {
+    file: 'analytics/consentAuthority.ts',
+    keys: ['@aforce/analytics-pending', '@aforce/analytics-id.v2'],
+    why:
+      'TRANSITIONAL EXCEPTION, founder-approved for the client analytics lane and ' +
+      'ONLY as a bridge. These two keys are ACCOUNT-SCOPED — the opposite of ' +
+      'device-global — and that is precisely why they cannot go through ' +
+      '`scopedStorage` yet: while `per_user_storage_isolation_enabled` is false the ' +
+      'facade resolves every key to its BARE, device-global name, and a ' +
+      'device-global pending consent decision is exactly the "member A’s offline ' +
+      'revoke replayed for member B" failure the record exists to prevent. So the ' +
+      'member id is composed into the key directly, sourced ONLY from ' +
+      '`getScopeState()` (no exported function accepts a userId), and nothing is ' +
+      'read or written unless the scope is AUTHENTICATED. PR D must migrate both ' +
+      'back under the facade and DELETE this entry; it is not a second storage ' +
+      'authority and must not be allowed to become one.',
+  },
   // The isolation infrastructure itself must reach the raw backend.
   {
     file: 'services/scopedStorage.ts',
@@ -211,6 +228,10 @@ describe('LAW C2 — an account-scoped key is only enrolled with scope-aware RAM
     'services/coachMode.ts', // enrolled in PR C
     'analytics/privacy_manager.ts',
     'analytics/event_dispatcher.ts',
+    // NOT consentAuthority: it deliberately uses `subscribeScopeState`, not
+    // `subscribeUserScope`, because the latter fires zero times on an account
+    // switch while the isolation flag is off. Its reset is proven behaviourally
+    // in analytics/__tests__/clientAnalyticsTransition.test.ts (LAW 8).
   ];
 
   it.each(CACHING_SCOPED_MODULES)('%s resets its RAM on a scope change', (rel) => {

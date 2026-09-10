@@ -523,7 +523,12 @@
       "delete_btn": "Delete my analytics data",
       "delete_title": "Delete analytics data?",
       "delete_body": "This permanently erases the anonymous product-analytics events tied to this device and turns analytics off. It does not affect your account, hydration history, or scores.",
-      "delete_confirm": "Delete"
+      "delete_confirm": "Delete",
+      "pending_note": "Saving your choice…",
+      "needs_resolution_note": "We couldn’t save this choice. Your analytics stay off until it succeeds.",
+      "retry_btn": "Try again",
+      "retry_a11y": "Retry saving your analytics choice",
+      "signed_out_note": "Sign in to manage analytics."
     },
     "perfIdentity": {
       "title": "Performance Identity · Internal",
