@@ -64,6 +64,10 @@ export default defineConfig({
       // connection holds the row and the loser is observed to block on a real
       // database lock before the winner commits. Same verdict on every run.
       'lib/db/src/__tests__/advanceConsentCas.drizzle.test.ts',
+      // Lane 1b — the same unlocked-read + unchecked-CAS defect in the erase
+      // path, and the ledger invariant it broke: evidence may never claim a
+      // revocation that did not become operative.
+      'lib/db/src/__tests__/forgetConsentLedger.drizzle.test.ts',
     ],
     // Same phantom-checkout protection as vitest.integration.config.ts.
     exclude: ['**/node_modules/**', '**/.claude/**'],
