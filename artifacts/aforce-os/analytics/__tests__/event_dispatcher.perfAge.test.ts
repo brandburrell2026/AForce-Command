@@ -49,6 +49,16 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
+// The emission gate moved: the dispatcher now asks the consent AUTHORITY for a
+// server-issued pseudonym plus effective consent in one call, instead of
+// reading local consent and a locally minted id separately.
+vi.mock('../consentAuthority', () => ({
+  resolveEmissionIdentity: async () => (state.consent ? state.analyticsId : null),
+  reconcile: async () => undefined,
+  captureScopeToken: () => ({ generation: 0, userId: 'u_test' }),
+  scopeTokenStillValid: () => true,
+}));
+
 vi.mock('../privacy_manager', () => ({
   isConsentGranted: async () => state.consent,
   getAnalyticsId: async () => state.analyticsId,

@@ -2,12 +2,26 @@
  * AnalyticsConsentRow — the single consent affordance for the INTERNAL
  * analytics pipeline (Task #39).
  *
- * Privacy before collection: the dispatcher emits nothing until the
- * user flips this on. Toggling on grants consent (creating the
- * pseudonymous analytics id) and emits the first `consent_granted`
- * event; toggling off revokes consent and stops all emission. The
- * delete-my-data action erases server rows for this device's
- * pseudonymous id, clears the local outbox, and turns analytics off.
+ * Privacy before collection: the dispatcher emits nothing until the user flips
+ * this on. Toggling off revokes consent and stops all emission. The
+ * delete-my-data action erases the member's server rows, clears the local
+ * outbox, and turns analytics off.
+ *
+ * ── THE SWITCH IS NO LONGER A BOOLEAN ──────────────────────────────────────
+ *
+ * Consent now lives on the server, so a decision can be in four states, not
+ * two, and the row must be honest about which:
+ *
+ *   settled           the server's answer, adopted.
+ *   pending           recorded locally, still owed to the server. A revoke in
+ *                     this state IS already in force — the position shown is
+ *                     the truth, not an optimistic guess.
+ *   needs_resolution  the server refused deterministically. Analytics stay OFF
+ *                     and the member is offered an explicit retry. Nothing
+ *                     retries automatically: a 403 that will never succeed must
+ *                     not be re-POSTed on every foreground forever.
+ *   unknown           identity not resolved yet — the switch is disabled rather
+ *                     than rendering a guess as a settled answer.
  *
  * Self-contained so it can drop into the existing Profile settings card
  * without adding navigation (replit.md build lock).
@@ -25,46 +39,72 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
+import { af } from '@/theme/afTokens';
 import { Icon } from '@/components/Icon';
 import {
   CONSENT_VERSION,
   grantConsent,
   revokeConsent,
-  isConsentGranted,
+  getConsentUiState,
+  retryPendingDecision,
+  subscribeConsentState,
   deleteMyData,
+  type ConsentUiState,
 } from '@/analytics/privacy_manager';
 import { emit, clearOutbox } from '@/analytics/event_dispatcher';
 import { flushPendingActivation } from '@/analytics/activation_tracker';
 
+const UNKNOWN: ConsentUiState = { status: 'unknown' };
+
 export function AnalyticsConsentRow() {
   const { t } = useTranslation();
-  const [granted, setGranted] = React.useState(false);
+  const [ui, setUi] = React.useState<ConsentUiState>(UNKNOWN);
   const [busy, setBusy] = React.useState(false);
 
   React.useEffect(() => {
     let cancelled = false;
-    void isConsentGranted().then((v) => {
-      if (!cancelled) setGranted(v);
-    });
+    const read = () => {
+      void getConsentUiState().then((next) => {
+        if (!cancelled) setUi(next);
+      });
+    };
+    read();
+    // The authority changes state without the UI asking — a reconcile adopts
+    // the server's answer, an account switch wipes it. Subscribe rather than
+    // hold a snapshot taken at mount.
+    const unsubscribe = subscribeConsentState(read);
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
+
+  const granted = ui.status === 'unknown' || ui.status === 'not_a_member' ? false : ui.granted;
+  const manageable = ui.status !== 'unknown' && ui.status !== 'not_a_member';
 
   const onToggle = React.useCallback(async (next: boolean) => {
     setBusy(true);
     try {
-      if (next) {
-        await grantConsent();
-        setGranted(true);
-        // First event after opt-in. Best-effort; consent is already saved.
+      const outcome = next ? await grantConsent() : await revokeConsent();
+      setUi(await getConsentUiState());
+      // The first event after opt-in is emitted only once the grant is
+      // CONFIRMED by the server. A queued grant has not opened collection —
+      // emitting here would produce an envelope the gate refuses anyway.
+      if (next && outcome.outcome === 'confirmed') {
         void emit('consent_granted', { consentVersion: CONSENT_VERSION });
         // Flush any acquisition QR scan that was buffered awaiting consent.
         void flushPendingActivation();
-      } else {
-        await revokeConsent();
-        setGranted(false);
       }
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  const onRetry = React.useCallback(async () => {
+    setBusy(true);
+    try {
+      await retryPendingDecision();
+      setUi(await getConsentUiState());
     } finally {
       setBusy(false);
     }
@@ -77,7 +117,7 @@ export function AnalyticsConsentRow() {
     } catch {
       /* deleteMyData already cleared local state in its finally */
     } finally {
-      setGranted(false);
+      setUi(await getConsentUiState());
       setBusy(false);
     }
   }, []);
@@ -115,7 +155,7 @@ export function AnalyticsConsentRow() {
         </View>
         <Switch
           value={granted}
-          disabled={busy}
+          disabled={busy || !manageable}
           onValueChange={(v) => {
             void onToggle(v);
           }}
@@ -125,6 +165,33 @@ export function AnalyticsConsentRow() {
           testID="analytics-consent-switch"
         />
       </View>
+      {ui.status === 'not_a_member' ? (
+        <Text style={styles.note} testID="analytics-consent-signed-out">
+          {t('settings.analyticsConsent.signed_out_note')}
+        </Text>
+      ) : null}
+      {ui.status === 'pending' ? (
+        <Text style={styles.note} testID="analytics-consent-pending">
+          {t('settings.analyticsConsent.pending_note')}
+        </Text>
+      ) : null}
+      {ui.status === 'needs_resolution' ? (
+        <View style={styles.resolveWrap} testID="analytics-consent-needs-resolution">
+          <Text style={styles.note}>{t('settings.analyticsConsent.needs_resolution_note')}</Text>
+          <Pressable
+            onPress={() => {
+              void onRetry();
+            }}
+            disabled={busy}
+            style={styles.retryBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('settings.analyticsConsent.retry_a11y')}
+            testID="analytics-consent-retry"
+          >
+            <Text style={styles.retryLabel}>{t('settings.analyticsConsent.retry_btn')}</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {granted ? (
         <Pressable
           onPress={onDelete}
@@ -170,6 +237,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
     color: Colors.text.secondary,
+  },
+  note: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    lineHeight: 16,
+    color: Colors.text.secondary,
+    marginTop: 8,
+  },
+  resolveWrap: {
+    gap: 6,
+  },
+  retryBtn: {
+    alignSelf: 'flex-start',
+  },
+  retryLabel: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    letterSpacing: 0.2,
+    // af.redText, not af.red: Signal Red is ~3.1:1 on these surfaces and fails
+    // WCAG AA for TEXT. The fill red stays frozen for fills.
+    color: af.redText,
   },
   deleteBtn: {
     marginTop: 10,

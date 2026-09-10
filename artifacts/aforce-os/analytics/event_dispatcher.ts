@@ -26,8 +26,14 @@ import type {
 
 import { postAnalyticsBatch } from "@/lib/api";
 
+import {
+  captureScopeToken,
+  reconcile,
+  resolveEmissionIdentity,
+  scopeTokenStillValid,
+} from "./consentAuthority";
 import { createEnvelope } from "./event_envelope";
-import { getAnalyticsId, isConsentGranted } from "./privacy_manager";
+import { isConsentGranted } from "./privacy_manager";
 
 const OUTBOX_KEY = "@aforce/analytics-outbox";
 /** Bound the outbox so a long offline window can't grow it unbounded. */
@@ -73,33 +79,116 @@ async function writeOutbox(events: AnalyticsEventEnvelope[]): Promise<boolean> {
 let flushing = false;
 
 /**
+ * Envelopes removed from the outbox without being stored.
+ *
+ * Counts only — no ids, no payloads, nothing that could reconstruct an event a
+ * member is not being collected for. Kept because "how many did we drop" is a
+ * question worth being able to answer, and explicitly NOT reported as delivery:
+ * a settled envelope is one we have stopped owing, which is a different fact
+ * from one the server stored.
+ */
+export interface SettlementCounters {
+  /** Named a pseudonym this member does not own (legacy local mints). */
+  foreign: number;
+  /** The server's writer gate refused the batch (`inserted: 0`). */
+  refused: number;
+  /** The server said these are not ours (403 analytics_id_not_owned). */
+  notOwned: number;
+}
+
+const settlement: SettlementCounters = { foreign: 0, refused: 0, notOwned: 0 };
+
+/** Read the local settlement counters. Diagnostic; never sent anywhere. */
+export function getSettlementCounters(): SettlementCounters {
+  return { ...settlement };
+}
+
+/**
  * Send queued events to the server. Idempotent and safe to call often;
- * overlapping calls coalesce. Only acknowledged events are removed, so
- * a failed flush leaves the outbox intact for the next attempt.
+ * overlapping calls coalesce.
+ *
+ * ── WHY SETTLEMENT IS NOT THE SAME AS DELIVERY ─────────────────────────────
+ *
+ * An envelope leaves the outbox when we stop OWING it, which happens three
+ * ways, only one of which is delivery:
+ *
+ *   stored      the server wrote it (or had already written it — that is what
+ *               `deduped` counts, and it is still delivery).
+ *   refused     the writer gate answered `{inserted: 0}`. It deliberately does
+ *               not say why. Nothing was stored and nothing will be.
+ *   not_owned   the envelopes name a pseudonym this caller does not own.
+ *
+ * The last two are TERMINAL, not retryable: re-POSTing a batch the gate has
+ * already refused produces the same refusal on every foreground, forever. So
+ * they are settled and counted — never reported as delivered, and never used to
+ * infer what the member's privacy state is. A `{inserted: 0}` could mean
+ * revoked, suppressed, or not-a-member, and the server refuses to distinguish
+ * them precisely so that the client cannot.
+ *
+ * ── WHY FOREIGN ENVELOPES ARE FILTERED BEFORE SENDING ──────────────────────
+ *
+ * The server refuses a batch if ANY envelope names a pseudonym the caller does
+ * not own. One leftover envelope from the old local mint therefore poisons
+ * every batch behind it and the outbox never drains again. They are settled out
+ * before the request instead. The legacy outbox KEY is untouched and the legacy
+ * analytics-id key is neither read nor deleted here.
  */
 export async function flush(): Promise<void> {
   if (flushing) return;
   flushing = true;
   try {
-    // Snapshot the head of the outbox under the write-queue so emits
-    // during the network call aren't lost.
+    // The gate: a server-issued pseudonym AND effective consent. No id means
+    // there is nothing we are allowed to send, and nothing is sent.
+    //
+    // The token is captured BEFORE the gate, not after: capturing it after
+    // would let a switch land between the two, pairing member A's pseudonym
+    // with member B's token — and every later barrier check would then say
+    // "still valid" while acting on the wrong member's id.
+    const token = captureScopeToken();
+    const analyticsId = await resolveEmissionIdentity();
+    if (analyticsId === null) return;
+    if (!scopeTokenStillValid(token)) return;
+
+    // Snapshot the head of the outbox under the write-queue so emits during
+    // the network call aren't lost, settling foreign envelopes as we go.
     const batch = await enqueue(async () => {
       const outbox = await readOutbox();
-      return outbox.slice(0, FLUSH_BATCH);
+      const mine: AnalyticsEventEnvelope[] = [];
+      let foreign = 0;
+      for (const e of outbox) {
+        if (e.analytics_id === analyticsId) mine.push(e);
+        else foreign += 1;
+      }
+      if (foreign > 0 && scopeTokenStillValid(token)) {
+        settlement.foreign += foreign;
+        await writeOutbox(mine);
+      }
+      return mine.slice(0, FLUSH_BATCH);
     });
     if (batch.length === 0) return;
 
+    // `postAnalyticsBatch` reports transport failure as an outcome rather than
+    // throwing, but flush is fire-and-forget from `emit` — an unhandled
+    // rejection here would be an unhandled rejection in the app, so the throw
+    // path is still treated as "still owed".
+    let result: Awaited<ReturnType<typeof postAnalyticsBatch>>;
     try {
-      await postAnalyticsBatch(batch);
+      result = await postAnalyticsBatch(batch);
     } catch {
-      // Network/server error — keep everything for a later retry.
       return;
     }
+    // The member may have changed while the request was in flight. The outbox
+    // is not yet per-member, so settling now would delete the INCOMING
+    // member's events against the outgoing member's answer.
+    if (!scopeTokenStillValid(token)) return;
+    if (result.outcome === "unavailable") return; // still owed; retry later
+    if (result.outcome === "refused") settlement.refused += batch.length;
+    if (result.outcome === "not_owned") settlement.notOwned += batch.length;
 
-    const sentIds = new Set(batch.map((e) => e.eventId));
+    const settledIds = new Set(batch.map((e) => e.eventId));
     await enqueue(async () => {
       const outbox = await readOutbox();
-      await writeOutbox(outbox.filter((e) => !sentIds.has(e.eventId)));
+      await writeOutbox(outbox.filter((e) => !settledIds.has(e.eventId)));
     });
   } finally {
     flushing = false;
@@ -120,9 +209,15 @@ export async function emit(
   payload?: Record<string, unknown>,
   occurredAt?: string,
 ): Promise<boolean> {
-  if (!(await isConsentGranted())) return false;
-  const analyticsId = await getAnalyticsId();
-  if (!analyticsId) return false;
+  // ONE gate, ONE read. This was two calls — `isConsentGranted()` then
+  // `getAnalyticsId()` — which left a window in which consent could be revoked
+  // between them and an event still be stamped. Two places deciding one thing
+  // is the shape of defect this repo keeps finding; the authority answers both
+  // questions off a single state, and returns null unless BOTH hold: the
+  // server has issued a pseudonym, and effective consent (server state with the
+  // local ceiling applied) is granted.
+  const analyticsId = await resolveEmissionIdentity();
+  if (analyticsId === null) return false;
 
   const envelope = createEnvelope(eventType, analyticsId, payload, occurredAt);
   const queued = await enqueue(async () => {
@@ -339,8 +434,17 @@ export async function clearOutbox(): Promise<void> {
   });
 }
 
-/** Flush any events left from a previous run. Call once on app start. */
+/**
+ * Call once on app start.
+ *
+ * Reconcile FIRST, then flush. The order matters: after a cold start there is
+ * no adopted consent state and possibly no pseudonym, so a flush that ran first
+ * would send nothing and the run would be wasted. Reconciliation is also what
+ * publishes a consent decision the member made while offline — including a
+ * revoke, which must reach the server before any queued event does.
+ */
 export async function initAnalytics(): Promise<void> {
+  await reconcile();
   await flush();
 }
 
