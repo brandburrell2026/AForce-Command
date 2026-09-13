@@ -9,7 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0D0D0D; --paper:#E9E7E1; --bone:#F5F0E8; --red:#C1281B;
@@ -47,15 +47,18 @@
   @media (prefers-reduced-motion:reduce){ .btn{ transition:none; } }
 
   /* Figma brand-mark: thin monoline N–И monogram (replaces the heavy Archivo-Black glyph mark) */
-  .nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
-  .mark-stage .nn-logo{ width:clamp(150px,34vw,440px); height:auto; }
+  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
+  .mark-stage .nn-logo{ font-size:clamp(96px,30vw,290px); }
 </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <main class="wrap" id="main" tabindex="-1">
     <a class="mark" href="/" aria-label="AFORCE — home">
-      <svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg>
+      <span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span>
     </a>
     <p class="eyebrow">Error 404</p>
     <h1>This page is off protocol.</h1>

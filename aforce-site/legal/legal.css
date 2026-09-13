@@ -200,4 +200,7 @@ a.lc-card:hover{ border-color:var(--ink); transform:translateY(-3px); }
 }
 
 /* Figma brand-mark: thin monoline N–И monogram (replaces heavy .nn glyphs) */
-.nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
+.nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }

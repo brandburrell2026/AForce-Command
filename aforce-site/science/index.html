@@ -18,7 +18,7 @@
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/science-hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
 <!-- Universal header — loaded before the page style so the page's own colours win -->
 <link rel="stylesheet" href="/assets/header.css">
 <style>
@@ -404,7 +404,7 @@
 
 <!-- ============ NAV (matches site N|N mark) ============ -->
 <header class="afx-nav" id="afxNav">
-  <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg></span></a>
+  <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span></a>
   <div class="afx-right">
     <div class="afx-links">
       <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science" aria-current="page">Science</a><a href="/manifesto">Manifesto</a>
@@ -681,7 +681,10 @@
   .bt-note{ margin-top:clamp(24px,3vw,38px); }
 
   /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
+  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
 </style>
 
 <!-- HERO -->
@@ -1048,7 +1051,7 @@
     <div class="ff-top">
       <div class="ff-brand">
         <a class="ff-mark" href="/" aria-label="AFORCE — home">
-          <span class="ff-nn" aria-hidden="true"><svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg></span>
+          <span class="ff-nn" aria-hidden="true"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span>
           <span class="ff-word">AFORCE<span class="tm">™</span></span>
         </a>
         <div class="ff-tag">Performance Is<br><span class="red">Non-<span class="flip">N</span>egotiable.</span></div>

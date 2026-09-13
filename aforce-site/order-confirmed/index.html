@@ -17,7 +17,7 @@
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#0D0D0D; --bone:#F5F0E8; --red:#C1281B;
@@ -100,13 +100,16 @@
   .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
 
   /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
+  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
 </style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
   <main class="card" id="main" tabindex="-1">
-    <div class="nn" role="img" aria-label="AFORCE N–N monogram"><svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg></div>
+    <div class="nn" role="img" aria-label="AFORCE N–N monogram"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></div>
 
     <p class="eyebrow">Order Confirmed · Cohort Nº <span data-fill="cohort">—</span></p>
     <h1>Your ritual is provisioned.</h1>
