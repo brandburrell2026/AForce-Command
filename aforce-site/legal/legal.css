@@ -198,3 +198,6 @@ a.lc-card:hover{ border-color:var(--ink); transform:translateY(-3px); }
   .lc-ph{ background:none; color:#000; }
   a[href^="http"]::after{ content:' (' attr(href) ')'; font-size:8pt; color:#555; }
 }
+
+/* Figma brand-mark: thin monoline N–И monogram (replaces heavy .nn glyphs) */
+.nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
