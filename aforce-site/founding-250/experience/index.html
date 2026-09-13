@@ -231,7 +231,10 @@
   }
 
   /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-block; height:0.82em; width:auto; color:var(--red); overflow:visible; vertical-align:-0.1em; }
+  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
 </style>
 </head>
 <body>
@@ -240,7 +243,7 @@
 <!-- ============ NAV ============ -->
 <nav class="nav" id="nav" aria-label="Primary">
   <a class="mark" href="/" aria-label="AFORCE home">
-    <span class="nn"><svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg></span>
+    <span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span>
     AFORCE
   </a>
   <div class="nav-links">
@@ -397,7 +400,7 @@
   <div class="wrap">
     <div class="f-top">
       <div class="f-brand">
-        <div class="nn" style="font-size:22px;color:var(--bone);"><svg class="nn-logo" viewBox="0 0 237 110" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="butt" stroke-linejoin="miter" aria-hidden="true"><path d="M5 105 V5 L74 105 V5 M74 55 H163 M163 5 V105 L232 5 V105"/></svg></div>
+        <div class="nn" style="font-size:22px;color:var(--bone);"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></div>
         <div class="f-corp" style="margin-top:16px;">AFORCE Hydration, Inc.<span>New York, NY</span></div>
       </div>
       <nav class="f-nav" aria-label="Footer">
