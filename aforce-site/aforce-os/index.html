@@ -12,11 +12,11 @@
 <meta property="og:title" content="AFORCE OS | Before the Moment">
 <meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
 <meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+<meta property="og:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE OS | Before the Moment">
 <meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+<meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -123,8 +123,9 @@
 
   /* ================= 01 · HERO ================= */
   .hero{ position:relative; min-height:100svh; display:grid; align-items:end; padding:clamp(120px,18vh,200px) var(--gutter) clamp(64px,9vh,110px); overflow:hidden; background:var(--ink); }
-  .hero-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:62% 40%; z-index:0; transform:scale(1.04); animation:drift 36s ease-in-out infinite alternate; }
-  @keyframes drift{ from{ transform:scale(1.04) translate3d(0,0,0); } to{ transform:scale(1.10) translate3d(-1.4%,-1%,0); } }
+  /* full-bleed background video (the page's original hero film); the still stands in under reduced motion */
+  .hero-video, .hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
+  .hero-still{ display:none; }
   .hero-scrim{ position:absolute; inset:0; z-index:1; background:
     linear-gradient(90deg, rgba(13,13,13,.94) 0%, rgba(13,13,13,.82) 26%, rgba(13,13,13,.42) 48%, rgba(13,13,13,.06) 66%, rgba(13,13,13,0) 80%),
     linear-gradient(180deg, rgba(13,13,13,.5) 0%, rgba(13,13,13,0) 26%, rgba(13,13,13,0) 60%, rgba(13,13,13,.9) 100%); }
@@ -311,7 +312,8 @@
     html{ scroll-behavior:auto; }
     .reveal, .hero-phone{ opacity:1 !important; transform:none !important; transition:none !important; }
     .stagger .reveal.in{ transition-delay:0s !important; }
-    .hero-img{ animation:none; transform:none; }
+    .hero-video{ display:none; }
+    .hero-still{ display:block; }
     .mo img, .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before{ transition:none !important; }
     .mo .when{ opacity:1; transform:none; }
     .verbs li{ color:var(--bone); }
@@ -423,7 +425,11 @@
 
 <!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
 <header class="hero" id="top">
-  <img class="hero-img" src="/assets/hero-poster.jpg" alt="A founder seated at a floor-to-ceiling window at dusk, Manhattan skyline behind him, composed and focused before the day begins" loading="eager" decoding="async" fetchpriority="high">
+  <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
+    <source src="/assets/os-hero.webm" type="video/webm">
+    <source src="/assets/os-hero.mp4" type="video/mp4">
+  </video>
+  <img class="hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async" fetchpriority="high">
   <div class="hero-scrim" aria-hidden="true"></div>
   <div class="hero-grid">
     <div class="hero-copy reveal in">
