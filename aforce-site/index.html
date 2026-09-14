@@ -437,6 +437,10 @@
   .os-phone{ position:absolute; background:#050506; border:1px solid rgba(255,255,255,0.07); border-radius:13% / 6.2%; padding:2.4%; box-shadow:0 42px 68px -26px rgba(13,13,13,0.5), 0 10px 26px rgba(13,13,13,0.22); }
   .os-phone--front{ width:64%; right:0; top:0; z-index:2; }
   .os-phone--back{ width:53%; left:0; top:9%; transform:rotate(-5deg); z-index:1; }
+  /* Black Issue screenshots — render carries its own bezel; shot variant drops
+     the DOM frame chrome, fixes the true screen aspect, and masks to the drawn curve. */
+  .os-phone--shot{ padding:0; background:none; border:none; aspect-ratio:390/844; border-radius:8.7% / 4%; overflow:hidden; }
+  .os-phone--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
   .os-screen{ container-type:inline-size; position:relative; border-radius:10.5% / 5.4%; background:linear-gradient(180deg,#101018 0%,#0D0D0D 38%); overflow:hidden; aspect-ratio:9/19.3; color:var(--os-ink); display:flex; flex-direction:column; }
   .os-status{ display:flex; justify-content:space-between; align-items:center; padding:4.6cqw 6cqw 0; }
   .os-time{ font-size:3.4cqw; font-weight:600; }
@@ -869,95 +873,12 @@
     <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Enter the System &rarr;</a>
   </div>
   <div class="os-visual fade-in">
-    <div class="os-phones" role="img" aria-label="The AFORCE OS app — a Home / Readiness screen showing a readiness score of 76, band Balanced, with Hydration, Heat and Recovery signals and the next command 'Drink 16 ounces now'; and the Protocol screen showing today's recovery plan, one of four steps complete, with the active step 'Log next intake'.">
-      <div class="os-phone os-phone--back" aria-hidden="true">
-        <div class="os-screen">
-          <div class="os-status"><span class="os-time">9:41</span><span class="os-status-r"><i class="os-icn-sig"></i><i class="os-icn-wifi"></i><i class="os-ind"></i></span></div>
-          <div class="os-body">
-            <div class="os-kick">Today's Protocol</div>
-            <div class="os-h1">AForce Protocol</div>
-            <div class="os-checkin"><span class="os-checkin-dot"></span>Day 18 check-in · on rhythm<span class="os-checkin-frac">3/4</span></div>
-            <div class="os-scard">
-              <div class="os-scard-top"><span class="os-scard-l">Today&rsquo;s protocol</span><span class="os-scard-badge">92% done</span></div>
-              <div class="os-scard-name">Maintain</div>
-              <div class="os-scard-desc">Drink 8&ndash;12 ounces. Hold rhythm. Recheck 45&ndash;60 min.</div>
-              <div class="os-tl">
-                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Morning hydration</span><span class="os-tl-when">Complete · 7:20a</span></div></div>
-                <div class="os-tl-row is-done"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Midday electrolytes</span><span class="os-tl-when">Complete · 12:10p</span></div></div>
-                <div class="os-tl-row is-active"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Afternoon performance check</span><span class="os-tl-when">Pending · 2:30p</span></div></div>
-                <div class="os-tl-row"><span class="os-tl-dot"></span><div class="os-tl-txt"><span class="os-tl-name">Evening recovery</span><span class="os-tl-when">Scheduled · 6:00p</span></div></div>
-              </div>
-              <div class="os-scard-foot">
-                <div class="os-foot-col"><span class="os-foot-l">Next check</span><span class="os-foot-v">2:30 PM</span></div>
-                <div class="os-foot-col"><span class="os-foot-l">Recovery</span><span class="os-foot-v os-foot-green">91%</span></div>
-              </div>
-            </div>
-            <div class="os-summary">
-              <div class="os-sumcard"><span class="os-sum-l">Hydration goal</span><span class="os-sum-v">7/8 units</span></div>
-              <div class="os-sumcard"><span class="os-sum-l">Protocol</span><span class="os-sum-v os-sum-green">92%</span></div>
-              <div class="os-sumcard"><span class="os-sum-l">Streak</span><span class="os-sum-v os-sum-green">18 d</span></div>
-            </div>
-            <div class="os-cmdhist"><span class="os-cmdhist-l">Command history</span><span class="os-cmdhist-trend">Recovery trending upward</span></div>
-            <div class="os-chlist">
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Drink 16 oz</span><span class="os-ch-t">Completed · 42m ago</span></div><span class="os-ch-s os-ch-green">89</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Recovery scan</span><span class="os-ch-t">Completed · 1h ago</span></div><span class="os-ch-s os-ch-green">91</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Apple Health sync</span><span class="os-ch-t">Completed · 1h ago</span></div><span class="os-ch-s os-ch-green">91</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Movement logged</span><span class="os-ch-t">Completed · 3h ago</span></div><span class="os-ch-s os-ch-green">90</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Electrolytes logged</span><span class="os-ch-t">Completed · 4h ago</span></div><span class="os-ch-s">87</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Morning hydration</span><span class="os-ch-t">Completed · 6h ago</span></div><span class="os-ch-s">84</span></div>
-              <div class="os-ch-row"><div class="os-ch-txt"><span class="os-ch-a">Check-in confirmed</span><span class="os-ch-t">Completed · 7h ago</span></div><span class="os-ch-s">82</span></div>
-            </div>
-          </div>
-        </div>
+    <div class="os-phones" role="img" aria-label="The AFORCE OS app — the Home screen in the Recovering band with a readiness score of 69, the next move 'Sip 12 oz of water now', and water, recovery, sleep and HRV signals; behind it, the Protocol screen showing a Depletion Correction in progress with step 1 of 4 complete.">
+      <div class="os-phone os-phone--back os-phone--shot" aria-hidden="true">
+        <img src="assets/aforce-os/black-issue-protocol.png" alt="" width="390" height="844" loading="lazy" decoding="async">
       </div>
-      <div class="os-phone os-phone--front">
-        <div class="os-screen">
-          <div class="os-status"><span class="os-time">9:41</span><span class="os-status-r"><i class="os-icn-sig"></i><i class="os-icn-wifi"></i><i class="os-ind"></i></span></div>
-          <div class="os-body">
-            <div class="os-hdr">
-              <div class="os-hdr-top"><span class="os-brand">AForce OS</span><span class="os-live-pill"><span class="os-live-dot"></span>Apple Health · Live</span></div>
-              <span class="os-fresh">Checked just now · New York, NY</span>
-            </div>
-            <div class="os-arc">
-              <svg viewBox="0 0 240 240" aria-hidden="true">
-                <circle class="os-arc-track" cx="120" cy="120" r="117" pathLength="100"></circle>
-                <circle class="os-arc-fill" cx="120" cy="120" r="117" pathLength="100"></circle>
-              </svg>
-              <div class="os-arc-center"><span class="os-score" data-count="91">91</span><span class="os-score-label">Readiness</span><span class="os-band">Peak</span></div>
-            </div>
-            <div class="os-live">Updated 28 sec ago · Performance stable</div>
-            <div class="os-cmd">
-              <span class="os-cmd-done"><span class="os-done-ck"></span>Recovery scan complete · 19 min ago</span>
-              <span class="os-cmd-eyebrow">Today&rsquo;s command</span>
-              <span class="os-cmd-title">Maintain rhythm</span>
-              <span class="os-cmd-sub">Next check in 18 min &middot; you&rsquo;re ahead of pace.</span>
-              <div class="os-cmd-actions"><span class="os-cmd-btn">Log Water</span><span class="os-cmd-why">Why this <em class="os-chev">&#8964;</em></span></div>
-            </div>
-            <div class="os-signals">
-              <div class="os-sig-label">Live signals</div>
-              <div class="os-sig-grid">
-                <div class="os-sig"><span class="os-sig-l">Hydration</span><span class="os-sig-v">97%</span></div>
-                <div class="os-sig"><span class="os-sig-l">Recovery</span><span class="os-sig-v os-sig-g">Excellent</span></div>
-                <div class="os-sig"><span class="os-sig-l">Sleep</span><span class="os-sig-v">7h 41m</span></div>
-                <div class="os-sig"><span class="os-sig-l">HRV</span><span class="os-sig-v">65 ms</span></div>
-              </div>
-            </div>
-            <div class="os-today">
-              <div class="os-today-l">Completed today</div>
-              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Morning hydration</span><span class="os-today-t">7:20a</span></div>
-              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Recovery protocol</span><span class="os-today-t">9:05a</span></div>
-              <div class="os-today-row"><span class="os-check is-done"></span><span class="os-today-name">Movement</span><span class="os-today-t">12:30p</span></div>
-              <div class="os-today-row"><span class="os-check"></span><span class="os-today-name">Evening protocol</span><span class="os-today-t">6:00p</span></div>
-            </div>
-            <div class="os-widgets">
-              <div class="os-widget"><span class="os-w-v">18</span><span class="os-w-l">Day streak</span></div>
-              <div class="os-widget"><span class="os-w-v os-w-up">&#9650; Rising</span><span class="os-w-l">Recovery trend</span></div>
-              <div class="os-widget"><span class="os-w-v os-w-up">+6</span><span class="os-w-l">Today&rsquo;s score</span></div>
-              <div class="os-widget"><span class="os-w-v">94%</span><span class="os-w-l">Consistency</span></div>
-            </div>
-          </div>
-          <div class="os-nav"><span class="is-on">Home</span><span>Hydration</span><span>Protocol</span><span>Circle</span><span>Profile</span></div>
-        </div>
+      <div class="os-phone os-phone--front os-phone--shot">
+        <img src="assets/aforce-os/black-issue-home.png" alt="" width="390" height="844" loading="lazy" decoding="async">
       </div>
     </div>
     <!-- margin-top is proportional: the front phone is absolutely positioned and
@@ -965,7 +886,7 @@
          fixed 16px landed the caption ON the phone. calc(6.5% + 16px) clears the
          overflow at every viewport width (the % resolves against .os-visual's
          width, which the phones scale with). -->
-    <p style="margin-top:calc(6.5% + 16px);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:inherit;opacity:.72;">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
+    <p style="margin-top:calc(6.5% + 56px);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:inherit;opacity:.72;">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
   </div>
 </section>
 
