@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AFORCE OS | The Performance Operating System</title>
-<meta name="description" content="Meet AFORCE OS — the performance operating system connecting hydration, readiness, recovery, rituals, and daily performance.">
+<title>AFORCE OS | Before the Moment</title>
+<meta name="description" content="AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.">
 <meta name="robots" content="index,follow">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="canonical" href="https://www.drinkaforce.com/aforce-os">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AFORCE OS | The Performance Operating System">
-<meta property="og:description" content="The operating system for people who perform under pressure. AFORCE OS transforms hydration into a measurable daily performance ritual.">
+<meta property="og:title" content="AFORCE OS | Before the Moment">
+<meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
 <meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/aforce-os/black-issue-protocol.png">
+<meta property="og:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AFORCE OS | The Performance Operating System">
-<meta name="twitter:description" content="The operating system for people who perform under pressure. AFORCE OS transforms hydration into a measurable daily performance ritual.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/aforce-os/black-issue-protocol.png">
+<meta name="twitter:title" content="AFORCE OS | Before the Moment">
+<meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
+<meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -25,14 +25,11 @@
 <style>
   :root{
     --ink:#0D0D0D;
-    --ink-2:#0B0D12;
+    --ink-2:#070707;
     --bone:#F5F0E8;
     --afx-surface:#F5F0E8;
-    --bone-2:#EFEADF;
     --red:#C1281B;
-    --green:#1FA35A;
-    --teal:#2FCFC0;
-    --amber:#E8A13A;
+    --red-2:#E5352B;
     --i80:rgba(13,13,13,.80);
     --i64:rgba(13,13,13,.64);
     --i46:rgba(13,13,13,.46);
@@ -42,16 +39,18 @@
     --b80:rgba(245,240,232,.80);
     --b64:rgba(245,240,232,.64);
     --b40:rgba(245,240,232,.40);
+    --b24:rgba(245,240,232,.24);
     --b14:rgba(245,240,232,.14);
     --b08:rgba(245,240,232,.08);
     --display:'Inter',sans-serif;
     --body:'Inter',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
     --gutter:clamp(22px,6vw,88px);
     --maxw:1240px;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
-  body{ background:var(--bone); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  body{ background:var(--ink); color:var(--bone); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
   ::selection{ background:var(--red); color:var(--bone); }
   a{color:inherit;text-decoration:none;}
   button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
@@ -60,30 +59,36 @@
   .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
   /* ---------- TYPE ---------- */
-  .eyebrow{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--red); }
-  .h-display{ font-family:var(--display); font-weight:800; line-height:1.03; letter-spacing:-0.01em; font-size:clamp(36px,5.6vw,80px); }
-  .h-2{ font-family:var(--display); font-weight:800; line-height:1.07; letter-spacing:-0.008em; font-size:clamp(28px,4vw,52px); }
-  .lead{ font-size:clamp(16px,1.4vw,20px); line-height:1.75; color:var(--i64); max-width:56ch; }
+  .kick{ font-family:var(--mono); font-weight:500; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .kick .coming{ font-family:var(--mono); font-weight:500; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--b64); border:1px solid var(--b24); padding:5px 9px; border-radius:2px; }
+  .hd-xl{ font-family:var(--display); font-weight:800; line-height:.96; letter-spacing:-0.025em; text-transform:uppercase; font-size:clamp(44px,8.4vw,128px); text-wrap:balance; }
+  .hd-l{ font-family:var(--display); font-weight:800; line-height:1.0; letter-spacing:-0.02em; text-transform:uppercase; font-size:clamp(34px,5.4vw,80px); text-wrap:balance; }
+  .hd-m{ font-family:var(--display); font-weight:800; line-height:1.04; letter-spacing:-0.015em; text-transform:uppercase; font-size:clamp(26px,3.6vw,52px); text-wrap:balance; }
+  .lead{ font-size:clamp(16px,1.35vw,20px); line-height:1.72; color:var(--b64); max-width:52ch; }
+  .lead b{ color:var(--bone); font-weight:600; }
+  .lines{ list-style:none; display:flex; flex-direction:column; }
+  .lines li{ font-family:var(--display); font-weight:600; font-size:clamp(17px,1.7vw,24px); line-height:1.25; padding:10px 0; border-top:1px solid var(--b14); color:var(--bone); }
+  .lines li:last-child{ border-bottom:1px solid var(--b14); }
+  .lines li.dim{ color:var(--b40); font-weight:400; }
+  .cap{ font-family:var(--mono); font-size:10.5px; line-height:1.55; letter-spacing:.06em; text-transform:uppercase; color:var(--b40); }
+  .cap.red{ color:var(--red); }
+  .note{ font-size:11.5px; line-height:1.6; letter-spacing:.01em; color:var(--b40); max-width:64ch; }
 
-  /* ---------- NAV (scroll-aware) — layout/behaviour from /assets/header.css;
-     this keeps only the approved visual treatment ---------- */
+  /* ---------- NAV — visual treatment only (behaviour from /assets/header.css) ---------- */
   .afx-nav{ color:#F5F0E8; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
-  .afx-nav.solid{ color:var(--ink); background:rgba(245,240,232,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
+  .afx-nav.solid{ color:var(--bone); background:rgba(13,13,13,.86); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:var(--b08); padding-top:14px; padding-bottom:14px; }
   .afx-nav.afx-open, .afx-nav.solid.afx-open{ background:var(--afx-surface); color:var(--afx-on-surface); border-bottom-color:transparent; }
   .afx-nav .mark{ font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif; font-weight:700; font-size:18px; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
   .nn{ display:inline-flex; align-items:center; gap:5px; }
-  .nn > span:first-child{ color:var(--red); }
-  .nn .bar{ display:inline-block; width:12px; height:2.5px; background:var(--red); }
-  .nn .nflip{ display:inline-block; transform:scaleX(-1); color:var(--red); }
-  /* footer N–И sign-off monogram (brand ref): red N · low red dash · mirrored N */
-  .f-nn{ display:inline-flex; align-items:center; gap:.14em; font-family:var(--display); line-height:1; font-size:clamp(30px,4vw,42px); }
-  .f-nn .n1{ color:var(--red); }
-  .f-nn .bar{ display:inline-block; width:.44em; height:.12em; background:var(--red); }
-  .f-nn .n2{ display:inline-block; transform:scaleX(-1); color:var(--red); }
   .afx-links{ gap:clamp(13px,1.9vw,28px); font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
   .afx-links a{ opacity:.72; transition:opacity .2s, color .2s; white-space:nowrap; }
   .afx-links a:hover{ opacity:1; color:var(--red); }
   .afx-links a[aria-current="page"]{ opacity:1; color:var(--red); }
+  /* Figma brand-mark: thin monoline N–И monogram */
+  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
+  .nn-logo .nn-n{ display:inline-block; }
+  .nn-logo .nn-flip{ transform:scaleX(-1); }
+  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
 
   /* ---------- BUTTONS ---------- */
   .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
@@ -91,462 +96,228 @@
   .btn:hover .arw{ transform:translateX(4px); }
   .btn-primary{ background:var(--red); color:var(--bone); }
   .btn-primary:hover{ background:#a51f14; }
-  .btn-ink{ background:var(--ink); color:var(--bone); }
-  .btn-ink:hover{ background:var(--red); }
-  .btn-ghost{ border-color:var(--i30); color:var(--ink); }
-  .btn-ghost:hover{ border-color:var(--ink); background:var(--ink); color:var(--bone); }
-  .btn-light{ background:var(--bone); color:var(--ink); }
-  .btn-light:hover{ background:var(--red); color:var(--bone); }
   .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
   .btn-outline-light:hover{ border-color:var(--bone); background:var(--bone); color:var(--ink); }
+  .cta-row{ display:flex; flex-wrap:wrap; gap:16px; }
 
-  /* ---------- REVEAL ---------- */
-  .reveal{ opacity:0; transform:translateY(22px); transition:opacity 1s ease, transform 1s ease; }
+  /* ---------- REVEAL (visible at rest; motion is an entrance only) ---------- */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 1.1s ease, transform 1.1s ease; }
   .reveal.in{ opacity:1; transform:none; }
-  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .1s); }
+  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .09s); }
+  html.no-io .reveal{ opacity:1; transform:none; }
 
   /* ---------- LAYOUT ---------- */
   .wrap{ max-width:var(--maxw); margin:0 auto; }
   section{ position:relative; }
-  .block{ padding:clamp(84px,13vh,170px) var(--gutter); }
-  .dark{ background:var(--ink); color:var(--bone); }
-  .dark .lead{ color:var(--b64); }
-  .dark .eyebrow{ color:var(--red); }
-  .cream{ background:var(--bone-2); }
+  .blk{ padding:clamp(96px,15vh,190px) var(--gutter); background:var(--ink); }
+  .blk + .blk{ border-top:1px solid var(--b08); }
+  .split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,6vw,110px); align-items:center; }
+  .split.top{ align-items:start; }
+  .split.rev > :first-child{ order:2; }
+  .col-copy > * + *{ margin-top:clamp(18px,2.2vw,28px); }
 
-  /* phone */
-  .phone{ position:relative; filter:drop-shadow(0 30px 60px rgba(0,0,0,.45)); animation:float 7s ease-in-out infinite; }
-  .phone img{ width:100%; height:auto; }
-  @keyframes float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+  /* phone frame — the Black Issue render carries its own bezel; only shadow + caption here */
+  .shot{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .shot img{ width:min(390px,100%); max-width:100%; height:auto; border-radius:8.7% / 4%; box-shadow:0 60px 110px -30px rgba(0,0,0,.75), 0 20px 44px -12px rgba(0,0,0,.5); }
+  .shot .cap{ text-align:center; }
 
-  /* split section */
-  .split{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,5vw,88px); align-items:center; }
-  .split.reverse .split-media{ order:-1; }
-  .split-media{ position:relative; display:flex; flex-wrap:wrap; justify-content:center; }
-  /* P0 legal — visible, always-rendered sample-data disclosure directly beneath
-     each simulated AFORCE OS interface. `order` places it below the device; it
-     carries no .reveal class so it never depends on JS/scroll to appear. */
-  .osx-illus{ order:1; flex:0 0 100%; margin-top:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:10.5px; line-height:1.55; letter-spacing:.05em; text-transform:uppercase; color:inherit; opacity:.75; }
-  .split-media .phone{ width:min(340px,78%); }
-  /* ambient light behind the device — makes it read as a physical object */
-  .split-media::before{ content:''; position:absolute; z-index:0; inset:4% 6%; border-radius:50%; pointer-events:none;
-    background:radial-gradient(closest-side, rgba(0,0,0,.16), transparent 72%); filter:blur(44px); }
-  .dark .split-media::before{ background:radial-gradient(closest-side, rgba(150,178,214,.26), rgba(31,163,90,.05) 55%, transparent 74%); filter:blur(52px); }
-  .split-media .osx-phone{ position:relative; z-index:1; }
-  .split:not(.reverse) .split-media{ justify-content:flex-end; }
-  .split.reverse .split-media{ justify-content:flex-start; }
-  @media (max-width:900px){ .split-media, .split.reverse .split-media, .split:not(.reverse) .split-media{ justify-content:center; } }
+  /* ================= 01 · HERO ================= */
+  .hero{ position:relative; min-height:100svh; display:grid; align-items:end; padding:clamp(120px,18vh,200px) var(--gutter) clamp(64px,9vh,110px); overflow:hidden; background:var(--ink); }
+  .hero-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:62% 40%; z-index:0; transform:scale(1.04); animation:drift 36s ease-in-out infinite alternate; }
+  @keyframes drift{ from{ transform:scale(1.04) translate3d(0,0,0); } to{ transform:scale(1.10) translate3d(-1.4%,-1%,0); } }
+  .hero-scrim{ position:absolute; inset:0; z-index:1; background:
+    linear-gradient(90deg, rgba(13,13,13,.94) 0%, rgba(13,13,13,.82) 26%, rgba(13,13,13,.42) 48%, rgba(13,13,13,.06) 66%, rgba(13,13,13,0) 80%),
+    linear-gradient(180deg, rgba(13,13,13,.5) 0%, rgba(13,13,13,0) 26%, rgba(13,13,13,0) 60%, rgba(13,13,13,.9) 100%); }
+  .hero-grid{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr); gap:clamp(30px,5vw,80px); align-items:end; }
+  .hero-copy > * + *{ margin-top:clamp(20px,2.4vw,30px); }
+  .hero-copy .hd-xl{ max-width:9ch; }
+  .hero-copy .lead{ color:var(--b80); }
+  .hero-phone{ justify-self:end; align-self:end; width:min(330px,100%); transform:translateY(clamp(20px,6vh,70px)); opacity:0; transition:opacity 1.1s ease .12s, transform 1.4s cubic-bezier(.2,.7,.2,1) .12s; }
+  .hero-phone.in{ opacity:1; transform:translateY(clamp(8px,3vh,36px)); }
+  .hero-phone img{ width:100%; height:auto; border-radius:8.7% / 4%; box-shadow:0 60px 110px -30px rgba(0,0,0,.8); }
+  .hero-phone .cap{ margin-top:12px; text-align:right; }
+  .scroll-cue{ position:absolute; z-index:2; bottom:clamp(20px,3vh,34px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--mono); font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
+  .scroll-cue .line{ width:1px; height:36px; background:linear-gradient(var(--b40), transparent); }
 
-  /* feature points */
-  .points{ margin-top:clamp(30px,3.5vw,44px); display:flex; flex-direction:column; gap:clamp(20px,2.4vw,30px); }
-  .point{ display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:start; }
-  .point .p-idx{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; color:var(--red); padding-top:3px; }
-  .point h3{ font-family:var(--display); font-size:clamp(16px,1.5vw,19px); margin-bottom:6px; }
-  .point p{ font-size:14.5px; line-height:1.65; color:inherit; opacity:.72; max-width:48ch; }
+  /* ================= 02 · THE IDEA ================= */
+  .idea .split{ align-items:start; }
+  .idea .lines{ margin-top:clamp(28px,3.4vw,44px); max-width:440px; }
+  .idea .after{ margin-top:clamp(28px,3.4vw,44px); }
+  .idea .after p{ font-family:var(--display); font-weight:800; font-size:clamp(22px,2.6vw,36px); line-height:1.12; letter-spacing:-0.015em; }
+  .idea .after p + p{ margin-top:8px; color:var(--red); }
+  .ui-arch{ position:relative; justify-self:end; }
+  .ui-arch::before{ content:''; position:absolute; left:-clamp(20px,3vw,44px); top:8%; bottom:8%; width:1px; background:linear-gradient(transparent, var(--red) 30%, var(--red) 70%, transparent); opacity:.7; }
 
-  /* command feature cards */
-  .cmd-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:clamp(28px,3vw,40px); }
-  .cmd{ border:1px solid var(--b14); border-left:2px solid var(--teal); border-radius:3px; padding:22px 24px; }
-  .cmd h3{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-bottom:10px; }
-  .cmd p{ font-size:14px; line-height:1.6; color:var(--b64); }
-  .cmd.balanced{ border-left-color:var(--teal); } .cmd.balanced h3{ color:var(--teal); }
-  .cmd.recovering{ border-left-color:var(--amber); } .cmd.recovering h3{ color:var(--amber); }
-  .cmd.peak{ border-left-color:var(--green); } .cmd.peak h3{ color:var(--green); }
-  .cmd.depleted{ border-left-color:var(--red); } .cmd.depleted h3{ color:#e5503f; }
+  /* ================= 03 · ONE COMMAND ================= */
+  .verbs{ list-style:none; margin-top:clamp(26px,3vw,40px); }
+  .verbs li{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--b24); padding:6px 0; transition:color .6s ease; }
+  .verbs li.in{ color:var(--bone); }
+  .verbs li.on{ color:var(--red); }
+  .stage{ position:relative; min-height:clamp(420px,52vw,680px); display:flex; align-items:flex-end; justify-content:center; }
+  .stage::before{ content:''; position:absolute; inset:auto 10% 8% 10%; height:40%; border-radius:50%; background:radial-gradient(closest-side, rgba(193,40,27,.16), transparent 74%); filter:blur(48px); pointer-events:none; }
+  .stage .can{ position:relative; z-index:1; width:clamp(150px,20vw,250px); height:auto; filter:drop-shadow(0 40px 60px rgba(0,0,0,.7)); transform:translateX(18%); }
+  .stage .shot{ position:relative; z-index:2; width:min(360px,60%); transform:translateX(-14%); }
+  .stage .shot img{ width:100%; }
+  .stage .cap{ position:absolute; z-index:3; left:0; bottom:-30px; }
 
-  /* ritual 3-col */
-  .ritual-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--b14); border:1px solid var(--b14); margin-top:clamp(44px,5vw,72px); }
-  .ritual-cell{ background:var(--ink); padding:clamp(30px,3.4vw,48px); }
-  .ritual-cell .r-idx{ font-family:var(--body); font-weight:700; font-size:12px; letter-spacing:.2em; color:var(--red); }
-  .ritual-cell h3{ font-family:var(--display); font-size:clamp(20px,2vw,26px); margin:16px 0 12px; }
-  .ritual-cell p{ font-size:14.5px; line-height:1.65; color:var(--b64); max-width:34ch; }
+  /* ================= 04 · MOMENTS ================= */
+  .moments .intro{ margin-bottom:clamp(56px,8vw,110px); }
+  .mo-rail{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(10px,1.4vw,18px); }
+  .mo{ position:relative; aspect-ratio:3/4; overflow:hidden; background:#111; }
+  .mo img{ width:100%; height:100%; object-fit:cover; transition:transform 1.4s ease; }
+  .mo::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,13,13,0) 45%, rgba(13,13,13,.86) 100%); }
+  .mo .tag{ position:absolute; z-index:2; left:0; right:0; bottom:0; padding:clamp(16px,2vw,26px); display:flex; flex-direction:column; gap:8px; width:100%; text-align:left; }
+  .mo .word{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.01em; font-size:clamp(20px,2.2vw,32px); line-height:1; color:var(--bone); }
+  .mo .when{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); opacity:0; transform:translateY(6px); transition:opacity .5s ease, transform .5s ease; }
+  .mo:hover .when, .mo:focus-within .when, .mo.on .when{ opacity:1; transform:none; }
+  .mo:hover img, .mo.on img{ transform:scale(1.04); }
+  .mo .tag:focus-visible{ outline:2px solid var(--red); outline-offset:-6px; }
+  .moments .close{ margin-top:clamp(64px,9vw,120px); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(20px,4vw,60px); align-items:end; }
+  .moments .close .prep{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:1; font-size:clamp(40px,7vw,104px); color:var(--red); }
 
-  /* hero */
-  /* full-screen background-video hero (matches the homepage setup) */
-  .os-hero{ position:relative; min-height:100vh; min-height:100svh; display:flex; align-items:center; padding:clamp(110px,16vh,180px) var(--gutter) clamp(80px,11vh,130px); background:var(--ink); color:var(--bone); overflow:hidden; }
-  .os-hero-video, .os-hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
-  .os-hero-still{ display:none; }
-  .os-hero-scrim{ position:absolute; inset:0; z-index:1; background:
-    linear-gradient(90deg, rgba(13,13,13,0.92) 0%, rgba(13,13,13,0.78) 22%, rgba(13,13,13,0.40) 40%, rgba(13,13,13,0.06) 54%, rgba(13,13,13,0) 66%),
-    linear-gradient(180deg, rgba(13,13,13,0.45) 0%, rgba(13,13,13,0) 24%, rgba(13,13,13,0) 70%, rgba(13,13,13,0.62) 100%); }
-  .os-hero-content{ position:relative; z-index:2; width:100%; max-width:520px; margin:0; margin-right:auto; }
-  .os-hero .h-display{ font-size:clamp(28px,3.6vw,54px); line-height:1.05; }
-  .os-hero .lead{ color:var(--b80); font-size:clamp(15px,1.3vw,18px); line-height:1.7; max-width:100%; }
-  .hero-cta{ display:flex; flex-wrap:wrap; gap:16px; margin-top:clamp(30px,3.5vw,42px); }
-  .os-scroll-cue{ position:absolute; z-index:2; bottom:clamp(26px,4vh,44px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b64); }
-  .os-scroll-cue .line{ width:1px; height:40px; background:linear-gradient(var(--b40), transparent); }
+  /* ================= 05 · CYCLE ================= */
+  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
+  .state{ display:flex; flex-direction:column; gap:clamp(18px,2vw,26px); padding-top:22px; border-top:1px solid var(--b24); }
+  .state .word{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
+  .state .copy{ color:var(--b64); font-size:15.5px; line-height:1.65; max-width:34ch; }
+  .state .copy b{ color:var(--bone); font-weight:600; display:block; margin-top:8px; }
+  .state .shot{ margin-top:auto; }
+  .state .shot img{ width:min(330px,100%); }
 
-  /* meta strip under hero copy */
-  .hero-meta{ display:flex; flex-wrap:wrap; gap:12px 34px; margin-top:clamp(34px,4vw,50px); padding-top:clamp(24px,3vw,34px); border-top:1px solid var(--b14); }
-  .hero-meta .m .k{ font-family:var(--display); font-size:clamp(17px,1.7vw,22px); }
-  .hero-meta .m .v{ font-size:12px; letter-spacing:.04em; color:var(--b40); margin-top:5px; text-transform:uppercase; }
+  /* ================= 06 · HYDROSTATE ================= */
+  .hydro .split{ align-items:center; }
+  .hydro .shot{ position:relative; }
+  .hydro .shot::before{ content:''; position:absolute; inset:-12% -30%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,.06), transparent 72%); filter:blur(40px); pointer-events:none; }
+  .hydro .shot img{ position:relative; }
+  .signals{ list-style:none; margin-top:clamp(30px,3.6vw,48px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border-top:1px solid var(--b14); }
+  .signals li{ padding:18px 0 20px; border-bottom:1px solid var(--b14); }
+  .signals .k{ font-family:var(--mono); font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--b40); }
+  .signals .v{ margin-top:6px; font-family:var(--display); font-weight:700; font-size:clamp(26px,3vw,40px); line-height:1; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
+  .signals .v.red{ color:var(--red); }
+  .signals li:nth-child(odd){ padding-right:18px; }
+  .signals li:nth-child(even){ padding-left:18px; border-left:1px solid var(--b14); }
 
-  /* final / community centered */
-  .center-block{ text-align:center; display:flex; flex-direction:column; align-items:center; gap:clamp(20px,2.6vw,30px); }
-  .center-block .lead{ margin:0 auto; }
-  .center-block .cta-row{ display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-top:8px; }
+  /* ================= 07 · SKIN ================= */
+  .skin .three{ list-style:none; margin-top:clamp(26px,3vw,40px); }
+  .skin .three li{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:1; font-size:clamp(28px,4vw,58px); color:var(--b40); padding:5px 0; }
+  .skin .three li:last-child{ color:var(--bone); }
+  .skin-stage{ position:relative; }
+  .skin-stage::before{ content:''; position:absolute; inset:-6% -14%; background:radial-gradient(ellipse at 50% 40%, rgba(193,40,27,.10), transparent 60%); filter:blur(30px); pointer-events:none; }
 
-  /* 30-day transformation */
-  .t30-grid{ margin-top:clamp(40px,5vw,64px); display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(18px,2.4vw,30px); }
-  .t30{ border-top:2px solid var(--ink); padding-top:20px; }
-  .t30-k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--i64); }
-  .t30-row{ margin-top:16px; display:flex; align-items:baseline; gap:9px; }
-  .t30-a{ font-family:var(--display); font-size:clamp(19px,2vw,26px); color:var(--i46); }
-  .t30-arw{ color:var(--i30); font-size:15px; }
-  .t30-b{ font-family:var(--display); font-size:clamp(34px,4vw,52px); line-height:1; letter-spacing:-0.01em; }
-  .t30-green{ color:var(--green); }
-  .t30-bar{ margin-top:16px; height:4px; border-radius:4px; background:var(--i08); overflow:hidden; }
-  .t30-bar i{ display:block; height:100%; border-radius:4px; background:var(--green); width:0; transition:width 1.3s cubic-bezier(.4,0,.2,1); }
-  .t30.in .t30-bar i{ width:var(--w,90%); }
-  .t30-d{ margin-top:13px; font-family:var(--body); font-weight:600; font-size:13px; color:var(--green); }
-  @media (max-width:900px){ .t30-grid{ grid-template-columns:1fr 1fr; gap:24px; } }
+  /* ================= 08 · TRAVEL ================= */
+  .travel-visual{ position:relative; margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:1fr; }
+  .travel-visual .photo{ aspect-ratio:16/8; overflow:hidden; }
+  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:60% 50%; }
+  .travel-visual .photo::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(13,13,13,.55), rgba(13,13,13,0) 45%, rgba(13,13,13,0) 60%, rgba(13,13,13,.35)); pointer-events:none; }
+  .travel-visual .shot{ position:absolute; right:clamp(14px,4vw,64px); bottom:-40px; width:min(300px,34%); }
+  .travel-visual .shot img{ width:100%; }
+  .travel-visual .shot .cap{ text-align:right; }
+  .travel .lines{ max-width:420px; }
 
-  /* cinematic final CTA */
-  .final-cta{ text-align:center; padding-top:clamp(96px,15vh,180px); padding-bottom:clamp(96px,15vh,180px); }
-  .fc-ring{ position:relative; width:clamp(184px,22vw,244px); aspect-ratio:1; margin:0 auto clamp(30px,4vw,46px); }
-  .fc-ring svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
-  .fc-track{ fill:none; stroke:rgba(245,240,232,.12); stroke-width:5; stroke-linecap:round; stroke-dasharray:75 25; }
-  .fc-fill{ fill:none; stroke:var(--green); stroke-width:5; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 9px rgba(31,163,90,.6)) drop-shadow(0 0 3px rgba(31,163,90,.9)); transition:stroke-dasharray 1.8s cubic-bezier(.4,0,.2,1); }
-  .fc-ring.in .fc-fill{ stroke-dasharray:68 32; }
-  .fc-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .fc-score{ font-family:var(--display); font-size:clamp(50px,7vw,86px); line-height:1; letter-spacing:-0.02em; color:var(--bone); font-variant-numeric:tabular-nums; }
-  .fc-state{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--green); margin-top:9px; }
-  .final-cta .fc-ritual{ margin-top:clamp(22px,2.8vw,32px); font-family:var(--body); font-weight:700; font-size:clamp(13px,1.5vw,17px); letter-spacing:.18em; text-transform:uppercase; color:var(--b80); }
-  @media (prefers-reduced-motion:reduce){ .fc-fill{ transition:none; stroke-dasharray:68 32; } .t30-bar i{ transition:none; width:var(--w,90%); } }
+  /* ================= 09 · AGE ================= */
+  .age .note{ margin-top:clamp(22px,2.6vw,34px); }
 
-  /* footer */
-  .ft{ background:var(--ink); color:var(--b64); padding:clamp(54px,7vw,88px) var(--gutter) clamp(36px,4vw,54px); border-top:1px solid var(--b08); }
-  .ft .f-wrap{ max-width:var(--maxw); margin:0 auto; }
-  .ft .f-top{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:32px; padding-bottom:30px; border-bottom:1px solid var(--b14); }
-  .ft .f-corp{ color:var(--bone); font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif; font-weight:700; letter-spacing:-0.01em; font-size:20px; }
-  .ft .f-corp span{ display:block; color:var(--b40); font-family:var(--body); font-weight:400; font-size:12.5px; margin-top:8px; }
-  .ft .f-nav{ display:flex; flex-wrap:wrap; gap:12px 24px; font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
-  .ft .f-nav a{ color:var(--b64); } .ft .f-nav a:hover{ color:var(--bone); }
-  .ft .f-meta{ margin-top:24px; font-size:11px; letter-spacing:.04em; color:var(--b40); }
-  .ft .f-meta .nonneg{ color:var(--red); font-weight:600; text-transform:uppercase; letter-spacing:.1em; }
+  /* ================= 10 · PHANTOM ================= */
+  .phantom{ background:var(--ink-2); }
+  .phantom .kick{ color:var(--red); }
+  .phantom .lead{ color:var(--b64); }
+  .phantom .three{ list-style:none; margin-top:clamp(22px,2.6vw,34px); display:flex; gap:clamp(18px,3vw,40px); flex-wrap:wrap; }
+  .phantom .three li{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.01em; font-size:clamp(20px,2.4vw,34px); color:var(--b64); }
+  .ph-stage{ position:relative; display:grid; grid-template-columns:1fr; place-items:center; min-height:clamp(420px,50vw,640px); }
+  .ph-stage .band{ position:absolute; z-index:0; width:clamp(220px,28vw,360px); left:0; top:6%; opacity:.55; filter:blur(.4px) saturate(.6); }
+  .ph-stage .can{ position:absolute; z-index:0; width:clamp(90px,10vw,140px); right:4%; bottom:6%; opacity:.28; filter:grayscale(.6) brightness(.55) drop-shadow(0 30px 40px rgba(0,0,0,.8)); }
+  .ph-stage .shot{ position:relative; z-index:1; }
+  .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
+  .phantom .note{ margin-top:clamp(22px,2.6vw,34px); }
+
+  /* ================= 11 · ECOSYSTEM ================= */
+  .eco-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:clamp(24px,4vw,72px); align-items:stretch; }
+  .eco h3{ font-family:var(--mono); font-weight:500; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--b40); margin-bottom:14px; }
+  .eco .list{ list-style:none; }
+  .eco .list li{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; padding:12px 0; border-top:1px solid var(--b14); font-family:var(--display); font-weight:600; font-size:clamp(15px,1.4vw,19px); }
+  .eco .list li:last-child{ border-bottom:1px solid var(--b14); }
+  .eco .list .st{ font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--b40); white-space:nowrap; }
+  .eco .list .st.live{ color:var(--red); }
+  .eco .list.out li{ font-weight:800; text-transform:uppercase; letter-spacing:-0.01em; }
+  .eco-core{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 clamp(10px,2vw,30px); }
+  .eco-core .line{ width:1px; flex:1; min-height:40px; background:linear-gradient(transparent, var(--red), transparent); opacity:.8; }
+  .eco-core .core{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.02em; line-height:.95; font-size:clamp(30px,4.2vw,60px); text-align:center; white-space:nowrap; }
+  .eco-core .core small{ display:block; font-family:var(--mono); font-weight:500; font-size:10.5px; letter-spacing:.24em; color:var(--red); margin-top:10px; }
+  .eco-foot{ margin-top:clamp(28px,3.4vw,44px); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(20px,4vw,60px); align-items:end; }
+  .eco-foot .shot img{ width:min(240px,100%); }
+
+  /* ================= 12 · RITUAL ================= */
+  .ritual{ padding:clamp(40px,8vh,100px) var(--gutter); background:var(--ink); }
+  .ritual .rw{ min-height:58vh; display:flex; align-items:center; position:relative; }
+  .ritual .rw span{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.03em; line-height:.9; font-size:clamp(64px,15vw,240px); color:var(--b14); transition:color 1.2s ease; }
+  .ritual .rw.on span{ color:var(--bone); }
+  .ritual .rw::before{ content:''; position:absolute; left:0; bottom:0; height:1px; width:0; background:var(--red); transition:width 1.4s cubic-bezier(.2,.7,.2,1); }
+  .ritual .rw.on::before{ width:min(38vw,320px); }
+  .ritual .rw.last.on span{ color:var(--red); }
+
+  /* ================= 13 · CLOSING ================= */
+  .closing{ position:relative; padding:0; background:var(--ink); display:grid; min-height:min(92vh,960px); }
+  .four{ grid-area:1/1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:2px; }
+  .four div{ overflow:hidden; min-height:100%; }
+  .four img{ width:100%; height:100%; object-fit:cover; filter:brightness(.62) contrast(1.02); }
+  .closing .over{ grid-area:1/1; position:relative; z-index:1; display:grid; align-items:end; padding:clamp(48px,7vw,110px) var(--gutter); background:linear-gradient(180deg, rgba(13,13,13,.2), rgba(13,13,13,.55) 40%, rgba(13,13,13,.92) 100%); }
+  .closing .over .wrap{ width:100%; }
+  .closing .sub{ margin-top:clamp(14px,1.8vw,24px); font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:-0.015em; line-height:1.02; font-size:clamp(20px,2.8vw,40px); color:var(--b64); }
+  .closing .lead{ margin-top:clamp(18px,2.2vw,30px); }
+  .closing .cta-row{ margin-top:clamp(28px,3.4vw,44px); }
 
   /* ---------- RESPONSIVE ---------- */
+  @media (max-width:1100px){
+    .eco-grid{ grid-template-columns:minmax(0,1fr); gap:36px; }
+    .eco-core{ flex-direction:row; padding:0; }
+    .eco-core .line{ height:1px; width:auto; min-height:0; background:linear-gradient(90deg, transparent, var(--red), transparent); }
+  }
   @media (max-width:900px){
-    .os-hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,0.58) 0%, rgba(13,13,13,0.32) 42%, rgba(13,13,13,0.80) 100%); }
-    .split{ grid-template-columns:1fr; gap:32px; }
-    .split-media, .split.reverse .split-media{ order:2; }
-    .cmd-grid{ grid-template-columns:1fr; }
-    .ritual-grid{ grid-template-columns:1fr; }
+    .split, .split.rev{ grid-template-columns:minmax(0,1fr); gap:40px; }
+    .split.rev > :first-child{ order:0; }
+    .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
+    .hero-grid{ grid-template-columns:minmax(0,1fr); }
+    .hero-phone{ justify-self:start; width:min(250px,70%); }
+    .hero-phone .cap{ text-align:left; }
+    .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
+    .ui-arch{ justify-self:center; } .ui-arch::before{ display:none; }
+    .mo-rail{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-right:var(--gutter); margin-right:calc(-1 * var(--gutter)); scrollbar-width:none; }
+    .mo-rail::-webkit-scrollbar{ display:none; }
+    .mo{ flex:0 0 76vw; scroll-snap-align:start; }
+    .mo .when{ opacity:1; transform:none; }
+    .moments .close{ grid-template-columns:minmax(0,1fr); }
+    .cycle-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
+    .state .word{ position:sticky; top:72px; z-index:2; background:var(--ink); padding:8px 0; }
+    .stage{ min-height:0; padding-bottom:40px; }
+    .travel-visual .photo{ aspect-ratio:4/3; }
+    .travel-visual .shot{ position:static; width:min(300px,80%); margin:24px auto 0; }
+    .travel-visual .shot .cap{ text-align:center; }
+    .ph-stage{ min-height:0; padding:30px 0; }
+    .ph-stage .band{ width:40vw; left:-6%; top:0; }
+    .eco-foot{ grid-template-columns:minmax(0,1fr); }
+    .closing{ display:block; min-height:0; }
+    .four{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .four div{ aspect-ratio:3/4; min-height:0; }
+    .closing .over{ padding-top:clamp(32px,6vw,56px); background:var(--ink); }
+    .four img{ filter:brightness(.8); }
+  }
+  @media (max-width:390px){
+    .hd-xl{ font-size:44px; }
+    .signals{ grid-template-columns:1fr; }
+    .signals li:nth-child(even){ padding-left:0; border-left:none; }
+    .signals li:nth-child(odd){ padding-right:0; }
   }
   @media (prefers-reduced-motion:reduce){
     html{ scroll-behavior:auto; }
-    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .reveal, .hero-phone{ opacity:1 !important; transform:none !important; transition:none !important; }
     .stagger .reveal.in{ transition-delay:0s !important; }
-    .phone, .osx-phone{ animation:none !important; }
-    .btn .arw{ transition:none; }
-    .os-hero-video{ display:none; }
-    .os-hero-still{ display:block; }
+    .hero-img{ animation:none; transform:none; }
+    .mo img, .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before{ transition:none !important; }
+    .mo .when{ opacity:1; transform:none; }
+    .verbs li{ color:var(--bone); }
+    .ritual .rw span{ color:var(--bone); } .ritual .rw::before{ width:min(38vw,320px); } .ritual .rw.last span{ color:var(--red); }
   }
-  /* =====================================================================
-     OSX — live app-UI phone mockups (dark, data-rich). Rebuilds the flat
-     PNG screens as real UI so every screen is fully populated. Everything
-     sized in container-query units (cqw) so the screen scales exactly.
-     Tokens mirror the app: canvas #0D0D0D, surface #141420, Signal Red,
-     Soursop Green, Cyan, Amber; Inter body + IBM Plex Mono metrics.
-     ===================================================================== */
-  .osx-phone{ position:relative; width:min(410px,92%); margin:0 auto; aspect-ratio:1179/2556;
-    background:linear-gradient(150deg,#2a2b30 0%,#0a0a0c 46%); border-radius:15% / 6.9%; padding:2.5%;
-    box-shadow:0 60px 110px -30px rgba(0,0,0,.66), 0 20px 44px -12px rgba(0,0,0,.42), inset 0 0 0 1.4px rgba(255,255,255,.06), inset 0 1.5px 1px rgba(255,255,255,.10);
-    animation:float 7s ease-in-out infinite; }
-  .osx-screen{ container-type:inline-size; position:relative; width:100%; height:100%; border-radius:13% / 6.05%;
-    background:#0D0D0D; overflow:hidden; display:flex; flex-direction:column;
-    color:#F4F2ED; font-family:var(--body); line-height:1.32; --xred:#C1281B; --xredt:#E4564A; --xgreen:#1FA35A;
-    --xcyan:#00E5C8; --xamber:#FFA01E; --xdim:#A6A5A1; --xfaint:#85868C; --xsurf:#15161D; --xsurf2:#1B1C24; }
-  /* Black Issue screenshots — the render carries its own bezel, so the shot
-     variant drops the DOM frame chrome and masks to the drawn device curve. */
-  .osx-phone--shot{ padding:0; background:none; border-radius:8.7% / 4%; overflow:hidden;
-    box-shadow:0 60px 110px -30px rgba(0,0,0,.66), 0 20px 44px -12px rgba(0,0,0,.42); }
-  .osx-phone--shot img{ display:block; width:100%; height:100%; object-fit:cover; }
-  .osx-island{ position:absolute; top:3cqw; left:50%; transform:translateX(-50%); width:29cqw; height:8.2cqw; background:#000; border-radius:5cqw; z-index:9; }
-  .osx-status{ display:flex; justify-content:space-between; align-items:center; padding:4.2cqw 6.4cqw 0; font-family:var(--body); }
-  .osx-status .t{ font-size:3.4cqw; font-weight:600; letter-spacing:.02em; }
-  .osx-status .r{ display:flex; align-items:center; gap:1.5cqw; }
-  .osx-status .r i{ display:block; width:4cqw; height:3cqw; border-radius:.7cqw; background:rgba(244,242,237,.85); }
-  .osx-status .r i.sig{ width:4.4cqw; height:3.2cqw; background:none; border-radius:0;
-    -webkit-mask:linear-gradient(#000 0 0) 0 100%/22% 40% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 66% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat;
-    mask:linear-gradient(#000 0 0) 0 100%/22% 40% no-repeat,linear-gradient(#000 0 0) 39% 100%/22% 66% no-repeat,linear-gradient(#000 0 0) 78% 100%/22% 100% no-repeat; }
-  .osx-body{ flex:1; padding:3cqw 5.6cqw 0; display:flex; flex-direction:column; overflow:hidden; }
-  .osx-h1{ margin-top:1.3cqw; }
-  .osx-nav{ margin-top:auto; display:flex; justify-content:space-between; padding:2.8cqw 6cqw 4.4cqw; border-top:1px solid rgba(255,255,255,.08); background:rgba(10,10,12,.6); }
-  .osx-nav .tab{ display:flex; flex-direction:column; align-items:center; gap:1.3cqw; font-size:2.25cqw; font-weight:500; letter-spacing:.02em; color:var(--xfaint); flex:1; }
-  .osx-nav .tab svg{ width:5.2cqw; height:5.2cqw; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .osx-nav .tab.on{ color:var(--xredt); }
-  /* generic building blocks */
-  .osx-ey{ font-family:'IBM Plex Mono',monospace; font-size:2.7cqw; font-weight:500; letter-spacing:.18em; text-transform:uppercase; color:var(--xfaint); }
-  .osx-h1{ margin-top:1.3cqw; font-size:6.6cqw; font-weight:700; letter-spacing:-0.02em; }
-  .osx-chip{ align-self:flex-start; display:inline-flex; align-items:center; gap:1.8cqw; margin-top:2.2cqw; padding:1.4cqw 2.8cqw; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.10); border-radius:6cqw; font-size:2.7cqw; font-weight:600; }
-  .osx-chip .dot{ width:2.1cqw; height:2.1cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
-  .osx-chip .mut{ font-weight:400; color:var(--xfaint); }
-  .osx-num{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; }
-  /* PROTOCOL screen */
-  .px-hero{ margin-top:4cqw; display:flex; align-items:center; gap:4.4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:4.6cqw; }
-  .px-ring{ position:relative; width:30cqw; height:30cqw; flex-shrink:0; }
-  .px-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
-  .px-ring .tr{ fill:none; stroke:rgba(255,255,255,.10); stroke-width:7; }
-  .px-ring .fl{ fill:none; stroke:var(--xgreen); stroke-width:7; stroke-linecap:round; stroke-dasharray:100 100; stroke-dashoffset:9; }
-  .px-ring .c{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .px-ring .c b{ font-family:'IBM Plex Mono',monospace; font-size:6.4cqw; font-weight:600; line-height:1; }
-  .px-ring .c span{ font-family:'IBM Plex Mono',monospace; font-size:2.1cqw; letter-spacing:.14em; color:var(--xfaint); margin-top:.8cqw; }
-  .px-herostats{ flex:1; display:flex; flex-direction:column; gap:2.6cqw; }
-  .px-hs{ display:flex; flex-direction:column; gap:.5cqw; }
-  .px-hs .k{ font-size:2.5cqw; letter-spacing:.05em; text-transform:uppercase; color:var(--xfaint); }
-  .px-hs .v{ font-size:4cqw; font-weight:600; }
-  .px-hs .v em{ font-style:normal; font-size:2.6cqw; font-weight:500; color:var(--xdim); }
-  .px-hydro{ margin-top:4.4cqw; }
-  .px-hydro .top{ display:flex; justify-content:space-between; align-items:baseline; }
-  .px-hydro .lbl{ font-size:3cqw; font-weight:600; color:var(--xdim); }
-  .px-hydro .val{ font-family:'IBM Plex Mono',monospace; font-size:3cqw; font-weight:600; }
-  .px-hydro .val em{ font-style:normal; color:var(--xfaint); }
-  .px-bar{ margin-top:2cqw; height:2cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
-  .px-bar i{ display:block; height:100%; width:92%; border-radius:1cqw; background:linear-gradient(90deg,var(--xcyan),#28b6ff); }
-  .px-sec{ margin-top:3.4cqw; display:flex; align-items:center; justify-content:space-between; }
-  .px-sec .l{ font-size:2.9cqw; font-weight:600; color:var(--xdim); }
-  .px-sec .r{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--xgreen); }
-  .px-list{ margin-top:3.4cqw; display:flex; flex-direction:column; gap:4.4cqw; }
-  .px-item{ display:flex; align-items:center; gap:3cqw; }
-  .px-ck{ width:4.6cqw; height:4.6cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; position:relative; }
-  .px-ck::after{ content:''; position:absolute; left:1.5cqw; top:1cqw; width:1.4cqw; height:2.3cqw; border:solid #0D0D0D; border-width:0 .8cqw .8cqw 0; transform:rotate(43deg); }
-  .px-item .nm{ flex:1; display:flex; flex-direction:column; gap:.2cqw; min-width:0; }
-  .px-item .nm b{ font-size:3.3cqw; font-weight:600; }
-  .px-item .nm span{ font-size:2.5cqw; color:var(--xfaint); }
-  .px-item .amt{ font-family:'IBM Plex Mono',monospace; font-size:2.8cqw; color:var(--xdim); }
-  .px-tl{ margin-top:3cqw; padding-top:3cqw; border-top:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; gap:4cqw; }
-  .px-tl .row{ display:flex; align-items:center; gap:2.8cqw; }
-  .px-tl .row .d{ width:2.2cqw; height:2.2cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
-  .px-tl .row .tx{ flex:1; font-size:2.9cqw; color:var(--xdim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .px-tl .row .tm{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; color:var(--xfaint); }
-  /* COMMAND HISTORY screen */
-  .ch-summary{ margin-top:3cqw; display:flex; align-items:center; gap:4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:3.6cqw 4cqw; }
-  .ch-summary .big{ display:flex; flex-direction:column; }
-  .ch-summary .big b{ font-family:'IBM Plex Mono',monospace; font-size:8.6cqw; font-weight:600; line-height:1; color:var(--xgreen); }
-  .ch-summary .big span{ font-size:2.5cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xfaint); margin-top:1cqw; }
-  .ch-summary .spark{ flex:1; display:flex; align-items:flex-end; gap:1.4cqw; height:15cqw; }
-  .ch-summary .spark i{ flex:1; border-radius:1cqw .9cqw 0 0; background:rgba(255,255,255,.14); }
-  .ch-summary .spark i.hi{ background:var(--xgreen); } .ch-summary .spark i.mid{ background:var(--xcyan); } .ch-summary .spark i.lo{ background:var(--xamber); }
-  .ch-row{ margin-top:2.8cqw; display:flex; align-items:center; gap:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:4cqw; padding:3.4cqw 3.4cqw; }
-  .ch-acc{ width:1.4cqw; align-self:stretch; border-radius:1cqw; flex-shrink:0; }
-  .ch-main{ flex:1; min-width:0; }
-  .ch-main .top{ display:flex; align-items:center; gap:2cqw; }
-  .ch-main .day{ font-size:3.3cqw; font-weight:600; }
-  .ch-main .date{ font-size:2.5cqw; color:var(--xfaint); }
-  .ch-pill{ margin-left:auto; display:inline-flex; align-items:center; gap:1cqw; font-family:'IBM Plex Mono',monospace; font-size:2.3cqw; font-weight:500; padding:.7cqw 1.9cqw; border-radius:3cqw; }
-  .ch-chips{ margin-top:1.7cqw; display:flex; gap:3.2cqw; }
-  .ch-chips .c{ display:flex; align-items:center; gap:1.1cqw; font-size:2.5cqw; color:var(--xfaint); }
-  .ch-chips .c b{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--xdim); }
-  .ch-chips .c .g{ width:1.9cqw; height:1.9cqw; border-radius:50%; flex-shrink:0; }
-  .ch-score{ font-family:'IBM Plex Mono',monospace; font-size:6.4cqw; font-weight:600; line-height:1; flex-shrink:0; }
-  .is-peak{ color:var(--xgreen); } .is-bal{ color:var(--xcyan); } .is-rec{ color:var(--xamber); } .is-dep{ color:var(--xredt); }
-  .bg-peak{ background:var(--xgreen); } .bg-bal{ background:var(--xcyan); } .bg-rec{ background:var(--xamber); } .bg-dep{ background:var(--xredt); }
-  .pill-peak{ background:rgba(31,163,90,.14); color:var(--xgreen); } .pill-bal{ background:rgba(0,229,200,.13); color:var(--xcyan); }
-  .pill-rec{ background:rgba(255,160,30,.14); color:var(--xamber); } .pill-dep{ background:rgba(228,86,74,.14); color:var(--xredt); }
-  /* WEEKLY REPORT screen */
-  .wr-age{ margin-top:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:5cqw; padding:3.8cqw; }
-  .wr-age .k{ font-size:2.5cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xfaint); }
-  .wr-age .row{ margin-top:1.6cqw; display:flex; align-items:flex-end; gap:2.6cqw; }
-  .wr-age .from{ font-family:'IBM Plex Mono',monospace; font-size:5cqw; font-weight:500; color:var(--xfaint); text-decoration:line-through; }
-  .wr-age .arw{ font-size:3.6cqw; color:var(--xgreen); margin-bottom:.8cqw; }
-  .wr-age .to{ font-family:'IBM Plex Mono',monospace; font-size:8.6cqw; font-weight:600; color:var(--xgreen); line-height:.85; }
-  .wr-age .badge{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.2cqw; border-radius:3cqw; align-self:center; }
-  .wr-age .spark{ margin-top:3cqw; display:flex; align-items:flex-end; gap:1.4cqw; height:15cqw; }
-  .wr-age .spark i{ flex:1; border-radius:.9cqw .9cqw 0 0; background:rgba(31,163,90,.55); }
-  .wr-grid{ margin-top:2.8cqw; display:grid; grid-template-columns:1fr 1fr; gap:2.8cqw; }
-  .wr-card{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:4cqw; padding:3.6cqw 3.4cqw; }
-  .wr-card .k{ font-size:2.35cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
-  .wr-card .v{ margin-top:1.2cqw; font-family:'IBM Plex Mono',monospace; font-size:4.8cqw; font-weight:600; display:flex; align-items:baseline; gap:1.2cqw; }
-  .wr-card .v small{ font-family:var(--body); font-size:2.5cqw; font-weight:600; }
-  .wr-card .bar{ margin-top:2cqw; height:1.5cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
-  .wr-card .bar i{ display:block; height:100%; border-radius:1cqw; background:var(--xcyan); }
-  .wr-card .dots{ margin-top:2cqw; display:flex; gap:1.1cqw; }
-  .wr-card .dots i{ flex:1; height:2.4cqw; border-radius:.6cqw; background:var(--xgreen); }
-  .wr-card .dots i.off{ background:rgba(255,255,255,.12); }
-  .wr-top{ margin-top:2.8cqw; display:flex; align-items:center; gap:3cqw; background:linear-gradient(90deg,rgba(193,40,27,.15),rgba(193,40,27,.03)); border:1px solid rgba(228,86,74,.26); border-radius:4cqw; padding:3.6cqw 3.6cqw; }
-  .wr-top .ic{ width:8.4cqw; height:8.4cqw; border-radius:2.6cqw; background:rgba(228,86,74,.16); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--xredt); font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:3.4cqw; }
-  .wr-top .k{ font-size:2.4cqw; letter-spacing:.06em; text-transform:uppercase; color:var(--xredt); }
-  .wr-top .v{ font-size:3.5cqw; font-weight:600; margin-top:.4cqw; }
-  /* COMMUNITY screen */
-  .cm-you{ margin-top:3cqw; background:linear-gradient(135deg,rgba(31,163,90,.16),var(--xsurf) 62%); border:1px solid rgba(31,163,90,.32); border-radius:5cqw; padding:3.6cqw; }
-  .cm-you .top{ display:flex; align-items:center; gap:3cqw; }
-  .cm-av{ width:10cqw; height:10cqw; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:3.2cqw; font-weight:700; color:#0D0D0D; flex-shrink:0; }
-  .cm-you .who b{ font-size:3.8cqw; font-weight:700; }
-  .cm-you .who span{ display:block; font-size:2.4cqw; color:var(--xfaint); margin-top:.3cqw; }
-  .cm-you .mv{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:2.7cqw; font-weight:500; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.4cqw; border-radius:3cqw; }
-  .cm-ranks{ margin-top:3.2cqw; padding-top:3cqw; border-top:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; }
-  .cm-ranks .r{ display:flex; flex-direction:column; align-items:center; gap:.8cqw; }
-  .cm-ranks .r b{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; }
-  .cm-ranks .r span{ font-size:2cqw; letter-spacing:.05em; text-transform:uppercase; color:var(--xfaint); }
-  .cm-tabs{ margin-top:3cqw; display:flex; gap:1.8cqw; }
-  .cm-tab{ font-size:2.6cqw; font-weight:600; padding:1.5cqw 2.8cqw; border-radius:5cqw; color:var(--xfaint); background:rgba(255,255,255,.05); }
-  .cm-tab.on{ color:#0D0D0D; background:var(--xredt); }
-  .cm-chal{ margin-top:2.8cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.09); border-radius:4cqw; padding:2.9cqw 3.4cqw; }
-  .cm-chal .top{ display:flex; justify-content:space-between; align-items:baseline; font-size:2.7cqw; }
-  .cm-chal .top b{ font-weight:600; } .cm-chal .top span{ font-family:'IBM Plex Mono',monospace; color:var(--xdim); }
-  .cm-chal .bar{ margin-top:2cqw; height:1.7cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
-  .cm-chal .bar i{ display:block; height:100%; width:72%; border-radius:1cqw; background:linear-gradient(90deg,var(--xred),var(--xamber)); }
-  .cm-lead{ margin-top:2.4cqw; display:flex; flex-direction:column; }
-  .cm-lr{ display:flex; align-items:center; gap:2.6cqw; padding:2.9cqw 0; border-top:1px solid rgba(255,255,255,.07); }
-  .cm-lr:first-child{ border-top:none; }
-  .cm-rk{ font-family:'IBM Plex Mono',monospace; font-size:2.9cqw; color:var(--xfaint); width:3.6cqw; flex-shrink:0; }
-  .cm-sm{ width:8cqw; height:8cqw; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.8cqw; font-weight:700; color:#0D0D0D; flex-shrink:0; }
-  .cm-nm{ flex:1; min-width:0; }
-  .cm-nm b{ font-size:3.1cqw; font-weight:600; display:flex; align-items:center; gap:1.2cqw; }
-  .cm-nm .vf{ width:3.2cqw; height:3.2cqw; flex-shrink:0; }
-  .cm-nm span{ display:block; font-size:2.35cqw; color:var(--xfaint); margin-top:.2cqw; }
-  .cm-sc{ font-family:'IBM Plex Mono',monospace; font-size:4cqw; font-weight:600; flex-shrink:0; }
-  .cm-mv{ font-family:'IBM Plex Mono',monospace; font-size:2.5cqw; width:7cqw; text-align:right; flex-shrink:0; }
-  .mv-up{ color:var(--xgreen); } .mv-dn{ color:var(--xredt); } .mv-fl{ color:var(--xfaint); }
-  /* ---- shared continuation sections (fill each screen to the nav) ---- */
-  .osx-sh{ margin-top:3.4cqw; display:flex; align-items:baseline; justify-content:space-between; }
-  .osx-sh .l{ font-size:2.9cqw; font-weight:600; color:var(--xdim); }
-  .osx-sh .r{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; color:var(--xgreen); }
-  .osx-mg{ margin-top:2.2cqw; display:grid; grid-template-columns:1fr 1fr; gap:2.2cqw; }
-  .osx-mc{ background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:2.6cqw 3cqw; }
-  .osx-mc .k{ font-size:2.3cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
-  .osx-mc .v{ margin-top:0.9cqw; font-family:'IBM Plex Mono',monospace; font-size:4.2cqw; font-weight:600; color:#F4F2ED; }
-  .osx-mc .v em{ font-style:normal; font-family:var(--body); font-size:2.4cqw; font-weight:500; color:var(--xfaint); }
-  .osx-mc .s{ margin-top:0.5cqw; font-size:2.35cqw; color:var(--xgreen); }
-  .osx-mc .s.amber{ color:var(--xamber); }
-  .osx-tlx{ margin-top:2.4cqw; position:relative; display:flex; flex-direction:column; gap:2.6cqw; }
-  .osx-tlx::before{ content:''; position:absolute; left:1.9cqw; top:2cqw; bottom:2cqw; width:1px; background:rgba(255,255,255,.10); }
-  .osx-tlx .row{ position:relative; display:flex; align-items:center; gap:3cqw; }
-  .osx-tlx .dot{ width:4cqw; height:4cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; z-index:1; }
-  .osx-tlx .dot.hollow{ background:var(--xsurf); border:1.4px solid rgba(255,255,255,.24); }
-  .osx-tlx .tx{ flex:1; font-size:3cqw; color:#F4F2ED; }
-  .osx-tlx .tm{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; color:var(--xfaint); }
-  .osx-tlx .tm.up{ color:var(--xgreen); }
-  .osx-badges{ margin-top:2.4cqw; display:flex; flex-wrap:wrap; gap:1.8cqw; }
-  .osx-badge{ display:inline-flex; align-items:center; gap:1.6cqw; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); border-radius:5cqw; padding:1.5cqw 2.8cqw; font-size:2.55cqw; font-weight:500; }
-  .osx-badge .ic{ width:3.6cqw; height:3.6cqw; border-radius:50%; background:rgba(31,163,90,.2); flex-shrink:0; position:relative; }
-  .osx-badge .ic::after{ content:''; position:absolute; left:1.2cqw; top:0.85cqw; width:0.9cqw; height:1.6cqw; border:solid var(--xgreen); border-width:0 0.55cqw 0.55cqw 0; transform:rotate(43deg); }
-  .osx-stats{ margin-top:2.4cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:3.4cqw; padding:0.6cqw 3.2cqw; }
-  .osx-stat{ display:flex; align-items:center; justify-content:space-between; padding:2.1cqw 0; border-top:1px solid rgba(255,255,255,.06); }
-  .osx-stat:first-child{ border-top:none; }
-  .osx-stat .k{ font-size:2.8cqw; color:var(--xdim); }
-  .osx-stat .v{ font-family:'IBM Plex Mono',monospace; font-size:3.1cqw; font-weight:600; color:#F4F2ED; }
-  .osx-stat .v.g{ color:var(--xgreen); }
-  .osx-pb{ margin-top:2.4cqw; display:flex; flex-direction:column; gap:2.4cqw; }
-  .osx-pb .top{ display:flex; justify-content:space-between; font-size:2.7cqw; margin-bottom:1.2cqw; }
-  .osx-pb .top .k{ color:var(--xdim); } .osx-pb .top .v{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:#F4F2ED; }
-  .osx-pb .bar{ height:1.6cqw; border-radius:1cqw; background:rgba(255,255,255,.08); overflow:hidden; }
-  .osx-pb .bar i{ display:block; height:100%; border-radius:1cqw; background:linear-gradient(90deg,var(--xgreen),var(--xcyan)); }
-  .osx-week{ margin-top:2.4cqw; display:flex; gap:1.4cqw; }
-  .osx-day{ flex:1; background:var(--xsurf); border:1px solid rgba(255,255,255,.08); border-radius:2.6cqw; padding:2.2cqw 0 2cqw; display:flex; flex-direction:column; align-items:center; gap:1.4cqw; }
-  .osx-day .d{ font-size:2.1cqw; letter-spacing:.04em; text-transform:uppercase; color:var(--xfaint); }
-  .osx-day .bar{ width:2.6cqw; height:10cqw; border-radius:1.4cqw; background:rgba(255,255,255,.10); display:flex; align-items:flex-end; overflow:hidden; }
-  .osx-day .bar i{ width:100%; border-radius:1.4cqw; background:var(--xgreen); }
-  .osx-day .bar i.amber{ background:var(--xamber); }
-  .osx-day .n{ font-family:'IBM Plex Mono',monospace; font-size:2.15cqw; font-weight:600; color:#F4F2ED; }
-  /* ---- hero readiness device ---- */
-  .os-hero-inner{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:clamp(28px,5vw,84px); }
-  .os-hero-inner > .os-hero-content{ width:auto; max-width:520px; margin:0; flex:0 1 520px; }
-  .os-hero-device{ position:relative; flex:0 0 auto; width:clamp(228px,25vw,332px); }
-  .os-hero-device::before{ content:''; position:absolute; z-index:0; inset:-26% -38%; border-radius:46%; background:radial-gradient(closest-side, rgba(13,13,13,.95) 46%, rgba(13,13,13,.74) 60%, rgba(31,163,90,.05) 72%, transparent 85%); filter:blur(32px); pointer-events:none; }
-  .os-hero-device .osx-phone{ width:100%; margin:0; position:relative; z-index:1; }
-  @media (max-width:900px){
-    .os-hero{ min-height:auto; }
-    .os-hero-inner{ flex-direction:column; align-items:flex-start; gap:clamp(38px,7vw,56px); }
-    .os-hero-inner > .os-hero-content{ flex:none; }
-    .os-hero-device{ width:min(300px,74%); align-self:center; }
-  }
-  /* ---- READINESS (hero) screen ---- */
-  .rx-hd{ display:flex; align-items:center; justify-content:space-between; gap:2cqw; }
-  .rx-brand{ font-size:5.4cqw; font-weight:700; letter-spacing:-0.02em; color:#F4F2ED; }
-  .rx-live{ display:inline-flex; align-items:center; gap:1.3cqw; font-size:2.2cqw; font-weight:600; letter-spacing:.02em; color:var(--xgreen); background:rgba(31,163,90,.14); padding:1cqw 2.2cqw; border-radius:4cqw; }
-  .rx-live .dot{ width:1.8cqw; height:1.8cqw; border-radius:50%; background:var(--xgreen); flex-shrink:0; }
-  .rx-fresh{ margin-top:0.7cqw; font-size:2.4cqw; color:var(--xfaint); }
-  .rx-arc{ position:relative; width:44cqw; aspect-ratio:1; margin:2.4cqw auto 1.2cqw; }
-  .rx-arc svg{ width:100%; height:100%; transform:rotate(135deg); overflow:visible; }
-  .rx-arc .tr{ fill:none; stroke:rgba(255,255,255,.10); stroke-width:6; stroke-linecap:round; stroke-dasharray:75 25; }
-  .rx-arc .fl{ fill:none; stroke:var(--xgreen); stroke-width:6; stroke-linecap:round; stroke-dasharray:0 100; filter:drop-shadow(0 0 5px rgba(31,163,90,.6)) drop-shadow(0 0 2px rgba(31,163,90,.85)); transition:stroke-dasharray 1.6s cubic-bezier(.4,0,.2,1); }
-  .reveal.in .rx-arc .fl, .os-hero-device .rx-arc .fl{ stroke-dasharray:68 32; }
-  .rx-arc .c{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .rx-arc .c b{ font-family:'IBM Plex Mono',monospace; font-size:17cqw; font-weight:600; line-height:1; letter-spacing:-.01em; }
-  .rx-arc .c .l{ font-family:'IBM Plex Mono',monospace; font-size:2.4cqw; letter-spacing:.16em; text-transform:uppercase; color:var(--xdim); margin-top:1.2cqw; }
-  .rx-arc .c .s{ font-size:2.7cqw; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--xgreen); margin-top:0.7cqw; }
-  .rx-bio{ display:flex; justify-content:center; gap:3.8cqw; font-family:'IBM Plex Mono',monospace; font-size:2.45cqw; color:var(--xfaint); }
-  .rx-bio b{ color:#F4F2ED; font-weight:600; } .rx-bio .up{ color:var(--xgreen); }
-  .rx-cmd{ margin-top:3cqw; background:var(--xsurf); border:1px solid rgba(255,255,255,.10); border-radius:4cqw; padding:3.2cqw; }
-  .rx-cmd .k{ font-family:'IBM Plex Mono',monospace; font-size:2.35cqw; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--xfaint); }
-  .rx-cmd .t{ margin-top:1.3cqw; font-size:4.6cqw; font-weight:600; color:#F4F2ED; }
-  .rx-cmd .row{ margin-top:2.6cqw; display:flex; align-items:center; gap:3.4cqw; }
-  .rx-cmd .btn{ background:var(--xred); color:#fff; font-size:3.1cqw; font-weight:600; padding:2cqw 4.6cqw; border-radius:2.4cqw; }
-  .rx-cmd .why{ font-size:2.7cqw; font-weight:500; color:var(--xdim); }
-  /* ---- per-phone entrance motion: bars & charts draw in when the phone scrolls
-     into view. Gated on .js-anim (added only when JS runs and motion is allowed),
-     so with no JS / reduced-motion the bars simply render full. ---- */
-  .js-anim .px-bar i, .js-anim .cm-chal .bar i, .js-anim .wr-card .bar i, .js-anim .osx-pb .bar i{ transform:scaleX(0); transform-origin:left center; transition:transform 1.05s cubic-bezier(.4,0,.2,1) .08s; }
-  .js-anim .osx-phone.anim .px-bar i, .js-anim .osx-phone.anim .cm-chal .bar i, .js-anim .osx-phone.anim .wr-card .bar i, .js-anim .osx-phone.anim .osx-pb .bar i{ transform:scaleX(1); }
-  .js-anim .ch-summary .spark i, .js-anim .wr-age .spark i, .js-anim .osx-week .osx-day .bar i{ transform:scaleY(0); transform-origin:center bottom; transition:transform .85s cubic-bezier(.4,0,.2,1); }
-  .js-anim .osx-phone.anim .ch-summary .spark i, .js-anim .osx-phone.anim .wr-age .spark i, .js-anim .osx-phone.anim .osx-week .osx-day .bar i{ transform:scaleY(1); }
-  /* left-to-right stagger for the sparklines & weekly bars */
-  .js-anim .ch-summary .spark i:nth-child(2), .js-anim .wr-age .spark i:nth-child(2), .js-anim .osx-week .osx-day:nth-child(2) .bar i{ transition-delay:.05s; }
-  .js-anim .ch-summary .spark i:nth-child(3), .js-anim .wr-age .spark i:nth-child(3), .js-anim .osx-week .osx-day:nth-child(3) .bar i{ transition-delay:.1s; }
-  .js-anim .ch-summary .spark i:nth-child(4), .js-anim .wr-age .spark i:nth-child(4), .js-anim .osx-week .osx-day:nth-child(4) .bar i{ transition-delay:.15s; }
-  .js-anim .ch-summary .spark i:nth-child(5), .js-anim .wr-age .spark i:nth-child(5), .js-anim .osx-week .osx-day:nth-child(5) .bar i{ transition-delay:.2s; }
-  .js-anim .ch-summary .spark i:nth-child(6), .js-anim .wr-age .spark i:nth-child(6), .js-anim .osx-week .osx-day:nth-child(6) .bar i{ transition-delay:.25s; }
-  .js-anim .ch-summary .spark i:nth-child(7), .js-anim .wr-age .spark i:nth-child(7), .js-anim .osx-week .osx-day:nth-child(7) .bar i{ transition-delay:.3s; }
-  /* ---------- PROBLEM · signal convergence ---------- */
-  .cv-lead-list{ margin-top:clamp(22px,2.6vw,32px); display:flex; flex-wrap:wrap; gap:10px 26px; }
-  .cv-lead-list span{ font-size:14.5px; color:var(--b64); display:flex; align-items:center; gap:9px; }
-  .cv-lead-list span::before{ content:''; width:5px; height:5px; border-radius:50%; background:var(--red); flex-shrink:0; }
-  .cv{ margin-top:clamp(44px,6vw,84px); display:grid; grid-template-columns:minmax(0,1fr) clamp(64px,13vw,168px) minmax(0,1fr); gap:clamp(14px,2vw,30px); align-items:center; }
-  .cv-inputs{ display:flex; flex-direction:column; gap:clamp(9px,1.3vw,14px); }
-  .cv-chip{ display:flex; align-items:center; gap:13px; padding:14px 18px; border:1px solid var(--b14); border-radius:4px; background:rgba(245,240,232,.025); font-weight:600; font-size:14px; letter-spacing:.01em; }
-  .cv-chip .d{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-  .cv-chip .u{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.06em; color:var(--b40); }
-  .cv-rail{ position:relative; align-self:stretch; min-height:210px; }
-  .cv-rail svg{ position:absolute; inset:0; width:100%; height:100%; }
-  .cv-rail path{ fill:none; stroke:var(--b14); stroke-width:1.4; vector-effect:non-scaling-stroke; stroke-dasharray:1; stroke-dashoffset:1; pathLength:1; transition:stroke-dashoffset 1.1s ease, stroke .6s ease; }
-  .cv.in .cv-rail path{ stroke-dashoffset:0; stroke:rgba(31,163,90,.5); }
-  .cv-out{ display:flex; justify-content:center; }
-  .cv-node{ position:relative; width:min(100%,268px); aspect-ratio:1; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    border:1px solid rgba(31,163,90,.42); background:radial-gradient(circle at 50% 42%, rgba(31,163,90,.16), rgba(31,163,90,.02) 68%, transparent 74%);
-    box-shadow:0 0 70px rgba(31,163,90,.12), inset 0 0 40px rgba(31,163,90,.08); }
-  .cv-node .k{ font-family:var(--display); font-weight:800; letter-spacing:.03em; font-size:clamp(20px,2.2vw,30px); line-height:1; }
-  .cv-node .v{ margin-top:9px; font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--green); }
-  @media (prefers-reduced-motion:reduce){ .cv-rail path{ transition:none; stroke-dashoffset:0; stroke:rgba(31,163,90,.5); } }
-  @media (max-width:760px){
-    .cv{ grid-template-columns:1fr; gap:18px; justify-items:center; }
-    .cv-inputs{ width:100%; max-width:420px; }
-    .cv-rail{ min-height:0; height:52px; width:1.4px; background:linear-gradient(var(--b40),transparent); }
-    .cv-rail svg{ display:none; }
-    .cv-rail::after{ content:''; position:absolute; bottom:0; left:50%; width:9px; height:9px; border-right:1.4px solid var(--b40); border-bottom:1.4px solid var(--b40); transform:translateX(-50%) rotate(45deg); }
-  }
-
-  /* ---------- FINAL · layered brand statement ---------- */
-  .brand-statement{ display:flex; flex-direction:column; gap:clamp(8px,1.2vw,15px); align-items:center; margin-top:clamp(30px,4vw,52px); }
-  .bs-line{ font-family:var(--display); font-weight:800; line-height:1.08; letter-spacing:-0.006em; font-size:clamp(20px,2.9vw,38px); color:var(--b40); }
-  .bs-line b{ color:var(--bone); font-weight:800; }
-  .bs-final{ margin-top:clamp(26px,4vw,48px); font-family:var(--display); font-weight:800; line-height:1.02; letter-spacing:-0.014em; font-size:clamp(34px,6.4vw,90px); color:var(--red); max-width:14ch; }
-  .bs-final .bs-w{ color:var(--bone); }
-
-  /* Canonical N–И monogram — 100% consistent everywhere (matches the can) */
-  .afx-nav .mark .nn, .afx-nav .nn, .f-nn{ font-family:'Archivo Black',serif !important; font-weight:400 !important; letter-spacing:0 !important; gap:0.13em !important; align-items:center !important; }
-  .afx-nav .nn > span:first-child, .afx-nav .nn .n1, .f-nn .n1{ color:var(--red) !important; }
-  .afx-nav .nn .bar, .f-nn .bar{ display:inline-block !important; width:0.44em !important; height:0.15em !important; background:var(--red) !important; border-radius:0 !important; }
-  .afx-nav .nn .flip, .afx-nav .nn .nflip, .f-nn .n2{ display:inline-block !important; transform:scaleX(-1) !important; color:var(--red) !important; }
-
-  /* ===== mobile responsive QA refinements (phone-only; desktop unchanged) ===== */
-  @media (max-width:390px){
-    .bs-final{ font-size:30px; overflow-wrap:anywhere; }
-    .os-hero{ padding-top:clamp(88px,14vh,120px); }
-    /* WCAG 1.4.10 reflow: at ≤390px the 2-col 30-day grid clips the large
-       after-values ("92%") past the viewport (page scroll is overflow-clipped,
-       so clipped = unreachable). Single column keeps every value in view. */
-    .t30-grid{ grid-template-columns:1fr; }
-  }
-
-  /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
-  .nn-logo .nn-n{ display:inline-block; }
-  .nn-logo .nn-flip{ transform:scaleX(-1); }
-  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
 </style>
-<link rel="stylesheet" href="/assets/footer.css?v=3">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -578,8 +349,8 @@
       "@type": "WebPage",
       "@id": "https://www.drinkaforce.com/aforce-os#webpage",
       "url": "https://www.drinkaforce.com/aforce-os",
-      "name": "AFORCE OS | The Performance Operating System",
-      "description": "Meet AFORCE OS — the performance operating system connecting hydration, readiness, recovery, rituals, and daily performance.",
+      "name": "AFORCE OS | Before the Moment",
+      "description": "AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.",
       "isPartOf": {
         "@id": "https://www.drinkaforce.com/#website"
       },
@@ -650,316 +421,342 @@
 
 <main id="main" tabindex="-1">
 
-<!-- ============ 1 · HERO ============ -->
-<header class="os-hero" id="top">
-  <video class="os-hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
-    <source src="/assets/os-hero.webm" type="video/webm">
-    <source src="/assets/os-hero.mp4" type="video/mp4">
-  </video>
-  <img class="os-hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async">
-  <div class="os-hero-scrim"></div>
-  <div class="os-hero-content reveal in">
-    <div class="eyebrow" style="margin-bottom:22px;">AFORCE OS</div>
-    <h1 class="h-display" style="max-width:16ch;">The operating system for people who perform under pressure.</h1>
-    <p class="lead" style="margin-top:clamp(22px,3vw,30px);">AFORCE OS transforms hydration into a measurable daily performance ritual &mdash; connecting readiness, recovery, hydration, consistency, and performance in one intelligent system.</p>
-    <div class="hero-cta">
-      <a class="btn btn-primary" href="/founding-250">Enter AFORCE OS <span class="arw">&rarr;</span></a>
-      <a class="btn btn-outline-light" href="#problem">See how it works</a>
+<!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
+<header class="hero" id="top">
+  <img class="hero-img" src="/assets/hero-poster.jpg" alt="A founder seated at a floor-to-ceiling window at dusk, Manhattan skyline behind him, composed and focused before the day begins" loading="eager" decoding="async" fetchpriority="high">
+  <div class="hero-scrim" aria-hidden="true"></div>
+  <div class="hero-grid">
+    <div class="hero-copy reveal in">
+      <div class="kick">AFORCE OS</div>
+      <h1 class="hd-xl">Before<br>the moment.</h1>
+      <p class="lead"><b>Performance doesn't begin when the moment starts.</b><br><br>AForce OS brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#idea">Explore AForce OS <span class="arw">&rarr;</span></a>
+        <a class="btn btn-outline-light" href="#cycle">See how it works</a>
+      </div>
+    </div>
+    <div class="hero-phone" id="heroPhone">
+      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS home screen — HydroState reads Recovering, 69 on the readiness band. Your next move: sip 12 oz of water now. Next moments: Investor Call at 9:06 AM, hydrate 14 oz." width="390" height="844" decoding="async">
+      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
     </div>
   </div>
-  <div class="os-scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
+  <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </header>
 
-<!-- ============ 2 · THE PROBLEM ============ -->
-<section class="block dark" id="problem">
+<!-- ============ 02 · THE IDEA ============ -->
+<section class="blk idea" id="idea">
+  <div class="wrap split top">
+    <div class="col-copy">
+      <h2 class="hd-l reveal">Your body knows.<br>Your day demands.<br>AForce connects the two.</h2>
+      <ul class="lines stagger" aria-label="The signals AForce OS reads">
+        <li class="reveal" style="--i:0">Sleep.</li>
+        <li class="reveal" style="--i:1">Recovery.</li>
+        <li class="reveal" style="--i:2">Hydration.</li>
+        <li class="reveal" style="--i:3">Heart rate.</li>
+        <li class="reveal" style="--i:4">Environment.</li>
+        <li class="reveal" style="--i:5">Activity.</li>
+        <li class="reveal" style="--i:6">Travel.</li>
+        <li class="reveal" style="--i:7">Your next meeting.</li>
+        <li class="reveal" style="--i:8">Your next workout.</li>
+        <li class="reveal" style="--i:9">Your next flight.</li>
+      </ul>
+      <div class="after reveal">
+        <p>Individually, they're signals.</p>
+        <p>AForce OS turns them into preparation.</p>
+      </div>
+    </div>
+    <div class="shot ui-arch reveal">
+      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS home — HydroState, Recovering 69, your next move, today's signals for New York, and the next three moments of the day." width="390" height="844" loading="lazy" decoding="async">
+      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 03 · ONE COMMAND ============ -->
+<section class="blk command" id="command">
+  <div class="wrap split rev">
+    <div class="col-copy">
+      <div class="kick reveal">Performance Navigator</div>
+      <h2 class="hd-l reveal">Not more data.<br>The next move.</h2>
+      <p class="lead reveal">Most platforms give you another score.<br><br>AForce OS is designed to answer a more useful question:<br><b>What should I do now?</b></p>
+      <ul class="verbs stagger" aria-label="The five commands">
+        <li class="reveal" style="--i:0">Hydrate.</li>
+        <li class="reveal" style="--i:1">Recover.</li>
+        <li class="reveal" style="--i:2">Prepare.</li>
+        <li class="reveal" style="--i:3">Move.</li>
+        <li class="reveal" style="--i:4">Hold.</li>
+      </ul>
+      <p class="lead reveal"><b>One clear command, based on the moment ahead.</b></p>
+    </div>
+    <div class="stage reveal">
+      <img class="can" src="/assets/can-red.png" alt="The AFORCE can" width="498" height="1281" loading="lazy" decoding="async">
+      <div class="shot">
+        <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS — your next move: sip 12 oz of water now. Lock in." width="390" height="844" loading="lazy" decoding="async">
+      </div>
+      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 · MOMENTS ============ -->
+<section class="blk moments" id="moments">
   <div class="wrap">
-    <div class="eyebrow reveal">The Problem</div>
-    <h2 class="h-display reveal" style="max-width:15ch;margin-top:16px;">Performance should not be left to chance.</h2>
-    <p class="lead reveal" style="margin-top:22px;max-width:60ch;">High performers track revenue. Athletes track training. Doctors monitor patients. Executives measure outcomes. But most people still approach their own daily readiness blindly.</p>
-    <p class="lead reveal" style="margin-top:14px;color:var(--bone);font-weight:600;">AFORCE OS is designed to change that.</p>
-    <div class="cv reveal">
-      <div class="cv-inputs stagger">
-        <div class="cv-chip reveal" style="--i:0"><span class="d" style="background:#5FB0FF"></span>Sleep<span class="u">7h 42m</span></div>
-        <div class="cv-chip reveal" style="--i:1"><span class="d" style="background:#00E5C8"></span>Hydration<span class="u">92%</span></div>
-        <div class="cv-chip reveal" style="--i:2"><span class="d" style="background:var(--green)"></span>Recovery<span class="u">86%</span></div>
-        <div class="cv-chip reveal" style="--i:3"><span class="d" style="background:var(--amber)"></span>HRV<span class="u">Balanced</span></div>
-        <div class="cv-chip reveal" style="--i:4"><span class="d" style="background:#8C7BFF"></span>Movement<span class="u">Active</span></div>
-        <div class="cv-chip reveal" style="--i:5"><span class="d" style="background:var(--red)"></span>Ritual consistency<span class="u">18 days</span></div>
+    <div class="split top intro">
+      <div class="col-copy">
+        <div class="kick reveal">Moments</div>
+        <h2 class="hd-l reveal">Your day isn't a dashboard.<br>It's a series of moments.</h2>
+        <ul class="lines stagger" aria-label="Kinds of moments">
+          <li class="reveal dim" style="--i:0">An investor meeting.</li>
+          <li class="reveal dim" style="--i:1">A surgery.</li>
+          <li class="reveal dim" style="--i:2">A match.</li>
+          <li class="reveal dim" style="--i:3">A flight.</li>
+          <li class="reveal dim" style="--i:4">A presentation.</li>
+          <li class="reveal dim" style="--i:5">A workout.</li>
+          <li class="reveal dim" style="--i:6">A night that runs late.</li>
+        </ul>
+        <p class="lead reveal">AForce OS understands that different moments place different demands on the body.<br><br><b>It prepares around what comes next.</b></p>
       </div>
-      <div class="cv-rail" aria-hidden="true">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path pathLength="1" d="M0 8 C55 8 45 50 100 50"/>
-          <path pathLength="1" d="M0 25 C55 25 45 50 100 50"/>
-          <path pathLength="1" d="M0 42 C55 42 45 50 100 50"/>
-          <path pathLength="1" d="M0 58 C55 58 45 50 100 50"/>
-          <path pathLength="1" d="M0 75 C55 75 45 50 100 50"/>
-          <path pathLength="1" d="M0 92 C55 92 45 50 100 50"/>
-        </svg>
+      <div class="shot reveal">
+        <img src="/assets/aforce-os/black-issue-moments.png" alt="AFORCE OS Moments — a three-day view: today's workout, investor call, meeting with bank and flight to London, with tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
+        <p class="cap">Illustrative interface &middot; Sample data &middot; Moments you enter yourself &middot; Not actual user results</p>
       </div>
-      <div class="cv-out">
-        <div class="cv-node"><span class="k">AFORCE</span><span class="v">Readiness</span></div>
-      </div>
+    </div>
+
+    <div class="mo-rail reveal" role="list" aria-label="Four people, four moments">
+      <div class="mo" role="listitem"><img src="/assets/hero-poster.jpg" alt="A founder seated at a Manhattan window at dusk, focused" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Founder</span><span class="when">Investor Call &mdash; 9:06 AM</span></button></div>
+      <div class="mo" role="listitem"><img src="/assets/perf-surgeon.jpg" alt="A surgeon in navy scrubs, arms crossed at a window at golden hour" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Surgeon</span><span class="when">Procedure &mdash; 11:30 AM</span></button></div>
+      <div class="mo" role="listitem"><img src="/assets/perf-athlete.webp" alt="A baseball player standing at the plate in an empty stadium at sunset" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Athlete</span><span class="when">Match &mdash; 2:00 PM</span></button></div>
+      <div class="mo" role="listitem"><img src="/assets/perf-musician.webp" alt="A musician in a dim studio, headphones around her neck, eyes closed" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Creative</span><span class="when">Stage &mdash; 8:45 PM</span></button></div>
+    </div>
+
+    <div class="close">
+      <h3 class="hd-m reveal">Different arenas.<br>Same requirement.</h3>
+      <div class="prep reveal">Prepare.</div>
     </div>
   </div>
 </section>
 
-<!-- ============ 3 · DEPLETION CORRECTION ============ -->
-<section class="block cream" id="depletion">
-  <div class="wrap split">
-    <div>
-      <div class="eyebrow reveal">Reading Your Signals</div>
-      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">When your signals shift, the OS surfaces your next suggested action.</h2>
-      <p class="lead reveal" style="margin-top:22px;">AFORCE OS interprets your available wellness signals and logged behavior to surface a suggested next action.</p>
-      <div class="points stagger">
-        <div class="point reveal" style="--i:0"><span class="p-idx">01</span><div><h3>Organize the signals</h3><p>AFORCE OS organizes available wellness signals into general readiness patterns.</p></div></div>
-        <div class="point reveal" style="--i:1"><span class="p-idx">02</span><div><h3>Surface a suggestion</h3><p>Instead of generic reminders, the OS surfaces a suggested hydration action.</p></div></div>
-        <div class="point reveal" style="--i:2"><span class="p-idx">03</span><div><h3>Log and review</h3><p>The user returns after intake to log progress and support the habit over time.</p></div></div>
+<!-- ============ 05 · BEFORE / DURING / AFTER ============ -->
+<section class="blk cycle" id="cycle">
+  <div class="wrap">
+    <div class="kick reveal">The Performance Cycle</div>
+    <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
+    <div class="cycle-grid stagger">
+      <div class="state reveal" style="--i:0">
+        <div class="word">Before</div>
+        <p class="copy">AForce interprets the signals and the moment ahead.<b>Prepare. Hydrate. Lock in.</b></p>
+        <div class="shot">
+          <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="Before — AFORCE OS home: Recovering 69, your next move, the next moments." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample data</p>
+        </div>
       </div>
-    </div>
-    <div class="split-media reveal">
-      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-      <div class="osx-phone osx-phone--shot">
-        <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol screen — a Depletion Correction in progress: 5 hours to the next recheck, protocol step 1 of 4 with Log next intake active, hydration 0 of 96 ounces, and recovery signals heart rate and HRV." width="390" height="844" loading="lazy" decoding="async">
+      <div class="state reveal" style="--i:1">
+        <div class="word">During</div>
+        <p class="copy">Intelligence becomes quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
+        <div class="shot">
+          <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample match &middot; Pacing guidance only</p>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 3 · COMMAND HISTORY ============ -->
-<section class="block dark" id="history">
-  <div class="wrap split reverse">
-    <div class="split-media reveal">
-      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-      <div class="osx-phone" role="img" aria-label="AFORCE OS Command History screen: a 7-day average score of 86, with a daily log — Today 88 Peak, Yesterday 82 Balanced, Monday 71 Recovering, Sunday 90 Peak, Saturday 64 Depleted — each showing hydration, recovery, commands completed and streak.">
-        <div class="osx-screen">
-          <div class="osx-island"></div>
-          <div class="osx-status"><span class="t">9:41</span><span class="r"><i class="sig"></i><i></i></span></div>
-          <div class="osx-body">
-            <div class="osx-ey">Command History</div>
-            <div class="osx-h1">Performance Signal</div>
-            <div class="ch-summary">
-              <div class="big"><b>86</b><span>7-day avg</span></div>
-              <div class="spark"><i class="mid" style="height:58%"></i><i class="lo" style="height:44%"></i><i class="mid" style="height:66%"></i><i class="hi" style="height:82%"></i><i class="lo" style="height:40%"></i><i class="hi" style="height:92%"></i><i class="hi" style="height:78%"></i></div>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-peak"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Today</span><span class="date">Aug 7</span><span class="ch-pill pill-peak">Peak</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>124</b> oz</span><span class="c"><span class="g bg-peak"></span><b>93%</b> rec</span><span class="c"><b>6</b> cmds</span><span class="c"><b>14d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-peak">88</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-bal"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Yesterday</span><span class="date">Aug 6</span><span class="ch-pill pill-bal">Balanced</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>118</b> oz</span><span class="c"><span class="g bg-peak"></span><b>88%</b> rec</span><span class="c"><b>5</b> cmds</span><span class="c"><b>13d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-bal">82</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-rec"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Monday</span><span class="date">Aug 5</span><span class="ch-pill pill-rec">Recovering</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>96</b> oz</span><span class="c"><span class="g bg-rec"></span><b>74%</b> rec</span><span class="c"><b>4</b> cmds</span><span class="c"><b>12d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-rec">71</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-peak"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Sunday</span><span class="date">Aug 4</span><span class="ch-pill pill-peak">Peak</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>130</b> oz</span><span class="c"><span class="g bg-peak"></span><b>95%</b> rec</span><span class="c"><b>7</b> cmds</span><span class="c"><b>11d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-peak">90</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-dep"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Saturday</span><span class="date">Aug 3</span><span class="ch-pill pill-dep">Depleted</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>82</b> oz</span><span class="c"><span class="g bg-dep"></span><b>61%</b> rec</span><span class="c"><b>3</b> cmds</span><span class="c"><b>10d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-dep">64</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-bal"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Friday</span><span class="date">Aug 2</span><span class="ch-pill pill-bal">Balanced</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>112</b> oz</span><span class="c"><span class="g bg-peak"></span><b>86%</b> rec</span><span class="c"><b>5</b> cmds</span><span class="c"><b>9d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-bal">80</span>
-            </div>
-            <div class="ch-row">
-              <span class="ch-acc bg-peak"></span>
-              <div class="ch-main">
-                <div class="top"><span class="day">Thursday</span><span class="date">Aug 1</span><span class="ch-pill pill-peak">Peak</span></div>
-                <div class="ch-chips"><span class="c"><span class="g bg-bal"></span><b>126</b> oz</span><span class="c"><span class="g bg-peak"></span><b>92%</b> rec</span><span class="c"><b>6</b> cmds</span><span class="c"><b>8d</b> streak</span></div>
-              </div>
-              <span class="ch-score is-peak">89</span>
-            </div>
-            <div class="osx-sh"><span class="l">Weekly averages</span><span class="r">Last 7 days</span></div>
-            <div class="osx-stats">
-              <div class="osx-stat"><span class="k">Recovery</span><span class="v g">89%</span></div>
-              <div class="osx-stat"><span class="k">Hydration</span><span class="v">94%</span></div>
-              <div class="osx-stat"><span class="k">Protocol completion</span><span class="v g">92%</span></div>
-              <div class="osx-stat"><span class="k">Average readiness</span><span class="v">84</span></div>
-              <div class="osx-stat"><span class="k">Command accuracy</span><span class="v g">96%</span></div>
-              <div class="osx-stat"><span class="k">Avg recovery time</span><span class="v">41 min</span></div>
-            </div>
-            <div class="osx-sh"><span class="l">Streaks &amp; peaks</span></div>
-            <div class="osx-mg">
-              <div class="osx-mc"><div class="k">Current streak</div><div class="v">18<em>d</em></div><div class="s">Active</div></div>
-              <div class="osx-mc"><div class="k">Best streak</div><div class="v">24<em>d</em></div><div class="s">Personal best</div></div>
-              <div class="osx-mc"><div class="k">Peak days</div><div class="v">12</div><div class="s">This month</div></div>
-              <div class="osx-mc"><div class="k">Best window</div><div class="v" style="font-family:var(--body);font-size:3.4cqw;">6&ndash;9 AM</div><div class="s">Top readiness</div></div>
-            </div>
-            <div class="osx-sh"><span class="l">Monthly trend</span><span class="r">&#9650; 11%</span></div>
-            <div class="ch-summary" style="margin-top:2.2cqw;">
-              <div class="big"><b>87</b><span>30-day avg</span></div>
-              <div class="spark"><i class="lo" style="height:44%"></i><i class="mid" style="height:58%"></i><i class="mid" style="height:52%"></i><i class="hi" style="height:70%"></i><i class="lo" style="height:48%"></i><i class="hi" style="height:80%"></i><i class="hi" style="height:92%"></i></div>
-            </div>
-            <div class="osx-sh"><span class="l">Badges earned</span></div>
-            <div class="osx-badges">
-              <span class="osx-badge"><span class="ic"></span>Perfect Week</span>
-              <span class="osx-badge"><span class="ic"></span>Hydration Master</span>
-              <span class="osx-badge"><span class="ic"></span>18-Day Streak</span>
-              <span class="osx-badge"><span class="ic"></span>Recovery Pro</span>
-            </div>
-          </div>
-          <div class="osx-nav">
-            <span class="tab"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Home</span>
-            <span class="tab on"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z"/></svg>Hydration</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>Protocol</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Community</span>
-            <span class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</span>
-          </div>
+      <div class="state reveal" style="--i:2">
+        <div class="word">After</div>
+        <p class="copy">Recovery becomes the next preparation cycle.<b>AForce learns from what happened and helps prepare for what comes next.</b></p>
+        <div class="shot">
+          <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="After — AFORCE OS Week in Review: streak, days tracked, recovery trend and habit velocity collecting, Performance Age unchanged at 49, and what AFORCE noticed." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
     </div>
-    <div>
-      <div class="eyebrow reveal">Command History</div>
-      <h2 class="h-2 reveal" style="margin-top:16px;max-width:16ch;">Your performance summary, in commands.</h2>
-      <p class="lead reveal" style="margin-top:22px;">Every completed action becomes part of your history, helping you see patterns in your routine over time.</p>
-      <div class="cmd-grid stagger">
-        <div class="cmd balanced reveal" style="--i:0"><h3>Balanced</h3><p>Keep your rhythm and stay ahead of the next window in your routine.</p></div>
-        <div class="cmd recovering reveal" style="--i:1"><h3>Recovering</h3><p>Use the suggested wellness action to support your routine.</p></div>
-        <div class="cmd peak reveal" style="--i:2"><h3>Peak</h3><p>Note what is working for you and repeat the behavior.</p></div>
-        <div class="cmd depleted reveal" style="--i:3"><h3>Depleted</h3><p>Log a suggested action early and review your patterns over the day.</p></div>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- ============ 4 · WEEKLY PERFORMANCE REPORT ============ -->
-<section class="block cream" id="report">
+<!-- ============ 06 · HYDROSTATE ============ -->
+<section class="blk hydro" id="hydrostate">
   <div class="wrap split">
-    <div>
-      <div class="eyebrow reveal">Weekly Performance Report</div>
-      <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">Daily behavior becomes a weekly performance picture.</h2>
-      <p class="lead reveal" style="margin-top:22px;">Seven days of behavior, resolved into one clear direction.</p>
-      <div class="points stagger">
-        <div class="point reveal" style="--i:0"><span class="p-idx">—</span><div><h3>Performance Age&trade; Movement</h3><p>Reflects how your logged behavior tracks against a proprietary AFORCE OS engagement indicator over time.</p></div></div>
-        <div class="point reveal" style="--i:1"><span class="p-idx">—</span><div><h3>Habit Velocity</h3><p>Shows whether the user is building consistency or losing rhythm.</p></div></div>
-        <div class="point reveal" style="--i:2"><span class="p-idx">—</span><div><h3>Recovery Trend</h3><p>Highlights whether recovery behavior is trending week over week.</p></div></div>
-        <div class="point reveal" style="--i:3"><span class="p-idx">—</span><div><h3>Top Command</h3><p>Reveals the action the user logged most often.</p></div></div>
-        <div class="point reveal" style="--i:4"><span class="p-idx">—</span><div><h3>Next Week Focus</h3><p>Gives one clear priority for the next seven days.</p></div></div>
-      </div>
-      <p class="reveal" style="margin-top:clamp(20px,2.4vw,28px);font-size:11.5px;line-height:1.6;letter-spacing:.01em;color:var(--i46);max-width:60ch;">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
+    <div class="shot reveal">
+      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="HydroState — Recovering, 69 on a 0 to 100 readiness band. Water 63 percent, recovery 74, sleep 7 hours 24 minutes, HRV 58 milliseconds." width="390" height="844" loading="lazy" decoding="async">
+      <p class="cap">Illustrative interface &middot; Sample state &middot; Not actual user results</p>
     </div>
-    <div class="split-media reveal">
-      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-      <div class="osx-phone osx-phone--shot">
-        <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="AFORCE OS Weekly Report — Week in Review: a 5-day streak, 6 days tracked, recovery trend and habit velocity still collecting, hydration days 1 of 6, Performance Age on a fixed scale unchanged at 49, a weekly timeline, and what AFORCE noticed for the week ahead." width="390" height="844" loading="lazy" decoding="async">
-      </div>
+    <div class="col-copy">
+      <div class="kick reveal">HydroState</div>
+      <h2 class="hd-l reveal">Your state.<br>Right now.</h2>
+      <p class="lead reveal">Hydration is not a static number.<br><br>AForce OS interprets hydration alongside recovery, activity, environment and the demands ahead.<br><br><b>The result is a living state designed to help make the next decision clearer.</b></p>
+      <ul class="signals reveal" aria-label="The signals beneath the state, sample values">
+        <li><div class="k">Water</div><div class="v red">63%</div></li>
+        <li><div class="k">Recovery</div><div class="v">74</div></li>
+        <li><div class="k">Sleep</div><div class="v">7h 24m</div></li>
+        <li><div class="k">HRV</div><div class="v">58 ms</div></li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- ============ 5 · RITUAL SYSTEM ============ -->
-<section class="block dark" id="ritual-system">
+<!-- ============ 07 · SKIN INTELLIGENCE (coming) ============ -->
+<section class="blk skin" id="skin">
+  <div class="wrap split rev">
+    <div class="col-copy">
+      <div class="kick reveal">Skin Intelligence <span class="coming">Coming to AForce OS</span></div>
+      <h2 class="hd-l reveal">Skin is a signal.</h2>
+      <p class="lead reveal">What you see on the surface can reflect what's happening around it.<br><br>AForce Skin Intelligence is designed to help you observe visible skin signals over time and understand them alongside hydration, recovery, environment and routine.</p>
+      <ul class="three reveal" aria-label="What Skin Intelligence is not">
+        <li>No beauty score.</li>
+        <li>No judgment.</li>
+        <li>Context.</li>
+      </ul>
+      <p class="cap reveal">Observational only &middot; Not a diagnosis &middot; In development &middot; Not yet available in AForce OS</p>
+    </div>
+    <div class="shot skin-stage reveal">
+      <img src="/assets/aforce-os/black-issue-scan.png" alt="Skin Intelligence live scan — hold still, let the signal settle. A guided phone scan for consistent observation over time; observational only, not a diagnosis." width="390" height="844" loading="lazy" decoding="async">
+      <p class="cap">Design preview &middot; Sample data &middot; Coming to AForce OS</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 · TRAVEL (coming) ============ -->
+<section class="blk travel" id="travel">
   <div class="wrap">
-    <div class="eyebrow reveal">The System</div>
-    <h2 class="h-display reveal" style="max-width:18ch;margin-top:16px;">The can begins the ritual. The OS builds the habit.</h2>
-    <div class="ritual-grid stagger">
-      <div class="ritual-cell reveal" style="--i:0"><div class="r-idx">01 — Scan</div><h3>Scan</h3><p>Scan the can or receipt and enter the OS without friction.</p></div>
-      <div class="ritual-cell reveal" style="--i:1"><div class="r-idx">02 — Act</div><h3>Act</h3><p>Receive the next hydration or recovery command.</p></div>
-      <div class="ritual-cell reveal" style="--i:2"><div class="r-idx">03 — Repeat</div><h3>Repeat</h3><p>Build streaks, track progress, and protect performance over time.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 5b · THE ARCHITECTURE (§7 — Product → Core → Command) ============ -->
-<section class="block dark" id="architecture">
-  <div class="wrap">
-    <div class="eyebrow reveal">The Architecture</div>
-    <h2 class="h-display reveal" style="max-width:15ch;margin-top:16px;">One system. Three layers.</h2>
-    <div class="ritual-grid stagger">
-      <div class="ritual-cell reveal" style="--i:0"><div class="r-idx">01 — Product</div><h3>Creates the ritual.</h3><p>The can and the stick — the deliberate act that begins each day.</p></div>
-      <div class="ritual-cell reveal" style="--i:1"><div class="r-idx">02 — Core</div><h3>Records the ritual.</h3><p>Included with every order. Every ritual you complete, logged into streaks, hydration, and readiness over time.</p></div>
-      <div class="ritual-cell reveal" style="--i:2"><div class="r-idx">03 — Command</div><h3>Interprets the pattern.</h3><p>The deeper layer. Trends, pattern recognition, and the next command — so preparation compounds week over week.</p></div>
-    </div>
-    <p class="reveal" style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--b40);max-width:64ch;">AFORCE OS builds from the rituals you complete — it does not take live biometric readings.</p>
-  </div>
-</section>
-
-<!-- ============ 6 · COMMUNITY ============ -->
-<section class="block dark" id="community">
-  <div class="wrap split reverse">
-    <div class="split-media reveal">
-      <p class="osx-illus">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-      <div class="osx-phone osx-phone--shot">
-        <img src="/assets/aforce-os/black-issue-circle.png" alt="AFORCE OS Circle screen — a private performance community. A member card with rank stats and score, a weekly hydration challenge, and sample standings with a pinned You row; labeled sample cohort, illustrative standings, not a ranking against real people." width="390" height="844" loading="lazy" decoding="async">
+    <div class="split top">
+      <div class="col-copy">
+        <div class="kick reveal">Travel Intelligence <span class="coming">Coming to AForce OS</span></div>
+        <h2 class="hd-l reveal">Your body crosses<br>time zones too.</h2>
+        <p class="lead reveal">Flights change more than your location.</p>
+      </div>
+      <div class="col-copy">
+        <ul class="lines stagger" aria-label="What a flight changes">
+          <li class="reveal dim" style="--i:0">Cabin conditions.</li>
+          <li class="reveal dim" style="--i:1">Sleep timing.</li>
+          <li class="reveal dim" style="--i:2">Hydration.</li>
+          <li class="reveal dim" style="--i:3">Movement.</li>
+          <li class="reveal dim" style="--i:4">Schedule disruption.</li>
+          <li class="reveal dim" style="--i:5">The performance expected when you land.</li>
+        </ul>
+        <p class="lead reveal"><b>AForce OS prepares around the journey &mdash; not simply the destination.</b></p>
       </div>
     </div>
-    <div>
-      <div class="eyebrow reveal">The Community</div>
-      <h2 class="h-2 reveal" style="margin-top:16px;max-width:14ch;">Performance is earned together.</h2>
-      <p class="lead reveal" style="margin-top:22px;">Discipline is private. Standing is not. Every protocol you complete moves you up.</p>
-      <div class="reveal" style="margin-top:clamp(28px,3vw,40px);">
-        <a class="btn btn-light" href="/founding-250">Join the Founding Community <span class="arw">&rarr;</span></a>
+    <div class="travel-visual reveal">
+      <div class="photo"><img src="/assets/discipline-airport.jpg" alt="A traveler in a quiet airport lounge at golden hour, suitcase beside him, an aircraft at the gate beyond the glass" loading="lazy" decoding="async"></div>
+      <div class="shot">
+        <img src="/assets/aforce-os/black-issue-travel.png" alt="AFORCE OS in-flight protocol — JFK to Singapore at 38,000 feet, cabin protocol on, cabin humidity 12 percent, your next move: sip 8 oz now and add one electrolyte stick before the meal." width="390" height="844" loading="lazy" decoding="async">
+        <p class="cap">Design preview &middot; Sample flight data &middot; Coming to AForce OS</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ============ 7 · 30-DAY TRANSFORMATION ============ -->
-<section class="block cream" id="thirty">
-  <div class="wrap">
-    <div class="eyebrow reveal">30 Days In</div>
-    <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">The same person. A sharper system.</h2>
-    <p class="lead reveal" style="margin-top:22px;">One month of ritual, measured.</p>
-    <p style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--i64);">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-    <div class="t30-grid stagger">
-      <div class="t30 reveal" style="--i:0;--w:91%"><div class="t30-k">Readiness</div><div class="t30-row"><span class="t30-a">58</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green" data-count="91">91</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +33</div></div>
-      <div class="t30 reveal" style="--i:1;--w:92%"><div class="t30-k">Recovery</div><div class="t30-row"><span class="t30-a">61%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">92%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +31 pts</div></div>
-      <div class="t30 reveal" style="--i:2;--w:95%"><div class="t30-k">Hydration consistency</div><div class="t30-row"><span class="t30-a">42%</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">95%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +53 pts</div></div>
-      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance Age&trade;</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b t30-green">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
+<!-- ============ 09 · PERFORMANCE AGE ============ -->
+<section class="blk age" id="age">
+  <div class="wrap split">
+    <div class="shot reveal">
+      <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="AFORCE OS Week in Review — a 5-day streak, 6 days tracked, recovery trend and habit velocity still collecting, Performance Age on a fixed scale unchanged at 49, and what AFORCE noticed for the week ahead." width="390" height="844" loading="lazy" decoding="async">
+      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
     </div>
-    <p style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:66ch;">Illustrative interface using sample data. Values shown are not claims of typical or expected results. AFORCE OS supports general wellness tracking and is not a medical device. Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
+    <div class="col-copy">
+      <div class="kick reveal">Longitudinal Intelligence</div>
+      <h2 class="hd-l reveal">One day is a signal.<br>Time reveals the pattern.</h2>
+      <p class="lead reveal">AForce OS is designed to learn across days, routines and outcomes.<br><br>Not to punish you for yesterday.<br><br><b>To understand what helps you perform better over time.</b></p>
+      <p class="note reveal">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
+    </div>
   </div>
 </section>
 
-<!-- ============ 8 · FINAL — ENTER AFORCE OS ============ -->
-<section class="block dark final-cta" id="enter">
-  <div class="wrap center-block">
-    <div class="fc-ring reveal">
-      <svg viewBox="0 0 240 240" aria-hidden="true">
-        <circle class="fc-track" cx="120" cy="120" r="110" pathLength="100"></circle>
-        <circle class="fc-fill" cx="120" cy="120" r="110" pathLength="100"></circle>
-      </svg>
-      <div class="fc-center"><span class="fc-score" data-count="91">91</span><span class="fc-state">Peak</span></div>
+<!-- ============ 10 · PHANTOM (coming next) ============ -->
+<section class="blk phantom" id="phantom">
+  <div class="wrap split rev">
+    <div class="col-copy">
+      <div class="kick reveal">Coming next</div>
+      <h2 class="hd-l reveal">Intelligence<br>without another screen.</h2>
+      <p class="lead reveal">Phantom is the future wearable expression of AForce OS.</p>
+      <ul class="three reveal" aria-label="Phantom in three words">
+        <li>Screenless.</li>
+        <li>Quiet.</li>
+        <li>Connected.</li>
+      </ul>
+      <p class="lead reveal">Designed to bring the right signal into the moment without demanding more attention.</p>
+      <p class="note reveal">Future product. Not currently available. Features and specifications shown are design previews and may change.</p>
     </div>
-    <div class="brand-statement stagger">
-      <div class="bs-line reveal" style="--i:0">The <b>can</b> is the entry point.</div>
-      <div class="bs-line reveal" style="--i:1">The <b>ritual</b> is the behavior.</div>
-      <div class="bs-line reveal" style="--i:2">The <b>OS</b> is the intelligence.</div>
-      <div class="bs-line reveal" style="--i:3">The <b>community</b> is the identity.</div>
-      <div class="bs-line reveal" style="--i:4"><b>Performance</b> is the outcome.</div>
+    <div class="ph-stage reveal">
+      <img class="band" src="/assets/aforce-os/phantom-band.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
+      <img class="can" src="/assets/can-red.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
+      <div class="shot">
+        <img src="/assets/aforce-os/black-issue-phantom.png" alt="Phantom Band design preview — matte black, no screen, one quiet signal on your wrist. Signals only, not a medical device." width="390" height="844" loading="lazy" decoding="async">
+        <p class="cap">Design preview &middot; Future product &middot; Not currently available</p>
+      </div>
     </div>
-    <h2 class="bs-final reveal"><span class="bs-w">Performance is</span> Non-<span class="flip-n">N</span>egotiable.</h2>
-    <div class="cta-row reveal">
-      <a class="btn btn-primary" href="/founding-250">Enter AFORCE OS <span class="arw">&rarr;</span></a>
-      <a class="btn btn-outline-light" href="/shop">Shop AFORCE</a>
+  </div>
+</section>
+
+<!-- ============ 11 · THE ECOSYSTEM ============ -->
+<section class="blk eco" id="ecosystem">
+  <div class="wrap">
+    <h2 class="hd-l reveal">One system.<br>More context.</h2>
+    <div class="eco-grid reveal">
+      <div>
+        <h3>Inputs</h3>
+        <ul class="list" aria-label="Inputs and their connection status in AForce OS">
+          <li>Apple Health <span class="st">Coming soon</span></li>
+          <li>WHOOP <span class="st live">Connect</span></li>
+          <li>Oura <span class="st">Coming soon</span></li>
+          <li>Garmin <span class="st">Approval pending</span></li>
+          <li>Samsung Health / Health Connect <span class="st">Coming soon</span></li>
+          <li>AForce interactions <span class="st live">In the OS</span></li>
+          <li>Environment <span class="st live">In the OS</span></li>
+          <li>Moments <span class="st live">You enter them</span></li>
+        </ul>
+      </div>
+      <div class="eco-core" aria-hidden="true">
+        <span class="line"></span>
+        <div class="core">AForce<br>OS<small>Interprets &middot; Prepares</small></div>
+        <span class="line"></span>
+      </div>
+      <div>
+        <h3>Outputs</h3>
+        <ul class="list out" aria-label="What AForce OS gives you">
+          <li>HydroState</li>
+          <li>Next Move</li>
+          <li>Moments</li>
+          <li>Skin Intelligence <span class="st">Coming</span></li>
+          <li>Travel <span class="st">Coming</span></li>
+          <li>Performance Age&trade;</li>
+        </ul>
+      </div>
+    </div>
+    <div class="eco-foot reveal">
+      <p class="note">Connection status as shown in AFORCE OS. You control every source &mdash; nothing is read until you connect it. Availability varies by device and region and may change.</p>
+      <div class="shot">
+        <img src="/assets/aforce-os/black-issue-devices.png" alt="AFORCE OS Devices — connected data sources with their current status: Apple Health coming soon, Garmin Connect approval pending, Health Connect and Samsung Health unsupported on this device, Oura Ring and Strava coming soon, WHOOP available to connect." width="390" height="844" loading="lazy" decoding="async">
+        <p class="cap">Illustrative interface &middot; Sample data</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 · RITUAL ============ -->
+<section class="ritual" id="ritual" aria-label="The ritual">
+  <div class="wrap">
+    <div class="rw"><span>Pause.</span></div>
+    <div class="rw"><span>Hydrate.</span></div>
+    <div class="rw"><span>Lock in.</span></div>
+    <div class="rw last"><span>Perform.</span></div>
+  </div>
+</section>
+
+<!-- ============ 13 · CLOSING ============ -->
+<section class="closing" id="closing" aria-labelledby="closing-h">
+  <div class="four" aria-hidden="true">
+    <div><img src="/assets/hero-poster.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div><img src="/assets/perf-surgeon.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div><img src="/assets/perf-athlete.webp" alt="" loading="lazy" decoding="async"></div>
+    <div><img src="/assets/perf-musician.webp" alt="" loading="lazy" decoding="async"></div>
+  </div>
+  <div class="over">
+    <div class="wrap">
+      <h2 class="hd-xl reveal" id="closing-h">Performance<br>is universal.</h2>
+      <p class="sub reveal">Preparation<br>should be personal.</p>
+      <p class="lead reveal">Different bodies. Different days. Different demands.<br><b>One intelligence built around the person performing.</b></p>
+      <div class="cta-row reveal">
+        <a class="btn btn-primary" href="/founding-250">Enter AForce OS <span class="arw">&rarr;</span></a>
+        <a class="btn btn-outline-light" href="/shop">Join AForce</a>
+      </div>
     </div>
   </div>
 </section>
@@ -1028,6 +825,7 @@
       <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
       <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
       <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
+      <p>Skin Intelligence, Travel Intelligence and Phantom are in development and not currently available in AFORCE OS; interfaces shown for them are design previews and may change.</p>
       <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
     </div>
   </div>
@@ -1035,50 +833,79 @@
 
 <script src="/assets/header.js" defer></script>
 <script>
-/* reveal on scroll */
+/* reveal on scroll — content is readable without JS (html.no-io fallback).
+   IntersectionObserver drives the entrance; a rect-based pass on scroll/load
+   guarantees nothing can stay hidden if the observer never fires. */
 (function(){
-  var els = document.querySelectorAll('.reveal:not(.in)');
-  if(!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); return; }
+  var els = Array.prototype.slice.call(document.querySelectorAll('.reveal:not(.in)'));
+  if(!('IntersectionObserver' in window)){ document.documentElement.classList.add('no-io'); return; }
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
   }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
   els.forEach(function(e){ io.observe(e); });
+  var ticking = false;
+  function sweep(){
+    ticking = false;
+    var limit = window.innerHeight * 0.96;
+    els = els.filter(function(e){
+      if(e.classList.contains('in')) return false;
+      var r = e.getBoundingClientRect();
+      if(r.top < limit && r.bottom > 0){ e.classList.add('in'); io.unobserve(e); return false; }
+      return true;
+    });
+    var rows = document.querySelectorAll('.ritual .rw:not(.on)');
+    rows.forEach(function(r){ var b = r.getBoundingClientRect(); if(b.top < limit * .8 && b.bottom > 0) r.classList.add('on'); });
+  }
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(sweep); } }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll, { passive:true });
+  window.addEventListener('load', function(){ setTimeout(sweep, 400); setTimeout(sweep, 2000); });
 })();
 
-/* count-up on reveal (readiness scores) — respects reduced motion */
+/* hero interface reveal — slow, once */
 (function(){
-  var els = document.querySelectorAll('[data-count]');
-  if(!els.length) return;
+  var p = document.getElementById('heroPhone');
+  if(!p) return;
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ p.classList.add('in'); }); });
+})();
+
+/* one command — the five verbs light in sequence, the last holds red */
+(function(){
+  var verbs = document.querySelectorAll('.verbs li');
+  if(!verbs.length || !('IntersectionObserver' in window)) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce || !('IntersectionObserver' in window)){ els.forEach(function(e){ e.textContent = e.getAttribute('data-count'); }); return; }
+  if(reduce) return;
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(en){
       if(!en.isIntersecting) return;
-      var el = en.target, target = parseInt(el.getAttribute('data-count'),10), start = Math.max(0, target - 22), t0 = null;
-      io.unobserve(el);
-      var safety = setTimeout(function(){ el.textContent = target; }, 1300); /* guarantee final value if rAF is throttled */
-      requestAnimationFrame(function step(ts){
-        if(!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / 1100), e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2;
-        el.textContent = Math.round(start + (target - start) * e);
-        if(p < 1){ requestAnimationFrame(step); } else { el.textContent = target; clearTimeout(safety); }
-      });
+      io.disconnect();
+      verbs.forEach(function(v,i){ setTimeout(function(){ v.classList.add('in'); if(i === verbs.length-1) v.classList.add('on'); }, 260 + i*220); });
     });
-  }, { threshold:0.55 });
-  els.forEach(function(e){ io.observe(e); });
+  }, { threshold:0.5 });
+  io.observe(verbs[0]);
 })();
 
-/* per-phone entrance motion — draw bars/charts in when each phone enters view */
+/* moments — tap reveals the moment on touch; hover/focus handle the rest */
 (function(){
-  var phones = document.querySelectorAll('.osx-phone');
-  if(!phones.length) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce || !('IntersectionObserver' in window)) return; // bars render full via CSS default
-  document.documentElement.classList.add('js-anim');
-  var pio = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('anim'); pio.unobserve(en.target); } });
-  }, { threshold:0.25 });
-  phones.forEach(function(p){ pio.observe(p); });
+  document.querySelectorAll('.mo .tag').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var mo = btn.closest('.mo'), on = !mo.classList.contains('on');
+      document.querySelectorAll('.mo.on').forEach(function(m){ if(m !== mo){ m.classList.remove('on'); m.querySelector('.tag').setAttribute('aria-expanded','false'); } });
+      mo.classList.toggle('on', on);
+      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+  });
+})();
+
+/* ritual — one word at a time as it enters, held once seen */
+(function(){
+  var rows = document.querySelectorAll('.ritual .rw');
+  if(!rows.length) return;
+  if(!('IntersectionObserver' in window)){ rows.forEach(function(r){ r.classList.add('on'); }); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('on'); io.unobserve(en.target); } });
+  }, { threshold:0.55 });
+  rows.forEach(function(r){ io.observe(r); });
 })();
 
 /* scroll-aware nav */
