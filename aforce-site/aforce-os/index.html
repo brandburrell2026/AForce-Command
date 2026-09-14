@@ -3,19 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AFORCE OS | Before the Moment</title>
-<meta name="description" content="AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.">
+<title>AFORCE OS | The Performance Operating System</title>
+<meta name="description" content="AFORCE OS turns everyday signals and behavior into a clearer picture of your readiness — and what to do next.">
 <meta name="robots" content="index,follow">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="canonical" href="https://www.drinkaforce.com/aforce-os">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AFORCE OS | Before the Moment">
-<meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
+<meta property="og:title" content="AFORCE OS | The Performance Operating System">
+<meta property="og:description" content="The operating system for people who perform under pressure. AFORCE OS turns everyday signals and behavior into a clearer picture of your readiness — and what to do next.">
 <meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
 <meta property="og:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AFORCE OS | Before the Moment">
-<meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
+<meta name="twitter:title" content="AFORCE OS | The Performance Operating System">
+<meta name="twitter:description" content="The operating system for people who perform under pressure. AFORCE OS turns everyday signals and behavior into a clearer picture of your readiness — and what to do next.">
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,16 +63,10 @@
 
   /* ---------- TYPE (mirrors the homepage: Inter throughout) ---------- */
   .kick{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .kick .coming{ font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--metal); border:1px solid var(--i22); padding:5px 9px; border-radius:2px; }
   .hd-xl{ font-family:var(--display); font-weight:800; line-height:1.0; letter-spacing:-0.015em; font-size:clamp(46px,8.5vw,120px); text-wrap:balance; overflow-wrap:break-word; }
   .hd-l{ font-family:var(--display); font-weight:800; line-height:1.08; letter-spacing:-0.01em; font-size:clamp(34px,5vw,64px); text-wrap:balance; overflow-wrap:break-word; }
-  .hd-m{ font-family:var(--display); font-weight:800; line-height:1.1; letter-spacing:-0.008em; font-size:clamp(26px,3.4vw,46px); text-wrap:balance; }
   .lead{ font-size:clamp(16px,1.35vw,20px); line-height:1.72; color:var(--i64); max-width:52ch; }
   .lead b{ color:var(--ink); font-weight:600; }
-  .lines{ list-style:none; display:flex; flex-direction:column; }
-  .lines li{ font-family:var(--display); font-weight:600; font-size:clamp(17px,1.7vw,24px); line-height:1.25; padding:10px 0; border-top:1px solid var(--line); color:var(--ink); }
-  .lines li:last-child{ border-bottom:1px solid var(--line); }
-  .lines li.dim{ color:var(--metal); font-weight:400; }
   .cap{ font-family:var(--body); font-weight:600; font-size:10.5px; line-height:1.55; letter-spacing:.08em; text-transform:uppercase; color:var(--metal); }
   .note{ font-size:11.5px; line-height:1.6; letter-spacing:.01em; color:var(--i46); max-width:64ch; }
   /* dark-ground variants */
@@ -81,7 +75,6 @@
   .on-dark .lead b{ color:var(--bone); }
   .on-dark .cap{ color:var(--b40); }
   .on-dark .note{ color:var(--b40); }
-  .on-dark .kick .coming{ color:var(--b64); border-color:var(--b24); }
 
   /* ---------- NAV — visual treatment only (behaviour from /assets/header.css) ---------- */
   .afx-nav{ color:#F5F0E8; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
@@ -147,169 +140,64 @@
   .hero .lead{ color:var(--b80); }
   .scroll-cue{ position:absolute; z-index:2; bottom:clamp(20px,3vh,34px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
   .scroll-cue .line{ width:1px; height:36px; background:linear-gradient(var(--b40), transparent); }
+  /* the full-sentence headline needs the homepage's section scale, not the two-word display scale */
+  .hero-copy .hero-title{ font-size:clamp(34px,4.4vw,64px); line-height:1.05; max-width:16ch; }
 
-  /* ================= 02 · THE IDEA ================= */
-  .idea .split{ align-items:start; }
-  .idea .lines{ margin-top:clamp(28px,3.4vw,44px); max-width:440px; }
-  .idea .after{ margin-top:clamp(28px,3.4vw,44px); }
-  .idea .after p{ font-family:var(--display); font-weight:800; font-size:clamp(22px,2.6vw,36px); line-height:1.12; letter-spacing:-0.01em; }
-  .idea .after p + p{ margin-top:8px; color:var(--red); }
-  .ui-arch{ position:relative; justify-self:end; }
-  .ui-arch::before{ content:''; position:absolute; left:-clamp(20px,3vw,44px); top:8%; bottom:8%; width:1px; background:linear-gradient(transparent, var(--red) 30%, var(--red) 70%, transparent); opacity:.7; }
+  /* ================= 02 · THE PROBLEM ================= */
+  .sig{ list-style:none; display:flex; flex-direction:column; }
+  .sig li{ font-family:var(--display); font-weight:800; font-size:clamp(22px,2.6vw,38px); line-height:1.1; letter-spacing:-0.01em; padding:12px 0; border-top:1px solid var(--line); }
+  .sig li:last-child{ border-bottom:1px solid var(--line); }
+  .sig-out{ margin-top:clamp(22px,2.8vw,36px); padding-left:clamp(18px,2.4vw,32px); border-left:2px solid var(--red); }
+  .sig-out .k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); }
+  .sig-out .v{ margin-top:8px; font-family:var(--display); font-weight:800; font-size:clamp(30px,4vw,60px); line-height:1; letter-spacing:-0.02em; }
 
-  /* ================= 03 · ONE COMMAND ================= */
-  .verbs{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .verbs li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--i22); padding:6px 0; transition:color .6s ease; }
-  .verbs li.in{ color:var(--ink); }
-  .verbs li.on{ color:var(--red); }
-  .stage{ position:relative; min-height:clamp(420px,52vw,680px); display:flex; align-items:flex-end; justify-content:center; }
-  .stage::before{ content:''; position:absolute; inset:auto 10% 8% 10%; height:40%; border-radius:50%; background:radial-gradient(closest-side, rgba(13,13,13,.16), transparent 74%); filter:blur(48px); pointer-events:none; }
-  .stage .can{ position:relative; z-index:1; width:clamp(150px,20vw,250px); height:auto; filter:drop-shadow(0 40px 60px rgba(13,13,13,.45)); transform:translateX(18%); }
-  .stage .shot{ position:relative; z-index:2; width:min(360px,60%); transform:translateX(-14%); }
-  .stage .shot img{ width:100%; }
-  .stage .cap{ position:absolute; z-index:3; left:0; bottom:-30px; }
+  /* ================= 03 · THE INTELLIGENCE ================= */
+  .model{ list-style:none; margin-top:clamp(26px,3vw,40px); display:flex; flex-direction:column; }
+  .model li{ display:grid; grid-template-columns:44px minmax(0,1fr); gap:14px; padding:18px 0; border-top:1px solid var(--line); }
+  .model li:last-child{ border-bottom:1px solid var(--line); }
+  .model .n{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.2em; color:var(--red); padding-top:6px; }
+  .model h3{ font-family:var(--display); font-weight:800; font-size:clamp(20px,2.2vw,30px); line-height:1.1; letter-spacing:-0.01em; }
+  .model p{ margin-top:6px; color:var(--i64); font-size:15px; line-height:1.6; max-width:44ch; }
+  .intel .precise{ margin-top:clamp(22px,2.6vw,34px); font-size:14px; line-height:1.65; color:var(--i64); max-width:52ch; }
+  .intel .precise b{ color:var(--ink); font-weight:600; }
 
-  /* ================= 04 · MOMENTS ================= */
-  .moments .intro{ margin-bottom:clamp(56px,8vw,110px); }
-  .mo-rail{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(10px,1.4vw,18px); }
-  .mo{ position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--canvas-dim); }
-  .mo img{ width:100%; height:100%; object-fit:cover; transition:transform 1.4s ease; }
-  .mo::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,13,13,0) 45%, rgba(13,13,13,.86) 100%); }
-  .mo .tag{ position:absolute; z-index:2; left:0; right:0; bottom:0; padding:clamp(16px,2vw,26px); display:flex; flex-direction:column; gap:8px; width:100%; text-align:left; }
-  .mo .word{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size:clamp(18px,2vw,28px); line-height:1; color:var(--bone); }
-  .mo .when{ font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); opacity:0; transform:translateY(6px); transition:opacity .5s ease, transform .5s ease; }
-  .mo:hover .when, .mo:focus-within .when, .mo.on .when{ opacity:1; transform:none; }
-  .mo:hover img, .mo.on img{ transform:scale(1.04); }
-  .mo .tag:focus-visible{ outline:2px solid var(--red); outline-offset:-6px; }
-  .moments .close{ margin-top:clamp(64px,9vw,120px); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(20px,4vw,60px); align-items:end; }
-  .moments .close .prep{ font-family:var(--display); font-weight:800; letter-spacing:-0.02em; line-height:1; font-size:clamp(40px,7vw,104px); color:var(--red); }
-
-  /* ================= 05 · CYCLE ================= */
-  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
+  /* ================= 04 · THE EXPERIENCE ================= */
+  .exp-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
   .state{ display:flex; flex-direction:column; gap:clamp(18px,2vw,26px); padding-top:22px; border-top:1px solid var(--ink); }
-  .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
+  .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(28px,3.2vw,46px); }
   .state .copy{ color:var(--i64); font-size:15.5px; line-height:1.65; max-width:34ch; }
-  .state .copy b{ color:var(--ink); font-weight:600; display:block; margin-top:8px; }
+  .state .copy b{ color:var(--ink); font-weight:600; }
   .state .shot{ margin-top:auto; }
   .state .shot img{ width:min(330px,100%); }
+  .exp .note{ margin-top:clamp(24px,3vw,40px); }
 
-  /* ================= 06 · HYDROSTATE ================= */
-  .hydro .split{ align-items:center; }
-  .hydro .shot{ position:relative; }
-  .hydro .shot::before{ content:''; position:absolute; inset:-12% -30%; border-radius:50%; background:radial-gradient(closest-side, rgba(13,13,13,.08), transparent 72%); filter:blur(40px); pointer-events:none; }
-  .hydro .shot img{ position:relative; }
-  .signals{ list-style:none; margin-top:clamp(30px,3.6vw,48px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border-top:1px solid var(--line); }
-  .signals li{ padding:18px 0 20px; border-bottom:1px solid var(--line); }
-  .signals .k{ font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--metal); }
-  .signals .v{ margin-top:6px; font-family:var(--display); font-weight:700; font-size:clamp(26px,3vw,40px); line-height:1; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
-  .signals .v.red{ color:var(--red); }
-  .signals li:nth-child(odd){ padding-right:18px; }
-  .signals li:nth-child(even){ padding-left:18px; border-left:1px solid var(--line); }
+  /* ================= 05 · COMMUNITY ================= */
+  .community .facets{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--metal); }
+  .community .facets span{ color:var(--red); }
 
-  /* ================= 07 · SKIN ================= */
-  .skin .three{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .skin .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(28px,4vw,58px); color:var(--i30); padding:5px 0; }
-  .skin .three li:last-child{ color:var(--ink); }
-  .skin-stage{ position:relative; }
-  .skin-stage::before{ content:''; position:absolute; inset:-6% -14%; background:radial-gradient(ellipse at 50% 40%, rgba(193,40,27,.10), transparent 60%); filter:blur(30px); pointer-events:none; }
-
-  /* ================= 08 · TRAVEL ================= */
-  .travel-visual{ position:relative; margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,1fr); }
-  .travel-visual .photo{ aspect-ratio:16/8; overflow:hidden; }
-  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:60% 50%; }
-  .travel-visual .photo::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(13,13,13,.35), rgba(13,13,13,0) 45%, rgba(13,13,13,0) 60%, rgba(13,13,13,.25)); pointer-events:none; }
-  .travel-visual .shot{ position:absolute; right:clamp(14px,4vw,64px); bottom:-40px; width:min(300px,34%); }
-  .travel-visual .shot img{ width:100%; }
-  .travel-visual .shot .cap{ text-align:right; }
-  .travel .lines{ max-width:420px; }
-
-  /* ================= 09 · AGE ================= */
-  .age .note{ margin-top:clamp(22px,2.6vw,34px); }
-
-  /* ================= 10 · PHANTOM (near black-on-black, by design) ================= */
-  .phantom{ background:var(--ink-2); }
-  .phantom .three{ list-style:none; margin-top:clamp(22px,2.6vw,34px); display:flex; gap:clamp(18px,3vw,40px); flex-wrap:wrap; }
-  .phantom .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.01em; font-size:clamp(20px,2.4vw,34px); color:var(--b64); }
-  .ph-stage{ position:relative; display:grid; grid-template-columns:minmax(0,1fr); place-items:center; min-height:clamp(420px,50vw,640px); }
-  .ph-stage .band{ position:absolute; z-index:0; width:clamp(220px,28vw,360px); left:0; top:6%; opacity:.55; filter:blur(.4px) saturate(.6); }
-  .ph-stage .can{ position:absolute; z-index:0; width:clamp(90px,10vw,140px); right:4%; bottom:6%; opacity:.28; filter:grayscale(.6) brightness(.55) drop-shadow(0 30px 40px rgba(0,0,0,.8)); }
-  .ph-stage .shot{ position:relative; z-index:1; }
-  .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
-  .phantom .note{ margin-top:clamp(22px,2.6vw,34px); }
-
-  /* ================= 11 · ECOSYSTEM ================= */
-  .eco-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:clamp(24px,4vw,72px); align-items:stretch; }
-  .eco h3{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--metal); margin-bottom:14px; }
-  .eco .list{ list-style:none; }
-  .eco .list li{ display:flex; justify-content:space-between; align-items:baseline; gap:14px; padding:12px 0; border-top:1px solid var(--line); font-family:var(--display); font-weight:600; font-size:clamp(15px,1.4vw,19px); }
-  .eco .list li:last-child{ border-bottom:1px solid var(--line); }
-  .eco .list .st{ font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--metal); white-space:nowrap; }
-  .eco .list .st.live{ color:var(--red); }
-  .eco .list.out li{ font-weight:800; letter-spacing:-0.005em; }
-  .eco-core{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:0 clamp(10px,2vw,30px); }
-  .eco-core .line{ width:1px; flex:1; min-height:40px; background:linear-gradient(transparent, var(--red), transparent); opacity:.8; }
-  .eco-core .core{ font-family:var(--display); font-weight:800; letter-spacing:-0.02em; line-height:.95; font-size:clamp(30px,4.2vw,60px); text-align:center; white-space:nowrap; }
-  .eco-core .core small{ display:block; font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); margin-top:10px; }
-  .eco-foot{ margin-top:clamp(28px,3.4vw,44px); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(20px,4vw,60px); align-items:end; }
-  .eco-foot .shot img{ width:min(240px,100%); }
-
-  /* ================= 12 · RITUAL ================= */
-  .ritual{ padding:clamp(40px,8vh,100px) var(--gutter); background:var(--canvas); border-top:1px solid var(--line); }
-  .ritual .rw{ min-height:58vh; display:flex; align-items:center; position:relative; }
-  .ritual .rw span{ font-family:var(--display); font-weight:800; letter-spacing:-0.03em; line-height:.9; font-size:clamp(64px,15vw,240px); color:var(--i12); transition:color 1.2s ease; }
-  .ritual .rw.on span{ color:var(--ink); }
-  .ritual .rw::before{ content:''; position:absolute; left:0; bottom:0; height:1px; width:0; background:var(--red); transition:width 1.4s cubic-bezier(.2,.7,.2,1); }
-  .ritual .rw.on::before{ width:min(38vw,320px); }
-  .ritual .rw.last.on span{ color:var(--red); }
-
-  /* ================= 13 · CLOSING (photographic — dark by nature, like the homepage's final) ================= */
-  .closing{ position:relative; padding:0; background:var(--ink); display:grid; min-height:min(92vh,960px); }
-  .four{ grid-area:1/1; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:2px; }
-  .four div{ overflow:hidden; min-height:100%; }
-  .four img{ width:100%; height:100%; object-fit:cover; filter:brightness(.62) contrast(1.02); }
-  .closing .over{ grid-area:1/1; position:relative; z-index:1; display:grid; align-items:end; padding:clamp(48px,7vw,110px) var(--gutter); background:linear-gradient(180deg, rgba(13,13,13,.2), rgba(13,13,13,.55) 40%, rgba(13,13,13,.92) 100%); }
-  .closing .over .wrap{ width:100%; }
-  .closing .sub{ margin-top:clamp(14px,1.8vw,24px); font-family:var(--display); font-weight:800; letter-spacing:-0.01em; line-height:1.05; font-size:clamp(20px,2.8vw,40px); color:var(--b64); }
-  .closing .lead{ margin-top:clamp(18px,2.2vw,30px); }
-  .closing .cta-row{ margin-top:clamp(28px,3.4vw,44px); }
+  /* ================= 06 · THE AFORCE ECOSYSTEM + CLOSE ================= */
+  .eco{ background:var(--ink); padding-top:clamp(110px,16vh,200px); padding-bottom:clamp(96px,14vh,170px); }
+  .eco-lines{ list-style:none; display:flex; flex-direction:column; gap:clamp(14px,2.2vw,30px); }
+  .eco-lines li{ font-family:var(--display); font-weight:800; line-height:1.06; letter-spacing:-0.012em; font-size:clamp(24px,3.6vw,54px); color:var(--b40); text-wrap:balance; }
+  .eco-lines li b{ color:var(--bone); font-weight:800; }
+  .eco-final{ margin-top:clamp(64px,9vw,120px); font-family:var(--display); font-weight:800; line-height:1.02; letter-spacing:-0.014em; font-size:clamp(38px,6.4vw,92px); color:var(--red); max-width:14ch; text-wrap:balance; overflow-wrap:break-word; }
+  .eco-final .w{ color:var(--bone); }
+  .eco .cta-row{ margin-top:clamp(30px,3.6vw,48px); }
+  .eco .note{ margin-top:clamp(28px,3.4vw,44px); }
 
   /* ---------- RESPONSIVE ---------- */
-  @media (max-width:1100px){
-    .eco-grid{ grid-template-columns:minmax(0,1fr); gap:36px; }
-    .eco-core{ flex-direction:row; padding:0; }
-    .eco-core .line{ height:1px; width:auto; min-height:0; background:linear-gradient(90deg, transparent, var(--red), transparent); }
-  }
   @media (max-width:900px){
     .split, .split.rev{ grid-template-columns:minmax(0,1fr); gap:40px; }
     .split.rev > :first-child{ order:0; }
     .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
     .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .ui-arch{ justify-self:center; } .ui-arch::before{ display:none; }
-    .mo-rail{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-right:var(--gutter); margin-right:calc(-1 * var(--gutter)); scrollbar-width:none; }
-    .mo-rail::-webkit-scrollbar{ display:none; }
-    .mo{ flex:0 0 76vw; scroll-snap-align:start; }
-    .mo .when{ opacity:1; transform:none; }
-    .moments .close{ grid-template-columns:minmax(0,1fr); }
-    .cycle-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
+    .exp-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
     .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .stage{ min-height:0; padding-bottom:40px; }
-    .travel-visual .photo{ aspect-ratio:4/3; }
-    .travel-visual .shot{ position:static; width:min(300px,80%); margin:24px auto 0; }
-    .travel-visual .shot .cap{ text-align:center; }
-    .ph-stage{ min-height:0; padding:30px 0; }
-    .ph-stage .band{ width:40vw; left:-6%; top:0; }
-    .eco-foot{ grid-template-columns:minmax(0,1fr); }
-    .closing{ display:block; min-height:0; }
-    .four{ grid-template-columns:repeat(2,minmax(0,1fr)); }
-    .four div{ aspect-ratio:3/4; min-height:0; }
-    .closing .over{ padding-top:clamp(32px,6vw,56px); background:var(--ink); }
-    .four img{ filter:brightness(.8); }
+    .eco-final{ font-size:clamp(34px,10vw,60px); }
   }
   @media (max-width:390px){
-    .hd-xl{ font-size:44px; }
-    .signals{ grid-template-columns:minmax(0,1fr); }
-    .signals li:nth-child(even){ padding-left:0; border-left:none; }
-    .signals li:nth-child(odd){ padding-right:0; }
+    .hero-copy .hero-title{ font-size:32px; }
+    .eco-final{ font-size:30px; }
   }
   @media (prefers-reduced-motion:reduce){
     html{ scroll-behavior:auto; }
@@ -317,10 +205,7 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .hero-video{ display:none; }
     .hero-still{ display:block; }
-    .mo img, .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before{ transition:none !important; }
-    .mo .when{ opacity:1; transform:none; }
-    .verbs li{ color:var(--ink); }
-    .ritual .rw span{ color:var(--ink); } .ritual .rw::before{ width:min(38vw,320px); } .ritual .rw.last span{ color:var(--red); }
+    .btn .arw{ transition:none !important; }
   }
 </style>
 <script type="application/ld+json">
@@ -354,8 +239,8 @@
       "@type": "WebPage",
       "@id": "https://www.drinkaforce.com/aforce-os#webpage",
       "url": "https://www.drinkaforce.com/aforce-os",
-      "name": "AFORCE OS | Before the Moment",
-      "description": "AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.",
+      "name": "AFORCE OS | The Performance Operating System",
+      "description": "AFORCE OS turns everyday signals and behavior into a clearer picture of your readiness — and what to do next.",
       "isPartOf": {
         "@id": "https://www.drinkaforce.com/#website"
       },
@@ -426,7 +311,7 @@
 
 <main id="main" tabindex="-1">
 
-<!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
+<!-- ============ 01 · HERO — REVEAL (video implementation is read-only; copy only) ============ -->
 <header class="hero on-dark" id="top">
   <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
     <source src="/assets/os-hero.webm" type="video/webm">
@@ -437,332 +322,127 @@
   <div class="hero-grid">
     <div class="hero-copy reveal in">
       <div class="kick">AFORCE OS</div>
-      <h1 class="hd-xl">Before<br>the moment.</h1>
-      <p class="lead"><b>Performance doesn't begin when the moment starts.</b><br><br>AForce OS brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.</p>
+      <h1 class="hd-xl hero-title">The operating system for people who perform under pressure.</h1>
+      <p class="lead">AFORCE OS turns everyday signals and behavior into a clearer picture of your readiness &mdash; and what to do next.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#idea">Explore AForce OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="#cycle">See how it works</a>
+        <a class="btn btn-primary" href="/founding-250">Enter AFORCE OS <span class="arw">&rarr;</span></a>
+        <a class="btn btn-outline-light" href="#problem">See how it works</a>
       </div>
     </div>
   </div>
   <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </header>
 
-<!-- ============ 02 · THE IDEA ============ -->
-<section class="blk idea" id="idea">
+<!-- ============ 02 · THE PROBLEM ============ -->
+<section class="blk problem" id="problem">
   <div class="wrap split top">
     <div class="col-copy">
-      <h2 class="hd-l reveal">Your body knows.<br>Your day demands.<br>AForce connects the two.</h2>
-      <ul class="lines stagger" aria-label="The signals AForce OS reads">
-        <li class="reveal" style="--i:0">Sleep.</li>
-        <li class="reveal" style="--i:1">Recovery.</li>
-        <li class="reveal" style="--i:2">Hydration.</li>
-        <li class="reveal" style="--i:3">Heart rate.</li>
-        <li class="reveal" style="--i:4">Environment.</li>
-        <li class="reveal" style="--i:5">Activity.</li>
-        <li class="reveal" style="--i:6">Travel.</li>
-        <li class="reveal" style="--i:7">Your next meeting.</li>
-        <li class="reveal" style="--i:8">Your next workout.</li>
-        <li class="reveal" style="--i:9">Your next flight.</li>
-      </ul>
-      <div class="after reveal">
-        <p>Individually, they're signals.</p>
-        <p>AForce OS turns them into preparation.</p>
-      </div>
+      <div class="kick reveal">The problem</div>
+      <h2 class="hd-l reveal">Performance should not be left to chance.</h2>
+      <p class="lead reveal">You already receive signals from everywhere. AFORCE OS organizes them into something you can act on.</p>
     </div>
-    <div class="shot ui-arch reveal">
-      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS home — HydroState, Recovering 69, your next move, today's signals for New York, and the next three moments of the day." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
+    <div class="reveal">
+      <ul class="sig" aria-label="The signals AFORCE OS organizes">
+        <li>Sleep</li>
+        <li>Hydration</li>
+        <li>Recovery</li>
+        <li>HRV</li>
+        <li>Movement</li>
+        <li>Consistency</li>
+      </ul>
+      <div class="sig-out"><div class="k">Organized into</div><div class="v">AFORCE Readiness</div></div>
     </div>
   </div>
 </section>
 
-<!-- ============ 03 · ONE COMMAND ============ -->
-<section class="blk command" id="command">
+<!-- ============ 03 · THE INTELLIGENCE ============ -->
+<section class="blk intel" id="intelligence">
   <div class="wrap split rev">
     <div class="col-copy">
-      <div class="kick reveal">Performance Navigator</div>
-      <h2 class="hd-l reveal">Not more data.<br>The next move.</h2>
-      <p class="lead reveal">Most platforms give you another score.<br><br>AForce OS is designed to answer a more useful question:<br><b>What should I do now?</b></p>
-      <ul class="verbs stagger" aria-label="The five commands">
-        <li class="reveal" style="--i:0">Hydrate.</li>
-        <li class="reveal" style="--i:1">Recover.</li>
-        <li class="reveal" style="--i:2">Prepare.</li>
-        <li class="reveal" style="--i:3">Move.</li>
-        <li class="reveal" style="--i:4">Hold.</li>
-      </ul>
-      <p class="lead reveal"><b>One clear command, based on the moment ahead.</b></p>
+      <div class="kick reveal">The intelligence</div>
+      <h2 class="hd-l reveal">Signals. Command. Learning.</h2>
+      <ol class="model reveal" aria-label="How AFORCE OS works">
+        <li><span class="n">01</span><div><h3>Signals</h3><p>AFORCE organizes available wellness signals, behavior and context.</p></div></li>
+        <li><span class="n">02</span><div><h3>Command</h3><p>AFORCE surfaces the highest-priority eligible action for you.</p></div></li>
+        <li><span class="n">03</span><div><h3>Learning</h3><p>Actions, corrections and outcomes become part of the pattern that informs what comes next.</p></div></li>
+      </ol>
+      <p class="precise reveal">Signals arrive through the integrations you choose to connect and what you log in the app. <b>AFORCE OS interprets them &mdash; it does not take sensor measurements of its own.</b> WHOOP can be connected today; further integrations are coming.</p>
     </div>
-    <div class="stage reveal">
-      <img class="can" src="/assets/can-red.png" alt="The AFORCE can" width="498" height="1281" loading="lazy" decoding="async">
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS — your next move: sip 12 oz of water now. Lock in." width="390" height="844" loading="lazy" decoding="async">
-      </div>
+    <div class="shot reveal">
+      <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol — a Depletion Correction in progress: the current command is active, next recheck in 5 hours, protocol step 1 of 4, hydration 0 of 96 ounces, recovery signals heart rate and HRV." width="390" height="844" loading="lazy" decoding="async">
       <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
     </div>
   </div>
 </section>
 
-<!-- ============ 04 · MOMENTS ============ -->
-<section class="blk moments" id="moments">
+<!-- ============ 04 · THE EXPERIENCE ============ -->
+<section class="blk exp" id="experience">
   <div class="wrap">
-    <div class="split top intro">
-      <div class="col-copy">
-        <div class="kick reveal">Moments</div>
-        <h2 class="hd-l reveal">Your day isn't a dashboard.<br>It's a series of moments.</h2>
-        <ul class="lines stagger" aria-label="Kinds of moments">
-          <li class="reveal dim" style="--i:0">An investor meeting.</li>
-          <li class="reveal dim" style="--i:1">A surgery.</li>
-          <li class="reveal dim" style="--i:2">A match.</li>
-          <li class="reveal dim" style="--i:3">A flight.</li>
-          <li class="reveal dim" style="--i:4">A presentation.</li>
-          <li class="reveal dim" style="--i:5">A workout.</li>
-          <li class="reveal dim" style="--i:6">A night that runs late.</li>
-        </ul>
-        <p class="lead reveal">AForce OS understands that different moments place different demands on the body.<br><br><b>It prepares around what comes next.</b></p>
-      </div>
-      <div class="shot reveal">
-        <img src="/assets/aforce-os/black-issue-moments.png" alt="AFORCE OS Moments — a three-day view: today's workout, investor call, meeting with bank and flight to London, with tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Illustrative interface &middot; Sample data &middot; Moments you enter yourself &middot; Not actual user results</p>
-      </div>
-    </div>
-
-    <div class="mo-rail reveal" role="list" aria-label="Four people, four moments">
-      <div class="mo" role="listitem"><img src="/assets/hero-poster.jpg" alt="A founder seated at a Manhattan window at dusk, focused" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Founder</span><span class="when">Investor Call &mdash; 9:06 AM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-surgeon.jpg" alt="A surgeon in navy scrubs, arms crossed at a window at golden hour" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Surgeon</span><span class="when">Procedure &mdash; 11:30 AM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-athlete.webp" alt="A baseball player standing at the plate in an empty stadium at sunset" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Athlete</span><span class="when">Match &mdash; 2:00 PM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-musician.webp" alt="A musician in a dim studio, headphones around her neck, eyes closed" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Creative</span><span class="when">Stage &mdash; 8:45 PM</span></button></div>
-    </div>
-
-    <div class="close">
-      <h3 class="hd-m reveal">Different arenas.<br>Same requirement.</h3>
-      <div class="prep reveal">Prepare.</div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 05 · BEFORE / DURING / AFTER ============ -->
-<section class="blk cycle" id="cycle">
-  <div class="wrap">
-    <div class="kick reveal">The Performance Cycle</div>
-    <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
-    <div class="cycle-grid stagger">
+    <div class="kick reveal">The experience</div>
+    <h2 class="hd-l reveal" style="margin-top:18px;">Today.<br>This week.<br>Over time.</h2>
+    <div class="exp-grid stagger">
       <div class="state reveal" style="--i:0">
-        <div class="word">Before</div>
-        <p class="copy">AForce interprets the signals and the moment ahead.<b>Prepare. Hydrate. Lock in.</b></p>
+        <div class="word">Today</div>
+        <p class="copy">What your body and your day look like right now &mdash; <b>and the next move.</b></p>
         <div class="shot">
-          <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="Before — AFORCE OS home: Recovering 69, your next move, the next moments." width="390" height="844" loading="lazy" decoding="async">
+          <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="AFORCE OS home — HydroState reads Recovering, 69 on the readiness band. Your next move: sip 12 oz of water now. Today's signals and the next three moments of the day." width="390" height="844" loading="lazy" decoding="async">
           <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
       <div class="state reveal" style="--i:1">
-        <div class="word">During</div>
-        <p class="copy">Intelligence becomes quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
+        <div class="word">This week</div>
+        <p class="copy">Performance Age&trade;, recovery trend, hydration consistency, habit velocity and next week's focus &mdash; <b>one report.</b></p>
         <div class="shot">
-          <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample match &middot; Pacing guidance only</p>
+          <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="AFORCE OS Week in Review — a 5-day streak, 6 days tracked, recovery trend and habit velocity still collecting, hydration days 1 of 6, Performance Age on a fixed scale unchanged at 49, and what AFORCE noticed for the week ahead." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
       <div class="state reveal" style="--i:2">
-        <div class="word">After</div>
-        <p class="copy">Recovery becomes the next preparation cycle.<b>AForce learns from what happened and helps prepare for what comes next.</b></p>
+        <div class="word">Over time</div>
+        <p class="copy">Every command and correction joins the pattern. <b>Repetition makes the picture clearer.</b></p>
         <div class="shot">
-          <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="After — AFORCE OS Week in Review: streak, days tracked, recovery trend and habit velocity collecting, Performance Age unchanged at 49, and what AFORCE noticed." width="390" height="844" loading="lazy" decoding="async">
+          <img src="/assets/aforce-os/black-issue-performance-signal.png" alt="AFORCE OS Performance Signal — command history: a 7-day average of 86, each day's intake, recovery, commands and streak with its state — Peak, Balanced, Recovering or Depleted — and weekly averages, labeled sample data." width="390" height="844" loading="lazy" decoding="async">
           <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
     </div>
+    <p class="note reveal">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
-<!-- ============ 06 · HYDROSTATE ============ -->
-<section class="blk hydro" id="hydrostate">
+<!-- ============ 05 · COMMUNITY ============ -->
+<section class="blk community" id="community">
   <div class="wrap split">
     <div class="shot reveal">
-      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="HydroState — Recovering, 69 on a 0 to 100 readiness band. Water 63 percent, recovery 74, sleep 7 hours 24 minutes, HRV 58 milliseconds." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Illustrative interface &middot; Sample state &middot; Not actual user results</p>
+      <img src="/assets/aforce-os/black-issue-circle.png" alt="AFORCE OS Circle — a private performance community: a member card with rank stats and score, a weekly hydration challenge, and sample standings with a pinned You row; a labeled sample cohort, not a ranking against real people." width="390" height="844" loading="lazy" decoding="async">
+      <p class="cap">Illustrative interface &middot; Sample cohort &middot; Not a ranking against real people</p>
     </div>
     <div class="col-copy">
-      <div class="kick reveal">HydroState</div>
-      <h2 class="hd-l reveal">Your state.<br>Right now.</h2>
-      <p class="lead reveal">Hydration is not a static number.<br><br>AForce OS interprets hydration alongside recovery, activity, environment and the demands ahead.<br><br><b>The result is a living state designed to help make the next decision clearer.</b></p>
-      <ul class="signals reveal" aria-label="The signals beneath the state, sample values">
-        <li><div class="k">Water</div><div class="v red">63%</div></li>
-        <li><div class="k">Recovery</div><div class="v">74</div></li>
-        <li><div class="k">Sleep</div><div class="v">7h 24m</div></li>
-        <li><div class="k">HRV</div><div class="v">58 ms</div></li>
-      </ul>
+      <div class="kick reveal">Community</div>
+      <h2 class="hd-l reveal">Performance is earned together.</h2>
+      <p class="lead reveal">Discipline is private. Standing is not. AFORCE OS is not an individual dashboard &mdash; <b>it is a performance community.</b></p>
+      <p class="facets reveal">Friends <span>&middot;</span> Teams <span>&middot;</span> Challenges <span>&middot;</span> Streaks</p>
+      <div class="reveal"><a class="btn btn-primary" href="/founding-250">Join the Founding Community <span class="arw">&rarr;</span></a></div>
     </div>
   </div>
 </section>
 
-<!-- ============ 07 · SKIN INTELLIGENCE (coming) ============ -->
-<section class="blk skin" id="skin">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Skin Intelligence <span class="coming">Coming to AForce OS</span></div>
-      <h2 class="hd-l reveal">Skin is a signal.</h2>
-      <p class="lead reveal">What you see on the surface can reflect what's happening around it.<br><br>AForce Skin Intelligence is designed to help you observe visible skin signals over time and understand them alongside hydration, recovery, environment and routine.</p>
-      <ul class="three reveal" aria-label="What Skin Intelligence is not">
-        <li>No beauty score.</li>
-        <li>No judgment.</li>
-        <li>Context.</li>
-      </ul>
-      <p class="cap reveal">Observational only &middot; Not a diagnosis &middot; In development &middot; Not yet available in AForce OS</p>
-    </div>
-    <div class="shot skin-stage reveal">
-      <img src="/assets/aforce-os/black-issue-scan.png" alt="Skin Intelligence live scan — hold still, let the signal settle. A guided phone scan for consistent observation over time; observational only, not a diagnosis." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Design preview &middot; Sample data &middot; Coming to AForce OS</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 08 · TRAVEL (coming) ============ -->
-<section class="blk travel" id="travel">
+<!-- ============ 06 · THE AFORCE ECOSYSTEM + FINAL CTA ============ -->
+<section class="blk eco on-dark" id="ecosystem">
   <div class="wrap">
-    <div class="split top">
-      <div class="col-copy">
-        <div class="kick reveal">Travel Intelligence <span class="coming">Coming to AForce OS</span></div>
-        <h2 class="hd-l reveal">Your body crosses<br>time zones too.</h2>
-        <p class="lead reveal">Flights change more than your location.</p>
-      </div>
-      <div class="col-copy">
-        <ul class="lines stagger" aria-label="What a flight changes">
-          <li class="reveal dim" style="--i:0">Cabin conditions.</li>
-          <li class="reveal dim" style="--i:1">Sleep timing.</li>
-          <li class="reveal dim" style="--i:2">Hydration.</li>
-          <li class="reveal dim" style="--i:3">Movement.</li>
-          <li class="reveal dim" style="--i:4">Schedule disruption.</li>
-          <li class="reveal dim" style="--i:5">The performance expected when you land.</li>
-        </ul>
-        <p class="lead reveal"><b>AForce OS prepares around the journey &mdash; not simply the destination.</b></p>
-      </div>
+    <ul class="eco-lines stagger" aria-label="The AFORCE ecosystem">
+      <li class="reveal" style="--i:0">The <b>can</b> is the entry point.</li>
+      <li class="reveal" style="--i:1">The <b>ritual</b> is the behavior.</li>
+      <li class="reveal" style="--i:2">The <b>OS</b> is the intelligence.</li>
+      <li class="reveal" style="--i:3">The <b>community</b> is the identity.</li>
+      <li class="reveal" style="--i:4"><b>Performance</b> is the outcome.</li>
+    </ul>
+    <h2 class="eco-final reveal"><span class="w">Performance is</span> Non-<span class="flip-n">N</span>egotiable.</h2>
+    <div class="cta-row reveal">
+      <a class="btn btn-primary" href="/founding-250">Enter AFORCE OS <span class="arw">&rarr;</span></a>
+      <a class="btn btn-outline-light" href="/shop">Shop AFORCE</a>
     </div>
-    <div class="travel-visual reveal">
-      <div class="photo"><img src="/assets/discipline-airport.jpg" alt="A traveler in a quiet airport lounge at golden hour, suitcase beside him, an aircraft at the gate beyond the glass" loading="lazy" decoding="async"></div>
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-travel.png" alt="AFORCE OS in-flight protocol — JFK to Singapore at 38,000 feet, cabin protocol on, cabin humidity 12 percent, your next move: sip 8 oz now and add one electrolyte stick before the meal." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview &middot; Sample flight data &middot; Coming to AForce OS</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 09 · PERFORMANCE AGE ============ -->
-<section class="blk age" id="age">
-  <div class="wrap split">
-    <div class="shot reveal">
-      <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="AFORCE OS Week in Review — a 5-day streak, 6 days tracked, recovery trend and habit velocity still collecting, Performance Age on a fixed scale unchanged at 49, and what AFORCE noticed for the week ahead." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-    </div>
-    <div class="col-copy">
-      <div class="kick reveal">Longitudinal Intelligence</div>
-      <h2 class="hd-l reveal">One day is a signal.<br>Time reveals the pattern.</h2>
-      <p class="lead reveal">AForce OS is designed to learn across days, routines and outcomes.<br><br>Not to punish you for yesterday.<br><br><b>To understand what helps you perform better over time.</b></p>
-      <p class="note reveal">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 10 · PHANTOM (coming next) ============ -->
-<section class="blk phantom on-dark" id="phantom">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Coming next</div>
-      <h2 class="hd-l reveal">Intelligence<br>without another screen.</h2>
-      <p class="lead reveal">Phantom is the future wearable expression of AForce OS.</p>
-      <ul class="three reveal" aria-label="Phantom in three words">
-        <li>Screenless.</li>
-        <li>Quiet.</li>
-        <li>Connected.</li>
-      </ul>
-      <p class="lead reveal">Designed to bring the right signal into the moment without demanding more attention.</p>
-      <p class="note reveal">Future product. Not currently available. Features and specifications shown are design previews and may change.</p>
-    </div>
-    <div class="ph-stage reveal">
-      <img class="band" src="/assets/aforce-os/phantom-band.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <img class="can" src="/assets/can-red.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-phantom.png" alt="Phantom Band design preview — matte black, no screen, one quiet signal on your wrist. Signals only, not a medical device." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview &middot; Future product &middot; Not currently available</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 11 · THE ECOSYSTEM ============ -->
-<section class="blk eco" id="ecosystem">
-  <div class="wrap">
-    <h2 class="hd-l reveal">One system.<br>More context.</h2>
-    <div class="eco-grid reveal">
-      <div>
-        <h3>Inputs</h3>
-        <ul class="list" aria-label="Inputs and their connection status in AForce OS">
-          <li>Apple Health <span class="st">Coming soon</span></li>
-          <li>WHOOP <span class="st live">Connect</span></li>
-          <li>Oura <span class="st">Coming soon</span></li>
-          <li>Garmin <span class="st">Approval pending</span></li>
-          <li>Samsung Health / Health Connect <span class="st">Coming soon</span></li>
-          <li>AForce interactions <span class="st live">In the OS</span></li>
-          <li>Environment <span class="st live">In the OS</span></li>
-          <li>Moments <span class="st live">You enter them</span></li>
-        </ul>
-      </div>
-      <div class="eco-core" aria-hidden="true">
-        <span class="line"></span>
-        <div class="core">AForce<br>OS<small>Interprets &middot; Prepares</small></div>
-        <span class="line"></span>
-      </div>
-      <div>
-        <h3>Outputs</h3>
-        <ul class="list out" aria-label="What AForce OS gives you">
-          <li>HydroState</li>
-          <li>Next Move</li>
-          <li>Moments</li>
-          <li>Skin Intelligence <span class="st">Coming</span></li>
-          <li>Travel <span class="st">Coming</span></li>
-          <li>Performance Age&trade;</li>
-        </ul>
-      </div>
-    </div>
-    <div class="eco-foot reveal">
-      <p class="note">Connection status as shown in AFORCE OS. You control every source &mdash; nothing is read until you connect it. Availability varies by device and region and may change.</p>
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-devices.png" alt="AFORCE OS Devices — connected data sources with their current status: Apple Health coming soon, Garmin Connect approval pending, Health Connect and Samsung Health unsupported on this device, Oura Ring and Strava coming soon, WHOOP available to connect." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Illustrative interface &middot; Sample data</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 12 · RITUAL ============ -->
-<section class="ritual" id="ritual" aria-label="The ritual">
-  <div class="wrap">
-    <div class="rw"><span>Pause.</span></div>
-    <div class="rw"><span>Hydrate.</span></div>
-    <div class="rw"><span>Lock in.</span></div>
-    <div class="rw last"><span>Perform.</span></div>
-  </div>
-</section>
-
-<!-- ============ 13 · CLOSING ============ -->
-<section class="closing on-dark" id="closing" aria-labelledby="closing-h">
-  <div class="four" aria-hidden="true">
-    <div><img src="/assets/hero-poster.jpg" alt="" loading="lazy" decoding="async"></div>
-    <div><img src="/assets/perf-surgeon.jpg" alt="" loading="lazy" decoding="async"></div>
-    <div><img src="/assets/perf-athlete.webp" alt="" loading="lazy" decoding="async"></div>
-    <div><img src="/assets/perf-musician.webp" alt="" loading="lazy" decoding="async"></div>
-  </div>
-  <div class="over">
-    <div class="wrap">
-      <h2 class="hd-xl reveal" id="closing-h">Performance<br>is universal.</h2>
-      <p class="sub reveal">Preparation<br>should be personal.</p>
-      <p class="lead reveal">Different bodies. Different days. Different demands.<br><b>One intelligence built around the person performing.</b></p>
-      <div class="cta-row reveal">
-        <a class="btn btn-primary" href="/founding-250">Enter AForce OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="/shop">Join AForce</a>
-      </div>
-    </div>
+    <p class="note reveal">In development: Skin Intelligence, Travel Intelligence and Phantom. Not yet available in AFORCE OS.</p>
   </div>
 </section>
 
@@ -858,52 +538,11 @@
       if(r.top < limit && r.bottom > 0){ e.classList.add('in'); io.unobserve(e); return false; }
       return true;
     });
-    var rows = document.querySelectorAll('.ritual .rw:not(.on)');
-    rows.forEach(function(r){ var b = r.getBoundingClientRect(); if(b.top < limit * .8 && b.bottom > 0) r.classList.add('on'); });
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(sweep); } }
   window.addEventListener('scroll', onScroll, { passive:true });
   window.addEventListener('resize', onScroll, { passive:true });
   window.addEventListener('load', function(){ setTimeout(sweep, 400); setTimeout(sweep, 2000); });
-})();
-
-/* one command — the five verbs light in sequence, the last holds red */
-(function(){
-  var verbs = document.querySelectorAll('.verbs li');
-  if(!verbs.length || !('IntersectionObserver' in window)) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if(!en.isIntersecting) return;
-      io.disconnect();
-      verbs.forEach(function(v,i){ setTimeout(function(){ v.classList.add('in'); if(i === verbs.length-1) v.classList.add('on'); }, 260 + i*220); });
-    });
-  }, { threshold:0.5 });
-  io.observe(verbs[0]);
-})();
-
-/* moments — tap reveals the moment on touch; hover/focus handle the rest */
-(function(){
-  document.querySelectorAll('.mo .tag').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var mo = btn.closest('.mo'), on = !mo.classList.contains('on');
-      document.querySelectorAll('.mo.on').forEach(function(m){ if(m !== mo){ m.classList.remove('on'); m.querySelector('.tag').setAttribute('aria-expanded','false'); } });
-      mo.classList.toggle('on', on);
-      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    });
-  });
-})();
-
-/* ritual — one word at a time as it enters, held once seen */
-(function(){
-  var rows = document.querySelectorAll('.ritual .rw');
-  if(!rows.length) return;
-  if(!('IntersectionObserver' in window)){ rows.forEach(function(r){ r.classList.add('on'); }); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('on'); io.unobserve(en.target); } });
-  }, { threshold:0.55 });
-  rows.forEach(function(r){ io.observe(r); });
 })();
 
 /* scroll-aware nav */
