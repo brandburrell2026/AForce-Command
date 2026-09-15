@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 moments portraits removed -->
+<!-- build: 2026-09-15 cycle screens + navigator full phone -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | Before the Moment</title>
@@ -162,8 +162,6 @@
   /* geometry in percentages of the crop box, so a detail scales with whatever width its column gives it:
      --iw = 390 / region-width · --ix = region-x / region-width · --iy = region-y / region-height */
   .ui-crop img, .shot .ui-crop img, .state .shot .ui-crop img{ position:absolute; max-width:none; width:var(--iw,100%); height:auto; left:var(--ix,0); top:var(--iy,0); border-radius:0; box-shadow:none; }
-  .nm-crop{ --iw:115.38%; --ix:-7.69%; --iy:-273.58%; width:min(422px,100%); aspect-ratio:338/106; z-index:2; }   /* region x26 y290 w338 h106 of the 390×844 frame */
-  .nm-crop--sm{ width:min(338px,100%); }
   /* Performance Navigator — the Protocol · Depletion Correction screen is the visual: AFORCE moving from interpretation into action.
      Desktop: interface left, copy + verbs right. ≤1024px: eyebrow/headline/copy → interface → verbs. */
   .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"stage intro" "stage verbs"; grid-template-rows:auto 1fr; column-gap:clamp(40px,6vw,110px); align-items:start; }
@@ -189,13 +187,17 @@
   .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
 
   /* ================= 05 · CYCLE ================= */
-  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
-  .state{ display:flex; flex-direction:column; gap:clamp(18px,2vw,26px); padding-top:22px; border-top:1px solid var(--ink); }
+  /* Anticipate → Support → Learn: During is the largest visual, Before restrained, After calmest. Subgrid keeps word, copy and screen on shared rows. */
+  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.16fr) minmax(0,.88fr); grid-template-rows:auto auto 1fr; column-gap:clamp(18px,2.6vw,40px); row-gap:0; align-items:start; }
+  .state{ display:grid; grid-row:span 3; grid-template-rows:subgrid; row-gap:clamp(18px,2vw,26px); align-content:start; padding-top:22px; border-top:1px solid var(--ink); }
   .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
   .state .copy{ color:var(--i64); font-size:15.5px; line-height:1.65; max-width:34ch; }
   .state .copy b{ color:var(--ink); font-weight:600; display:block; margin-top:8px; }
-  .state .shot{ margin-top:auto; }
-  .state .shot img{ width:min(330px,100%); }
+  .state .copy span{ display:block; margin-top:8px; }
+  .state .shot{ align-self:start; }
+  .state--before .shot img{ width:min(330px,100%); }
+  .state--during .shot img{ width:min(390px,100%); }
+  .state--after .shot img{ width:min(290px,100%); }
 
   /* ================= 02 · HYDROSTATE ================= */
   .hydro .split{ align-items:center; }
@@ -273,9 +275,10 @@
     .split.rev > :first-child{ order:0; }
     .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
     .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .cycle-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
+    .cycle-grid{ grid-template-columns:minmax(0,1fr); grid-template-rows:none; row-gap:56px; }
+    .state{ grid-row:auto; grid-template-rows:none; }
+    .state--during .shot img{ width:min(380px,100%); }
     .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .nm-crop{ width:100%; }
     .travel-visual{ grid-template-columns:minmax(0,1fr); gap:28px; }
     .travel-visual .photo{ aspect-ratio:4/3; }
     .travel-visual .shot{ width:min(300px,80%); }
@@ -532,32 +535,31 @@
     <div class="kick reveal">The Performance Cycle</div>
     <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
     <div class="cycle-grid stagger">
-      <div class="state reveal" style="--i:0">
+      <div class="state state--before reveal" style="--i:0">
         <div class="word">Before</div>
-        <p class="copy">AFORCE interprets the signals and the moment ahead.<b>Prepare. Hydrate. Lock in.</b></p>
+        <p class="copy">AFORCE sees the moment ahead.<span>It interprets available signals, recent behavior, and what is coming next so preparation can begin before performance does.</span><b>Prepare. Hydrate. Lock in.</b></p>
         <div class="shot">
-          <div class="ui-crop nm-crop nm-crop--sm" role="img" aria-label="Before — the command: sip 12 oz of water now. Lock in."><img src="/assets/aforce-os/black-issue-home-recovering.png" alt="" width="390" height="844" loading="lazy" decoding="async"></div>
-          <p class="cap">Illustrative interface &middot; Sample data &middot; Detail</p>
+          <img src="/assets/aforce-os/black-issue-moments.png" alt="Before — AFORCE OS Moments, a three-day calendar. Today: investor call at 9:06, gym workout at 10:00, meeting with bank at 11:00 and a flight to London at 3:00, each with its preparation. Tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
-      <div class="state reveal" style="--i:1">
+      <div class="state state--during reveal" style="--i:1">
         <div class="word">During</div>
-        <p class="copy">Intelligence becomes quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
+        <p class="copy">Intelligence gets quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
         <div class="shot">
           <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample match &middot; Pacing guidance only</p>
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
-      <div class="state reveal" style="--i:2">
+      <div class="state state--after reveal" style="--i:2">
         <div class="word">After</div>
-        <p class="copy"><b>Recovery becomes the next preparation cycle.</b></p>
+        <p class="copy">The outcome becomes intelligence.<span>A quick reflection helps AFORCE understand how the preparation and command matched the actual moment.</span><b>Then the next cycle gets smarter.</b></p>
         <div class="shot">
-          <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="After — AFORCE OS Week in Review: streak, days tracked, recovery trend and habit velocity collecting, Performance Age unchanged at 49, and what AFORCE noticed." width="390" height="844" loading="lazy" decoding="async">
+          <img src="/assets/aforce-os/black-issue-one-breath.png" alt="After — AFORCE OS One Breath: speak once, review what AFORCE heard, and seal only what you approve. Listening, with the spoken note shown on screen." width="390" height="844" loading="lazy" decoding="async">
           <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
     </div>
-    <p class="note reveal" style="margin-top:clamp(28px,3.4vw,44px);">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
