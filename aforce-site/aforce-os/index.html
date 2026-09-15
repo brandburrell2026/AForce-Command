@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 moments portraits removed -->
+<!-- build: 2026-09-15 cycle screens + navigator full phone -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | Before the Moment</title>
@@ -157,45 +157,40 @@
   .verbs li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--i22); padding:6px 0; transition:color .6s ease; }
   .verbs li.in{ color:var(--ink); }
   .verbs li.on{ color:var(--red); }
-  /* generic UI crop — a detail of a real frame, never a second full presentation */
-  .ui-crop{ position:relative; overflow:hidden; border-radius:10px; box-shadow:0 30px 70px -24px rgba(0,0,0,.7); background:#0D0D0D; }
-  /* geometry in percentages of the crop box, so a detail scales with whatever width its column gives it:
-     --iw = 390 / region-width · --ix = region-x / region-width · --iy = region-y / region-height */
-  .ui-crop img, .shot .ui-crop img, .state .shot .ui-crop img{ position:absolute; max-width:none; width:var(--iw,100%); height:auto; left:var(--ix,0); top:var(--iy,0); border-radius:0; box-shadow:none; }
-  .nm-crop{ --iw:115.38%; --ix:-7.69%; --iy:-273.58%; width:min(422px,100%); aspect-ratio:338/106; z-index:2; }   /* region x26 y290 w338 h106 of the 390×844 frame */
-  .nm-crop--sm{ width:min(338px,100%); }
   /* Performance Navigator — the Protocol · Depletion Correction screen is the visual: AFORCE moving from interpretation into action.
      Desktop: interface left, copy + verbs right. ≤1024px: eyebrow/headline/copy → interface → verbs. */
   .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"stage intro" "stage verbs"; grid-template-rows:auto 1fr; column-gap:clamp(40px,6vw,110px); align-items:start; }
   .pn-intro{ grid-area:intro; align-self:end; }
   .pn-verbs{ grid-area:verbs; }
-  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 11% 0; display:flex; flex-direction:column; align-items:center; }
+  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 12% 0; display:flex; flex-direction:column; align-items:center; }
   .pn-stage::before{ content:''; position:absolute; left:10%; right:10%; top:22%; height:46%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,.07), transparent 72%); filter:blur(40px); pointer-events:none; }
   .pn-rail{ position:relative; z-index:1; list-style:none; align-self:stretch; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 10px; margin:0 0 clamp(20px,2.4vw,30px); padding-bottom:12px; border-bottom:1px solid var(--b14); font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--b40); }
   .pn-rail li.on{ color:#E13B2A; }
-  /* the phone rises from the canvas and is cut below the Hydration / Recovery row (frame y0–722 of 844) */
-  .pn-phone{ position:relative; z-index:1; width:100%; }
-  .pn-crop{ --iw:100%; --ix:0%; --iy:0%; position:relative; width:100%; aspect-ratio:390/722; border-radius:11.8% 11.8% 0 0 / 6.37% 6.37% 0 0; box-shadow:none; background:transparent; }
-  .pn-crop::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:4%; background:linear-gradient(rgba(3,3,3,0), #030303); pointer-events:none; }
-  /* one extracted callout, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
-  /* sits in the empty space right of "5 HRS" (frame x200–390, y238–370), bleeding past the bezel — it never covers a protocol row */
-  .pn-move{ position:absolute; z-index:2; left:51%; right:-6%; top:33.2%; display:flex; flex-direction:column; gap:6px; padding:13px 14px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; box-shadow:0 30px 60px -20px rgba(0,0,0,.9); }
+  /* the whole Protocol frame, uncropped and uncovered */
+  .pn-phone{ position:relative; z-index:1; width:100%; max-width:400px; }
+  .pn-screen img{ display:block; width:100%; height:auto; border-radius:11.8% / 5.45%; }
+  /* one extracted callout under the phone, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
+  .pn-move{ position:relative; z-index:2; width:100%; max-width:400px; margin-top:clamp(16px,1.8vw,22px); display:flex; flex-direction:column; gap:6px; padding:13px 16px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; }
   .pn-k, .pn-s{ font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; }
   .pn-k{ color:#A19C91; }
   .pn-v{ font-family:var(--body); font-weight:600; font-size:clamp(18px,1.6vw,22px); line-height:1.15; letter-spacing:-0.01em; color:#EDEAE3; }
   .pn-s{ display:flex; align-items:center; gap:8px; color:#E13B2A; }
   .pn-s i{ width:9px; height:9px; border-radius:50%; border:1.5px solid #E13B2A; box-shadow:inset 0 0 0 2px #141414; background:#E13B2A; }
-  .pn-stage .cap{ position:relative; z-index:1; align-self:flex-start; padding:2px 0 16px; color:var(--b40); }
+  .pn-stage .cap{ position:relative; z-index:1; align-self:stretch; text-align:center; margin-top:14px; padding:0 0 18px; color:var(--b40); }
   .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
 
   /* ================= 05 · CYCLE ================= */
-  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
-  .state{ display:flex; flex-direction:column; gap:clamp(18px,2vw,26px); padding-top:22px; border-top:1px solid var(--ink); }
+  /* Anticipate → Support → Learn: During is the largest visual, Before restrained, After calmest. Subgrid keeps word, copy and screen on shared rows. */
+  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.16fr) minmax(0,.88fr); grid-template-rows:auto auto 1fr; column-gap:clamp(18px,2.6vw,40px); row-gap:0; align-items:start; }
+  .state{ display:grid; grid-row:span 3; grid-template-rows:subgrid; row-gap:clamp(18px,2vw,26px); align-content:start; padding-top:22px; border-top:1px solid var(--ink); }
   .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
   .state .copy{ color:var(--i64); font-size:15.5px; line-height:1.65; max-width:34ch; }
   .state .copy b{ color:var(--ink); font-weight:600; display:block; margin-top:8px; }
-  .state .shot{ margin-top:auto; }
-  .state .shot img{ width:min(330px,100%); }
+  .state .copy span{ display:block; margin-top:8px; }
+  .state .shot{ align-self:start; }
+  .state--before .shot img{ width:min(330px,100%); }
+  .state--during .shot img{ width:min(390px,100%); }
+  .state--after .shot img{ width:min(290px,100%); }
 
   /* ================= 02 · HYDROSTATE ================= */
   .hydro .split{ align-items:center; }
@@ -273,9 +268,10 @@
     .split.rev > :first-child{ order:0; }
     .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
     .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .cycle-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
+    .cycle-grid{ grid-template-columns:minmax(0,1fr); grid-template-rows:none; row-gap:56px; }
+    .state{ grid-row:auto; grid-template-rows:none; }
+    .state--during .shot img{ width:min(380px,100%); }
     .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .nm-crop{ width:100%; }
     .travel-visual{ grid-template-columns:minmax(0,1fr); gap:28px; }
     .travel-visual .photo{ aspect-ratio:4/3; }
     .travel-visual .shot{ width:min(300px,80%); }
@@ -283,20 +279,18 @@
     .ph-stage .band{ width:40vw; left:-6%; top:0; }
   }
   @media (min-width:1025px) and (max-width:1100px){
-    .pn-stage{ padding-left:8%; padding-right:8%; }
+    .pn-stage{ padding-left:9%; padding-right:9%; }
   }
   /* tablet and below: eyebrow/headline/copy → interface → verbs, so the protocol stays large enough to read */
   @media (max-width:1024px){
     .pn-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"intro" "stage" "verbs"; grid-template-rows:auto; row-gap:40px; }
     .pn-intro{ align-self:start; }
     .pn-stage{ width:min(620px,100%); justify-self:center; padding:22px 7% 0; }
+    .pn-phone, .pn-move{ max-width:440px; }
   }
   @media (max-width:600px){
-    /* phone widths: crop to the working part of the screen (frame x24–366, y96–722) so the protocol stays readable */
-    .pn-stage{ padding:18px 12px 0; }
-    .pn-crop{ --iw:114.04%; --ix:-7.02%; --iy:-15.34%; aspect-ratio:342/626; border-radius:6px; }
-    .pn-move{ position:relative; left:auto; right:auto; top:auto; margin-top:14px; }
-    .pn-stage .cap{ margin-top:12px; }
+    /* phone widths: the full frame fills the stage */
+    .pn-stage{ padding:18px 10px 0; }
   }
   @media (max-width:390px){
     .hd-xl{ font-size:44px; }
@@ -476,14 +470,14 @@
         <li>Signal</li><li>Decision</li><li class="on">Next action</li><li>Recheck</li>
       </ol>
       <div class="pn-phone">
-      <div class="ui-crop pn-crop">
+      <div class="pn-screen">
         <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol screen, Depletion Correction. Next recheck in 5 hours. Protocol steps, 1 of 4: confirm hydration signal, completed today; log next intake, the active step; recheck performance signals, after intake; confirm status, end of cycle. Hydration 54 of 96 oz. Recovery signals: heart rate and HRV." width="780" height="1688" loading="lazy" decoding="async">
+      </div>
       </div>
       <div class="pn-move" aria-hidden="true">
         <span class="pn-k">Your next move</span>
         <span class="pn-v">Log next intake.</span>
         <span class="pn-s"><i></i>Active step</span>
-      </div>
       </div>
       <figcaption class="cap">Illustrative interface &middot; Sample data</figcaption>
     </figure>
@@ -532,32 +526,31 @@
     <div class="kick reveal">The Performance Cycle</div>
     <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
     <div class="cycle-grid stagger">
-      <div class="state reveal" style="--i:0">
+      <div class="state state--before reveal" style="--i:0">
         <div class="word">Before</div>
-        <p class="copy">AFORCE interprets the signals and the moment ahead.<b>Prepare. Hydrate. Lock in.</b></p>
+        <p class="copy">AFORCE sees the moment ahead.<span>It interprets available signals, recent behavior, and what is coming next so preparation can begin before performance does.</span><b>Prepare. Hydrate. Lock in.</b></p>
         <div class="shot">
-          <div class="ui-crop nm-crop nm-crop--sm" role="img" aria-label="Before — the command: sip 12 oz of water now. Lock in."><img src="/assets/aforce-os/black-issue-home-recovering.png" alt="" width="390" height="844" loading="lazy" decoding="async"></div>
-          <p class="cap">Illustrative interface &middot; Sample data &middot; Detail</p>
+          <img src="/assets/aforce-os/black-issue-moments.png" alt="Before — AFORCE OS Moments, a three-day calendar. Today: investor call at 9:06, gym workout at 10:00, meeting with bank at 11:00 and a flight to London at 3:00, each with its preparation. Tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
-      <div class="state reveal" style="--i:1">
+      <div class="state state--during reveal" style="--i:1">
         <div class="word">During</div>
-        <p class="copy">Intelligence becomes quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
+        <p class="copy">Intelligence gets quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
         <div class="shot">
           <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample match &middot; Pacing guidance only</p>
+          <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
-      <div class="state reveal" style="--i:2">
+      <div class="state state--after reveal" style="--i:2">
         <div class="word">After</div>
-        <p class="copy"><b>Recovery becomes the next preparation cycle.</b></p>
+        <p class="copy">The outcome becomes intelligence.<span>A quick reflection helps AFORCE understand how the preparation and command matched the actual moment.</span><b>Then the next cycle gets smarter.</b></p>
         <div class="shot">
-          <img src="/assets/aforce-os/black-issue-weekly-report.png" alt="After — AFORCE OS Week in Review: streak, days tracked, recovery trend and habit velocity collecting, Performance Age unchanged at 49, and what AFORCE noticed." width="390" height="844" loading="lazy" decoding="async">
+          <img src="/assets/aforce-os/black-issue-one-breath.png" alt="After — AFORCE OS One Breath: speak once, review what AFORCE heard, and seal only what you approve. Listening, with the spoken note shown on screen." width="390" height="844" loading="lazy" decoding="async">
           <p class="cap">Illustrative interface &middot; Sample data</p>
         </div>
       </div>
     </div>
-    <p class="note reveal" style="margin-top:clamp(28px,3.4vw,44px);">Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs. It is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
