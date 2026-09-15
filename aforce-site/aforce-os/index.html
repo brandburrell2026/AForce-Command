@@ -157,33 +157,26 @@
   .verbs li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--i22); padding:6px 0; transition:color .6s ease; }
   .verbs li.in{ color:var(--ink); }
   .verbs li.on{ color:var(--red); }
-  /* generic UI crop — a detail of a real frame, never a second full presentation */
-  .ui-crop{ position:relative; overflow:hidden; border-radius:10px; box-shadow:0 30px 70px -24px rgba(0,0,0,.7); background:#0D0D0D; }
-  /* geometry in percentages of the crop box, so a detail scales with whatever width its column gives it:
-     --iw = 390 / region-width · --ix = region-x / region-width · --iy = region-y / region-height */
-  .ui-crop img, .shot .ui-crop img, .state .shot .ui-crop img{ position:absolute; max-width:none; width:var(--iw,100%); height:auto; left:var(--ix,0); top:var(--iy,0); border-radius:0; box-shadow:none; }
   /* Performance Navigator — the Protocol · Depletion Correction screen is the visual: AFORCE moving from interpretation into action.
      Desktop: interface left, copy + verbs right. ≤1024px: eyebrow/headline/copy → interface → verbs. */
   .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"stage intro" "stage verbs"; grid-template-rows:auto 1fr; column-gap:clamp(40px,6vw,110px); align-items:start; }
   .pn-intro{ grid-area:intro; align-self:end; }
   .pn-verbs{ grid-area:verbs; }
-  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 11% 0; display:flex; flex-direction:column; align-items:center; }
+  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 12% 0; display:flex; flex-direction:column; align-items:center; }
   .pn-stage::before{ content:''; position:absolute; left:10%; right:10%; top:22%; height:46%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,.07), transparent 72%); filter:blur(40px); pointer-events:none; }
   .pn-rail{ position:relative; z-index:1; list-style:none; align-self:stretch; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 10px; margin:0 0 clamp(20px,2.4vw,30px); padding-bottom:12px; border-bottom:1px solid var(--b14); font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--b40); }
   .pn-rail li.on{ color:#E13B2A; }
-  /* the phone rises from the canvas and is cut below the Hydration / Recovery row (frame y0–722 of 844) */
-  .pn-phone{ position:relative; z-index:1; width:100%; }
-  .pn-crop{ --iw:100%; --ix:0%; --iy:0%; position:relative; width:100%; aspect-ratio:390/722; border-radius:11.8% 11.8% 0 0 / 6.37% 6.37% 0 0; box-shadow:none; background:transparent; }
-  .pn-crop::after{ content:''; position:absolute; left:0; right:0; bottom:0; height:4%; background:linear-gradient(rgba(3,3,3,0), #030303); pointer-events:none; }
-  /* one extracted callout, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
-  /* sits in the empty space right of "5 HRS" (frame x200–390, y238–370), bleeding past the bezel — it never covers a protocol row */
-  .pn-move{ position:absolute; z-index:2; left:51%; right:-6%; top:33.2%; display:flex; flex-direction:column; gap:6px; padding:13px 14px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; box-shadow:0 30px 60px -20px rgba(0,0,0,.9); }
+  /* the whole Protocol frame, uncropped and uncovered */
+  .pn-phone{ position:relative; z-index:1; width:100%; max-width:400px; }
+  .pn-screen img{ display:block; width:100%; height:auto; border-radius:11.8% / 5.45%; }
+  /* one extracted callout under the phone, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
+  .pn-move{ position:relative; z-index:2; width:100%; max-width:400px; margin-top:clamp(16px,1.8vw,22px); display:flex; flex-direction:column; gap:6px; padding:13px 16px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; }
   .pn-k, .pn-s{ font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; }
   .pn-k{ color:#A19C91; }
   .pn-v{ font-family:var(--body); font-weight:600; font-size:clamp(18px,1.6vw,22px); line-height:1.15; letter-spacing:-0.01em; color:#EDEAE3; }
   .pn-s{ display:flex; align-items:center; gap:8px; color:#E13B2A; }
   .pn-s i{ width:9px; height:9px; border-radius:50%; border:1.5px solid #E13B2A; box-shadow:inset 0 0 0 2px #141414; background:#E13B2A; }
-  .pn-stage .cap{ position:relative; z-index:1; align-self:flex-start; padding:2px 0 16px; color:var(--b40); }
+  .pn-stage .cap{ position:relative; z-index:1; align-self:stretch; text-align:center; margin-top:14px; padding:0 0 18px; color:var(--b40); }
   .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
 
   /* ================= 05 · CYCLE ================= */
@@ -286,20 +279,18 @@
     .ph-stage .band{ width:40vw; left:-6%; top:0; }
   }
   @media (min-width:1025px) and (max-width:1100px){
-    .pn-stage{ padding-left:8%; padding-right:8%; }
+    .pn-stage{ padding-left:9%; padding-right:9%; }
   }
   /* tablet and below: eyebrow/headline/copy → interface → verbs, so the protocol stays large enough to read */
   @media (max-width:1024px){
     .pn-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"intro" "stage" "verbs"; grid-template-rows:auto; row-gap:40px; }
     .pn-intro{ align-self:start; }
     .pn-stage{ width:min(620px,100%); justify-self:center; padding:22px 7% 0; }
+    .pn-phone, .pn-move{ max-width:440px; }
   }
   @media (max-width:600px){
-    /* phone widths: crop to the working part of the screen (frame x24–366, y96–722) so the protocol stays readable */
-    .pn-stage{ padding:18px 12px 0; }
-    .pn-crop{ --iw:114.04%; --ix:-7.02%; --iy:-15.34%; aspect-ratio:342/626; border-radius:6px; }
-    .pn-move{ position:relative; left:auto; right:auto; top:auto; margin-top:14px; }
-    .pn-stage .cap{ margin-top:12px; }
+    /* phone widths: the full frame fills the stage */
+    .pn-stage{ padding:18px 10px 0; }
   }
   @media (max-width:390px){
     .hd-xl{ font-size:44px; }
@@ -479,14 +470,14 @@
         <li>Signal</li><li>Decision</li><li class="on">Next action</li><li>Recheck</li>
       </ol>
       <div class="pn-phone">
-      <div class="ui-crop pn-crop">
+      <div class="pn-screen">
         <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol screen, Depletion Correction. Next recheck in 5 hours. Protocol steps, 1 of 4: confirm hydration signal, completed today; log next intake, the active step; recheck performance signals, after intake; confirm status, end of cycle. Hydration 54 of 96 oz. Recovery signals: heart rate and HRV." width="780" height="1688" loading="lazy" decoding="async">
+      </div>
       </div>
       <div class="pn-move" aria-hidden="true">
         <span class="pn-k">Your next move</span>
         <span class="pn-v">Log next intake.</span>
         <span class="pn-s"><i></i>Active step</span>
-      </div>
       </div>
       <figcaption class="cap">Illustrative interface &middot; Sample data</figcaption>
     </figure>
