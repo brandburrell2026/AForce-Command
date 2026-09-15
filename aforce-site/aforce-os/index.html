@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 close is 30 days in -->
+<!-- build: 2026-09-15 ritual section removed -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | Before the Moment</title>
@@ -235,15 +235,6 @@
   .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
   .phantom .note{ margin-top:clamp(22px,2.6vw,34px); }
 
-  /* ================= 12 · RITUAL ================= */
-  .ritual{ padding:clamp(40px,8vh,100px) var(--gutter); background:var(--canvas); border-top:1px solid var(--line); }
-  .ritual .rw{ min-height:20vh; display:flex; align-items:center; position:relative; }
-  .ritual .rw span{ font-family:var(--display); font-weight:800; letter-spacing:-0.03em; line-height:.9; font-size:clamp(40px,6.5vw,96px); color:var(--i12); transition:color 1.2s ease; }
-  .ritual .rw.on span{ color:var(--ink); }
-  .ritual .rw::before{ content:''; position:absolute; left:0; bottom:0; height:1px; width:0; background:var(--red); transition:width 1.4s cubic-bezier(.2,.7,.2,1); }
-  .ritual .rw.on::before{ width:min(38vw,320px); }
-  .ritual .rw.accent.on span{ color:var(--red); }
-
   /* ================= 13 · 30 DAYS IN (restored from the 13 Sep page) ================= */
   .thirty{ background:var(--bone-2); }
   .h-2{ font-family:var(--display); font-weight:800; line-height:1.07; letter-spacing:-0.008em; font-size:clamp(28px,4vw,52px); }
@@ -303,10 +294,9 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .hero-video{ display:none; }
     .hero-still{ display:block; }
-    .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before{ transition:none !important; }
+    .btn .arw, .verbs li{ transition:none !important; }
     .t30-bar i{ transition:none; width:var(--w,90%); }
     .verbs li{ color:var(--ink); } .verbs li:last-child{ color:var(--red); }
-    .ritual .rw span{ color:var(--ink); } .ritual .rw::before{ width:min(38vw,320px); } .ritual .rw.accent span{ color:var(--red); }
   }
 </style>
 <script type="application/ld+json">
@@ -630,16 +620,6 @@
   </div>
 </section>
 
-<!-- ============ 12 · RITUAL ============ -->
-<section class="ritual" id="ritual" aria-label="The ritual">
-  <div class="wrap">
-    <div class="rw"><span>Pause.</span></div>
-    <div class="rw"><span>Hydrate.</span></div>
-    <div class="rw accent"><span>Lock-In.</span></div>
-    <div class="rw"><span>Perform.</span></div>
-  </div>
-</section>
-
 <!-- ============ 13 · 30 DAYS IN (restored from the 13 Sep page) ============ -->
 <section class="blk thirty" id="thirty">
   <div class="wrap">
@@ -749,8 +729,6 @@
       if(r.top < limit && r.bottom > 0){ e.classList.add('in'); io.unobserve(e); return false; }
       return true;
     });
-    var rows = document.querySelectorAll('.ritual .rw:not(.on)');
-    rows.forEach(function(r){ var b = r.getBoundingClientRect(); if(b.top < limit * .8 && b.bottom > 0) r.classList.add('on'); });
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(sweep); } }
   window.addEventListener('scroll', onScroll, { passive:true });
@@ -772,17 +750,6 @@
     });
   }, { threshold:0.5 });
   io.observe(verbs[0]);
-})();
-
-/* ritual — one word at a time as it enters, held once seen */
-(function(){
-  var rows = document.querySelectorAll('.ritual .rw');
-  if(!rows.length) return;
-  if(!('IntersectionObserver' in window)){ rows.forEach(function(r){ r.classList.add('on'); }); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('on'); io.unobserve(en.target); } });
-  }, { threshold:0.55 });
-  rows.forEach(function(r){ io.observe(r); });
 })();
 
 /* count-up on reveal (30 days in, Readiness) — respects reduced motion */
