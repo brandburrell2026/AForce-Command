@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 travel photo matches phone -->
+<!-- build: 2026-09-15 travel photo wider -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | Before the Moment</title>
@@ -215,10 +215,10 @@
 
   /* ================= 08 · TRAVEL ================= */
   /* photo and phone side by side — the photo is a contained editorial frame, not a full-bleed bed for the phone */
-  /* photo and phone at the same size: equal columns, the photo cropped to the phone's 390×844 frame */
-  .travel-visual{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(2,minmax(0,360px)); justify-content:center; gap:clamp(28px,5vw,80px); align-items:start; }
-  .travel-visual .photo{ position:relative; width:100%; aspect-ratio:390/844; overflow:hidden; }
-  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:70% 50%; }
+  /* photo at the phone's height, wide enough (2:3) to keep the whole traveler: columns sized 1.4427 : 1 so a 2:3 photo and a 390×844 phone end at the same height */
+  .travel-visual{ margin:clamp(48px,6vw,88px) auto 0; width:min(100%, calc(879px + clamp(28px,5vw,80px))); display:grid; grid-template-columns:minmax(0,1.4427fr) minmax(0,1fr); gap:clamp(28px,5vw,80px); align-items:start; }
+  .travel-visual .photo{ position:relative; width:100%; aspect-ratio:2/3; overflow:hidden; }
+  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:80% 50%; }
   .travel-visual .photo::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(13,13,13,.22), rgba(13,13,13,0) 40%); pointer-events:none; }
   .travel-visual .shot{ width:100%; }
   .travel-visual .shot img{ width:100%; }
@@ -261,7 +261,8 @@
     .state{ grid-row:auto; grid-template-rows:none; }
     .state--during .shot img{ width:min(380px,100%); }
     .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .travel-visual{ grid-template-columns:minmax(0,300px); gap:28px; }
+    .travel-visual{ width:min(100%,440px); grid-template-columns:minmax(0,1fr); gap:28px; justify-items:center; }
+    .travel-visual .shot{ width:min(300px,100%); }
     .t30-grid{ grid-template-columns:1fr 1fr; gap:24px; }
     .ph-stage{ min-height:0; padding:30px 0; }
     .ph-stage .band{ width:40vw; left:-6%; top:0; }
