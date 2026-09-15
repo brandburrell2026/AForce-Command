@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 screens refresh + section edits -->
+<!-- build: 2026-09-15 moments portraits removed -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AFORCE OS | Before the Moment</title>
@@ -188,21 +188,6 @@
   .pn-stage .cap{ position:relative; z-index:1; align-self:flex-start; padding:2px 0 16px; color:var(--b40); }
   .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
 
-  /* ================= 04 · MOMENTS ================= */
-  .moments .intro{ margin-bottom:clamp(56px,8vw,110px); }
-  .mo-rail{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(10px,1.4vw,18px); }
-  .mo{ position:relative; aspect-ratio:3/4; overflow:hidden; background:var(--canvas-dim); }
-  .mo img{ width:100%; height:100%; object-fit:cover; transition:transform 1.4s ease; }
-  .mo::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(13,13,13,0) 45%, rgba(13,13,13,.86) 100%); }
-  .mo .tag{ position:absolute; z-index:2; left:0; right:0; bottom:0; padding:clamp(16px,2vw,26px); display:flex; flex-direction:column; gap:8px; width:100%; text-align:left; }
-  .mo .word{ font-family:var(--display); font-weight:800; text-transform:uppercase; letter-spacing:.02em; font-size:clamp(18px,2vw,28px); line-height:1; color:var(--bone); }
-  .mo .when{ font-family:var(--body); font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--red); opacity:0; transform:translateY(6px); transition:opacity .5s ease, transform .5s ease; }
-  .mo:hover .when, .mo:focus-within .when, .mo.on .when{ opacity:1; transform:none; }
-  .mo:hover img, .mo.on img{ transform:scale(1.04); }
-  .mo .tag:focus-visible{ outline:2px solid var(--red); outline-offset:-6px; }
-  .moments .close{ margin-top:clamp(64px,9vw,120px); display:grid; grid-template-columns:minmax(0,1fr) auto; gap:clamp(20px,4vw,60px); align-items:end; }
-  .moments .close .prep{ font-family:var(--display); font-weight:800; letter-spacing:-0.02em; line-height:1; font-size:clamp(40px,7vw,104px); color:var(--red); }
-
   /* ================= 05 · CYCLE ================= */
   .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(18px,2.4vw,36px); align-items:start; }
   .state{ display:flex; flex-direction:column; gap:clamp(18px,2vw,26px); padding-top:22px; border-top:1px solid var(--ink); }
@@ -288,11 +273,6 @@
     .split.rev > :first-child{ order:0; }
     .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
     .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .mo-rail{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:12px; padding-right:var(--gutter); margin-right:calc(-1 * var(--gutter)); scrollbar-width:none; }
-    .mo-rail::-webkit-scrollbar{ display:none; }
-    .mo{ flex:0 0 76vw; scroll-snap-align:start; }
-    .mo .when{ opacity:1; transform:none; }
-    .moments .close{ grid-template-columns:minmax(0,1fr); }
     .cycle-grid{ grid-template-columns:minmax(0,1fr); gap:56px; }
     .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
     .nm-crop{ width:100%; }
@@ -331,8 +311,7 @@
     .stagger .reveal.in{ transition-delay:0s !important; }
     .hero-video{ display:none; }
     .hero-still{ display:block; }
-    .mo img, .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before, .fc-fill{ transition:none !important; }
-    .mo .when{ opacity:1; transform:none; }
+    .btn .arw, .verbs li, .ritual .rw span, .ritual .rw::before, .fc-fill{ transition:none !important; }
     .verbs li{ color:var(--ink); } .verbs li:last-child{ color:var(--red); }
     .ritual .rw span{ color:var(--ink); } .ritual .rw::before{ width:min(38vw,320px); } .ritual .rw.accent span{ color:var(--red); }
     .fc-fill{ stroke-dasharray:68 32; }
@@ -543,18 +522,6 @@
         <img src="/assets/aforce-os/black-issue-moments.png" alt="AFORCE OS Moments — a three-day view: today's workout, investor call, meeting with bank and flight to London, with tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
         <p class="cap">Illustrative interface &middot; Sample data &middot; Moments you enter yourself</p>
       </div>
-    </div>
-
-    <div class="mo-rail reveal" role="list" aria-label="Four people, four moments">
-      <div class="mo" role="listitem"><img src="/assets/hero-poster.jpg" alt="A founder seated at a Manhattan window at dusk, focused" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Founder</span><span class="when">Investor Call &mdash; 9:06 AM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-surgeon.jpg" alt="A surgeon in navy scrubs, arms crossed at a window at golden hour" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Surgeon</span><span class="when">Procedure &mdash; 11:30 AM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-athlete.webp" alt="A baseball player standing at the plate in an empty stadium at sunset" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Athlete</span><span class="when">Match &mdash; 2:00 PM</span></button></div>
-      <div class="mo" role="listitem"><img src="/assets/perf-musician.webp" alt="A musician in a dim studio, headphones around her neck, eyes closed" loading="lazy" decoding="async"><button class="tag" type="button" aria-expanded="false"><span class="word">Creative</span><span class="when">Stage &mdash; 8:45 PM</span></button></div>
-    </div>
-
-    <div class="close">
-      <h3 class="hd-m reveal">Different arenas.<br>Same requirement.</h3>
-      <div class="prep reveal">Prepare.</div>
     </div>
   </div>
 </section>
@@ -821,18 +788,6 @@
     });
   }, { threshold:0.5 });
   io.observe(verbs[0]);
-})();
-
-/* moments — tap reveals the moment on touch; hover/focus handle the rest */
-(function(){
-  document.querySelectorAll('.mo .tag').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var mo = btn.closest('.mo'), on = !mo.classList.contains('on');
-      document.querySelectorAll('.mo.on').forEach(function(m){ if(m !== mo){ m.classList.remove('on'); m.querySelector('.tag').setAttribute('aria-expanded','false'); } });
-      mo.classList.toggle('on', on);
-      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
-    });
-  });
 })();
 
 /* ritual — one word at a time as it enters, held once seen */
