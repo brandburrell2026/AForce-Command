@@ -24,6 +24,7 @@ import adminDemandFromStateRouter from "./adminDemandFromState";
 import analyticsAdminRouter from "./analyticsAdmin";
 import commandCenterAdminRouter from "./commandCenterAdmin";
 import adminMetricsRouter from "./adminMetrics";
+import skiniaAccessRouter from "./skiniaAccess";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -202,6 +203,8 @@ router.use(adminDemandFromStateRouter);
 router.use(analyticsAdminRouter);
 router.use(commandCenterAdminRouter);
 router.use(adminMetricsRouter);
+// DR-015: read-only cohort entitlement check. No image route is mounted.
+router.use("/skinia", skiniaAccessRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the
