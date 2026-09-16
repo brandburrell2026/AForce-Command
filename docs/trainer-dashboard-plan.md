@@ -33,6 +33,35 @@ Per §7 of the brief, ambiguity is surfaced here, not resolved in code.
 
 ---
 
+## 0a. Decisions — founder ruling, 2026-09-16
+
+Recorded verbatim in effect, with the reading I applied. If any reading is wrong, say
+so and I will correct it before Phase 1 rather than after.
+
+| # | Conflict | Ruling | Applied as |
+|---|---|---|---|
+| 1 | Clutch bands: brief's five vs engine's four | **One band system** | The engine is canonical. `clutchTier()` — PLATINUM ≥90, STABLE ≥70, RECOVERY ≥50, DEPLETED <50 — is the only Clutch ladder. The brief's PRIMED / STEADY / WATCH are dropped, and §2.5 of the brief is superseded on this point. Nothing in `recommendations.ts` changes. |
+| 2 | Signal Red fails the 4.5:1 gate | **Accepted at 3.32:1** | Signal Red `#C1281B` stays. The §6.5 contrast criterion no longer applies to it as an absolute bar. See the constraint below. |
+| 3 | Tier colours the brief specifies exist nowhere | **Match the Figma file** | The Trainer Console file's Black Issue palette governs: ground `#0D0D0D`, card `#141414`, hairline `#2D2A25`, text `#EDEAE3`, muted `#A19C91`, dim `#6B6B66`, accent `#E13B2A`. Severity reads red → bone → muted → dim. `#E8A12B` and `#E2701F` are dropped. |
+| 4 | "PULL FROM ROTATION. Medical eval." is stop-ship SS-09 | **Founder sign-off** | Treated as signed off by the founder for this surface. SS-09 also names counsel; that half is not satisfied by this ruling and is tracked below. |
+| 5 | Brand v2.1.0 vs v2.2.0 | **Pick the correct one** | v2.2.0 is canonical — it is the later ruling and `CLAUDE.md` carries it. v2.2.0's light theme applies to the marketing site; this is a product surface, so it renders dark in the Black Issue system, consistent with decision 3. |
+| 6 | Roster source for the first build | **Use dummy text** | Build against placeholder athletes behind `trainer_demo_seed_enabled`, default off, visually marked as simulated per §6.7. No real athlete data and no production code path reaches it. |
+
+**Constraint that follows from decision 2.** At 3.32:1, `#C1281B` is below WCAG AA for
+body text. It stays usable for large display numerals, the brand mark, and heavy
+labels, which is exactly how the Figma file uses red. Small text stays bone `#EDEAE3`
+at 16.18:1. I will not put Signal Red on small type on a sideline screen unless told
+to, and §6.5 of the brief is restated as: bone and muted text meet 4.5:1; red is a
+signal colour at display weight, not a text colour.
+
+**Still open after this ruling.** Decision 4 covers the founder half of SS-09 only —
+counsel review remains named in the stop-ship register. Decision 6 answers where data
+comes from for the build but not Q8: whether a real athlete's readiness may appear to
+a trainer before that athlete consents. That question still gates a live pilot, not
+the build.
+
+---
+
 ## 1. Auth and the role model
 
 ### What exists
@@ -348,9 +377,11 @@ sprint, and Phase 1 is the majority of its defensibility.
 
 ## 10. Blocking questions
 
-Numbered for reply. Q1, Q3, Q4, Q6, Q9 and Q11 block Phase 1 or Phase 2.
+Numbered for reply. **Q1–Q5 and the build half of Q11 were answered on 2026-09-16 —
+see §0a.** The questions below are kept as the record of what was asked; each resolved
+one is marked. Q6, Q8, Q9 and Q10 remain open, and Q8 and Q9 gate a live pilot.
 
-**Q1 — Clutch tier bands.** §2.5 specifies five bands (PLATINUM 90+, PRIMED 75–89,
+**Q1 — Clutch tier bands. RESOLVED: one band system, the engine's.** §2.5 specifies five bands (PLATINUM 90+, PRIMED 75–89,
 STEADY 60–74, WATCH 40–59, DEPLETED 0–39). The engine has four
 (`recommendations.ts:16-21`: PLATINUM ≥90, STABLE ≥70, RECOVERY ≥50, DEPLETED <50), and
 three brief names exist nowhere in code. An athlete at 45 reads as a mid-tier WATCH
@@ -361,25 +392,25 @@ If the brief does, the engine must change, which the brief itself forbids.
 `scoringEngine.ts`, which only re-exports it. The tier logic and the command strings
 actually live in `recommendations.ts`. Confirm it is off-limits too.
 
-**Q2 — Guardian tier colours.** §2.4 fixes WATCH `#E8A12B` and MODERATE `#E2701F`.
+**Q2 — Guardian tier colours. RESOLVED: match the Figma file.** §2.4 fixes WATCH `#E8A12B` and MODERATE `#E2701F`.
 Neither appears anywhere in the repo; the screen uses `#00E5C8` and `#FFA01E`. §2.4 also
 says introduce no new colour. Adopting the brief introduces two, and CRITICAL
 `#C1281B` collides with a deliberate brand separation pinned by a test
 (`components/home/__tests__/homePresentation.test.ts:34`). Which set is canonical?
 
-**Q3 — the contrast contradiction.** §6.5 requires every tier colour at 4.5:1 against
+**Q3 — the contrast contradiction. RESOLVED: Signal Red accepted at 3.32:1, restated as a display-weight signal colour.** §6.5 requires every tier colour at 4.5:1 against
 `#0D0D0D`. Measured: `#C1281B` 3.32:1 (fails), `#E13B2A` 4.50:1 (borderline),
 `#1FA35A` 5.96:1, `#E8A12B` 8.85:1, `#E2701F` 6.08:1, engine `#FF2800` 5.14:1. Either
 CRITICAL changes or the contrast bar moves. Which?
 
-**Q4 — "PULL FROM ROTATION. Medical eval."** §2.2 explicitly permits it as a
+**Q4 — "PULL FROM ROTATION. Medical eval." RESOLVED for the founder half: signed off. Counsel review still named in SS-09.** §2.2 explicitly permits it as a
 recommendation. `governance/AFORCE_OS_STOP_SHIP_REGISTER.md` SS-09 lists that exact
 string as stop-ship pending founder plus counsel under DR-006, and the enterprise
 matrix §2.1 names it too. The brief cannot override a governance stop-ship without a
 ruling. Does the brief supersede SS-09, or does the trainer surface ship with governed
 replacement language?
 
-**Q5 — brand version.** The brief says v2.1.0 locks; `CLAUDE.md` says v2.2.0 is
+**Q5 — brand version. RESOLVED: v2.2.0 is canonical; this surface renders dark.** The brief says v2.1.0 locks; `CLAUDE.md` says v2.2.0 is
 canonical as of 2026-07-06. They disagree about which surface is light or dark, and the
 site's own OS page uses Inter for display rather than Archivo Black. Which applies to a
 product surface built now?
@@ -407,7 +438,7 @@ and does Phase 4 wait for that answer?
 against a deployment variable, because that means reading secrets. Please confirm, or
 authorize someone to.
 
-**Q11 — where do athletes come from in the first pilot?** No roster, no import, no
+**Q11 — where do athletes come from? RESOLVED for the build: dummy data behind `trainer_demo_seed_enabled`. The live-pilot provisioning path is still undecided.** No roster, no import, no
 invite flow. Options: each athlete installs the app and joins a program code; staff
 bulk-import a CSV and athletes claim their record; or staff create shells with no
 device data. Each implies a different Phase 1 schema. Which?
