@@ -62,6 +62,7 @@ export default function TrainerBoardRoute() {
           heatIndexF={null}
           ambientMeasured={false}
           onChangeAvailability={onChangeAvailability}
+          onOpenAthlete={(athleteUserId) => router.push(`/trainer-athlete/${athleteUserId}`)}
         />
         {seedEnabled ? null : (
           <View style={styles.emptyNote}>

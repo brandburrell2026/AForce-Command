@@ -29,6 +29,11 @@ const screen = readFileSync(join(ROOT, "screens", "TrainerBoardScreen.tsx"), "ut
  */
 const screenCode = screen.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const route = readFileSync(join(ROOT, "app", "trainer-board.tsx"), "utf8");
+const recordScreen = readFileSync(join(ROOT, "screens", "TrainerAthleteRecordScreen.tsx"), "utf8");
+const recordScreenCode = recordScreen
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/\/\/.*$/gm, "");
+const recordRoute = readFileSync(join(ROOT, "app", "trainer-athlete", "[athleteId].tsx"), "utf8");
 const seed = readFileSync(join(ROOT, "data", "trainerDemoSeed.ts"), "utf8");
 
 /** WCAG relative luminance. */
@@ -126,5 +131,60 @@ describe("touch targets and copy", () => {
 
   it("uses no raw colour literals — af.* tokens only", () => {
     expect(screenCode).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+});
+
+describe("the athlete record (Phase 3)", () => {
+  it("is one tap from a board row", () => {
+    // The row itself is the target, not a chevron or a menu.
+    expect(screenCode).toContain("onOpen?.(athlete.athleteUserId)");
+    expect(route).toContain("/trainer-athlete/");
+  });
+
+  it("reads the cache before it reads anything live", () => {
+    const readAt = recordRoute.indexOf("readRecord");
+    const liveAt = recordRoute.indexOf("loadLive()");
+    expect(readAt).toBeGreaterThan(-1);
+    expect(liveAt).toBeGreaterThan(-1);
+    // Order matters: a cache read that happens after the live fetch is not an
+    // offline path, it is a fallback.
+    expect(readAt).toBeLessThan(liveAt);
+  });
+
+  it("writes through so the next open works with no network", () => {
+    expect(recordRoute).toContain("writeRecord");
+  });
+
+  it("states how old the record on screen is", () => {
+    expect(recordRoute).toContain("freshnessLabel");
+    expect(recordScreenCode).toContain("freshness");
+  });
+
+  it("renders completeness beside every signal", () => {
+    expect(recordScreenCode).toContain("COMPLETENESS_LABEL");
+    expect(recordScreenCode).toContain("completenessTone");
+  });
+
+  it("carries the recommendation attribution", () => {
+    expect(recordScreen).toContain("clinical decision remains with licensed staff");
+  });
+
+  it("is gated by the same flag as the board", () => {
+    expect(recordRoute).toContain("FeatureGate");
+    expect(recordRoute).toContain("trainer_board_enabled");
+  });
+
+  it("uses no raw colour literals", () => {
+    expect(recordScreenCode).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+  });
+
+  it("does not use the fill red as a text colour", () => {
+    expect(recordScreenCode).not.toContain("color: af.red,");
+  });
+
+  it("adds no charting dependency for the sparkline", () => {
+    expect(recordScreenCode).not.toContain("react-native-svg");
+    expect(recordScreenCode).not.toContain("victory");
+    expect(recordScreenCode).not.toContain("react-native-chart");
   });
 });

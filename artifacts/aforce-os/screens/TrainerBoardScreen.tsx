@@ -72,18 +72,21 @@ export interface TrainerBoardScreenProps {
   heatIndexF?: number | null;
   ambientMeasured?: boolean;
   onChangeAvailability?: (athleteUserId: string, status: Availability) => void;
+  /** One tap from a row to the record — inside the brief's 2-tap budget. */
+  onOpenAthlete?: (athleteUserId: string) => void;
 }
 
 interface RowProps {
   athlete: BoardAthlete;
   onPressStatus: (a: BoardAthlete) => void;
+  onOpen?: (athleteUserId: string) => void;
 }
 
 /**
  * Memoized row. The board re-renders on every filter change and every status
  * write; without this each of those costs 120 row renders instead of one.
  */
-const AthleteRow = React.memo(function AthleteRow({ athlete, onPressStatus }: RowProps) {
+const AthleteRow = React.memo(function AthleteRow({ athlete, onPressStatus, onOpen }: RowProps) {
   const tier = tierFor(athlete);
   const command = commandFor(athlete);
   const flagged = isFlagged(athlete);
@@ -91,7 +94,12 @@ const AthleteRow = React.memo(function AthleteRow({ athlete, onPressStatus }: Ro
   const urgent = reasons.includes("out") || reasons.includes("depleted");
 
   return (
-    <View style={[styles.row, urgent && styles.rowUrgent]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open the record for ${athlete.displayName}`}
+      onPress={() => onOpen?.(athlete.athleteUserId)}
+      style={[styles.row, urgent && styles.rowUrgent]}
+    >
       <View style={styles.rowTop}>
         <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
           {athlete.displayName}
@@ -126,7 +134,7 @@ const AthleteRow = React.memo(function AthleteRow({ athlete, onPressStatus }: Ro
           {AVAILABILITY_LABEL[athlete.availability]}
         </Text>
       </Pressable>
-    </View>
+    </Pressable>
   );
 });
 
@@ -135,6 +143,7 @@ export default function TrainerBoardScreen({
   heatIndexF = null,
   ambientMeasured = false,
   onChangeAvailability,
+  onOpenAthlete,
 }: TrainerBoardScreenProps) {
   const insets = useSafeAreaInsets();
   const [filters, setFilters] = useState<BoardFilters>({});
@@ -156,9 +165,9 @@ export default function TrainerBoardScreen({
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<BoardAthlete>) => (
-      <AthleteRow athlete={item} onPressStatus={onPressStatus} />
+      <AthleteRow athlete={item} onPressStatus={onPressStatus} onOpen={onOpenAthlete} />
     ),
-    [onPressStatus],
+    [onPressStatus, onOpenAthlete],
   );
 
   const keyExtractor = useCallback((a: BoardAthlete) => a.athleteUserId, []);
