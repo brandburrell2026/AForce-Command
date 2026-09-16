@@ -12,7 +12,7 @@
  * WHERE clause so the check and the write cannot disagree.
  */
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import {
@@ -292,6 +292,39 @@ export function createTrainerRepo(db: Db) {
         authorUserId: r.authorUserId,
         createdAt: r.createdAt.toISOString(),
       }));
+    },
+
+    /**
+     * The access trail for one subject, oldest first.
+     *
+     * Attached to the chart export: a chart that can be separated from its
+     * access log is a chart whose history can be quietly lost.
+     */
+    async accessTrail(
+      programId: string,
+      subjectUserId: string,
+      limit = 500,
+    ): Promise<
+      { actorUserId: string; actorRole: string; resource: string; action: string; occurredAt: string }[]
+    > {
+      const rows = await db
+        .select({
+          actorUserId: aforceMedicalAccessLog.actorUserId,
+          actorRole: aforceMedicalAccessLog.actorRole,
+          resource: aforceMedicalAccessLog.resource,
+          action: aforceMedicalAccessLog.action,
+          occurredAt: aforceMedicalAccessLog.occurredAt,
+        })
+        .from(aforceMedicalAccessLog)
+        .where(
+          and(
+            eq(aforceMedicalAccessLog.programId, programId),
+            eq(aforceMedicalAccessLog.subjectUserId, subjectUserId),
+          ),
+        )
+        .orderBy(asc(aforceMedicalAccessLog.occurredAt))
+        .limit(limit);
+      return rows.map((r) => ({ ...r, occurredAt: r.occurredAt.toISOString() }));
     },
 
     /**

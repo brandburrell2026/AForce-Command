@@ -35,3 +35,4 @@ export * from "./scoreSnapshotRepo";
 export * from "./healthRecordsRepo";
 export * from "./accountDeletionCascade";
 export * from "./trainerRepo";
+export * from "./trainerDocsRepo";

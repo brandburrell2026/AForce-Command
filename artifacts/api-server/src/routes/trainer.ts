@@ -21,6 +21,7 @@ import { Router, type IRouter } from "express";
 import { createTrainerRepo, db, type TrainerRepo } from "@workspace/db";
 import { isEnabled } from "../config/featureFlags";
 import { sendApiError } from "../lib/apiError";
+import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
@@ -168,7 +169,7 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
         athletes: rows.map((r) => r.projected.payload),
       });
     } catch (err) {
-      logger.error({ err, programId: access.programId }, "[trainer] roster read failed");
+      logger.error({ err: serializeError(err), programId: access.programId }, "[trainer] roster read failed");
       sendApiError(req, res, 500, "roster_read_failed");
     }
   });
@@ -231,7 +232,7 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
           athlete: projected.payload,
         });
       } catch (err) {
-        logger.error({ err, programId: access.programId }, "[trainer] athlete read failed");
+        logger.error({ err: serializeError(err), programId: access.programId }, "[trainer] athlete read failed");
         sendApiError(req, res, 500, "athlete_read_failed");
       }
     },
@@ -301,7 +302,7 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
 
         res.status(201).json({ ok: true, status });
       } catch (err) {
-        logger.error({ err, programId: access.programId }, "[trainer] availability write failed");
+        logger.error({ err: serializeError(err), programId: access.programId }, "[trainer] availability write failed");
         sendApiError(req, res, 500, "availability_write_failed");
       }
     },
@@ -343,7 +344,7 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
       }
       res.json({ ok: true, state: result.state });
     } catch (err) {
-      logger.error({ err, programId: access.programId }, "[trainer] consent write failed");
+      logger.error({ err: serializeError(err), programId: access.programId }, "[trainer] consent write failed");
       sendApiError(req, res, 500, "consent_write_failed");
     }
   });

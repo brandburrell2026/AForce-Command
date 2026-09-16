@@ -26,6 +26,7 @@ import commandCenterAdminRouter from "./commandCenterAdmin";
 import adminMetricsRouter from "./adminMetrics";
 import skiniaAccessRouter from "./skiniaAccess";
 import { trainerRouter } from "./trainer";
+import { trainerDocsRouter } from "./trainerDocs";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -209,6 +210,8 @@ router.use("/skinia", skiniaAccessRouter);
 // Trainer surface (Phase 1). Behind `feature.trainer_api`, default OFF — every
 // route 404s until it is turned on, matching what a non-member sees.
 router.use("/trainer", trainerRouter);
+// Phase 4 documentation routes share the /trainer path and the same flag.
+router.use("/trainer", trainerDocsRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the
