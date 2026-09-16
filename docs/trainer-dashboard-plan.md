@@ -62,6 +62,104 @@ the build.
 
 ---
 
+## 0b. Decisions — remaining four, 2026-09-16
+
+Instructed to resolve all four. Q6 is an engineering call and is decided. Q8 and Q9 are
+decided as **engineering posture built to the strictest plausible requirement**, which
+is the safe direction: it can be relaxed by a later ruling without a rewrite, where the
+reverse would mean rebuilding the record layer. Q10 is a verification, and is reported
+as what it is.
+
+### Q6 — where it mounts: **native first, in the existing mobile app**
+
+`app/trainer/board.tsx` and `app/trainer/athlete/[id].tsx`, content gated by
+`trainer_board_enabled`, entry from `app/modules.tsx` and `AccountPane.tsx`, following
+the Clutch and Guardian precedent exactly.
+
+Why native and not the web command center:
+- All three of the brief's defining numbers (§0) are sideline moments. A desktop
+  surface cannot answer "go or no-go in under 5 seconds from cold open".
+- Offline is a hard requirement there, and the only proven offline write path in the
+  repo is in the mobile app.
+- The command center has **no feature-flag system** and **no test coverage** — it is in
+  no vitest glob. Both would be new plumbing before the first line of trainer code.
+
+This is not permanent. The redacted endpoints from Phase 1 are shared, so Phase 8's
+coach report and the 17:00 documentation half can render on the command center later by
+consuming the same API. Only the sideline half is native-only.
+
+**Consequence:** the Phase 7 offline work is required, not optional. Budget it.
+
+### Q8 — athlete consent: **required, fail closed**
+
+No staff actor sees any health field for an athlete who has not granted access. Not
+readiness, not hydration, not a tier. The athlete appears on the roster as a pending
+row carrying name, position and consent state only, so staff can see the roster is
+incomplete without learning anything about the person.
+
+Implementation notes for Phase 1:
+- New `aforce_athlete_consents`, modelled on the analytics consent pair: operative state
+  separate from append-only evidence, server-issued monotonic `decision_seq`, and the
+  compare-and-swap fence from `analyticsIdentityRepo.ts:277-286` so a stale device
+  cannot reorder a revocation.
+- **Do not reuse `aforce_privacy.scope = 'team_coach'`.** That field is a per-viewer
+  display preference with nothing enforcing it, and its default is inverted
+  (`scope: 'circle'`, every field true). Consent for a staff surface must be an
+  explicit grant, default deny, granted per program and revocable.
+- Revocation takes effect on the next read, and the audit log records the
+  `decision_seq` in force at the time of every medical read.
+
+This matches what `governance/AFORCE_OS_ENTERPRISE_ENTITLEMENT_MATRIX.md:37` lists as
+blocking for Guardian, so Phase 1 closes that item rather than deferring it.
+
+### Q9 — privacy regime: **build to the strictest, claim none**
+
+Which regime governs is a counsel question and stays open. It does not need to be
+answered to build, because the regimes differ in retention duration, breach workflow
+and whether a business associate agreement is required — **not in the data model**. So
+Phase 4 is built to the strictest common denominator and configured later:
+
+- Trainer notes, screening records and questionnaire responses are classified **S3**
+  in `governance/DATA-CLASSIFICATION-MATRIX.md` and handled accordingly.
+- Encrypted at rest, following the `pgcrypto` pattern already used for provider tokens
+  (`access_token_enc` / `refresh_token_enc`).
+- Every read and write audited, actor and subject both recorded.
+- Retention is per-program configuration with a conservative default, never unlimited.
+- These records are included in the existing export and erasure paths
+  (`routes/privacy.ts`, `accountDeletionCascade.ts`) from day one.
+- Never used for analytics, advertising, or model training. No third-party processor
+  touches them.
+
+Two things this decision does **not** authorize, and they are the ones that need
+counsel before a live pilot: operating in a HIPAA-covered arrangement without a signed
+business associate agreement, and any cross-border transfer of these records.
+
+**Action item for Phase 1:** `DATA-CLASSIFICATION-MATRIX.md` §5 enumerates five actors
+and contains no coach, trainer, or clinician. Its own rule is that a system may not
+ship a surface until every class it reads appears there. Adding the staff actors to
+that matrix is part of Phase 1, not a documentation chore afterwards.
+
+### Q10 — production database: **corroborated in-repo, not verified live**
+
+`ep-still-bird-atrkomie` appears in two committed files that predate this brief —
+`.claude/agents/backend-engineer.md:13` and `.claude/agents/sre.md:20` — both stating
+the production instance is Replit-managed and absent from the personal Neon account.
+`docs/health/rollout/INTERNAL-COHORT-DESIGN.md:1335` and
+`governance/Section-62-Founder-Mode-Spec.md:134` describe the same two-database trap
+without naming the instance.
+
+I could not confirm it against the live deployment variable: no `DATABASE_URL` is set
+in this environment, no env file exists locally, and the Railway and Vercel dashboards
+are not reachable from here. Reading those values is also a secrets operation I do not
+perform.
+
+The operative protection is procedural and is already in the rules file: verify the
+connection string against the deploy environment variable at the time of any schema
+apply, never against the Replit panel. Phase 1's schema work must not run against any
+database until someone with dashboard access confirms the target.
+
+---
+
 ## 1. Auth and the role model
 
 ### What exists
@@ -377,9 +475,11 @@ sprint, and Phase 1 is the majority of its defensibility.
 
 ## 10. Blocking questions
 
-Numbered for reply. **Q1–Q5 and the build half of Q11 were answered on 2026-09-16 —
-see §0a.** The questions below are kept as the record of what was asked; each resolved
-one is marked. Q6, Q8, Q9 and Q10 remain open, and Q8 and Q9 gate a live pilot.
+Numbered for reply. **All fourteen are now answered or dispositioned** — Q1–Q5 and the
+build half of Q11 in §0a, Q6, Q8, Q9 and Q10 in §0b. The questions below are kept as
+the record of what was asked and how each was closed. Two items remain genuinely
+outside engineering: counsel review of the SS-09 language, and counsel naming the
+privacy regime before a live pilot.
 
 **Q1 — Clutch tier bands. RESOLVED: one band system, the engine's.** §2.5 specifies five bands (PLATINUM 90+, PRIMED 75–89,
 STEADY 60–74, WATCH 40–59, DEPLETED 0–39). The engine has four
@@ -415,7 +515,7 @@ canonical as of 2026-07-06. They disagree about which surface is light or dark, 
 site's own OS page uses Inter for display rather than Archivo Black. Which applies to a
 product surface built now?
 
-**Q6 — where does this mount?** Native for the sideline, web command center for
+**Q6 — where does this mount? RESOLVED: native first; web reuses the same endpoints later (§0b).** Native for the sideline, web command center for
 documentation and reporting, or both? This changes the Phase 2 estimate by roughly a
 week and decides whether the offline work in Phase 7 is required at all.
 
@@ -424,17 +524,17 @@ readiness and "audit metadata only, never content" for medical. Today `super_adm
 founder reach everything. Confirm that founder access to medical content is removed,
 which is the correct reading but is a real capability loss.
 
-**Q8 — is athlete consent a precondition?** The entitlement matrix lists athlete consent
+**Q8 — is athlete consent a precondition? RESOLVED: yes, fail closed (§0b).** The entitlement matrix lists athlete consent
 as blocking for Guardian. The brief never mentions consent. Can a trainer see an
 athlete's hydration and readiness before that athlete opts in, or is opt-in required
 before any row appears? This decides whether Phase 2 can ship at all.
 
-**Q9 — which regime applies?** A SOAP note in a high-school program is likely FERPA;
+**Q9 — which regime applies? RESOLVED as posture: build to the strictest, claim none (§0b). Counsel still names the regime before a live pilot.** A SOAP note in a high-school program is likely FERPA;
 in a pro club it is likely neither FERPA nor HIPAA; under a team physician it may be
 HIPAA. Retention, export and breach duties differ. §2.2 says flag it, so: who answers,
 and does Phase 4 wait for that answer?
 
-**Q10 — confirm the production database.** I did not verify `ep-still-bird-atrkomie`
+**Q10 — confirm the production database. PARTIALLY RESOLVED: corroborated in two committed files; live confirmation still needs dashboard access (§0b).** I did not verify `ep-still-bird-atrkomie`
 against a deployment variable, because that means reading secrets. Please confirm, or
 authorize someone to.
 
