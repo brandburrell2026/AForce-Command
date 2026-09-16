@@ -17,6 +17,40 @@ export type VisualCheckResult = {
   reason: 'FEATURE_NOT_APPROVED';
 };
 
+/**
+ * Privacy-safe event definitions for the containment shell. These describe
+ * product-surface activity only; they deliberately cannot carry an image,
+ * visual feature, result value, device identifier, or health measurement.
+ * Wiring an analytics transport remains a separately reviewed concern.
+ */
+export type VisualCheckAnalyticsEvent = {
+  name: 'skinia_shell_viewed' | 'skinia_unavailable_viewed';
+  properties: {
+    featureStatus: 'FEATURE_NOT_APPROVED';
+    surface: 'skinia_visual_check';
+  };
+};
+
+export function visualCheckShellViewedEvent(): VisualCheckAnalyticsEvent {
+  return {
+    name: 'skinia_shell_viewed',
+    properties: {
+      featureStatus: 'FEATURE_NOT_APPROVED',
+      surface: 'skinia_visual_check',
+    },
+  };
+}
+
+export function visualCheckUnavailableViewedEvent(): VisualCheckAnalyticsEvent {
+  return {
+    name: 'skinia_unavailable_viewed',
+    properties: {
+      featureStatus: 'FEATURE_NOT_APPROVED',
+      surface: 'skinia_visual_check',
+    },
+  };
+}
+
 /** The only result this containment build can produce. */
 export const UNKNOWN_VISUAL_CHECK_RESULT: VisualCheckResult = Object.freeze({
   status: 'UNKNOWN',

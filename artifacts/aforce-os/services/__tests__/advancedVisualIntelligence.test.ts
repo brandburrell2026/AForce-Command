@@ -4,6 +4,8 @@ import {
   SKINIA_MEMBER_LABEL,
   UNKNOWN_VISUAL_CHECK_RESULT,
   unavailableVisualCheckResult,
+  visualCheckShellViewedEvent,
+  visualCheckUnavailableViewedEvent,
 } from '../advancedVisualIntelligence';
 
 describe('Advanced Visual Intelligence™ containment contract', () => {
@@ -15,5 +17,22 @@ describe('Advanced Visual Intelligence™ containment contract', () => {
   it('can only return an explicit unknown result', () => {
     expect(unavailableVisualCheckResult()).toEqual(UNKNOWN_VISUAL_CHECK_RESULT);
     expect(UNKNOWN_VISUAL_CHECK_RESULT).toEqual({ status: 'UNKNOWN', reason: 'FEATURE_NOT_APPROVED' });
+  });
+
+  it('defines shell analytics without visual, biometric, or device data', () => {
+    const events = [visualCheckShellViewedEvent(), visualCheckUnavailableViewedEvent()];
+    expect(events).toEqual([
+      {
+        name: 'skinia_shell_viewed',
+        properties: { featureStatus: 'FEATURE_NOT_APPROVED', surface: 'skinia_visual_check' },
+      },
+      {
+        name: 'skinia_unavailable_viewed',
+        properties: { featureStatus: 'FEATURE_NOT_APPROVED', surface: 'skinia_visual_check' },
+      },
+    ]);
+    for (const event of events) {
+      expect(Object.keys(event.properties)).toEqual(['featureStatus', 'surface']);
+    }
   });
 });
