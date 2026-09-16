@@ -28,6 +28,7 @@ import skiniaAccessRouter from "./skiniaAccess";
 import { trainerRouter } from "./trainer";
 import { trainerDocsRouter } from "./trainerDocs";
 import { trainerRtpRouter } from "./trainerRtp";
+import { trainerReportRouter } from "./trainerReport";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -215,6 +216,8 @@ router.use("/trainer", trainerRouter);
 router.use("/trainer", trainerDocsRouter);
 // Phase 6 return-to-play, same path and same flag.
 router.use("/trainer", trainerRtpRouter);
+// Phase 8 coach handoff — the one artefact on this surface safe to circulate.
+router.use("/trainer", trainerReportRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the
