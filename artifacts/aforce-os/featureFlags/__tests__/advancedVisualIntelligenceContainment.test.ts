@@ -7,6 +7,7 @@ const ROOT = resolve(__dirname, '..', '..');
 const route = readFileSync(join(ROOT, 'app', 'skinia.tsx'), 'utf8');
 const service = readFileSync(join(ROOT, 'services', 'advancedVisualIntelligence.ts'), 'utf8');
 const screen = readFileSync(join(ROOT, 'components', 'advancedVisual', 'AdvancedVisualIntelligenceScreen.tsx'), 'utf8');
+const captureScreen = readFileSync(join(ROOT, 'components', 'advancedVisual', 'SkinIACameraCaptureScreen.tsx'), 'utf8');
 const cohortGate = readFileSync(join(ROOT, 'services', 'skiniaCohortAccess.ts'), 'utf8');
 
 describe('Advanced Visual Intelligence™ containment', () => {
@@ -22,7 +23,7 @@ describe('Advanced Visual Intelligence™ containment', () => {
     expect(route).toContain('if (!allowed) return <Redirect');
   });
 
-  it('contains no capture, visual processing, upload, retention, or model code', () => {
+  it('keeps the consent shell free of capture, visual processing, upload, retention, or model code', () => {
     const implementation = `${service}\n${screen}`
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/^\s*\/\/.*$/gm, '');
@@ -32,6 +33,15 @@ describe('Advanced Visual Intelligence™ containment', () => {
     ];
     for (const marker of prohibitedImplementation) {
       expect(implementation, `containment must not include ${marker}`).not.toContain(marker);
+    }
+  });
+
+  it('keeps native capture behind the gated route and free of persistent or network paths', () => {
+    expect(route).toContain('SkinIACameraCaptureScreen');
+    expect(captureScreen).toContain("pictureRef: true");
+    const captureImplementation = captureScreen.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    for (const marker of ['fetch(', 'AsyncStorage', 'SecureStore', 'FileSystem', 'base64:', 'exif:', 'uri:', 'upload']) {
+      expect(captureImplementation, `capture surface must not include ${marker}`).not.toContain(marker);
     }
   });
 
