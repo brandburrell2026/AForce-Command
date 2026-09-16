@@ -59,3 +59,7 @@ When enforcing brand colors, if a change appears to require editing `statusColor
 - Backend: Node.js on Replit
 - Data & services: Drizzle ORM (Postgres), Clerk (auth), Stripe (payments), ElevenLabs (voice), OpenWeather
 - Monorepo managed with pnpm workspaces
+
+## Trainer dashboard work
+When working on the trainer dashboard, read `docs/TRAINER-DASHBOARD-BRIEF.md` in full
+and treat `docs/TRAINER-DASHBOARD-RULES.md` as standing constraints on every turn.
