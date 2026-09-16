@@ -8,23 +8,18 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@clerk/expo';
 import { API_BASE } from '@/lib/apiBase';
+import { SKINIA_ACCESS_CHECKING, type SkinIACohortAccess } from './skiniaCohortGate';
 
-export type SkinIACohortAccess =
-  | { status: 'CHECKING' }
-  | { status: 'DENIED'; reason: string }
-  | { status: 'GRANTED'; reason: 'CONTROLLED_TESTFLIGHT_COHORT' };
-
-export const SKINIA_ACCESS_CHECKING: SkinIACohortAccess = Object.freeze({ status: 'CHECKING' });
-
-export function isSkinIAAccessAllowed(input: {
-  featureEnabled: boolean;
-  internalTestflight: boolean;
-  cohort: SkinIACohortAccess;
-}): boolean {
-  return input.featureEnabled
-    && input.internalTestflight
-    && input.cohort.status === 'GRANTED';
-}
+/**
+ * The decision itself lives in `skiniaCohortGate.ts`, which imports nothing.
+ * Re-exported here so every existing import path keeps working unchanged —
+ * the split is about what a TEST can import, not about moving the API.
+ */
+export {
+  SKINIA_ACCESS_CHECKING,
+  isSkinIAAccessAllowed,
+  type SkinIACohortAccess,
+} from './skiniaCohortGate';
 
 async function fetchSkinIACohortAccess(
   getToken: () => Promise<string | null>,

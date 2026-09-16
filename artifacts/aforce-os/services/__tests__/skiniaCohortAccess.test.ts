@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isSkinIAAccessAllowed, type SkinIACohortAccess } from '../skiniaCohortAccess';
+// Imports the PURE module, not the one holding the hook. Importing through
+// the hook pulled in `@clerk/expo`, which does not parse under the node test
+// environment — so this suite stopped collecting entirely and reported "no
+// tests" rather than a failure.
+import { isSkinIAAccessAllowed, type SkinIACohortAccess } from '../skiniaCohortGate';
 
 const granted: SkinIACohortAccess = { status: 'GRANTED', reason: 'CONTROLLED_TESTFLIGHT_COHORT' };
 const denied: SkinIACohortAccess = { status: 'DENIED', reason: 'MEMBER_NOT_ENTITLED' };
