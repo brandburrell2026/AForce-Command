@@ -91,7 +91,6 @@ import {
   EdEvidenceLine,
   EdMasthead,
   EdNumber,
-  EdPressureField,
   EdRule,
   EdStateWord,
   EdStatement,
@@ -104,7 +103,6 @@ import { EdNextMomentLine } from './EdNextMomentLine';
 import {
   mastheadDateLabel,
   memberFurniture,
-  pressureIntensity,
 } from './editorialHomePresentation';
 
 /** Date furniture re-check cadence — foreground-gated, like every other
@@ -248,7 +246,6 @@ export function EditorialHomeScreen({
   useAppStateGatedInterval(() => setDateTick(Date.now()), DATE_RECHECK_MS);
   const dateLabel = React.useMemo(() => mastheadDateLabel(new Date(dateTick)), [dateTick]);
   const member = memberFurniture(clerkUser?.firstName);
-  const intensity = pressureIntensity(score);
   const momentsOn = flags.moments_enabled;
 
   return (
@@ -256,8 +253,13 @@ export function EditorialHomeScreen({
       <EdSurface stock="black" style={styles.fill}>
         <AFScreen scroll contentContainerStyle={{ paddingBottom: scrollBottomPadding }}>
           <Animated.View style={settle}>
-            <EdMasthead left={`AFORCE · ${dateLabel}`} right={member ?? undefined} />
+            <EdMasthead left="AFORCE" right={dateLabel} />
             <View style={styles.furnitureRow}>
+              {member ? (
+                <Text style={styles.welcome} testID="editorial-member-furniture">
+                  {member}
+                </Text>
+              ) : null}
               {signalData.chip ? (
                 <Text
                   style={[edType.micro as TextStyle, { color: ink.quiet }]}
@@ -325,10 +327,15 @@ export function EditorialHomeScreen({
                         importantForAccessibility="no-hide-descendants"
                         style={styles.heroInner}
                       >
-                        <EdPressureField size={300} intensity={intensity ?? 0}>
-                          <EdNumber value={score} role="numberHero" caption={t('home.v2.readiness_label')} />
-                        </EdPressureField>
+                        <Text style={styles.heroLabel}>{t('home.v2.readiness_label')}</Text>
                         <EdStateWord word={engine.performanceState.level} style={styles.stateWord} />
+                        <View style={styles.readingRow}>
+                          <EdNumber value={score} role="numberHero" />
+                          <View style={styles.readinessMark}>
+                            <Text style={styles.readinessCaption}>{t('home.v2.readiness_label')}</Text>
+                            <View style={styles.readinessRule} />
+                          </View>
+                        </View>
                       </View>
                     </Pressable>
                     <View style={styles.evidenceRow}>
@@ -411,15 +418,20 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: edStock.black },
   fill: { flex: 1 },
   furnitureRow: {
-    marginTop: 10,
+    marginTop: 8,
     rowGap: 4,
   },
+  welcome: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+    textTransform: 'uppercase',
+  },
   heroSlot: {
-    marginTop: 26,
-    marginBottom: 8,
+    marginTop: 22,
+    marginBottom: 14,
   },
   heroInner: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   freshness: {
     ...edType.micro,
@@ -432,11 +444,36 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   heroPress: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
     minHeight: edRhythm.minTarget,
   },
+  heroLabel: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+    textTransform: 'uppercase',
+  },
   stateWord: {
-    marginTop: 2,
+    marginTop: 6,
+  },
+  readingRow: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  readinessMark: {
+    marginBottom: 16,
+    marginLeft: 14,
+    minWidth: 82,
+  },
+  readinessCaption: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+  },
+  readinessRule: {
+    backgroundColor: edInkFor('black').quiet,
+    height: StyleSheet.hairlineWidth,
+    marginTop: 5,
+    width: 74,
   },
   buildingTitle: {
     marginTop: 12,
