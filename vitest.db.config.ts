@@ -45,6 +45,11 @@ export default defineConfig({
       // the availability advisory lock, the sign-off unique index and the
       // note version chain were covered only by fakes that agreed with
       // whatever the code did.
+      // Asserts the pool's statement_timeout is really applied — a
+      // misspelled key in a pg config object is silently ignored, so the
+      // failure mode is a setting present in source and absent in the
+      // database.
+      'artifacts/api-server/src/__tests__/poolStatementTimeout.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/trainerRepo.drizzle.test.ts',
       // Guards the board's O(1) query count. Fast by design — small rosters,
       // because the property is CONSTANT, not fast. The figures come from

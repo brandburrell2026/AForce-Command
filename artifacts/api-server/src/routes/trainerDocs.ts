@@ -34,8 +34,11 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { instrumentTrainerRepo } from "../observability/trainerRepoMetrics";
+import { trainerMetrics, trainerRateLimit } from "../middlewares/trainerOps";
 import { requireAthleteSubject } from "../middlewares/requireAthleteSubject";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
+import { incCounter, TRAINER_COUNTERS } from "../middlewares/trainerOps";
 import { buildChartLines, renderChartPdf } from "../lib/trainer/chartPdf";
 import { levelSeesMedical, levelWritesAvailability } from "../lib/trainer/roles";
 
@@ -237,6 +240,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
           { reason: noteEncryptionProblem() },
           "[trainer] refused note write: no usable encryption key configured",
         );
+        incCounter(TRAINER_COUNTERS.noteEncryptionUnavailable);
         sendApiError(req, res, 503, "note_encryption_unavailable");
         return;
       }
@@ -298,7 +302,8 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
       return;
     }
     if (process.env["NODE_ENV"] === "production" && !noteEncryptionConfigured()) {
-      sendApiError(req, res, 503, "note_encryption_unavailable");
+      incCounter(TRAINER_COUNTERS.noteEncryptionUnavailable);
+        sendApiError(req, res, 503, "note_encryption_unavailable");
       return;
     }
 
@@ -607,8 +612,15 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
 
 function buildMountedTrainerDocsRouter(): IRouter {
   const mounted: IRouter = Router();
+  // Metrics first, so a 429 is measured too — a surface that goes
+  // quiet because it is being throttled must not look like a surface
+  // nobody is using.
+  mounted.use(trainerMetrics);
   mounted.use(requireAuth);
-  mounted.use(buildTrainerDocsRouter(createTrainerRepo(db), createTrainerDocsRepo(db)));
+  // After auth, so the limiter keys on the user rather than punishing
+  // a whole training room behind one connection.
+  mounted.use(trainerRateLimit);
+  mounted.use(buildTrainerDocsRouter(instrumentTrainerRepo(createTrainerRepo(db)), createTrainerDocsRepo(db)));
   return mounted;
 }
 

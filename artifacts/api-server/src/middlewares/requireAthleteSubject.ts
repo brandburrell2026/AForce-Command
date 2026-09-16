@@ -53,6 +53,7 @@ import type { RequestHandler } from "express";
 import { sendApiError } from "../lib/apiError";
 import { logger } from "../lib/logger";
 import { serializeError } from "../lib/serializeError";
+import { incCounter, TRAINER_COUNTERS } from "./trainerOps";
 import type { TrainerRepo } from "@workspace/db";
 
 /**
@@ -120,6 +121,7 @@ export function requireAthleteSubject(
           "[requireAthleteSubject] subject lookup failed",
         );
         // Fail closed. A lookup that did not answer is not an answer of "yes".
+        incCounter(TRAINER_COUNTERS.accessLookupFailed);
         sendApiError(req, res, 503, "athlete_subject_unavailable");
         return;
       }
@@ -134,6 +136,7 @@ export function requireAthleteSubject(
         // roster already tells them this athlete exists and has not consented;
         // pretending otherwise here would contradict it. What is withheld is
         // the content, and the refusal says exactly that.
+        incCounter(TRAINER_COUNTERS.consentDenied);
         sendApiError(req, res, 403, "athlete_consent_required");
         return;
       }
