@@ -24,6 +24,7 @@ import {
   buildAvailabilityReport,
   reportToLines,
   scanForInference,
+  scanLinesForInference,
   type ReportAthleteInput,
   type ReportAvailability,
 } from "../lib/trainer/availabilityReport";
@@ -133,7 +134,22 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
           return;
         }
 
-        const pdf = renderChartPdf(reportToLines(report));
+        // The PDF is the artefact that actually gets forwarded, printed and
+        // filed, so the rendering is scanned too — not just the data it was
+        // rendered from. A caption added to the renderer never passes
+        // through `generate`.
+        const lines = reportToLines(report);
+        const rendered = scanLinesForInference(report, lines);
+        if (rendered.length > 0) {
+          logger.error(
+            { programId: access.programId, count: rendered.length },
+            "[trainer] refused report pdf: rendered lines tripped the inference guard",
+          );
+          sendApiError(req, res, 500, "report_failed_inference_guard");
+          return;
+        }
+
+        const pdf = renderChartPdf(lines);
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
           "Content-Disposition",

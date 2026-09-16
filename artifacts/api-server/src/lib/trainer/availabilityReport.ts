@@ -129,34 +129,96 @@ export interface InferenceFinding {
 }
 
 /**
+ * The three keys whose VALUES are identity rather than information.
+ *
+ * A surname is not a diagnosis and a real person may well be called Payne, so
+ * these values are not scanned. Their KEY NAMES still are, along with every
+ * other key and value in the document — the guard must keep catching a field
+ * added later by someone who did not read this file.
+ */
+const IDENTITY_KEYS = new Set(["displayName", "athleteUserId", "position"]);
+
+/**
+ * Collect everything in the report that is not an identity value.
+ *
+ * WHY A WALK AND NOT A REDACTED STRING. This used to serialize the whole
+ * report and then delete every exempt value from it with
+ * `haystack.split(value).join(" ")`. That is a DOCUMENT-WIDE erasure keyed on
+ * roster data, and roster data can be one character long: "P" is a punter. An
+ * athlete listed at position P erased every letter p from the document, so
+ * "pain", "sprain" and "protocol" no longer existed to be found and the guard
+ * returned clean on a report full of clinical language. A single-letter name
+ * or a two-letter id does the same thing, and nothing about the report says
+ * the guard has been switched off.
+ *
+ * Scoping the exemption to the field it belongs to removes the mechanism
+ * entirely. An identity value is never scanned, and it also never redacts
+ * anything else. A minimum-length rule would have papered over the same bug;
+ * this makes the length irrelevant.
+ */
+function scannableText(value: unknown, key: string | null, out: string[]): void {
+  if (key !== null) out.push(key);
+  if (key !== null && IDENTITY_KEYS.has(key)) return;
+
+  if (value === null || value === undefined) return;
+  if (Array.isArray(value)) {
+    for (const item of value) scannableText(item, null, out);
+    return;
+  }
+  if (typeof value === "object") {
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      scannableText(v, k, out);
+    }
+    return;
+  }
+  out.push(String(value));
+}
+
+/**
  * Scan a report for anything a reviewer could infer a condition from.
  *
- * Runs over the SERIALIZED report, so it catches a leak in any field —
- * including one added later by someone who did not read this file. Athlete
- * names and positions are excluded from the scan, because a surname is not a
- * diagnosis and a real person may well be called Payne.
+ * Covers every field, including one added later, because the walk does not
+ * know or care what the fields are called — only which three carry identity.
  */
 export function scanForInference(report: AvailabilityReport): InferenceFinding[] {
-  const findings: InferenceFinding[] = [];
+  const parts: string[] = [];
+  scannableText(report, null, parts);
+  const haystack = parts.join(" ").toLowerCase();
 
-  const exempt = new Set<string>();
+  const findings: InferenceFinding[] = [];
+  for (const term of INFERENCE_TERMS) {
+    if (haystack.includes(term)) findings.push({ term, where: "report" });
+  }
+  return findings;
+}
+
+/**
+ * Scan the RENDERED lines — the artefact that actually gets forwarded.
+ *
+ * `scanForInference` proves the data is clean. This proves the rendering did
+ * not add anything: a heading, a footer, a helpful caption. Athlete rows are
+ * reconstructed from identity and skipped by exact match, so a player called
+ * Payne is still not a finding, and anything the renderer emits that is not
+ * one of those rows is scanned in full with no erasure.
+ */
+export function scanLinesForInference(
+  report: AvailabilityReport,
+  lines: readonly { text: string }[],
+): InferenceFinding[] {
+  const identityRows = new Set<string>();
   for (const group of [report.available, report.limited, report.out, report.unset]) {
     for (const a of group) {
-      exempt.add(a.displayName.toLowerCase());
-      exempt.add(a.athleteUserId.toLowerCase());
-      if (a.position) exempt.add(a.position.toLowerCase());
+      identityRows.add(a.position ? `${a.displayName} · ${a.position}` : a.displayName);
     }
   }
 
-  // Redact the exempt values, then scan what is left.
-  let haystack = JSON.stringify(report).toLowerCase();
-  for (const value of exempt) {
-    if (value.length === 0) continue;
-    haystack = haystack.split(value).join(" ");
-  }
-
-  for (const term of INFERENCE_TERMS) {
-    if (haystack.includes(term)) findings.push({ term, where: "report" });
+  const findings: InferenceFinding[] = [];
+  for (const line of lines) {
+    if (identityRows.has(line.text)) continue;
+    const text = line.text.toLowerCase();
+    for (const term of INFERENCE_TERMS) {
+      if (text.includes(term)) findings.push({ term, where: "rendered_line" });
+    }
   }
   return findings;
 }
