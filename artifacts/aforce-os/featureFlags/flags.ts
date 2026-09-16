@@ -61,6 +61,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
   profile_server_hydration_enabled: false,
+  // Advanced Visual Intelligence™ / SkinIA Visual Check remains completely
+  // dark until separate founder + legal approval. The present implementation
+  // is a non-capture containment shell only.
+  advanced_visual_intelligence_enabled: false,
   // App Store 3.1.1 posture — iOS in-app Stripe checkout OFF until counsel
   // clears the external-purchase-link path; iOS points to drinkaforce.com
   // (the web->app entitlement bridge unlocks the account automatically).
@@ -476,6 +480,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   // keep it OFF here too until the reinstall release-gate passes — demo builds
   // must never be the first place a persistence path runs.
   profile_server_hydration_enabled: false,
+  // Generic demo is not authorization for a camera/biometric-adjacent lane.
+  // Keep the containment shell dark here too.
+  advanced_visual_intelligence_enabled: false,
   // Demo builds show the full checkout flow (no real purchase possible —
   // the API 401s in demo); the App Store posture applies to store builds.
   ios_direct_checkout_enabled: true,

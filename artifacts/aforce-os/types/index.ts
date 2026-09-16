@@ -609,6 +609,15 @@ export interface FeatureFlags {
   // overwrites a calibrated local profile or a pending unsynced change.
   profile_server_hydration_enabled: boolean;
 
+  /**
+   * Advanced Visual Intelligence™ / member-facing SkinIA Visual Check.
+   * Containment-only shell: OFF in every build until founder and legal approve
+   * a separately reviewed capture and processing design. This flag may expose
+   * explanation and consent UI only; it never authorizes camera access,
+   * image handling, inference, storage, or transmission.
+   */
+  advanced_visual_intelligence_enabled: boolean;
+
   // Enterprise — Cruise Mode (premium add-on for cruise lines & guests).
   // Master switch. Phase 1 public release lights up Journey Pulse,
   // Guest Readiness Signal, Today's Flow, and Port Signal. Phases 2/3
