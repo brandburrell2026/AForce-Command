@@ -130,8 +130,11 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/screening",
     requireProgramAccess(repo),
-    // See the note on session writes: whether revocation stops a clinician
-    // from DOCUMENTING care is open. Disclosure back out is gated.
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
     requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
@@ -189,8 +192,11 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/notes",
     requireProgramAccess(repo),
-    // See the note on session writes: whether revocation stops a clinician
-    // from DOCUMENTING care is open. Reading notes back IS gated.
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
     requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
@@ -425,10 +431,11 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/sessions",
     requireProgramAccess(repo),
-    // Consent not required to RECORD load: whether a revocation stops staff
-    // from documenting the work an athlete actually did is a clinical
-    // records question, not a disclosure question, and it is open. Reading
-    // the list back IS gated, below.
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
     requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;

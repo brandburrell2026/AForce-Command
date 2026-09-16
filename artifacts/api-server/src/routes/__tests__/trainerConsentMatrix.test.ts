@@ -219,51 +219,53 @@ const ROUTES: RouteCase[] = [
   {
     key: "POST /programs/:programId/athletes/:athleteId/availability",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { status: "out" },
   },
   {
     key: "POST /programs/:programId/athletes/:athleteId/screening",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { cleared: true, items: {} },
   },
   {
     key: "POST /programs/:programId/athletes/:athleteId/notes",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { subjective: "x" },
   },
   {
     key: "POST /programs/:programId/athletes/:athleteId/sessions",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { sessionDate: "2026-09-15", rpe: 6, durationMin: 70 },
   },
   {
     key: "POST /programs/:programId/athletes/:athleteId/rtp",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { protocolId: 1 },
   },
   {
     key: "POST /programs/:programId/athletes/:athleteId/rtp/signoff",
     gated: false,
-    because: "write path — see WRITE_PATHS_OPEN below",
+    because: "documenting care is not disclosing it — see WRITE_PATHS below",
     body: { stageIndex: 0 },
   },
 ];
 
 /**
- * WRITE_PATHS_OPEN — the one question this change does not answer.
+ * WRITE_PATHS — settled, 2026-09-16 founder ruling.
  *
- * Whether a revocation stops a clinician from DOCUMENTING care they gave is a
- * clinical-records and privacy-law question, not an engineering one, and
- * `docs/TRAINER-DASHBOARD-RULES.md` rule 10 says to stop and ask rather than
- * guess. Blocking the write could destroy a record someone has a duty to
- * keep; permitting it preserves today's behaviour and changes nothing about
- * who may READ it back, which is gated above. The founder's answer flips the
- * `consent` option at six call sites and the `gated` flag here.
+ * Consent gates DISCLOSURE, not documentation. An athlete who revokes does
+ * not thereby become unrecorded: a clinician who gave care has a duty to
+ * write it down, and refusing the write would destroy a record someone is
+ * obliged to keep. Revocation takes effect on the way back out, which is what
+ * the gated routes above prove.
+ *
+ * `docs/TRAINER-DASHBOARD-RULES.md` rule 10 sends clinical-practice and
+ * privacy-law questions to the founder rather than to a default, which is how
+ * this was decided rather than guessed.
  */
 
 // ─── Harness ──────────────────────────────────────────────────────────────

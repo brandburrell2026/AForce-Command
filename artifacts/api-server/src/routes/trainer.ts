@@ -237,9 +237,12 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
   router.post(
     "/programs/:programId/athletes/:athleteId/availability",
     requireProgramAccess(repo),
-    // Setting availability is a clinical act being recorded, and an athlete
-    // who revokes consent does not thereby become cleared to play. Same open
-    // question as the other write paths.
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect. Setting availability is also a safety
+    // act: revoking consent must not clear an athlete to play.
     requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
