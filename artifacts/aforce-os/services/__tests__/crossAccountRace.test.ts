@@ -412,10 +412,11 @@ describe('W2 (barrier) — the key is bound before the barrier await, not after'
     const { userScope } = await boot();
     const scoped = await import('../scopedStorage');
 
-    // Park the legacy-migration read so `migrationSettled()` — the await that
+    // Seed legacy bytes and park the quarantine-marker write so `migrationSettled()` — the await that
     // sits between key binding and the native call — is held open. This is the
     // only window in which a late key re-resolution would change the answer.
-    gate.arm = (key, op) => op === 'get' && key === 'aforce.namespaceMigration.claimedBy';
+    mem.set('@aforce/moments', 'legacy-unattributed-data');
+    gate.arm = (key, op) => op === 'set' && key === 'aforce.namespaceMigration.quarantined';
     userScope.resolveScope({ status: 'AUTHENTICATED', userId: A });
     await settle();
     expect(gate.parked.length, 'migration must be held open').toBe(1);

@@ -9,8 +9,8 @@
  *     → A's data is intact (approved persistence policy: device-only
  *       intelligence is retained per user, never across users)
  *
- * Plus: one-shot legacy migration (first-user-claims), later-user
- * never claims, and the flag-OFF byte-identical path (no scope → global
+ * Plus: legacy global data is quarantined rather than assigned to the first
+ * member who signs in, and the flag-OFF byte-identical path (no scope → global
  * keys, exactly today's behavior).
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -130,8 +130,8 @@ describe('per-user isolation (flag ON path: scope driven by the bridge)', () => 
   });
 });
 
-describe('legacy migration (one-shot, first-user-claims)', () => {
-  it('the first scoped user claims legacy global data; a later user never does', async () => {
+describe('legacy global data quarantine', () => {
+  it('never assigns legacy global data to the first or later scoped user', async () => {
     const { userScope, moments } = await fresh();
     // Pre-flag device state: A's moments under the GLOBAL key.
     mem.set(
@@ -142,12 +142,11 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
     userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     await moments.hydrateMoments();
-    expect(moments.getMomentsState().moments.map((m) => m.title)).toEqual(['Legacy A moment']);
-    // Global key was consumed; claim marker set.
-    expect(mem.has('@aforce/moments')).toBe(false);
-    expect(mem.get('aforce.namespaceMigration.claimedBy')).toBe('user_A');
+    expect(moments.getMomentsState().moments).toEqual([]);
+    expect(mem.has('@aforce/moments')).toBe(true);
+    expect(mem.get('aforce.namespaceMigration.quarantined')).toBe('1');
 
-    // A later orphaned global key must NOT be claimed by a different user.
+    // A later user must not receive either legacy record.
     mem.set('@aforce/moments', JSON.stringify([mkMoment('orphan', 'Orphaned global')]));
     userScope.__setUserScopeForTests('user_B');
     await userScope.migrationSettled();
@@ -156,21 +155,16 @@ describe('legacy migration (one-shot, first-user-claims)', () => {
     expect(mem.has('@aforce/moments')).toBe(true); // left in place, unclaimed
   });
 
-  it('every key in the migration manifest moves for the claiming user', async () => {
+  it('every key in the migration manifest is retained and marked as quarantined', async () => {
     const { userScope } = await fresh();
     for (const base of userScope.MIGRATED_GLOBAL_KEYS) mem.set(base, `legacy:${base}`);
     userScope.__setUserScopeForTests('user_A');
     await userScope.migrationSettled();
     for (const base of userScope.MIGRATED_GLOBAL_KEYS) {
-      if (userScope.RETAIN_GLOBAL_COPY.has(base)) {
-        // Wave-3 PR12: consent evidence is COPY-AND-RETAIN — the scoped
-        // copy exists AND the global legal record survives.
-        expect(mem.get(base), `${base} global must be RETAINED`).toBe(`legacy:${base}`);
-      } else {
-        expect(mem.has(base), `${base} global must be consumed`).toBe(false);
-      }
-      expect(mem.get(`${base}:user_A`), `${base} must be scoped`).toBe(`legacy:${base}`);
+      expect(mem.get(base), `${base} global must be retained`).toBe(`legacy:${base}`);
+      expect(mem.has(`${base}:user_A`), `${base} must not be assigned`).toBe(false);
     }
+    expect(mem.get('aforce.namespaceMigration.quarantined')).toBe('1');
   });
 });
 
