@@ -407,6 +407,103 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
     },
   );
 
+  // ─── POST /programs/:programId/athletes/:athleteId/sessions ───────────────
+  // Load entry. Phase 0 question Q13 answered: staff with load access enter
+  // it — clinical or strength — and the athlete's RPE is what they report to
+  // that person. A correction is a new row; there is no update path.
+  router.post(
+    "/programs/:programId/athletes/:athleteId/sessions",
+    requireProgramAccess(repo),
+    async (req, res) => {
+      const access = req.programAccess;
+      const actorId = req.userId;
+      const athleteId = req.params["athleteId"];
+      if (!access || !actorId || typeof athleteId !== "string") {
+        sendApiError(req, res, 403, "program_access_required");
+        return;
+      }
+      // Load is the one thing strength & performance writes. §2.3 gives that
+      // role full load access; it gives them nothing medical, which is why
+      // this is a different check from the note and screening routes.
+      if (access.level !== "clinical" && access.level !== "performance") {
+        sendApiError(req, res, 403, "session_write_not_permitted");
+        return;
+      }
+
+      const body = req.body as
+        | { sessionDate?: unknown; rpe?: unknown; durationMin?: unknown; sessionType?: unknown }
+        | undefined;
+      const sessionDate = typeof body?.sessionDate === "string" ? body.sessionDate : null;
+      const rpe = typeof body?.rpe === "number" ? body.rpe : NaN;
+      const durationMin = typeof body?.durationMin === "number" ? body.durationMin : NaN;
+
+      if (
+        !sessionDate ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(sessionDate) ||
+        !Number.isInteger(rpe) ||
+        rpe < 1 ||
+        rpe > 10 ||
+        !Number.isInteger(durationMin) ||
+        durationMin < 1 ||
+        durationMin > 600
+      ) {
+        sendApiError(req, res, 400, "invalid_session");
+        return;
+      }
+
+      try {
+        const entry = await docs.recordSession({
+          programId: access.programId,
+          athleteUserId: athleteId,
+          sessionDate,
+          rpe,
+          durationMin,
+          sessionType:
+            typeof body?.sessionType === "string" && body.sessionType.length > 0
+              ? body.sessionType
+              : null,
+          enteredByUserId: actorId,
+        });
+        res.status(201).json({ ok: true, entry });
+      } catch (err) {
+        logger.error({ err: serializeError(err) }, "[trainer] session write failed");
+        sendApiError(req, res, 500, "session_write_failed");
+      }
+    },
+  );
+
+  // ─── GET /programs/:programId/athletes/:athleteId/sessions ────────────────
+  router.get(
+    "/programs/:programId/athletes/:athleteId/sessions",
+    requireProgramAccess(repo),
+    async (req, res) => {
+      const access = req.programAccess;
+      const actorId = req.userId;
+      const athleteId = req.params["athleteId"];
+      if (!access || !actorId || typeof athleteId !== "string") {
+        sendApiError(req, res, 403, "program_access_required");
+        return;
+      }
+      // A coach gets load as a summary, never the session list (§2.3).
+      if (access.level === "coaching" || access.level === "compliance") {
+        sendApiError(req, res, 403, "sessions_not_available_to_role");
+        return;
+      }
+      if (access.level === "self" && athleteId !== actorId) {
+        sendApiError(req, res, 404, "athlete_not_found");
+        return;
+      }
+
+      try {
+        const sessions = await docs.sessions(access.programId, athleteId);
+        res.json({ sessions });
+      } catch (err) {
+        logger.error({ err: serializeError(err) }, "[trainer] session read failed");
+        sendApiError(req, res, 500, "session_read_failed");
+      }
+    },
+  );
+
   return router;
 }
 

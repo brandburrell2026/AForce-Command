@@ -18,6 +18,7 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import {
   aforceAthleteQuestionnaires,
   aforceAthleteScreenings,
+  aforceAthleteSessions,
   aforceAthleteSoapNotes,
 } from "./schema/trainerDocs";
 
@@ -54,6 +55,26 @@ export interface ScreeningEntry {
   cleared: boolean;
   screenedByUserId: string;
   screenedAt: string;
+}
+
+export interface SessionSubmission {
+  programId: string;
+  athleteUserId: string;
+  sessionDate: string;
+  rpe: number;
+  durationMin: number;
+  sessionType: string | null;
+  enteredByUserId: string;
+}
+
+export interface SessionEntryRow {
+  id: number;
+  sessionDate: string;
+  rpe: number;
+  durationMin: number;
+  sessionType: string | null;
+  enteredByUserId: string;
+  createdAt: string;
 }
 
 export interface SoapFields {
@@ -221,6 +242,57 @@ export function createTrainerDocsRepo(db: Db) {
         .orderBy(desc(aforceAthleteScreenings.screenedAt))
         .limit(limit);
       return rows.map((r) => ({ ...r, screenedAt: r.screenedAt.toISOString() }));
+    },
+
+    // ─── Training sessions ──────────────────────────────────────────────
+    /** Append a session. A correction is a new row, never an update. */
+    async recordSession(sub: SessionSubmission): Promise<SessionEntryRow> {
+      const rows = await db
+        .insert(aforceAthleteSessions)
+        .values({
+          programId: sub.programId,
+          athleteUserId: sub.athleteUserId,
+          sessionDate: sub.sessionDate,
+          rpe: sub.rpe,
+          durationMin: sub.durationMin,
+          sessionType: sub.sessionType,
+          enteredByUserId: sub.enteredByUserId,
+        })
+        .returning({
+          id: aforceAthleteSessions.id,
+          sessionDate: aforceAthleteSessions.sessionDate,
+          rpe: aforceAthleteSessions.rpe,
+          durationMin: aforceAthleteSessions.durationMin,
+          sessionType: aforceAthleteSessions.sessionType,
+          enteredByUserId: aforceAthleteSessions.enteredByUserId,
+          createdAt: aforceAthleteSessions.createdAt,
+        });
+      const row = rows[0]!;
+      return { ...row, createdAt: row.createdAt.toISOString() };
+    },
+
+    /** Sessions for one athlete, newest first. The load model's only input. */
+    async sessions(programId: string, athleteUserId: string, limit = 200): Promise<SessionEntryRow[]> {
+      const rows = await db
+        .select({
+          id: aforceAthleteSessions.id,
+          sessionDate: aforceAthleteSessions.sessionDate,
+          rpe: aforceAthleteSessions.rpe,
+          durationMin: aforceAthleteSessions.durationMin,
+          sessionType: aforceAthleteSessions.sessionType,
+          enteredByUserId: aforceAthleteSessions.enteredByUserId,
+          createdAt: aforceAthleteSessions.createdAt,
+        })
+        .from(aforceAthleteSessions)
+        .where(
+          and(
+            eq(aforceAthleteSessions.programId, programId),
+            eq(aforceAthleteSessions.athleteUserId, athleteUserId),
+          ),
+        )
+        .orderBy(desc(aforceAthleteSessions.sessionDate))
+        .limit(limit);
+      return rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
     },
 
     // ─── SOAP notes ─────────────────────────────────────────────────────

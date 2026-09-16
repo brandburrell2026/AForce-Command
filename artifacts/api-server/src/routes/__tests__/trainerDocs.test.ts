@@ -32,10 +32,12 @@ const ATHLETE = "user_athlete_1";
 const OTHER_ATHLETE = "user_athlete_2";
 const TRAINER = "user_trainer_1";
 const COACH = "user_coach_1";
+const STRENGTH = "user_strength_1";
 
 const ROLES: Record<string, string> = {
   [TRAINER]: "athletic_trainer",
   [COACH]: "coach",
+  [STRENGTH]: "strength",
   [ATHLETE]: "athlete",
   [OTHER_ATHLETE]: "athlete",
 };
@@ -53,6 +55,15 @@ interface State {
     screenedAt: string;
   }[];
   log: MedicalAccessEntry[];
+  sessions: {
+    id: number;
+    sessionDate: string;
+    rpe: number;
+    durationMin: number;
+    sessionType: string | null;
+    enteredByUserId: string;
+    createdAt: string;
+  }[];
 }
 
 let state: State;
@@ -179,6 +190,22 @@ function fakeDocs(): TrainerDocsRepo {
     async allNoteVersions() {
       return [...state.notes].sort((a, b) => a.rootId - b.rootId || a.version - b.version);
     },
+    async recordSession(sub) {
+      const entry = {
+        id: state.sessions.length + 1,
+        sessionDate: sub.sessionDate,
+        rpe: sub.rpe,
+        durationMin: sub.durationMin,
+        sessionType: sub.sessionType,
+        enteredByUserId: sub.enteredByUserId,
+        createdAt: "2026-09-16T11:00:00.000Z",
+      };
+      state.sessions.push(entry);
+      return entry;
+    },
+    async sessions() {
+      return state.sessions;
+    },
   };
 }
 
@@ -229,7 +256,7 @@ async function getRaw(userId: string | null, path: string) {
 }
 
 beforeEach(() => {
-  state = { notes: [], nextId: 1, questionnaires: [], screenings: [], log: [] };
+  state = { notes: [], nextId: 1, questionnaires: [], screenings: [], log: [], sessions: [] };
   setFlag("feature.trainer_api", true);
 });
 
@@ -451,5 +478,61 @@ describe("the surface fails closed", () => {
   it("refuses the shared dev sentinel", async () => {
     const res = await post("default", `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/notes`, NOTE);
     expect(res.status).toBe(403);
+  });
+});
+
+describe("training sessions are the load model's input (Phase 5)", () => {
+  const SESSION = { sessionDate: "2026-09-16", rpe: 7, durationMin: 90, sessionType: "practice" };
+
+  it("a trainer can record one", async () => {
+    const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`, SESSION);
+    expect(res.status).toBe(201);
+    expect(res.body.entry).toMatchObject({ rpe: 7, durationMin: 90, enteredByUserId: TRAINER });
+  });
+
+  it("strength and performance can record one too — load is their column", async () => {
+    const res = await post(STRENGTH, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`, SESSION);
+    expect(res.status).toBe(201);
+  });
+
+  it("a coach cannot record one, and cannot read the session list", async () => {
+    const write = await post(COACH, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`, SESSION);
+    expect(write.status).toBe(403);
+    const read = await get(COACH, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`);
+    expect(read.status).toBe(403);
+    expect(read.body.code).toBe("sessions_not_available_to_role");
+  });
+
+  it("refuses an RPE outside 1-10 or a duration outside 1-600", async () => {
+    for (const bad of [
+      { ...SESSION, rpe: 0 },
+      { ...SESSION, rpe: 11 },
+      { ...SESSION, rpe: 6.5 },
+      { ...SESSION, durationMin: 0 },
+      { ...SESSION, durationMin: 601 },
+      { ...SESSION, sessionDate: "16/09/2026" },
+    ]) {
+      const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`, bad);
+      expect(res.status).toBe(400);
+    }
+    expect(state.sessions).toHaveLength(0);
+  });
+
+  it("an athlete reads their own sessions and not another athlete's", async () => {
+    const own = await get(ATHLETE, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`);
+    expect(own.status).toBe(200);
+    const other = await get(ATHLETE, `/trainer/programs/${PROGRAM}/athletes/${OTHER_ATHLETE}/sessions`);
+    expect(other.status).toBe(404);
+  });
+
+  it("exposes no update or delete verb on a session", async () => {
+    const base = await startAs(TRAINER);
+    for (const method of ["PUT", "PATCH", "DELETE"]) {
+      const res = await fetch(
+        `${base}/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/sessions`,
+        { method },
+      );
+      expect(res.status).toBe(404);
+    }
   });
 });

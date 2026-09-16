@@ -146,3 +146,43 @@ export const aforceAthleteSoapNotes = pgTable(
 
 export type AforceAthleteSoapNoteRow = typeof aforceAthleteSoapNotes.$inferSelect;
 export type InsertAforceAthleteSoapNote = typeof aforceAthleteSoapNotes.$inferInsert;
+
+/**
+ * TRAINING SESSIONS — append-only. The input the load model has never had.
+ *
+ * Phase 0 question Q13 asked who enters session RPE, because no table in this
+ * repo holds it and no surface collects it. Phase 5 answers it the way the
+ * §2.3 matrix already implies: staff with load access enter it — the athletic
+ * trainer or the strength and performance role — and the athlete's own RPE is
+ * what they report to that person.
+ *
+ * `rpe` is the session rating of perceived exertion, 1-10, and `durationMin`
+ * is what it is multiplied by. Session load is NOT stored: it is rpe ×
+ * duration, derived at read time so a stored figure can never drift from the
+ * two numbers a human actually entered.
+ *
+ * A correction is a new row, like every other record on this surface.
+ */
+export const aforceAthleteSessions = pgTable(
+  "aforce_athlete_sessions",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    programId: text("program_id").notNull(),
+    athleteUserId: text("athlete_user_id").notNull(),
+    /** Local calendar day the session counts for, `YYYY-MM-DD`. */
+    sessionDate: text("session_date").notNull(),
+    /** Session RPE, 1-10, as reported by the athlete to staff. */
+    rpe: integer("rpe").notNull(),
+    durationMin: integer("duration_min").notNull(),
+    /** Free text: 'practice', 'lift', 'conditioning'. Not an enum — programs vary. */
+    sessionType: text("session_type"),
+    enteredByUserId: text("entered_by_user_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("aforce_athlete_sessions_lookup_idx").on(t.programId, t.athleteUserId, t.sessionDate),
+  ],
+);
+
+export type AforceAthleteSessionRow = typeof aforceAthleteSessions.$inferSelect;
+export type InsertAforceAthleteSession = typeof aforceAthleteSessions.$inferInsert;
