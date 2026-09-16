@@ -25,6 +25,7 @@ import {
   createTrainerRepo,
   db,
   noteEncryptionConfigured,
+  noteEncryptionProblem,
   type TrainerDocsRepo,
   type TrainerRepo,
 } from "@workspace/db";
@@ -205,7 +206,12 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
         return;
       }
       if (process.env["NODE_ENV"] === "production" && !noteEncryptionConfigured()) {
-        logger.error({}, "[trainer] refused note write: no encryption key configured");
+        // The reason, never the value. `noteEncryptionProblem` is written so
+        // that no branch of it can return key material.
+        logger.error(
+          { reason: noteEncryptionProblem() },
+          "[trainer] refused note write: no usable encryption key configured",
+        );
         sendApiError(req, res, 503, "note_encryption_unavailable");
         return;
       }

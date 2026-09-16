@@ -121,8 +121,17 @@ Phase 4 is built to the strictest common denominator and configured later:
 
 - Trainer notes, screening records and questionnaire responses are classified **S3**
   in `governance/DATA-CLASSIFICATION-MATRIX.md` and handled accordingly.
-- Encrypted at rest, following the `pgcrypto` pattern already used for provider tokens
-  (`access_token_enc` / `refresh_token_enc`).
+- Encrypted at rest with AES-256-GCM in the application (`lib/db/src/noteCrypto.ts`),
+  written to the `*_enc` columns with the plaintext columns left null.
+  **This diverges from the `pgcrypto` pattern used for provider tokens**
+  (`access_token_enc` / `refresh_token_enc`), deliberately and with the founder's
+  sign-off: `pgp_sym_encrypt(text, key)` puts the key in the SQL statement, and
+  Postgres logs statements on error and on `log_min_duration_statement`, so the key
+  reaches a log stream with different retention and a different access list from the
+  data it protects. A provider token is replaceable; a medical note is not.
+  Encrypting in-process also means the property is provable without a database,
+  which is why `noteCrypto.test.ts` can assert that the stored bytes do not contain
+  the note.
 - Every read and write audited, actor and subject both recorded.
 - Retention is per-program configuration with a conservative default, never unlimited.
 - These records are included in the existing export and erasure paths
