@@ -115,6 +115,9 @@ function fakeRepo(): TrainerRepo {
     async logAccess(entry) {
       state.log.push(entry);
     },
+    async logAccessMany(entries) {
+      for (const entry of entries) await this.logAccess(entry);
+    },
   };
 }
 

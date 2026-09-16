@@ -119,6 +119,25 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
         answers,
         forDate,
       });
+
+      // Actor and subject are the same person here, which is exactly why this
+      // is worth a row: the athlete's own "who touched my record" query
+      // should show their submission sitting beside every staff read of it.
+      const consent = await repo.consent(access.programId, actorId);
+      await repo.logAccess({
+        actorUserId: actorId,
+        subjectUserId: actorId,
+        programId: access.programId,
+        actorRole: access.role,
+        resource: "questionnaire",
+        action: "write",
+        fields: ["answers", "forDate"],
+        redactionLevel: access.level,
+        consentDecisionSeq: consent.decisionSeq,
+        requestId: requestIdOf(req),
+        route: req.path,
+      });
+
       res.status(201).json({ ok: true, entry });
     } catch (err) {
       logger.error({ err: serializeError(err) }, "[trainer] questionnaire write failed");
@@ -304,6 +323,33 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
         sendApiError(req, res, 404, "note_not_found");
         return;
       }
+
+      // THE AMENDMENT IS THE ONE OPERATION THE APPEND-ONLY DESIGN EXISTS TO
+      // MAKE DEFENSIBLE, and it was the one operation that wrote nothing to
+      // the access log. "Who changed this record, when, and why" was
+      // answerable from the note chain and invisible to the athlete's own
+      // "who touched my record" query, which reads this table.
+      //
+      // The subject comes from the note rather than the URL — this route has
+      // no `:athleteId`, so it cannot use `requireAthleteSubject`, and the
+      // note itself is the authority on whose record it is.
+      const consent = await repo.consent(access.programId, result.subjectUserId);
+      await repo.logAccess({
+        actorUserId: actorId,
+        subjectUserId: result.subjectUserId,
+        programId: access.programId,
+        actorRole: access.role,
+        resource: "medical_note",
+        action: "amend",
+        fields: Object.entries(fields)
+          .filter(([, v]) => v !== null)
+          .map(([k]) => k),
+        redactionLevel: access.level,
+        consentDecisionSeq: consent.decisionSeq,
+        requestId: requestIdOf(req),
+        route: req.path,
+      });
+
       res.status(201).json({ ok: true, entry: result.entry });
     } catch (err) {
       logger.error({ err: serializeError(err) }, "[trainer] note amend failed");
@@ -488,6 +534,21 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
               : null,
           enteredByUserId: actorId,
         });
+
+        await repo.logAccess({
+          actorUserId: actorId,
+          subjectUserId: athleteId,
+          programId: access.programId,
+          actorRole: access.role,
+          resource: "training_session",
+          action: "write",
+          fields: ["sessionDate", "rpe", "durationMin", ...(entry.sessionType ? ["sessionType"] : [])],
+          redactionLevel: access.level,
+          consentDecisionSeq: subject.consentDecisionSeq,
+          requestId: requestIdOf(req),
+          route: req.path,
+        });
+
         res.status(201).json({ ok: true, entry });
       } catch (err) {
         logger.error({ err: serializeError(err) }, "[trainer] session write failed");
@@ -518,6 +579,21 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
 
       try {
         const sessions = await docs.sessions(access.programId, athleteId);
+
+        await repo.logAccess({
+          actorUserId: actorId,
+          subjectUserId: athleteId,
+          programId: access.programId,
+          actorRole: access.role,
+          resource: "training_session",
+          action: "read",
+          fields: ["sessionDate", "rpe", "durationMin", "sessionType"],
+          redactionLevel: access.level,
+          consentDecisionSeq: subject.consentDecisionSeq,
+          requestId: requestIdOf(req),
+          route: req.path,
+        });
+
         res.json({ sessions });
       } catch (err) {
         logger.error({ err: serializeError(err) }, "[trainer] session read failed");

@@ -82,6 +82,57 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
     return report;
   }
 
+  /** The request id lives on `req.id` (see `buildApiErrorBody`). */
+  function requestIdOf(req: { id?: unknown }): string | null {
+    const id = req.id;
+    return typeof id === "string" || typeof id === "number" ? String(id) : null;
+  }
+
+  /**
+   * File one audit row per athlete the report covered.
+   *
+   * The report carries no medical field by design, which is why it is safe to
+   * circulate — but it is still a document about named people that gets
+   * forwarded, printed and filed, and this table's subject index exists to
+   * answer an athlete's "who looked at me". A roster-wide export that logged
+   * nothing, or logged one row with no subject, could not answer it.
+   *
+   * One batched insert, not one per athlete: see `logAccessMany`.
+   */
+  async function logReportAccess(
+    req: { id?: unknown; path: string },
+    access: NonNullable<Express.Request["programAccess"]>,
+    actorId: string,
+    report: ReturnType<typeof buildAvailabilityReport>,
+    resource: "availability_report" | "availability_report_pdf",
+  ): Promise<void> {
+    const subjects = [
+      ...report.available,
+      ...report.limited,
+      ...report.out,
+      ...report.unset,
+    ];
+    await repo.logAccessMany(
+      subjects.map((a) => ({
+        actorUserId: actorId,
+        subjectUserId: a.athleteUserId,
+        programId: access.programId,
+        actorRole: access.role,
+        resource,
+        action: "read" as const,
+        // Exactly what the report discloses about them, and nothing it does
+        // not: no reason, no stage, no duration.
+        fields: ["displayName", "position", "availability"],
+        redactionLevel: access.level,
+        // The report is not consent-gated content — it carries no medical
+        // field — so the decision sequence is not resolved per athlete here.
+        consentDecisionSeq: null,
+        requestId: requestIdOf(req),
+        route: req.path,
+      })),
+    );
+  }
+
   // ─── GET /programs/:programId/availability-report ─────────────────────────
   // Every staff role may read it. It is the one artefact on this surface that
   // is safe to circulate, which is the entire point of it.
@@ -104,6 +155,7 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
         sendApiError(req, res, 500, "report_failed_inference_guard");
         return;
       }
+      await logReportAccess(req, access, actorId, report, "availability_report");
       res.json({ report });
     } catch (err) {
       logger.error({ err: serializeError(err) }, "[trainer] availability report failed");
@@ -150,6 +202,11 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
         }
 
         const pdf = renderChartPdf(lines);
+
+        // Logged before it is sent. A document that leaves without a log
+        // entry is the gap the audit trail exists to close.
+        await logReportAccess(req, access, actorId, report, "availability_report_pdf");
+
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
           "Content-Disposition",

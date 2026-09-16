@@ -434,6 +434,22 @@ export function createTrainerRepo(db: Db) {
         route: entry.route,
       });
     },
+
+    /**
+     * Log many accesses as ONE insert.
+     *
+     * An artefact that covers a whole roster is still an access of every
+     * athlete in it — the subject index on this table exists to answer "who
+     * looked at me", and a single roster-level row could not. Writing those
+     * one at a time would put an N-statement fan-out on the export path, so
+     * they go in together.
+     *
+     * An empty list is a no-op rather than an empty INSERT.
+     */
+    async logAccessMany(entries: readonly MedicalAccessEntry[]): Promise<void> {
+      if (entries.length === 0) return;
+      await db.insert(aforceMedicalAccessLog).values(entries.map((e) => ({ ...e })));
+    },
   };
 }
 
