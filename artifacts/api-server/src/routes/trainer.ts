@@ -24,6 +24,8 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { instrumentTrainerRepo } from "../observability/trainerRepoMetrics";
+import { trainerMetrics, trainerRateLimit } from "../middlewares/trainerOps";
 import { requireAthleteSubject } from "../middlewares/requireAthleteSubject";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
 import {
@@ -431,8 +433,15 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
  */
 function buildMountedTrainerRouter(): IRouter {
   const mounted: IRouter = Router();
+  // Metrics first, so a 429 is measured too — a surface that goes
+  // quiet because it is being throttled must not look like a surface
+  // nobody is using.
+  mounted.use(trainerMetrics);
   mounted.use(requireAuth);
-  mounted.use(buildTrainerRouter(createTrainerRepo(db)));
+  // After auth, so the limiter keys on the user rather than punishing
+  // a whole training room behind one connection.
+  mounted.use(trainerRateLimit);
+  mounted.use(buildTrainerRouter(instrumentTrainerRepo(createTrainerRepo(db))));
   return mounted;
 }
 

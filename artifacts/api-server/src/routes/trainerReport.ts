@@ -18,7 +18,10 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { instrumentTrainerRepo } from "../observability/trainerRepoMetrics";
+import { trainerMetrics, trainerRateLimit } from "../middlewares/trainerOps";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
+import { incCounter, TRAINER_COUNTERS } from "../middlewares/trainerOps";
 import { renderChartPdf } from "../lib/trainer/chartPdf";
 import {
   buildAvailabilityReport,
@@ -73,6 +76,7 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
 
     const findings = scanForInference(report);
     if (findings.length > 0) {
+      incCounter(TRAINER_COUNTERS.inferenceGuardTripped);
       logger.error(
         { programId, terms: findings.map((f) => f.term) },
         "[trainer] availability report refused: inference guard tripped",
@@ -193,6 +197,7 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
         const lines = reportToLines(report);
         const rendered = scanLinesForInference(report, lines);
         if (rendered.length > 0) {
+          incCounter(TRAINER_COUNTERS.inferenceGuardTripped);
           logger.error(
             { programId: access.programId, count: rendered.length },
             "[trainer] refused report pdf: rendered lines tripped the inference guard",
@@ -225,8 +230,15 @@ export function buildTrainerReportRouter(repo: TrainerRepo): IRouter {
 
 function buildMountedTrainerReportRouter(): IRouter {
   const mounted: IRouter = Router();
+  // Metrics first, so a 429 is measured too — a surface that goes
+  // quiet because it is being throttled must not look like a surface
+  // nobody is using.
+  mounted.use(trainerMetrics);
   mounted.use(requireAuth);
-  mounted.use(buildTrainerReportRouter(createTrainerRepo(db)));
+  // After auth, so the limiter keys on the user rather than punishing
+  // a whole training room behind one connection.
+  mounted.use(trainerRateLimit);
+  mounted.use(buildTrainerReportRouter(instrumentTrainerRepo(createTrainerRepo(db))));
   return mounted;
 }
 
