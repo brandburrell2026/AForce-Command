@@ -136,6 +136,24 @@ export const aforceAthleteSoapNotes = pgTable(
 
     /** Which template seeded this note, for audit. Null for a blank note. */
     templateId: text("template_id"),
+
+    /**
+     * CLIENT-GENERATED KEY THAT MAKES A RETRY SAFE.
+     *
+     * The offline outbox retries forever by design, and the write path
+     * commits the note before it writes its audit row. An audit failure
+     * therefore returned 500 on an ALREADY DURABLE note — and the retry
+     * filed a second one. A duplicate clinical note is not a cosmetic
+     * problem: it is two records of one assessment, with two versions
+     * chains, in a document a clinician relies on.
+     *
+     * The key is the outbox item id, which is stable across every retry of
+     * one entry and different for every distinct entry. Nullable, because
+     * notes written by anything other than the queue (a direct API call, a
+     * future import) legitimately have none — and a NULL never collides
+     * under the partial unique index below.
+     */
+    idempotencyKey: text("idempotency_key"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -159,6 +177,20 @@ export const aforceAthleteSoapNotes = pgTable(
       sql`${t.version} = 1 or (${t.amendmentReason} is not null and length(btrim(${t.amendmentReason})) > 0)`,
     ),
     check("aforce_athlete_soap_notes_version_positive", sql`${t.version} >= 1`),
+    /**
+     * PARTIAL unique index: the uniqueness is what enforces idempotency, and
+     * it must be the DATABASE that enforces it. Two concurrent retries of one
+     * entry can both find no existing row and both try to insert; only a
+     * unique index decides that race correctly, and the loser is then read
+     * back rather than failing.
+     *
+     * Scoped to the program, so two programs cannot collide on a key.
+     * Predicated on NOT NULL, so the many rows with no key do not all
+     * collide with each other.
+     */
+    uniqueIndex("aforce_athlete_soap_notes_idempotency_uq")
+      .on(t.programId, t.idempotencyKey)
+      .where(sql`${t.idempotencyKey} is not null`),
   ],
 );
 

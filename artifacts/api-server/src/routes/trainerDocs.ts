@@ -82,6 +82,24 @@ function parseAnswers(value: unknown): Record<string, number> | null {
   return Object.keys(out).length > 0 ? out : null;
 }
 
+/**
+ * The client's idempotency key, if it sent one.
+ *
+ * The offline outbox already sends its item id under this name; it is stable
+ * across every retry of one entry and different for every distinct entry.
+ * Bounded and character-restricted because it reaches a unique index: an
+ * unbounded attacker-chosen string in an index is a denial-of-service, and a
+ * key with surprising characters is one nobody can grep for in an incident.
+ */
+function parseIdempotencyKey(body: unknown): string | null {
+  if (typeof body !== "object" || body === null) return null;
+  const raw = (body as { idempotencyKey?: unknown }).idempotencyKey;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0 || trimmed.length > 128) return null;
+  return /^[A-Za-z0-9._:-]+$/.test(trimmed) ? trimmed : null;
+}
+
 export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo): IRouter {
   const router: IRouter = Router();
 
@@ -252,7 +270,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
       }
 
       try {
-        const entry = await docs.fileNote({
+        const { entry, replayed } = await docs.fileNote({
           programId: access.programId,
           subjectUserId: athleteId,
           authorUserId: actorId,
@@ -261,9 +279,17 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
             typeof (req.body as { templateId?: unknown })?.templateId === "string"
               ? ((req.body as { templateId: string }).templateId)
               : null,
+          idempotencyKey: parseIdempotencyKey(req.body),
         });
 
-        await repo.logAccess({
+        // A REPLAY IS NOT A SECOND DISCLOSURE. The note already existed and
+        // nothing new was written, so filing a second audit row would
+        // overstate what happened — the log would show two clinicians' worth
+        // of activity for one. Counted instead, so a retry storm is visible
+        // in metrics rather than in the medical record.
+        if (replayed) incCounter(TRAINER_COUNTERS.noteWriteReplayed);
+
+        if (!replayed) await repo.logAccess({
           actorUserId: actorId,
           subjectUserId: athleteId,
           programId: access.programId,
@@ -323,6 +349,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
         authorUserId: actorId,
         fields,
         amendmentReason: reason,
+        idempotencyKey: parseIdempotencyKey(req.body),
       });
       if (!result.ok) {
         sendApiError(req, res, 404, "note_not_found");
@@ -338,8 +365,10 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
       // The subject comes from the note rather than the URL — this route has
       // no `:athleteId`, so it cannot use `requireAthleteSubject`, and the
       // note itself is the authority on whose record it is.
+      if (result.replayed) incCounter(TRAINER_COUNTERS.noteWriteReplayed);
+
       const consent = await repo.consent(access.programId, result.subjectUserId);
-      await repo.logAccess({
+      if (!result.replayed) await repo.logAccess({
         actorUserId: actorId,
         subjectUserId: result.subjectUserId,
         programId: access.programId,

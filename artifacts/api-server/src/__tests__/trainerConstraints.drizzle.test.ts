@@ -225,7 +225,7 @@ describe.runIf(DB)("the trainer tables refuse invalid rows", () => {
       expect(result.ok, status).toBe(true);
     }
 
-    const note = await docs.fileNote({
+    const { entry: note } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,

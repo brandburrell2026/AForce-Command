@@ -55,6 +55,9 @@ export default defineConfig({
       // validates, they all pass — which is why this is the only way to test
       // a constraint.
       'artifacts/api-server/src/__tests__/trainerConstraints.drizzle.test.ts',
+      // A retried note write must not file a second clinical note. The
+      // interesting cases are races, so they run against real Postgres.
+      'artifacts/api-server/src/__tests__/trainerNoteIdempotency.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/trainerRepo.drizzle.test.ts',
       // Guards the board's O(1) query count. Fast by design — small rosters,
       // because the property is CONSTANT, not fast. The figures come from

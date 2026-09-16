@@ -222,6 +222,42 @@ function noteFieldColumns(fields: SoapFields): {
  */
 export const NOTE_READ_LIMIT = 2000;
 
+/**
+ * Postgres unique_violation, found wherever the driver left it.
+ *
+ * Drizzle wraps a driver error in its own, so the pg error — and its `code`
+ * — is on `cause`, sometimes more than one level down. Checking only the top
+ * level silently never matched, which would turn every lost race into a 500
+ * for a note that exists. Asserting the CODE, never a message.
+ */
+function isUniqueViolation(err: unknown): boolean {
+  let current: unknown = err;
+  for (let depth = 0; depth < 5 && current; depth += 1) {
+    if (typeof current === "object" && (current as { code?: unknown }).code === "23505") return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
+async function findByIdempotencyKey(
+  db: Db,
+  programId: string,
+  key: string,
+): Promise<SoapNoteEntry | null> {
+  const rows = await db
+    .select(NOTE_COLUMNS)
+    .from(aforceAthleteSoapNotes)
+    .where(
+      and(
+        eq(aforceAthleteSoapNotes.programId, programId),
+        eq(aforceAthleteSoapNotes.idempotencyKey, key),
+      ),
+    )
+    .limit(1);
+  const row = rows[0];
+  return row ? toEntry(row) : null;
+}
+
 export function createTrainerDocsRepo(db: Db) {
   return {
     // ─── Questionnaire ──────────────────────────────────────────────────
@@ -391,28 +427,58 @@ export function createTrainerDocsRepo(db: Db) {
       authorUserId: string;
       fields: SoapFields;
       templateId?: string | null;
-    }): Promise<SoapNoteEntry> {
-      return db.transaction(async (tx) => {
-        const inserted = await tx
-          .insert(aforceAthleteSoapNotes)
-          .values({
-            programId: args.programId,
-            subjectUserId: args.subjectUserId,
-            authorUserId: args.authorUserId,
-            version: 1,
-            ...noteFieldColumns(args.fields),
-            templateId: args.templateId ?? null,
-          })
-          .returning(NOTE_COLUMNS);
+      /**
+       * Stable across every retry of ONE client entry, different for every
+       * distinct entry. Omit it and the write is not idempotent, which is
+       * correct for a caller that is not a retrying queue.
+       */
+      idempotencyKey?: string | null;
+    }): Promise<{ entry: SoapNoteEntry; replayed: boolean }> {
+      const key = args.idempotencyKey ?? null;
 
-        const row = inserted[0]!;
-        await tx
-          .update(aforceAthleteSoapNotes)
-          .set({ rootId: row.id })
-          .where(eq(aforceAthleteSoapNotes.id, row.id));
+      // A replay that arrives after the original committed. The common case,
+      // and it costs one indexed lookup.
+      if (key !== null) {
+        const existing = await findByIdempotencyKey(db, args.programId, key);
+        if (existing) return { entry: existing, replayed: true };
+      }
 
-        return toEntry({ ...row, rootId: row.id });
-      });
+      try {
+        const entry = await db.transaction(async (tx) => {
+          const inserted = await tx
+            .insert(aforceAthleteSoapNotes)
+            .values({
+              programId: args.programId,
+              subjectUserId: args.subjectUserId,
+              authorUserId: args.authorUserId,
+              version: 1,
+              ...noteFieldColumns(args.fields),
+              templateId: args.templateId ?? null,
+              idempotencyKey: key,
+            })
+            .returning(NOTE_COLUMNS);
+
+          const row = inserted[0]!;
+          await tx
+            .update(aforceAthleteSoapNotes)
+            .set({ rootId: row.id })
+            .where(eq(aforceAthleteSoapNotes.id, row.id));
+
+          return toEntry({ ...row, rootId: row.id });
+        });
+        return { entry, replayed: false };
+      } catch (err) {
+        // TWO CONCURRENT RETRIES OF THE SAME ENTRY. Both found no existing
+        // row above and both tried to insert; the unique index decided it.
+        // The loser reads back the winner's note rather than failing —
+        // which is the whole point: a retry must be indistinguishable from
+        // the original, not merely harmless.
+        if (key !== null && isUniqueViolation(err)) {
+          const existing = await findByIdempotencyKey(db, args.programId, key);
+          if (existing) return { entry: existing, replayed: true };
+        }
+        throw err;
+      }
     },
 
     /**
@@ -427,11 +493,61 @@ export function createTrainerDocsRepo(db: Db) {
       authorUserId: string;
       fields: SoapFields;
       amendmentReason: string;
+      idempotencyKey?: string | null;
     }): Promise<
-      | { ok: true; entry: SoapNoteEntry; subjectUserId: string }
+      | { ok: true; entry: SoapNoteEntry; subjectUserId: string; replayed: boolean }
       | { ok: false; reason: "not_found" }
     > {
-      return db.transaction(async (tx) => {
+      const key = args.idempotencyKey ?? null;
+
+      // An amendment is a write like any other and the queue retries it the
+      // same way. Without this, a 500 after a durable amendment produced a
+      // SECOND amendment — version N+1 and N+2 with identical text, and a
+      // chain that reads as though a clinician revised twice.
+      if (key !== null) {
+        const existing = await findByIdempotencyKey(db, args.programId, key);
+        if (existing) {
+          const subjectRows = await db
+            .select({ subjectUserId: aforceAthleteSoapNotes.subjectUserId })
+            .from(aforceAthleteSoapNotes)
+            .where(eq(aforceAthleteSoapNotes.id, existing.id))
+            .limit(1);
+          return {
+            ok: true as const,
+            entry: existing,
+            subjectUserId: subjectRows[0]!.subjectUserId,
+            replayed: true,
+          };
+        }
+      }
+
+      try {
+        return await amendInTransaction();
+      } catch (err) {
+        // Same race as `fileNote`: two retries both got past the pre-check
+        // and both inserted. The unique index decided it; the loser reads
+        // back the winner's amendment rather than failing.
+        if (key !== null && isUniqueViolation(err)) {
+          const existing = await findByIdempotencyKey(db, args.programId, key);
+          if (existing) {
+            const subjectRows = await db
+              .select({ subjectUserId: aforceAthleteSoapNotes.subjectUserId })
+              .from(aforceAthleteSoapNotes)
+              .where(eq(aforceAthleteSoapNotes.id, existing.id))
+              .limit(1);
+            return {
+              ok: true as const,
+              entry: existing,
+              subjectUserId: subjectRows[0]!.subjectUserId,
+              replayed: true,
+            };
+          }
+        }
+        throw err;
+      }
+
+      async function amendInTransaction() {
+       return db.transaction(async (tx) => {
         const found = await tx
           .select(NOTE_COLUMNS)
           .from(aforceAthleteSoapNotes)
@@ -494,6 +610,7 @@ export function createTrainerDocsRepo(db: Db) {
             version: nextVersion,
             supersedesId: args.noteId,
             amendmentReason: args.amendmentReason,
+            idempotencyKey: key,
             ...noteFieldColumns(args.fields),
           })
           .returning(NOTE_COLUMNS);
@@ -505,8 +622,10 @@ export function createTrainerDocsRepo(db: Db) {
           ok: true as const,
           entry: toEntry(inserted[0]!),
           subjectUserId: subjectRows[0]!.subjectUserId,
+          replayed: false,
         };
-      });
+       });
+      }
     },
 
     /** Every version of one note, oldest first. The chain IS the history. */

@@ -67,6 +67,16 @@
 --     trainerConstraints.drizzle.test.ts, written with raw SQL around the
 --     application so the constraint itself is what is under test.
 --
+--   * aforce_athlete_soap_notes_idempotency_uq is a PARTIAL unique index on
+--     (program_id, idempotency_key) WHERE the key is not null. It is what
+--     makes a retried note write idempotent: the write path commits the note
+--     before its audit row, so an audit failure returned 500 on an already
+--     durable note and the retrying outbox filed a second one. Partial,
+--     because notes written by anything other than the queue legitimately
+--     have no key and must not all collide with each other. Proven in
+--     trainerNoteIdempotency.drizzle.test.ts, including six simultaneous
+--     retries producing exactly one note.
+--
 --   * aforce_athlete_soap_notes_chain_idx is UNIQUE on (root_id, version).
 --     Without it, two concurrent amendments both chose version N+1 and both
 --     inserted; `currentNotes` kept one and the other clinician's amendment
@@ -233,6 +243,7 @@ CREATE TABLE public.aforce_athlete_soap_notes (
     assessment_enc bytea,
     plan_enc bytea,
     template_id text,
+    idempotency_key text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT aforce_athlete_soap_notes_amendment_has_reason CHECK (((version = 1) OR ((amendment_reason IS NOT NULL) AND (length(btrim(amendment_reason)) > 0)))),
     CONSTRAINT aforce_athlete_soap_notes_version_positive CHECK ((version >= 1))
@@ -424,6 +435,8 @@ CREATE INDEX aforce_athlete_screenings_lookup_idx ON public.aforce_athlete_scree
 CREATE INDEX aforce_athlete_sessions_lookup_idx ON public.aforce_athlete_sessions USING btree (program_id, athlete_user_id, session_date);
 
 CREATE UNIQUE INDEX aforce_athlete_soap_notes_chain_idx ON public.aforce_athlete_soap_notes USING btree (root_id, version);
+
+CREATE UNIQUE INDEX aforce_athlete_soap_notes_idempotency_uq ON public.aforce_athlete_soap_notes USING btree (program_id, idempotency_key) WHERE (idempotency_key IS NOT NULL);
 
 CREATE INDEX aforce_athlete_soap_notes_subject_idx ON public.aforce_athlete_soap_notes USING btree (program_id, subject_user_id, created_at);
 

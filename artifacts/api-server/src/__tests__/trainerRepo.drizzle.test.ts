@@ -273,7 +273,7 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
     const fields = { subjective: "s1", objective: null, assessment: null, plan: null };
 
     it("files version 1 as its own root", async () => {
-      const note = await docs.fileNote({
+      const { entry: note } = await docs.fileNote({
         programId: PROGRAM,
         subjectUserId: ATHLETE,
         authorUserId: TRAINER_A,
@@ -284,7 +284,7 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
     });
 
     it("an amendment inserts a new version and leaves the prior row untouched", async () => {
-      const first = await docs.fileNote({
+      const { entry: first } = await docs.fileNote({
         programId: PROGRAM,
         subjectUserId: ATHLETE,
         authorUserId: TRAINER_A,
@@ -315,7 +315,7 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
      * surviving in the chart export.
      */
     it("concurrent amendments produce consecutive versions, and lose none", async () => {
-      const first = await docs.fileNote({
+      const { entry: first } = await docs.fileNote({
         programId: PROGRAM,
         subjectUserId: ATHLETE,
         authorUserId: TRAINER_A,
@@ -343,7 +343,7 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
     });
 
     it("the unique index refuses a duplicate version outright", async () => {
-      const first = await docs.fileNote({
+      const { entry: first } = await docs.fileNote({
         programId: PROGRAM,
         subjectUserId: ATHLETE,
         authorUserId: TRAINER_A,
@@ -365,7 +365,7 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
     });
 
     it("currentNotes returns the newest version of each chain and no older one", async () => {
-      const a = await docs.fileNote({
+      const { entry: a } = await docs.fileNote({
         programId: PROGRAM,
         subjectUserId: ATHLETE,
         authorUserId: TRAINER_A,
