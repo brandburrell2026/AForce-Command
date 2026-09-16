@@ -6,6 +6,7 @@ import { af } from '@/theme';
 import {
   ADVANCED_VISUAL_INTELLIGENCE_NAME,
   SKINIA_MEMBER_LABEL,
+  unavailableVisualCheckConsent,
   unavailableVisualCheckResult,
 } from '@/services/advancedVisualIntelligence';
 
@@ -17,6 +18,7 @@ import {
 export function AdvancedVisualIntelligenceScreen() {
   const insets = useSafeAreaInsets();
   const result = unavailableVisualCheckResult();
+  const consent = unavailableVisualCheckConsent();
 
   return (
     <GradientBackground>
@@ -42,6 +44,14 @@ export function AdvancedVisualIntelligenceScreen() {
           <Text style={styles.cardLabel}>CAMERA PERMISSION</Text>
           <Text style={styles.cardBody}>
             If this capability is approved in a future release, you will see a clear explanation and can choose whether to grant camera permission. This screen will never ask for it.
+          </Text>
+        </View>
+
+        <View style={styles.card} accessibilityRole="summary" accessibilityLabel="Future consent checkpoint">
+          <Text style={styles.cardLabel}>FUTURE CONSENT CHECKPOINT</Text>
+          <Text style={styles.unknown}>{consent.stage}</Text>
+          <Text style={styles.cardBody}>
+            Permission: {consent.cameraPermission.replace('_', ' ')}. Data access: {consent.dataAccess.replaceAll('_', ' ')}. Founder and legal approval are required before this can change.
           </Text>
         </View>
 

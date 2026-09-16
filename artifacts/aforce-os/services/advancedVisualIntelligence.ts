@@ -18,6 +18,16 @@ export type VisualCheckResult = {
 };
 
 /**
+ * A display-only consent checkpoint for the unavailable feature. This is not
+ * a stored consent record and cannot request any operating-system permission.
+ */
+export type VisualCheckConsentShell = {
+  stage: 'UNAVAILABLE_PENDING_APPROVAL';
+  cameraPermission: 'NOT_REQUESTED';
+  dataAccess: 'NO_IMAGE_ACCESS';
+};
+
+/**
  * Privacy-safe event definitions for the containment shell. These describe
  * product-surface activity only; they deliberately cannot carry an image,
  * visual feature, result value, device identifier, or health measurement.
@@ -57,6 +67,12 @@ export const UNKNOWN_VISUAL_CHECK_RESULT: VisualCheckResult = Object.freeze({
   reason: 'FEATURE_NOT_APPROVED',
 });
 
+export const UNAVAILABLE_VISUAL_CHECK_CONSENT: VisualCheckConsentShell = Object.freeze({
+  stage: 'UNAVAILABLE_PENDING_APPROVAL',
+  cameraPermission: 'NOT_REQUESTED',
+  dataAccess: 'NO_IMAGE_ACCESS',
+});
+
 /**
  * Contract placeholder for a future device-local quality gate. It accepts no
  * visual input and returns no measurement; legal and founder approvals are
@@ -81,4 +97,8 @@ export interface ReadOnlyVisualContextJoin {
 
 export function unavailableVisualCheckResult(): VisualCheckResult {
   return UNKNOWN_VISUAL_CHECK_RESULT;
+}
+
+export function unavailableVisualCheckConsent(): VisualCheckConsentShell {
+  return UNAVAILABLE_VISUAL_CHECK_CONSENT;
 }
