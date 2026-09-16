@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { edAccent, edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
+import { assessSkinIATechnicalQuality } from '@/services/skiniaTechnicalQuality';
 
-type CaptureState = 'PREPARING' | 'DENIED' | 'READY' | 'CAPTURING' | 'REVIEW' | 'UNAVAILABLE';
+type CaptureState = 'PREPARING' | 'DENIED' | 'READY' | 'CAPTURING' | 'REVIEW' | 'QUALITY_INSUFFICIENT' | 'UNAVAILABLE';
 
 /**
  * Controlled-TestFlight capture surface based on approved Figma node 5:218.
@@ -49,12 +50,11 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       // pictureRef avoids a URI/base64/EXIF payload and does not create a
       // persistent preview asset. This PR only checks technical dimensions.
       const picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 0.45 });
-      const technicallyUsable = picture.width >= 320 && picture.height >= 320;
+      const quality = assessSkinIATechnicalQuality({ cameraReady: ready, width: picture.width, height: picture.height });
       // Explicitly release the native image buffer before any UI transition.
       picture.release();
       // Do not retain the native reference or create a derived member result.
-      void technicallyUsable;
-      if (isLive.current) setState('REVIEW');
+      if (isLive.current) setState(quality.state === 'PASS' ? 'REVIEW' : 'QUALITY_INSUFFICIENT');
     } catch {
       if (isLive.current) setState('UNAVAILABLE');
     }
@@ -63,6 +63,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   if (state === 'DENIED') {
     return <PermissionDenied onExit={onExit} onRequest={() => { void requestPermission(); }} />;
   }
+  if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} />;
   if (state === 'REVIEW') return <Review onExit={onExit} />;
   if (state === 'UNAVAILABLE') return <Unavailable onExit={onExit} />;
 
@@ -99,6 +100,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
 }
 
 function PermissionDenied({ onExit, onRequest }: { onExit: () => void; onRequest: () => void }) { return <StaticState title="Camera access is off." kicker="PERMISSION DENIED" body="SkinIA will not begin a visual check without your explicit camera permission. No image has been captured." action="Enable camera" onAction={onRequest} secondary="Cancel" onSecondary={onExit} />; }
+function QualityInsufficient({ onExit }: { onExit: () => void }) { return <StaticState title="Do not force a result." kicker="CAPTURE QUALITY INSUFFICIENT" body="Status: UNKNOWN. The temporary capture was discarded because its technical conditions were not suitable. No observation was produced." action="Back to SkinIA" onAction={onExit} />; }
 function Review({ onExit }: { onExit: () => void }) { return <StaticState title="Capture cleared." kicker="CAPTURE REVIEW" body="The temporary capture has been discarded. This build does not produce a visual observation until the approved quality and validation gates are complete." action="Back to SkinIA" onAction={onExit} />; }
 function Unavailable({ onExit }: { onExit: () => void }) { return <StaticState title="No visual check available." kicker="UNKNOWN" body="AForce cannot make a reliable visual observation from this image. No image has been retained." action="Back to SkinIA" onAction={onExit} />; }
 function StaticState({ title, kicker, body, action, onAction, secondary, onSecondary }: { title: string; kicker: string; body: string; action: string; onAction: () => void; secondary?: string; onSecondary?: () => void }) { const insets = useSafeAreaInsets(); return <View style={styles.staticScreen}><View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}><View style={styles.furniture}><Text style={styles.wordmark}>AFORCE</Text><Text style={styles.date}>CONTROLLED TESTFLIGHT</Text></View><Text style={styles.kicker}>SKINIA VISUAL CHECK / {kicker}</Text><Text style={styles.title}>{title}</Text><Text style={styles.body}>{body}</Text><Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={styles.action}><Text style={styles.actionLabel}>{action}</Text><Text style={styles.actionPlus}>+</Text></Pressable>{secondary && onSecondary ? <Pressable accessibilityRole="button" accessibilityLabel={secondary} onPress={onSecondary} style={styles.cancel}><Text style={styles.cancelText}>{secondary}</Text></Pressable> : null}<Text style={styles.disclosure}>Visual observations only. SkinIA does not diagnose conditions or measure hydration.</Text><View style={styles.footer}><View style={styles.rule} /><View style={styles.footerRow}><Text style={styles.footerText}>AFORCE OS</Text><Text style={styles.footerText}>02 / SCAN</Text></View></View></View></View>; }
