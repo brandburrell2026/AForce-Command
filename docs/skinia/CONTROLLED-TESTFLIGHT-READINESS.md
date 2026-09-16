@@ -13,10 +13,18 @@ release decision, or authorization to emit a live observation.
   consent-withdrawn UI shells.
 - A static internal presentation fixture; it is not connected to a member route or data source.
 - Pure quality, baseline, and ephemeral-cleanup contracts that default to non-results.
+- A controlled native capture surface for the entitled internal cohort. It requests camera
+  permission only after the member acknowledges the consent explanation and explicitly chooses
+  to enable the camera.
+- A metadata-only technical quality gate. It checks capture dimensions and aspect ratio, then
+  releases the native temporary buffer before a reviewed non-result state. It does not inspect
+  pixels or extract a visual feature.
 
-No shipped component in this scope requests camera permission, opens a camera, accepts visual
-data, creates a file, stores a raw image, invokes a model, sends a network request, or emits a
-live SkinIA observation.
+The controlled capture surface does not create a file, URI, base64 payload, EXIF record,
+persistent image, model call, upload, network request, analytics payload, or live SkinIA
+observation. On the reviewed capture path, a temporary native capture reference exists only long
+enough to read its dimensions and is explicitly released before the member sees either the review
+or quality-insufficient non-result state.
 
 ## Required controlled-TestFlight configuration
 
@@ -45,6 +53,11 @@ record.
 - [ ] An internal TestFlight build with a non-entitled member cannot enter SkinIA.
 - [ ] An entitled internal tester sees the consent and privacy explanation.
 - [ ] Consent acknowledgement does not request an OS permission or start a check.
+- [ ] The OS camera prompt appears only after the entitled tester chooses **Enable camera**.
+- [ ] A successful capture releases the temporary native buffer before the review state appears;
+      the state says that no visual observation was created.
+- [ ] A capture with unsuitable technical metadata releases the same buffer and reaches
+      `CAPTURE_QUALITY_INSUFFICIENT` rather than a review or observation state.
 - [ ] Permission-denied, quality-insufficient, no-comparable-baseline, and consent-withdrawn
       surfaces remain plain-language non-result states.
 - [ ] The static results fixture is unreachable from member navigation.
@@ -79,6 +92,7 @@ not replace legal or scientific review and does not change the public-release lo
 
 Raw images have zero persistent retention. They must not enter storage, databases, logs,
 analytics, caches, backups, crash reports, observability, training, or identity/biometric systems.
-For every success, failure, timeout, cancellation, consent withdrawal, or abandonment path, a
-future implementation must delete the temporary raw image immediately and produce no result until
-the relevant admission gate is met.
+The controlled capture implementation uses a native temporary capture reference only; it has no
+serialized image representation and is released after metadata assessment. Future paths for
+timeout, cancellation, consent withdrawal, or abandonment must provide the same immediate release
+guarantee and produce no result until the relevant admission gate is met.
