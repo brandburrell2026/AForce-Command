@@ -85,8 +85,12 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/** One-shot marker: which userId claimed the legacy global keys. */
-export const MIGRATION_CLAIMED_BY_KEY = 'aforce.namespaceMigration.claimedBy';
+/**
+ * Evidence that this handset still contains records from the pre-isolation
+ * global namespace. It deliberately contains no member identifier: legacy
+ * bytes cannot be reliably attributed to the next person who signs in.
+ */
+export const LEGACY_DATA_QUARANTINED_KEY = 'aforce.namespaceMigration.quarantined';
 
 /**
  * Legacy GLOBAL AsyncStorage keys migrated into the claiming user's
@@ -522,33 +526,22 @@ export function isScopeIsolationEnabled(): boolean {
   return isolationEnabled;
 }
 
-async function migrateLegacyGlobals(userId: string): Promise<void> {
+async function migrateLegacyGlobals(_userId: string): Promise<void> {
   try {
-    const claimedBy = await AsyncStorage.getItem(MIGRATION_CLAIMED_BY_KEY);
-    if (claimedBy !== null && claimedBy !== userId) return; // later user: never claims
+    // Fail closed: the old global namespace is not attributable to the member
+    // who happens to sign in first after the isolation cutover. Keep the bytes
+    // untouched for a future, explicitly-authorized recovery process and mark
+    // their presence without recording a member identity.
+    let hasLegacyData = false;
     for (const base of MIGRATED_GLOBAL_KEYS) {
-      const scoped = `${base}:${userId}`;
-      const [existingScoped, legacy] = await Promise.all([
-        AsyncStorage.getItem(scoped),
-        AsyncStorage.getItem(base),
-      ]);
-      if (legacy === null) continue;
-      // Copy-then-delete; delete only after the scoped write succeeds
-      // (the secureKV migration contract). Keys in RETAIN_GLOBAL_COPY are
-      // copied WITHOUT deletion — the global record is preserved evidence.
-      if (existingScoped === null) await AsyncStorage.setItem(scoped, legacy);
-      if (!RETAIN_GLOBAL_COPY.has(base)) await AsyncStorage.removeItem(base);
+      if ((await AsyncStorage.getItem(base)) !== null) hasLegacyData = true;
     }
-    // The FIRST user ever scoped on this device claims the legacy
-    // namespace outright — even when no legacy keys existed — so a later
-    // account can never claim leftovers (incl. the secureKV read-through
-    // in scopedStorage, which consults this marker).
-    if (claimedBy === null) {
-      await AsyncStorage.setItem(MIGRATION_CLAIMED_BY_KEY, userId);
+    if (hasLegacyData) {
+      await AsyncStorage.setItem(LEGACY_DATA_QUARANTINED_KEY, '1');
     }
   } catch {
-    // Migration is best-effort: a failure leaves legacy keys in place for
-    // the next attempt; scoped reads simply see empty until then.
+    // Quarantine detection is best-effort. A failure never permits a claim;
+    // scoped reads remain empty until a member writes their own data.
   }
 }
 

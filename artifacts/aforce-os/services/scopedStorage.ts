@@ -55,8 +55,6 @@ import {
   migrationSettled,
   ScopeUnavailableError,
   ScopeChangedError,
-  MIGRATION_CLAIMED_BY_KEY,
-  getUserScopeSuffix,
 } from './userScope';
 import { captureScope, isScopeCurrent } from './scopedWriteQueue';
 
@@ -150,20 +148,12 @@ export const scopedSecureKV = {
       if (!isScopeCurrent(token)) throw new ScopeChangedError();
       return scoped;
     }
-    // Read-through migration for the claiming scope: scoped miss + global
-    // hit → move under the scoped key. FIRST-USER-CLAIMS — the founder has
-    // ruled this must go; it is deleted in the cutover PR, together with
-    // `migrateLegacyGlobals`, and is left byte-identical here because PR A
-    // moves no data.
-    const claimedBy = await AsyncStorage.getItem(MIGRATION_CLAIMED_BY_KEY);
-    if (claimedBy !== getUserScopeSuffix()) return null;
-    const legacy = await secure.getItem(base);
-    if (legacy !== null) {
-      await secure.setItem(key, legacy);
-      await secure.removeItem(base);
-    }
+    // Never read through the legacy global secure key. Those bytes cannot be
+    // attributed to the member who signs in first after isolation is enabled.
+    // Leaving them untouched is intentional; the member sees only their own
+    // scoped record until an explicitly-authorized recovery path exists.
     if (!isScopeCurrent(token)) throw new ScopeChangedError();
-    return legacy;
+    return null;
   },
   async setItem(base: string, value: string): Promise<void> {
     const key = await resolveKey(base, '.');
