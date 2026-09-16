@@ -52,9 +52,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 28,
+    columnGap: 16,
     rowGap: 18,
-    marginTop: 22,
+    marginTop: 28,
   },
-  cell: { minWidth: 72 },
+  cell: { flexGrow: 1, minWidth: 82 },
 });

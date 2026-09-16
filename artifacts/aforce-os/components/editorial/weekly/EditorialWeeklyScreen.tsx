@@ -292,6 +292,67 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             </View>
           ) : null}
 
+          {/* Weekly timeline — this is the visual centre of the report. It is
+              intentionally an observed hydration series, not an invented
+              composite score: each column preserves the model's measured or
+              unmeasured state. D1: height carries the reading; hue does not. */}
+          {model.timeline.length > 0 ? (
+            <View style={styles.signalSection} testID="editorial-weekly-timeline">
+              <EdCaption text={t('reports.v3.timeline_label')} />
+              <View style={styles.timeline}>
+                {model.timeline.map((d) => {
+                  // A day HydroState never observed keeps its column but draws
+                  // no bar and speaks "no reading" — the Editorial
+                  // truthful-neutral rule (an unmeasured value is the em-dash,
+                  // never a fabricated zero) applied to the timeline. Drawing
+                  // the server's sentinel would give a silent day a real,
+                  // readable height.
+                  const unmeasured = d.score == null;
+                  return (
+                    <View
+                      key={d.date}
+                      accessible
+                      accessibilityLabel={
+                        unmeasured
+                          ? t('reports.v3.timeline_day_unmeasured_a11y', {
+                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
+                              date: featureShortDate(d.date, i18n.language) ?? d.date,
+                            })
+                          : t('reports.v3.timeline_day_a11y', {
+                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
+                              date: featureShortDate(d.date, i18n.language) ?? d.date,
+                              score: d.score,
+                            })
+                      }
+                      style={styles.timelineDay}
+                      testID={`editorial-weekly-timeline-${d.date}`}
+                    >
+                      <View style={[styles.timelineTrack, { backgroundColor: ink.raised }]}>
+                        {unmeasured ? null : (
+                          <>
+                            <View style={{ flex: Math.max(0.02, 1 - Math.min(100, d.score!) / 100) }} />
+                            <View
+                              style={[
+                                styles.timelineFill,
+                                {
+                                  flex: Math.max(0.1, Math.min(100, d.score!) / 100),
+                                  backgroundColor: ink.primary,
+                                },
+                              ]}
+                            />
+                          </>
+                        )}
+                      </View>
+                      <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                        {t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`)}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
           {/* The pull numbers — streak beside honest em dashes. */}
           <EdFeatureNumbers
             numbers={[
@@ -462,66 +523,6 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             </View>
           ) : null}
 
-          {/* Weekly timeline — omitted rather than drawn empty. D1: the band
-              accent is withheld on paper; height carries the score and the
-              composed label speaks it. */}
-          {model.timeline.length > 0 ? (
-            <View style={styles.section} testID="editorial-weekly-timeline">
-              <EdCaption text={t('reports.v3.timeline_label')} />
-              <View style={styles.timeline}>
-                {model.timeline.map((d) => {
-                  // A day HydroState never observed keeps its column but draws
-                  // no bar and speaks "no reading" — the Editorial
-                  // truthful-neutral rule (an unmeasured value is the em-dash,
-                  // never a fabricated zero) applied to the timeline. Drawing
-                  // the server's sentinel would give a silent day a real,
-                  // readable height.
-                  const unmeasured = d.score == null;
-                  return (
-                    <View
-                      key={d.date}
-                      accessible
-                      accessibilityLabel={
-                        unmeasured
-                          ? t('reports.v3.timeline_day_unmeasured_a11y', {
-                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
-                              date: featureShortDate(d.date, i18n.language) ?? d.date,
-                            })
-                          : t('reports.v3.timeline_day_a11y', {
-                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
-                              date: featureShortDate(d.date, i18n.language) ?? d.date,
-                              score: d.score,
-                            })
-                      }
-                      style={styles.timelineDay}
-                      testID={`editorial-weekly-timeline-${d.date}`}
-                    >
-                      <View style={styles.timelineTrack}>
-                        {unmeasured ? null : (
-                          <>
-                            <View style={{ flex: Math.max(0.02, 1 - Math.min(100, d.score!) / 100) }} />
-                            <View
-                              style={[
-                                styles.timelineFill,
-                                {
-                                  flex: Math.max(0.1, Math.min(100, d.score!) / 100),
-                                  backgroundColor: ink.primary,
-                                },
-                              ]}
-                            />
-                          </>
-                        )}
-                      </View>
-                      <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-                        {t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`)}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-
           {/* The kicker carries the week's one instruction — the canonical
               next-week focus, verbatim through sectionSummary. This surface
               authors no instruction of its own (DR-013). */}
@@ -552,6 +553,7 @@ const styles = StyleSheet.create({
   },
   spacedRule: { marginTop: 24 },
   section: { marginTop: 28 },
+  signalSection: { marginTop: 28 },
   evidence: { marginTop: 10 },
   paRow: {
     flexDirection: 'row',
@@ -576,7 +578,13 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   timelineDay: { flex: 1, alignItems: 'center', rowGap: 6 },
-  timelineTrack: { height: 56, width: '100%', justifyContent: 'flex-end' },
-  timelineFill: { width: '100%' },
+  timelineTrack: {
+    height: 76,
+    width: '100%',
+    justifyContent: 'flex-end',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  timelineFill: { width: '100%', borderRadius: 4 },
   folio: { marginTop: 30 },
 });
