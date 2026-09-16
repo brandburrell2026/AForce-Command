@@ -469,7 +469,10 @@ export const styles = StyleSheet.create({
 
   root: { flex: 1, backgroundColor: af.canvas },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, gap: 14 },
+  // Figma-approved calculator register: compact instrument spacing and
+  // hairline-contained data surfaces. Values and interaction contracts stay
+  // entirely in SweatCalculatorScreenV2 / the calculation engine.
+  content: { paddingHorizontal: 20, gap: 12 },
 
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 },
   backBtn: {
@@ -481,19 +484,19 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   eyebrow: {
-    color: af.cyan,
-    fontSize: 11,
-    letterSpacing: 1.4,
-    fontFamily: Typography.fonts.bold,
+    color: af.redText,
+    fontSize: 10,
+    letterSpacing: 1.6,
+    fontFamily: Typography.roles.mono,
   },
-  title: { color: af.textPrimary, fontSize: 26, fontFamily: Typography.fonts.bold, letterSpacing: -0.4 },
-  subhead: { color: af.textSecondary, fontSize: 13, lineHeight: 18 },
+  title: { color: af.textPrimary, fontSize: 24, fontFamily: Typography.fonts.bold, letterSpacing: -0.5 },
+  subhead: { color: af.textSecondary, fontSize: 13, lineHeight: 19 },
 
   snapshotCard: {
     backgroundColor: af.surface,
-    borderRadius: 16,
+    borderRadius: 8,
     borderWidth: 1,
-    padding: 16,
+    padding: 14,
     gap: 12,
   },
   snapshotHeaderRow: {
@@ -561,19 +564,21 @@ export const styles = StyleSheet.create({
   segment: {
     flexDirection: 'row',
     backgroundColor: af.surface,
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: af.divider,
+    padding: 3,
+    gap: 3,
   },
-  segmentBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 9 },
+  segmentBtn: { flex: 1, paddingVertical: 9, alignItems: 'center', borderRadius: 6 },
   segmentBtnActive: { backgroundColor: af.surfaceRaised },
   segmentText: { color: af.textSecondary, fontSize: 13, fontFamily: Typography.fonts.semibold, letterSpacing: 0.4 },
   segmentTextActive: { color: af.textPrimary },
 
   card: {
     backgroundColor: af.surface,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 8,
+    padding: 14,
     borderWidth: 1,
     borderColor: af.divider,
     gap: 10,
