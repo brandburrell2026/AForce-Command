@@ -49,6 +49,16 @@ import {
   type BoardFilters,
 } from "@/utils/trainerBoard";
 
+/**
+ * Phase 7: "Touch targets >= 48px. Works with tape or gloves."
+ *
+ * `afLayout.controlMinHeight` is 44, the iOS minimum. A gloved or taped hand
+ * on a sideline is not the iOS minimum's use case, so this surface uses 48
+ * throughout. Not a new design token — a local floor for one surface, with
+ * the reason attached.
+ */
+const TRAINER_TOUCH_MIN = 48;
+
 const AVAILABILITY_OPTIONS: Availability[] = ["available", "limited", "out"];
 
 const AVAILABILITY_LABEL: Record<Availability, string> = {
@@ -74,6 +84,14 @@ export interface TrainerBoardScreenProps {
   onChangeAvailability?: (athleteUserId: string, status: Availability) => void;
   /** One tap from a row to the record — inside the brief's 2-tap budget. */
   onOpenAthlete?: (athleteUserId: string) => void;
+  /**
+   * What the outbox currently holds. Rendered verbatim: the indicator states
+   * queue state and nothing else, because this app has no connectivity signal
+   * and a green tick would be a claim nothing can back.
+   */
+  syncLabel?: string;
+  syncNeedsAttention?: boolean;
+  onPressSync?: () => void;
 }
 
 interface RowProps {
@@ -144,6 +162,9 @@ export default function TrainerBoardScreen({
   ambientMeasured = false,
   onChangeAvailability,
   onOpenAthlete,
+  syncLabel,
+  syncNeedsAttention = false,
+  onPressSync,
 }: TrainerBoardScreenProps) {
   const insets = useSafeAreaInsets();
   const [filters, setFilters] = useState<BoardFilters>({});
@@ -222,6 +243,19 @@ export default function TrainerBoardScreen({
           />
         </View>
       </View>
+
+      {syncLabel ? (
+        <Pressable
+          accessibilityRole={onPressSync ? "button" : "text"}
+          accessibilityLabel={syncLabel}
+          onPress={onPressSync}
+          style={[styles.syncBar, syncNeedsAttention && styles.syncBarAttention]}
+        >
+          <Text style={[styles.syncText, syncNeedsAttention && styles.syncTextAttention]}>
+            {syncLabel}
+          </Text>
+        </Pressable>
+      ) : null}
 
       <FlatList
         data={data}
@@ -332,7 +366,7 @@ const styles = StyleSheet.create({
   venue: { ...afType.caption, color: af.textSecondary, marginTop: afLayout.cardGap },
   filterRow: { flexDirection: "row", flexWrap: "wrap", marginTop: afLayout.cardGap },
   filterChip: {
-    minHeight: afLayout.controlMinHeight,
+    minHeight: TRAINER_TOUCH_MIN,
     justifyContent: "center",
     paddingHorizontal: 14,
     marginRight: 8,
@@ -344,6 +378,17 @@ const styles = StyleSheet.create({
   filterChipActive: { borderColor: af.red, backgroundColor: af.redDim },
   filterChipText: { ...afType.tab, color: af.textSecondary },
   filterChipTextActive: { color: af.textPrimary },
+
+  syncBar: {
+    minHeight: TRAINER_TOUCH_MIN,
+    justifyContent: "center",
+    paddingHorizontal: afLayout.screenPaddingX,
+    borderBottomWidth: afLayout.hairline,
+    borderBottomColor: af.divider,
+  },
+  syncBarAttention: { backgroundColor: af.redDim },
+  syncText: { ...afType.tab, color: af.textSecondary },
+  syncTextAttention: { color: af.redText },
 
   row: {
     paddingHorizontal: afLayout.screenPaddingX,
@@ -364,7 +409,7 @@ const styles = StyleSheet.create({
   command: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
   statusChip: {
     alignSelf: "flex-start",
-    minHeight: afLayout.controlMinHeight,
+    minHeight: TRAINER_TOUCH_MIN,
     justifyContent: "center",
     paddingHorizontal: 14,
     marginTop: afLayout.cardGap,
@@ -375,7 +420,7 @@ const styles = StyleSheet.create({
   statusChipText: { ...afType.tab },
 
   clearRow: {
-    minHeight: afLayout.controlMinHeight,
+    minHeight: TRAINER_TOUCH_MIN,
     justifyContent: "center",
     paddingHorizontal: afLayout.screenPaddingX,
     paddingVertical: afLayout.cardPadding,

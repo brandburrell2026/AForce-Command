@@ -188,3 +188,32 @@ describe("the athlete record (Phase 3)", () => {
     expect(recordScreenCode).not.toContain("react-native-chart");
   });
 });
+
+describe("hardware reality and the sync indicator (Phase 7)", () => {
+  it("uses a 48pt touch floor, above the 44pt iOS minimum", () => {
+    // The brief asks for >= 48px because a gloved or taped hand is not the
+    // iOS minimum's use case.
+    expect(screenCode).toContain("TRAINER_TOUCH_MIN = 48");
+    expect(screenCode).not.toContain("minHeight: afLayout.controlMinHeight");
+  });
+
+  it("renders the sync label verbatim from the queue", () => {
+    expect(screenCode).toContain("syncLabel");
+    expect(route).toContain("syncSummary");
+  });
+
+  it("never renders a connectivity claim the app cannot back", () => {
+    // No NetInfo ships in this repo, so any "online"/"offline"/"synced"
+    // wording on this surface would be an assertion with nothing behind it.
+    for (const claim of ["You are offline", "Back online", "All synced", "Up to date"]) {
+      expect(screen).not.toContain(claim);
+    }
+  });
+
+  it("puts a status change through the outbox, not straight into local state", () => {
+    // A tap that only mutates screen state is lost on reload. The queue is
+    // what survives, so the write goes there first.
+    expect(route).toContain("enqueue(");
+    expect(route).toContain("applyPendingAvailability");
+  });
+});

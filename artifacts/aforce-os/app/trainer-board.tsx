@@ -25,8 +25,17 @@ import { FeatureGate } from "@/components/FeatureGate";
 import { af, afLayout, afType } from "@/theme/afTokens";
 import { useFeatureFlags } from "@/store/useAppStore";
 import { buildTrainerDemoRoster } from "@/data/trainerDemoSeed";
+import { applyPendingAvailability } from "@/utils/trainerBoardCache";
+import {
+  enqueue,
+  syncSummary,
+  type OutboxItem,
+} from "@/utils/trainerOutbox";
 import TrainerBoardScreen from "@/screens/TrainerBoardScreen";
 import type { Availability, BoardAthlete } from "@/utils/trainerBoard";
+
+/** Placeholder until a trainer session carries a real program id. */
+const DEMO_PROGRAM_ID = "demo_program";
 
 export default function TrainerBoardRoute() {
   const router = useRouter();
@@ -38,16 +47,52 @@ export default function TrainerBoardRoute() {
     [seedEnabled],
   );
   const [athletes, setAthletes] = useState<BoardAthlete[]>(initial);
+  /**
+   * The outbox. Local-first: a tap lands here first and the board reflects it
+   * immediately, whether or not anything can be sent. Phase 7's flush loop
+   * binds this to AsyncStorage and the API; the queue shape is what the
+   * screen needs and is already proven by the unit suite.
+   */
+  const [queue, setQueue] = useState<OutboxItem[]>([]);
 
   // Keep the list in step when the seed flag flips at runtime (developer
   // toggle) without dropping edits made since mount.
   React.useEffect(() => setAthletes(initial), [initial]);
 
   const onChangeAvailability = useCallback((athleteUserId: string, status: Availability) => {
-    setAthletes((prev) =>
-      prev.map((a) => (a.athleteUserId === athleteUserId ? { ...a, availability: status } : a)),
+    const now = Date.now();
+    setQueue((prev) =>
+      enqueue(prev, {
+        id: `avail_${athleteUserId}_${now}`,
+        kind: "availability",
+        athleteUserId,
+        programId: DEMO_PROGRAM_ID,
+        payload: { status },
+        baseVersion: null,
+        createdAtMs: now,
+      }),
     );
   }, []);
+
+  // The queue is the source of truth for anything unsent, so an entry made
+  // with no signal is visible on the row the moment it is made.
+  const pendingAvailability = useMemo(
+    () =>
+      queue
+        .filter((q) => q.kind === "availability" && q.state !== "synced")
+        .map((q) => ({
+          athleteUserId: q.athleteUserId,
+          status: String((q.payload as { status?: unknown }).status ?? ""),
+        })),
+    [queue],
+  );
+
+  const shown = useMemo(
+    () => applyPendingAvailability(athletes, pendingAvailability),
+    [athletes, pendingAvailability],
+  );
+
+  const summary = useMemo(() => syncSummary(queue), [queue]);
 
   return (
     <View style={styles.screen}>
@@ -58,11 +103,13 @@ export default function TrainerBoardRoute() {
         accentColor={af.red}
       >
         <TrainerBoardScreen
-          athletes={athletes}
+          athletes={shown}
           heatIndexF={null}
           ambientMeasured={false}
           onChangeAvailability={onChangeAvailability}
           onOpenAthlete={(athleteUserId) => router.push(`/trainer-athlete/${athleteUserId}`)}
+          syncLabel={summary.label}
+          syncNeedsAttention={summary.needsAttention}
         />
         {seedEnabled ? null : (
           <View style={styles.emptyNote}>
