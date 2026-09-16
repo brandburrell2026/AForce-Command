@@ -14,7 +14,10 @@ export type FlagKey =
   | 'kill.voice_overlay'
   | 'degrade.home_payload'
   | 'feature.team_share_cards'
-  | 'feature.heat_save_share';
+  | 'feature.heat_save_share'
+  // Trainer surface (Phase 1). Default OFF: the routes 404 until a founder
+  // decision turns them on, which is also what a non-member sees.
+  | 'feature.trainer_api';
 
 const DEFAULTS: Record<FlagKey, boolean> = {
   'kill.ai_router':           false,
@@ -24,6 +27,7 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   'degrade.home_payload':     false,
   'feature.team_share_cards': false,
   'feature.heat_save_share':  true,
+  'feature.trainer_api':      false,
 };
 
 const overrides = new Map<FlagKey, boolean>();
