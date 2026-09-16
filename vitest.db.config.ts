@@ -50,6 +50,11 @@ export default defineConfig({
       // failure mode is a setting present in source and absent in the
       // database.
       'artifacts/api-server/src/__tests__/poolStatementTimeout.drizzle.test.ts',
+      // Proves each CHECK constraint refuses the bad row, by writing it with
+      // raw SQL around every application validation. Through the code that
+      // validates, they all pass — which is why this is the only way to test
+      // a constraint.
+      'artifacts/api-server/src/__tests__/trainerConstraints.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/trainerRepo.drizzle.test.ts',
       // Guards the board's O(1) query count. Fast by design — small rosters,
       // because the property is CONSTANT, not fast. The figures come from

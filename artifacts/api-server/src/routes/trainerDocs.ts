@@ -424,11 +424,13 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
       }
 
       try {
-        const [questionnaires, screenings, noteVersions, auditTrail] = await Promise.all([
+        const [questionnaires, screenings, noteVersions, auditTrail, auditTrailTotal] =
+          await Promise.all([
           docs.questionnaires(access.programId, athleteId),
           docs.screenings(access.programId, athleteId),
           docs.allNoteVersions(access.programId, athleteId),
           repo.accessTrail(access.programId, athleteId),
+          repo.accessTrailCount(access.programId, athleteId),
         ]);
 
         const exportedAt = new Date().toISOString();
@@ -442,6 +444,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
             screenings,
             noteVersions,
             auditTrail,
+            auditTrailTotal,
           }),
         );
 

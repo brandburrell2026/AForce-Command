@@ -25,7 +25,8 @@
  * plaintext.
  */
 
-import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, check, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
 
 /** Postgres `bytea`, declared the same way `schema/aforce.ts` declares it. */
 const customBytea = customType<{ data: Uint8Array; driverData: Buffer }>({
@@ -150,6 +151,14 @@ export const aforceAthleteSoapNotes = pgTable(
     // to serialize them, and this index is the backstop that makes the
     // failure impossible rather than unlikely.
     uniqueIndex("aforce_athlete_soap_notes_chain_idx").on(t.rootId, t.version),
+    // "An amendment must say why" is the rule the whole append-only design
+    // rests on, and it lived in one `if` at one route. Version 1 is the
+    // original and has no reason; every later version must carry one.
+    check(
+      "aforce_athlete_soap_notes_amendment_has_reason",
+      sql`${t.version} = 1 or (${t.amendmentReason} is not null and length(btrim(${t.amendmentReason})) > 0)`,
+    ),
+    check("aforce_athlete_soap_notes_version_positive", sql`${t.version} >= 1`),
   ],
 );
 
@@ -179,6 +188,13 @@ export const aforceAthleteSessions = pgTable(
     programId: text("program_id").notNull(),
     athleteUserId: text("athlete_user_id").notNull(),
     /** Local calendar day the session counts for, `YYYY-MM-DD`. */
+    /**
+     * A CALENDAR-DAY LABEL in the program's own locale — `YYYY-MM-DD`, text,
+     * never a timestamp. A session at 11pm on a Tuesday in Honolulu is
+     * Tuesday's session, whatever instant that was in UTC. Load windows do
+     * arithmetic on these labels and never convert them; see
+     * `utils/trainerLoad.ts`.
+     */
     sessionDate: text("session_date").notNull(),
     /** Session RPE, 1-10, as reported by the athlete to staff. */
     rpe: integer("rpe").notNull(),
@@ -190,6 +206,16 @@ export const aforceAthleteSessions = pgTable(
   },
   (t) => [
     index("aforce_athlete_sessions_lookup_idx").on(t.programId, t.athleteUserId, t.sessionDate),
+    // The same bounds the route already validates. Duplicated here on
+    // purpose: the route protects a request, the constraint protects the
+    // TABLE — from a backfill, an import, or a second writer that never
+    // passes through the route at all. An RPE of 400 is not a number anyone
+    // should have to reason about downstream.
+    check("aforce_athlete_sessions_rpe_range", sql`${t.rpe} between 1 and 10`),
+    check(
+      "aforce_athlete_sessions_duration_range",
+      sql`${t.durationMin} between 1 and 600`,
+    ),
   ],
 );
 

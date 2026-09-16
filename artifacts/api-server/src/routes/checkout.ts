@@ -373,7 +373,7 @@ router.post('/checkout/session', requireAuth, checkoutLimiter, async (req: Reque
     }
     res.json({ url: session.url, sessionId: session.id });
   } catch (err) {
-    logger.error({ err, planId }, 'Stripe checkout session creation failed');
+    logger.error({ err: serializeError(err), planId }, 'Stripe checkout session creation failed');
     // Don't echo upstream error text to clients — log server-side, return generic.
     res.status(500).json({ error: 'Could not start checkout. Please try again.' });
   }
@@ -566,7 +566,7 @@ router.get('/checkout/session/:id', requireAuth, checkoutLimiter, async (req: Re
       planId: (session.metadata?.['planId'] as string | undefined) ?? null,
     });
   } catch (err) {
-    logger.error({ err, id }, 'Stripe session retrieval failed');
+    logger.error({ err: serializeError(err), id }, 'Stripe session retrieval failed');
     res.status(404).json({ error: 'Session not found' });
   }
 });

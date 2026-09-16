@@ -103,6 +103,9 @@ function fakeRepo(): TrainerRepo {
         },
       ];
     },
+    async accessTrailCount() {
+      return (await this.accessTrail()).length;
+    },
     async logAccess(entry) {
       state.log.push(entry);
     },

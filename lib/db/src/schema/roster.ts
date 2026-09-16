@@ -30,7 +30,8 @@
  * redaction layer; it does not copy them.
  */
 
-import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, check, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** A team / program. The tenancy root for every table below. */
 export const aforcePrograms = pgTable("aforce_programs", {
@@ -81,6 +82,19 @@ export const aforceProgramMembers = pgTable(
     index("aforce_program_members_program_role_idx").on(t.programId, t.role, t.status),
     // Reverse lookup: which programs is this actor staff for?
     index("aforce_program_members_user_idx").on(t.userId, t.status),
+    // The role vocabulary is parsed fail-closed at the API edge
+    // (`parseProgramRole`), which protects every request and nothing else. A
+    // row written by a seed or an import with a role nobody recognises is
+    // refused at read time with a 403 — correct, and a support call rather
+    // than a constraint violation someone sees immediately.
+    check(
+      "aforce_program_members_role_enum",
+      sql`${t.role} in ('athletic_trainer', 'team_physician', 'strength', 'coach', 'program_admin', 'athlete')`,
+    ),
+    check(
+      "aforce_program_members_status_enum",
+      sql`${t.status} in ('active', 'removed')`,
+    ),
   ],
 );
 
@@ -212,6 +226,13 @@ export const aforceAthleteAvailability = pgTable(
   },
   (t) => [
     index("aforce_athlete_availability_current_idx").on(t.programId, t.athleteUserId, t.createdAt),
+    // The vocabulary lived only in `parseAvailabilityStatus` at the route. A
+    // seed script, a backfill or a second writer could put anything here,
+    // and the board would then render a status no projection knows about.
+    check(
+      "aforce_athlete_availability_status_enum",
+      sql`${t.status} in ('available', 'limited', 'out')`,
+    ),
   ],
 );
 

@@ -33,6 +33,7 @@ import { incCounter } from "../observability/metrics";
 import { resolveEntitlement } from "../lib/entitlementResolver";
 import { FEATURE_MIN_PLAN, planGrantsFeature } from "../lib/featureEntitlements";
 import { logger } from "../lib/logger";
+import { serializeError } from "../lib/serializeError";
 
 export function requireEntitlement(featureId: string): RequestHandler {
   return async (req, res, next) => {
@@ -60,7 +61,10 @@ export function requireEntitlement(featureId: string): RequestHandler {
       status = resolved.status;
     } catch (err) {
       // Lookup failure NEVER falls open.
-      logger.error({ err, featureId }, "requireEntitlement: lookup failed; denying");
+      logger.error(
+        { err: serializeError(err), featureId },
+        "requireEntitlement: lookup failed; denying",
+      );
       incCounter("entitlement_failures.503_lookup");
       res.status(503).json({ error: "entitlement_unavailable" });
       return;
