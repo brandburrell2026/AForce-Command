@@ -74,6 +74,14 @@ const MODULES: ModuleEntry[] = [
     tint: '#00E5FF',
   },
   {
+    id: 'trainer',
+    title: 'Trainer Board',
+    blurb: 'Morning board · who needs you first',
+    href: '/trainer-board',
+    icon: 'clipboard',
+    tint: Colors.accent.brand,
+  },
+  {
     id: 'guardian',
     title: 'Guardian',
     blurb: 'Heat-load watcher · environmental recovery',

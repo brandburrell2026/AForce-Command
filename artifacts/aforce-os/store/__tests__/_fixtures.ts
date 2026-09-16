@@ -90,6 +90,8 @@ export const baseEngine = makeEngine();
 export const baseUser = makeUserState();
 
 export const baseFlags: FeatureFlags = {
+  trainer_board_enabled: false,
+  trainer_demo_seed_enabled: false,
   elite_home_experience_enabled: false,
   editorial_home_enabled: false,
   editorial_moments_enabled: false,

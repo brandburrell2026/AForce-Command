@@ -25,6 +25,10 @@ import analyticsAdminRouter from "./analyticsAdmin";
 import commandCenterAdminRouter from "./commandCenterAdmin";
 import adminMetricsRouter from "./adminMetrics";
 import skiniaAccessRouter from "./skiniaAccess";
+import { trainerRouter } from "./trainer";
+import { trainerDocsRouter } from "./trainerDocs";
+import { trainerRtpRouter } from "./trainerRtp";
+import { trainerReportRouter } from "./trainerReport";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -205,6 +209,15 @@ router.use(commandCenterAdminRouter);
 router.use(adminMetricsRouter);
 // DR-015: read-only cohort entitlement check. No image route is mounted.
 router.use("/skinia", skiniaAccessRouter);
+// Trainer surface (Phase 1). Behind `feature.trainer_api`, default OFF — every
+// route 404s until it is turned on, matching what a non-member sees.
+router.use("/trainer", trainerRouter);
+// Phase 4 documentation routes share the /trainer path and the same flag.
+router.use("/trainer", trainerDocsRouter);
+// Phase 6 return-to-play, same path and same flag.
+router.use("/trainer", trainerRtpRouter);
+// Phase 8 coach handoff — the one artefact on this surface safe to circulate.
+router.use("/trainer", trainerReportRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the
