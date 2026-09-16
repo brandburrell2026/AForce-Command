@@ -6,8 +6,8 @@
  * acquire, process, retain, or transmit images.
  */
 import { useEffect, useState } from 'react';
+import { useAuth } from '@clerk/expo';
 import { API_BASE } from '@/lib/apiBase';
-import { getAuthHeaders } from './authToken';
 
 export type SkinIACohortAccess =
   | { status: 'CHECKING' }
@@ -26,9 +26,13 @@ export function isSkinIAAccessAllowed(input: {
     && input.cohort.status === 'GRANTED';
 }
 
-async function fetchSkinIACohortAccess(): Promise<SkinIACohortAccess> {
+async function fetchSkinIACohortAccess(
+  getToken: () => Promise<string | null>,
+): Promise<SkinIACohortAccess> {
   try {
-    const headers = await getAuthHeaders();
+    const token = await getToken();
+    if (!token) return { status: 'DENIED', reason: 'UNAUTHENTICATED' };
+    const headers = { Authorization: `Bearer ${token}` };
     const response = await fetch(`${API_BASE}/skinia/access`, { headers });
     if (!response.ok) return { status: 'DENIED', reason: 'ACCESS_UNAVAILABLE' };
     const body = (await response.json()) as { authorized?: boolean; reason?: string };
@@ -41,6 +45,7 @@ async function fetchSkinIACohortAccess(): Promise<SkinIACohortAccess> {
 }
 
 export function useSkinIACohortAccess(enabled: boolean): SkinIACohortAccess {
+  const { isLoaded, isSignedIn, getToken, userId } = useAuth();
   const [access, setAccess] = useState<SkinIACohortAccess>(SKINIA_ACCESS_CHECKING);
 
   useEffect(() => {
@@ -49,12 +54,23 @@ export function useSkinIACohortAccess(enabled: boolean): SkinIACohortAccess {
       setAccess({ status: 'DENIED', reason: 'PUBLIC_RELEASE_LOCKED' });
       return () => { live = false; };
     }
+    // Do not make a one-shot, unauthenticated request while Clerk is still
+    // restoring its native session. The Profile entry is intentionally
+    // fail-closed, but must retry once the signed-in identity is available.
+    if (!isLoaded) {
+      setAccess(SKINIA_ACCESS_CHECKING);
+      return () => { live = false; };
+    }
+    if (!isSignedIn || !userId) {
+      setAccess({ status: 'DENIED', reason: 'UNAUTHENTICATED' });
+      return () => { live = false; };
+    }
     setAccess(SKINIA_ACCESS_CHECKING);
-    void fetchSkinIACohortAccess().then((next) => {
+    void fetchSkinIACohortAccess(getToken).then((next) => {
       if (live) setAccess(next);
     });
     return () => { live = false; };
-  }, [enabled]);
+  }, [enabled, getToken, isLoaded, isSignedIn, userId]);
 
   return access;
 }
