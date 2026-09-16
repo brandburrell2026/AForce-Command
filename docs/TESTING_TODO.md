@@ -1,8 +1,28 @@
 # Testing TODO
 
-Tracked test-infrastructure follow-ups. Tackle in a dedicated testing-infrastructure pass **after Part A, before any production ship** — not inline, to preserve the one-section-at-a-time cadence.
+Tracked test-infrastructure follow-ups. Tackle in a dedicated testing-infrastructure pass **before any production ship** — not inline, to preserve the one-section-at-a-time cadence.
+
+## Local verification contract
+
+Use Node 22.x and pnpm 11.1.2. Node 22 is now declared in the root
+`package.json`, matching the CI workflow and production Docker build. Before a
+release candidate, run the following on a machine with Docker available:
+
+1. `pnpm install --frozen-lockfile`
+2. `pnpm run typecheck`
+3. `pnpm exec vitest run`
+4. `pnpm test:integration`
+
+The canonical CI workflows remain the authority for pass/fail status. A local
+machine without Node or Docker is not a valid release-verification environment.
 
 - **Contract A rollback (integration).** ✅ IMPLEMENTED — `df86a42d`, `lib/db/src/__integration__/profileRepo.rollback.integration.test.ts` (Testcontainers, both first-mint and recalibration cases). Run via `pnpm test:integration` (Docker required). PENDING: the empirical green run on a Docker-capable machine to close it out.
-- **`_fixtures.ts:92` FeatureFlags fixture missing 4 newer flags** (`healthkit_native_enabled`, `native_tabs_enabled`, `native_screens_enabled`, `secure_store_startup_guard`) — fails `aforce-os` `tsc --noEmit` (TS2739). Pre-existing, unrelated to Part A; fix in a separate pass (add the 4 keys as `false`).
-- **2 vitest/rollup parse-failure files** — test-tooling-only, pre-existing, surfaced once the suite became bootable (the rollup-darwin fix, `ebbad8e6`). `RollupError: Parse failure: Expected 'from', got 'typeOf'` in 2 files during vitest's rollup-based analysis. Does not affect production (api-server builds with esbuild) or Part A. Investigate in a tooling pass.
-- **api-server tests require `DATABASE_URL`** — they import the `@workspace/db` singleton (`lib/db/src/index.ts`), which throws `DATABASE_URL must be set` at import time, so the full `vitest` suite shows ~48 of these failures when the var is unset. NOT breakage — an env requirement. Document the env setup (set `DATABASE_URL`, or mock the singleton) for running the full suite locally / in CI, so these reds aren't mistaken for real failures.
+- **FeatureFlags fixture audit.** ✅ CLOSED — `store/__tests__/_fixtures.ts` now
+  includes `healthkit_native_enabled`, `native_tabs_enabled`,
+  `native_screens_enabled`, and `secure_store_startup_guard`. The prior
+  TS2739 note was stale and must not be treated as an active release failure.
+- **Vitest baseline audit.** ✅ CLOSED — on 2026-09-15, the canonical
+  no-DB suite completed with **612 passed files / 9,597 passed tests** and 15
+  intentionally skipped files. The former Rollup parse-failure and
+  missing-`DATABASE_URL` notes were stale; database-backed coverage remains in
+  the separate Testcontainers integration lane.
