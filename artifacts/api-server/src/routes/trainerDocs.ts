@@ -25,6 +25,7 @@ import {
   createTrainerRepo,
   db,
   noteEncryptionConfigured,
+  noteEncryptionProblem,
   type TrainerDocsRepo,
   type TrainerRepo,
 } from "@workspace/db";
@@ -33,6 +34,7 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { requireAthleteSubject } from "../middlewares/requireAthleteSubject";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
 import { buildChartLines, renderChartPdf } from "../lib/trainer/chartPdf";
 import { levelSeesMedical, levelWritesAvailability } from "../lib/trainer/roles";
@@ -128,14 +130,21 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/screening",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelWritesAvailability(access.level)) {
         sendApiError(req, res, 403, "screening_write_not_permitted");
         return;
@@ -166,7 +175,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
           action: "write",
           fields: ["items", "cleared", ...(entry.notes ? ["notes"] : [])],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -183,20 +192,32 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/notes",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelWritesAvailability(access.level)) {
         sendApiError(req, res, 403, "note_write_not_permitted");
         return;
       }
       if (process.env["NODE_ENV"] === "production" && !noteEncryptionConfigured()) {
-        logger.error({}, "[trainer] refused note write: no encryption key configured");
+        // The reason, never the value. `noteEncryptionProblem` is written so
+        // that no branch of it can return key material.
+        logger.error(
+          { reason: noteEncryptionProblem() },
+          "[trainer] refused note write: no usable encryption key configured",
+        );
         sendApiError(req, res, 503, "note_encryption_unavailable");
         return;
       }
@@ -230,7 +251,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
             .filter(([, v]) => v !== null)
             .map(([k]) => k),
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -294,20 +315,18 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.get(
     "/programs/:programId/athletes/:athleteId/notes",
     requireProgramAccess(repo),
+    requireAthleteSubject(repo),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelSeesMedical(access.level)) {
         sendApiError(req, res, 403, "notes_not_available_to_role");
-        return;
-      }
-      if (access.level === "self" && athleteId !== actorId) {
-        sendApiError(req, res, 404, "athlete_not_found");
         return;
       }
 
@@ -322,7 +341,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
           action: "read",
           fields: ["subjective", "objective", "assessment", "plan"],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -338,20 +357,18 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.get(
     "/programs/:programId/athletes/:athleteId/chart.pdf",
     requireProgramAccess(repo),
+    requireAthleteSubject(repo),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelSeesMedical(access.level)) {
         sendApiError(req, res, 403, "chart_not_available_to_role");
-        return;
-      }
-      if (access.level === "self" && athleteId !== actorId) {
-        sendApiError(req, res, 404, "athlete_not_found");
         return;
       }
 
@@ -389,7 +406,7 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
           action: "read",
           fields: ["questionnaires", "screenings", "noteVersions", "auditTrail"],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -414,14 +431,21 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.post(
     "/programs/:programId/athletes/:athleteId/sessions",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       // Load is the one thing strength & performance writes. §2.3 gives that
       // role full load access; it gives them nothing medical, which is why
       // this is a different check from the note and screening routes.
@@ -476,21 +500,19 @@ export function buildTrainerDocsRouter(repo: TrainerRepo, docs: TrainerDocsRepo)
   router.get(
     "/programs/:programId/athletes/:athleteId/sessions",
     requireProgramAccess(repo),
+    requireAthleteSubject(repo),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       // A coach gets load as a summary, never the session list (§2.3).
       if (access.level === "coaching" || access.level === "compliance") {
         sendApiError(req, res, 403, "sessions_not_available_to_role");
-        return;
-      }
-      if (access.level === "self" && athleteId !== actorId) {
-        sendApiError(req, res, 404, "athlete_not_found");
         return;
       }
 

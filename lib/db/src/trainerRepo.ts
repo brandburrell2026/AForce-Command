@@ -46,6 +46,14 @@ export interface AvailabilityEntry {
   reason: string | null;
   setByUserId: string;
   setAt: string;
+  /**
+   * The id of the row this state came from, used as its version.
+   *
+   * The table is append-only and `id` is a bigserial, so the newest row's id
+   * IS the current version — no column and no migration needed to get a
+   * compare-and-swap. `null` means availability has never been set.
+   */
+  version: number;
 }
 
 export interface MedicalNote {
@@ -228,6 +236,7 @@ export function createTrainerRepo(db: Db) {
     ): Promise<AvailabilityEntry | null> {
       const rows = await db
         .select({
+          id: aforceAthleteAvailability.id,
           status: aforceAthleteAvailability.status,
           reason: aforceAthleteAvailability.reason,
           setByUserId: aforceAthleteAvailability.setByUserId,
@@ -240,11 +249,15 @@ export function createTrainerRepo(db: Db) {
             eq(aforceAthleteAvailability.athleteUserId, athleteUserId),
           ),
         )
-        .orderBy(desc(aforceAthleteAvailability.createdAt))
+        // Ordered by id, not createdAt. Two writes in the same millisecond
+        // tie on the timestamp, and "which one is current" must not be a
+        // coin flip on the row a trainer is reading.
+        .orderBy(desc(aforceAthleteAvailability.id))
         .limit(1);
       const row = rows[0];
       if (!row) return null;
       return {
+        version: row.id,
         status: row.status,
         reason: row.reason,
         setByUserId: row.setByUserId,
@@ -253,19 +266,92 @@ export function createTrainerRepo(db: Db) {
     },
 
     /** Append a status change. Never an update — history is the record. */
+    /**
+     * Append a new availability state, but only on top of the one the caller
+     * was looking at.
+     *
+     * WHY THIS IS A COMPARE-AND-SWAP AND NOT AN INSERT. It was an insert, and
+     * every write therefore won. Phase 7 built a conflict path in the client
+     * — `markConflicted`, two values held for a person to choose — and it
+     * could never fire, because nothing on this side ever said no.
+     *
+     * The scenario is not hypothetical and not benign. A trainer marks an
+     * athlete OUT at 14:00 for a suspected concussion. A second trainer's
+     * phone, offline since 13:00, flushes a queued AVAILABLE at 14:05. Last
+     * writer wins, silently, and the athlete is cleared to play by a device
+     * that had been asleep for the entire incident.
+     *
+     * `expectedVersion` is the id the caller read, or null for "I believe
+     * availability has never been set". A mismatch writes nothing and returns
+     * the committed state, so the caller can show both values rather than
+     * discovering later that theirs was overwritten.
+     *
+     * The advisory lock covers the FIRST write too: with no row to select for
+     * update, two concurrent first writes would otherwise both succeed.
+     */
     async appendAvailability(args: {
       programId: string;
       athleteUserId: string;
       status: string;
       reason: string | null;
       setByUserId: string;
-    }): Promise<void> {
-      await db.insert(aforceAthleteAvailability).values({
-        programId: args.programId,
-        athleteUserId: args.athleteUserId,
-        status: args.status,
-        reason: args.reason,
-        setByUserId: args.setByUserId,
+      expectedVersion: number | null;
+    }): Promise<{ ok: true; version: number } | { ok: false; current: AvailabilityEntry | null }> {
+      return db.transaction(async (tx) => {
+        // Serialize writers for this one athlete, for the life of the
+        // transaction. Scoped to the pair, so two athletes never contend.
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtext(${`${args.programId}:${args.athleteUserId}`}))`,
+        );
+
+        const rows = await tx
+          .select({
+            id: aforceAthleteAvailability.id,
+            status: aforceAthleteAvailability.status,
+            reason: aforceAthleteAvailability.reason,
+            setByUserId: aforceAthleteAvailability.setByUserId,
+            createdAt: aforceAthleteAvailability.createdAt,
+          })
+          .from(aforceAthleteAvailability)
+          .where(
+            and(
+              eq(aforceAthleteAvailability.programId, args.programId),
+              eq(aforceAthleteAvailability.athleteUserId, args.athleteUserId),
+            ),
+          )
+          .orderBy(desc(aforceAthleteAvailability.id))
+          .limit(1);
+
+        const current = rows[0] ?? null;
+        const currentVersion = current?.id ?? null;
+
+        if (currentVersion !== args.expectedVersion) {
+          return {
+            ok: false as const,
+            current: current
+              ? {
+                  version: current.id,
+                  status: current.status,
+                  reason: current.reason,
+                  setByUserId: current.setByUserId,
+                  setAt: current.createdAt.toISOString(),
+                }
+              : null,
+          };
+        }
+
+        const inserted = await tx
+          .insert(aforceAthleteAvailability)
+          .values({
+            programId: args.programId,
+            athleteUserId: args.athleteUserId,
+            status: args.status,
+            reason: args.reason,
+            setByUserId: args.setByUserId,
+          })
+          .returning({ id: aforceAthleteAvailability.id });
+
+        return { ok: true as const, version: inserted[0]!.id };
       });
     },
 

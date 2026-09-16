@@ -36,14 +36,68 @@ function escapePdfText(input: string): string {
 }
 
 /**
- * Drop anything outside printable Latin-1.
+ * Render text into printable Latin-1 without losing a person.
  *
- * WinAnsiEncoding cannot represent it, and a chart is evidence: a mangled
- * glyph in a medical record is worse than an honest omission.
+ * WinAnsiEncoding cannot represent everything, and this used to DELETE what
+ * it could not represent. The reasoning — an honest omission beats a mangled
+ * glyph — is right about glyphs and wrong about names, because the thing
+ * being omitted was the athlete:
+ *
+ *     "L. Dončić"  →  "L. Doni"        (a different, plausible name)
+ *     "M. 中村"     →  ""               (an EMPTY LINE)
+ *
+ * The second is the one that matters. A trainer scanning the OUT list of a
+ * coach export does not notice a row that is not there, and nothing in the
+ * document says anyone was dropped. Two steps fix it:
+ *
+ *   1. KEEP WHAT LATIN-1 HOLDS. é, ñ, ü, ø, Æ and · are representable and are
+ *      kept as themselves. Folding them would be gratuitous: "Müller" is the
+ *      correct spelling of the name and "Muller" is not, and a chart is
+ *      evidence.
+ *
+ *   2. FOLD ONLY WHAT IT DOES NOT. Decompose and drop the combining marks,
+ *      so č → c and ž → z. The result is the name, recognisably, which is
+ *      what the previous code was reaching for when it produced "Doni".
+ *
+ *   3. SUBSTITUTE, NEVER DELETE. Anything still unrepresentable becomes "?",
+ *      one per character, so a name in a non-Latin script renders as a short
+ *      run of question marks — unreadable, but PRESENT, countable, and
+ *      obviously incomplete to whoever reads it.
+ *
+ * Step 3 is a floor, not a solution. Rendering a Chinese or Arabic name
+ * properly needs an embedded font programme, which is a new runtime
+ * dependency and therefore a §3 decision rather than one to make here.
+ * `latin1Loss` exists so a caller can tell that this happened.
  */
-function toLatin1(input: string): string {
-  // eslint-disable-next-line no-control-regex
-  return input.replace(/[^\x20-\x7E\xA0-\xFF]/g, "");
+function representable(ch: string): boolean {
+  const code = ch.codePointAt(0) ?? 0;
+  return (code >= 0x20 && code <= 0x7e) || (code >= 0xa0 && code <= 0xff);
+}
+
+export function toLatin1(input: string): string {
+  let out = "";
+  for (const ch of input) {
+    if (representable(ch)) {
+      out += ch;
+      continue;
+    }
+    // Combining marks are dropped AFTER decomposition, which is what turns
+    // "č" into "c" rather than into nothing.
+    const folded = ch.normalize("NFD").replace(/[̀-ͯ]/g, "");
+    out += folded.length > 0 && [...folded].every(representable) ? folded : "?";
+  }
+  return out;
+}
+
+/**
+ * Did rendering this string lose information a reader would want to know
+ * about? True when any character had to be substituted.
+ *
+ * Diacritic folding is not loss for this purpose — "Doncic" is still the
+ * person. A run of "?" is.
+ */
+export function latin1Loss(input: string): boolean {
+  return toLatin1(input).includes("?") && !input.includes("?");
 }
 
 function wrap(text: string, max: number): string[] {

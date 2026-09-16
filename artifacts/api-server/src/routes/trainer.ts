@@ -24,6 +24,7 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { requireAthleteSubject } from "../middlewares/requireAthleteSubject";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
 import {
   disclosedMedical,
@@ -178,29 +179,23 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
   router.get(
     "/programs/:programId/athletes/:athleteId",
     requireProgramAccess(repo),
+    // NOT consent-gated at the middleware: this route's refusal is a
+    // PROJECTION, not a 403. An unconsented athlete collapses to identity and
+    // consent state inside `projectAthlete`, so staff can see the roster is
+    // incomplete without learning anything about the person. That is the
+    // Phase 0 §0b ruling, and turning it into an error would lose it.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
-
-      // An athlete may read their own record and no one else's. Direct id
-      // access is the route the acceptance criteria name explicitly.
-      if (access.level === "self" && athleteId !== actorId) {
-        sendApiError(req, res, 404, "athlete_not_found");
-        return;
-      }
+      const athleteId = subject.athleteUserId;
 
       try {
-        const member = await repo.membership(access.programId, athleteId);
-        if (!member || member.role !== "athlete") {
-          sendApiError(req, res, 404, "athlete_not_found");
-          return;
-        }
-
         const src = await loadAthleteSource(
           repo,
           access.programId,
@@ -242,14 +237,22 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
   router.post(
     "/programs/:programId/athletes/:athleteId/availability",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect. Setting availability is also a safety
+    // act: revoking consent must not clear an athlete to play.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
 
       // Only the clinical roles write availability. The system never sets it
       // and no other role may — §2.2: clearance is entered by a credentialed
@@ -259,7 +262,9 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
         return;
       }
 
-      const body = req.body as { status?: unknown; reason?: unknown } | undefined;
+      const body = req.body as
+        | { status?: unknown; reason?: unknown; baseVersion?: unknown }
+        | undefined;
       const status = parseAvailabilityStatus(body?.status);
       if (!status) {
         sendApiError(req, res, 400, "invalid_availability_status");
@@ -267,25 +272,46 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
       }
       const reason = typeof body?.reason === "string" && body.reason.length > 0 ? body.reason : null;
 
-      try {
-        const member = await repo.membership(access.programId, athleteId);
-        if (!member || member.role !== "athlete") {
-          sendApiError(req, res, 404, "athlete_not_found");
-          return;
-        }
+      // The version the caller was looking at when they decided. `null` is a
+      // positive claim — "availability has never been set" — not a missing
+      // field, so an absent `baseVersion` is a 400 rather than a free pass.
+      // A client that does not send one is a client that would overwrite
+      // anything, which is the behaviour this replaces.
+      if (!("baseVersion" in (body ?? {}))) {
+        sendApiError(req, res, 400, "base_version_required");
+        return;
+      }
+      const rawVersion = body?.baseVersion;
+      if (rawVersion !== null && !Number.isInteger(rawVersion)) {
+        sendApiError(req, res, 400, "invalid_base_version");
+        return;
+      }
+      const baseVersion = rawVersion as number | null;
 
-        await repo.appendAvailability({
+      try {
+        const applied = await repo.appendAvailability({
           programId: access.programId,
           athleteUserId: athleteId,
           status,
           reason,
           setByUserId: actorId,
+          expectedVersion: baseVersion,
         });
+
+        if (!applied.ok) {
+          // 409 with BOTH values. The client holds them side by side until a
+          // person chooses; it does not merge them and neither does this.
+          res.status(409).json({
+            error: "availability_conflict",
+            attempted: { status, reason },
+            current: applied.current,
+          });
+          return;
+        }
 
         // EVERY status write is audited, whether or not it carried a reason.
         // The brief's §Phase 1 criterion is "every status write", not "every
         // status write that disclosed something".
-        const consent = await repo.consent(access.programId, athleteId);
         await repo.logAccess({
           actorUserId: actorId,
           subjectUserId: athleteId,
@@ -295,7 +321,7 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
           action: "write",
           fields: reason === null ? ["status"] : ["status", "reason"],
           redactionLevel: access.level,
-          consentDecisionSeq: consent.decisionSeq,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });

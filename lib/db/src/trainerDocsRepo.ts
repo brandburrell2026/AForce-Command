@@ -15,6 +15,8 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
+import { decryptNoteField, encryptNoteField, noteEncryptionConfigured } from "./noteCrypto";
+
 import {
   aforceAthleteQuestionnaires,
   aforceAthleteScreenings,
@@ -95,6 +97,19 @@ export interface SoapNoteEntry extends SoapFields {
   createdAt: string;
 }
 
+/**
+ * Read one field back.
+ *
+ * Ciphertext wins when it is there. The plaintext fallback is what makes
+ * turning encryption on a non-event for rows written before it: a reader
+ * does not need to know which era a row came from. A row that carries
+ * ciphertext it cannot decrypt throws rather than returning the null beside
+ * it — a note that silently reads as empty is worse than one that errors.
+ */
+function readField(plain: string | null, enc: Uint8Array | null): string | null {
+  return enc === null ? plain : decryptNoteField(enc);
+}
+
 function toEntry(row: {
   id: number;
   rootId: number | null;
@@ -107,6 +122,10 @@ function toEntry(row: {
   objective: string | null;
   assessment: string | null;
   plan: string | null;
+  subjectiveEnc?: Uint8Array | null;
+  objectiveEnc?: Uint8Array | null;
+  assessmentEnc?: Uint8Array | null;
+  planEnc?: Uint8Array | null;
   createdAt: Date;
 }): SoapNoteEntry {
   return {
@@ -117,10 +136,10 @@ function toEntry(row: {
     amendmentReason: row.amendmentReason,
     authorUserId: row.authorUserId,
     templateId: row.templateId,
-    subjective: row.subjective,
-    objective: row.objective,
-    assessment: row.assessment,
-    plan: row.plan,
+    subjective: readField(row.subjective, row.subjectiveEnc ?? null),
+    objective: readField(row.objective, row.objectiveEnc ?? null),
+    assessment: readField(row.assessment, row.assessmentEnc ?? null),
+    plan: readField(row.plan, row.planEnc ?? null),
     createdAt: row.createdAt.toISOString(),
   };
 }
@@ -137,8 +156,58 @@ const NOTE_COLUMNS = {
   objective: aforceAthleteSoapNotes.objective,
   assessment: aforceAthleteSoapNotes.assessment,
   plan: aforceAthleteSoapNotes.plan,
+  subjectiveEnc: aforceAthleteSoapNotes.subjectiveEnc,
+  objectiveEnc: aforceAthleteSoapNotes.objectiveEnc,
+  assessmentEnc: aforceAthleteSoapNotes.assessmentEnc,
+  planEnc: aforceAthleteSoapNotes.planEnc,
   createdAt: aforceAthleteSoapNotes.createdAt,
 };
+
+/**
+ * Turn note text into the columns it is stored in.
+ *
+ * WITH A KEY: ciphertext into the `*_enc` columns and NULL into the plaintext
+ * ones. Writing both would make the encryption decorative — the whole point
+ * is that a replica, a `pg_dump` or a read-only analytics grant yields
+ * nothing readable.
+ *
+ * WITHOUT A KEY: plaintext, as before. That is the local and test path only;
+ * `noteEncryptionConfigured` gates production at the route, which refuses the
+ * write outright rather than quietly storing a note in the clear.
+ */
+function noteFieldColumns(fields: SoapFields): {
+  subjective: string | null;
+  objective: string | null;
+  assessment: string | null;
+  plan: string | null;
+  subjectiveEnc: Uint8Array | null;
+  objectiveEnc: Uint8Array | null;
+  assessmentEnc: Uint8Array | null;
+  planEnc: Uint8Array | null;
+} {
+  if (!noteEncryptionConfigured()) {
+    return {
+      subjective: fields.subjective,
+      objective: fields.objective,
+      assessment: fields.assessment,
+      plan: fields.plan,
+      subjectiveEnc: null,
+      objectiveEnc: null,
+      assessmentEnc: null,
+      planEnc: null,
+    };
+  }
+  return {
+    subjective: null,
+    objective: null,
+    assessment: null,
+    plan: null,
+    subjectiveEnc: encryptNoteField(fields.subjective),
+    objectiveEnc: encryptNoteField(fields.objective),
+    assessmentEnc: encryptNoteField(fields.assessment),
+    planEnc: encryptNoteField(fields.plan),
+  };
+}
 
 export function createTrainerDocsRepo(db: Db) {
   return {
@@ -318,10 +387,7 @@ export function createTrainerDocsRepo(db: Db) {
             subjectUserId: args.subjectUserId,
             authorUserId: args.authorUserId,
             version: 1,
-            subjective: args.fields.subjective,
-            objective: args.fields.objective,
-            assessment: args.fields.assessment,
-            plan: args.fields.plan,
+            ...noteFieldColumns(args.fields),
             templateId: args.templateId ?? null,
           })
           .returning(NOTE_COLUMNS);
@@ -393,10 +459,7 @@ export function createTrainerDocsRepo(db: Db) {
             version: nextVersion,
             supersedesId: args.noteId,
             amendmentReason: args.amendmentReason,
-            subjective: args.fields.subjective,
-            objective: args.fields.objective,
-            assessment: args.fields.assessment,
-            plan: args.fields.plan,
+            ...noteFieldColumns(args.fields),
           })
           .returning(NOTE_COLUMNS);
 
@@ -460,13 +523,12 @@ export function createTrainerDocsRepo(db: Db) {
 export type TrainerDocsRepo = ReturnType<typeof createTrainerDocsRepo>;
 
 /**
- * Is note encryption configured?
+ * Re-exported so the route keeps importing the gate from where it always did.
  *
- * Phase 0 ruling Q9 builds to the strictest plausible regime. The route
- * refuses to write note text in production without a key rather than writing
- * plaintext and calling it a follow-up.
+ * The implementation moved to `noteCrypto.ts` and now answers a different
+ * question. It used to check that some string was at least 32 characters
+ * long — which a caller could satisfy with a sentence — and nothing then used
+ * it as a key. It now checks that the value decodes to a usable 32-byte key,
+ * which is what the route is actually asking before it refuses a write.
  */
-export function noteEncryptionConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  const key = env["MEDICAL_NOTE_ENCRYPTION_KEY"];
-  return typeof key === "string" && key.length >= 32;
-}
+export { noteEncryptionConfigured, noteEncryptionProblem, NoteEncryptionError } from "./noteCrypto";

@@ -29,6 +29,7 @@ import { sendApiError } from "../lib/apiError";
 import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { requireAthleteSubject } from "../middlewares/requireAthleteSubject";
 import { requireProgramAccess } from "../middlewares/requireProgramAccess";
 import { canSignOff, coachView, staffView, type RtpSource, type RtpStatus } from "../lib/trainer/returnToPlay";
 import { levelWritesAvailability } from "../lib/trainer/roles";
@@ -110,14 +111,21 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
   router.post(
     "/programs/:programId/athletes/:athleteId/rtp",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelWritesAvailability(access.level)) {
         sendApiError(req, res, 403, "rtp_write_not_permitted");
         return;
@@ -154,7 +162,7 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
           action: "write",
           fields: ["protocolId", "stagesSnapshot"],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -173,14 +181,21 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
   router.post(
     "/programs/:programId/athletes/:athleteId/rtp/signoff",
     requireProgramAccess(repo),
+    // Consent gates DISCLOSURE, not documentation — founder ruling,
+    // 2026-09-16. An athlete who revokes does not thereby become unrecorded:
+    // a clinician who gave care has a duty to write it down, and blocking the
+    // write would destroy a record someone is obliged to keep. Reading any of
+    // it back IS gated, which is where revocation takes effect.
+    requireAthleteSubject(repo, { consent: "not-required" }),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
+      const athleteId = subject.athleteUserId;
       if (!levelWritesAvailability(access.level)) {
         sendApiError(req, res, 403, "signoff_not_permitted");
         return;
@@ -244,7 +259,7 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
           action: "write",
           fields: result.entry.note === null ? ["stageIndex"] : ["stageIndex", "note"],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
@@ -262,18 +277,16 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
   router.get(
     "/programs/:programId/athletes/:athleteId/rtp",
     requireProgramAccess(repo),
+    requireAthleteSubject(repo),
     async (req, res) => {
       const access = req.programAccess;
       const actorId = req.userId;
-      const athleteId = req.params["athleteId"];
-      if (!access || !actorId || typeof athleteId !== "string") {
+      const subject = req.athleteSubject;
+      if (!access || !actorId || !subject) {
         sendApiError(req, res, 403, "program_access_required");
         return;
       }
-      if (access.level === "self" && athleteId !== actorId) {
-        sendApiError(req, res, 404, "athlete_not_found");
-        return;
-      }
+      const athleteId = subject.athleteUserId;
 
       try {
         const progression = await rtp.progression(access.programId, athleteId);
@@ -312,7 +325,7 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
           action: "read",
           fields: ["stages", "history", "stoppedReason"],
           redactionLevel: access.level,
-          consentDecisionSeq: null,
+          consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });

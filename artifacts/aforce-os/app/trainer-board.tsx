@@ -68,6 +68,14 @@ export default function TrainerBoardRoute() {
         athleteUserId,
         programId: DEMO_PROGRAM_ID,
         payload: { status },
+        // PLACEHOLDER, and deliberately not a claim. The board reads the demo
+        // seed rather than the API, so there is no server version to quote
+        // yet; it starts carrying a real one when the flush loop lands and
+        // rows come from the roster endpoint.
+        //
+        // Until then this is SAFE rather than silently wrong: the server
+        // treats `null` as "availability has never been set" and refuses the
+        // write with 409 if it has. It cannot overwrite a trainer's decision.
         baseVersion: null,
         createdAtMs: now,
       }),
