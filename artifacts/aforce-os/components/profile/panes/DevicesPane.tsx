@@ -190,7 +190,13 @@ export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
   // provider list that reports the per-provider truth honestly.
   const connectedDataBlock = (
     <>
-      <SectionHeader label={t('profile.v2.connected_data_label')} hint={t('profile.v2.connected_data_hint')} />
+      <View style={deviceStyles.intro}>
+        <Text style={deviceStyles.eyebrow}>{t('profile.v2.connected_data_label')}</Text>
+        <Text style={deviceStyles.title}>{t('profile.v2.tab_devices')}</Text>
+        <Text style={deviceStyles.promise}>
+          Where AForce reads your signals. Nothing is read until you connect it.
+        </Text>
+      </View>
       <View style={styles.card}>
         {/* RC-1 Wave-2B (item 2b) — while the mount-time WHOOP +
             Garmin status checks are in flight, skeleton the rows
@@ -544,3 +550,37 @@ export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
 
   return [connectedDataBlock, hardwareCard];
 }
+
+// Presentation only — the connection status, permissions, provider actions,
+// and server-owned provenance handling above remain intentionally untouched.
+// This matches the approved Devices screen's compact editorial hierarchy while
+// leaving every row's truthful state resolver in charge of what it claims.
+const deviceStyles = StyleSheet.create({
+  intro: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: af.divider,
+    paddingTop: 16,
+    marginBottom: 10,
+    gap: 6,
+  },
+  eyebrow: {
+    color: af.redText,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 10,
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: af.textPrimary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 26,
+    letterSpacing: -0.5,
+  },
+  promise: {
+    color: af.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 13,
+    lineHeight: 19,
+    maxWidth: 440,
+  },
+});
