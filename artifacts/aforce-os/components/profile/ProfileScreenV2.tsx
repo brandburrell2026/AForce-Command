@@ -47,6 +47,7 @@ import { AppleHealthRefreshControl } from './AppleHealthRefreshControl';
 import { AppleHealthDiagnosticsSection } from './AppleHealthDiagnosticsSection';
 import { createAppleRefreshGuard } from './appleRefreshGuard';
 import { INTERNAL_TESTFLIGHT_OVERLAY_ENABLED } from '@/featureFlags/internalTestflightOverlay';
+import { isSkinIAAccessAllowed, useSkinIACohortAccess } from '@/services/skiniaCohortAccess';
 import {
   getLastAppleHealthDiagnostics,
   type AppleHealthDiagnosticsSnapshot,
@@ -162,6 +163,12 @@ export function ProfileScreenV2() {
   // own concern changes.
   const userState = useUserSlice();
   const flags = useFlagsSlice();
+  const skinIACohort = useSkinIACohortAccess(flags.advanced_visual_intelligence_enabled);
+  const skinIAEnabled = isSkinIAAccessAllowed({
+    featureEnabled: flags.advanced_visual_intelligence_enabled,
+    internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
+    cohort: skinIACohort,
+  });
   const unitPreferences = useUnitPreferencesSlice();
   const coachMode = useCoachModeSetting();
   const profileIdentity = useProfileIdentitySlice();
@@ -1075,6 +1082,35 @@ export function ProfileScreenV2() {
               </>
             );
 
+            // Internal TestFlight only: this entry exists only after the same
+            // server-resolved cohort decision that protects /skinia itself.
+            // A non-entitled member never sees a teaser, a locked card, or a
+            // path to the camera capture surface.
+            const skinIAEntry = skinIAEnabled ? (
+              <>
+                <SectionHeader label="INTERNAL TESTING" />
+                <TouchableOpacity
+                  style={[styles.card, { padding: 18 }]}
+                  onPress={() => router.push('/skinia')}
+                  activeOpacity={0.78}
+                  accessibilityRole="button"
+                  accessibilityLabel="Open SkinIA Visual Check"
+                  testID="profile-skinia-entry"
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(193,40,27,0.14)' }}>
+                      <Icon name="scan" size={18} color={af.redText} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.settingLabel}>SkinIA Visual Check</Text>
+                      <Text style={styles.settingSubLabel}>Internal visual observation testing</Text>
+                    </View>
+                    <Icon name="chevron-right" size={18} color={af.textSecondary} />
+                  </View>
+                </TouchableOpacity>
+              </>
+            ) : null;
+
             //     the same class of defect PR #767 fixed on Scan.
             const paneCtx = {
               allOn,
@@ -1151,6 +1187,7 @@ export function ProfileScreenV2() {
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
                     {identityBlock}
+                    {skinIAEntry}
                     {tabBar}
                   </View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
@@ -1165,6 +1202,7 @@ export function ProfileScreenV2() {
             return (
               <>
                 {identityBlock}
+                {skinIAEntry}
                 {tabBar}
                 {activeSections.map((node, i) => (
                   <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>
