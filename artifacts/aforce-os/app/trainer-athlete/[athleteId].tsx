@@ -15,7 +15,7 @@
  */
 import React, { useCallback, useEffect, useState } from "react";
 import { Text, View, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@clerk/expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { FeatureGate } from "@/components/FeatureGate";
@@ -24,19 +24,38 @@ import { useFeatureFlags } from "@/store/useAppStore";
 import { buildTrainerDemoRoster } from "@/data/trainerDemoSeed";
 import TrainerAthleteRecordScreen from "@/screens/TrainerAthleteRecordScreen";
 import { buildRecord, type AthleteRecord } from "@/utils/trainerRecord";
+import { trainerStorage } from "@/services/trainerStorage";
 import { freshnessLabel, readRecord, writeRecord } from "@/utils/trainerRecordCache";
 
 /**
- * Viewer scope for the cache key. Two staff sharing a device must not read
- * each other's cached athletes; until the trainer session carries an id, the
- * demo scope keeps the key shape honest rather than pretending it is global.
+ * Fallback viewer scope.
+ *
+ * The key shape was always per-viewer — two staff sharing a device must not
+ * read each other's cached athletes — but the value was hardcoded to
+ * `"demo_viewer"`, which defeated the design completely: every trainer on a
+ * device shared one namespace, so the cache answered whoever asked. The real
+ * scope is now the signed-in user id.
+ *
+ * This constant remains only for the signed-out case, where there is nothing
+ * to key on. Nothing clinical is written under it, because a signed-out
+ * session has no record to fetch.
  */
-const VIEWER_SCOPE = "demo_viewer";
+const ANONYMOUS_SCOPE = "anonymous";
 
 export default function TrainerAthleteRecordRoute() {
   const router = useRouter();
   const flags = useFeatureFlags();
   const { athleteId } = useLocalSearchParams<{ athleteId: string }>();
+
+  const { userId } = useAuth();
+  /**
+   * The cache is keyed on the signed-in staff member, and the record itself
+   * carries note bodies and availability reasons — which is why it is stored
+   * through `secureKV` (expo-secure-store) rather than plain AsyncStorage.
+   * The Lock already requires an encrypted local cache for profile-class
+   * data; a medical note is not a lesser class than a profile.
+   */
+  const viewerScope = userId ?? ANONYMOUS_SCOPE;
 
   const [record, setRecord] = useState<AthleteRecord | null>(null);
   const [cacheAgeMs, setCacheAgeMs] = useState<number | null>(null);
@@ -54,7 +73,7 @@ export default function TrainerAthleteRecordRoute() {
       if (typeof athleteId !== "string") return;
 
       // 1. Cache first — this is the path that works with no network.
-      const cached = await readRecord(AsyncStorage, VIEWER_SCOPE, athleteId);
+      const cached = await readRecord(trainerStorage, viewerScope, athleteId);
       if (!cancelled && cached) {
         setRecord(cached.record);
         setCacheAgeMs(cached.ageMs);
@@ -65,7 +84,7 @@ export default function TrainerAthleteRecordRoute() {
       if (!cancelled && live) {
         setRecord(live);
         setCacheAgeMs(null);
-        await writeRecord(AsyncStorage, VIEWER_SCOPE, live);
+        await writeRecord(trainerStorage, viewerScope, live);
       }
     }
 
@@ -73,7 +92,7 @@ export default function TrainerAthleteRecordRoute() {
     return () => {
       cancelled = true;
     };
-  }, [athleteId, loadLive]);
+  }, [athleteId, loadLive, viewerScope]);
 
   return (
     <View style={styles.screen}>

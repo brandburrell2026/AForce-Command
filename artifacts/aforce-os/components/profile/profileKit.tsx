@@ -118,6 +118,7 @@ import {
   type GarminUiState,
 } from '@/utils/garminProviderState';
 import type { ProviderSnapshot } from '@/types/biometrics';
+import { clearTrainerDataOnSignOut } from '@/services/trainerStorage';
 
 export const TIER_LABELS: Record<string, { color: string }> = {
   core:           { color: af.cyan },
@@ -147,7 +148,19 @@ export function SignOutRow() {
         onPress={() => {
           Alert.alert(t('profile.v2.sign_out_title'), t('profile.v2.sign_out_message'), [
             { text: t('profile.v2.cancel'), style: 'cancel' },
-            { text: t('profile.v2.sign_out'), style: 'destructive', onPress: () => auth.signOut() },
+            {
+              text: t('profile.v2.sign_out'),
+              style: 'destructive',
+              // Clear the trainer caches BEFORE the session ends, while there
+              // is still a session. A cached athlete record carries note
+              // bodies and availability reasons, and on a shared sideline
+              // device the next person to pick it up is not necessarily
+              // staff. Nothing here throws, and a partial clear is never a
+              // reason to leave someone signed in.
+              onPress: () => {
+                void clearTrainerDataOnSignOut().finally(() => auth.signOut());
+              },
+            },
           ]);
         }}
         style={({ pressed }) => [signOutStyles.btn, pressed && { opacity: 0.7 }]}
