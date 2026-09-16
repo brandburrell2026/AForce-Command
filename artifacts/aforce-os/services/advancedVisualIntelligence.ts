@@ -17,10 +17,60 @@ export type VisualCheckResult = {
   reason: 'FEATURE_NOT_APPROVED';
 };
 
+/**
+ * A display-only consent checkpoint for the unavailable feature. This is not
+ * a stored consent record and cannot request any operating-system permission.
+ */
+export type VisualCheckConsentShell = {
+  stage: 'UNAVAILABLE_PENDING_APPROVAL';
+  cameraPermission: 'NOT_REQUESTED';
+  dataAccess: 'NO_IMAGE_ACCESS';
+};
+
+/**
+ * Privacy-safe event definitions for the containment shell. These describe
+ * product-surface activity only; they deliberately cannot carry an image,
+ * visual feature, result value, device identifier, or health measurement.
+ * Wiring an analytics transport remains a separately reviewed concern.
+ */
+export type VisualCheckAnalyticsEvent = {
+  name: 'skinia_shell_viewed' | 'skinia_unavailable_viewed';
+  properties: {
+    featureStatus: 'FEATURE_NOT_APPROVED';
+    surface: 'skinia_visual_check';
+  };
+};
+
+export function visualCheckShellViewedEvent(): VisualCheckAnalyticsEvent {
+  return {
+    name: 'skinia_shell_viewed',
+    properties: {
+      featureStatus: 'FEATURE_NOT_APPROVED',
+      surface: 'skinia_visual_check',
+    },
+  };
+}
+
+export function visualCheckUnavailableViewedEvent(): VisualCheckAnalyticsEvent {
+  return {
+    name: 'skinia_unavailable_viewed',
+    properties: {
+      featureStatus: 'FEATURE_NOT_APPROVED',
+      surface: 'skinia_visual_check',
+    },
+  };
+}
+
 /** The only result this containment build can produce. */
 export const UNKNOWN_VISUAL_CHECK_RESULT: VisualCheckResult = Object.freeze({
   status: 'UNKNOWN',
   reason: 'FEATURE_NOT_APPROVED',
+});
+
+export const UNAVAILABLE_VISUAL_CHECK_CONSENT: VisualCheckConsentShell = Object.freeze({
+  stage: 'UNAVAILABLE_PENDING_APPROVAL',
+  cameraPermission: 'NOT_REQUESTED',
+  dataAccess: 'NO_IMAGE_ACCESS',
 });
 
 /**
@@ -47,4 +97,8 @@ export interface ReadOnlyVisualContextJoin {
 
 export function unavailableVisualCheckResult(): VisualCheckResult {
   return UNKNOWN_VISUAL_CHECK_RESULT;
+}
+
+export function unavailableVisualCheckConsent(): VisualCheckConsentShell {
+  return UNAVAILABLE_VISUAL_CHECK_CONSENT;
 }
