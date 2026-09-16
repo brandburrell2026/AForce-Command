@@ -9,6 +9,7 @@
 
 import React from 'react';
 import { useAuth } from '@clerk/expo';
+import { AppState } from 'react-native';
 import { setAuthTokenGetter } from '@workspace/api-client-react';
 import { setTokenGetter } from '@/services/authToken';
 import { useEntitlement } from '@/hooks/useEntitlement';
@@ -20,12 +21,17 @@ import {
   setScopeIsolationEnabled,
 } from '@/services/userScope';
 import { wireUserScopeCleanup } from '@/services/userScopeCleanup';
+import { syncAnalyticsAuthority } from '@/analytics/privacy_manager';
+import { createAnalyticsAuthorityLifecycle } from '@/analytics/authorityLifecycle';
 
 export function ClerkAuthBridge(): null {
   const { isLoaded, isSignedIn, userId, getToken } = useAuth();
   const flags = useFeatureFlags();
   const outboxEnabled = flags.offline_intake_outbox_enabled;
   const isolationEnabled = flags.per_user_storage_isolation_enabled;
+  const analyticsLifecycleRef = React.useRef(
+    createAnalyticsAuthorityLifecycle(syncAnalyticsAuthority),
+  );
 
 
   // The isolation flag gates only the NAMESPACE PROJECTION, never the state
@@ -85,6 +91,27 @@ export function ClerkAuthBridge(): null {
       setAuthTokenGetter(null);
     };
   }, [isLoaded, isSignedIn, userId, outboxEnabled, getToken]);
+
+  // Consent is server-authoritative. Reconcile only after the auth bridge has
+  // installed the current token getter (the preceding effect) and only for an
+  // authenticated member. This sends no analytics event and never enables
+  // collection by itself; it merely adopts the server's current decision.
+  React.useEffect(() => {
+    if (!isLoaded || !isSignedIn || !userId) return;
+
+    const lifecycle = analyticsLifecycleRef.current;
+    void lifecycle.reconcile().catch(() => {
+      // Offline/auth-transition failures remain fail-closed. The next active
+      // foreground event retries, while event dispatch remains consent-gated.
+    });
+
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void lifecycle.reconcile().catch(() => {});
+      }
+    });
+    return () => subscription.remove();
+  }, [isLoaded, isSignedIn, userId]);
 
   // Pull server-authoritative subscription entitlement once we have a
   // session. Lives here (rather than in tab screens) so it runs once,
