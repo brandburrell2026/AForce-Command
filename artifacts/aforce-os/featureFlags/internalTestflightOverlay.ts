@@ -100,6 +100,16 @@ export const ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
+ * DR-015 — the internal TestFlight binary may reveal the contained SkinIA
+ * shell. This is not a member grant: `services/skiniaCohortAccess.ts` also
+ * requires a server-resolved, per-member cohort entitlement before the route
+ * can render. Public and generic-demo defaults remain false.
+ */
+export const SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+  'advanced_visual_intelligence_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
  * What the internal-TestFlight build actually turns ON: the union of the three
  * rulings above, in ruling order. Nothing else. `moments_calendar_enabled` is
  * deliberately absent — it stays false pending Legal + Privacy sign-off, and
@@ -109,6 +119,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...RC2_OVERLAY_FLAGS,
   ...EDITORIAL_PARTNER_OVERLAY_FLAGS,
   ...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
+  ...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];

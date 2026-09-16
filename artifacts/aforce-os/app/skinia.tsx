@@ -1,6 +1,7 @@
 import { Redirect } from 'expo-router';
 import { AdvancedVisualIntelligenceScreen } from '@/components/advancedVisual/AdvancedVisualIntelligenceScreen';
 import { useFlagsSlice } from '@/store/slices';
+import { isSkinIAAccessAllowed, useSkinIACohortAccess } from '@/services/skiniaCohortAccess';
 
 /**
  * Advanced Visual Intelligence™ stays dark by default. The approved shell is
@@ -9,6 +10,12 @@ import { useFlagsSlice } from '@/store/slices';
  */
 export default function SkiniaRoute() {
   const flags = useFlagsSlice();
-  if (!flags.advanced_visual_intelligence_enabled) return <Redirect href="/(tabs)/profile" />;
+  const cohort = useSkinIACohortAccess(flags.advanced_visual_intelligence_enabled);
+  const allowed = isSkinIAAccessAllowed({
+    featureEnabled: flags.advanced_visual_intelligence_enabled,
+    internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
+    cohort,
+  });
+  if (!allowed) return <Redirect href="/(tabs)/profile" />;
   return <AdvancedVisualIntelligenceScreen />;
 }

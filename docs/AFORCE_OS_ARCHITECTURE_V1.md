@@ -222,6 +222,21 @@ belong to Environmental Intelligence, not to this section.
 The prior permission that "the engine/data layer … may be built now" is also withdrawn. Build
 authority under Phase 1 is design only.
 
+### 25.0.1 Controlled internal/TestFlight supersession — DR-015
+
+Founder decision `governance/decisions/DR-015-skinia-internal-test-build.md` authorizes a
+**controlled internal/TestFlight** implementation and test cohort under a zero-persistent-raw-image
+policy. It is additive to this historical record, not a public-release authorization. Public
+production remains locked at the route, client-service, and API-policy layers pending a separate
+founder decision.
+
+DR-015 approves the vocabulary `VISIBLE_DRYNESS`, `VISIBLE_FLAKING`, `VISIBLE_REDNESS`,
+`VISIBLE_SURFACE_SHINE`, and `VISIBLE_TEXTURE`, plus the required non-result states `UNKNOWN`,
+`NOT_ENOUGH_INFORMATION`, `CAPTURE_QUALITY_INSUFFICIENT`, and `NO_COMPARABLE_BASELINE`, for
+later controlled implementation. That vocabulary does not itself waive the admission gate in
+25.3 or authorize capture, image processing, or public output. PR 1 remains a governance and
+cohort-containment change only.
+
 ### 25.1 The governing model — five categories
 
 Every Advanced Visual Intelligence output is exactly one of five categories. Nothing else may be

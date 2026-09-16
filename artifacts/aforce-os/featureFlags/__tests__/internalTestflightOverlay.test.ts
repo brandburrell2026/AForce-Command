@@ -18,6 +18,7 @@ import {
   RC2_OVERLAY_FLAGS,
   EDITORIAL_PARTNER_OVERLAY_FLAGS,
   ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
+  SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 } from '../internalTestflightOverlay';
 
 const RC2_FIVE = [
@@ -55,8 +56,10 @@ const ENVIRONMENTAL_TWO = [
   'environmental_surface_enabled',
 ] as const;
 
+const SKINIA_ONE = ['advanced_visual_intelligence_enabled'] as const;
+
 /** What the internal build actually flips: the union, in ruling order. */
-const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_FIVE, ...ENVIRONMENTAL_TWO] as const;
+const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_FIVE, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE] as const;
 
 /** Every key that differs between two flag objects, sorted for a stable diff. */
 function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
@@ -78,12 +81,13 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     expect([...RC2_OVERLAY_FLAGS]).toEqual([...RC2_FIVE]);
     expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS]).toEqual([...EDITORIAL_FIVE]);
     expect([...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS]).toEqual([...ENVIRONMENTAL_TWO]);
+    expect([...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...SKINIA_ONE]);
     expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...ALL_GRANTED]);
   });
 
   it('THE SETS ARE DISJOINT — no key is granted twice or silently moved', () => {
     const sets = [RC2_OVERLAY_FLAGS, EDITORIAL_PARTNER_OVERLAY_FLAGS,
-      ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS];
+      ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS, SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS];
     const seen = new Set<string>();
     for (const set of sets) {
       for (const key of set) {
