@@ -17,8 +17,9 @@
  * first task of the phase that follows, and the interaction is built so the
  * handler is the only thing that changes.
  */
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 
 import { FeatureGate } from "@/components/FeatureGate";
@@ -31,11 +32,16 @@ import {
   syncSummary,
   type OutboxItem,
 } from "@/utils/trainerOutbox";
+import { loadOutbox, saveOutbox } from "@/utils/trainerOutboxStore";
+import { trainerStorage } from "@/services/trainerStorage";
 import TrainerBoardScreen from "@/screens/TrainerBoardScreen";
 import type { Availability, BoardAthlete } from "@/utils/trainerBoard";
 
 /** Placeholder until a trainer session carries a real program id. */
 const DEMO_PROGRAM_ID = "demo_program";
+
+/** Key scope when signed out. Nothing clinical is queued in that state. */
+const ANONYMOUS_SCOPE = "anonymous";
 
 export default function TrainerBoardRoute() {
   const router = useRouter();
@@ -54,6 +60,42 @@ export default function TrainerBoardRoute() {
    * screen needs and is already proven by the unit suite.
    */
   const [queue, setQueue] = useState<OutboxItem[]>([]);
+
+  const { userId } = useAuth();
+  const viewerScope = userId ?? ANONYMOUS_SCOPE;
+
+  /**
+   * THE QUEUE IS NOW ON DISK.
+   *
+   * It lived in this `useState` alone: a trainer cleared a squad on a field
+   * with no signal, the app reloaded, and every entry was gone — while the
+   * indicator read "Saved locally · 12 pending" the whole time.
+   *
+   * `hydrated` gates the write-back so the first render's empty array cannot
+   * overwrite a stored queue before it has been read.
+   */
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    hydrated.current = false;
+    void (async () => {
+      const loaded = await loadOutbox(trainerStorage, viewerScope);
+      if (cancelled) return;
+      setQueue(loaded.items);
+      hydrated.current = true;
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [viewerScope]);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    // Best effort: a storage failure must not take down the screen a trainer
+    // is working on, and the in-memory queue is still correct.
+    void saveOutbox(trainerStorage, viewerScope, queue);
+  }, [queue, viewerScope]);
 
   // Keep the list in step when the seed flag flips at runtime (developer
   // toggle) without dropping edits made since mount.
