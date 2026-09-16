@@ -27,6 +27,7 @@ import adminMetricsRouter from "./adminMetrics";
 import skiniaAccessRouter from "./skiniaAccess";
 import { trainerRouter } from "./trainer";
 import { trainerDocsRouter } from "./trainerDocs";
+import { trainerRtpRouter } from "./trainerRtp";
 import { buildWhoopOAuthRouter } from "./whoopOAuth";
 import { buildDefaultWhoopAdminRouter } from "./whoopAdmin";
 import {
@@ -212,6 +213,8 @@ router.use("/skinia", skiniaAccessRouter);
 router.use("/trainer", trainerRouter);
 // Phase 4 documentation routes share the /trainer path and the same flag.
 router.use("/trainer", trainerDocsRouter);
+// Phase 6 return-to-play, same path and same flag.
+router.use("/trainer", trainerRtpRouter);
 
 // Hidden-infra mount: the WHOOP OAuth routes only exist when all three
 // env vars are set. With nothing configured (default dev / test), the

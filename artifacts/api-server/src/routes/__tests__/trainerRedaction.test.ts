@@ -19,7 +19,7 @@
 import express, { type Express } from "express";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
 
 import type { MedicalAccessEntry, TrainerRepo } from "@workspace/db";
 import { setFlag } from "../../config/featureFlags";
@@ -117,12 +117,28 @@ function buildApp(userId: string | null): Express {
   return app;
 }
 
+/**
+ * One server per identity for the whole file, not one per request.
+ *
+ * The first version created a fresh listener for every call, which is fine
+ * alone and flaky under a full parallel lane: a few hundred sockets per file
+ * competing with every other suite. The fakes read the module-level `state`
+ * at call time, so a cached server still sees each test's fresh fixture.
+ */
+const serverByIdentity = new Map<string, string>();
+
 async function startAs(userId: string | null): Promise<string> {
+  const key = userId ?? "__anonymous__";
+  const cached = serverByIdentity.get(key);
+  if (cached) return cached;
+
   const server = http.createServer(buildApp(userId));
   await new Promise<void>((resolve) => server.listen(0, resolve));
   servers.push(server);
   const { port } = server.address() as AddressInfo;
-  return `http://127.0.0.1:${port}`;
+  const base = `http://127.0.0.1:${port}`;
+  serverByIdentity.set(key, base);
+  return base;
 }
 
 interface Res {
@@ -160,7 +176,8 @@ beforeEach(() => {
   setFlag("feature.trainer_api", true);
 });
 
-afterEach(async () => {
+afterAll(async () => {
+  serverByIdentity.clear();
   await Promise.all(
     servers.splice(0).map((s) => new Promise<void>((resolve) => s.close(() => resolve()))),
   );
