@@ -435,6 +435,25 @@ export function createTrainerDocsRepo(db: Db) {
 
         const rootId = prior.rootId ?? prior.id;
 
+        // SERIALIZE AMENDMENTS ON THIS CHAIN. Taking the lock on the ROOT row
+        // rather than on the max-version read is deliberate: the root always
+        // exists, so there is always a row to lock, whereas `FOR UPDATE` on a
+        // query that returns nothing locks nothing.
+        //
+        // Without this, two clinicians amending at once both read the same
+        // maximum and both chose N+1. Both inserted, `currentNotes` kept
+        // whichever it saw as newest, and the other amendment disappeared
+        // from the current view while surviving in the chart export — so the
+        // UI and the export disagreed about the record. The unique index on
+        // (root_id, version) is the backstop; this is what stops the two
+        // writers racing in the first place, so the loser gets a correct
+        // version number rather than an error.
+        await tx
+          .select({ id: aforceAthleteSoapNotes.id })
+          .from(aforceAthleteSoapNotes)
+          .where(eq(aforceAthleteSoapNotes.id, rootId))
+          .for("update");
+
         // The next version number comes from the chain, not from the row we
         // were handed: amending an older version must not reuse a number.
         const latest = await tx

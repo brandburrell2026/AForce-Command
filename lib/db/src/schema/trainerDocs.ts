@@ -25,7 +25,7 @@
  * plaintext.
  */
 
-import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, index, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, timestamp, jsonb, bigserial, bigint, index, uniqueIndex, customType } from "drizzle-orm/pg-core";
 
 /** Postgres `bytea`, declared the same way `schema/aforce.ts` declares it. */
 const customBytea = customType<{ data: Uint8Array; driverData: Buffer }>({
@@ -140,7 +140,16 @@ export const aforceAthleteSoapNotes = pgTable(
   (t) => [
     index("aforce_athlete_soap_notes_subject_idx").on(t.programId, t.subjectUserId, t.createdAt),
     // Version-chain retrieval: every version of one note, in order.
-    index("aforce_athlete_soap_notes_chain_idx").on(t.rootId, t.version),
+    //
+    // UNIQUE, and that is the point of it. `amendNote` picks the next version
+    // by reading the chain's current maximum, so two amendments that read
+    // before either wrote both chose N+1. Both inserted; `currentNotes` keeps
+    // whichever it saw as newest; the other clinician's amendment vanished
+    // from the current view while surviving in the chart export, so the two
+    // artefacts disagreed about the record. The repository takes a row lock
+    // to serialize them, and this index is the backstop that makes the
+    // failure impossible rather than unlikely.
+    uniqueIndex("aforce_athlete_soap_notes_chain_idx").on(t.rootId, t.version),
   ],
 );
 
