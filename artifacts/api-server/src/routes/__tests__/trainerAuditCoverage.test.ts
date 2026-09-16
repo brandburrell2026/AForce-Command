@@ -179,10 +179,10 @@ function fakeDocs(): TrainerDocsRepo {
       return [];
     },
     async fileNote() {
-      return NOTE;
+      return { entry: NOTE, replayed: false };
     },
     async amendNote() {
-      return { ok: true as const, entry: { ...NOTE, version: 2 }, subjectUserId: ATHLETE };
+      return { ok: true as const, entry: { ...NOTE, version: 2 }, subjectUserId: ATHLETE, replayed: false };
     },
     async noteVersions() {
       return [NOTE];

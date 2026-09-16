@@ -67,14 +67,35 @@ export interface FlushOutcome {
   failed: number;
   /** Items that were due but skipped because their athlete is blocked. */
   blocked: number;
+  /** Items past the automatic-retry threshold. Kept, not sent, not dropped. */
+  parked: number;
 }
 
 export interface FlushOptions {
   /** Cap per pass, so one flush cannot hold the loop indefinitely. */
   limit?: number;
+  /**
+   * Attempts after which an item stops being retried AUTOMATICALLY.
+   *
+   * Retry has to be bounded or a permanently unacceptable entry is retried
+   * until the heat death of the phone battery. It must NOT be bounded by
+   * dropping the entry: a trainer's entry is evidence of a clinical decision,
+   * and losing it silently is the worse failure. So an item over the
+   * threshold is PARKED — left in the queue, still visible, still countable,
+   * still resolvable by a person — and simply not sent again on its own.
+   */
+  maxAutoAttempts?: number;
 }
 
 export const DEFAULT_FLUSH_LIMIT = 25;
+
+/** ~17 minutes of backoff before a human is the right next step. */
+export const DEFAULT_MAX_AUTO_ATTEMPTS = 10;
+
+/** Is this item past the point of automatic retry? */
+export function isParked(item: OutboxItem, maxAutoAttempts = DEFAULT_MAX_AUTO_ATTEMPTS): boolean {
+  return item.state === "failed" && item.attempts >= maxAutoAttempts;
+}
 
 /**
  * Attempt one pass over the due items.
@@ -90,12 +111,14 @@ export async function flushOnce(
   options: FlushOptions = {},
 ): Promise<FlushOutcome> {
   const limit = options.limit ?? DEFAULT_FLUSH_LIMIT;
+  const maxAutoAttempts = options.maxAutoAttempts ?? DEFAULT_MAX_AUTO_ATTEMPTS;
 
   let working: OutboxItem[] = [...queue];
   let sent = 0;
   let conflicted = 0;
   let failed = 0;
   let blocked = 0;
+  let parked = 0;
 
   /**
    * Athletes whose chain is stopped for this pass.
@@ -109,7 +132,13 @@ export async function flushOnce(
     working.filter((i) => i.state === "conflicted").map((i) => i.athleteUserId),
   );
 
-  const due = selectDue(working, nowMs).slice(0, limit);
+  const due = selectDue(working, nowMs)
+    .filter((item) => {
+      if (!isParked(item, maxAutoAttempts)) return true;
+      parked += 1;
+      return false;
+    })
+    .slice(0, limit);
 
   for (const item of due) {
     if (blockedAthletes.has(item.athleteUserId)) {
@@ -162,12 +191,16 @@ export async function flushOnce(
     }
   }
 
-  return { queue: working, sent, conflicted, failed, blocked };
+  return { queue: working, sent, conflicted, failed, blocked, parked };
 }
 
 /** Is there anything a flush could usefully do right now? */
-export function hasWork(queue: readonly OutboxItem[], nowMs: number): boolean {
-  return selectDue(queue, nowMs).length > 0;
+export function hasWork(
+  queue: readonly OutboxItem[],
+  nowMs: number,
+  maxAutoAttempts = DEFAULT_MAX_AUTO_ATTEMPTS,
+): boolean {
+  return selectDue(queue, nowMs).some((i) => !isParked(i, maxAutoAttempts));
 }
 
 /**
@@ -177,8 +210,13 @@ export function hasWork(queue: readonly OutboxItem[], nowMs: number): boolean {
  * fixed interval to find an empty queue — which on a phone is battery a
  * trainer notices.
  */
-export function nextDueAtMs(queue: readonly OutboxItem[]): number | null {
-  const waiting = queue.filter((q) => q.state === "pending" || q.state === "failed");
+export function nextDueAtMs(
+  queue: readonly OutboxItem[],
+  maxAutoAttempts = DEFAULT_MAX_AUTO_ATTEMPTS,
+): number | null {
+  const waiting = queue.filter(
+    (q) => (q.state === "pending" || q.state === "failed") && !isParked(q, maxAutoAttempts),
+  );
   if (waiting.length === 0) return null;
   return waiting.reduce((min, q) => Math.min(min, q.nextAttemptAtMs), Number.POSITIVE_INFINITY);
 }

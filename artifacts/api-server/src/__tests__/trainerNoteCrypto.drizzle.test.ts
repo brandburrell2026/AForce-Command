@@ -68,7 +68,7 @@ describe.runIf(DB)("medical notes are encrypted at rest", () => {
   beforeEach(wipe);
 
   it("writes ciphertext to the *_enc columns and leaves the plaintext columns NULL", async () => {
-    const note = await docs.fileNote({
+    const { entry: note } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,
@@ -90,7 +90,7 @@ describe.runIf(DB)("medical notes are encrypted at rest", () => {
   });
 
   it("the stored bytes do not contain the note, in any encoding a reader would try", async () => {
-    const note = await docs.fileNote({
+    const { entry: note } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,
@@ -143,7 +143,7 @@ describe.runIf(DB)("medical notes are encrypted at rest", () => {
   });
 
   it("round-trips through the repository, so the note is not merely lost", async () => {
-    const note = await docs.fileNote({
+    const { entry: note } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,
@@ -158,7 +158,7 @@ describe.runIf(DB)("medical notes are encrypted at rest", () => {
   });
 
   it("encrypts an amendment too, not only the first version", async () => {
-    const first = await docs.fileNote({
+    const { entry: first } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,
@@ -188,7 +188,7 @@ describe.runIf(DB)("medical notes are encrypted at rest", () => {
   it("still reads a row written while no key was configured", async () => {
     const key = process.env["MEDICAL_NOTE_ENCRYPTION_KEY"];
     delete process.env["MEDICAL_NOTE_ENCRYPTION_KEY"];
-    const legacy = await docs.fileNote({
+    const { entry: legacy } = await docs.fileNote({
       programId: PROGRAM,
       subjectUserId: ATHLETE,
       authorUserId: TRAINER,

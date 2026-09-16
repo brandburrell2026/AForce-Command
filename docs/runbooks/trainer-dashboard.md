@@ -66,6 +66,7 @@ deploy. Names are in `TRAINER_COUNTERS` so the code and this page cannot drift.
 | `requests_total.trainer.<status>` | Outcomes by status |
 | `latency_ms.trainer<route pattern>` | Latency per route **pattern** |
 | `db_pool.waiting` | Requests queued for one of the ten connections |
+| `trainer.note_write_replayed` | A note write was a replay of one already committed — the retry path working |
 
 Metric names never contain an athlete or program id — they key on the route
 pattern. That is enforced by test, not convention.
@@ -197,6 +198,16 @@ template with no subject).
 
 ---
 
+### `trainer.note_write_replayed` climbing steeply
+
+A trickle is normal: it is the offline outbox retrying an entry the server
+already committed, which is the protection doing its job rather than a fault.
+
+A spike means something is retrying that should not be. Check
+`trainer.server_errors` first — the usual cause is writes succeeding and then
+failing at the audit insert, which returns 500 and makes the client retry a
+note that already exists.
+
 ## 7. Before launch
 
 Open items. None are code.
@@ -215,19 +226,28 @@ Open items. None are code.
       the append-only evidence.
 - [ ] **Alert routing** for §3 wired to whoever is on call.
 
+Each of the first four has an exact procedure in
+[`trainer-external-actions.md`](./trainer-external-actions.md) — preflight
+checks, commands, abort conditions, verification and rollback. None of them
+have been performed.
+
 ---
 
 ## 8. Known gaps
 
 Real, and not fixed by anything above.
 
-- **Note writes are not idempotent.** A 500 after a durable write, retried by
-  the client outbox, files a second note. Needs an idempotency-key column.
 - **Commit-then-audit ordering** on write paths: the write commits, then the
   audit row is written. An audit failure returns 500 on an already-durable
-  write.
-- **The client outbox does not persist.** It lives in screen state, so a
-  reload loses queued entries, and there is no flush loop yet.
+  write. The DUPLICATE that used to follow is closed — note writes are now
+  idempotent on the client's entry id — but the 500 itself remains, and the
+  audit row for that write is genuinely missing. Treat a spike in
+  `trainer.server_errors` alongside a flat `trainer.audit_rows_written` as
+  the §3 alert.
+- **Key rotation is possible but not implemented.** Ciphertext carries a `v1:`
+  prefix so a reader can dispatch, but there is no re-encryption path.
+  Rotating `MEDICAL_NOTE_ENCRYPTION_KEY` today makes every existing note
+  unreadable. See `trainer-external-actions.md` §2.5.
 - **No foreign keys and no CHECK constraints** on any of the 14 tables —
   repo-wide convention. A sign-off can be written against a progression in
   another program and nothing at the database layer refuses it.

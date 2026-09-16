@@ -105,6 +105,12 @@ export const TRAINER_COUNTERS = {
   noteEncryptionUnavailable: "trainer.note_encryption_unavailable",
   /** A consent or membership lookup failed, so the surface failed closed. */
   accessLookupFailed: "trainer.access_lookup_failed",
+  /**
+   * A note write was a REPLAY of one already committed — the retry path
+   * working. A steady trickle is normal on a flaky sideline connection; a
+   * spike means something is retrying that should not be.
+   */
+  noteWriteReplayed: "trainer.note_write_replayed",
 } as const;
 
 export { incCounter };

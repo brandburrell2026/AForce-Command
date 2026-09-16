@@ -180,7 +180,7 @@ function fakeDocs(): TrainerDocsRepo {
         ...args.fields,
       };
       state.notes.push(entry);
-      return entry;
+      return { entry, replayed: false };
     },
     async amendNote(args) {
       const prior = state.notes.find((n) => n.id === args.noteId);
@@ -201,7 +201,12 @@ function fakeDocs(): TrainerDocsRepo {
       };
       // Append. The prior row is not touched — that is the property under test.
       state.notes.push(entry);
-      return { ok: true as const, entry };
+      return {
+        ok: true as const,
+        entry,
+        subjectUserId: prior.subjectUserId ?? ATHLETE,
+        replayed: false,
+      };
     },
     async noteVersions(_programId, rootId) {
       return state.notes.filter((n) => n.rootId === rootId).sort((a, b) => a.version - b.version);
