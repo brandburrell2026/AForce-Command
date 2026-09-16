@@ -311,11 +311,15 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
         // Clinical and the athlete themselves see the protocol. Everyone
         // else — coach, strength, compliance — gets the four-field view.
         const staff = access.level === "clinical" || access.level === "self";
-        if (!staff) {
-          res.json({ redactionLevel: access.level, progression: coachView(source) });
-          return;
-        }
+        const payload = staff ? staffView(source) : coachView(source);
 
+        // LOGGED BEFORE THE BRANCH, not inside it. This used to return the
+        // coach view above the log, so every coach and strength read of a
+        // return-to-play progression left no trace at all — the reads most
+        // worth tracing, because they are the ones going to someone who may
+        // not see why an athlete is on a protocol. `fields` names what THIS
+        // level actually received, so the row records the disclosure that
+        // happened rather than the fullest one that could have.
         await repo.logAccess({
           actorUserId: actorId,
           subjectUserId: athleteId,
@@ -323,14 +327,14 @@ export function buildTrainerRtpRouter(repo: TrainerRepo, rtp: TrainerRtpRepo): I
           actorRole: access.role,
           resource: "return_to_play",
           action: "read",
-          fields: ["stages", "history", "stoppedReason"],
+          fields: Object.keys(payload),
           redactionLevel: access.level,
           consentDecisionSeq: subject.consentDecisionSeq,
           requestId: requestIdOf(req),
           route: req.path,
         });
 
-        res.json({ redactionLevel: access.level, progression: staffView(source) });
+        res.json({ redactionLevel: access.level, progression: payload });
       } catch (err) {
         logger.error({ err: serializeError(err) }, "[trainer] rtp read failed");
         sendApiError(req, res, 500, "rtp_read_failed");

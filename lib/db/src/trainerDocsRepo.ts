@@ -414,7 +414,10 @@ export function createTrainerDocsRepo(db: Db) {
       authorUserId: string;
       fields: SoapFields;
       amendmentReason: string;
-    }): Promise<{ ok: true; entry: SoapNoteEntry } | { ok: false; reason: "not_found" }> {
+    }): Promise<
+      | { ok: true; entry: SoapNoteEntry; subjectUserId: string }
+      | { ok: false; reason: "not_found" }
+    > {
       return db.transaction(async (tx) => {
         const found = await tx
           .select(NOTE_COLUMNS)
@@ -463,7 +466,14 @@ export function createTrainerDocsRepo(db: Db) {
           })
           .returning(NOTE_COLUMNS);
 
-        return { ok: true as const, entry: toEntry(inserted[0]!) };
+        // The subject is returned alongside the entry rather than added to
+        // it: the route needs it to file an audit row, and the response shape
+        // this repo already produces is not the place to put it.
+        return {
+          ok: true as const,
+          entry: toEntry(inserted[0]!),
+          subjectUserId: subjectRows[0]!.subjectUserId,
+        };
       });
     },
 
