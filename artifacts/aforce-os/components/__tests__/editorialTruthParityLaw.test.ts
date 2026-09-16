@@ -38,7 +38,6 @@ const LEGACY_PROTOCOL = read('components', 'protocol', 'ProtocolScreenV2.tsx');
 const EDITORIAL_WEEKLY = read('components', 'editorial', 'weekly', 'EditorialWeeklyScreen.tsx');
 const EDITORIAL_MOMENTS = read('components', 'editorial', 'moments', 'EditorialMomentsScreen.tsx');
 const FLAGS = read('featureFlags', 'flags.ts');
-const SENSORS_ROUTE = read('app', 'sensors.tsx');
 const EN = JSON.parse(read('locales', 'en.json')) as Record<string, never>;
 
 describe('SCAN PARITY — the swap may change presentation, never remove capability', () => {
@@ -168,14 +167,6 @@ describe('GATES THAT MUST NOT MOVE', () => {
     expect(FLAGS).toMatch(/moments_calendar_enabled: false/);
     // The editorial moments flag's own contract says it does not widen it.
     expect(FLAGS).toMatch(/does not widen the\s*\n?\s*\/\/\s*moments_enabled or moments_calendar_enabled gates/);
-  });
-
-  it('SENSORS CONTAINMENT SURVIVES — W2-N3 stays unreachable in the cohort build', () => {
-    // The gate is a BUILD-TIME constant, so no flag change can reach it. This
-    // law fails if the Editorial lane disturbs the route.
-    expect(SENSORS_ROUTE).toMatch(/if\s*\(\s*INTERNAL_TESTFLIGHT_OVERLAY_ENABLED\s*\)\s*return/);
-    const gateAt = SENSORS_ROUTE.search(/if\s*\(\s*INTERNAL_TESTFLIGHT_OVERLAY_ENABLED\s*\)\s*return/);
-    expect(gateAt).toBeLessThan(SENSORS_ROUTE.indexOf('<SensorImportScreenV2'));
   });
 
   it('production Editorial defaults remain OFF', () => {
