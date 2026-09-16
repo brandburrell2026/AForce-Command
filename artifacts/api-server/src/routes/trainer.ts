@@ -71,6 +71,32 @@ async function loadAthleteSource(
     includeMedical ? repo.medicalNotes(programId, athleteUserId) : Promise.resolve([]),
   ]);
 
+  return buildAthleteSource({ athleteUserId, displayName, consent, availability, notes });
+}
+
+/**
+ * Assemble the source shape from parts that have ALREADY been fetched.
+ *
+ * Split out of `loadAthleteSource` so the single-athlete route and the
+ * roster's batched reads build the identical shape from the identical
+ * defaults. If a missing availability row meant `null` on one path and
+ * something else on the other, the projection would differ between the board
+ * and the record for the same athlete, and no test on either path alone would
+ * notice. One assembler is what stops that.
+ */
+function buildAthleteSource(parts: {
+  athleteUserId: string;
+  displayName: string;
+  consent: { granted: boolean; decisionSeq: number };
+  availability: {
+    status: string;
+    reason: string | null;
+    setByUserId: string;
+    setAt: string;
+  } | null;
+  notes: AthleteSource["medicalNotes"];
+}): AthleteSource {
+  const { athleteUserId, displayName, consent, availability, notes } = parts;
   return {
     athleteUserId,
     displayName,
@@ -126,42 +152,61 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
     }
 
     try {
+      // FOUR STATEMENTS, whatever the roster size. This used to assemble
+      // itself one athlete at a time — a consent read, an availability read
+      // and a notes read per member, then one audit INSERT per disclosure.
+      // At 500 athletes that was 1,902 statements and 49.7s of summed
+      // database time for a single board load, issued as a nested
+      // `Promise.all` against a pool of 10 shared with checkout, intake and
+      // the health checks. Measured, before and after, in
+      // `docs/benchmarks/trainer-board.md`.
+      //
+      // Nothing about WHAT is returned changed: the same projection runs per
+      // athlete, on the same source shape, and a missing row still means
+      // exactly what it meant when each athlete was fetched alone.
       const athletes = await repo.athletes(access.programId);
-      const rows = await Promise.all(
-        athletes.map(async (m) => {
-          const src = await loadAthleteSource(
-            repo,
-            access.programId,
-            m.userId,
-            m.userId, // display name lands with the roster import, Phase 2
-            access.level === "clinical",
-          );
-          const projected = projectAthlete(src, access.level);
-          return { src, projected };
-        }),
-      );
+      const ids = athletes.map((m) => m.userId);
+      const includeMedical = access.level === "clinical";
+
+      const [consents, availability, notes] = await Promise.all([
+        repo.consentMany(access.programId, ids),
+        repo.currentAvailabilityMany(access.programId, ids),
+        includeMedical
+          ? repo.medicalNotesMany(access.programId, ids)
+          : Promise.resolve(new Map<string, never[]>()),
+      ]);
+
+      const rows = athletes.map((m) => {
+        const src = buildAthleteSource({
+          athleteUserId: m.userId,
+          displayName: m.userId, // display name lands with the roster import
+          consent: consents.get(m.userId) ?? { granted: false, decisionSeq: 0 },
+          availability: availability.get(m.userId) ?? null,
+          notes: notes.get(m.userId) ?? [],
+        });
+        return { src, projected: projectAthlete(src, access.level) };
+      });
 
       // Audit every row that actually disclosed medical content. One entry per
       // subject, never a single "read the roster" row — the log answers "who
-      // looked at ME", which a roster-level entry could not.
-      await Promise.all(
+      // looked at ME", which a roster-level entry could not. Batched into one
+      // INSERT; the rows written are identical to the ones written before.
+      await repo.logAccessMany(
         rows
           .filter((r) => disclosedMedical(r.projected.fields))
-          .map((r) =>
-            repo.logAccess({
-              actorUserId: actorId,
-              subjectUserId: r.src.athleteUserId,
-              programId: access.programId,
-              actorRole: access.role,
-              resource: "roster",
-              action: "read",
-              fields: r.projected.fields,
-              redactionLevel: access.level,
-              consentDecisionSeq: r.src.consentDecisionSeq,
-              requestId: requestIdOf(req),
-              route: req.path,
-            }),
-          ),
+          .map((r) => ({
+            actorUserId: actorId,
+            subjectUserId: r.src.athleteUserId,
+            programId: access.programId,
+            actorRole: access.role,
+            resource: "roster",
+            action: "read",
+            fields: r.projected.fields,
+            redactionLevel: access.level,
+            consentDecisionSeq: r.src.consentDecisionSeq,
+            requestId: requestIdOf(req),
+            route: req.path,
+          })),
       );
 
       res.json({

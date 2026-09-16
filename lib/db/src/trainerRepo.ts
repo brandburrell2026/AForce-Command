@@ -12,7 +12,7 @@
  * WHERE clause so the check and the write cannot disagree.
  */
 
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import {
@@ -353,6 +353,143 @@ export function createTrainerRepo(db: Db) {
 
         return { ok: true as const, version: inserted[0]!.id };
       });
+    },
+
+    // ─── Batched reads for the board ────────────────────────────────────
+    //
+    // The roster used to assemble itself one athlete at a time: for each
+    // member, a consent read, an availability read and a notes read. At 500
+    // athletes that was 1,501 SELECTs and 400 INSERTs in a single request,
+    // issued as a nested `Promise.all` fan-out against a pool of 10 shared
+    // with checkout, intake and the health checks. Measured before this
+    // change: 1,902 statements and 49.7s of summed database time for one
+    // board load.
+    //
+    // These three answer the same questions for a whole roster in one
+    // statement each. They return Maps rather than arrays so the caller
+    // cannot accidentally depend on row order to line data up with athletes
+    // — the ordering the board actually uses is decided later, by the
+    // sorter, and must not be silently inherited from the database.
+    //
+    // A missing entry is the SAME ANSWER the single-athlete version gives:
+    // no consent row means not granted at sequence 0, no availability row
+    // means null, no notes means an empty list. That is what keeps the
+    // projection's behaviour identical for an athlete with no data.
+
+    /** Consent for many athletes. Absent rows default to not-granted. */
+    async consentMany(
+      programId: string,
+      athleteUserIds: readonly string[],
+    ): Promise<Map<string, AthleteConsentState>> {
+      const out = new Map<string, AthleteConsentState>();
+      for (const id of athleteUserIds) out.set(id, { granted: false, decisionSeq: 0 });
+      if (athleteUserIds.length === 0) return out;
+
+      const rows = await db
+        .select({
+          athleteUserId: aforceAthleteConsents.athleteUserId,
+          granted: aforceAthleteConsents.granted,
+          decisionSeq: aforceAthleteConsents.decisionSeq,
+        })
+        .from(aforceAthleteConsents)
+        .where(
+          and(
+            eq(aforceAthleteConsents.programId, programId),
+            inArray(aforceAthleteConsents.athleteUserId, [...athleteUserIds]),
+          ),
+        );
+      for (const row of rows) {
+        out.set(row.athleteUserId, { granted: row.granted, decisionSeq: row.decisionSeq });
+      }
+      return out;
+    },
+
+    /**
+     * Newest availability row per athlete, in one statement.
+     *
+     * `DISTINCT ON` with a matching ORDER BY is how Postgres expresses
+     * "greatest per group" without a window function or a correlated
+     * subquery. Ordered by id, not created_at, for the same reason the
+     * single-athlete read is: two writes in the same millisecond tie on the
+     * timestamp and "which is current" must not be a coin flip.
+     */
+    async currentAvailabilityMany(
+      programId: string,
+      athleteUserIds: readonly string[],
+    ): Promise<Map<string, AvailabilityEntry>> {
+      const out = new Map<string, AvailabilityEntry>();
+      if (athleteUserIds.length === 0) return out;
+
+      const rows = await db
+        .selectDistinctOn([aforceAthleteAvailability.athleteUserId], {
+          athleteUserId: aforceAthleteAvailability.athleteUserId,
+          id: aforceAthleteAvailability.id,
+          status: aforceAthleteAvailability.status,
+          reason: aforceAthleteAvailability.reason,
+          setByUserId: aforceAthleteAvailability.setByUserId,
+          createdAt: aforceAthleteAvailability.createdAt,
+        })
+        .from(aforceAthleteAvailability)
+        .where(
+          and(
+            eq(aforceAthleteAvailability.programId, programId),
+            inArray(aforceAthleteAvailability.athleteUserId, [...athleteUserIds]),
+          ),
+        )
+        .orderBy(
+          asc(aforceAthleteAvailability.athleteUserId),
+          desc(aforceAthleteAvailability.id),
+        );
+
+      for (const row of rows) {
+        out.set(row.athleteUserId, {
+          version: row.id,
+          status: row.status,
+          reason: row.reason,
+          setByUserId: row.setByUserId,
+          setAt: row.createdAt.toISOString(),
+        });
+      }
+      return out;
+    },
+
+    /** Notes for many athletes, newest first within each. Clinical reads only. */
+    async medicalNotesMany(
+      programId: string,
+      subjectUserIds: readonly string[],
+    ): Promise<Map<string, MedicalNote[]>> {
+      const out = new Map<string, MedicalNote[]>();
+      for (const id of subjectUserIds) out.set(id, []);
+      if (subjectUserIds.length === 0) return out;
+
+      const rows = await db
+        .select({
+          subjectUserId: aforceAthleteMedicalNotes.subjectUserId,
+          id: aforceAthleteMedicalNotes.id,
+          body: aforceAthleteMedicalNotes.body,
+          authorUserId: aforceAthleteMedicalNotes.authorUserId,
+          createdAt: aforceAthleteMedicalNotes.createdAt,
+        })
+        .from(aforceAthleteMedicalNotes)
+        .where(
+          and(
+            eq(aforceAthleteMedicalNotes.programId, programId),
+            inArray(aforceAthleteMedicalNotes.subjectUserId, [...subjectUserIds]),
+          ),
+        )
+        .orderBy(desc(aforceAthleteMedicalNotes.createdAt));
+
+      // One pass; the ORDER BY already puts each athlete's notes newest
+      // first, and pushing preserves that within each bucket.
+      for (const row of rows) {
+        out.get(row.subjectUserId)?.push({
+          id: row.id,
+          body: row.body,
+          authorUserId: row.authorUserId,
+          createdAt: row.createdAt.toISOString(),
+        });
+      }
+      return out;
     },
 
     /** Notes for one athlete, newest first. Clinical and self reads only. */

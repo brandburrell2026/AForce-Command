@@ -88,6 +88,27 @@ function fakeRepo(): TrainerRepo {
     async logAccessMany(entries) {
       for (const entry of entries) await this.logAccess(entry);
     },
+    // Delegates to the single-athlete fakes above, so the batched
+    // roster read is proven to produce the same projection as the
+    // per-athlete one it replaced.
+    async consentMany(programId, ids) {
+      const out = new Map();
+      for (const id of ids) out.set(id, await this.consent(programId, id));
+      return out;
+    },
+    async currentAvailabilityMany(programId, ids) {
+      const out = new Map();
+      for (const id of ids) {
+        const entry = await this.currentAvailability(programId, id);
+        if (entry) out.set(id, entry);
+      }
+      return out;
+    },
+    async medicalNotesMany(programId, ids) {
+      const out = new Map();
+      for (const id of ids) out.set(id, await this.medicalNotes(programId, id));
+      return out;
+    },
   };
 }
 
