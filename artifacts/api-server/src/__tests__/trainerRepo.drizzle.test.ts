@@ -504,6 +504,125 @@ describe.runIf(DB)("trainer repositories — real Postgres", () => {
     });
   });
 
+  // ─── Batched reads: parity with the per-athlete reads ───────────────────
+
+  /**
+   * The roster's batched reads replaced a per-athlete fan-out. The only thing
+   * that must be true of them is that they answer IDENTICALLY — including for
+   * the athletes who have nothing, which is where a batch most easily
+   * diverges: a `WHERE id = ANY(...)` returns no row for them, and the caller
+   * has to supply the same default the single read did.
+   *
+   * Both implementations still exist, so this compares them directly rather
+   * than against a hand-written expectation.
+   */
+  describe("batched reads answer exactly what the per-athlete reads answer", () => {
+    const WITH_EVERYTHING = `${ATHLETE}_full`;
+    const WITH_NOTHING = `${ATHLETE}_empty`;
+    const WITH_SOME = `${ATHLETE}_partial`;
+    const ALL = [WITH_EVERYTHING, WITH_SOME, WITH_NOTHING];
+
+    beforeEach(async () => {
+      // Everything.
+      await repo.setConsent({
+        programId: PROGRAM,
+        athleteUserId: WITH_EVERYTHING,
+        granted: true,
+        expectedSeq: 0,
+      });
+      await repo.appendAvailability({
+        programId: PROGRAM,
+        athleteUserId: WITH_EVERYTHING,
+        status: "out",
+        reason: "held from contact",
+        setByUserId: TRAINER_A,
+        expectedVersion: null,
+      });
+      // Two availability rows, so "newest wins" is actually exercised.
+      const second = await repo.currentAvailability(PROGRAM, WITH_EVERYTHING);
+      await repo.appendAvailability({
+        programId: PROGRAM,
+        athleteUserId: WITH_EVERYTHING,
+        status: "limited",
+        reason: "return to running",
+        setByUserId: TRAINER_B,
+        expectedVersion: second?.version ?? null,
+      });
+
+      // Consent only — no availability, no notes.
+      await repo.setConsent({
+        programId: PROGRAM,
+        athleteUserId: WITH_SOME,
+        granted: false,
+        expectedSeq: 0,
+      });
+
+      // WITH_NOTHING gets nothing at all, deliberately.
+    });
+
+    it("consentMany matches consent, including the athlete with no row", async () => {
+      const batched = await repo.consentMany(PROGRAM, ALL);
+      for (const id of ALL) {
+        expect(batched.get(id), id).toEqual(await repo.consent(PROGRAM, id));
+      }
+      // And the default is the same default: not granted, sequence zero.
+      expect(batched.get(WITH_NOTHING)).toEqual({ granted: false, decisionSeq: 0 });
+    });
+
+    it("currentAvailabilityMany matches currentAvailability, newest row and all", async () => {
+      const batched = await repo.currentAvailabilityMany(PROGRAM, ALL);
+      for (const id of ALL) {
+        const single = await repo.currentAvailability(PROGRAM, id);
+        expect(batched.get(id) ?? null, id).toEqual(single);
+      }
+      expect(batched.get(WITH_EVERYTHING)?.status).toBe("limited");
+      expect(batched.has(WITH_NOTHING)).toBe(false);
+    });
+
+    it("medicalNotesMany matches medicalNotes, order included", async () => {
+      const client = await pool.connect();
+      try {
+        for (const body of ["older note", "newer note"]) {
+          await client.query(
+            `INSERT INTO aforce_athlete_medical_notes
+               (program_id, subject_user_id, body, author_user_id, created_at)
+             VALUES ($1, $2, $3, $4, now() + ($5 || ' seconds')::interval)`,
+            [PROGRAM, WITH_EVERYTHING, body, TRAINER_A, body === "older note" ? "0" : "1"],
+          );
+        }
+      } finally {
+        client.release();
+      }
+
+      const batched = await repo.medicalNotesMany(PROGRAM, ALL);
+      for (const id of ALL) {
+        expect(batched.get(id), id).toEqual(await repo.medicalNotes(PROGRAM, id));
+      }
+      // Newest first, which the board depends on.
+      expect(batched.get(WITH_EVERYTHING)?.map((n) => n.body)).toEqual([
+        "newer note",
+        "older note",
+      ]);
+      expect(batched.get(WITH_NOTHING)).toEqual([]);
+    });
+
+    it("an empty id list returns empty maps without touching the database", async () => {
+      expect((await repo.consentMany(PROGRAM, [])).size).toBe(0);
+      expect((await repo.currentAvailabilityMany(PROGRAM, [])).size).toBe(0);
+      expect((await repo.medicalNotesMany(PROGRAM, [])).size).toBe(0);
+    });
+
+    it("never returns an athlete that was not asked for", async () => {
+      // A batch that leaked a neighbouring athlete's row would be a
+      // cross-athlete disclosure, not just a bug.
+      const batched = await repo.consentMany(PROGRAM, [WITH_EVERYTHING]);
+      expect([...batched.keys()]).toEqual([WITH_EVERYTHING]);
+
+      const avail = await repo.currentAvailabilityMany(PROGRAM, [WITH_SOME]);
+      expect([...avail.keys()]).toEqual([]);
+    });
+  });
+
   // ─── The access log ─────────────────────────────────────────────────────
 
   describe("the access log is append-only and answers both questions", () => {

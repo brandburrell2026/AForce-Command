@@ -46,6 +46,11 @@ export default defineConfig({
       // note version chain were covered only by fakes that agreed with
       // whatever the code did.
       'artifacts/api-server/src/__tests__/trainerRepo.drizzle.test.ts',
+      // Guards the board's O(1) query count. Fast by design — small rosters,
+      // because the property is CONSTANT, not fast. The figures come from
+      // `pnpm bench:trainer-board` (vitest.bench.config.ts), which is not in
+      // this lane because it seeds 500 athletes per size.
+      'artifacts/api-server/src/__tests__/trainerRosterQueryCount.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/trainerNoteCrypto.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/scanRepo.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/whoopAdvisoryLock.drizzle.test.ts',

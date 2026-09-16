@@ -11,7 +11,8 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "test:db": "DB_TESTS=1 vitest run --config vitest.db.config.ts"
+    "test:db": "DB_TESTS=1 vitest run --config vitest.db.config.ts",
+    "bench:trainer-board": "BENCH=1 DB_TESTS=1 vitest run --config vitest.bench.config.ts"
   },
   "private": true,
   "devDependencies": {
