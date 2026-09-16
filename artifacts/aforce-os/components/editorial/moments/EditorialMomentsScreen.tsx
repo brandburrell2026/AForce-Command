@@ -79,6 +79,10 @@ export function EditorialMomentsScreen({
     (m) => Date.parse(m.startAtIso) > Date.parse(data.nowIso),
   );
   const now = React.useMemo(() => new Date(data.nowIso), [data.nowIso]);
+  // The Figma calendar is a short, ordered horizon rather than one undifferentiated
+  // queue. These are only real surfaced Moments, limited to the first three
+  // dates the existing recommendation boundary already allows through.
+  const calendarDays = React.useMemo(() => groupMomentDays(upNext), [upNext]);
 
   return (
     <EdSurface stock="black" style={styles.fill}>
@@ -150,26 +154,32 @@ export function EditorialMomentsScreen({
                 </Pressable>
               </View>
 
-              {upNext.length > 0 ? (
+              {calendarDays.length > 0 ? (
                 <View style={styles.spineLabel}>
                   {/* The section label belongs to the list it heads — not to
                       the summary statement above it. */}
                   <EdCaption text={t('moments.up_next')} />
                 </View>
               ) : null}
-              {upNext.length > 0 ? (
+              {calendarDays.length > 0 ? (
                 <EdNodeSpine style={styles.spine}>
-                  {upNext.map((moment, i) => (
-                    <SpineMoment
-                      key={moment.id}
-                      moment={moment}
-                      rec={data.recFor(moment)}
-                      nowIso={data.nowIso}
-                      /* The priority moment keeps the full brief; the rest stay
-                         quiet rows — the Wave-5 "UP NEXT has ONE priority"
-                         hierarchy, in editorial register. */
-                      priority={i === 0}
-                    />
+                  {calendarDays.map((day, dayIndex) => (
+                    <View key={day.key} style={dayIndex === 0 ? undefined : styles.daySection}>
+                      <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
+                        {day.label}
+                      </Text>
+                      {day.moments.map((moment, momentIndex) => (
+                        <SpineMoment
+                          key={moment.id}
+                          moment={moment}
+                          rec={data.recFor(moment)}
+                          nowIso={data.nowIso}
+                          /* The first real upcoming Moment keeps the full brief;
+                             every subsequent row remains quiet. */
+                          priority={dayIndex === 0 && momentIndex === 0}
+                        />
+                      ))}
+                    </View>
                   ))}
                 </EdNodeSpine>
               ) : null}
@@ -191,6 +201,28 @@ export function EditorialMomentsScreen({
       </AFScreen>
     </EdSurface>
   );
+}
+
+function groupMomentDays(moments: Moment[]) {
+  const grouped = new Map<string, Moment[]>();
+  for (const moment of moments) {
+    const date = new Date(moment.startAtIso);
+    const key = date.toISOString().slice(0, 10);
+    const bucket = grouped.get(key);
+    if (bucket) bucket.push(moment);
+    else grouped.set(key, [moment]);
+  }
+  return Array.from(grouped.entries())
+    .slice(0, 3)
+    .map(([key, dayMoments]) => ({
+      key,
+      // Date furniture is derived from the real moment itself, never an
+      // authored or sample calendar claim.
+      label: new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).format(
+        new Date(dayMoments[0].startAtIso),
+      ),
+      moments: dayMoments,
+    }));
 }
 
 function SpineMoment({
@@ -332,6 +364,7 @@ const styles = StyleSheet.create({
   },
   spineLabel: { marginTop: 26 },
   spine: { marginTop: 10 },
+  daySection: { marginTop: 18 },
   rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center' },
   rowHead: {
     flexDirection: 'row',
