@@ -46,17 +46,19 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   const takeEphemeralPicture = useCallback(async () => {
     if (!ready || state !== 'READY' || !cameraRef.current) return;
     setState('CAPTURING');
+    let picture: { width: number; height: number; release: () => void } | undefined;
     try {
       // pictureRef avoids a URI/base64/EXIF payload and does not create a
       // persistent preview asset. This PR only checks technical dimensions.
-      const picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 0.45 });
+      picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 0.45 });
       const quality = assessSkinIATechnicalQuality({ cameraReady: ready, width: picture.width, height: picture.height });
-      // Explicitly release the native image buffer before any UI transition.
-      picture.release();
       // Do not retain the native reference or create a derived member result.
       if (isLive.current) setState(quality.state === 'PASS' ? 'REVIEW' : 'QUALITY_INSUFFICIENT');
     } catch {
       if (isLive.current) setState('UNAVAILABLE');
+    } finally {
+      // Release even if a metadata check or a UI transition fails.
+      picture?.release();
     }
   }, [ready, state]);
 
