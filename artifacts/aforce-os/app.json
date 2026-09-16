@@ -71,7 +71,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "AForce OS uses your camera to scan hydration product barcodes."
+          "cameraPermission": "AForce OS uses your camera for approved scans. SkinIA Visual Check is available only to an authorized internal TestFlight cohort."
         }
       ],
       [
