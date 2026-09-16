@@ -12,7 +12,8 @@ describe('SkinIA controlled camera capture', () => {
 
   it('uses an ephemeral native picture reference, not a preview file or encoded payload', () => {
     expect(source).toContain("takePictureAsync({ pictureRef: true");
-    expect(source).toContain('picture.release();');
+    expect(source).toContain('finally {');
+    expect(source).toContain('picture?.release();');
     const implementation = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     for (const forbidden of ['base64:', 'exif:', 'uri:', 'FileSystem', 'AsyncStorage', 'SecureStore', 'fetch(', 'upload']) expect(implementation, forbidden).not.toContain(forbidden);
   });
