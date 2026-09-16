@@ -518,6 +518,10 @@ export interface UserProfile {
 
 // ─── Feature Flags ────────────────────────────────────────────────────────────
 export interface FeatureFlags {
+  // Trainer surface (Phase 2). Both default false and both listed in
+  // INTERNAL_TIER_FLAGS — medical-adjacent copy, same treatment as Clutch.
+  trainer_board_enabled: boolean;
+  trainer_demo_seed_enabled: boolean;
   clutch_access_enabled: boolean;
   clutch_heat_mode_enabled: boolean;
   clutch_inventory_enabled: boolean;

@@ -10,6 +10,10 @@
 import type { FeatureFlags, SpecFlagName } from '../types';
 
 export const DEFAULT_FLAGS: FeatureFlags = {
+  // Trainer surface — Phase 2 morning board. Off in production; the seed is
+  // simulated data and is marked as such wherever it renders.
+  trainer_board_enabled: false,
+  trainer_demo_seed_enabled: false,
   // Phase 2 — Clutch Access (Command the Team)
   clutch_access_enabled: false,
   clutch_heat_mode_enabled: false,
@@ -454,6 +458,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
  * full Clutch + Guardian product stack.
  */
 export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
+  trainer_board_enabled: true,
+  trainer_demo_seed_enabled: true,
   clutch_access_enabled: true,
   clutch_heat_mode_enabled: true,
   clutch_inventory_enabled: true,
@@ -703,6 +709,8 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
  */
 export const INTERNAL_TIER_FLAGS = [
+  'trainer_board_enabled',
+  'trainer_demo_seed_enabled',
   'guardian_intelligence_enabled',
   'guardian_body_map_enabled',
   'guardian_alerts_enabled',
