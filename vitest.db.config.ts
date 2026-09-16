@@ -40,6 +40,13 @@ export default defineConfig({
     // EXACTLY the DB-dependent suites — explicit file list, no globs, so the
     // lane's scope is auditable at a glance and can't silently grow.
     include: [
+      // The trainer surface — added with production-readiness Step 3. Until
+      // then NO trainer test had ever touched a database: the consent CAS,
+      // the availability advisory lock, the sign-off unique index and the
+      // note version chain were covered only by fakes that agreed with
+      // whatever the code did.
+      'artifacts/api-server/src/__tests__/trainerRepo.drizzle.test.ts',
+      'artifacts/api-server/src/__tests__/trainerNoteCrypto.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/scanRepo.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/whoopAdvisoryLock.drizzle.test.ts',
       'artifacts/api-server/src/__tests__/whoopAuthStateStore.drizzle.test.ts',
