@@ -259,7 +259,9 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
         return;
       }
 
-      const body = req.body as { status?: unknown; reason?: unknown } | undefined;
+      const body = req.body as
+        | { status?: unknown; reason?: unknown; baseVersion?: unknown }
+        | undefined;
       const status = parseAvailabilityStatus(body?.status);
       if (!status) {
         sendApiError(req, res, 400, "invalid_availability_status");
@@ -267,14 +269,42 @@ export function buildTrainerRouter(repo: TrainerRepo): IRouter {
       }
       const reason = typeof body?.reason === "string" && body.reason.length > 0 ? body.reason : null;
 
+      // The version the caller was looking at when they decided. `null` is a
+      // positive claim — "availability has never been set" — not a missing
+      // field, so an absent `baseVersion` is a 400 rather than a free pass.
+      // A client that does not send one is a client that would overwrite
+      // anything, which is the behaviour this replaces.
+      if (!("baseVersion" in (body ?? {}))) {
+        sendApiError(req, res, 400, "base_version_required");
+        return;
+      }
+      const rawVersion = body?.baseVersion;
+      if (rawVersion !== null && !Number.isInteger(rawVersion)) {
+        sendApiError(req, res, 400, "invalid_base_version");
+        return;
+      }
+      const baseVersion = rawVersion as number | null;
+
       try {
-        await repo.appendAvailability({
+        const applied = await repo.appendAvailability({
           programId: access.programId,
           athleteUserId: athleteId,
           status,
           reason,
           setByUserId: actorId,
+          expectedVersion: baseVersion,
         });
+
+        if (!applied.ok) {
+          // 409 with BOTH values. The client holds them side by side until a
+          // person chooses; it does not merge them and neither does this.
+          res.status(409).json({
+            error: "availability_conflict",
+            attempted: { status, reason },
+            current: applied.current,
+          });
+          return;
+        }
 
         // EVERY status write is audited, whether or not it carried a reason.
         // The brief's §Phase 1 criterion is "every status write", not "every

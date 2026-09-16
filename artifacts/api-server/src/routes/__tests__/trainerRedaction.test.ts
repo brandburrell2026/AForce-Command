@@ -51,7 +51,13 @@ const ROLES: Record<string, string> = {
 interface FakeState {
   consent: Map<string, { granted: boolean; decisionSeq: number }>;
   log: MedicalAccessEntry[];
-  availability: { status: string; reason: string | null; setByUserId: string; setAt: string }[];
+  availability: {
+    version: number;
+    status: string;
+    reason: string | null;
+    setByUserId: string;
+    setAt: string;
+  }[];
 }
 
 let state: FakeState;
@@ -87,12 +93,19 @@ function fakeRepo(): TrainerRepo {
       return state.availability[state.availability.length - 1] ?? null;
     },
     async appendAvailability(args) {
-      state.availability.push({
+      const current = state.availability[state.availability.length - 1] ?? null;
+      if ((current?.version ?? null) !== args.expectedVersion) {
+        return { ok: false as const, current };
+      }
+      const entry = {
+        version: (current?.version ?? 0) + 1,
         status: args.status,
         reason: args.reason,
         setByUserId: args.setByUserId,
         setAt: new Date().toISOString(),
-      });
+      };
+      state.availability.push(entry);
+      return { ok: true as const, version: entry.version };
     },
     async medicalNotes() {
       return [
@@ -170,7 +183,13 @@ beforeEach(() => {
     ]),
     log: [],
     availability: [
-      { status: "out", reason: REASON, setByUserId: TRAINER, setAt: "2026-09-16T14:22:06.000Z" },
+      {
+        version: 1,
+        status: "out",
+        reason: REASON,
+        setByUserId: TRAINER,
+        setAt: "2026-09-16T14:22:06.000Z",
+      },
     ],
   };
   setFlag("feature.trainer_api", true);
@@ -332,6 +351,7 @@ describe("every availability write is audited", () => {
     const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
       status: "out",
       reason: REASON,
+      baseVersion: 1,
     });
     expect(res.status).toBe(201);
     expect(state.log).toHaveLength(1);
@@ -342,6 +362,7 @@ describe("every availability write is audited", () => {
   it("logs a write with no reason too", async () => {
     const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
       status: "available",
+      baseVersion: 1,
     });
     expect(res.status).toBe(201);
     expect(state.log).toHaveLength(1);
@@ -354,6 +375,91 @@ describe("every availability write is audited", () => {
     });
     expect(res.status).toBe(400);
     expect(state.log).toHaveLength(0);
+  });
+});
+
+/**
+ * The conflict path Phase 7 built and could never reach.
+ *
+ * `appendAvailability` was a blind insert, so every write won. The client has
+ * `markConflicted` and holds two values for a person to choose between, and
+ * nothing on the server side ever said no.
+ *
+ * The scenario is the reason this matters. A trainer marks an athlete OUT at
+ * 14:00 for a suspected concussion. A second trainer's phone, offline since
+ * 13:00, flushes a queued AVAILABLE at 14:05. Under last-writer-wins the
+ * athlete is cleared to play by a device that slept through the incident.
+ */
+describe("a stale writer cannot overwrite a newer decision", () => {
+  it("refuses a write based on a version that is no longer current", async () => {
+    // The sideline trainer writes first, on top of version 1.
+    const first = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "out",
+      reason: "held from contact",
+      baseVersion: 1,
+    });
+    expect(first.status).toBe(201);
+
+    // The offline device flushes, still believing version 1 is current.
+    const stale = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "available",
+      baseVersion: 1,
+    });
+
+    expect(stale.status).toBe(409);
+    expect(stale.body.error).toBe("availability_conflict");
+
+    // Both values come back, so a person can choose. Neither is merged.
+    expect(stale.body.attempted).toMatchObject({ status: "available" });
+    expect(stale.body.current).toMatchObject({ status: "out" });
+
+    // And the newer decision still stands.
+    const latest = state.availability[state.availability.length - 1]!;
+    expect(latest.status).toBe("out");
+  });
+
+  it("writes nothing and logs nothing on a conflict", async () => {
+    const before = state.availability.length;
+    const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "available",
+      baseVersion: 999,
+    });
+    expect(res.status).toBe(409);
+    expect(state.availability).toHaveLength(before);
+    expect(state.log).toHaveLength(0);
+  });
+
+  it("requires the caller to state a version at all", async () => {
+    const res = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "available",
+    });
+    // A client that sends no version is a client that would overwrite
+    // anything. `null` is available and means "never been set".
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe("base_version_required");
+    expect(state.log).toHaveLength(0);
+  });
+
+  it("accepts an explicit null only when availability has never been set", async () => {
+    state.availability.length = 0;
+    const first = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "limited",
+      baseVersion: null,
+    });
+    expect(first.status).toBe(201);
+
+    const second = await post(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}/availability`, {
+      status: "available",
+      baseVersion: null,
+    });
+    expect(second.status).toBe(409);
+  });
+
+  it("reports the current version on a read, so a writer can quote it", async () => {
+    const res = await get(TRAINER, `/trainer/programs/${PROGRAM}/athletes/${ATHLETE}`);
+    expect(res.status).toBe(200);
+    // The version rides on the availability the caller just read.
+    expect(state.availability[state.availability.length - 1]!.version).toBe(1);
   });
 });
 
