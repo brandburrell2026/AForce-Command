@@ -26,12 +26,23 @@
 -- touched, so a failure inside the transaction rolls back to exactly the
 -- state before it.
 --
--- ROLLBACK IS ASYMMETRIC, AND NO RUNBOOK SAID SO. Rolling back the
--- APPLICATION is safe: these tables simply go unused. Rolling back the SCHEMA
--- means DROP, and unlike the graph-table precedent these tables have live
--- writers — including the access log itself. A DROP destroys medical records
--- and the evidence of who read them. Treat schema rollback as data loss and
--- restore from backup instead.
+-- ROLLBACK IS ASYMMETRIC, AND NO RUNBOOK SAID SO.
+--
+--   APPLICATION ROLLBACK IS SAFE. Redeploy the previous build; these tables
+--   simply go unused. This is the normal rollback mechanism and the only one
+--   that should appear in a runbook as routine.
+--
+--   SCHEMA ROLLBACK BY DROPPING THESE TABLES IS DATA DESTRUCTION. It is NOT
+--   the normal rollback mechanism. Unlike the graph-table precedent, these
+--   tables have live writers — including the access log itself — so a DROP
+--   destroys medical records AND the evidence of who read them. If the schema
+--   itself must be reverted, restore from backup; do not DROP.
+--
+-- Verified by execution, not assumed: applied to a scratch Postgres 16.4
+-- inside `psql --single-transaction -v ON_ERROR_STOP=1`, it commits and
+-- creates exactly 14 tables. With a failing statement appended, the abort
+-- leaves ZERO tables behind — which is the property `drizzle-kit push` does
+-- not have across fourteen tables, and the reason this file exists.
 --
 -- WHAT IS DELIBERATELY ABSENT:
 --

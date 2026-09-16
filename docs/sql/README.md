@@ -49,3 +49,13 @@ Then re-read it. The point of the file is the reading, not the file.
 | File | Covers | Applied? |
 |---|---|---|
 | `trainer-schema.sql` | The 14 trainer-surface tables | **No.** Blocked on confirming the target database. |
+
+## Rollback
+
+**Application rollback is safe** — redeploy the previous build and the tables
+go unused. That is the normal rollback mechanism.
+
+**Schema rollback by dropping these tables is data destruction**, not a
+rollback. These tables have live writers, including the access log, so a
+`DROP` destroys medical records and the evidence of who read them. If the
+schema itself must be reverted, restore from backup.
