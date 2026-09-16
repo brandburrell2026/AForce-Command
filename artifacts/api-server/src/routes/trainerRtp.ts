@@ -41,15 +41,37 @@ function requestIdOf(req: { id?: unknown }): string | null {
   return typeof id === "string" || typeof id === "number" ? String(id) : null;
 }
 
+/**
+ * Bounds on a protocol's stage list.
+ *
+ * A protocol had no size limit anywhere, and `startProgression` FREEZES the
+ * whole list into every progression — so an unbounded list is not one large
+ * row, it is one large row per athlete per protocol, copied forever. The
+ * strings are rendered into the coach view and the chart PDF as well.
+ *
+ * These ceilings are far above any real protocol (a graduated return to play
+ * is five or six stages) and far below anything that hurts.
+ */
+const MAX_STAGES = 32;
+const MAX_STAGE_KEY = 64;
+const MAX_STAGE_LABEL = 120;
+const MAX_STAGE_DESCRIPTION = 500;
+
 function parseStages(value: unknown): { key: string; label: string; description?: string }[] | null {
   if (!Array.isArray(value) || value.length === 0) return null;
+  if (value.length > MAX_STAGES) return null;
   const out: { key: string; label: string; description?: string }[] = [];
   const keys = new Set<string>();
   for (const raw of value) {
     if (typeof raw !== "object" || raw === null) return null;
     const stage = raw as Record<string, unknown>;
     if (typeof stage["key"] !== "string" || stage["key"].length === 0) return null;
+    if (stage["key"].length > MAX_STAGE_KEY) return null;
     if (typeof stage["label"] !== "string" || stage["label"].length === 0) return null;
+    if (stage["label"].length > MAX_STAGE_LABEL) return null;
+    if (typeof stage["description"] === "string" && stage["description"].length > MAX_STAGE_DESCRIPTION) {
+      return null;
+    }
     if (keys.has(stage["key"])) return null;
     keys.add(stage["key"]);
     out.push({

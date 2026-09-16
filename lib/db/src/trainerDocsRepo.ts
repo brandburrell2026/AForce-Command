@@ -209,6 +209,19 @@ function noteFieldColumns(fields: SoapFields): {
   };
 }
 
+/**
+ * Ceiling on a single note read.
+ *
+ * `currentNotes` reads EVERY version ever filed and reduces in memory, and
+ * `allNoteVersions` feeds the chart export, which holds three copies of the
+ * document in heap while it renders. Neither had a limit, so the ceiling on a
+ * long-running athlete's record was an out-of-memory — and that athlete could
+ * reach it on their own record, which no authorization check would refuse.
+ *
+ * Far above any real chart: 2,000 note versions is decades of daily notes.
+ */
+export const NOTE_READ_LIMIT = 2000;
+
 export function createTrainerDocsRepo(db: Db) {
   return {
     // ─── Questionnaire ──────────────────────────────────────────────────
@@ -522,7 +535,8 @@ export function createTrainerDocsRepo(db: Db) {
             eq(aforceAthleteSoapNotes.subjectUserId, subjectUserId),
           ),
         )
-        .orderBy(desc(aforceAthleteSoapNotes.createdAt));
+        .orderBy(desc(aforceAthleteSoapNotes.createdAt))
+        .limit(NOTE_READ_LIMIT);
 
       const newestByRoot = new Map<number, SoapNoteEntry>();
       for (const row of rows.map(toEntry)) {
@@ -543,7 +557,8 @@ export function createTrainerDocsRepo(db: Db) {
             eq(aforceAthleteSoapNotes.subjectUserId, subjectUserId),
           ),
         )
-        .orderBy(asc(aforceAthleteSoapNotes.rootId), asc(aforceAthleteSoapNotes.version));
+        .orderBy(asc(aforceAthleteSoapNotes.rootId), asc(aforceAthleteSoapNotes.version))
+        .limit(NOTE_READ_LIMIT);
       return rows.map(toEntry);
     },
   };

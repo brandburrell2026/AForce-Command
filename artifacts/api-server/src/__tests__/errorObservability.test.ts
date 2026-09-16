@@ -98,14 +98,26 @@ describe("wiring locks", () => {
   it("no bare logger.error({ err }) remains — every site scrubs tokens", () => {
     // The sweep applied serializeError at 40 sites; this lock keeps new
     // code from reintroducing the unscrubbed pattern in reachable source.
+    //
+    // WIDENED. The pattern above matched only the single-key form
+    // `logger.error({ err }`, so `logger.error({ err, programId }` — the same
+    // unscrubbed Error with one more field beside it — sailed past it. Two
+    // sites had done exactly that, one of them in the middleware every
+    // trainer request passes through. The grep now matches `err` as a bare
+    // shorthand property followed by either `}` or `,`, which is the actual
+    // defect rather than one spelling of it.
     const { execSync } = require("node:child_process") as typeof import("node:child_process");
     const out = execSync(
-      String.raw`grep -rn "logger\.error({ err }" --include=*.ts ` +
+      String.raw`grep -rEn "logger\.error\(\{ err[,}]" --include=*.ts ` +
         resolve(__dirname, "..") +
         " | grep -v __tests__ || true",
       { encoding: "utf8" },
     );
-    expect(out.trim()).toBe("");
+    expect(
+      out.trim(),
+      "logger.error({ err, ... }) passes a raw Error to the log stream. " +
+        "Wrap it: logger.error({ err: serializeError(err), ... }).",
+    ).toBe("");
   });
 
   it("client root boundary no longer swallows render crashes (device-local log)", () => {

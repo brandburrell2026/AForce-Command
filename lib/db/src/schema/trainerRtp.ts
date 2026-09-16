@@ -16,7 +16,8 @@
  * engine. A list of stages in a row is the smallest thing that satisfies both.
  */
 
-import { pgTable, text, integer, timestamp, jsonb, bigserial, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, integer, timestamp, jsonb, bigserial, check, index, uniqueIndex } from "drizzle-orm/pg-core";
 
 /** One stage of a progression, as defined by the program. */
 export interface RtpStageDefinition {
@@ -106,6 +107,10 @@ export const aforceRtpSignoffs = pgTable(
   },
   (t) => [
     uniqueIndex("aforce_rtp_signoffs_stage_uq").on(t.progressionId, t.stageIndex),
+    // A negative stage index would satisfy the unique index and mean
+    // nothing. `canSignOff` refuses one at the route; this refuses one in
+    // the table.
+    check("aforce_rtp_signoffs_stage_index_non_negative", sql`${t.stageIndex} >= 0`),
     index("aforce_rtp_signoffs_progression_idx").on(t.progressionId, t.signedAt),
   ],
 );

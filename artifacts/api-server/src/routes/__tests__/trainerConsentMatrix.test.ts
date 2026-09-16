@@ -82,6 +82,9 @@ function fakeRepo(): TrainerRepo {
     async accessTrail() {
       return [];
     },
+    async accessTrailCount() {
+      return (await this.accessTrail()).length;
+    },
     async logAccess(entry) {
       log.push(entry);
     },
@@ -446,6 +449,44 @@ describe("trainer surface — consent applies to every router", () => {
       expect(res.status, `${c.key} with subject ${subjectId}`).toBe(404);
       expect(await res.text(), c.key).toContain("athlete_not_found");
     }
+  });
+
+  /**
+   * NO ENUMERATION ORACLE, for the distinction that is actually secret.
+   *
+   * `requireProgramAccess` is careful that "you are not in this program" and
+   * "this program does not exist" are one answer, because the difference is
+   * itself a disclosure. The subject layer has to hold the same line: a
+   * caller must not be able to sort arbitrary ids into "staff here",
+   * "unknown" and "not an id" by watching responses.
+   *
+   * Asserted as INDISTINGUISHABLE rather than "all 404" — a different error
+   * code would leak exactly as well as a different status.
+   *
+   * AN ATHLETE IS DELIBERATELY NOT IN THIS LIST. A consent-revoked athlete
+   * answers 403, which does tell the caller the subject is an athlete of this
+   * program — and that is not secret from them: every level except `self`
+   * can list the roster, and the roster already shows who has not consented.
+   * Collapsing it to 404 would hide nothing and would contradict the Phase 0
+   * §0b ruling that staff should see the roster is incomplete. A caller with
+   * no roster access is an athlete, and the self-scope check refuses them
+   * before any of this.
+   */
+  it("cannot tell a staff member, a stranger and a malformed id apart", async () => {
+    const subjects = [TRAINER, "user_nobody", "not even an id"];
+    const seen = new Set<string>();
+
+    for (const subject of subjects) {
+      const res = await fetch(
+        `${base}/trainer/programs/${PROGRAM}/athletes/${encodeURIComponent(subject)}/notes`,
+      );
+      const body = await res.text();
+      // Normalise the request id, which legitimately differs per call.
+      seen.add(`${res.status}|${body.replace(/"(requestId|id)":"[^"]*"/g, "")}`);
+    }
+
+    // One distinct response for all four. Not "all 404" — identical.
+    expect([...seen]).toHaveLength(1);
   });
 
   it("a refused read files no audit row claiming a disclosure", async () => {

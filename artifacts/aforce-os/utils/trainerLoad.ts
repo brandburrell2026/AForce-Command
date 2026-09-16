@@ -43,11 +43,40 @@ export function dailyLoads(sessions: readonly SessionEntry[]): Map<string, numbe
   return byDay;
 }
 
+/**
+ * WHAT A DAY IS ON THIS SURFACE, stated once so it stops being ambiguous.
+ *
+ * `sessionDate` and `forDate` are stored as TEXT, and they are LABELS for a
+ * calendar day in the program's own locale — not timestamps, and not
+ * anything to be converted. A session at 11pm on a Tuesday in Honolulu is
+ * Tuesday's session, whatever instant that was in UTC.
+ *
+ * The consequence for this module is the important part: it must never
+ * derive a day from a timestamp. The helpers below take a label, do
+ * arithmetic on it, and return labels. `Date` appears only as a calendar
+ * calculator — UTC midnight is used as the anchor precisely BECAUSE it has
+ * no offset to shift a date across, so the arithmetic cannot land on a
+ * different day depending on where the phone is.
+ *
+ * That makes these functions independent of the host timezone, which is
+ * asserted directly in `trainerLoad.test.ts` by running them under several.
+ *
+ * WHO ASSIGNS THE LABEL is the other half, and it is not decided here. The
+ * client sends `sessionDate`, so a client that computed it from
+ * `new Date().toISOString()` would file late-evening work under tomorrow for
+ * every athlete west of Greenwich. Nothing in this repo does that today —
+ * the only `toISOString` on this surface is the one below, operating on an
+ * anchor it constructed itself.
+ */
 function dayKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-/** The N calendar days ending at `endDate`, oldest first. */
+/**
+ * The N calendar days ending at `endDate`, oldest first.
+ *
+ * Pure label arithmetic: label in, labels out. See the note above.
+ */
 export function dayWindow(endDate: string, days: number): string[] {
   const end = new Date(`${endDate}T00:00:00.000Z`);
   const out: string[] = [];

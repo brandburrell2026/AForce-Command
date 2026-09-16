@@ -551,6 +551,31 @@ export function createTrainerRepo(db: Db) {
     },
 
     /**
+     * How many access rows exist for one athlete.
+     *
+     * `accessTrail` caps at 500. The chart export renders those under a
+     * heading that says ACCESS AUDIT TRAIL, so without a total it produces a
+     * document that looks complete and is not — and that document is what a
+     * reviewer reads to decide whether access was appropriate.
+     *
+     * A COUNT rather than raising the cap: the answer is one number, and
+     * pulling ten thousand rows into a PDF to be honest about their number
+     * would trade one problem for a worse one.
+     */
+    async accessTrailCount(programId: string, subjectUserId: string): Promise<number> {
+      const rows = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(aforceMedicalAccessLog)
+        .where(
+          and(
+            eq(aforceMedicalAccessLog.programId, programId),
+            eq(aforceMedicalAccessLog.subjectUserId, subjectUserId),
+          ),
+        );
+      return rows[0]?.n ?? 0;
+    },
+
+    /**
      * Append to the medical access log.
      *
      * Field NAMES only. If this ever carried values it would become a second,

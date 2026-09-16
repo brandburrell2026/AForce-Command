@@ -58,6 +58,15 @@
 --
 -- WHAT IS DELIBERATELY PRESENT, and is new in this branch:
 --
+--   * CHECK CONSTRAINTS, added in the consistency pass. The availability and
+--     role vocabularies, the RPE and duration ranges, "an amendment must
+--     state a reason", and a non-negative stage index. Each of these lived in
+--     one `if` at one route, which protects a REQUEST and not the TABLE — a
+--     seed, an import or a backfill never passes through the route at all.
+--     Every one is proven to refuse its bad row in
+--     trainerConstraints.drizzle.test.ts, written with raw SQL around the
+--     application so the constraint itself is what is under test.
+--
 --   * aforce_athlete_soap_notes_chain_idx is UNIQUE on (root_id, version).
 --     Without it, two concurrent amendments both chose version N+1 and both
 --     inserted; `currentNotes` kept one and the other clinician's amendment
@@ -76,7 +85,8 @@ CREATE TABLE public.aforce_athlete_availability (
     status text NOT NULL,
     reason text,
     set_by_user_id text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT aforce_athlete_availability_status_enum CHECK ((status = ANY (ARRAY['available'::text, 'limited'::text, 'out'::text])))
 );
 
 CREATE SEQUENCE public.aforce_athlete_availability_id_seq
@@ -191,7 +201,9 @@ CREATE TABLE public.aforce_athlete_sessions (
     duration_min integer NOT NULL,
     session_type text,
     entered_by_user_id text NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT aforce_athlete_sessions_duration_range CHECK (((duration_min >= 1) AND (duration_min <= 600))),
+    CONSTRAINT aforce_athlete_sessions_rpe_range CHECK (((rpe >= 1) AND (rpe <= 10)))
 );
 
 CREATE SEQUENCE public.aforce_athlete_sessions_id_seq
@@ -221,7 +233,9 @@ CREATE TABLE public.aforce_athlete_soap_notes (
     assessment_enc bytea,
     plan_enc bytea,
     template_id text,
-    created_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT aforce_athlete_soap_notes_amendment_has_reason CHECK (((version = 1) OR ((amendment_reason IS NOT NULL) AND (length(btrim(amendment_reason)) > 0)))),
+    CONSTRAINT aforce_athlete_soap_notes_version_positive CHECK ((version >= 1))
 );
 
 CREATE SEQUENCE public.aforce_athlete_soap_notes_id_seq
@@ -265,7 +279,9 @@ CREATE TABLE public.aforce_program_members (
     role text NOT NULL,
     status text DEFAULT 'active'::text NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT aforce_program_members_role_enum CHECK ((role = ANY (ARRAY['athletic_trainer'::text, 'team_physician'::text, 'strength'::text, 'coach'::text, 'program_admin'::text, 'athlete'::text]))),
+    CONSTRAINT aforce_program_members_status_enum CHECK ((status = ANY (ARRAY['active'::text, 'removed'::text])))
 );
 
 CREATE SEQUENCE public.aforce_program_members_id_seq
@@ -316,7 +332,8 @@ CREATE TABLE public.aforce_rtp_signoffs (
     stage_key text NOT NULL,
     signed_by_user_id text NOT NULL,
     note text,
-    signed_at timestamp with time zone DEFAULT now() NOT NULL
+    signed_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT aforce_rtp_signoffs_stage_index_non_negative CHECK ((stage_index >= 0))
 );
 
 CREATE SEQUENCE public.aforce_rtp_signoffs_id_seq

@@ -28,6 +28,7 @@ import type { RequestHandler } from "express";
 
 import { DEFAULT_USER_ID } from "../lib/aforceState";
 import { sendApiError } from "../lib/apiError";
+import { serializeError } from "../lib/serializeError";
 import { logger } from "../lib/logger";
 import { parseProgramRole, redactionLevelFor, type ProgramRole, type RedactionLevel } from "../lib/trainer/roles";
 import type { TrainerRepo } from "@workspace/db";
@@ -66,7 +67,16 @@ export function requireProgramAccess(repo: TrainerRepo): RequestHandler {
       try {
         membership = await repo.membership(programId, userId);
       } catch (err) {
-        logger.error({ err, programId }, "[requireProgramAccess] membership lookup failed");
+        // `serializeError`, like every other error log on this surface. The
+        // repo's observability lock greps for the single-key form
+        // `logger.error({ err }` and so never saw this two-key call — which
+        // is exactly how a raw Error, with whatever a driver hung on it,
+        // could reach the log stream from the one middleware every trainer
+        // request passes through.
+        logger.error(
+          { err: serializeError(err), programId },
+          "[requireProgramAccess] membership lookup failed",
+        );
         // Fail closed on infrastructure failure. A lookup that did not answer
         // is not an answer of "yes".
         sendApiError(req, res, 503, "program_access_unavailable");

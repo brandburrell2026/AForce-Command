@@ -202,3 +202,84 @@ describe("environment reference", () => {
     expect(withTable.externalGuidanceNote).toBeNull();
   });
 });
+
+/**
+ * A calendar day is a LABEL, and the same label everywhere.
+ *
+ * `sessionDate` is stored as text and means a day in the program's locale,
+ * not an instant. The window helpers therefore have to be pure label
+ * arithmetic — a 28-day window ending on the 16th must be the same 28 labels
+ * whether the phone is in Honolulu or Auckland. The failure this prevents is
+ * silent and awful: an ACWR computed over a window shifted by one day for
+ * everyone west of Greenwich, which changes a training recommendation.
+ */
+describe("calendar days do not move with the host timezone", () => {
+  const ZONES = ["UTC", "Pacific/Honolulu", "Pacific/Kiritimati", "Asia/Kathmandu", "America/New_York"];
+
+  function underTimezone<T>(tz: string, fn: () => T): T {
+    const prior = process.env["TZ"];
+    process.env["TZ"] = tz;
+    try {
+      return fn();
+    } finally {
+      if (prior === undefined) delete process.env["TZ"];
+      else process.env["TZ"] = prior;
+    }
+  }
+
+  it("produces the same window in every timezone", () => {
+    const reference = dayWindow("2026-09-16", 28);
+    for (const tz of ZONES) {
+      expect(underTimezone(tz, () => dayWindow("2026-09-16", 28)), tz).toEqual(reference);
+    }
+  });
+
+  it("ends on the day it was asked for, never the day either side", () => {
+    for (const tz of ZONES) {
+      const window = underTimezone(tz, () => dayWindow("2026-09-16", 7));
+      expect(window[window.length - 1], tz).toBe("2026-09-16");
+      expect(window[0], tz).toBe("2026-09-10");
+    }
+  });
+
+  it("crosses a month boundary correctly", () => {
+    expect(dayWindow("2026-03-02", 4)).toEqual([
+      "2026-02-27",
+      "2026-02-28",
+      "2026-03-01",
+      "2026-03-02",
+    ]);
+  });
+
+  it("crosses a leap day", () => {
+    expect(dayWindow("2028-03-01", 3)).toEqual(["2028-02-28", "2028-02-29", "2028-03-01"]);
+  });
+
+  it("crosses a year boundary", () => {
+    expect(dayWindow("2027-01-01", 2)).toEqual(["2026-12-31", "2027-01-01"]);
+  });
+
+  /**
+   * A DST transition is where a naive local-time implementation loses or
+   * repeats a day. The labels must be unaffected, because they are labels.
+   */
+  it("is unaffected by a daylight-saving transition", () => {
+    // US DST begins 2026-03-08; the UK's 2026-03-29.
+    const usSpring = underTimezone("America/New_York", () => dayWindow("2026-03-09", 4));
+    expect(usSpring).toEqual(["2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09"]);
+    expect(new Set(usSpring).size).toBe(4);
+
+    const ukSpring = underTimezone("Europe/London", () => dayWindow("2026-03-30", 4));
+    expect(ukSpring).toEqual(["2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30"]);
+  });
+
+  it("no day is ever repeated or skipped in a long window", () => {
+    const window = dayWindow("2026-09-16", 28);
+    expect(new Set(window).size).toBe(28);
+    for (let i = 1; i < window.length; i += 1) {
+      const prev = Date.parse(`${window[i - 1]}T00:00:00.000Z`);
+      const curr = Date.parse(`${window[i]}T00:00:00.000Z`);
+      expect(curr - prev).toBe(86_400_000);
+    }
+  });
+});

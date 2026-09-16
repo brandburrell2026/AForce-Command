@@ -229,6 +229,17 @@ export interface ChartExportInput {
     action: string;
     occurredAt: string;
   }[];
+  /**
+   * Total access rows for this athlete, when it is more than the trail above
+   * carries.
+   *
+   * `accessTrail` reads at most 500 rows. Rendering those under a heading
+   * that says ACCESS AUDIT TRAIL, with nothing saying more exist, produces a
+   * document that looks complete and is not — and this is the artefact a
+   * reviewer reads to decide whether access was appropriate. An undercount
+   * they cannot see is worse than a number they can check.
+   */
+  auditTrailTotal?: number;
 }
 
 /** Compose the chart as lines. Separated from rendering so it is testable. */
@@ -283,6 +294,19 @@ export function buildChartLines(input: ChartExportInput): ChartLine[] {
   }
 
   lines.push({ text: "ACCESS AUDIT TRAIL", style: "heading" });
+
+  // Say so BEFORE the rows, not in a footnote. A reader who stops partway
+  // through a long list must have met the caveat already.
+  const total = input.auditTrailTotal ?? input.auditTrail.length;
+  if (total > input.auditTrail.length) {
+    lines.push({
+      text:
+        `INCOMPLETE — showing the ${input.auditTrail.length} most recent of ${total} recorded accesses. ` +
+        "Query aforce_medical_access_log for the full trail.",
+      style: "meta",
+    });
+  }
+
   if (input.auditTrail.length === 0) lines.push({ text: "No recorded access." });
   for (const a of input.auditTrail) {
     lines.push({
