@@ -17,6 +17,7 @@ import { mockRosterGuardian as mockRoster, GUARDIAN_TEAM_NAME as TEAM_NAME } fro
 import { guardianRiskScore, guardianTier, guardianRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
+import { EditorialGuardianLandingScreen } from '@/components/skinIntelligence/SkinIntelligenceEditorialSuite';
 
 const TIER_COLOR: Record<string, string> = {
   OPTIMAL: Colors.states.PEAK.primary,
@@ -25,7 +26,7 @@ const TIER_COLOR: Record<string, string> = {
   CRITICAL: Colors.states.DEPLETED.primary,
 };
 
-export default function GuardianScreen() {
+export function LegacyGuardianScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
@@ -187,6 +188,13 @@ export default function GuardianScreen() {
       </GradientBackground>
     </View>
   );
+}
+
+export default function GuardianScreen() {
+  if (process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true') {
+    return <EditorialGuardianLandingScreen />;
+  }
+  return <LegacyGuardianScreen />;
 }
 
 function BodyZone({ label, risk }: { label: string; risk: number }) {
