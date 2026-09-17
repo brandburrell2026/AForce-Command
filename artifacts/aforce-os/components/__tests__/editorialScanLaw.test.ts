@@ -52,10 +52,10 @@ describe('FLAG + BOTH ROUTE SEAMS — no route may bypass the flag', () => {
   });
 
   it('the four earlier go-live flags are untouched, and HydroScan 2 stays off', () => {
-    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(false);
-    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(false);
+    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(true);
+    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(true);
     expect(DEFAULT_FLAGS.editorial_protocol_enabled).toBe(false);
-    expect(DEFAULT_FLAGS.editorial_weekly_enabled).toBe(false);
+    expect(DEFAULT_FLAGS.editorial_weekly_enabled).toBe(true);
     expect(DEFAULT_FLAGS.hydro_scan_2_enabled).toBe(false);
   });
 

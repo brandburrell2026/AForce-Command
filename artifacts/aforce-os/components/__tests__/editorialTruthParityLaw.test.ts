@@ -141,10 +141,9 @@ describe('MOMENTS TRUTH — grammar, and no borrowed personalization', () => {
     expect(moments['overview_summary_one']).not.toMatch(/moments\./);
   });
 
-  it('the screen passes `count`, which is what i18next pluralizes on', () => {
-    // Adding _one/_other is inert without it: i18next selects the plural form
-    // from `count` specifically, not from an arbitrary interpolation variable.
-    expect(EDITORIAL_MOMENTS).toMatch(/count: summary\.total/);
+  it('the approved three-day calendar replaces the old single-day count headline', () => {
+    expect(EDITORIAL_MOMENTS).toMatch(/moments\.editorial_three_days/);
+    expect(EDITORIAL_MOMENTS).not.toMatch(/count: summary\.total/);
   });
 
   it('STATIC PER-TYPE COPY DOES NOT CLAIM A PERSONAL FINDING', () => {
@@ -169,12 +168,14 @@ describe('GATES THAT MUST NOT MOVE', () => {
     expect(FLAGS).toMatch(/does not widen the\s*\n?\s*\/\/\s*moments_enabled or moments_calendar_enabled gates/);
   });
 
-  it('production Editorial defaults remain OFF', () => {
+  it('approved Figma surfaces lead while unapproved editorial routes stay gated', () => {
     for (const flag of [
-      'editorial_home_enabled', 'editorial_moments_enabled', 'editorial_protocol_enabled',
-      'editorial_weekly_enabled', 'editorial_scan_enabled',
+      'editorial_home_enabled', 'editorial_moments_enabled', 'editorial_weekly_enabled',
     ]) {
-      expect(FLAGS, `${flag} must ship false`).toMatch(new RegExp(`${flag}: false`));
+      expect(FLAGS, `${flag} must ship true`).toMatch(new RegExp(`${flag}: true`));
+    }
+    for (const flag of ['editorial_protocol_enabled', 'editorial_scan_enabled']) {
+      expect(FLAGS, `${flag} must remain gated`).toMatch(new RegExp(`${flag}: false`));
     }
   });
 });

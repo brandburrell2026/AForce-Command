@@ -54,8 +54,8 @@ describe('FLAG + THREE-WAY SEAM', () => {
   });
 
   it('the go-live flags for Home and Moments are NOT touched by this lane', () => {
-    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(false);
-    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(false);
+    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(true);
+    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(true);
   });
 
   it('the route seam is three-way and keeps BOTH existing branches (D4: legacy is the rollback)', () => {

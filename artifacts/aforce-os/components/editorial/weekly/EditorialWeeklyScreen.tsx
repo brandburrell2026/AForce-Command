@@ -7,12 +7,11 @@
  * `buildWeeklyV3Model` for the model, `performanceAgeBarAxis` for the chart
  * domain, `getWeeklyReportSection` for the postures. Nothing is re-derived.
  *
- * This is the FIRST surface in the migration to turn the stock to paper.
+ * The approved Figma composition uses the app's black stock.
  *
  * FOUNDER DECISIONS ENFORCED HERE (locked by editorialWeeklyLaw.test.ts):
- *  D1 — NO positive hue. Soursop Green measures 2.48:1 on paper: below the
- *       4.5:1 text floor and below even the 3:1 graphical floor. Positive
- *       reads through weight, rule and position. The direction of a
+ *  D1 — NO positive status hue. Positive reads through weight, rule and
+ *       position. The direction of a
  *       Performance Age move survives as a glyph plus its spoken label, never
  *       as colour alone.
  *  D2 — period furniture is the REAL date range. No week number, no issue
@@ -61,6 +60,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 
 import { AFScreen } from '@/components/ui';
 import { getAnalyticsSnapshot } from '@/services/analytics';
@@ -79,7 +79,7 @@ import {
   type WeeklyV3Model,
 } from '@/components/insights/weeklyV3Presentation';
 import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
+import { edAccent, edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
 import { EdCaption, EdEvidenceLine, EdKicker, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from '../moments/EdReturn';
@@ -96,7 +96,8 @@ function weekdayKeyForDayIndex(dayIndex: number): (typeof WEEKDAY_KEYS)[number] 
 
 export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs }) {
   const { t, i18n } = useTranslation();
-  const ink = edInkFor('paper');
+  const router = useRouter();
+  const ink = edInkFor('black');
   const settle = useEdSettle();
 
   // PARITY — the ledger writer. See the header note.
@@ -189,21 +190,17 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
 
   if (!model) {
     return (
-      <EdSurface stock="paper" style={styles.fill}>
-        {/* The app sets a LIGHT status bar globally (app/_layout.tsx). On the
-            black stock that is correct; on paper the system glyphs land at
-            ~1.3:1. expo-status-bar is declarative and last-mount-wins. */}
-        <StatusBar style="dark" />
-        {/* AFScreen paints af.canvas (#0D0D0D) on its own shell. On the black
-            stock that is invisible; on paper it would cover the sheet entirely
-            and leave paper ink at ~1.1:1 — the E2 invisible-text defect at
-            full-screen scale. The stock is therefore restated on the shell. */}
+      <EdSurface stock="black" style={styles.fill}>
+        {/* Restated here so this route remains legible if the app-wide status
+            bar policy changes. */}
+        <StatusBar style="light" />
+        {/* AFScreen paints its own shell, so the approved black stock is
+            restated explicitly rather than inherited implicitly. */}
         <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
           <EdReturn now={new Date()} />
           <EdCaption text={t('reports.v3.eyebrow')} />
-          {/* Holds the sheet's shape while the sources are assembled. Rules,
-              not shimmer blocks: WeeklyReportSkeleton is built from af.* dark
-              tokens and would read as dark bars on paper. One accessible
+          {/* Holds the report's shape while the sources are assembled. Rules,
+              not shimmer blocks. One accessible
               progressbar wraps it so the rules don't each announce. */}
           <View
             accessible
@@ -247,8 +244,8 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
       : `${model.hydrationDays}/${model.daysTracked}`;
 
   return (
-    <EdSurface stock="paper" style={styles.fill}>
-      <StatusBar style="dark" />
+    <EdSurface stock="black" style={styles.fill}>
+      <StatusBar style="light" />
       {/* See the loading branch: the stock is restated on the AFScreen shell
           because AFScreen paints af.canvas over whatever it sits inside. */}
       <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
@@ -268,9 +265,7 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
 
               The spec's own anatomy calls for this: "the couldn't-load line
               rendered as editorial matter-of-fact body." It is deliberately NOT
-              AFInlineErrorRow — that component is built from af.surface
-              (#141420) and af.textSecondary, so on paper it would land as a
-              dark chip in the middle of the sheet. Same message, same retry,
+              AFInlineErrorRow. Same message, same retry,
               same testID; the register is the sheet's. */}
           {rollupsUnavailable ? (
             <View style={styles.degraded} testID="editorial-weekly-degraded">
@@ -529,6 +524,17 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
           <View style={styles.section} testID="editorial-weekly-next-focus">
             <EdCaption text={t('reports.v3.next_focus')} />
             <EdKicker text={sectionSummary(t, nextFocus)} />
+            <Pressable
+              onPress={() => router.push('/protocol')}
+              accessibilityRole="button"
+              accessibilityLabel={t('reports.v3.open_next_protocol')}
+              style={styles.protocolButton}
+              testID="editorial-weekly-open-protocol"
+            >
+              <Text style={[edType.confirm as TextStyle, styles.protocolButtonText]}>
+                {t('reports.v3.open_next_protocol')}
+              </Text>
+            </Pressable>
           </View>
 
           <View style={styles.folio}>
@@ -541,9 +547,9 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: edStock.paper },
+  fill: { flex: 1, backgroundColor: edStock.black },
   /** Restates the stock on the AFScreen shell, which paints af.canvas. */
-  canvas: { backgroundColor: edStock.paper },
+  canvas: { backgroundColor: edStock.black },
   content: { paddingBottom: edRhythm.minTarget * 2 },
   degraded: { marginTop: 16 },
   retryTarget: {
@@ -586,5 +592,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   timelineFill: { width: '100%', borderRadius: 4 },
+  protocolButton: {
+    minHeight: edRhythm.minTarget,
+    marginTop: 18,
+    backgroundColor: edAccent.red,
+    borderRadius: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  protocolButtonText: { color: edStock.paper },
   folio: { marginTop: 30 },
 });

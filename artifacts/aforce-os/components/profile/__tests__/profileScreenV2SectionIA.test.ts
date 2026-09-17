@@ -103,7 +103,6 @@ function memberFacingTabs(): Record<string, string[]> {
  */
 const SECTION_BLOCKS: ReadonlyArray<{ section: string; block: string; labelKey: string }> = [
   { section: 'PERFORMANCE PROFILE', block: 'performanceProfileBlock', labelKey: 'performance_profile_label' },
-  { section: 'CONNECTED DATA', block: 'connectedDataBlock', labelKey: 'connected_data_label' },
   { section: 'PRIVACY', block: 'privacyBlock', labelKey: 'privacy_label' },
   { section: 'NOTIFICATIONS', block: 'notificationsBlock', labelKey: 'notifications_label' },
   { section: 'SUBSCRIPTION', block: 'subscriptionBlock', labelKey: 'subscription_label' },
@@ -132,12 +131,29 @@ describe('ProfileScreenV2 — every founder section has exactly one headed home'
     });
   }
 
-  it('IDENTITY renders above the tab bar in BOTH layouts, so it is never behind a tab', () => {
+  it('CONNECTED DATA is promoted to the dedicated Devices page header', () => {
+    expect(SHELL_CODE).toContain("t('profile.v2.devices_eyebrow')");
+    expect(SHELL_CODE).toContain("t('profile.v2.devices_title')");
+    expect(SHELL_CODE).toContain("t('profile.v2.devices_promise')");
+  });
+
+  it('CONNECTED DATA still has exactly one reachable tab home', () => {
+    const hosts = Object.entries(tabSectionsMap())
+      .filter(([, blocks]) => blocks.includes('connectedDataBlock'))
+      .map(([id]) => id);
+    expect(hosts).toEqual(['devices']);
+    expect(memberFacingTabs().devices).toContain('connectedDataBlock');
+  });
+
+  it('IDENTITY leads non-Devices layouts while Devices leads without old profile chrome', () => {
     const identity = balancedDeclaration('identityBlock');
     expect(identity).toContain("t('profile.v2.identity_label')");
     expect(identity).toContain('{profileCard}');
-    // Wide (two-column) and narrow both render it ahead of {tabBar}.
-    expect(CODE.split(/\{identityBlock\}\s*\n\s*\{tabBar\}/).length - 1).toBe(2);
+    // Wide and narrow non-Devices layouts retain identity before the tabs.
+    expect(CODE.split(/\{identityBlock\}[\s\S]{0,100}\{tabBar\}/).length - 1).toBe(2);
+    // The dedicated branch returns before either identity layout and renders
+    // the tab bar + Devices sections directly.
+    expect(CODE).toMatch(/if \(devicesActive\)[\s\S]*?\{tabBar\}[\s\S]*?activeSections\.map/);
     // ...and it is therefore NOT one of the per-tab sections.
     for (const blocks of Object.values(tabSectionsMap())) expect(blocks).not.toContain('identityBlock');
   });
