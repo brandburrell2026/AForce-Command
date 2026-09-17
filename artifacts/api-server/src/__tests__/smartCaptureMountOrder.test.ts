@@ -21,7 +21,7 @@
  * reason — or fail for one. Both env values are set BEFORE the dynamic import
  * because requireAuth captures IS_PRODUCTION at module load.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 
@@ -62,7 +62,33 @@ afterEach(() => {
 });
 
 /** Boots the REAL app.ts — not a hand-assembled stand-in. */
+/**
+ * ONE REAL APP PER FILE, not one per test.
+ *
+ * This used to import `../app` and open a listener inside every `it(...)` —
+ * 3 times in this file. Importing the real application is a multi-second
+ * module-graph transform, and it was being charged against vitest's 5000ms
+ * PER-TEST budget. Alone on an idle machine that fits; in the full lane,
+ * competing with every other suite for CPU, it does not, and the suite failed
+ * with `Test timed out in 5000ms` — an assertion that never got to run.
+ *
+ * The cost is now paid once, in `beforeAll`, where it belongs: a fixture is
+ * setup, not the thing under measurement.
+ *
+ * SAFE BECAUSE ENV IS READ AT IMPORT, NOT PER REQUEST. `requireAuth` captures
+ * `IS_PRODUCTION` at module load (requireAuth.ts:31), so the production
+ * environment this helper sets only has to hold while `../app` is imported.
+ * The per-test save/restore around it is unchanged.
+ *
+ * `close()` on the returned handle is deliberately a no-op so the existing
+ * `try/finally` blocks in each test keep working untouched; the real listener
+ * is closed once in `afterAll`.
+ */
+let sharedApp: { port: number; close: () => Promise<void> } | null = null;
+let closeSharedApp: (() => Promise<void>) | null = null;
+
 async function bootRealApp() {
+
   // Production: closes requireAuth's DEFAULT_USER_ID fallback so a missing
   // identity is a 401 rather than a silent demo-user grant.
   process.env["NODE_ENV"] = "production";
@@ -82,15 +108,30 @@ async function bootRealApp() {
   process.env["CLERK_PUBLISHABLE_KEY"] = "pk_test_bW91bnQtb3JkZXItbGF3LmludmFsaWQk";
   process.env["CORS_ALLOWED_ORIGINS"] = "https://example.invalid";
 
+  // The env above is re-applied on EVERY call: the per-test afterEach
+  // restores it, and middleware reads some of these values PER REQUEST,
+  // not just at import. Only the expensive half — the module-graph import
+  // and the listener — is memoised.
+  if (sharedApp) return sharedApp;
+
   const { default: app } = await import("../app");
   const server = http.createServer(app as never);
   await new Promise<void>((r) => server.listen(0, r));
   const { port } = server.address() as AddressInfo;
-  return {
+  closeSharedApp = () => new Promise<void>((r) => server.close(() => r()));
+  sharedApp = {
     port,
-    close: () => new Promise<void>((r) => server.close(() => r())),
+    // No-op: the listener outlives the test. Closed once in afterAll.
+    close: async () => {},
   };
+  return sharedApp;
 }
+
+afterAll(async () => {
+  await closeSharedApp?.();
+  closeSharedApp = null;
+  sharedApp = null;
+});
 
 async function postSmartCapture(port: number) {
   const res = await fetch(`http://127.0.0.1:${port}/api/smart-capture`, {

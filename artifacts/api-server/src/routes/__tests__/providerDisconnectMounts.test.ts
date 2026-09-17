@@ -68,8 +68,25 @@ function emptyDb(): never {
 }
 
 describe("buildProviderDisconnectors — production wiring", () => {
+  /**
+   * IMPORTED IN A HOOK, NOT IN THE TEST.
+   *
+   * `../index` pulls in the whole route tree — a multi-second module-graph
+   * transform on a cold cache. Doing it inside `it(...)` charged that cost
+   * against vitest's 5000ms per-test budget, which held on an idle machine
+   * and did not in the full lane: the suite failed with `Test timed out in
+   * 5000ms` before reaching a single assertion.
+   *
+   * A hook has its own budget and runs once. The import is fixture setup, not
+   * the thing under measurement.
+   */
+  let buildProviderDisconnectors: typeof import("../index")["buildProviderDisconnectors"];
+
+  beforeAll(async () => {
+    ({ buildProviderDisconnectors } = await import("../index"));
+  });
+
   it("returns a disconnector for all four providers with the documented revocation semantics", async () => {
-    const { buildProviderDisconnectors } = await import("../index");
     const disconnectors = buildProviderDisconnectors(emptyDb());
 
     expect(Object.keys(disconnectors).sort()).toEqual([

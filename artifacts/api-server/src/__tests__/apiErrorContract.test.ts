@@ -16,7 +16,7 @@
  * synthetic non-credentials; a tokenless request resolves signed-out with no
  * network call.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
 import http from "node:http";
 import type { AddressInfo } from "node:net";
 
@@ -55,7 +55,35 @@ afterEach(() => {
   }
 });
 
+/**
+ * ONE REAL APP PER FILE, not one per test.
+ *
+ * This used to import `../app` and open a listener inside every `it(...)` —
+ * 13 times in this file. Importing the real application is a multi-second
+ * module-graph transform, and it was being charged against vitest's 5000ms
+ * PER-TEST budget. Alone on an idle machine that fits; in the full lane,
+ * competing with every other suite for CPU, it does not, and the suite failed
+ * with `Test timed out in 5000ms` — an assertion that never got to run.
+ *
+ * The cost is now paid once, in `beforeAll`, where it belongs: a fixture is
+ * setup, not the thing under measurement. Module caching already meant tests
+ * 2..n were cheap; what this removes is the first test paying for everyone
+ * and N redundant listeners besides.
+ *
+ * SAFE BECAUSE ENV IS READ AT IMPORT, NOT PER REQUEST. `requireAuth` captures
+ * `IS_PRODUCTION` at module load (requireAuth.ts:31), so the production
+ * environment this helper sets only has to hold while `../app` is imported.
+ * The per-test save/restore around it is unchanged.
+ *
+ * `close()` on the returned handle is deliberately a no-op so the existing
+ * `try/finally` blocks in each test keep working untouched; the real listener
+ * is closed once in `afterAll`.
+ */
+let sharedApp: { port: number; base: string; close: () => Promise<void> } | null = null;
+let closeSharedApp: (() => Promise<void>) | null = null;
+
 async function bootRealApp() {
+
   process.env["NODE_ENV"] = "production";
   process.env["CLERK_SECRET_KEY"] = "NOT-A-KEY-error-contract-presence-only";
   process.env["CLERK_PUBLISHABLE_KEY"] = "pk_test_bW91bnQtb3JkZXItbGF3LmludmFsaWQk";
@@ -65,16 +93,31 @@ async function bootRealApp() {
   // Shopify. It exercises OUR limiter, nothing else.
   delete process.env["SHOPIFY_WEBHOOK_SECRET"];
 
+  // The env above is re-applied on EVERY call: the per-test afterEach
+  // restores it, and middleware reads some of these values PER REQUEST,
+  // not just at import. Only the expensive half — the module-graph import
+  // and the listener — is memoised.
+  if (sharedApp) return sharedApp;
+
   const { default: app } = await import("../app");
   const server = http.createServer(app as never);
   await new Promise<void>((r) => server.listen(0, r));
   const { port } = server.address() as AddressInfo;
-  return {
+  closeSharedApp = () => new Promise<void>((r) => server.close(() => r()));
+  sharedApp = {
     port,
     base: `http://127.0.0.1:${port}`,
-    close: () => new Promise<void>((r) => server.close(() => r())),
+    // No-op: the listener outlives the test. Closed once in afterAll.
+    close: async () => {},
   };
+  return sharedApp;
 }
+
+afterAll(async () => {
+  await closeSharedApp?.();
+  closeSharedApp = null;
+  sharedApp = null;
+});
 
 async function call(base: string, path: string, init?: RequestInit) {
   const res = await fetch(base + path, init);
