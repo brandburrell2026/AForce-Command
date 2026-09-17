@@ -8,7 +8,12 @@ const route = readFileSync(join(ROOT, 'app', 'skinia.tsx'), 'utf8');
 const service = readFileSync(join(ROOT, 'services', 'advancedVisualIntelligence.ts'), 'utf8');
 const screen = readFileSync(join(ROOT, 'components', 'advancedVisual', 'AdvancedVisualIntelligenceScreen.tsx'), 'utf8');
 const captureScreen = readFileSync(join(ROOT, 'components', 'advancedVisual', 'SkinIACameraCaptureScreen.tsx'), 'utf8');
-const cohortGate = readFileSync(join(ROOT, 'services', 'skiniaCohortAccess.ts'), 'utf8');
+// Both halves of the gate. The decision was split out of the hook so a unit
+// test could import it without `@clerk/expo`; the containment property has to
+// follow it rather than staying on whichever file it started in.
+const cohortGate =
+  readFileSync(join(ROOT, 'services', 'skiniaCohortAccess.ts'), 'utf8') +
+  readFileSync(join(ROOT, 'services', 'skiniaCohortGate.ts'), 'utf8');
 
 describe('Advanced Visual Intelligence™ containment', () => {
   it('stays disabled in production and generic demo builds', () => {
