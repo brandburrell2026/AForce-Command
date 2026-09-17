@@ -844,6 +844,7 @@ export function ProfileScreenV2() {
   // flags (Night Out) never make "unlock all" read as incomplete.
   const demoUnlockPayload = demoUnlockAllFlags();
   const allOn = Object.keys(demoUnlockPayload).every((k) => flags[k as keyof FeatureFlags] === demoUnlockPayload[k as keyof FeatureFlags]);
+  const devicesActive = profileTab === 'devices';
 
   return (
     <View style={styles.root}>
@@ -887,8 +888,15 @@ export function ProfileScreenV2() {
             <Icon name="chevron-left" size={14} color={af.textSecondary} />
             <Text style={styles.backHomeText}>{t('profile.v2.home')}</Text>
           </Pressable>
-          <Text style={styles.eyebrow}>{t('profile.v2.eyebrow')}</Text>
-          <Text style={styles.title}>{t('profile.v2.title')}</Text>
+          <Text style={styles.eyebrow}>
+            {devicesActive ? t('profile.v2.devices_eyebrow') : t('profile.v2.eyebrow')}
+          </Text>
+          <Text style={[styles.title, devicesActive ? styles.devicePageTitle : null]}>
+            {devicesActive ? t('profile.v2.devices_title') : t('profile.v2.title')}
+          </Text>
+          {devicesActive ? (
+            <Text style={styles.devicePagePromise}>{t('profile.v2.devices_promise')}</Text>
+          ) : null}
 
           {(() => {
             // ─── Reusable section fragments ──────────────────────
@@ -1178,6 +1186,20 @@ export function ProfileScreenV2() {
             const tabBar = (
               <ProfileTabBar active={profileTab} onChange={setProfileTab} />
             );
+
+            // The approved Devices composition is its own destination, not a
+            // subsection under the Commander identity card. Keep the same
+            // provider truth and tab state, but let Devices lead immediately.
+            if (devicesActive) {
+              return (
+                <>
+                  {tabBar}
+                  {activeSections.map((node, i) => (
+                    <React.Fragment key={`devices-${i}`}>{node}</React.Fragment>
+                  ))}
+                </>
+              );
+            }
 
             if (layout.isWide) {
               // Two-column wide layout: identity card + tab bar on the
