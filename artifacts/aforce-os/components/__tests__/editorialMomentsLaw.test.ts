@@ -54,8 +54,8 @@ const day = () => stripComments(read(join(ED_MOMENTS, 'EditorialMomentsScreen.ts
 const story = () => stripComments(read(join(ED_MOMENTS, 'EditorialMomentDetailScreen.tsx')));
 
 describe('FLAG — one flag, both seams, legacy screens are the OFF branch', () => {
-  it('editorial_moments_enabled is OFF in production and ON in the demo profile', () => {
-    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(false);
+  it('editorial_moments_enabled is ON in production and in the demo profile', () => {
+    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(true);
     expect(DEMO_ALL_ON_FLAGS.editorial_moments_enabled).toBe(true);
   });
 
