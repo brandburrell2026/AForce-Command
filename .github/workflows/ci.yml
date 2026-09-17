@@ -164,66 +164,23 @@ jobs:
       - name: Run canonical suite (JSON report)
         run: pnpm exec vitest run --reporter=default --reporter=json --outputFile.json=vitest-report.json || true
 
+      # The comparison lives in scripts/src/check-test-baseline.mjs, not in a
+      # heredoc here, so the one piece of logic deciding pass/fail for every
+      # PR can itself be tested — see scripts/src/__tests__/checkTestBaseline.test.ts.
+      #
+      # It now judges COLLECTION ERRORS separately from failing tests. A file
+      # that does not load reports as a failed suite with zero assertions:
+      # under the old comparison that was simply one more failed file, and
+      # with a ceiling of 45 against roughly 5 observed there was ample room
+      # for one to hide. That is exactly what happened to
+      # skiniaCohortAccess.test.ts, which stopped running for a merge cycle
+      # while the SkinIA containment gate it guards went unverified.
+      #
+      # A failing test tells you something is wrong. A file that does not load
+      # tells you nothing, about anything it contains — so the ceiling does
+      # not apply to it and any unlisted one fails this job.
       - name: Compare against documented baseline (governance/TEST-BASELINE.md, target-branch copy)
-        run: |
-          node <<'NODESCRIPT'
-          const fs = require('fs');
-
-          // Fallback only — kept in sync with governance/TEST-BASELINE.md §2.
-          // Used solely if the doc's table can't be parsed at runtime (e.g. its
-          // format changed). If you touch this number, update the doc too, or
-          // better: fix the doc so the runtime parse succeeds again.
-          const FALLBACK_FAILED_FILES = 45;
-          const FALLBACK_FAILED_TESTS = 18;
-
-          // target-baseline.md is the TARGET branch's copy (see the
-          // "Resolve the baseline to compare against" step above) — never
-          // this PR's own working copy — so a PR editing TEST-BASELINE.md
-          // cannot change what it is judged against.
-          const baselineDoc = fs.readFileSync('target-baseline.md', 'utf8');
-          const filesMatch = baselineDoc.match(/\*\*Test files — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
-          const testsMatch = baselineDoc.match(/\*\*Tests — failed\*\*\s*\|\s*\*\*(\d+)\*\*/);
-
-          let baselineFiles, baselineTests, source;
-          if (filesMatch && testsMatch) {
-            baselineFiles = Number(filesMatch[1]);
-            baselineTests = Number(testsMatch[1]);
-            source = 'governance/TEST-BASELINE.md (parsed at runtime)';
-          } else {
-            baselineFiles = FALLBACK_FAILED_FILES;
-            baselineTests = FALLBACK_FAILED_TESTS;
-            source = 'pinned fallback constants in ci.yml (doc table did not parse — fix the doc)';
-            console.log('::warning::Could not parse governance/TEST-BASELINE.md; using pinned fallback constants.');
-          }
-
-          const report = JSON.parse(fs.readFileSync('vitest-report.json', 'utf8'));
-          // testResults[].status is the per-FILE outcome — this is what
-          // TEST-BASELINE.md calls "Test files" (and what the vitest console
-          // reporter's "Test Files" line reports). numFailedTestSuites counts
-          // describe blocks, not files, and does NOT match the doc's metric —
-          // verified empirically before wiring this up.
-          const failedFiles = report.testResults.filter((t) => t.status === 'failed').length;
-          const failedTests = report.numFailedTests;
-
-          console.log(`Baseline source: ${source}`);
-          console.log(`Baseline:  ${baselineFiles} failed files / ${baselineTests} failed tests`);
-          console.log(`Observed:  ${failedFiles} failed files / ${failedTests} failed tests`);
-
-          let regressed = false;
-          if (failedFiles > baselineFiles) {
-            console.log(`::error::${failedFiles} failed files exceeds documented baseline of ${baselineFiles} — new regression, investigate before merging.`);
-            regressed = true;
-          }
-          if (failedTests > baselineTests) {
-            console.log(`::error::${failedTests} failed tests exceeds documented baseline of ${baselineTests} — new regression, investigate before merging.`);
-            regressed = true;
-          }
-          if (regressed) {
-            console.log('New PASSING tests are always fine; only a rise in FAILURES fails this check. See governance/TEST-BASELINE.md §5 for the full new-vs-expected criteria.');
-            process.exit(1);
-          }
-          console.log('Within documented baseline — no new regressions.');
-          NODESCRIPT
+        run: node scripts/src/check-test-baseline.mjs vitest-report.json target-baseline.md
 
       - name: Upload test report
         if: always()
