@@ -34,22 +34,8 @@
  *
  * Run:  node scripts/src/check-test-baseline.mjs <report.json> <baseline.md>
  *
- * ────────────────────────────────────────────────────────────────────────
- * NOT WIRED INTO CI YET. `.github/workflows/ci.yml` still runs the original
- * inline comparison, so the collection-error rule below is NOT enforcing
- * anything on pull requests today. Wiring it is a one-line edit to that
- * workflow — replace the `NODESCRIPT` heredoc under "Compare against
- * documented baseline" with:
- *
- *     run: node scripts/src/check-test-baseline.mjs vitest-report.json target-baseline.md
- *
- * which could not be pushed from the session that wrote this: the repo's
- * git credential is a keychain PAT without the `workflow` scope, and GitHub
- * refuses any push touching .github/workflows/ without it.
- *
- * Until that edit lands, a test file that stops loading still slides under
- * the numeric ceiling exactly as skiniaCohortAccess.test.ts did.
- * ────────────────────────────────────────────────────────────────────────
+ * WIRED INTO CI. `.github/workflows/ci.yml`'s `tests-baseline` job invokes
+ * this directly; it is what decides pass or fail for every pull request.
  */
 import { readFileSync } from 'node:fs';
 
