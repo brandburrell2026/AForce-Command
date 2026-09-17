@@ -1,5 +1,53 @@
 # Trainer Dashboard — external actions
 
+> ## FROZEN at `main@9da2f19f`
+>
+> The Trainer Dashboard codebase is frozen. **No new features. No behaviour
+> changes.** The only work authorized against it is one of the four external
+> gates below, and only when the founder explicitly asks for it by name.
+>
+> This document is the operational source of truth for those four gates.
+>
+> ### Verification baseline at the freeze point
+>
+> | Check | Result |
+> |---|---|
+> | The three real-app HTTP suites | **31/31 pass** |
+> | Full unit lane | **5 failed files / 10 failed tests** — the documented pre-existing baseline |
+> | Collection errors | **0** |
+> | Skips | **245 — unchanged** |
+> | Typechecks (`@workspace/db`, `api-server`, `aforce-os`) | **3/3 pass** |
+> | `feature.trainer_api` | **false** |
+> | `trainer_board_enabled` / `trainer_demo_seed_enabled` | **false** |
+>
+> Any later run that differs from this table is a regression against the
+> freeze, not a new baseline.
+>
+> ### What has NOT been done, and must not be done without authorization
+>
+> - No schema applied to any database
+> - No secret provisioned
+> - No legal determination made
+> - No device or network measurement taken
+> - No production flag enabled
+>
+> ### One claim this project does NOT make
+>
+> `apiErrorContract`, `smartCaptureMountOrder` and `providerDisconnectMounts`
+> were changed to boot the real application **once per file instead of once
+> per test** — 15 redundant boots and listeners removed, the three suites
+> going from ~4.0s to ~1.1s.
+>
+> That change is a **test-performance optimization, not a flake repair**, and
+> it must not be described as one. Failures were twice observed in those
+> suites under load and attributed to the repository; on investigation both
+> observations occurred while a second full-lane test run, started in the same
+> session, was competing for CPU. The failure could not be reproduced on
+> demand afterwards — unmodified `main` passed with a cold cache, with a
+> competing lane, and with both. No mutation proof exists that reverting the
+> change reintroduces a failure, and none is claimed.
+
+
 Four things stand between the merged code and a live surface. **None of them
 are code, and none of them were performed.** Each section is the exact action
 required, written so the person doing it does not have to reconstruct the
