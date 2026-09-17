@@ -40,7 +40,6 @@ import { WhyThisSheet } from '@/components/moments/WhyThisSheet';
 import { useMomentsData } from '@/components/moments/useMomentsData';
 import {
   clockLabel,
-  daySummary,
   prepWindowLabel,
   windowPosture,
 } from '@/components/moments/momentsPresentation';
@@ -74,15 +73,14 @@ export function EditorialMomentsScreen({
   const ink = edInkFor('black');
   const settle = useEdSettle();
 
-  const summary = daySummary(data.surfaced);
-  const upNext = data.surfaced.filter(
-    (m) => Date.parse(m.startAtIso) > Date.parse(data.nowIso),
-  );
   const now = React.useMemo(() => new Date(data.nowIso), [data.nowIso]);
   // The Figma calendar is a short, ordered horizon rather than one undifferentiated
   // queue. These are only real surfaced Moments, limited to the first three
   // dates the existing recommendation boundary already allows through.
-  const calendarDays = React.useMemo(() => groupMomentDays(upNext), [upNext]);
+  const calendarDays = React.useMemo(
+    () => groupMomentDays(data.surfaced, data.nowIso),
+    [data.nowIso, data.surfaced],
+  );
 
   return (
     <EdSurface stock="black" style={styles.fill}>
@@ -130,44 +128,30 @@ export function EditorialMomentsScreen({
             </View>
           ) : (
             <>
-              {/* The day announced, not listed. */}
+              {/* Figma's approved three-day calendar leads the experience.
+                  The rows below stay sourced from real surfaced Moments. */}
               <View style={styles.statementWrap}>
+                <EdCaption text={t('moments.overview_title')} />
                 <EdStatement style={styles.statement} accessibilityRole="header">
-                  {/* `count` is what i18next pluralizes on; `total` stays for the
-                      interpolation. Without count it printed "1 moments". */}
-                  {t('moments.overview_summary', { count: summary.total, total: summary.total })}
+                  {t('moments.editorial_three_days')}
                 </EdStatement>
                 <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 6 }]}>
-                  {t('moments.overview_summary_prep', { n: summary.prepWorthy })}
+                  {t('moments.editorial_three_days_body')}
                 </Text>
-                <Pressable
-                  onPress={() => router.push('/moments-plan')}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('moments.prepare_my_day')}
-                  hitSlop={8}
-                  style={styles.quietAction}
-                  testID="editorial-moments-prepare-day"
-                >
-                  <Text style={[edType.micro as TextStyle, { color: edAccent.red }]}>
-                    {t('moments.prepare_my_day')}
-                  </Text>
-                </Pressable>
               </View>
 
-              {calendarDays.length > 0 ? (
-                <View style={styles.spineLabel}>
-                  {/* The section label belongs to the list it heads — not to
-                      the summary statement above it. */}
-                  <EdCaption text={t('moments.up_next')} />
-                </View>
-              ) : null}
               {calendarDays.length > 0 ? (
                 <EdNodeSpine style={styles.spine}>
                   {calendarDays.map((day, dayIndex) => (
                     <View key={day.key} style={dayIndex === 0 ? undefined : styles.daySection}>
-                      <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
-                        {day.label}
-                      </Text>
+                      <View style={styles.dayHeading}>
+                        <Text style={[edType.caption as TextStyle, { color: ink.primary }]}>
+                          {t(`moments.editorial_${day.relative}`)}
+                        </Text>
+                        <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                          {day.dateLabel}
+                        </Text>
+                      </View>
                       {day.moments.map((moment, momentIndex) => (
                         <SpineMoment
                           key={moment.id}
@@ -203,26 +187,39 @@ export function EditorialMomentsScreen({
   );
 }
 
-function groupMomentDays(moments: Moment[]) {
+function groupMomentDays(moments: Moment[], nowIso: string) {
   const grouped = new Map<string, Moment[]>();
-  for (const moment of moments) {
+  const sorted = [...moments].sort(
+    (a, b) => Date.parse(a.startAtIso) - Date.parse(b.startAtIso),
+  );
+  for (const moment of sorted) {
     const date = new Date(moment.startAtIso);
-    const key = date.toISOString().slice(0, 10);
+    const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
     const bucket = grouped.get(key);
     if (bucket) bucket.push(moment);
     else grouped.set(key, [moment]);
   }
   return Array.from(grouped.entries())
     .slice(0, 3)
-    .map(([key, dayMoments]) => ({
-      key,
-      // Date furniture is derived from the real moment itself, never an
-      // authored or sample calendar claim.
-      label: new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).format(
-        new Date(dayMoments[0].startAtIso),
-      ),
-      moments: dayMoments,
-    }));
+    .map(([key, dayMoments]) => {
+      const date = new Date(dayMoments[0].startAtIso);
+      const today = new Date(nowIso);
+      date.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      const dayDelta = Math.round((date.getTime() - today.getTime()) / 86_400_000);
+      return {
+        key,
+        relative: dayDelta <= 0 ? 'today' : dayDelta === 1 ? 'tomorrow' : 'next',
+        // Date furniture is derived from the real moment itself, never an
+        // authored or sample calendar claim.
+        dateLabel: new Intl.DateTimeFormat(undefined, {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        }).format(date),
+        moments: dayMoments,
+      };
+    });
 }
 
 function SpineMoment({
@@ -247,6 +244,7 @@ function SpineMoment({
   const action = rec.primaryAction;
   const stateWord = t(live ? 'moments.do_this_now' : 'moments.do_this');
   const prepText = `${t('moments.prep_window')} ${prepWindowLabel(rec)}`;
+  const actionPreview = action ? t(action.labelKey, action.labelParams) : stateWord;
   // The Pressable groups its children, so the composed label IS the whole
   // spoken row: time, title, state, window, and — on the priority row — the
   // action and its best-before. Without this the reader hears only the time
@@ -282,14 +280,19 @@ function SpineMoment({
         testID={`editorial-moment-row-${moment.id}`}
       >
         <View style={styles.rowHead}>
-          <Text style={[edType.data as TextStyle, { color: ink.quiet }]}>
-            {clockLabel(moment.startAtIso)}
-          </Text>
-          <Text
-            style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
-            numberOfLines={2}
-          >
-            {title}
+          <View style={styles.rowIdentity}>
+            <Text style={[edType.data as TextStyle, { color: ink.quiet }]}>
+              {clockLabel(moment.startAtIso)}
+            </Text>
+            <Text
+              style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
+              numberOfLines={2}
+            >
+              {title}
+            </Text>
+          </View>
+          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? edAccent.red : ink.quiet }]}>
+            {actionPreview}
           </Text>
         </View>
         {/* The window, with its label. Colour marks the live row but never
@@ -357,22 +360,24 @@ const styles = StyleSheet.create({
   },
   statementWrap: { marginTop: 18 },
   statement: { marginTop: 8 },
-  quietAction: {
-    minHeight: edRhythm.minTarget,
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
-  },
-  spineLabel: { marginTop: 26 },
-  spine: { marginTop: 10 },
+  spine: { marginTop: 28 },
   daySection: { marginTop: 18 },
+  dayHeading: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    columnGap: 12,
+    marginBottom: 4,
+  },
   rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center' },
   rowHead: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    columnGap: 10,
-    flexWrap: 'wrap',
-    rowGap: 2,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    columnGap: 14,
   },
+  rowIdentity: { flex: 1, rowGap: 2 },
+  rowAction: { maxWidth: '38%', textAlign: 'right' },
   whyTarget: {
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
