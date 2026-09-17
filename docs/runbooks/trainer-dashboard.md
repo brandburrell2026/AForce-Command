@@ -1,5 +1,13 @@
 # Runbook — Trainer Dashboard
 
+> **FROZEN at `main@9da2f19f`.** No new features, no behaviour changes. The
+> only authorized work is one of the four external gates, and only when the
+> founder asks for it by name. The freeze record, the verification baseline it
+> must be measured against, and those four gates live in
+> [`trainer-external-actions.md`](./trainer-external-actions.md) — the
+> operational source of truth.
+
+
 For whoever is on call at 6am when a training room is waiting.
 
 This surface carries medical records. Most of what follows is about turning
