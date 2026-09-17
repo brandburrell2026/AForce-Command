@@ -17,8 +17,9 @@ import { mockRosterClutch as mockRoster, CLUTCH_TEAM_NAME as TEAM_NAME } from '@
 import { clutchHydrationPlan, clutchTier, clutchRecommendation } from '@/utils/scoringEngine';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { WEB_TOP_PADDING, WEB_BOTTOM_INSET } from '@/constants/layout';
+import { EditorialClutchLandingScreen } from '@/components/skinIntelligence/SkinIntelligenceEditorialSuite';
 
-export default function ClutchScreen() {
+export function LegacyClutchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state } = useAppStore();
@@ -144,6 +145,13 @@ export default function ClutchScreen() {
       </GradientBackground>
     </View>
   );
+}
+
+export default function ClutchScreen() {
+  if (process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true') {
+    return <EditorialClutchLandingScreen />;
+  }
+  return <LegacyClutchScreen />;
 }
 
 function PlanRow({ label, value, accent }: { label: string; value: string; accent?: string }) {

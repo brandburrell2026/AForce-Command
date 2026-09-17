@@ -5,7 +5,11 @@
  * unconditionally.
  */
 import { SweatCalculatorScreenV2 } from '@/components/sweat/SweatCalculatorScreenV2';
+import { EditorialSweatLandingScreen } from '@/components/skinIntelligence/SkinIntelligenceEditorialSuite';
 
 export default function SweatRoute() {
+  if (process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true') {
+    return <EditorialSweatLandingScreen />;
+  }
   return <SweatCalculatorScreenV2 />;
 }
