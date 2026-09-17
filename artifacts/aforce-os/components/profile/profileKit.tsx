@@ -555,6 +555,19 @@ export const styles = StyleSheet.create({
     fontSize: 28, fontFamily: 'Inter_700Bold', color: af.textPrimary,
     letterSpacing: -0.5, marginBottom: 24,
   },
+  devicePageTitle: {
+    fontSize: 38,
+    letterSpacing: -1.2,
+    marginBottom: 8,
+  },
+  devicePagePromise: {
+    color: af.textSecondary,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    lineHeight: 21,
+    maxWidth: 440,
+    marginBottom: 22,
+  },
   profileCard: {
     backgroundColor: af.surface, borderRadius: 20, borderWidth: 1,
     padding: 20, marginBottom: 28, gap: 16,
@@ -1096,4 +1109,3 @@ export const voicePickerStyles = StyleSheet.create({
     letterSpacing: 2,
   },
 });
-
