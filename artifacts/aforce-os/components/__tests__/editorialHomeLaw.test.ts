@@ -16,7 +16,7 @@
  *        engine string through the SAME parse Home V2 uses.
  *  LAW — no fabrication: absent readings stay em-dash/silent (the V3
  *        formatters and silence rules are consumed, not reimplemented).
- *  FLAG — editorial_home_enabled OFF in production, ON in the demo profile;
+ *  FLAG — editorial_home_enabled ON in production and in the demo profile;
  *        HomeScreenV2 is the flag-OFF rollback branch at the route seam.
  *  PARITY — no member action is stranded: the three Home routes, the water
  *        picker wiring, and both WHY disclosures exist in the editorial tree.
@@ -54,8 +54,8 @@ const homeSources = () =>
   homeFiles().map((f) => ({ file: relative(AOS, f), src: stripComments(read(f)) }));
 
 describe('FLAG — posture and rollback seam', () => {
-  it('editorial_home_enabled is OFF in production and ON in the demo profile', () => {
-    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(false);
+  it('editorial_home_enabled is ON in production and in the demo profile', () => {
+    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(true);
     expect(DEMO_ALL_ON_FLAGS.editorial_home_enabled).toBe(true);
   });
 

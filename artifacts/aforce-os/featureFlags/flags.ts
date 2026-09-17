@@ -200,9 +200,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // V3 signal resolvers). Score-Protection: presentation only — never reads
   // into or mutates score, command, eligibility, timing, or safety; the
   // pressure field consumes the canonical score and computes nothing.
-  // HomeScreenV2 is the live rollback fallback (flag OFF). Locked by
+  // HomeScreenV2 remains the rollback fallback. The approved Figma surface is
+  // now the production default (founder direction 2026-09-16). Locked by
   // components/__tests__/editorialHomeLaw.test.ts.
-  editorial_home_enabled: false,
+  editorial_home_enabled: true,
   // Editorial Moments — The Day + The Performance Story (E3, founder ruling
   // 2026-08-29). ONE flag for both Moments surfaces (they are one
   // experience): whole-screen presentation swaps at app/moments.tsx and
@@ -211,9 +212,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // same prepared write). Presentation only — never reads or mutates score,
   // command, eligibility, timing, or safety, and it does not widen the
   // moments_enabled or moments_calendar_enabled gates. The legacy screens
-  // remain the live rollback branch. Locked by
+  // remain the rollback branch. The approved three-day Figma calendar is now
+  // the production default (founder direction 2026-09-16). Locked by
   // components/__tests__/editorialMomentsLaw.test.ts.
-  editorial_moments_enabled: false,
+  editorial_moments_enabled: true,
   // Editorial Protocol — The Brief (E4, founder decisions 2026-08-30).
   // Whole-screen presentation swap of the Protocol tab over the SAME truth
   // (deriveProtocol stage/description/steps/nextRecheckMinutes, the
@@ -225,16 +227,18 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // reachable rollback branches (three-way seam). Locked by
   // components/__tests__/editorialProtocolLaw.test.ts.
   editorial_protocol_enabled: false,
-  // WEEKLY REPORT — The Feature (E5, founder decisions 2026-08-30). The
-  // Editorial OS composition of the SAME weekly truth WeeklyReportV3 renders,
-  // on PAPER stock — the first surface in the migration to turn the stock.
+  // WEEKLY REPORT — The Feature (E5, founder decisions 2026-08-30; Figma
+  // direction revised 2026-09-16). The Editorial OS composition of the SAME
+  // weekly truth WeeklyReportV3 renders, now on the approved BLACK stock.
   // Every number is reused from buildWeeklyV3Model / performanceAgeBarAxis;
-  // nothing is re-derived and no metric is added. Positive states carry NO hue
-  // here (Soursop measures 2.48:1 on paper). WeeklyReportV3,
+  // nothing is re-derived and no metric is added. Positive states continue to
+  // read through weight, rule, and position rather than a new status hue.
+  // WeeklyReportV3,
   // ReadinessInsightsV2 and WeeklyReportLegacy all remain reachable rollback
-  // branches (four-way seam). Locked by
+  // branches (four-way seam). The approved Figma surface is the production
+  // default; the other branches remain rollback paths. Locked by
   // components/__tests__/editorialWeeklyLaw.test.ts.
-  editorial_weekly_enabled: false,
+  editorial_weekly_enabled: true,
   // SCAN — The Tool (E6-B, founder authorization 2026-08-30). The Editorial OS
   // composition of the SAME Scan truth, on BLACK stock. Built on E6-A (the
   // three producer locks) and E6-B0 (unknown-never-zero, per-attribute

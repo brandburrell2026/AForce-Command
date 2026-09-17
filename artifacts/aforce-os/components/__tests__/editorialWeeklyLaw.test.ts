@@ -1,14 +1,12 @@
 /**
  * Editorial Weekly — The Feature — E5 law lock (founder decisions 2026-08-30).
  *
- * Planted BEFORE the implementation. Weekly is the FIRST surface in the
- * migration to turn the stock to paper, so this file carries two jobs the
- * earlier E-steps did not need: it pins the paper register itself, and it pins
- * the producers a paper migration could silently strand.
+ * Weekly now follows the approved black-stock Figma composition while keeping
+ * every truth, producer, and rollback seam locked here.
  *
  * FOUNDER DECISIONS ENFORCED HERE:
- *  D1 HUE      — Soursop Green measures 2.48:1 on paper. `edPositive` is BANNED
- *                on this surface; positive reads through weight, rule and
+ *  D1 HUE      — `edPositive` is not a carrier on this surface; positive reads
+ *                through weight, rule and
  *                position only. (The contrast gap that hid this is closed in
  *                editorialFoundation.test.ts, which now measures edPositive on
  *                BOTH stocks.)
@@ -24,7 +22,7 @@
  *  D6 STALE    — per-source honesty (degraded row + em dashes). NO global stale
  *                banner; `lastRefreshStale` is deliberately NOT threaded here.
  *
- *  + PARITY (the E3/E4 P0 class), paper-stock ink resolution, honest absence,
+ *  + PARITY (the E3/E4 P0 class), black-stock ink resolution, honest absence,
  *    resolver reuse, Reduce Motion, demo isolation and DR-013 authority.
  *
  * Lives in components/__tests__/ deliberately: a components/editorial/__tests__/
@@ -64,14 +62,14 @@ const v3 = () => strip(read(join(AOS, 'components', 'insights', 'WeeklyReportV3.
 // ————————————————————————————————————————————————— flag + seam
 
 describe('FLAG + FOUR-WAY SEAM (D4 — retire nothing)', () => {
-  it('editorial_weekly_enabled is OFF in production and ON in the demo profile', () => {
-    expect(DEFAULT_FLAGS.editorial_weekly_enabled).toBe(false);
+  it('editorial_weekly_enabled is ON in production and in the demo profile', () => {
+    expect(DEFAULT_FLAGS.editorial_weekly_enabled).toBe(true);
     expect(DEMO_ALL_ON_FLAGS.editorial_weekly_enabled).toBe(true);
   });
 
   it('the three earlier go-live flags are NOT touched by this lane', () => {
-    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(false);
-    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(false);
+    expect(DEFAULT_FLAGS.editorial_home_enabled).toBe(true);
+    expect(DEFAULT_FLAGS.editorial_moments_enabled).toBe(true);
     expect(DEFAULT_FLAGS.editorial_protocol_enabled).toBe(false);
   });
 
@@ -111,18 +109,18 @@ describe('FLAG + FOUR-WAY SEAM (D4 — retire nothing)', () => {
 
 // ————————————————————————————————————————————————— D1 hue
 
-describe('D1 — no positive hue on paper (Soursop is 2.48:1 there)', () => {
+describe('D1 — no positive status hue', () => {
   it('the weekly layer never imports or references edPositive', () => {
     for (const { file, src } of sources()) {
-      expect(src, `${file} — edPositive is unreadable on paper stock`).not.toMatch(/edPositive/);
+      expect(src, `${file} — positive status hue is not a carrier here`).not.toMatch(/edPositive/);
     }
   });
 
   it('the weekly layer never reaches for the af-layer green/amber status hues either', () => {
     // V3 paints its PA delta and next-focus banner with af.green. Those are the
-    // exact carriers D1 removes; a paper screen must not re-import them.
+    // exact carriers D1 removes; this screen must not re-import them.
     for (const { file, src } of sources()) {
-      expect(src, `${file} — status hue must not carry meaning on paper`).not.toMatch(
+      expect(src, `${file} — status hue must not carry meaning`).not.toMatch(
         /\baf\.green\b|\baf\.amber\b/,
       );
     }
@@ -342,40 +340,37 @@ describe('PARITY — no V3 behaviour is stranded (the E3/E4 P0 class)', () => {
   });
 });
 
-// ————————————————————————————————————————————————— paper register
+// ————————————————————————————————————————————————— black register
 
-describe('PAPER — the first surface to turn the stock', () => {
-  it('the screen owns a paper EdSurface', () => {
-    expect(screen()).toMatch(/<EdSurface\s+stock="paper"/);
+describe('BLACK — the approved Figma register', () => {
+  it('the screen owns a black EdSurface', () => {
+    expect(screen()).toMatch(/<EdSurface\s+stock="black"/);
   });
 
-  it('resolves ink for PAPER explicitly, never through useEdInk', () => {
+  it('resolves ink for BLACK explicitly, never through useEdInk', () => {
     // E2's P1: useEdInk() reads the context ABOVE the surface the screen owns,
     // so a screen that mounts its own EdSurface must resolve ink directly.
-    // On paper this inverts the E2 bug into ivory-on-paper — invisible.
     const src = screen();
-    expect(src).toMatch(/edInkFor\('paper'\)/);
+    expect(src).toMatch(/edInkFor\('black'\)/);
     expect(src, 'useEdInk() would resolve the ink of the surface ABOVE this one').not.toMatch(
       /useEdInk\(/,
     );
   });
 
-  it('every weekly component that paints ink resolves it for paper, not black', () => {
+  it('every weekly component that paints ink resolves it for black, not paper', () => {
     for (const { file, src } of sources()) {
       if (!/edInkFor\(/.test(src)) continue;
-      expect(src, `${file} — this screen's stock is paper`).not.toMatch(/edInkFor\('black'\)/);
+      expect(src, `${file} — this screen's stock is black`).not.toMatch(/edInkFor\('paper'\)/);
     }
   });
 
-  it('overrides the app-wide LIGHT status bar, which is illegible on paper', () => {
-    // app/_layout.tsx sets <StatusBar style="light" /> globally. Correct on the
-    // black stock; on paper the system glyphs land at ~1.3:1.
+  it('uses the light status bar required by black stock', () => {
     const src = body();
-    expect(src.match(/<StatusBar style="dark" \/>/g)?.length ?? 0).toBe(2);
+    expect(src.match(/<StatusBar style="light" \/>/g)?.length ?? 0).toBe(2);
   });
 
-  it('the paper background comes from the token, never a literal', () => {
-    expect(screen()).toMatch(/edStock\.paper/);
+  it('the black background comes from the token, never a literal', () => {
+    expect(screen()).toMatch(/edStock\.black/);
   });
 
   it('restates the stock on the AFScreen shell, which paints af.canvas over it', () => {
@@ -387,7 +382,7 @@ describe('PAPER — the first surface to turn the stock', () => {
     // AFScreen applies AFTER its own background.
     const src = screen();
     expect(src).toMatch(/<AFScreen[^>]*\sstyle=\{styles\.canvas\}/);
-    expect(src).toMatch(/canvas: \{ backgroundColor: edStock\.paper \}/);
+    expect(src).toMatch(/canvas: \{ backgroundColor: edStock\.black \}/);
     // Both branches — the loading shell renders AFScreen too.
     expect(src.match(/<AFScreen/g)?.length ?? 0).toBe(
       src.match(/style=\{styles\.canvas\}/g)?.length ?? 0,
@@ -604,7 +599,7 @@ describe('REDUCE MOTION + DEMO ISOLATION', () => {
 
 // ————————————————————————————————————————————————— a11y
 
-describe('A11Y — the standing rules carry forward onto paper', () => {
+describe('A11Y — the standing rules carry forward onto black stock', () => {
   it('the feature statement is a header landmark', () => {
     expect(screen()).toMatch(/accessibilityRole="header"/);
   });
