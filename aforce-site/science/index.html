@@ -444,7 +444,9 @@
   .sr-hero .h-display{ text-transform:none; margin-top:20px; max-width:15ch; }
   /* Cinematic video hero (the former homepage film) */
   .sr-hero-media{ position:absolute; inset:0; z-index:0; background:#0B0D12 url('/assets/science-hero-poster.jpg') center/cover no-repeat; }
-  .sr-hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
+  /* The film is square (1440x1440); a wide hero crops it top and bottom, and
+     dead-centre cut the subject's head off on desktop. Anchor above centre. */
+  .sr-hero-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 22%; }
   .sr-hero-scrim{ position:absolute; inset:0; background:
      linear-gradient(90deg, rgba(11,13,18,0.84) 0%, rgba(11,13,18,0.58) 24%, rgba(11,13,18,0.22) 44%, rgba(11,13,18,0) 62%),
      linear-gradient(180deg, rgba(11,13,18,0.42) 0%, rgba(11,13,18,0) 26%, rgba(11,13,18,0) 66%, rgba(11,13,18,0.72) 100%); }
