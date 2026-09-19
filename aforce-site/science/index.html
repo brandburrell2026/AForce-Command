@@ -450,7 +450,11 @@
   .sr-hero-scrim{ position:absolute; inset:0; background:
      linear-gradient(90deg, rgba(11,13,18,0.84) 0%, rgba(11,13,18,0.58) 24%, rgba(11,13,18,0.22) 44%, rgba(11,13,18,0) 62%),
      linear-gradient(180deg, rgba(11,13,18,0.42) 0%, rgba(11,13,18,0) 26%, rgba(11,13,18,0) 66%, rgba(11,13,18,0.72) 100%); }
-  .sr-hero > .sr-wrap{ position:relative; z-index:2; width:100%; }
+  /* The subject sits centre-right in frame, so the page's centred 1240px rail
+     pushed the copy into her face on wide screens. The hero column runs
+     full-bleed on the masthead's outer rail instead — copy lines up under
+     the N–N mark and clears the face. */
+  .sr-hero > .sr-wrap{ position:relative; z-index:2; width:100%; max-width:none; padding-left:var(--afx-gutter); }
   /* Keep the copy in a tight left column so it never covers the middle of the film */
   .sr-hero .h-display{ color:#F5F0E8; max-width:11ch; font-size:clamp(32px,4.6vw,64px); }
   .sr-hero .sr-serif{ color:rgba(245,240,232,0.86); max-width:18ch; }
