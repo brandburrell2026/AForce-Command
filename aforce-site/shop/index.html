@@ -324,6 +324,20 @@
   .ignite-btn.fire{ animation:ignite .7s ease; }
   .ignite-btn.committed{ box-shadow:0 0 0 2px var(--theme) inset, 0 0 12px -2px var(--theme); }
   @keyframes ignite{ 0%{box-shadow:0 0 0 0 var(--theme);} 45%{box-shadow:0 0 46px 6px var(--theme);} 100%{box-shadow:0 0 34px -2px var(--theme);} }
+  /* COMING SOON: rows that exist only to carry a number are hidden outright,
+     so no price (and no empty currency row) is shown anywhere on the page. */
+  body.soon .d-price,
+  body.soon .bc-price,
+  body.soon .bac-price,
+  body.soon .rb2-line-price,
+  body.soon .bc-sub,
+  body.soon .rb2-sub,
+  body.soon .os-save,
+  body.soon .pl-unit,
+  body.soon .os-per,
+  body.soon #bvPrice{ display:none !important; }
+  body.soon .bv-s::after{ content:"Coming soon"; }
+
   /* Pre-launch CTA — replaces the Add-to-Ritual button. Same footprint, brand
      system (display type, existing tokens, --theme accent). Non-interactive. */
   .prelaunch{ margin-top:18px; width:100%; text-align:center; font-family:var(--display); font-weight:800; font-size:clamp(15px,1.7vw,18px); letter-spacing:.02em; border-radius:6px; padding:20px; min-height:56px; display:flex; align-items:center; justify-content:center; gap:11px; background:transparent; color:var(--canvas); border:1.5px solid var(--can-22); }
@@ -862,7 +876,7 @@
       <div class="os-tier">
         <div class="os-badge">Included with any order</div>
         <h3>Core</h3>
-        <div class="os-price"><span class="os-amt">$0</span></div>
+        <div class="os-price"><span class="os-amt">Included</span></div>
         <div class="os-sub">No recurring charge</div>
         <p class="os-line">Core records the ritual.</p>
         <ul class="os-feat">
@@ -881,8 +895,8 @@
           <button type="button" data-cycle="annual" aria-pressed="false">Annual</button>
         </div>
         <div class="os-price">
-          <span class="os-amt" id="osAmt">$20</span><span class="os-per" id="osPer">/ month</span>
-          <span class="os-save" id="osSave" hidden>SAVE $40</span>
+          <span class="os-amt" id="osAmt">Coming soon</span><span class="os-per" id="osPer"></span>
+          <span class="os-save" id="osSave" hidden></span>
         </div>
         <ul class="os-feat">
           <li>Performance Age™</li>
@@ -903,7 +917,7 @@
       </div>
     </div>
     <a class="os-cta" href="/aforce-os">Explore AFORCE OS <span class="arw" aria-hidden="true">→</span></a>
-    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. Prices in USD. AutoPilot and Command are subscriptions that automatically renew until canceled; cancel anytime in AFORCE OS. See <a href="/subscription-terms" style="color:inherit;text-decoration:underline;">Subscription Terms</a>. Performance Age™ is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
+    <p class="os-fine">Core is included with every order. Command checks out on its own and is managed in AFORCE OS. AutoPilot and Command are subscriptions that automatically renew until canceled; cancel anytime in AFORCE OS. See <a href="/subscription-terms" style="color:inherit;text-decoration:underline;">Subscription Terms</a>. Performance Age™ is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
   </div>
 </section>
 
@@ -934,7 +948,7 @@
         <div class="bc-lines" id="buildLines"><!-- live lines injected --></div>
         <div class="bc-cross" id="buildCross" hidden><!-- contextual cross-sell --></div>
         <div class="bc-foot" id="buildFoot" hidden>
-          <div class="bc-sub"><span>Subtotal</span><span id="buildSubtotal">$0.00</span></div>
+          <div class="bc-sub"><span>Subtotal</span><span id="buildSubtotal"></span></div>
           <div class="bc-ship">Shipping calculated at checkout</div>
           <button type="button" class="bc-checkout" id="buildCheckout">Continue to secure checkout</button>
           <div class="bc-err" id="buildErr" role="alert" hidden></div>
@@ -1128,7 +1142,7 @@
       <button type="button" id="rb2UndoBtn">Undo</button>
     </div>
     <div class="rb2-foot" id="rb2Foot" hidden>
-      <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal">$0.00</span></div>
+      <div class="rb2-sub"><span>Subtotal</span><span id="rb2Subtotal"></span></div>
       <div class="rb2-ship">Shipping calculated at checkout</div>
       <!-- P0 legal: affirmative recurring-purchase consent. NEVER pre-checked;
            visible only when the basket holds AutoPilot (subscription) lines. -->
@@ -1212,6 +1226,13 @@
   // verified live 2026-07-31: stick $59.99, can $29.99). Founder ruling
   // 2026-07-26: kept at full price. So autopilot === onetime here; displaying a
   // lower "subscribe & save" price would show less than checkout charges.
+  /* COMING SOON (founder request, 2026-09-20): the shop shows no prices and
+     sells nothing. Every price renders as "Coming soon", price-only rows are
+     hidden, and every purchase path is closed (the existing pre-launch state
+     is entered on load and the checkout handoffs bail out). Flip this one
+     flag back to false to restore pricing and checkout exactly as before. */
+  var COMING_SOON = true;
+  var SOON = "Coming soon";
   var UNIT = { sticks:{autopilot:59.99, onetime:59.99}, cans:{autopilot:29.99, onetime:29.99} };
   var DEPTH_UNITS = { single:1, double:2, "case":4 };
   var QTY_LABEL = { sticks:"20 Sticks", cans:"6 Cans" };
@@ -1232,7 +1253,7 @@
   /* ---- pricing ---- */
   function unitPrice(){ return UNIT[state.format][state.plan]; }
   function total(){ return +(unitPrice() * state.units).toFixed(2); }
-  function money(n){ return "$" + n.toFixed(2); }
+  function money(n){ return COMING_SOON ? SOON : "$" + n.toFixed(2); }
   function perSuffix(){ return state.plan==="autopilot" ? "/mo" : ""; }
   function planLabel(){ return state.plan==="autopilot" ? "AutoPilot Monthly" : "One-Time"; }
 
@@ -1315,11 +1336,11 @@
     preLaunch = true;
     clearBeginError();
     renderBegin();
-    announce("The Ritual opens Fall 2026.");
+    announce(SOON + ".");
     track("shop_prelaunch_shown", {});
   }
   function primaryCTA(ready){
-    if(preLaunch) return '<div class="prelaunch" role="status">The Ritual opens Fall 2026</div>';
+    if(preLaunch) return '<div class="prelaunch" role="status">'+SOON+'</div>';
     return ready
       ? '<button class="ignite-btn ready" id="igniteBtn" type="button">Add to Ritual — '+money(total())+perSuffix()+'</button>'
       : '<button class="ignite-btn dormant" id="igniteBtn" type="button" disabled>Begin</button>';
@@ -1333,6 +1354,7 @@
   function clearBeginError(){ var e=$("#beginErr"); if(e) e.remove(); }
 
   function addToRitual(source){
+    if(COMING_SOON) return false;
     if(!isReady()) return false;
     if(!basket){ beginError("Checkout isn’t ready yet — please refresh the page and try again."); return false; }
     var vid = VARIANTS[state.format][state.formulation];
@@ -1399,7 +1421,7 @@
   }
 
   /* ---- render (subscribe to basket changes) ---- */
-  function money2(a){ return "$"+(Math.round(parseFloat(a)*100)/100).toFixed(2); }
+  function money2(a){ return COMING_SOON ? SOON : "$"+(Math.round(parseFloat(a)*100)/100).toFixed(2); }
   function renderBasket(){
     if(!basket) return;
     var lines=basket.lines(), count=basket.count();
@@ -1483,7 +1505,7 @@
     var vid = VARIANTS[format] && VARIANTS[format][flavor]; if(!vid) return;
     basket.add({ variantId:vid, quantity:qty, sellingPlanId:buildPlanId(), attributes:buildAddAttrs(format,flavor,qty) }).then(function(res){
       if(res && res.error){
-        if(res.error.status===404){ enterPreLaunch(); renderBuild(); buildNote("The Ritual opens Fall 2026 — building is preview-only for now."); }
+        if(res.error.status===404){ enterPreLaunch(); renderBuild(); buildNote(SOON + " — building is preview-only for now."); }
         else buildNote("We couldn’t add that right now. Please try again in a moment.");
         return;
       }
@@ -1795,21 +1817,22 @@
     var buy=$("#osBuy"), buyNote=$("#osBuyNote");
     seg.hidden = false;
     var annual = state.osCycle==="annual";
-    save.hidden = !annual;
-    amt.textContent = annual ? "$200" : "$20";
-    per.textContent = annual ? "/ year" : "/ month";
+    save.hidden = COMING_SOON || !annual;
+    amt.textContent = COMING_SOON ? SOON : (annual ? "$200" : "$20");
+    per.textContent = COMING_SOON ? "" : (annual ? "/ year" : "/ month");
     $$("#osSeg button").forEach(function(b){
       b.setAttribute("aria-pressed", b.getAttribute("data-cycle")===state.osCycle ? "true":"false");
     });
     /* Enter Command — gated until the Shopify Command product exists. */
     if(buy){
       buy.hidden=false;
-      var ready=osReady();
+      var ready=osReady() && !COMING_SOON;
       buy.disabled=!ready;
-      buy.textContent = ready ? ("Enter Command — "+(annual?"$200/yr":"$20/mo")) : "Enter Command";
+      buy.textContent = COMING_SOON ? SOON : (ready ? ("Enter Command — "+(annual?"$200/yr":"$20/mo")) : "Enter Command");
     }
     if(buyNote){
-      if(osReady()){ buyNote.hidden=true; buyNote.textContent=""; }
+      if(COMING_SOON){ buyNote.hidden=false; buyNote.textContent="Command opens with the Ritual."; }
+      else if(osReady()){ buyNote.hidden=true; buyNote.textContent=""; }
       else { buyNote.hidden=false; buyNote.textContent="Command checkout opens at launch."; }
     }
     /* Auto-renew disclosure (COMMAND_AUTORENEWS): shown adjacent to the CTA
@@ -1821,7 +1844,7 @@
          consumer authorizes purchase, so this shows whenever the recurring
          offer is displayed (not gated on checkout being live). No minimum
          commitment. Full terms at /subscription-terms. */
-      var show = COMMAND_AUTORENEWS;
+      var show = COMMAND_AUTORENEWS && !COMING_SOON;   /* nothing is offered for sale, so no recurring-price disclosure is shown */
       renew.hidden = !show;
       renew.textContent = show
         ? (annual ? "$200/year. Automatically renews yearly until canceled. No minimum commitment. Cancel anytime in AFORCE OS before your next billing date."
@@ -1844,6 +1867,7 @@
     var ob=$("#osBuy"); if(ob) ob.disabled=false;
   });
   function osCheckout(){
+    if(COMING_SOON) return;
     var note=$("#osBuyNote"), C=window.AForceCommerce;
     function gate(msg){ if(note){ note.hidden=false; note.textContent=msg; } }
     if(!osReady() || !C){ gate("Command checkout opens at launch."); return; }
@@ -1883,6 +1907,16 @@
       });
   }
 
+  /* Coming soon: the checkout handoffs are closed and both checkout buttons
+     read "Coming soon" instead of inviting a purchase. */
+  function applyComingSoon(){
+    if(!COMING_SOON) return;
+    document.body.classList.add("soon");
+    ["#buildCheckout","#rb2Checkout"].forEach(function(sel){
+      var b=$(sel); if(!b) return; b.disabled=true; b.textContent=SOON;
+    });
+  }
+
   function renderAll(){
     applyTheme(); repaintImages(); renderOverrides(); renderSwitcher();
     renderFormats(); renderBegin(); renderBar(); renderRail(); renderOSband();
@@ -1891,6 +1925,7 @@
        A1b concern (never reuse a consumed URL) is satisfied by construction. */
     fireIgnition();
     if(basket) renderBuild();
+    applyComingSoon();
     persist();
   }
 
@@ -1912,7 +1947,7 @@
       var iv = setInterval(function(){
         tries++;
         if(basket && !basket.isEmpty()){ clearInterval(iv); fsBtn.disabled = false; revealBuild(); jump("stepBuild"); }
-        else if(preLaunch){ clearInterval(iv); fsBtn.disabled = false; fsNote("Your Variety Pack is ready — the Ritual opens Fall 2026. We’ll build it the moment it does."); }
+        else if(preLaunch){ clearInterval(iv); fsBtn.disabled = false; fsNote("Your Variety Pack is ready — " + SOON + ". We’ll build it the moment the Ritual opens."); }
         else if(tries > 24){ clearInterval(iv); fsBtn.disabled = false; }
       }, 220);
     });
@@ -2199,6 +2234,7 @@
   // if returning with saved demand, restore chips/match before first paint
   if(state.demand){ heroLocked=true; heroShow(state.formulation); $$(".chip").forEach(function(c){ c.setAttribute("aria-pressed", c.getAttribute("data-demand")===state.demand?"true":"false"); }); $("#match").classList.add("open"); paintMatch(); }
   else { startHero(); }
+  if(COMING_SOON) enterPreLaunch();
   renderAll();
 })();
 </script>
