@@ -18,10 +18,11 @@ describe('SkinIA controlled camera capture', () => {
     for (const forbidden of ['base64:', 'exif:', 'uri:', 'FileSystem', 'AsyncStorage', 'SecureStore', 'fetch(', 'upload']) expect(implementation, forbidden).not.toContain(forbidden);
   });
 
-  it('discards the capture and produces no visual observation in this increment', () => {
-    expect(source).toContain('Capture cleared.');
-    expect(source).toContain('does not produce a visual observation');
-    expect(source).toContain('Do not retain the native reference');
+  it('runs in-memory feature extraction but withholds unvalidated observations', () => {
+    expect(source).toContain('extractSkinIAImageFeatures(picture)');
+    expect(source).toContain('deriveSkinIAExperimentalCandidates');
+    expect(source).toContain('Experimental comparison candidates were withheld from member results.');
+    expect(source).toContain('sessionBaseline.current = null');
   });
 
   it('preserves denied, unavailable, and cancel-safe states', () => {

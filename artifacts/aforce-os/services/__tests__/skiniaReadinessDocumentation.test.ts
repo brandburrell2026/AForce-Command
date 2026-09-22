@@ -11,10 +11,12 @@ describe('SkinIA controlled TestFlight readiness documentation', () => {
     expect(doc).toContain('separate explicit founder decision');
   });
 
-  it('makes the current non-capture scope and QA limits explicit', () => {
+  it('makes the internal capture scope and QA limits explicit', () => {
     expect(doc).toContain('requests camera permission');
     expect(doc).toContain('attach raw images');
     expect(doc).toContain('static results fixture is unreachable from member navigation');
+    expect(doc).toContain('LOW-confidence experimental candidates');
+    expect(doc).toContain('Raw image data stays in volatile native memory');
   });
 
   it('lists required non-result states and evidence blockers', () => {

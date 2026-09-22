@@ -1,0 +1,5 @@
+{
+  "platforms": ["ios", "android"],
+  "apple": { "modules": ["SkinIAImageFeaturesModule"] },
+  "android": { "modules": ["com.aforce.skinia.SkinIAImageFeaturesModule"] }
+}
