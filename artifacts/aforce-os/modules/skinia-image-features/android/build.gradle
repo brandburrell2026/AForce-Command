@@ -1,0 +1,16 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.aforce.skinia'
+version = '1.0.0'
+
+android {
+  namespace 'com.aforce.skinia'
+}
+
+dependencies {
+  // Bundled model: no first-use network download and no image upload.
+  implementation 'com.google.mlkit:face-detection:16.1.7'
+}

@@ -51,6 +51,8 @@ dist
 dist/
 expo-env.d.ts
 ios/
+!modules/skinia-image-features/ios/
+!modules/skinia-image-features/ios/**
 node_modules
 node_modules/
 npm-debug.*

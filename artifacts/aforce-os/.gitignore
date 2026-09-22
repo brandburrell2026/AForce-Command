@@ -12,6 +12,11 @@ expo-env.d.ts
 # Native
 ios/
 android/
+# Local Expo module source is authored code, not generated native project output.
+!modules/skinia-image-features/ios/
+!modules/skinia-image-features/ios/**
+!modules/skinia-image-features/android/
+!modules/skinia-image-features/android/**
 *.orig.*
 *.jks
 *.p8
