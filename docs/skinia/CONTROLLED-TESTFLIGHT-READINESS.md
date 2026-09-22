@@ -89,6 +89,10 @@ observations remain blocked until every applicable requirement in
 4. a stated confidence qualification, claims approval, and recorded validation status; and
 5. independent review of the evidence before any observation family is admitted.
 
+The [Phase 1 validation package](PHASE1-VALIDATION-PACKAGE.md) contains the
+physical-device protocol, aggregate evidence template, and independent review gate. All
+measurement and release evidence in that package is still pending.
+
 Until then, the only honest outcome is a non-result. The approved non-result states are
 `UNKNOWN`, `NOT_ENOUGH_INFORMATION`, `CAPTURE_QUALITY_INSUFFICIENT`, and
 `NO_COMPARABLE_BASELINE`.
