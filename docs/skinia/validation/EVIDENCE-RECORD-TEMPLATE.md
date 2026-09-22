@@ -19,6 +19,7 @@ identifiers, device identifiers, or individual appearance/biometric records.
 | Pre-registered exclusions and minimum acceptance criteria | PENDING |
 | Proposed quality and confidence thresholds | PENDING |
 | Private QA working-record location and approved retention owner | PENDING — link to policy, not personal data |
+| Pre-enrollment product/privacy approval of consent, access, retention, and deletion | PENDING — link to decision, not personal data |
 
 ## Coverage and quality (aggregate counts only)
 

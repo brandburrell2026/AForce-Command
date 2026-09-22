@@ -1,6 +1,7 @@
 # SkinIA Phase 1 capture and review protocol
 
-**Status:** ready for internal QA execution; no completed device evidence yet.
+**Status:** proposed internal QA protocol; product/privacy review and device
+evidence are pending. Do not enroll participants until the review is recorded.
 
 **Applies to:** only the controlled internal build and approved engineering/QA testers.
 
@@ -12,6 +13,9 @@ revision, device/OS support list, sampling plan, number of repeats, reference
 rating rubric, exclusion rules, proposed quality and confidence thresholds,
 and required performance by stratum. These are **proposals**, not approved
 release thresholds. Do not choose them after seeing favorable outcomes.
+Before enrollment, product/privacy reviewers must also approve the consent
+language, who may access the private QA working record, its retention period,
+and the deletion procedure. Record that approval in the packet.
 
 The present pixel-feature thresholds are unvalidated sensitivity probes. No
 live observation may pass to the member UI while the §25.3 admission set is
