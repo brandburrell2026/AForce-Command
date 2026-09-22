@@ -5,10 +5,11 @@
  * decision is received, the route remains unavailable. This module does not
  * acquire, process, retain, or transmit images.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@clerk/expo';
 import { API_BASE } from '@/lib/apiBase';
 import { SKINIA_ACCESS_CHECKING, type SkinIACohortAccess } from './skiniaCohortGate';
+import { fetchSkinIACohortAccess } from './skiniaAccessRequest';
 
 /**
  * The decision itself lives in `skiniaCohortGate.ts`, which imports nothing.
@@ -21,27 +22,11 @@ export {
   type SkinIACohortAccess,
 } from './skiniaCohortGate';
 
-async function fetchSkinIACohortAccess(
-  getToken: () => Promise<string | null>,
-): Promise<SkinIACohortAccess> {
-  try {
-    const token = await getToken();
-    if (!token) return { status: 'DENIED', reason: 'UNAUTHENTICATED' };
-    const headers = { Authorization: `Bearer ${token}` };
-    const response = await fetch(`${API_BASE}/skinia/access`, { headers });
-    if (!response.ok) return { status: 'DENIED', reason: 'ACCESS_UNAVAILABLE' };
-    const body = (await response.json()) as { authorized?: boolean; reason?: string };
-    return body.authorized === true && body.reason === 'CONTROLLED_TESTFLIGHT_COHORT'
-      ? { status: 'GRANTED', reason: 'CONTROLLED_TESTFLIGHT_COHORT' }
-      : { status: 'DENIED', reason: body.reason ?? 'MEMBER_NOT_ENTITLED' };
-  } catch {
-    return { status: 'DENIED', reason: 'ACCESS_UNAVAILABLE' };
-  }
-}
-
-export function useSkinIACohortAccess(enabled: boolean): SkinIACohortAccess {
+export function useSkinIACohortAccess(enabled: boolean, retryKey = 0): SkinIACohortAccess {
   const { isLoaded, isSignedIn, getToken, userId } = useAuth();
   const [access, setAccess] = useState<SkinIACohortAccess>(SKINIA_ACCESS_CHECKING);
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
 
   useEffect(() => {
     let live = true;
@@ -61,11 +46,11 @@ export function useSkinIACohortAccess(enabled: boolean): SkinIACohortAccess {
       return () => { live = false; };
     }
     setAccess(SKINIA_ACCESS_CHECKING);
-    void fetchSkinIACohortAccess(getToken).then((next) => {
+    void fetchSkinIACohortAccess(() => getTokenRef.current(), `${API_BASE}/skinia/access`).then((next) => {
       if (live) setAccess(next);
     });
     return () => { live = false; };
-  }, [enabled, getToken, isLoaded, isSignedIn, userId]);
+  }, [enabled, isLoaded, isSignedIn, userId, retryKey]);
 
   return access;
 }
