@@ -6,6 +6,8 @@ import { withAlpha } from '@/theme/afTokens';
 import { assessSkinIATechnicalQuality } from '@/services/skiniaTechnicalQuality';
 import { extractSkinIAImageFeatures, type SkinIAImageMetrics } from '@/modules/skinia-image-features';
 import { deriveSkinIAExperimentalCandidates } from '@/services/skiniaImageAnalysis';
+import { resolveSkinIAInternalObservation, type SkinIAObservationOutcome } from '@/services/skiniaObservationPipeline';
+import { resolveSkinIAMemberResult } from '@/services/skiniaMemberResultGate';
 import type { PictureRef } from 'expo-camera';
 
 type CaptureState = 'PREPARING' | 'DENIED' | 'READY' | 'CAPTURING' | 'REVIEW' | 'QUALITY_INSUFFICIENT' | 'UNAVAILABLE';
@@ -34,7 +36,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   const [state, setState] = useState<CaptureState>('PREPARING');
   const isLive = useRef(true);
   const sessionBaseline = useRef<SkinIAImageMetrics | null>(null);
-  const [candidateCount, setCandidateCount] = useState<number | null>(null);
+  const [internalOutcome, setInternalOutcome] = useState<SkinIAObservationOutcome | null>(null);
 
   useEffect(() => {
     isLive.current = true;
@@ -55,32 +57,40 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     if (!ready || state !== 'READY' || !cameraRef.current) return;
     setState('CAPTURING');
     let picture: PictureRef | undefined;
+    let nextState: CaptureState = 'UNAVAILABLE';
+    let nextOutcome: SkinIAObservationOutcome | null = null;
     try {
       // pictureRef avoids a URI/base64/EXIF payload and a persistent asset.
       picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 0.45 });
       const quality = assessSkinIATechnicalQuality({ cameraReady: ready, width: picture.width, height: picture.height });
       if (quality.state !== 'PASS') {
-        if (isLive.current) setState('QUALITY_INSUFFICIENT');
-        return;
-      }
-      const analysis = await extractSkinIAImageFeatures(picture);
-      if (analysis.state !== 'PASS') {
-        if (isLive.current) setState(analysis.state === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'QUALITY_INSUFFICIENT');
-        return;
-      }
-      // Session-only comparison for internal QA. Every experimental candidate
-      // has LOW confidence and cannot pass the member-facing observation gate.
-      const candidates = deriveSkinIAExperimentalCandidates(analysis.metrics, sessionBaseline.current);
-      sessionBaseline.current = analysis.metrics;
-      if (isLive.current) {
-        setCandidateCount(candidates.length);
-        setState('REVIEW');
+        nextState = 'QUALITY_INSUFFICIENT';
+      } else {
+        const analysis = await extractSkinIAImageFeatures(picture);
+        if (analysis.state !== 'PASS') {
+          nextState = analysis.state === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'QUALITY_INSUFFICIENT';
+        } else {
+          // Session-only comparison for internal QA. Every experimental candidate
+          // has LOW confidence. A same-session capture is not a validated recent
+          // personal baseline, and the member-result admission gate is closed.
+          const candidates = deriveSkinIAExperimentalCandidates(analysis.metrics, sessionBaseline.current);
+          sessionBaseline.current = analysis.metrics;
+          const firstCandidate = candidates[0];
+          nextOutcome = firstCandidate
+            ? resolveSkinIAInternalObservation({ ...firstCandidate, capturedAt: new Date().toISOString() }, false)
+            : null;
+          nextState = 'REVIEW';
+        }
       }
     } catch {
-      if (isLive.current) setState('UNAVAILABLE');
+      nextState = 'UNAVAILABLE';
     } finally {
-      // Release even if a metadata check or a UI transition fails.
+      // Release before any review or failure state can be displayed.
       picture?.release();
+    }
+    if (isLive.current) {
+      setInternalOutcome(nextOutcome);
+      setState(nextState);
     }
   }, [ready, state]);
 
@@ -88,7 +98,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     return <PermissionDenied onExit={onExit} onRequest={() => { void requestPermission(); }} />;
   }
   if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} />;
-  if (state === 'REVIEW') return <Review candidateCount={candidateCount} onExit={onExit} onAgain={() => { setReady(false); setState('READY'); }} />;
+  if (state === 'REVIEW') return <Review outcome={internalOutcome} onExit={onExit} onAgain={() => { setInternalOutcome(null); setReady(false); setState('READY'); }} />;
   if (state === 'UNAVAILABLE') return <Unavailable onExit={onExit} />;
 
   return (
@@ -125,7 +135,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
 
 function PermissionDenied({ onExit, onRequest }: { onExit: () => void; onRequest: () => void }) { return <StaticState title="Camera access is off." kicker="PERMISSION DENIED" body="SkinIA will not begin a visual check without your explicit camera permission. No image has been captured." action="Enable camera" onAction={onRequest} secondary="Cancel" onSecondary={onExit} />; }
 function QualityInsufficient({ onExit }: { onExit: () => void }) { return <StaticState title="Do not force a result." kicker="CAPTURE QUALITY INSUFFICIENT" body="Status: UNKNOWN. The temporary capture was discarded because its technical conditions were not suitable. No observation was produced." action="Back to SkinIA" onAction={onExit} />; }
-function Review({ onExit, onAgain, candidateCount }: { onExit: () => void; onAgain: () => void; candidateCount: number | null }) { return <StaticState title="Capture analyzed." kicker="INTERNAL ENGINEERING REVIEW" body={`The temporary image was discarded after on-device analysis. ${candidateCount === null ? 'No comparison was made.' : candidateCount === 0 ? 'No experimental comparison candidate was found.' : 'Experimental comparison candidates were withheld from member results.'} These unvalidated signals are not skin findings.`} action="Take another scan" onAction={onAgain} secondary="Back to SkinIA" onSecondary={onExit} />; }
+function Review({ onExit, onAgain, outcome }: { onExit: () => void; onAgain: () => void; outcome: SkinIAObservationOutcome | null }) { const result = resolveSkinIAMemberResult(outcome); return <StaticState title={result.kind === 'OBSERVATION' ? 'Your visual check.' : 'Unable to Analyze'} kicker="VISUAL CHECK RESULT" body={result.message} action="Take another scan" onAction={onAgain} secondary="Back to SkinIA" onSecondary={onExit} />; }
 function Unavailable({ onExit }: { onExit: () => void }) { return <StaticState title="No visual check available." kicker="UNKNOWN" body="AForce cannot make a reliable visual observation from this image. No image has been retained." action="Back to SkinIA" onAction={onExit} />; }
 function StaticState({ title, kicker, body, action, onAction, secondary, onSecondary }: { title: string; kicker: string; body: string; action: string; onAction: () => void; secondary?: string; onSecondary?: () => void }) { const insets = useSafeAreaInsets(); return <View style={styles.staticScreen}><View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}><View style={styles.furniture}><Text style={styles.wordmark}>AFORCE</Text><Text style={styles.date}>CONTROLLED TESTFLIGHT</Text></View><Text style={styles.kicker}>SKINIA VISUAL CHECK / {kicker}</Text><Text style={styles.title}>{title}</Text><Text style={styles.body}>{body}</Text><Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={styles.action}><Text style={styles.actionLabel}>{action}</Text><Text style={styles.actionPlus}>+</Text></Pressable>{secondary && onSecondary ? <Pressable accessibilityRole="button" accessibilityLabel={secondary} onPress={onSecondary} style={styles.cancel}><Text style={styles.cancelText}>{secondary}</Text></Pressable> : null}<Text style={styles.disclosure}>Visual observations only. SkinIA does not diagnose conditions or measure hydration.</Text><View style={styles.footer}><View style={styles.rule} /><View style={styles.footerRow}><Text style={styles.footerText}>AFORCE OS</Text><Text style={styles.footerText}>02 / SCAN</Text></View></View></View></View>; }
 

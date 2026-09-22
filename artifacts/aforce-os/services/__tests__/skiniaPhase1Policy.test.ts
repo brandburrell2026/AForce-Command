@@ -23,6 +23,6 @@ describe('SkinIA Phase 1 internal policy lock', () => {
     expect(SKINIA_PHASE1_CONFIDENCE_BANDS).toEqual(['HIGH', 'MODERATE', 'LOW', 'UNABLE_TO_DETERMINE']);
     expect(SKINIA_PHASE1_RAW_IMAGE_POLICY).toBe('EPHEMERAL_ONLY_NEVER_PERSIST');
     expect(SKINIA_PHASE1_RELEASE_SCOPE).toBe('INTERNAL_TESTFLIGHT_ONLY');
-    expect(SKINIA_PHASE1_NON_RESULT).toBe('Unable to make a reliable observation.');
+    expect(SKINIA_PHASE1_NON_RESULT).toBe('We couldn’t make a reliable observation from today’s image.');
   });
 });

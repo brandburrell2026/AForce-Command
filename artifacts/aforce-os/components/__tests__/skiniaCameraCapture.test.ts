@@ -14,6 +14,7 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain("takePictureAsync({ pictureRef: true");
     expect(source).toContain('finally {');
     expect(source).toContain('picture?.release();');
+    expect(source.indexOf('picture?.release();')).toBeLessThan(source.indexOf('setState(nextState);'));
     const implementation = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     for (const forbidden of ['base64:', 'exif:', 'uri:', 'FileSystem', 'AsyncStorage', 'SecureStore', 'fetch(', 'upload']) expect(implementation, forbidden).not.toContain(forbidden);
   });
@@ -21,7 +22,10 @@ describe('SkinIA controlled camera capture', () => {
   it('runs in-memory feature extraction but withholds unvalidated observations', () => {
     expect(source).toContain('extractSkinIAImageFeatures(picture)');
     expect(source).toContain('deriveSkinIAExperimentalCandidates');
-    expect(source).toContain('Experimental comparison candidates were withheld from member results.');
+    expect(source).toContain('resolveSkinIAInternalObservation');
+    expect(source).toContain('resolveSkinIAMemberResult(outcome)');
+    expect(source).toContain("title={result.kind === 'OBSERVATION' ? 'Your visual check.' : 'Unable to Analyze'}");
+    expect(source).not.toContain('candidateCount');
     expect(source).toContain('sessionBaseline.current = null');
   });
 

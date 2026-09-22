@@ -26,7 +26,7 @@ export const SKINIA_PHASE1_CONFIDENCE_BANDS = Object.freeze([
 
 export type SkinIAPhase1Confidence = (typeof SKINIA_PHASE1_CONFIDENCE_BANDS)[number];
 
-export const SKINIA_PHASE1_NON_RESULT = 'Unable to make a reliable observation.';
+export const SKINIA_PHASE1_NON_RESULT = 'We couldn’t make a reliable observation from today’s image.';
 export const SKINIA_PHASE1_RAW_IMAGE_POLICY = 'EPHEMERAL_ONLY_NEVER_PERSIST' as const;
 export const SKINIA_PHASE1_RELEASE_SCOPE = 'INTERNAL_TESTFLIGHT_ONLY' as const;
 
