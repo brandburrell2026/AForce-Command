@@ -31,6 +31,23 @@ export type SkinIACohortAccess =
 /** The fail-closed starting state: unavailable until the server says otherwise. */
 export const SKINIA_ACCESS_CHECKING: SkinIACohortAccess = Object.freeze({ status: 'CHECKING' });
 
+export type SkinIARouteDecision = 'WAIT' | 'ALLOW' | 'DENY';
+
+/**
+ * A pending server decision must not open SkinIA, but it also must not be
+ * mistaken for a denial. The route can show a camera-free waiting state until
+ * the authenticated cohort check resolves.
+ */
+export function resolveSkinIARouteDecision(input: {
+  featureEnabled: boolean;
+  internalTestflight: boolean;
+  cohort: SkinIACohortAccess;
+}): SkinIARouteDecision {
+  if (!input.featureEnabled || !input.internalTestflight) return 'DENY';
+  if (input.cohort.status === 'CHECKING') return 'WAIT';
+  return input.cohort.status === 'GRANTED' ? 'ALLOW' : 'DENY';
+}
+
 /**
  * Every gate must pass. A public build is never sufficient, a server grant is
  * never sufficient on its own, and the feature flag is never sufficient on its
@@ -41,7 +58,5 @@ export function isSkinIAAccessAllowed(input: {
   internalTestflight: boolean;
   cohort: SkinIACohortAccess;
 }): boolean {
-  return input.featureEnabled
-    && input.internalTestflight
-    && input.cohort.status === 'GRANTED';
+  return resolveSkinIARouteDecision(input) === 'ALLOW';
 }
