@@ -25,6 +25,10 @@ member-facing observation.
   five approved Phase 1 labels. These unvalidated probes cannot pass the member-result gate;
   they are neither findings nor a skin-analysis model. No candidate label or numeric metric is
   shown to the member. The first accepted scan establishes only an in-memory session reference.
+- The camera flow now passes its internal outcome through an explicit member-result admission
+  gate. Because §25.3 admits no live observation family, this gate remains closed even for a
+  HIGH-looking synthetic input; the scan result shows only the exact AF-SI-001A non-result copy.
+  The static presentation fixture remains unreachable from member navigation.
 
 The controlled capture surface does not create a file, URI, base64 payload, EXIF record,
 persistent image, upload, network request, analytics payload, or live member SkinIA observation.
@@ -68,6 +72,8 @@ record.
 - [ ] A capture with no face, multiple faces, an off-angle/too-small face, poor lighting, or
       blur reaches a non-result and releases the buffer.
 - [ ] The experimental second-scan comparison never bypasses the LOW-confidence result gate.
+- [ ] An accepted scan shows only “We couldn’t make a reliable observation from today’s image.”
+      and never shows candidate counts, labels, metrics, or a confidence score.
 - [ ] An older TestFlight binary without the native module fails closed as unavailable.
 - [ ] Permission-denied, quality-insufficient, no-comparable-baseline, and consent-withdrawn
       surfaces remain plain-language non-result states.
