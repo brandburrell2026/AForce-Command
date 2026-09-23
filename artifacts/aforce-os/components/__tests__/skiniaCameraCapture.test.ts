@@ -18,6 +18,13 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain("setReady(false);");
   });
 
+  it('keeps the face guide visible and captures detail without added JPEG blur', () => {
+    expect(source).toContain('Center your full face, 30–45 cm away, with even light in front of you.');
+    expect(source).toContain('backgroundColor: withAlpha(edStock.black, 0.34)');
+    expect(source).toContain('backgroundColor: withAlpha(edStock.black, 0.06)');
+    expect(source).toContain('takePictureAsync({ pictureRef: true, quality: 1 })');
+  });
+
   it('uses an ephemeral native picture reference, not a preview file or encoded payload', () => {
     expect(source).toContain("takePictureAsync({ pictureRef: true");
     expect(source).toContain('finally {');
