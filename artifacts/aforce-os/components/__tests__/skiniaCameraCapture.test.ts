@@ -29,10 +29,11 @@ describe('SkinIA controlled camera capture', () => {
   });
 
   it('distinguishes a passed capture with closed observation admission in internal QA only', () => {
-    expect(source).toContain("!SKINIA_MEMBER_OBSERVATIONS_ADMITTED && result.kind === 'NON_RESULT'");
-    expect(source).toContain("'OBSERVATIONS_NOT_ADMITTED'");
-    expect(source).toContain('qaCode={qaCode}');
+    expect(source).toContain("resolveSkinIAReviewPresentation(outcome, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true')");
+    expect(source).toContain('qaCode={presentation.qaCode}');
+    expect(source).toContain('qaNote={presentation.qaNote}');
     expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode");
+    expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaNote");
   });
 
   it('keeps the face guide visible and captures detail without added JPEG blur', () => {
@@ -55,8 +56,8 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain('extractSkinIAImageFeatures(picture)');
     expect(source).toContain('deriveSkinIAExperimentalCandidates');
     expect(source).toContain('resolveSkinIAInternalObservation');
-    expect(source).toContain('resolveSkinIAMemberResult(outcome)');
-    expect(source).toContain("title={result.kind === 'OBSERVATION' ? 'Your visual check.' : 'Unable to Analyze'}");
+    expect(source).toContain('resolveSkinIAReviewPresentation(outcome');
+    expect(source).toContain('title={presentation.title}');
     expect(source).not.toContain('candidateCount');
     expect(source).toContain('sessionBaseline.current = null');
   });
