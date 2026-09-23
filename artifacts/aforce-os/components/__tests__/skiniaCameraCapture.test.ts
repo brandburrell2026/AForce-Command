@@ -6,8 +6,16 @@ const source = readFileSync(resolve(__dirname, '..', 'advancedVisual', 'SkinIACa
 
 describe('SkinIA controlled camera capture', () => {
   it('uses the approved editorial scan framing and clear user-triggered permission flow', () => {
-    for (const label of ['SKINIA VISUAL CHECK / SCAN', 'ALIGN FACE / EVEN LIGHT / NO FILTERS', 'Capture quality', 'Capture review image']) expect(source).toContain(label);
+    for (const label of ['SKINIA VISUAL CHECK / SCAN', 'ALIGN FACE / EVEN LIGHT / NO FILTERS', 'Camera status', 'Capture review image']) expect(source).toContain(label);
     expect(source).toContain('onRequest={() => { void requestPermission(); }}');
+  });
+
+  it('offers an in-place quality retry without skipping the capture gate', () => {
+    expect(source).toContain("if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} onRetry={retryCapture} />;");
+    expect(source).toContain('action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit}');
+    expect(source).toContain("title=\"Unable to Analyze\"");
+    expect(source).not.toContain('Capture quality</Text><Text style={styles.metaValue}>{ready ? \'READY\'');
+    expect(source).toContain("setReady(false);");
   });
 
   it('uses an ephemeral native picture reference, not a preview file or encoded payload', () => {
