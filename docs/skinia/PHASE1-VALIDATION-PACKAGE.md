@@ -6,7 +6,7 @@
 
 **Authority:** [AF-SI-001A](../../governance/approvals/AF-SI-001A-phase1-internal-testflight.md) and its implementation amendment
 
-**Last updated:** 2026-09-22
+**Last updated:** 2026-09-23
 
 This is the source-of-truth index for the Phase 1 validation deliverable. It is a
 collection plan, **not** a finding that SkinIA is accurate, fair, or ready to
@@ -41,6 +41,9 @@ success and unit tests are engineering checks, not validation.
    participant-level records out of this repository.
 3. [Independent review and promotion checklist](validation/REVIEW-AND-RELEASE-GATE.md):
    reviewer decisions and the fail-closed release gate.
+4. [iPhone pilot readiness](validation/IOS-PILOT-READINESS.md): starting-device
+   inventory, analysis-method decision requirements, and pre-enrollment checks.
+   This is planning, not validation evidence.
 
 ## Coverage ledger
 

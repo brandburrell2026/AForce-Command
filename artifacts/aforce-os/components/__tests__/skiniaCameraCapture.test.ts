@@ -28,6 +28,13 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain('picture?.release();');
   });
 
+  it('distinguishes a passed capture with closed observation admission in internal QA only', () => {
+    expect(source).toContain("!SKINIA_MEMBER_OBSERVATIONS_ADMITTED && result.kind === 'NON_RESULT'");
+    expect(source).toContain("'OBSERVATIONS_NOT_ADMITTED'");
+    expect(source).toContain('qaCode={qaCode}');
+    expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode");
+  });
+
   it('keeps the face guide visible and captures detail without added JPEG blur', () => {
     expect(source).toContain('Center your full face, 30–45 cm away, with even light in front of you.');
     expect(source).toContain('backgroundColor: withAlpha(edStock.black, 0.34)');
