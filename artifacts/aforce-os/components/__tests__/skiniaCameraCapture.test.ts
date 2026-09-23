@@ -11,7 +11,7 @@ describe('SkinIA controlled camera capture', () => {
   });
 
   it('offers an in-place quality retry without skipping the capture gate', () => {
-    expect(source).toContain("if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} onRetry={retryCapture} reason={qualityReason} />;");
+    expect(source).toContain("if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={exitCapture} onRetry={retryCapture} reason={qualityReason} />;");
     expect(source).toContain('action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit}');
     expect(source).toContain("title=\"Unable to Analyze\"");
     expect(source).not.toContain('Capture quality</Text><Text style={styles.metaValue}>{ready ? \'READY\'');
@@ -64,5 +64,9 @@ describe('SkinIA controlled camera capture', () => {
   it('preserves denied, unavailable, and cancel-safe states', () => {
     for (const label of ['PERMISSION DENIED', 'UNKNOWN', 'Cancel and discard']) expect(source).toContain(label);
     expect(source).toContain('isLive.current = false');
+    expect(source).toContain('onPress={exitCapture}');
+    expect(source.match(/if \(!isLive\.current\) return;/g)).toHaveLength(2);
+    expect(source).toMatch(/sessionBaseline\.current = null;\s+onExit\(\);/);
+    expect(source).toMatch(/picture\?\.release\(\);\s+} catch \{[\s\S]*?nextState = 'UNAVAILABLE';/);
   });
 });
