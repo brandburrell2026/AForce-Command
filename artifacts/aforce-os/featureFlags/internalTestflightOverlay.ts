@@ -21,7 +21,7 @@
  *     REFERENCE (`result === base`) when the env gate is not engaged, so a
  *     production build's initial flag object is the exact `DEFAULT_FLAGS`
  *     export — no new allocation, no diff, nothing to audit away.
- *   - No restricted-flag interaction: none of the five overlay keys appear in
+ *   - No restricted-flag interaction: none of the ten overlay keys appear in
  *     `INTERNAL_PREVIEW_RESTRICTED_FLAGS` (`featureFlags/flags.ts`) — see the
  *     module-level test asserting the two lists are disjoint, so this overlay
  *     can never be used to backdoor Night Out or a future restricted flag.
@@ -47,28 +47,42 @@ export const RC2_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
- * The five Editorial OS surfaces, granted to the internal partner build by the
- * founder ruling of 2026-09-05 so partners experience the real new interface in
- * TestFlight rather than the legacy pre-editorial UI.
+ * The Editorial OS surfaces the internal partner build turns on that
+ * production does not.
+ *
+ * The founder ruling of 2026-09-05 granted all five Editorial surfaces (Home,
+ * Moments, Protocol, Weekly, Scan) to the internal partner build so partners
+ * experience the real new interface in TestFlight rather than the legacy
+ * pre-editorial UI. Three of those five — Home, Moments and Weekly — have since
+ * GRADUATED to production defaults by the founder direction of 2026-09-16
+ * (#1031): `DEFAULT_FLAGS` ships them `true`. Founder decision A4 (2026-09-23)
+ * recognised those three graduations for the limited purpose of correcting
+ * this overlay contract, and this list now holds only the two surfaces
+ * production does not already ship. No further graduation is authorised.
+ *
+ * THE OVERLAY GRANTS ONLY WHAT PRODUCTION DOES NOT. A key that is already
+ * `true` in `DEFAULT_FLAGS` has nothing for an ON-only union to grant, and
+ * listing it here would break this module's premise (every overlay key is OFF
+ * in production defaults) and turn the lock test's exact-diff proof into a
+ * lie. Keys genuinely granted only by this overlay stay OFF in production
+ * defaults; a key that is switched on in `DEFAULT_FLAGS` must be removed here
+ * in the same change.
  *
  * KEPT AS ITS OWN SET, NOT MERGED INTO RC-2's. Two rulings, two lists: this
- * module's contract asks that each stay founder-traceable, and folding ten keys
- * into one array would destroy which ruling granted what. The union below is
- * what the overlay applies.
+ * module's contract asks that each stay founder-traceable, and folding seven
+ * keys into one array would destroy which ruling granted what. The union below
+ * is what the overlay applies.
  *
- * Every one of these was audited and BLOCKED before activation, then repaired
- * in #923 — Scan had deleted /urine-check and manual drink logging app-wide,
- * Protocol showed synthetic seed data as "Recent activity", Weekly's masthead
- * named a different window than its numbers, and Moments said "1 moments" while
- * a static string claimed a personal finding. Home's blocker was the cold-start
- * command, fixed at the authority in #922. Do NOT add a key here without the
- * same audit.
+ * Every Editorial surface was audited and BLOCKED before activation, then
+ * repaired in #923 — Scan had deleted /urine-check and manual drink logging
+ * app-wide, Protocol showed synthetic seed data as "Recent activity", Weekly's
+ * masthead named a different window than its numbers, and Moments said
+ * "1 moments" while a static string claimed a personal finding. Home's blocker
+ * was the cold-start command, fixed at the authority in #922. Do NOT add a key
+ * here without the same audit.
  */
 export const EDITORIAL_PARTNER_OVERLAY_FLAGS = [
-  'editorial_home_enabled',
-  'editorial_moments_enabled',
   'editorial_protocol_enabled',
-  'editorial_weekly_enabled',
   'editorial_scan_enabled',
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
@@ -79,7 +93,7 @@ export const EDITORIAL_PARTNER_OVERLAY_FLAGS = [
  * device smoke that is the last item before v1 is called complete.
  *
  * A THIRD LIST, not a merge into the two above — this module's contract asks
- * that each ruling stay traceable to what it granted, and folding twelve keys
+ * that each ruling stay traceable to what it granted, and folding nine keys
  * into one array would destroy which ruling granted what.
  *
  * ACQUISITION AND PRESENTATION ARE BOTH LISTED, DELIBERATELY. They are
@@ -110,10 +124,11 @@ export const SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
- * What the internal-TestFlight build actually turns ON: the union of the three
- * rulings above, in ruling order. Nothing else. `moments_calendar_enabled` is
- * deliberately absent — it stays false pending Legal + Privacy sign-off, and
- * the editorial Moments flag does not widen that gate.
+ * What the internal-TestFlight build actually turns ON: the union of the four
+ * grants above (ten keys), in ruling order. Nothing else. Every key here is
+ * OFF in `DEFAULT_FLAGS` — the overlay grants only what production does not.
+ * `moments_calendar_enabled` is deliberately absent — it stays false pending
+ * Legal + Privacy sign-off, and no editorial flag widens that gate.
  */
 export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...RC2_OVERLAY_FLAGS,
@@ -143,7 +158,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_ENABLED =
  *
  * Contract: returns `base` BY REFERENCE whenever it would produce no change
  * (`engaged` is falsy) — never allocates a new object in that path. When
- * `engaged` is true, returns a new object with exactly the five overlay keys
+ * `engaged` is true, returns a new object with exactly the ten overlay keys
  * set `true`; every other key is copied from `base` unchanged (a union, never
  * a merge — this function cannot turn a flag off).
  */

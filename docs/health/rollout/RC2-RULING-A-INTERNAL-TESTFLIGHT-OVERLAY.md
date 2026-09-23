@@ -66,8 +66,11 @@ Investigated before building (per the ruling's instruction):
 ## What was built
 
 - `featureFlags/internalTestflightOverlay.ts` — new module:
-  - `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS`: the exact five keys, in the ruling's
-    order.
+  - `RC2_OVERLAY_FLAGS`: the exact five Ruling A keys, in the ruling's order.
+    `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS` is the union of that list with the
+    later, separately-listed grants (Editorial partner, Environmental, SkinIA
+    DR-015); every key in the union is OFF in `DEFAULT_FLAGS` — the overlay
+    grants only what production does not (A4, 2026-09-23).
   - `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`: `process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT']
     === 'true'` — mirrors `DEMO_MODE`'s pattern exactly.
   - `applyInternalTestflightOverlay(base, engaged)`: pure, injectable-`engaged`
