@@ -49,6 +49,14 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     setState('READY');
   }, []);
 
+  const exitCapture = useCallback(() => {
+    // Mark the session closed before navigation unmounts this screen. An
+    // in-flight camera promise must not start analysis after a user cancels.
+    isLive.current = false;
+    sessionBaseline.current = null;
+    onExit();
+  }, [onExit]);
+
   useEffect(() => {
     isLive.current = true;
     return () => {
@@ -76,12 +84,14 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       // The native quality gate measures fine cheek detail. Avoid introducing
       // JPEG compression blur before that measurement; the image stays in RAM.
       picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 1 });
+      if (!isLive.current) return;
       const quality = assessSkinIATechnicalQuality({ cameraReady: ready, width: picture.width, height: picture.height });
       if (quality.state !== 'PASS') {
         nextState = 'QUALITY_INSUFFICIENT';
         nextQualityReason = quality.reason;
       } else {
         const analysis = await extractSkinIAImageFeatures(picture);
+        if (!isLive.current) return;
         if (analysis.state !== 'PASS') {
           nextState = analysis.state === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'QUALITY_INSUFFICIENT';
           if (analysis.state !== 'UNAVAILABLE') nextQualityReason = analysis.state;
@@ -102,7 +112,15 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       nextState = 'UNAVAILABLE';
     } finally {
       // Release before any review or failure state can be displayed.
-      picture?.release();
+      try {
+        picture?.release();
+      } catch {
+        // A failed native release cannot be treated as a successful review.
+        // Keep the result closed and let the reference fall out of JS scope.
+        nextOutcome = null;
+        nextQualityReason = null;
+        nextState = 'UNAVAILABLE';
+      }
     }
     if (isLive.current) {
       setInternalOutcome(nextOutcome);
@@ -112,11 +130,11 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   }, [ready, state]);
 
   if (state === 'DENIED') {
-    return <PermissionDenied onExit={onExit} onRequest={() => { void requestPermission(); }} />;
+    return <PermissionDenied onExit={exitCapture} onRequest={() => { void requestPermission(); }} />;
   }
-  if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} onRetry={retryCapture} reason={qualityReason} />;
-  if (state === 'REVIEW') return <Review outcome={internalOutcome} onExit={onExit} onAgain={retryCapture} />;
-  if (state === 'UNAVAILABLE') return <Unavailable onExit={onExit} />;
+  if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={exitCapture} onRetry={retryCapture} reason={qualityReason} />;
+  if (state === 'REVIEW') return <Review outcome={internalOutcome} onExit={exitCapture} onAgain={retryCapture} />;
+  if (state === 'UNAVAILABLE') return <Unavailable onExit={exitCapture} />;
 
   return (
     <View style={styles.screen} accessibilityLabel="SkinIA Visual Check camera capture">
@@ -142,7 +160,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
         <Pressable accessibilityRole="button" accessibilityLabel="Capture SkinIA image" disabled={!ready || state === 'CAPTURING'} onPress={takeEphemeralPicture} style={({ pressed }) => [styles.action, (!ready || state === 'CAPTURING') && styles.disabled, pressed && styles.pressed]}>
           <Text style={styles.actionLabel}>{state === 'CAPTURING' ? 'Capturing securely' : 'Capture review image'}</Text><Text style={styles.actionPlus}>+</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Cancel SkinIA capture" onPress={onExit} style={styles.cancel}><Text style={styles.cancelText}>Cancel and discard</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cancel SkinIA capture" onPress={exitCapture} style={styles.cancel}><Text style={styles.cancelText}>Cancel and discard</Text></Pressable>
         <Text style={styles.disclosure}>OBSERVATIONAL ONLY / NOT A DIAGNOSIS</Text>
         <View style={styles.footer}><View style={styles.rule} /><View style={styles.footerRow}><Text style={styles.footerText}>AFORCE OS</Text><Text style={styles.footerText}>02 / SCAN</Text></View></View>
       </View>
@@ -153,7 +171,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
 function PermissionDenied({ onExit, onRequest }: { onExit: () => void; onRequest: () => void }) { return <StaticState title="Camera access is off." kicker="PERMISSION DENIED" body="SkinIA will not begin a visual check without your explicit camera permission. No image has been captured." action="Enable camera" onAction={onRequest} secondary="Cancel" onSecondary={onExit} />; }
 function QualityInsufficient({ onExit, onRetry, reason }: { onExit: () => void; onRetry: () => void; reason: QualityCode | null }) { return <StaticState title="Unable to Analyze" kicker="CAPTURE QUALITY INSUFFICIENT" body="We couldn’t make a reliable observation from today’s image. The temporary capture was discarded. For another try, face even light, avoid strong light behind you, center your full face, and hold still." action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit} qaCode={reason} />; }
 function Review({ onExit, onAgain, outcome }: { onExit: () => void; onAgain: () => void; outcome: SkinIAObservationOutcome | null }) { const result = resolveSkinIAMemberResult(outcome); const qaCode = !SKINIA_MEMBER_OBSERVATIONS_ADMITTED && result.kind === 'NON_RESULT' ? 'OBSERVATIONS_NOT_ADMITTED' : null; return <StaticState title={result.kind === 'OBSERVATION' ? 'Your visual check.' : 'Unable to Analyze'} kicker="VISUAL CHECK RESULT" body={result.message} action="Take another scan" onAction={onAgain} secondary="Back to SkinIA" onSecondary={onExit} qaCode={qaCode} />; }
-function Unavailable({ onExit }: { onExit: () => void }) { return <StaticState title="No visual check available." kicker="UNKNOWN" body="AForce cannot make a reliable visual observation from this image. No image has been retained." action="Back to SkinIA" onAction={onExit} />; }
+function Unavailable({ onExit }: { onExit: () => void }) { return <StaticState title="No visual check available." kicker="UNKNOWN" body="AForce cannot make a reliable visual observation from this image. No image was saved or sent." action="Back to SkinIA" onAction={onExit} />; }
 function StaticState({ title, kicker, body, action, onAction, secondary, onSecondary, qaCode }: { title: string; kicker: string; body: string; action: string; onAction: () => void; secondary?: string; onSecondary?: () => void; qaCode?: InternalQaCode | null }) { const insets = useSafeAreaInsets(); return <View style={styles.staticScreen}><View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}><View style={styles.furniture}><Text style={styles.wordmark}>AFORCE</Text><Text style={styles.date}>CONTROLLED TESTFLIGHT</Text></View><Text style={styles.kicker}>SKINIA VISUAL CHECK / {kicker}</Text><Text style={styles.title}>{title}</Text><Text style={styles.body}>{body}</Text>{process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode ? <Text style={styles.qaCode}>INTERNAL QA CODE: {qaCode}</Text> : null}<Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={styles.action}><Text style={styles.actionLabel}>{action}</Text><Text style={styles.actionPlus}>+</Text></Pressable>{secondary && onSecondary ? <Pressable accessibilityRole="button" accessibilityLabel={secondary} onPress={onSecondary} style={styles.cancel}><Text style={styles.cancelText}>{secondary}</Text></Pressable> : null}<Text style={styles.disclosure}>Visual observations only. SkinIA does not diagnose conditions or measure hydration.</Text><View style={styles.footer}><View style={styles.rule} /><View style={styles.footerRow}><Text style={styles.footerText}>AFORCE OS</Text><Text style={styles.footerText}>02 / SCAN</Text></View></View></View></View>; }
 
 const styles = StyleSheet.create({
