@@ -11,11 +11,21 @@ describe('SkinIA controlled camera capture', () => {
   });
 
   it('offers an in-place quality retry without skipping the capture gate', () => {
-    expect(source).toContain("if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} onRetry={retryCapture} />;");
+    expect(source).toContain("if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={onExit} onRetry={retryCapture} reason={qualityReason} />;");
     expect(source).toContain('action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit}');
     expect(source).toContain("title=\"Unable to Analyze\"");
     expect(source).not.toContain('Capture quality</Text><Text style={styles.metaValue}>{ready ? \'READY\'');
     expect(source).toContain("setReady(false);");
+  });
+
+  it('shows only a transient, internal QA quality code after a rejected capture', () => {
+    expect(source).toContain('nextQualityReason = quality.reason');
+    expect(source).toContain('nextQualityReason = analysis.state');
+    expect(source).toContain('setQualityReason(nextQualityReason)');
+    expect(source).toContain('setQualityReason(null)');
+    expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode");
+    expect(source).toContain('INTERNAL QA CODE: {qaCode}');
+    expect(source).toContain('picture?.release();');
   });
 
   it('keeps the face guide visible and captures detail without added JPEG blur', () => {
