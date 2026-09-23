@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   countSkinIAEvidenceDecision,
   emptySkinIAEvidenceCounts,
+  mergeSkinIAEvidenceCounts,
   type SkinIAEvidenceDecision,
 } from '../skiniaEvidenceAccumulator';
 
@@ -62,5 +63,15 @@ describe('SkinIA aggregate evidence counts', () => {
     const unsafe = { ...decision(), participantId: 'do-not-store', frameUri: 'do-not-store' };
     const counts = countSkinIAEvidenceDecision(emptySkinIAEvidenceCounts(label), unsafe);
     expect(JSON.stringify(counts)).not.toContain('do-not-store');
+  });
+
+  it('merges only valid aggregate blocks for the same approved label', () => {
+    const first = countSkinIAEvidenceDecision(emptySkinIAEvidenceCounts(label), decision());
+    const second = countSkinIAEvidenceDecision(emptySkinIAEvidenceCounts(label), decision({ reference: 'ABSENT' }));
+    expect(mergeSkinIAEvidenceCounts(first, second)).toMatchObject({
+      attempts: 2, truePositive: 1, falsePositive: 1,
+    });
+    expect(() => mergeSkinIAEvidenceCounts(first, emptySkinIAEvidenceCounts('VISIBLE_TEXTURE'))).toThrow('matching');
+    expect(() => mergeSkinIAEvidenceCounts(first, { ...second, attempts: 5 })).toThrow('valid');
   });
 });
