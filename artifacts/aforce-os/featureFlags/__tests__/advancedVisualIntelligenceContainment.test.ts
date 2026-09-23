@@ -23,9 +23,11 @@ describe('Advanced Visual Intelligence™ containment', () => {
 
   it('keeps the route dark unless both internal build and server cohort authorization exist', () => {
     expect(route).toContain('useSkinIACohortAccess');
-    expect(route).toContain('isSkinIAAccessAllowed');
+    expect(route).toContain('resolveSkinIARouteDecision');
     expect(route).toContain("EXPO_PUBLIC_INTERNAL_TESTFLIGHT");
-    expect(route).toContain('if (!allowed) return <Redirect');
+    expect(route).toContain("if (decision === 'WAIT') return <SkinIAAccessCheck />;");
+    expect(route).toContain("if (decision === 'DENY') return <Redirect");
+    expect(route.indexOf("if (decision === 'DENY')")).toBeLessThan(route.indexOf('if (captureOpen) return <SkinIACameraCaptureScreen'));
   });
 
   it('keeps the consent shell free of capture, visual processing, upload, retention, or model code', () => {
