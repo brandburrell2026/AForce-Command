@@ -15,6 +15,14 @@ export type SkinIAExperimentalCandidate = Readonly<{
 const relativeIncrease = (current: number, baseline: number, minAbsolute: number, minRelative: number) =>
   current - baseline >= Math.max(minAbsolute, Math.abs(baseline) * minRelative);
 
+const METRIC_KEYS = Object.freeze([
+  'cheekBrightness', 'cheekRedness', 'surfaceShine', 'cheekTexture',
+  'brightEdgeDensity', 'clippingFraction',
+] as const satisfies readonly (keyof SkinIAImageMetrics)[]);
+
+const hasFiniteMetrics = (metrics: SkinIAImageMetrics) =>
+  METRIC_KEYS.every((key) => Number.isFinite(metrics[key]));
+
 /**
  * Produces candidate labels from two comparable, accepted captures. It cannot
  * establish clinical/wellness truth and cannot pass the member result gate.
@@ -23,7 +31,7 @@ export function deriveSkinIAExperimentalCandidates(
   current: SkinIAImageMetrics,
   baseline: SkinIAImageMetrics | null,
 ): readonly SkinIAExperimentalCandidate[] {
-  if (!baseline) return Object.freeze([]);
+  if (!baseline || !hasFiniteMetrics(current) || !hasFiniteMetrics(baseline)) return Object.freeze([]);
   const labels: SkinIAPhase1Observation[] = [];
   if (relativeIncrease(current.cheekRedness, baseline.cheekRedness, 0.025, 0.18)) labels.push('VISIBLE_REDNESS');
   if (relativeIncrease(current.surfaceShine, baseline.surfaceShine, 0.015, 0.35)) labels.push('VISIBLE_SURFACE_SHINE');

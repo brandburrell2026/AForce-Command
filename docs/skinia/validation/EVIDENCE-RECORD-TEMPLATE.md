@@ -40,16 +40,18 @@ cosmetics, tattoos, eyewear, occlusion, motion, and compression.
 
 Create an aggregate table for **each** approved label, overall and stratified
 by device family, lighting, and Fitzpatrick coverage. State the reference
-rating method and its limitations. Do not count ambiguous references as
-negative examples.
+rating method and its limitations. Do not count ambiguous references, quality
+rejections, or accepted captures where the candidate abstained as negative
+examples. Record all attempts, including those exclusions, so a high apparent
+accuracy cannot hide low coverage.
 
-| Label | Stratum | TP | FP | FN | TN | Ambiguous reference | Quality rejected | False-positive issue refs | False-negative issue refs |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| `VISIBLE_DRYNESS` | PENDING | — | — | — | — | — | — | — | — |
-| `VISIBLE_FLAKING` | PENDING | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_REDNESS` | PENDING | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_SURFACE_SHINE` | PENDING | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_TEXTURE` | PENDING | — | — | — | — | — | — | — | — |
+| Label | Stratum | Attempts | TP | FP | FN | TN | Ambiguous reference | Quality rejected | Abstained | False-positive issue refs | False-negative issue refs |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| `VISIBLE_DRYNESS` | PENDING | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_FLAKING` | PENDING | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_REDNESS` | PENDING | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_SURFACE_SHINE` | PENDING | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_TEXTURE` | PENDING | — | — | — | — | — | — | — | — | — | — |
 
 ## Repeatability and capture equivalence
 
