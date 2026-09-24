@@ -474,6 +474,21 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   // path.join so the Windows-safe key normalization in the helper still applies.
   const DR017_FIXTURE_ENTRY = 'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx';
 
+  // Unlisted consumers that are ALWAYS planted and must ALWAYS be reported.
+  // Each sits exactly where an exemption wider than "these exact files" would
+  // swallow it, so the negative coverage can tell an exact-file allowlist from
+  // a directory-wide or glob one (DR-017: "No wildcard or directory-wide
+  // exemption is authorized"):
+  //   - the SAME directory as the DR-017 entry — a 'components/advancedVisual/**'
+  //     exemption would pass it;
+  //   - the 'app/skinia' NAME PREFIX — an 'app/skinia*' exemption would pass it;
+  //   - a directory no DR-017 entry lives in — the plain rogue.
+  // The first two import the tokens module by alias in every case; only the
+  // plain rogue varies its specifier per case.
+  const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'Sibling.tsx'];
+  const UNLISTED_NAME_PREFIX = ['app', 'skinia-rogue.tsx'];
+  const UNLISTED_ELSEWHERE = ['components', 'rogue', 'Leak.tsx'];
+
   function writeFixtureTree(
     root: string,
     imports: {
@@ -500,9 +515,17 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         DR017_FIXTURE_ENTRY.split('/'),
         `import { edInk } from '${imports.presentationOnly}';\nexport const screen = edInk;\n`,
       ],
-      // An UNLISTED consumer — must always be caught, whatever it imports.
+      // UNLISTED consumers — must always be caught.
       [
-        ['components', 'rogue', 'Leak.tsx'],
+        UNLISTED_SAME_DIR,
+        "import { edInk } from '@/theme/editorialTokens';\nexport const sibling = edInk;\n",
+      ],
+      [
+        UNLISTED_NAME_PREFIX,
+        "import { edInk } from '@/theme/editorialTokens';\nexport const rogue = edInk;\n",
+      ],
+      [
+        UNLISTED_ELSEWHERE,
         `import { edInk } from '${imports.unlisted}';\nexport const leak = edInk;\n`,
       ],
     ];
@@ -514,13 +537,23 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
 
   it('an unapproved consumer still fails the lock', () => {
     expect(DR017_SKINIA_PRESENTATION_ALLOWED.has(DR017_FIXTURE_ENTRY)).toBe(true);
+    // The siblings prove something only if they really share a DR-017 entry's
+    // directory / name prefix — pin that, so a renamed entry cannot hollow them out.
+    expect(DR017_FIXTURE_ENTRY.startsWith(`${UNLISTED_SAME_DIR.slice(0, -1).join('/')}/`)).toBe(
+      true,
+    );
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.has('app/skinia.tsx')).toBe(true);
     const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
     try {
       writeFixtureTree(tmp, {
         presentationOnly: '@/theme/editorialTokens',
         unlisted: '@/theme/editorialTokens',
       });
-      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([join('components', 'rogue', 'Leak.tsx')]);
+      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_ELSEWHERE),
+      ]);
     } finally {
       rmSync(tmp, { recursive: true, force: true });
     }
@@ -534,8 +567,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         unlisted: '@/theme/editorialTokens',
       });
       expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
         join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
-        join('components', 'rogue', 'Leak.tsx'),
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_ELSEWHERE),
       ]);
     } finally {
       rmSync(tmp, { recursive: true, force: true });
@@ -552,8 +587,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         unlisted: '../editorial',
       });
       expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
         join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
-        join('components', 'rogue', 'Leak.tsx'),
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_ELSEWHERE),
       ]);
     } finally {
       rmSync(tmp, { recursive: true, force: true });
