@@ -23,8 +23,18 @@
  * as the em-dash.
  */
 import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, relative, sep } from 'node:path';
 
 import { Colors } from '../../theme/colors';
 import {
@@ -280,6 +290,83 @@ describe('И state language — pure split logic', () => {
   });
 });
 
+/** Appended to a DR-017 presentation-only file that reaches past the tokens
+ * module into components/editorial — the one thing that record does NOT permit. */
+export const DR017_TOKENS_ONLY_SUFFIX =
+  ' (imports components/editorial; DR-017 permits editorialTokens only)';
+
+/**
+ * A reference to the editorial layer (components/editorial/**) in ANY import
+ * specifier form: the alias ('@/components/editorial/core') or a relative path
+ * ('../editorial/core', or the barrel '../editorial'). Four of the five DR-017
+ * files sit one level below components/, where the relative form is the
+ * natural spelling — matching the alias substring alone would leave that door
+ * open. Over-matching (e.g. '../../editorial' from app/) is accepted: this is
+ * a lock, and no such module exists.
+ */
+const EDITORIAL_LAYER_REF = /components\/editorial|['"](\.\.?\/)+editorial(\/|['"])/;
+/** The tokens module in any form — the bare module name is present in the
+ * alias ('@/theme/editorialTokens') and every relative spelling alike. */
+const EDITORIAL_TOKENS_REF = /editorialTokens/;
+
+/**
+ * The E1 isolation sweep as a pure function of a root directory, so the SAME
+ * code that guards the real tree can be proven against a fixture tree.
+ *
+ * - The editorial layer itself (components/editorial/**, theme/editorialTokens.ts)
+ *   is never a consumer and is always skipped. That skip is anchored to the
+ *   directory boundary: a sibling directory that merely shares the name
+ *   prefix (components/editorialRogue/, components/editorial-skinia/, …) is
+ *   NOT the layer and is swept like any other consumer.
+ * - `allowed` (the E-step route seams, each citing its founder ruling) is
+ *   skipped entirely.
+ * - `presentationOnly` (DR-017) may reference editorialTokens, but is reported
+ *   the moment its source references components/editorial in any specifier
+ *   form (EDITORIAL_LAYER_REF).
+ * - Everything else is reported on ANY reference to either — exactly the
+ *   original lock. Sources are read raw (not comment-stripped), as before.
+ *
+ * Exported for the fixture tests below only; it is not application code.
+ */
+export function findEditorialOffenders(
+  rootDir: string,
+  {
+    roots,
+    allowed,
+    presentationOnly,
+  }: {
+    roots: readonly string[];
+    allowed: ReadonlySet<string>;
+    presentationOnly: ReadonlySet<string>;
+  },
+): string[] {
+  const offenders: string[] = [];
+  const ED = join('components', 'editorial');
+  for (const root of roots) {
+    let files: string[] = [];
+    try {
+      files = walk(join(rootDir, root));
+    } catch {
+      continue;
+    }
+    for (const f of files) {
+      const rel = relative(rootDir, f);
+      // Directory-boundary anchored — never a bare prefix match.
+      if (rel === ED || rel.startsWith(ED + sep)) continue;
+      if (rel === join('theme', 'editorialTokens.ts')) continue;
+      const key = rel.split('\\').join('/');
+      if (allowed.has(key)) continue;
+      const src = read(f);
+      if (presentationOnly.has(key)) {
+        if (EDITORIAL_LAYER_REF.test(src)) offenders.push(rel + DR017_TOKENS_ONLY_SUFFIX);
+        continue;
+      }
+      if (EDITORIAL_LAYER_REF.test(src) || EDITORIAL_TOKENS_REF.test(src)) offenders.push(rel);
+    }
+  }
+  return offenders.sort();
+}
+
 describe('E1 isolation — zero production consumers (zero-behavioral-diff proof)', () => {
   const ALLOWED = new Set([
     'app/(hidden)/editorial-sheet.tsx', // the dev/demo reference sheet
@@ -307,6 +394,26 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     'app/scan.tsx',
     join('app', '(tabs)', 'scan.tsx'),
   ]);
+  // DR-017 (founder Decision A3, 2026-09-23): a NARROW presentation-layer
+  // exception for SkinIA — governance/decisions/DR-017-skinia-editorial-
+  // presentation-reuse.md. These five files, exactly these, may import
+  // '@/theme/editorialTokens' ONLY. No wildcard, no directory-wide exemption;
+  // a sixth entry requires amending DR-017. They may NOT reach into
+  // components/editorial (the sweep reports that with DR017_TOKENS_ONLY_SUFFIX).
+  // Flag-and-cohort gating is untouched by this record:
+  // advanced_visual_intelligence_enabled is false in DEFAULT_FLAGS and true only
+  // via the internal-TestFlight overlay (featureFlags/internalTestflightOverlay.ts)
+  // plus a server-resolved cohort grant (services/skiniaCohortAccess.ts,
+  // services/skiniaCohortGate.ts). This permission is NOT derived from DR-015
+  // or AF-SI-001A — neither mentions the editorial layer; DR-017 is the record
+  // that grants it. Kept SEPARATE from ALLOWED: these are not E-step route seams.
+  const DR017_SKINIA_PRESENTATION_ALLOWED = new Set([
+    'app/skinia.tsx',
+    'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx',
+    'components/advancedVisual/SkinIACameraCaptureScreen.tsx',
+    'components/advancedVisual/SkinIAObservationResultsFixture.tsx',
+    'components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx',
+  ]);
   const PRODUCTION_ROOTS = [
     'app',
     'components',
@@ -324,25 +431,197 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     'config',
   ];
 
+  const SWEEP = {
+    roots: PRODUCTION_ROOTS,
+    allowed: ALLOWED,
+    presentationOnly: DR017_SKINIA_PRESENTATION_ALLOWED,
+  };
+
   it('no production file imports the editorial layer except the hidden reference sheet', () => {
-    const offenders: string[] = [];
-    for (const root of PRODUCTION_ROOTS) {
-      let files: string[] = [];
-      try {
-        files = walk(join(AOS, root));
-      } catch {
-        continue;
-      }
-      for (const f of files) {
-        const rel = relative(AOS, f);
-        if (rel.startsWith(join('components', 'editorial'))) continue;
-        if (rel === join('theme', 'editorialTokens.ts')) continue;
-        if (ALLOWED.has(rel.split('\\').join('/'))) continue;
-        const src = read(f);
-        if (/components\/editorial|editorialTokens/.test(src)) offenders.push(rel);
-      }
-    }
+    const offenders = findEditorialOffenders(AOS, SWEEP);
     expect(offenders, 'editorial layer leaked into production before its E-step').toEqual([]);
+  });
+
+  it('DR-017 allowlist names exact files, no wildcard, and every file exists', () => {
+    // Five, exactly. A sixth requires amending DR-017 (the record says so) AND
+    // this pin — the two must move together.
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.size).toBe(5);
+    for (const entry of DR017_SKINIA_PRESENTATION_ALLOWED) {
+      expect(entry, `${entry} — no wildcard`).not.toMatch(/\*/);
+      expect(entry, `${entry} — no directory suffix`).not.toMatch(/\/$/);
+      expect(entry, `${entry} — a file, not a directory`).toMatch(/\.tsx?$/);
+      expect(
+        existsSync(join(AOS, entry)),
+        `${entry} must exist — a stale entry is a dormant exemption`,
+      ).toBe(true);
+    }
+  });
+
+  it('DR-017 files reference editorialTokens only, never components/editorial', () => {
+    for (const entry of DR017_SKINIA_PRESENTATION_ALLOWED) {
+      const src = read(join(AOS, entry));
+      // Any specifier form — alias or relative — not just the alias substring.
+      expect(src, `${entry} — DR-017 grants the tokens module only`).not.toMatch(
+        EDITORIAL_LAYER_REF,
+      );
+      // The exemption must be LIVE: an entry that no longer touches the tokens
+      // module is a dormant exemption and must leave the allowlist.
+      expect(src, `${entry} — dormant DR-017 entry; remove it`).toMatch(
+        /@\/theme\/editorialTokens/,
+      );
+    }
+  });
+
+  // ————————————————————————————————— negative coverage on a fixture tree
+  // The fixture mirrors ONE real DR-017 entry so the fixture sweep runs with
+  // the SAME three sets as the real sweep (no fixture-only configuration that
+  // could drift from what actually guards the tree). Every path is built with
+  // path.join so the Windows-safe key normalization in the helper still applies.
+  const DR017_FIXTURE_ENTRY = 'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx';
+
+  // Unlisted consumers that are ALWAYS planted and must ALWAYS be reported.
+  // Each sits exactly where an exemption wider than "these exact files" would
+  // swallow it, so the negative coverage can tell an exact-file allowlist from
+  // a directory-wide or glob one (DR-017: "No wildcard or directory-wide
+  // exemption is authorized"):
+  //   - the SAME directory as the DR-017 entry — a 'components/advancedVisual/**'
+  //     exemption would pass it;
+  //   - the 'app/skinia' NAME PREFIX — an 'app/skinia*' exemption would pass it;
+  //   - a directory whose name merely starts with 'components/editorial'
+  //     (components/editorialRogue/) — a layer self-exclusion written as a bare
+  //     prefix match would treat it as the layer and never sweep it;
+  //   - a directory no DR-017 entry lives in — the plain rogue.
+  // The same-directory sibling imports the tokens module by RELATIVE path
+  // ('../../theme/editorialTokens' from components/advancedVisual/ IS
+  // theme/editorialTokens) in every case, so the "tokens module in any
+  // specifier form" guarantee is pinned for unlisted consumers too — narrowing
+  // EDITORIAL_TOKENS_REF to the alias form fails every fixture case. The
+  // name-prefix rogue imports by alias; the layer-prefix rogue imports the
+  // LAYER ('@/components/editorial/core') in every case; only the plain rogue
+  // varies per case.
+  const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'Sibling.tsx'];
+  const UNLISTED_NAME_PREFIX = ['app', 'skinia-rogue.tsx'];
+  const UNLISTED_LAYER_PREFIX = ['components', 'editorialRogue', 'Leak.tsx'];
+  const UNLISTED_ELSEWHERE = ['components', 'rogue', 'Leak.tsx'];
+
+  function writeFixtureTree(
+    root: string,
+    imports: {
+      /** What the DR-017 presentation-only entry imports. */
+      presentationOnly: string;
+      /** What the unlisted components/rogue/Leak.tsx imports. */
+      unlisted: string;
+    },
+  ): void {
+    const files: Array<[string[], string]> = [
+      // The layer itself — never a consumer, always skipped.
+      [
+        ['components', 'editorial', 'core.tsx'],
+        "import { edInk } from '../../theme/editorialTokens';\nexport const core = edInk;\n",
+      ],
+      [['theme', 'editorialTokens.ts'], 'export const edInk = {};\n'],
+      // An E-step seam (ALLOWED) — skipped entirely.
+      [
+        ['app', '(tabs)', 'index.tsx'],
+        "import { EditorialHomeScreen } from '@/components/editorial/home/EditorialHomeScreen';\nexport default EditorialHomeScreen;\n",
+      ],
+      // A DR-017 presentation-only consumer — what it imports is the variable.
+      [
+        DR017_FIXTURE_ENTRY.split('/'),
+        `import { edInk } from '${imports.presentationOnly}';\nexport const screen = edInk;\n`,
+      ],
+      // UNLISTED consumers — must always be caught.
+      [
+        UNLISTED_SAME_DIR,
+        "import { edInk } from '../../theme/editorialTokens';\nexport const sibling = edInk;\n",
+      ],
+      [
+        UNLISTED_NAME_PREFIX,
+        "import { edInk } from '@/theme/editorialTokens';\nexport const rogue = edInk;\n",
+      ],
+      [
+        UNLISTED_LAYER_PREFIX,
+        "import { core } from '@/components/editorial/core';\nexport const leak = core;\n",
+      ],
+      [
+        UNLISTED_ELSEWHERE,
+        `import { edInk } from '${imports.unlisted}';\nexport const leak = edInk;\n`,
+      ],
+    ];
+    for (const [segments, src] of files) {
+      mkdirSync(join(root, ...segments.slice(0, -1)), { recursive: true });
+      writeFileSync(join(root, ...segments), src, 'utf8');
+    }
+  }
+
+  it('an unapproved consumer still fails the lock', () => {
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.has(DR017_FIXTURE_ENTRY)).toBe(true);
+    // The siblings prove something only if they really share a DR-017 entry's
+    // directory / name prefix — pin that, so a renamed entry cannot hollow them out.
+    expect(DR017_FIXTURE_ENTRY.startsWith(`${UNLISTED_SAME_DIR.slice(0, -1).join('/')}/`)).toBe(
+      true,
+    );
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.has('app/skinia.tsx')).toBe(true);
+    // The layer-prefix rogue proves something only if its directory really is
+    // a bare-prefix collision with the layer path and not the layer itself.
+    const layerPrefixDir = join(...UNLISTED_LAYER_PREFIX.slice(0, -1));
+    expect(layerPrefixDir.startsWith(join('components', 'editorial'))).toBe(true);
+    expect(layerPrefixDir).not.toBe(join('components', 'editorial'));
+    const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
+    try {
+      writeFixtureTree(tmp, {
+        presentationOnly: '@/theme/editorialTokens',
+        unlisted: '@/theme/editorialTokens',
+      });
+      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
+        join(...UNLISTED_ELSEWHERE),
+      ]);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('a DR-017 file that reaches past tokens into components/editorial fails the lock', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
+    try {
+      writeFixtureTree(tmp, {
+        presentationOnly: '@/components/editorial/core',
+        unlisted: '@/theme/editorialTokens',
+      });
+      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
+        join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
+        join(...UNLISTED_ELSEWHERE),
+      ]);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('relative specifiers do not evade the lock — DR-017 file and unlisted consumer alike', () => {
+    // From components/<dir>/, '../editorial/core' IS components/editorial/core and
+    // '../editorial' IS the barrel — neither spelling contains the alias substring.
+    const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
+    try {
+      writeFixtureTree(tmp, {
+        presentationOnly: '../editorial/core',
+        unlisted: '../editorial',
+      });
+      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...UNLISTED_NAME_PREFIX),
+        join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
+        join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
+        join(...UNLISTED_ELSEWHERE),
+      ]);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
   });
 
   it('the reference sheet keeps the gallery guard idiom and lazy module load', () => {
