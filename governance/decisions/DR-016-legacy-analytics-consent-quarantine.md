@@ -28,8 +28,8 @@ pre-isolation global `@aforce/analytics-consent` record:
 - the record is never consulted as that member's consent, and never as evidence that the member
   has already answered the consent prompt.
 
-The same rule applies to the legacy global `@aforce/analytics-id` record: retained in place,
-never copied, never used as a member's pseudonym.
+This decision covers the legacy global `@aforce/analytics-consent` record only. It does not
+ratify the handling of any other key in the migration manifest (see History).
 
 ## Supersedes
 
@@ -59,7 +59,12 @@ never copied, never used as a member's pseudonym.
   copied, nothing deleted, marker written. It re-pinned
   `services/__tests__/userScopeIsolation.test.ts` ("legacy global data quarantine") but carried
   **no decision record**, and left the analytics suite's copy-and-retain pin, the `userScope.ts`
-  comments, the dead export and the register row unchanged.
+  comments, the dead export and the register row unchanged. #987 applies the same mechanics
+  (retained in place, never copied) to the legacy global `@aforce/analytics-id` record and to
+  every other key in `MIGRATED_GLOBAL_KEYS`. Those keys are **outside this decision**: DR-016
+  ratifies the consent key only, and the `@aforce/analytics-id` expectations in the analytics
+  suite pin observed #987 behaviour, not a rule this record makes. The general quarantine still
+  has no decision record.
 - **2026-09-23** — this record. **DR-016 is the first ratification of the consent-specific
   change.** The quarantine of the legacy consent record was not previously ratified: it was
   implemented in #987 without a decision and is approved here, on this date. This record is not
@@ -135,7 +140,8 @@ before merge; the fields below are intentionally empty.
 
 - Test file: `artifacts/aforce-os/analytics/__tests__/analyticsIdentityIsolation.test.ts` —
   describe `legacy migration quarantines the consent record (DR-016)` and describe
-  `DR-016 — legacy consent quarantine evidence`.
+  `DR-016 — legacy consent quarantine evidence`. The `@aforce/analytics-id` expectations in
+  those describes are #987 behaviour pins, outside this decision.
 - Companion pin from #987: `artifacts/aforce-os/services/__tests__/userScopeIsolation.test.ts`
   › `legacy global data quarantine`.
 - Register: `governance/WAVE3-PRODUCTION-READINESS-EVIDENCE.md` row 12 (Evidence cell).
