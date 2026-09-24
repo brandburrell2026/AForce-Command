@@ -10,7 +10,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { GradientBackground } from '@/components/GradientBackground';
-import { af } from '@/theme';
+import { af, withAlpha } from '@/theme';
 
 export function OneBreathScreen() {
   const insets = useSafeAreaInsets();
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   modeLabel: { color: af.redText, fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.7 },
   modeTime: { color: af.textSecondary, fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 0.7 },
   wave: { height: 74, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 1 },
-  waveBar: { width: 3, borderRadius: 2, backgroundColor: 'rgba(161,156,145,0.5)' },
+  waveBar: { width: 3, borderRadius: 2, backgroundColor: withAlpha(af.textSecondary, 0.5) },
   waveBarActive: { backgroundColor: af.red },
   input: { minHeight: 126, color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 25, lineHeight: 34, padding: 0 },
   localNote: { color: af.textTertiary, fontFamily: 'Inter_500Medium', fontSize: 9, letterSpacing: 0.5 },
