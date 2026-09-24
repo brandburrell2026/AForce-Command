@@ -51,7 +51,9 @@ tokens module (a dormant exemption is removed, not kept).
   remain governed by DR-015 and AF-SI-001A.
 - **`@/theme/editorialTokens` only.** The five files may import the tokens
   module. They may not import from `components/editorial/**` (core,
-  instruments, home, moments, protocol, weekly, scan). A DR-017 file that does
+  instruments, home, moments, protocol, weekly, scan) in any specifier form —
+  the alias (`@/components/editorial/…`) or a relative path
+  (`../editorial/core`, or the barrel `../editorial`). A DR-017 file that does
   so fails the lock, reported with the suffix
   `(imports components/editorial; DR-017 permits editorialTokens only)`.
 - **No wildcard or directory-wide exemption.** Not
@@ -100,6 +102,10 @@ tokens module (a dormant exemption is removed, not kept).
   route seams) because these files are not route seams. The sweep is the pure
   helper `findEditorialOffenders(rootDir, { roots, allowed, presentationOnly })`,
   so the same code that guards the real tree is proven against a fixture tree.
+  The layer is detected by import specifier in any form (`EDITORIAL_LAYER_REF`:
+  the alias substring or a relative `./`/`../` path to `editorial`); the tokens
+  module by its bare module name, which every alias and relative spelling
+  contains.
 - Positive coverage (real tree):
   - `no production file imports the editorial layer except the hidden reference sheet`
     — the sweep returns no offenders.
@@ -115,3 +121,8 @@ tokens module (a dormant exemption is removed, not kept).
   - `a DR-017 file that reaches past tokens into components/editorial fails the lock`
     — a DR-017 entry importing `@/components/editorial/core` is reported with
     the tokens-only suffix.
+  - `relative specifiers do not evade the lock — DR-017 file and unlisted consumer alike`
+    — the DR-017 entry importing `../editorial/core` is reported with the
+    tokens-only suffix, and an unlisted `components/rogue/Leak.tsx` importing
+    the barrel `../editorial` is reported; neither spelling contains the alias
+    substring.

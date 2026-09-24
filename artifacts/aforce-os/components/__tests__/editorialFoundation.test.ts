@@ -296,6 +296,20 @@ export const DR017_TOKENS_ONLY_SUFFIX =
   ' (imports components/editorial; DR-017 permits editorialTokens only)';
 
 /**
+ * A reference to the editorial layer (components/editorial/**) in ANY import
+ * specifier form: the alias ('@/components/editorial/core') or a relative path
+ * ('../editorial/core', or the barrel '../editorial'). Four of the five DR-017
+ * files sit one level below components/, where the relative form is the
+ * natural spelling — matching the alias substring alone would leave that door
+ * open. Over-matching (e.g. '../../editorial' from app/) is accepted: this is
+ * a lock, and no such module exists.
+ */
+const EDITORIAL_LAYER_REF = /components\/editorial|['"](\.\.?\/)+editorial(\/|['"])/;
+/** The tokens module in any form — the bare module name is present in the
+ * alias ('@/theme/editorialTokens') and every relative spelling alike. */
+const EDITORIAL_TOKENS_REF = /editorialTokens/;
+
+/**
  * The E1 isolation sweep as a pure function of a root directory, so the SAME
  * code that guards the real tree can be proven against a fixture tree.
  *
@@ -304,7 +318,8 @@ export const DR017_TOKENS_ONLY_SUFFIX =
  * - `allowed` (the E-step route seams, each citing its founder ruling) is
  *   skipped entirely.
  * - `presentationOnly` (DR-017) may reference editorialTokens, but is reported
- *   the moment its source mentions components/editorial.
+ *   the moment its source references components/editorial in any specifier
+ *   form (EDITORIAL_LAYER_REF).
  * - Everything else is reported on ANY reference to either — exactly the
  *   original lock. Sources are read raw (not comment-stripped), as before.
  *
@@ -338,10 +353,10 @@ export function findEditorialOffenders(
       if (allowed.has(key)) continue;
       const src = read(f);
       if (presentationOnly.has(key)) {
-        if (/components\/editorial/.test(src)) offenders.push(rel + DR017_TOKENS_ONLY_SUFFIX);
+        if (EDITORIAL_LAYER_REF.test(src)) offenders.push(rel + DR017_TOKENS_ONLY_SUFFIX);
         continue;
       }
-      if (/components\/editorial|editorialTokens/.test(src)) offenders.push(rel);
+      if (EDITORIAL_LAYER_REF.test(src) || EDITORIAL_TOKENS_REF.test(src)) offenders.push(rel);
     }
   }
   return offenders.sort();
@@ -440,8 +455,9 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   it('DR-017 files reference editorialTokens only, never components/editorial', () => {
     for (const entry of DR017_SKINIA_PRESENTATION_ALLOWED) {
       const src = read(join(AOS, entry));
+      // Any specifier form — alias or relative — not just the alias substring.
       expect(src, `${entry} — DR-017 grants the tokens module only`).not.toMatch(
-        /components\/editorial/,
+        EDITORIAL_LAYER_REF,
       );
       // The exemption must be LIVE: an entry that no longer touches the tokens
       // module is a dormant exemption and must leave the allowlist.
@@ -458,7 +474,15 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   // path.join so the Windows-safe key normalization in the helper still applies.
   const DR017_FIXTURE_ENTRY = 'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx';
 
-  function writeFixtureTree(root: string, presentationOnlyImport: string): void {
+  function writeFixtureTree(
+    root: string,
+    imports: {
+      /** What the DR-017 presentation-only entry imports. */
+      presentationOnly: string;
+      /** What the unlisted components/rogue/Leak.tsx imports. */
+      unlisted: string;
+    },
+  ): void {
     const files: Array<[string[], string]> = [
       // The layer itself — never a consumer, always skipped.
       [
@@ -474,12 +498,12 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
       // A DR-017 presentation-only consumer — what it imports is the variable.
       [
         DR017_FIXTURE_ENTRY.split('/'),
-        `import { edInk } from '${presentationOnlyImport}';\nexport const screen = edInk;\n`,
+        `import { edInk } from '${imports.presentationOnly}';\nexport const screen = edInk;\n`,
       ],
-      // An UNLISTED consumer — must always be caught.
+      // An UNLISTED consumer — must always be caught, whatever it imports.
       [
         ['components', 'rogue', 'Leak.tsx'],
-        "import { edInk } from '@/theme/editorialTokens';\nexport const leak = edInk;\n",
+        `import { edInk } from '${imports.unlisted}';\nexport const leak = edInk;\n`,
       ],
     ];
     for (const [segments, src] of files) {
@@ -492,7 +516,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     expect(DR017_SKINIA_PRESENTATION_ALLOWED.has(DR017_FIXTURE_ENTRY)).toBe(true);
     const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
     try {
-      writeFixtureTree(tmp, '@/theme/editorialTokens');
+      writeFixtureTree(tmp, {
+        presentationOnly: '@/theme/editorialTokens',
+        unlisted: '@/theme/editorialTokens',
+      });
       expect(findEditorialOffenders(tmp, SWEEP)).toEqual([join('components', 'rogue', 'Leak.tsx')]);
     } finally {
       rmSync(tmp, { recursive: true, force: true });
@@ -502,7 +529,28 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   it('a DR-017 file that reaches past tokens into components/editorial fails the lock', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
     try {
-      writeFixtureTree(tmp, '@/components/editorial/core');
+      writeFixtureTree(tmp, {
+        presentationOnly: '@/components/editorial/core',
+        unlisted: '@/theme/editorialTokens',
+      });
+      expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
+        join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
+        join('components', 'rogue', 'Leak.tsx'),
+      ]);
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
+  });
+
+  it('relative specifiers do not evade the lock — DR-017 file and unlisted consumer alike', () => {
+    // From components/<dir>/, '../editorial/core' IS components/editorial/core and
+    // '../editorial' IS the barrel — neither spelling contains the alias substring.
+    const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
+    try {
+      writeFixtureTree(tmp, {
+        presentationOnly: '../editorial/core',
+        unlisted: '../editorial',
+      });
       expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
         join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
         join('components', 'rogue', 'Leak.tsx'),
