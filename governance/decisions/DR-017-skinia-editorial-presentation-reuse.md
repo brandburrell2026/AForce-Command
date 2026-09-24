@@ -60,9 +60,11 @@ tokens module (a dormant exemption is removed, not kept).
   `components/advancedVisual/**`, not `components/skinIntelligence/**`, not
   `app/skinia*`. The allowlist is a set of exact file paths and the lock
   rejects any entry containing `*` or ending in `/`. The negative coverage
-  plants unlisted files inside a DR-017 directory and under the `app/skinia`
-  name prefix and requires them reported, so a sweep that exempted by
-  directory or glob instead of exact file would fail (see Enforcement).
+  plants unlisted files inside a DR-017 directory, under the `app/skinia`
+  name prefix and in a directory whose name merely begins with
+  `components/editorial`, and requires them reported, so a sweep that
+  exempted by directory, glob or bare name prefix instead of exact file would
+  fail (see Enforcement).
 - **Flag-and-cohort gating preserved.** `advanced_visual_intelligence_enabled`
   is `false` in `DEFAULT_FLAGS` and in `DEMO_ALL_ON_FLAGS`
   (`featureFlags/flags.ts`). It is `true` only through the internal-TestFlight
@@ -108,7 +110,10 @@ tokens module (a dormant exemption is removed, not kept).
   The layer is detected by import specifier in any form (`EDITORIAL_LAYER_REF`:
   the alias substring or a relative `./`/`../` path to `editorial`); the tokens
   module by its bare module name, which every alias and relative spelling
-  contains.
+  contains. The layer's own self-exclusion from the sweep is anchored to the
+  directory boundary (`components/editorial` exactly, or `components/editorial`
+  + path separator), never a bare prefix, so a sibling directory such as
+  `components/editorialRogue/` is swept like any other consumer.
 - Positive coverage (real tree):
   - `no production file imports the editorial layer except the hidden reference sheet`
     — the sweep returns no offenders.
@@ -119,27 +124,33 @@ tokens module (a dormant exemption is removed, not kept).
 - Negative coverage (fixture tree under `os.tmpdir()`, run with the same three
   sets as the real sweep). The fixture mirrors one real DR-017 entry
   (`components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx`) and
-  always plants three unlisted consumers, each placed where an exemption wider
-  than exact files would swallow it, and each must be reported in every case:
+  always plants four unlisted consumers, each placed where an exemption wider
+  than exact files (or a self-exclusion wider than the layer) would swallow it,
+  and each must be reported in every case:
   `components/advancedVisual/Sibling.tsx` (the same directory as the DR-017
   entry — a `components/advancedVisual/**` exemption would pass it; it imports
   the tokens module by the RELATIVE path `../../theme/editorialTokens`, so a
   tokens match narrowed to the alias form would also pass it),
   `app/skinia-rogue.tsx` (the `app/skinia` name prefix — an `app/skinia*`
-  exemption would pass it) and `components/rogue/Leak.tsx` (a directory no
-  DR-017 entry lives in). The allowlisted E-step seam is never reported.
+  exemption would pass it), `components/editorialRogue/Leak.tsx` (a directory
+  whose name merely begins with `components/editorial`; it imports the layer
+  itself, `@/components/editorial/core` — a self-exclusion written as a bare
+  prefix match would treat the directory as the layer and never sweep it) and
+  `components/rogue/Leak.tsx` (a directory no DR-017 entry lives in). The
+  allowlisted E-step seam is never reported.
   - `an unapproved consumer still fails the lock` — the DR-017 entry imports
-    `@/theme/editorialTokens` and is not reported; the three unlisted files
-    (the sibling by relative tokens path, the other two by
-    `@/theme/editorialTokens`) are reported and nothing else is.
+    `@/theme/editorialTokens` and is not reported; the four unlisted files
+    (the sibling by relative tokens path, the name-prefix rogue and the plain
+    rogue by `@/theme/editorialTokens`, the layer-prefix rogue by
+    `@/components/editorial/core`) are reported and nothing else is.
   - `a DR-017 file that reaches past tokens into components/editorial fails the lock`
     — the DR-017 entry importing `@/components/editorial/core` is reported
-    with the tokens-only suffix, alongside the three unlisted files.
+    with the tokens-only suffix, alongside the four unlisted files.
   - `relative specifiers do not evade the lock — DR-017 file and unlisted consumer alike`
     — the DR-017 entry importing `../editorial/core` is reported with the
     tokens-only suffix, and `components/rogue/Leak.tsx` importing the barrel
     `../editorial` is reported (neither spelling contains the alias
-    substring), alongside the other two unlisted files.
+    substring), alongside the other three unlisted files.
   - Each case asserts the exact sorted offender list, so an exemption that is
-    directory-wide, glob-based, or specifier-form-specific fails the fixture
-    even while the real tree happens to be clean.
+    directory-wide, glob-based, name-prefix-based, or specifier-form-specific
+    fails the fixture even while the real tree happens to be clean.

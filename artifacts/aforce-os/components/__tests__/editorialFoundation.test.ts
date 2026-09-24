@@ -34,7 +34,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 
 import { Colors } from '../../theme/colors';
 import {
@@ -314,7 +314,10 @@ const EDITORIAL_TOKENS_REF = /editorialTokens/;
  * code that guards the real tree can be proven against a fixture tree.
  *
  * - The editorial layer itself (components/editorial/**, theme/editorialTokens.ts)
- *   is never a consumer and is always skipped.
+ *   is never a consumer and is always skipped. That skip is anchored to the
+ *   directory boundary: a sibling directory that merely shares the name
+ *   prefix (components/editorialRogue/, components/editorial-skinia/, …) is
+ *   NOT the layer and is swept like any other consumer.
  * - `allowed` (the E-step route seams, each citing its founder ruling) is
  *   skipped entirely.
  * - `presentationOnly` (DR-017) may reference editorialTokens, but is reported
@@ -338,6 +341,7 @@ export function findEditorialOffenders(
   },
 ): string[] {
   const offenders: string[] = [];
+  const ED = join('components', 'editorial');
   for (const root of roots) {
     let files: string[] = [];
     try {
@@ -347,7 +351,8 @@ export function findEditorialOffenders(
     }
     for (const f of files) {
       const rel = relative(rootDir, f);
-      if (rel.startsWith(join('components', 'editorial'))) continue;
+      // Directory-boundary anchored — never a bare prefix match.
+      if (rel === ED || rel.startsWith(ED + sep)) continue;
       if (rel === join('theme', 'editorialTokens.ts')) continue;
       const key = rel.split('\\').join('/');
       if (allowed.has(key)) continue;
@@ -482,15 +487,21 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   //   - the SAME directory as the DR-017 entry — a 'components/advancedVisual/**'
   //     exemption would pass it;
   //   - the 'app/skinia' NAME PREFIX — an 'app/skinia*' exemption would pass it;
+  //   - a directory whose name merely starts with 'components/editorial'
+  //     (components/editorialRogue/) — a layer self-exclusion written as a bare
+  //     prefix match would treat it as the layer and never sweep it;
   //   - a directory no DR-017 entry lives in — the plain rogue.
   // The same-directory sibling imports the tokens module by RELATIVE path
   // ('../../theme/editorialTokens' from components/advancedVisual/ IS
   // theme/editorialTokens) in every case, so the "tokens module in any
   // specifier form" guarantee is pinned for unlisted consumers too — narrowing
   // EDITORIAL_TOKENS_REF to the alias form fails every fixture case. The
-  // name-prefix rogue imports by alias; only the plain rogue varies per case.
+  // name-prefix rogue imports by alias; the layer-prefix rogue imports the
+  // LAYER ('@/components/editorial/core') in every case; only the plain rogue
+  // varies per case.
   const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'Sibling.tsx'];
   const UNLISTED_NAME_PREFIX = ['app', 'skinia-rogue.tsx'];
+  const UNLISTED_LAYER_PREFIX = ['components', 'editorialRogue', 'Leak.tsx'];
   const UNLISTED_ELSEWHERE = ['components', 'rogue', 'Leak.tsx'];
 
   function writeFixtureTree(
@@ -529,6 +540,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         "import { edInk } from '@/theme/editorialTokens';\nexport const rogue = edInk;\n",
       ],
       [
+        UNLISTED_LAYER_PREFIX,
+        "import { core } from '@/components/editorial/core';\nexport const leak = core;\n",
+      ],
+      [
         UNLISTED_ELSEWHERE,
         `import { edInk } from '${imports.unlisted}';\nexport const leak = edInk;\n`,
       ],
@@ -547,6 +562,11 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
       true,
     );
     expect(DR017_SKINIA_PRESENTATION_ALLOWED.has('app/skinia.tsx')).toBe(true);
+    // The layer-prefix rogue proves something only if its directory really is
+    // a bare-prefix collision with the layer path and not the layer itself.
+    const layerPrefixDir = join(...UNLISTED_LAYER_PREFIX.slice(0, -1));
+    expect(layerPrefixDir.startsWith(join('components', 'editorial'))).toBe(true);
+    expect(layerPrefixDir).not.toBe(join('components', 'editorial'));
     const tmp = mkdtempSync(join(tmpdir(), 'e1-lock-'));
     try {
       writeFixtureTree(tmp, {
@@ -556,6 +576,7 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
       expect(findEditorialOffenders(tmp, SWEEP)).toEqual([
         join(...UNLISTED_NAME_PREFIX),
         join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
         join(...UNLISTED_ELSEWHERE),
       ]);
     } finally {
@@ -574,6 +595,7 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         join(...UNLISTED_NAME_PREFIX),
         join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
         join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
         join(...UNLISTED_ELSEWHERE),
       ]);
     } finally {
@@ -594,6 +616,7 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
         join(...UNLISTED_NAME_PREFIX),
         join(...DR017_FIXTURE_ENTRY.split('/')) + DR017_TOKENS_ONLY_SUFFIX,
         join(...UNLISTED_SAME_DIR),
+        join(...UNLISTED_LAYER_PREFIX),
         join(...UNLISTED_ELSEWHERE),
       ]);
     } finally {
