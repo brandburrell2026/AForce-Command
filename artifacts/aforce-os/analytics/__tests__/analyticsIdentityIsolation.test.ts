@@ -27,7 +27,9 @@
  * This supersedes the Wave-3 PR12 copy-and-retain rule (commit 71c46b5c,
  * 2026-08-12) and retires the retention-exception export it relied on. The
  * quarantine implementation landed in #987 (2026-09-15) without a decision
- * record; DR-016 is its first ratification. The 'DR-016 — legacy consent
+ * record; DR-016 is its first ratification, for the consent key only. Every
+ * expectation on `@aforce/analytics-id` in this file pins observed #987
+ * behaviour and is outside DR-016. The 'DR-016 — legacy consent
  * quarantine evidence' block below is the privacy-review evidence the decision
  * requires before merge, one case per evidence item, all driven through the
  * real modules (userScope, scopedStorage, privacy_manager, consentAuthority).
@@ -119,6 +121,12 @@ async function fresh() {
 type UserScopeModule = Awaited<ReturnType<typeof fresh>>['userScope'];
 
 const LEGACY_CONSENT_KEY = '@aforce/analytics-consent';
+/**
+ * NOT part of DR-016. The founder ruled on the consent key only; assertions
+ * on this key pin #987 behaviour (retained in place, never copied) as observed,
+ * so a change to how the id key is migrated needs its own decision, not an
+ * edit to DR-016.
+ */
 const LEGACY_ID_KEY = '@aforce/analytics-id';
 const QUARANTINE_KEY = 'aforce.namespaceMigration.quarantined';
 const OFFLINE = { status: 0, code: null };
@@ -226,6 +234,7 @@ describe('legacy migration quarantines the consent record (DR-016)', () => {
 
     // Retained byte for byte — "who consented, to version N, when" survives…
     expect(mem.get(LEGACY_CONSENT_KEY)).toBe(legacyRecord);
+    // (id key: #987 behaviour pin, not part of DR-016 — see LEGACY_ID_KEY)
     expect(mem.get(LEGACY_ID_KEY)).toBe('anon_legacy_abc');
     // …but it is nobody's: nothing is written under A for either key.
     expect(mem.has(scoped(LEGACY_CONSENT_KEY, 'user_A'))).toBe(false);

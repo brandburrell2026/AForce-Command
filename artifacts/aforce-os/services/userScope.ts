@@ -152,10 +152,12 @@ export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
  * There is deliberately no "retain a global copy" exception set any more.
  * The Wave-3 PR12 copy-and-retain rule (commit 71c46b5c, 2026-08-12) — copy
  * the legacy consent record to the claiming member, keep the original as
- * evidence — was replaced by quarantine in #987 (2026-09-15) and ratified by
- * DR-016 (2026-09-23): nothing in MIGRATED_GLOBAL_KEYS is copied, so a
- * per-key retention exception has nothing left to except from. The export
- * that carried it had no consumers and is retired; DR-016 names it.
+ * evidence — was replaced by quarantine in #987 (2026-09-15); DR-016
+ * (2026-09-23) ratifies that replacement for the consent key. Since #987
+ * nothing in MIGRATED_GLOBAL_KEYS is copied (the other keys by #987 alone,
+ * without a decision record), so a per-key retention exception has nothing
+ * left to except from. The export that carried it had no consumers and is
+ * retired; DR-016 names it.
  */
 
 // ─── The state machine ────────────────────────────────────────────────
