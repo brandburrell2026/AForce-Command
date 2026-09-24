@@ -483,8 +483,12 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   //     exemption would pass it;
   //   - the 'app/skinia' NAME PREFIX — an 'app/skinia*' exemption would pass it;
   //   - a directory no DR-017 entry lives in — the plain rogue.
-  // The first two import the tokens module by alias in every case; only the
-  // plain rogue varies its specifier per case.
+  // The same-directory sibling imports the tokens module by RELATIVE path
+  // ('../../theme/editorialTokens' from components/advancedVisual/ IS
+  // theme/editorialTokens) in every case, so the "tokens module in any
+  // specifier form" guarantee is pinned for unlisted consumers too — narrowing
+  // EDITORIAL_TOKENS_REF to the alias form fails every fixture case. The
+  // name-prefix rogue imports by alias; only the plain rogue varies per case.
   const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'Sibling.tsx'];
   const UNLISTED_NAME_PREFIX = ['app', 'skinia-rogue.tsx'];
   const UNLISTED_ELSEWHERE = ['components', 'rogue', 'Leak.tsx'];
@@ -518,7 +522,7 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
       // UNLISTED consumers — must always be caught.
       [
         UNLISTED_SAME_DIR,
-        "import { edInk } from '@/theme/editorialTokens';\nexport const sibling = edInk;\n",
+        "import { edInk } from '../../theme/editorialTokens';\nexport const sibling = edInk;\n",
       ],
       [
         UNLISTED_NAME_PREFIX,

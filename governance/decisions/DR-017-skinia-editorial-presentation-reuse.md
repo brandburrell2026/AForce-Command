@@ -122,13 +122,16 @@ tokens module (a dormant exemption is removed, not kept).
   always plants three unlisted consumers, each placed where an exemption wider
   than exact files would swallow it, and each must be reported in every case:
   `components/advancedVisual/Sibling.tsx` (the same directory as the DR-017
-  entry — a `components/advancedVisual/**` exemption would pass it),
+  entry — a `components/advancedVisual/**` exemption would pass it; it imports
+  the tokens module by the RELATIVE path `../../theme/editorialTokens`, so a
+  tokens match narrowed to the alias form would also pass it),
   `app/skinia-rogue.tsx` (the `app/skinia` name prefix — an `app/skinia*`
   exemption would pass it) and `components/rogue/Leak.tsx` (a directory no
   DR-017 entry lives in). The allowlisted E-step seam is never reported.
   - `an unapproved consumer still fails the lock` — the DR-017 entry imports
-    `@/theme/editorialTokens` and is not reported; the three unlisted files,
-    all importing `@/theme/editorialTokens`, are reported and nothing else is.
+    `@/theme/editorialTokens` and is not reported; the three unlisted files
+    (the sibling by relative tokens path, the other two by
+    `@/theme/editorialTokens`) are reported and nothing else is.
   - `a DR-017 file that reaches past tokens into components/editorial fails the lock`
     — the DR-017 entry importing `@/components/editorial/core` is reported
     with the tokens-only suffix, alongside the three unlisted files.
