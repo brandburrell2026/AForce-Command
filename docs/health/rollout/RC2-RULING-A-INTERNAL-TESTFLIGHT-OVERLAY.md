@@ -75,8 +75,9 @@ Investigated before building (per the ruling's instruction):
     === 'true'` — mirrors `DEMO_MODE`'s pattern exactly.
   - `applyInternalTestflightOverlay(base, engaged)`: pure, injectable-`engaged`
     function. Returns `base` **by reference** when `engaged` is falsy (the
-    production/App-Store path); returns a new object with exactly the five
-    keys unioned to `true` when `engaged` is true. Never sets a flag to
+    production/App-Store path); returns a new object with exactly the
+    `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS` keys (the union above; ten as of A4,
+    2026-09-23) unioned to `true` when `engaged` is true. Never sets a flag to
     `false`; never mutates `base`.
   - `resolveInitialFeatureFlags(base)`: the sanctioned call site for
     `useAppStore`'s initial state.
