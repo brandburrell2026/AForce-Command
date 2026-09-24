@@ -304,6 +304,12 @@ describe('DR-016 — legacy consent quarantine evidence', () => {
     // Non-vacuity: the server DID answer — A has a pseudonym now — so the
     // `false` above is the undecided row, not an unreachable server.
     expect(await privacy.getAnalyticsId()).toBe('anon_srv_user_A');
+    // ONLINE prompting: the server's row is settled-but-unanswered and the
+    // legacy grant is still the only consent-shaped record on the device. A
+    // is asked — the legacy answer must not fill the server's "never answered"
+    // gap. (Offline, (c) covers the same rule through the local fallback.)
+    expect(await privacy.hasAnsweredConsent(), 'online, the legacy answer is still not A’s answer').toBe(false);
+    expect(await privacy.getConsentUiState()).toEqual({ status: 'settled', granted: false, answered: false });
     expect(mem.get(LEGACY_CONSENT_KEY)).toBe(consentRecord(true, '2026-07-01T00:00:00Z'));
   });
 
