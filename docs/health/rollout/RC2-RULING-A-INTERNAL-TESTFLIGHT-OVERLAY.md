@@ -66,14 +66,18 @@ Investigated before building (per the ruling's instruction):
 ## What was built
 
 - `featureFlags/internalTestflightOverlay.ts` — new module:
-  - `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS`: the exact five keys, in the ruling's
-    order.
+  - `RC2_OVERLAY_FLAGS`: the exact five Ruling A keys, in the ruling's order.
+    `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS` is the union of that list with the
+    later, separately-listed grants (Editorial partner, Environmental, SkinIA
+    DR-015); every key in the union is OFF in `DEFAULT_FLAGS` — the overlay
+    grants only what production does not (A4, 2026-09-23).
   - `INTERNAL_TESTFLIGHT_OVERLAY_ENABLED`: `process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT']
     === 'true'` — mirrors `DEMO_MODE`'s pattern exactly.
   - `applyInternalTestflightOverlay(base, engaged)`: pure, injectable-`engaged`
     function. Returns `base` **by reference** when `engaged` is falsy (the
-    production/App-Store path); returns a new object with exactly the five
-    keys unioned to `true` when `engaged` is true. Never sets a flag to
+    production/App-Store path); returns a new object with exactly the
+    `INTERNAL_TESTFLIGHT_OVERLAY_FLAGS` keys (the union above; ten as of A4,
+    2026-09-23) unioned to `true` when `engaged` is true. Never sets a flag to
     `false`; never mutates `base`.
   - `resolveInitialFeatureFlags(base)`: the sanctioned call site for
     `useAppStore`'s initial state.

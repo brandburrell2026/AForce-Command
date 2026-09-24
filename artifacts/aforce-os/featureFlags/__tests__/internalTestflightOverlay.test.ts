@@ -3,9 +3,11 @@
  *
  * Covers: identity-when-off (production/App-Store builds get the exact
  * `DEFAULT_FLAGS` object back, `toBe` reference equality, mutation-verified),
- * exactly-five-when-on (a snapshot diff enumerating every key that changed —
- * proving nothing besides the five ruling keys ever flips), and the
- * restricted-flag interaction check (none of the five overlay keys may ever
+ * exactly-the-granted-keys-when-on (a snapshot diff enumerating every key that
+ * changed — proving nothing besides the ten granted keys ever flips), the
+ * premise that every granted key is OFF in production defaults (the overlay
+ * grants only what production does not — A4, 2026-09-23), and the
+ * restricted-flag interaction check (none of the ten overlay keys may ever
  * appear in `INTERNAL_PREVIEW_RESTRICTED_FLAGS`).
  */
 import { describe, it, expect } from 'vitest';
@@ -30,16 +32,30 @@ const RC2_FIVE = [
 ] as const;
 
 /**
- * The Editorial partner grant (founder ruling 2026-09-05). Held as its OWN
- * list, mirroring the source, so each ruling stays separately traceable — and
- * so adding a key to either set is a visible, reviewable diff here.
+ * The Editorial partner grant (founder ruling 2026-09-05) as it stands after
+ * founder decision A4 (2026-09-23): the ruling granted five surfaces, but Home,
+ * Moments and Weekly graduated to production defaults by the founder direction
+ * of 2026-09-16 (#1031), so the overlay now lists only the two surfaces
+ * production does not already ship. Held as its OWN list, mirroring the
+ * source, so each ruling stays separately traceable — and so adding a key to
+ * either set is a visible, reviewable diff here.
  */
-const EDITORIAL_FIVE = [
+const EDITORIAL_PARTNER_TWO = [
+  'editorial_protocol_enabled',
+  'editorial_scan_enabled',
+] as const;
+
+/**
+ * A4 graduation record (2026-09-23). These three were part of the 2026-09-05
+ * partner grant and are now production defaults (`DEFAULT_FLAGS` ships them
+ * `true`). They must appear in NO overlay list: an ON-only union has nothing
+ * to grant for a key production already ships, and listing one would break
+ * the OFF-in-defaults premise below. No further graduation is authorised.
+ */
+const GRADUATED_EDITORIAL_THREE = [
   'editorial_home_enabled',
   'editorial_moments_enabled',
-  'editorial_protocol_enabled',
   'editorial_weekly_enabled',
-  'editorial_scan_enabled',
 ] as const;
 
 /**
@@ -58,8 +74,8 @@ const ENVIRONMENTAL_TWO = [
 
 const SKINIA_ONE = ['advanced_visual_intelligence_enabled'] as const;
 
-/** What the internal build actually flips: the union, in ruling order. */
-const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_FIVE, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE] as const;
+/** What the internal build actually flips: the union (ten keys), in ruling order. */
+const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_PARTNER_TWO, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE] as const;
 
 /** Every key that differs between two flag objects, sorted for a stable diff. */
 function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
@@ -74,12 +90,12 @@ function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
 }
 
 describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
-  it('is exactly the two rulings’ keys, each set intact, in ruling order', () => {
-    // Pinned as TWO sets plus their union, not one flat list: the module's
+  it('is exactly the four grants’ keys, each set intact, in ruling order', () => {
+    // Pinned as FOUR sets plus their union, not one flat list: the module's
     // contract is that each ruling stays founder-traceable, and a merged array
     // would hide which ruling granted what.
     expect([...RC2_OVERLAY_FLAGS]).toEqual([...RC2_FIVE]);
-    expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS]).toEqual([...EDITORIAL_FIVE]);
+    expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS]).toEqual([...EDITORIAL_PARTNER_TWO]);
     expect([...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS]).toEqual([...ENVIRONMENTAL_TWO]);
     expect([...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...SKINIA_ONE]);
     expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...ALL_GRANTED]);
@@ -112,7 +128,30 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     }
   });
 
-  it('none of the five ruling keys are in INTERNAL_PREVIEW_RESTRICTED_FLAGS', () => {
+  it('keys granted only by the overlay remain OFF in production defaults', () => {
+    // The module's premise, stated against the SOURCE export rather than this
+    // file's mirror: the overlay grants only what production does not. A key
+    // that graduates to `true` in DEFAULT_FLAGS must leave the overlay in the
+    // same change (A4, 2026-09-23) — this is what catches the next graduation.
+    expect(INTERNAL_TESTFLIGHT_OVERLAY_FLAGS.length).toBeGreaterThan(0);
+    for (const key of INTERNAL_TESTFLIGHT_OVERLAY_FLAGS) {
+      expect(DEFAULT_FLAGS[key], `${key} is granted by the overlay but already true in DEFAULT_FLAGS`).toBe(false);
+    }
+  });
+
+  it('A4 graduation record (2026-09-23): Home, Moments and Weekly are production defaults and appear in no overlay list', () => {
+    // Founder direction 2026-09-16 (#1031) shipped these three in
+    // DEFAULT_FLAGS; A4 recognised the graduations for the limited purpose of
+    // correcting this overlay contract. Pinned on both sides so a revert of
+    // either half (the default or the overlay list) is a visible failure here.
+    for (const key of GRADUATED_EDITORIAL_THREE) {
+      expect(DEFAULT_FLAGS[key], `${key} should be a production default`).toBe(true);
+      expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS] as readonly string[]).not.toContain(key);
+      expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS] as readonly string[]).not.toContain(key);
+    }
+  });
+
+  it('none of the ten ruling keys are in INTERNAL_PREVIEW_RESTRICTED_FLAGS', () => {
     // Founder decision NO-10 restricts flags like night_out_enabled from ANY
     // generic client-side unlock. This overlay is a distinct, build-time-only
     // mechanism — but it must never become a side-door around that restriction.
@@ -172,7 +211,7 @@ describe('applyInternalTestflightOverlay — exactly the granted keys when on (i
     expect(changedKeys(base, after)).toEqual([...ALL_GRANTED].sort());
   });
 
-  it('is idempotent: applying twice produces the same five-key diff as applying once', () => {
+  it('is idempotent: applying twice produces the same ten-key diff as applying once', () => {
     const once = applyInternalTestflightOverlay(DEFAULT_FLAGS, true);
     const twice = applyInternalTestflightOverlay(once, true);
     expect(changedKeys(DEFAULT_FLAGS, twice)).toEqual([...ALL_GRANTED].sort());
