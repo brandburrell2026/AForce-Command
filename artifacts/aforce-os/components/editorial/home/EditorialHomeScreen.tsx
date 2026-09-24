@@ -424,7 +424,6 @@ const styles = StyleSheet.create({
   welcome: {
     ...edType.micro,
     color: edInkFor('black').quiet,
-    textTransform: 'uppercase',
   },
   heroSlot: {
     marginTop: 22,
@@ -450,7 +449,6 @@ const styles = StyleSheet.create({
   heroLabel: {
     ...edType.micro,
     color: edInkFor('black').quiet,
-    textTransform: 'uppercase',
   },
   stateWord: {
     marginTop: 6,
