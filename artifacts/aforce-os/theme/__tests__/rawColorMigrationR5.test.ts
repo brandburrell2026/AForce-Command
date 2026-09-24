@@ -58,6 +58,21 @@ describe('PR-R5 (A5): Profile SkinIA entry disc — withAlpha(af.red, 0.14) is b
   it('af.red is still the frozen brand Signal Red (#C1281B) the retired literal encoded', () => {
     expect(af.red).toBe('#C1281B');
   });
+
+  it('ProfileScreenV2 renders the SkinIA entry disc through withAlpha(af.red, 0.14) (call-site pin)', () => {
+    // The two assertions above hold regardless of what the screen does; this
+    // one pins the migrated call site itself, so a later alpha drift at the
+    // disc (e.g. af.redDim, or a different alpha) fails here by name.
+    const src = readFileSync(join(ROOT, 'components/profile/ProfileScreenV2.tsx'), 'utf8');
+    expect(src).toContain("import { af, withAlpha } from '@/theme';");
+    const start = src.indexOf('const skinIAEntry = skinIAEnabled ? (');
+    expect(start).toBeGreaterThan(-1);
+    const end = src.indexOf(') : null;', start);
+    expect(end).toBeGreaterThan(start);
+    const entryBlock = src.slice(start, end);
+    expect(entryBlock).toContain('testID="profile-skinia-entry"');
+    expect(entryBlock).toContain('backgroundColor: withAlpha(af.red, 0.14)');
+  });
 });
 
 describe('PR-R5 (A5): One Breath idle wave bars — secondary-text grey through the alpha system', () => {
