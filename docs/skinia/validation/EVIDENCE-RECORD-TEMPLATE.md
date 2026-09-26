@@ -41,17 +41,24 @@ cosmetics, tattoos, eyewear, occlusion, motion, and compression.
 Create an aggregate table for **each** approved label, overall and stratified
 by device family, lighting, and Fitzpatrick coverage. State the reference
 rating method and its limitations. Do not count ambiguous references, quality
-rejections, or accepted captures where the candidate abstained as negative
-examples. Record all attempts, including those exclusions, so a high apparent
-accuracy cannot hide low coverage.
+rejections, missing or non-comparable required baselines, or accepted captures
+where the candidate abstained as negative examples. Record all attempts,
+including those exclusions, so a high apparent accuracy cannot hide low
+coverage. Apply gates in order: quality, required-baseline comparability,
+live-reference ambiguity, algorithm abstention, then TP/FP/FN/TN. For a
+baseline-free method, the baseline column is zero, not an omitted denominator.
+Each aggregate block must carry the exact build ID, method revision, rubric
+revision, and support-cell ID. Do not merge blocks when any of these differ;
+report cross-version or cross-cell results separately. These are protocol IDs,
+not participant or image identifiers.
 
-| Label | Stratum | Attempts | TP | FP | FN | TN | Ambiguous reference | Quality rejected | Abstained | False-positive issue refs | False-negative issue refs |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| `VISIBLE_DRYNESS` | PENDING | — | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_FLAKING` | PENDING | — | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_REDNESS` | PENDING | — | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_SURFACE_SHINE` | PENDING | — | — | — | — | — | — | — | — | — | — |
-| `VISIBLE_TEXTURE` | PENDING | — | — | — | — | — | — | — | — | — | — |
+| Label | Stratum | Attempts | TP | FP | FN | TN | Ambiguous reference | Quality rejected | Baseline not comparable | Abstained | False-positive issue refs | False-negative issue refs |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| `VISIBLE_DRYNESS` | PENDING | — | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_FLAKING` | PENDING | — | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_REDNESS` | PENDING | — | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_SURFACE_SHINE` | PENDING | — | — | — | — | — | — | — | — | — | — | — |
+| `VISIBLE_TEXTURE` | PENDING | — | — | — | — | — | — | — | — | — | — | — | — |
 
 ## Repeatability and capture equivalence
 
