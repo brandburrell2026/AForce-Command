@@ -1,12 +1,12 @@
 # SkinIA Phase 1 validation package
 
-**State:** `PENDING — EVIDENCE NOT COLLECTED`
+**State:** `PENDING — ACCURACY EVIDENCE NOT COLLECTED`
 
 **Scope:** controlled internal engineering/QA testing only
 
 **Authority:** [AF-SI-001A](../../governance/approvals/AF-SI-001A-phase1-internal-testflight.md) and its implementation amendment
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-26
 
 This is the source-of-truth index for the Phase 1 validation deliverable. It is a
 collection plan, **not** a finding that SkinIA is accurate, fair, or ready to
@@ -18,10 +18,10 @@ in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 | Item | Current state | Evidence still needed |
 | --- | --- | --- |
-| iOS internal build | Build 90 compiled and uploaded to internal TestFlight from `91b1bb74` | Physical iPhone test records across supported generations |
+| iOS internal build | Build 99 is in internal TestFlight from merged [PR #1064](https://github.com/brandburrell2026/AForce-Command/pull/1064) (`5a520b42`). A tester-reported iPhone 17 Pro capture reached `OBSERVATIONS_NOT_ADMITTED` after technical checks. This is one QA-path observation, **not** a skin-accuracy result. | Frozen device/OS/light support cell, independent live reference, aggregate accuracy and quality evidence across the planned strata |
 | Android module | Source implemented; native build/device behavior unverified | Build and physical-device records on supported Android devices |
 | Image quality | Basic single-face, frontal, eye, exposure, and blur checks implemented | Acceptance/rejection performance by condition and skin type |
-| Observation candidates | Five approved labels, LOW confidence, not member-visible | Reference-label protocol, accuracy and repeatability evidence |
+| Observation candidates | Five in-scope labels, unvalidated LOW-confidence probes, not member-visible | Reference-label protocol, versioned label-specific score, accuracy and repeatability evidence |
 | Capture equivalence | Not established | Evidence that comparisons survive auto-exposure and auto-white-balance |
 | Privacy | Volatile-image design and tests | Device/log/network/crash inspection on all exit paths |
 | Confidence thresholds | No approved release thresholds | Pre-registered thresholds, calibration, and independent approval |
@@ -29,6 +29,30 @@ in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 No entry in this table is a substitute for the evidence described below. Build
 success and unit tests are engineering checks, not validation.
+
+## Review status and next decision
+
+As of this update, the product/claims review records **changes required before
+approval**. The independent-method form contains a reviewer name and signature
+text but still says **UNSIGNED REVIEW FORM**, has no selected decision, and
+leaves the build, method, support list, sample, exclusions, rubric, and
+threshold fields blank. The separate pre-registration revision packet calls
+itself a draft, not a frozen protocol. Do not interpret a typed name, a merged
+PR, or build 99 as an approved enrollment or observation decision. A privacy
+approval for the exact coded-record, access, retention, and deletion plan must
+also be recorded before enrollment.
+
+The next bounded study decision is whether two blinded live reviewers can
+reliably judge **visible flaking** in a prospectively specified, diffuse-indoor
+light iPhone 17 Pro setup without retaining face images. That is a proposal for
+reference feasibility, not a finding that the existing bright-edge probe
+detects flakes. Before any participant enrollment, obtain explicit decisions
+on the narrow cue and region rule, reviewer training, ambiguity versus
+capture-quality exclusions, consent/privacy controls, exact sample and
+acceptance targets, and the immutable build/method version. A separate,
+versioned baseline-free candidate score and untouched evaluation are needed
+before algorithm accuracy can be assessed. Other cues, devices, lighting
+conditions, baseline comparisons, and member-visible results stay blocked.
 
 ## Required packet
 
@@ -53,7 +77,7 @@ that one successful build covers a device family.
 
 | Required coverage | Status | Record / issue |
 | --- | --- | --- |
-| Supported iPhone models and multiple camera generations | PENDING | — |
+| Supported iPhone models and multiple camera generations | PENDING | Build 99: one tester-reported iPhone 17 Pro technical capture; no accuracy or multi-generation coverage |
 | Supported Android flagships and multiple camera generations | PENDING | — |
 | Indoor, outdoor, warm, cool, and low-light conditions | PENDING | — |
 | Fitzpatrick I–VI coverage (voluntary, consented classification) | PENDING | — |

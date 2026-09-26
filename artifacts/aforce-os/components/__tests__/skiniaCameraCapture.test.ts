@@ -8,6 +8,9 @@ describe('SkinIA controlled camera capture', () => {
   it('uses the approved editorial scan framing and clear user-triggered permission flow', () => {
     for (const label of ['SKINIA VISUAL CHECK / SCAN', 'ALIGN FACE / EVEN LIGHT / NO FILTERS', 'Camera status', 'Capture review image']) expect(source).toContain(label);
     expect(source).toContain('onRequest={() => { void requestPermission(); }}');
+    expect(source).toContain('Capture for QA.');
+    expect(source).toContain('No skin reading yet.');
+    expect(source).not.toContain('Compare over time.');
   });
 
   it('offers an in-place quality retry without skipping the capture gate', () => {
@@ -34,6 +37,9 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain('qaNote={presentation.qaNote}');
     expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode");
     expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaNote");
+    expect(source).toContain("const findingsGated = presentation.qaCode === 'OBSERVATIONS_NOT_ADMITTED'");
+    expect(source).toContain('onAction={findingsGated ? onExit : onAgain}');
+    expect(source).toContain("secondary={findingsGated ? undefined : 'Back to SkinIA'}");
   });
 
   it('keeps the face guide visible and captures detail without added JPEG blur', () => {
