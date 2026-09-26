@@ -136,7 +136,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       <View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
         <View style={styles.furniture}><Text style={styles.wordmark}>AFORCE</Text><Text style={styles.date}>CONTROLLED TESTFLIGHT</Text></View>
         <Text style={styles.kicker}>SKINIA VISUAL CHECK / SCAN</Text>
-        <Text style={styles.title}>See today.{`\n`}Compare over time.</Text>
+        <Text style={styles.title}>Capture for QA.{`\n`}No skin reading yet.</Text>
         <Text style={styles.body}>Center your full face, 30–45 cm away, with even light in front of you.</Text>
         <View style={styles.viewfinder} pointerEvents="none">
           <View style={[styles.corner, styles.topLeft]} /><View style={[styles.corner, styles.topRight]} />
@@ -159,6 +159,7 @@ function PermissionDenied({ onExit, onRequest }: { onExit: () => void; onRequest
 function QualityInsufficient({ onExit, onRetry, reason }: { onExit: () => void; onRetry: () => void; reason: QualityCode | null }) { return <StaticState title="Unable to Analyze" kicker="CAPTURE QUALITY INSUFFICIENT" body="We couldn’t make a reliable observation from today’s image. The temporary capture was discarded. For another try, face even light, avoid strong light behind you, center your full face, and hold still." action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit} qaCode={reason} />; }
 function Review({ onExit, onAgain }: { onExit: () => void; onAgain: () => void }) {
   const presentation = resolveSkinIAReviewPresentation(null, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true');
+  const findingsGated = presentation.qaCode === 'OBSERVATIONS_NOT_ADMITTED';
 
   return <StaticState
     title={presentation.title}
@@ -166,9 +167,9 @@ function Review({ onExit, onAgain }: { onExit: () => void; onAgain: () => void }
     body={presentation.body}
     qaNote={presentation.qaNote}
     action={presentation.action}
-    onAction={onAgain}
-    secondary="Back to SkinIA"
-    onSecondary={onExit}
+    onAction={findingsGated ? onExit : onAgain}
+    secondary={findingsGated ? undefined : 'Back to SkinIA'}
+    onSecondary={findingsGated ? undefined : onExit}
     qaCode={presentation.qaCode}
   />;
 }

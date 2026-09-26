@@ -9,6 +9,12 @@ describe('SkinIA consent and privacy shell', () => {
     expect(source).toContain('does not diagnose conditions or measure hydration');
     expect(source).not.toContain('Skin State');
   });
+  it('does not promise a skin reading or baseline comparison from the QA-only build', () => {
+    expect(source).toContain('SkinIA QA.\\nNo findings yet.');
+    expect(source).toContain('It does not provide a skin reading in this build.');
+    expect(source).toContain('Start QA capture');
+    expect(source).not.toContain('Compare over time.');
+  });
   it('states zero persistent raw-image retention and deletion events', () => {
     expect(source).toContain('ZERO PERSISTENT RETENTION');
     expect(source).toContain('must be deleted immediately');
