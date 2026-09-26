@@ -29,7 +29,7 @@ describe('SkinIA controlled camera capture', () => {
   });
 
   it('distinguishes a passed capture with closed observation admission in internal QA only', () => {
-    expect(source).toContain("resolveSkinIAReviewPresentation(outcome, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true')");
+    expect(source).toContain("resolveSkinIAReviewPresentation(null, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true')");
     expect(source).toContain('qaCode={presentation.qaCode}');
     expect(source).toContain('qaNote={presentation.qaNote}');
     expect(source).toContain("process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode");
@@ -54,12 +54,12 @@ describe('SkinIA controlled camera capture', () => {
 
   it('runs in-memory feature extraction but withholds unvalidated observations', () => {
     expect(source).toContain('extractSkinIAImageFeatures(picture)');
-    expect(source).toContain('deriveSkinIAExperimentalCandidates');
-    expect(source).toContain('resolveSkinIAInternalObservation');
-    expect(source).toContain('resolveSkinIAReviewPresentation(outcome');
+    expect(source).toContain('deriveSkinIABaselineFreeQaProbes(analysis)');
+    expect(source).toContain('resolveSkinIAReviewPresentation(null');
     expect(source).toContain('title={presentation.title}');
+    expect(source).not.toContain('deriveSkinIAExperimentalCandidates');
+    expect(source).not.toContain('sessionBaseline');
     expect(source).not.toContain('candidateCount');
-    expect(source).toContain('sessionBaseline.current = null');
   });
 
   it('preserves denied, unavailable, and cancel-safe states', () => {
@@ -67,7 +67,7 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain('isLive.current = false');
     expect(source).toContain('onPress={exitCapture}');
     expect(source.match(/if \(!isLive\.current\) return;/g)).toHaveLength(2);
-    expect(source).toMatch(/sessionBaseline\.current = null;\s+onExit\(\);/);
+    expect(source).toMatch(/isLive\.current = false;\s+onExit\(\);/);
     expect(source).toMatch(/picture\?\.release\(\);\s+} catch \{[\s\S]*?nextState = 'UNAVAILABLE';/);
   });
 });

@@ -4,9 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { edAccent, edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
 import { withAlpha } from '@/theme/afTokens';
 import { assessSkinIATechnicalQuality, type SkinIATechnicalQuality } from '@/services/skiniaTechnicalQuality';
-import { extractSkinIAImageFeatures, type SkinIAImageFeatureState, type SkinIAImageMetrics } from '@/modules/skinia-image-features';
-import { deriveSkinIAExperimentalCandidates } from '@/services/skiniaImageAnalysis';
-import { resolveSkinIAInternalObservation, type SkinIAObservationOutcome } from '@/services/skiniaObservationPipeline';
+import { extractSkinIAImageFeatures, type SkinIAImageFeatureState } from '@/modules/skinia-image-features';
+import { deriveSkinIABaselineFreeQaProbes } from '@/services/skiniaImageAnalysis';
 import { resolveSkinIAReviewPresentation } from '@/services/skiniaReviewPresentation';
 import type { PictureRef } from 'expo-camera';
 
@@ -38,12 +37,9 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<CaptureState>('PREPARING');
   const isLive = useRef(true);
-  const sessionBaseline = useRef<SkinIAImageMetrics | null>(null);
-  const [internalOutcome, setInternalOutcome] = useState<SkinIAObservationOutcome | null>(null);
   const [qualityReason, setQualityReason] = useState<QualityCode | null>(null);
 
   const retryCapture = useCallback(() => {
-    setInternalOutcome(null);
     setQualityReason(null);
     setReady(false);
     setState('READY');
@@ -53,7 +49,6 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     // Mark the session closed before navigation unmounts this screen. An
     // in-flight camera promise must not start analysis after a user cancels.
     isLive.current = false;
-    sessionBaseline.current = null;
     onExit();
   }, [onExit]);
 
@@ -63,7 +58,6 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       // A PictureRef is never copied outside the capture callback. Dropping the
       // reference on every unmount/cancel is the final local cleanup boundary.
       isLive.current = false;
-      sessionBaseline.current = null;
     };
   }, []);
 
@@ -77,7 +71,6 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     setState('CAPTURING');
     let picture: PictureRef | undefined;
     let nextState: CaptureState = 'UNAVAILABLE';
-    let nextOutcome: SkinIAObservationOutcome | null = null;
     let nextQualityReason: QualityCode | null = null;
     try {
       // pictureRef avoids a URI/base64/EXIF payload and a persistent asset.
@@ -96,16 +89,12 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
           nextState = analysis.state === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'QUALITY_INSUFFICIENT';
           if (analysis.state !== 'UNAVAILABLE') nextQualityReason = analysis.state;
         } else {
-          // Session-only comparison for internal QA. Every experimental candidate
-          // has LOW confidence. A same-session capture is not a validated recent
-          // personal baseline, and the member-result admission gate is closed.
-          const candidates = deriveSkinIAExperimentalCandidates(analysis.metrics, sessionBaseline.current);
-          sessionBaseline.current = analysis.metrics;
-          const firstCandidate = candidates[0];
-          nextOutcome = firstCandidate
-            ? resolveSkinIAInternalObservation({ ...firstCandidate, capturedAt: new Date().toISOString() }, false)
-            : null;
-          nextState = 'REVIEW';
+          // The first capture has no comparable personal baseline. Keep only
+          // versioned, baseline-free QA probes in this callback; do not infer
+          // an appearance label or retain them in component state.
+          nextState = deriveSkinIABaselineFreeQaProbes(analysis)
+            ? 'REVIEW'
+            : 'UNAVAILABLE';
         }
       }
     } catch {
@@ -117,13 +106,11 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       } catch {
         // A failed native release cannot be treated as a successful review.
         // Keep the result closed and let the reference fall out of JS scope.
-        nextOutcome = null;
         nextQualityReason = null;
         nextState = 'UNAVAILABLE';
       }
     }
     if (isLive.current) {
-      setInternalOutcome(nextOutcome);
       setQualityReason(nextQualityReason);
       setState(nextState);
     }
@@ -133,7 +120,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     return <PermissionDenied onExit={exitCapture} onRequest={() => { void requestPermission(); }} />;
   }
   if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={exitCapture} onRetry={retryCapture} reason={qualityReason} />;
-  if (state === 'REVIEW') return <Review outcome={internalOutcome} onExit={exitCapture} onAgain={retryCapture} />;
+  if (state === 'REVIEW') return <Review onExit={exitCapture} onAgain={retryCapture} />;
   if (state === 'UNAVAILABLE') return <Unavailable onExit={exitCapture} />;
 
   return (
@@ -170,8 +157,8 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
 
 function PermissionDenied({ onExit, onRequest }: { onExit: () => void; onRequest: () => void }) { return <StaticState title="Camera access is off." kicker="PERMISSION DENIED" body="SkinIA will not begin a visual check without your explicit camera permission. No image has been captured." action="Enable camera" onAction={onRequest} secondary="Cancel" onSecondary={onExit} />; }
 function QualityInsufficient({ onExit, onRetry, reason }: { onExit: () => void; onRetry: () => void; reason: QualityCode | null }) { return <StaticState title="Unable to Analyze" kicker="CAPTURE QUALITY INSUFFICIENT" body="We couldn’t make a reliable observation from today’s image. The temporary capture was discarded. For another try, face even light, avoid strong light behind you, center your full face, and hold still." action="Try another capture" onAction={onRetry} secondary="Back to SkinIA" onSecondary={onExit} qaCode={reason} />; }
-function Review({ onExit, onAgain, outcome }: { onExit: () => void; onAgain: () => void; outcome: SkinIAObservationOutcome | null }) {
-  const presentation = resolveSkinIAReviewPresentation(outcome, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true');
+function Review({ onExit, onAgain }: { onExit: () => void; onAgain: () => void }) {
+  const presentation = resolveSkinIAReviewPresentation(null, process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true');
 
   return <StaticState
     title={presentation.title}
