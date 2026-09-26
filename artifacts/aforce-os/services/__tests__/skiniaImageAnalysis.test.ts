@@ -40,4 +40,10 @@ describe('SkinIA experimental on-device analysis', () => {
   it('does not emit a candidate when metrics remain near baseline', () => {
     expect(deriveSkinIAExperimentalCandidates({ ...baseline, cheekRedness: 0.102, cheekTexture: 10.1 }, baseline)).toEqual([]);
   });
+
+  it('rejects a malformed or non-finite feature vector instead of producing a QA candidate', () => {
+    expect(deriveSkinIAExperimentalCandidates({ ...baseline, cheekRedness: Infinity }, baseline)).toEqual([]);
+    expect(deriveSkinIAExperimentalCandidates(baseline, { ...baseline, surfaceShine: NaN })).toEqual([]);
+    expect(deriveSkinIAExperimentalCandidates({ ...baseline, brightEdgeDensity: undefined as unknown as number }, baseline)).toEqual([]);
+  });
 });
