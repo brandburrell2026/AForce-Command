@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { SkinIAImageMetrics } from '../../modules/skinia-image-features';
-import { deriveSkinIAExperimentalCandidates } from '../skiniaImageAnalysis';
+import {
+  deriveSkinIABaselineFreeQaProbes,
+  deriveSkinIAExperimentalCandidates,
+  SKINIA_QA_PROBE_REVISION,
+} from '../skiniaImageAnalysis';
 import { resolveSkinIAInternalObservation } from '../skiniaObservationPipeline';
 
 const baseline: SkinIAImageMetrics = Object.freeze({
@@ -13,6 +17,28 @@ const baseline: SkinIAImageMetrics = Object.freeze({
 });
 
 describe('SkinIA experimental on-device analysis', () => {
+  it('exposes versioned baseline-free numeric probes without making a label or confidence decision', () => {
+    const probes = deriveSkinIABaselineFreeQaProbes({ state: 'PASS', metrics: baseline });
+    expect(probes).toEqual({
+      revision: SKINIA_QA_PROBE_REVISION,
+      status: 'UNVALIDATED_QA_PROBES',
+      redColorIndex: 0.10,
+      brightPixelFraction: 0.04,
+      brightEdgeFraction: 0.04,
+    });
+    expect(Object.isFrozen(probes)).toBe(true);
+    expect(probes).not.toHaveProperty('observation');
+    expect(probes).not.toHaveProperty('confidence');
+  });
+
+  it('fails closed on non-finite or out-of-range native metrics', () => {
+    expect(deriveSkinIABaselineFreeQaProbes({ state: 'NO_FACE' })).toBeNull();
+    expect(deriveSkinIABaselineFreeQaProbes({ state: 'PASS', metrics: { ...baseline, cheekRedness: Infinity } })).toBeNull();
+    expect(deriveSkinIABaselineFreeQaProbes({ state: 'PASS', metrics: { ...baseline, surfaceShine: -0.1 } })).toBeNull();
+    expect(deriveSkinIABaselineFreeQaProbes({ state: 'PASS', metrics: { ...baseline, brightEdgeDensity: 1.1 } })).toBeNull();
+    expect(deriveSkinIABaselineFreeQaProbes({ state: 'PASS', metrics: { ...baseline, cheekBrightness: 256 } })).toBeNull();
+  });
+
   it('does not invent a finding from a first capture without a comparison', () => {
     expect(deriveSkinIAExperimentalCandidates(baseline, null)).toEqual([]);
   });
