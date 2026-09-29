@@ -60,6 +60,13 @@ blinded reviewers in one pre-specified diffuse-indoor iPhone 17 Pro setup.
 Its purpose is to determine whether the reference itself is repeatable without
 retaining face images. It is not an evaluation of the current bright-edge
 probe, a validated skin reading, or an admission to the member UI. The
+pure `skiniaLiveReferenceFeasibility.ts` helper now keeps the two blinded
+reviewers' binary 2×2 agreement counts separate from capture rejection and
+ambiguous ratings, scoped to exact build/protocol/rubric/support-cell IDs.
+It returns descriptive agreement fractions only; it is not wired to capture,
+does not retain cases, and assigns no study verdict. The independent reviewer
+must approve the denominators, uncertainty method, targets, and record process
+before the helper is used with consented study data. The
 pre-registration packet must fix the named facial regions, viewing/capture
 conditions, reviewer training, minimum visible-detail rule, sample and repeat
 counts, uncertainty and acceptance criteria, and distinct reasons for
