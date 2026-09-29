@@ -24,11 +24,13 @@ image data.
 ## Analysis-method decision
 
 The current native modules detect a face, reject some unsuitable captures, and
-return derived pixel metrics in memory. The JavaScript rules compare those
-metrics with a same-session reference and emit only LOW-confidence experimental
-candidates. No Core ML, TensorFlow Lite, or ONNX observation-model asset is
-tracked in the AForce OS source tree at this review. This is **not** a selected
-or validated observation model. Its
+return derived pixel metrics in memory. Build 100's JavaScript capture path
+checks those values as baseline-free QA probes, then shows a technical result;
+it does not derive an appearance-label candidate, compare with a personal
+baseline, or store a score. Older observation/baseline helpers remain in source
+but are not wired into that capture path. No Core ML, TensorFlow Lite, or ONNX
+observation-model asset is tracked in the AForce OS source tree at this review.
+This is **not** a selected or validated observation model. Its
 absolute brightness, shine, and edge probes have not demonstrated equivalence
 across exposure, white balance, lighting, devices, or skin types. The
 member-result admission gate remains closed.
@@ -47,8 +49,8 @@ before observation-performance testing. A candidate review must document:
    minimum per-stratum performance, and held-out evaluation. Two starting
    iPhones cannot establish these results.
 
-Until that decision and the later evidence review, experimental candidates
-remain internal signals only, never member observations. A technical pilot
+Until that decision and the later evidence review, the QA probes remain
+internal technical signals only, never member observations. A technical pilot
 must not be re-labeled as accuracy validation.
 
 ## Next bounded decision: live-reference feasibility

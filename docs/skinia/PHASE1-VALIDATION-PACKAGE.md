@@ -10,9 +10,10 @@
 
 This is the source-of-truth index for the Phase 1 validation deliverable. It is a
 collection plan, **not** a finding that SkinIA is accurate, fair, or ready to
-show observations. The current engine emits only LOW-confidence experimental
-candidates and withholds them from member results. The admitted observation set
-in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
+show observations. The build 100 capture path derives versioned QA-only pixel
+probes; it does not compute a label-specific score or emit a skin observation.
+The admitted observation set in
+[architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 ## Current build and evidence status
 
@@ -21,7 +22,7 @@ in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 | iOS internal build | Build 100 (AForce OS 1.0.0), EAS build `2707b256-3f5d-4452-9764-d2641c17e03b`, came from merged [PR #1065](https://github.com/brandburrell2026/AForce-Command/pull/1065) (`d4aec50c`). The tester-reported iPhone 17 Pro capture displayed `Capture check passed` and `OBSERVATIONS_NOT_ADMITTED`; `Back to SkinIA` returned to the overview. This is one device-flow QA observation, **not** a skin-accuracy result. | Frozen device/OS/light support cell, independent live reference, aggregate accuracy and quality evidence across the planned strata |
 | Android module | Source implemented; native build/device behavior unverified | Build and physical-device records on supported Android devices |
 | Image quality | Basic single-face, frontal, eye, exposure, and blur checks implemented | Acceptance/rejection performance by condition and skin type |
-| Observation candidates | Five in-scope labels, unvalidated LOW-confidence probes, not member-visible | Reference-label protocol, versioned label-specific score, accuracy and repeatability evidence |
+| Observation candidates | Five authorized labels, but no label-specific candidate is emitted by build 100's capture path; its pixel probes are QA-only and not member-visible | Reference-label protocol, versioned label-specific score, accuracy and repeatability evidence |
 | Capture equivalence | Not established | Evidence that comparisons survive auto-exposure and auto-white-balance |
 | Privacy | Volatile-image design and tests | Device/log/network/crash inspection on all exit paths |
 | Confidence thresholds | No approved release thresholds | Pre-registered thresholds, calibration, and independent approval |
