@@ -35,6 +35,7 @@ describe('SkinIA native feature bridge', () => {
   it('fails closed on unknown native states', () => {
     expect(parseSkinIAImageFeatureResult({ state: 'NO_FACE' })).toEqual({ state: 'NO_FACE' });
     expect(parseSkinIAImageFeatureResult({ state: 'REGIONS_UNUSABLE' })).toEqual({ state: 'REGIONS_UNUSABLE' });
+    expect(parseSkinIAImageFeatureResult({ state: 'BLURRY', metrics, image: 'not allowed' })).toEqual({ state: 'BLURRY' });
     expect(parseSkinIAImageFeatureResult({ state: 'PASS', data: 'not metrics' })).toEqual({ state: 'UNAVAILABLE' });
     expect(parseSkinIAImageFeatureResult({ state: 'new state' })).toEqual({ state: 'UNAVAILABLE' });
   });
