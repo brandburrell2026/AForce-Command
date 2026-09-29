@@ -7,7 +7,7 @@ const source = readFileSync(resolve(__dirname, '..', 'advancedVisual', 'SkinIACa
 describe('SkinIA controlled camera capture', () => {
   it('uses the approved editorial scan framing and clear user-triggered permission flow', () => {
     for (const label of ['SKINIA VISUAL CHECK / SCAN', 'ALIGN FACE / EVEN LIGHT / NO FILTERS', 'Camera status', 'Capture review image']) expect(source).toContain(label);
-    expect(source).toContain('onRequest={() => { void requestPermission(); }}');
+    expect(source).toContain('onRequest={() => { void requestCameraPermission(); }}');
     expect(source).toContain('Capture for QA.');
     expect(source).toContain('No skin reading yet.');
     expect(source).not.toContain('Compare over time.');
@@ -72,8 +72,17 @@ describe('SkinIA controlled camera capture', () => {
     for (const label of ['PERMISSION DENIED', 'UNKNOWN', 'Cancel and discard']) expect(source).toContain(label);
     expect(source).toContain('isLive.current = false');
     expect(source).toContain('onPress={exitCapture}');
-    expect(source.match(/if \(!isLive\.current\) return;/g)).toHaveLength(2);
-    expect(source).toMatch(/isLive\.current = false;\s+onExit\(\);/);
+    expect(source.match(/if \(!isLive\.current \|\| !attemptGate\.current\.isCurrent\(attempt\)\) return;/g)).toHaveLength(2);
+    expect(source).toMatch(/isLive\.current = false;\s+attemptGate\.current\.close\(\);\s+onExit\(\);/);
     expect(source).toMatch(/picture\?\.release\(\);\s+} catch \{[\s\S]*?nextState = 'UNAVAILABLE';/);
+  });
+
+  it('invalidates an in-flight capture on interruption but not on the permission sheet', () => {
+    expect(source).toContain("AppState.addEventListener('change'");
+    expect(source).toContain("if (next === 'inactive' && permissionRequestInFlight.current) return;");
+    expect(source).toContain('attemptGate.current.interrupted();');
+    expect(source).toContain("setState('UNAVAILABLE');");
+    expect(source).toContain('if (isLive.current && attemptGate.current.isCurrent(attempt)) {');
+    expect(source.indexOf('picture?.release();')).toBeLessThan(source.indexOf('if (isLive.current && attemptGate.current.isCurrent(attempt)) {'));
   });
 });
