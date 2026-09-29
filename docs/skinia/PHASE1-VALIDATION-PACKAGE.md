@@ -6,7 +6,7 @@
 
 **Authority:** [AF-SI-001A](../../governance/approvals/AF-SI-001A-phase1-internal-testflight.md) and its implementation amendment
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-28
 
 This is the source-of-truth index for the Phase 1 validation deliverable. It is a
 collection plan, **not** a finding that SkinIA is accurate, fair, or ready to
@@ -18,7 +18,7 @@ in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 | Item | Current state | Evidence still needed |
 | --- | --- | --- |
-| iOS internal build | Build 99 is in internal TestFlight from merged [PR #1064](https://github.com/brandburrell2026/AForce-Command/pull/1064) (`5a520b42`). A tester-reported iPhone 17 Pro capture reached `OBSERVATIONS_NOT_ADMITTED` after technical checks. This is one QA-path observation, **not** a skin-accuracy result. | Frozen device/OS/light support cell, independent live reference, aggregate accuracy and quality evidence across the planned strata |
+| iOS internal build | Build 100 (AForce OS 1.0.0), EAS build `2707b256-3f5d-4452-9764-d2641c17e03b`, came from merged [PR #1065](https://github.com/brandburrell2026/AForce-Command/pull/1065) (`d4aec50c`). The tester-reported iPhone 17 Pro capture displayed `Capture check passed` and `OBSERVATIONS_NOT_ADMITTED`; `Back to SkinIA` returned to the overview. This is one device-flow QA observation, **not** a skin-accuracy result. | Frozen device/OS/light support cell, independent live reference, aggregate accuracy and quality evidence across the planned strata |
 | Android module | Source implemented; native build/device behavior unverified | Build and physical-device records on supported Android devices |
 | Image quality | Basic single-face, frontal, eye, exposure, and blur checks implemented | Acceptance/rejection performance by condition and skin type |
 | Observation candidates | Five in-scope labels, unvalidated LOW-confidence probes, not member-visible | Reference-label protocol, versioned label-specific score, accuracy and repeatability evidence |
@@ -33,14 +33,14 @@ success and unit tests are engineering checks, not validation.
 ## Review status and next decision
 
 As of this update, the product/claims review records **changes required before
-approval**. The independent-method form contains a reviewer name and signature
-text but still says **UNSIGNED REVIEW FORM**, has no selected decision, and
-leaves the build, method, support list, sample, exclusions, rubric, and
-threshold fields blank. The separate pre-registration revision packet calls
-itself a draft, not a frozen protocol. Do not interpret a typed name, a merged
-PR, or build 99 as an approved enrollment or observation decision. A privacy
-approval for the exact coded-record, access, retention, and deletion plan must
-also be recorded before enrollment.
+approval**. The independent-method and privacy forms still say **UNSIGNED
+REVIEW FORM** and have no explicitly selected approval decision. The
+independent-method form leaves the build, method, support list, sample,
+exclusions, rubric, and threshold fields blank. The separate pre-registration
+revision packet calls itself a draft, not a frozen protocol. Do not interpret
+typed names, a merged PR, or build 100 as an approved enrollment or observation
+decision. Privacy must approve and verify the exact coded-record, access,
+retention, backup/version, and deletion controls before enrollment.
 
 The next bounded study decision is whether two blinded live reviewers can
 reliably judge **visible flaking** in a prospectively specified, diffuse-indoor
@@ -77,7 +77,7 @@ that one successful build covers a device family.
 
 | Required coverage | Status | Record / issue |
 | --- | --- | --- |
-| Supported iPhone models and multiple camera generations | PENDING | Build 99: one tester-reported iPhone 17 Pro technical capture; no accuracy or multi-generation coverage |
+| Supported iPhone models and multiple camera generations | PENDING | Build 100: one tester-reported iPhone 17 Pro technical capture; no accuracy or multi-generation coverage |
 | Supported Android flagships and multiple camera generations | PENDING | — |
 | Indoor, outdoor, warm, cool, and low-light conditions | PENDING | — |
 | Fitzpatrick I–VI coverage (voluntary, consented classification) | PENDING | — |
