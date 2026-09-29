@@ -37,17 +37,12 @@ private enum SkinIAImageFeatures {
     let sourceHeight = source.size.height * source.scale
     guard sourceWidth >= 480, sourceHeight >= 480 else { return ["state": "DIMENSIONS_UNUSABLE"] }
 
-    // UIImage.draw applies orientation. The downscaled image exists only in RAM.
-    let factor = min(1.0, 640.0 / max(sourceWidth, sourceHeight))
-    let width = max(1, Int((sourceWidth * factor).rounded()))
-    let height = max(1, Int((sourceHeight * factor).rounded()))
-    let format = UIGraphicsImageRendererFormat()
-    format.opaque = true
-    format.scale = 1
-    let rendered = UIGraphicsImageRenderer(size: CGSize(width: CGFloat(width), height: CGFloat(height)), format: format).image { _ in
-      source.draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+    // UIImage.draw applies orientation. The reduced image exists only in RAM.
+    guard let cgImage = SkinIAFrameCoordinates.renderUpright(source) else {
+      return ["state": "UNAVAILABLE"]
     }
-    guard let cgImage = rendered.cgImage else { return ["state": "UNAVAILABLE"] }
+    let width = cgImage.width
+    let height = cgImage.height
 
     let request = VNDetectFaceLandmarksRequest()
     do {
@@ -67,34 +62,23 @@ private enum SkinIAImageFeatures {
       return ["state": "FACE_NOT_CLEAR"]
     }
 
-    var rgba = [UInt8](repeating: 0, count: width * height * 4)
-    let drawn = rgba.withUnsafeMutableBytes { bytes -> Bool in
-      guard let address = bytes.baseAddress,
-            let context = CGContext(data: address, width: width, height: height,
-                                    bitsPerComponent: 8, bytesPerRow: width * 4,
-                                    space: CGColorSpaceCreateDeviceRGB(),
-                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue) else {
-        return false
-      }
-      context.translateBy(x: 0, y: CGFloat(height))
-      context.scaleBy(x: 1, y: -1)
-      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
-      return true
+    guard let rgba = SkinIAFrameCoordinates.topLeftRGBA(cgImage) else {
+      return ["state": "UNAVAILABLE"]
     }
-    guard drawn else { return ["state": "UNAVAILABLE"] }
 
     // Vision's normalized box has a bottom-left origin; pixel rows are top-left.
-    let faceX = Double(box.minX) * Double(width)
-    let faceY = (1.0 - Double(box.maxY)) * Double(height)
-    let faceW = Double(box.width) * Double(width)
-    let faceH = Double(box.height) * Double(height)
+    guard let faceRect = SkinIAFrameCoordinates.topLeftFaceRect(
+      fromVisionBox: box, width: width, height: height
+    ) else { return ["state": "REGIONS_UNUSABLE"] }
     // These are coarse face-box sample zones, not landmark-verified skin or
     // evidence that any named appearance cue is observable. Do not silently
     // clamp a cropped zone onto background pixels.
     func region(_ unit: Region) -> Measures? {
       let pixels = Region(
-        x0: faceX + unit.x0 * faceW, y0: faceY + unit.y0 * faceH,
-        x1: faceX + unit.x1 * faceW, y1: faceY + unit.y1 * faceH)
+        x0: faceRect.x + unit.x0 * faceRect.width,
+        y0: faceRect.y + unit.y0 * faceRect.height,
+        x1: faceRect.x + unit.x1 * faceRect.width,
+        y1: faceRect.y + unit.y1 * faceRect.height)
       guard pixels.x0.isFinite, pixels.y0.isFinite, pixels.x1.isFinite, pixels.y1.isFinite,
             pixels.x0 >= 1, pixels.y0 >= 1,
             pixels.x1 <= Double(width - 1), pixels.y1 <= Double(height - 1),
