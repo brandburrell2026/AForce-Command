@@ -10,7 +10,8 @@ describe('SkinIA validation package', () => {
     const index = read('PHASE1-VALIDATION-PACKAGE.md');
     const gate = read('validation/REVIEW-AND-RELEASE-GATE.md');
     expect(index).toContain('PENDING — ACCURACY EVIDENCE NOT COLLECTED');
-    expect(index).toContain('Build 99');
+    expect(index).toContain('Build 100');
+    expect(index).toContain('QA-only pixel');
     expect(index).toContain('OBSERVATIONS_NOT_ADMITTED');
     expect(index).toContain('changes required before');
     expect(index).toContain('unit tests are engineering checks, not validation.');
