@@ -96,3 +96,12 @@ After those approvals, the first two-device pilot may check native-module
 availability, camera rejection/acceptance paths, interruption cleanup, and
 zero raw-image storage/upload. It does not enable observations or satisfy the
 full Phase 1 validation matrix.
+
+The capture screen now invalidates an in-flight attempt when iOS reports an
+app interruption or background transition. A late native result cannot become
+a review state after that invalidation, and the temporary picture reference is
+still released in the capture callback's `finally` path. The camera-permission
+sheet's transient `inactive` state is treated separately so asking for
+permission does not itself end the session. This is source-level mitigation,
+**not** physical-device proof of cleanup; the interruption, permission, and
+abandonment paths still need the approved pilot's sandbox/network checks.

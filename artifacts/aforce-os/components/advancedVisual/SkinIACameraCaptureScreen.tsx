@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { edAccent, edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
 import { withAlpha } from '@/theme/afTokens';
@@ -7,6 +7,7 @@ import { assessSkinIATechnicalQuality, type SkinIATechnicalQuality } from '@/ser
 import { extractSkinIAImageFeatures, type SkinIAImageFeatureState } from '@/modules/skinia-image-features';
 import { deriveSkinIABaselineFreeQaProbes } from '@/services/skiniaImageAnalysis';
 import { resolveSkinIAReviewPresentation } from '@/services/skiniaReviewPresentation';
+import { createSkinIACaptureAttemptGate } from '@/services/skiniaCaptureAttemptGate';
 import type { PictureRef } from 'expo-camera';
 
 type CaptureState = 'PREPARING' | 'DENIED' | 'READY' | 'CAPTURING' | 'REVIEW' | 'QUALITY_INSUFFICIENT' | 'UNAVAILABLE';
@@ -37,6 +38,9 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<CaptureState>('PREPARING');
   const isLive = useRef(true);
+  const attemptGate = useRef(createSkinIACaptureAttemptGate());
+  const permissionRequestInFlight = useRef(false);
+  const interrupted = useRef(false);
   const [qualityReason, setQualityReason] = useState<QualityCode | null>(null);
 
   const retryCapture = useCallback(() => {
@@ -49,25 +53,67 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
     // Mark the session closed before navigation unmounts this screen. An
     // in-flight camera promise must not start analysis after a user cancels.
     isLive.current = false;
+    attemptGate.current.close();
     onExit();
   }, [onExit]);
 
+  const requestCameraPermission = useCallback(async () => {
+    permissionRequestInFlight.current = true;
+    try {
+      await requestPermission();
+    } catch {
+      if (isLive.current && !interrupted.current) setState('UNAVAILABLE');
+    } finally {
+      permissionRequestInFlight.current = false;
+    }
+  }, [requestPermission]);
+
   useEffect(() => {
     isLive.current = true;
+    attemptGate.current.foregrounded();
     return () => {
-      // A PictureRef is never copied outside the capture callback. Dropping the
-      // reference on every unmount/cancel is the final local cleanup boundary.
+      // Invalidate late results. The callback still owns any PictureRef until
+      // its finally block releases it; native interruption needs device QA.
       isLive.current = false;
+      // Invalidate the attempt, but permit React's development effect replay.
+      attemptGate.current.interrupted();
     };
   }, []);
 
   useEffect(() => {
-    if (!permission) return;
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') {
+        attemptGate.current.foregrounded();
+        return;
+      }
+      // iOS may report inactive while its camera-permission sheet is open.
+      // That sheet has not started a capture; a real background still aborts.
+      if (next === 'inactive' && permissionRequestInFlight.current) return;
+      attemptGate.current.interrupted();
+      interrupted.current = true;
+      setReady(false);
+      setQualityReason(null);
+      setState('UNAVAILABLE');
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    if (!permission || interrupted.current) return;
     setState(permission.granted ? 'READY' : 'DENIED');
   }, [permission]);
 
   const takeEphemeralPicture = useCallback(async () => {
     if (!ready || state !== 'READY' || !cameraRef.current) return;
+    if (AppState.currentState !== 'active') {
+      setState('UNAVAILABLE');
+      return;
+    }
+    const attempt = attemptGate.current.begin();
+    if (attempt === null) {
+      setState('UNAVAILABLE');
+      return;
+    }
     setState('CAPTURING');
     let picture: PictureRef | undefined;
     let nextState: CaptureState = 'UNAVAILABLE';
@@ -77,14 +123,14 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
       // The native quality gate measures fine cheek detail. Avoid introducing
       // JPEG compression blur before that measurement; the image stays in RAM.
       picture = await cameraRef.current.takePictureAsync({ pictureRef: true, quality: 1 });
-      if (!isLive.current) return;
+      if (!isLive.current || !attemptGate.current.isCurrent(attempt)) return;
       const quality = assessSkinIATechnicalQuality({ cameraReady: ready, width: picture.width, height: picture.height });
       if (quality.state !== 'PASS') {
         nextState = 'QUALITY_INSUFFICIENT';
         nextQualityReason = quality.reason;
       } else {
         const analysis = await extractSkinIAImageFeatures(picture);
-        if (!isLive.current) return;
+        if (!isLive.current || !attemptGate.current.isCurrent(attempt)) return;
         if (analysis.state !== 'PASS') {
           nextState = analysis.state === 'UNAVAILABLE' ? 'UNAVAILABLE' : 'QUALITY_INSUFFICIENT';
           if (analysis.state !== 'UNAVAILABLE') nextQualityReason = analysis.state;
@@ -110,14 +156,14 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
         nextState = 'UNAVAILABLE';
       }
     }
-    if (isLive.current) {
+    if (isLive.current && attemptGate.current.isCurrent(attempt)) {
       setQualityReason(nextQualityReason);
       setState(nextState);
     }
   }, [ready, state]);
 
   if (state === 'DENIED') {
-    return <PermissionDenied onExit={exitCapture} onRequest={() => { void requestPermission(); }} />;
+    return <PermissionDenied onExit={exitCapture} onRequest={() => { void requestCameraPermission(); }} />;
   }
   if (state === 'QUALITY_INSUFFICIENT') return <QualityInsufficient onExit={exitCapture} onRetry={retryCapture} reason={qualityReason} />;
   if (state === 'REVIEW') return <Review onExit={exitCapture} onAgain={retryCapture} />;
@@ -130,7 +176,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
         style={StyleSheet.absoluteFillObject}
         facing="front"
         mirror
-        onCameraReady={() => setReady(true)}
+        onCameraReady={() => { if (!interrupted.current) setReady(true); }}
       />
       <View pointerEvents="none" style={styles.scrim} />
       <View style={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}>
