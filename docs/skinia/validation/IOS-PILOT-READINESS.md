@@ -9,9 +9,14 @@ image data.
 
 ## Available starting devices
 
-- Two iPhone 17 Pro units have been reported as available. Exact iOS versions,
-  camera settings, app build, native module revision, and internal entitlement
-  must be verified at setup. Availability is **not** a successful device test.
+- Two iPhone 17 Pro units have been reported as available. One tester reported
+  an AForce OS 1.0.0 (100) TestFlight capture that displayed `Capture check
+  passed` with `OBSERVATIONS_NOT_ADMITTED`, then returned to the SkinIA
+  overview. This confirms that one technical device flow reached the intended
+  QA-only result; it does not establish skin accuracy, repeatability, privacy
+  cleanup, or performance on the second phone. Exact iOS versions, camera
+  settings, native module revision, and internal entitlement must still be
+  recorded for any future frozen study.
 - Android participation and its exact device model are deferred. The two
   iPhones are the same generation; they cannot satisfy the multi-generation,
   Android, lighting, or Fitzpatrick I–VI coverage requirements.
@@ -19,11 +24,13 @@ image data.
 ## Analysis-method decision
 
 The current native modules detect a face, reject some unsuitable captures, and
-return derived pixel metrics in memory. The JavaScript rules compare those
-metrics with a same-session reference and emit only LOW-confidence experimental
-candidates. No Core ML, TensorFlow Lite, or ONNX observation-model asset is
-tracked in the AForce OS source tree at this review. This is **not** a selected
-or validated observation model. Its
+return derived pixel metrics in memory. Build 100's JavaScript capture path
+checks those values as baseline-free QA probes, then shows a technical result;
+it does not derive an appearance-label candidate, compare with a personal
+baseline, or store a score. Older observation/baseline helpers remain in source
+but are not wired into that capture path. No Core ML, TensorFlow Lite, or ONNX
+observation-model asset is tracked in the AForce OS source tree at this review.
+This is **not** a selected or validated observation model. Its
 absolute brightness, shine, and edge probes have not demonstrated equivalence
 across exposure, white balance, lighting, devices, or skin types. The
 member-result admission gate remains closed.
@@ -42,16 +49,35 @@ before observation-performance testing. A candidate review must document:
    minimum per-stratum performance, and held-out evaluation. Two starting
    iPhones cannot establish these results.
 
-Until that decision and the later evidence review, experimental candidates
-remain internal signals only, never member observations. A technical pilot
+Until that decision and the later evidence review, the QA probes remain
+internal technical signals only, never member observations. A technical pilot
 must not be re-labeled as accuracy validation.
+
+## Next bounded decision: live-reference feasibility
+
+The proposed first study is **visible flaking only**, judged live by two
+blinded reviewers in one pre-specified diffuse-indoor iPhone 17 Pro setup.
+Its purpose is to determine whether the reference itself is repeatable without
+retaining face images. It is not an evaluation of the current bright-edge
+probe, a validated skin reading, or an admission to the member UI. The
+pre-registration packet must fix the named facial regions, viewing/capture
+conditions, reviewer training, minimum visible-detail rule, sample and repeat
+counts, uncertainty and acceptance criteria, and distinct reasons for
+capture-quality rejection versus an ambiguous live reference. Baseline-free
+flaking does not require a personal comparison; a repeated same-session
+capture is a technical repeat, not a personal baseline. The current proposal
+remains a draft and no participant enrollment follows from this note.
 
 ## Before any participant scan
 
 - [ ] Assign the QA executor, product/claims owner, privacy reviewer, and an
       independent evidence reviewer who will not sign off on tests they ran.
-- [ ] Record product/privacy approval of consent language, private QA-record
-      access, retention period, and deletion procedure before enrollment.
+- [ ] Resolve the product/claims **changes required** decision and record an
+      explicit independent-method decision against the exact first-stage
+      protocol. Typed reviewer names are not selected decisions.
+- [ ] Record explicit privacy approval of consent language, private QA-record
+      access, retention, backup/version behavior, and deletion procedure;
+      verify the controls in the chosen account before enrollment.
 - [ ] Freeze the build, source/native revisions, support list, rubric, sample
       plan, quality criteria, exclusions, and proposed confidence thresholds in
       a new [evidence packet](EVIDENCE-RECORD-TEMPLATE.md).
