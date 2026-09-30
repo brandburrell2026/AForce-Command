@@ -46,6 +46,11 @@ each production face-box sample rectangle. This is engineering evidence for
 coordinate arithmetic only, not a live facial-region audit or a cue-validation
 result. No participant image is retained by those tests.
 
+A [live zone-alignment audit proposal](../qa/LIVE-ZONE-ALIGNMENT-AUDIT-v0.1-PROPOSAL.md)
+describes the additional privacy and method decisions needed to inspect those
+zones on a physical device. It is a draft, not permission to display a
+captured face or ask testers for another scan.
+
 Engineering must select and freeze a candidate **on-device** analysis method
 before observation-performance testing. A candidate review must document:
 
