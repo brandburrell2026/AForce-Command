@@ -26,6 +26,12 @@ margin or contributes fewer than 32 sampled pixels, the capture returns
 `REGIONS_UNUSABLE` rather than clamping the zone to background pixels. Existing
 aggregate metrics remain for compatibility with older QA probes.
 
+The production rectangle definitions are shared with synthetic iOS tests.
+Generated pixels distinguish all five zones and check their exact top-left
+bounds; separate orientation tests cover all eight UIImage orientations.
+This verifies coordinate arithmetic without participant images, but does not
+show that a live face-box rectangle contains the intended unobstructed skin.
+
 The TypeScript bridge accepts only that revision and finite, bounded numeric
 fields. It strips unknown fields; malformed zone payloads fail closed. Older
 native builds that do not return `qaSampleZones` remain compatible. No pixels,
@@ -43,8 +49,9 @@ the capture screen.
   sensitivity to lighting, exposure, and skin tone is unmeasured.
 - The 32-sample floor is an engineering guard against degenerate regions, not
   an approved image-quality or evidence threshold.
-- iOS syntax parsing and TypeScript tests do not replace an Xcode/iPhone build
-  or a diverse, consented evaluation. Android remains unsupported here.
+- iOS simulator tests and TypeScript tests do not replace a physical-device
+  facial-region audit or a diverse, consented evaluation. Android remains
+  unsupported here.
 
 Next: propose and version a **separate** cue-specific continuous score with
 quality/abstention rules, then freeze the exact build, support cell, targets,

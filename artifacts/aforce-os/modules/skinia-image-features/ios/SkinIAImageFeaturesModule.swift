@@ -15,13 +15,6 @@ public final class SkinIAImageFeaturesModule: Module {
 }
 
 private enum SkinIAImageFeatures {
-  private struct Region {
-    let x0: Double
-    let y0: Double
-    let x1: Double
-    let y1: Double
-  }
-
   private struct Measures {
     let sampleCount: Int
     let brightness: Double
@@ -73,23 +66,17 @@ private enum SkinIAImageFeatures {
     // These are coarse face-box sample zones, not landmark-verified skin or
     // evidence that any named appearance cue is observable. Do not silently
     // clamp a cropped zone onto background pixels.
-    func region(_ unit: Region) -> Measures? {
-      let pixels = Region(
-        x0: faceRect.x + unit.x0 * faceRect.width,
-        y0: faceRect.y + unit.y0 * faceRect.height,
-        x1: faceRect.x + unit.x1 * faceRect.width,
-        y1: faceRect.y + unit.y1 * faceRect.height)
-      guard pixels.x0.isFinite, pixels.y0.isFinite, pixels.x1.isFinite, pixels.y1.isFinite,
-            pixels.x0 >= 1, pixels.y0 >= 1,
-            pixels.x1 <= Double(width - 1), pixels.y1 <= Double(height - 1),
-            pixels.x1 > pixels.x0, pixels.y1 > pixels.y0 else { return nil }
+    func region(_ zone: SkinIAFrameCoordinates.QASampleZone) -> Measures? {
+      guard let pixels = SkinIAFrameCoordinates.qaSampleRect(
+        zone, in: faceRect, imageWidth: width, imageHeight: height
+      ) else { return nil }
       return measure(rgba, width, height, pixels)
     }
-    guard let forehead = region(Region(x0: 0.30, y0: 0.12, x1: 0.70, y1: 0.28)),
-          let leftCheek = region(Region(x0: 0.13, y0: 0.48, x1: 0.38, y1: 0.68)),
-          let rightCheek = region(Region(x0: 0.62, y0: 0.48, x1: 0.87, y1: 0.68)),
-          let nose = region(Region(x0: 0.43, y0: 0.42, x1: 0.57, y1: 0.66)),
-          let chin = region(Region(x0: 0.35, y0: 0.75, x1: 0.65, y1: 0.88)),
+    guard let forehead = region(.forehead),
+          let leftCheek = region(.leftCheek),
+          let rightCheek = region(.rightCheek),
+          let nose = region(.nose),
+          let chin = region(.chin),
           [forehead, leftCheek, rightCheek, nose, chin].allSatisfy({ $0.sampleCount >= 32 })
     else { return ["state": "REGIONS_UNUSABLE"] }
     let brightness = (leftCheek.brightness + rightCheek.brightness) / 2
@@ -136,7 +123,9 @@ private enum SkinIAImageFeatures {
     ]
   }
 
-  private static func measure(_ rgba: [UInt8], _ width: Int, _ height: Int, _ box: Region) -> Measures {
+  private static func measure(
+    _ rgba: [UInt8], _ width: Int, _ height: Int, _ box: SkinIAFrameCoordinates.SampleRect
+  ) -> Measures {
     let x0 = max(1, min(width - 2, Int(box.x0)))
     let y0 = max(1, min(height - 2, Int(box.y0)))
     let x1 = max(x0 + 1, min(width - 1, Int(box.x1)))
