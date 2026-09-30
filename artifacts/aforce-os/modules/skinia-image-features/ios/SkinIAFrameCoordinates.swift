@@ -11,6 +11,27 @@ enum SkinIAFrameCoordinates {
     let height: Double
   }
 
+  struct SampleRect {
+    let x0: Double
+    let y0: Double
+    let x1: Double
+    let y1: Double
+  }
+
+  enum QASampleZone {
+    case forehead, leftCheek, rightCheek, nose, chin
+
+    var fractions: (x0: Double, y0: Double, x1: Double, y1: Double) {
+      switch self {
+      case .forehead: return (0.30, 0.12, 0.70, 0.28)
+      case .leftCheek: return (0.13, 0.48, 0.38, 0.68)
+      case .rightCheek: return (0.62, 0.48, 0.87, 0.68)
+      case .nose: return (0.43, 0.42, 0.57, 0.66)
+      case .chin: return (0.35, 0.75, 0.65, 0.88)
+      }
+    }
+  }
+
   static func renderUpright(_ source: UIImage, longestSide: Double = 640) -> CGImage? {
     let sourceWidth = Double(source.size.width * source.scale)
     let sourceHeight = Double(source.size.height * source.scale)
@@ -72,5 +93,27 @@ enum SkinIAFrameCoordinates {
       width: Double(box.width) * Double(width),
       height: Double(box.height) * Double(height)
     )
+  }
+
+  // Keep the production sample-zone geometry in the same target as the
+  // synthetic pixel tests. These are face-box fractions, not verified skin.
+  // Reject a cropped zone instead of shifting it onto background pixels.
+  static func qaSampleRect(
+    _ zone: QASampleZone, in face: FaceRect, imageWidth: Int, imageHeight: Int
+  ) -> SampleRect? {
+    guard imageWidth > 2, imageHeight > 2,
+          face.x.isFinite, face.y.isFinite,
+          face.width.isFinite, face.height.isFinite,
+          face.width > 0, face.height > 0 else { return nil }
+    let f = zone.fractions
+    let x0 = face.x + f.x0 * face.width
+    let y0 = face.y + f.y0 * face.height
+    let x1 = face.x + f.x1 * face.width
+    let y1 = face.y + f.y1 * face.height
+    guard x0.isFinite, y0.isFinite, x1.isFinite, y1.isFinite,
+          x0 >= 1, y0 >= 1,
+          x1 <= Double(imageWidth - 1), y1 <= Double(imageHeight - 1),
+          x1 > x0, y1 > y0 else { return nil }
+    return SampleRect(x0: x0, y0: y0, x1: x1, y1: y1)
   }
 }

@@ -1,22 +1,26 @@
 # SkinIA Phase 1 iPhone pilot readiness
 
-**Status:** planning only — no enrollment, validation result, or observation admission
+**Status:** two reported engineering smoke checks; no study enrollment,
+validation result, or observation admission
 
-This note prepares an initial internal engineering/QA check without changing the
+This note tracks internal engineering/QA readiness without changing the
 [capture protocol](CAPTURE-AND-REVIEW-PROTOCOL.md) or the
 [release gate](REVIEW-AND-RELEASE-GATE.md). It contains no participant record or
 image data.
 
 ## Available starting devices
 
-- Two iPhone 17 Pro units have been reported as available. One tester reported
-  an AForce OS 1.0.0 (100) TestFlight capture that displayed `Capture check
-  passed` with `OBSERVATIONS_NOT_ADMITTED`, then returned to the SkinIA
-  overview. This confirms that one technical device flow reached the intended
-  QA-only result; it does not establish skin accuracy, repeatability, privacy
-  cleanup, or performance on the second phone. Exact iOS versions, camera
-  settings, native module revision, and internal entitlement must still be
-  recorded for any future frozen study.
+- Two iPhone 17 Pro units have been reported as available. On 2026-09-30,
+  one tester confirmed AForce OS 1.0.0 (102) in TestFlight and supplied a
+  result screen showing `Capture check passed` with
+  `OBSERVATIONS_NOT_ADMITTED`; a second tester also reported a passing capture
+  on build 102. These are **tester-reported
+  engineering smoke checks**, not independently audited study records. They
+  establish that the two reported devices reached the intended QA-only result,
+  but do not establish that the five face-box zones sampled the intended skin,
+  nor skin accuracy, repeatability, privacy cleanup, or broader device support.
+  Exact iOS versions, camera settings, native module revision, and internal
+  entitlement must still be recorded for any future frozen study.
 - Android participation and its exact device model are deferred. The two
   iPhones are the same generation; they cannot satisfy the multi-generation,
   Android, lighting, or Fitzpatrick I–VI coverage requirements.
@@ -24,7 +28,7 @@ image data.
 ## Analysis-method decision
 
 The current native modules detect a face, reject some unsuitable captures, and
-return derived pixel metrics in memory. Build 100's JavaScript capture path
+return derived pixel metrics in memory. The controlled QA capture path
 checks those values as baseline-free QA probes, then shows a technical result;
 it does not derive an appearance-label candidate, compare with a personal
 baseline, or store a score. Older observation/baseline helpers remain in source
@@ -34,6 +38,13 @@ This is **not** a selected or validated observation model. Its
 absolute brightness, shine, and edge probes have not demonstrated equivalence
 across exposure, white balance, lighting, devices, or skin types. The
 member-result admission gate remains closed.
+
+The build 102 native coordinate fix aligns decoded RGBA rows with Vision's
+upright face box. Its synthetic iOS tests exercise all eight UIImage
+orientations; the follow-on engineering change adds generated-pixel tests for
+each production face-box sample rectangle. This is engineering evidence for
+coordinate arithmetic only, not a live facial-region audit or a cue-validation
+result. No participant image is retained by those tests.
 
 Engineering must select and freeze a candidate **on-device** analysis method
 before observation-performance testing. A candidate review must document:
