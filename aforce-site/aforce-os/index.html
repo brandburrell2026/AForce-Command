@@ -62,14 +62,12 @@
   button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
   :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
   img,svg{max-width:100%;display:block;}
-  .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
 
   /* ---------- TYPE (mirrors the homepage: Inter throughout) ---------- */
   .kick{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
   .kick .coming{ font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--metal); border:1px solid var(--i22); padding:5px 9px; border-radius:2px; }
   .hd-xl{ font-family:var(--display); font-weight:800; line-height:1.0; letter-spacing:-0.015em; font-size:clamp(46px,8.5vw,120px); text-wrap:balance; overflow-wrap:break-word; }
   .hd-l{ font-family:var(--display); font-weight:800; line-height:1.08; letter-spacing:-0.01em; font-size:clamp(34px,5vw,64px); text-wrap:balance; overflow-wrap:break-word; }
-  .hd-m{ font-family:var(--display); font-weight:800; line-height:1.1; letter-spacing:-0.008em; font-size:clamp(26px,3.4vw,46px); text-wrap:balance; }
   .lead{ font-size:clamp(16px,1.35vw,20px); line-height:1.72; color:var(--i64); max-width:52ch; }
   .lead b{ color:var(--ink); font-weight:600; }
   .lines{ list-style:none; display:flex; flex-direction:column; }
@@ -77,13 +75,11 @@
   .lines li:last-child{ border-bottom:1px solid var(--line); }
   .lines li.dim{ color:var(--metal); font-weight:400; }
   .cap{ font-family:var(--body); font-weight:600; font-size:10.5px; line-height:1.55; letter-spacing:.08em; text-transform:uppercase; color:var(--metal); }
-  .note{ font-size:11.5px; line-height:1.6; letter-spacing:.01em; color:var(--i46); max-width:64ch; }
   /* dark-ground variants */
   .on-dark{ color:var(--bone); }
   .on-dark .lead{ color:var(--b64); }
   .on-dark .lead b{ color:var(--bone); }
   .on-dark .cap{ color:var(--b40); }
-  .on-dark .note{ color:var(--b40); }
   .on-dark .kick .coming{ color:var(--b64); border-color:var(--b24); }
 
   /* ---------- NAV — visual treatment only (behaviour from /assets/header.css) ---------- */
@@ -151,7 +147,6 @@
   .hero .lead{ color:var(--b80); }
   .scroll-cue{ position:absolute; z-index:2; bottom:clamp(20px,3vh,34px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
   .scroll-cue .line{ width:1px; height:36px; background:linear-gradient(var(--b40), transparent); }
-
 
   /* ================= 03 · ONE COMMAND ================= */
   .verbs{ list-style:none; margin-top:clamp(26px,3vw,40px); }
@@ -234,7 +229,6 @@
   .ph-stage .can{ position:absolute; z-index:0; width:clamp(110px,12vw,170px); right:2%; bottom:4%; opacity:.72; filter:grayscale(.35) brightness(.7) drop-shadow(0 30px 40px rgba(0,0,0,.85)); }
   .ph-stage .shot{ position:relative; z-index:1; }
   .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
-  .phantom .note{ margin-top:clamp(22px,2.6vw,34px); }
 
   /* ================= 13 · 30 DAYS IN (restored from the 13 Sep page) ================= */
   .thirty{ background:var(--bone-2); }
