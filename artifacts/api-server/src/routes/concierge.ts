@@ -32,10 +32,10 @@ import {
   CONCIERGE_PER_DAY_LIMIT,
   CONCIERGE_PER_MINUTE_LIMIT,
   CONCIERGE_TRANSCRIPT_PAGE,
-  conciergeAiConfigured,
   conciergeStoreDriver,
 } from "../lib/concierge/config";
 import { runConciergeTurn, type ChatCompletionsClient, type HistoryTurn } from "../lib/concierge/service";
+import { createAvailabilityChecker, type AvailabilityChecker, type ModelsClient } from "../lib/concierge/availability";
 import { serverFactsFromRow, type UserStateFactsRow } from "../lib/concierge/serverFacts";
 import {
   BriefingRequestBody,
@@ -54,6 +54,8 @@ export interface ConciergeRouterDeps {
   loadUserState: (userId: string) => Promise<UserStateFactsRow | null>;
   log?: { warn?: (o: unknown, msg?: string) => void; error?: (o: unknown, msg?: string) => void };
   now?: () => number;
+  /** Injectable provider-availability checker (tests); default probes via getClient. */
+  availability?: AvailabilityChecker;
 }
 
 const userKey = (req: Request): string => {
@@ -123,9 +125,20 @@ export function buildConciergeRouter(deps: ConciergeRouterDeps): IRouter {
     }
   };
 
-  router.get("/status", (_req, res) => {
-    const available = conciergeAiConfigured();
-    res.json({ available, reason: available ? null : "ai_not_configured" });
+  // Availability = a cached probe of the provider, not env presence (the
+  // placeholder-key and no-credits incidents of 2026-10-05 both passed the
+  // old presence check). `?fresh=1` bypasses the cache for operators.
+  const availability =
+    deps.availability ??
+    createAvailabilityChecker(async () => (await deps.getClient()) as unknown as ModelsClient);
+  router.get("/status", async (req, res) => {
+    if (req.query["fresh"] === "1") availability.reset();
+    const r = await availability.check(now());
+    if (!r.available) {
+      incCounter(`concierge.status_unavailable.${r.reason ?? "unknown"}`);
+      if (r.detail) log.warn?.({ reason: r.reason, detail: r.detail }, "concierge: provider unavailable");
+    }
+    res.json({ available: r.available, reason: r.reason, checkedAt: r.checkedAt, cached: r.cached });
   });
 
   router.post("/messages", minuteLimiter, async (req, res) => {

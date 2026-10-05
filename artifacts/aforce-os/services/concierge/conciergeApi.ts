@@ -102,6 +102,21 @@ async function request<T>(
   return (await res.json()) as T;
 }
 
+export type ConciergeUnavailableReason =
+  | 'ai_not_configured'
+  | 'ai_key_invalid'
+  | 'ai_quota_exhausted'
+  | 'ai_rate_limited'
+  | 'ai_model_unavailable'
+  | 'ai_unreachable';
+
+export interface ConciergeStatus {
+  available: boolean;
+  reason: ConciergeUnavailableReason | null;
+  checkedAt: string;
+  cached: boolean;
+}
+
 export interface SendMessageResult {
   conversationId: string;
   turn: ConciergeAssistantTurn;
@@ -110,7 +125,7 @@ export interface SendMessageResult {
 
 export const conciergeApi = {
   status: (signal?: AbortSignal) =>
-    request<{ available: boolean; reason: string | null }>('GET', '/concierge/status', undefined, signal),
+    request<ConciergeStatus>('GET', '/concierge/status', undefined, signal),
 
   sendMessage: (
     args: { conversationId?: string; clientTurnId: string; message: string; context: ConciergeClientContext },

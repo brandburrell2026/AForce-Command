@@ -25,7 +25,7 @@ import { useActionsSlice, useVoiceSettingsSlice } from '@/store/slices';
 import { useCoachMode } from '@/services/coachMode';
 import { speak } from '@/services/textToSpeech';
 import { ActionLedger, type LogIntakeFn } from '@/services/concierge/conciergeActions';
-import { conciergeApi } from '@/services/concierge/conciergeApi';
+import { conciergeApi, type ConciergeStatus } from '@/services/concierge/conciergeApi';
 import type { ConciergeAssistantTurn, ConciergeChatItem } from '@/services/concierge/conciergeTypes';
 import { useConciergeContext, useConciergeDemoMode } from '@/hooks/useConciergeContext';
 import { useConciergeConversation } from '@/hooks/useConciergeConversation';
@@ -35,7 +35,7 @@ import { ConciergeHistorySheet } from './ConciergeHistorySheet';
 import { ConciergeIntroCard, type IntroResult } from './ConciergeIntroCard';
 import { ConciergeMessageBubble } from './ConciergeMessageBubble';
 import { ConciergeSuggestedQuestions } from './ConciergeSuggestedQuestions';
-import { seedText } from './conciergePresentation';
+import { seedText, unavailableBodyFor } from './conciergePresentation';
 
 interface ConciergeActions {
   logIntake: LogIntakeFn;
@@ -60,6 +60,18 @@ export function ConciergeScreen() {
   const [historyOpen, setHistoryOpen] = React.useState(false);
   const [introDismissed, setIntroDismissed] = React.useState(false);
   const [rememberStates, setRememberStates] = React.useState<Record<string, 'pending' | 'saved' | 'declined'>>({});
+  // Provider availability, probed by the server (key, billing, reachability).
+  // Shown as a banner BEFORE the member types, so a known outage is never
+  // discovered by sending a message into it.
+  const [status, setStatus] = React.useState<ConciergeStatus | null>(null);
+  React.useEffect(() => {
+    const controller = new AbortController();
+    conciergeApi
+      .status(controller.signal)
+      .then((s) => setStatus(s))
+      .catch(() => setStatus(null));
+    return () => controller.abort();
+  }, []);
   const ledger = React.useRef(new ActionLedger()).current;
   const listRef = React.useRef<FlatList<ConciergeChatItem>>(null);
 
@@ -139,6 +151,14 @@ export function ConciergeScreen() {
   const header = (
     <View style={styles.header}>
       <Text style={styles.disclosure} accessibilityRole="text">{t('concierge.ai_disclosure')}</Text>
+      {status && !status.available ? (
+        <View style={[styles.demoBanner, styles.statusBanner]} accessibilityRole="alert" testID="concierge-status-banner">
+          <Icon name="alert-circle" size={14} color={af.textSecondary} />
+          <Text style={styles.demoText}>
+            {t('concierge.state.status_banner_prefix')} {unavailableBodyFor(status.reason, t)}
+          </Text>
+        </View>
+      ) : null}
       {demoMode ? (
         <View style={styles.demoBanner} accessibilityRole="text" testID="concierge-demo-banner">
           <Icon name="info" size={14} color={af.amber} />
@@ -269,6 +289,7 @@ const styles = StyleSheet.create({
     borderColor: af.border,
   },
   demoText: { ...afType.caption, color: af.textSecondary, flex: 1 },
+  statusBanner: { borderColor: af.borderStrong },
   emptyWrap: { gap: 16, paddingTop: 8 },
   opening: { ...afType.title2, color: af.textPrimary },
   skeletons: { gap: 10, paddingTop: 8 },

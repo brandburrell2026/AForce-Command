@@ -48,6 +48,8 @@ const okReply = JSON.stringify({
 
 let modelCalls = 0;
 let clientMode: "ok" | "missing" | "fail" = "ok";
+let availabilityMode: "ok" | "quota" | "key" = "ok";
+let availabilityProbes = 0;
 let server: http.Server;
 let baseUrl: string;
 let storeRef: import("@workspace/db").ConciergeStore;
@@ -81,6 +83,16 @@ async function buildApp(): Promise<Express> {
       },
       loadUserState: async () => null,
       log: { warn: () => {}, error: () => {} },
+      availability: {
+        async check() {
+          availabilityProbes += 1;
+          const checkedAt = new Date().toISOString();
+          if (availabilityMode === "quota") return { available: false, reason: "ai_quota_exhausted", checkedAt, cached: false, detail: "429 no credits" };
+          if (availabilityMode === "key") return { available: false, reason: "ai_key_invalid", checkedAt, cached: false, detail: "401 sk-[redacted]" };
+          return { available: true, reason: null, checkedAt, cached: false };
+        },
+        reset() {},
+      },
     }),
   );
   return app;
@@ -311,6 +323,30 @@ describe("6b. retry after an upstream failure", () => {
     const transcript = await call("GET", `/api/concierge/conversations/${conv}`);
     const roles = (transcript.json["messages"] as Array<Record<string, unknown>>).map((m) => m["role"]);
     expect(roles).toEqual(["user", "assistant"]);
+  });
+});
+
+describe("8. status reflects the provider, not env presence", () => {
+  it("reports available with a checkedAt stamp when the probe succeeds", async () => {
+    asUser("user_S");
+    availabilityMode = "ok";
+    const r = await call("GET", "/api/concierge/status");
+    expect(r.status).toBe(200);
+    expect(r.json["available"]).toBe(true);
+    expect(r.json["reason"]).toBeNull();
+    expect(typeof r.json["checkedAt"]).toBe("string");
+  });
+  it("names an exhausted quota and an invalid key as distinct reasons", async () => {
+    asUser("user_S");
+    availabilityMode = "quota";
+    expect((await call("GET", "/api/concierge/status")).json).toMatchObject({ available: false, reason: "ai_quota_exhausted" });
+    availabilityMode = "key";
+    expect((await call("GET", "/api/concierge/status?fresh=1")).json).toMatchObject({ available: false, reason: "ai_key_invalid" });
+    availabilityMode = "ok";
+  });
+  it("still requires auth", async () => {
+    asUser(null);
+    expect((await call("GET", "/api/concierge/status")).status).toBe(401);
   });
 });
 

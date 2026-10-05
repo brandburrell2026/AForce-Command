@@ -15,6 +15,8 @@ import {
   noticeCopyFor,
   seedText,
   speakableText,
+  unavailableBodyFor,
+  unavailableRetryable,
 } from '../conciergePresentation';
 import type { ConciergeAssistantTurn } from '@/services/concierge/conciergeTypes';
 
@@ -52,6 +54,21 @@ describe('noticeCopyFor', () => {
       body: EN.concierge.state.not_configured_body,
       retryable: false,
     });
+  });
+});
+
+describe('unavailable reasons (turn codes and status reasons share one map)', () => {
+  it('quota → capacity copy, not retryable; key → not-configured copy; unknown → generic, retryable', () => {
+    expect(noticeCopyFor(turn({ status: 'unavailable', kind: 'notice', answer: '', code: 'upstream_quota' }), t)).toEqual({
+      title: EN.concierge.state.unavailable_title,
+      body: EN.concierge.state.quota_body,
+      retryable: false,
+    });
+    expect(unavailableBodyFor('ai_key_invalid', t)).toBe(EN.concierge.state.not_configured_body);
+    expect(unavailableBodyFor('ai_rate_limited', t)).toBe(EN.concierge.state.rate_limited);
+    expect(unavailableBodyFor('upstream_error', t)).toBe(EN.concierge.state.unavailable_body);
+    expect(unavailableRetryable('upstream_error')).toBe(true);
+    expect(unavailableRetryable('ai_quota_exhausted')).toBe(false);
   });
 });
 

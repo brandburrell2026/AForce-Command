@@ -123,8 +123,7 @@ brand tokens, intake-source contract).
 ## 5. Known limitations (honest)
 
 - Rate limits and the daily cap are per process; a multi-pod deployment multiplies them.
-- `GET /status` reports env presence, not key validity; a bad key still yields an honest
-  `unavailable` turn at request time (observed locally with the placeholder key).
+- `GET /status` probes the provider (cached); verdicts can lag a fix by up to 60 s. `?fresh=1` bypasses.
 - Client reminders are local notifications; there is no remote push in the app.
 - `recentDays.oz` is always null — daily oz is not carried on `HistoryEntry`; the model is told
   it is missing rather than given a derived figure.

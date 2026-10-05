@@ -2911,7 +2911,10 @@
       "daily_limit": "You've reached today's concierge limit. It resets tomorrow.",
       "demo_banner": "Sample data. The concierge won't read these numbers as yours.",
       "urgent_label": "Urgent",
-      "clarify_label": "One question first"
+      "clarify_label": "One question first",
+      "quota_body": "The AI service is out of capacity right now. Your hydration, command, and journal keep working as usual.",
+      "model_body": "The AI model this build expects isn't available right now.",
+      "status_banner_prefix": "Concierge is unavailable right now."
     },
     "read_aloud": "Read aloud",
     "memory": {

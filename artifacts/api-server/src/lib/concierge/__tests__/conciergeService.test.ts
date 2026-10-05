@@ -105,6 +105,16 @@ describe("runConciergeTurn", () => {
     expect(turn.code).toBe("upstream_error");
   });
 
+  it("classifies provider failures: no credits → upstream_quota, bad key → upstream_auth", async () => {
+    const quota = Object.assign(new Error("429 You have no credits remaining."), { status: 429 });
+    const t1 = await runConciergeTurn(input({ client: fakeClient([quota]).client, log: { error: () => {} } }));
+    expect(t1.status).toBe("unavailable");
+    expect(t1.code).toBe("upstream_quota");
+    const auth = Object.assign(new Error("401 Incorrect API key provided: sk-place**lder"), { status: 401 });
+    const t2 = await runConciergeTurn(input({ client: fakeClient([auth]).client, log: { error: () => {} } }));
+    expect(t2.code).toBe("upstream_auth");
+  });
+
   it("treats non-JSON as a retryable schema problem and then gives up honestly", async () => {
     const { client } = fakeClient(["not json", "still not json"]);
     const turn = await runConciergeTurn(input({ client, log: { warn: () => {} } }));
