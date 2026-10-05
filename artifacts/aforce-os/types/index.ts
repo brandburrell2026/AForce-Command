@@ -885,6 +885,9 @@ export interface FeatureFlags {
    * engine/analytics/referral-board data only. Default OFF.
    */
   circle_v3_dashboard_enabled: boolean;
+  /** Real invitations and reciprocal membership pilot. Off until explicitly
+   * enabled in local development/internal TestFlight; server rollout is separate. */
+  circle_membership_enabled: boolean;
   /**
    * AForce Moments Phases 1-2 (founder approval 2026-08-12) — manual/demo
    * moments, advisory-only prep. Default OFF. Phase 3 (calendar,
