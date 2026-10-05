@@ -15,6 +15,7 @@ import {
   clerkProxyMiddleware,
 } from "./middlewares/clerkProxyMiddleware";
 import { buildCorsOptions } from "./middlewares/corsPolicy";
+import { clerkConfigured } from "./middlewares/clerkConfig";
 import { sendApiError, classifyThrown } from "./lib/apiError";
 
 const app: Express = express();
@@ -84,7 +85,11 @@ app.use("/api", shopifyWebhookRouter);
 // can set headers and end a response — on the Stripe and Shopify money paths.
 // Running it twice on this path is safe by construction: the middleware's
 // first line is `if (request.auth) return next()`.
-app.use("/api/smart-capture", clerkMiddleware());
+// Both Clerk mounts are gated on full configuration: with the publishable key
+// absent, @clerk/express throws on every request and even the liveness probe
+// 500s (see middlewares/clerkConfig.ts). Unconfigured ⇒ no decoration ⇒ the
+// auth gates answer 503 auth_unavailable in production, exactly as documented.
+if (clerkConfigured()) app.use("/api/smart-capture", clerkMiddleware());
 app.use("/api", smartCaptureRouter);
 
 // CORS — allowlist driven. In production, set CORS_ALLOWED_ORIGINS to a
@@ -103,8 +108,9 @@ app.use(express.urlencoded({ extended: true, limit: "64kb" }));
 
 // clerkMiddleware reads the bearer token / cookie and decorates the
 // request with auth context for downstream `getAuth(req)` calls. Safe
-// to mount even when CLERK_SECRET_KEY is unset (it just no-ops).
-app.use(clerkMiddleware());
+// to mount when configured; when either Clerk key is unset the middleware
+// is NOT mounted (it would throw per request — see clerkConfig.ts).
+if (clerkConfigured()) app.use(clerkMiddleware());
 
 // Wave-3 PR9: first wiring of observability/metrics.ts (previously zero
 // importers — nothing was measured). Route bucket = first two path
