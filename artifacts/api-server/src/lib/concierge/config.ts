@@ -61,6 +61,13 @@ export const CONCIERGE_FRESHNESS_MIRROR = {
   wearable_sync: { freshUntilMs: 6 * HOUR_MS, staleAfterMs: 24 * HOUR_MS, expireAfterMs: 72 * HOUR_MS },
 } as const;
 
+/** GET /status probes the provider (models.retrieve) and caches the verdict. */
+export const CONCIERGE_STATUS_CACHE_MS = 5 * 60 * 1000;
+/** A failed probe is re-checked sooner so recovery (new key, credits added) shows quickly. */
+export const CONCIERGE_STATUS_FAIL_CACHE_MS = 60 * 1000;
+/** Abort the status probe after this long (ms). */
+export const CONCIERGE_STATUS_PROBE_TIMEOUT_MS = 8_000;
+
 /** Storage driver: "drizzle" (default) or "memory" (tests / pre-push local runs). */
 export function conciergeStoreDriver(): "drizzle" | "memory" {
   return process.env["CONCIERGE_STORE_DRIVER"] === "memory" ? "memory" : "drizzle";

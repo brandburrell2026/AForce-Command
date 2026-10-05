@@ -19,6 +19,7 @@ import {
   CONCIERGE_MODEL,
   CONCIERGE_UPSTREAM_TIMEOUT_MS,
 } from "./config";
+import { classifyUpstreamError, redactProviderMessage } from "./availability";
 import { buildGroundingSet, CONCIERGE_GATE_POLICY, gateReply, type GateViolation } from "./gates";
 import { buildSources, personaNote, renderDataBlock, systemPrompt } from "./prompt";
 import {
@@ -173,8 +174,9 @@ export async function runConciergeTurn(input: RunTurnInput): Promise<AssistantTu
     } catch (err) {
       clearTimeout(timer);
       const message = err instanceof Error ? err.message : String(err);
-      log.error?.({ err: message }, "concierge: upstream call failed");
-      return unavailable(controller.signal.aborted ? "upstream_timeout" : "upstream_error", attempts, CONCIERGE_MODEL);
+      const code = classifyUpstreamError(err, controller.signal.aborted);
+      log.error?.({ err: redactProviderMessage(message), code }, "concierge: upstream call failed");
+      return unavailable(code, attempts, CONCIERGE_MODEL);
     }
     clearTimeout(timer);
 

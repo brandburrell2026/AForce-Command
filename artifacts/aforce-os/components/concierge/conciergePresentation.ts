@@ -17,10 +17,33 @@ export function noticeCopyFor(turn: ConciergeAssistantTurn, t: TFunction): Notic
   if (turn.status === 'gated') {
     return { title: t('concierge.state.gated_title'), body: t('concierge.state.gated_body'), retryable: true };
   }
-  if (turn.code === 'ai_not_configured') {
-    return { title: t('concierge.state.unavailable_title'), body: t('concierge.state.not_configured_body'), retryable: false };
+  return { title: t('concierge.state.unavailable_title'), body: unavailableBodyFor(turn.code, t), retryable: unavailableRetryable(turn.code) };
+}
+
+/** Turn codes and status reasons share one copy map: configuration vs capacity vs reachability. */
+export function unavailableBodyFor(code: string | null | undefined, t: TFunction): string {
+  switch (code) {
+    case 'ai_not_configured':
+    case 'upstream_auth':
+    case 'ai_key_invalid':
+      return t('concierge.state.not_configured_body');
+    case 'upstream_quota':
+    case 'ai_quota_exhausted':
+      return t('concierge.state.quota_body');
+    case 'upstream_rate_limited':
+    case 'ai_rate_limited':
+      return t('concierge.state.rate_limited');
+    case 'upstream_model':
+    case 'ai_model_unavailable':
+      return t('concierge.state.model_body');
+    default:
+      return t('concierge.state.unavailable_body');
   }
-  return { title: t('concierge.state.unavailable_title'), body: t('concierge.state.unavailable_body'), retryable: true };
+}
+
+/** Configuration and billing faults are not fixed by tapping Retry. */
+export function unavailableRetryable(code: string | null | undefined): boolean {
+  return !['ai_not_configured', 'upstream_auth', 'ai_key_invalid', 'upstream_quota', 'ai_quota_exhausted', 'upstream_model', 'ai_model_unavailable'].includes(code ?? '');
 }
 
 export function localNoticeCopy(kind: 'offline' | 'error' | 'rate_limited' | 'daily_limit', t: TFunction): NoticeCopy {

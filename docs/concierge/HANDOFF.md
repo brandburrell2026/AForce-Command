@@ -90,8 +90,11 @@ and storage unavailable; prompt-injection text inside member-stated context fram
 1. ~~Schema push~~ — DONE 2026-10-05: the three tables + three indexes were created in production by
    applying `lib/db/migrations/20261005_concierge.sql` through `railway run -e production` (founder
    authorized; no dev database exists — Railway has only `production`).
-2. **OpenAI env on the deployment** — `AI_INTEGRATIONS_OPENAI_API_KEY` / `_BASE_URL` (already present
-   on Railway for Smart Capture). `GET /api/concierge/status` reports presence only.
+2. **OpenAI env on the deployment** — `AI_INTEGRATIONS_OPENAI_API_KEY` / `_BASE_URL`. Production's key was a
+   PLACEHOLDER until 2026-10-05 20:46Z (fixed by the founder), then the organization had no credits (fixed).
+   `GET /api/concierge/status` now PROBES the provider (cached 5 min, failures re-checked after 60 s) and
+   names the reason: `ai_not_configured`, `ai_key_invalid`, `ai_quota_exhausted`, `ai_rate_limited`,
+   `ai_model_unavailable`, `ai_unreachable`. The chat screen shows it as a banner before the member types.
 3. **Privacy policy** disclosure of the chat processor — counsel drafting from `COUNSEL-BRIEF-2026-10-05.md` (DR-018 D-02).
 4. ~~Terminology ruling~~ — ruled: "AForce Concierge" member-facing, AI Coach architectural (DR-018 D-01; Julius pending).
 5. **Emergency copy** — counsel + clinical review in progress (DR-018 D-04).
