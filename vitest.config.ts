@@ -56,6 +56,8 @@ export default defineConfig({
       'artifacts/aforce-os/components/notifications/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx',
+      'artifacts/aforce-os/components/concierge/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/concierge/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/cart/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/subscription/__tests__/**/*.test.ts',
       // Wave-5 Phase-1 a11y pass: `components/__tests__/` was matched for
@@ -120,6 +122,8 @@ export default defineConfig({
       // convention documented in homeScreenV2Wiring.test.ts).
       ['artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx', 'happy-dom'],
       ['artifacts/aforce-os/components/profile/__tests__/**/*.render.test.tsx', 'happy-dom'],
+      // AForce Concierge render harnesses (pure presentational subcomponents).
+      ['artifacts/aforce-os/components/concierge/__tests__/**/*.render.test.tsx', 'happy-dom'],
       // Wave 5 loading-state pass — the Performance Signal and Moments loading
       // skeletons (pure, store-free subcomponents, same convention as the two
       // lines above; their connected screens stay source-guard-tested).

@@ -1028,6 +1028,17 @@ export interface FeatureFlags {
    */
   conversational_intelligence_enabled: boolean;
 
+  /**
+   * AForce Concierge — the Section 64 conversational surface (text chat +
+   * on-demand briefing, server-gated AI). INTERNAL PREVIEW: OFF in the
+   * production binary, ON in DEMO_ALL_ON_FLAGS and toggleable from the
+   * Profile DEVELOPER tab. Governs mounting of the Home entry, the contextual
+   * "Ask Concierge" actions, the /concierge routes and the Profile memory row.
+   * Score-Protection: read-only — the concierge proposes actions that reuse the
+   * existing intake / reminder paths; it never writes a score.
+   */
+  ai_concierge_enabled: boolean;
+
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded
   // at all. OFF in the production binary for the iOS launch-crash isolation

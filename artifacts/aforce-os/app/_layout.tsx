@@ -182,6 +182,10 @@ function RootLayoutNav() {
       <Stack.Screen name="moments-plan" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="moment/[id]" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="calendar-settings" options={{ headerShown: false, presentation: 'card' }} />
+      {/* AForce Concierge (Section 64 surface) — pushed from Home / contextual
+          Ask actions; flag-guarded inside the route (ai_concierge_enabled). */}
+      <Stack.Screen name="concierge" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="concierge/memory" options={{ headerShown: false, presentation: 'card' }} />
     </Stack>
   );
 }

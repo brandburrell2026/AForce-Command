@@ -223,6 +223,7 @@ import { af, afType, afMotion, Spacing, AF_MAX_DISPLAY_FONT_SCALE } from '@/them
 import { fireMoment } from '@/services/haptics';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
+import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice, useCycleSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 // CORRECTION 2 — both already shipped and tested; neither is new UI. The picker
@@ -852,6 +853,11 @@ export function HomeScreenV2() {
             {/* AForce Moments (Phases 1–2, flag OFF in production) — NEXT MOMENT
                 + today's preparation-relevant list. Additive section; renders
                 nothing when the flag is off or no moments exist. */}
+            {/* AForce Concierge entry (flag-gated; renders nothing when off). */}
+            <View style={styles.conciergeSection}>
+              <ConciergeEntryCard testID="home-concierge-entry" />
+            </View>
+
             {momentsOn && (
               <View style={styles.momentsSection}>
                 <HomeMomentsSection />
@@ -943,6 +949,9 @@ const styles = StyleSheet.create({
   // only knowable at render time, so it lives at the call site and its rule
   // lives in `homeSafeArea.ts`. Nothing device-specific may return here.
   momentsSection: { marginTop: 4 },
+  conciergeSection: {
+    marginTop: Spacing[5],
+  },
   // ── FOUNDER §5 — ONE VERTICAL RHYTHM, FROM SPACING TOKENS ──────────────────
   // The header used to claim almost as much vertical space as the instrument
   // (97pt vs 288pt on a 667pt device, from ad-hoc 8s and a 32pt brand line),

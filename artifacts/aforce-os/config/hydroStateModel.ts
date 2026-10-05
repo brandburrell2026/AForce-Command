@@ -634,3 +634,23 @@ export const MOMENT_FEEDBACK_MAX_RECORDS = 200;
  * release category; the guard blocks any dose token outside (0, this].
  */
 export const DECISION_GUARD_MAX_DOSE_OZ = 200;
+
+/* ─── AForce Concierge (Section 64 conversational surface) ─────────────────── */
+/* Client-side tunables for the concierge. Server-side caps live in
+ * api-server lib/concierge/config.ts. Reminder quiet hours REUSE the Moments
+ * constants above (one quiet-hours truth for every local notification). */
+
+/** Composer cap (chars). Mirrors the server's CONCIERGE_MAX_MESSAGE_CHARS. */
+export const CONCIERGE_MAX_MESSAGE_CHARS = 600;
+
+/** Journal days summarised into the grounding context (weekly reflection). */
+export const CONCIERGE_RECENT_DAYS = 7;
+
+/** A fetched briefing is reused for this long before "Refresh" is suggested. */
+export const CONCIERGE_BRIEFING_REUSE_MS = 3 * FRESHNESS_HOUR_MS;
+
+/** Concierge-set local reminders per calendar day (shares the global 6/day ceiling). */
+export const CONCIERGE_REMINDER_MAX_PER_DAY = 3;
+
+/** Client-side timeout for one concierge request (ms). */
+export const CONCIERGE_REQUEST_TIMEOUT_MS = 35_000;

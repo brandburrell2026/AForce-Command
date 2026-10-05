@@ -62,6 +62,7 @@ import {
   AFSecondaryButton,
   AFTextButton,
 } from '@/components/ui';
+import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 import { SignalSkeleton } from './SignalSkeleton';
 import { Icon } from '@/components/Icon';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
@@ -126,6 +127,7 @@ export function PerformanceSignalV3({
   onBack?: () => void;
 }) {
   const { t } = useTranslation();
+  const askConcierge = useAskConciergeActions('signal');
   const [rollups, setRollups] = React.useState<JournalRollup[] | null>(fixtureRollups ?? null);
   const [error, setError] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -262,7 +264,7 @@ export function PerformanceSignalV3({
       {/* Build-61: this screen is pushed from the Hydration root now, so it
           gets AFTopBar's back control (spec §4.2 — a back control is used only
           when the destination is not a root tab; it is no longer a root tab). */}
-      <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} onBack={onBack} />
+      <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} onBack={onBack} actions={askConcierge} />
 
       {/* BUILD-61 CORRECTION — the regions below are SIBLINGS, not one nested
           ternary. They used to be a single `loading : empty-or-error : history`

@@ -19,6 +19,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, AccessibilityInfo, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 import { useTranslation } from 'react-i18next';
 
 import { AFScreen, AFTopBar, AFCard, AFSectionLabel, AFInlineErrorRow } from '@/components/ui';
@@ -65,6 +66,7 @@ const STATUS_ACCENT: Record<string, string> = {
 export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const askConcierge = useAskConciergeActions('weekly');
   const pa = usePerformanceAge();
   const [model, setModel] = React.useState<WeeklyV3Model | null>(
     fixture ? buildWeeklyV3Model(fixture) : null,
@@ -143,6 +145,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
           eyebrow={t('reports.v3.eyebrow')}
           title={t('reports.v3.title')}
           onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+          actions={askConcierge}
         />
         {/* Holds the report's own shape while three sources are assembled,
             instead of a lone spinner on an empty canvas. One accessible
@@ -204,6 +207,7 @@ export function WeeklyReportV3({ fixture }: { fixture?: WeeklyV3Inputs }) {
         eyebrow={t('reports.v3.eyebrow')}
         title={t('reports.v3.title')}
         onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+        actions={askConcierge}
       />
 
       {/* Completed-week chip — real window from lastCompletedWeek */}
