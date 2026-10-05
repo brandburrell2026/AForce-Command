@@ -25,6 +25,7 @@ vi.mock("@workspace/db", async () => ({
   ...(await import("../stravaTokenStore")),
   ...(await import("../healthRecordsRepo")),
   ...(await import("../accountDeletionCascade")),
+  ...(await import("../conciergeRepo")),
   db: new Proxy(
     {},
     {

@@ -69,6 +69,7 @@
 
 import { Router, type IRouter } from "express";
 import { clearCircleSharingForUser } from "../lib/circleSharing";
+import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import {
@@ -257,6 +258,27 @@ function buildTokenStoresFor(
   };
 }
 
+/** Purge concierge rows only when all three tables exist in this database. */
+export async function purgeConciergeIfPresent(
+  tx: NodePgDatabase<Record<string, unknown>>,
+  userId: string,
+  log?: Pick<Logger, "info" | "warn" | "error">,
+): Promise<void> {
+  const probe = await tx.execute(sql`
+    select
+      to_regclass('public.aforce_concierge_conversations') as conversations,
+      to_regclass('public.aforce_concierge_messages') as messages,
+      to_regclass('public.aforce_concierge_preferences') as preferences
+  `);
+  const row = (probe as { rows?: Array<Record<string, unknown>> }).rows?.[0] ?? {};
+  const present = Boolean(row["conversations"] && row["messages"] && row["preferences"]);
+  if (!present) {
+    log?.warn?.({ userId: "[redacted]" }, "account-deletion: concierge tables not present; nothing to purge");
+    return;
+  }
+  await createConciergeRepo(tx).purgeUser(userId);
+}
+
 export function buildDefaultAccountDeletionDeps(
   db: NodePgDatabase<Record<string, unknown>>,
   log?: Pick<Logger, "info" | "warn" | "error">,
@@ -282,7 +304,12 @@ export function buildDefaultAccountDeletionDeps(
             authStateDb: createAccountDeletionAuthStateDb(tx),
             healthRecordsRepo: createHealthRecordsRepo(tx),
             // AForce Concierge transcripts + preferences leave with the account.
-            conciergePurge: (uid) => createConciergeRepo(tx).purgeUser(uid),
+            // Guarded: the concierge tables are additive and may not be pushed
+            // yet in a given environment (the feature ships dark). A delete on a
+            // missing relation would abort the WHOLE deletion transaction, so
+            // when the tables are absent there is nothing to purge and the
+            // cascade continues; any other failure still rolls everything back.
+            conciergePurge: (uid) => purgeConciergeIfPresent(tx, uid, log),
           },
           userId,
         );
