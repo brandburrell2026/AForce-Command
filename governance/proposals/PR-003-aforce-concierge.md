@@ -1,9 +1,9 @@
 # PR-003 — AForce Concierge (DRAFT — pending founder decisions)
 
-**Status:** BUILT DARK · internal preview only. Flag `ai_concierge_enabled` is OFF in
-`DEFAULT_FLAGS`, ON in `DEMO_ALL_ON_FLAGS`, toggleable from the Profile DEVELOPER tab
-(`developerControlsAvailable()` builds). It is deliberately **not** in the ruling-locked
-internal TestFlight overlay (`internalTestflightOverlay.ts`) — adding it there is decision D-05 below.
+**Status:** MERGED DARK (PR #1078, #1079) · internal preview. Flag `ai_concierge_enabled` is OFF in
+`DEFAULT_FLAGS`, ON in `DEMO_ALL_ON_FLAGS`, toggleable from the Profile DEVELOPER tab, and — per
+D-05 (decided 2026-10-05) — ON in the internal TestFlight overlay. The three concierge tables were
+created in production on 2026-10-05 (reviewed SQL, founder-authorized).
 **Deciders:** Brandon (founder) + Julius — items marked [JB] require both.
 **Author:** Claude Code (drafted at founder direction, 2026-10-05).
 **Template precedent:** PR-002 (proposal → decision record → constrained build).
@@ -104,7 +104,7 @@ brand tokens, intake-source contract).
 | D-02 [JB] | **Privacy disclosure.** `legal/privacy-policy.md` discloses one AI processor (Smart Capture photos). Sending member context + chat text to the same processor is a new disclosure. | Counsel-drafted copy. | Counsel adds the concierge to the AI-processor disclosure before anything beyond internal accounts. |
 | D-03 | **Data class.** Conversation transcripts + assistant preferences are a new class (DATA-CLASSIFICATION-MATRIX). Proposed row: Appendix A below. | Privacy review (INTELLIGENCE-CHANGE-CONTROL §4). | Approve the row; S2 (member-authored text, may contain health statements). |
 | D-04 | **Emergency copy.** `lib/concierge/urgent.ts` is the engineering placeholder; NO-9 is design-only pending counsel + clinical review. | Counsel. | Review the two sentences; replace verbatim if required (the test locks them against every gate). |
-| D-05 | **Internal TestFlight overlay.** Adding `ai_concierge_enabled` to the overlay changes the next internal build. | Overlay lists are founder rulings (locked by test). | Add a `CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS` group after D-01–D-04 start. |
+| D-05 | **Internal TestFlight overlay.** Adding `ai_concierge_enabled` to the overlay changes the next internal build. | Overlay lists are founder rulings (locked by test). | **DECIDED 2026-10-05 (Brandon): granted.** `CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS` added to `internalTestflightOverlay.ts`; the next `internal` EAS build turns the concierge on for internal testers. Production stays OFF. |
 | D-06 | **CR-1 copy review.** The concierge's own copy keys (`concierge.*`, 11 locales, English only) and the governed urgent reply. | CR-1 is the §64 enable gate (Risk-Register RD-1). | Fold into CR-1. |
 | D-07 | **Schema push.** Three additive tables + three indexes. | Founder runs `drizzle-kit push` (docs/SCHEMA_DRIFT.md). | Push to the dev database first; prod with the production Clerk migration. |
 
