@@ -93,9 +93,9 @@ Local verification on October 5: 123 targeted tests passed across 11 files;
 library, API, and app typechecks passed; `git diff --check` passed. These ran
 with the available Node 24.19.0 runtime (the repository/CI targets Node 22).
 The six PostgreSQL integration tests could not execute locally because no
-working container runtime was available. Their import/transform succeeded;
-that does not establish database behavior. The existing Integration Tests
-workflow includes this suite and supplies Docker on its runner. Physical-device
+working container runtime was available. They subsequently passed on the CI
+runner with real PostgreSQL: [integration run 37313838334](https://github.com/brandburrell2026/AForce-Command/actions/runs/37313838334)
+(41 tests passed overall, including all six Circle cases). Physical-device
 and real-account acceptance remain unverified.
 
 ## Remaining work for the broader Circle pilot
