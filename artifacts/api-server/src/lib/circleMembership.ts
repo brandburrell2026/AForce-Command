@@ -1,3 +1,4 @@
+import { lockCirclePair, clearCirclePairSharing } from "./circleSharing";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, isNull, gt, ne, or, desc, sql } from "drizzle-orm";
 import {
@@ -147,6 +148,8 @@ export async function acceptInvitation(
         own ? 400 : 404,
       );
     }
+    await lockCirclePair(tx, userId, invite.ownerUserId);
+    await clearCirclePairSharing(tx, userId, invite.ownerUserId);
     // A new consent to connect never revives historical health sharing.
     await tx
       .delete(statuses)
@@ -202,6 +205,8 @@ export async function acceptInvitation(
 }
 export async function removeMembership(userId: string, memberUserId: string) {
   await db.transaction(async (tx) => {
+    await lockCirclePair(tx, userId, memberUserId);
+    await clearCirclePairSharing(tx, userId, memberUserId);
     const pair = (table: typeof members | typeof statuses) =>
       or(
         and(

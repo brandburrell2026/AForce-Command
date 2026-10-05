@@ -1,8 +1,9 @@
-# Circle pilot — membership slice
+# Circle pilot — membership and explicit sharing
 
 Started October 5, 2026 from `origin/main` (`391d6279`). This change implements
-real connections inside the existing Circle screen. It is not a launch of live
-rankings, shared health status, or shared challenges.
+real connections inside the existing Circle screen. Membership merged in #1076.
+The next slice adds separately gated, explicit sharing of recorded app score and
+state. Live rankings and shared challenges remain outside this slice.
 
 ## Included
 
@@ -105,13 +106,12 @@ and real-account acceptance remain unverified.
    broader release, integrate verified account deletion with invitation
    invalidation and removal of reciprocal relationships. Do not silently change
    health-data-only deletion into account deletion.
-2. **Explicit sharing consent:** obtain fresh consent for real sharing; existing
-   preferences were created while sharing was only a preview. Enforce scope and
-   field visibility on the server at read time, including immediate revocation,
-   disconnection, account deletion, and no data for unknown/absent observations.
-3. **Real activity feed:** connect only authorized member activity, including
-   timestamps and honest empty/error states. Do not publish through the legacy
-   unfiltered snapshot reader.
+2. **Explicit sharing consent:** implemented in the gated slice below for score
+   and state. Still requires real PostgreSQL CI and two-account/device acceptance;
+   full identity deletion must be integrated before broader release.
+3. **Recorded activity feed:** implemented in the gated slice below, with
+   timestamps and honest empty/error states. The new endpoint uses fresh grants;
+   the legacy snapshot feed is suppressed while the sharing pilot is enabled.
 4. **One shared challenge:** invitation/acceptance, real progress, expiry,
    cancellation, and completion with two-account tests. The existing challenge
    acceptance route needs lifecycle hardening before it is used for this.
@@ -120,3 +120,62 @@ and real-account acceptance remain unverified.
 6. **Launch:** real PostgreSQL race tests, physical-device two-account evidence,
    migration review, and a controlled pilot precede a public flag change.
    Live global/city/team rankings remain a separate milestone.
+
+
+## Explicit sharing slice
+
+The `circle_sharing_enabled` client flag and `CIRCLE_SHARING_ENABLED=true` server
+switch are separate, default-off controls. The client also requires the membership
+pilot and an internal/local build. Apply the additive
+`lib/db/migrations/20261005_circle_sharing.sql` only in the isolated test database
+before enabling this slice. Deploying code alone does not enable sharing.
+
+Every recipient starts with no allowed fields. A member selects score and/or
+state, reviews the named recipient and fields, and explicitly confirms ongoing
+sharing of the newest recorded app data from the past 24 hours. Legacy privacy
+preferences are never consent. Grant writes use a version check; disconnect,
+reconnection, revocation, and health-data deletion invalidate stale saves using
+retained grant tombstones. Both membership directions must be active at read
+time. Muting either direction hides activity. Reads use a single database
+statement snapshot: a read begun before revocation may finish with the prior
+grant; subsequent reads deny access. The client clears activity on background
+and refreshes on foreground and every 60 seconds while active. Already seen
+information cannot be recalled.
+
+The source is persisted, client-reported `aforce_score_snapshots`, not a verified
+sensor measurement or live reading. The newest record is selected before
+validation; missing, invalid, future, older-than-24-hour, or NOT_COMPUTED records
+produce no activity. An older valid record is never substituted. Unselected
+fields are omitted, and no timestamp is emitted without allowed data.
+
+Health-data deletion revokes both-direction grants inside its existing database
+transaction. It preserves membership and hydration/score history under the
+existing health-only deletion contract. Sharing that retained history again
+requires fresh explicit consent. Full identity deletion remains a separate
+release requirement below. Lifecycle writes currently use a pilot-wide advisory
+lock; revisit serialization before scaling beyond the controlled pilot.
+
+Turning off the server sharing switch stops new nonempty grants and activity
+reads. Grant inspection and revocation remain available. Do not drop grant rows
+or the table during rollback: tombstone versions prevent stale requests from
+restoring consent. Disabling client presentation alone is not server revocation.
+
+Additional two-account checks:
+
+1. Connect A and B. Both initially have sharing off and see no activity, even if
+   legacy privacy preferences allow sharing.
+2. A confirms score-only sharing to B. B sees only the recorded score and time;
+   state is absent. Repeat state-only, then both fields.
+3. Revoke, mute, disconnect, and reconnect. Refresh B after each operation and
+   verify access ends; reconnect must not restore consent.
+4. Queue a first save and an edit before disconnect/reconnect or health purge.
+   Their old versions must conflict rather than restore sharing.
+5. Turn the server sharing switch off. Activity becomes unavailable and new
+   sharing is refused, while A can still inspect and revoke an existing grant.
+6. Confirm recorded provenance, no fallback to older records, no data after the
+   24-hour window, honest offline errors, foreground refresh, and account-switch
+   isolation on physical devices.
+
+A dedicated Railway test project/database is awaiting approval; the existing
+Railway project has only production. No production Circle flags or migrations
+have been changed during this continuation.

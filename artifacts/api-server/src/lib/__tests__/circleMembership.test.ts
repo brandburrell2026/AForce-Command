@@ -40,7 +40,7 @@ vi.mock("@workspace/db", async (original) => {
     );
   };
   const fake: any = {
-    execute: async () => undefined,
+    execute: async () => ({ rows: [{ present: false }] }),
     transaction: async (fn: any) => {
       const before = structuredClone(state.tables);
       try {

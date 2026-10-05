@@ -56,7 +56,7 @@ function readTokenSubject(authorization: string): unknown {
 }
 
 /** No shared cache: each client belongs to one exact identity transition. */
-export function createCircleMembershipClient(scope: ScopeState) {
+export function createCircleAuthenticatedRequest(scope: ScopeState) {
   function assertCurrent() {
     if (getScopeState() !== scope)
       throw new CircleMembershipError('session_changed');
@@ -105,6 +105,11 @@ export function createCircleMembershipClient(scope: ScopeState) {
       );
     return data as T;
   }
+  return request;
+}
+
+export function createCircleMembershipClient(scope: ScopeState) {
+  const request = createCircleAuthenticatedRequest(scope);
   return {
     list: () => request<{ users: CircleUser[] }>('GET', '/members'),
     invitations: () =>

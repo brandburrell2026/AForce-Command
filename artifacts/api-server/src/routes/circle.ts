@@ -28,6 +28,8 @@
  * state instead of a fabricated one.
  */
 
+import { sharingEnabled } from "../lib/circleSharing";
+import circleSharingRouter from "./circleSharing";
 import { rateLimit } from "express-rate-limit";
 import {
   createInvitation,
@@ -55,6 +57,7 @@ import { requireAuth } from "../middlewares/requireAuth";
 const router: IRouter = Router();
 
 router.use(requireAuth);
+router.use(circleSharingRouter);
 
 function resolveUserId(req: Request): string {
   return req.userId ?? DEFAULT_USER_ID;
@@ -394,6 +397,13 @@ router.get("/pending", async (req, res) => {
 
 /* ─── GET /feed — active members + their latest shared status ─────────────── */
 router.get("/feed", async (req, res) => {
+  // The explicit-consent pilot has one read path. Legacy owner snapshots
+  // carry no fresh grants and must not bypass /activity's authorization.
+  if (sharingEnabled()) {
+    res.setHeader("Cache-Control", "private, no-store");
+    res.json({ feed: [] });
+    return;
+  }
   try {
     const userId = resolveUserId(req);
     const groupParam = String(req.query["group"] ?? "");

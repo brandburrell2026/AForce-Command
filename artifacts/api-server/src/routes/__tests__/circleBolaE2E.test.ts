@@ -31,7 +31,7 @@ vi.mock("@workspace/db", async (importOriginal) => {
     if (!dbRef.current) throw new Error(`db.${m}() before a fake was installed`);
     return dbRef.current[m](...a);
   };
-  return { ...actual, db: { select: forward("select"), insert: forward("insert"), update: forward("update"), delete: forward("delete"), transaction: forward("transaction") } };
+  return { ...actual, db: { select: forward("select"), insert: forward("insert"), update: forward("update"), delete: forward("delete"), transaction: forward("transaction"), execute: forward("execute") } };
 });
 
 import circleRouter from "../circle";
@@ -51,6 +51,7 @@ function makeExecutingDb(tables: Record<string, Row[]>) {
   };
   const tableName = (t: any) => (t?.[Symbol.for("drizzle:Name")] ?? t?._?.name ?? "") as string;
   const fake = {
+    execute: async () => ({ rows: [{ present: false }] }),
     transaction: async (fn: any): Promise<any> => fn(fake),
     select: () => {
       let selected: Row[] = [];

@@ -291,6 +291,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   circle_v3_dashboard_enabled: true,
   // Explicit internal pilot only. Joining never grants health-data sharing.
   circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
   // moments only: Home NEXT MOMENT section, Moments overview, flagship
   // Moment Detail ritual, Prepare My Day, Add a Moment. ON in production —
@@ -572,6 +573,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   circle_v3_dashboard_enabled: true,
   // Generic demos must not create real social relationships.
   circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   moments_enabled: true,
   moments_notifications_enabled: true,
   moments_calendar_enabled: true,
@@ -718,6 +720,7 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  */
 export const INTERNAL_TIER_FLAGS = [
   'circle_membership_enabled',
+  'circle_sharing_enabled',
   'trainer_board_enabled',
   'trainer_demo_seed_enabled',
   'guardian_intelligence_enabled',
@@ -754,6 +757,13 @@ export function circleMembershipPilotAvailable(
   ctx: UnlockContext = currentUnlockContext(),
 ): boolean {
   return flags.circle_membership_enabled && (ctx.dev || ctx.internalTestflight);
+}
+
+export function isCircleSharingPilotEnabled(
+  flags: Pick<FeatureFlags, 'circle_membership_enabled' | 'circle_sharing_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return circleMembershipPilotAvailable(flags, ctx) && flags.circle_sharing_enabled;
 }
 
 /**
