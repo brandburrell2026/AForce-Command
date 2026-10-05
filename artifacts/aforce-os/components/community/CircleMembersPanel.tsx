@@ -1,4 +1,7 @@
 import React from 'react';
+import { useFeatureFlags } from '@/store/useAppStore';
+import { isCircleSharingPilotEnabled } from '@/featureFlags/flags';
+import { CircleSharingPanel } from './CircleSharingPanel';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { af } from '@/theme';
@@ -28,6 +31,7 @@ export function CircleMembersPanel() {
 
 function MemberSession({ scope }: { scope: ScopeState }) {
   const { t } = useTranslation();
+  const sharingEnabled = isCircleSharingPilotEnabled(useFeatureFlags());
   const client = React.useMemo(
     () => createCircleMembershipClient(scope),
     [scope],
@@ -141,7 +145,11 @@ function MemberSession({ scope }: { scope: ScopeState }) {
   return (
     <View style={styles.panel} testID="circle-members-panel">
       <Text style={styles.title}>{copy('title')}</Text>
-      <Text style={styles.copy}>{copy('disclosure')}</Text>
+      <Text style={styles.copy}>
+        {sharingEnabled
+          ? t('community.sharing.membership_disclosure')
+          : copy('disclosure')}
+      </Text>
       {button(
         copy('retry'),
         () => void act(async () => {}, false),
@@ -186,6 +194,13 @@ function MemberSession({ scope }: { scope: ScopeState }) {
           )}
         </View>
       ))}
+      {loaded && !loading ? (
+        <CircleSharingPanel
+          scope={scope}
+          members={members}
+          enabled={sharingEnabled}
+        />
+      ) : null}
       <Text style={styles.title}>{copy('connect')}</Text>
       <Text style={styles.copy}>{copy('name_disclosure')}</Text>
       <TextInput

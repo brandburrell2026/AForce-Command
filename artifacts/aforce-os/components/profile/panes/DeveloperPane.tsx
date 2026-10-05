@@ -199,6 +199,14 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           flags={flags}
           onToggle={toggleFlag}
         />
+        <FlagRow
+          flag="circle_sharing_enabled"
+          label={t('community.sharing.pilot_label', { defaultValue: 'Circle sharing pilot' })}
+          desc={t('community.sharing.pilot_description', { defaultValue: 'Choose who can see your recorded score and state. Requires the membership pilot.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
       </View>
     </>
   );

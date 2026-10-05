@@ -3,6 +3,9 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import en from '../../../locales/en.json';
+vi.mock('../CircleSharingPanel', () => ({ CircleSharingPanel: () => null }));
+vi.mock('@/store/useAppStore', () => ({ useFeatureFlags: () => ({ circle_sharing_enabled: false }) }));
+vi.mock('@/featureFlags/flags', () => ({ isCircleSharingPilotEnabled: () => false }));
 const state = vi.hoisted(() => ({
   scope: { status: 'AUTHENTICATED', userId: 'A' } as object,
   listeners: new Set<() => void>(),
