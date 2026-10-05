@@ -47,7 +47,7 @@ const okReply = JSON.stringify({
 });
 
 let modelCalls = 0;
-let clientMode: "ok" | "missing" = "ok";
+let clientMode: "ok" | "missing" | "fail" = "ok";
 let server: http.Server;
 let baseUrl: string;
 let storeRef: import("@workspace/db").ConciergeStore;
@@ -72,6 +72,7 @@ async function buildApp(): Promise<Express> {
             completions: {
               create: async () => {
                 modelCalls += 1;
+                if (clientMode === "fail") throw new Error("upstream down");
                 return { choices: [{ message: { content: okReply } }] };
               },
             },
@@ -279,6 +280,37 @@ describe("6. AI unavailable", () => {
     expect(turn["answer"]).toBe("");
     const status = await call("GET", "/api/concierge/status");
     expect(status.json).toHaveProperty("available");
+  });
+});
+
+describe("6b. retry after an upstream failure", () => {
+  it("does not persist the failed turn, re-runs the model on the same clientTurnId, stores the member message once", async () => {
+    asUser("user_F");
+    clientMode = "fail";
+    const turnId = randomUUID();
+    const first = await call("POST", "/api/concierge/messages", {
+      clientTurnId: turnId,
+      message: "Explain my hydration target.",
+      context: context(),
+    });
+    expect((first.json["turn"] as Record<string, unknown>)["status"]).toBe("unavailable");
+    const conv = String(first.json["conversationId"]);
+    expect(modelCalls).toBe(1);
+
+    clientMode = "ok";
+    const second = await call("POST", "/api/concierge/messages", {
+      conversationId: conv,
+      clientTurnId: turnId,
+      message: "Explain my hydration target.",
+      context: context(),
+    });
+    expect(second.json["duplicate"]).toBe(false);
+    expect((second.json["turn"] as Record<string, unknown>)["status"]).toBe("ok");
+    expect(modelCalls).toBe(2);
+
+    const transcript = await call("GET", `/api/concierge/conversations/${conv}`);
+    const roles = (transcript.json["messages"] as Array<Record<string, unknown>>).map((m) => m["role"]);
+    expect(roles).toEqual(["user", "assistant"]);
   });
 });
 

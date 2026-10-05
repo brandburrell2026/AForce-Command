@@ -26,7 +26,7 @@ const cancelMock = vi.mocked(cancelConciergeReminder);
 
 function deps() {
   const ledger = new ActionLedger();
-  const logIntake = vi.fn(async () => ({}));
+  const logIntake = vi.fn(async (): Promise<unknown> => ({}));
   const router = { push: vi.fn() };
   return { ledger, logIntake, router };
 }

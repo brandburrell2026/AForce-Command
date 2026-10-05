@@ -61,8 +61,8 @@ import {
   AFInlineErrorRow,
   AFSecondaryButton,
   AFTextButton,
+  type AFTopBarAction,
 } from '@/components/ui';
-import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 import { SignalSkeleton } from './SignalSkeleton';
 import { Icon } from '@/components/Icon';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
@@ -118,6 +118,7 @@ const RETRY_DELAYS_MS = [1500, 4000];
 export function PerformanceSignalV3({
   fixtureRollups,
   onBack,
+  topBarActions,
 }: {
   fixtureRollups?: JournalRollup[];
   /** Back handler for the PUSHED route (app/performance-signal.tsx). Omitted
@@ -125,9 +126,11 @@ export function PerformanceSignalV3({
    *  Passed as a prop rather than read from `useRouter()` here so the screen
    *  stays router-free and mountable from a fixture. */
   onBack?: () => void;
+  /** Optional AFTopBar actions (e.g. the Ask Concierge entry), built by the
+   *  route so this screen stays router-free and fixture-mountable. */
+  topBarActions?: AFTopBarAction[];
 }) {
   const { t } = useTranslation();
-  const askConcierge = useAskConciergeActions('signal');
   const [rollups, setRollups] = React.useState<JournalRollup[] | null>(fixtureRollups ?? null);
   const [error, setError] = React.useState(false);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -264,7 +267,7 @@ export function PerformanceSignalV3({
       {/* Build-61: this screen is pushed from the Hydration root now, so it
           gets AFTopBar's back control (spec §4.2 — a back control is used only
           when the destination is not a root tab; it is no longer a root tab). */}
-      <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} onBack={onBack} actions={askConcierge} />
+      <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} onBack={onBack} actions={topBarActions} />
 
       {/* BUILD-61 CORRECTION — the regions below are SIBLINGS, not one nested
           ternary. They used to be a single `loading : empty-or-error : history`

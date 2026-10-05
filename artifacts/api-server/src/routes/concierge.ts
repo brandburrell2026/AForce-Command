@@ -155,7 +155,11 @@ export function buildConciergeRouter(deps: ConciergeRouterDeps): IRouter {
         conversation = await deps.store.createConversation(userId, randomUUID(), titleFrom(body.message));
       }
 
-      // Duplicate-tap protection: the same clientTurnId returns the stored turn.
+      // Duplicate-tap protection: the same clientTurnId replays the stored reply.
+      // Only REAL replies (ok / urgent) are ever persisted — a failed turn
+      // (unavailable / gated) is not, so a retry with the same clientTurnId
+      // re-runs the model instead of replaying the failure, and the member's
+      // message is stored exactly once.
       const existing = await deps.store.listMessages(userId, conversation.id, CONCIERGE_TRANSCRIPT_PAGE);
       const dupe = existing.find((m) => m.role === "user" && m.content["clientTurnId"] === body.clientTurnId);
       if (dupe) {
@@ -225,20 +229,24 @@ export function buildConciergeRouter(deps: ConciergeRouterDeps): IRouter {
       incCounter(`concierge.turn.${turn.status}`);
 
       const ts = new Date(now()).toISOString();
-      await deps.store.appendMessage(userId, {
-        id: randomUUID(),
-        conversationId: conversation.id,
-        role: "user",
-        content: { text: body.message, clientTurnId: body.clientTurnId },
-        createdAt: ts,
-      });
-      await deps.store.appendMessage(userId, {
-        id: randomUUID(),
-        conversationId: conversation.id,
-        role: turn.status === "ok" ? "assistant" : "notice",
-        content: turn as unknown as Record<string, unknown>,
-        createdAt: new Date(now() + 1).toISOString(),
-      });
+      if (!dupe) {
+        await deps.store.appendMessage(userId, {
+          id: randomUUID(),
+          conversationId: conversation.id,
+          role: "user",
+          content: { text: body.message, clientTurnId: body.clientTurnId },
+          createdAt: ts,
+        });
+      }
+      if (turn.status === "ok" || turn.status === "urgent") {
+        await deps.store.appendMessage(userId, {
+          id: randomUUID(),
+          conversationId: conversation.id,
+          role: turn.status === "ok" ? "assistant" : "notice",
+          content: turn as unknown as Record<string, unknown>,
+          createdAt: new Date(now() + 1).toISOString(),
+        });
+      }
       await deps.store.touchConversation(userId, conversation.id);
 
       res.json({ conversationId: conversation.id, turn, duplicate: false });

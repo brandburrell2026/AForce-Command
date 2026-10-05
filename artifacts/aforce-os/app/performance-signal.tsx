@@ -27,11 +27,14 @@ import { Stack, useRouter } from 'expo-router';
 
 import JournalScreen from '@/screens/JournalScreen';
 import { PerformanceSignalV3 } from '@/components/hydration/PerformanceSignalV3';
+import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 import { useAppStore } from '@/store/useAppStore';
 
 export default function PerformanceSignalRoute() {
   const router = useRouter();
   const flags = useAppStore().state.featureFlags;
+  // Built here (not in the screen) so PerformanceSignalV3 stays router-free.
+  const askConcierge = useAskConciergeActions('signal');
 
   // Guarded back, matching app/weekly-report.tsx: a deep link straight to this
   // route has no stack entry to pop, so fall back to the tab this screen hangs
@@ -47,7 +50,7 @@ export default function PerformanceSignalRoute() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       {flags.signal_v3_dashboard_enabled ? (
-        <PerformanceSignalV3 onBack={onBack} />
+        <PerformanceSignalV3 onBack={onBack} topBarActions={askConcierge} />
       ) : (
         /* Legacy Performance Timeline. It predates AFTopBar and carries no back
            control of its own, so the OS gesture / hardware back is the way out

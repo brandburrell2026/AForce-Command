@@ -75,7 +75,10 @@ describe('WIRING — entry points exist and are flag-gated', () => {
   });
   it('the three contextual Ask actions are wired to AFTopBar', () => {
     expect(read('components/hydration/HydrationScreenV2.tsx')).toMatch(/useAskConciergeActions\('hydration'\)/);
-    expect(read('components/hydration/PerformanceSignalV3.tsx')).toMatch(/useAskConciergeActions\('signal'\)/);
+    // Performance Signal is router-free by contract; its route builds the action.
+    expect(read('app/performance-signal.tsx')).toMatch(/useAskConciergeActions\('signal'\)/);
+    expect(read('components/hydration/PerformanceSignalV3.tsx')).toMatch(/actions=\{topBarActions\}/);
+    expect(read('components/hydration/PerformanceSignalV3.tsx')).not.toMatch(/expo-router/);
     expect(read('components/insights/WeeklyReportV3.tsx')).toMatch(/useAskConciergeActions\('weekly'\)/);
     expect(read('components/concierge/AskConciergeAction.ts')).toMatch(/if \(!enabled\) return \[\];/);
   });
