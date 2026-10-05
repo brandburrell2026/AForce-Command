@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mockRosterClutch, mockRosterGuardian } from '@/data/mockData';
 import { useFlagsSlice, useUserSlice } from '@/store/slices';
+import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
 import { af } from '@/theme';
 import { edAccent, edInk, edPositive, edRule, edStock, edType } from '@/theme/editorialTokens';
 
@@ -205,6 +206,14 @@ export function SkinIntelligenceHomeScreen() {
           <Text style={styles.signalDetail}>EPHEMERAL CAPTURE / INTERNAL TESTFLIGHT</Text>
         </SignalCard>
         <PrimaryAction label="Start skin scan" href="/skinia" />
+      </View>
+
+      {/* AForce Concierge entry — the internal TestFlight build renders THIS
+          Home (not the editorial Home), so the Section 64 surface needs its
+          affordance here too. Flag-gated inside the card; states nothing
+          about the body. */}
+      <View style={styles.block}>
+        <ConciergeEntryCard tone="editorial" testID="skinia-concierge-entry" />
       </View>
 
       <View style={styles.systemSection}>

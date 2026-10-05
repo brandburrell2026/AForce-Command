@@ -72,9 +72,13 @@ describe('NAV — no new tab, guarded stack routes', () => {
 });
 
 describe('WIRING — entry points exist and are flag-gated', () => {
-  it('both Home surfaces mount the entry card', () => {
+  it('all three Home surfaces mount the entry card (editorial, V2 fallback, and the internal-TestFlight SkinIA Home)', () => {
     expect(read('components/editorial/home/EditorialHomeScreen.tsx')).toContain('<ConciergeEntryCard tone="editorial"');
     expect(read('components/home/HomeScreenV2.tsx')).toContain('<ConciergeEntryCard testID="home-concierge-entry"');
+    // app/(tabs)/index.tsx renders SkinIntelligenceHomeScreen when EXPO_PUBLIC_INTERNAL_TESTFLIGHT
+    // is true and advanced_visual_intelligence_enabled is on — which the overlay grants — so the
+    // internal build's Home is THIS one. Build 103 shipped without it (2026-10-05).
+    expect(read('components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx')).toContain('<ConciergeEntryCard tone="editorial" testID="skinia-concierge-entry"');
     expect(read('components/concierge/ConciergeEntryCard.tsx')).toMatch(/if \(!flags\.ai_concierge_enabled\) return null;/);
   });
   it('the three contextual Ask actions are wired to AFTopBar', () => {
