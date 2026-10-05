@@ -115,6 +115,172 @@ Flag OFF in production. Two layers:
   safety line "Reaction time and judgment are significantly reduced. A ride is the safer next move"
   (L730).
 
+### 3.3b — AForce Concierge copy (DR-018 D-06, folded in 2026-10-05)
+
+Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three layers for the reviewer:
+
+- **Member-facing locale copy** — every `concierge.*` key in `artifacts/aforce-os/locales/en.json` (144 keys;
+  the ten other locales carry English copies, R-24). Every value already passes the §42 runtime scan
+  (`consumerCopyClaimsLint` + `conciergeLaw.test.ts`). Inventory:
+
+| Key | Surface | English copy |
+|---|---|---|
+| `concierge.title` | Chat screen | AForce Concierge |
+| `concierge.eyebrow` | Chat screen | Concierge |
+| `concierge.opening_line` | Chat screen | Your day. Your next move. |
+| `concierge.entry_title` | Home card | AForce Concierge |
+| `concierge.entry_sub` | Home card | Your day. Your next move. |
+| `concierge.entry_cta` | Home card | Ask |
+| `concierge.ask_action_label` | Ask action | Ask Concierge |
+| `concierge.ai_disclosure` | Chat screen | AForce Concierge is AI. Performance and wellness information, not medical advice. |
+| `concierge.briefing_cta` | Briefing card | Today's briefing |
+| `concierge.briefing_title` | Briefing card | Today's briefing |
+| `concierge.briefing_refresh` | Briefing card | Refresh briefing |
+| `concierge.briefing_generated` | Briefing card | Generated {{time}} |
+| `concierge.new_chat` | Chat screen | New chat |
+| `concierge.history` | History sheet | History |
+| `concierge.history_empty_title` | History sheet | No conversations yet |
+| `concierge.history_empty_body` | History sheet | Your conversations will appear here. You can delete any of them at any time. |
+| `concierge.delete_conversation` | History sheet | Delete conversation |
+| `concierge.delete_all` | History sheet | Delete all conversations |
+| `concierge.delete_confirm_title` | History sheet | Delete this conversation? |
+| `concierge.delete_confirm_body` | History sheet | This removes it from your account. It cannot be undone. |
+| `concierge.delete_all_confirm_title` | History sheet | Delete all conversations? |
+| `concierge.delete_all_confirm_body` | History sheet | Every conversation is removed from your account. Remembered preferences are not affected. |
+| `concierge.composer_placeholder` | Chat screen | Ask about today, your target, or a plan |
+| `concierge.composer_label` | Chat screen | Message to the concierge |
+| `concierge.send` | Chat screen | Send |
+| `concierge.cancel_request` | Chat screen | Stop |
+| `concierge.thinking` | Chat screen | Working on it |
+| `concierge.suggested_label` | Suggested questions | Try asking |
+| `concierge.suggested.focus` | Suggested questions | What should I focus on today? |
+| `concierge.suggested.ritual` | Suggested questions | Help me build my daily ritual. |
+| `concierge.suggested.target` | Suggested questions | Explain my hydration target. |
+| `concierge.suggested.sleep` | Suggested questions | I slept poorly. Help me adjust today. |
+| `concierge.suggested.workout` | Suggested questions | Help me prepare for my workout. |
+| `concierge.suggested.tour` | Suggested questions | Show me how to use AForce OS. |
+| `concierge.intro_title` | Intro card | A quick setup, if you want it |
+| `concierge.intro_body` | Intro card | Three short questions help the concierge start from your goals. Skip and ask anything right away. |
+| `concierge.intro_goal_label` | Intro card | What matters most right now? |
+| `concierge.intro_goal.training` | Intro card | Training |
+| `concierge.intro_goal.work` | Intro card | Energy at work |
+| `concierge.intro_goal.travel` | Intro card | Travel days |
+| `concierge.intro_goal.family` | Intro card | Family routine |
+| `concierge.intro_goal.general` | Intro card | Feeling good day to day |
+| `concierge.intro_routine_label` | Intro card | What does a usual day look like? |
+| `concierge.intro_routine_placeholder` | Intro card | Early gym, desk by 9, kids at 6 |
+| `concierge.intro_tone_label` | Intro card | Coaching tone |
+| `concierge.tone.none` | Intro / memory | Neutral |
+| `concierge.tone.rock` | Intro / memory | Rock — direct and decisive |
+| `concierge.tone.bb` | Intro / memory | BB — precise and technical |
+| `concierge.tone.surge` | Intro / memory | Surge — energetic |
+| `concierge.tone.sage` | Intro / memory | Sage — calm and grounded |
+| `concierge.intro_save_label` | Intro card | Save these preferences to my account |
+| `concierge.intro_save_hint` | Intro card | See, edit, or forget them any time in Profile → Concierge memory. |
+| `concierge.intro_start` | Intro card | Start |
+| `concierge.intro_skip` | Intro card | Skip for now |
+| `concierge.why_this` | Chat screen | Why this? |
+| `concierge.sources_label` | Chat screen | Based on |
+| `concierge.freshness.fresh` | Why this? sources | current |
+| `concierge.freshness.aging` | Why this? sources | a little old |
+| `concierge.freshness.stale` | Why this? sources | stale |
+| `concierge.freshness.expired` | Why this? sources | expired |
+| `concierge.freshness.missing` | Why this? sources | missing |
+| `concierge.provenance.measured` | Why this? sources | measured |
+| `concierge.provenance.logged` | Why this? sources | logged |
+| `concierge.provenance.estimated` | Why this? sources | estimated |
+| `concierge.provenance.demo` | Why this? sources | sample data |
+| `concierge.provenance.server` | Why this? sources | logged |
+| `concierge.action.confirm_title` | Action card | Confirm this step |
+| `concierge.action.confirm_cta` | Action card | Confirm |
+| `concierge.action.edit` | Action card | Edit |
+| `concierge.action.log_hydration_title` | Action card | Log water |
+| `concierge.action.log_hydration_detail` | Action card | {{oz}} oz water, logged now |
+| `concierge.action.oz_label` | Action card | Amount (oz) |
+| `concierge.action.open_screen_title` | Action card | Open {{screen}} |
+| `concierge.action.start_checkin_title` | Action card | Start a check-in |
+| `concierge.action.start_checkin_detail` | Action card | Opens the urine signal check. |
+| `concierge.action.set_reminder_title` | Action card | Set a reminder |
+| `concierge.action.set_reminder_detail` | Action card | {{title}} · {{date}} at {{time}} · {{recurrence}} |
+| `concierge.action.recurrence_once` | Action card | once |
+| `concierge.action.recurrence_daily` | Action card | daily |
+| `concierge.action.time_label` | Action card | Time (HH:MM) |
+| `concierge.action.date_label` | Action card | Date (YYYY-MM-DD) |
+| `concierge.action.done` | Action card | Done |
+| `concierge.action.undo` | Action card | Undo |
+| `concierge.action.undone` | Action card | Undone |
+| `concierge.action.failed` | Action card | That didn't go through. |
+| `concierge.action.invalid` | Action card | Check the details and try again. |
+| `concierge.action.quiet_hours` | Action card | Moved out of quiet hours (22:00–07:00) to {{time}}. |
+| `concierge.action.permission_needed` | Action card | Notifications are off for AForce OS. Turn them on in Settings to set reminders. |
+| `concierge.action.reminder_limit` | Action card | You've reached today's reminder limit. |
+| `concierge.action.logged_toast` | Action card | Logged. Your next move updates in a moment. |
+| `concierge.action.reminder_set_toast` | Action card | Reminder set for {{time}}. |
+| `concierge.screen.home` | Action card (screen names) | Home |
+| `concierge.screen.hydration` | Action card (screen names) | Hydration |
+| `concierge.screen.protocol` | Action card (screen names) | Protocol |
+| `concierge.screen.circle` | Action card (screen names) | Circle |
+| `concierge.screen.profile` | Action card (screen names) | Profile |
+| `concierge.screen.urine_check` | Action card (screen names) | Urine signal check |
+| `concierge.screen.weekly_report` | Action card (screen names) | Weekly report |
+| `concierge.screen.performance_signal` | Action card (screen names) | Performance signal |
+| `concierge.screen.scan` | Action card (screen names) | Scan |
+| `concierge.screen.notifications` | Action card (screen names) | Notifications |
+| `concierge.screen.health_connected` | Action card (screen names) | Connected health |
+| `concierge.screen.moments` | Action card (screen names) | Moments |
+| `concierge.screen.sweat` | Action card (screen names) | Sweat calculator |
+| `concierge.screen.concierge_memory` | Action card (screen names) | Concierge memory |
+| `concierge.remember.title` | Remember consent | Remember this? |
+| `concierge.remember.body` | Remember consent | The concierge can remember: "{{value}}". It is saved to your account only if you agree. |
+| `concierge.remember.yes` | Remember consent | Remember |
+| `concierge.remember.no` | Remember consent | Not now |
+| `concierge.remember.saved` | Remember consent | Remembered. |
+| `concierge.state.offline_title` | State notices | You're offline |
+| `concierge.state.offline_body` | State notices | Check your connection and try again. Your conversation is safe. |
+| `concierge.state.unavailable_title` | State notices | Concierge is unavailable right now |
+| `concierge.state.unavailable_body` | State notices | The AI service isn't reachable. Your hydration, command, and journal keep working as usual. |
+| `concierge.state.not_configured_body` | State notices | The concierge's AI service isn't set up on this build. |
+| `concierge.state.gated_title` | State notices | Couldn't give a safe answer |
+| `concierge.state.gated_body` | State notices | The concierge couldn't phrase a reply that meets AForce's language rules. Try asking a different way. |
+| `concierge.state.rate_limited` | State notices | Too many requests. Give it a minute. |
+| `concierge.state.daily_limit` | State notices | You've reached today's concierge limit. It resets tomorrow. |
+| `concierge.state.demo_banner` | State notices | Sample data. The concierge won't read these numbers as yours. |
+| `concierge.state.urgent_label` | State notices | Urgent |
+| `concierge.state.clarify_label` | State notices | One question first |
+| `concierge.read_aloud` | Chat screen | Read aloud |
+| `concierge.memory.title` | Concierge memory screen | Concierge memory |
+| `concierge.memory.eyebrow` | Concierge memory screen | Profile |
+| `concierge.memory.intro` | Concierge memory screen | What the concierge remembers about your preferences. Kept separate from your health records; forgetting any of it never touches your intake, scores, or devices. |
+| `concierge.memory.empty` | Concierge memory screen | Nothing remembered yet. The concierge works without saved preferences. |
+| `concierge.memory.goal` | Concierge memory screen | Primary goal |
+| `concierge.memory.routine` | Concierge memory screen | Usual routine |
+| `concierge.memory.tone` | Concierge memory screen | Coaching tone |
+| `concierge.memory.notes` | Concierge memory screen | Notes |
+| `concierge.memory.forget` | Concierge memory screen | Forget |
+| `concierge.memory.forget_all` | Concierge memory screen | Forget everything |
+| `concierge.memory.forget_all_title` | Concierge memory screen | Forget all preferences? |
+| `concierge.memory.forget_all_body` | Concierge memory screen | The concierge starts from zero next time. Conversations are not affected. |
+| `concierge.memory.edit_placeholder` | Concierge memory screen | Edit and save |
+| `concierge.memory.consent_line` | Concierge memory screen | Saved with your consent on {{date}}. |
+| `concierge.memory.row_title` | Concierge memory screen | Concierge memory |
+| `concierge.memory.row_sub` | Concierge memory screen | See, edit, or forget what the concierge remembers |
+| `concierge.memory.session_only` | Concierge memory screen | Session only — nothing is saved unless you say so. |
+| `concierge.memory.not_set` | Concierge memory screen | Not set |
+| `concierge.seed.hydration` | Composer seed | Explain my hydration target and where I stand today. |
+| `concierge.seed.signal` | Composer seed | Explain my HydroState score and what's behind it. |
+| `concierge.seed.weekly` | Composer seed | Reflect on my week. What pattern stands out, and what is one achievable improvement? |
+
+- **Governed urgent reply (HARDCODED, not locale)** — `api-server/src/lib/concierge/urgent.ts`
+  `URGENT_ANSWER` / `URGENT_NEXT_STEP`, shown instead of any model output when a trigger pattern matches.
+  Locked clean against §42, §59/§64 and the quantity gate by `conciergeUrgent.test.ts`. Counsel + clinical
+  review requested (DR-018 D-04; brief at `docs/concierge/COUNSEL-BRIEF-2026-10-05.md` §6).
+
+- **Generated replies** — free text from the model, bounded by the server gates (§42 block list, §59/§64
+  stems + population comparison, DR-013 quantity grounding, action/source grounding; fail closed, one
+  regeneration). R-26 applies: lexical, not semantic — a novel paraphrase can pass. The reviewer should
+  decide whether the gate set is sufficient for an **internal** audience and what must be added before any
+  external one.
+
 ### 3.4 — Personalization copy (S56-1)
 
 §56 coverage resolver is **headless** (no UI shows which recs are population-default). Surfaced

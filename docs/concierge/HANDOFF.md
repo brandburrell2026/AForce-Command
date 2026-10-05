@@ -92,9 +92,9 @@ and storage unavailable; prompt-injection text inside member-stated context fram
    authorized; no dev database exists — Railway has only `production`).
 2. **OpenAI env on the deployment** — `AI_INTEGRATIONS_OPENAI_API_KEY` / `_BASE_URL` (already present
    on Railway for Smart Capture). `GET /api/concierge/status` reports presence only.
-3. **Privacy policy** disclosure of the chat processor (counsel) — PR-003 D-02.
-4. **Terminology ruling** on the name — PR-003 D-01.
-5. **Emergency copy** review — PR-003 D-04.
+3. **Privacy policy** disclosure of the chat processor — counsel drafting from `COUNSEL-BRIEF-2026-10-05.md` (DR-018 D-02).
+4. ~~Terminology ruling~~ — ruled: "AForce Concierge" member-facing, AI Coach architectural (DR-018 D-01; Julius pending).
+5. **Emergency copy** — counsel + clinical review in progress (DR-018 D-04).
 6. **Device run** of the action cards (intake, reminders, read-aloud) on an internal build pointed at a
    server that has the routes.
 
@@ -109,5 +109,6 @@ and storage unavailable; prompt-injection text inside member-stated context fram
 
 ## Not claimed
 
-This is an internal-preview build with live-provider verification outstanding. It is not
-production-ready and has not been validated on a device or by counsel.
+Internal preview only (DR-018 D-08). Live end-to-end verified in build 104 on 2026-10-05 after the
+production OpenAI key (placeholder) and billing (no credits) were fixed. Not yet reviewed by counsel
+(privacy disclosure, urgent copy) or by the CR-1 reviewer; production flag stays OFF until those clear.

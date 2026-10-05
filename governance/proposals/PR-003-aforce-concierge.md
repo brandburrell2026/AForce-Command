@@ -1,4 +1,4 @@
-# PR-003 — AForce Concierge (DRAFT — pending founder decisions)
+# PR-003 — AForce Concierge (RULED — see DR-018; Julius pending on D-01/D-02)
 
 **Status:** MERGED DARK (PR #1078, #1079) · internal preview. Flag `ai_concierge_enabled` is OFF in
 `DEFAULT_FLAGS`, ON in `DEMO_ALL_ON_FLAGS`, toggleable from the Profile DEVELOPER tab, and — per
@@ -100,13 +100,14 @@ brand tokens, intake-source contract).
 
 | # | Decision | Why it is the founder's | Recommendation |
 |---|---|---|---|
-| D-01 [JB] | **Name.** "AForce Concierge" is a new branded term; TERMINOLOGY-REGISTRY names "AI Coach" as canonical for §64, and DR-003 D-01 says "do not create additional branded systems". | Terminology is registry-governed. | Register "AForce Concierge" as the member-facing name of the §64 surface (AI Coach stays the architectural term), or rename the surface before any external preview. |
-| D-02 [JB] | **Privacy disclosure.** `legal/privacy-policy.md` discloses one AI processor (Smart Capture photos). Sending member context + chat text to the same processor is a new disclosure. | Counsel-drafted copy. | Counsel adds the concierge to the AI-processor disclosure before anything beyond internal accounts. |
-| D-03 | **Data class.** Conversation transcripts + assistant preferences are a new class (DATA-CLASSIFICATION-MATRIX). Proposed row: Appendix A below. | Privacy review (INTELLIGENCE-CHANGE-CONTROL §4). | Approve the row; S2 (member-authored text, may contain health statements). |
-| D-04 | **Emergency copy.** `lib/concierge/urgent.ts` is the engineering placeholder; NO-9 is design-only pending counsel + clinical review. | Counsel. | Review the two sentences; replace verbatim if required (the test locks them against every gate). |
+| D-01 [JB] | **Name.** "AForce Concierge" is a new branded term; TERMINOLOGY-REGISTRY names "AI Coach" as canonical for §64, and DR-003 D-01 says "do not create additional branded systems". | Terminology is registry-governed. | **RULED 2026-10-05 (Brandon; Julius pending):** "AForce Concierge" is the member-facing name; AI Coach stays the architectural term. Registered in TERMINOLOGY-REGISTRY §3/§4. |
+| D-02 [JB] | **Privacy disclosure.** `legal/privacy-policy.md` discloses one AI processor (Smart Capture photos). Sending member context + chat text to the same processor is a new disclosure. | Counsel-drafted copy. | **RULED 2026-10-05 (Brandon; Julius pending):** counsel drafts; engineering brief at `docs/concierge/COUNSEL-BRIEF-2026-10-05.md`. |
+| D-03 | **Data class.** Conversation transcripts + assistant preferences are a new class (DATA-CLASSIFICATION-MATRIX). Proposed row: Appendix A below. | Privacy review (INTELLIGENCE-CHANGE-CONTROL §4). | **RULED 2026-10-05:** approved as proposed (transcripts S2, preferences S1, context transient); rows added to the matrix marked Privacy review pending. |
+| D-04 | **Emergency copy.** `lib/concierge/urgent.ts` is the engineering placeholder; NO-9 is design-only pending counsel + clinical review. | Counsel. | **RULED 2026-10-05:** keep for internal preview; copy + trigger list sent to counsel/clinical review via the counsel brief §6. |
 | D-05 | **Internal TestFlight overlay.** Adding `ai_concierge_enabled` to the overlay changes the next internal build. | Overlay lists are founder rulings (locked by test). | **DECIDED 2026-10-05 (Brandon): granted.** `CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS` added to `internalTestflightOverlay.ts`; the next `internal` EAS build turns the concierge on for internal testers. Production stays OFF. |
-| D-06 | **CR-1 copy review.** The concierge's own copy keys (`concierge.*`, 11 locales, English only) and the governed urgent reply. | CR-1 is the §64 enable gate (Risk-Register RD-1). | Fold into CR-1. |
-| D-07 | **Schema push.** Three additive tables + three indexes. | Founder runs `drizzle-kit push` (docs/SCHEMA_DRIFT.md). | Push to the dev database first; prod with the production Clerk migration. |
+| D-06 | **CR-1 copy review.** The concierge's own copy keys (`concierge.*`, 11 locales, English only) and the governed urgent reply. | CR-1 is the §64 enable gate (Risk-Register RD-1). | **RULED 2026-10-05:** folded into CR-1 — see `reviews/CR-1-CLAIMS-REVIEW-PACKAGE.md` §3.3b. |
+| D-08 | **Audience beyond internal.** | Founder. | **RULED 2026-10-05:** internal TestFlight only until D-02, D-04 and D-06 clear; no cohort step in between; `DEFAULT_FLAGS` stays OFF (Launch-Readiness updated). |
+| D-07 | **Schema push.** Three additive tables + three indexes. | Founder runs `drizzle-kit push` (docs/SCHEMA_DRIFT.md). | **DONE 2026-10-05** in production via reviewed SQL (`lib/db/migrations/20261005_concierge.sql`, `railway run -e production`); no dev database exists. |
 
 ## 4. Standing constraints the build honours (no decision needed)
 
