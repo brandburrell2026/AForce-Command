@@ -98,6 +98,7 @@ import {
   useEdSettle,
 } from '../index';
 import { EdHomeCommand } from './EdHomeCommand';
+import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
 import { EdHomeSignalFooter } from './EdHomeSignalFooter';
 import { EdNextMomentLine } from './EdNextMomentLine';
 import {
@@ -370,6 +371,13 @@ export function EditorialHomeScreen({
                   primaryLoading={isCompletingCycle}
                 />
 
+                {/* AForce Concierge entry — one quiet affordance under the
+                    command; states nothing about the body. Renders nothing when
+                    ai_concierge_enabled is off. */}
+                <View style={styles.conciergeSection}>
+                  <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
+                </View>
+
                 {momentsOn ? (
                   <View style={styles.momentsSection}>
                     <EdNextMomentLine
@@ -481,6 +489,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   momentsSection: {
+    marginTop: 18,
+  },
+  conciergeSection: {
     marginTop: 18,
   },
   footerSection: {

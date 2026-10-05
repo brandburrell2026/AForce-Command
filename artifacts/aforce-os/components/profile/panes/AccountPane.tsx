@@ -569,6 +569,22 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
             <PerformanceMemoryGovernanceCard />
           </>
         ) : null}
+        {/* AForce Concierge memory — what the concierge remembers (preferences
+            only, never health records) with edit + forget controls. Same
+            question as the rows above, same group. Flag-gated. */}
+        {flags.ai_concierge_enabled ? (
+          <>
+            <Divider />
+            <AFListRow
+              icon="message-circle"
+              title={t('concierge.memory.row_title')}
+              subtitle={t('concierge.memory.row_sub')}
+              disclosure
+              onPress={() => router.push('/concierge/memory')}
+              testID="profile-concierge-memory-row"
+            />
+          </>
+        ) : null}
       </View>
     </>
   );

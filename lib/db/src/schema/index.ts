@@ -5,3 +5,4 @@ export * from "./trainerDocs";
 export * from "./trainerRtp";
 export * from "./circleInvitations";
 export * from "./circleSharing";
+export * from "./concierge";

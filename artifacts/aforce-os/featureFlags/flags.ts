@@ -380,6 +380,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // OFF in production; the policy is pure/observational and always safe to run.
   conversational_intelligence_enabled: false,
 
+  // AForce Concierge (Section 64 surface). OFF in production until the
+  // internal-preview validation, the privacy-policy disclosure and the
+  // CR-1 copy review clear (governance/proposals/PR-003-aforce-concierge.md).
+  ai_concierge_enabled: false,
+
   // Performance Memory™ — STEP 3 execution-memory expansion. Additive,
   // read-only command-completion recap (execution streak / recent follow-rate
   // + trend) read from the same ledger. OFF in the production binary so the
@@ -611,6 +616,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Section 64 — Conversational Intelligence™ ON for internal inspection.
   conversational_intelligence_enabled: true,
+  ai_concierge_enabled: true,
 
   // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
   performance_memory_execution_enabled: true,

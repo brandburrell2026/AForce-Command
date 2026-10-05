@@ -29,6 +29,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 
 import {
   AFScreen,
@@ -75,6 +76,7 @@ const FLUID_KEY: Record<FluidType, string> = {
 export function HydrationScreenV2() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
+  const askConcierge = useAskConciergeActions('hydration');
   const { state } = useAppStore();
   const engine = useEngineSlice();
   const flags = useFeatureFlags();
@@ -170,7 +172,7 @@ export function HydrationScreenV2() {
   return (
     <View style={styles.root}>
       <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
-      <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} />
+      <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} actions={askConcierge} />
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
       <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />

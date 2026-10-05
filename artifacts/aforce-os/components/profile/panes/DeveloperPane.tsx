@@ -189,6 +189,7 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
         <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
+        <FlagRow flag="ai_concierge_enabled" label={t('profile.v2.flag_concierge_label')} desc={t('profile.v2.flag_concierge_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
 
         <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow
