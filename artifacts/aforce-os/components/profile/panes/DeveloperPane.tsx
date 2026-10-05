@@ -192,6 +192,22 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
         <FlagRow flag="ai_concierge_enabled" label={t('profile.v2.flag_concierge_label')} desc={t('profile.v2.flag_concierge_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
 
         <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+        <FlagRow
+          flag="circle_membership_enabled"
+          label={t('community.members.pilot_label', { defaultValue: 'Circle membership pilot' })}
+          desc={t('community.members.pilot_description', { defaultValue: 'Real invitations and members. Requires the Circle pilot server.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
+        <FlagRow
+          flag="circle_sharing_enabled"
+          label={t('community.sharing.pilot_label', { defaultValue: 'Circle sharing pilot' })}
+          desc={t('community.sharing.pilot_description', { defaultValue: 'Choose who can see your recorded score and state. Requires the membership pilot.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
       </View>
     </>
   );

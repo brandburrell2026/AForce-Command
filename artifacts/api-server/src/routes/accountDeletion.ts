@@ -31,6 +31,10 @@
  *          provider disconnect (product ruling D9 only covers
  *          disconnect, not account deletion).
  *
+ *     Circle sharing consent is revoked in the same transaction, including
+ *     stale-write protection. Membership and recorded hydration history remain;
+ *     sharing that history again requires fresh explicit consent.
+ *
  *     Idempotent: every step is a DELETE/no-op-safe operation (empty
  *     token stores stay empty, empty auth-state tables stay empty,
  *     `biometrics = NULL` on an already-null column is a no-op update,
@@ -64,6 +68,7 @@
  */
 
 import { Router, type IRouter } from "express";
+import { clearCircleSharingForUser } from "../lib/circleSharing";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import {
@@ -269,8 +274,9 @@ export function buildDefaultAccountDeletionDeps(
     // `db` used elsewhere in this file, exactly the seam
     // `buildTokenStoresFor` already provides for the token stores.
     runCascadeInTransaction: (userId) =>
-      db.transaction((tx) =>
-        runAccountDeletionCascade(
+      db.transaction(async (tx) => {
+        await clearCircleSharingForUser(tx, userId);
+        return runAccountDeletionCascade(
           {
             ...buildTokenStoresFor(tx, log),
             authStateDb: createAccountDeletionAuthStateDb(tx),
@@ -279,7 +285,7 @@ export function buildDefaultAccountDeletionDeps(
             conciergePurge: (uid) => createConciergeRepo(tx).purgeUser(uid),
           },
           userId,
-        ),
-      ),
+        );
+      }),
   };
 }

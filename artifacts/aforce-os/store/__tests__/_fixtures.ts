@@ -103,6 +103,8 @@ export const baseFlags: FeatureFlags = {
   signal_v3_dashboard_enabled: false,
   weekly_v3_dashboard_enabled: false,
   circle_v3_dashboard_enabled: false,
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   moments_enabled: false,
   moments_notifications_enabled: false,
   moments_calendar_enabled: false,

@@ -31,7 +31,7 @@ vi.mock("@workspace/db", async (importOriginal) => {
     if (!dbRef.current) throw new Error(`db.${m}() before a fake was installed`);
     return dbRef.current[m](...a);
   };
-  return { ...actual, db: { select: forward("select"), insert: forward("insert"), update: forward("update"), delete: forward("delete") } };
+  return { ...actual, db: { select: forward("select"), insert: forward("insert"), update: forward("update"), delete: forward("delete"), transaction: forward("transaction"), execute: forward("execute") } };
 });
 
 import circleRouter from "../circle";
@@ -41,15 +41,22 @@ interface Row { ownerUserId: string; memberUserId: string; [k: string]: unknown 
 /** Executing fake: rows honored against the [owner, member] WHERE params. */
 function makeExecutingDb(tables: Record<string, Row[]>) {
   const match = (rows: Row[], where: unknown) => {
-    const { params } = renderWhere(where as any); // [ownerUserId, memberUserId]
-    const [owner, member] = params as string[];
-    return rows.filter((r) => r.ownerUserId === owner && r.memberUserId === member);
+    const { params, sql } = renderWhere(where as any); // [ownerUserId, memberUserId]
+    const [owner, member, reverseOwner, reverseMember] = params as string[];
+    return rows.filter((r) => {
+      if (sql.includes('"status" <>')) return r.ownerUserId === owner && r.memberUserId === member && r.status !== params[2];
+      if (sql.includes('"status" in')) return r.ownerUserId === owner && params.slice(1, 3).includes(r.status) && !params.slice(3).includes(r.memberUserId);
+      return (r.ownerUserId === owner && r.memberUserId === member) || (r.ownerUserId === reverseOwner && r.memberUserId === reverseMember);
+    });
   };
   const tableName = (t: any) => (t?.[Symbol.for("drizzle:Name")] ?? t?._?.name ?? "") as string;
-  return {
+  const fake = {
+    execute: async () => ({ rows: [{ present: false }] }),
+    transaction: async (fn: any): Promise<any> => fn(fake),
     select: () => {
-      const c: any = { from: () => c, where: () => c, orderBy: () => c, limit: () => c,
-        then: (ok: any) => Promise.resolve([]).then(ok) };
+      let selected: Row[] = [];
+      const c: any = { from: (t: any) => { selected = tables[tableName(t)] ?? []; return c; }, where: (w: any) => { selected = match(selected, w); return c; }, orderBy: () => c, limit: () => c,
+        then: (ok: any) => Promise.resolve(selected).then(ok) };
       return c;
     },
     update: (t: any) => {
@@ -81,6 +88,7 @@ function makeExecutingDb(tables: Record<string, Row[]>) {
       return c;
     },
   };
+  return fake;
 }
 
 const A = "user_2aAaAaAaAaAaAaAaAaAaAaAa";
@@ -135,6 +143,32 @@ afterEach(async () => {
 });
 
 describe("§18 BOLA — A cannot mutate B's circle member end to end", () => {
+  it("pending cannot activate directly or via muted, while muted can unmute", async () => {
+    const row = tables["aforce_circle_users"][0];
+    row.status = "pending";
+    expect((await call("POST", "/users/m_x/status", B, { status: "active" })).status).toBe(404);
+    expect((await call("POST", "/users/m_x/status", B, { status: "muted" })).status).toBe(404);
+    expect(row.status).toBe("pending");
+    row.status = "muted";
+    expect((await call("POST", "/users/m_x/status", B, { status: "active" })).status).toBe(200);
+    expect(row.status).toBe("active");
+  });
+
+  it("pilot members include muted, exclude pending and other owners", async () => {
+    const previous = process.env["CIRCLE_MEMBERSHIP_ENABLED"];
+    process.env["CIRCLE_MEMBERSHIP_ENABLED"] = "true";
+    try {
+      tables["aforce_circle_users"][0].status = "muted";
+      tables["aforce_circle_users"].push({ ...tables["aforce_circle_users"][0], memberUserId: "pending", status: "pending" });
+      const response = await call("GET", "/members", B);
+      expect(response.status).toBe(200);
+      expect(response.json.users.map((r: any) => r.userId)).toEqual(["m_x"]);
+      expect(response.json.users[0].status).toBe("muted");
+    } finally {
+      if (previous === undefined) delete process.env["CIRCLE_MEMBERSHIP_ENABLED"]; else process.env["CIRCLE_MEMBERSHIP_ENABLED"] = previous;
+    }
+  });
+
   it("A's status update against B's member m_x returns 404 and leaves B's row untouched", async () => {
     const r = await call("POST", "/users/m_x/status", A, { status: "muted" });
     expect(r.status).toBe(404);

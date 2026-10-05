@@ -28,6 +28,18 @@
  * state instead of a fabricated one.
  */
 
+import { sharingEnabled } from "../lib/circleSharing";
+import circleSharingRouter from "./circleSharing";
+import { rateLimit } from "express-rate-limit";
+import {
+  createInvitation,
+  listInvitations,
+  revokeInvitation,
+  acceptInvitation,
+  removeMembership,
+  membershipEnabled,
+  CircleMembershipError,
+} from "../lib/circleMembership";
 import { Router, type IRouter, type Request } from "express";
 import { z } from "zod";
 import {
@@ -37,13 +49,15 @@ import {
   aforceCircleChallenges,
   aforceCircleNotifications,
 } from "@workspace/db";
-import { and, eq, asc, desc, notInArray } from "drizzle-orm";
+import { and, eq, asc, desc, notInArray, inArray, ne } from "drizzle-orm";
 import { DEFAULT_USER_ID } from "../lib/aforceState";
+import { requireRealAuth } from "../middlewares/requireRealAuth";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
 router.use(requireAuth);
+router.use(circleSharingRouter);
 
 function resolveUserId(req: Request): string {
   return req.userId ?? DEFAULT_USER_ID;
@@ -62,7 +76,6 @@ const SHARED_STATES = ["Peak", "Balanced", "Recovering", "Depleted"] as const;
 const TREND_DIRS = ["up", "flat", "down"] as const;
 
 const groupEnum = z.enum(CIRCLE_GROUPS);
-const relStatusEnum = z.enum(RELATIONSHIP_STATUSES);
 
 /* ─── Legacy seeds — read-side exclusion lists, never written ────────────── */
 interface SeedUser {
@@ -212,6 +225,120 @@ function notificationRowToWire(row: typeof aforceCircleNotifications.$inferSelec
   };
 }
 
+/* Invitations require authenticated accounts even in development/demo environments. */
+router.use(
+  ["/invitations", "/members"],
+  (req, res, next) => {
+    if (!membershipEnabled()) {
+      res.status(503).json({ error: "circle_membership_unavailable" });
+      return;
+    }
+    if (!req.userId || req.userId === DEFAULT_USER_ID) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    res.setHeader("Cache-Control", "private, no-store");
+    next();
+  },
+  requireRealAuth,
+);
+const invitationLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 15,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  keyGenerator: (req) => req.userId!,
+  message: { error: "circle_rate_limited" },
+});
+const identitySchema = z.object({
+  displayName: z.string().trim().min(1).max(80),
+  group: groupEnum.default("friends"),
+});
+function invitationError(res: import("express").Response, err: unknown) {
+  // Never log bearer codes or request bodies.
+  if (err instanceof CircleMembershipError)
+    res.status(err.status).json({ error: err.code });
+  else res.status(500).json({ error: "circle_invitation_failed" });
+}
+router.get("/invitations", async (req, res) => {
+  try {
+    res.json({ invitations: await listInvitations(resolveUserId(req)) });
+  } catch (err) {
+    invitationError(res, err);
+  }
+});
+router.post("/invitations", invitationLimiter, async (req, res) => {
+  const parsed = identitySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid_body" });
+    return;
+  }
+  try {
+    res
+      .status(201)
+      .json(await createInvitation(resolveUserId(req), parsed.data));
+  } catch (err) {
+    invitationError(res, err);
+  }
+});
+router.post("/invitations/accept", invitationLimiter, async (req, res) => {
+  const parsed = identitySchema
+    .extend({
+      code: z
+        .string()
+        .trim()
+        .regex(/^[A-Za-z0-9_-]{43}$/),
+    })
+    .safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid_body" });
+    return;
+  }
+  try {
+    res.json({
+      user: userRowToWire(
+        await acceptInvitation(
+          resolveUserId(req),
+          parsed.data.code,
+          parsed.data,
+        ),
+      ),
+    });
+  } catch (err) {
+    invitationError(res, err);
+  }
+});
+router.delete("/invitations/:id", invitationLimiter, async (req, res) => {
+  try {
+    const id = String(req.params["id"]);
+    await revokeInvitation(resolveUserId(req), id);
+    res.json({ revoked: id });
+  } catch (err) {
+    invitationError(res, err);
+  }
+});
+
+/* Pilot connections include muted members so disconnect is always available. */
+router.get("/members", async (req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(aforceCircleUsers)
+      .where(
+        and(
+          eq(aforceCircleUsers.ownerUserId, resolveUserId(req)),
+          inArray(aforceCircleUsers.status, ["active", "muted"]),
+          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
+        ),
+      )
+      .orderBy(asc(aforceCircleUsers.name));
+    res.json({ users: rows.map(userRowToWire) });
+  } catch (err) {
+    req.log.error({ err }, "GET /circle/members failed");
+    res.status(500).json({ error: "circle_fetch_failed" });
+  }
+});
+
 /* ─── GET / — active members (optional ?group=) ───────────────────────────── */
 router.get("/", async (req, res) => {
   try {
@@ -270,6 +397,13 @@ router.get("/pending", async (req, res) => {
 
 /* ─── GET /feed — active members + their latest shared status ─────────────── */
 router.get("/feed", async (req, res) => {
+  // The explicit-consent pilot has one read path. Legacy owner snapshots
+  // carry no fresh grants and must not bypass /activity's authorization.
+  if (sharingEnabled()) {
+    res.setHeader("Cache-Control", "private, no-store");
+    res.json({ feed: [] });
+    return;
+  }
   try {
     const userId = resolveUserId(req);
     const groupParam = String(req.query["group"] ?? "");
@@ -325,7 +459,8 @@ router.get("/feed", async (req, res) => {
 });
 
 /* ─── POST /users/:memberUserId/status ────────────────────────────────────── */
-const setStatusSchema = z.object({ status: relStatusEnum });
+// Pending relationships may only become connected through invitation acceptance.
+const setStatusSchema = z.object({ status: z.enum(["active", "muted"]) });
 
 router.post("/users/:memberUserId/status", async (req, res) => {
   try {
@@ -347,6 +482,7 @@ router.post("/users/:memberUserId/status", async (req, res) => {
         and(
           eq(aforceCircleUsers.ownerUserId, userId),
           eq(aforceCircleUsers.memberUserId, memberUserId),
+          ne(aforceCircleUsers.status, "pending"),
         ),
       )
       .returning();
@@ -399,7 +535,7 @@ router.post("/users/:memberUserId/group", async (req, res) => {
 });
 
 /* ─── DELETE /users/:memberUserId ─────────────────────────────────────────── */
-router.delete("/users/:memberUserId", async (req, res) => {
+router.delete("/users/:memberUserId", requireRealAuth, async (req, res) => {
   try {
     const userId = resolveUserId(req);
     const memberUserId = String(req.params["memberUserId"] ?? "");
@@ -407,23 +543,7 @@ router.delete("/users/:memberUserId", async (req, res) => {
       res.status(400).json({ error: "missing_member" });
       return;
     }
-    // Drop the membership row + any shared status snapshot for this owner+member.
-    await db
-      .delete(aforceCircleUsers)
-      .where(
-        and(
-          eq(aforceCircleUsers.ownerUserId, userId),
-          eq(aforceCircleUsers.memberUserId, memberUserId),
-        ),
-      );
-    await db
-      .delete(aforceCircleStatuses)
-      .where(
-        and(
-          eq(aforceCircleStatuses.ownerUserId, userId),
-          eq(aforceCircleStatuses.memberUserId, memberUserId),
-        ),
-      );
+    await removeMembership(userId, memberUserId);
     res.json({ removed: memberUserId });
   } catch (err) {
     req.log.error({ err }, "DELETE /circle/users/:id failed");

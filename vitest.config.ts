@@ -51,6 +51,7 @@ export default defineConfig({
       'artifacts/aforce-os/components/insights/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/insights/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/community/__tests__/**/*.test.ts',
+      'artifacts/aforce-os/components/community/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/moments/__tests__/**/*.test.ts',
       'artifacts/aforce-os/components/moments/__tests__/**/*.render.test.tsx',
       'artifacts/aforce-os/components/notifications/__tests__/**/*.test.ts',

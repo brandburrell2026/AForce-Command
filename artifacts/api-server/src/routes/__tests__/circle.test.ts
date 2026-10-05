@@ -181,6 +181,18 @@ describe("Circle GETs — real members still come back", () => {
     expect(fake.writes).toEqual([]);
   });
 
+  it("sharing rollout disables legacy snapshots without reading them", async () => {
+    const previous = process.env["CIRCLE_SHARING_ENABLED"];
+    process.env["CIRCLE_SHARING_ENABLED"] = "true";
+    try {
+      install({ aforce_circle_users: [memberRow(REAL_MEMBER, USER_A)], aforce_circle_statuses: [statusRow(REAL_MEMBER, USER_A)] });
+      expect((await harness.get("/api/circle/feed")).json).toEqual({ feed: [] });
+      expect(fake.selects).toEqual([]);
+    } finally {
+      if (previous === undefined) delete process.env["CIRCLE_SHARING_ENABLED"]; else process.env["CIRCLE_SHARING_ENABLED"] = previous;
+    }
+  });
+
   it("GET /feed joins a real member to their real status", async () => {
     install({
       aforce_circle_users: [memberRow(REAL_MEMBER, USER_A)],

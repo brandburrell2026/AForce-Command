@@ -289,6 +289,9 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // cross-user surface (no named-people rankings — SS-07). ON in
   // production — founder flip 2026-08-11 (all five V3 screens together).
   circle_v3_dashboard_enabled: true,
+  // Explicit internal pilot only. Joining never grants health-data sharing.
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
   // moments only: Home NEXT MOMENT section, Moments overview, flagship
   // Moment Detail ritual, Prepare My Day, Add a Moment. ON in production —
@@ -573,6 +576,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
   circle_v3_dashboard_enabled: true,
+  // Generic demos must not create real social relationships.
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   moments_enabled: true,
   moments_notifications_enabled: true,
   moments_calendar_enabled: true,
@@ -719,6 +725,8 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
  */
 export const INTERNAL_TIER_FLAGS = [
+  'circle_membership_enabled',
+  'circle_sharing_enabled',
   'trainer_board_enabled',
   'trainer_demo_seed_enabled',
   'guardian_intelligence_enabled',
@@ -746,6 +754,22 @@ export function currentUnlockContext(): UnlockContext {
     dev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
     internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
   };
+}
+
+/** A stored flag or generic demo must not expose the real-membership pilot
+ * in an ordinary public build. Server authorization is a separate boundary. */
+export function circleMembershipPilotAvailable(
+  flags: Pick<FeatureFlags, 'circle_membership_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return flags.circle_membership_enabled && (ctx.dev || ctx.internalTestflight);
+}
+
+export function isCircleSharingPilotEnabled(
+  flags: Pick<FeatureFlags, 'circle_membership_enabled' | 'circle_sharing_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return circleMembershipPilotAvailable(flags, ctx) && flags.circle_sharing_enabled;
 }
 
 /**
