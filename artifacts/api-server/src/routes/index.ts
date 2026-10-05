@@ -16,6 +16,7 @@ import {
   buildDefaultAccountDeletionDeps,
 } from "./accountDeletion";
 import voiceTtsRouter from "./voiceTts";
+import { buildConciergeRouter, buildDefaultConciergeDeps } from "./concierge";
 import designTokensRouter from "./designTokens";
 import referralsRouter from "./referrals";
 import earlyAccessRouter from "./earlyAccess";
@@ -199,6 +200,10 @@ router.use(
   buildAccountDeletionRouter(buildDefaultAccountDeletionDeps(db, logger)),
 );
 router.use(voiceTtsRouter);
+// AForce Concierge (Section 64 conversational surface). Always mounted; every
+// route is behind requireAuth and the client keeps it dark behind
+// `ai_concierge_enabled` (OFF in production) until validation completes.
+router.use("/concierge", buildConciergeRouter(buildDefaultConciergeDeps()));
 router.use(designTokensRouter);
 router.use("/referrals", referralsRouter);
 router.use("/early-access", earlyAccessRouter);

@@ -72,6 +72,7 @@ import {
   createDrizzleOuraTokenStoreForUser,
   createDrizzleStravaTokenStoreForUser,
   createHealthRecordsRepo,
+  createConciergeRepo,
   runAccountDeletionCascade,
   createAccountDeletionAuthStateDb,
   type AccountDeletionCascadeTokenStore,
@@ -274,6 +275,8 @@ export function buildDefaultAccountDeletionDeps(
             ...buildTokenStoresFor(tx, log),
             authStateDb: createAccountDeletionAuthStateDb(tx),
             healthRecordsRepo: createHealthRecordsRepo(tx),
+            // AForce Concierge transcripts + preferences leave with the account.
+            conciergePurge: (uid) => createConciergeRepo(tx).purgeUser(uid),
           },
           userId,
         ),
