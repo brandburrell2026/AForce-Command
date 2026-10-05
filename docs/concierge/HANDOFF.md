@@ -47,8 +47,8 @@ founder decisions: `governance/proposals/PR-003-aforce-concierge.md`.
    builds have it ON already (`DEMO_ALL_ON_FLAGS`).
 2. Home → "AForce Concierge — Your day. Your next move." card, or the chat icon in the Hydration,
    Performance Signal and Weekly Report top bars.
-3. Production stays OFF (`DEFAULT_FLAGS.ai_concierge_enabled: false`). Adding the flag to the internal
-   TestFlight overlay is founder decision D-05 in PR-003.
+3. Production stays OFF (`DEFAULT_FLAGS.ai_concierge_enabled: false`). Internal TestFlight builds have it
+   ON via the overlay (PR-003 D-05, decided 2026-10-05).
 
 ## What actually works, and what is config-dependent
 
@@ -87,9 +87,9 @@ and storage unavailable; prompt-injection text inside member-stated context fram
 
 ## Remaining configuration dependencies
 
-1. **Schema push** — `aforce_concierge_conversations`, `_messages`, `_preferences` (+3 indexes).
-   `pnpm --filter @workspace/db push` against dev first; production per docs/SCHEMA_DRIFT.md. Until
-   pushed, the routes answer `503 concierge_storage_unavailable`.
+1. ~~Schema push~~ — DONE 2026-10-05: the three tables + three indexes were created in production by
+   applying `lib/db/migrations/20261005_concierge.sql` through `railway run -e production` (founder
+   authorized; no dev database exists — Railway has only `production`).
 2. **OpenAI env on the deployment** — `AI_INTEGRATIONS_OPENAI_API_KEY` / `_BASE_URL` (already present
    on Railway for Smart Capture). `GET /api/concierge/status` reports presence only.
 3. **Privacy policy** disclosure of the chat processor (counsel) — PR-003 D-02.
@@ -103,8 +103,9 @@ and storage unavailable; prompt-injection text inside member-stated context fram
 - Build with `EXPO_PUBLIC_DEMO_MODE=true` (flag ON), or toggle it in Profile → DEVELOPER.
 - Server: no flag; routes are always mounted and auth-gated. Set `CONCIERGE_STORE_DRIVER=memory`
   for a local run before the schema is pushed.
-- To include it in the next internal TestFlight: add `ai_concierge_enabled` as a new overlay group in
-  `featureFlags/internalTestflightOverlay.ts` and update the ruling-locked test — a founder ruling.
+- Internal TestFlight: `ai_concierge_enabled` is in the overlay (`CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS`,
+  founder ruling 2026-10-05, PR-003 D-05), so any build with `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true`
+  (the `internal` EAS profile) turns it on. Production builds stay OFF.
 
 ## Not claimed
 

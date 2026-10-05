@@ -2,7 +2,7 @@
  * AForce Concierge — law lock (Section 64 surface, internal preview).
  *
  *  FLAG   — ai_concierge_enabled is OFF in production defaults, ON in the demo
- *           profile, absent from the ruling-locked TestFlight overlay.
+ *           profile, granted to the internal TestFlight build (PR-003 D-05).
  *  NAV    — no new tab: the (tabs) manifest is untouched; the concierge is a
  *           pushed stack route guarded at the route seam (Redirect when off).
  *  WIRING — both Home surfaces mount the entry card; the three contextual
@@ -22,7 +22,10 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '../../../featureFlags/flags';
-import { INTERNAL_TESTFLIGHT_OVERLAY_FLAGS } from '../../../featureFlags/internalTestflightOverlay';
+import {
+  CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
+  INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+} from '../../../featureFlags/internalTestflightOverlay';
 import { consumerCopyBlocked } from '../../../utils/intelligence/languageGate/runtimeClaimScan';
 
 const AOS = join(__dirname, '..', '..', '..');
@@ -46,8 +49,9 @@ describe('FLAG — internal preview posture', () => {
     expect(DEFAULT_FLAGS.ai_concierge_enabled).toBe(false);
     expect(DEMO_ALL_ON_FLAGS.ai_concierge_enabled).toBe(true);
   });
-  it('is NOT in the ruling-locked internal TestFlight overlay (enabling there is a founder ruling)', () => {
-    expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).not.toContain('ai_concierge_enabled');
+  it('is granted to the internal TestFlight build through its own overlay group (PR-003 D-05, founder ruling 2026-10-05)', () => {
+    expect([...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS]).toEqual(['ai_concierge_enabled']);
+    expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toContain('ai_concierge_enabled');
   });
 });
 

@@ -124,8 +124,20 @@ export const SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
- * What the internal-TestFlight build actually turns ON: the union of the four
- * grants above (ten keys), in ruling order. Nothing else. Every key here is
+ * AForce Concierge (Section 64 surface) — founder ruling 2026-10-05
+ * (governance/proposals/PR-003-aforce-concierge.md, decision D-05): the
+ * internal TestFlight build turns the concierge ON for internal testers.
+ * Production stays OFF; the server routes are auth-gated and live, the three
+ * concierge tables exist in production, and the other PR-003 decisions (name,
+ * privacy disclosure, data class, emergency copy, CR-1) remain open.
+ */
+export const CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS = [
+  'ai_concierge_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
+ * What the internal-TestFlight build actually turns ON: the union of the five
+ * grants above (eleven keys), in ruling order. Nothing else. Every key here is
  * OFF in `DEFAULT_FLAGS` — the overlay grants only what production does not.
  * `moments_calendar_enabled` is deliberately absent — it stays false pending
  * Legal + Privacy sign-off, and no editorial flag widens that gate.
@@ -135,6 +147,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...EDITORIAL_PARTNER_OVERLAY_FLAGS,
   ...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
   ...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+  ...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];

@@ -21,6 +21,7 @@ import {
   EDITORIAL_PARTNER_OVERLAY_FLAGS,
   ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
   SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+  CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
 } from '../internalTestflightOverlay';
 
 const RC2_FIVE = [
@@ -74,8 +75,11 @@ const ENVIRONMENTAL_TWO = [
 
 const SKINIA_ONE = ['advanced_visual_intelligence_enabled'] as const;
 
+// PR-003 D-05 (founder ruling 2026-10-05): AForce Concierge joins the internal build.
+const CONCIERGE_ONE = ['ai_concierge_enabled'] as const;
+
 /** What the internal build actually flips: the union (ten keys), in ruling order. */
-const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_PARTNER_TWO, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE] as const;
+const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_PARTNER_TWO, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE, ...CONCIERGE_ONE] as const;
 
 /** Every key that differs between two flag objects, sorted for a stable diff. */
 function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
@@ -90,7 +94,7 @@ function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
 }
 
 describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
-  it('is exactly the four grants’ keys, each set intact, in ruling order', () => {
+  it('is exactly the five grants’ keys, each set intact, in ruling order', () => {
     // Pinned as FOUR sets plus their union, not one flat list: the module's
     // contract is that each ruling stays founder-traceable, and a merged array
     // would hide which ruling granted what.
@@ -98,12 +102,14 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     expect([...EDITORIAL_PARTNER_OVERLAY_FLAGS]).toEqual([...EDITORIAL_PARTNER_TWO]);
     expect([...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS]).toEqual([...ENVIRONMENTAL_TWO]);
     expect([...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...SKINIA_ONE]);
+    expect([...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS]).toEqual([...CONCIERGE_ONE]);
     expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...ALL_GRANTED]);
   });
 
   it('THE SETS ARE DISJOINT — no key is granted twice or silently moved', () => {
     const sets = [RC2_OVERLAY_FLAGS, EDITORIAL_PARTNER_OVERLAY_FLAGS,
-      ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS, SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS];
+      ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS, SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+      CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS];
     const seen = new Set<string>();
     for (const set of sets) {
       for (const key of set) {
@@ -151,7 +157,7 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     }
   });
 
-  it('none of the ten ruling keys are in INTERNAL_PREVIEW_RESTRICTED_FLAGS', () => {
+  it('none of the eleven ruling keys are in INTERNAL_PREVIEW_RESTRICTED_FLAGS', () => {
     // Founder decision NO-10 restricts flags like night_out_enabled from ANY
     // generic client-side unlock. This overlay is a distinct, build-time-only
     // mechanism — but it must never become a side-door around that restriction.
@@ -211,7 +217,7 @@ describe('applyInternalTestflightOverlay — exactly the granted keys when on (i
     expect(changedKeys(base, after)).toEqual([...ALL_GRANTED].sort());
   });
 
-  it('is idempotent: applying twice produces the same ten-key diff as applying once', () => {
+  it('is idempotent: applying twice produces the same eleven-key diff as applying once', () => {
     const once = applyInternalTestflightOverlay(DEFAULT_FLAGS, true);
     const twice = applyInternalTestflightOverlay(once, true);
     expect(changedKeys(DEFAULT_FLAGS, twice)).toEqual([...ALL_GRANTED].sort());
