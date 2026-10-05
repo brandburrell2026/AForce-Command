@@ -191,6 +191,14 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
         <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
 
         <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+        <FlagRow
+          flag="circle_membership_enabled"
+          label={t('community.members.pilot_label', { defaultValue: 'Circle membership pilot' })}
+          desc={t('community.members.pilot_description', { defaultValue: 'Real invitations and members. Requires the Circle pilot server.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
       </View>
     </>
   );

@@ -35,6 +35,9 @@
  * switching stays interactive in both modes.
  */
 import React from 'react';
+import { circleMembershipPilotAvailable } from '@/featureFlags/flags';
+import { CircleMembersPanel } from './CircleMembersPanel';
+import { useFeatureFlags } from '@/store/useAppStore';
 import { View, Text, StyleSheet, Pressable, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,6 +69,8 @@ function avatarTextColor(bg: string): string {
 
 export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
   const router = useRouter();
+  const flags = useFeatureFlags();
+  const membershipPilot = !fixture && circleMembershipPilotAvailable(flags);
   const tabClearance = useTabBarClearance();
   const { t } = useTranslation();
   const engine = useEngineSlice();
@@ -276,7 +281,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
       ) : null}
 
       {/* Leaderboard — comp rows */}
-      {model.rows.length > 0 ? (
+      {model.tab === 'friends' && membershipPilot ? <CircleMembersPanel /> : model.rows.length > 0 ? (
         <View style={styles.list} testID="circle-v3-list">
           {model.rows.map((row) => (
             <LeaderRow
