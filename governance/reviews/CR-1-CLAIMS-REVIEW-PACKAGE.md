@@ -115,11 +115,11 @@ Flag OFF in production. Two layers:
   safety line "Reaction time and judgment are significantly reduced. A ride is the safer next move"
   (L730).
 
-### 3.3b — AForce Concierge copy (DR-018 D-06, folded in 2026-10-05)
+### 3.3b — AForce Concierge copy (DR-018 D-06, folded in 2026-10-05; inventory refreshed 2026-10-06 after the opening redesign)
 
 Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three layers for the reviewer:
 
-- **Member-facing locale copy** — every `concierge.*` key in `artifacts/aforce-os/locales/en.json` (144 keys;
+- **Member-facing locale copy** — every `concierge.*` key in `artifacts/aforce-os/locales/en.json` (149 keys;
   the ten other locales carry English copies, R-24). Every value already passes the §42 runtime scan
   (`consumerCopyClaimsLint` + `conciergeLaw.test.ts`). Inventory:
 
@@ -127,16 +127,12 @@ Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three
 |---|---|---|
 | `concierge.title` | Chat screen | AForce Concierge |
 | `concierge.eyebrow` | Chat screen | Concierge |
-| `concierge.opening_line` | Chat screen | Your day. Your next move. |
+| `concierge.opening_line` | Opening | Your day. Your next move. |
 | `concierge.entry_title` | Home card | AForce Concierge |
 | `concierge.entry_sub` | Home card | Your day. Your next move. |
 | `concierge.entry_cta` | Home card | Ask |
 | `concierge.ask_action_label` | Ask action | Ask Concierge |
 | `concierge.ai_disclosure` | Chat screen | AForce Concierge is AI. Performance and wellness information, not medical advice. |
-| `concierge.briefing_cta` | Briefing card | Today's briefing |
-| `concierge.briefing_title` | Briefing card | Today's briefing |
-| `concierge.briefing_refresh` | Briefing card | Refresh briefing |
-| `concierge.briefing_generated` | Briefing card | Generated {{time}} |
 | `concierge.new_chat` | Chat screen | New chat |
 | `concierge.history` | History sheet | History |
 | `concierge.history_empty_title` | History sheet | No conversations yet |
@@ -152,33 +148,32 @@ Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three
 | `concierge.send` | Chat screen | Send |
 | `concierge.cancel_request` | Chat screen | Stop |
 | `concierge.thinking` | Chat screen | Working on it |
-| `concierge.suggested_label` | Suggested questions | Try asking |
-| `concierge.suggested.focus` | Suggested questions | What should I focus on today? |
-| `concierge.suggested.ritual` | Suggested questions | Help me build my daily ritual. |
-| `concierge.suggested.target` | Suggested questions | Explain my hydration target. |
-| `concierge.suggested.sleep` | Suggested questions | I slept poorly. Help me adjust today. |
-| `concierge.suggested.workout` | Suggested questions | Help me prepare for my workout. |
-| `concierge.suggested.tour` | Suggested questions | Show me how to use AForce OS. |
-| `concierge.intro_title` | Intro card | A quick setup, if you want it |
-| `concierge.intro_body` | Intro card | Three short questions help the concierge start from your goals. Skip and ask anything right away. |
-| `concierge.intro_goal_label` | Intro card | What matters most right now? |
-| `concierge.intro_goal.training` | Intro card | Training |
-| `concierge.intro_goal.work` | Intro card | Energy at work |
-| `concierge.intro_goal.travel` | Intro card | Travel days |
-| `concierge.intro_goal.family` | Intro card | Family routine |
-| `concierge.intro_goal.general` | Intro card | Feeling good day to day |
-| `concierge.intro_routine_label` | Intro card | What does a usual day look like? |
-| `concierge.intro_routine_placeholder` | Intro card | Early gym, desk by 9, kids at 6 |
-| `concierge.intro_tone_label` | Intro card | Coaching tone |
+| `concierge.suggested.focus` | Opening / More questions | What should I focus on today? |
+| `concierge.suggested.ritual` | Opening / More questions | Help me build my daily ritual. |
+| `concierge.suggested.target` | Opening / More questions | Explain my hydration target. |
+| `concierge.suggested.sleep` | Opening / More questions | I slept poorly. Help me adjust today. |
+| `concierge.suggested.workout` | Opening / More questions | Help me prepare for my workout. |
+| `concierge.suggested.tour` | Opening / More questions | Show me how to use AForce OS. |
+| `concierge.intro_title` | Intro (Personalize sheet) | A quick setup, if you want it |
+| `concierge.intro_body` | Intro (Personalize sheet) | Three short questions help the concierge start from your goals. Skip and ask anything right away. |
+| `concierge.intro_goal_label` | Intro (Personalize sheet) | What matters most right now? |
+| `concierge.intro_goal.training` | Intro (Personalize sheet) | Training |
+| `concierge.intro_goal.work` | Intro (Personalize sheet) | Energy at work |
+| `concierge.intro_goal.travel` | Intro (Personalize sheet) | Travel days |
+| `concierge.intro_goal.family` | Intro (Personalize sheet) | Family routine |
+| `concierge.intro_goal.general` | Intro (Personalize sheet) | Feeling good day to day |
+| `concierge.intro_routine_label` | Intro (Personalize sheet) | What does a usual day look like? |
+| `concierge.intro_routine_placeholder` | Intro (Personalize sheet) | Early gym, desk by 9, kids at 6 |
+| `concierge.intro_tone_label` | Intro (Personalize sheet) | Coaching tone |
 | `concierge.tone.none` | Intro / memory | Neutral |
 | `concierge.tone.rock` | Intro / memory | Rock — direct and decisive |
 | `concierge.tone.bb` | Intro / memory | BB — precise and technical |
 | `concierge.tone.surge` | Intro / memory | Surge — energetic |
 | `concierge.tone.sage` | Intro / memory | Sage — calm and grounded |
-| `concierge.intro_save_label` | Intro card | Save these preferences to my account |
-| `concierge.intro_save_hint` | Intro card | See, edit, or forget them any time in Profile → Concierge memory. |
-| `concierge.intro_start` | Intro card | Start |
-| `concierge.intro_skip` | Intro card | Skip for now |
+| `concierge.intro_save_label` | Intro (Personalize sheet) | Save these preferences to my account |
+| `concierge.intro_save_hint` | Intro (Personalize sheet) | See, edit, or forget them any time in Profile → Concierge memory. |
+| `concierge.intro_start` | Intro (Personalize sheet) | Start |
+| `concierge.intro_skip` | Intro (Personalize sheet) | Skip for now |
 | `concierge.why_this` | Chat screen | Why this? |
 | `concierge.sources_label` | Chat screen | Based on |
 | `concierge.freshness.fresh` | Why this? sources | current |
@@ -214,8 +209,9 @@ Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three
 | `concierge.action.quiet_hours` | Action card | Moved out of quiet hours (22:00–07:00) to {{time}}. |
 | `concierge.action.permission_needed` | Action card | Notifications are off for AForce OS. Turn them on in Settings to set reminders. |
 | `concierge.action.reminder_limit` | Action card | You've reached today's reminder limit. |
-| `concierge.action.logged_toast` | Action card | Logged. Your next move updates in a moment. |
-| `concierge.action.reminder_set_toast` | Action card | Reminder set for {{time}}. |
+| `concierge.action.receipt_logged` | Action card | Logged {{oz}} oz · {{time}} |
+| `concierge.action.receipt_reminder` | Action card | Reminder set · {{time}} |
+| `concierge.action.receipt_opened` | Action card | Opened · {{time}} |
 | `concierge.screen.home` | Action card (screen names) | Home |
 | `concierge.screen.hydration` | Action card (screen names) | Hydration |
 | `concierge.screen.protocol` | Action card (screen names) | Protocol |
@@ -247,6 +243,9 @@ Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three
 | `concierge.state.demo_banner` | State notices | Sample data. The concierge won't read these numbers as yours. |
 | `concierge.state.urgent_label` | State notices | Urgent |
 | `concierge.state.clarify_label` | State notices | One question first |
+| `concierge.state.quota_body` | State notices | The AI service is out of capacity right now. Your hydration, command, and journal keep working as usual. |
+| `concierge.state.model_body` | State notices | The AI model this build expects isn't available right now. |
+| `concierge.state.status_banner_prefix` | State notices | Concierge is unavailable right now. |
 | `concierge.read_aloud` | Chat screen | Read aloud |
 | `concierge.memory.title` | Concierge memory screen | Concierge memory |
 | `concierge.memory.eyebrow` | Concierge memory screen | Profile |
@@ -269,6 +268,12 @@ Flag `ai_concierge_enabled` OFF in production; ON for internal TestFlight. Three
 | `concierge.seed.hydration` | Composer seed | Explain my hydration target and where I stand today. |
 | `concierge.seed.signal` | Composer seed | Explain my HydroState score and what's behind it. |
 | `concierge.seed.weekly` | Composer seed | Reflect on my week. What pattern stands out, and what is one achievable improvement? |
+| `concierge.opening.title` | Opening | Your next move |
+| `concierge.opening.ask` | Opening | Ask a question |
+| `concierge.opening.more` | Opening | More questions |
+| `concierge.opening.personalize` | Opening | Personalize |
+| `concierge.opening.recheck` | Opening | Recheck in {{minutes}} min |
+| `concierge.opening.no_command` | Opening | No current move yet. Log your first water and the next move appears here. |
 
 - **Governed urgent reply (HARDCODED, not locale)** — `api-server/src/lib/concierge/urgent.ts`
   `URGENT_ANSWER` / `URGENT_NEXT_STEP`, shown instead of any model output when a trigger pattern matches.

@@ -92,6 +92,8 @@ export interface ConciergeClientContext {
     urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
     confidence?: 'high' | 'medium' | 'low';
     guard: 'approved' | 'blocked';
+    /** Engine recheck window (minutes) — the command's own clock. */
+    recheckInMinutes?: number | null;
   } | null;
   intake: {
     ozToday: number;
@@ -100,6 +102,8 @@ export interface ConciergeClientContext {
     unitsTarget: number;
     lastIntakeMinutesAgo: number | null;
     provenance: ConciergeProvenance;
+    /** False = nothing logged today; absence of logs is never a body state. */
+    loggedToday: boolean;
   };
   signals: ConciergeSignal[];
   providers: ConciergeProviderStatus[];

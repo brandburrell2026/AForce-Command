@@ -2236,10 +2236,6 @@
     "entry_cta": "Ask",
     "ask_action_label": "Ask Concierge",
     "ai_disclosure": "AForce Concierge is AI. Performance and wellness information, not medical advice.",
-    "briefing_cta": "Today's briefing",
-    "briefing_title": "Today's briefing",
-    "briefing_refresh": "Refresh briefing",
-    "briefing_generated": "Generated {{time}}",
     "new_chat": "New chat",
     "history": "History",
     "history_empty_title": "No conversations yet",
@@ -2255,7 +2251,6 @@
     "send": "Send",
     "cancel_request": "Stop",
     "thinking": "Working on it",
-    "suggested_label": "Try asking",
     "suggested": {
       "focus": "What should I focus on today?",
       "ritual": "Help me build my daily ritual.",
@@ -2328,8 +2323,9 @@
       "quiet_hours": "Moved out of quiet hours (22:00–07:00) to {{time}}.",
       "permission_needed": "Notifications are off for AForce OS. Turn them on in Settings to set reminders.",
       "reminder_limit": "You've reached today's reminder limit.",
-      "logged_toast": "Logged. Your next move updates in a moment.",
-      "reminder_set_toast": "Reminder set for {{time}}."
+      "receipt_logged": "Logged {{oz}} oz · {{time}}",
+      "receipt_reminder": "Reminder set · {{time}}",
+      "receipt_opened": "Opened · {{time}}"
     },
     "screen": {
       "home": "Home",
@@ -2396,6 +2392,14 @@
       "hydration": "Explain my hydration target and where I stand today.",
       "signal": "Explain my HydroState score and what's behind it.",
       "weekly": "Reflect on my week. What pattern stands out, and what is one achievable improvement?"
+    },
+    "opening": {
+      "title": "Your next move",
+      "ask": "Ask a question",
+      "more": "More questions",
+      "personalize": "Personalize",
+      "recheck": "Recheck in {{minutes}} min",
+      "no_command": "No current move yet. Log your first water and the next move appears here."
     }
   }
 }

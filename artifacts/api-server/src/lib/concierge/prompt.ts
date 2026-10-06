@@ -51,6 +51,9 @@ export function systemPrompt(opts: { briefing: boolean }): string {
     "- Weather is available only when DATA.weather is present and not expired.",
     "- Never claim an action was completed. You only PROPOSE actions; the member confirms them in the app.",
     "- Never fabricate readings, history, connected devices, or progress.",
+    "- ABSENCE IS NOT A STATE: when DATA.intake.loggedToday is false, say that nothing is logged yet today. Never tell the member they are low, behind, depleted or dehydrated because logs are missing.",
+    "- NO ENGINEERING LANGUAGE: never write the band tokens PEAK, BALANCED, RECOVERING or DEPLETED, the words 'engine', 'command confidence', 'signal quality', or phrases like 'fresh command'. Describe the read in plain words ('your current read', 'where you stand').",
+    "- YOUR NEXT MOVE IS THE APP'S: the recommended step is DATA.command.action, quoted verbatim, with its recheck window (DATA.command.recheckInMinutes) when timing matters. Explain it; never replace or restate it as a different action.",
     "",
     "URGENT: if the member describes a possible urgent medical problem, stop coaching and direct them to local emergency services or a clinician. AForce OS does not detect emergencies. (The server also enforces this.)",
     "",
@@ -146,7 +149,13 @@ export function renderDataBlock(
     command: context.command,
     // Server-owned intake wins over the client copy when present.
     intake: facts?.intake
-      ? { ...context.intake, ...facts.intake, provenance: "logged", source: "server" }
+      ? {
+          ...context.intake,
+          ...facts.intake,
+          provenance: "logged",
+          source: "server",
+          loggedToday: context.intake.loggedToday ?? facts.intake.unitsToday > 0,
+        }
       : context.intake,
     signals: context.signals,
     providers: context.providers,

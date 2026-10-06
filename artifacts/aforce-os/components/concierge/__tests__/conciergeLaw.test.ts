@@ -18,7 +18,7 @@
  *           disclosure and urgent-adjacent strings explicitly).
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 import { DEFAULT_FLAGS, DEMO_ALL_ON_FLAGS } from '../../../featureFlags/flags';
@@ -127,6 +127,32 @@ describe('TRUTH — the client authors no dose, clock, product push, speech inpu
     const actions = read('services/concierge/conciergeActions.ts');
     expect(actions).toMatch(/deps\.logIntake\('water'/);
     expect(actions).not.toMatch(/dispatch\(|setScore|scoreAfter|postIntakeLog/);
+  });
+});
+
+describe('OPENING — one canonical move, same string the server sees (design review 2026-10-05)', () => {
+  it('the opening renders the engine command through the same parse Home uses, from the SAME context object a turn sends', () => {
+    const opening = read('components/concierge/ConciergeOpening.tsx');
+    expect(opening).toMatch(/parseEngineActionCopy\(command\.action\)/);
+    expect(opening).toMatch(/firstSentence\(command\?\.explanation\)/);
+    const screen = read('components/concierge/ConciergeScreen.tsx');
+    expect(screen).toMatch(/const openingContext = React\.useMemo\(\(\) => buildContext\(\)/);
+    expect(screen).toMatch(/<ConciergeOpening[\s\S]*context=\{openingContext\}/);
+    const ctx = read('services/concierge/conciergeContext.ts');
+    expect(ctx).toMatch(/guardEngineOutput\(input\.engine\)/);
+    expect(ctx).toMatch(/recheckInMinutes/);
+    expect(ctx).toMatch(/loggedToday: u\.unitsConsumedToday > 0/);
+  });
+  it('the generated briefing card and the six-chip grid are gone; Why this? opens the production data sheet', () => {
+    expect(existsSync(join(AOS, 'components', 'concierge', 'ConciergeBriefingCard.tsx'))).toBe(false);
+    expect(existsSync(join(AOS, 'components', 'concierge', 'ConciergeSuggestedQuestions.tsx'))).toBe(false);
+    const opening = read('components/concierge/ConciergeOpening.tsx');
+    expect(opening).toMatch(/DataBehindThisSheet/);
+    expect(opening).toMatch(/gatherDataBehindSignals\(biometrics\)/);
+    expect(opening).toMatch(/pickSuggestedQuestion\(context\)/);
+  });
+  it('the opening uses af tokens only (editorialTokens are allow-listed elsewhere)', () => {
+    expect(read('components/concierge/ConciergeOpening.tsx')).not.toMatch(/editorialTokens/);
   });
 });
 
