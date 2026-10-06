@@ -157,7 +157,7 @@ describe('action card', () => {
     await flush();
     expect(logIntake).toHaveBeenCalledTimes(1);
     expect(logIntake).toHaveBeenCalledWith('water', { ozOverride: 16, source: 'concierge' });
-    expect(host.textContent).toContain(EN.concierge.action.logged_toast);
+    expect(byTestId('concierge-action-m1-note')?.textContent).toMatch(/^Logged 16 oz · /);
     // The confirm control is gone once done; nothing left to double-tap.
     expect(byTestId('concierge-action-m1-confirm')).toBeNull();
   });

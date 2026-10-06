@@ -143,6 +143,8 @@ export const ClientContextSchema = z.object({
       urgencyLevel: z.enum(["low", "medium", "high", "critical"]),
       confidence: z.enum(["high", "medium", "low"]).optional(),
       guard: z.enum(["approved", "blocked"]),
+      /** Engine recheck window (minutes) — the command's own clock, mirrored verbatim. */
+      recheckInMinutes: z.number().int().min(0).nullable().optional(),
     })
     .nullable(),
   intake: z.object({
@@ -152,6 +154,8 @@ export const ClientContextSchema = z.object({
     unitsTarget: z.number().int().min(0),
     lastIntakeMinutesAgo: z.number().int().min(0).nullable(),
     provenance: z.enum(PROVENANCE),
+    /** False = nothing logged today. Absence of logs is NOT a body state (gate: inference). */
+    loggedToday: z.boolean().optional(),
   }),
   signals: z.array(SignalSchema).max(24),
   providers: z.array(ProviderStatusSchema).max(10),

@@ -30,7 +30,41 @@ export type GateViolation =
   | { rule: "language"; detail: string }
   | { rule: "quantity"; detail: string }
   | { rule: "action"; detail: string }
-  | { rule: "sources"; detail: string };
+  | { rule: "sources"; detail: string }
+  | { rule: "jargon"; detail: string }
+  | { rule: "inference"; detail: string };
+
+/**
+ * Engineering vocabulary members must never read (design review 2026-10-05):
+ * band tokens as uppercase identifiers, "engine", "command confidence",
+ * "fresh/stale command". Lower-case "balanced"/"recovering" remain ordinary English.
+ */
+/** Uppercase band identifiers only — case-sensitive on purpose. */
+const BAND_TOKENS = /\b(PEAK|BALANCED|RECOVERING|DEPLETED)\b/g;
+/** Plumbing phrases, any casing. */
+const JARGON_PHRASES =
+  /\bengine\b|\bcommand confidence\b|\b(?:fresh|stale|canonical) (?:engine )?command\b|\bhydrostate (?:engine|signal)\b|\bsignal quality\b/gi;
+
+export function findJargon(text: string): string[] {
+  const out: string[] = [];
+  for (const m of text.matchAll(BAND_TOKENS)) out.push(m[0]);
+  for (const m of text.matchAll(JARGON_PHRASES)) out.push(m[0]);
+  return out;
+}
+
+/**
+ * Missing intake logs are not a conclusion about the body. When nothing is
+ * logged today, a reply may not tell the member they ARE low / behind /
+ * depleted / dehydrated — it may only say nothing is logged yet.
+ */
+const ABSENCE_INFERENCE =
+  /\b(you(?:'re| are)|your body is|you seem|you look|you must be|you(?:'ve| have) (?:fallen|gotten|become))\s+(?:\w+\s){0,2}(depleted|dehydrated|behind|low|under-?hydrated|running low|falling behind)\b/i;
+
+export function findAbsenceInference(text: string, loggedToday: boolean | undefined): string[] {
+  if (loggedToday !== false) return [];
+  const m = text.match(ABSENCE_INFERENCE);
+  return m ? [m[0]] : [];
+}
 
 /** §59 stems — word-boundary so "brisk" / "asterisk" are not caught. */
 const FORBIDDEN_STEMS = /\b(risk|injur|diagnos|prevent)[a-z]*/gi;
@@ -121,13 +155,19 @@ export function findUngroundedQuantities(text: string, grounding: GroundingSet):
 }
 
 /** Gate one free-text field. */
-export function gateText(text: string | null | undefined, grounding: GroundingSet): GateViolation[] {
+export function gateText(
+  text: string | null | undefined,
+  grounding: GroundingSet,
+  opts: { loggedToday?: boolean } = {},
+): GateViolation[] {
   if (!text) return [];
   const v: GateViolation[] = [];
   const claim = findBlockedConcept(text);
   if (claim) v.push({ rule: "claims", detail: claim });
   for (const l of findLanguageViolations(text)) v.push({ rule: "language", detail: l });
   for (const q of findUngroundedQuantities(text, grounding)) v.push({ rule: "quantity", detail: q });
+  for (const j of findJargon(text)) v.push({ rule: "jargon", detail: j });
+  for (const i of findAbsenceInference(text, opts.loggedToday)) v.push({ rule: "inference", detail: i });
   return v;
 }
 
@@ -172,10 +212,11 @@ export function gateReply(
   grounding: GroundingSet,
   allowedSourceIds: ReadonlySet<string>,
 ): GateViolation[] {
+  const textOpts = { loggedToday: context.intake.loggedToday };
   const v: GateViolation[] = [
-    ...gateText(reply.answer, grounding),
-    ...gateText(reply.nextStep, grounding),
-    ...gateText(reply.why, grounding),
+    ...gateText(reply.answer, grounding, textOpts),
+    ...gateText(reply.nextStep, grounding, textOpts),
+    ...gateText(reply.why, grounding, textOpts),
     ...gateAction(reply.action, context, grounding),
   ];
   if (reply.remember) {

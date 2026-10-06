@@ -19,12 +19,22 @@ export interface ConciergeComposerProps {
   testID?: string;
 }
 
-export function ConciergeComposer({ value, onChange, onSend, onCancel, sending, disabled, testID = 'concierge-composer' }: ConciergeComposerProps) {
+export interface ConciergeComposerHandle {
+  focus: () => void;
+}
+
+export const ConciergeComposer = React.forwardRef<ConciergeComposerHandle, ConciergeComposerProps>(function ConciergeComposer(
+  { value, onChange, onSend, onCancel, sending, disabled, testID = 'concierge-composer' },
+  ref,
+) {
   const { t } = useTranslation();
+  const inputRef = React.useRef<TextInput>(null);
+  React.useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }), []);
   const canSend = value.trim().length > 0 && !sending && !disabled;
   return (
     <View style={styles.wrap} testID={testID}>
       <TextInput
+        ref={inputRef}
         value={value}
         onChangeText={(v) => onChange(v.slice(0, CONCIERGE_MAX_MESSAGE_CHARS))}
         placeholder={t('concierge.composer_placeholder')}
@@ -71,7 +81,7 @@ export function ConciergeComposer({ value, onChange, onSend, onCancel, sending, 
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   wrap: {

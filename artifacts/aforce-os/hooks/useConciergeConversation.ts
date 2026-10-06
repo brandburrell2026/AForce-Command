@@ -36,7 +36,6 @@ export interface ConciergeState {
   sending: boolean;
   loadingTranscript: boolean;
   history: { list: ConciergeConversationSummary[]; loading: boolean; error: ConciergeErrorKind | null };
-  briefing: { turn: ConciergeAssistantTurn | null; generatedAt: string | null; loading: boolean; error: ConciergeErrorKind | null };
 }
 
 type Act =
@@ -47,8 +46,7 @@ type Act =
   | { type: 'conversation'; id: string | null }
   | { type: 'transcript'; id: string; items: ConciergeChatItem[] }
   | { type: 'loadingTranscript'; value: boolean }
-  | { type: 'history'; patch: Partial<ConciergeState['history']> }
-  | { type: 'briefing'; patch: Partial<ConciergeState['briefing']> };
+  | { type: 'history'; patch: Partial<ConciergeState['history']> };
 
 const initial: ConciergeState = {
   conversationId: null,
@@ -56,13 +54,12 @@ const initial: ConciergeState = {
   sending: false,
   loadingTranscript: false,
   history: { list: [], loading: false, error: null },
-  briefing: { turn: null, generatedAt: null, loading: false, error: null },
 };
 
 function reducer(s: ConciergeState, a: Act): ConciergeState {
   switch (a.type) {
     case 'reset':
-      return { ...initial, history: s.history, briefing: s.briefing };
+      return { ...initial, history: s.history };
     case 'append':
       return { ...s, items: [...s.items, a.item] };
     case 'remove':
@@ -77,8 +74,6 @@ function reducer(s: ConciergeState, a: Act): ConciergeState {
       return { ...s, loadingTranscript: a.value };
     case 'history':
       return { ...s, history: { ...s.history, ...a.patch } };
-    case 'briefing':
-      return { ...s, briefing: { ...s.briefing, ...a.patch } };
   }
 }
 
@@ -269,18 +264,6 @@ export function useConciergeConversation(buildContext: () => ConciergeClientCont
     dispatch({ type: 'history', patch: { list: [] } });
   }, []);
 
-  const refreshBriefing = React.useCallback(async () => {
-    dispatch({ type: 'briefing', patch: { loading: true, error: null } });
-    try {
-      const res = await conciergeApi.briefing(buildContext());
-      if (!mounted.current) return;
-      dispatch({ type: 'briefing', patch: { turn: res.turn, generatedAt: res.generatedAt, loading: false } });
-    } catch (err) {
-      if (!mounted.current) return;
-      dispatch({ type: 'briefing', patch: { loading: false, error: classifyConciergeError(err) } });
-    }
-  }, [buildContext]);
-
   return {
     state,
     send,
@@ -291,7 +274,6 @@ export function useConciergeConversation(buildContext: () => ConciergeClientCont
     refreshHistory,
     deleteConversation,
     deleteAll,
-    refreshBriefing,
   };
 }
 

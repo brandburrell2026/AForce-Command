@@ -1,9 +1,11 @@
 /**
  * AForce Concierge — the conversation screen.
  *
- * Layout: AFTopBar (back · history · new chat) → AI disclosure line →
- * transcript (FlatList) → composer. The empty state carries the opening line,
- * the on-demand briefing, the optional intro and the suggested questions.
+ * Layout: AFTopBar (back · history · new chat) → transcript (FlatList) →
+ * composer → AI disclosure line. The empty state is the OPENING: the app's
+ * current approved move (verbatim), one reason, Why this? · Ask a question,
+ * one suggested question (more on demand), Personalize (intro in a sheet).
+ * Design review 2026-10-05: one action, one reason, no stack of boxes.
  *
  * Honest states: offline / unavailable / gated / rate-limited turns are items
  * in the transcript with retry where retry can help; a request in flight shows
@@ -20,8 +22,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { af, afLayout, afType } from '@/theme';
 import { Icon } from '@/components/Icon';
-import { AFScreen, AFSkeleton, AFTopBar } from '@/components/ui';
-import { useActionsSlice, useVoiceSettingsSlice } from '@/store/slices';
+import { AFDisclosureSheet, AFScreen, AFSkeleton, AFTopBar } from '@/components/ui';
+import { useActionsSlice, useEngineSlice, useUserSlice, useVoiceSettingsSlice } from '@/store/slices';
 import { useCoachMode } from '@/services/coachMode';
 import { speak } from '@/services/textToSpeech';
 import { ActionLedger, type LogIntakeFn } from '@/services/concierge/conciergeActions';
@@ -29,12 +31,11 @@ import { conciergeApi, type ConciergeStatus } from '@/services/concierge/concier
 import type { ConciergeAssistantTurn, ConciergeChatItem } from '@/services/concierge/conciergeTypes';
 import { useConciergeContext, useConciergeDemoMode } from '@/hooks/useConciergeContext';
 import { useConciergeConversation } from '@/hooks/useConciergeConversation';
-import { ConciergeBriefingCard } from './ConciergeBriefingCard';
-import { ConciergeComposer } from './ConciergeComposer';
+import { ConciergeComposer, type ConciergeComposerHandle } from './ConciergeComposer';
 import { ConciergeHistorySheet } from './ConciergeHistorySheet';
 import { ConciergeIntroCard, type IntroResult } from './ConciergeIntroCard';
 import { ConciergeMessageBubble } from './ConciergeMessageBubble';
-import { ConciergeSuggestedQuestions } from './ConciergeSuggestedQuestions';
+import { ConciergeOpening } from './ConciergeOpening';
 import { seedText, unavailableBodyFor } from './conciergePresentation';
 
 interface ConciergeActions {
@@ -58,7 +59,13 @@ export function ConciergeScreen() {
 
   const [draft, setDraft] = React.useState(() => seedText(params.seed, t));
   const [historyOpen, setHistoryOpen] = React.useState(false);
-  const [introDismissed, setIntroDismissed] = React.useState(false);
+  const [introOpen, setIntroOpen] = React.useState(false);
+  const engine = useEngineSlice();
+  const userState = useUserSlice();
+  const composerRef = React.useRef<ConciergeComposerHandle>(null);
+  // The opening renders from the SAME context object a turn would send, so the
+  // move shown here and the move the model explains are one string.
+  const openingContext = React.useMemo(() => buildContext(), [buildContext, engine, userState]);
   const [rememberStates, setRememberStates] = React.useState<Record<string, 'pending' | 'saved' | 'declined'>>({});
   // Provider availability, probed by the server (key, billing, reachability).
   // Shown as a banner BEFORE the member types, so a known outage is never
@@ -86,7 +93,6 @@ export function ConciergeScreen() {
 
   const onPickSuggestion = React.useCallback(
     (text: string) => {
-      setIntroDismissed(true);
       void convo.send(text);
     },
     [convo],
@@ -94,7 +100,7 @@ export function ConciergeScreen() {
 
   const onIntroStart = React.useCallback(
     (result: IntroResult) => {
-      setIntroDismissed(true);
+      setIntroOpen(false);
       const summary = [
         result.prefs.primaryGoal ? `goal: ${result.prefs.primaryGoal}` : null,
         result.prefs.routine ? `routine: ${result.prefs.routine}` : null,
@@ -150,7 +156,6 @@ export function ConciergeScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Text style={styles.disclosure} accessibilityRole="text">{t('concierge.ai_disclosure')}</Text>
       {status && !status.available ? (
         <View style={[styles.demoBanner, styles.statusBanner]} accessibilityRole="alert" testID="concierge-status-banner">
           <Icon name="alert-circle" size={14} color={af.textSecondary} />
@@ -167,16 +172,14 @@ export function ConciergeScreen() {
       ) : null}
       {empty ? (
         <View style={styles.emptyWrap} testID="concierge-empty-state">
-          <Text style={styles.opening} accessibilityRole="header">{t('concierge.opening_line')}</Text>
-          <ConciergeBriefingCard
-            turn={state.briefing.turn}
-            generatedAt={state.briefing.generatedAt}
-            loading={state.briefing.loading}
-            error={state.briefing.error}
-            onRequest={() => void convo.refreshBriefing()}
+          <ConciergeOpening
+            context={openingContext}
+            biometrics={userState.biometrics}
+            confidence={engine.command?.confidence ?? null}
+            onAsk={() => composerRef.current?.focus()}
+            onPickQuestion={onPickSuggestion}
+            onPersonalize={() => setIntroOpen(true)}
           />
-          {!introDismissed ? <ConciergeIntroCard onStart={onIntroStart} onSkip={() => setIntroDismissed(true)} /> : null}
-          <ConciergeSuggestedQuestions onPick={onPickSuggestion} />
         </View>
       ) : null}
       {state.loadingTranscript ? (
@@ -238,14 +241,20 @@ export function ConciergeScreen() {
         />
         <View style={{ paddingBottom: Math.max(insets.bottom, 8) }}>
           <ConciergeComposer
+            ref={composerRef}
             value={draft}
             onChange={setDraft}
             onSend={onSend}
             onCancel={convo.cancel}
             sending={state.sending}
           />
+          <Text style={styles.disclosure} accessibilityRole="text">{t('concierge.ai_disclosure')}</Text>
         </View>
       </KeyboardAvoidingView>
+
+      <AFDisclosureSheet visible={introOpen} onClose={() => setIntroOpen(false)} title={t('concierge.opening.personalize')} testID="concierge-intro-sheet">
+        <ConciergeIntroCard onStart={onIntroStart} onSkip={() => setIntroOpen(false)} />
+      </AFDisclosureSheet>
 
       <ConciergeHistorySheet
         visible={historyOpen}
@@ -256,7 +265,6 @@ export function ConciergeScreen() {
         activeId={state.conversationId}
         onOpen={(id) => {
           setHistoryOpen(false);
-          setIntroDismissed(true);
           void convo.open(id);
         }}
         onDelete={(id) => void convo.deleteConversation(id)}
@@ -276,22 +284,18 @@ const styles = StyleSheet.create({
   topBar: { paddingHorizontal: afLayout.screenPaddingX },
   listContent: { paddingHorizontal: afLayout.screenPaddingX, paddingBottom: 12 },
   header: { gap: 14, paddingTop: 4, paddingBottom: 8 },
-  disclosure: { ...afType.caption, color: af.textTertiary },
+  disclosure: { ...afType.caption, color: af.textTertiary, paddingHorizontal: afLayout.screenPaddingX, paddingTop: 6 },
   demoBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: af.canvasElevated,
-    borderWidth: afLayout.hairline,
-    borderColor: af.border,
+    paddingVertical: 10,
+    borderBottomWidth: afLayout.hairline,
+    borderBottomColor: af.divider,
   },
   demoText: { ...afType.caption, color: af.textSecondary, flex: 1 },
-  statusBanner: { borderColor: af.borderStrong },
-  emptyWrap: { gap: 16, paddingTop: 8 },
-  opening: { ...afType.title2, color: af.textPrimary },
+  statusBanner: {},
+  emptyWrap: { paddingTop: 4 },
   skeletons: { gap: 10, paddingTop: 8 },
   thinking: { gap: 8, paddingVertical: 12, alignSelf: 'flex-start', width: '70%' },
   footerSpacer: { height: 8 },

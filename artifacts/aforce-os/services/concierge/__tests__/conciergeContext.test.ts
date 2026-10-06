@@ -111,6 +111,7 @@ describe('buildConciergeContext', () => {
       unitsTarget: 8,
       lastIntakeMinutesAgo: 145,
       provenance: 'logged',
+      loggedToday: true,
     });
     expect(ctx.capabilities).toEqual(['log_hydration', 'open_screen', 'start_checkin', 'set_reminder']);
     expect(ctx.localTime.hour).toBe(14);

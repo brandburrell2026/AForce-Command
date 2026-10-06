@@ -203,6 +203,7 @@ export function buildConciergeContext(input: BuildContextInput): ConciergeClient
         urgencyLevel: engineOutput.command.urgencyLevel,
         ...(engineOutput.command.confidence ? { confidence: engineOutput.command.confidence } : {}),
         guard: result.verdict,
+        recheckInMinutes: Number.isFinite(engineOutput.riskTimer?.minutes) ? Math.max(0, Math.round(engineOutput.riskTimer.minutes)) : null,
       }
     : null;
 
@@ -267,6 +268,7 @@ export function buildConciergeContext(input: BuildContextInput): ConciergeClient
       unitsTarget: u.dailyTarget,
       lastIntakeMinutesAgo,
       provenance: demo ? 'demo' : 'logged',
+      loggedToday: u.unitsConsumedToday > 0 || (u.intakeEvents?.length ?? 0) > 0,
     },
     signals: signals.slice(0, 24),
     providers: providers.slice(0, 10),

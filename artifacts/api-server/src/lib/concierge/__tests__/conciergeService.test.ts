@@ -31,7 +31,7 @@ function fakeClient(replies: Array<string | Error>): { client: ChatCompletionsCl
 
 const ok = JSON.stringify({
   kind: "answer",
-  answer: "You are 40 oz into a 96 oz day. The engine's next move is 16 oz of water now.",
+  answer: "You are 40 oz into a 96 oz day. The next move is 16 oz of water now.",
   nextStep: "Drink 16 oz water now.",
   why: "Last log 145 minutes ago; recheck in 20 min.",
   action: { type: "log_hydration", fluidType: "water", oz: 16, label: "Log 16 oz water" },
@@ -183,6 +183,14 @@ describe("buildMessages — prompt framing", () => {
     const { messages } = buildMessages(input({ briefing: true, message: "" }), null);
     expect(messages[0]!.content).toMatch(/TASK: produce today's briefing/);
     expect(messages.at(-1)!.content).toBe("Produce today's briefing now.");
+  });
+
+  it("carries the absence-is-not-a-state, no-engineering-language and next-move-is-the-app's rules", () => {
+    const { messages } = buildMessages(input(), null);
+    const sys = messages[0]!.content;
+    expect(sys).toMatch(/ABSENCE IS NOT A STATE/);
+    expect(sys).toMatch(/NO ENGINEERING LANGUAGE/);
+    expect(sys).toMatch(/YOUR NEXT MOVE IS THE APP'S/);
   });
 
   it("includes the banned vocabulary so the model can avoid it", () => {

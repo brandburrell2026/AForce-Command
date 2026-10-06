@@ -35,7 +35,7 @@ export interface ConciergeActionCardProps {
 type Phase = 'proposed' | 'editing' | 'running' | 'done' | 'undone' | 'failed';
 
 export function ConciergeActionCard({ actionId, action: initial, ledger, deps, testID = 'concierge-action-card' }: ConciergeActionCardProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [action, setAction] = React.useState<ConciergeAction>(initial);
   const [phase, setPhase] = React.useState<Phase>(() => {
     const s = ledger.get(actionId);
@@ -65,15 +65,19 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
       return;
     }
     setPhase('done');
+    // Receipts state what happened and when — never a cheer, never a claim.
+    const at = new Date().toLocaleTimeString(i18n.language, { hour: 'numeric', minute: '2-digit' });
     if (outcome.kind === 'logged') {
       fireMoment('hydration_logged');
-      setNote(t('concierge.action.logged_toast'));
+      setNote(t('concierge.action.receipt_logged', { oz: outcome.oz, time: at }));
     } else if (outcome.kind === 'reminder_set') {
       setNote(
         outcome.shifted
           ? t('concierge.action.quiet_hours', { time: outcome.timeLocal })
-          : t('concierge.action.reminder_set_toast', { time: outcome.timeLocal }),
+          : t('concierge.action.receipt_reminder', { time: outcome.timeLocal }),
       );
+    } else if (outcome.kind === 'navigated') {
+      setNote(t('concierge.action.receipt_opened', { time: at }));
     }
   }, [action, actionId, deps, ledger, phase, t]);
 
@@ -213,11 +217,11 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
 const styles = StyleSheet.create({
   card: {
     marginTop: 10,
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: af.canvasElevated,
-    borderWidth: afLayout.hairline,
-    borderColor: af.border,
+    paddingVertical: 12,
+    borderTopWidth: afLayout.hairline,
+    borderTopColor: af.divider,
+    borderBottomWidth: afLayout.hairline,
+    borderBottomColor: af.divider,
     gap: 8,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: 8 },

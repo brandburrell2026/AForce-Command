@@ -7,6 +7,8 @@ import { describe, it, expect } from "vitest";
 import {
   buildGroundingSet,
   collectNumbers,
+  findAbsenceInference,
+  findJargon,
   findLanguageViolations,
   findUngroundedQuantities,
   gateAction,
@@ -29,7 +31,7 @@ export function baseContext(over: Partial<ClientContext> = {}): ClientContext {
       confidence: "medium",
       guard: "approved",
     },
-    intake: { ozToday: 40, ozTarget: 96, unitsToday: 3, unitsTarget: 8, lastIntakeMinutesAgo: 145, provenance: "logged" },
+    intake: { ozToday: 40, ozTarget: 96, unitsToday: 3, unitsTarget: 8, lastIntakeMinutesAgo: 145, provenance: "logged", loggedToday: true },
     signals: [
       { id: "sleep", label: "Sleep", value: 6.5, unit: "h", provider: "whoop", provenance: "measured", freshness: "aging" },
     ],
@@ -44,7 +46,7 @@ export function baseContext(over: Partial<ClientContext> = {}): ClientContext {
 function reply(over: Partial<ModelReply> = {}): ModelReply {
   return {
     kind: "answer",
-    answer: "You are 40 oz into a 96 oz day, so the next move is the engine's 16 oz water.",
+    answer: "You are 40 oz into a 96 oz day, so the next move is 16 oz of water.",
     nextStep: "Drink 16 oz water now.",
     why: "Your last log was 145 minutes ago.",
     action: { type: "log_hydration", fluidType: "water", oz: 16, label: "Log 16 oz water" },
@@ -127,6 +129,37 @@ describe("action grounding", () => {
   });
   it("passes a grounded, offered action", () => {
     expect(gateAction({ type: "log_hydration", fluidType: "water", oz: 16, label: "Log 16 oz water" }, ctx, grounding)).toEqual([]);
+  });
+});
+
+describe("engineering language stays out (design review 2026-10-05)", () => {
+  it("blocks band tokens, 'engine', and command-plumbing phrases", () => {
+    expect(findJargon("Your DEPLETED signal says drink now.")).toEqual(["DEPLETED"]);
+    expect(findJargon("The engine issued a fresh command.")).toEqual(["engine", "fresh command"]);
+    expect(findJargon("Command confidence is medium.")).toEqual(["Command confidence"]);
+  });
+  it("leaves ordinary English alone", () => {
+    expect(findJargon("You look balanced today; a recovering pace is fine.")).toEqual([]);
+    expect(gateText("Your current read is steady. The next move is 16 oz water now.", grounding).filter((v) => v.rule === "jargon")).toEqual([]);
+  });
+});
+
+describe("absence of logs is not a body state", () => {
+  it("rejects a depletion conclusion when nothing is logged today", () => {
+    expect(findAbsenceInference("You're depleted because nothing is logged.", false)).toEqual(["You're depleted"]);
+    expect(findAbsenceInference("You are running low today.", false)).toEqual(["You are running low"]);
+    expect(findAbsenceInference("Your body is dehydrated.", false)).toEqual(["Your body is dehydrated"]);
+  });
+  it("allows the honest statement, and allows the same words once intake IS logged", () => {
+    expect(findAbsenceInference("Nothing is logged yet today, so start with water.", false)).toEqual([]);
+    expect(findAbsenceInference("You're behind pace by the 11:40 log.", true)).toEqual([]);
+    expect(findAbsenceInference("You're behind.", undefined)).toEqual([]);
+  });
+  it("gateReply applies it from the context flag", () => {
+    const ctxNoLogs = baseContext({ intake: { ...ctx.intake, ozToday: 0, unitsToday: 0, lastIntakeMinutesAgo: null, loggedToday: false } });
+    const g = buildGroundingSet("hi", ctxNoLogs, null);
+    const v = gateReply(reply({ answer: "You're depleted — nothing logged.", nextStep: null, action: null, sources: ["intake"] }), ctxNoLogs, g, sources);
+    expect(v.map((x) => x.rule)).toContain("inference");
   });
 });
 
