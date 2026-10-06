@@ -798,7 +798,9 @@
     "recovery_paywall_cta": "Abbonati a Recovery+",
     "recovery_card_title": "MODALITÀ RECUPERO",
     "recovery_morning_estimate": "Tempo stimato per smaltire",
-    "recovery_morning_clear": "Smaltito"
+    "recovery_morning_clear": "Smaltito",
+    "indicator_on": "Social Mode is on since {{time}}",
+    "indicator_stale": "A Social Mode session has been open since {{date}} and no longer counts. End it to clear it."
   },
   "voice": {
     "drink_now": "Prendi 1 unità ora. Ricontrolla tra {{recheck}} minuti.",

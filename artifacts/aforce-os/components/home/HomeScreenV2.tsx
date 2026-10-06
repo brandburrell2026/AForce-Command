@@ -224,6 +224,7 @@ import { fireMoment } from '@/services/haptics';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
 import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
+import { SocialModeIndicator } from '@/components/social/SocialModeIndicator';
 import { useEngineSlice, useActionsSlice, useUserSlice, useVoiceSettingsSlice, useBootstrapSlice, useHistorySlice, useCycleSlice } from '@/store/slices';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 // CORRECTION 2 — both already shipped and tested; neither is new UI. The picker
@@ -854,6 +855,7 @@ export function HomeScreenV2() {
                 + today's preparation-relevant list. Additive section; renders
                 nothing when the flag is off or no moments exist. */}
             {/* AForce Concierge entry (flag-gated; renders nothing when off). */}
+            <SocialModeIndicator testID="home-social-indicator" />
             <View style={styles.conciergeSection}>
               <ConciergeEntryCard testID="home-concierge-entry" />
             </View>
