@@ -85,14 +85,23 @@ function NativeTabLayout() {
  * `tabBarItemStyle` alone.
  */
 function PlainTabButton(props: Record<string, unknown>) {
-  const { children, onPress, accessibilityState, accessibilityLabel, testID } =
-    props as {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      accessibilityState?: Record<string, unknown>;
-      accessibilityLabel?: string;
-      testID?: string;
-    };
+  const {
+    children,
+    onPress,
+    accessibilityState,
+    accessibilityLabel,
+    testID,
+    'aria-selected': ariaSelected,
+    'aria-label': ariaLabel,
+  } = props as {
+    children?: React.ReactNode;
+    onPress?: () => void;
+    accessibilityState?: Record<string, unknown>;
+    accessibilityLabel?: string;
+    testID?: string;
+    'aria-selected'?: boolean;
+    'aria-label'?: string;
+  };
   // Wave-5 REMOVAL — no haptic on tab switch.
   //
   // This was the single most frequent vibration in the product: every tab press,
@@ -106,15 +115,23 @@ function PlainTabButton(props: Record<string, unknown>) {
   // (#8D897F) is ~1.05:1 in luminance, so hue cannot be the only selection
   // cue (WCAG 1.4.1). A 2pt red mark above the selected item is the second,
   // colour-independent cue on every platform; iOS also swaps to the filled
-  // symbol. Hidden from the reader — `accessibilityState.selected` speaks it.
-  const selected = Boolean((accessibilityState as { selected?: boolean } | undefined)?.selected);
+  // symbol. React Navigation 7's BottomTabItem hands this button
+  // `aria-selected` / `aria-label` (NOT accessibilityState/Label — PR #1088
+  // review B1), so both spellings are read and the selected state is forwarded
+  // so the reader announces it.
+  const selected = Boolean(
+    ariaSelected ?? (accessibilityState as { selected?: boolean } | undefined)?.selected,
+  );
+  const label = ariaLabel ?? accessibilityLabel;
 
   return (
     <Pressable
       onPress={onPress as (() => void) | undefined}
       accessibilityRole="button"
-      accessibilityState={accessibilityState as never}
-      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ ...(accessibilityState as object | undefined), selected }}
+      accessibilityLabel={label}
+      aria-selected={selected}
+      aria-label={label}
       testID={testID}
       android_ripple={null}
       style={({ pressed }) => [

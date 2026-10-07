@@ -221,7 +221,8 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
       >
         <View style={styles.youTop}>
           <View style={[styles.youAvatar, { backgroundColor: you.accent }]}>
-            <Text style={styles.youAvatarText}>{you.initials}</Text>
+            {/* Ink on the band fill: white on Signal Red (5.85:1), canvas black elsewhere. */}
+            <Text style={[styles.youAvatarText, { color: you.accent === af.red ? af.onRed : af.canvas }]}>{you.initials}</Text>
           </View>
           <View style={styles.youWho}>
             <Text style={styles.youName}>{you.name}</Text>
@@ -243,7 +244,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
                 { count: Math.abs(you.deltaSpots) },
               )}
             >
-              <Text style={styles.spotsText}>
+              <Text style={[styles.spotsText, eyebrowType]}>
                 {you.deltaSpots > 0 ? '↑' : '↓'} {t('community.v3.spots', { n: Math.abs(you.deltaSpots) })}
               </Text>
             </View>
@@ -414,6 +415,7 @@ function LeaderRow({
   sampleLabel: string;
   labels: CircleRowA11yStrings;
 }) {
+  const eyebrowType = useAFEyebrowType();
   const streakText =
     row.streakDays == null
       ? null
@@ -442,7 +444,9 @@ function LeaderRow({
           row.isYou && { backgroundColor: row.scoreAccent, borderColor: row.scoreAccent },
         ]}
       >
-        <Text style={[styles.rowAvatarText, row.isYou && styles.rowAvatarTextYou]}>
+        {/* Ink on the band fill: white on the Signal Red fill (5.85:1); the
+            canvas black on every other accent (#1088 review B3). */}
+        <Text style={[styles.rowAvatarText, row.isYou && { color: row.scoreAccent === af.red ? af.onRed : af.canvas }]}>
           {row.initials}
         </Text>
       </View>
@@ -470,7 +474,7 @@ function LeaderRow({
             </View>
           ) : null}
         </View>
-        <Text style={styles.rowSub}>{subtitle}</Text>
+        <Text style={[styles.rowSub, eyebrowType]}>{subtitle}</Text>
       </View>
       <Text style={[styles.rowScore, { color: row.scoreAccent }]}>{row.score}</Text>
       <Text
@@ -480,7 +484,7 @@ function LeaderRow({
           row.move.dir === 'down' && styles.rowMoveDown,
         ]}
       >
-        {row.move.dir === 'up' ? `+${row.move.n}` : row.move.dir === 'down' ? `−${row.move.n}` : '−'}
+        {row.move.dir === 'up' ? `+${row.move.n}` : row.move.dir === 'down' ? `−${row.move.n}` : '—'}
       </Text>
     </View>
   );
@@ -577,7 +581,6 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: af.border,
   },
   rowAvatarText: { ...afType.eyebrow, color: af.textPrimary, letterSpacing: 0.5 },
-  rowAvatarTextYou: { color: af.canvas },
   rowBody: { flex: 1, gap: 2 },
   rowNameLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   rowName: { ...afType.bodyStrong, color: af.textPrimary },
@@ -596,7 +599,7 @@ const styles = StyleSheet.create({
   },
   verified: { width: 16, height: 16, borderRadius: 8, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center' },
   verifiedGlyph: { color: af.canvas, fontSize: 10, fontWeight: '700' },
-  rowSub: { ...afType.micro, letterSpacing: 0.8, color: af.textTertiary, textTransform: 'uppercase' },
+  rowSub: { ...afType.micro, color: af.textTertiary, textTransform: 'uppercase' },
   rowScore: { ...afType.title3, fontVariant: ['tabular-nums'] },
   rowMove: { ...afType.eyebrow, letterSpacing: 0, color: af.textTertiary, width: 28, textAlign: 'right', fontVariant: ['tabular-nums'] },
   rowMoveUp: { color: af.green },

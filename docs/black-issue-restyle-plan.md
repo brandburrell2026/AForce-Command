@@ -241,7 +241,7 @@ data sources; nothing from the screenshots is hardcoded.
    mono meta with a red progress hairline; command card ("YOUR NEXT MOVE" / command / "Lock in." /
    WHY THIS? pill); four-metric row (Water % · Recovery · Sleep · HRV — Water is red); "TODAY'S SIGNALS"
    card; "NEXT MOMENTS" section with hairline rows; full-width "Log N oz" CTA. Not changed: engine
-   output, moment source, the sheet behind WHY THIS?, the status color of the state word (D3), and
+   output, moment source, the sheet behind WHY THIS?, the ink of the state word (the Editorial Home already drew it in ivory on `main`; D3 governs surfaces that use the status palette), and
    the copy law tests in `editorialHomeLaw.test.ts` (restyle must keep passing them — D4).
 2. **Moments Calendar** — "MOMENTS / 3-DAY VIEW" eyebrow, "Three days." statement, day groups as red
    mono section headers with right meta (date · city), time column in mono, hydrate/prep/cabin tags

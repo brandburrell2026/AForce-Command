@@ -79,6 +79,12 @@ export function EditorialMomentsScreen({
     () => groupMomentDays(data.surfaced, data.nowIso),
     [data.nowIso, data.surfaced],
   );
+  const upcomingCount = React.useMemo(() => {
+    const nowMs = Date.parse(data.nowIso);
+    return calendarDays
+      .flatMap((d) => d.moments)
+      .filter((m) => Date.parse(m.startAtIso) > nowMs).length;
+  }, [calendarDays, data.nowIso]);
 
   return (
     <EdSurface stock="black" style={styles.fill}>
@@ -174,14 +180,14 @@ export function EditorialMomentsScreen({
                 </View>
               ))}
 
-              {/* Summary furniture: only what the store can state — the
-                  count of surfaced Moments and the date. No "flagged",
-                  no "synced", no readiness claim. */}
+              {/* Summary furniture: only what the screen can state — the
+                  count of RENDERED rows that have not started yet, and the
+                  date. No "flagged", no "synced", no readiness claim. */}
               <Text
                 style={[edType.micro as TextStyle, styles.summary, { color: ink.quiet }]}
                 testID="editorial-moments-summary"
               >
-                {`${data.surfaced.length} ${t('moments.home_entry').toLowerCase()} · ${returnLabel(now)}`}
+                {`${t('moments.summary_count', { count: upcomingCount })} · ${returnLabel(now)}`}
               </Text>
             </>
           )}
@@ -248,7 +254,11 @@ function SpineMoment({
   const action = rec.primaryAction;
   const stateWord = t(live ? 'moments.do_this_now' : 'moments.do_this');
   const prepText = `${t('moments.prep_window')} ${prepWindowLabel(rec)}`;
-  const actionPreview = (action ? t(action.labelKey, action.labelParams) : stateWord).toUpperCase();
+  // Trailing meta: a done row says DONE (a word, not a tint); other rows show
+  // the guarded action label or the state word.
+  const actionPreview = (
+    state === 'done' ? t('moments.stage_done') : action ? t(action.labelKey, action.labelParams) : stateWord
+  ).toUpperCase();
   // The Pressable groups its children, so the composed label IS the whole
   // spoken row: time, title, state, window, and — on the priority row — the
   // action and its best-before. Without this the reader hears only the time
@@ -276,6 +286,15 @@ function SpineMoment({
 
   return (
     <View style={[styles.row, { borderBottomColor: ink.rule }]}>
+      {/* Shape cue for the live row (never colour alone — #1088 review B2):
+          a 2pt red rule down the row's left edge. Done rows say DONE. */}
+      {live ? (
+        <View
+          style={[styles.liveRule, { backgroundColor: af.red }]}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        />
+      ) : null}
       <Pressable
         onPress={() => router.push(`/moment/${moment.id}`)}
         accessibilityRole="button"
@@ -297,7 +316,7 @@ function SpineMoment({
           >
             {title}
           </Text>
-          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? af.redText : ink.quiet }]}>
+          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? af.redText : ink.quiet, flexShrink: 1 }]}>
             {actionPreview}
           </Text>
         </View>
@@ -374,6 +393,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   row: { borderBottomWidth: 1 },
+  liveRule: { position: 'absolute', left: -12, top: 10, bottom: 10, width: 2, borderRadius: 1 },
   rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center', paddingVertical: 10 },
   rowHead: {
     flexDirection: 'row',
