@@ -252,15 +252,15 @@ function SpineMoment({
   const live = state === 'live';
   const title = moment.masked ? t('moments.private_event') : moment.title;
   const action = rec.primaryAction;
-  const stateWord = t(live ? 'moments.do_this_now' : 'moments.do_this');
-  // What the reader hears for the state: a completed row says DONE, exactly
-  // as it shows (#1088 review follow-up) — never an instruction to act.
-  const spokenState = state === 'done' ? t('moments.stage_done') : stateWord;
+  // The state word: a completed row says DONE — shown AND spoken — never an
+  // instruction to act (#1088 review follow-up); live/next rows keep the
+  // charter's imperative, gated on an action existing (RP-3 lock below).
+  const stateWord = state === 'done' ? t('moments.stage_done') : t(live ? 'moments.do_this_now' : 'moments.do_this');
   const prepText = `${t('moments.prep_window')} ${prepWindowLabel(rec)}`;
   // Trailing meta: a done row says DONE (a word, not a tint); other rows show
   // the guarded action label or the state word.
   const actionPreview = (
-    state === 'done' ? t('moments.stage_done') : action ? t(action.labelKey, action.labelParams) : stateWord
+    state === 'done' ? stateWord : action ? t(action.labelKey, action.labelParams) : stateWord
   ).toUpperCase();
   // The Pressable groups its children, so the composed label IS the whole
   // spoken row: time, title, state, window, and — on the priority row — the
@@ -274,7 +274,7 @@ function SpineMoment({
     // (no eligible command / a blocked mirror dropped), speaking the
     // imperative alone with nothing following it is a dangling command.
     // Mirror the visible composition: silent exactly when the action is.
-    priority ? (action ? spokenState : '') : spokenState,
+    priority ? (action ? stateWord : '') : stateWord,
     prepText,
     priority && action ? t(action.labelKey, action.labelParams) : '',
     priority && action?.bestBeforeIso
