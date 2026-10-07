@@ -48,6 +48,14 @@ import { useTranslation } from 'react-i18next';
 
 import { af, afType, afLayout, withAlpha } from '@/theme';
 import { Icon } from '@/components/Icon';
+import {
+  AFMasthead,
+  AFCard,
+  AFSectionLabel,
+  AFPrimaryButton,
+} from '@/components/ui';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
 import { useEngineSlice, useFlagsSlice } from '@/store/slices';
 import { EnvironmentalField } from '@/components/environment/EnvironmentalField';
@@ -192,21 +200,20 @@ function ResolutionAction({
   return (
     <View style={styles.resolveWrap}>
       <Text style={styles.resolveBody}>{body}</Text>
-      <Pressable
+      <AFPrimaryButton
+        label={label}
         onPress={onPress}
+        trailingIcon="chevron-right"
         style={styles.resolveCta}
-        accessibilityRole="button"
-        accessibilityLabel={label}
         testID={`environmental-resolve-${resolution}`}
-      >
-        <Text style={styles.resolveLabel}>{label}</Text>
-      </Pressable>
+      />
     </View>
   );
 }
 
 /** REFINEMENT 3 — one quiet line on the field, not a bordered table. */
 function SignalLine({ rows }: { rows: EnvironmentalView['secondary'] }) {
+  const eyebrowType = useAFEyebrowType();
   if (rows.length === 0) return null;
   return (
     <View style={styles.signalLine} testID="environmental-signal-line">
@@ -221,7 +228,7 @@ function SignalLine({ rows }: { rows: EnvironmentalView['secondary'] }) {
             r.value == null ? `${r.label}, ${r.word}` : `${r.label}, ${r.word}, ${r.value}`
           }
         >
-          <Text style={styles.signalLabel}>{r.label}</Text>
+          <Text style={[styles.signalLabel, eyebrowType]}>{r.label}</Text>
           <Text style={styles.signalWord} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
             {r.word}
             {r.value != null ? <Text style={styles.signalValue}>{`  ${r.value}`}</Text> : null}
@@ -242,15 +249,14 @@ function SignalLine({ rows }: { rows: EnvironmentalView['secondary'] }) {
 function AForcePlane({ action, label }: { action: string; label: string }) {
   return (
     <View style={styles.planeGap}>
-      <View style={styles.plane} testID="environmental-aforce-plane">
-        <View style={styles.planeSpine} />
-        <View style={styles.planeBody}>
-          <Text style={styles.planeWho}>{label}</Text>
-          <Text style={styles.planeAction} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-            {action}
-          </Text>
-        </View>
-      </View>
+      <AFCard variant="raised" testID="environmental-aforce-plane">
+        {/* Authorship stays visible: the red AFORCE eyebrow names the
+            intelligence that wrote this block. */}
+        <AFSectionLabel label={label} rule={false} />
+        <Text style={styles.planeAction} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+          {action}
+        </Text>
+      </AFCard>
     </View>
   );
 }
@@ -278,8 +284,11 @@ export function EnvironmentalScreenView({
 }: EnvironmentalScreenViewProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const eyebrowType = useAFEyebrowType();
+  const gutter = useAFGutter();
   const accent = ACCENT[view.state];
   const isInsufficient = view.state === 'insufficient';
+  const dominant = view.dominant;
 
   return (
     <View style={styles.root} testID={`environmental-screen-${view.state}`}>
@@ -288,40 +297,23 @@ export function EnvironmentalScreenView({
         style={StyleSheet.absoluteFill}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + 18, paddingBottom: insets.bottom + 28 },
+          { paddingTop: insets.top + 18, paddingBottom: insets.bottom + 28, paddingHorizontal: gutter },
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Wordmark row only. No meta: the city and a temperature are not on
+            this screen's evidence (and HEAT is deliberately numberless), so
+            the masthead's right side stays empty rather than invent them. */}
+        <AFMasthead testID="environmental-masthead" />
         {onBack ? <BackControl onPress={onBack} label={t('common.back')} /> : null}
         <Text style={styles.eyebrow} accessibilityRole="header">{t('environment.eyebrow')}</Text>
 
-        <View style={styles.spacer} />
+        <View style={styles.statementGap} />
 
-        {view.dominant ? (
-          <>
-            <Text style={[styles.stateLabel, { color: accent }]}>{view.stateWord}</Text>
-            <View accessible accessibilityLabel={
-              view.dominant.value == null
-                ? `${view.dominant.label}, ${view.dominant.word}`
-                : `${view.dominant.label}, ${view.dominant.word}, ${view.dominant.value}`
-            }>
-              <Text style={styles.dominantSignal} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-                {view.dominant.label}
-              </Text>
-              <View style={styles.dominantWordRow}>
-                <View style={[styles.dot, { backgroundColor: accent }]} />
-                <Text style={[styles.dominantWord, { color: accent }]}>{view.dominant.word}</Text>
-                {view.dominant.value != null ? (
-                  <Text style={styles.dominantValue}>{view.dominant.value}</Text>
-                ) : null}
-              </View>
-            </View>
-          </>
-        ) : isInsufficient ? (
+        {isInsufficient && !dominant ? (
           <UnresolvedHeadline text={t('environment.unresolved_headline')} />
         ) : (
-          // CLEAR — the state itself is the hero and the frame stays open.
-          <Text style={styles.openState} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+          <Text style={styles.statement} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
             {view.stateWord}
           </Text>
         )}
@@ -330,26 +322,48 @@ export function EnvironmentalScreenView({
           {view.line}
         </Text>
 
-        {commandAction != null
-          ? <AForcePlane action={commandAction} label={t('environment.aforce')} />
-          : null}
-
-        <View style={styles.spacer} />
+        {dominant ? (
+          <AFCard
+            variant={view.state === 'caution' ? 'alert' : 'standard'}
+            style={styles.leadCard}
+            testID="environmental-lead-card"
+            accessibilityLabel={
+              dominant.value == null
+                ? `${dominant.label}, ${dominant.word}`
+                : `${dominant.label}, ${dominant.word}, ${dominant.value}`
+            }
+          >
+            <Text style={[styles.leadLabel, eyebrowType]}>{dominant.label}</Text>
+            <View style={styles.leadRow}>
+              <Text
+                style={[styles.leadWord, { color: accent }]}
+                maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+              >
+                {dominant.word}
+              </Text>
+              {dominant.value != null ? (
+                <Text style={[styles.leadIndex, eyebrowType]}>
+                  {String(dominant.value)}
+                </Text>
+              ) : null}
+            </View>
+          </AFCard>
+        ) : null}
 
         <SignalLine rows={view.secondary} />
 
-        <ResolutionAction
-          resolution={view.resolution}
-          onEnable={onEnableLocation ?? (() => {})}
-          onRetry={onRetry ?? (() => {})}
-        />
+        {commandAction != null
+          ? (
+            <AForcePlane action={commandAction} label={t('environment.aforce')} />
+          )
+          : null}
 
         {view.gaps.length > 0 ? (
           <View style={styles.gaps} testID="environmental-gaps">
             {view.gaps.map((g) => (
               <View key={g.label} style={styles.gapRow} accessible
                 accessibilityLabel={`${g.label}. ${g.reason}`}>
-                <Text style={styles.gapLabel}>{g.label}</Text>
+                <Text style={[styles.gapLabel, eyebrowType]}>{g.label}</Text>
                 <Text style={styles.gapReason}>{g.reason}</Text>
               </View>
             ))}
@@ -357,6 +371,14 @@ export function EnvironmentalScreenView({
         ) : null}
 
         <Text style={styles.quality}>{view.signalQuality}</Text>
+
+        <View style={styles.spacer} />
+
+        <ResolutionAction
+          resolution={view.resolution}
+          onEnable={onEnableLocation ?? (() => {})}
+          onRetry={onRetry ?? (() => {})}
+        />
       </ScrollView>
     </View>
   );
@@ -415,11 +437,13 @@ export default function EnvironmentalScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: af.canvas },
+  // Horizontal gutter is applied at the call site from `useAFGutter` (D6:
+  // 32pt standard, 24pt compact), so it follows the live window width.
   content: {
     flexGrow: 1,
-    paddingHorizontal: afLayout.screenPaddingX,
   },
   spacer: { flex: 1, minHeight: 24 },
+  statementGap: { height: 10 },
   // ABOVE the eyebrow, not beside it. Beside was tried first and measured on
   // device: putting the eyebrow in a row with the control pushed it 42pt right
   // of the 24pt content rail, so ENVIRONMENT no longer lined up with AWARE,
@@ -435,24 +459,19 @@ const styles = StyleSheet.create({
     marginLeft: -18,
     marginBottom: 2,
   },
-  eyebrow: { ...afType.eyebrow, color: af.textTertiary },
+  eyebrow: { ...afType.eyebrow, color: af.redText },
 
-  stateLabel: {
-    ...afType.eyebrow, letterSpacing: 2, marginBottom: 12,
-  },
-  dominantSignal: {
-    fontFamily: afType.displayHero.fontFamily, fontSize: 62, lineHeight: 60,
-    letterSpacing: -1, color: af.textPrimary,
-  },
-  dominantWordRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  dominantWord: { ...afType.eyebrow, letterSpacing: 1.5 },
-  dominantValue: { ...afType.caption, fontFamily: afType.displayScore.fontFamily, color: af.textSecondary },
+  // The statement: the state word, Inter 700 sentence-register (Black Issue).
+  statement: { ...afType.title1, color: af.textPrimary },
 
-  openState: {
-    fontFamily: afType.displayHero.fontFamily, fontSize: 56, lineHeight: 56,
-    letterSpacing: -1, color: af.textPrimary,
-  },
+  // The lead signal card — the dominant factor, one word large.
+  leadCard: { marginTop: 24, gap: 10 },
+  leadLabel: { ...afType.eyebrow, color: af.textSecondary },
+  leadRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 14, rowGap: 4 },
+  leadWord: { ...afType.displayHero },
+  leadIndex: { ...afType.eyebrow, color: af.textSecondary },
+
+  openState: { ...afType.title1, color: af.textPrimary },
   unresolvedWrap: { justifyContent: 'center' },
   /**
    * DEVICE REFINEMENT (build 75): on a real iPhone the 56pt headline read as a
@@ -463,45 +482,31 @@ const styles = StyleSheet.create({
    * remains a state rather than an error message.
    */
   unresolvedText: {
-    fontSize: 34,
-    lineHeight: 36,
-    letterSpacing: -0.5,
     color: withAlpha(af.textPrimary, 0.58),
   },
 
-  line: {
-    fontFamily: afType.displayHero.fontFamily, fontSize: 23, lineHeight: 28,
-    color: af.textPrimary, marginTop: 20, maxWidth: 300,
-  },
+  // One quiet body line under the statement.
+  line: { ...afType.body, color: af.textSecondary, marginTop: 10, maxWidth: 320 },
 
-  // REFINEMENT 3 — a line on the field, not a table.
-  signalLine: { flexDirection: 'row', flexWrap: 'wrap', gap: 26, marginTop: 26 },
-  signalItem: { minWidth: 64 },
+  // REFINEMENT 3 — one quiet metric row on the field, not a bordered table:
+  // mono label over a bold value, under a hairline.
+  signalLine: {
+    flexDirection: 'row', flexWrap: 'wrap', columnGap: 28, rowGap: 14,
+    marginTop: 24, paddingTop: 16,
+    borderTopWidth: afLayout.hairline, borderTopColor: af.divider,
+  },
+  signalItem: { minWidth: 64, gap: 4 },
   signalLabel: { ...afType.eyebrow, color: af.textTertiary },
-  signalWord: { ...afType.microLabel, color: af.textSecondary, marginTop: 5 },
-  signalValue: { fontFamily: afType.displayScore.fontFamily, color: af.textTertiary },
+  signalWord: { ...afType.bodyStrong, color: af.textPrimary },
+  signalValue: { ...afType.micro, color: af.textSecondary },
 
-  // REFINEMENT 4 — a separate plane.
-  planeGap: { marginTop: 30 },
-  plane: {
-    flexDirection: 'row', borderRadius: afLayout.radiusCard ?? 14, overflow: 'hidden',
-    backgroundColor: af.surfaceRaised, borderWidth: 1, borderColor: af.border,
-  },
-  planeSpine: { width: 3, backgroundColor: af.red },
-  planeBody: { flex: 1, paddingVertical: 14, paddingHorizontal: 15 },
-  planeWho: { ...afType.eyebrow, color: af.textTertiary, letterSpacing: 1.8 },
-  planeAction: { ...afType.bodyStrong, color: af.textPrimary, marginTop: 6 },
+  // REFINEMENT 4 — a separate plane (an opaque raised card of its own).
+  planeGap: { marginTop: 24 },
+  planeAction: { ...afType.title3, color: af.textPrimary, marginTop: 10 },
 
   resolveWrap: { marginTop: 26 },
-  resolveBody: { ...afType.secondary, color: af.textSecondary, maxWidth: 300 },
-  resolveCta: {
-    marginTop: 14, alignSelf: 'flex-start',
-    paddingVertical: 12, paddingHorizontal: 18,
-    borderRadius: afLayout.radiusButton,
-    borderWidth: 1, borderColor: af.borderStrong,
-    backgroundColor: af.surfaceRaised,
-  },
-  resolveLabel: { ...afType.eyebrow, letterSpacing: 1.6, color: af.textPrimary },
+  resolveBody: { ...afType.secondary, color: af.textSecondary, maxWidth: 320 },
+  resolveCta: { marginTop: 14, alignSelf: 'stretch' },
 
   gaps: { marginTop: 24, gap: 8 },
   gapRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 14 },

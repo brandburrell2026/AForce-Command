@@ -2,10 +2,12 @@
  * CRUISE MODE (redesign) — pure presentational component.
  *
  * No store, flag, navigation, or data access — everything arrives via props.
- * Renders the resolved `CruiseModeView` in the FROZEN AForce brand system
- * (Cinematic Black canvas + cyan/teal glass + amber/green/red state tokens via
- * `af.*`). The "ocean" feel is expressed through brand depth + cyan glass, NOT
- * the spec's off-brand navy/gold (founder ruling: within-brand).
+ * Renders the resolved `CruiseModeView` in the Black Issue language (PR 3,
+ * 2026-10-07): AFMasthead, the GUEST READINESS numeral over a red progress
+ * hairline, YOUR NEXT MOVE, the one red "Log water" CTA, then the existing
+ * environment / day / recovery / checklist / badge / shortcut sections as
+ * AFSectionLabel + hairline rows. Status colours (readiness state dot, heat
+ * index, source pill, recovery tone) stay system-sourced via `TONE` (D3).
  *
  * Interactivity is prop-driven: the container owns all state. Self-log controls
  * emit `onLogChange(patch)`; the container merges + re-resolves.
@@ -19,6 +21,10 @@ import {
 
 import { Icon, type IconName } from '@/components/Icon';
 import { CommandConfidenceBadge } from '@/components/CommandConfidenceBadge';
+import { AFMasthead } from '@/components/ui/AFMasthead';
+import { AFSectionLabel } from '@/components/ui/AFSectionLabel';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import { Colors } from '@/theme/colors';
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme/afTokens';
 import type { CommandConfidenceLevel } from '@/types';
@@ -72,17 +78,62 @@ export interface CruiseModeViewProps {
 
 // ─── Small primitives ────────────────────────────────────────────────────────
 
-function SectionHeader({ label, hint }: { label: string; hint?: string | null }) {
+/**
+ * Black Issue section: red mono eyebrow over a hairline (AFSectionLabel), an
+ * optional quiet one-line hint beneath it, then the content. The hint sits on
+ * its own line rather than in the label row so it reflows at large Dynamic
+ * Type instead of colliding with the label.
+ */
+function SectionBlock({
+  label, hint, children, testID,
+}: { label: string; hint?: string | null; children: React.ReactNode; testID?: string }) {
   return (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionLabel}>{label}</Text>
-      {hint ? <Text style={styles.sectionHint} numberOfLines={1}>{hint}</Text> : null}
+    <View style={styles.section} testID={testID}>
+      <AFSectionLabel label={label} />
+      {hint ? <Text style={styles.sectionHint}>{hint}</Text> : null}
+      <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 }
 
-function Card({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[styles.card, style]}>{children}</View>;
+/** A bordered tile — kept for grouped content that is not a list (env cells, badges, alerts). */
+function Tile({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.tile, style]}>{children}</View>;
+}
+
+/**
+ * The Black Issue CTA shape (AFPrimaryButton / AFSecondaryButton: red fill,
+ * label left, "+" flush right, 52pt, radius 10) as a plain Pressable. AFButton
+ * is not imported because it rides AFMotionPressable → reanimated/worklets,
+ * which the non-shipping render harness (cruiseModeView.render.test.tsx — a
+ * lock file) cannot load. The container already fires the success haptic, so
+ * nothing is lost; swap to AFPrimaryButton when the harness can mount it.
+ */
+function CtaButton({
+  label, onPress, disabled, trailingIcon, testID,
+}: { label: string; onPress?: () => void; disabled?: boolean; trailingIcon?: IconName; testID: string }) {
+  return (
+    <Pressable
+      onPress={disabled ? undefined : onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
+      testID={testID}
+      style={({ pressed }) => [
+        styles.ctaBtn,
+        disabled ? styles.ctaBtnPreview : styles.ctaBtnLive,
+        pressed && !disabled && styles.ctaBtnPressed,
+      ]}
+    >
+      <Text style={[styles.ctaLabel, { color: disabled ? af.textTertiary : af.onRed }]}>{label}</Text>
+      {trailingIcon ? <Icon name={trailingIcon} size={18} color={disabled ? af.textTertiary : af.onRed} /> : null}
+    </Pressable>
+  );
+}
+
+function Rule() {
+  return <View style={styles.rule} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />;
 }
 
 function Stepper({
@@ -96,7 +147,6 @@ function Stepper({
         accessibilityRole="button"
         accessibilityLabel={`Decrease, currently ${value}${unit}`}
         testID={`${testID}-minus`}
-        hitSlop={8}
       >
         <Icon name="minus" size={14} color={af.textPrimary} />
       </Pressable>
@@ -107,7 +157,6 @@ function Stepper({
         accessibilityRole="button"
         accessibilityLabel={`Increase, currently ${value}${unit}`}
         testID={`${testID}-plus`}
-        hitSlop={8}
       >
         <Icon name="plus" size={14} color={af.textPrimary} />
       </Pressable>
@@ -117,62 +166,115 @@ function Stepper({
 
 // ─── Sections ────────────────────────────────────────────────────────────────
 
-function ReadinessHero({ view, confidence }: { view: CruiseModeViewModel; confidence?: CommandConfidenceLevel | null }) {
+/** "Guest readiness" caption → "Guest readiness" for the screen reader (the caption itself is shown in caps). */
+function sentenceCase(s: string): string {
+  return s.length ? s.charAt(0) + s.slice(1).toLowerCase() : s;
+}
+
+/**
+ * GUEST READINESS — mono label, the readiness numeral, a red progress hairline
+ * on a grey track (score / 100), then the quiet "{state word} · {confidence}"
+ * line. The label and numeral are ONE spoken element; the progress track is
+ * decoration (the number is the information).
+ */
+function ReadinessBlock({ view, confidence }: { view: CruiseModeViewModel; confidence?: CommandConfidenceLevel | null }) {
   const r = view.readiness;
   const tone = TONE[r.tone];
   const building = r.posture === 'building';
+  const eyebrowType = useAFEyebrowType();
+  const spoken = building
+    ? `${sentenceCase(r.ring.caption)}, signal still building`
+    : `${sentenceCase(r.ring.caption)}, ${r.scoreLabel} out of 100`;
   return (
-    <Card style={styles.heroCard} >
+    <View style={styles.readiness}>
       {!view.reducedMotion && !building ? (
-        <View pointerEvents="none" testID="cruise-hero-glow" style={[styles.heroGlow, { backgroundColor: tone }]} />
+        <View testID="cruise-hero-glow" style={[styles.heroGlow, { backgroundColor: tone }]} />
       ) : null}
-      <View style={styles.orbRow}>
-        <View style={[styles.orb, { borderColor: tone + '66', backgroundColor: tone + '14' }]}>
+
+      <View accessible accessibilityRole="text" accessibilityLabel={spoken}>
+        <Text style={[styles.readinessLabel, eyebrowType]}>{r.ring.caption}</Text>
+        <View style={styles.numeralRow}>
           <Text
-            style={[styles.orbScore, { color: building ? af.textSecondary : tone }]}
+            style={[styles.numeral, building && { color: af.textSecondary }]}
             maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
             testID="cruise-readiness-score"
           >
             {r.scoreLabel}
           </Text>
-          {!building ? <Text style={styles.orbScale}>/ 100</Text> : null}
-        </View>
-        <View style={styles.orbCopy}>
-          <View style={[styles.statusPill, { borderColor: tone + '66', backgroundColor: tone + '1F' }]}>
-            <View style={[styles.statusDot, { backgroundColor: tone }]} />
-            <Text style={[styles.statusPillText, { color: tone }]}>{r.statusLabel}</Text>
-          </View>
-          <Text style={styles.recommendation}>{r.recommendation}</Text>
-          {r.recheckLabel ? <Text style={styles.recheck}>{r.recheckLabel}</Text> : null}
+          {!building ? <Text style={[styles.numeralScale, eyebrowType]}>/ 100</Text> : null}
         </View>
       </View>
-      {/* Readiness fill — a slim, honest progress track (no SVG). */}
-      <View style={styles.ringTrack}>
-        <View style={[styles.ringFill, { width: `${Math.round(r.ring.progress * 100)}%`, backgroundColor: tone }]} />
+
+      {/* Readiness fill — a slim, honest progress hairline (no SVG). Decorative. */}
+      <View
+        style={styles.track}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
+        <View style={[styles.trackFill, { width: `${Math.round(r.ring.progress * 100)}%` }]} />
       </View>
-      <View style={styles.ringCaptionRow}>
-        <Text style={styles.ringCaption}>{r.ring.caption}</Text>
-        {r.usesLiveConditions ? (
-          <Text style={styles.ringCaptionSoft}>· adjusted for live conditions</Text>
+
+      <View style={styles.stateRow}>
+        {/* The system status colour rides on the dot; the word carries the meaning. */}
+        <View style={[styles.stateDot, { backgroundColor: tone }]} />
+        <Text style={[styles.stateWord, eyebrowType]}>{r.statusLabel}</Text>
+        {confidence ? (
+          <>
+            <Text style={styles.stateSep} accessibilityElementsHidden importantForAccessibility="no">·</Text>
+            {/* Command Confidence anchors to the recommendation OUTPUT (this
+                Guest Readiness readout), not an input-data card (founder ruling
+                2026-07-18). Near-black pill keeps the monochrome ramp on the
+                exact surface it was tuned for (PR #285/#288) — reference the
+                token, not a literal, so it tracks if background.card moves. */}
+            <View style={styles.confidencePill} testID="cruise-confidence">
+              <CommandConfidenceBadge level={confidence} />
+            </View>
+          </>
         ) : null}
       </View>
-      {confidence ? (
-        <View style={styles.confidenceRow}>
-          {/* Command Confidence anchors to the recommendation OUTPUT (this
-              Guest Readiness card), not an input-data card (founder ruling
-              2026-07-18). Near-black pill keeps the monochrome ramp on the
-              exact surface it was tuned for (PR #285/#288) — reference the
-              token, not a literal, so it tracks if background.card moves. */}
-          <View style={styles.confidencePill} testID="cruise-confidence">
-            <CommandConfidenceBadge level={confidence} />
-          </View>
-        </View>
+      {r.recheckLabel || r.usesLiveConditions ? (
+        <Text style={styles.recheck}>
+          {[r.recheckLabel, r.usesLiveConditions ? 'adjusted for live conditions' : null].filter(Boolean).join(' · ')}
+        </Text>
       ) : null}
-    </Card>
+    </View>
   );
 }
 
-function EnvironmentCard({
+/**
+ * YOUR NEXT MOVE — red eyebrow, the existing command as the bold statement, and
+ * the conditions line built ONLY from the live environment cells that exist
+ * (offline / loading → no line; nothing is invented).
+ */
+function NextMoveBlock({ view }: { view: CruiseModeViewModel }) {
+  const r = view.readiness;
+  const cells = view.environment.cells;
+  const temp = cells.find((c) => c.key === 'temp');
+  const heat = cells.find((c) => c.key === 'heat');
+  const sun = cells.find((c) => c.key === 'sun');
+  const heatAccent = heat?.accentTone ? TONE[heat.accentTone] : undefined;
+  const parts: Array<{ key: string; text: string; accent?: string }> = [];
+  if (temp) parts.push({ key: 'temp', text: temp.value });
+  if (heat) parts.push({ key: 'heat', text: `${heat.label} ${heat.value}`, accent: heatAccent });
+  if (sun) parts.push({ key: 'sun', text: `${sun.value} ${sun.label.toLowerCase()}` });
+  return (
+    <View style={styles.nextMove} testID="cruise-next-move">
+      <AFSectionLabel label="Your next move" rule={false} />
+      <Text style={styles.command}>{r.recommendation}</Text>
+      {parts.length ? (
+        <Text style={styles.conditions} testID="cruise-conditions">
+          {parts.map((p, i) => (
+            <Text key={p.key} style={p.accent ? { color: p.accent } : null}>
+              {i > 0 ? ' · ' : ''}{p.text}
+            </Text>
+          ))}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function EnvironmentBlock({
   view, ports, selectedPortId, onSelectPort,
 }: {
   view: CruiseModeViewModel;
@@ -182,18 +284,19 @@ function EnvironmentCard({
 }) {
   const env = view.environment;
   const srcTone = TONE[env.source.tone];
+  const eyebrowType = useAFEyebrowType();
   return (
-    <Card>
+    <View style={styles.blockGap}>
       <View style={styles.liveStrip}>
-        <View style={[styles.sourcePill, { borderColor: srcTone + '66', backgroundColor: srcTone + '1A' }]} testID={`cruise-source-${env.source.key}`}>
+        <View style={[styles.sourcePill, { borderColor: srcTone + '88' }]} testID={`cruise-source-${env.source.key}`}>
           {env.source.key === 'loading' ? (
             <ActivityIndicator size="small" color={srcTone} />
           ) : (
             <View style={[styles.sourceDot, { backgroundColor: srcTone }]} />
           )}
-          <Text style={[styles.sourcePillText, { color: srcTone }]}>{env.source.label}</Text>
+          <Text style={[styles.sourcePillText, eyebrowType, { color: srcTone }]}>{env.source.label}</Text>
         </View>
-        <Text style={styles.liveStripCaption} numberOfLines={1}>{env.source.caption}</Text>
+        <Text style={styles.liveStripCaption}>{env.source.caption}</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.portRow}>
@@ -209,8 +312,8 @@ function EnvironmentCard({
               accessibilityLabel={`Port ${p.label}`}
               testID={`cruise-port-${p.id}`}
             >
-              <Icon name="map-pin" size={11} color={active ? af.cyan : af.textTertiary} />
-              <Text style={[styles.portChipText, active && { color: af.cyan }]}>{p.label}</Text>
+              <Icon name="map-pin" size={11} color={active ? af.redText : af.textTertiary} />
+              <Text style={[styles.portChipText, active && styles.portChipTextActive]}>{p.label}</Text>
             </Pressable>
           );
         })}
@@ -221,13 +324,15 @@ function EnvironmentCard({
           {env.cells.map((c) => {
             const accent = c.accentTone ? TONE[c.accentTone] : undefined;
             return (
-              <View key={c.key} style={styles.envCell} testID={`cruise-env-${c.key}`}>
-                <View style={[styles.envIcon, { backgroundColor: af.cyan + '1A' }]}>
-                  <Icon name={c.icon as IconName} size={13} color={accent ?? af.cyan} />
+              <Tile key={c.key} style={styles.envCell}>
+                <View style={styles.envCellInner} testID={`cruise-env-${c.key}`}>
+                  <View style={styles.envLabelRow}>
+                    <Icon name={c.icon as IconName} size={12} color={accent ?? af.textTertiary} />
+                    <Text style={[styles.envLabel, eyebrowType]}>{c.label}</Text>
+                  </View>
+                  <Text style={[styles.envValue, accent ? { color: accent } : null]}>{c.value}</Text>
                 </View>
-                <Text style={styles.envLabel}>{c.label}</Text>
-                <Text style={[styles.envValue, accent ? { color: accent } : null]}>{c.value}</Text>
-              </View>
+              </Tile>
             );
           })}
         </View>
@@ -243,18 +348,18 @@ function EnvironmentCard({
       )}
 
       {env.journeyIntensity ? (
-        <View style={[styles.inlineBanner, { borderColor: TONE[env.journeyIntensity.tone] + '55', backgroundColor: TONE[env.journeyIntensity.tone] + '12' }]}>
+        <View style={[styles.inlineBanner, { borderColor: TONE[env.journeyIntensity.tone] + '88' }]}>
           <Icon name="activity" size={13} color={TONE[env.journeyIntensity.tone]} />
           <Text style={styles.inlineBannerText}>
             Journey Intensity: <Text style={{ color: TONE[env.journeyIntensity.tone] }}>{env.journeyIntensity.label}</Text>
           </Text>
         </View>
       ) : null}
-    </Card>
+    </View>
   );
 }
 
-function DayCard({
+function DayBlock({
   view, log, onLogChange,
 }: { view: CruiseModeViewModel; log: CruiseSelfLog; onLogChange: (p: Partial<CruiseSelfLog>) => void; }) {
   const day = view.day;
@@ -263,7 +368,7 @@ function DayCard({
   const deckLabel = day.rows.find((r) => r.id === 'deck')?.value ?? '';
 
   return (
-    <Card>
+    <View style={styles.blockGap}>
       {/* Day-mode toggle */}
       <View style={styles.segRow}>
         {(['sea_day', 'port_day'] as CruiseDayMode[]).map((m) => {
@@ -277,7 +382,7 @@ function DayCard({
               accessibilityState={{ selected: active }}
               testID={`cruise-daymode-${m}`}
             >
-              <Text style={[styles.segText, active && { color: af.cyan }]}>
+              <Text style={[styles.segText, active && styles.segTextActive]}>
                 {m === 'sea_day' ? 'Sea Day' : 'Port Day'}
               </Text>
             </Pressable>
@@ -301,7 +406,7 @@ function DayCard({
 
       {day.emptyHint ? (
         <View style={styles.hintBox}>
-          <Icon name="edit-3" size={13} color={af.cyan} />
+          <Icon name="edit-3" size={13} color={af.textSecondary} />
           <Text style={styles.hintText}>{day.emptyHint}</Text>
         </View>
       ) : null}
@@ -345,7 +450,7 @@ function DayCard({
         />
       </View>
       <Text style={styles.selfReportNote}>You control every value here. Nothing is logged for you.</Text>
-    </Card>
+    </View>
   );
 }
 
@@ -354,7 +459,7 @@ function LogControl({
 }: { icon: IconName; label: string; value: string; set: boolean; onPress: () => void; testID: string }) {
   return (
     <Pressable onPress={onPress} style={styles.logRow} accessibilityRole="button" accessibilityLabel={`${label}: ${value}. Tap to change.`} testID={testID}>
-      <View style={styles.logIcon}><Icon name={icon} size={13} color={af.cyan} /></View>
+      <View style={styles.logIcon}><Icon name={icon} size={14} color={af.textSecondary} /></View>
       <Text style={styles.logLabel}>{label}</Text>
       <Text style={[styles.logValue, !set && styles.logValueMuted]}>{value}</Text>
       <Icon name="chevron-right" size={14} color={af.textTertiary} />
@@ -367,7 +472,7 @@ function LogStepperRow({
 }: { icon: IconName; label: string; value: number; unit: string; onStep: (d: number) => void; testID: string; tone?: string }) {
   return (
     <View style={styles.logRow}>
-      <View style={styles.logIcon}><Icon name={icon} size={13} color={af.cyan} /></View>
+      <View style={styles.logIcon}><Icon name={icon} size={14} color={af.textSecondary} /></View>
       <Text style={styles.logLabel}>{label}</Text>
       <Stepper value={value} unit={unit} onStep={onStep} testID={testID} />
       {tone ? <View style={[styles.logFlag, { backgroundColor: tone }]} /> : null}
@@ -375,27 +480,26 @@ function LogStepperRow({
   );
 }
 
-function RecoveryCard({ view }: { view: CruiseModeViewModel }) {
+function RecoveryBlock({ view }: { view: CruiseModeViewModel }) {
   const rec = view.recovery;
   const tone = TONE[rec.tone];
+  const eyebrowType = useAFEyebrowType();
   if (!rec.hasSignal) {
     return (
-      <Card>
-        <View style={styles.recoveryEmpty}>
-          <Icon name="check-circle" size={16} color={af.green} />
-          <Text style={styles.recoveryEmptyText}>{rec.emptyCopy}</Text>
-        </View>
-      </Card>
+      <View style={styles.recoveryEmpty}>
+        <Icon name="check-circle" size={16} color={af.green} />
+        <Text style={styles.recoveryEmptyText}>{rec.emptyCopy}</Text>
+      </View>
     );
   }
   return (
-    <Card style={{ borderColor: tone + '55', borderWidth: 1.5 }}>
+    <Tile style={{ borderColor: tone + '88' }}>
       <View style={styles.riskHeader}>
-        <View>
-          <Text style={styles.riskLabel}>COMPOSITE RECOVERY DEMAND</Text>
+        <View style={styles.riskCopy}>
+          <Text style={[styles.riskLabel, eyebrowType]}>COMPOSITE RECOVERY DEMAND</Text>
           <Text style={[styles.riskValue, { color: tone }]}>{rec.riskLabel}</Text>
         </View>
-        <View style={[styles.riskBadge, { backgroundColor: tone + '1F', borderColor: tone + '55' }]}>
+        <View style={[styles.riskBadge, { borderColor: tone + '88' }]}>
           <Icon name={rec.tone === 'red' ? 'alert-octagon' : 'activity'} size={16} color={tone} />
         </View>
       </View>
@@ -409,7 +513,7 @@ function RecoveryCard({ view }: { view: CruiseModeViewModel }) {
           ))}
         </View>
       ) : null}
-    </Card>
+    </Tile>
   );
 }
 
@@ -419,96 +523,102 @@ export function CruiseModeView({
   view, log, ports, selectedPortId, crossNav, confidence,
   onBack, onSelectPort, onLogWater, onLogChange, onNavigate,
 }: CruiseModeViewProps) {
+  const gutter = useAFGutter();
+  const eyebrowType = useAFEyebrowType();
+  // Masthead right meta: the selected port, only when the port is known. The
+  // view model carries no port-local clock (the fetch time already rides the
+  // source strip below), so no time is shown rather than the device's.
+  const portMeta = view.environment.portName || undefined;
+  const water = view.logWater;
   return (
     <ScrollView
       style={styles.root}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingHorizontal: gutter }]}
       showsVerticalScrollIndicator={false}
       testID="cruise-mode-view"
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back" style={styles.backBtn} testID="cruise-back">
-          <Icon name="chevron-left" size={22} color={af.textPrimary} />
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <Text style={styles.eyebrow}>{view.header.eyebrow}</Text>
-          <Text style={styles.title}>{view.header.title}</Text>
-          <Text style={styles.subtitle}>{view.header.subtitle}</Text>
-        </View>
-        <View style={{ width: 22 }} />
-      </View>
+      <AFMasthead
+        meta={portMeta}
+        breadcrumb={`${view.header.title} / ${view.day.dayModeLabel}`}
+        title={`${view.header.title}.`}
+        subtitle={view.header.subtitle}
+        onBack={onBack}
+        testID="cruise"
+      />
 
-      <SectionHeader label="GUEST READINESS SIGNAL" />
-      <ReadinessHero view={view} confidence={confidence} />
+      <Rule />
+      <ReadinessBlock view={view} confidence={confidence} />
+      <Rule />
+      <NextMoveBlock view={view} />
 
       {/* Real self-report water CTA (or honest preview) */}
-      <Pressable
-        onPress={view.logWater.available ? onLogWater : undefined}
-        disabled={!view.logWater.available}
-        style={[styles.waterCta, !view.logWater.available && styles.waterCtaPreview]}
-        accessibilityRole="button"
-        accessibilityLabel={view.logWater.available ? 'Log water' : view.logWater.previewNote ?? 'Preview'}
-        testID="cruise-log-water"
-      >
-        <Icon name="droplet" size={16} color={view.logWater.available ? af.onRed : af.textTertiary} />
-        <Text style={[styles.waterCtaText, !view.logWater.available && { color: af.textTertiary }]}>
-          {view.logWater.available ? view.logWater.label : view.logWater.previewNote}
-        </Text>
-      </Pressable>
+      <View style={styles.cta}>
+        {water.available ? (
+          <CtaButton label={water.label} onPress={onLogWater} trailingIcon="plus" testID="cruise-log-water" />
+        ) : (
+          <CtaButton label={water.previewNote ?? 'Preview'} disabled testID="cruise-log-water" />
+        )}
+      </View>
 
-      <SectionHeader label="SHIP ENVIRONMENT" hint={view.environment.portName || 'Live port conditions'} />
-      <EnvironmentCard view={view} ports={ports} selectedPortId={selectedPortId} onSelectPort={onSelectPort} />
+      <SectionBlock label="Ship environment" hint={view.environment.portName || 'Live port conditions'}>
+        <EnvironmentBlock view={view} ports={ports} selectedPortId={selectedPortId} onSelectPort={onSelectPort} />
+      </SectionBlock>
 
-      <SectionHeader label="YOUR DAY" hint="Self-logged · you control it" />
-      <DayCard view={view} log={log} onLogChange={onLogChange} />
+      <SectionBlock label="Your day" hint="Self-logged · you control it">
+        <DayBlock view={view} log={log} onLogChange={onLogChange} />
+      </SectionBlock>
 
-      <SectionHeader label="RECOVERY DEMAND" />
-      <RecoveryCard view={view} />
+      <SectionBlock label="Recovery demand">
+        <RecoveryBlock view={view} />
+      </SectionBlock>
 
-      <SectionHeader label="PORT DAY CHECKLIST" hint="Before you leave the ship" />
-      <Card>
-        {view.checklist.map((item, i) => (
-          <View key={item.id} style={[styles.checklistRow, i === view.checklist.length - 1 && { borderBottomWidth: 0 }]}>
-            <View style={styles.checklistIcon}><Icon name={item.icon as IconName} size={13} color={af.cyan} /></View>
-            <Text style={styles.checklistLabel}>{item.label}</Text>
-          </View>
-        ))}
-      </Card>
-
-      <SectionHeader label="GUEST ENGAGEMENT" hint="Cruise wellness badges" />
-      <Card>
-        <View style={styles.badgeGrid}>
-          {view.badges.map((b) => (
-            <View key={b.id} style={styles.badgeCell}>
-              <View style={styles.badgeIcon}><Icon name="award" size={16} color={af.cyan} /></View>
-              <Text style={styles.badgeTitle}>{b.title}</Text>
-              <Text style={styles.badgeHint}>{b.hint}</Text>
+      <SectionBlock label="Port day checklist" hint="Before you leave the ship">
+        <View>
+          {view.checklist.map((item) => (
+            <View key={item.id} style={styles.checklistRow}>
+              <View style={styles.listIcon}><Icon name={item.icon as IconName} size={14} color={af.textSecondary} /></View>
+              <Text style={styles.checklistLabel}>{item.label}</Text>
             </View>
           ))}
         </View>
-      </Card>
+      </SectionBlock>
 
-      <SectionHeader label="CONNECT TO" hint="Cross-feature shortcuts" />
-      <Card style={{ paddingVertical: 6 }}>
-        {crossNav.map((n, i) => (
-          <Pressable
-            key={n.key}
-            onPress={() => onNavigate(n.key)}
-            style={({ pressed }) => [styles.navRow, i === crossNav.length - 1 && { borderBottomWidth: 0 }, pressed && { backgroundColor: af.cyan + '10' }]}
-            accessibilityRole="button"
-            accessibilityLabel={n.label}
-            testID={`cruise-nav-${n.key}`}
-          >
-            <View style={styles.navIcon}><Icon name={n.icon} size={14} color={af.cyan} /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.navLabel}>{n.label}</Text>
-              <Text style={styles.navHint}>{n.hint}</Text>
-            </View>
-            <Icon name="chevron-right" size={14} color={af.textTertiary} />
-          </Pressable>
-        ))}
-      </Card>
+      <SectionBlock label="Guest engagement" hint="Cruise wellness badges">
+        <View style={styles.badgeGrid}>
+          {view.badges.map((b) => (
+            <Tile key={b.id} style={styles.badgeCell}>
+              <View style={styles.badgeIcon}><Icon name="award" size={16} color={af.textSecondary} /></View>
+              <Text style={styles.badgeTitle}>{b.title}</Text>
+              <Text style={styles.badgeHint}>{b.hint}</Text>
+            </Tile>
+          ))}
+        </View>
+      </SectionBlock>
+
+      <SectionBlock label="Connect to" hint="Cross-feature shortcuts">
+        <View>
+          {crossNav.map((n) => (
+            <Pressable
+              key={n.key}
+              onPress={() => onNavigate(n.key)}
+              style={({ pressed }) => [styles.navRow, pressed && styles.navRowPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={n.label}
+              testID={`cruise-nav-${n.key}`}
+            >
+              <View style={styles.listIcon}><Icon name={n.icon} size={14} color={af.textSecondary} /></View>
+              <View style={styles.navCopy}>
+                <Text style={styles.navLabel}>{n.label}</Text>
+                <Text style={styles.navHint}>{n.hint}</Text>
+              </View>
+              <Icon name="chevron-right" size={14} color={af.textTertiary} />
+            </Pressable>
+          ))}
+        </View>
+      </SectionBlock>
+
+      {/* Tier label — the former header eyebrow, relocated (preserved, not dropped). */}
+      <Text style={[styles.tier, eyebrowType]} testID="cruise-tier">{view.header.eyebrow}</Text>
 
       {/* Compliance disclaimer — always renders */}
       <View style={styles.disclaimer} accessibilityRole="text">
@@ -522,57 +632,46 @@ export function CruiseModeView({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: af.canvas },
-  content: { paddingHorizontal: afLayout.screenPaddingX, paddingTop: 8, paddingBottom: 48, gap: 4 },
+  content: { paddingTop: 8, paddingBottom: 48 },
 
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
-  backBtn: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { flex: 1, alignItems: 'center', gap: 2 },
-  eyebrow: { ...afType.eyebrow, color: af.cyan },
-  title: { ...afType.title2, color: af.textPrimary },
-  subtitle: { ...afType.caption, color: af.textSecondary },
+  rule: { height: afLayout.hairline, backgroundColor: af.divider, marginVertical: 20 },
 
-  sectionHeader: {
-    flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between',
-    marginTop: 20, marginBottom: 8, paddingHorizontal: 2,
-  },
-  sectionLabel: { ...afType.eyebrow, color: af.textSecondary },
-  sectionHint: { ...afType.caption, color: af.textTertiary, flexShrink: 1, marginLeft: 12, textAlign: 'right' },
+  // Section (AFSectionLabel + quiet hint + body)
+  section: { marginTop: 32 },
+  sectionHint: { ...afType.caption, color: af.textTertiary, marginTop: 8 },
+  sectionBody: { marginTop: 14 },
+  blockGap: { gap: 14 },
 
-  card: {
+  tile: {
     backgroundColor: af.surface, borderRadius: afLayout.radiusCard,
     borderWidth: afLayout.hairline, borderColor: af.border, padding: afLayout.cardPadding,
   },
 
-  // Readiness hero
-  heroCard: { overflow: 'hidden' },
+  // Readiness block
+  readiness: { overflow: 'hidden' },
   heroGlow: {
-    position: 'absolute', top: -70, right: -50, width: 220, height: 220,
-    borderRadius: 110, opacity: 0.14,
+    position: 'absolute', top: 6, left: '50%', marginLeft: -110, width: 220, height: 220,
+    borderRadius: 110, opacity: 0.08, pointerEvents: 'none',
   },
-  orbRow: { flexDirection: 'row', gap: 16, alignItems: 'center' },
-  orb: {
-    width: 104, height: 104, borderRadius: 52, borderWidth: 2,
-    alignItems: 'center', justifyContent: 'center',
+  readinessLabel: { ...afType.eyebrow, color: af.textTertiary },
+  numeralRow: {
+    flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', flexWrap: 'wrap',
+    columnGap: 8, marginTop: 8,
   },
-  orbScore: { ...afType.displayScore, fontSize: 40, lineHeight: 44 },
-  orbScale: { ...afType.caption, color: af.textTertiary, marginTop: -2 },
-  orbCopy: { flex: 1, gap: 7 },
-  statusPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: afLayout.radiusPill, borderWidth: 1,
+  numeral: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'], textAlign: 'center' },
+  numeralScale: { ...afType.eyebrow, color: af.textTertiary },
+  track: {
+    height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 20,
   },
-  statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusPillText: { ...afType.eyebrow, letterSpacing: 1.2 },
-  recommendation: { ...afType.secondary, color: af.textPrimary },
-  recheck: { ...afType.caption, color: af.textTertiary },
-  ringTrack: {
-    height: 6, borderRadius: 3, backgroundColor: af.surfaceRaised, marginTop: 16, overflow: 'hidden',
+  trackFill: { height: 4, borderRadius: 2, backgroundColor: af.red },
+  stateRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
+    columnGap: 8, rowGap: 6, marginTop: 14,
   },
-  ringFill: { height: 6, borderRadius: 3 },
-  ringCaptionRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 8, flexWrap: 'wrap' },
-  ringCaption: { ...afType.eyebrow, color: af.textTertiary },
-  ringCaptionSoft: { ...afType.caption, color: af.textTertiary, fontSize: 11 },
-  confidenceRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10 },
+  stateDot: { width: 6, height: 6, borderRadius: 3 },
+  stateWord: { ...afType.eyebrow, color: af.textSecondary, flexShrink: 1 },
+  stateSep: { ...afType.secondary, color: af.textTertiary },
+  recheck: { ...afType.caption, color: af.textTertiary, textAlign: 'center', marginTop: 8 },
   // The exact surface the §58 confidence ramp is tuned for (#285/#288).
   confidencePill: {
     backgroundColor: Colors.background.card,
@@ -581,132 +680,141 @@ const styles = StyleSheet.create({
     borderRadius: afLayout.radiusPill,
   },
 
+  // Next move
+  nextMove: { gap: 10 },
+  command: { ...afType.title2, color: af.textPrimary },
+  conditions: { ...afType.secondary, color: af.textSecondary },
+
+  // CTA
+  cta: { marginTop: 28 },
+  ctaBtn: {
+    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, paddingHorizontal: 20, paddingVertical: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12,
+  },
+  ctaBtnLive: { backgroundColor: af.red },
+  ctaBtnPreview: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border },
+  ctaBtnPressed: { opacity: 0.85 },
+  ctaLabel: { ...afType.bodyStrong, flexShrink: 1 },
+
   // Live env strip
-  liveStrip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  liveStrip: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 12, rowGap: 6 },
   sourcePill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: afLayout.radiusPill, borderWidth: 1,
   },
   sourceDot: { width: 6, height: 6, borderRadius: 3 },
-  sourcePillText: { ...afType.eyebrow, fontSize: 9, letterSpacing: 1.4 },
-  liveStripCaption: { ...afType.caption, color: af.textTertiary, flex: 1, textAlign: 'right', marginLeft: 12 },
+  sourcePillText: { ...afType.micro, fontSize: 11, lineHeight: 14 },
+  liveStripCaption: { ...afType.caption, color: af.textTertiary, flexShrink: 1 },
 
   // Port chips
-  portRow: { gap: 8, paddingBottom: 12, paddingRight: 8 },
+  portRow: { gap: 8, paddingRight: 8 },
   portChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 7,
-    borderRadius: 10, borderWidth: 1, borderColor: af.border, backgroundColor: af.surfaceRaised,
-    minHeight: 34,
+    flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border,
+    minHeight: 44,
   },
-  portChipActive: { borderColor: af.cyan + '88', backgroundColor: af.cyan + '1A' },
+  portChipActive: { borderColor: af.red },
   portChipText: { ...afType.caption, color: af.textSecondary },
+  portChipTextActive: { color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
 
   // Env grid
   envGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  envCell: {
-    width: '31%', flexGrow: 1, minWidth: 92, paddingVertical: 10, paddingHorizontal: 9,
-    borderRadius: 12, backgroundColor: af.surfaceRaised, gap: 4,
-  },
-  envIcon: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  envLabel: { ...afType.caption, color: af.textTertiary, fontSize: 9, letterSpacing: 0.6, textTransform: 'uppercase' },
-  envValue: { ...afType.bodyStrong, fontSize: 15, color: af.textPrimary },
-  envEmpty: {
-    flexDirection: 'row', gap: 10, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4,
-  },
+  envCell: { width: '31%', flexGrow: 1, minWidth: 104, padding: 12 },
+  envCellInner: { gap: 6 },
+  envLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  envLabel: { ...afType.micro, fontSize: 10, color: af.textTertiary, textTransform: 'uppercase', flexShrink: 1 },
+  envValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  envEmpty: { flexDirection: 'row', gap: 10, alignItems: 'center', paddingVertical: 6 },
   envEmptyText: { ...afType.caption, color: af.textSecondary, flex: 1 },
   inlineBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 10,
-    borderRadius: 10, borderWidth: 1, marginTop: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 12,
+    borderRadius: afLayout.radiusCard, borderWidth: 1, minHeight: 44,
   },
-  inlineBannerText: { ...afType.caption, color: af.textSecondary },
+  inlineBannerText: { ...afType.caption, color: af.textSecondary, flex: 1 },
 
   // Day / self-log
-  segRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
+  segRow: { flexDirection: 'row', gap: 8 },
   segBtn: {
-    flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 12,
-    borderWidth: 1, borderColor: af.border, backgroundColor: af.surfaceRaised, minHeight: 44, justifyContent: 'center',
+    flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 9,
+    borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, minHeight: 44,
   },
-  segBtnActive: { borderColor: af.cyan + '88', backgroundColor: af.cyan + '14' },
-  segText: { ...afType.caption, color: af.textSecondary, fontFamily: afType.bodyStrong.fontFamily },
-  rhythmCaption: { ...afType.caption, color: af.textTertiary, marginBottom: 8 },
+  segBtnActive: { borderColor: af.red },
+  segText: { ...afType.caption, color: af.textSecondary },
+  segTextActive: { color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
+  rhythmCaption: { ...afType.caption, color: af.textTertiary },
   flowRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', rowGap: 8 },
   flowBeat: {
     flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.cyan + '33', backgroundColor: af.cyan + '12',
+    borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border,
   },
-  flowDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: af.cyan },
-  flowBeatLabel: { ...afType.caption, color: af.textPrimary, fontSize: 11 },
+  flowDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: af.textSecondary },
+  flowBeatLabel: { ...afType.caption, color: af.textPrimary, fontSize: 12 },
   flowConnector: { width: 10, height: 1, backgroundColor: af.divider, marginHorizontal: 2 },
   hintBox: {
-    flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginTop: 14, padding: 12,
-    borderRadius: 12, borderWidth: 1, borderColor: af.cyan + '33', backgroundColor: af.cyan + '0D',
+    flexDirection: 'row', gap: 10, alignItems: 'flex-start', padding: 12,
+    borderRadius: afLayout.radiusCard, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
   },
   hintText: { ...afType.caption, color: af.textSecondary, flex: 1 },
-  logGroup: { marginTop: 14, gap: 2 },
+  logGroup: { marginTop: 2 },
   logRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, minHeight: 44,
+    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4, minHeight: 52,
     borderBottomWidth: afLayout.hairline, borderBottomColor: af.divider,
   },
-  logIcon: { width: 26, height: 26, borderRadius: 7, alignItems: 'center', justifyContent: 'center', backgroundColor: af.cyan + '14' },
-  logLabel: { ...afType.caption, color: af.textSecondary, flex: 1 },
-  logValue: { ...afType.caption, color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
+  logIcon: { width: 24, alignItems: 'center', justifyContent: 'center' },
+  logLabel: { ...afType.secondary, color: af.textPrimary, flex: 1 },
+  logValue: { ...afType.caption, color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily, flexShrink: 1, textAlign: 'right' },
   logValueMuted: { color: af.textTertiary, fontFamily: afType.caption.fontFamily },
-  logFlag: { width: 6, height: 6, borderRadius: 3, marginLeft: 8 },
-  selfReportNote: { ...afType.caption, color: af.textTertiary, marginTop: 12, fontSize: 11 },
+  logFlag: { width: 6, height: 6, borderRadius: 3, marginLeft: 4 },
+  selfReportNote: { ...afType.caption, color: af.textTertiary, fontSize: 12 },
 
   // Stepper
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   stepBtn: {
-    width: 30, height: 30, borderRadius: 8, borderWidth: 1, borderColor: af.border,
-    backgroundColor: af.surfaceRaised, alignItems: 'center', justifyContent: 'center',
+    width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: af.border,
+    alignItems: 'center', justifyContent: 'center',
   },
-  stepValue: { ...afType.caption, color: af.textPrimary, minWidth: 40, textAlign: 'center', fontFamily: afType.bodyStrong.fontFamily },
-
-  // Water CTA
-  waterCta: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.red, marginTop: 12,
-  },
-  waterCtaPreview: { backgroundColor: 'transparent', borderWidth: 1, borderColor: af.border },
-  waterCtaText: { ...afType.bodyStrong, color: af.onRed },
+  stepValue: { ...afType.caption, color: af.textPrimary, minWidth: 44, textAlign: 'center', fontFamily: afType.bodyStrong.fontFamily, fontVariant: ['tabular-nums'] },
 
   // Recovery
   recoveryEmpty: { flexDirection: 'row', gap: 10, alignItems: 'center' },
   recoveryEmptyText: { ...afType.caption, color: af.textSecondary, flex: 1 },
-  riskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  riskHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+  riskCopy: { flex: 1 },
   riskLabel: { ...afType.eyebrow, color: af.textTertiary },
   riskValue: { ...afType.title3, marginTop: 3 },
-  riskBadge: { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  reasonList: { marginTop: 12, gap: 7 },
+  riskBadge: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  reasonList: { marginTop: 12, gap: 8 },
   reasonItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   reasonDot: { width: 5, height: 5, borderRadius: 3 },
-  reasonText: { ...afType.caption, color: af.textSecondary },
+  reasonText: { ...afType.caption, color: af.textSecondary, flex: 1 },
 
-  // Checklist
+  // Checklist + shared list icon
+  listIcon: { width: 24, alignItems: 'center', justifyContent: 'center' },
   checklistRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10, minHeight: 48,
     borderBottomWidth: afLayout.hairline, borderBottomColor: af.divider,
   },
-  checklistIcon: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: af.cyan + '14' },
-  checklistLabel: { ...afType.caption, color: af.textPrimary, flex: 1 },
+  checklistLabel: { ...afType.secondary, color: af.textPrimary, flex: 1 },
 
   // Badges
   badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  badgeCell: { width: '47%', flexGrow: 1, padding: 12, borderRadius: 12, backgroundColor: af.surfaceRaised, gap: 6 },
-  badgeIcon: { width: 32, height: 32, borderRadius: 8, borderWidth: 1, borderColor: af.border, alignItems: 'center', justifyContent: 'center', backgroundColor: af.cyan + '14' },
+  badgeCell: { width: '47%', flexGrow: 1, minWidth: 140, padding: 14, gap: 6 },
+  badgeIcon: { width: 24, alignItems: 'flex-start', justifyContent: 'center' },
   badgeTitle: { ...afType.caption, color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
-  badgeHint: { ...afType.caption, color: af.textTertiary, fontSize: 10 },
+  badgeHint: { ...afType.caption, color: af.textTertiary, fontSize: 12 },
 
   // Cross-nav
   navRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, minHeight: 56,
     borderBottomWidth: afLayout.hairline, borderBottomColor: af.divider,
   },
-  navIcon: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: af.cyan + '14' },
-  navLabel: { ...afType.caption, color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
-  navHint: { ...afType.caption, color: af.textTertiary, fontSize: 10 },
+  navRowPressed: { backgroundColor: af.surfacePressed },
+  navCopy: { flex: 1 },
+  navLabel: { ...afType.secondary, color: af.textPrimary, fontFamily: afType.bodyStrong.fontFamily },
+  navHint: { ...afType.caption, color: af.textTertiary, fontSize: 12 },
 
-  // Disclaimer
-  disclaimer: { marginTop: 20, padding: 14, borderRadius: 12, borderWidth: afLayout.hairline, borderColor: af.border },
+  // Tier + disclaimer
+  tier: { ...afType.micro, color: af.textTertiary, textAlign: 'center', marginTop: 32 },
+  disclaimer: { marginTop: 14, padding: 14, borderRadius: afLayout.radiusCard, borderWidth: afLayout.hairline, borderColor: af.border },
   disclaimerText: { ...afType.caption, color: af.textTertiary },
 });

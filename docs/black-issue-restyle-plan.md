@@ -19,6 +19,10 @@ primitives, tab bar, AFMasthead) merged as #1087 on 2026-10-06. The 27 reference
 
 Post-merge review of PR 1 (2026-10-06) raised one accessibility regression (selected tab told apart by
 hue alone) and four should-fix items; all are addressed in PR 2's first commit and recorded in §7.
+PR 2 (#1088) merged 2026-10-07 before its review returned; the review fixes landed as #1089 (same day).
+**Ruling D8 (founder, 2026-10-07):** the red readiness hairline and the red hydration value on Home stay
+as the brand accent (plan §4 item 1 stands); the Wave-5 "PEAK never in the alarm colour" rule governs
+status-palette surfaces, not this accent.
 
 Source of truth: Figma file `VlcxuqlYiEEOeNKZuwi0WL` ("Black Issue Social Brief"), pulled through the
 Figma MCP server on 2026-10-06. Every "phone screenshot" node is a flattened 390×844 PNG (iPhone
