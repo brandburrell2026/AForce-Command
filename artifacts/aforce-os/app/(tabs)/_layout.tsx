@@ -21,7 +21,6 @@
  */
 
 import React from 'react';
-import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Redirect, Tabs } from 'expo-router';
 import { useAuth } from '@clerk/expo';
@@ -30,6 +29,7 @@ import { SymbolView } from 'expo-symbols';
 import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
+import { Typography } from '@/theme/typography';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
@@ -175,47 +175,26 @@ function ClassicTabLayout() {
           borderColor: 'transparent',
           ...(WEB_NO_OUTLINE as object),
         },
+        // Black Issue tab bar (2026-10-06): a solid Cinematic Black bar with
+        // one warm hairline on top — the blur glass is gone so the bar sits on
+        // the same field as the cards. Labels are tracked mono micro caps, the
+        // active item is the AA-clean red (Colors.tabBar.active = af.redText).
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : Colors.tabBar.background,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: 'rgba(255,255,255,0.04)',
+          backgroundColor: Colors.tabBar.background,
+          borderTopWidth: 1,
+          borderTopColor: Colors.tabBar.hairline,
           elevation: 0,
           height: isWeb ? TAB_BAR_HEIGHT : undefined,
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <View style={StyleSheet.absoluteFill}>
-              {/* Max-intensity dark glass — Vision Pro / iOS 17 HUD feel */}
-              <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
-              {/* Whisper-thin dark wash to deepen the floating glass effect
-                  without sacrificing the translucency from the blur */}
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(0,0,0,0.18)' },
-                ]}
-              />
-              {/* Soft top edge fade — a 1.5px gradient line that dissolves
-                  into the glass rather than terminating crisply */}
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 1.5,
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                }}
-              />
-            </View>
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
-          ),
+        tabBarBackground: () => (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
+        ),
         tabBarLabelStyle: {
-          fontFamily: 'Inter_600SemiBold',
-          fontSize: 10,
-          letterSpacing: 0.5,
+          fontFamily: Typography.roles.mono,
+          fontSize: 9,
+          letterSpacing: 1.4,
+          textTransform: 'uppercase',
           marginBottom: isWeb ? 10 : 4,
         },
       }}
