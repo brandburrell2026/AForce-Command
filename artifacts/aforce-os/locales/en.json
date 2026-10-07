@@ -2673,7 +2673,9 @@
       "too_early": "Too early",
       "too_late": "Too late",
       "thanks": "Noted. Future prep timing tunes to this."
-    }
+    },
+    "summary_count_one": "{{count}} upcoming moment",
+    "summary_count_other": "{{count}} upcoming moments"
   },
   "communitySharing": {
     "eyebrow": "PRIVACY",

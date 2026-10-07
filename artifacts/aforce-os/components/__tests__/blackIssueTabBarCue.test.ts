@@ -21,7 +21,14 @@ describe('tab selection carries a non-colour cue', () => {
   });
 
   it('the selected item draws the 2pt mark, hidden from the reader', () => {
-    expect(src).toMatch(/accessibilityState[^\n]*selected/);
+    // React Navigation 7 passes `aria-selected`, not `accessibilityState`, to
+    // a custom tabBarButton (node_modules/@react-navigation/bottom-tabs/src/
+    // views/BottomTabItem.tsx) — the cue must read THAT prop (#1088 review B1)
+    // and forward the selected state so the reader announces it.
+    expect(src).toMatch(/'aria-selected': ariaSelected/);
+    expect(src).toMatch(/const selected = Boolean\(\s*ariaSelected \?\?/);
+    expect(src).toContain('aria-selected={selected}');
+    expect(src).toMatch(/accessibilityState=\{\{[^}]*selected\s*\}\}/);
     expect(src).toContain('testID="tab-selected-mark"');
     expect(src).toMatch(/selectedMark:\s*\{[\s\S]*?height:\s*2[\s\S]*?backgroundColor:\s*Colors\.tabBar\.active/);
   });

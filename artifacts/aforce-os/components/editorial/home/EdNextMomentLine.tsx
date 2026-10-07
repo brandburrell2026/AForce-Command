@@ -105,7 +105,7 @@ export function EdNextMomentLine({
           {/* RP-3: the action mirrors the canonical command; no command →
               context only. Clock in the AA red when the window is live. */}
           {action ? (
-            <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+            <Text style={[edType.micro as TextStyle, { color: ink.quiet, flexShrink: 1 }]}>
               {t(action.labelKey, action.labelParams).toUpperCase()}
             </Text>
           ) : null}
@@ -152,6 +152,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     columnGap: 12,
+    // AX ruling: reflow, not clip — at accessibility sizes the eyebrow and
+    // the "All of today" doorway wrap instead of pushing the doorway off-screen.
+    flexWrap: 'wrap',
+    rowGap: 4,
     borderBottomWidth: 1,
     paddingBottom: 6,
   },
