@@ -7,6 +7,7 @@ import React from 'react';
 import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
 import { Icon, type IconName } from '../Icon';
 import { af, afType, afLayout } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFListRowProps {
   title: string;
@@ -32,6 +33,7 @@ export function AFListRow({
   rule = false,
   testID,
 }: AFListRowProps) {
+  const eyebrowType = useAFEyebrowType();
   const composedLabel = [title, subtitle, value].filter(Boolean).join(', ');
   const body = (
     <View style={styles.row}>
@@ -62,7 +64,7 @@ export function AFListRow({
           </Text>
         )}
       </View>
-      {value && <Text style={styles.value}>{value}</Text>}
+      {value && <Text style={[styles.value, eyebrowType]}>{value}</Text>}
       {toggle && (
         <Switch
           value={toggle.value}

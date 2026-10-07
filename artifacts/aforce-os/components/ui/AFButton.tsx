@@ -147,7 +147,9 @@ const styles = StyleSheet.create({
   content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   // Label left, trailing glyph flush right — the Black Issue CTA shape.
   contentSpread: { alignSelf: 'stretch', justifyContent: 'space-between' },
-  label: { ...afType.bodyStrong },
+  // flexShrink so a long translated label wraps before it pushes a trailing
+  // glyph off the edge (review nit).
+  label: { ...afType.bodyStrong, flexShrink: 1 },
   primary: { backgroundColor: af.red },
   primaryPressed: { opacity: 0.85 },
   secondary: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border },

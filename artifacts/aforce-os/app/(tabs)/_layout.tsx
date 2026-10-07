@@ -27,9 +27,10 @@ import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { Icon } from '../../components/Icon';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
+import { afEyebrowAt } from '@/theme/afTokens';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
@@ -101,6 +102,13 @@ function PlainTabButton(props: Record<string, unknown>) {
   // between screens is not one of them. A haptic has to mean something, and one
   // that fires on every press means nothing.
 
+  // Black Issue review B2: the active tint (#E4564A) against the inactive grey
+  // (#8D897F) is ~1.05:1 in luminance, so hue cannot be the only selection
+  // cue (WCAG 1.4.1). A 2pt red mark above the selected item is the second,
+  // colour-independent cue on every platform; iOS also swaps to the filled
+  // symbol. Hidden from the reader — `accessibilityState.selected` speaks it.
+  const selected = Boolean((accessibilityState as { selected?: boolean } | undefined)?.selected);
+
   return (
     <Pressable
       onPress={onPress as (() => void) | undefined}
@@ -114,6 +122,14 @@ function PlainTabButton(props: Record<string, unknown>) {
         pressed && plainTabButtonStyles.pressed,
       ]}
     >
+      {selected ? (
+        <View
+          style={plainTabButtonStyles.selectedMark}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID="tab-selected-mark"
+        />
+      ) : null}
       {children}
     </Pressable>
   );
@@ -146,6 +162,14 @@ const plainTabButtonStyles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
+  selectedMark: {
+    position: 'absolute',
+    top: 0,
+    width: 28,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.tabBar.active,
+  },
 });
 
 function ClassicTabLayout() {
@@ -153,6 +177,9 @@ function ClassicTabLayout() {
   const devMode = useDevMode();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
+  // S2-14b: tracked mono labels yield their tracking at accessibility sizes.
+  const { fontScale } = useWindowDimensions();
+  const labelTracking = afEyebrowAt(fontScale).letterSpacing;
 
   return (
     <Tabs
@@ -193,7 +220,7 @@ function ClassicTabLayout() {
         tabBarLabelStyle: {
           fontFamily: Typography.roles.mono,
           fontSize: 9,
-          letterSpacing: 1.4,
+          letterSpacing: labelTracking,
           textTransform: 'uppercase',
           marginBottom: isWeb ? 10 : 4,
         },
@@ -204,8 +231,8 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'bolt.circle.fill' : 'bolt.circle'} tintColor={color} size={size} />
                   : <Icon name="zap" size={22} color={color} />,
         }}
       />
@@ -213,8 +240,8 @@ function ClassicTabLayout() {
         name="journal"
         options={{
           title: t('tabs.hydration'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="drop.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'drop.circle.fill' : 'drop.circle'} tintColor={color} size={size} />
                   : <Icon name="droplet" size={22} color={color} />,
         }}
       />
@@ -222,8 +249,8 @@ function ClassicTabLayout() {
         name="protocol"
         options={{
           title: t('tabs.protocol'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'list.bullet.circle.fill' : 'list.bullet.circle'} tintColor={color} size={size} />
                   : <Icon name="list" size={22} color={color} />,
         }}
       />
@@ -231,8 +258,8 @@ function ClassicTabLayout() {
         name="competition"
         options={{
           title: t('tabs.competition'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="trophy" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'trophy.fill' : 'trophy'} tintColor={color} size={size} />
                   : <Icon name="award" size={22} color={color} />,
         }}
       />
@@ -240,8 +267,8 @@ function ClassicTabLayout() {
         name="profile"
         options={{
           title: t('tabs.profile'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'person.circle.fill' : 'person.circle'} tintColor={color} size={size} />
                   : <Icon name="user" size={22} color={color} />,
         }}
       />
@@ -252,8 +279,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.scan'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="viewfinder.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'viewfinder.circle.fill' : 'viewfinder.circle'} tintColor={color} size={size} />
                   : <Icon name="maximize" size={22} color={color} />,
         }}
       />
@@ -262,8 +289,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.social'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'wineglass.fill' : 'wineglass'} tintColor={color} size={size} />
                   : <Icon name="users" size={22} color={color} />,
         }}
       />
@@ -285,8 +312,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.sleep'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="moon.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'moon.circle.fill' : 'moon.circle'} tintColor={color} size={size} />
                   : <Icon name="moon" size={22} color={color} />,
         }}
       />

@@ -33,7 +33,7 @@ export function AFMetric({ label, value, unit, trendDelta, timestamp, testID }: 
         <Text style={styles.value} allowFontScaling maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
           {value}
         </Text>
-        {unit && <Text style={styles.unit}>{unit}</Text>}
+        {unit && <Text style={[styles.unit, eyebrowType]}>{unit}</Text>}
       </View>
       {showTrend && (
         <View style={styles.trendRow} accessibilityLabel={`trend ${direction} ${Math.abs(trendDelta as number)}`}>

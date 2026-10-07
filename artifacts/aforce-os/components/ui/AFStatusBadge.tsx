@@ -67,7 +67,7 @@ export function AFStatusBadge({ label, tone = 'neutral', icon, variant = 'outlin
       testID={testID}
     >
       {glyph && <Icon name={glyph} size={10} color={textColor} />}
-      <Text style={[styles.label, eyebrowType, { color: textColor }]}>{label.toUpperCase()}</Text>
+      <Text style={[[styles.label, eyebrowType], { color: textColor }]}>{label.toUpperCase()}</Text>
     </View>
   );
 }
@@ -78,11 +78,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
     alignSelf: 'flex-start',
-    minHeight: 22,
-    paddingHorizontal: 9,
+    minHeight: 24,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 9999,
     borderWidth: 1,
   },
-  label: { ...afType.micro },
+  // 11pt mono (afType.eyebrow): the reference pill reads ~9pt, but a word
+  // that carries status stays at the 11pt legibility floor (review S3).
+  label: { ...afType.eyebrow },
 });

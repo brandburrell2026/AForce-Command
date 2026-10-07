@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
   // Water CTA
   waterCta: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    height: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.red, marginTop: 12,
+    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.red, marginTop: 12,
   },
   waterCtaPreview: { backgroundColor: 'transparent', borderWidth: 1, borderColor: af.border },
   waterCtaText: { ...afType.bodyStrong, color: af.onRed },

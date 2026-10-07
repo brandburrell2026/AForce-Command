@@ -17,8 +17,9 @@ import {
   type StyleProp,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { af, afType, afLayout } from '@/theme';
+import { af, afType } from '@/theme';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { useAFGutter } from '@/hooks/useAFGutter';
 
 export interface AFEditorialHeroProps {
   source: ImageSourcePropType;
@@ -43,6 +44,7 @@ export function AFEditorialHero({
   testID,
 }: AFEditorialHeroProps) {
   const eyebrowType = useAFEyebrowType();
+  const gutter = useAFGutter();
   return (
     <ImageBackground
       source={source}
@@ -54,7 +56,7 @@ export function AFEditorialHero({
         locations={[0, 0.55, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.safeZone}>
+      <View style={[styles.safeZone, { padding: gutter }]}>
         {eyebrow && <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>}
         <Text style={styles.title}>{title}</Text>
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -67,7 +69,7 @@ export function AFEditorialHero({
 const styles = StyleSheet.create({
   hero: { justifyContent: 'flex-end', overflow: 'hidden' },
   fill: { flex: 1 },
-  safeZone: { padding: afLayout.screenPaddingX, gap: 6 },
+  safeZone: { gap: 6 },
   eyebrow: { ...afType.eyebrow, color: af.redText },
   title: { ...afType.displayHero, color: af.textPrimary },
   subtitle: { ...afType.body, color: af.textSecondary, marginTop: 2 },

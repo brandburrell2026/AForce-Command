@@ -25,6 +25,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Icon, type IconName } from '../Icon';
 import { af, afType } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import type { AFTimelineStepState } from './afPrimitives.logic';
 
 export interface AFTimelineStep {
@@ -71,6 +72,7 @@ const NODE: Record<AFTimelineStepState, { color: string; icon?: IconName; filled
 };
 
 export function AFTimeline({ steps, stateLabels, testID }: AFTimelineProps) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <View testID={testID}>
       {steps.map((step, i) => {
@@ -107,7 +109,7 @@ export function AFTimeline({ steps, stateLabels, testID }: AFTimelineProps) {
                   {step.title}
                 </Text>
                 {step.meta && (
-                  <Text style={[styles.meta, emphasized && styles.metaCurrent]}>{step.meta}</Text>
+                  <Text style={[[styles.meta, eyebrowType], emphasized && styles.metaCurrent]}>{step.meta}</Text>
                 )}
               </View>
               {step.subtitle && (
