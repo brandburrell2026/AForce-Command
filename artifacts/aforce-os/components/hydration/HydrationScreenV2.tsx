@@ -24,16 +24,25 @@
  * of it; that history screen is now the pushed destination of the last row
  * here. This screen reads only the store — no network — so the root stays
  * useful even when that history cannot load.
+ *
+ * BLACK ISSUE (2026-10-07, PR 3): restyled to the Figma reference — masthead
+ * + "HYDRATION / TODAY" breadcrumb, intake card, red Scan CTA, hairline
+ * Recent intake rows, seven-dot week strip. PRESENTATION ONLY: every value is
+ * the one this screen already derived; the Recovery reading stays an honest
+ * em dash (the reference's "74 · HRV 58 MS" has no source here and is not
+ * invented). The "Ask Concierge" entry that used to ride the top bar is kept
+ * as a small control on the masthead's free right side (same hook, same
+ * action, still absent while ai_concierge_enabled is off).
  */
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 
 import {
   AFScreen,
-  AFTopBar,
+  AFMasthead,
   AFCard,
   AFProgressRing,
   AFPrimaryButton,
@@ -43,7 +52,9 @@ import {
   AFEmptyState,
   AFOfflineBanner,
 } from '@/components/ui';
-import { af, afType } from '@/theme';
+import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { Icon } from '@/components/Icon';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { EM_DASH } from './signalV3Presentation';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
@@ -52,7 +63,6 @@ import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { fireMoment } from '@/services/haptics';
-import { formatTimeAgo } from '@/data/mockData';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
 
@@ -72,6 +82,40 @@ const FLUID_KEY: Record<FluidType, string> = {
   aforce_canister: 'fluid_aforce_canister',
   aforce_bulk_bag: 'fluid_aforce_bulk_bag',
 };
+
+/**
+ * "TODAY · 9:12 AM" — the logged moment as a clock reading. Derived from the
+ * event's own `loggedAt`; calendar-day comparison, never an elapsed-time guess.
+ * Returns the day word and the time separately so the caller can tell whether
+ * every shown entry is from today.
+ */
+function intakeWhen(
+  loggedAt: Date | string | number,
+  lang: string,
+  words: { today: string; yesterday: string },
+): { text: string; isToday: boolean } {
+  const at = new Date(loggedAt);
+  const now = new Date();
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dayDiff = Math.round((startOfDay(now) - startOfDay(at)) / 86_400_000);
+  let time: string;
+  try {
+    time = at.toLocaleTimeString(lang, { hour: 'numeric', minute: '2-digit' });
+  } catch {
+    time = at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  let day: string;
+  if (dayDiff === 0) day = words.today;
+  else if (dayDiff === 1) day = words.yesterday;
+  else {
+    try {
+      day = at.toLocaleDateString(lang, { weekday: 'short' });
+    } catch {
+      day = at.toLocaleDateString([], { weekday: 'short' });
+    }
+  }
+  return { text: `${day} · ${time}`, isToday: dayDiff === 0 };
+}
 
 export function HydrationScreenV2() {
   const { t, i18n } = useTranslation();
@@ -169,16 +213,60 @@ export function HydrationScreenV2() {
     [i18n.language],
   );
 
+  const eyebrowType = useAFEyebrowType();
+  const intakeRows = recent.map((e) => ({
+    event: e,
+    when: intakeWhen(e.loggedAt, i18n.language, {
+      today: t('common.today'),
+      yesterday: t('hydration.v2.when_yesterday'),
+    }),
+  }));
+  const allRecentToday = intakeRows.length > 0 && intakeRows.every((r) => r.when.isToday);
+  const recentMeta =
+    intakeRows.length === 0
+      ? undefined
+      : [
+          t('hydration.v2.recent_meta', { count: intakeRows.length }),
+          allRecentToday ? t('common.today') : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+
   return (
     <View style={styles.root}>
       <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
-      <AFTopBar eyebrow={t('hydration.v2.eyebrow')} title={t('hydration.v2.title')} actions={askConcierge} />
+      {/* Masthead: wordmark, red breadcrumb, statement. No right-hand meta —
+          this screen has no city/temperature/clock source of its own, and the
+          masthead never invents one. */}
+      <View style={styles.mastheadWrap}>
+        <AFMasthead
+          breadcrumb={`${t('tabs.hydration')} / ${t('hydration.v2.eyebrow')}`}
+          title={`${t('hydration.v2.title')}.`}
+          testID="hydration-v2-masthead"
+        />
+        {askConcierge.length > 0 ? (
+          <View style={styles.conciergeSlot}>
+            {askConcierge.slice(0, 2).map((a) => (
+              <Pressable
+                key={a.label}
+                onPress={a.onPress}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+                hitSlop={4}
+                style={({ pressed }) => [styles.conciergeBtn, pressed && styles.conciergePressed]}
+              >
+                <Icon name={a.icon} size={20} color={af.textPrimary} />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+      </View>
 
       {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
       <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
       {/* Intake ring + stats */}
-      <AFCard variant="raised" style={styles.mainCard}>
+      <AFCard style={styles.mainCard}>
         <View style={styles.ringRow}>
           {/* The ring's only reading used to be the centered `{pct}%`, and
               AFProgressRing hid it — so the day's intake was unreachable by
@@ -187,11 +275,13 @@ export function HydrationScreenV2() {
               or silence. */}
           <AFProgressRing
             progress={pct}
-            size={110}
-            stroke={9}
+            size={92}
+            stroke={8}
             accessibilityLabel={t('hydration.v2.ring_a11y', { pct: Math.round(pct * 100) })}
           >
-            <Text style={styles.ringPct}>{Math.round(pct * 100)}%</Text>
+            <Text style={styles.ringPct} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+              {Math.round(pct * 100)}%
+            </Text>
           </AFProgressRing>
           <View style={styles.stats}>
             <Stat
@@ -214,13 +304,15 @@ export function HydrationScreenV2() {
                 2026-08-13; Correction 6, build-61 device QA). This mirrors
                 Correction 6 exactly: the honest-data em dash until a real
                 recovery input exists. The engine and its band are untouched —
-                this is a presentation decision belonging to this screen. */}
+                this is a presentation decision belonging to this screen.
+                Black Issue: the reference's "STEADY · HRV 58 MS" line has no
+                source on this screen, so it is not drawn. */}
             <View
               style={styles.recoveryRow}
               accessible
               accessibilityLabel={`${t('hydration.v2.recovery_label')} ${EM_DASH}`}
             >
-              <Text style={styles.statLabel}>{t('hydration.v2.recovery_label')}</Text>
+              <Text style={[styles.statLabel, eyebrowType]}>{t('hydration.v2.recovery_label')}</Text>
               <Text style={styles.statValue}>{EM_DASH}</Text>
             </View>
           </View>
@@ -239,7 +331,7 @@ export function HydrationScreenV2() {
 
       {/* Recent intake */}
       <View style={styles.section}>
-        <AFSectionLabel label={t('hydration.v2.recent_intake')} />
+        <AFSectionLabel label={t('hydration.v2.recent_intake')} meta={recentMeta} />
         {recent.length === 0 ? (
           <AFCard>
             <AFEmptyState
@@ -250,22 +342,41 @@ export function HydrationScreenV2() {
           </AFCard>
         ) : (
           <AFCard padded={false} style={styles.recentCard}>
-            {recent.map((e, i) => (
-              <AFListRow
-                key={e.id}
-                icon={e.fluidType === 'water' ? 'droplet' : 'zap'}
-                title={t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`)}
-                subtitle={formatTimeAgo(e.loggedAt)}
-                value={t('hydration.v2.oz_value', { oz: Math.round(e.oz) })}
-              />
-            ))}
+            {intakeRows.map(({ event: e, when }, i) => {
+              const title = t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`);
+              const amount = t('hydration.v2.oz_value', { oz: Math.round(e.oz) });
+              return (
+                <View
+                  key={e.id}
+                  style={[styles.intakeRow, i < intakeRows.length - 1 && styles.intakeRowRuled]}
+                  accessible
+                  accessibilityLabel={`${title}, ${when.text}, ${amount}`}
+                >
+                  {/* Hollow marker: shape, not colour, and decorative — the
+                      row's composed label carries the content. */}
+                  <View
+                    style={styles.intakeDot}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
+                  <View style={styles.intakeText}>
+                    <Text style={styles.intakeTitle}>{title}</Text>
+                    <Text style={[styles.intakeWhen, eyebrowType]}>{when.text.toUpperCase()}</Text>
+                  </View>
+                  <Text style={[styles.intakeAmount, eyebrowType]}>{amount.toUpperCase()}</Text>
+                </View>
+              );
+            })}
           </AFCard>
         )}
       </View>
 
       {/* 7-day strip (streak, honest) */}
       <View style={styles.section}>
-        <AFSectionLabel label={t('hydration.v2.this_week')} />
+        <AFSectionLabel
+          label={t('hydration.v2.this_week')}
+          meta={t('hydration.v2.week_meta', { count: streak })}
+        />
         <View style={styles.strip}>
           {weekdayInitials.map((d, i) => {
             // Fill the most recent `streak` days up to and including today.
@@ -295,14 +406,12 @@ export function HydrationScreenV2() {
                   .filter(Boolean)
                   .join(', ')}
               >
-                <View
-                  style={[
-                    styles.dayDot,
-                    filled && styles.dayDotFilled,
-                    isToday && styles.dayDotToday,
-                  ]}
-                />
-                <Text style={[styles.dayLabel, isToday && styles.dayLabelToday]}>{d}</Text>
+                {/* Today is a ring AROUND the dot; logged is a filled dot, not
+                    logged a hollow one — three states told apart by shape. */}
+                <View style={[styles.dayMark, isToday && styles.dayMarkToday]}>
+                  <View style={[styles.dayDot, filled && styles.dayDotFilled]} />
+                </View>
+                <Text style={[styles.dayLabel, eyebrowType, isToday && styles.dayLabelToday]}>{d}</Text>
               </View>
             );
           })}
@@ -351,9 +460,10 @@ export function HydrationScreenV2() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <View style={styles.stat} accessible accessibilityLabel={`${label} ${value}`}>
-      <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
+      <Text style={[styles.statLabel, eyebrowType]}>{label.toUpperCase()}</Text>
       <Text style={styles.statValue}>{value}</Text>
     </View>
   );
@@ -362,29 +472,64 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  mainCard: { marginTop: 20 },
-  ringRow: { flexDirection: 'row', alignItems: 'center', gap: 20 },
+  mastheadWrap: { position: 'relative' },
+  // Free right side of the wordmark row. 44pt target centred on the 20pt
+  // wordmark line (top = (20 - 44) / 2).
+  conciergeSlot: { position: 'absolute', top: -12, right: -12, flexDirection: 'row' },
+  conciergeBtn: {
+    width: afLayout.controlMinHeight,
+    height: afLayout.controlMinHeight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: afLayout.controlMinHeight / 2,
+  },
+  conciergePressed: { backgroundColor: af.surfacePressed },
+  mainCard: { marginTop: 24 },
+  ringRow: { flexDirection: 'row', alignItems: 'center', gap: 24 },
   ringPct: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   stats: { flex: 1, gap: 12 },
   stat: { gap: 2 },
-  statLabel: { ...afType.eyebrow, color: af.textTertiary },
-  statValue: { ...afType.bodyStrong, color: af.textPrimary },
-  recoveryRow: { gap: 4, alignItems: 'flex-start' },
+  statLabel: { ...afType.micro, color: af.textTertiary },
+  statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  recoveryRow: { gap: 2, alignItems: 'flex-start' },
   actions: { marginTop: 20, gap: 12 },
   section: { marginTop: 28, gap: 12 },
   recentCard: { paddingHorizontal: 16 },
+  intakeRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 56, paddingVertical: 10 },
+  intakeRowRuled: { borderBottomWidth: afLayout.hairline, borderBottomColor: af.divider },
+  intakeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: af.textTertiary,
+  },
+  intakeText: { flex: 1, gap: 2 },
+  intakeTitle: { ...afType.body, color: af.textPrimary },
+  intakeWhen: { ...afType.micro, color: af.textTertiary },
+  intakeAmount: { ...afType.eyebrow, color: af.textSecondary, flexShrink: 0 },
   strip: { flexDirection: 'row', justifyContent: 'space-between' },
-  dayCol: { alignItems: 'center', gap: 8, flex: 1 },
-  dayDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  dayCol: { alignItems: 'center', gap: 6, flex: 1, minHeight: 44 },
+  // Ring slot: always 20pt so the strip never shifts when today moves.
+  dayMark: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: af.border,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayMarkToday: { borderColor: af.textPrimary },
+  dayDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: af.textTertiary,
     backgroundColor: 'transparent',
   },
   dayDotFilled: { backgroundColor: af.red, borderColor: af.red },
-  dayDotToday: { borderColor: af.textPrimary },
-  dayLabel: { ...afType.caption, color: af.textTertiary },
+  dayLabel: { ...afType.eyebrow, color: af.textTertiary },
   dayLabelToday: { color: af.textPrimary },
 });
