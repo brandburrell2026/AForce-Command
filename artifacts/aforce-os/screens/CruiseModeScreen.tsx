@@ -228,7 +228,6 @@ function CruiseModeBody() {
   return (
     <View style={styles.root}>
       <GradientBackground>
-        <View style={[styles.tint]} pointerEvents="none" />
         <View style={{ flex: 1, paddingTop: topPadding }}>
           <CruiseModeView
             view={view}
@@ -276,5 +275,4 @@ export default function CruiseModeScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: af.canvas },
-  tint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5, 8, 14, 0.35)' },
 });
