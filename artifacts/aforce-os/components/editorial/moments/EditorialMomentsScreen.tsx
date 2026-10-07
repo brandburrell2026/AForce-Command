@@ -34,7 +34,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 
-import { AFScreen } from '@/components/ui';
+import { AFMasthead, AFScreen } from '@/components/ui';
 import { MomentsOverviewSkeleton } from '@/components/moments/MomentsSkeleton';
 import { WhyThisSheet } from '@/components/moments/WhyThisSheet';
 import { useMomentsData } from '@/components/moments/useMomentsData';
@@ -45,19 +45,17 @@ import {
 } from '@/components/moments/momentsPresentation';
 import { useFeatureFlags } from '@/store/useAppStore';
 import type { Moment, MomentRecommendation } from '@/types/moments';
-import { edAccent, edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
+import { af } from '@/theme';
+import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
 import {
-  EdCaption,
-  EdNodeSpine,
   EdRule,
-  EdSpineRow,
   EdStatement,
   EdSurface,
   useEdSettle,
 } from '../index';
 import { EdReturn } from './EdReturn';
-import { spineStateFor } from './editorialMomentsPresentation';
+import { returnLabel, spineStateFor } from './editorialMomentsPresentation';
 
 export function EditorialMomentsScreen({
   fixtureMoments,
@@ -86,6 +84,9 @@ export function EditorialMomentsScreen({
     <EdSurface stock="black" style={styles.fill}>
       <AFScreen scroll contentContainerStyle={styles.scrollContent}>
         <Animated.View style={settle}>
+          {/* Black Issue (2026-10-06): the wordmark masthead heads the day;
+              the return idiom + calendar entry sit on the row beneath it. */}
+          <AFMasthead testID="editorial-moments-masthead" />
           <View style={styles.headRow}>
             <EdReturn now={now} fallback="/" />
             {calendarOn ? (
@@ -131,54 +132,57 @@ export function EditorialMomentsScreen({
               {/* Figma's approved three-day calendar leads the experience.
                   The rows below stay sourced from real surfaced Moments. */}
               <View style={styles.statementWrap}>
-                <EdCaption text={t('moments.overview_title')} />
+                <Text style={[edType.caption as TextStyle, { color: af.redText }]}>
+                  {t('moments.overview_title').toUpperCase()}
+                </Text>
                 <EdStatement style={styles.statement} accessibilityRole="header">
                   {t('moments.editorial_three_days')}
                 </EdStatement>
-                <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 6 }]}>
+                <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 6 }]}>
                   {t('moments.editorial_three_days_body')}
                 </Text>
               </View>
 
-              {calendarDays.length > 0 ? (
-                <EdNodeSpine style={styles.spine}>
-                  {calendarDays.map((day, dayIndex) => (
-                    <View key={day.key} style={dayIndex === 0 ? undefined : styles.daySection}>
-                      <View style={styles.dayHeading}>
-                        <Text style={[edType.caption as TextStyle, { color: ink.primary }]}>
-                          {t(`moments.editorial_${day.relative}`)}
-                        </Text>
-                        <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-                          {day.dateLabel}
-                        </Text>
-                      </View>
-                      {day.moments.map((moment, momentIndex) => (
-                        <SpineMoment
-                          key={moment.id}
-                          moment={moment}
-                          rec={data.recFor(moment)}
-                          nowIso={data.nowIso}
-                          /* The first real upcoming Moment keeps the full brief;
-                             every subsequent row remains quiet. */
-                          priority={dayIndex === 0 && momentIndex === 0}
-                        />
-                      ))}
-                    </View>
+              {/* Black Issue: each day is a red mono section head over a
+                  hairline (relative day left, real date right), then
+                  hairline rows of mono clock · title · trailing meta. The
+                  rows stay sourced from real surfaced Moments. */}
+              {calendarDays.map((day, dayIndex) => (
+                <View key={day.key} style={dayIndex === 0 ? styles.firstDay : styles.daySection}>
+                  <View style={[styles.dayHeading, { borderBottomColor: af.red }]}>
+                    <Text
+                      accessibilityRole="header"
+                      style={[edType.caption as TextStyle, { color: af.redText }]}
+                    >
+                      {t(`moments.editorial_${day.relative}`).toUpperCase()}
+                    </Text>
+                    <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                      {day.dateLabel.toUpperCase()}
+                    </Text>
+                  </View>
+                  {day.moments.map((moment, momentIndex) => (
+                    <SpineMoment
+                      key={moment.id}
+                      moment={moment}
+                      rec={data.recFor(moment)}
+                      nowIso={data.nowIso}
+                      /* The first real upcoming Moment keeps the full brief;
+                         every subsequent row remains quiet. */
+                      priority={dayIndex === 0 && momentIndex === 0}
+                    />
                   ))}
-                </EdNodeSpine>
-              ) : null}
+                </View>
+              ))}
 
-              {/* The ascent — the deck's closing device. Decorative only. */}
-              <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-                style={styles.ascent}
+              {/* Summary furniture: only what the store can state — the
+                  count of surfaced Moments and the date. No "flagged",
+                  no "synced", no readiness claim. */}
+              <Text
+                style={[edType.micro as TextStyle, styles.summary, { color: ink.quiet }]}
+                testID="editorial-moments-summary"
               >
-                {[10, 16, 22, 28].map((w) => (
-                  <View key={w} style={[styles.ascentDash, { width: w, backgroundColor: ink.rule }]} />
-                ))}
-                <View style={[styles.ascentDot, { backgroundColor: edAccent.red }]} />
-              </View>
+                {`${data.surfaced.length} ${t('moments.home_entry').toLowerCase()} · ${returnLabel(now)}`}
+              </Text>
             </>
           )}
         </Animated.View>
@@ -244,7 +248,7 @@ function SpineMoment({
   const action = rec.primaryAction;
   const stateWord = t(live ? 'moments.do_this_now' : 'moments.do_this');
   const prepText = `${t('moments.prep_window')} ${prepWindowLabel(rec)}`;
-  const actionPreview = action ? t(action.labelKey, action.labelParams) : stateWord;
+  const actionPreview = (action ? t(action.labelKey, action.labelParams) : stateWord).toUpperCase();
   // The Pressable groups its children, so the composed label IS the whole
   // spoken row: time, title, state, window, and — on the priority row — the
   // action and its best-before. Without this the reader hears only the time
@@ -271,7 +275,7 @@ function SpineMoment({
     .join(', ');
 
   return (
-    <EdSpineRow state={state}>
+    <View style={[styles.row, { borderBottomColor: ink.rule }]}>
       <Pressable
         onPress={() => router.push(`/moment/${moment.id}`)}
         accessibilityRole="button"
@@ -280,25 +284,24 @@ function SpineMoment({
         testID={`editorial-moment-row-${moment.id}`}
       >
         <View style={styles.rowHead}>
-          <View style={styles.rowIdentity}>
-            <Text style={[edType.data as TextStyle, { color: ink.quiet }]}>
-              {clockLabel(moment.startAtIso)}
-            </Text>
-            <Text
-              style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
-              numberOfLines={2}
-            >
-              {title}
-            </Text>
-          </View>
-          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? edAccent.red : ink.quiet }]}>
+          {/* Mono clock column, then the title; the live row's clock and
+              trailing meta take the AA red. Colour never carries the state
+              alone — the composed accessibility label says it in words,
+              and the done row reads quiet. */}
+          <Text style={[edType.data as TextStyle, styles.rowClock, { color: live ? af.redText : ink.quiet }]}>
+            {clockLabel(moment.startAtIso)}
+          </Text>
+          <Text
+            style={[edType.body as TextStyle, { color: state === 'done' ? ink.quiet : ink.primary, flexShrink: 1, flexGrow: 1 }]}
+            numberOfLines={2}
+          >
+            {title}
+          </Text>
+          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? af.redText : ink.quiet }]}>
             {actionPreview}
           </Text>
         </View>
-        {/* The window, with its label. Colour marks the live row but never
-            carries it alone — the node's own form differs, and the composed
-            accessibility label above says the state in words. */}
-        <Text style={[edType.micro as TextStyle, { color: live ? edAccent.red : ink.quiet, marginTop: 4 }]}>
+        <Text style={[edType.micro as TextStyle, styles.rowWindow, { color: live ? af.redText : ink.quiet }]}>
           {prepText}
         </Text>
         {priority ? (
@@ -340,7 +343,7 @@ function SpineMoment({
       {priority ? (
         <WhyThisSheet rec={rec} visible={whyOpen} onClose={() => setWhyOpen(false)} />
       ) : null}
-    </EdSpineRow>
+    </View>
   );
 }
 
@@ -358,26 +361,33 @@ const styles = StyleSheet.create({
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
   },
-  statementWrap: { marginTop: 18 },
+  statementWrap: { marginTop: 10 },
   statement: { marginTop: 8 },
-  spine: { marginTop: 28 },
-  daySection: { marginTop: 18 },
+  firstDay: { marginTop: 24 },
+  daySection: { marginTop: 22 },
   dayHeading: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
     columnGap: 12,
-    marginBottom: 4,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
   },
-  rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center' },
+  row: { borderBottomWidth: 1 },
+  rowPress: { minHeight: edRhythm.minTarget, justifyContent: 'center', paddingVertical: 10 },
   rowHead: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    columnGap: 14,
+    alignItems: 'baseline',
+    columnGap: 12,
+    // AX ruling: reflow, not clip — at accessibility sizes the clock, title
+    // and meta wrap onto their own lines instead of clipping at the edge.
+    flexWrap: 'wrap',
+    rowGap: 2,
   },
-  rowIdentity: { flex: 1, rowGap: 2 },
-  rowAction: { maxWidth: '38%', textAlign: 'right' },
+  rowClock: { minWidth: 64 },
+  rowAction: { textAlign: 'right' },
+  rowWindow: { marginTop: 4, marginLeft: 76 },
+  summary: { marginTop: 22 },
   whyTarget: {
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
@@ -394,11 +404,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     alignSelf: 'flex-start',
   },
-  ascent: {
-    marginTop: 34,
-    alignItems: 'flex-start',
-    rowGap: 5,
-  },
-  ascentDash: { height: StyleSheet.hairlineWidth },
-  ascentDot: { width: 4, height: 4, borderRadius: 2, marginTop: 3 },
 });
