@@ -7,6 +7,7 @@
 import React from 'react';
 import { ScrollView, Pressable, Text, StyleSheet } from 'react-native';
 import { af, afType } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 export interface AFSegment {
   key: string;
@@ -21,6 +22,7 @@ export interface AFSegmentedControlProps {
 }
 
 export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegmentedControlProps) {
+  const eyebrowType = useAFEyebrowType();
   return (
     <ScrollView
       horizontal
@@ -41,8 +43,8 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
             hitSlop={{ top: 6, bottom: 6 }}
             style={[styles.pill, active ? styles.pillActive : styles.pillIdle]}
           >
-            <Text style={[styles.label, { color: active ? af.onRed : af.textSecondary }]}>
-              {seg.label}
+            <Text style={[styles.label, eyebrowType, { color: active ? af.onRed : af.textSecondary }]}>
+              {seg.label.toUpperCase()}
             </Text>
           </Pressable>
         );
@@ -53,13 +55,17 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
 
 const styles = StyleSheet.create({
   rail: { gap: 8, paddingVertical: 2 },
+  // Black Issue filter pill: mono micro caps, hairline idle, filled-red active.
+  // 44pt target with the vertical hitSlop.
   pill: {
+    minHeight: 34,
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 9999,
     borderWidth: 1,
+    justifyContent: 'center',
   },
   pillActive: { backgroundColor: af.red, borderColor: af.red },
   pillIdle: { backgroundColor: 'transparent', borderColor: af.border },
-  label: { ...afType.caption },
+  label: { ...afType.micro },
 });

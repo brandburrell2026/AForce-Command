@@ -2,13 +2,15 @@
  * AFCard — the grouped-content surface (spec §5). Solid graphite with a faint
  * border; hierarchy comes from tone/edge/spacing, not heavy shadows (§3.5).
  *
- * Variants: standard | raised | interactive (pressable) | warning | editorial.
+ * Variants: standard | raised | interactive (pressable) | warning | alert | editorial.
+ * `alert` is the Black Issue red-tinted card (depleted / critical rows); `warning`
+ * keeps the amber caution edge.
  */
 import React from 'react';
 import { View, Pressable, StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
 import { af, afLayout } from '@/theme';
 
-export type AFCardVariant = 'standard' | 'raised' | 'interactive' | 'warning' | 'editorial';
+export type AFCardVariant = 'standard' | 'raised' | 'interactive' | 'warning' | 'alert' | 'editorial';
 
 export interface AFCardProps {
   children: React.ReactNode;
@@ -80,6 +82,7 @@ const VARIANT: Record<AFCardVariant, ViewStyle> = {
   raised: { backgroundColor: af.surfaceRaised, borderColor: af.borderStrong },
   interactive: { backgroundColor: af.surface, borderColor: af.border },
   warning: { backgroundColor: af.surface, borderColor: af.amber },
+  alert: { backgroundColor: af.surfaceAlert, borderColor: af.borderAlert },
   editorial: {
     backgroundColor: af.surface,
     borderColor: af.border,

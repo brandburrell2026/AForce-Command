@@ -10,7 +10,7 @@
  *   canvas   — 'default' (#0D0D0D) or 'focused' (#050506, Recovery-Coach field)
  */
 import React from 'react';
-import { View, ScrollView, StyleSheet, type ViewStyle, type StyleProp, type ScrollViewProps } from 'react-native';
+import { View, ScrollView, StyleSheet, useWindowDimensions, type ViewStyle, type StyleProp, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { af, afLayout } from '@/theme';
 
@@ -43,12 +43,16 @@ export function AFScreen({
   testID,
 }: AFScreenProps) {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const background = canvas === 'focused' ? af.canvasFocused : af.canvas;
+  // Black Issue gutter is 32pt at 390 wide; compact phones (≤375) use 24 so the
+  // content column keeps its proportions instead of its margins.
+  const gutter = width <= afLayout.compactWidthMax ? afLayout.screenPaddingXCompact : afLayout.screenPaddingX;
 
   const padding: ViewStyle = {
     paddingTop: edges.includes('top') ? insets.top : 0,
     paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
-    paddingHorizontal: padded ? afLayout.screenPaddingX : 0,
+    paddingHorizontal: padded ? gutter : 0,
   };
 
   const column: StyleProp<ViewStyle> = center

@@ -6,7 +6,8 @@
  * an otherwise-working screen just failed" case (RC-1 audit P1-7): a cart
  * checkout call, a WHOOP status check, an Apple Health snapshot fetch. Modeled
  * on `ConnectedHealthView`'s row-status affordances — the same af.* tokens,
- * the same small cyan text-button shape as its "Troubleshoot" action — so a
+ * the same small text-button shape as its "Troubleshoot" action (red text in
+ * the Black Issue; cyan is a status colour, not an action colour) — so a
  * failure inside a card reads as part of the same design language rather than
  * a jarring native `Alert`.
  *
@@ -68,5 +69,5 @@ const styles = StyleSheet.create({
   },
   message: { ...afType.caption, color: af.textSecondary, flex: 1 },
   retryBtn: { minHeight: 32, paddingHorizontal: 4, justifyContent: 'center' },
-  retryText: { ...afType.caption, color: af.cyan, fontWeight: '700' },
+  retryText: { ...afType.caption, fontFamily: afType.bodyStrong.fontFamily, color: af.redText },
 });

@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
 import { Icon, type IconName } from '../Icon';
-import { af, afType } from '@/theme';
+import { af, afType, afLayout } from '@/theme';
 
 export interface AFListRowProps {
   title: string;
@@ -16,6 +16,8 @@ export interface AFListRowProps {
   disclosure?: boolean;
   toggle?: { value: boolean; onValueChange: (v: boolean) => void };
   onPress?: () => void;
+  /** Hairline under the row (Black Issue list rows). Default false. */
+  rule?: boolean;
   testID?: string;
 }
 
@@ -27,6 +29,7 @@ export function AFListRow({
   disclosure,
   toggle,
   onPress,
+  rule = false,
   testID,
 }: AFListRowProps) {
   const composedLabel = [title, subtitle, value].filter(Boolean).join(', ');
@@ -64,7 +67,7 @@ export function AFListRow({
         <Switch
           value={toggle.value}
           onValueChange={toggle.onValueChange}
-          trackColor={{ false: 'rgba(255,255,255,0.12)', true: af.red }}
+          trackColor={{ false: af.border, true: af.red }}
           accessibilityLabel={composedLabel}
         />
       )}
@@ -79,26 +82,28 @@ export function AFListRow({
         accessibilityRole="button"
         accessibilityLabel={composedLabel}
         testID={testID}
-        style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.pressable, rule && styles.ruled, pressed && styles.pressed]}
       >
         {body}
       </Pressable>
     );
   }
   return (
-    <View style={styles.pressable} testID={testID}>
+    <View style={[styles.pressable, rule && styles.ruled]} testID={testID}>
       {body}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  pressable: { borderRadius: 12 },
+  pressable: { borderRadius: afLayout.radiusCard },
+  ruled: { borderRadius: 0, borderBottomWidth: 1, borderBottomColor: af.divider },
   pressed: { backgroundColor: af.surfacePressed },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12 },
   iconWrap: { width: 24, alignItems: 'center' },
   text: { flex: 1, gap: 2 },
   title: { ...afType.body, color: af.textPrimary },
   subtitle: { ...afType.caption, color: af.textTertiary },
-  value: { ...afType.secondary, color: af.textSecondary },
+  // Trailing meta is mono furniture ("32 OZ", "11:00 AM") in the Black Issue.
+  value: { ...afType.eyebrow, color: af.textSecondary },
 });
