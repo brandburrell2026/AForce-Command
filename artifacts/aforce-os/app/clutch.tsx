@@ -44,7 +44,7 @@ export function LegacyClutchScreen() {
     >
       <AFMasthead
         onBack={() => router.back()}
-        backLabel="Back"
+        backLabel="Profile"
         breadcrumb={`CLUTCH / PHASE 2 · ${TEAM_NAME}`}
         title="Command the team."
       />
@@ -57,7 +57,7 @@ export function LegacyClutchScreen() {
       >
         {/* Live Command Grid */}
         <View style={styles.section}>
-          <AFSectionLabel label="Live command grid" meta={`${mockRoster.length} players`} />
+          <AFSectionLabel label="Live command grid" meta={`${mockRoster.length} ${mockRoster.length === 1 ? 'player' : 'players'}`} />
         </View>
         <View style={styles.rosterGrid}>
           {mockRoster.map((p) => {
@@ -200,18 +200,18 @@ const styles = StyleSheet.create({
   rosterGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: Spacing[5] },
   playerCard: { flexGrow: 1, padding: Spacing[4] },
   playerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  playerPos: { ...afType.micro, color: af.textTertiary },
+  playerPos: { ...afType.eyebrow, color: af.textTertiary },
   led: { width: 8, height: 8, borderRadius: 4 },
   playerName: { ...afType.bodyStrong, color: af.textPrimary, marginBottom: 4 },
   playerScore: { ...afType.title1, fontVariant: ['tabular-nums'] },
-  playerTier: { ...afType.micro, color: af.textSecondary, marginTop: 2 },
+  playerTier: { ...afType.eyebrow, color: af.textSecondary, marginTop: 2 },
   recDivider: { height: 1, marginTop: 12, marginBottom: 10, backgroundColor: af.divider },
   recDividerAlert: { backgroundColor: af.borderAlert },
   recCommand: { ...afType.bodyStrong, fontSize: 14, lineHeight: 19, color: af.textPrimary },
   recDetail: { ...afType.caption, color: af.textSecondary, marginTop: 4 },
   recMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   recMetaItem: {
-    ...afType.micro, color: af.textSecondary,
+    ...afType.eyebrow, color: af.textSecondary,
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
     borderWidth: 1, borderColor: af.border, backgroundColor: af.canvas,
   },
@@ -233,5 +233,5 @@ const styles = StyleSheet.create({
   },
   opsRowLast: { borderBottomWidth: 0 },
   opsLabel: { ...afType.caption, fontSize: 14, color: af.textPrimary, flex: 1 },
-  opsStatus: { ...afType.micro, color: af.textTertiary },
+  opsStatus: { ...afType.eyebrow, color: af.textTertiary },
 });
