@@ -115,6 +115,8 @@ export const edType: Record<string, EdTypeRole> = {
   confirm: { fontFamily: Typography.fonts.bold, fontSize: 18, lineHeight: 22, letterSpacing: -0.2 },
   /** Editorial numeral — hero (the pressure field's 69). */
   numberHero: { fontFamily: Typography.fonts.bold, fontSize: 68, lineHeight: 68, letterSpacing: -2.7 },
+  /** Editorial numeral — the Black Issue cover reading (Home's 69, Cruise's 72). */
+  numberCover: { fontFamily: Typography.fonts.bold, fontSize: 84, lineHeight: 84, letterSpacing: -3.4 },
   /** Editorial numeral — feature pull-stats. */
   numberFeature: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 44, letterSpacing: -1.7 },
   /** Body copy. */

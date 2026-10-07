@@ -38,7 +38,7 @@ import {
   type EdStockName,
 } from '@/theme/editorialTokens';
 
-import { edFolioIndex, edNumberDisplay, splitMirrorWord } from './editorialLogic';
+import { edFolioIndex, edNumberDisplay, splitMirrorWord, stateWordStatement } from './editorialLogic';
 
 export const EdStockContext = React.createContext<EdStockName>('black');
 
@@ -193,8 +193,35 @@ export function EdAccent({ children }: { children: React.ReactNode }) {
  * mirrored glyph in red, in ONE text run (wraps as a word; no per-letter
  * splitting). Screen readers announce the true word.
  */
-export function EdStateWord({ word, style }: { word: string; style?: TextStyle }) {
+export function EdStateWord({
+  word,
+  style,
+  variant = 'mark',
+  accessibilityRole,
+}: {
+  word: string;
+  style?: TextStyle;
+  /**
+   * 'mark' (default) — the И caps furniture word. 'statement' — Black Issue
+   * (D4): the same canonical token as the screen's sentence-case statement
+   * ("Recovering."), display voice, no mirror glyph.
+   */
+  variant?: 'mark' | 'statement';
+  accessibilityRole?: 'header';
+}) {
   const ink = useEdInk();
+  if (variant === 'statement') {
+    return (
+      <Text
+        accessibilityLabel={word}
+        accessibilityRole={accessibilityRole}
+        maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+        style={[edType.statement as TextStyle, { color: ink.primary }, style]}
+      >
+        {stateWordStatement(word)}
+      </Text>
+    );
+  }
   const split = splitMirrorWord(word);
   return (
     <Text
