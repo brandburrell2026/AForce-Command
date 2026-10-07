@@ -24,8 +24,16 @@
  * it stays pure and unit-testable (motion is expressed as plain numbers +
  * cubic-bezier tuples; consumers map them to Reanimated/Easing at the edge).
  *
- * NOTHING consumes these tokens yet — F1 is the foundation only. Screens opt in
- * during their own flag-gated redesign PRs (S1–S5).
+ * BLACK ISSUE (2026-10-06, docs/black-issue-restyle-plan.md — founder decisions
+ * D1–D7): the surface ramp, text greys, hairlines, type roles and layout
+ * values below were re-pointed to the "Black Issue" language — the app's own
+ * Editorial OS palette (the ed* token module in theme/) applied to card-based
+ * screens: neutral #141414 cards, warm #2B2925 hairlines, #EDEAE3 ivory ink,
+ * Inter 700 for every statement and numeral, 32pt gutters, 12pt card radius.
+ * Where an af.* value now equals an ed* value the equality is pinned by
+ * theme/__tests__/afTokens.test.ts so the two layers cannot drift. The frozen
+ * brand red is unchanged (D1): fills stay #C1281B and red TEXT stays the
+ * AA-clean #E4564A — the brief's #E13B2A fails AA on cards (4.26:1).
  */
 import { Colors } from './colors';
 import { Typography } from './typography';
@@ -37,25 +45,27 @@ import { Spacing, Radii, Shadows } from './spacing';
 export const af = {
   // Surfaces
   canvas: Colors.background.primary, //   #0D0D0D — brand Cinematic Black, app root
-  canvasElevated: '#101018', //           subtle alternate page plane
-  surface: '#141420', //                  cards, sheets, grouped content
-  surfaceRaised: '#1A1B22', //            elevated / selected interactive surface
-  surfacePressed: '#212230', //           pressed state
+  canvasElevated: '#101010', //           subtle alternate page plane (neutral, no blue cast)
+  surface: '#141414', //                  cards, sheets, grouped content (Black Issue card)
+  surfaceRaised: '#1C1C1C', //            elevated / selected interactive surface
+  surfacePressed: '#242424', //           pressed state; also the "empty" bar in charts
   canvasFocused: '#050506', //            deeper focused-mode field (Recovery Coach)
 
-  // Text — warm-white family (matches the `bone`/#F4F2ED editorial register).
-  textPrimary: '#F4F2ED', //              primary text + large values
-  textSecondary: '#A6A5A1', //            supporting copy
-  // Micro-labels + inactive labels. The spec's #727378 computes ~4.3:1 on the
-  // canvas — below its own §11 AA 4.5:1 floor — so it is bumped to #85868C
-  // (~5:1), matching the prior fix in recoveryCoachTokens.ts. a11y > exact hex.
-  textTertiary: '#85868C',
-  textDisabled: 'rgba(244,242,237,0.34)',
+  // Text — the Editorial OS ink family (edInk.ivory / quietOnBlack), 16.2:1
+  // and 5.6:1 on the canvas. `textSecondary` is the Black Issue quiet grey
+  // (7.1:1 canvas, 6.7:1 card). The brief's darker furniture greys (#6B665C,
+  // #5A5852) fail AA as text and are kept out of the text ramp; #5A5852 is
+  // the DISABLED/decorative tone only (never the sole carrier of meaning).
+  textPrimary: '#EDEAE3', //              primary text + large values (= edInk.ivory)
+  textSecondary: '#A19C91', //            supporting copy
+  textTertiary: '#8D897F', //             micro-labels + inactive labels (= edInk.quietOnBlack)
+  textDisabled: '#5A5852', //             disabled / decorative only (2.7:1 — not for text that carries meaning)
 
-  // Lines
-  divider: 'rgba(255,255,255,0.10)', //   hairlines
-  border: 'rgba(255,255,255,0.16)', //    controls + card edges
-  borderStrong: 'rgba(255,255,255,0.26)', // focus / high-emphasis outline
+  // Lines — one warm solid hairline (= edRule.onBlack) replaces the alpha-white
+  // family; cards and controls share it, `borderStrong` is the focus outline.
+  divider: '#2B2925', //                  hairlines + card edges
+  border: '#2B2925', //                   controls + card edges
+  borderStrong: '#3A3732', //             focus / high-emphasis outline
 
   // Brand red — FROZEN #C1281B (rgb 193,40,27). Primary action, live state,
   // critical accent. Distinct from the DEPLETED state red (#FF2800), which is
@@ -69,6 +79,11 @@ export const af = {
   redText: '#E4564A', //                  red text/icons on dark surfaces (AA)
   redDim: 'rgba(193,40,27,0.16)', //      red atmosphere / selected background
   redHairline: 'rgba(193,40,27,0.34)', // progress + ambient rings
+  // Red-tinted ALERT surface — the depleted / critical card (Guardian roster
+  // rows, Clutch grid, Performance Signal's depleted day). Solid, matched to
+  // the Black Issue reference; pair with text/shape, never color alone.
+  surfaceAlert: '#231716', //             alert card fill
+  borderAlert: '#7A271F', //              alert card edge
 
   // Guardian — #8B5CF6 (rgb 139,92,246). RATIFIED as a named af.* brand token
   // per founder Ruling E (RC-2, 2026-08-05): the value already shipped as the
@@ -107,20 +122,27 @@ export const af = {
 
 // ─── Typography (spec §3.2) ──────────────────────────────────────────────────
 // Ready-to-spread RN text-style fragments (family + size + line height, plus
-// tracking where the spec calls for it). Scores/timers use the tabular mono
-// face; editorial heroes use Archivo Black; everything else is Inter.
+// tracking where the spec calls for it). Black Issue (D2): every statement
+// and numeral is Inter 700, sentence case, tightly tracked — the Editorial OS
+// display ruling. Archivo Black stays loaded for the brand mark only; mono is
+// reserved for furniture (eyebrow / micro) and live data.
 export const afType = {
-  displayScore: { fontFamily: Typography.roles.metric, fontSize: 76, lineHeight: 80 },
-  displayHero: { fontFamily: Typography.roles.display, fontSize: 44, lineHeight: 48 },
-  title1: { fontFamily: Typography.fonts.semibold, fontSize: 32, lineHeight: 38 },
-  title2: { fontFamily: Typography.fonts.semibold, fontSize: 26, lineHeight: 32 },
-  title3: { fontFamily: Typography.fonts.semibold, fontSize: 21, lineHeight: 27 },
+  // Hero numeral (69 / 72 / 82). Tabular lining figures via fontVariant at the
+  // call site keep digits from jittering as values change.
+  displayScore: { fontFamily: Typography.fonts.bold, fontSize: 84, lineHeight: 84, letterSpacing: -3.4 },
+  displayHero: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
+  title1: { fontFamily: Typography.fonts.bold, fontSize: 34, lineHeight: 38, letterSpacing: -0.7 },
+  title2: { fontFamily: Typography.fonts.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
+  title3: { fontFamily: Typography.fonts.bold, fontSize: 21, lineHeight: 27, letterSpacing: -0.35 },
   body: { fontFamily: Typography.fonts.regular, fontSize: 17, lineHeight: 24 },
   bodyStrong: { fontFamily: Typography.fonts.semibold, fontSize: 17, lineHeight: 24 },
   secondary: { fontFamily: Typography.fonts.regular, fontSize: 15, lineHeight: 21 },
   caption: { fontFamily: Typography.fonts.regular, fontSize: 13, lineHeight: 18 },
   // Tracked uppercase micro-label. Spec tracking 0.14–0.18em ≈ 1.6px at 11px.
   eyebrow: { fontFamily: Typography.roles.eyebrow, fontSize: 11, lineHeight: 14, letterSpacing: 1.6 },
+  // Furniture micro — tab labels, pills, node states, trailing meta. The floor
+  // of the system (= edType.micro); scales with Dynamic Type like every role.
+  micro: { fontFamily: Typography.roles.mono, fontSize: 9, lineHeight: 13, letterSpacing: 1.8 },
   tab: { fontFamily: Typography.fonts.medium, fontSize: 11, lineHeight: 14 },
   // Bold counterpart to `tab` — small tracked/emphasized inline labels (trend
   // arrows, verbs, deltas) that need Inter Bold rather than Medium at the
@@ -132,17 +154,18 @@ export const afType = {
 // ─── Layout: spacing, radius, sizing (spec §3.3, §4.3) ───────────────────────
 // Spacing steps reference the shared 4pt scale so there is one source of truth.
 export const afLayout = {
-  screenPaddingX: Spacing[6], //          24 — standard phone horizontal padding
-  screenPaddingXCompact: Spacing[5], //   20 — compact width (≤320pt)
+  screenPaddingX: Spacing[8], //          32 — standard phone gutter (Black Issue, D6)
+  screenPaddingXCompact: Spacing[6], //   24 — compact width (≤375pt)
+  compactWidthMax: 375, //                widths at or below this use the compact gutter
   cardPadding: Spacing[5], //             20 — card internal padding (min)
   cardPaddingLarge: Spacing[6], //        24 — card internal padding (max)
   cardGap: Spacing[3], //                 12 — gap between cards
   sectionGap: Spacing[8], //              32 — gap between sections
-  buttonHeight: Spacing[14], //           56 — primary button height
+  buttonHeight: 52, //                    primary button height (44pt floor + margin)
   controlMinHeight: 44, //                minimum touch target (iOS)
-  radiusCard: 18, //                      standard card radius (spec §3.3)
-  radiusHero: Radii['2xl'], //            24 — hero / focused card radius
-  radiusButton: 16, //                    button radius (14–16 range)
+  radiusCard: Radii.md, //                12 — standard card radius (Black Issue)
+  radiusHero: 14, //                      hero / sheet radius
+  radiusButton: 10, //                    button radius
   radiusPill: Radii.full, //              9999 — compact filters / statuses only
   hairline: 1, //                         1pt borders
   maxContentWidth: 640, //                tablet operational column max width

@@ -19,6 +19,9 @@ export const Typography = {
   // Role tokens — reference these by intent. Existing hardcoded Inter_* call
   // sites are intentionally left untouched; new surfaces should map to a role.
   roles: {
+    // Black Issue (D2): app display TYPE moved to Inter 700 via afType; this
+    // role's only consumers are the brand mark (OpeningSequence monogram,
+    // WelcomeHero wordmark), which keep Archivo Black on purpose.
     display: 'ArchivoBlack_400Regular',
     eyebrow: 'IBMPlexMono_500Medium',
     metric: 'IBMPlexMono_600SemiBold',

@@ -156,10 +156,14 @@ export const Colors = {
   // on the cinematic black canvas. Softer than pure #FFFFFF.
   bone: '#F5F0E8',
 
+  // Black Issue tab bar: solid Cinematic Black with a warm hairline. The
+  // active tint is TEXT/icon on black, so it uses the AA-clean red
+  // (= af.redText, 5.3:1), not the #C1281B fill red (3.3:1 — fails AA).
   tabBar: {
-    background: 'rgba(0,0,0,0.95)',
-    active: '#C1281B',
-    inactive: 'rgba(255,255,255,0.30)',
+    background: '#0D0D0D',
+    active: '#E4564A',
+    inactive: '#8D897F',
+    hairline: '#2B2925',
   },
 } as const;
 
