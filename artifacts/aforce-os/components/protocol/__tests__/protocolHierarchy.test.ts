@@ -78,14 +78,16 @@ describe('ProtocolScreenV2 — TODAY → NEXT → WHY → PROGRESS', () => {
     expect(at('testID="protocol-v3-hydration"')).toBeGreaterThan(today);
   });
 
-  it('groups the three progress fragments into one card instead of three stacked blocks', () => {
-    // The hydration bar is nested inside the hero card now: its testID must
-    // appear before that card's closing tag, not after it.
-    const hero = at('testID="protocol-v3-hero"');
+  it('the hydration readout is stated once, in the two-up footer after the step rail (Black Issue layout)', () => {
+    // Black Issue restyle (docs/black-issue-restyle-plan.md §4 item 3,
+    // 2026-10-06): the reference places HYDRATION / RECOVERY SIGNALS as a
+    // two-up footer directly under the step rail, not inside the progress
+    // card. The hierarchy rule survives in its intent — the readout appears
+    // exactly once, after the rail, and never as a second stacked block.
     const hydration = at('testID="protocol-v3-hydration"');
-    const heroClose = CODE.indexOf('</AFCard>', hero);
-    expect(hydration).toBeGreaterThan(hero);
-    expect(hydration).toBeLessThan(heroClose);
+    const rail = at('testID="protocol-v3-steps"');
+    expect(hydration).toBeGreaterThan(rail);
+    expect(CODE.match(/testID="protocol-v3-hydration"/g)).toHaveLength(1);
   });
 });
 

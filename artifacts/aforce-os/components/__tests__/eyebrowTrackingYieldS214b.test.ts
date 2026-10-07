@@ -66,6 +66,12 @@ describe('the seven tracked primitives are wired (Phase A inheritance)', () => {
     { file: 'components/ui/AFOfflineBanner.tsx', jsx: '[styles.text, eyebrowType]' },
     { file: 'components/ui/AFEditorialHero.tsx', jsx: '[styles.eyebrow, eyebrowType]' },
     { file: 'components/ui/AFProductCard.tsx', jsx: '[styles.badge, eyebrowType]' },
+    // Black Issue (PR 1 review S1): every tracked mono text the restyle added.
+    { file: 'components/ui/AFListRow.tsx', jsx: '[styles.value, eyebrowType]' },
+    { file: 'components/ui/AFTimeline.tsx', jsx: '[styles.meta, eyebrowType]' },
+    { file: 'components/ui/AFStatusBadge.tsx', jsx: '[styles.label, eyebrowType]' },
+    { file: 'components/ui/AFSegmentedControl.tsx', jsx: '[styles.label, eyebrowType]' },
+    { file: 'components/ui/AFMasthead.tsx', jsx: '[styles.breadcrumb, eyebrowType]' },
   ];
 
   for (const { file, jsx } of WIRED) {

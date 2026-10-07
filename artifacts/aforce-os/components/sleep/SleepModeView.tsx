@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   checkTarget: { ...afType.caption, color: af.textTertiary },
   primaryTag: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: afLayout.radiusPill, backgroundColor: af.surfaceRaised },
   primaryTagText: { ...afType.eyebrow, fontSize: 9, color: af.cyan },
-  primaryCta: { height: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  primaryCta: { minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
   primaryCtaText: { ...afType.bodyStrong, color: af.canvas, letterSpacing: 0.5 },
 
   lifecycle: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, paddingVertical: 8 },

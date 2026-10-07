@@ -1,5 +1,15 @@
 /**
- * EditorialHomeScreen — HOME, The Cover (E2, founder ruling 2026-08-29).
+ * EditorialHomeScreen — HOME, The Cover (E2, founder ruling 2026-08-29;
+ * Black Issue restyle, founder decision D4, 2026-10-06).
+ *
+ * BLACK ISSUE (D4): the Cover now carries the card-and-list layout of the
+ * reference (docs/pr-evidence/black-issue/figma/01-home.png): masthead →
+ * state statement + cover numeral → YOUR NEXT MOVE → four signals →
+ * SIGNALS card → NEXT MOMENT → full-width CTA. The pressure field and the
+ * И mark are retired from Home; the state word is the SAME canonical band
+ * token rendered as the statement (EdStateWord variant="statement"). Every
+ * value still arrives from the production chain below; the reference's
+ * weather/city furniture has no source on Home and is not rendered.
  *
  * The Editorial OS composition of the SAME Home truth. Every value on this
  * screen comes from the exact production chain HomeScreenV2 consumes:
@@ -48,7 +58,7 @@ import { useUser } from '@clerk/expo';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
-import { AFScreen, AFOfflineBanner, AFSkeleton } from '@/components/ui';
+import { AFCard, AFMasthead, AFPrimaryButton, AFScreen, AFOfflineBanner, AFSkeleton } from '@/components/ui';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
@@ -83,14 +93,12 @@ import {
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
 import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 import type { FluidType } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
 
 import {
-  EdEvidenceLine,
-  EdMasthead,
-  EdNumber,
   EdRule,
   EdStateWord,
   EdStatement,
@@ -104,6 +112,7 @@ import { EdHomeSignalFooter } from './EdHomeSignalFooter';
 import { EdNextMomentLine } from './EdNextMomentLine';
 import {
   mastheadDateLabel,
+  mastheadTimeLabel,
   memberFurniture,
 } from './editorialHomePresentation';
 
@@ -247,49 +256,33 @@ export function EditorialHomeScreen({
   const [dateTick, setDateTick] = React.useState(() => Date.now());
   useAppStateGatedInterval(() => setDateTick(Date.now()), DATE_RECHECK_MS);
   const dateLabel = React.useMemo(() => mastheadDateLabel(new Date(dateTick)), [dateTick]);
+  const timeLabel = React.useMemo(() => mastheadTimeLabel(new Date(dateTick)), [dateTick]);
   const member = memberFurniture(clerkUser?.firstName);
   const momentsOn = flags.moments_enabled;
+  const freshestFetchedAtMs = freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics);
+  const anyProviderArtifact = hasAnyProviderArtifact(userState.appleHealth, userState.biometrics);
 
   return (
     <View style={styles.root} testID="editorial-home-root">
       <EdSurface stock="black" style={styles.fill}>
         <AFScreen scroll contentContainerStyle={{ paddingBottom: scrollBottomPadding }}>
           <Animated.View style={settle}>
-            <EdMasthead left="AFORCE" right={dateLabel} />
-            <View style={styles.furnitureRow}>
-              {member ? (
-                <Text style={styles.welcome} testID="editorial-member-furniture">
-                  {member}
-                </Text>
-              ) : null}
-              {signalData.chip ? (
-                <Text
-                  style={[edType.micro as TextStyle, { color: ink.quiet }]}
-                  accessibilityLabel={`${signalData.chip.label} ${signalData.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}`}
-                  testID="editorial-health-chip"
-                >
-                  {signalData.chip.label} · {signalData.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
-                </Text>
-              ) : null}
-              {/* HomeFreshnessLabel renders a bare <Text style={style}> with
-                  no color of its own — an unstyled pass would paint RN's
-                  default near-black on the black stock (caught in E2 review).
-                  The editorial micro/quiet pairing is passed explicitly. */}
-              <HomeFreshnessLabel
-                fetchedAtMs={freshestBiometricsFetchedAt(userState.appleHealth, userState.biometrics)}
-                hasProviderArtifact={hasAnyProviderArtifact(userState.appleHealth, userState.biometrics)}
-                style={styles.freshness}
-                testID="editorial-freshness"
-              />
-              {/* Lane A — last-known delivery. Not an "offline" claim (the
-                  producer cannot tell unreachable from rejecting), no retry
-                  promise, no timestamp. */}
-              {lastRefreshStale ? (
-                <Text style={styles.staleNotice} testID="editorial-stale-notice">
-                  {t('home.v2.stale_notice')}
-                </Text>
-              ) : null}
-            </View>
+            {/* Masthead: wordmark, the member's name as subordinate furniture
+                (R3: nothing when unknown), date + clock on the right (R1). The
+                reference's city/temperature has no source on Home — absent. */}
+            <AFMasthead
+              greeting={member ? t('home.welcome', { name: member }) : undefined}
+              meta={dateLabel}
+              metaSecondary={timeLabel}
+              breadcrumb={`${t('tabs.home')} / ${t('home.v2.readiness_label')}`}
+              testID="editorial-masthead"
+            />
+            {member ? (
+              /* Pinned furniture hook for the law lock (R3 pass-through). */
+              <Text style={styles.memberHidden} accessibilityElementsHidden importantForAccessibility="no" testID="editorial-member-furniture">
+                {member}
+              </Text>
+            ) : null}
             <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
             {!isHydrated ? (
@@ -299,20 +292,20 @@ export function EditorialHomeScreen({
                 {/* Hero — exactly one of three, never a blend (Wave 5). */}
                 {evidence === 'pending' ? (
                   <View style={styles.heroSlot}>
-                    <AFSkeleton width={220} height={220} radius={110} testID="editorial-baseline-pending" />
+                    <AFSkeleton width={220} height={120} radius={12} testID="editorial-baseline-pending" />
                   </View>
                 ) : evidence === 'building' ? (
                   <View style={styles.heroSlot} testID="editorial-baseline-hero">
-                    <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
-                      {t('home.v2.readiness_label')}
-                    </Text>
-                    <EdStatement style={styles.buildingTitle}>{t('home.v2.baseline_title')}</EdStatement>
+                    <EdStatement accessibilityRole="header">{t('home.v2.baseline_title')}</EdStatement>
                     <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 10 }]}>
                       {t('home.v2.baseline_body')}
                     </Text>
                   </View>
                 ) : (
                   <View style={styles.heroSlot}>
+                    {/* The statement is the screen's header: the canonical band
+                        token in sentence case (D4). */}
+                    <EdStateWord word={engine.performanceState.level} variant="statement" accessibilityRole="header" style={styles.stateWord} />
                     <Pressable
                       onPress={() => router.push('/weekly-report')}
                       accessibilityRole="button"
@@ -329,13 +322,21 @@ export function EditorialHomeScreen({
                         importantForAccessibility="no-hide-descendants"
                         style={styles.heroInner}
                       >
-                        <Text style={styles.heroLabel}>{t('home.v2.readiness_label')}</Text>
-                        <EdStateWord word={engine.performanceState.level} style={styles.stateWord} />
-                        <View style={styles.readingRow}>
-                          <EdNumber value={score} role="numberHero" />
-                          <View style={styles.readinessMark}>
-                            <Text style={styles.readinessCaption}>{t('home.v2.readiness_label')}</Text>
-                            <View style={styles.readinessRule} />
+                        <Text
+                          maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+                          style={[edType.numberCover as TextStyle, styles.coverNumber, { color: ink.primary }]}
+                        >
+                          {score}
+                        </Text>
+                        <View style={styles.readinessMark}>
+                          <Text style={[edType.micro as TextStyle, { color: af.redText }]}>
+                            {t('home.v2.readiness_label')}
+                          </Text>
+                          <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
+                            {`0–100 · ${engine.performanceState.level}`}
+                          </Text>
+                          <View style={[styles.readinessTrack, { backgroundColor: ink.rule }]}>
+                            <View style={[styles.readinessFill, { width: `${score}%`, backgroundColor: af.red }]} />
                           </View>
                         </View>
                       </View>
@@ -346,43 +347,79 @@ export function EditorialHomeScreen({
                         opacity={confidence.chip.opacity}
                         a11yContext={t('home.v2.confidence_a11y_context')}
                       />
+                      <LiveStatusLine
+                        direction={trend.direction}
+                        delta={trend.delta}
+                        ageSec={trend.ageSec}
+                        verb={trendVerb}
+                        accent={presentation.accentText}
+                        testID="editorial-live-status-line"
+                      />
                     </View>
-                    <LiveStatusLine
-                      direction={trend.direction}
-                      delta={trend.delta}
-                      ageSec={trend.ageSec}
-                      verb={trendVerb}
-                      accent={presentation.accentText}
-                      testID="editorial-live-status-line"
-                    />
                   </View>
                 )}
 
                 <EdRule />
                 {/* Kicker + why label are AFCommandCard's own hardcoded
-                    defaults, reproduced verbatim for copy parity. */}
+                    defaults, reproduced verbatim for copy parity. The CTA
+                    renders at the foot of the screen (reference layout). */}
                 <EdHomeCommand
                   kicker="Your next move"
                   title={title || t('home.v2.default_command_title')}
                   instruction={instruction}
                   rationale={engine.command.explanation || undefined}
                   whyLabel="Why this command"
-                  primaryLabel={t('home.v2.log_water')}
-                  onPrimary={openWaterPicker}
-                  primaryLoading={isCompletingCycle}
                 />
 
-                {/* AForce Concierge entry — one quiet affordance under the
-                    command; states nothing about the body. Renders nothing when
-                    ai_concierge_enabled is off. */}
-                {/* Social Mode indicator — a live or stale open session is a fact
-                    about the member's state; shown with an End-the-night control
-                    so a demo tap can never silently steer the command (2026-10-06). */}
-                <SocialModeIndicator testID="editorial-social-indicator" />
-
-                <View style={styles.conciergeSection}>
-                  <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
+                <View style={styles.signalsSection}>
+                  <EdHomeSignalFooter
+                    signals={[
+                      { label: t('home.v2.signal_hydration'), value: signalData.hydrationText, accent: true },
+                      { label: t('home.v2.signal_recovery'), value: EM_DASH },
+                      { label: t('home.v3.signal_sleep'), value: signalData.sleepText },
+                      { label: t('home.v3.signal_hrv'), value: signalData.hrvText },
+                    ]}
+                  />
                 </View>
+
+                {/* SIGNALS card — provenance furniture only: which source,
+                    whether it is live, when it was last checked, and the
+                    last-known-delivery notice. Nothing summarised, nothing
+                    authored. Renders only when there is something to say. */}
+                {signalData.chip || anyProviderArtifact || lastRefreshStale ? (
+                  <AFCard style={styles.signalsCard} testID="editorial-signals-card">
+                    <Text style={[edType.caption as TextStyle, { color: af.redText }]}>
+                      {t('home.v2.signals_label').toUpperCase()}
+                    </Text>
+                    {signalData.chip ? (
+                      <Text
+                        style={[edType.confirm as TextStyle, { color: ink.primary, marginTop: 8 }]}
+                        accessibilityLabel={`${signalData.chip.label} ${signalData.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}`}
+                        testID="editorial-health-chip"
+                      >
+                        {signalData.chip.label} · {signalData.chip.live ? t('home.v3.chip_live') : t('home.v3.chip_synced')}
+                      </Text>
+                    ) : null}
+                    {/* HomeFreshnessLabel renders a bare <Text style={style}> with
+                        no color of its own — an unstyled pass would paint RN's
+                        default near-black on the black stock (caught in E2 review).
+                        The editorial micro/quiet pairing is passed explicitly. */}
+                    <HomeFreshnessLabel
+                      fetchedAtMs={freshestFetchedAtMs}
+                      hasProviderArtifact={anyProviderArtifact}
+                      style={styles.freshness}
+                      testID="editorial-freshness"
+                    />
+                    {/* Lane A — last-known delivery. Not an "offline" claim (the
+                        producer cannot tell unreachable from rejecting), no retry
+                        promise, no timestamp. */}
+                    {lastRefreshStale ? (
+                      <Text style={styles.staleNotice} testID="editorial-stale-notice">
+                        {t('home.v2.stale_notice')}
+                      </Text>
+                    ) : null}
+                  </AFCard>
+                ) : null}
 
                 {momentsOn ? (
                   <View style={styles.momentsSection}>
@@ -393,21 +430,27 @@ export function EditorialHomeScreen({
                   </View>
                 ) : null}
 
-                <View style={styles.footerSection}>
-                  <EdHomeSignalFooter
-                    signals={[
-                      { label: t('home.v2.signal_hydration'), value: signalData.hydrationText },
-                      { label: t('home.v2.signal_recovery'), value: EM_DASH },
-                      { label: t('home.v3.signal_sleep'), value: signalData.sleepText },
-                      { label: t('home.v3.signal_hrv'), value: signalData.hrvText },
-                    ]}
+                {/* Social Mode indicator — a live or stale open session is a fact
+                    about the member's state; shown with an End-the-night control
+                    so a demo tap can never silently steer the command (2026-10-06). */}
+                <SocialModeIndicator testID="editorial-social-indicator" />
+
+                {/* AForce Concierge entry — one quiet affordance; states nothing
+                    about the body. Renders nothing when ai_concierge_enabled is off. */}
+                <View style={styles.conciergeSection}>
+                  <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
+                </View>
+
+                {/* The one action: opens the logging surface, never logs
+                    (open-only, CORRECTION 2). */}
+                <View style={styles.ctaSection}>
+                  <AFPrimaryButton
+                    label={t('home.v2.log_water')}
+                    onPress={openWaterPicker}
+                    loading={isCompletingCycle}
+                    trailingIcon="plus"
+                    testID="editorial-log-water"
                   />
-                  {/* Folio furniture is the locale-formatted date alone: no
-                      issue number (R1) and no new untranslated English in an
-                      11-locale app. */}
-                  <View style={styles.folio}>
-                    <EdEvidenceLine parts={[dateLabel]} />
-                  </View>
                 </View>
               </>
             )}
@@ -431,79 +474,70 @@ export function EditorialHomeScreen({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: edStock.black },
   fill: { flex: 1 },
-  furnitureRow: {
-    marginTop: 8,
-    rowGap: 4,
-  },
-  welcome: {
-    ...edType.micro,
-    color: edInkFor('black').quiet,
-  },
+  // The member's name is already read inside the masthead greeting; this
+  // zero-height node keeps the R3 pass-through hook for the law lock only.
+  memberHidden: { height: 0, opacity: 0 },
   heroSlot: {
-    marginTop: 22,
+    marginTop: 4,
     marginBottom: 14,
   },
-  heroInner: {
-    alignItems: 'flex-start',
-  },
-  freshness: {
-    ...edType.micro,
-    color: edInkFor('black').quiet,
-    marginTop: 2,
-  },
-  staleNotice: {
-    ...edType.micro,
-    color: edInkFor('black').quiet,
-    marginTop: 2,
+  stateWord: {
+    marginBottom: 2,
   },
   heroPress: {
     alignItems: 'flex-start',
     minHeight: edRhythm.minTarget,
   },
-  heroLabel: {
-    ...edType.micro,
-    color: edInkFor('black').quiet,
-  },
-  stateWord: {
-    marginTop: 6,
-  },
-  readingRow: {
-    alignItems: 'flex-end',
+  heroInner: {
     flexDirection: 'row',
-    marginTop: 4,
+    alignItems: 'flex-end',
+    columnGap: 16,
+    flexWrap: 'wrap',
+  },
+  coverNumber: {
+    includeFontPadding: false,
   },
   readinessMark: {
-    marginBottom: 16,
-    marginLeft: 14,
-    minWidth: 82,
+    paddingBottom: 14,
+    minWidth: 140,
+    flexShrink: 1,
   },
-  readinessCaption: {
+  readinessTrack: {
+    height: 2,
+    marginTop: 8,
+    overflow: 'hidden',
+  },
+  readinessFill: {
+    height: 2,
+  },
+  freshness: {
     ...edType.micro,
     color: edInkFor('black').quiet,
+    marginTop: 6,
   },
-  readinessRule: {
-    backgroundColor: edInkFor('black').quiet,
-    height: StyleSheet.hairlineWidth,
-    marginTop: 5,
-    width: 74,
-  },
-  buildingTitle: {
-    marginTop: 12,
+  staleNotice: {
+    ...edType.micro,
+    color: edInkFor('black').quiet,
+    marginTop: 4,
   },
   evidenceRow: {
-    alignItems: 'center',
-    marginTop: 12,
+    marginTop: 10,
+    rowGap: 6,
+    alignItems: 'flex-start',
+  },
+  signalsSection: {
+    marginTop: 14,
+  },
+  signalsCard: {
+    marginTop: 4,
   },
   momentsSection: {
-    marginTop: 18,
+    marginTop: 22,
   },
   conciergeSection: {
     marginTop: 18,
   },
-  footerSection: {
+  ctaSection: {
     marginTop: 26,
-  },
-  folio: {
-    marginTop: 16,
   },
 });

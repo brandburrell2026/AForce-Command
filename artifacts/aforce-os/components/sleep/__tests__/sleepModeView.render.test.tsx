@@ -101,9 +101,13 @@ describe('accessibility', () => {
 
   it('touch targets: checklist rows + CTA meet the 44pt minimum', () => {
     render('idle');
-    // primary CTA height is buttonHeight (56); checklist rows minHeight 44.
+    // primary CTA is afLayout.buttonHeight (52) as a MIN height (Black Issue
+    // PR 1 review S4: a fixed height clips the label at large Dynamic Type),
+    // so the DOM carries min-height rather than height; checklist rows
+    // minHeight 44.
     const cta = q('[data-testid="sleep-primary-cta"]') as HTMLElement | null;
-    const h = cta ? parseFloat(getComputedStyle(cta).height || '0') : 0;
+    const cs = cta ? getComputedStyle(cta) : null;
+    const h = cs ? Math.max(parseFloat(cs.height || '0'), parseFloat(cs.minHeight || '0')) : 0;
     expect(h).toBeGreaterThanOrEqual(44);
   });
 });

@@ -1,8 +1,24 @@
 # Black Issue restyle — audit and plan (Phase 1)
 
-Status: **awaiting founder go-ahead**. No app code has been changed. This document, the 27 reference
-screenshots in `docs/pr-evidence/black-issue/figma/`, and the on-screen copy transcript
-(`docs/pr-evidence/black-issue/figma-on-screen-copy.md`) are the only files on this branch.
+Status: **approved by the founder (Brandon) on 2026-10-06; Phase 2 in progress.** PR 1 (tokens,
+primitives, tab bar, AFMasthead) merged as #1087 on 2026-10-06. The 27 reference screenshots live in
+`docs/pr-evidence/black-issue/figma/` with the on-screen copy transcript
+(`docs/pr-evidence/black-issue/figma-on-screen-copy.md`); per-PR evidence lives beside them.
+
+### Decision record (founder, 2026-10-06)
+
+| # | Ruling | Applied in |
+|---|---|---|
+| D1 | **Keep** Signal Red `#C1281B` for fills; red text/icons stay `af.redText` `#E4564A` (AA). The brief's `#E13B2A` is rejected for text (4.26:1 on cards) and pinned as rejected by `theme/__tests__/afTokens.test.ts`. | PR 1 |
+| D2 | **Yes** — app display type is Inter 700 (`afType.displayScore/displayHero/title1–3`). Archivo Black stays loaded for the brand mark only (`Typography.roles.display` is unchanged; its two consumers are the monogram and wordmark). The brand table in `CLAUDE.md` ("Archivo Black — display") now describes the mark, not app type; amending that line is the founder's call. | PR 1 |
+| D3 | **Yes** — status colours stay system-sourced; ivory-vs-amber mismatches are reported per screen, never overridden. | all |
+| D4 | **Yes** — the live Home moves to the Black Issue card layout; the pressure-field signature is retired from Home. | PR 2 |
+| D5 | **Yes** — `AFMasthead` is a new shared component (standalone; shares tokens with AFTopBar/AFSectionLabel rather than composing them). | PR 1 |
+| D6 | **Yes** — gutter 32 pt standard / 24 pt at ≤375 pt wide (`afGutterAt` / `useAFGutter`). | PR 1 (+ PR 2 hook) |
+| D7 | **Yes** — gated screens are captured with a local, uncommitted flag flip. Native captures depend on disk headroom (a Debug build needs ~6 GB; PR 1 shipped web renders). | PRs 2–7 |
+
+Post-merge review of PR 1 (2026-10-06) raised one accessibility regression (selected tab told apart by
+hue alone) and four should-fix items; all are addressed in PR 2's first commit and recorded in §7.
 
 Source of truth: Figma file `VlcxuqlYiEEOeNKZuwi0WL` ("Black Issue Social Brief"), pulled through the
 Figma MCP server on 2026-10-06. Every "phone screenshot" node is a flattened 390×844 PNG (iPhone
@@ -153,7 +169,7 @@ screens. That is the main reason this restyle is tractable.
 | `af.textSecondary` | `#A6A5A1` | `#A19C91` | `#A19C91` (7.1:1 canvas, 6.7:1 card) |
 | `af.textTertiary` | `#85868C` | `#7D7B78`–`#6B665C` | `#8D897F` (= `edInk.quietOnBlack`, 5.6:1). The sampled darker greys fail AA and are not adopted for text |
 | `af.textDisabled` | `rgba(244,242,237,0.34)` | `#5A5852` | `#5A5852` (decorative/disabled only) |
-| `af.divider` / `af.border` | `rgba(255,255,255,0.10/0.16)` | `#2D2A25` | `#2D2A25` solid for both; `af.borderStrong` → `#3A3732` |
+| `af.divider` / `af.border` | `rgba(255,255,255,0.10/0.16)` | `#2D2A25` | `#2B2925` solid for both (= `edRule.onBlack`, 2 units off the sample, invisible; pins equality with the editorial layer); `af.borderStrong` → `#3A3732` |
 | `af.red` (fills) | `#C1281B` | `#E13B2A` | **keep `#C1281B`** — D1 |
 | `af.redText` (red text/icons on dark) | `#E4564A` | `#E13B2A` | keep `#E4564A` — D1 (the sampled red is 4.26:1 on cards, below AA for 11 pt eyebrows) |
 | `af.redDim` / `af.redHairline` | alpha red | `#231716` / `#872A20` | add `af.surfaceAlert '#231716'` and `af.borderAlert '#7A271F'` (solid, matched to the shots) |
@@ -184,7 +200,7 @@ equals an `ed*` value, a new test pins the two equal so they cannot drift.
 Existing, in `components/ui/` unless noted:
 
 - `AFScreen` — canvas, gutter 32/24, drop gradient canvas (`GradientBackground` flattened to solid canvas).
-- `AFCard` — `#141414` fill, `#2D2A25` 1 px border, radius 12; `warning` variant → alert surface/border.
+- `AFCard` — `#141414` fill, `#2B2925` 1 px border, radius 12; new `alert` variant (red-tinted depleted/critical card); `warning` keeps its amber caution edge.
 - `AFPrimaryButton` / `AFSecondaryButton` / `AFTextButton` — shape, height 52, left-aligned label with
   optional trailing glyph (the "+" in every CTA).
 - `AFSectionLabel` — red mono eyebrow + hairline underline + right meta (the section-header pattern).
@@ -208,7 +224,8 @@ Existing, in `components/ui/` unless noted:
 Proposed **new** shared component (needs your OK, per the working agreement on new shared files):
 
 - `AFMasthead` — the one pattern on all 27 screens: wordmark + right meta, breadcrumb eyebrow,
-  statement, one-line body. Built on `AFTopBar` + `AFSectionLabel` so nothing is duplicated.
+  statement, one-line body. A standalone component on the same tokens as `AFTopBar` / `AFSectionLabel`
+  (built in PR 1).
 
 No new fonts. No icon pack change. No Tailwind.
 
@@ -342,7 +359,7 @@ Needs a product or design decision; nothing in this list is built by the restyle
 
 ---
 
-## 6. Decisions needed before PR 1
+## 6. Decisions needed before PR 1 (as asked — answered in the decision record at the top)
 
 - **D1 Red.** The shots use `#E13B2A` for every red (wordmark, eyebrows, CTA fill, active tab). Brand
   v2.2.0 freezes Signal Red at `#C1281B`, and the 2026-07-20 ruling rejected a brighter spec red once
@@ -389,6 +406,14 @@ stacking.
 | 6 | D–F + first no-screenshot batch | Devices, Phantom Band, One Breath; Profile (other panes), Auth, Onboarding |
 | 7 | Second no-screenshot batch | Subscription / Store / Cart / paywall, Moment detail, Prepare my day, Notifications, Achievements, Science, Share, Urine check, Heat, Leaderboard, Sensors, Health connected, Cruise sub-screens, consoles, Recovery coach, Ring, Territory, Trainer, Legal |
 | — | Final report | matched / partial / gaps / uncertainties |
+
+PR 1 review follow-ups (folded into PR 2, commit "review fixes"): B2 tab selection gets a 2 pt mark +
+filled iOS symbols (locked by `components/__tests__/blackIssueTabBarCue.test.ts`); S1 tracking yield
+wired on every new mono text and `afType.micro` tracking aligned with `eyebrow`; S2 `useAFGutter`
+hook (AFScreen, AFDisclosureSheet, AFEditorialHero; remaining direct `screenPaddingX` readers migrate
+in their own screen PR); S3 status-badge label at the 11 pt floor; S4 Sleep/Cruise CTAs use
+`minHeight`; nits (masthead comment, button label `flexShrink`). `expo-blur` is now unused by the app
+and is left for a cleanup PR.
 
 Screens 15, 16, 17, 19, 20, 21 are not in any PR (gap §5.1).
 

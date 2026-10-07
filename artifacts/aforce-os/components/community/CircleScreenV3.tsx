@@ -30,6 +30,14 @@
  * deleted, nothing was invented, the presentation just stopped implying that
  * these are members you are actually competing against.
  *
+ * Black Issue restyle (2026-10-06, docs/black-issue-restyle-plan.md §4 item 4):
+ * presentation only. AFMasthead head (breadcrumb + statement), the You card
+ * as an AFCard (alert variant when the band is Depleted — the band word keeps
+ * its status-system colour), mono-micro filter pills, a hairline weekly
+ * challenge card, a red STANDINGS section header over hairline rows, and the
+ * member's own row outlined in the alert hairline. Nothing about the cohort,
+ * the ranking, the disclosure tags or the row announcements changed.
+ *
  * `fixture` exists ONLY for the demo gallery / tests (production builds never
  * pass it): it supplies the full inputs and skips every live source. Tab
  * switching stays interactive in both modes.
@@ -40,11 +48,12 @@ import { CircleMembersPanel } from './CircleMembersPanel';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { View, Text, StyleSheet, Pressable, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 
-import { AFScreen, AFTopBar, AFEmptyState, AFStatPair } from '@/components/ui';
-import { af, afType, Spacing } from '@/theme';
+import { AFScreen, AFMasthead, AFCard, AFSectionLabel, AFEmptyState, AFStatPair } from '@/components/ui';
+import { Icon } from '@/components/Icon';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { af, afType, afLayout, afAlpha, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { useEngineSlice, useUserSlice } from '@/store/slices';
 import { buildSnapshot } from '@/services/competitionEngine';
 import { fetchJournalRollups } from '@/services/realApi';
@@ -62,17 +71,13 @@ import {
 
 const TABS: CircleTab[] = ['rank', 'cities', 'friends', 'challenge'];
 
-/** Dark glyph on light avatar fills; bone on the Signal Red fill. */
-function avatarTextColor(bg: string): string {
-  return bg === af.red ? af.textPrimary : af.canvas;
-}
-
 export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
   const router = useRouter();
   const flags = useFeatureFlags();
   const membershipPilot = !fixture && circleMembershipPilotAvailable(flags);
   const tabClearance = useTabBarClearance();
   const { t } = useTranslation();
+  const eyebrowType = useAFEyebrowType();
   const engine = useEngineSlice();
   const userState = useUserSlice();
   const [tab, setTab] = React.useState<CircleTab>(fixture?.tab ?? 'rank');
@@ -171,18 +176,49 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
 
   return (
     <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
-      <AFTopBar
-        eyebrow={t('community.v3.eyebrow')}
-        title={t('community.v3.title')}
-        actions={[{
-          icon: 'shield',
-          label: t('communitySharing.entry_title'),
-          onPress: () => router.push('/privacy/community-sharing'),
-        }]}
-      />
+      {/* Masthead: wordmark + red breadcrumb. The statement sits in its own row
+          (below) so the community-sharing entry can share its line, exactly as
+          the reference's PRIVATE control does. */}
+      <AFMasthead breadcrumb={t('community.v3.eyebrow')} />
+      <View style={styles.statementRow}>
+        <Text
+          style={styles.statement}
+          accessibilityRole="header"
+          maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+        >
+          {t('community.v3.title')}
+        </Text>
+        {/* Same entry the shield top-bar action was — one route, no new state.
+            The reference's PRIVATE checkbox would need a visibility-scope read
+            this screen does not make today, so this control only navigates. */}
+        <Pressable
+          onPress={() => router.push('/privacy/community-sharing')}
+          accessibilityRole="button"
+          accessibilityLabel={t('communitySharing.entry_title')}
+          hitSlop={8}
+          style={styles.shareBtn}
+          testID="circle-v3-sharing"
+        >
+          <View style={styles.shareBox}>
+            <Icon name="shield" size={12} color={af.textSecondary} />
+          </View>
+          <Text style={[styles.shareLabel, eyebrowType]}>
+            {t('community.v3.sharing_label').toUpperCase()}
+          </Text>
+        </Pressable>
+      </View>
 
-      {/* You card — comp layout, live-injected row underneath */}
-      <View style={[styles.youCard, { borderColor: `${you.accent}55` }]} testID="circle-v3-you">
+      {/* You card — comp layout, live-injected row underneath. Depleted takes
+          the alert surface; every other band keeps the standard surface with a
+          hairline in the band's own system colour. */}
+      <AFCard
+        variant={you.bandKey === 'depleted' ? 'alert' : 'standard'}
+        style={[
+          styles.youCard,
+          you.bandKey !== 'depleted' && { borderColor: withAlpha(you.accent, afAlpha.a34) },
+        ]}
+        testID="circle-v3-you"
+      >
         <View style={styles.youTop}>
           <View style={[styles.youAvatar, { backgroundColor: you.accent }]}>
             <Text style={styles.youAvatarText}>{you.initials}</Text>
@@ -223,7 +259,7 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
           <RankStat value={fmtRank(you.teamRank)} label={t('community.v3.stat_team')} />
           <ScoreStat value={String(you.score)} label={t('community.v3.stat_score')} accent={you.accent} />
         </View>
-      </View>
+      </AFCard>
 
       {/* Sample-cohort caption. The cohort stays (founder ruling), but the
           standings it produces — the rank stats above, the rows below — are
@@ -232,7 +268,11 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
         {t('community.v3.sample_note')}
       </Text>
 
-      {/* Scope tabs — comp pill row */}
+      {/* Scope tabs — AFSegmentedControl's pill language (mono micro caps,
+          hairline idle, filled-red active). Kept inline rather than adopting
+          the primitive: this rail needs a per-tab testID and the tablist
+          hitSlop locked by the Wave-5 a11y tests, neither of which
+          AFSegmentedControl exposes. */}
       <View style={styles.tabsRow} accessibilityRole="tablist" testID="circle-v3-tabs">
         {TABS.map((key) => (
           <Pressable
@@ -246,8 +286,8 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
             hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }}
             testID={`circle-v3-tab-${key}`}
           >
-            <Text style={[styles.tabText, tab === key && styles.tabTextOn]}>
-              {t(`community.v3.tab_${key}`)}
+            <Text style={[styles.tabText, eyebrowType, tab === key && styles.tabTextOn]}>
+              {t(`community.v3.tab_${key}`).toUpperCase()}
             </Text>
           </Pressable>
         ))}
@@ -255,43 +295,46 @@ export function CircleScreenV3({ fixture }: { fixture?: CircleV3Inputs }) {
 
       {/* Weekly challenge — own-baseline hydration, real rollups only */}
       {model.challengePct != null ? (
-        <View style={styles.challenge} testID="circle-v3-challenge">
+        <AFCard style={styles.challenge} testID="circle-v3-challenge">
           <View style={styles.challengeTop}>
             <Text style={styles.challengeTitle}>{t('community.v3.challenge_title')}</Text>
             <Text style={styles.challengePct}>{model.challengePct}%</Text>
           </View>
           <View style={styles.challengeTrack}>
-            <LinearGradient
-              colors={[af.red, af.amber]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.challengeFill, { width: `${model.challengePct}%` }]}
-            />
+            <View style={[styles.challengeFill, { width: `${model.challengePct}%` }]} />
           </View>
           {model.tab === 'challenge' && model.hydrationDays != null ? (
             <Text style={styles.challengeDetail}>
               {t('community.v3.challenge_detail', { n: model.hydrationDays })}
             </Text>
           ) : null}
-        </View>
+        </AFCard>
       ) : rollupsFailed ? (
         <Text style={styles.challengeUnavailable} testID="circle-v3-challenge-unavailable">
           {t('community.v3.challenge_unavailable')}
         </Text>
       ) : null}
 
-      {/* Leaderboard — comp rows */}
+      {/* Leaderboard — red STANDINGS header over hairline rows */}
       {model.tab === 'friends' && membershipPilot ? <CircleMembersPanel /> : model.rows.length > 0 ? (
-        <View style={styles.list} testID="circle-v3-list">
-          {model.rows.map((row) => (
-            <LeaderRow
-              key={row.key}
-              row={row}
-              streakLabel={(n) => t('community.v3.streak_days', { n })}
-              sampleLabel={t('community.v3.row_sample')}
-              labels={rowLabels}
-            />
-          ))}
+        <View style={styles.standings}>
+          <AFSectionLabel
+            label={t('community.v3.standings')}
+            meta={t('community.v3.standings_meta', { n: model.rows.length })}
+            testID="circle-v3-standings-label"
+          />
+          <View style={styles.list} testID="circle-v3-list">
+            {model.rows.map((row) => (
+              <LeaderRow
+                key={row.key}
+                row={row}
+                streakLabel={(n) => t('community.v3.streak_days', { n })}
+                streakStart={t('community.v3.streak_start')}
+                sampleLabel={t('community.v3.row_sample')}
+                labels={rowLabels}
+              />
+            ))}
+          </View>
         </View>
       ) : model.tab === 'challenge' ? null : (
         // Challenge carries no roster by design; on the other three tabs an
@@ -359,17 +402,25 @@ function ScoreStat({ value, label, accent }: { value: string; label: string; acc
 function LeaderRow({
   row,
   streakLabel,
+  streakStart,
   sampleLabel,
   labels,
 }: {
   row: CircleV3RowView;
   streakLabel: (n: number) => string;
+  /** Zero-streak phrasing for the member's own row ("Start your streak"). */
+  streakStart: string;
   /** Visible SAMPLE tag copy (the spoken counterpart lives in `labels`). */
   sampleLabel: string;
   labels: CircleRowA11yStrings;
 }) {
-  const subtitle =
-    row.streakDays != null ? `${row.subtitleLeft} · ${streakLabel(row.streakDays)}` : row.subtitleLeft;
+  const streakText =
+    row.streakDays == null
+      ? null
+      : row.isYou && row.streakDays === 0
+        ? streakStart
+        : streakLabel(row.streakDays);
+  const subtitle = streakText != null ? `${row.subtitleLeft} · ${streakText}` : row.subtitleLeft;
   return (
     // One element, one sentence. The row used to be six-plus loose Texts that
     // VoiceOver read as fragments; `accessible` collapses them, which also
@@ -382,25 +433,32 @@ function LeaderRow({
       accessible
       accessibilityLabel={circleRowA11yLabel(row, subtitle, labels)}
     >
-      <Text style={styles.rowRank}>{row.rank}</Text>
-      <View style={[styles.rowAvatar, { backgroundColor: row.avatarColor }]}>
-        <Text style={[styles.rowAvatarText, { color: avatarTextColor(row.avatarColor) }]}>
+      <Text style={[styles.rowRank, row.isYou && styles.rowRankYou]}>{row.rank}</Text>
+      {/* Reference avatars are hairline rings with mono initials; the member's
+          own row is the one filled avatar (band accent, same as the You card). */}
+      <View
+        style={[
+          styles.rowAvatar,
+          row.isYou && { backgroundColor: row.scoreAccent, borderColor: row.scoreAccent },
+        ]}
+      >
+        <Text style={[styles.rowAvatarText, row.isYou && styles.rowAvatarTextYou]}>
           {row.initials}
         </Text>
       </View>
       <View style={styles.rowBody}>
         <View style={styles.rowNameLine}>
-          <Text style={[styles.rowName, row.isYou && { color: af.green }]}>{row.name}</Text>
+          <Text style={styles.rowName}>{row.name}</Text>
           {/* Green text and a green row tint were the ONLY marks saying which
               row is yours — invisible to anyone who cannot separate the hues.
-              The tag says it in words; the colour now merely reinforces it. */}
+              The tag says it in words; the outline now merely reinforces it. */}
           {row.isYou ? <Text style={styles.youTag}>{labels.you}</Text> : null}
           {/* The row-level half of the sample disclosure. The caption above the
               standings qualifies the LIST; this qualifies the PERSON, at the
               only moment a member is actually reading their name. Deliberately
               neutral — no hue, no glyph, no icon — so it cannot be mistaken for
               a status, a badge or an achievement, and so the member's own row
-              (green tint, green YOU tag) stays the loud one. */}
+              (alert outline, YOU tag) stays the loud one. */}
           {row.isSample ? <Text style={styles.sampleTag}>{sampleLabel}</Text> : null}
           {/* Reachable only for a row the member's own data backs: the view
               model forces `verified` false on every sample row, because a
@@ -418,21 +476,30 @@ function LeaderRow({
       <Text
         style={[
           styles.rowMove,
-          row.move.dir === 'up' && { color: af.green },
-          row.move.dir === 'down' && { color: af.redText },
+          row.move.dir === 'up' && styles.rowMoveUp,
+          row.move.dir === 'down' && styles.rowMoveDown,
         ]}
       >
-        {row.move.dir === 'up' ? `↑${row.move.n}` : row.move.dir === 'down' ? `↓${row.move.n}` : '–'}
+        {row.move.dir === 'up' ? `+${row.move.n}` : row.move.dir === 'down' ? `−${row.move.n}` : '−'}
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  youCard: {
-    marginTop: 16, padding: 16, borderRadius: 18, borderWidth: 1,
-    backgroundColor: `${af.green}0A`,
+  statementRow: {
+    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
   },
+  statement: { ...afType.title1, color: af.textPrimary, flexShrink: 1 },
+  // Footprint of the reference's PRIVATE checkbox: a 22pt outlined square over
+  // a mono micro label; the 44pt floor comes from minWidth/minHeight + hitSlop.
+  shareBtn: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  shareBox: {
+    width: 22, height: 22, borderRadius: 6, borderWidth: 1, borderColor: af.border,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  shareLabel: { ...afType.micro, color: af.textTertiary },
+  youCard: { marginTop: 20, padding: 16, borderRadius: afLayout.radiusCard },
   youTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   youAvatar: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   youAvatarText: { ...afType.bodyStrong, color: af.canvas, letterSpacing: 1 },
@@ -440,22 +507,22 @@ const styles = StyleSheet.create({
   youName: { ...afType.title3, color: af.textPrimary },
   youMeta: { ...afType.caption, color: af.textSecondary },
   spotsPill: {
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
-    backgroundColor: `${af.green}1F`, borderWidth: 1, borderColor: `${af.green}44`,
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999,
+    borderWidth: 1, borderColor: withAlpha(af.green, afAlpha.a34),
   },
-  spotsText: { ...afType.caption, color: af.green, fontVariant: ['tabular-nums'] },
+  spotsText: { ...afType.micro, color: af.green, fontVariant: ['tabular-nums'] },
   statsRow: {
     flexDirection: 'row', marginTop: 16, paddingTop: 14,
     borderTopWidth: 1, borderTopColor: af.divider,
   },
   stat: { flex: 1, alignItems: 'center', gap: 3 },
-  // Ranks: body weight, supporting colour. They were title3 in textPrimary —
-  // the same size as the score, and GLOBAL even wore the band accent, which
-  // dressed a sample-cohort position up as a measurement.
-  statValue: { ...afType.body, color: af.textSecondary, fontVariant: ['tabular-nums'] },
-  statLabel: { ...afType.eyebrow, color: af.textTertiary, fontSize: 10 },
+  // Ranks: smaller than the score and in supporting colour. They were title3 in
+  // textPrimary — the same size as the score, and GLOBAL even wore the band
+  // accent, which dressed a sample-cohort position up as a measurement.
+  statValue: { ...afType.title3, color: af.textSecondary, fontVariant: ['tabular-nums'] },
+  statLabel: { ...afType.micro, color: af.textTertiary },
   scoreValue: { ...afType.title2, fontVariant: ['tabular-nums'] },
-  scoreLabel: { ...afType.eyebrow, color: af.textSecondary, fontSize: 10 },
+  scoreLabel: { ...afType.micro, color: af.textSecondary },
   // The caption belongs to the standings above it, so it is set as one: a
   // rule tying it to the block, secondary text, one step up in size. It was
   // tertiary caption — the dimmest type on a screen full of ranks it
@@ -463,62 +530,76 @@ const styles = StyleSheet.create({
   sampleNote: {
     ...afType.secondary,
     color: af.textSecondary,
-    marginTop: 10,
+    marginTop: 12,
     paddingLeft: 10,
     borderLeftWidth: 2,
     borderLeftColor: af.border,
   },
-  tabsRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
+  // Wraps rather than scrolls: four pills fit a 390 phone on one line, and at
+  // larger Dynamic Type the last one drops to a second line instead of clipping.
+  tabsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16 },
   tabPill: {
-    paddingHorizontal: 16, paddingVertical: 9, borderRadius: 999,
-    backgroundColor: af.surface, borderWidth: 1, borderColor: af.border,
+    minHeight: 34, paddingHorizontal: 12, paddingVertical: 9, borderRadius: afLayout.radiusPill,
+    justifyContent: 'center', borderWidth: 1, borderColor: af.border,
   },
   tabPillOn: { backgroundColor: af.red, borderColor: af.red },
-  tabText: { ...afType.caption, color: af.textSecondary },
-  tabTextOn: { color: af.textPrimary },
-  challenge: {
-    marginTop: 16, padding: 14, gap: 10, borderRadius: 14,
-    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
-  },
+  tabText: { ...afType.micro, color: af.textSecondary },
+  tabTextOn: { color: af.onRed },
+  challenge: { marginTop: 16, padding: 16, gap: 12 },
   challengeTop: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  challengeTitle: { ...afType.bodyStrong, color: af.textPrimary },
+  challengeTitle: { ...afType.bodyStrong, color: af.textPrimary, flexShrink: 1 },
   challengePct: { ...afType.bodyStrong, color: af.textSecondary, fontVariant: ['tabular-nums'] },
-  challengeTrack: { height: 8, borderRadius: 4, backgroundColor: af.divider, overflow: 'hidden' },
-  challengeFill: { height: '100%', borderRadius: 4 },
+  // Hairline progress: a 2pt rule with a red fill (was an 8pt amber gradient bar).
+  challengeTrack: { height: 2, backgroundColor: af.divider, overflow: 'hidden' },
+  challengeFill: { height: '100%', backgroundColor: af.red },
   challengeUnavailable: { ...afType.caption, color: af.textTertiary, marginTop: 4 },
   challengeDetail: { ...afType.caption, color: af.textTertiary },
-  list: { marginTop: 8 },
+  standings: { marginTop: 24 },
+  list: { marginTop: 4 },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingVertical: 14, paddingHorizontal: 4,
+    paddingVertical: 12, paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: af.divider,
   },
-  rowYou: { backgroundColor: `${af.green}0D`, borderRadius: 12, paddingHorizontal: 10 },
+  // The member's own row: alert surface + red hairline outline. Every border
+  // is set explicitly so the row's own bottom rule cannot override the outline.
+  rowYou: {
+    marginTop: 8, paddingHorizontal: 12, borderRadius: afLayout.radiusCard,
+    backgroundColor: af.surfaceAlert, borderWidth: 1, borderColor: af.borderAlert,
+    borderBottomWidth: 1, borderBottomColor: af.borderAlert,
+  },
   // Founder fix 2026-08-27: two-digit ranks wrapped vertically in a 22pt
   // column — minWidth lets the cell grow so 10+ (and 100+) stay on one line.
-  rowRank: { ...afType.body, color: af.textTertiary, minWidth: 28, textAlign: 'center', fontVariant: ['tabular-nums'] },
-  rowAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  rowAvatarText: { ...afType.bodyStrong, letterSpacing: 0.5 },
+  rowRank: { ...afType.secondary, color: af.textTertiary, minWidth: 24, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  rowRankYou: { color: af.redText },
+  rowAvatar: {
+    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: af.border,
+  },
+  rowAvatarText: { ...afType.eyebrow, color: af.textPrimary, letterSpacing: 0.5 },
+  rowAvatarTextYou: { color: af.canvas },
   rowBody: { flex: 1, gap: 2 },
-  rowNameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowNameLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
   rowName: { ...afType.bodyStrong, color: af.textPrimary },
   youTag: {
-    ...afType.eyebrow, color: af.green, textTransform: 'uppercase',
+    ...afType.micro, color: af.redText, textTransform: 'uppercase',
     paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999,
-    borderWidth: 1, borderColor: `${af.green}55`,
+    borderWidth: 1, borderColor: af.red,
   },
   // Same pill geometry as youTag so the two read as one vocabulary, but with
   // the neutral line/text tokens: this marks provenance, not a state, and it
   // must never out-shout the member's own row.
   sampleTag: {
-    ...afType.eyebrow, color: af.textTertiary, textTransform: 'uppercase',
+    ...afType.micro, color: af.textTertiary, textTransform: 'uppercase',
     paddingHorizontal: 6, paddingVertical: 1, borderRadius: 999,
     borderWidth: 1, borderColor: af.border,
   },
   verified: { width: 16, height: 16, borderRadius: 8, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center' },
   verifiedGlyph: { color: af.canvas, fontSize: 10, fontWeight: '700' },
-  rowSub: { ...afType.caption, color: af.textTertiary },
+  rowSub: { ...afType.micro, letterSpacing: 0.8, color: af.textTertiary, textTransform: 'uppercase' },
   rowScore: { ...afType.title3, fontVariant: ['tabular-nums'] },
-  rowMove: { ...afType.caption, color: af.textTertiary, width: 28, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  rowMove: { ...afType.eyebrow, letterSpacing: 0, color: af.textTertiary, width: 28, textAlign: 'right', fontVariant: ['tabular-nums'] },
+  rowMoveUp: { color: af.green },
+  rowMoveDown: { color: af.redText },
   footnote: { ...afType.caption, color: af.textTertiary, marginTop: 14 },
 });

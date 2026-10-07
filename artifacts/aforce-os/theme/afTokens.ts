@@ -142,7 +142,9 @@ export const afType = {
   eyebrow: { fontFamily: Typography.roles.eyebrow, fontSize: 11, lineHeight: 14, letterSpacing: 1.6 },
   // Furniture micro — tab labels, pills, node states, trailing meta. The floor
   // of the system (= edType.micro); scales with Dynamic Type like every role.
-  micro: { fontFamily: Typography.roles.mono, fontSize: 9, lineHeight: 13, letterSpacing: 1.8 },
+  // Tracking matches `eyebrow` so the S2-14b yield (afEyebrowAt) is the one
+  // tracking authority for every mono furniture role.
+  micro: { fontFamily: Typography.roles.mono, fontSize: 9, lineHeight: 13, letterSpacing: 1.6 },
   tab: { fontFamily: Typography.fonts.medium, fontSize: 11, lineHeight: 14 },
   // Bold counterpart to `tab` — small tracked/emphasized inline labels (trend
   // arrows, verbs, deltas) that need Inter Bold rather than Medium at the
@@ -367,6 +369,16 @@ export function afEyebrowAt(fontScale: number): { letterSpacing: number } {
     letterSpacing:
       fontScale > AF_MAX_DISPLAY_FONT_SCALE ? 0 : afType.eyebrow.letterSpacing,
   };
+}
+
+/**
+ * afGutterAt(width) — the D6 gutter rule as a pure function: 32pt standard,
+ * 24pt on compact phones (≤ afLayout.compactWidthMax). `hooks/useAFGutter`
+ * is the live delivery path; direct `afLayout.screenPaddingX` reads should
+ * migrate to it so every screen agrees on SE-class widths.
+ */
+export function afGutterAt(width: number): number {
+  return width <= afLayout.compactWidthMax ? afLayout.screenPaddingXCompact : afLayout.screenPaddingX;
 }
 
 export type AfColorToken = keyof typeof af;

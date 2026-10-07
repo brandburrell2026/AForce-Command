@@ -35,6 +35,10 @@ export function memberFurniture(firstName: string | null | undefined): string | 
  * R1 — truthful date furniture ("SAT · AUG 29"). A pure function of the
  * provided date; no counter, no issue numbering, no synthetic sequence.
  */
+export function mastheadTimeLabel(now: Date, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(now).toUpperCase();
+}
+
 export function mastheadDateLabel(now: Date, locale?: string): string {
   const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(now);
   const month = new Intl.DateTimeFormat(locale, { month: 'short' }).format(now);

@@ -126,8 +126,8 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   wordmarkGroup: { gap: 2, flexShrink: 1 },
-  // The wordmark is the one place Signal Red sets type: 15pt Inter 700 reads
-  // as a mark, not copy, and sits at 3.3:1 — the reader never hears it.
+  // The wordmark is a mark, not copy: 15pt Inter 700 in the AA red text
+  // token (5.3:1 on the canvas); it is hidden from the screen reader.
   wordmark: { ...afType.bodyStrong, fontSize: 15, lineHeight: 20, letterSpacing: 0.4, color: af.redText },
   greeting: { ...afType.secondary, color: af.textSecondary },
   metaGroup: { alignItems: 'flex-end', gap: 4, flexShrink: 1 },

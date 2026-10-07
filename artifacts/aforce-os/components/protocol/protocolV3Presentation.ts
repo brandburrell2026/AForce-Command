@@ -84,3 +84,50 @@ export function shouldAcknowledgeProgress(prev: number | null, next: number): bo
   if (!Number.isFinite(prev) || !Number.isFinite(next)) return false;
   return next > prev;
 }
+
+/**
+ * Masthead day for the Black Issue head ("SAT AUG 29"). Pure — the caller
+ * passes the clock reading and the active i18n locale, so the date is never
+ * hardcoded and never read here. The locale's own comma is dropped so the
+ * mono meta line reads "SAT AUG 29", not "SAT, AUG 29". An unusable locale
+ * tag falls back to en-US rather than throwing into render.
+ */
+export function formatMastheadDay(nowMs: number, locale: string): string {
+  const opts: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+  const d = new Date(nowMs);
+  let out: string;
+  try {
+    out = d.toLocaleDateString(locale, opts);
+  } catch {
+    out = d.toLocaleDateString('en-US', opts);
+  }
+  return out.replace(/,/g, '');
+}
+
+/**
+ * Wall-clock time of the freshest honest signal read ("4:41 PM"). Returns
+ * null for an absent / non-finite / non-positive stamp — the screen then
+ * renders no "signals checked" claim at all (never a fabricated time).
+ */
+export function formatSignalsClock(fetchedAtMs: number | null | undefined, locale: string): string | null {
+  if (fetchedAtMs == null || !Number.isFinite(fetchedAtMs) || fetchedAtMs <= 0) return null;
+  const opts: Intl.DateTimeFormatOptions = { hour: 'numeric', minute: '2-digit' };
+  const d = new Date(fetchedAtMs);
+  try {
+    return d.toLocaleTimeString(locale, opts);
+  } catch {
+    return d.toLocaleTimeString('en-US', opts);
+  }
+}
+
+/**
+ * The hero numeral for the plan's own recheck timer. The derivation states
+ * the timer in minutes; the numeral reads in hours only once it is two hours
+ * or more away (the Black Issue "5 HRS" case), otherwise in minutes. Pure
+ * unit choice — the underlying `nextRecheckMinutes` is never altered.
+ */
+export function recheckDisplay(minutes: number): { value: number; unit: 'min' | 'hr' } {
+  const safe = Number.isFinite(minutes) ? Math.max(0, minutes) : 0;
+  if (safe >= 120) return { value: Math.round(safe / 60), unit: 'hr' };
+  return { value: Math.round(safe), unit: 'min' };
+}

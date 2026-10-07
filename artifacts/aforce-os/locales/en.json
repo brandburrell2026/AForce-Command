@@ -1666,7 +1666,13 @@
       "hrv": "HRV",
       "progress": "Progress",
       "completed_empty": "Nothing checked off yet today. Steps check themselves off as you log intake and confirm signals.",
-      "signals_empty": "No heart rate or HRV has been reported yet. Readings appear here once a connected source sends them."
+      "signals_empty": "No heart rate or HRV has been reported yet. Readings appear here once a connected source sends them.",
+      "steps_heading": "Protocol steps",
+      "signals_checked": "Signals checked {{time}}",
+      "recheck_unit_min": "min",
+      "recheck_unit_hr": "hr",
+      "timeline_completed": "completed",
+      "timeline_current": "current step"
     }
   },
   "store": {
@@ -2166,7 +2172,7 @@
       "map_sample_note": "Sample data · Illustrative standings · Not a live ranking"
     },
     "v3": {
-      "eyebrow": "SPORT MODE",
+      "eyebrow": "Circle / Community",
       "title": "Community",
       "band_peak": "Peak",
       "band_balanced": "Balanced",
@@ -2183,9 +2189,10 @@
       "tab_friends": "Friends",
       "tab_challenge": "Challenge",
       "tab_announce": "Showing {{tab}}",
-      "challenge_title": "Weekly Challenge · Hydration",
+      "challenge_title": "Weekly challenge · Hydration",
       "challenge_detail": "{{n}} of 7 days with logged intake this week — measured against your own baseline only.",
       "streak_days": "{{n}}-day streak",
+      "streak_start": "Start your streak",
       "row_rank": "Rank {{n}}",
       "row_you": "You",
       "row_sample": "Sample",
@@ -2198,6 +2205,9 @@
       "row_move_down_other": "Down {{count}} places",
       "row_move_flat": "No change",
       "sample_note": "Sample cohort · Illustrative standings · Not a ranking against real people",
+      "standings": "Standings",
+      "standings_meta": "{{n}} listed",
+      "sharing_label": "Sharing",
       "empty_title": "Nothing to rank yet",
       "empty_message": "No members to rank in this view. Standings appear here only when there is real data — never placeholders.",
       "footnote": "Your score and streak update as you log intake, complete protocols, and recover.",

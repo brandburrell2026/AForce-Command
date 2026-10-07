@@ -43,7 +43,7 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
             hitSlop={{ top: 6, bottom: 6 }}
             style={[styles.pill, active ? styles.pillActive : styles.pillIdle]}
           >
-            <Text style={[styles.label, eyebrowType, { color: active ? af.onRed : af.textSecondary }]}>
+            <Text style={[[styles.label, eyebrowType], { color: active ? af.onRed : af.textSecondary }]}>
               {seg.label.toUpperCase()}
             </Text>
           </Pressable>
