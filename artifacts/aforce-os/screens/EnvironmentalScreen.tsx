@@ -52,7 +52,7 @@ import {
   AFMasthead,
   AFCard,
   AFSectionLabel,
-  AFPrimaryButton,
+  AFSecondaryButton,
 } from '@/components/ui';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { useAFGutter } from '@/hooks/useAFGutter';
@@ -200,7 +200,9 @@ function ResolutionAction({
   return (
     <View style={styles.resolveWrap}>
       <Text style={styles.resolveBody}>{body}</Text>
-      <AFPrimaryButton
+      {/* Secondary, not the red primary: this resolves our ability to see
+          (location / settings / retry), it is not a command (PR #1090 review S4). */}
+      <AFSecondaryButton
         label={label}
         onPress={onPress}
         trailingIcon="chevron-right"

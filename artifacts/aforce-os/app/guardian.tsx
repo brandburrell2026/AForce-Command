@@ -43,9 +43,9 @@ const TIER_TONE: Record<GuardianTierWord, AFStatusTone> = {
   CRITICAL: 'critical',
 };
 
-/** Text colour for a tier word / numeral: the system colour, with red as AA red text. */
+/** Text colour for a tier word / numeral: the system status colour (D3 — never overridden; #FF2800 clears AA on every Guardian surface). */
 function tierInk(tier: string): string {
-  return tier === 'CRITICAL' ? af.redText : TIER_COLOR[tier];
+  return TIER_COLOR[tier];
 }
 
 export function LegacyGuardianScreen() {
@@ -142,14 +142,14 @@ export function LegacyGuardianScreen() {
 
             {/* Roster monitoring */}
             <View style={styles.section}>
-              <AFSectionLabel label="Roster monitoring" meta={`${mockRoster.length} athletes`} />
+              <AFSectionLabel label="Roster monitoring" meta={`${mockRoster.length} ${mockRoster.length === 1 ? 'athlete' : 'athletes'}`} />
               <View style={styles.rosterList}>
                 {mockRoster.map((p) => {
                   const tier = guardianTier(p.guardianRisk);
                   const color = TIER_COLOR[tier];
                   const rec = guardianRecommendation({ guardianRisk: p.guardianRisk, position: p.position });
-                  // Red command line from MODERATE up (word + bar + numeral also carry the state).
-                  const escalated = tier === 'MODERATE' || tier === 'CRITICAL';
+                  // Red command line only for a pull (as on main); the word, bar and numeral carry the tier.
+                  const escalated = rec.action === 'pull';
                   const stickLabel = rec.sticks > 0 ? `${rec.sticks} stick${rec.sticks > 1 ? 's' : ''}` : null;
                   return (
                     <AFCard

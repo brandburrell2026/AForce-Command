@@ -373,10 +373,10 @@ export function HydrationScreenV2() {
 
       {/* 7-day strip (streak, honest) */}
       <View style={styles.section}>
-        <AFSectionLabel
-          label={t('hydration.v2.this_week')}
-          meta={t('hydration.v2.week_meta', { count: streak })}
-        />
+        {/* No count caption: `streak` is the target-met compliance streak,
+            not a count of days logged (PR #1090 review B1) — the dots and
+            their per-day labels carry what is known. */}
+        <AFSectionLabel label={t('hydration.v2.this_week')} />
         <View style={styles.strip}>
           {weekdayInitials.map((d, i) => {
             // Fill the most recent `streak` days up to and including today.
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   ringPct: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   stats: { flex: 1, gap: 12 },
   stat: { gap: 2 },
-  statLabel: { ...afType.micro, color: af.textTertiary },
+  statLabel: { ...afType.eyebrow, color: af.textTertiary },
   statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   recoveryRow: { gap: 2, alignItems: 'flex-start' },
   actions: { marginTop: 20, gap: 12 },
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   },
   intakeText: { flex: 1, gap: 2 },
   intakeTitle: { ...afType.body, color: af.textPrimary },
-  intakeWhen: { ...afType.micro, color: af.textTertiary },
+  intakeWhen: { ...afType.eyebrow, color: af.textTertiary },
   intakeAmount: { ...afType.eyebrow, color: af.textSecondary, flexShrink: 0 },
   strip: { flexDirection: 'row', justifyContent: 'space-between' },
   dayCol: { alignItems: 'center', gap: 6, flex: 1, minHeight: 44 },

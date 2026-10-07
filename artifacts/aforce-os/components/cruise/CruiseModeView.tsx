@@ -195,7 +195,7 @@ function ReadinessBlock({ view, confidence }: { view: CruiseModeViewModel; confi
         <Text style={[styles.readinessLabel, eyebrowType]}>{r.ring.caption}</Text>
         <View style={styles.numeralRow}>
           <Text
-            style={[styles.numeral, building && { color: af.textSecondary }]}
+            style={[styles.numeral, { color: building ? af.textSecondary : tone }]}
             maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
             testID="cruise-readiness-score"
           >
@@ -211,13 +211,13 @@ function ReadinessBlock({ view, confidence }: { view: CruiseModeViewModel; confi
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <View style={[styles.trackFill, { width: `${Math.round(r.ring.progress * 100)}%` }]} />
+        <View style={[styles.trackFill, { width: `${Math.round(r.ring.progress * 100)}%`, backgroundColor: tone }]} />
       </View>
 
       <View style={styles.stateRow}>
         {/* The system status colour rides on the dot; the word carries the meaning. */}
         <View style={[styles.stateDot, { backgroundColor: tone }]} />
-        <Text style={[styles.stateWord, eyebrowType]}>{r.statusLabel}</Text>
+        <Text style={[styles.stateWord, eyebrowType, { color: tone }]}>{r.statusLabel}</Text>
         {confidence ? (
           <>
             <Text style={styles.stateSep} accessibilityElementsHidden importantForAccessibility="no">·</Text>
@@ -663,7 +663,9 @@ const styles = StyleSheet.create({
   track: {
     height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 20,
   },
-  trackFill: { height: 4, borderRadius: 2, backgroundColor: af.red },
+  // D3: the readiness track was a status-palette surface on main — the fill
+  // takes the tone (PR #1090 review S1), not the brand red.
+  trackFill: { height: 4, borderRadius: 2 },
   stateRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap',
     columnGap: 8, rowGap: 6, marginTop: 14,
