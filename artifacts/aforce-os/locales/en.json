@@ -954,7 +954,9 @@
     "recovery_paywall_cadence": "/ month",
     "recovery_paywall_cta": "Subscribe to Recovery+",
     "recovery_morning_estimate": "Estimated time to clear",
-    "recovery_morning_clear": "Cleared"
+    "recovery_morning_clear": "Cleared",
+    "indicator_on": "Social Mode is on since {{time}}",
+    "indicator_stale": "A Social Mode session has been open since {{date}} and no longer counts. End it to clear it."
   },
   "voice": {
     "drink_now": "Take 1 unit now. Recheck in {{recheck}} minutes.",

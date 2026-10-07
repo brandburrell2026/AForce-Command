@@ -99,6 +99,7 @@ import {
 } from '../index';
 import { EdHomeCommand } from './EdHomeCommand';
 import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
+import { SocialModeIndicator } from '@/components/social/SocialModeIndicator';
 import { EdHomeSignalFooter } from './EdHomeSignalFooter';
 import { EdNextMomentLine } from './EdNextMomentLine';
 import {
@@ -374,6 +375,11 @@ export function EditorialHomeScreen({
                 {/* AForce Concierge entry — one quiet affordance under the
                     command; states nothing about the body. Renders nothing when
                     ai_concierge_enabled is off. */}
+                {/* Social Mode indicator — a live or stale open session is a fact
+                    about the member's state; shown with an End-the-night control
+                    so a demo tap can never silently steer the command (2026-10-06). */}
+                <SocialModeIndicator testID="editorial-social-indicator" />
+
                 <View style={styles.conciergeSection}>
                   <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
                 </View>

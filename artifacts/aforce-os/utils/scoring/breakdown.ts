@@ -16,6 +16,7 @@ import type { EvidenceVerdict } from './hydroStateV1';
 import { depletionRatePerMinute } from '../depletionRate';
 import { resolveCurrentWeather } from '../environment/weatherFreshness';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
+import { isSocialSessionLive } from '../../services/socialModeEngine';
 
 export function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -284,8 +285,8 @@ function resolveEffectiveActivityLevel(
  * outside the pure helper so the helper stays zero-dep).
  */
 function computeDecayPerMinute(state: UserState, now: number = Date.now()): number {
-  const socialDecayMultiplier = state.socialMode?.active
-    ? activeDecayMultiplier(state.socialMode.drinks, now)
+  const socialDecayMultiplier = isSocialSessionLive(state.socialMode, now)
+    ? activeDecayMultiplier(state.socialMode!.drinks, now)
     : 1;
 
   const { level: activityLevel } = resolveEffectiveActivityLevel(state, now);

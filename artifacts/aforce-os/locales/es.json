@@ -798,7 +798,9 @@
     "recovery_paywall_cta": "Suscríbete a Recovery+",
     "recovery_card_title": "MODO RECUPERACIÓN",
     "recovery_morning_estimate": "Tiempo estimado para despejar",
-    "recovery_morning_clear": "Despejado"
+    "recovery_morning_clear": "Despejado",
+    "indicator_on": "Social Mode is on since {{time}}",
+    "indicator_stale": "A Social Mode session has been open since {{date}} and no longer counts. End it to clear it."
   },
   "voice": {
     "drink_now": "Toma 1 unidad ahora. Revisa en {{recheck}} minutos.",

@@ -654,3 +654,12 @@ export const CONCIERGE_REMINDER_MAX_PER_DAY = 3;
 
 /** Client-side timeout for one concierge request (ms). */
 export const CONCIERGE_REQUEST_TIMEOUT_MS = 35_000;
+
+/* ─── Social Mode — session liveness ─────────────────────────────────────── */
+/* A Social Mode session is a NIGHT, not a standing state. Found 2026-10-06: a
+ * session started by the Developer-pane demo on 2026-08-12 was never ended and
+ * steered every command for eight weeks ("Sip water between drinks…"), because
+ * the rollup treated `active: true` as live with no time bound. An open session
+ * older than this is treated as ended at (startedAt + max) — the recovery
+ * window then runs from that point exactly as if "End night" had been tapped. */
+export const SOCIAL_SESSION_MAX_MS = 18 * FRESHNESS_HOUR_MS;
