@@ -4,13 +4,19 @@
  * Proposal → the exact details → member confirms or edits → execution through
  * a working app path → success ONLY when it succeeded; edit/undo where the
  * capability supports it; a second tap can never double-run (ActionLedger).
+ *
+ * Black Issue: the card sits INSIDE the reply card under a hairline; Edit is
+ * an outlined pill, Confirm the one red-filled pill. Only the actions the
+ * reply already exposes ever render here — the labels are the existing
+ * confirm/edit/undo copy, nothing is added.
  */
 import React from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { af, afLayout, afType } from '@/theme';
 import { Icon } from '@/components/Icon';
-import { AFPrimaryButton, AFSecondaryButton, AFTextButton } from '@/components/ui';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { ConciergePill } from './conciergeKit';
 import { fireMoment } from '@/services/haptics';
 import {
   executeAction,
@@ -36,6 +42,7 @@ type Phase = 'proposed' | 'editing' | 'running' | 'done' | 'undone' | 'failed';
 
 export function ConciergeActionCard({ actionId, action: initial, ledger, deps, testID = 'concierge-action-card' }: ConciergeActionCardProps) {
   const { t, i18n } = useTranslation();
+  const eyebrowType = useAFEyebrowType();
   const [action, setAction] = React.useState<ConciergeAction>(initial);
   const [phase, setPhase] = React.useState<Phase>(() => {
     const s = ledger.get(actionId);
@@ -134,7 +141,7 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
         <View style={styles.editBlock}>
           {action.type === 'log_hydration' ? (
             <>
-              <Text style={styles.fieldLabel}>{t('concierge.action.oz_label')}</Text>
+              <Text style={[styles.fieldLabel, eyebrowType]}>{t('concierge.action.oz_label')}</Text>
               <TextInput
                 value={draft['oz'] ?? ''}
                 onChangeText={(v) => setDraft({ ...draft, oz: v.replace(/[^\d]/g, '') })}
@@ -148,7 +155,7 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
           ) : null}
           {action.type === 'set_reminder' ? (
             <>
-              <Text style={styles.fieldLabel}>{t('concierge.action.set_reminder_title')}</Text>
+              <Text style={[styles.fieldLabel, eyebrowType]}>{t('concierge.action.set_reminder_title')}</Text>
               <TextInput
                 value={draft['title'] ?? ''}
                 onChangeText={(v) => setDraft({ ...draft, title: v })}
@@ -156,7 +163,7 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
                 accessibilityLabel={t('concierge.action.set_reminder_title')}
                 maxLength={80}
               />
-              <Text style={styles.fieldLabel}>{t('concierge.action.time_label')}</Text>
+              <Text style={[styles.fieldLabel, eyebrowType]}>{t('concierge.action.time_label')}</Text>
               <TextInput
                 value={draft['time'] ?? ''}
                 onChangeText={(v) => setDraft({ ...draft, time: v })}
@@ -165,7 +172,7 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
                 maxLength={5}
                 autoCapitalize="none"
               />
-              <Text style={styles.fieldLabel}>{t('concierge.action.date_label')}</Text>
+              <Text style={[styles.fieldLabel, eyebrowType]}>{t('concierge.action.date_label')}</Text>
               <TextInput
                 value={draft['date'] ?? ''}
                 onChangeText={(v) => setDraft({ ...draft, date: v })}
@@ -177,8 +184,8 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
             </>
           ) : null}
           <View style={styles.row}>
-            <AFSecondaryButton label={t('common.cancel')} onPress={() => setPhase('proposed')} style={styles.grow} />
-            <AFPrimaryButton label={t('concierge.action.done')} onPress={applyEdit} style={styles.grow} testID={`${testID}-apply-edit`} />
+            <ConciergePill label={t('common.cancel')} onPress={() => setPhase('proposed')} />
+            <ConciergePill label={t('concierge.action.done')} onPress={applyEdit} tone="filled" testID={`${testID}-apply-edit`} />
           </View>
         </View>
       ) : (
@@ -189,16 +196,16 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
               <Text style={[styles.status, phase === 'done' && styles.statusDone]} accessibilityRole="text">
                 {phase === 'done' ? t('concierge.action.done') : t('concierge.action.undone')}
               </Text>
-              {canUndo ? <AFTextButton label={t('concierge.action.undo')} onPress={() => void undo()} testID={`${testID}-undo`} /> : null}
+              {canUndo ? <ConciergePill label={t('concierge.action.undo')} onPress={() => void undo()} testID={`${testID}-undo`} /> : null}
             </View>
           ) : (
             <View style={styles.row}>
-              {editable ? <AFSecondaryButton label={t('concierge.action.edit')} onPress={startEdit} style={styles.grow} testID={`${testID}-edit`} /> : null}
-              <AFPrimaryButton
+              {editable ? <ConciergePill label={t('concierge.action.edit')} onPress={startEdit} testID={`${testID}-edit`} /> : null}
+              <ConciergePill
                 label={phase === 'failed' ? t('common.retry') : t('concierge.action.confirm_cta')}
                 onPress={() => void run()}
                 loading={phase === 'running'}
-                style={styles.grow}
+                tone="filled"
                 testID={`${testID}-confirm`}
               />
             </View>
@@ -215,33 +222,32 @@ export function ConciergeActionCard({ actionId, action: initial, ledger, deps, t
 }
 
 const styles = StyleSheet.create({
+  // Lives inside the reply card: one hairline above, no box of its own.
   card: {
-    marginTop: 10,
-    paddingVertical: 12,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: afLayout.hairline,
     borderTopColor: af.divider,
-    borderBottomWidth: afLayout.hairline,
-    borderBottomColor: af.divider,
     gap: 8,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { ...afType.bodyStrong, color: af.textPrimary, flex: 1 },
   detail: { ...afType.secondary, color: af.textSecondary },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
-  grow: { flex: 1 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 4 },
   status: { ...afType.caption, color: af.textSecondary, flex: 1 },
   statusDone: { color: af.green },
   editBlock: { gap: 6 },
-  fieldLabel: { ...afType.caption, color: af.textTertiary },
+  fieldLabel: { ...afType.eyebrow, color: af.textTertiary, textTransform: 'uppercase' },
   input: {
     ...afType.body,
     color: af.textPrimary,
     minHeight: afLayout.controlMinHeight,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: afLayout.radiusButton,
     borderWidth: afLayout.hairline,
     borderColor: af.border,
-    backgroundColor: af.surface,
+    backgroundColor: af.canvas,
   },
   note: { ...afType.caption, color: af.textSecondary },
   noteError: { color: af.redText },

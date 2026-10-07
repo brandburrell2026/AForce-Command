@@ -52,9 +52,11 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    columnGap: 16,
-    rowGap: 18,
-    marginTop: 28,
+    columnGap: 12,
+    rowGap: 16,
+    marginTop: 20,
+    marginBottom: 20,
   },
-  cell: { flexGrow: 1, minWidth: 82 },
+  // Three equal columns on a phone; wraps (never clips) at large type.
+  cell: { flexGrow: 1, flexBasis: 0, minWidth: 82 },
 });

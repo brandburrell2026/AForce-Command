@@ -2,7 +2,7 @@
  * AForce Concierge — pure presentation helpers (unit-tested, RN-free).
  */
 import type { TFunction } from 'i18next';
-import type { ConciergeAction, ConciergeAssistantTurn, ConciergeSource } from '@/services/concierge/conciergeTypes';
+import type { ConciergeAction, ConciergeAssistantTurn, ConciergeClientContext, ConciergeSource } from '@/services/concierge/conciergeTypes';
 import type { ConciergeErrorKind } from '@/services/concierge/conciergeApi';
 
 export interface NoticeCopy {
@@ -113,4 +113,54 @@ export function speakableText(turn: ConciergeAssistantTurn): string {
 export function seedText(seed: string | undefined, t: TFunction): string {
   if (seed === 'hydration' || seed === 'signal' || seed === 'weekly') return t(`concierge.seed.${seed}`);
   return '';
+}
+
+/** "9:12 AM" in the member's locale; null when the stamp is not a real time (never a placeholder). */
+export function formatTurnTime(iso: string | null | undefined, locale?: string): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+}
+
+/**
+ * Headline / remainder of an answer — presentation only, the string is never
+ * rewritten. The headline is the first sentence when it is short enough to
+ * read as one; a terminator inside a number ("3.5") is not a sentence end.
+ * Everything else stays body text, so a long answer is not shouted.
+ */
+export const HEADLINE_MAX_CHARS = 120;
+export function splitAnswer(answer: string): { headline: string | null; rest: string } {
+  const trimmed = answer.trim();
+  const m = trimmed.match(/^[\s\S]+?[.!?](?=\s|$)/);
+  const first = (m ? m[0] : trimmed).trim();
+  if (first.length === 0 || first.length > HEADLINE_MAX_CHARS) return { headline: null, rest: trimmed };
+  return { headline: first, rest: trimmed.slice(first.length).trim() };
+}
+
+/**
+ * The context pill: ONLY fields the screen already passes to the concierge
+ * (the same object a turn sends). Each segment appears when its source field
+ * is present; nothing is defaulted. The HydroState reading appears only once
+ * its evidence is ready — a building baseline is not shown as a number — and
+ * "nothing logged today" is never stated as a segment (absence of logs is not
+ * a body state).
+ */
+export function contextSegments(ctx: Pick<ConciergeClientContext, 'hydroState' | 'intake'>, t: TFunction): string[] {
+  const out: string[] = [];
+  const h = ctx.hydroState;
+  if (h && h.evidence === 'ready') {
+    out.push(t('concierge.context.state', { score: Math.round(h.score), level: t(`states.${h.level.toLowerCase()}`) }));
+  }
+  if (ctx.intake.loggedToday) {
+    const oz = Math.round(ctx.intake.ozToday);
+    const target = Math.round(ctx.intake.ozTarget);
+    out.push(target > 0 ? t('concierge.context.intake', { oz, target }) : t('concierge.context.intake_logged', { oz }));
+  }
+  return out;
+}
+
+/** Up to three existing suggested questions for the "Ask next" row — the picked one first. */
+export function askNextKeys<K extends string>(picked: K, all: readonly K[], max = 3): K[] {
+  return [picked, ...all.filter((k) => k !== picked)].slice(0, max);
 }

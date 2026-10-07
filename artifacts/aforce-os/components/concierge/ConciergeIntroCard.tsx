@@ -9,6 +9,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { af, afLayout, afType } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { AFPrimaryButton, AFSegmentedControl, AFTextButton } from '@/components/ui';
 import type { ConciergePreferences } from '@/services/concierge/conciergeTypes';
 
@@ -30,6 +31,7 @@ export interface ConciergeIntroCardProps {
 
 export function ConciergeIntroCard({ onStart, onSkip, testID = 'concierge-intro' }: ConciergeIntroCardProps) {
   const { t } = useTranslation();
+  const eyebrowType = useAFEyebrowType();
   const [goal, setGoal] = React.useState<GoalKey | null>(null);
   const [routine, setRoutine] = React.useState('');
   const [tone, setTone] = React.useState<ToneKey>('none');
@@ -51,7 +53,7 @@ export function ConciergeIntroCard({ onStart, onSkip, testID = 'concierge-intro'
       <Text style={styles.title} accessibilityRole="header">{t('concierge.intro_title')}</Text>
       <Text style={styles.body}>{t('concierge.intro_body')}</Text>
 
-      <Text style={styles.label}>{t('concierge.intro_goal_label')}</Text>
+      <Text style={[styles.label, eyebrowType]}>{t('concierge.intro_goal_label')}</Text>
       <View style={styles.chips}>
         {GOAL_KEYS.map((k) => {
           const selected = goal === k;
@@ -71,7 +73,7 @@ export function ConciergeIntroCard({ onStart, onSkip, testID = 'concierge-intro'
         })}
       </View>
 
-      <Text style={styles.label}>{t('concierge.intro_routine_label')}</Text>
+      <Text style={[styles.label, eyebrowType]}>{t('concierge.intro_routine_label')}</Text>
       <TextInput
         value={routine}
         onChangeText={setRoutine}
@@ -83,7 +85,7 @@ export function ConciergeIntroCard({ onStart, onSkip, testID = 'concierge-intro'
         testID={`${testID}-routine`}
       />
 
-      <Text style={styles.label}>{t('concierge.intro_tone_label')}</Text>
+      <Text style={[styles.label, eyebrowType]}>{t('concierge.intro_tone_label')}</Text>
       <AFSegmentedControl
         segments={TONE_KEYS.map((k) => ({ key: k, label: t(`concierge.tone.${k}`).split(' — ')[0] ?? k }))}
         value={tone}
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
   },
   title: { ...afType.title3, color: af.textPrimary },
   body: { ...afType.secondary, color: af.textSecondary },
-  label: { ...afType.caption, color: af.textTertiary, marginTop: 6 },
+  label: { ...afType.eyebrow, color: af.textTertiary, marginTop: 10, textTransform: 'uppercase' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     minHeight: afLayout.controlMinHeight,
@@ -135,9 +137,9 @@ const styles = StyleSheet.create({
     borderRadius: afLayout.radiusPill,
     borderWidth: afLayout.hairline,
     borderColor: af.border,
-    backgroundColor: af.canvasElevated,
+    backgroundColor: 'transparent',
   },
-  chipSelected: { borderColor: af.redHairline, backgroundColor: af.redDim },
+  chipSelected: { borderColor: af.red, backgroundColor: af.redDim },
   chipText: { ...afType.secondary, color: af.textSecondary },
   chipTextSelected: { color: af.textPrimary },
   input: {
@@ -146,10 +148,10 @@ const styles = StyleSheet.create({
     minHeight: afLayout.controlMinHeight,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: afLayout.radiusButton,
     borderWidth: afLayout.hairline,
     borderColor: af.border,
-    backgroundColor: af.canvasElevated,
+    backgroundColor: af.canvas,
   },
   saveRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 8 },
   saveText: { flex: 1, gap: 2 },

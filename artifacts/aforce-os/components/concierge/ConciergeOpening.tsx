@@ -1,31 +1,44 @@
 /**
  * AForce Concierge — the opening (empty-state) surface.
  *
- *   YOUR NEXT MOVE.
+ *   [AFORCE · time]
+ *   YOUR NEXT MOVE
  *   [the app's current approved command — same guarded string Home shows]
  *   One sentence on why it matters now (the engine's own explanation).
  *   Why this? · Ask a question
- *   ───────────────────────────
- *   One suggested question · More
+ *   ASK A FOLLOW-UP
+ *   One suggested question · More · Personalize
  *
  * Nothing here is generated: the command and reason come from the engine
  * through the Decision Guard, exactly as Home renders them, so the opening and
  * the chat can never disagree about today's move. "Why this?" opens the
  * production Data-Behind-This sheet (§53/§54 freshness + quality), not model
- * text. Typography and hairlines come from the af tokens; no boxes.
+ * text. Typography and hairlines come from the af tokens.
+ *
+ * Black Issue (2026-10-07): the screen masthead (wordmark, breadcrumb,
+ * statement) is drawn by ConciergeScreen; this component draws the briefing
+ * card — red "A" avatar + mono meta, red "YOUR NEXT MOVE" eyebrow, the command
+ * — and the outlined follow-up chips. The reference's HYDRATION / EXPOSURE /
+ * TRAVEL rows, bold summary sentence, SOURCES rows and spoken-briefing player
+ * have no producer today (openingLogic yields one command, one reason, one
+ * recheck clock, one suggested question) and are not drawn.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { af, afLayout, afType } from '@/theme';
 import { Icon } from '@/components/Icon';
-import { AFDisclosureSheet } from '@/components/ui';
+import { AFDisclosureSheet, AFSectionLabel } from '@/components/ui';
+import { AFCard } from '@/components/ui/AFCard';
+import { AF_WORDMARK } from '@/components/ui/AFMasthead';
 import { DataBehindThisSheet } from '@/components/DataBehindThisSheet';
 import { gatherDataBehindSignals } from '@/utils/confidence/gatherDataBehindSignals';
 import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import type { ConciergeClientContext } from '@/services/concierge/conciergeTypes';
 import type { ProviderBiometrics, CommandConfidenceLevel } from '@/types';
+import { ConciergeAvatar, ConciergePill } from './conciergeKit';
+import { formatTurnTime } from './conciergePresentation';
 import { firstSentence, pickSuggestedQuestion, recheckMinutesFrom, SUGGESTED_KEYS, type SuggestedKey } from './openingLogic';
 
 export interface ConciergeOpeningProps {
@@ -51,73 +64,61 @@ export function ConciergeOpening({ context, biometrics, confidence, onAsk, onPic
   const recheck = recheckMinutesFrom(context);
   const suggested = pickSuggestedQuestion(context);
   const signals = React.useMemo(() => gatherDataBehindSignals(biometrics), [biometrics]);
+  // The reading's own clock (the context a turn would send), never a made-up time.
+  const readTime = formatTurnTime(context.localTime.iso, context.locale);
+  const metaLine = [AF_WORDMARK, readTime].filter(Boolean).join(' · ');
 
   return (
     <View style={styles.wrap} testID={testID}>
-      <Text style={[styles.eyebrow, eyebrowType]} accessibilityRole="header">
-        {t('concierge.opening.title').toUpperCase()}
-      </Text>
-
-      {parsed ? (
-        <View style={styles.command} testID={`${testID}-command`}>
-          <Text style={styles.commandTitle}>{parsed.title}</Text>
-          {parsed.instruction ? <Text style={styles.commandInstruction}>{parsed.instruction}</Text> : null}
-          {reason ? <Text style={styles.reason}>{reason}</Text> : null}
-          {recheck ? (
-            <Text style={styles.recheck}>{t('concierge.opening.recheck', { minutes: recheck })}</Text>
-          ) : null}
+      <AFCard style={styles.card} testID={parsed ? `${testID}-command` : undefined}>
+        <View style={styles.metaRow}>
+          <ConciergeAvatar />
+          <Text style={[styles.meta, eyebrowType]}>{metaLine}</Text>
         </View>
-      ) : (
-        <Text style={styles.noCommand} testID={`${testID}-no-command`}>{t('concierge.opening.no_command')}</Text>
-      )}
 
-      <View style={styles.actionsRow}>
         {parsed ? (
-          <Pressable
-            onPress={() => setWhyOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={t('concierge.why_this')}
-            style={styles.linkBtn}
-            hitSlop={8}
-            testID={`${testID}-why`}
-          >
-            <Text style={styles.link}>{t('concierge.why_this')}</Text>
-          </Pressable>
-        ) : null}
-        {parsed ? <Text style={styles.dot}>·</Text> : null}
-        <Pressable
-          onPress={onAsk}
-          accessibilityRole="button"
-          accessibilityLabel={t('concierge.opening.ask')}
-          style={styles.linkBtn}
-          hitSlop={8}
-          testID={`${testID}-ask`}
-        >
-          <Text style={styles.link}>{t('concierge.opening.ask')}</Text>
-        </Pressable>
+          <View style={styles.command}>
+            <Text style={[styles.eyebrow, eyebrowType]} accessibilityRole="header">
+              {t('concierge.opening.title')}
+            </Text>
+            <Text style={styles.commandTitle}>{parsed.title}</Text>
+            {parsed.instruction ? <Text style={styles.commandInstruction}>{parsed.instruction}</Text> : null}
+            {reason ? <Text style={styles.reason}>{reason}</Text> : null}
+            {recheck ? (
+              <Text style={[styles.recheck, eyebrowType]}>{t('concierge.opening.recheck', { minutes: recheck })}</Text>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.noCommand} testID={`${testID}-no-command`}>{t('concierge.opening.no_command')}</Text>
+        )}
+
+        <View style={styles.actionsRow}>
+          {parsed ? (
+            <ConciergePill
+              label={t('concierge.why_this')}
+              onPress={() => setWhyOpen(true)}
+              testID={`${testID}-why`}
+            />
+          ) : null}
+          <ConciergePill
+            label={t('concierge.opening.ask')}
+            onPress={onAsk}
+            testID={`${testID}-ask`}
+          />
+        </View>
+      </AFCard>
+
+      <View style={styles.followUp}>
+        <AFSectionLabel label={t('concierge.opening.follow_up')} rule={false} />
       </View>
-
-      <View style={styles.rule} />
-
-      <Pressable
-        onPress={() => onPickQuestion(t(`concierge.suggested.${suggested}`))}
-        accessibilityRole="button"
-        accessibilityLabel={t(`concierge.suggested.${suggested}`)}
-        style={styles.suggestionRow}
-        testID={`${testID}-suggested-${suggested}`}
-      >
-        <Text style={styles.suggestion}>{t(`concierge.suggested.${suggested}`)}</Text>
-        <Icon name="arrow-up-right" size={16} color={af.textSecondary} />
-      </Pressable>
-
-      <View style={styles.footerRow}>
-        <Pressable onPress={() => setMoreOpen(true)} accessibilityRole="button" accessibilityLabel={t('concierge.opening.more')} hitSlop={8} style={styles.linkBtn} testID={`${testID}-more`}>
-          <Text style={styles.linkQuiet}>{t('concierge.opening.more')}</Text>
-        </Pressable>
-        <Text style={styles.dot}>·</Text>
-        <Pressable onPress={onPersonalize} accessibilityRole="button" accessibilityLabel={t('concierge.opening.personalize')} hitSlop={8} style={styles.linkBtn} testID={`${testID}-personalize`}>
-          <Text style={styles.linkQuiet}>{t('concierge.opening.personalize')}</Text>
-        </Pressable>
+      <View style={styles.chips}>
+        <ConciergePill
+          label={t(`concierge.suggested.${suggested}`)}
+          onPress={() => onPickQuestion(t(`concierge.suggested.${suggested}`))}
+          testID={`${testID}-suggested-${suggested}`}
+        />
+        <ConciergePill label={t('concierge.opening.more')} onPress={() => setMoreOpen(true)} tone="quiet" testID={`${testID}-more`} />
+        <ConciergePill label={t('concierge.opening.personalize')} onPress={onPersonalize} tone="quiet" testID={`${testID}-personalize`} />
       </View>
 
       <DataBehindThisSheet visible={whyOpen} onDismiss={() => setWhyOpen(false)} confidence={confidence} signals={signals} />
@@ -147,23 +148,21 @@ export function ConciergeOpening({ context, biometrics, confidence, onAsk, onPic
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingTop: 12, gap: 14 },
-  eyebrow: { ...afType.eyebrow, color: af.textTertiary },
+  wrap: { paddingTop: 16, gap: 14 },
+  // The reference's briefing card carries a red rule down its left edge.
+  card: { borderLeftWidth: 2, borderLeftColor: af.red, gap: 14 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  meta: { ...afType.micro, color: af.textTertiary, flexShrink: 1 },
+  eyebrow: { ...afType.eyebrow, color: af.redText, textTransform: 'uppercase' },
+  followUp: { marginTop: 10 },
   command: { gap: 8 },
-  commandTitle: { ...afType.displayHero, color: af.textPrimary },
+  commandTitle: { ...afType.title2, color: af.textPrimary },
   commandInstruction: { ...afType.title3, color: af.textPrimary },
-  reason: { ...afType.body, color: af.textSecondary, marginTop: 4 },
-  recheck: { ...afType.caption, color: af.textTertiary },
+  reason: { ...afType.secondary, color: af.textSecondary },
+  recheck: { ...afType.eyebrow, color: af.textTertiary, textTransform: 'uppercase' },
   noCommand: { ...afType.title3, color: af.textSecondary },
-  actionsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 },
-  linkBtn: { minHeight: afLayout.controlMinHeight, justifyContent: 'center' },
-  link: { ...afType.bodyStrong, color: af.textPrimary },
-  linkQuiet: { ...afType.secondary, color: af.textSecondary },
-  dot: { ...afType.secondary, color: af.textTertiary },
-  rule: { height: afLayout.hairline, backgroundColor: af.divider, marginTop: 6 },
-  suggestionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: afLayout.controlMinHeight + 8 },
-  suggestion: { ...afType.body, color: af.textPrimary, flex: 1 },
-  footerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 10 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   moreList: { gap: 2 },
   moreRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, minHeight: afLayout.controlMinHeight + 8, borderBottomWidth: afLayout.hairline, borderBottomColor: af.divider },
   moreText: { ...afType.body, color: af.textPrimary, flex: 1 },

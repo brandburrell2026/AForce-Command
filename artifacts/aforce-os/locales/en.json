@@ -1483,10 +1483,12 @@
     "v3": {
       "eyebrow": "WEEKLY REPORT",
       "title": "Week in Review",
+      "title_stop": ".",
       "generated_today": "Generated today",
       "pa_label": "PERFORMANCE AGE™",
       "pa_years": "yrs",
       "pa_provisional": "Provisional",
+      "pa_no_change": "No change",
       "pa_collecting": "Daily history is still accruing — movement unlocks after a full week of check-ins.",
       "pa_scale": "Fixed scale · {{min}}–{{max}} yrs",
       "pa_bars_a11y": "Performance Age by day: {{days}}. Chart scale {{min}} to {{max}} years.",
@@ -2793,6 +2795,24 @@
     "title": "AForce Concierge",
     "eyebrow": "Concierge",
     "opening_line": "Your day. Your next move.",
+    "masthead": {
+      "ask_crumb": "AI Concierge / Ask AForce",
+      "opening_crumb": "AI Concierge / Today",
+      "ask_title": "Ask once. Move clearly."
+    },
+    "context": {
+      "label": "Context",
+      "state": "HydroState {{score}} · {{level}}",
+      "intake": "{{oz}} of {{target}} oz today",
+      "intake_logged": "{{oz}} oz today"
+    },
+    "reply": {
+      "you": "You",
+      "sources": "Sources",
+      "source_aware": "Source-aware"
+    },
+    "ask_next": "Ask next",
+    "recent": "Recent",
     "entry_title": "AForce Concierge",
     "entry_sub": "Your day. Your next move.",
     "entry_cta": "Ask",
@@ -2960,6 +2980,7 @@
       "ask": "Ask a question",
       "more": "More questions",
       "personalize": "Personalize",
+      "follow_up": "Ask a follow-up",
       "recheck": "Recheck in {{minutes}} min",
       "no_command": "No current move yet. Log your first water and the next move appears here."
     }

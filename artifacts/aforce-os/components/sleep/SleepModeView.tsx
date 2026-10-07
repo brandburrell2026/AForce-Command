@@ -4,15 +4,29 @@
  * Renders a fully-resolved `SleepModeView` (see services/sleep/sleepModeView).
  * No store, flag, navigation, or data access — everything arrives via props, so
  * it is testable in isolation (render harness) and can never enable a gated
- * feature. Within-brand palette only (af.* tokens): Cinematic Black canvas,
- * cyan/teal as the calm recovery accent, green connected, amber caution, Signal
- * Red for error/disconnected only. Reduced-motion aware; 44×44 targets; Dynamic
- * Type (display numerals clamped, body text unclamped); color-independent status.
+ * feature.
+ *
+ * Black Issue (PR 4, 2026-10-07): AFMasthead, the current-state numeral over a
+ * red progress hairline, the recovery metric row, the sleep-target plan card,
+ * the one red protocol CTA, then the existing recovery / health source /
+ * protocol checklist / lifecycle / guidance sections as AFSectionLabel +
+ * hairline rows (relocated, never dropped). Status colours (health chip,
+ * recovery posture dot) stay system-sourced (D3). Sleep data is never
+ * fabricated: an absent night renders the resolver's em-dash / "no signal"
+ * treatment and an empty progress track, never a zero. Reduced-motion aware
+ * (nothing animates here; the prop is retained for the container contract);
+ * 44pt targets; Dynamic Type (display numerals clamped, body text unclamped);
+ * colour-independent status.
  */
 import React from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
-import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { Icon } from '@/components/Icon';
+import { af, afType, afLayout, afAlpha, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { Icon, type IconName } from '@/components/Icon';
+import { AFMasthead } from '@/components/ui/AFMasthead';
+import { AFSectionLabel } from '@/components/ui/AFSectionLabel';
+import { AFCard } from '@/components/ui/AFCard';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import type {
   SleepModeView as SleepModeVM,
   HealthChip,
@@ -53,32 +67,73 @@ const POSTURE_COLOR: Record<RecoveryPosture, string> = {
   connect: af.textSecondary,
 };
 
+// ─── Small primitives ────────────────────────────────────────────────────────
+
+/** Black Issue section: red mono eyebrow over a hairline, then the content. */
+function SectionBlock({
+  label, meta, children, testID,
+}: { label: string; meta?: string; children: React.ReactNode; testID?: string }) {
+  return (
+    <View style={styles.section} testID={testID}>
+      <AFSectionLabel label={label} meta={meta} />
+      <View style={styles.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * The Black Issue CTA shape (red fill, label left, "+" flush right, 52pt min,
+ * radius 10) as a plain Pressable. AFButton is not imported because it rides
+ * AFMotionPressable → reanimated, which the non-shipping render harness cannot
+ * load (same finding as the Cruise restyle, PR 3). The container fires the
+ * haptic, so nothing is lost.
+ */
+function CtaButton({
+  label, onPress, trailingIcon, testID,
+}: { label: string; onPress: () => void; trailingIcon?: IconName; testID: string }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      testID={testID}
+      style={({ pressed }) => [styles.ctaBtn, pressed && styles.ctaBtnPressed]}
+    >
+      <Text style={styles.ctaLabel}>{label}</Text>
+      {trailingIcon ? <Icon name={trailingIcon} size={18} color={af.onRed} /> : null}
+    </Pressable>
+  );
+}
+
+// ─── Root ────────────────────────────────────────────────────────────────────
+
 export function SleepModeView({
-  view, reducedMotion, editingTarget, targetDraft,
+  view, editingTarget, targetDraft,
   onBack, onEditTarget, onChangeTargetDraft, onSaveTarget,
   onToggleChecklist, onPrimaryCta, onHealthCta, onChecklistLayout,
 }: SleepModeViewProps) {
   const { header, hero, target, recovery, health, checklist, lifecycle, guidance, mode, gatedNotice } = view;
+  const gutter = useAFGutter();
+  const eyebrowType = useAFEyebrowType();
+  const ring = hero.ring;
+  // The numeral + its caption + the phase word are ONE spoken element; the
+  // progress track is decoration (the number is the information).
+  const heroSpoken = `${hero.eyebrow}: ${hero.state}. ${ring.caption}: ${ring.valueLabel}`;
 
   return (
-    <View style={styles.root} testID="sleep-mode-view">
-      {/* 1 · Header */}
-      <View style={styles.header}>
-        <Pressable onPress={onBack} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back" style={styles.iconBtn}>
-          <Icon name="chevron-left" size={22} color={af.textPrimary} />
-        </Pressable>
-        <View style={styles.headerCenter}>
-          <View style={styles.headerTitleRow}>
-            <Icon name="moon" size={14} color={af.cyan} />
-            <Text style={styles.headerTitle} accessibilityRole="header">{header.title}</Text>
-          </View>
-          <Text style={styles.headerTagline}>{header.tagline}</Text>
-        </View>
-        <View style={styles.iconBtn} />
-      </View>
+    <View style={[styles.root, { paddingHorizontal: gutter }]} testID="sleep-mode-view">
+      {/* 1 · Masthead — wordmark, breadcrumb, statement, quiet line. Every
+          string is the existing header / hero copy (relocated, not rewritten). */}
+      <AFMasthead
+        breadcrumb={header.title}
+        title={header.tagline}
+        subtitle={hero.description}
+        onBack={onBack}
+        testID="sleep"
+      />
 
-      {/* Kill switch (sleep_mode_enabled) — legacy-banner parity. Rendered FIRST
-          and loud so the gated state is never silent; text carries the meaning
+      {/* Kill switch (sleep_mode_enabled) — legacy-banner parity. Rendered
+          loud so the gated state is never silent; text carries the meaning
           (color-independent), amber signals caution. */}
       {gatedNotice ? (
         <View
@@ -89,7 +144,7 @@ export function SleepModeView({
           accessibilityLabel={gatedNotice}
         >
           <Icon name="alert-triangle" size={14} color={af.amber} />
-          <Text style={styles.gatedBannerText}>{gatedNotice}</Text>
+          <Text style={[styles.gatedBannerText, eyebrowType]}>{gatedNotice}</Text>
         </View>
       ) : null}
 
@@ -104,26 +159,45 @@ export function SleepModeView({
         </View>
       ) : null}
 
-      {/* 2 · Current-state hero */}
-      <View style={styles.heroCard} testID={`sleep-hero-${lifecycle.states[lifecycle.activeIndex]?.key ?? 'idle'}`}>
-        <View style={styles.heroLeft}>
-          <Text style={styles.eyebrow}>{hero.eyebrow}</Text>
-          <Text style={styles.heroState} accessibilityRole="header" maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-            {hero.state}
-          </Text>
-          <Text style={styles.heroDesc}>{hero.description}</Text>
+      {/* 2 · Current-state readout — caption, numeral, phase word, red hairline */}
+      <View style={styles.rule} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+      <View style={styles.hero} testID={`sleep-hero-${lifecycle.states[lifecycle.activeIndex]?.key ?? 'idle'}`}>
+        <View accessible accessibilityRole="text" accessibilityLabel={heroSpoken}>
+          <Text style={[styles.heroLabel, eyebrowType]}>{ring.caption}</Text>
+          <View style={styles.numeralRow}>
+            <Text style={styles.numeral} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE} testID="sleep-hero-value">
+              {ring.valueLabel}
+            </Text>
+            <View style={styles.stateCol}>
+              <Text style={[styles.stateEyebrow, eyebrowType]}>{hero.eyebrow}</Text>
+              <Text style={[styles.stateWord, eyebrowType]}>{hero.state}</Text>
+            </View>
+          </View>
         </View>
-        <SleepRing
-          kind={hero.ring.kind}
-          valueLabel={hero.ring.valueLabel}
-          caption={hero.ring.caption}
-          progress={hero.ring.progress}
-          reducedMotion={reducedMotion}
-        />
+        {/* Honest progress: an absent signal has progress 0 → an empty track. */}
+        <View style={styles.track} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[styles.trackFill, { width: `${Math.round(ring.progress * 100)}%` }]} />
+        </View>
       </View>
 
-      {/* 3 · Sleep target */}
-      <Card label="SLEEP TARGET">
+      {/* 3 · Recovery metric row — real values only (resolver contract) */}
+      {recovery.metrics.length > 0 ? (
+        <View style={styles.metricRow}>
+          {recovery.metrics.map((m) => (
+            <View key={m.label} style={styles.metric} accessible accessibilityLabel={`${m.label}: ${m.value}`}>
+              <Text style={[styles.metricLabel, eyebrowType]}>{m.label}</Text>
+              <Text style={styles.metricValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{m.value}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.metricEmpty}>No recovery metrics available yet.</Text>
+      )}
+
+      {/* 4 · Sleep target — the plan card (red eyebrow + the existing plan sentence) */}
+      <AFCard style={styles.planCard} testID="sleep-target-card">
+        <AFSectionLabel label="Sleep target" rule={false} />
+        <Text style={styles.planSentence}>{target.countdownCopy}</Text>
         {editingTarget ? (
           <View style={styles.targetEditRow}>
             <TextInput
@@ -139,7 +213,7 @@ export function SleepModeView({
               maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
             />
             <Pressable onPress={onSaveTarget} style={styles.saveBtn} accessibilityRole="button" accessibilityLabel="Save sleep target">
-              <Text style={styles.saveBtnText}>SAVE</Text>
+              <Text style={[styles.saveBtnText, eyebrowType]}>SAVE</Text>
             </Pressable>
           </View>
         ) : (
@@ -152,10 +226,9 @@ export function SleepModeView({
             testID="sleep-target-edit"
           >
             <Text style={styles.targetTime} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{target.timeLabel}</Text>
-            <View style={styles.editChip}><Text style={styles.editChipText}>EDIT TARGET</Text></View>
+            <View style={styles.editChip}><Text style={[styles.editChipText, eyebrowType]}>EDIT TARGET</Text></View>
           </Pressable>
         )}
-        <Text style={styles.targetCopy}>{target.countdownCopy}</Text>
         {/* timeline */}
         <View style={styles.timeline} accessibilityLabel={`Now to ${target.timeline.targetLabel}`}>
           <View style={styles.timelineTrack}>
@@ -168,31 +241,25 @@ export function SleepModeView({
             <Text style={styles.timelineLabel}>{target.timeline.targetLabel}</Text>
           </View>
         </View>
-      </Card>
+      </AFCard>
 
-      {/* 4 · Recovery readiness */}
-      <Card label="RECOVERY READINESS">
+      {/* 5 · The one red CTA — same action and label as before; the protocol
+          checklist it points at follows below. */}
+      <View style={styles.cta}>
+        <CtaButton label={checklist.primaryCtaLabel} onPress={onPrimaryCta} trailingIcon="plus" testID="sleep-primary-cta" />
+      </View>
+
+      {/* 6 · Recovery readiness — posture + interpretation (metrics sit above) */}
+      <SectionBlock label="Recovery readiness">
         <View style={styles.postureRow}>
           <View style={[styles.dot, { backgroundColor: POSTURE_COLOR[recovery.posture] }]} />
-          <Text style={styles.confidenceLabel}>{recovery.confidenceLabel}</Text>
+          <Text style={[styles.confidenceLabel, eyebrowType]}>{recovery.confidenceLabel}</Text>
         </View>
         <Text style={styles.interpretation}>{recovery.interpretation}</Text>
-        {recovery.metrics.length > 0 ? (
-          <View style={styles.metricRow}>
-            {recovery.metrics.map((m) => (
-              <View key={m.label} style={styles.metric} accessible accessibilityLabel={`${m.label}: ${m.value}`}>
-                <Text style={styles.metricValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{m.value}</Text>
-                <Text style={styles.metricLabel}>{m.label}</Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.metricEmpty}>No recovery metrics available yet.</Text>
-        )}
-      </Card>
+      </SectionBlock>
 
-      {/* 5 · Health source */}
-      <Card label="HEALTH SOURCE">
+      {/* 7 · Health source */}
+      <SectionBlock label="Health source">
         <View style={styles.healthRow}>
           <View style={styles.healthLeft}>
             <Text style={styles.healthProvider}>{health.provider}</Text>
@@ -207,49 +274,37 @@ export function SleepModeView({
           <Text style={styles.healthCtaText}>{health.ctaLabel}</Text>
           <Icon name="chevron-right" size={16} color={af.textSecondary} />
         </Pressable>
-      </Card>
+      </SectionBlock>
 
-      {/* 6 · Pre-sleep protocol checklist */}
+      {/* 8 · Pre-sleep protocol checklist */}
       <View onLayout={(e) => onChecklistLayout?.(e.nativeEvent.layout.y)}>
-      <Card label="PRE-SLEEP PROTOCOL">
-        <View style={styles.progressRow}>
-          <Text style={styles.progressLabel}>{checklist.progressLabel}</Text>
-        </View>
-        <View style={styles.checklist}>
-          {checklist.items.map((item) => (
-            <Pressable
-              key={item.id}
-              onPress={() => onToggleChecklist(item.id)}
-              style={styles.checkItem}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: item.done }}
-              accessibilityLabel={`${item.label}${item.target ? `, ${item.target}` : ''}`}
-              testID={`sleep-check-${item.id}`}
-            >
-              <View style={[styles.checkbox, item.done && styles.checkboxDone]}>
-                {item.done ? <Icon name="check" size={14} color={af.canvas} /> : <Icon name={item.icon} size={15} color={af.textSecondary} />}
-              </View>
-              <View style={styles.checkTextWrap}>
-                <Text style={[styles.checkLabel, item.done && styles.checkLabelDone]}>{item.label}</Text>
-                {item.target ? <Text style={styles.checkTarget}>{item.target}</Text> : null}
-              </View>
-              {item.primary ? <View style={styles.primaryTag}><Text style={styles.primaryTagText}>PRIMARY</Text></View> : null}
-            </Pressable>
-          ))}
-        </View>
-        <Pressable
-          onPress={onPrimaryCta}
-          style={styles.primaryCta}
-          accessibilityRole="button"
-          accessibilityLabel={checklist.primaryCtaLabel}
-          testID="sleep-primary-cta"
-        >
-          <Text style={styles.primaryCtaText}>{checklist.primaryCtaLabel}</Text>
-        </Pressable>
-      </Card>
+        <SectionBlock label="Pre-sleep protocol" meta={checklist.progressLabel}>
+          <View>
+            {checklist.items.map((item, i) => (
+              <Pressable
+                key={item.id}
+                onPress={() => onToggleChecklist(item.id)}
+                style={[styles.checkItem, i > 0 && styles.checkItemRuled]}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: item.done }}
+                accessibilityLabel={`${item.label}${item.target ? `, ${item.target}` : ''}`}
+                testID={`sleep-check-${item.id}`}
+              >
+                <View style={[styles.checkbox, item.done && styles.checkboxDone]}>
+                  {item.done ? <Icon name="check" size={14} color={af.canvas} /> : <Icon name={item.icon as IconName} size={15} color={af.textSecondary} />}
+                </View>
+                <View style={styles.checkTextWrap}>
+                  <Text style={[styles.checkLabel, item.done && styles.checkLabelDone]}>{item.label}</Text>
+                  {item.target ? <Text style={styles.checkTarget}>{item.target}</Text> : null}
+                </View>
+                {item.primary ? <View style={styles.primaryTag}><Text style={[styles.primaryTagText, eyebrowType]}>PRIMARY</Text></View> : null}
+              </Pressable>
+            ))}
+          </View>
+        </SectionBlock>
       </View>
 
-      {/* 7 · Lifecycle indicator (system-derived — not tabs) */}
+      {/* 9 · Lifecycle indicator (system-derived — not tabs) */}
       <View style={styles.lifecycle} accessibilityLabel={`Sleep lifecycle, current: ${lifecycle.states[lifecycle.activeIndex]?.label}`}>
         {lifecycle.states.map((s) => (
           <View key={s.key} style={styles.lifecycleItem}>
@@ -259,9 +314,9 @@ export function SleepModeView({
         ))}
       </View>
 
-      {/* 8 · Guidance */}
+      {/* 10 · Guidance */}
       <View style={styles.guidance}>
-        <Text style={styles.guidanceTitle}>{guidance.title}</Text>
+        <Text style={[styles.guidanceTitle, eyebrowType]}>{guidance.title}</Text>
         <Text style={styles.guidanceBody}>{guidance.body}</Text>
         <Text style={styles.guidanceSecondary}>{guidance.secondary}</Text>
       </View>
@@ -269,136 +324,110 @@ export function SleepModeView({
   );
 }
 
-function Card({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.card}>
-      <Text style={styles.cardLabel} accessibilityRole="header">{label}</Text>
-      <View style={styles.cardBody}>{children}</View>
-    </View>
-  );
-}
-
-function SleepRing({
-  kind, valueLabel, caption, progress, reducedMotion,
-}: { kind: 'countdown' | 'readiness' | 'none'; valueLabel: string; caption: string; progress: number; reducedMotion: boolean }) {
-  // View-based ring (no SVG) so it renders in the harness. Reduced-motion has no
-  // effect on a still ring; the animated draw-in lives at the container edge.
-  const ringColor = kind === 'none' ? af.border : af.cyan;
-  return (
-    <View style={styles.ringWrap} accessible accessibilityLabel={`${caption}: ${valueLabel}`}>
-      <View style={[styles.ring, { borderColor: ringColor, opacity: kind === 'none' ? 0.5 : 1 }]}>
-        <Text style={styles.ringValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{valueLabel}</Text>
-      </View>
-      <Text style={styles.ringCaption}>{caption}</Text>
-      {!reducedMotion ? <View style={[styles.ringGlow, { opacity: 0.14 * progress }]} pointerEvents="none" /> : null}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { gap: afLayout.cardGap + 4, paddingHorizontal: afLayout.screenPaddingX, paddingBottom: 24 },
+  root: { paddingTop: 8, paddingBottom: 24 },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  iconBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  headerCenter: { alignItems: 'center', gap: 2 },
-  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  headerTitle: { ...afType.eyebrow, color: af.textPrimary, letterSpacing: 3 },
-  headerTagline: { ...afType.caption, color: af.textTertiary },
+  rule: { height: afLayout.hairline, backgroundColor: af.divider, marginVertical: 20 },
 
   gatedBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12,
-    borderWidth: 1, borderColor: 'rgba(255,160,30,0.4)', backgroundColor: 'rgba(255,160,30,0.08)',
+    flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16,
+    paddingVertical: 10, paddingHorizontal: 14, borderRadius: afLayout.radiusCard, minHeight: 44,
+    borderWidth: 1, borderColor: withAlpha(af.amber, afAlpha.a50), backgroundColor: withAlpha(af.amber, afAlpha.a08),
   },
-  gatedBannerText: { ...afType.eyebrow, fontSize: 10, color: af.amber, flex: 1 },
+  gatedBannerText: { ...afType.eyebrow, color: af.amber, flex: 1 },
 
-  shell: { padding: 16, borderRadius: afLayout.radiusCard, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  shellError: { borderColor: af.redHairline, backgroundColor: af.redDim },
+  shell: {
+    marginTop: 16, padding: 16, borderRadius: afLayout.radiusCard, borderWidth: 1,
+    borderColor: af.border, backgroundColor: af.surface, flexDirection: 'row', alignItems: 'center', gap: 10,
+  },
+  shellError: { borderColor: af.borderAlert, backgroundColor: af.surfaceAlert },
   shellText: { ...afType.secondary, color: af.textSecondary, flex: 1 },
 
-  heroCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 16,
-    padding: afLayout.cardPaddingLarge, borderRadius: afLayout.radiusHero,
-    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface,
-  },
-  heroLeft: { flex: 1, gap: 6 },
-  eyebrow: { ...afType.eyebrow, color: af.cyan },
-  heroState: { ...afType.title1, color: af.textPrimary },
-  heroDesc: { ...afType.secondary, color: af.textSecondary },
+  // Current-state readout
+  hero: {},
+  heroLabel: { ...afType.eyebrow, color: af.textTertiary },
+  numeralRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', columnGap: 16, rowGap: 4, marginTop: 8 },
+  numeral: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
+  stateCol: { paddingBottom: 10, gap: 4, flexShrink: 1 },
+  stateEyebrow: { ...afType.micro, color: af.textTertiary },
+  stateWord: { ...afType.eyebrow, color: af.textSecondary },
+  track: { height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 20 },
+  trackFill: { height: 4, borderRadius: 2, backgroundColor: af.red },
 
-  ringWrap: { width: 92, alignItems: 'center', gap: 6 },
-  ring: { width: 84, height: 84, borderRadius: 42, borderWidth: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: af.canvasElevated },
-  ringValue: { ...afType.title3, color: af.textPrimary },
-  ringCaption: { ...afType.eyebrow, color: af.textTertiary, textAlign: 'center' },
-  ringGlow: { position: 'absolute', width: 92, height: 92, borderRadius: 46, backgroundColor: af.cyan, top: -4 },
+  // Metric row
+  metricRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28, rowGap: 16, marginTop: 28 },
+  metric: { gap: 6, flexShrink: 1 },
+  metricLabel: { ...afType.micro, color: af.textTertiary, textTransform: 'uppercase' },
+  metricValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  metricEmpty: { ...afType.secondary, color: af.textTertiary, marginTop: 28 },
 
-  card: { gap: 8 },
-  cardLabel: { ...afType.eyebrow, color: af.textTertiary },
-  cardBody: {
-    padding: afLayout.cardPaddingLarge, borderRadius: afLayout.radiusCard,
-    borderWidth: 1, borderColor: af.border, backgroundColor: af.surface, gap: 12,
-  },
-
-  targetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  // Plan card
+  planCard: { marginTop: 28, gap: 12 },
+  planSentence: { ...afType.bodyStrong, color: af.textPrimary },
+  targetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 12, rowGap: 8, minHeight: 44 },
   targetEditRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  targetTime: { ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary },
+  targetTime: { ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
   targetInput: { flex: 1, ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary, paddingVertical: 0 },
   editChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, minHeight: 44, justifyContent: 'center' },
   editChipText: { ...afType.eyebrow, color: af.textSecondary },
-  saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.cyan, minHeight: 44, justifyContent: 'center' },
-  saveBtnText: { ...afType.eyebrow, color: af.canvas },
-  targetCopy: { ...afType.secondary, color: af.textSecondary },
+  saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.red, minHeight: 44, justifyContent: 'center' },
+  saveBtnText: { ...afType.eyebrow, color: af.onRed },
   timeline: { gap: 6, marginTop: 4 },
-  timelineTrack: { height: 6, borderRadius: 3, backgroundColor: af.surfaceRaised, justifyContent: 'center' },
-  timelineFill: { position: 'absolute', left: 0, height: 6, borderRadius: 3, backgroundColor: af.cyan },
-  timelineDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: af.textPrimary, marginLeft: -6, top: -3 },
-  timelineLabels: { flexDirection: 'row', justifyContent: 'space-between' },
-  timelineLabel: { ...afType.caption, color: af.textTertiary },
+  timelineTrack: { height: 4, borderRadius: 2, backgroundColor: af.divider, justifyContent: 'center' },
+  timelineFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: af.red },
+  timelineDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: af.textPrimary, marginLeft: -6, top: -4 },
+  timelineLabels: { flexDirection: 'row', justifyContent: 'space-between', columnGap: 8 },
+  timelineLabel: { ...afType.caption, color: af.textTertiary, flexShrink: 1 },
+
+  // CTA
+  cta: { marginTop: 20 },
+  ctaBtn: {
+    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, paddingHorizontal: 20, paddingVertical: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12,
+    backgroundColor: af.red,
+  },
+  ctaBtnPressed: { opacity: 0.85 },
+  ctaLabel: { ...afType.bodyStrong, color: af.onRed, flexShrink: 1 },
+
+  // Sections
+  section: { marginTop: 32 },
+  sectionBody: { marginTop: 14, gap: 12 },
 
   postureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  confidenceLabel: { ...afType.eyebrow, color: af.textSecondary },
+  confidenceLabel: { ...afType.eyebrow, color: af.textSecondary, flexShrink: 1 },
   interpretation: { ...afType.body, color: af.textPrimary },
-  metricRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 20 },
-  metric: { gap: 2 },
-  metricValue: { ...afType.title3, color: af.textPrimary },
-  metricLabel: { ...afType.caption, color: af.textTertiary },
-  metricEmpty: { ...afType.secondary, color: af.textTertiary },
 
   healthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   healthLeft: { flex: 1, gap: 2 },
   healthProvider: { ...afType.bodyStrong, color: af.textPrimary },
   healthFreshness: { ...afType.caption, color: af.textTertiary },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: afLayout.radiusPill, borderWidth: 1 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: afLayout.radiusPill, borderWidth: 1, flexShrink: 1 },
   chipDot: { width: 6, height: 6, borderRadius: 3 },
-  chipText: { ...afType.caption, fontSize: 12 },
-  healthCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, borderTopWidth: 1, borderTopColor: af.divider, paddingTop: 10 },
+  chipText: { ...afType.caption, fontSize: 12, flexShrink: 1 },
+  healthCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, borderTopWidth: 1, borderTopColor: af.divider },
   healthCtaText: { ...afType.secondary, color: af.textSecondary },
 
-  progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  progressLabel: { ...afType.eyebrow, color: af.cyan },
-  checklist: { gap: 8 },
-  checkItem: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 },
+  checkItem: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 6 },
+  checkItemRuled: { borderTopWidth: 1, borderTopColor: af.divider },
   checkbox: { width: 32, height: 32, borderRadius: 10, borderWidth: 1, borderColor: af.border, alignItems: 'center', justifyContent: 'center', backgroundColor: af.canvasElevated },
-  checkboxDone: { backgroundColor: af.cyan, borderColor: af.cyan },
+  checkboxDone: { backgroundColor: af.textPrimary, borderColor: af.textPrimary },
   checkTextWrap: { flex: 1, gap: 1 },
   checkLabel: { ...afType.bodyStrong, color: af.textPrimary },
   checkLabelDone: { color: af.textSecondary, textDecorationLine: 'line-through' },
   checkTarget: { ...afType.caption, color: af.textTertiary },
-  primaryTag: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: afLayout.radiusPill, backgroundColor: af.surfaceRaised },
-  primaryTagText: { ...afType.eyebrow, fontSize: 9, color: af.cyan },
-  primaryCta: { minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, backgroundColor: af.cyan, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  primaryCtaText: { ...afType.bodyStrong, color: af.canvas, letterSpacing: 0.5 },
+  primaryTag: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border },
+  primaryTagText: { ...afType.micro, color: af.textSecondary },
 
-  lifecycle: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, paddingVertical: 8 },
+  lifecycle: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, marginTop: 24 },
   lifecycleItem: { alignItems: 'center', gap: 6, flex: 1 },
   lifecycleDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: af.border },
-  lifecycleDotActive: { backgroundColor: af.cyan, width: 10, height: 10, borderRadius: 5 },
+  lifecycleDotActive: { backgroundColor: af.red, width: 10, height: 10, borderRadius: 5 },
   lifecycleDotDone: { backgroundColor: af.textTertiary },
-  lifecycleLabel: { ...afType.caption, fontSize: 10, color: af.textTertiary, textAlign: 'center' },
+  lifecycleLabel: { ...afType.micro, color: af.textTertiary, textAlign: 'center' },
   lifecycleLabelActive: { color: af.textPrimary },
 
-  guidance: { padding: 16, borderRadius: afLayout.radiusCard, borderWidth: 1, borderColor: af.divider, backgroundColor: af.canvasElevated, gap: 6 },
+  guidance: { marginTop: 24, paddingTop: 16, borderTopWidth: 1, borderTopColor: af.divider, gap: 6 },
   guidanceTitle: { ...afType.eyebrow, color: af.textTertiary },
   guidanceBody: { ...afType.caption, color: af.textSecondary, lineHeight: 18 },
   guidanceSecondary: { ...afType.caption, color: af.textTertiary },
