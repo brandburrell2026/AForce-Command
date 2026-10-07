@@ -1,8 +1,13 @@
 /**
  * AFButton family (spec §5):
  *   AFPrimaryButton   — red fill, on-red label; loading + disabled states
- *   AFSecondaryButton — transparent, bordered
+ *   AFSecondaryButton — card-surface fill, hairline border
  *   AFTextButton      — tertiary / disclosure action
+ *
+ * Black Issue: a button with a `trailingIcon` (the reference CTAs carry a "+"
+ * flush right) lays its label out left-aligned with the glyph at the far
+ * edge; without one the label stays centered, so existing call sites are
+ * unchanged.
  *
  * Interaction phase (disabled > loading > pressed > default) is resolved by the
  * pure `buttonPhase` helper so the precedence is tested, not implicit.
@@ -28,6 +33,8 @@ export interface AFButtonProps {
   disabled?: boolean;
   loading?: boolean;
   icon?: IconName;
+  /** Glyph at the far right edge; switches the label to left-aligned. */
+  trailingIcon?: IconName;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -49,7 +56,7 @@ function useInert(disabled?: boolean, loading?: boolean) {
  * haptic. When OFF — or under reduced-motion — the press is the exact prior
  * behavior: only the `pressedStyle` opacity/tone changes, no scale, no haptic.
  */
-export function AFPrimaryButton({ label, onPress, disabled, loading, icon, style, testID }: AFButtonProps) {
+export function AFPrimaryButton({ label, onPress, disabled, loading, icon, trailingIcon, style, testID }: AFButtonProps) {
   const elite = useFeatureFlags().elite_motion_enabled;
   const { inert, a11y } = useInert(disabled, loading);
   return (
@@ -67,16 +74,17 @@ export function AFPrimaryButton({ label, onPress, disabled, loading, icon, style
       {loading ? (
         <ActivityIndicator color={af.onRed} />
       ) : (
-        <View style={styles.content}>
+        <View style={[styles.content, trailingIcon && styles.contentSpread]}>
           {icon && <Icon name={icon} size={16} color={af.onRed} />}
           <Text style={[styles.label, { color: af.onRed }]}>{label}</Text>
+          {trailingIcon && <Icon name={trailingIcon} size={18} color={af.onRed} />}
         </View>
       )}
     </AFMotionPressable>
   );
 }
 
-export function AFSecondaryButton({ label, onPress, disabled, loading, icon, style, testID }: AFButtonProps) {
+export function AFSecondaryButton({ label, onPress, disabled, loading, icon, trailingIcon, style, testID }: AFButtonProps) {
   const elite = useFeatureFlags().elite_motion_enabled;
   const { inert, a11y } = useInert(disabled, loading);
   return (
@@ -94,9 +102,10 @@ export function AFSecondaryButton({ label, onPress, disabled, loading, icon, sty
       {loading ? (
         <ActivityIndicator color={af.textPrimary} />
       ) : (
-        <View style={styles.content}>
+        <View style={[styles.content, trailingIcon && styles.contentSpread]}>
           {icon && <Icon name={icon} size={16} color={af.textPrimary} />}
           <Text style={[styles.label, { color: af.textPrimary }]}>{label}</Text>
+          {trailingIcon && <Icon name={trailingIcon} size={18} color={af.textPrimary} />}
         </View>
       )}
     </AFMotionPressable>
@@ -136,10 +145,12 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // Label left, trailing glyph flush right — the Black Issue CTA shape.
+  contentSpread: { alignSelf: 'stretch', justifyContent: 'space-between' },
   label: { ...afType.bodyStrong },
   primary: { backgroundColor: af.red },
   primaryPressed: { opacity: 0.85 },
-  secondary: { backgroundColor: 'transparent', borderWidth: 1, borderColor: af.border },
+  secondary: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border },
   secondaryPressed: { backgroundColor: af.surfacePressed },
   disabled: { opacity: 0.4 },
   textBtn: { alignSelf: 'flex-start', paddingVertical: 6 },

@@ -52,7 +52,7 @@ export function AFCommandCard({
   const [showWhy, setShowWhy] = React.useState(false);
   const reason = commandReasonLine(rationale);
   return (
-    <AFCard variant="raised" testID={testID}>
+    <AFCard variant="standard" testID={testID}>
       <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.instruction}>{instruction}</Text>
@@ -85,7 +85,8 @@ export function AFCommandCard({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { ...afType.eyebrow, color: af.textTertiary, marginBottom: 8 },
+  // Black Issue: the command eyebrow is red furniture ("YOUR NEXT MOVE").
+  eyebrow: { ...afType.eyebrow, color: af.redText, marginBottom: 8 },
   title: { ...afType.title1, color: af.textPrimary },
   instruction: { ...afType.body, color: af.textSecondary, marginTop: 6 },
   // Quieter than the instruction on purpose: the reason supports the command,

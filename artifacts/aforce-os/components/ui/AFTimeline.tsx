@@ -59,9 +59,12 @@ export function timelineStepA11yLabel(
     .join(', ');
 }
 
-const NODE: Record<AFTimelineStepState, { color: string; icon?: IconName; filled: boolean }> = {
-  completed: { color: af.green, icon: 'check', filled: true },
-  current: { color: af.red, filled: true },
+// Black Issue node language: done = filled ivory dot, current = red ring with
+// a red center dot, upcoming = hollow grey ring. Locked / hold keep their
+// glyphs so the state is never carried by colour alone (and it is spoken).
+const NODE: Record<AFTimelineStepState, { color: string; icon?: IconName; filled: boolean; dot?: boolean }> = {
+  completed: { color: af.textPrimary, filled: true },
+  current: { color: af.red, filled: false, dot: true },
   upcoming: { color: af.textTertiary, filled: false },
   locked: { color: af.textTertiary, icon: 'lock', filled: false },
   hold: { color: af.amber, icon: 'pause', filled: false },
@@ -92,8 +95,9 @@ export function AFTimeline({ steps, stateLabels, testID }: AFTimelineProps) {
                 ]}
               >
                 {node.icon && (
-                  <Icon name={node.icon} size={10} color={node.filled ? af.canvas : node.color} />
+                  <Icon name={node.icon} size={9} color={node.filled ? af.canvas : node.color} />
                 )}
+                {node.dot && <View style={[styles.dot, { backgroundColor: node.color }]} />}
               </View>
               {!isLast && <View style={styles.connector} />}
             </View>
@@ -102,7 +106,9 @@ export function AFTimeline({ steps, stateLabels, testID }: AFTimelineProps) {
                 <Text style={[emphasized ? styles.titleCurrent : styles.title]} numberOfLines={2}>
                   {step.title}
                 </Text>
-                {step.meta && <Text style={styles.meta}>{step.meta}</Text>}
+                {step.meta && (
+                  <Text style={[styles.meta, emphasized && styles.metaCurrent]}>{step.meta}</Text>
+                )}
               </View>
               {step.subtitle && (
                 <Text style={styles.subtitle} numberOfLines={2}>
@@ -117,24 +123,26 @@ export function AFTimeline({ steps, stateLabels, testID }: AFTimelineProps) {
   );
 }
 
-const NODE_SIZE = 20;
+const NODE_SIZE = 16;
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 12 },
-  rail: { alignItems: 'center', width: NODE_SIZE },
+  row: { flexDirection: 'row', gap: 14 },
+  rail: { alignItems: 'center', width: NODE_SIZE, paddingTop: 4 },
   node: {
     width: NODE_SIZE,
     height: NODE_SIZE,
     borderRadius: NODE_SIZE / 2,
-    borderWidth: 2,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  connector: { flex: 1, width: 2, backgroundColor: af.divider, marginVertical: 2 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  connector: { flex: 1, width: 1, backgroundColor: af.divider, marginVertical: 3 },
   content: { flex: 1, paddingBottom: 20 },
   contentLast: { paddingBottom: 0 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   title: { ...afType.body, color: af.textSecondary, flex: 1 },
   titleCurrent: { ...afType.bodyStrong, color: af.textPrimary, flex: 1 },
   subtitle: { ...afType.caption, color: af.textTertiary, marginTop: 2 },
-  meta: { ...afType.caption, color: af.textTertiary },
+  meta: { ...afType.micro, color: af.textTertiary, paddingTop: 4 },
+  metaCurrent: { color: af.redText },
 });

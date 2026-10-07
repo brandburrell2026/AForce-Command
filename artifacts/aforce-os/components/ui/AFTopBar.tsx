@@ -95,12 +95,17 @@ const styles = StyleSheet.create({
   // cannot push the trailing actions off the bar.
   titleGroup: { flex: 1 },
   trailing: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  eyebrow: { ...afType.eyebrow, color: af.textTertiary },
+  // Black Issue: the eyebrow is the red breadcrumb ("CRUISE MODE / SEA DAY").
+  eyebrow: { ...afType.eyebrow, color: af.redText },
   title: { ...afType.title2, color: af.textPrimary },
+  // 36pt circle + 8pt hitSlop = 52pt target; the hairline ring is the
+  // reference's back control.
   iconBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: af.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

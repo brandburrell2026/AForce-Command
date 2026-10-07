@@ -14,8 +14,9 @@
  *     `withAlpha(af.textSecondary, 0.5)` — the existing secondary-text grey
  *     through the alpha system. The bars are decorative (the container carries
  *     the accessibilityLabel "Voice capture is not enabled"; the active state is
- *     `af.red`). Composite over `af.canvas` #0D0D0D: old ≈ #57554F (2.593:1),
- *     new ≈ #5A5957 (2.773:1) — contrast did not drop.
+ *     `af.red`). Black Issue (2026-10-06): af.textSecondary moved from #A6A5A1
+ *     to #A19C91, which is exactly the rgb the retired literal encoded — the
+ *     bars are now byte-identical to their pre-A5 render.
  *   - SkinIA editorial suite: six invented literals mapped onto the existing
  *     brand palette (table pinned below).
  *
@@ -76,12 +77,12 @@ describe('PR-R5 (A5): Profile SkinIA entry disc — withAlpha(af.red, 0.14) is b
 });
 
 describe('PR-R5 (A5): One Breath idle wave bars — secondary-text grey through the alpha system', () => {
-  it("withAlpha(af.textSecondary, 0.5) === 'rgba(166,165,161,0.5)'", () => {
-    expect(withAlpha(af.textSecondary, 0.5)).toBe('rgba(166,165,161,0.5)');
+  it("withAlpha(af.textSecondary, 0.5) === 'rgba(161,156,145,0.5)' (byte-identical to the retired literal)", () => {
+    expect(withAlpha(af.textSecondary, 0.5)).toBe('rgba(161,156,145,0.5)');
   });
 
-  it('af.textSecondary is #A6A5A1 (the value the replacement resolves through)', () => {
-    expect(af.textSecondary).toBe('#A6A5A1');
+  it('af.textSecondary is #A19C91 (Black Issue quiet grey — the value the replacement resolves through)', () => {
+    expect(af.textSecondary).toBe('#A19C91');
   });
 
   it('the wave container still carries the non-listening label and the active bar is af.red (the bars stay decorative)', () => {
