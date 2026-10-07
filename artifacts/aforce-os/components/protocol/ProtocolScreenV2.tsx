@@ -302,7 +302,7 @@ export function ProtocolScreenV2() {
               (decorative, hidden from the reader — the count is spoken by the
               rail header). "Checked", never "Updated": fetchedAt stamps when
               the app last READ a provider (home/homeFreshness.ts). */}
-          <View style={styles.v3HeroBlock} testID="protocol-active-step">
+          <View style={styles.v3HeroBlock} testID="protocol-v3-recheck">
             <View
               style={styles.v3NumeralRow}
               accessible
@@ -356,7 +356,7 @@ export function ProtocolScreenV2() {
                   meta: (state === 'completed'
                     ? t('protocol.v3.completed_today')
                     : state === 'current'
-                      ? t('protocol.v2.active_step')
+                      ? `${t('protocol.v2.active_step')} · ${s.window}`
                       : s.window
                   ).toUpperCase(),
                 };
@@ -402,7 +402,7 @@ export function ProtocolScreenV2() {
                     target: v3Data.hydration.target,
                   })}`}
                 >
-                  <Text style={styles.v3FooterLabel}>{t('protocol.v3.hydration').toUpperCase()}</Text>
+                  <Text style={[styles.v3FooterLabel, eyebrowType]}>{t('protocol.v3.hydration').toUpperCase()}</Text>
                   <Text style={styles.v3FooterValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                     {t('protocol.v3.hydration_oz', {
                       consumed: v3Data.hydration.consumed,
@@ -418,19 +418,19 @@ export function ProtocolScreenV2() {
                     accessibilityLabel={`${t('protocol.v3.heart_rate')} ${v3Data.hrText}, ${t('protocol.v3.hrv')} ${v3Data.hrvText}`}
                   >
                     <View style={styles.v3FooterLabelRow}>
-                      <Text style={styles.v3FooterLabel}>{t('protocol.v3.recovery_signals').toUpperCase()}</Text>
+                      <Text style={[styles.v3FooterLabel, eyebrowType]}>{t('protocol.v3.recovery_signals').toUpperCase()}</Text>
                       {v3Data.live ? <Text style={styles.v3Live}>{t('protocol.v3.live')}</Text> : null}
                     </View>
                     <Text style={styles.v3FooterValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                       {v3Data.hrText} · {v3Data.hrvText}
                     </Text>
-                    <Text style={styles.v3FooterCaption}>
+                    <Text style={[styles.v3FooterCaption, eyebrowType]}>
                       {t('protocol.v3.heart_rate')}, {t('protocol.v3.hrv')}
                     </Text>
                   </View>
                 ) : (
                   <>
-                    <Text style={styles.v3FooterLabel}>{t('protocol.v3.recovery_signals').toUpperCase()}</Text>
+                    <Text style={[styles.v3FooterLabel, eyebrowType]}>{t('protocol.v3.recovery_signals').toUpperCase()}</Text>
                     <Text style={styles.v3Empty} testID="protocol-v3-signals-empty">
                       {t('protocol.v3.signals_empty')}
                     </Text>

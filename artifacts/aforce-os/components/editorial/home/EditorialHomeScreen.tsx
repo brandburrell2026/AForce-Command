@@ -277,12 +277,6 @@ export function EditorialHomeScreen({
               breadcrumb={`${t('tabs.home')} / ${t('home.v2.readiness_label')}`}
               testID="editorial-masthead"
             />
-            {member ? (
-              /* Pinned furniture hook for the law lock (R3 pass-through). */
-              <Text style={styles.memberHidden} accessibilityElementsHidden importantForAccessibility="no" testID="editorial-member-furniture">
-                {member}
-              </Text>
-            ) : null}
             <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
             {!isHydrated ? (
@@ -474,9 +468,6 @@ export function EditorialHomeScreen({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: edStock.black },
   fill: { flex: 1 },
-  // The member's name is already read inside the masthead greeting; this
-  // zero-height node keeps the R3 pass-through hook for the law lock only.
-  memberHidden: { height: 0, opacity: 0 },
   heroSlot: {
     marginTop: 4,
     marginBottom: 14,
