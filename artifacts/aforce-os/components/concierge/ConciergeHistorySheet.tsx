@@ -1,11 +1,16 @@
 /**
  * AForce Concierge — conversation history (open / delete one / delete all).
+ *
+ * Black Issue: hairline rows (title left, mono date right) in place of boxed
+ * cards; the open conversation carries a red rule at its left edge and says so
+ * to the reader (selected state), so it is never told apart by hue alone.
  */
 import React from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { af, afLayout, afType } from '@/theme';
 import { Icon } from '@/components/Icon';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { AFDisclosureSheet, AFEmptyState, AFInlineErrorRow, AFSecondaryButton, AFSkeleton } from '@/components/ui';
 import type { ConciergeConversationSummary } from '@/services/concierge/conciergeTypes';
 import type { ConciergeErrorKind } from '@/services/concierge/conciergeApi';
@@ -26,6 +31,7 @@ export interface ConciergeHistorySheetProps {
 export function ConciergeHistorySheet(props: ConciergeHistorySheetProps) {
   const { visible, onClose, list, loading, error, activeId, onOpen, onDelete, onDeleteAll, onRefresh } = props;
   const { t, i18n } = useTranslation();
+  const eyebrowType = useAFEyebrowType();
 
   const confirmDelete = (id: string) => {
     if (Platform.OS === 'web') return onDelete(id);
@@ -63,11 +69,12 @@ export function ConciergeHistorySheet(props: ConciergeHistorySheetProps) {
                   onPress={() => onOpen(c.id)}
                   accessibilityRole="button"
                   accessibilityLabel={`${title}, ${when}`}
+                  accessibilityState={{ selected: c.id === activeId }}
                   style={styles.rowMain}
                   testID={`concierge-history-open-${c.id}`}
                 >
                   <Text style={styles.rowTitle} numberOfLines={2}>{title}</Text>
-                  <Text style={styles.rowMeta}>{when}</Text>
+                  <Text style={[styles.rowMeta, eyebrowType]}>{when}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => confirmDelete(c.id)}
@@ -91,20 +98,18 @@ export function ConciergeHistorySheet(props: ConciergeHistorySheetProps) {
 
 const styles = StyleSheet.create({
   skeletons: { gap: 10 },
-  list: { gap: 8 },
+  list: { gap: 0 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    borderRadius: 12,
-    backgroundColor: af.surface,
-    borderWidth: afLayout.hairline,
-    borderColor: af.border,
+    borderBottomWidth: afLayout.hairline,
+    borderBottomColor: af.divider,
   },
-  rowActive: { borderColor: af.borderStrong },
-  rowMain: { flex: 1, minHeight: afLayout.controlMinHeight + 8, paddingHorizontal: 14, paddingVertical: 10, gap: 2 },
-  rowTitle: { ...afType.secondary, color: af.textPrimary },
-  rowMeta: { ...afType.caption, color: af.textTertiary },
+  rowActive: { borderLeftWidth: 2, borderLeftColor: af.red, paddingLeft: 10 },
+  rowMain: { flex: 1, minHeight: afLayout.controlMinHeight + 8, paddingVertical: 10, gap: 4 },
+  rowTitle: { ...afType.body, color: af.textPrimary },
+  rowMeta: { ...afType.eyebrow, color: af.textTertiary, textTransform: 'uppercase' },
   trash: { width: afLayout.controlMinHeight, height: afLayout.controlMinHeight, alignItems: 'center', justifyContent: 'center' },
-  deleteAll: { marginTop: 8 },
+  deleteAll: { marginTop: 16 },
 });
