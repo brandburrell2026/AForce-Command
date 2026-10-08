@@ -157,10 +157,10 @@ jobs:
       # real Postgres for these paths is exercised separately by the
       # integration workflow via Testcontainers, not here.
       #
-      # `|| true`: a run at/under baseline is expected to exit non-zero
-      # (vitest's own exit code reflects the 18 known-failing WHOOP assertions).
-      # The baseline-comparison step below is what actually decides pass/fail
-      # for this job — not vitest's exit code.
+      # `|| true`: vitest exits non-zero on ANY failure. The report must still be
+      # written and judged by the checker below, which is the sole arbiter for
+      # this job — it fails on any failure above the active allowance (0 / 0),
+      # any collection error, and any missing or structurally invalid report.
       - name: Run canonical suite (JSON report)
         run: pnpm exec vitest run --reporter=default --reporter=json --outputFile.json=vitest-report.json || true
 
@@ -177,10 +177,17 @@ jobs:
       # while the SkinIA containment gate it guards went unverified.
       #
       # A failing test tells you something is wrong. A file that does not load
-      # tells you nothing, about anything it contains — so the ceiling does
-      # not apply to it and any unlisted one fails this job.
-      - name: Compare against documented baseline (governance/TEST-BASELINE.md, target-branch copy)
-        run: node scripts/src/check-test-baseline.mjs vitest-report.json target-baseline.md
+      # tells you nothing, about anything it contains — so no allowance applies
+      # to it and any unlisted one fails this job.
+      #
+      # The allowance itself is read from the active-policy block in
+      # governance/TEST-BASELINE.md §0 — from BOTH the target branch's copy
+      # (resolved above) and this commit's own copy — and the lower value per
+      # row is enforced. A PR can tighten the gate by editing its copy, never
+      # loosen it. There is no fallback: a missing or malformed policy, or a
+      # report that executed no tests, fails closed (exit 2).
+      - name: Compare against the active policy (target-branch copy AND this commit's copy — the lower wins)
+        run: node scripts/src/check-test-baseline.mjs vitest-report.json target-baseline.md governance/TEST-BASELINE.md
 
       - name: Upload test report
         if: always()
