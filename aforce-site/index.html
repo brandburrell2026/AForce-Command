@@ -275,13 +275,13 @@
   /* ---------- MOMENT (editorial transition) ---------- */
   .moment-shot{ margin:0; padding:0; background:var(--ink); position:relative; overflow:hidden; min-height:440px; height:min(60vh,680px); }
   .moment-shot::after{ content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(13,13,13,.68) 0%,rgba(13,13,13,.08) 46%,transparent 72%); pointer-events:none; }
-  .moment-shot img{ display:block; width:100%; height:100%; object-fit:cover; object-position:center 42%; }
+  .moment-shot img{ display:block; width:100%; height:100%; object-fit:cover; object-position:center top; }
   .moment-shot-caption{ position:absolute; z-index:1; left:clamp(24px,6vw,96px); bottom:clamp(28px,5vw,66px); color:var(--canvas); line-height:1.2; }
   .moment-shot-caption span{ display:block; margin-bottom:11px; color:#E25649; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; }
   .moment-shot-caption strong{ display:block; max-width:18ch; font-family:'Inter',sans-serif; font-size:clamp(24px,3.6vw,48px); font-weight:700; letter-spacing:-.025em; }
   @media(max-width:700px){
     .moment-shot{ min-height:400px; height:54vh; }
-    .moment-shot img{ object-position:58% center; }
+    .moment-shot img{ object-position:58% top; }
   }
 
   /* ---------- INVITATION + PROFILE ---------- */
