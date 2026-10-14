@@ -554,6 +554,22 @@
   .nn-logo .nn-n{ display:inline-block; }
   .nn-logo .nn-flip{ transform:scaleX(-1); }
   .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
+
+  .hero-taxonomy{font-size:clamp(20px,2.6vw,34px);line-height:1.2;letter-spacing:-.025em;text-transform:none;color:var(--canvas);font-weight:600;max-width:700px;text-wrap:balance;}
+  .hero .hero-foot{opacity:1;transform:none;}
+  .hero .cta-row{flex-wrap:wrap;justify-content:center;}
+  .system-pair{order:4;display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:30px 0;}
+  .system-pair>div{border-top:1px solid var(--line);padding-top:20px;min-width:0;}
+  .system-pair .eyebrow-label{opacity:1;transform:none;font-size:10px;letter-spacing:.13em;}
+  .system-pair h2{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:12px 0;}
+  .system-pair p{font-size:14px;line-height:1.6;margin-bottom:16px;color:var(--mute);}
+  .system-pair a{font-size:13px;text-decoration:underline;text-underline-offset:5px;}
+  .founding form{flex-wrap:wrap;}
+  .founding input{min-width:0;}
+  .founding .sr-status{position:static;width:100%;height:auto;overflow:visible;clip:auto;white-space:normal;font-size:14px;line-height:1.5;margin-top:12px;}
+  .founding button:disabled{opacity:.65;cursor:wait;}
+  @media(max-width:600px){.system-pair{grid-template-columns:1fr;}.hero .cta-row{width:100%;max-width:340px;display:grid;gap:10px;}.hero .btn{width:100%;padding:16px 12px;font-size:11px;}.hero-taxonomy{max-width:330px;font-size:25px;}.hero .hero-foot{bottom:100px;}.hero .scroll-cue{bottom:24px;}}
+
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
 </head>
@@ -612,10 +628,10 @@
   </video>
   <div class="hero-video-overlay"></div>
   <div class="hero-foot fade-in">
-    <p class="hero-taxonomy">The ritual before performance. Daily readiness. One system.</p>
+    <p class="hero-taxonomy">Performance hydration. A daily readiness routine. One connected system.</p>
     <div class="cta-row">
-      <a href="#ritual" class="btn btn-primary">Start the Ritual</a>
-      <a href="/shop" class="btn btn-ghost">Shop</a>
+      <a href="#founding" class="btn btn-primary">Join the Launch Waitlist</a>
+      <a href="/aforce-os" class="btn btn-ghost">Explore AFORCE OS</a>
     </div>
   </div>
   <div class="scroll-cue"><span>Quiet before the storm</span><div class="line"></div></div>
@@ -626,18 +642,15 @@
     <div class="clarity-copy">
       <h1 class="clarity-headline fade-in">Performance<br>Is<br><span class="hl-red">Non-<span class="flip-n">N</span>egotiable.</span></h1>
       <p class="clarity-subhead fade-in">Built for the moments you cannot afford to miss.</p>
-      <p class="clarity-supporting fade-in">Hydration begins the ritual.<br>The AFORCE OS builds the habit.<br>Performance is the destination.</p>
-      <ul class="clarity-list fade-in">
-        <li>Daily Readiness Ritual</li>
-        <li>Performance Hydration</li>
-        <li>AFORCE OS<sup>™</sup></li>
-        <li>Performance Community</li>
-        <li>Electrolytes + Minerals</li>
-      </ul>
+      <p class="clarity-supporting fade-in">Performance hydration and a daily readiness app, connected through one simple ritual.</p>
+      <div class="system-pair">
+        <div><span class="eyebrow-label">01 / Hydration</span><h2>Start with what you drink.</h2><p>Electrolyte hydration in portable sticks and ready-to-drink cans. Products are coming soon.</p><a href="/shop">Explore hydration →</a></div>
+        <div><span class="eyebrow-label">02 / AFORCE OS</span><h2>Build the daily habit.</h2><p>An app for logging hydration, following your routine and preparing for the moments ahead.</p><a href="/aforce-os">See how the OS works →</a></div>
+      </div>
       <p class="clarity-credibility fade-in">pH 8.8 alkaline hydration · Electrolytes + trace minerals</p>
       <div class="clarity-cta fade-in">
         <a href="#ritual" class="btn btn-primary">Experience the Ritual <span class="arw">→</span></a>
-        <a href="#founding" class="clarity-cta-secondary">Become a Founding Member</a>
+        <a href="#founding" class="clarity-cta-secondary">Join the Launch Waitlist</a>
       </div>
     </div>
     <div class="clarity-mark">
@@ -730,7 +743,7 @@
   <h2 class="section-title fade-in">Not products. Tools inside the operating system.</h2>
   <div class="product-layout">
     <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Shop Watermelon Surge & Chlorella">
-      <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella"></div>
+      <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella" loading="lazy" decoding="async"></div>
       <span class="tag red">pH 8.8 · Morning</span>
       <h3>Watermelon Surge & Chlorella</h3>
       <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
@@ -738,19 +751,19 @@
     </a>
     <div class="product-minor-stack">
       <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Shop Berry Blast & Dulse">
-        <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse">
+        <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse" loading="lazy" decoding="async">
         <div><span class="tag blue">pH 8.8 · Midday</span><h3>Berry Blast & Dulse</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
       </a>
       <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Shop Soursop Edge & Seamoss">
-        <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss">
+        <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss" loading="lazy" decoding="async">
         <div><span class="tag green">pH 8.8 · Evening</span><h3>Soursop Edge & Seamoss</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
       </a>
     </div>
   </div>
   <div class="stick-strip">
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon"><div class="label">On-the-go stick · Watermelon</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry"><div class="label">On-the-go stick · Berry</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop"><div class="label">On-the-go stick · Soursop</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon" loading="lazy" decoding="async"><div class="label">On-the-go stick · Watermelon</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry" loading="lazy" decoding="async"><div class="label">On-the-go stick · Berry</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop" loading="lazy" decoding="async"><div class="label">On-the-go stick · Soursop</div></a>
   </div>
   <div class="products-shop fade-in"><a href="/shop" class="btn btn-primary">Shop AFORCE <span class="arw">→</span></a></div>
 </section>
@@ -822,25 +835,25 @@
   </div>
 
   <div class="universal-film fade-in">
-    <video class="universal-video" autoplay muted loop playsinline preload="metadata" poster="assets/universal-poster-2.jpg" aria-label="Runners racing through the city at night — everyone performs">
-      <source src="assets/universal-film-2.webm" type="video/webm">
-      <source src="assets/universal-film-2.mp4" type="video/mp4">
+    <video class="universal-video" autoplay muted loop playsinline preload="none" poster="assets/universal-poster-2.jpg" aria-label="Runners racing through the city at night — everyone performs">
+      <source data-src="assets/universal-film-2.webm" type="video/webm">
+      <source data-src="assets/universal-film-2.mp4" type="video/mp4">
     </video>
   </div>
 
 </section>
 
 <section class="founding" id="founding">
-  <div class="eyebrow-label fade-in" style="display:inline-block;">By Invitation · Brickell, Miami</div>
-  <h2 class="section-title fade-in" style="margin:0 auto 20px;">The Founding 250.</h2>
-  <p class="sub fade-in">The first two hundred and fifty will define what AFORCE becomes. This is the invitation.</p>
+  <div class="eyebrow-label fade-in" style="display:inline-block;">Early access · AFORCE launch</div>
+  <h2 class="section-title fade-in" style="margin:0 auto 20px;">Be first in the ritual.</h2>
+  <p class="sub fade-in">Join our launch waitlist for product availability and Founding 250 early-access updates.</p>
   <form class="fade-in">
     <label class="sr-label" for="inviteEmail">Your email address</label>
-    <input type="email" id="inviteEmail" placeholder="Your email" required>
-    <button type="submit">Request an Invitation</button>
+    <input type="email" id="inviteEmail" name="email" autocomplete="email" maxlength="254" placeholder="Your email" required>
+    <button type="submit">Join the Waitlist</button>
     <p class="sr-status" role="status" aria-live="polite"></p>
   </form>
-  <div class="fine fade-in">Two hundred and fifty. No more.</div>
+  <div class="fine fade-in">No purchase required. <a href="/legal/privacy">Privacy policy</a>.</div>
   <a class="fade-in" href="/founding-250" style="display:inline-block; margin-top:28px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Explore Founding 250 &rarr;</a>
 </section>
 
@@ -878,16 +891,15 @@
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
         <a href="mailto:contact@aforceritual.com">Contact</a>
+        <a href="mailto:contact@aforceritual.com?subject=Partnership%20or%20Investor%20Inquiry">Partnerships &amp; Investors</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
         <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
@@ -1046,17 +1058,8 @@
   window.addEventListener('scroll', onNavScroll, { passive:true });
   onNavScroll();
 
-  // Founding 250 form — confirm on the button and announce it to assistive tech
-  (function(){
-    var foundingForm = document.querySelector('.founding form');
-    if(!foundingForm) return;
-    foundingForm.addEventListener('submit', function(e){
-      e.preventDefault();
-      foundingForm.querySelector('button').textContent = 'Invitation Requested';
-      foundingForm.querySelector('.sr-status').textContent = 'Invitation requested.';
-    });
-  })();
 
 </script>
+<script src="/assets/launch-waitlist.js" defer></script>
 </body>
 </html>
