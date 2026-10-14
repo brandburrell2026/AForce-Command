@@ -185,6 +185,33 @@
   .fade-in{ transition: opacity 1s ease, transform 1s ease; }
   .fade-in.visible{ opacity:1 !important; transform:none !important; }
 
+  /* ---------- FOUNDERS ---------- */
+  .founder-story{ background:var(--ink); color:var(--canvas); padding:0; overflow:hidden; }
+  .founder-story-grid{ max-width:1440px; margin:0 auto; display:grid; grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr); min-height:760px; }
+  .founder-story-media{ position:relative; min-height:760px; overflow:hidden; background:#171717; }
+  .founder-story-media::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent 68%, rgba(13,13,13,.46) 100%); pointer-events:none; }
+  .founder-story-media img{ width:100%; height:100%; object-fit:cover; object-position:center 28%; }
+  .founder-story-copy{ display:flex; flex-direction:column; justify-content:center; padding:clamp(64px,8vw,124px) clamp(28px,7vw,112px); }
+  .founder-story .eyebrow-label{ color:#E25649; }
+  .founder-story h2{ max-width:10ch; font-family:'Inter',sans-serif; font-weight:800; font-size:clamp(40px,5.6vw,76px); line-height:.98; letter-spacing:-.035em; opacity:0; transform:translateY(14px); }
+  .founder-story-body{ margin-top:clamp(28px,3vw,42px); max-width:560px; display:grid; gap:18px; color:rgba(245,240,232,.68); font-size:clamp(15px,1.28vw,18px); line-height:1.72; opacity:0; transform:translateY(14px); }
+  .founder-story-body strong{ color:var(--canvas); font-weight:600; }
+  .founder-names{ margin-top:clamp(30px,3.6vw,48px); padding-top:24px; border-top:1px solid rgba(245,240,232,.16); display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:560px; opacity:0; transform:translateY(14px); }
+  .founder-name{ display:grid; gap:7px; }
+  .founder-name b{ color:var(--canvas); font-size:14px; }
+  .founder-name span{ color:rgba(245,240,232,.48); font-size:11px; letter-spacing:.15em; text-transform:uppercase; }
+  .founder-story-link{ align-self:flex-start; margin-top:clamp(32px,4vw,52px); color:var(--canvas); font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase; text-decoration:none; border-bottom:1px solid var(--red); padding-bottom:5px; opacity:0; transform:translateY(14px); transition:color .25s ease; }
+  .founder-story-link:hover{ color:#E25649; }
+  @media (max-width:900px){
+    .founder-story-grid{ grid-template-columns:1fr; min-height:0; }
+    .founder-story-media{ min-height:0; aspect-ratio:4/5; }
+    .founder-story-media::after{ background:linear-gradient(0deg, rgba(13,13,13,.3), transparent 35%); }
+    .founder-story-copy{ padding:64px clamp(22px,7vw,56px) 76px; }
+  }
+  @media (max-width:520px){
+    .founder-names{ grid-template-columns:1fr; gap:18px; }
+  }
+
   /* ---------- CLARITY BEAT ---------- */
   .clarity{ background:var(--canvas); color:var(--ink); display:flex; align-items:center; padding-top:clamp(84px,12vh,148px); padding-bottom:clamp(84px,12vh,148px); }
   .clarity-grid{ width:100%; max-width:1360px; margin:0 auto; display:grid; grid-template-columns:1.2fr 0.8fr; gap:clamp(40px,4.4vw,88px); align-items:center; padding:0 clamp(20px,4vw,56px); }
@@ -245,9 +272,17 @@
     .clarity-cta{ order:9; align-self:flex-start; }
   }
 
-  /* ---------- MOMENT (full-bleed cinematic shot) ---------- */
-  .moment-shot{ margin:0; padding:0; background:var(--ink); line-height:0; }
-  .moment-shot img{ display:block; width:100%; height:auto; }
+  /* ---------- MOMENT (editorial transition) ---------- */
+  .moment-shot{ margin:0; padding:0; background:var(--ink); position:relative; overflow:hidden; min-height:440px; height:min(60vh,680px); }
+  .moment-shot::after{ content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(13,13,13,.68) 0%,rgba(13,13,13,.08) 46%,transparent 72%); pointer-events:none; }
+  .moment-shot img{ display:block; width:100%; height:100%; object-fit:cover; object-position:center 42%; }
+  .moment-shot-caption{ position:absolute; z-index:1; left:clamp(24px,6vw,96px); bottom:clamp(28px,5vw,66px); color:var(--canvas); line-height:1.2; }
+  .moment-shot-caption span{ display:block; margin-bottom:11px; color:#E25649; font-family:'Inter',sans-serif; font-size:10px; font-weight:700; letter-spacing:.2em; text-transform:uppercase; }
+  .moment-shot-caption strong{ display:block; max-width:18ch; font-family:'Inter',sans-serif; font-size:clamp(24px,3.6vw,48px); font-weight:700; letter-spacing:-.025em; }
+  @media(max-width:700px){
+    .moment-shot{ min-height:400px; height:54vh; }
+    .moment-shot img{ object-position:58% center; }
+  }
 
   /* ---------- INVITATION + PROFILE ---------- */
   @keyframes pressure-fill{ from{ width:0%; } to{ width:100%; } }
@@ -594,8 +629,34 @@
   </div>
 </section>
 
+<section class="founder-story" aria-labelledby="founderStoryTitle">
+  <div class="founder-story-grid">
+    <figure class="founder-story-media fade-in">
+      <img src="/assets/our-story/aforce-founders-brandon-julius-black.webp" width="1025" height="1535" loading="lazy" decoding="async" alt="Brandon and Julius Burrell, brothers and founders of AFORCE">
+    </figure>
+    <div class="founder-story-copy">
+      <div class="eyebrow-label fade-in">The Founders</div>
+      <h2 class="fade-in" id="founderStoryTitle">AFORCE began before sunrise.</h2>
+      <div class="founder-story-body fade-in">
+        <p>Before AFORCE had a name, it had a ritual.</p>
+        <p>Before sunrise on Fort Lauderdale Beach, Brandon Burrell found the stillness that changed how he thought about hydration and performance. One call to his brother Julius turned that moment into a shared mission: build a system that helps people prepare before pressure arrives.</p>
+        <p><strong>Brandon created the momentum. Julius built the structure. Different strengths, one shared standard.</strong></p>
+      </div>
+      <div class="founder-names fade-in" aria-label="AFORCE founders">
+        <div class="founder-name"><b>Brandon Burrell</b><span>Founder &amp; CEO</span></div>
+        <div class="founder-name"><b>Julius Burrell</b><span>Co-Founder</span></div>
+      </div>
+      <a class="founder-story-link fade-in" href="/our-story">Meet the brothers behind AFORCE →</a>
+    </div>
+  </div>
+</section>
+
 <section class="moment-shot">
   <img src="assets/moment-studio.jpg" alt="A music producer pauses in her studio at night, headphones around her neck and an AFORCE can in hand" width="2000" height="1497" loading="lazy">
+  <div class="moment-shot-caption" aria-hidden="true">
+    <span>The moment before</span>
+    <strong>Composure before the first take.</strong>
+  </div>
 </section>
 
 <div class="signal-section" id="theSignal">
