@@ -4,18 +4,18 @@
 <!-- build: 2026-09-15 travel photo wider -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AFORCE OS | Before the Moment</title>
-<meta name="description" content="AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.">
+<title>AFORCE OS | Prepare for What Matters</title>
+<meta name="description" content="Explore AFORCE OS: hydration logging, daily routines and preparation for the moments ahead. Watch the product preview and join the launch waitlist.">
 <meta name="robots" content="index,follow">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
 <link rel="canonical" href="https://www.drinkaforce.com/aforce-os">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AFORCE OS | Before the Moment">
+<meta property="og:title" content="AFORCE OS | Prepare for What Matters">
 <meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
 <meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
 <meta property="og:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AFORCE OS | Before the Moment">
+<meta name="twitter:title" content="AFORCE OS | Prepare for What Matters">
 <meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
 <meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -292,6 +292,37 @@
     .t30-bar i{ transition:none; width:var(--w,90%); }
     .verbs li{ color:var(--ink); } .verbs li:last-child{ color:var(--red); }
   }
+
+  /* Product-led introduction and a full-frame, silent film. */
+  section[id], details[id]{scroll-margin-top:88px;}
+  .hero{min-height:0;padding:132px var(--gutter) 72px;background:radial-gradient(ellipse at 78% 40%,#222723 0%,#0d0d0d 60%);}
+  .hero-grid{grid-template-columns:1.2fr .8fr;gap:clamp(32px,6vw,90px);align-items:center;}
+  .hero-copy .hd-xl{font-size:clamp(46px,5.5vw,80px);max-width:13ch;letter-spacing:-.045em;}
+  .hero-description{max-width:46ch;color:var(--b64);font-size:16px;line-height:1.7;}
+  .hero-copy .lead{font-size:clamp(17px,1.7vw,22px);line-height:1.4;}
+  .hero-device{margin:0;display:grid;justify-items:center;gap:20px;}
+  .hero-device img{width:min(280px,100%);height:auto;border-radius:12% / 5.5%;box-shadow:0 32px 80px #0009;}
+  .hero-device figcaption{text-align:center;}
+  .on-dark .kick{color:#ed7567;}.on-dark .cap{color:var(--b64);}
+  .os-chapters{display:flex;justify-content:center;gap:clamp(18px,4vw,52px);padding:22px var(--gutter);border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:12px;font-weight:600;}
+  .os-chapters a{padding:6px 0;border-bottom:1px solid transparent;}.os-chapters a:hover{border-color:var(--red);}
+  .os-film-section{background:#101211;padding:72px var(--gutter);}
+  .film-heading{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:end;margin-bottom:32px;}
+  .film-heading h2{margin-top:16px;font-size:clamp(30px,4vw,48px);}
+  .film-heading .lead{font-size:16px;max-width:38ch;}
+  .os-film-frame{margin:0;}.os-film-frame video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:contain;border:1px solid var(--b14);border-radius:6px;}
+  .os-film-frame figcaption{font-size:12px;color:var(--b64);margin-top:14px;line-height:1.6;}
+  .blk{padding:clamp(64px,8vw,110px) var(--gutter);}
+  .routine-intro h2{margin-top:18px;}.routine-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-top:40px;}
+  .routine-grid article{border-top:1px solid var(--line);padding-top:24px;}.routine-grid span,.progress-list span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--red);}
+  .routine-grid h3,.progress-list h3{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:14px 0 12px;}.routine-grid p,.progress-list p{color:var(--i64);font-size:15px;line-height:1.7;}
+  .routine-note{margin-top:34px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;color:var(--i64);}.routine-note a{text-decoration:underline;text-underline-offset:4px;white-space:nowrap;}
+  .roadmap{background:#dedbd3;border-top:1px solid var(--line);}.roadmap>summary{list-style:none;cursor:pointer;max-width:calc(var(--maxw) + 2 * var(--gutter));margin:auto;padding:56px var(--gutter);display:grid;gap:18px;}.roadmap>summary::-webkit-details-marker{display:none;}.roadmap>summary .hd-l{font-size:clamp(28px,4vw,46px);}.roadmap-hint{font-size:13px;text-decoration:underline;text-underline-offset:5px;}.roadmap-intro{max-width:70ch;margin:0 auto;padding:0 var(--gutter) 36px;color:var(--i64);}.roadmap .blk{border-top:1px solid var(--line);}
+  .progress-list>div{padding:22px 0;border-top:1px solid var(--line);}.progress-list h3{margin:8px 0;}
+  .os-faq h2{margin-top:18px;}.faq-list details{border-top:1px solid var(--line);padding:22px 0;}.faq-list details:last-child{border-bottom:1px solid var(--line);}.faq-list summary{font-size:17px;font-weight:600;cursor:pointer;}.faq-list p{font-size:15px;color:var(--i64);margin-top:16px;}
+  .os-close{background:#0d0d0d;padding:80px var(--gutter);text-align:center;}.os-close .kick,.os-close .cta-row{justify-content:center;}.os-close h2{margin-top:22px;}.os-close .lead{margin:24px auto 30px;}.os-close .cap{margin-top:24px;}
+  @media(max-width:700px){.hero{padding:110px var(--gutter) 48px;}.hero-grid{grid-template-columns:1fr;gap:44px;}.hero-device img{width:220px;}.hero-copy .hd-xl{font-size:48px;}.hero .cta-row{display:grid;}.btn{justify-content:center;padding:15px 18px;font-size:11px;}.os-chapters{gap:8px 24px;justify-content:flex-start;}.film-heading,.routine-grid{grid-template-columns:1fr;gap:26px;}.os-film-section{padding:48px var(--gutter);}.film-heading .lead{max-width:none;}.routine-grid{margin-top:30px;}.os-close .cta-row{flex-direction:column;}.os-close .btn{width:100%;}.roadmap>summary{padding-top:40px;padding-bottom:40px;}}
+
 </style>
 <script type="application/ld+json">
 {
@@ -324,8 +355,8 @@
       "@type": "WebPage",
       "@id": "https://www.drinkaforce.com/aforce-os#webpage",
       "url": "https://www.drinkaforce.com/aforce-os",
-      "name": "AFORCE OS | Before the Moment",
-      "description": "AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.",
+      "name": "AFORCE OS | Prepare for What Matters",
+      "description": "Explore AFORCE OS: hydration logging, daily routines and preparation for the moments ahead. Watch the product preview and join the launch waitlist.",
       "isPartOf": {
         "@id": "https://www.drinkaforce.com/#website"
       },
@@ -358,6 +389,7 @@
 }
 </script>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
+<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body>
 <a class="afx-skip" href="#main">Skip to main content</a>
@@ -399,25 +431,50 @@
 
 <!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
 <header class="hero on-dark" id="top">
-  <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
-    <source src="/assets/os-hero.webm" type="video/webm">
-    <source src="/assets/os-hero.mp4" type="video/mp4">
-  </video>
-  <img class="hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async" fetchpriority="high">
-  <div class="hero-scrim" aria-hidden="true"></div>
   <div class="hero-grid">
-    <div class="hero-copy reveal in">
-      <div class="kick">AFORCE OS</div>
-      <h1 class="hd-xl">Before<br>the moment.</h1>
-      <p class="lead"><b>Performance doesn't begin when the moment starts.</b><br><br>AFORCE OS brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.</p>
+    <div class="hero-copy">
+      <div class="kick">AFORCE OS <span class="coming">Product preview</span></div>
+      <h1 class="hd-xl">Prepare for<br>what matters.</h1>
+      <p class="lead">Your hydration. Your routine. Your next moment.</p>
+      <p class="hero-description">A daily readiness app that helps you log hydration, build a consistent routine and prepare around the demands of your day.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#hydrostate">Explore AFORCE OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="#cycle">See how it works</a>
+        <a class="btn btn-primary" href="/#founding">Join the launch waitlist <span class="arw">→</span></a>
+        <a class="btn btn-outline-light" href="#os-film">Watch the preview</a>
       </div>
+      <p class="cap">Early access updates · No purchase required</p>
     </div>
+    <figure class="hero-device">
+      <img src="/assets/aforce-os/black-issue-home-recovering.png" width="390" height="844" alt="AFORCE OS readiness home screen with a sample score and hydration routine" fetchpriority="high" decoding="async">
+      <figcaption class="cap">Illustrative interface · Sample data</figcaption>
+    </figure>
   </div>
-  <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
 </header>
+<nav class="os-chapters" aria-label="Explore AFORCE OS">
+  <a href="#os-film">The film</a><a href="#daily-routine">Your daily routine</a><a href="#hydrostate">Inside the app</a><a href="#roadmap">What’s next</a><a href="#os-questions">Questions</a>
+</nav>
+<section class="os-film-section on-dark" id="os-film" aria-labelledby="film-title">
+  <div class="wrap">
+    <div class="film-heading"><div><p class="kick">The moments that matter</p><h2 class="hd-l" id="film-title">See the ritual in motion.</h2></div><p class="lead">From the field to the meeting room. A closer look at the experience we’re building.</p></div>
+    <figure class="os-film-frame">
+      <video id="osPreviewFilm" controls muted playsinline preload="none" poster="/assets/aforce-os/product-film-poster.jpg" aria-label="Silent AFORCE OS product walkthrough" aria-describedby="film-caption">
+        <source src="/assets/aforce-os/product-film-silent.mp4" type="video/mp4">
+        Your browser does not support embedded video. <a href="/assets/aforce-os/product-film-silent.mp4">Open the silent film</a>.
+      </video>
+      <figcaption id="film-caption">01:06 · Silent film · Illustrative product walkthrough. Features shown may include previews of future releases.</figcaption>
+    </figure>
+  </div>
+</section>
+<section class="blk routine-intro" id="daily-routine">
+  <div class="wrap">
+    <p class="kick">One connected routine</p><h2 class="hd-l">A little preparation.<br>A clearer next step.</h2>
+    <div class="routine-grid">
+      <article><span>01 / CHECK IN</span><h3>Start with today.</h3><p>Log your hydration and review the information available in your daily view.</p></article>
+      <article><span>02 / PREPARE</span><h3>Make room for the moment.</h3><p>Bring your routine into focus around a workout, a meeting or whatever comes next.</p></article>
+      <article><span>03 / REFLECT</span><h3>Build consistency.</h3><p>Look back at what you logged and how you felt. Use that context to shape your next day.</p></article>
+    </div>
+    <p class="routine-note">AFORCE hydration is the physical ritual. AFORCE OS is where that routine takes shape. <a href="/shop">Explore hydration →</a></p>
+  </div>
+</section>
 
 <!-- ============ 02 · HYDROSTATE ============ -->
 <section class="blk hydro" id="hydrostate">
@@ -429,7 +486,7 @@
     <div class="col-copy">
       <div class="kick reveal">HydroState</div>
       <h2 class="hd-l reveal">Your state.<br>Right now.</h2>
-      <p class="lead reveal">AFORCE OS reads hydration alongside recovery, activity, environment and the demands ahead &mdash; <b>a living state, so the next decision is clearer.</b></p>
+      <p class="lead reveal">Bring hydration logs and available wellness information into one daily view. <b>Understand the context behind your routine.</b> Values depend on your inputs and available integrations; the app itself does not take live biometric measurements.</p>
       <ul class="signals reveal" aria-label="The signals beneath the state, sample values">
         <li><div class="k">Water</div><div class="v red">63%</div></li>
         <li><div class="k">Recovery</div><div class="v">74</div></li>
@@ -537,6 +594,9 @@
   </div>
 </section>
 
+<details class="roadmap" id="roadmap">
+  <summary><span class="kick">Looking ahead</span><span class="hd-l">What’s next for AFORCE OS.</span><span class="roadmap-hint">Explore future features +</span></summary>
+  <p class="roadmap-intro">Skin Intelligence, Travel Intelligence and Phantom are future experiences. The previews below are not a promise of launch availability or a confirmed release date.</p>
 <!-- ============ 07 · SKIN INTELLIGENCE (coming) ============ -->
 <section class="blk skin" id="skin">
   <div class="wrap split rev">
@@ -614,21 +674,25 @@
   </div>
 </section>
 
-<!-- ============ 13 · 30 DAYS IN (restored from the 13 Sep page) ============ -->
-<section class="blk thirty" id="thirty">
-  <div class="wrap">
-    <div class="kick reveal">30 Days In</div>
-    <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">The same person. A sharper system.</h2>
-    <p class="lead reveal" style="margin-top:22px;">One month of ritual, measured.</p>
-    <p style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--i64);">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-    <div class="t30-grid stagger">
-      <div class="t30 reveal" style="--i:0;--w:91%"><div class="t30-k">Readiness</div><div class="t30-row"><span class="t30-a">58</span><span class="t30-arw">&rarr;</span><span class="t30-b red" data-count="91">91</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +33</div></div>
-      <div class="t30 reveal" style="--i:1;--w:92%"><div class="t30-k">Recovery</div><div class="t30-row"><span class="t30-a">61%</span><span class="t30-arw">&rarr;</span><span class="t30-b red">92%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +31 pts</div></div>
-      <div class="t30 reveal" style="--i:2;--w:95%"><div class="t30-k">Hydration consistency</div><div class="t30-row"><span class="t30-a">42%</span><span class="t30-arw">&rarr;</span><span class="t30-b red">95%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +53 pts</div></div>
-      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance Age&trade;</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b red">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
-    </div>
-    <p style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:66ch;">Illustrative interface using sample data. Values shown are not claims of typical or expected results. AFORCE OS supports general wellness tracking and is not a medical device. Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
+</details>
+
+<section class="blk os-progress" id="thirty">
+  <div class="wrap split">
+    <div class="col-copy"><p class="kick">Progress, in context</p><h2 class="hd-l">Build a record.<br>Find your rhythm.</h2><p class="lead">Consistency starts with noticing what you do. Review your hydration history, routines and reflections over time.</p></div>
+    <div class="progress-list"><div><span>01</span><h3>Your hydration history</h3><p>A record of what you log, day by day.</p></div><div><span>02</span><h3>Your daily habits</h3><p>A clearer view of the routines you repeat.</p></div><div><span>03</span><h3>Your reflections</h3><p>Context from the moments you choose to record.</p></div></div>
   </div>
+</section>
+<section class="blk os-faq" id="os-questions">
+  <div class="wrap split top"><div><p class="kick">Before you begin</p><h2 class="hd-l">A few clear answers.</h2></div><div class="faq-list">
+    <details><summary>How do I get access?</summary><p>Join the launch waitlist for availability and early-access updates. This page is a product preview; joining the list does not create a paid subscription.</p></details>
+    <details><summary>How does AFORCE OS connect to hydration?</summary><p>Hydration products support the daily ritual. AFORCE OS provides a place to log hydration and build your routine. Explore the shop for the proposed product formats and availability.</p></details>
+    <details><summary>Do I need the Phantom Band?</summary><p>Phantom is a future wearable product, not a requirement to join the AFORCE OS waitlist. The app experience shown here is separate from the future Band.</p></details>
+    <details><summary>Are these real results?</summary><p>The screens and film use illustrative interfaces and sample data. They are not actual user results or guarantees of improvement. Future features are labeled as previews.</p></details>
+    <details><summary>Does the app measure my body directly?</summary><p>The app itself does not take live biometric readings. It uses information you provide and available integrations. AFORCE OS supports general wellness and is not a medical device.</p></details>
+  </div></div>
+</section>
+<section class="os-close on-dark">
+  <div class="wrap"><p class="kick">Your next moment starts here</p><h2 class="hd-l">Make preparation<br>part of your day.</h2><p class="lead">Be first to hear about AFORCE OS and the launch.</p><div class="cta-row"><a class="btn btn-primary" href="/#founding">Join the launch waitlist →</a><a class="btn btn-outline-light" href="mailto:contact@aforceritual.com?subject=AFORCE%20OS%20Partnership">Partner with AFORCE</a></div><p class="cap">No purchase required · <a href="/legal/privacy">Privacy policy</a></p></div>
 </section>
 
 </main>
