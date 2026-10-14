@@ -289,10 +289,10 @@
 
   /* ---------- ASYMMETRIC BREAK ---------- */
   /* ---------- THE SIGNAL — the brand's signature visual motif ---------- */
-  .signal-section{ isolation:isolate; background:#0c0c0c; color:var(--canvas); position:relative; display:grid; grid-template-columns:minmax(0,.82fr) minmax(540px,1.18fr); min-height:clamp(680px,78vh,820px); align-items:stretch; padding:0; overflow:hidden; border-top:1px solid rgba(245,240,232,.08); border-bottom:1px solid rgba(245,240,232,.08); }
+  .signal-section{ isolation:isolate; background:#0c0c0c; color:var(--canvas); position:relative; display:grid; grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr); min-height:clamp(680px,78vh,820px); align-items:stretch; padding:0; overflow:hidden; border-top:1px solid rgba(245,240,232,.08); border-bottom:1px solid rgba(245,240,232,.08); }
   .signal-section::before{ content:''; position:absolute; z-index:-1; inset:-35% -15%; background:radial-gradient(circle at 76% 50%,rgba(30,91,255,.11),transparent 24%),radial-gradient(circle at 86% 56%,rgba(31,163,90,.08),transparent 24%),radial-gradient(circle at 55% 40%,rgba(193,40,27,.07),transparent 26%); filter:blur(2px); }
   .signal-section::after{ content:''; position:absolute; z-index:-1; inset:0; opacity:.2; background-image:linear-gradient(rgba(245,240,232,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,240,232,.04) 1px,transparent 1px); background-size:72px 72px; mask-image:linear-gradient(90deg,transparent 36%,#000 72%); }
-  .signal-section .section-title{ color:var(--canvas); max-width:12ch; font-size:clamp(46px,4.35vw,68px); line-height:.98; letter-spacing:-.045em; }
+  .signal-section .section-title{ color:var(--canvas); max-width:12ch; font-size:clamp(38px,4.1vw,64px); line-height:.98; letter-spacing:-.045em; }
   .signal-section .left{ position:relative; z-index:1; padding:clamp(88px,9vw,144px) clamp(36px,7vw,112px); display:flex; flex-direction:column; justify-content:center; border-right:1px solid rgba(245,240,232,.1); }
   .signal-section .left::after{ content:'01 / READINESS'; position:absolute; left:clamp(36px,7vw,112px); bottom:38px; color:rgba(245,240,232,.28); font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.18em; }
   .signal-section p.lead{ font-size:clamp(15px,1.25vw,18px); line-height:1.75; color:rgba(245,240,232,.58); max-width:480px; margin-top:30px; }
@@ -536,7 +536,7 @@
   @media (max-width:600px){
     .signal-section .left{ padding:72px 24px 84px; }
     .signal-section .left::after{ left:24px; bottom:28px; }
-    .signal-section .section-title{ max-width:11ch; font-size:clamp(42px,13vw,58px); }
+    .signal-section .section-title{ max-width:11ch; font-size:clamp(36px,10.5vw,56px); }
     .signal-section .right{ min-height:0; padding:56px 20px 64px; }
     .signal-visual{ padding:28px 18px 22px; }
     .signal-visual-head{ margin-bottom:52px; }
@@ -684,8 +684,8 @@
 <div class="signal-section" id="theSignal">
   <div class="left">
     <div class="eyebrow-label fade-in">The Signal</div>
-    <h2 class="section-title fade-in">The world is<br>overstimulated.<br>AFORCE is built<br>for composure.</h2>
-    <p class="lead fade-in">Your body signals before performance breaks. AFORCE reads it as one continuous signal &mdash; not a single number.</p>
+    <h2 class="section-title fade-in">Built for<br>composure.</h2>
+    <p class="lead fade-in">The world is overstimulated. Your preparation doesn’t have to be. Build the daily ritual that helps you arrive steady, present and ready.</p>
   </div>
   <div class="right">
     <div class="signal-visual fade-in" aria-label="Readiness signal moving from depleted through balanced to locked in">
