@@ -1,858 +1,863 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<!-- build: 2026-09-15 travel photo wider -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AFORCE OS | Prepare for What Matters</title>
-<meta name="description" content="Explore AFORCE OS: hydration logging, daily routines and preparation for the moments ahead. Watch the product preview and join the launch waitlist.">
-<meta name="robots" content="index,follow">
-<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="canonical" href="https://www.drinkaforce.com/aforce-os">
-<meta property="og:type" content="website">
-<meta property="og:title" content="AFORCE OS | Prepare for What Matters">
-<meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
-<meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AFORCE OS | Prepare for What Matters">
-<meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AFORCE OS — Prepare for what matters</title>
+<meta name="description" content="Say what’s coming in one breath. Explore AFORCE OS: preparation around your day, your moments and your people.">
+<link rel="canonical" href="https://www.joinaforce.com/aforce-os">
+<meta property="og:title" content="AFORCE OS — Your moment. A clearer way to prepare.">
+<meta property="og:image" content="https://www.joinaforce.com/assets/aforce-os/story-football.jpg">
+<link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Universal header — loaded before the page style so the page's own colours win -->
-<link rel="stylesheet" href="/assets/header.css">
-<style>
-  :root{
-    --ink:#0D0D0D;
-    --ink-2:#070707;
-    --canvas:#E9E7E1;
-    --canvas-dim:#E1DDD4;
-    --bone:#F5F0E8;
-    --afx-surface:#F5F0E8;
-    --red:#C1281B;
-    --green:#1FA35A;
-    --bone-2:#EFEADF;
-    --metal:#6B6B66;
-    --line:rgba(13,13,13,.12);
-    --i80:rgba(13,13,13,.80);
-    --i64:rgba(13,13,13,.64);
-    --i46:rgba(13,13,13,.46);
-    --i30:rgba(13,13,13,.30);
-    --i22:rgba(13,13,13,.22);
-    --i12:rgba(13,13,13,.12);
-    --i08:rgba(13,13,13,.08);
-    --b80:rgba(245,240,232,.80);
-    --b64:rgba(245,240,232,.64);
-    --b40:rgba(245,240,232,.40);
-    --b24:rgba(245,240,232,.24);
-    --b14:rgba(245,240,232,.14);
-    --b08:rgba(245,240,232,.08);
-    --display:'Inter',sans-serif;
-    --body:'Inter',sans-serif;
-    --gutter:clamp(22px,6vw,88px);
-    --maxw:1240px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{ background:var(--canvas); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
-  ::selection{ background:var(--ink); color:var(--canvas); }
-  a{color:inherit;text-decoration:none;}
-  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
-  :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
-  img,svg{max-width:100%;display:block;}
-
-  /* ---------- TYPE (mirrors the homepage: Inter throughout) ---------- */
-  .kick{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .kick .coming{ font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--metal); border:1px solid var(--i22); padding:5px 9px; border-radius:2px; }
-  .hd-xl{ font-family:var(--display); font-weight:800; line-height:1.0; letter-spacing:-0.015em; font-size:clamp(46px,8.5vw,120px); text-wrap:balance; overflow-wrap:break-word; }
-  .hd-l{ font-family:var(--display); font-weight:800; line-height:1.08; letter-spacing:-0.01em; font-size:clamp(34px,5vw,64px); text-wrap:balance; overflow-wrap:break-word; }
-  .lead{ font-size:clamp(16px,1.35vw,20px); line-height:1.72; color:var(--i64); max-width:52ch; }
-  .lead b{ color:var(--ink); font-weight:600; }
-  .lines{ list-style:none; display:flex; flex-direction:column; }
-  .lines li{ font-family:var(--display); font-weight:600; font-size:clamp(17px,1.7vw,24px); line-height:1.25; padding:10px 0; border-top:1px solid var(--line); color:var(--ink); }
-  .lines li:last-child{ border-bottom:1px solid var(--line); }
-  .lines li.dim{ color:var(--metal); font-weight:400; }
-  .cap{ font-family:var(--body); font-weight:600; font-size:10.5px; line-height:1.55; letter-spacing:.08em; text-transform:uppercase; color:var(--metal); }
-  /* dark-ground variants */
-  .on-dark{ color:var(--bone); }
-  .on-dark .lead{ color:var(--b64); }
-  .on-dark .lead b{ color:var(--bone); }
-  .on-dark .cap{ color:var(--b40); }
-  .on-dark .kick .coming{ color:var(--b64); border-color:var(--b24); }
-
-  /* ---------- NAV — visual treatment only (behaviour from /assets/header.css) ---------- */
-  .afx-nav{ color:#F5F0E8; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
-  .afx-nav.solid{ color:var(--ink); background:rgba(245,240,232,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
-  .afx-nav.afx-open, .afx-nav.solid.afx-open{ background:var(--afx-surface); color:var(--afx-on-surface); border-bottom-color:transparent; }
-  .afx-nav .mark{ font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif; font-weight:700; font-size:18px; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
-  .nn{ display:inline-flex; align-items:center; gap:5px; }
-  .afx-links{ gap:clamp(13px,1.9vw,28px); font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-  .afx-links a{ opacity:.72; transition:opacity .2s, color .2s; white-space:nowrap; }
-  .afx-links a:hover{ opacity:1; color:var(--red); }
-  .afx-links a[aria-current="page"]{ opacity:1; color:var(--red); }
-  /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
-  .nn-logo .nn-n{ display:inline-block; }
-  .nn-logo .nn-flip{ transform:scaleX(-1); }
-  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
-
-  /* ---------- BUTTONS (site convention: ink on canvas; red stays a signal) ---------- */
-  .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
-  .btn .arw{ transition:transform .25s; }
-  .btn:hover .arw{ transform:translateX(4px); }
-  .btn-primary{ background:var(--ink); color:var(--canvas); }
-  .btn-primary:hover{ background:var(--red); color:var(--bone); }
-  .on-dark .btn-primary{ background:var(--canvas); color:var(--ink); }
-  .on-dark .btn-primary:hover{ background:var(--red); color:var(--bone); }
-  .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
-  .btn-outline-light:hover{ border-color:var(--bone); background:var(--bone); color:var(--ink); }
-  .cta-row{ display:flex; flex-wrap:wrap; gap:16px; }
-
-  /* ---------- REVEAL (visible at rest; motion is an entrance only) ---------- */
-  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 1.1s ease, transform 1.1s ease; }
-  .reveal.in{ opacity:1; transform:none; }
-  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .09s); }
-  html.no-io .reveal{ opacity:1; transform:none; }
-  html.no-io .verbs li{ color:var(--ink); } html.no-io .verbs li:last-child{ color:var(--red); }
-
-  /* ---------- LAYOUT ---------- */
-  .wrap{ max-width:var(--maxw); margin:0 auto; }
-  section{ position:relative; }
-  .blk{ padding:clamp(96px,15vh,190px) var(--gutter); background:var(--canvas); }
-  .blk + .blk{ border-top:1px solid var(--line); }
-  .split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,6vw,110px); align-items:center; }
-  .split.top{ align-items:start; }
-  .split.rev > :first-child{ order:2; }
-  .col-copy > * + *{ margin-top:clamp(18px,2.2vw,28px); }
-
-  /* phone frame — the Black Issue render carries its own bezel; only shadow + caption here */
-  .shot{ display:flex; flex-direction:column; align-items:center; gap:14px; }
-  .shot img{ width:min(390px,100%); max-width:100%; height:auto; border-radius:8.7% / 4%; box-shadow:0 44px 90px -30px rgba(13,13,13,.5), 0 18px 40px -14px rgba(13,13,13,.3); }
-  .shot .cap{ text-align:center; }
-
-  /* ================= 01 · HERO (cinematic — the one dark opener, as on the homepage) ================= */
-  .hero{ position:relative; min-height:100svh; display:grid; align-items:end; padding:clamp(120px,18vh,200px) var(--gutter) clamp(64px,9vh,110px); overflow:hidden; background:#000; }
-  /* full-bleed background video (the page's original hero film); the still stands in under reduced motion */
-  .hero-video, .hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
-  .hero-still{ display:none; }
-  .hero-scrim{ position:absolute; inset:0; z-index:1; background:
-    linear-gradient(90deg, rgba(13,13,13,.94) 0%, rgba(13,13,13,.82) 26%, rgba(13,13,13,.42) 48%, rgba(13,13,13,.06) 66%, rgba(13,13,13,0) 80%),
-    linear-gradient(180deg, rgba(13,13,13,.5) 0%, rgba(13,13,13,0) 26%, rgba(13,13,13,0) 60%, rgba(13,13,13,.9) 100%); }
-  .hero-grid{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr); align-items:end; }
-  .hero-copy{ max-width:640px; }
-  .hero-copy > * + *{ margin-top:clamp(20px,2.4vw,30px); }
-  .hero-copy .hd-xl{ max-width:9ch; }
-  .hero .lead{ color:var(--b80); }
-  .scroll-cue{ position:absolute; z-index:2; bottom:clamp(20px,3vh,34px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
-  .scroll-cue .line{ width:1px; height:36px; background:linear-gradient(var(--b40), transparent); }
-
-  /* ================= 03 · ONE COMMAND ================= */
-  .verbs{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .verbs li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--i22); padding:6px 0; transition:color .6s ease; }
-  .verbs li.in{ color:var(--ink); }
-  .verbs li.on{ color:var(--red); }
-  /* Performance Navigator — the Protocol · Depletion Correction screen is the visual: AFORCE moving from interpretation into action.
-     Desktop: interface left, copy + verbs right. ≤1024px: eyebrow/headline/copy → interface → verbs. */
-  .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"stage intro" "stage verbs"; grid-template-rows:auto 1fr; column-gap:clamp(40px,6vw,110px); align-items:start; }
-  .pn-intro{ grid-area:intro; align-self:end; }
-  .pn-verbs{ grid-area:verbs; }
-  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 12% 0; display:flex; flex-direction:column; align-items:center; }
-  .pn-stage::before{ content:''; position:absolute; left:10%; right:10%; top:22%; height:46%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,.07), transparent 72%); filter:blur(40px); pointer-events:none; }
-  .pn-rail{ position:relative; z-index:1; list-style:none; align-self:stretch; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 10px; margin:0 0 clamp(20px,2.4vw,30px); padding-bottom:12px; border-bottom:1px solid var(--b14); font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--b40); }
-  .pn-rail li.on{ color:#E13B2A; }
-  /* the whole Protocol frame, uncropped and uncovered */
-  .pn-phone{ position:relative; z-index:1; width:100%; max-width:400px; }
-  .pn-screen img{ display:block; width:100%; height:auto; border-radius:11.8% / 5.45%; }
-  /* one extracted callout under the phone, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
-  .pn-move{ position:relative; z-index:2; width:100%; max-width:400px; margin-top:clamp(16px,1.8vw,22px); display:flex; flex-direction:column; gap:6px; padding:13px 16px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; }
-  .pn-k, .pn-s{ font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; }
-  .pn-k{ color:#A19C91; }
-  .pn-v{ font-family:var(--body); font-weight:600; font-size:clamp(18px,1.6vw,22px); line-height:1.15; letter-spacing:-0.01em; color:#EDEAE3; }
-  .pn-s{ display:flex; align-items:center; gap:8px; color:#E13B2A; }
-  .pn-s i{ width:9px; height:9px; border-radius:50%; border:1.5px solid #E13B2A; box-shadow:inset 0 0 0 2px #141414; background:#E13B2A; }
-  .pn-stage .cap{ position:relative; z-index:1; align-self:stretch; text-align:center; margin-top:14px; padding:0 0 18px; color:var(--b40); }
-  .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
-
-  /* ================= 05 · CYCLE ================= */
-  /* Anticipate → Support → Learn: During is the largest visual, Before restrained, After calmest. Subgrid keeps word, copy and screen on shared rows. */
-  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.16fr) minmax(0,.88fr); grid-template-rows:auto auto 1fr; column-gap:clamp(18px,2.6vw,40px); row-gap:0; align-items:start; }
-  .state{ display:grid; grid-row:span 3; grid-template-rows:subgrid; row-gap:clamp(18px,2vw,26px); align-content:start; padding-top:22px; border-top:1px solid var(--ink); }
-  .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
-  .state .copy{ color:var(--i64); font-size:15.5px; line-height:1.65; max-width:34ch; }
-  .state .copy b{ color:var(--ink); font-weight:600; display:block; margin-top:8px; }
-  .state .copy span{ display:block; margin-top:8px; }
-  .state .shot{ align-self:start; }
-  .state--before .shot img{ width:min(330px,100%); }
-  .state--during .shot img{ width:min(390px,100%); }
-  .state--after .shot img{ width:min(290px,100%); }
-
-  /* ================= 02 · HYDROSTATE ================= */
-  .hydro .split{ align-items:center; }
-  .hydro .shot{ position:relative; }
-  .hydro .shot::before{ content:''; position:absolute; inset:-12% -30%; border-radius:50%; background:radial-gradient(closest-side, rgba(13,13,13,.08), transparent 72%); filter:blur(40px); pointer-events:none; }
-  .hydro .shot img{ position:relative; width:min(430px,100%); }   /* the one hero presentation of Home / HydroState */
-  .signals{ list-style:none; margin-top:clamp(30px,3.6vw,48px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border-top:1px solid var(--line); }
-  .signals li{ padding:18px 0 20px; border-bottom:1px solid var(--line); }
-  .signals .k{ font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--metal); }
-  .signals .v{ margin-top:6px; font-family:var(--display); font-weight:700; font-size:clamp(26px,3vw,40px); line-height:1; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
-  .signals .v.red{ color:var(--red); }
-  .signals li:nth-child(odd){ padding-right:18px; }
-  .signals li:nth-child(even){ padding-left:18px; border-left:1px solid var(--line); }
-
-  /* ================= 07 · SKIN ================= */
-  .skin .three{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .skin .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(28px,4vw,58px); color:var(--i30); padding:5px 0; }
-  .skin .three li:last-child{ color:var(--ink); }
-  .skin-stage{ position:relative; }
-  .skin-stage::before{ content:''; position:absolute; inset:-6% -14%; background:radial-gradient(ellipse at 50% 40%, rgba(193,40,27,.10), transparent 60%); filter:blur(30px); pointer-events:none; }
-
-  /* ================= 08 · TRAVEL ================= */
-  /* photo and phone side by side — the photo is a contained editorial frame, not a full-bleed bed for the phone */
-  /* photo at the phone's height, wide enough (2:3) to keep the whole traveler: columns sized 1.4427 : 1 so a 2:3 photo and a 390×844 phone end at the same height */
-  .travel-visual{ margin:clamp(48px,6vw,88px) auto 0; width:min(100%, calc(879px + clamp(28px,5vw,80px))); display:grid; grid-template-columns:minmax(0,1.4427fr) minmax(0,1fr); gap:clamp(28px,5vw,80px); align-items:start; }
-  .travel-visual .photo{ position:relative; width:100%; aspect-ratio:2/3; overflow:hidden; }
-  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:80% 50%; }
-  .travel-visual .photo::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(13,13,13,.22), rgba(13,13,13,0) 40%); pointer-events:none; }
-  .travel-visual .shot{ width:100%; }
-  .travel-visual .shot img{ width:100%; }
-  .travel .lines{ max-width:420px; }
-
-  /* ================= 10 · PHANTOM (near black-on-black, by design) ================= */
-  .phantom{ background:var(--ink-2); }
-  .phantom .three{ list-style:none; margin-top:clamp(22px,2.6vw,34px); display:flex; gap:clamp(18px,3vw,40px); flex-wrap:wrap; }
-  .phantom .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.01em; font-size:clamp(20px,2.4vw,34px); color:var(--b64); }
-  .ph-stage{ position:relative; display:grid; grid-template-columns:minmax(0,1fr); place-items:center; min-height:clamp(420px,50vw,640px); }
-  /* one hero composition: band + OS phone + product, black-on-black; the band's red signal is the focal point */
-  .ph-stage .band{ position:absolute; z-index:0; width:clamp(240px,26vw,320px); left:-2%; top:3%; opacity:.95; }
-  .ph-stage .can{ position:absolute; z-index:0; width:clamp(110px,12vw,170px); right:2%; bottom:4%; opacity:.72; filter:grayscale(.35) brightness(.7) drop-shadow(0 30px 40px rgba(0,0,0,.85)); }
-  .ph-stage .shot{ position:relative; z-index:1; }
-  .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
-
-  /* ================= 13 · 30 DAYS IN (restored from the 13 Sep page) ================= */
-  .thirty{ background:var(--bone-2); }
-  .h-2{ font-family:var(--display); font-weight:800; line-height:1.07; letter-spacing:-0.008em; font-size:clamp(28px,4vw,52px); }
-  .t30-grid{ margin-top:clamp(40px,5vw,64px); display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(18px,2.4vw,30px); }
-  .t30{ border-top:2px solid var(--ink); padding-top:20px; }
-  .t30-k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--i64); }
-  .t30-row{ margin-top:16px; display:flex; align-items:baseline; gap:9px; }
-  .t30-a{ font-family:var(--display); font-size:clamp(19px,2vw,26px); color:var(--i46); }
-  .t30-arw{ color:var(--i30); font-size:15px; }
-  .t30-b{ font-family:var(--display); font-size:clamp(34px,4vw,52px); line-height:1; letter-spacing:-0.01em; }
-  .t30-b.red{ color:var(--red); }
-  .t30-bar{ margin-top:16px; height:4px; border-radius:4px; background:var(--i08); overflow:hidden; }
-  .t30-bar i{ display:block; height:100%; border-radius:4px; background:var(--red); width:0; transition:width 1.3s cubic-bezier(.4,0,.2,1); }
-  .t30.in .t30-bar i{ width:var(--w,90%); }
-  .t30-d{ margin-top:13px; font-family:var(--body); font-weight:600; font-size:13px; color:var(--red); }
-  /* ---------- RESPONSIVE ---------- */
-  @media (max-width:900px){
-    .split, .split.rev{ grid-template-columns:minmax(0,1fr); gap:40px; }
-    .split.rev > :first-child{ order:0; }
-    .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
-    .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .cycle-grid{ grid-template-columns:minmax(0,1fr); grid-template-rows:none; row-gap:56px; }
-    .state{ grid-row:auto; grid-template-rows:none; }
-    .state--during .shot img{ width:min(380px,100%); }
-    .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .travel-visual{ width:min(100%,440px); grid-template-columns:minmax(0,1fr); gap:28px; justify-items:center; }
-    .travel-visual .shot{ width:min(300px,100%); }
-    .t30-grid{ grid-template-columns:1fr 1fr; gap:24px; }
-    .ph-stage{ min-height:0; padding:30px 0; }
-    .ph-stage .band{ width:40vw; left:-6%; top:0; }
-  }
-  @media (min-width:1025px) and (max-width:1100px){
-    .pn-stage{ padding-left:9%; padding-right:9%; }
-  }
-  /* tablet and below: eyebrow/headline/copy → interface → verbs, so the protocol stays large enough to read */
-  @media (max-width:1024px){
-    .pn-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"intro" "stage" "verbs"; grid-template-rows:auto; row-gap:40px; }
-    .pn-intro{ align-self:start; }
-    .pn-stage{ width:min(620px,100%); justify-self:center; padding:22px 7% 0; }
-    .pn-phone, .pn-move{ max-width:440px; }
-  }
-  @media (max-width:600px){
-    /* phone widths: the full frame fills the stage */
-    .pn-stage{ padding:18px 10px 0; }
-  }
-  @media (max-width:390px){
-    .hd-xl{ font-size:44px; }
-    .t30-grid{ grid-template-columns:1fr; }   /* keeps every after-value in view at phone width */
-    .signals{ grid-template-columns:minmax(0,1fr); }
-    .signals li:nth-child(even){ padding-left:0; border-left:none; }
-    .signals li:nth-child(odd){ padding-right:0; }
-  }
-  @media (prefers-reduced-motion:reduce){
-    html{ scroll-behavior:auto; }
-    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
-    .stagger .reveal.in{ transition-delay:0s !important; }
-    .hero-video{ display:none; }
-    .hero-still{ display:block; }
-    .btn .arw, .verbs li{ transition:none !important; }
-    .t30-bar i{ transition:none; width:var(--w,90%); }
-    .verbs li{ color:var(--ink); } .verbs li:last-child{ color:var(--red); }
-  }
-
-  /* Product-led introduction and a full-frame, silent film. */
-  section[id], details[id]{scroll-margin-top:88px;}
-  .hero{min-height:0;padding:132px var(--gutter) 72px;background:radial-gradient(ellipse at 78% 40%,#222723 0%,#0d0d0d 60%);}
-  .hero-grid{grid-template-columns:1.2fr .8fr;gap:clamp(32px,6vw,90px);align-items:center;}
-  .hero-copy .hd-xl{font-size:clamp(46px,5.5vw,80px);max-width:13ch;letter-spacing:-.045em;}
-  .hero-description{max-width:46ch;color:var(--b64);font-size:16px;line-height:1.7;}
-  .hero-copy .lead{font-size:clamp(17px,1.7vw,22px);line-height:1.4;}
-  .hero-device{margin:0;display:grid;justify-items:center;gap:20px;}
-  .hero-device img{width:min(280px,100%);height:auto;border-radius:12% / 5.5%;box-shadow:0 32px 80px #0009;}
-  .hero-device figcaption{text-align:center;}
-  .on-dark .kick{color:#ed7567;}.on-dark .cap{color:var(--b64);}
-  .os-chapters{display:flex;justify-content:center;gap:clamp(18px,4vw,52px);padding:22px var(--gutter);border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:12px;font-weight:600;}
-  .os-chapters a{padding:6px 0;border-bottom:1px solid transparent;}.os-chapters a:hover{border-color:var(--red);}
-  .os-film-section{background:#101211;padding:72px var(--gutter);}
-  .film-heading{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:end;margin-bottom:32px;}
-  .film-heading h2{margin-top:16px;font-size:clamp(30px,4vw,48px);}
-  .film-heading .lead{font-size:16px;max-width:38ch;}
-  .os-film-frame{margin:0;}.os-film-frame video{display:block;width:100%;aspect-ratio:16/9;background:#000;object-fit:contain;border:1px solid var(--b14);border-radius:6px;}
-  .os-film-frame figcaption{font-size:12px;color:var(--b64);margin-top:14px;line-height:1.6;}
-  .blk{padding:clamp(64px,8vw,110px) var(--gutter);}
-  .routine-intro h2{margin-top:18px;}.routine-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;margin-top:40px;}
-  .routine-grid article{border-top:1px solid var(--line);padding-top:24px;}.routine-grid span,.progress-list span{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--red);}
-  .routine-grid h3,.progress-list h3{font-size:21px;line-height:1.25;letter-spacing:-.02em;margin:14px 0 12px;}.routine-grid p,.progress-list p{color:var(--i64);font-size:15px;line-height:1.7;}
-  .routine-note{margin-top:34px;padding-top:24px;border-top:1px solid var(--line);font-size:14px;color:var(--i64);}.routine-note a{text-decoration:underline;text-underline-offset:4px;white-space:nowrap;}
-  .roadmap{background:#dedbd3;border-top:1px solid var(--line);}.roadmap>summary{list-style:none;cursor:pointer;max-width:calc(var(--maxw) + 2 * var(--gutter));margin:auto;padding:56px var(--gutter);display:grid;gap:18px;}.roadmap>summary::-webkit-details-marker{display:none;}.roadmap>summary .hd-l{font-size:clamp(28px,4vw,46px);}.roadmap-hint{font-size:13px;text-decoration:underline;text-underline-offset:5px;}.roadmap-intro{max-width:70ch;margin:0 auto;padding:0 var(--gutter) 36px;color:var(--i64);}.roadmap .blk{border-top:1px solid var(--line);}
-  .progress-list>div{padding:22px 0;border-top:1px solid var(--line);}.progress-list h3{margin:8px 0;}
-  .os-faq h2{margin-top:18px;}.faq-list details{border-top:1px solid var(--line);padding:22px 0;}.faq-list details:last-child{border-bottom:1px solid var(--line);}.faq-list summary{font-size:17px;font-weight:600;cursor:pointer;}.faq-list p{font-size:15px;color:var(--i64);margin-top:16px;}
-  .os-close{background:#0d0d0d;padding:80px var(--gutter);text-align:center;}.os-close .kick,.os-close .cta-row{justify-content:center;}.os-close h2{margin-top:22px;}.os-close .lead{margin:24px auto 30px;}.os-close .cap{margin-top:24px;}
-  @media(max-width:700px){.hero{padding:110px var(--gutter) 48px;}.hero-grid{grid-template-columns:1fr;gap:44px;}.hero-device img{width:220px;}.hero-copy .hd-xl{font-size:48px;}.hero .cta-row{display:grid;}.btn{justify-content:center;padding:15px 18px;font-size:11px;}.os-chapters{gap:8px 24px;justify-content:flex-start;}.film-heading,.routine-grid{grid-template-columns:1fr;gap:26px;}.os-film-section{padding:48px var(--gutter);}.film-heading .lead{max-width:none;}.routine-grid{margin-top:30px;}.os-close .cta-row{flex-direction:column;}.os-close .btn{width:100%;}.roadmap>summary{padding-top:40px;padding-bottom:40px;}}
-
-
-/* HydroState: an editorial explanation without repeated screens or metrics. */
-.hydro{background:#f5f5f2;padding-block:clamp(72px,9vw,128px)}
-.hydro-editorial{max-width:1080px;text-align:center}
-.hydro-editorial>.kick{justify-content:center;font-size:11px;letter-spacing:.16em}
-.hydro-editorial h2{margin:24px auto;font-size:clamp(36px,4.5vw,64px);font-weight:600;letter-spacing:-.045em;line-height:1.08;text-wrap:balance}
-.hydro-editorial h2 span{color:#74746e}
-.hydro-intro{max-width:620px;margin:0 auto;color:#62625d;font-size:clamp(17px,1.5vw,20px);line-height:1.6;text-wrap:pretty}
-.hydro-context{display:grid;grid-template-columns:1fr auto 1fr auto 1.15fr;gap:24px;align-items:center;margin:52px 0 26px;padding:38px 32px;background:#fff;border-radius:24px;text-align:left}
-.hydro-label{display:block;font-size:12px;font-weight:500;color:#72726d;margin-bottom:10px}
-.hydro-input p{font-size:clamp(18px,1.8vw,24px);font-weight:600;line-height:1.25;letter-spacing:-.025em}
-.hydro-plus{font-size:22px;font-weight:400;color:#aaa9a2}
-.hydro-result p{color:#b92f20}
-.hydro-footnote{max-width:650px;margin:auto;font-size:12px;line-height:1.6;color:#72726d}
-@media(max-width:640px){.hydro-context{grid-template-columns:1fr;gap:18px;margin-top:32px;padding:28px;text-align:center}.hydro-plus{font-size:18px;line-height:1}.hydro-label{margin-bottom:6px}.hydro-input p{font-size:22px}.hydro-result br{display:none}}
-
-</style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://www.drinkaforce.com/#organization",
-      "name": "AFORCE Hydration, Inc.",
-      "url": "https://www.drinkaforce.com/",
-      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
-      "slogan": "Performance Is Non-Negotiable.",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "New York",
-        "addressRegion": "NY",
-        "addressCountry": "US"
-      }
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://www.drinkaforce.com/#website",
-      "name": "AFORCE",
-      "url": "https://www.drinkaforce.com/",
-      "publisher": {
-        "@id": "https://www.drinkaforce.com/#organization"
-      }
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://www.drinkaforce.com/aforce-os#webpage",
-      "url": "https://www.drinkaforce.com/aforce-os",
-      "name": "AFORCE OS | Prepare for What Matters",
-      "description": "Explore AFORCE OS: hydration logging, daily routines and preparation for the moments ahead. Watch the product preview and join the launch waitlist.",
-      "isPartOf": {
-        "@id": "https://www.drinkaforce.com/#website"
-      },
-      "about": {
-        "@id": "https://www.drinkaforce.com/#organization"
-      },
-      "breadcrumb": {
-        "@id": "https://www.drinkaforce.com/aforce-os#breadcrumb"
-      }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://www.drinkaforce.com/aforce-os#breadcrumb",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://www.drinkaforce.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "AFORCE OS",
-          "item": "https://www.drinkaforce.com/aforce-os"
-        }
-      ]
-    }
-  ]
-}
-</script>
-<link rel="stylesheet" href="/assets/footer.css?v=3">
-<noscript><style>.reveal{opacity:1!important;transform:none!important}</style></noscript>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/aforce-os/connected-story.css">
 </head>
 <body>
-<a class="afx-skip" href="#main">Skip to main content</a>
-
-<!-- ============ NAV ============ -->
-<header class="afx-nav afx-overlay" id="afxNav">
-  <a class="afx-mark mark" href="/" aria-label="AFORCE — home">
-    <span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span> AFORCE
-  </a>
-  <div class="afx-right">
-    <div class="afx-links">
-      <a href="/#ritual">Ritual</a><a href="/aforce-os" aria-current="page">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
-    </div>
-    <a href="/shop" class="afx-shop">Shop</a>
-    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
-    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
-      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
-    </button>
-  </div>
-</header>
-<div class="afx-drawer" id="afxDrawer" data-open="false">
-  <div class="afx-backdrop" data-afx-close></div>
-  <div class="afx-panel">
-    <nav aria-label="Main">
-      <a href="/#ritual">Ritual</a>
-      <a href="/aforce-os" aria-current="page">The OS</a>
-      <a href="/our-story">Our Story</a>
-      <a href="/science">Science</a>
-      <a href="/manifesto">Manifesto</a>
-      <a href="/shop" class="afx-drawer-shop">Shop</a>
-    </nav>
-  </div>
+<div class="os-story">
+<div data-ui="4" style="background: rgb(10, 10, 10); color: rgb(237, 232, 223); font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden;">
+<a class="skip" href="#top">Skip to main content</a>
+<header data-ui="5" style="position: sticky; top: 0px; z-index: 20; background: rgba(10, 10, 10, 0.86); backdrop-filter: blur(12px); border-bottom: 1px solid rgb(30, 28, 25);">
+<nav data-ui="6" aria-label="Main" style="max-width: 1200px; margin: 0px auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+<a data-ui="7" href="/" aria-label="AFORCE home" style="text-decoration: none; display: flex; align-items: baseline; gap: 8px;">
+<span data-ui="8" style="font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: rgb(229, 64, 44);">AFORCE</span>
+<span data-ui="9" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(163, 157, 147);">OS</span>
+</a>
+<div data-ui="10" style="display: flex; align-items: center; gap: 28px; flex-wrap: wrap; font-size: 15px;">
+<a data-ui="11" href="#film" style="text-decoration: none; color: rgb(201, 195, 184);">The film</a>
+<a data-ui="12" href="#day" style="text-decoration: none; color: rgb(201, 195, 184);">How it works</a>
+<a data-ui="13" href="#privacy" style="text-decoration: none; color: rgb(201, 195, 184);">Privacy</a>
+<a data-ui="14" href="#support" style="text-decoration: none; color: rgb(201, 195, 184);">Membership</a>
+<a data-ui="15" href="#access" style="text-decoration: none; background: rgb(229, 64, 44); color: rgb(255, 255, 255); padding: 11px 18px; border-radius: 999px; font-weight: 600;">Get early access</a>
 </div>
-
-<main id="main" tabindex="-1">
-
-<!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
-<header class="hero on-dark" id="top">
-  <div class="hero-grid">
-    <div class="hero-copy">
-      <div class="kick">AFORCE OS <span class="coming">Product preview</span></div>
-      <h1 class="hd-xl">Prepare for<br>what matters.</h1>
-      <p class="lead">Your hydration. Your routine. Your next moment.</p>
-      <p class="hero-description">A daily readiness app that helps you log hydration, build a consistent routine and prepare around the demands of your day.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="/#founding">Join the launch waitlist <span class="arw">→</span></a>
-        <a class="btn btn-outline-light" href="#os-film">Watch the preview</a>
-      </div>
-      <p class="cap">Early access updates · No purchase required</p>
-    </div>
-    <figure class="hero-device">
-      <img src="/assets/aforce-os/black-issue-home-recovering.png" width="390" height="844" alt="AFORCE OS readiness home screen with a sample score and hydration routine" fetchpriority="high" decoding="async">
-      <figcaption class="cap">Illustrative interface · Sample data</figcaption>
-    </figure>
-  </div>
-</header>
-<nav class="os-chapters" aria-label="Explore AFORCE OS">
-  <a href="#os-film">The film</a><a href="#daily-routine">Your daily routine</a><a href="#hydrostate">Inside the app</a><a href="#roadmap">What’s next</a><a href="#os-questions">Questions</a>
 </nav>
-<section class="os-film-section on-dark" id="os-film" aria-labelledby="film-title">
-  <div class="wrap">
-    <div class="film-heading"><div><p class="kick">The moments that matter</p><h2 class="hd-l" id="film-title">See the ritual in motion.</h2></div><p class="lead">From the field to the meeting room. A closer look at the experience we’re building.</p></div>
-    <figure class="os-film-frame">
-      <video id="osPreviewFilm" controls muted playsinline preload="none" poster="/assets/aforce-os/product-film-poster.jpg" aria-label="Silent AFORCE OS product walkthrough" aria-describedby="film-caption">
-        <source src="/assets/aforce-os/product-film-silent.mp4" type="video/mp4">
-        Your browser does not support embedded video. <a href="/assets/aforce-os/product-film-silent.mp4">Open the silent film</a>.
-      </video>
-      <figcaption id="film-caption">01:06 · Silent film · Illustrative product walkthrough. Features shown may include previews of future releases.</figcaption>
-    </figure>
-  </div>
-</section>
-<section class="blk routine-intro" id="daily-routine">
-  <div class="wrap">
-    <p class="kick">One connected routine</p><h2 class="hd-l">A little preparation.<br>A clearer next step.</h2>
-    <div class="routine-grid">
-      <article><span>01 / CHECK IN</span><h3>Start with today.</h3><p>Log your hydration and review the information available in your daily view.</p></article>
-      <article><span>02 / PREPARE</span><h3>Make room for the moment.</h3><p>Bring your routine into focus around a workout, a meeting or whatever comes next.</p></article>
-      <article><span>03 / REFLECT</span><h3>Build consistency.</h3><p>Look back at what you logged and how you felt. Use that context to shape your next day.</p></article>
-    </div>
-    <p class="routine-note">AFORCE hydration is the physical ritual. AFORCE OS is where that routine takes shape. <a href="/shop">Explore hydration →</a></p>
-  </div>
-</section>
-
-<!-- ============ 02 · HYDROSTATE ============ -->
-<section class="blk hydro" id="hydrostate" aria-labelledby="hydro-title">
-<div class="wrap hydro-editorial">
-<p class="kick">Inside HydroState</p>
-<h2 id="hydro-title">The bigger picture.<br><span>Behind your day.</span></h2>
-<p class="hydro-intro">Your hydration log is a starting point. HydroState brings it together with available wellness information, so you can see your routine in context.</p>
-<div class="hydro-context" aria-label="Information that gives your daily view context">
-<div class="hydro-input"><span class="hydro-label">What you log</span><p>Hydration &amp; routine</p></div>
-<span class="hydro-plus" aria-hidden="true">+</span>
-<div class="hydro-input"><span class="hydro-label">What’s available</span><p>Sleep &amp; recovery</p></div>
-<span class="hydro-plus" aria-hidden="true">=</span>
-<div class="hydro-input hydro-result"><span class="hydro-label">Your daily view</span><p>More context.<br> Less guesswork.</p></div>
+</header>
+<main>
+<section data-ui="16" id="top" style="max-width: 1200px; margin: 0px auto; padding: 88px 24px 96px; display: flex; flex-wrap: wrap; align-items: center; gap: 64px;">
+<div data-ui="17" style="flex: 1 1 460px; min-width: 0px;">
+<div data-ui="18" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">AFORCE OS · EARLY ACCESS</div>
+<h1 data-ui="19" style="margin: 20px 0px 0px; font-size: clamp(48px, 7vw, 92px); line-height: 0.98; letter-spacing: -0.035em; font-weight: 800;">Your moment.<br data-ui="20">
+<span data-ui="21" style="color: rgb(163, 157, 147);">A clearer way to prepare.</span>
+</h1>
+<p data-ui="22" style="margin: 28px 0px 0px; font-size: 20px; line-height: 1.55; color: rgb(201, 195, 184); max-width: 520px;">Say what's coming in one breath. AFORCE turns the day you have planned into preparation you can act on, then helps you do it better next time.</p>
+<div data-ui="23" style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 36px;">
+<a data-ui="24" href="#access" style="text-decoration: none; background: rgb(229, 64, 44); color: rgb(255, 255, 255); padding: 17px 26px; border-radius: 999px; font-weight: 600; font-size: 17px; display: inline-flex; align-items: center; gap: 10px;">Get early access <span data-ui="25" aria-hidden="true">→</span>
+</a>
+<a data-ui="26" href="#film" style="text-decoration: none; border: 1px solid rgb(58, 54, 49); color: rgb(237, 232, 223); padding: 17px 26px; border-radius: 999px; font-weight: 500; font-size: 17px; display: inline-flex; align-items: center; gap: 10px;">
+<svg data-ui="27" aria-hidden="true" width="14" height="14" viewBox="0 0 14 14">
+<path data-ui="28" d="M3 1.5l9 5.5-9 5.5z" fill="currentColor">
+</path>
+</svg>See how it works</a>
 </div>
-<p class="hydro-footnote">Information depends on your inputs and available integrations. AFORCE OS does not take live biometric measurements.</p>
+<div data-ui="29" style="margin-top: 26px; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.1em; color: rgb(142, 136, 127);">NO PURCHASE REQUIRED · PRODUCT PREVIEW</div>
+</div>
+<div data-ui="30" style="flex: 0 1 400px; min-width: 0px; width: 100%; display: flex; justify-content: center; position: relative;">
+<div data-ui="31" aria-hidden="true" style="position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(229, 64, 44, 0.2), rgba(229, 64, 44, 0) 65%); top: 50%; left: 50%; transform: translate(-50%, -50%);">
+</div>
+<div data-ui="32" role="img" aria-label="The AFORCE One Breath screen. What was heard: I land at three. My presentation is at six. Help me arrive ready." style="position: relative; width: 100%; max-width: 372px; border-radius: 54px; background: rgb(13, 13, 12); border: 10px solid rgb(27, 26, 24); box-shadow: rgba(0, 0, 0, 0.7) 0px 40px 120px, rgb(44, 42, 39) 0px 0px 0px 1px inset; padding: 52px 0px 0px; box-sizing: border-box; overflow: hidden;">
+<div data-ui="33" style="position: absolute; top: 13px; left: 50%; transform: translateX(-50%); width: 108px; height: 30px; border-radius: 20px; background: rgb(0, 0, 0);">
+</div>
+<div data-ui="34" style="padding: 0px 22px;">
+<div data-ui="35" style="display: flex; justify-content: space-between; align-items: center;">
+<span data-ui="36" style="display: flex; align-items: baseline; gap: 6px;">
+<span data-ui="37" style="font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: rgb(229, 64, 44);">AFORCE</span>
+<span data-ui="38" style="font-weight: 700; font-size: 13px; color: rgb(229, 64, 44);">os</span>
+</span>
+<span data-ui="39" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgb(58, 55, 51); display: flex; align-items: center; justify-content: center; color: rgb(237, 232, 223);">
+<svg data-ui="40" aria-hidden="true" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6">
+<path data-ui="41" d="M12 7H2M6 3L2 7l4 4">
+</path>
+</svg>
+</span>
+</div>
+<div data-ui="42" style="margin-top: 26px; font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; color: rgb(163, 157, 147);">ONE BREATH · NEW MOMENT</div>
+<div data-ui="43" style="margin-top: 12px; font-size: 38px; font-weight: 800; line-height: 1; letter-spacing: -0.035em; color: rgb(237, 232, 223);">Say it in<br data-ui="44">one breath.</div>
+<div data-ui="45" style="margin-top: 14px; font-size: 14px; line-height: 1.5; color: rgb(181, 175, 165);">Speak once. Review what AFORCE heard. Seal only what you approve.</div>
+<div data-ui="46" style="margin: 22px auto 0px; width: 124px; height: 124px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, rgb(255, 161, 96) 0%, rgb(255, 122, 46) 38%, rgb(232, 84, 26) 78%, rgb(201, 67, 15) 100%); box-shadow: rgba(255, 110, 40, 0.06) 0px 0px 0px 26px, rgba(255, 110, 40, 0.45) 0px 0px 70px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 30px; letter-spacing: -0.02em; color: rgb(255, 244, 236);">N‑И</div>
+<div data-ui="47" style="margin-top: 26px; font-size: 10.5px; font-weight: 500; letter-spacing: 0.12em; color: rgb(163, 157, 147);">HEARD · REVIEW BEFORE YOU SEAL</div>
+<div data-ui="48" aria-hidden="true" style="height: 14px; display: flex; align-items: center; justify-content: space-between; margin-top: 12px;">
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+<span data-ui="50" style="width: 2px; height: 4px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 6px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+<span data-ui="50" style="width: 2px; height: 4px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 6px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+<span data-ui="50" style="width: 2px; height: 4px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 6px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+<span data-ui="50" style="width: 2px; height: 4px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 6px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+<span data-ui="50" style="width: 2px; height: 4px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 6px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 5px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 3px; background: rgb(74, 70, 64);">
+</span>
+<span data-ui="50" style="width: 2px; height: 7px; background: rgb(107, 102, 94);">
+</span>
+</div>
+<div data-ui="51" style="margin-top: 16px; font-size: 12px; font-weight: 600; color: rgb(142, 136, 127);">Type instead · or edit what was heard</div>
+<div data-ui="52" style="margin-top: 8px; border: 1px solid rgb(58, 55, 51); border-radius: 6px; background: rgb(26, 25, 24); padding: 13px 14px 26px; font-size: 15px; line-height: 1.4; color: rgb(237, 232, 223);">I land at three. My presentation is at six. Help me arrive ready.</div>
+<div data-ui="53" style="margin-top: 14px; font-size: 12px; color: rgb(216, 210, 200);">Clear words &amp; start again</div>
+</div>
+<div data-ui="54" style="margin-top: 16px; border-top: 1px solid rgb(36, 34, 31); display: flex; justify-content: space-around; align-items: flex-end; padding: 10px 6px 16px; font-size: 10.5px; color: rgb(181, 175, 165);">
+<span data-ui="55" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+<svg data-ui="56" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4">
+<circle data-ui="57" cx="9" cy="9" r="7">
+</circle>
+<circle data-ui="58" cx="9" cy="9" r="1.5" fill="currentColor">
+</circle>
+</svg>Home</span>
+<span data-ui="59" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+<svg data-ui="60" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4">
+<path data-ui="61" d="M3 5h12M3 9h9M3 13h6">
+</path>
+</svg>Moments</span>
+<span data-ui="62" style="display: flex; flex-direction: column; align-items: center; gap: 4px; color: rgb(237, 232, 223); position: relative;">
+<span data-ui="63" style="position: absolute; top: -10px; width: 22px; height: 2px; background: rgb(229, 64, 44);">
+</span>
+<span data-ui="64" style="width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, rgb(255, 161, 96), rgb(255, 122, 46) 45%, rgb(217, 73, 26)); box-shadow: rgba(255, 110, 40, 0.5) 0px 0px 12px; font-size: 6.5px; font-weight: 800; color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center;">N‑И</span>Breath</span>
+<span data-ui="65" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+<svg data-ui="66" aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4">
+<circle data-ui="67" cx="6.5" cy="9" r="4">
+</circle>
+<circle data-ui="68" cx="11.5" cy="9" r="4">
+</circle>
+</svg>Circles</span>
+<span data-ui="69" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+<span data-ui="70" style="font-weight: 800; font-size: 13px; line-height: 18px; color: rgb(216, 210, 200);">N‑И</span>You</span>
+</div>
+</div>
 </div>
 </section>
-
-<!-- ============ 03 · ONE COMMAND ============ -->
-<section class="blk command" id="command">
-  <div class="wrap pn-grid">
-    <div class="pn-intro col-copy">
-      <div class="kick reveal">Performance Navigator</div>
-      <h2 class="hd-l reveal">Not more data.<br>The next move.</h2>
-      <p class="lead reveal">Most platforms tell you how you scored.<br><br>AFORCE OS answers the question that actually matters:<br><b>What should I do now?</b></p>
-    </div>
-    <figure class="pn-stage reveal" aria-label="AFORCE OS protocol: signal, decision, next action, recheck">
-      <ol class="pn-rail" aria-label="How AFORCE moves from signal to action">
-        <li>Signal</li><li>Decision</li><li class="on">Next action</li><li>Recheck</li>
-      </ol>
-      <div class="pn-phone">
-      <div class="pn-screen">
-        <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol screen, Depletion Correction. Next recheck in 5 hours. Protocol steps, 1 of 4: confirm hydration signal, completed today; log next intake, the active step; recheck performance signals, after intake; confirm status, end of cycle. Hydration 54 of 96 oz. Recovery signals: heart rate and HRV." width="780" height="1688" loading="lazy" decoding="async">
-      </div>
-      </div>
-      <div class="pn-move" aria-hidden="true">
-        <span class="pn-k">Your next move</span>
-        <span class="pn-v">Log next intake.</span>
-        <span class="pn-s"><i></i>Active step</span>
-      </div>
-      <figcaption class="cap">Illustrative interface &middot; Sample data</figcaption>
-    </figure>
-    <div class="pn-verbs">
-      <ul class="verbs stagger" aria-label="The five commands">
-        <li class="reveal" style="--i:0">Hydrate.</li>
-        <li class="reveal" style="--i:1">Recover.</li>
-        <li class="reveal" style="--i:2">Prepare.</li>
-        <li class="reveal" style="--i:3">Move.</li>
-        <li class="reveal" style="--i:4">Hold.</li>
-      </ul>
-      <p class="pn-none reveal">Sometimes the smartest intervention is none at all.</p>
-    </div>
-  </div>
+<section data-ui="71" id="film" style="max-width: 1200px; margin: 0px auto; padding: 24px 24px 120px;">
+<div data-ui="72" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px;">
+<div data-ui="73">
+<div data-ui="74" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">THE FILM · 1:06</div>
+<h2 data-ui="75" style="margin: 14px 0px 0px; font-size: clamp(34px, 4.4vw, 56px); line-height: 1.04; letter-spacing: -0.03em; font-weight: 800;">Different moments.<br data-ui="76">Same need to be ready.</h2>
+</div>
+<p data-ui="77" style="margin: 0px; max-width: 380px; font-size: 17px; line-height: 1.55; color: rgb(163, 157, 147);">A game, a boardroom, a first time on stage. Watch one full loop, from saying it once to making the next one better.</p>
+</div>
+<div data-ui="78" style="position: relative; border-radius: 22px; overflow: hidden; aspect-ratio: 16 / 9; background: rgb(17, 17, 17);">
+<img loading="lazy" decoding="async" data-ui="79" src="/assets/aforce-os/story-football.jpg" alt="Flag football team gathered at dusk under stadium lights" style="width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(0.9);">
+<div data-ui="80" style="position: absolute; inset: 0px; background: linear-gradient(rgba(10, 10, 10, 0.15) 30%, rgba(10, 10, 10, 0.85) 100%);">
+</div>
+<button data-ui="81" type="button" aria-label="Play the silent AFORCE OS film, 1 minute 6 seconds" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 104px; height: 104px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(10, 10, 10, 0.45); backdrop-filter: blur(6px); color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+<svg data-ui="82" aria-hidden="true" width="30" height="30" viewBox="0 0 14 14">
+<path data-ui="83" d="M3.5 1.5l9 5.5-9 5.5z" fill="currentColor">
+</path>
+</svg>
+</button>
+<div data-ui="84" style="position: absolute; left: 32px; right: 32px; bottom: 28px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+<div data-ui="85" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(216, 210, 200);">SILENT FILM · PRODUCT WALKTHROUGH</div>
+<a data-ui="86" href="#access" style="text-decoration: none; background: rgb(237, 232, 223); color: rgb(10, 10, 10); padding: 13px 20px; border-radius: 999px; font-weight: 600; font-size: 15px;">Get early access</a>
+</div>
+</div>
 </section>
-
-<!-- ============ 04 · MOMENTS ============ -->
-<section class="blk moments" id="moments">
-  <div class="wrap">
-    <div class="split top intro">
-      <div class="col-copy">
-        <div class="kick reveal">Moments</div>
-        <h2 class="hd-l reveal">Your day isn't a dashboard.<br>It's a series of moments.</h2>
-        <ul class="lines stagger" aria-label="Kinds of moments">
-          <li class="reveal dim" style="--i:0">An investor meeting.</li>
-          <li class="reveal dim" style="--i:1">A surgery.</li>
-          <li class="reveal dim" style="--i:2">A match.</li>
-          <li class="reveal dim" style="--i:3">A flight.</li>
-          <li class="reveal dim" style="--i:4">A presentation.</li>
-          <li class="reveal dim" style="--i:5">A workout.</li>
-          <li class="reveal dim" style="--i:6">A night that runs late.</li>
-        </ul>
-        <p class="lead reveal">Different moments make different demands on the body. <b>AFORCE OS prepares around what comes next.</b></p>
-      </div>
-      <div class="shot reveal">
-        <img src="/assets/aforce-os/black-issue-moments.png" alt="AFORCE OS Moments — a three-day view: today's workout, investor call, meeting with bank and flight to London, with tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Illustrative interface &middot; Sample data &middot; Moments you enter yourself</p>
-      </div>
-    </div>
-  </div>
+<section data-ui="87" id="day" style="background: rgb(237, 232, 223); color: rgb(15, 14, 13);">
+<div data-ui="88" style="max-width: 1200px; margin: 0px auto; padding: 120px 24px;">
+<div data-ui="89" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;">
+<div data-ui="90">
+<div data-ui="91" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(180, 48, 31);">ONE DAY · CONNECTED · INTERACTIVE PREVIEW</div>
+<h2 data-ui="92" style="margin: 14px 0px 0px; font-size: clamp(40px, 5.4vw, 72px); line-height: 1; letter-spacing: -0.035em; font-weight: 800;">One day.<br data-ui="93">Connected.</h2>
+</div>
+<p data-ui="94" style="margin: 0px; max-width: 420px; font-size: 18px; line-height: 1.55; color: rgb(74, 70, 64);">Your calendar says what's happening. AFORCE organizes the preparation around it: what to do, when, and why, with your surroundings in view.</p>
+</div>
+<div data-ui="95" role="tablist" aria-label="Choose a day" style="margin-top: 48px; display: inline-flex; gap: 6px; padding: 6px; background: rgb(221, 215, 204); border-radius: 999px; flex-wrap: wrap;">
+<button data-ui="97" type="button" role="tab" aria-selected="false" style="border: 0px; cursor: pointer; border-radius: 999px; padding: 12px 22px; font-size: 16px; font-weight: 600; min-height: 44px; background: transparent; color: rgb(58, 54, 49);">
+<span class="sc-interp">Game day</span>
+</button>
+<button data-ui="97" type="button" role="tab" aria-selected="false" style="border: 0px; cursor: pointer; border-radius: 999px; padding: 12px 22px; font-size: 16px; font-weight: 600; min-height: 44px; background: transparent; color: rgb(58, 54, 49);">
+<span class="sc-interp">Workday</span>
+</button>
+<button data-ui="97" type="button" role="tab" aria-selected="true" style="border: 0px; cursor: pointer; border-radius: 999px; padding: 12px 22px; font-size: 16px; font-weight: 600; min-height: 44px; background: rgb(15, 14, 13); color: rgb(237, 232, 223);">
+<span class="sc-interp">Travel day</span>
+</button>
+</div>
+<div data-ui="98" style="margin-top: 28px; display: flex; flex-wrap: wrap; gap: 28px; align-items: stretch;">
+<div data-ui="99" style="flex: 999 1 560px; min-width: 0px; background: rgb(247, 244, 238); border: 1px solid rgb(214, 207, 194); border-radius: 22px; padding: 32px;">
+<div data-ui="100" style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(107, 102, 94); border-bottom: 2px solid rgb(180, 48, 31); padding-bottom: 14px;">
+<span data-ui="101" style="color: rgb(180, 48, 31);">
+<span class="sc-interp">TRAVEL DAY</span>
+</span>
+<span data-ui="102">
+<span class="sc-interp">THU · OCT 23</span> · <span class="sc-interp">NEW YORK → CHICAGO</span>
+</span>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">9:30 AM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; background: rgb(207, 200, 186); flex: 0 0 auto;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Pre-flight sip</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">12 oz before boarding</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(107, 102, 94); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">HYDRATE</span>
+</div>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">11:40 AM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; background: rgb(207, 200, 186); flex: 0 0 auto;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Flight to Chicago</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">Cabin protocol: small sips every hour</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(107, 102, 94); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">TRAVEL</span>
+</div>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">3:00 PM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; background: rgb(207, 200, 186); flex: 0 0 auto;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Land at O’Hare</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">35 minutes to the venue</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(107, 102, 94); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">TRAVEL</span>
+</div>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">4:30 PM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgb(229, 64, 44); box-sizing: border-box; flex: 0 0 auto;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Settle in</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">Hotel · 30 quiet minutes</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(200, 52, 31); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">PREP</span>
+</div>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">6:00 PM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; background: rgb(229, 64, 44); flex: 0 0 auto; box-shadow: rgba(229, 64, 44, 0.18) 0px 0px 0px 4px;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Investor presentation</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">Your Moment</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(200, 52, 31); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">MOMENT</span>
+</div>
+</div>
+<div data-ui="104" style="display: flex; gap: 20px; align-items: center; padding: 18px 0px; border-bottom: 1px solid rgb(226, 220, 209);">
+<div data-ui="105" style="width: 92px; flex: 0 0 auto; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; color: rgb(107, 102, 94);">
+<span class="sc-interp">8:30 PM</span>
+</div>
+<div data-ui="106" style="width: 12px; height: 12px; border-radius: 50%; background: rgb(207, 200, 186); flex: 0 0 auto;">
+</div>
+<div data-ui="107" style="flex: 1 1 0%; min-width: 0px;">
+<div data-ui="108" style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: rgb(15, 14, 13);">
+<span class="sc-interp">Dinner near the venue</span>
+</div>
+<div data-ui="109" style="font-size: 14px; color: rgb(107, 102, 94); margin-top: 3px;">
+<span class="sc-interp">Table for 4</span>
+</div>
+</div>
+<div data-ui="110" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(107, 102, 94); font-weight: 400; flex: 0 0 auto;">
+<span class="sc-interp">CLEAR</span>
+</div>
+</div>
+</div>
+<div data-ui="111" style="flex: 1 1 340px; min-width: 0px; display: flex; flex-direction: column; gap: 20px;">
+<div data-ui="112" style="background: rgb(247, 244, 238); border: 1px solid rgb(214, 207, 194); border-radius: 22px; padding: 26px;">
+<div data-ui="113" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(107, 102, 94);">SURROUNDINGS</div>
+<div data-ui="114" style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+<span data-ui="116" style="border: 1px solid rgb(207, 200, 186); border-radius: 999px; padding: 8px 13px; font-size: 14px; color: rgb(42, 39, 35);">
+<span class="sc-interp">Dry cabin air</span>
+</span>
+<span data-ui="116" style="border: 1px solid rgb(207, 200, 186); border-radius: 999px; padding: 8px 13px; font-size: 14px; color: rgb(42, 39, 35);">
+<span class="sc-interp">Chicago 58°F, windy</span>
+</span>
+<span data-ui="116" style="border: 1px solid rgb(207, 200, 186); border-radius: 999px; padding: 8px 13px; font-size: 14px; color: rgb(42, 39, 35);">
+<span class="sc-interp">Venue 35 min from airport</span>
+</span>
+</div>
+</div>
+<div data-ui="117" style="background: rgb(15, 14, 13); color: rgb(237, 232, 223); border-radius: 22px; padding: 28px; flex: 1 1 0%; display: flex; flex-direction: column;">
+<div data-ui="118" style="display: flex; align-items: center; gap: 10px;">
+<span data-ui="119" aria-hidden="true" style="width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgb(255, 178, 122), rgb(242, 103, 42) 55%, rgb(194, 65, 12));">
+</span>
+<span data-ui="120" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(229, 64, 44);">ONE PROPOSED NEXT MOVE</span>
+</div>
+<div data-ui="121" style="margin-top: 18px; font-size: 15px; color: rgb(163, 157, 147);">
+<span class="sc-interp">You land at 3:00 and present at 6:00.</span>
+</div>
+<div data-ui="122" style="margin-top: 8px; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.01em;">
+<span class="sc-interp">Hold 4:30–5:00 to settle in before anything else gets booked?</span>
+</div>
+<div data-ui="123" style="margin-top: 12px; font-size: 14px; line-height: 1.5; color: rgb(163, 157, 147);">
+<span class="sc-interp">Three hours goes fast after a flight. This protects the time you said you need.</span>
+</div>
+<div data-ui="124" style="flex: 1 1 0%;">
+</div>
+<div data-ui="126" style="display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap;">
+<button data-ui="127" type="button" style="background: rgb(229, 64, 44); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 14px 22px; font-size: 15px; font-weight: 600; cursor: pointer;">Approve</button>
+<button data-ui="128" type="button" style="background: transparent; color: rgb(237, 232, 223); border: 1px solid rgb(58, 54, 49); border-radius: 999px; padding: 14px 22px; font-size: 15px; cursor: pointer;">Not today</button>
+</div>
+</div>
+</div>
+</div>
+</div>
 </section>
-
-<!-- ============ 05 · BEFORE / DURING / AFTER ============ -->
-<section class="blk cycle" id="cycle">
-  <div class="wrap">
-    <div class="kick reveal">The Performance Cycle</div>
-    <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
-    <div class="cycle-grid stagger">
-      <div class="state state--before reveal" style="--i:0">
-        <div class="word">Before</div>
-        <p class="copy">AFORCE sees the moment ahead.<span>It interprets available signals, recent behavior, and what is coming next so preparation can begin before performance does.</span><b>Prepare. Hydrate. Lock in.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-ritual.png" alt="Before — AFORCE OS daily ritual, built from your signals: wake sip, morning stick, a 12 oz pre-call sip before the 9:06 investor call, Guardian on before the 2 to 5 PM outdoor block, a recovery stick moved earlier and up next, and a light wind-down. Thursday's flight adds a cabin protocol." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
-        </div>
-      </div>
-      <div class="state state--during reveal" style="--i:1">
-        <div class="word">During</div>
-        <p class="copy">Intelligence gets quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
-        </div>
-      </div>
-      <div class="state state--after reveal" style="--i:2">
-        <div class="word">After</div>
-        <p class="copy">The outcome becomes intelligence.<span>A quick reflection helps AFORCE understand how the preparation and command matched the actual moment.</span><b>Then the next cycle gets smarter.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-one-breath.png" alt="After — AFORCE OS One Breath: speak once, review what AFORCE heard, and seal only what you approve. Listening, with the spoken note shown on screen." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
-        </div>
-      </div>
-    </div>
-  </div>
+<section data-ui="133" style="max-width: 1200px; margin: 0px auto; padding: 130px 24px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;">
+<div data-ui="134" style="flex: 1 1 480px; min-width: 0px; position: relative; border-radius: 22px; overflow: hidden; min-height: 560px;">
+<img loading="lazy" decoding="async" data-ui="135" src="/assets/aforce-os/story-travel.jpg" alt="Traveler waiting in an airport lounge at sunset beside the runway" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover;">
+<div data-ui="136" style="position: absolute; inset: 0px; background: linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.55));">
+</div>
+<div data-ui="137" style="position: absolute; left: 24px; right: 24px; bottom: 24px; background: rgba(12, 12, 11, 0.92); backdrop-filter: blur(10px); border: 1px solid rgb(44, 41, 37); border-radius: 18px; padding: 24px;">
+<div data-ui="138" style="display: flex; justify-content: space-between; gap: 12px; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.12em;">
+<span data-ui="139" style="color: rgb(229, 64, 44);">TRAVEL · CHANGE DETECTED</span>
+<span data-ui="140" style="color: rgb(142, 136, 127);">THU · NYC → CHI</span>
+</div>
+<div data-ui="141" style="margin-top: 14px; font-size: 15px; color: rgb(163, 157, 147);">Your flight is delayed. Your presentation still matters.</div>
+<div data-ui="142" style="margin-top: 8px; font-size: 22px; line-height: 1.3; font-weight: 700;">Move your preparation window and keep ten minutes to settle in?</div>
+<div data-ui="153" style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+<button data-ui="154" type="button" style="background: transparent; color: rgb(237, 232, 223); border: 1px solid rgb(58, 54, 49); border-radius: 999px; padding: 12px 18px; font-size: 14px; cursor: pointer;">
+<span class="sc-interp">See what changes</span>
+</button>
+<button data-ui="155" type="button" style="background: rgb(229, 64, 44); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 12px 20px; font-size: 14px; font-weight: 600; cursor: pointer;">Approve</button>
+</div>
+</div>
+</div>
+<div data-ui="160" style="flex: 1 1 420px; min-width: 0px;">
+<div data-ui="161" style="display: flex; gap: 10px; align-items: center;">
+<span data-ui="162" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">TRAVEL · ENVIRONMENT</span>
+<span data-ui="163" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; border: 1px solid rgb(90, 85, 77); color: rgb(201, 195, 184);">
+<span class="sc-interp">Preview</span>
+</span>
+</div>
+<h2 data-ui="164" style="margin: 16px 0px 0px; font-size: clamp(36px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800;">When the day changes, your plan can too.</h2>
+<p data-ui="165" style="margin: 24px 0px 0px; font-size: 18px; line-height: 1.6; color: rgb(163, 157, 147);">A delay, a heat wave, a meeting that runs long. AFORCE notices what changed, proposes an adjustment, shows you why, and waits for your yes. Nothing moves without you.</p>
+<div data-ui="166" style="margin-top: 32px; display: flex; flex-direction: column; gap: 0px; border-top: 1px solid rgb(36, 34, 31);">
+<div data-ui="167" style="display: flex; gap: 18px; padding: 18px 0px; border-bottom: 1px solid rgb(36, 34, 31);">
+<span data-ui="168" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(229, 64, 44); width: 28px;">01</span>
+<span data-ui="169" style="font-size: 16px;">Notices the change</span>
+</div>
+<div data-ui="170" style="display: flex; gap: 18px; padding: 18px 0px; border-bottom: 1px solid rgb(36, 34, 31);">
+<span data-ui="171" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(229, 64, 44); width: 28px;">02</span>
+<span data-ui="172" style="font-size: 16px;">Proposes one adjustment and shows why</span>
+</div>
+<div data-ui="173" style="display: flex; gap: 18px; padding: 18px 0px; border-bottom: 1px solid rgb(36, 34, 31);">
+<span data-ui="174" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(229, 64, 44); width: 28px;">03</span>
+<span data-ui="175" style="font-size: 16px;">Changes your plan only when you approve</span>
+</div>
+</div>
+</div>
 </section>
-
-<details class="roadmap" id="roadmap">
-  <summary><span class="kick">Looking ahead</span><span class="hd-l">What’s next for AFORCE OS.</span><span class="roadmap-hint">Explore future features +</span></summary>
-  <p class="roadmap-intro">Skin Intelligence, Travel Intelligence and Phantom are future experiences. The previews below are not a promise of launch availability or a confirmed release date.</p>
-<!-- ============ 07 · SKIN INTELLIGENCE (coming) ============ -->
-<section class="blk skin" id="skin">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Skin Intelligence <span class="coming">Coming to AFORCE OS</span></div>
-      <h2 class="hd-l reveal">Skin is a signal.</h2>
-      <p class="lead reveal">Observe visible skin signals over time, in the context of hydration, recovery, environment and routine.</p>
-      <ul class="three reveal" aria-label="What Skin Intelligence is not">
-        <li>No beauty score.</li>
-        <li>No judgment.</li>
-        <li>Context.</li>
-      </ul>
-      <p class="cap reveal">Observational only &middot; Not a diagnosis</p>
-    </div>
-    <div class="shot skin-stage reveal">
-      <img src="/assets/aforce-os/black-issue-scan.png" alt="Skin Intelligence live scan — hold still, let the signal settle. A guided phone scan for consistent observation over time; observational only, not a diagnosis." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Design preview &middot; Sample data</p>
-    </div>
-  </div>
+<section data-ui="176" id="privacy" style="position: relative; overflow: hidden;">
+<img loading="lazy" decoding="async" data-ui="177" src="/assets/aforce-os/story-football.jpg" alt="" aria-hidden="true" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; filter: saturate(0.85) brightness(0.55);">
+<div data-ui="178" style="position: absolute; inset: 0px; background: linear-gradient(90deg, rgba(8, 10, 20, 0.92) 0%, rgba(8, 10, 20, 0.75) 45%, rgba(8, 10, 20, 0.35) 100%);">
+</div>
+<div data-ui="179" style="position: relative; max-width: 1200px; margin: 0px auto; padding: 130px 24px; display: flex; flex-wrap: wrap; gap: 56px; align-items: center;">
+<div data-ui="180" style="flex: 1 1 440px; min-width: 0px;">
+<div data-ui="181" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(141, 160, 255);">CIRCLE</div>
+<h2 data-ui="182" style="margin: 16px 0px 0px; font-size: clamp(36px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800;">Prepare together.<br data-ui="183">Keep your private life private.</h2>
+<p data-ui="184" style="margin: 24px 0px 0px; font-size: 18px; line-height: 1.6; color: rgb(194, 198, 214); max-width: 480px;">Get your team, your coach or your people ready for the same moment. Send a cue by voice or text. Your health data and private Replay are not shared with your Circle. You choose which moment details to share.</p>
+<div data-ui="185" style="margin-top: 34px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;">
+<span data-ui="186" aria-hidden="true" style="width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgb(169, 184, 255), rgb(69, 101, 255) 55%, rgb(34, 54, 184)); box-shadow: rgba(69, 101, 255, 0.55) 0px 0px 60px;">
+</span>
+<div data-ui="187">
+<div data-ui="188" style="font-weight: 600; font-size: 17px;">Coach B’s Circle · Flag Football</div>
+<div data-ui="189" style="font-size: 14px; color: rgb(169, 174, 194); margin-top: 4px;">One breath together before Game 2</div>
+</div>
+</div>
+<div data-ui="190" style="margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+<button data-ui="191" type="button" style="display: inline-flex; align-items: center; gap: 8px; background: rgb(69, 101, 255); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 13px 20px; font-size: 15px; font-weight: 600; cursor: pointer;">
+<svg data-ui="192" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+<rect data-ui="193" x="5.5" y="1.5" width="5" height="8" rx="2.5">
+</rect>
+<path data-ui="194" d="M3 7.5a5 5 0 0010 0M8 12.5v2">
+</path>
+</svg>Hold to speak</button>
+<button data-ui="195" type="button" style="background: transparent; color: rgb(237, 232, 223); border: 1px solid rgb(74, 80, 112); border-radius: 999px; padding: 13px 20px; font-size: 15px; cursor: pointer;">Type instead</button>
+</div>
+</div>
+<div data-ui="196" style="flex: 1 1 380px; min-width: 0px; background: rgba(10, 12, 22, 0.86); border: 1px solid rgb(42, 48, 80); border-radius: 22px; padding: 28px; backdrop-filter: blur(10px);">
+<div data-ui="197" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(141, 160, 255);">WHAT YOUR CIRCLE SEES · PREVIEW</div>
+<div data-ui="198" style="margin-top: 8px; font-size: 14px; color: rgb(169, 174, 194);">You decide, item by item.</div>
+<div data-ui="199" style="margin-top: 16px;">
+<div data-ui="201" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0px; border-top: 1px solid rgb(35, 40, 66);">
+<span data-ui="202" style="font-size: 16px;">
+<span class="sc-interp">Moment title and time</span>
+</span>
+<button data-ui="209" type="button" role="switch" aria-checked="true" aria-label="Share Moment title and time" style="width: 52px; height: 30px; border-radius: 999px; border: 0px; cursor: pointer; position: relative; flex: 0 0 auto; background: rgb(69, 101, 255);">
+<span data-ui="210" style="position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: rgb(255, 255, 255); left: 25px;">
+</span>
+</button>
+</div>
+<div data-ui="201" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0px; border-top: 1px solid rgb(35, 40, 66);">
+<span data-ui="202" style="font-size: 16px;">
+<span class="sc-interp">Your cue to the team</span>
+</span>
+<button data-ui="209" type="button" role="switch" aria-checked="true" aria-label="Share Your cue to the team" style="width: 52px; height: 30px; border-radius: 999px; border: 0px; cursor: pointer; position: relative; flex: 0 0 auto; background: rgb(69, 101, 255);">
+<span data-ui="210" style="position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: rgb(255, 255, 255); left: 25px;">
+</span>
+</button>
+</div>
+<div data-ui="201" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0px; border-top: 1px solid rgb(35, 40, 66);">
+<span data-ui="202" style="font-size: 16px;">
+<span class="sc-interp">Arrival status</span>
+</span>
+<button data-ui="209" type="button" role="switch" aria-checked="false" aria-label="Share Arrival status" style="width: 52px; height: 30px; border-radius: 999px; border: 0px; cursor: pointer; position: relative; flex: 0 0 auto; background: rgb(42, 47, 72);">
+<span data-ui="210" style="position: absolute; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: rgb(255, 255, 255); left: 3px;">
+</span>
+</button>
+</div>
+<div data-ui="201" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0px; border-top: 1px solid rgb(35, 40, 66);">
+<span data-ui="202" style="font-size: 16px;">
+<span class="sc-interp">Health and hydration data</span>
+</span>
+<span data-ui="204" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(169, 174, 194); display: inline-flex; align-items: center; gap: 6px;">
+<svg data-ui="205" aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3">
+<rect data-ui="206" x="2" y="5.5" width="8" height="5.5" rx="1">
+</rect>
+<path data-ui="207" d="M4 5.5V4a2 2 0 014 0v1.5">
+</path>
+</svg>ALWAYS PRIVATE</span>
+</div>
+<div data-ui="201" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 15px 0px; border-top: 1px solid rgb(35, 40, 66);">
+<span data-ui="202" style="font-size: 16px;">
+<span class="sc-interp">Your private Replay</span>
+</span>
+<span data-ui="204" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.1em; color: rgb(169, 174, 194); display: inline-flex; align-items: center; gap: 6px;">
+<svg data-ui="205" aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3">
+<rect data-ui="206" x="2" y="5.5" width="8" height="5.5" rx="1">
+</rect>
+<path data-ui="207" d="M4 5.5V4a2 2 0 014 0v1.5">
+</path>
+</svg>ALWAYS PRIVATE</span>
+</div>
+</div>
+</div>
+</div>
 </section>
-
-<!-- ============ 08 · TRAVEL (coming) ============ -->
-<section class="blk travel" id="travel">
-  <div class="wrap">
-    <div class="split top">
-      <div class="col-copy">
-        <div class="kick reveal">Travel Intelligence <span class="coming">Coming to AFORCE OS</span></div>
-        <h2 class="hd-l reveal">Your body crosses<br>time zones too.</h2>
-        <p class="lead reveal">Flights change more than your location.</p>
-      </div>
-      <div class="col-copy">
-        <ul class="lines stagger" aria-label="What a flight changes">
-          <li class="reveal dim" style="--i:0">Cabin conditions.</li>
-          <li class="reveal dim" style="--i:1">Sleep timing.</li>
-          <li class="reveal dim" style="--i:2">Hydration.</li>
-          <li class="reveal dim" style="--i:3">Movement.</li>
-          <li class="reveal dim" style="--i:4">Schedule disruption.</li>
-          <li class="reveal dim" style="--i:5">The performance expected when you land.</li>
-        </ul>
-        <p class="lead reveal"><b>AFORCE OS prepares around the journey &mdash; not simply the destination.</b></p>
-      </div>
-    </div>
-    <div class="travel-visual reveal">
-      <div class="photo"><img src="/assets/discipline-airport.jpg" alt="A traveler in a quiet airport lounge at golden hour, suitcase beside him, an aircraft at the gate beyond the glass" loading="lazy" decoding="async"></div>
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-travel.png" alt="AFORCE OS in-flight protocol — JFK to Singapore at 38,000 feet, cabin protocol on, cabin humidity 12 percent, your next move: sip 8 oz now and add one electrolyte stick before the meal." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview &middot; Sample flight data</p>
-      </div>
-    </div>
-  </div>
+<section data-ui="211" style="max-width: 1200px; margin: 0px auto; padding: 130px 24px;">
+<div data-ui="212" style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap;">
+<div data-ui="213">
+<div data-ui="214" style="display: flex; gap: 10px; align-items: center;">
+<span data-ui="215" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">CONCIERGE</span>
+<span data-ui="216" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; border: 1px dashed rgb(90, 85, 77); color: rgb(163, 157, 147);">
+<span class="sc-interp">Coming later</span>
+</span>
+</div>
+<h2 data-ui="217" style="margin: 16px 0px 0px; font-size: clamp(36px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800;">Less arranging.<br data-ui="218">More arriving.</h2>
+</div>
+<p data-ui="219" style="margin: 0px; max-width: 420px; font-size: 18px; line-height: 1.6; color: rgb(163, 157, 147);">After the presentation: dinner for four near the venue. AFORCE finds a few fitting options. You choose, and it only books with your permission.</p>
+</div>
+<div data-ui="220" style="margin-top: 44px; display: flex; flex-wrap: wrap; gap: 24px;">
+<div data-ui="221" style="flex: 1 1 420px; min-width: 0px; border-radius: 22px; overflow: hidden; position: relative; min-height: 440px;">
+<img loading="lazy" decoding="async" data-ui="222" src="/assets/aforce-os/story-dinner.jpg" alt="Couple at a candlelit dinner with a city skyline behind them" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover;">
+<div data-ui="223" style="position: absolute; inset: 0px; background: linear-gradient(rgba(10, 10, 10, 0) 50%, rgba(10, 10, 10, 0.8));">
+</div>
+<div data-ui="224" style="position: absolute; left: 26px; bottom: 24px; right: 26px; font-size: 15px; color: rgb(237, 232, 223);">
+<span data-ui="225" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.12em; color: rgb(216, 210, 200);">THU · 8:30 PM · TABLE FOR 4</span>
+<div data-ui="226" style="margin-top: 6px; font-size: 20px; font-weight: 600;">Dinner near the venue</div>
+</div>
+</div>
+<div data-ui="227" style="flex: 1 1 420px; min-width: 0px; display: flex; flex-direction: column; gap: 12px;">
+<button data-ui="229" type="button" aria-pressed="true" style="display: block; width: 100%; text-align: left; cursor: pointer; border-radius: 16px; padding: 20px 22px; color: rgb(237, 232, 223); font-family: inherit; background: rgb(26, 24, 23); border: 1px solid rgb(229, 64, 44);">
+<span data-ui="230" style="display: flex; justify-content: space-between; gap: 12px; width: 100%;">
+<span data-ui="231" style="font-size: 18px; font-weight: 600;">
+<span class="sc-interp">Quiet back room</span>
+</span>
+<span data-ui="232" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(163, 157, 147);">
+<span class="sc-interp">8:30 · 6 MIN WALK</span>
+</span>
+</span>
+<span data-ui="233" style="font-size: 14px; color: rgb(163, 157, 147); margin-top: 6px; display: block; text-align: left;">
+<span class="sc-interp">Calm, private table. Good after a long day.</span>
+</span>
+</button>
+<button data-ui="229" type="button" aria-pressed="false" style="display: block; width: 100%; text-align: left; cursor: pointer; border-radius: 16px; padding: 20px 22px; color: rgb(237, 232, 223); font-family: inherit; background: rgb(18, 17, 16); border: 1px solid rgb(42, 39, 36);">
+<span data-ui="230" style="display: flex; justify-content: space-between; gap: 12px; width: 100%;">
+<span data-ui="231" style="font-size: 18px; font-weight: 600;">
+<span class="sc-interp">Rooftop with heaters</span>
+</span>
+<span data-ui="232" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(163, 157, 147);">
+<span class="sc-interp">8:45 · 9 MIN WALK</span>
+</span>
+</span>
+<span data-ui="233" style="font-size: 14px; color: rgb(163, 157, 147); margin-top: 6px; display: block; text-align: left;">
+<span class="sc-interp">City views, more energy. Covered if it rains.</span>
+</span>
+</button>
+<button data-ui="229" type="button" aria-pressed="false" style="display: block; width: 100%; text-align: left; cursor: pointer; border-radius: 16px; padding: 20px 22px; color: rgb(237, 232, 223); font-family: inherit; background: rgb(18, 17, 16); border: 1px solid rgb(42, 39, 36);">
+<span data-ui="230" style="display: flex; justify-content: space-between; gap: 12px; width: 100%;">
+<span data-ui="231" style="font-size: 18px; font-weight: 600;">
+<span class="sc-interp">Neighborhood bistro</span>
+</span>
+<span data-ui="232" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(163, 157, 147);">
+<span class="sc-interp">9:00 · 11 MIN RIDE</span>
+</span>
+</span>
+<span data-ui="233" style="font-size: 14px; color: rgb(163, 157, 147); margin-top: 6px; display: block; text-align: left;">
+<span class="sc-interp">Relaxed and close to your hotel.</span>
+</span>
+</button>
+<div data-ui="234" style="margin-top: 8px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+<button data-ui="235" type="button" style="background: rgb(229, 64, 44); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 15px 24px; font-size: 15px; font-weight: 600; cursor: pointer;">
+<span class="sc-interp">Approve this choice</span>
+</button>
+<span data-ui="236" style="font-size: 14px; color: rgb(142, 136, 127);">Interactive preview only. No reservation is made.</span>
+</div>
+</div>
+</div>
 </section>
-
-<!-- ============ 10 · PHANTOM (coming next) ============ -->
-<section class="blk phantom on-dark" id="phantom">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Coming next</div>
-      <h2 class="hd-l reveal">Intelligence<br>without another screen.</h2>
-      <p class="lead reveal">Phantom is the future wearable expression of AFORCE OS.</p>
-      <ul class="three reveal" aria-label="Phantom in three words">
-        <li>Screenless.</li>
-        <li>Quiet.</li>
-        <li>Connected.</li>
-      </ul>
-      <p class="cap reveal">Future product &middot; Not currently available &middot; Design preview</p>
-    </div>
-    <div class="ph-stage reveal">
-      <img class="band" src="/assets/aforce-os/phantom-band.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <img class="can" src="/assets/can-red.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-phantom.png" alt="Phantom Band design preview — matte black, no screen, one quiet signal on your wrist. Signals only, not a medical device." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview</p>
-      </div>
-    </div>
-  </div>
+<section data-ui="237" style="position: relative; min-height: 760px; display: flex; align-items: flex-end; overflow: hidden;">
+<img loading="lazy" decoding="async" data-ui="238" src="/assets/aforce-os/story-runner.jpg" alt="A runner alone on a waterfront path at dusk with the city skyline across the water" style="position: absolute; inset: 0px; width: 100%; height: 100%; object-fit: cover;">
+<div data-ui="239" style="position: absolute; inset: 0px; background: linear-gradient(rgba(10, 10, 10, 0.55) 0%, rgba(10, 10, 10, 0.1) 40%, rgba(10, 10, 10, 0.9) 100%);">
+</div>
+<div data-ui="240" style="position: relative; max-width: 1200px; width: 100%; margin: 0px auto; padding: 0px 24px 110px; box-sizing: border-box;">
+<div data-ui="241" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(216, 210, 200);">WHEN THE MOMENT BEGINS</div>
+<h2 data-ui="242" style="margin: 18px 0px 0px; font-size: clamp(56px, 9vw, 132px); line-height: 0.92; letter-spacing: -0.045em; font-weight: 800;">Be all here.</h2>
+<p data-ui="243" style="margin: 26px 0px 0px; max-width: 520px; font-size: 20px; line-height: 1.55; color: rgb(216, 210, 200);">Your plan is sealed. The phone goes quiet. No streaks to check, no scores to chase, just the thing you prepared for.</p>
+</div>
 </section>
-
-</details>
-
-<section class="blk os-progress" id="thirty">
-  <div class="wrap split">
-    <div class="col-copy"><p class="kick">Progress, in context</p><h2 class="hd-l">Build a record.<br>Find your rhythm.</h2><p class="lead">Consistency starts with noticing what you do. Review your hydration history, routines and reflections over time.</p></div>
-    <div class="progress-list"><div><span>01</span><h3>Your hydration history</h3><p>A record of what you log, day by day.</p></div><div><span>02</span><h3>Your daily habits</h3><p>A clearer view of the routines you repeat.</p></div><div><span>03</span><h3>Your reflections</h3><p>Context from the moments you choose to record.</p></div></div>
-  </div>
+<section data-ui="244" style="max-width: 1200px; margin: 0px auto; padding: 130px 24px;">
+<div data-ui="245" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">RECOVER · REPLAY · NEXT TIME</div>
+<h2 data-ui="246" style="margin: 16px 0px 0px; font-size: clamp(36px, 4.6vw, 60px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 800; max-width: 760px;">Make the next moment better.</h2>
+<p data-ui="247" style="margin: 22px 0px 0px; max-width: 560px; font-size: 18px; line-height: 1.6; color: rgb(163, 157, 147);">After it's over, check in, say what you'd change, and approve it once. Next time, your plan starts from there.</p>
+<div data-ui="248" style="margin-top: 52px; display: flex; flex-wrap: wrap; gap: 20px;">
+<div data-ui="249" style="flex: 1 1 300px; min-width: 0px; background: rgb(18, 17, 16); border: 1px solid rgb(36, 34, 31); border-radius: 22px; padding: 28px;">
+<div data-ui="250" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(142, 136, 127);">01 · RECOVER</div>
+<div data-ui="251" style="margin-top: 22px; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 10px; letter-spacing: 0.12em; color: rgb(142, 136, 127);">RECOVERY · FLAG FOOTBALL · GAME 2</div>
+<div data-ui="252" style="margin-top: 10px; font-size: 30px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.05;">Recover well tonight.</div>
+<div data-ui="253" style="margin-top: 14px; font-size: 14px; color: rgb(163, 157, 147);">How do you feel?</div>
+<div data-ui="254" style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+<button data-ui="256" type="button" aria-pressed="true" style="min-height: 44px; border-radius: 10px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: rgb(237, 232, 223); background: rgb(42, 39, 36); border: 1px solid rgb(237, 232, 223);">
+<span class="sc-interp">Steady</span>
+</button>
+<button data-ui="256" type="button" aria-pressed="false" style="min-height: 44px; border-radius: 10px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: rgb(237, 232, 223); background: transparent; border: 1px solid rgb(58, 54, 49);">
+<span class="sc-interp">Drained</span>
+</button>
+<button data-ui="256" type="button" aria-pressed="false" style="min-height: 44px; border-radius: 10px; padding: 10px 16px; font-size: 14px; cursor: pointer; color: rgb(237, 232, 223); background: transparent; border: 1px solid rgb(58, 54, 49);">
+<span class="sc-interp">Energized</span>
+</button>
+</div>
+</div>
+<div data-ui="257" style="flex: 1 1 300px; min-width: 0px; background: rgb(18, 17, 16); border: 1px solid rgb(36, 34, 31); border-radius: 22px; padding: 28px;">
+<div data-ui="258" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(142, 136, 127);">02 · REPLAY</div>
+<div data-ui="259" style="margin-top: 22px; display: flex; align-items: center; gap: 12px;">
+<span data-ui="260" aria-hidden="true" style="width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgb(255, 178, 122), rgb(242, 103, 42) 55%, rgb(194, 65, 12));">
+</span>
+<span data-ui="261" style="font-size: 14px; color: rgb(163, 157, 147);">Said once, after the game</span>
+</div>
+<div data-ui="262" style="margin-top: 18px; font-size: 24px; line-height: 1.3; font-weight: 600;">“Next game, give me more time before warm-up.”</div>
+<div data-ui="263" style="margin-top: 14px; font-size: 14px; color: rgb(142, 136, 127);">Stays private. Only you hear it back.</div>
+</div>
+<div data-ui="264" style="flex: 1 1 300px; min-width: 0px; background: rgb(237, 232, 223); color: rgb(15, 14, 13); border-radius: 22px; padding: 28px;">
+<div data-ui="265" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(107, 102, 94);">03 · NEXT TIME</div>
+<div data-ui="266" style="margin-top: 22px; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 10px; letter-spacing: 0.12em; color: rgb(180, 48, 31);">APPROVED ADJUSTMENT</div>
+<div data-ui="267" style="margin-top: 10px; font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em;">Next game day, leave 15 minutes earlier.</div>
+<div data-ui="268" style="margin-top: 16px; display: flex; justify-content: space-between; font-size: 15px; border-top: 1px solid rgb(214, 207, 194); padding-top: 14px;">
+<span data-ui="269" style="color: rgb(107, 102, 94);">Leave for the field</span>
+<span data-ui="270">
+<span data-ui="271" style="color: rgb(154, 148, 138); text-decoration: line-through;">5:10</span>  <strong data-ui="272">4:55 PM</strong>
+</span>
+</div>
+<div data-ui="273" style="margin-top: 10px; font-size: 13px; color: rgb(107, 102, 94);">You approved this once. Change it anytime.</div>
+</div>
+</div>
 </section>
-<section class="blk os-faq" id="os-questions">
-  <div class="wrap split top"><div><p class="kick">Before you begin</p><h2 class="hd-l">A few clear answers.</h2></div><div class="faq-list">
-    <details><summary>How do I get access?</summary><p>Join the launch waitlist for availability and early-access updates. This page is a product preview; joining the list does not create a paid subscription.</p></details>
-    <details><summary>How does AFORCE OS connect to hydration?</summary><p>Hydration products support the daily ritual. AFORCE OS provides a place to log hydration and build your routine. Explore the shop for the proposed product formats and availability.</p></details>
-    <details><summary>Do I need the Phantom Band?</summary><p>Phantom is a future wearable product, not a requirement to join the AFORCE OS waitlist. The app experience shown here is separate from the future Band.</p></details>
-    <details><summary>Are these real results?</summary><p>The screens and film use illustrative interfaces and sample data. They are not actual user results or guarantees of improvement. Future features are labeled as previews.</p></details>
-    <details><summary>Does the app measure my body directly?</summary><p>The app itself does not take live biometric readings. It uses information you provide and available integrations. AFORCE OS supports general wellness and is not a medical device.</p></details>
-  </div></div>
+<section data-ui="274" id="support" style="position: relative; overflow: hidden; background: rgb(7, 7, 7); border-top: 1px solid rgb(30, 28, 25);">
+<div data-ui="275" aria-hidden="true" style="position: absolute; width: 900px; height: 900px; right: -260px; top: -220px; border-radius: 50%; background: radial-gradient(circle, rgba(229, 64, 44, 0.16), rgba(229, 64, 44, 0) 62%);">
+</div>
+<div data-ui="276" aria-hidden="true" style="position: absolute; width: 700px; height: 700px; left: -240px; bottom: -260px; border-radius: 50%; background: radial-gradient(circle, rgba(242, 103, 42, 0.1), rgba(242, 103, 42, 0) 62%);">
+</div>
+<div data-ui="277" style="position: relative; max-width: 1200px; margin: 0px auto; padding: 130px 24px 120px;">
+<div data-ui="278" style="text-align: center; max-width: 760px; margin: 0px auto;">
+<div data-ui="279" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 13px; letter-spacing: 0.14em; color: rgb(229, 64, 44);">MEMBERSHIP</div>
+<h2 data-ui="280" style="margin: 18px 0px 0px; font-size: clamp(40px, 5.6vw, 76px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 800;">Two ways in.<br data-ui="281">
+<span data-ui="282" style="color: rgb(163, 157, 147);">One standard.</span>
+</h2>
+<p data-ui="283" style="margin: 22px auto 0px; max-width: 560px; font-size: 18px; line-height: 1.6; color: rgb(163, 157, 147);">Proposed membership options. Features, plans and pricing will be confirmed at launch. Founding members hear first and get in first.</p>
+</div>
+<div data-ui="284" style="margin-top: 64px; display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch;">
+<div data-ui="285" style="flex: 1 1 440px; min-width: 0px; background: rgb(237, 232, 223); color: rgb(15, 14, 13); border-radius: 28px; padding: 40px; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+<div data-ui="286" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+<span data-ui="287" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.14em; color: rgb(107, 102, 94);">AFORCE OS</span>
+<span data-ui="288" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.12em; color: rgb(107, 102, 94); border: 1px solid rgb(201, 194, 181); border-radius: 999px; padding: 6px 12px;">DETAILS AT LAUNCH</span>
+</div>
+<div data-ui="289" style="margin-top: 26px; font-size: clamp(36px, 4vw, 52px); font-weight: 800; letter-spacing: -0.035em; line-height: 1;">The complete loop.</div>
+<p data-ui="290" style="margin: 16px 0px 0px; font-size: 17px; line-height: 1.55; color: rgb(74, 70, 64); max-width: 420px;">Everything it takes to prepare for a moment, live it, and learn from it.</p>
+<div data-ui="291" aria-hidden="true" style="margin-top: 38px; position: relative; display: flex; justify-content: space-between; align-items: flex-start;">
+<div data-ui="292" style="position: absolute; left: 14px; right: 14px; top: 13px; height: 2px; background: linear-gradient(90deg, rgb(242, 103, 42), rgb(229, 64, 44));">
+</div>
+<div data-ui="294" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px;">
+<span data-ui="295" style="width: 28px; height: 28px; border-radius: 50%; position: relative; box-shadow: rgb(237, 232, 223) 0px 0px 0px 5px; background: radial-gradient(circle at 38% 32%, rgb(255, 161, 96), rgb(255, 122, 46) 45%, rgb(217, 73, 26));">
+</span>
+<span data-ui="296" style="font-size: 13px; font-weight: 600; color: rgb(42, 39, 35);">
+<span class="sc-interp">Say</span>
+</span>
+</div>
+<div data-ui="294" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px;">
+<span data-ui="295" style="width: 28px; height: 28px; border-radius: 50%; position: relative; box-shadow: rgb(237, 232, 223) 0px 0px 0px 5px; background: rgb(15, 14, 13);">
+</span>
+<span data-ui="296" style="font-size: 13px; font-weight: 600; color: rgb(42, 39, 35);">
+<span class="sc-interp">Seal</span>
+</span>
+</div>
+<div data-ui="294" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px;">
+<span data-ui="295" style="width: 28px; height: 28px; border-radius: 50%; position: relative; box-shadow: rgb(237, 232, 223) 0px 0px 0px 5px; background: rgb(229, 64, 44);">
+</span>
+<span data-ui="296" style="font-size: 13px; font-weight: 600; color: rgb(42, 39, 35);">
+<span class="sc-interp">Prepare</span>
+</span>
+</div>
+<div data-ui="294" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px;">
+<span data-ui="295" style="width: 28px; height: 28px; border-radius: 50%; position: relative; box-shadow: rgb(237, 232, 223) 0px 0px 0px 5px; background: rgb(15, 14, 13);">
+</span>
+<span data-ui="296" style="font-size: 13px; font-weight: 600; color: rgb(42, 39, 35);">
+<span class="sc-interp">Recover</span>
+</span>
+</div>
+<div data-ui="294" style="position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; width: 64px;">
+<span data-ui="295" style="width: 28px; height: 28px; border-radius: 50%; position: relative; box-shadow: rgb(237, 232, 223) 0px 0px 0px 5px; background: rgb(15, 14, 13);">
+</span>
+<span data-ui="296" style="font-size: 13px; font-weight: 600; color: rgb(42, 39, 35);">
+<span class="sc-interp">Replay</span>
+</span>
+</div>
+</div>
+<div data-ui="297" style="margin-top: 38px; border-top: 1px solid rgb(211, 204, 191);">
+<div data-ui="299" style="display: flex; gap: 16px; padding: 15px 0px; border-bottom: 1px solid rgb(211, 204, 191); font-size: 16px;">
+<span data-ui="300" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(180, 48, 31); width: 24px; flex: 0 0 auto; padding-top: 2px;">
+<span class="sc-interp">01</span>
+</span>
+<span data-ui="301">
+<span class="sc-interp">Say what’s coming in one breath</span>
+</span>
+</div>
+<div data-ui="299" style="display: flex; gap: 16px; padding: 15px 0px; border-bottom: 1px solid rgb(211, 204, 191); font-size: 16px;">
+<span data-ui="300" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(180, 48, 31); width: 24px; flex: 0 0 auto; padding-top: 2px;">
+<span class="sc-interp">02</span>
+</span>
+<span data-ui="301">
+<span class="sc-interp">Review and seal only what you approve</span>
+</span>
+</div>
+<div data-ui="299" style="display: flex; gap: 16px; padding: 15px 0px; border-bottom: 1px solid rgb(211, 204, 191); font-size: 16px;">
+<span data-ui="300" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(180, 48, 31); width: 24px; flex: 0 0 auto; padding-top: 2px;">
+<span class="sc-interp">03</span>
+</span>
+<span data-ui="301">
+<span class="sc-interp">Preparation built around your day</span>
+</span>
+</div>
+<div data-ui="299" style="display: flex; gap: 16px; padding: 15px 0px; border-bottom: 1px solid rgb(211, 204, 191); font-size: 16px;">
+<span data-ui="300" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; color: rgb(180, 48, 31); width: 24px; flex: 0 0 auto; padding-top: 2px;">
+<span class="sc-interp">04</span>
+</span>
+<span data-ui="301">
+<span class="sc-interp">Recover and Replay after every Moment</span>
+</span>
+</div>
+</div>
+</div>
+<div data-ui="302" style="flex: 1 1 440px; min-width: 0px; border-radius: 28px; padding: 1px; background: linear-gradient(150deg, rgb(229, 64, 44) 0%, rgba(229, 64, 44, 0.25) 35%, rgb(42, 38, 34) 70%, rgb(58, 42, 36) 100%);">
+<div data-ui="303" style="height: 100%; box-sizing: border-box; border-radius: 27px; background: radial-gradient(120% 80% at 100% 0%, rgb(42, 17, 12) 0%, rgb(13, 11, 10) 55%); padding: 40px; display: flex; flex-direction: column; position: relative; overflow: hidden;">
+<div data-ui="304" aria-hidden="true" style="position: absolute; right: -60px; top: -60px; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, rgba(255, 140, 80, 0.55), rgba(229, 64, 44, 0.25) 45%, rgba(229, 64, 44, 0) 70%);">
+</div>
+<div data-ui="305" style="position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+<span data-ui="306" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.14em; color: rgb(255, 122, 102);">AFORCE OS <span data-ui="307" style="color: rgb(237, 232, 223);">+</span>
+</span>
+<span data-ui="308" style="font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 11px; letter-spacing: 0.12em; color: rgb(201, 195, 184); border: 1px solid rgb(74, 58, 51); border-radius: 999px; padding: 6px 12px;">DETAILS AT LAUNCH</span>
+</div>
+<div data-ui="309" style="position: relative; margin-top: 26px; font-size: clamp(36px, 4vw, 52px); font-weight: 800; letter-spacing: -0.035em; line-height: 1; color: rgb(237, 232, 223);">Go deeper.</div>
+<p data-ui="310" style="position: relative; margin: 16px 0px 0px; font-size: 17px; line-height: 1.55; color: rgb(181, 175, 165); max-width: 420px;">The same loop, with more of your life connected to it.</p>
+<div data-ui="311" style="position: relative; margin-top: 30px; display: flex; flex-direction: column; gap: 14px;">
+<div data-ui="313" style="display: flex; gap: 18px; align-items: flex-start; padding: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgb(46, 41, 37);">
+<span data-ui="314" style="width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px; background: rgba(229, 64, 44, 0.14); color: rgb(255, 122, 102); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
+<span class="sc-interp">⌁</span>
+</span>
+<div data-ui="315" style="min-width: 0px;">
+<div data-ui="316" style="font-size: 18px; font-weight: 700; color: rgb(237, 232, 223);">
+<span class="sc-interp">More of your day</span>
+</div>
+<div data-ui="317" style="margin-top: 5px; font-size: 14.5px; line-height: 1.5; color: rgb(163, 157, 147);">
+<span class="sc-interp">Travel, weather and your calendar woven into the plan as things change.</span>
+</div>
+</div>
+</div>
+<div data-ui="313" style="display: flex; gap: 18px; align-items: flex-start; padding: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgb(46, 41, 37);">
+<span data-ui="314" style="width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px; background: rgba(69, 101, 255, 0.16); color: rgb(141, 160, 255); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
+<span class="sc-interp">◎</span>
+</span>
+<div data-ui="315" style="min-width: 0px;">
+<div data-ui="316" style="font-size: 18px; font-weight: 700; color: rgb(237, 232, 223);">
+<span class="sc-interp">More of your people</span>
+</div>
+<div data-ui="317" style="margin-top: 5px; font-size: 14.5px; line-height: 1.5; color: rgb(163, 157, 147);">
+<span class="sc-interp">More Circles and coach voices, with the same privacy controls.</span>
+</div>
+</div>
+</div>
+<div data-ui="313" style="display: flex; gap: 18px; align-items: flex-start; padding: 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgb(46, 41, 37);">
+<span data-ui="314" style="width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px; background: rgba(242, 103, 42, 0.14); color: rgb(255, 161, 96); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
+<span class="sc-interp">↻</span>
+</span>
+<div data-ui="315" style="min-width: 0px;">
+<div data-ui="316" style="font-size: 18px; font-weight: 700; color: rgb(237, 232, 223);">
+<span class="sc-interp">More of your history</span>
+</div>
+<div data-ui="317" style="margin-top: 5px; font-size: 14.5px; line-height: 1.5; color: rgb(163, 157, 147);">
+<span class="sc-interp">Replay across a season, not just last night, so patterns turn into better plans.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div data-ui="318" style="margin-top: 24px; border-radius: 28px; border: 1px solid rgb(42, 38, 34); background: rgb(13, 12, 11); padding: 30px 34px; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;">
+<div data-ui="319" style="display: flex; align-items: center; gap: 20px; min-width: 0px;">
+<span data-ui="320" style="font-weight: 800; font-size: 44px; letter-spacing: -0.04em; color: rgb(229, 64, 44); line-height: 1;">250</span>
+<div data-ui="321">
+<div data-ui="322" style="font-size: 19px; font-weight: 700;">Join the Founding 250</div>
+<div data-ui="323" style="margin-top: 4px; font-size: 15px; color: rgb(163, 157, 147);">First access, first word on plans, and a direct line to the team building it.</div>
+</div>
+</div>
+<a data-ui="324" href="#access" style="text-decoration: none; background: rgb(229, 64, 44); color: rgb(255, 255, 255); padding: 16px 26px; border-radius: 999px; font-weight: 600; font-size: 16px;">Reserve your spot</a>
+</div>
+</div>
 </section>
-<section class="os-close on-dark">
-  <div class="wrap"><p class="kick">Your next moment starts here</p><h2 class="hd-l">Make preparation<br>part of your day.</h2><p class="lead">Be first to hear about AFORCE OS and the launch.</p><div class="cta-row"><a class="btn btn-primary" href="/#founding">Join the launch waitlist →</a><a class="btn btn-outline-light" href="mailto:contact@aforceritual.com?subject=AFORCE%20OS%20Partnership">Partner with AFORCE</a></div><p class="cap">No purchase required · <a href="/legal/privacy">Privacy policy</a></p></div>
+<section class="founding" data-ui="325" id="access" style="max-width: 1200px; margin: 0px auto; padding: 150px 24px 130px; text-align: center;">
+<div data-ui="326" aria-hidden="true" style="width: 96px; height: 96px; margin: 0px auto; border-radius: 50%; background: radial-gradient(circle at 38% 32%, rgb(255, 161, 96) 0%, rgb(255, 122, 46) 38%, rgb(232, 84, 26) 78%, rgb(201, 67, 15) 100%); box-shadow: rgba(255, 110, 40, 0.06) 0px 0px 0px 22px, rgba(255, 110, 40, 0.45) 0px 0px 90px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: rgb(255, 244, 236);">N‑И</div>
+<h2 data-ui="327" style="margin: 40px 0px 0px; font-size: clamp(44px, 6.6vw, 88px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 800;">Your next moment<br data-ui="328">starts here.</h2>
+<p data-ui="329" style="margin: 22px auto 0px; max-width: 520px; font-size: 18px; line-height: 1.6; color: rgb(163, 157, 147);">Get updates on AFORCE OS and early-access availability.</p>
+<form data-ui="330" style="margin: 36px auto 0px; max-width: 520px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+<label data-ui="331" for="email" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px);">Email address</label>
+<input data-ui="332" id="email" type="email" required="" placeholder="you@email.com" style="flex: 1 1 260px; min-width: 0px; background: rgb(18, 17, 16); border: 1px solid rgb(58, 54, 49); border-radius: 999px; padding: 17px 22px; font-size: 16px; color: rgb(237, 232, 223); font-family: inherit;">
+<button data-ui="333" type="submit" style="background: rgb(229, 64, 44); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 17px 26px; font-size: 16px; font-weight: 600; cursor: pointer;">
+<span class="sc-interp">Get early access</span>
+</button>
+<p role="status" aria-live="polite" style="width:100%;font-size:14px">
+</p>
+</form>
+<div data-ui="334" style="margin-top: 22px; font-family: &quot;IBM Plex Mono&quot;, monospace; font-size: 12px; letter-spacing: 0.12em; color: rgb(142, 136, 127);">PERFORMANCE IS NON‑ИEGOTIABLE.</div>
+<p class="fine-print">By joining, you request early-access updates. <a href="/legal/privacy">Privacy policy</a>.</p>
 </section>
-
 </main>
-
-<!-- ============ FOOTER ============ -->
-<footer class="afx-footer" role="contentinfo">
-  <div class="ff-wrap">
-    <div class="ff-top">
-      <div class="ff-brand">
-        <a class="ff-mark" href="/" aria-label="AFORCE — home">
-          <span class="ff-nn" aria-hidden="true"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span>
-          <span class="ff-word">AFORCE<span class="tm">™</span></span>
-        </a>
-        <div class="ff-tag">Performance Is<br><span class="red">Non-<span class="flip">N</span>egotiable.</span></div>
-        <p class="ff-built">Built for what happens before.</p>
-      </div>
-      <nav class="ff-col" aria-label="System">
-        <h2>System</h2>
-        <a href="/#ritual">The Ritual</a>
-        <a href="/shop">Shop</a>
-        <a href="/aforce-os">AFORCE OS</a>
-        <a href="/science">Science</a>
-        <a href="/manifesto">Manifesto</a>
-      </nav>
-      <nav class="ff-col" aria-label="Company">
-        <h2>Company</h2>
-        <a href="/our-story">Our Story</a>
-        <a href="/founding-250">Founding 250</a>
-        <a href="mailto:contact@aforceritual.com">Contact</a>
-        <a href="mailto:contact@aforceritual.com?subject=Partnership%20or%20Investor%20Inquiry">Partnerships &amp; Investors</a>
-      </nav>
-      <nav class="ff-col" aria-label="Follow the Standard">
-        <h2>Follow the Standard</h2>
-        <!-- TODO: real channel URLs -->
-        <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
-      </nav>
-      <nav class="ff-col" aria-label="Legal">
-        <h2>Legal</h2>
-        <a href="/legal">Legal Center</a>
-        <a href="/legal/privacy">Privacy</a>
-        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
-        <a href="/legal/terms">Terms</a>
-        <a href="/subscription-terms">Subscription Terms</a>
-        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
-        <a href="/accessibility">Accessibility</a>
-        <a href="mailto:support@drinkaforce.com">Contact</a>
-      </nav>
-    </div>
-
-    <div class="ff-divider"></div>
-
-    <div class="ff-bottom">
-      <span class="ff-left">© 2026 AFORCE Hydration, Inc.</span>
-      <span class="ff-center">Performance Is <span class="red">Non-<span class="flip">N</span>egotiable.</span></span>
-      <span class="ff-right">New York.</span>
-    </div>
-
-    <div class="ff-legal">
-      <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
-      <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
-      <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
-      <p>Skin Intelligence, Travel Intelligence and Phantom are in development and not currently available in AFORCE OS; interfaces shown for them are design previews and may change.</p>
-      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
-    </div>
-  </div>
+<footer data-ui="335" style="border-top: 1px solid rgb(30, 28, 25);">
+<div data-ui="336" style="max-width: 1200px; margin: 0px auto; padding: 30px 24px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: rgb(142, 136, 127);">
+<span data-ui="337">
+<span data-ui="338" style="font-weight: 800; color: rgb(229, 64, 44);">AFORCE</span>  ·  Pause. Hydrate. <span data-ui="339" style="color: rgb(229, 64, 44);">Lock-In.</span> Perform.</span>
+<span data-ui="340" style="display: flex; gap: 22px; flex-wrap: wrap;">
+<a data-ui="341" href="https://joinaforce.com/shop" style="color: rgb(163, 157, 147); text-decoration: none;">Shop drinks &amp; sticks</a>
+<a data-ui="342" href="/legal/privacy" style="color: rgb(163, 157, 147); text-decoration: none;">Privacy</a>
+<span data-ui="343">Illustrative product walkthrough · Features shown may change</span>
+</span>
+</div>
 </footer>
-
-<script src="/assets/header.js" defer></script>
-<script>
-/* reveal on scroll — content is readable without JS (html.no-io fallback).
-   IntersectionObserver drives the entrance; a rect-based pass on scroll/load
-   guarantees nothing can stay hidden if the observer never fires. */
-(function(){
-  var els = Array.prototype.slice.call(document.querySelectorAll('.reveal:not(.in)'));
-  if(!('IntersectionObserver' in window)){ document.documentElement.classList.add('no-io'); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
-  }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
-  els.forEach(function(e){ io.observe(e); });
-  var ticking = false;
-  function sweep(){
-    ticking = false;
-    var limit = window.innerHeight * 0.96;
-    els = els.filter(function(e){
-      if(e.classList.contains('in')) return false;
-      var r = e.getBoundingClientRect();
-      if(r.top < limit && r.bottom > 0){ e.classList.add('in'); io.unobserve(e); return false; }
-      return true;
-    });
-  }
-  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(sweep); } }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  window.addEventListener('resize', onScroll, { passive:true });
-  window.addEventListener('load', function(){ setTimeout(sweep, 400); setTimeout(sweep, 2000); });
-})();
-
-/* one command — the five verbs light in sequence, the last holds red */
-(function(){
-  var verbs = document.querySelectorAll('.verbs li');
-  if(!verbs.length || !('IntersectionObserver' in window)) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if(!en.isIntersecting) return;
-      io.disconnect();
-      verbs.forEach(function(v,i){ setTimeout(function(){ v.classList.add('in'); if(i === verbs.length-1) v.classList.add('on'); }, 260 + i*220); });
-    });
-  }, { threshold:0.5 });
-  io.observe(verbs[0]);
-})();
-
-/* count-up on reveal (30 days in, Readiness) — respects reduced motion */
-(function(){
-  var els = document.querySelectorAll('[data-count]');
-  if(!els.length) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce || !('IntersectionObserver' in window)){ els.forEach(function(e){ e.textContent = e.getAttribute('data-count'); }); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if(!en.isIntersecting) return;
-      var el = en.target, target = parseInt(el.getAttribute('data-count'),10), start = Math.max(0, target - 22), t0 = null;
-      io.unobserve(el);
-      var safety = setTimeout(function(){ el.textContent = target; }, 1300);
-      requestAnimationFrame(function step(ts){
-        if(!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / 1100), e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2;
-        el.textContent = Math.round(start + (target - start) * e);
-        if(p < 1){ requestAnimationFrame(step); } else { el.textContent = target; clearTimeout(safety); }
-      });
-    });
-  }, { threshold:0.55 });
-  els.forEach(function(e){ io.observe(e); });
-})();
-
-/* scroll-aware nav */
-(function(){
-  var nav = document.getElementById('afxNav');
-  var trigger = Math.max(120, window.innerHeight * 0.7);
-  function onScroll(){ nav.classList.toggle('solid', window.scrollY > trigger); }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  window.addEventListener('resize', function(){ trigger = Math.max(120, window.innerHeight * 0.7); onScroll(); });
-  onScroll();
-})();
+</div>
+</div>
+<script src="/assets/aforce-os/connected-story.js" defer>
+</script>
+<script src="/assets/launch-waitlist.js" defer>
 </script>
 </body>
 </html>
