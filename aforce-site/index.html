@@ -578,6 +578,7 @@
 
 </style>
 <link rel="stylesheet" href="/assets/footer.css?v=3">
+<link rel="stylesheet" href="/assets/home-interactions.css">
 </head>
 <body>
 <a href="#main" class="skip-link">Skip to main content</a>
@@ -767,8 +768,9 @@
       <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span style="color:var(--red)">Lock-In.</span><span>Perform.</span></div>
       <div class="mark-stage fade-in">
         <div class="glyphs"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></div>
-        <img class="clarity-can" src="assets/can-red.png" width="498" height="1281" alt="The AFORCE silver aluminium can — the physical entry point into the ritual" loading="lazy">
+        <div class="can-turn" role="slider" tabindex="0" aria-label="Turn the AFORCE can" aria-valuemin="-30" aria-valuemax="30" aria-valuenow="0" aria-valuetext="Facing forward" aria-describedby="canHint"><img draggable="false" class="clarity-can" src="assets/can-red.png" width="498" height="1281" alt="The AFORCE silver aluminium can — the physical entry point into the ritual" loading="lazy"></div>
       </div>
+      <p class="interaction-hint" id="canHint">Drag to turn · Use ← → keys</p>
       <div class="mark-caption fade-in">Performance Is<br><span class="cap-red">Non&#8209;<span class="flip-n">N</span>egotiable</span></div>
     </div>
   </div>
@@ -812,13 +814,18 @@
     <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Enter the System &rarr;</a>
   </div>
   <div class="os-visual fade-in">
-    <div class="os-phones" role="img" aria-label="The AFORCE OS app — the Home screen in the Recovering band with a readiness score of 69, the next move 'Sip 12 oz of water now', and water, recovery, sleep and HRV signals; behind it, the Protocol screen showing a Depletion Correction in progress with step 1 of 4 complete.">
-      <div class="os-phone os-phone--back os-phone--shot" aria-hidden="true">
-        <img src="assets/aforce-os/black-issue-protocol.png" alt="" width="390" height="844" loading="lazy" decoding="async">
-      </div>
-      <div class="os-phone os-phone--front os-phone--shot">
-        <img src="assets/aforce-os/black-issue-home.png" alt="" width="390" height="844" loading="lazy" decoding="async">
-      </div>
+    <div class="os-phones" role="group" aria-label="Explore AFORCE OS sample screens">
+      <button type="button" class="os-phone os-phone--back os-phone--shot" data-os-screen="protocol" aria-label="Bring the Protocol preview forward" aria-pressed="false">
+        <img src="assets/aforce-os/black-issue-protocol.png" alt="Sample Protocol screen showing Depletion Correction and hydration steps" width="390" height="844" loading="lazy" decoding="async" draggable="false">
+      </button>
+      <button type="button" class="os-phone os-phone--front os-phone--shot" data-os-screen="home" aria-label="Bring the Home preview forward" aria-pressed="true">
+        <img src="assets/aforce-os/black-issue-home.png" alt="Sample Home screen showing readiness 69 and a hydration reminder" width="390" height="844" loading="lazy" decoding="async" draggable="false">
+      </button>
+    </div>
+    <div class="os-preview-controls" role="group" aria-label="Choose an AFORCE OS preview">
+      <button type="button" data-os-screen="home" aria-pressed="true">Home</button>
+      <button type="button" data-os-screen="protocol" aria-pressed="false">Protocol</button>
+      <a href="/aforce-os">Explore AFORCE OS →</a>
     </div>
     <!-- margin-top is proportional: the front phone is absolutely positioned and
          overflows the .os-phones aspect-ratio box by ~6.25% of its width, so a
@@ -1067,5 +1074,6 @@
 
 </script>
 <script src="/assets/launch-waitlist.js" defer></script>
+<script src="/assets/home-interactions.js" defer></script>
 </body>
 </html>
