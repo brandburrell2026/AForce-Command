@@ -142,6 +142,12 @@
   /* §4/§9 — primary buy CTA must read on the dark hero video: light fill, dark text. */
   .hero .btn-primary{ background:var(--canvas); color:var(--ink); }
   .hero .btn-primary:hover{ background:var(--red); color:#fff; }
+  .hero .hero-shop{ background:var(--red); color:#fff; box-shadow:0 0 18px rgba(196,43,28,.5); animation:hero-shop-glow 3s ease-in-out infinite; }
+  .hero .hero-shop:hover, .hero .hero-shop:focus-visible{ background:#a92318; color:#fff; animation:none; box-shadow:0 0 28px rgba(196,43,28,.8); }
+  .hero .hero-shop:focus-visible{ outline:2px solid #fff; outline-offset:4px; }
+  @keyframes hero-shop-glow{ 0%,100%{box-shadow:0 0 18px rgba(196,43,28,.45);} 50%{box-shadow:0 0 30px rgba(196,43,28,.75);} }
+  @media(prefers-reduced-motion:reduce){ .hero .hero-shop{ animation:none; } }
+
   .hero .scroll-cue{ color:rgba(245,240,232,0.4); }
   .hero .btn{ font-family:'Inter', sans-serif; }
   .hero .scroll-cue .line{ background:rgba(245,240,232,0.25); }
@@ -630,38 +636,41 @@
   <div class="hero-foot fade-in">
     <p class="hero-taxonomy">Performance hydration. A daily readiness routine. One connected system.</p>
     <div class="cta-row">
-      <a href="#founding" class="btn btn-primary">Join the Launch Waitlist</a>
+      <a href="/shop" class="btn btn-primary hero-shop">Shop here</a>
       <a href="/aforce-os" class="btn btn-ghost">Explore AFORCE OS</a>
     </div>
   </div>
   <div class="scroll-cue"><span>Quiet before the storm</span><div class="line"></div></div>
 </section>
 
-<section class="clarity">
-  <div class="clarity-grid">
-    <div class="clarity-copy">
-      <h1 class="clarity-headline fade-in">Performance<br>Is<br><span class="hl-red">Non-<span class="flip-n">N</span>egotiable.</span></h1>
-      <p class="clarity-subhead fade-in">Built for the moments you cannot afford to miss.</p>
-      <p class="clarity-supporting fade-in">Performance hydration and a daily readiness app, connected through one simple ritual.</p>
-      <div class="system-pair">
-        <div><span class="eyebrow-label">01 / Hydration</span><h2>Start with what you drink.</h2><p>Electrolyte hydration in portable sticks and ready-to-drink cans. Products are coming soon.</p><a href="/shop">Explore hydration →</a></div>
-        <div><span class="eyebrow-label">02 / AFORCE OS</span><h2>Build the daily habit.</h2><p>An app for logging hydration, following your routine and preparing for the moments ahead.</p><a href="/aforce-os">See how the OS works →</a></div>
-      </div>
-      <p class="clarity-credibility fade-in">pH 8.8 alkaline hydration · Electrolytes + trace minerals</p>
-      <div class="clarity-cta fade-in">
-        <a href="#ritual" class="btn btn-primary">Experience the Ritual <span class="arw">→</span></a>
-        <a href="#founding" class="clarity-cta-secondary">Join the Launch Waitlist</a>
-      </div>
-    </div>
-    <div class="clarity-mark">
-      <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span style="color:var(--red)">Lock-In.</span><span>Perform.</span></div>
-      <div class="mark-stage fade-in">
-        <div class="glyphs"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></div>
-        <img class="clarity-can" src="assets/can-red.png" width="498" height="1281" alt="The AFORCE silver aluminium can — the physical entry point into the ritual" loading="lazy">
-      </div>
-      <div class="mark-caption fade-in">Performance Is<br><span class="cap-red">Non&#8209;<span class="flip-n">N</span>egotiable</span></div>
+<section class="products" id="products">
+  <div class="eyebrow-label fade-in" style="color:#5FC98A;">The System</div>
+  <h2 class="section-title fade-in">Not products. Tools inside the operating system.</h2>
+  <div class="product-layout">
+    <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Shop Watermelon Surge & Chlorella">
+      <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella" loading="lazy" decoding="async"></div>
+      <span class="tag red">pH 8.8 · Morning</span>
+      <h3>Watermelon Surge & Chlorella</h3>
+      <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
+      <div class="buy">Add to Ritual <span class="arw">→</span></div>
+    </a>
+    <div class="product-minor-stack">
+      <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Shop Berry Blast & Dulse">
+        <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse" loading="lazy" decoding="async">
+        <div><span class="tag blue">pH 8.8 · Midday</span><h3>Berry Blast & Dulse</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+      </a>
+      <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Shop Soursop Edge & Seamoss">
+        <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss" loading="lazy" decoding="async">
+        <div><span class="tag green">pH 8.8 · Evening</span><h3>Soursop Edge & Seamoss</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
+      </a>
     </div>
   </div>
+  <div class="stick-strip">
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon" loading="lazy" decoding="async"><div class="label">On-the-go stick · Watermelon</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry" loading="lazy" decoding="async"><div class="label">On-the-go stick · Berry</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop" loading="lazy" decoding="async"><div class="label">On-the-go stick · Soursop</div></a>
+  </div>
+  <div class="products-shop fade-in"><a href="/shop" class="btn btn-primary">Shop AFORCE <span class="arw">→</span></a></div>
 </section>
 
 <section class="founder-story" aria-labelledby="founderStoryTitle">
@@ -738,34 +747,31 @@
   </div>
 </section>
 
-<section class="products" id="products">
-  <div class="eyebrow-label fade-in" style="color:#5FC98A;">The System</div>
-  <h2 class="section-title fade-in">Not products. Tools inside the operating system.</h2>
-  <div class="product-layout">
-    <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Shop Watermelon Surge & Chlorella">
-      <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella" loading="lazy" decoding="async"></div>
-      <span class="tag red">pH 8.8 · Morning</span>
-      <h3>Watermelon Surge & Chlorella</h3>
-      <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
-      <div class="buy">Add to Ritual <span class="arw">→</span></div>
-    </a>
-    <div class="product-minor-stack">
-      <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Shop Berry Blast & Dulse">
-        <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse" loading="lazy" decoding="async">
-        <div><span class="tag blue">pH 8.8 · Midday</span><h3>Berry Blast & Dulse</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
-      </a>
-      <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Shop Soursop Edge & Seamoss">
-        <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss" loading="lazy" decoding="async">
-        <div><span class="tag green">pH 8.8 · Evening</span><h3>Soursop Edge & Seamoss</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Add to Ritual <span class="arw">→</span></div></div>
-      </a>
+<section class="clarity">
+  <div class="clarity-grid">
+    <div class="clarity-copy">
+      <h1 class="clarity-headline fade-in">Performance<br>Is<br><span class="hl-red">Non-<span class="flip-n">N</span>egotiable.</span></h1>
+      <p class="clarity-subhead fade-in">Built for the moments you cannot afford to miss.</p>
+      <p class="clarity-supporting fade-in">Performance hydration and a daily readiness app, connected through one simple ritual.</p>
+      <div class="system-pair">
+        <div><span class="eyebrow-label">01 / Hydration</span><h2>Start with what you drink.</h2><p>Electrolyte hydration in portable sticks and ready-to-drink cans. Products are coming soon.</p><a href="/shop">Explore hydration →</a></div>
+        <div><span class="eyebrow-label">02 / AFORCE OS</span><h2>Build the daily habit.</h2><p>An app for logging hydration, following your routine and preparing for the moments ahead.</p><a href="/aforce-os">See how the OS works →</a></div>
+      </div>
+      <p class="clarity-credibility fade-in">pH 8.8 alkaline hydration · Electrolytes + trace minerals</p>
+      <div class="clarity-cta fade-in">
+        <a href="#ritual" class="btn btn-primary">Experience the Ritual <span class="arw">→</span></a>
+        <a href="#founding" class="clarity-cta-secondary">Join the Launch Waitlist</a>
+      </div>
+    </div>
+    <div class="clarity-mark">
+      <div class="ritual-row fade-in"><span>Pause.</span><span>Hydrate.</span><span style="color:var(--red)">Lock-In.</span><span>Perform.</span></div>
+      <div class="mark-stage fade-in">
+        <div class="glyphs"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></div>
+        <img class="clarity-can" src="assets/can-red.png" width="498" height="1281" alt="The AFORCE silver aluminium can — the physical entry point into the ritual" loading="lazy">
+      </div>
+      <div class="mark-caption fade-in">Performance Is<br><span class="cap-red">Non&#8209;<span class="flip-n">N</span>egotiable</span></div>
     </div>
   </div>
-  <div class="stick-strip">
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon" loading="lazy" decoding="async"><div class="label">On-the-go stick · Watermelon</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry" loading="lazy" decoding="async"><div class="label">On-the-go stick · Berry</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Shop on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop" loading="lazy" decoding="async"><div class="label">On-the-go stick · Soursop</div></a>
-  </div>
-  <div class="products-shop fade-in"><a href="/shop" class="btn btn-primary">Shop AFORCE <span class="arw">→</span></a></div>
 </section>
 
 <section class="arenas" id="arenas">
