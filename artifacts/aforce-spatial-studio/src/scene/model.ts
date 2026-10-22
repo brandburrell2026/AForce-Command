@@ -10,6 +10,8 @@
  * open front of the activation (toward the viewer).
  */
 
+import { DEFAULT_STYLE, type FixtureStyle, type SceneStyle } from "./style";
+
 export type Vec3 = [number, number, number];
 
 export type FixtureKind =
@@ -39,7 +41,36 @@ export interface Fixture {
   /** Rotation about the vertical axis, radians. */
   rotationY: number;
   footprint: Footprint;
+  /** Color, finish and LED overrides. Absent keys inherit the scene style. */
+  style?: FixtureStyle;
+  /**
+   * Image slots by slot key (see FIXTURE_SLOTS). A string is an asset id,
+   * null hides the slot, an absent key inherits (the scene brand logo for
+   * the "logo" slot, empty for the rest).
+   */
+  slots?: Record<string, string | null>;
 }
+
+export type AssetKind = "logo" | "texture" | "product";
+
+export interface Asset {
+  id: string;
+  kind: AssetKind;
+  name: string;
+  /** Image data URL, downscaled on import. */
+  dataUrl: string;
+  width: number;
+  height: number;
+  bytes: number;
+}
+
+export interface SlotDef {
+  key: string;
+  label: string;
+  accepts: AssetKind;
+}
+
+const TEXTURE_SLOT: SlotDef = { key: "texture", label: "Surface texture", accepts: "texture" };
 
 export interface FloorPlan {
   width: number;
@@ -53,6 +84,8 @@ export interface SceneDocument {
   unit: "ft";
   floor: FloorPlan;
   fixtures: Fixture[];
+  style: SceneStyle;
+  assets: Asset[];
 }
 
 export type FlavorId = "watermelon" | "soursop" | "berry";
@@ -75,6 +108,8 @@ export const ACTIVATION_20x20: SceneDocument = {
   name: "AForce 20 × 20 Activation",
   unit: "ft",
   floor: { width: 20, depth: 20, wallHeight: 10 },
+  style: DEFAULT_STYLE,
+  assets: [],
   fixtures: [
     {
       id: "centerpiece",
@@ -170,4 +205,31 @@ export function createFixture(kind: FixtureKind, id: string, position: Vec3 = [0
     rotationY: 0,
     footprint: { ...template.footprint },
   };
+}
+
+/** Where uploaded images can go on each fixture kind. */
+export const FIXTURE_SLOTS: Record<FixtureKind, SlotDef[]> = {
+  centerpiece: [{ key: "logo", label: "Plinth logo", accepts: "logo" }, TEXTURE_SLOT],
+  "hydration-bar": [
+    { key: "logo", label: "Fascia logo", accepts: "logo" },
+    { key: "niche-0", label: "Watermelon niche image", accepts: "product" },
+    { key: "niche-1", label: "Soursop niche image", accepts: "product" },
+    { key: "niche-2", label: "Berry niche image", accepts: "product" },
+    TEXTURE_SLOT,
+  ],
+  "lock-in-tunnel": [{ key: "logo", label: "Outer wall graphic", accepts: "logo" }, TEXTURE_SLOT],
+  "os-demo-station": [
+    { key: "screen", label: "Totem screen image", accepts: "product" },
+    { key: "logo", label: "Counter logo", accepts: "logo" },
+    TEXTURE_SLOT,
+  ],
+  "apparel-gallery": [{ key: "logo", label: "Panel logo", accepts: "logo" }, TEXTURE_SLOT],
+  "content-studio": [{ key: "logo", label: "Backdrop logo", accepts: "logo" }, TEXTURE_SLOT],
+};
+
+/** Asset id for a slot after inheritance, or null for nothing. */
+export function resolveSlot(fixture: Fixture, style: SceneStyle, key: string): string | null {
+  const value = fixture.slots?.[key];
+  if (value !== undefined) return value;
+  return key === "logo" ? style.brandLogoId : null;
 }

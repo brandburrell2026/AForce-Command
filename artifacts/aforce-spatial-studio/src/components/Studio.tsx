@@ -1,19 +1,22 @@
 import { Suspense, useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import type * as THREE from "three";
 
 import { editor, useEditor } from "@/editor/store";
 import type { Vec3 } from "@/scene/model";
+import { KEY_TEMPERATURES, resolveFixtureStyle } from "@/scene/style";
 import { formatFootprint } from "@/scene/units";
 
 import { CameraRig } from "./CameraRig";
 import { FixtureNode } from "./FixtureNode";
 import { ZoneLabel } from "./labels";
+import { MaterialsProvider, useAssetTexture, useMaterialSet } from "./materials";
 import { Room } from "./Room";
 
 /** Shadow-casting key light. Shadow settings live on the three object, so set them through a ref. */
-function KeyLight() {
+function KeyLight({ intensity, color }: { intensity: number; color: string }) {
   const ref = useRef<THREE.SpotLight>(null);
   useEffect(() => {
     const light = ref.current;
@@ -31,36 +34,49 @@ function KeyLight() {
       position={[14, 26, 18]}
       angle={0.42}
       penumbra={0.7}
-      intensity={1600}
+      intensity={intensity}
       decay={2}
       distance={0}
-      color="#FFF6EA"
+      color={color}
       castShadow
     />
   );
 }
 
 function Lighting() {
+  const key = useEditor((s) => s.doc.style.keyIntensity);
+  const fill = useEditor((s) => s.doc.style.fillIntensity);
+  const env = useEditor((s) => s.doc.style.envIntensity);
+  const temperature = useEditor((s) => s.doc.style.keyTemperature);
+  const keyColor = KEY_TEMPERATURES[temperature].color;
   return (
     <>
-      <ambientLight intensity={0.12} />
-      <hemisphereLight intensity={0.3} color="#3a3a3a" groundColor="#000000" />
-      <KeyLight />
+      <ambientLight intensity={0.12 * fill} />
+      <hemisphereLight intensity={0.3 * fill} color="#3a3a3a" groundColor="#000000" />
+      <KeyLight intensity={1600 * key} color={keyColor} />
       <spotLight
         position={[-16, 20, 12]}
         angle={0.5}
         penumbra={1}
-        intensity={500}
+        intensity={500 * fill}
         decay={2}
         color="#FFFFFF"
       />
-      <Environment resolution={256} frames={1}>
+      <Environment resolution={256} frames={1} environmentIntensity={env}>
         <Lightformer form="rect" intensity={2} color="#ffffff" position={[0, 16, -10]} scale={[24, 4, 1]} />
         <Lightformer form="rect" intensity={1} color="#ffffff" position={[-16, 9, 6]} rotation={[0, Math.PI / 2, 0]} scale={[14, 3, 1]} />
         <Lightformer form="rect" intensity={0.5} color="#ffd9d4" position={[16, 9, 6]} rotation={[0, -Math.PI / 2, 0]} scale={[14, 3, 1]} />
       </Environment>
     </>
   );
+}
+
+/** Scene-level materials for the room: the base style plus the wall texture. */
+function SceneMaterials({ children }: { children: ReactNode }) {
+  const style = useEditor((s) => s.doc.style);
+  const wallTexture = useAssetTexture(style.wallTextureId);
+  const set = useMaterialSet(resolveFixtureStyle(style), wallTexture);
+  return <MaterialsProvider set={set}>{children}</MaterialsProvider>;
 }
 
 function Fixtures() {
@@ -109,8 +125,10 @@ export function Studio() {
 
       <Suspense fallback={null}>
         <Lighting />
-        <Floor />
-        <Fixtures />
+        <SceneMaterials>
+          <Floor />
+          <Fixtures />
+        </SceneMaterials>
       </Suspense>
     </Canvas>
   );

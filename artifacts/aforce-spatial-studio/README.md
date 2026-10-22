@@ -34,8 +34,8 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | 1 | Scaffold + static 20 × 20 ft activation scene (six zones, real dimensions, orbit camera, dimension callouts) | Built |
 | 2 | Editor: select, move, rotate, scale, properties panel, live floor plan, add / duplicate / delete, undo | Built |
 | 3 | Cameras: animated view presets, 360° turntable, frame selection, first-person walkthrough with collision | Built |
-| 4 | Materials, lighting and color controls; logo, texture and product image uploads | Next |
-| 5 | Save and reopen projects (IndexedDB first, Postgres behind Clerk later) | Planned |
+| 4 | Scene and per-fixture colors, finishes and lighting; logo, texture and product image uploads with per-fixture slots | Built |
+| 5 | Save and reopen projects (IndexedDB first, Postgres behind Clerk later) | Next |
 | 6 | GLB export and presentation-quality renders | Planned |
 | 7 | Natural-language design edits via api-server route | Planned |
 
@@ -92,3 +92,34 @@ and each fixture's collision shape, sliding along whatever it hits. Fixtures
 block their footprint unless they declare walkable interiors; the Lock-In
 tunnel is two side walls, the studio and the gallery block only their panels
 and equipment. The walk pose is remembered for re-entry.
+
+## Section 4: materials, lighting and uploads
+
+**Style lives in the document.** `doc.style` (`src/scene/style.ts`) holds
+the accent (LED) color, surface, panel, metal and floor colors, surface and
+floor finishes, four lighting multipliers (LED glow, key, fill, reflections),
+key color temperature, the scene brand logo, and floor and wall textures. A
+fixture can override accent, surface, metal, finish and LED glow in
+`fixture.style`; anything unset inherits.
+
+**Materials are derived, not shared.** `createMaterialSet` in
+`src/scene/materials.ts` builds every material a fixture needs from one
+resolved style. `FixtureNode` builds a set per fixture and provides it
+through context; fixture components call `useMaterials()`. The room uses a
+scene-level set. Sets are rebuilt and the old ones disposed when the style
+changes. A surface texture turns the surface and panel colors white so the
+image carries the color.
+
+**Images.** The Assets tab imports PNG, JPG, WebP, GIF or SVG (up to 8 MB,
+downscaled to 2048 px, stored as data URLs in `doc.assets`) as logos,
+textures or product shots; drag-and-drop infers the kind from the file
+type. Each fixture kind declares image slots in `FIXTURE_SLOTS`; the "logo"
+slot inherits the scene brand logo so one upload brands the plinth, the
+bar fascia, the tunnel's outer wall, the OS counter, the apparel panel and
+the studio backdrop at once. The bar's three niches and the OS totem screen
+take product images. `ImagePanel` fits an image inside a slot (or covers it
+for screens) with a little emission so graphics read as backlit.
+
+Live controls (color pickers, sliders) stream through `useLiveEdit`, which
+opens one undo step on the first change and closes it after the stream
+goes quiet.

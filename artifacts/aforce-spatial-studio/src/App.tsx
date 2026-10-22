@@ -1,7 +1,6 @@
 import { Studio } from "@/components/Studio";
-import { FixtureList } from "@/components/hud/FixtureList";
 import { FloorPlan } from "@/components/hud/FloorPlan";
-import { PropertiesPanel } from "@/components/hud/PropertiesPanel";
+import { Inspector } from "@/components/hud/Inspector";
 import { Toolbar } from "@/components/hud/Toolbar";
 import { ViewControls } from "@/components/hud/ViewControls";
 import { WalkOverlay } from "@/components/hud/WalkOverlay";
@@ -32,7 +31,7 @@ export default function App() {
               <span className="block h-3 w-3 bg-signal" aria-hidden />
               <div className="flex flex-col">
                 <Mono>AForce Spatial Studio</Mono>
-                <Mono className="text-dim">{name} · Section 03 · Cameras</Mono>
+                <Mono className="text-dim">{name} · Section 04 · Materials</Mono>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -53,10 +52,7 @@ export default function App() {
             <div className="flex flex-col justify-end">
               <FloorPlan />
             </div>
-            <div className="flex w-[300px] min-h-0 flex-col gap-3">
-              <PropertiesPanel />
-              <FixtureList />
-            </div>
+            <Inspector />
           </div>
 
           {/* Bottom rail */}

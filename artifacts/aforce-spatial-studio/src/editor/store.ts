@@ -3,11 +3,13 @@ import { useSyncExternalStore } from "react";
 import {
   ACTIVATION_20x20,
   createFixture,
+  type Asset,
   type Fixture,
   type FixtureKind,
   type FloorPlan,
   type SceneDocument,
 } from "@/scene/model";
+import { sanitizeFixtureStyle, sanitizeStyle, type SceneStyle } from "@/scene/style";
 
 import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
 import { MIN_DIM, clampPosition, normalizeAngle, round } from "./geometry";
@@ -40,7 +42,7 @@ export interface EditorState {
 }
 
 export type FixturePatch = Partial<
-  Pick<Fixture, "label" | "description" | "position" | "rotationY" | "footprint">
+  Pick<Fixture, "label" | "description" | "position" | "rotationY" | "footprint" | "style" | "slots">
 >;
 
 const HISTORY_LIMIT = 100;
@@ -117,7 +119,13 @@ function sanitize(fixture: Fixture, floor: FloorPlan): Fixture {
     rotationY: round(normalizeAngle(fixture.rotationY), 5),
   };
   const [x, , z] = clampPosition(rotated, floor);
-  return { ...rotated, position: [round(x), 0, round(z)] };
+  const out: Fixture = { ...rotated, position: [round(x), 0, round(z)] };
+  const style = sanitizeFixtureStyle(fixture.style);
+  if (style) out.style = style;
+  else delete out.style;
+  if (fixture.slots && Object.keys(fixture.slots).length > 0) out.slots = fixture.slots;
+  else delete out.slots;
+  return out;
 }
 
 function replaceFixture(
@@ -267,6 +275,50 @@ export const editor = {
   resetLayout() {
     withHistory(ACTIVATION_20x20);
     set({ selectedId: null, hoveredId: null });
+  },
+
+  // ---- Style and assets ---------------------------------------------------
+
+  /** One discrete style change, one undo step. */
+  setStyle(patch: Partial<SceneStyle>) {
+    withHistory({ ...state.doc, style: sanitizeStyle({ ...state.doc.style, ...patch }) });
+  },
+
+  /** Live style change during a slider or color drag; wrap with beginEdit / endEdit. */
+  setStyleLive(patch: Partial<SceneStyle>) {
+    set({ doc: { ...state.doc, style: sanitizeStyle({ ...state.doc.style, ...patch }) } });
+  },
+
+  addAssets(assets: Asset[]) {
+    if (assets.length === 0) return;
+    withHistory({ ...state.doc, assets: [...state.doc.assets, ...assets] });
+  },
+
+  renameAsset(id: string, name: string) {
+    withHistory({
+      ...state.doc,
+      assets: state.doc.assets.map((a) => (a.id === id ? { ...a, name } : a)),
+    });
+  },
+
+  /** Remove an asset and every reference to it. */
+  removeAsset(id: string) {
+    const doc = state.doc;
+    const style: SceneStyle = {
+      ...doc.style,
+      brandLogoId: doc.style.brandLogoId === id ? null : doc.style.brandLogoId,
+      floorTextureId: doc.style.floorTextureId === id ? null : doc.style.floorTextureId,
+      wallTextureId: doc.style.wallTextureId === id ? null : doc.style.wallTextureId,
+    };
+    const fixtures = doc.fixtures.map((f) => {
+      if (!f.slots) return f;
+      const slots: Record<string, string | null> = {};
+      for (const [key, value] of Object.entries(f.slots)) {
+        if (value !== id) slots[key] = value;
+      }
+      return sanitize({ ...f, slots }, doc.floor);
+    });
+    withHistory({ ...doc, style, fixtures, assets: doc.assets.filter((a) => a.id !== id) });
   },
 
   // ---- Camera -----------------------------------------------------------

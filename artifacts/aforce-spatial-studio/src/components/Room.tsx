@@ -1,26 +1,55 @@
+import { useEffect, useMemo } from "react";
 import { Grid } from "@react-three/drei";
+import * as THREE from "three";
 
+import { useEditor } from "@/editor/store";
 import type { FloorPlan, Vec3 } from "@/scene/model";
-import {
-  brushedMetal,
-  floorBlack,
-  groundBlack,
-  panelBlack,
-  signalRedLed,
-  signalRedLedSoft,
-} from "@/scene/materials";
+import { FINISHES } from "@/scene/style";
 
 import { Dimension } from "./labels";
+import { useAssetTexture, useMaterials } from "./materials";
 import { Box } from "./primitives";
 
+/** Dark venue ground beyond the footprint; not part of the style. */
+const ground = new THREE.MeshStandardMaterial({ color: "#050505", roughness: 1, metalness: 0 });
+
+function useFloorMaterial(width: number, depth: number): THREE.MeshStandardMaterial {
+  const color = useEditor((s) => s.doc.style.floor);
+  const finish = useEditor((s) => s.doc.style.floorFinish);
+  const textureId = useEditor((s) => s.doc.style.floorTextureId);
+  const scale = useEditor((s) => s.doc.style.floorTextureScale);
+  const texture = useAssetTexture(textureId);
+
+  const material = useMemo(() => {
+    const f = FINISHES[finish];
+    const m = new THREE.MeshStandardMaterial({
+      color: texture ? "#FFFFFF" : color,
+      roughness: Math.max(0.2, f.roughness - 0.4),
+      metalness: f.metalness + 0.1,
+    });
+    if (texture) {
+      const map = texture.clone();
+      map.repeat.set(width / scale, depth / scale);
+      map.needsUpdate = true;
+      m.map = map;
+    }
+    return m;
+  }, [color, finish, texture, scale, width, depth]);
+
+  useEffect(() => () => material.dispose(), [material]);
+  return material;
+}
+
 /**
- * The activation footprint: matte black floor with a 1 ft grid, a Signal
- * Red outline on the exact 20 × 20 boundary, three perimeter walls with a
- * red LED cove, and dimension callouts outside the front and right edges.
- * The front (+z) stays open toward the viewer.
+ * The activation footprint: styled floor with a 1 ft grid, an accent
+ * outline on the exact boundary, three perimeter walls with an LED cove,
+ * and dimension callouts outside the front and right edges. The front
+ * (+z) stays open toward the viewer.
  */
 export function Room({ floor }: { floor: FloorPlan }) {
+  const m = useMaterials();
   const { width: W, depth: D, wallHeight: H } = floor;
+  const floorMaterial = useFloorMaterial(W, D);
   const hw = W / 2;
   const hd = D / 2;
   const t = 0.5; // wall thickness, outside the footprint
@@ -37,17 +66,12 @@ export function Room({ floor }: { floor: FloorPlan }) {
   return (
     <group>
       {/* Venue ground beyond the footprint */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[0, -0.01, 0]}
-        material={groundBlack}
-        receiveShadow
-      >
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} material={ground} receiveShadow>
         <planeGeometry args={[240, 240]} />
       </mesh>
 
       {/* Activation floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} material={floorBlack} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} material={floorMaterial} receiveShadow>
         <planeGeometry args={[W, D]} />
       </mesh>
 
@@ -66,33 +90,26 @@ export function Room({ floor }: { floor: FloorPlan }) {
         infiniteGrid={false}
       />
 
-      {/* Signal Red footprint outline */}
+      {/* Accent footprint outline */}
       {outline.map((o, i) => (
-        <Box
-          key={i}
-          size={o.size}
-          position={o.position}
-          material={signalRedLedSoft}
-          castShadow={false}
-          receiveShadow={false}
-        />
+        <Box key={i} size={o.size} position={o.position} material={m.accentSoft} castShadow={false} receiveShadow={false} />
       ))}
 
       {/* Perimeter walls: back, left, right. Front is open. */}
-      <Box size={[W + 2 * t, H, t]} position={[0, H / 2, -hd - t / 2]} material={panelBlack} />
-      <Box size={[t, H, D]} position={[-hw - t / 2, H / 2, 0]} material={panelBlack} />
-      <Box size={[t, H, D]} position={[hw + t / 2, H / 2, 0]} material={panelBlack} />
+      <Box size={[W + 2 * t, H, t]} position={[0, H / 2, -hd - t / 2]} material={m.panel} />
+      <Box size={[t, H, D]} position={[-hw - t / 2, H / 2, 0]} material={m.panel} />
+      <Box size={[t, H, D]} position={[hw + t / 2, H / 2, 0]} material={m.panel} />
 
       {/* Metal dado rail */}
-      <Box size={[W, 0.05, 0.03]} position={[0, 4, -hd + 0.015]} material={brushedMetal} castShadow={false} />
-      <Box size={[0.03, 0.05, D]} position={[-hw + 0.015, 4, 0]} material={brushedMetal} castShadow={false} />
-      <Box size={[0.03, 0.05, D]} position={[hw - 0.015, 4, 0]} material={brushedMetal} castShadow={false} />
+      <Box size={[W, 0.05, 0.03]} position={[0, 4, -hd + 0.015]} material={m.metal} castShadow={false} />
+      <Box size={[0.03, 0.05, D]} position={[-hw + 0.015, 4, 0]} material={m.metal} castShadow={false} />
+      <Box size={[0.03, 0.05, D]} position={[hw - 0.015, 4, 0]} material={m.metal} castShadow={false} />
 
-      {/* Red LED cove along the top inner edge */}
-      <Box size={[W, 0.06, 0.06]} position={[0, coveY, -hd + 0.03]} material={signalRedLed} castShadow={false} />
-      <Box size={[0.06, 0.06, D]} position={[-hw + 0.03, coveY, 0]} material={signalRedLed} castShadow={false} />
-      <Box size={[0.06, 0.06, D]} position={[hw - 0.03, coveY, 0]} material={signalRedLed} castShadow={false} />
-      <pointLight position={[0, coveY - 0.5, -hd + 1.5]} color="#C1281B" intensity={60} distance={24} decay={2} />
+      {/* LED cove along the top inner edge */}
+      <Box size={[W, 0.06, 0.06]} position={[0, coveY, -hd + 0.03]} material={m.accent} castShadow={false} />
+      <Box size={[0.06, 0.06, D]} position={[-hw + 0.03, coveY, 0]} material={m.accent} castShadow={false} />
+      <Box size={[0.06, 0.06, D]} position={[hw - 0.03, coveY, 0]} material={m.accent} castShadow={false} />
+      <pointLight position={[0, coveY - 0.5, -hd + 1.5]} color={m.accentHex} intensity={60 * m.ledIntensity} distance={24} decay={2} />
 
       {/* Dimension callouts outside the open front and the right edge */}
       <Dimension from={[-hw, 0.02, hd + 1.6]} to={[hw, 0.02, hd + 1.6]} />

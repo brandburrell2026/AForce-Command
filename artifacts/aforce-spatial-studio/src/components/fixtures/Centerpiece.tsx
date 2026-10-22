@@ -1,15 +1,17 @@
-import { PALETTE, brushedMetal, darkMetal, matteBlack, signalRedLed } from "@/scene/materials";
-
+import { ImagePanel, useMaterials } from "../materials";
 import { Box } from "../primitives";
+import { useSlot } from "../slots";
 import type { FixtureProps } from "./types";
 
 /**
- * Large illuminated inverted-N: Signal Red LED channel letters on a dark
- * metal backer, standing on a matte black plinth with a metal edge and a red
- * LED inlay. The N is mirrored (diagonal rises bottom-left to top-right),
- * matching the right-hand N of the brand monogram.
+ * Large illuminated inverted-N: accent LED channel letters on a dark metal
+ * backer, standing on a plinth with a metal edge and an LED inlay. The N is
+ * mirrored (diagonal rises bottom-left to top-right), matching the
+ * right-hand N of the brand monogram. Logo slot on the plinth front.
  */
 export function Centerpiece({ fixture }: FixtureProps) {
+  const m = useMaterials();
+  const logo = useSlot(fixture, "logo");
   const { width, depth } = fixture.footprint;
   const plinthH = 1;
   const letterH = Math.max(2, fixture.footprint.height - plinthH);
@@ -26,27 +28,28 @@ export function Centerpiece({ fixture }: FixtureProps) {
   return (
     <group>
       {/* Plinth */}
-      <Box size={[width, plinthH, depth]} position={[0, plinthH / 2, 0]} material={matteBlack} />
-      <Box size={[width + 0.1, 0.06, depth + 0.1]} position={[0, plinthH + 0.03, 0]} material={brushedMetal} />
+      <Box size={[width, plinthH, depth]} position={[0, plinthH / 2, 0]} material={m.surface} />
+      <Box size={[width + 0.1, 0.06, depth + 0.1]} position={[0, plinthH + 0.03, 0]} material={m.metal} />
+      <ImagePanel assetId={logo} width={width - 1.5} height={plinthH - 0.3} position={[0, plinthH / 2, depth / 2 + 0.02]} glow={0.6} />
 
-      {/* Red LED inlay on the plinth top */}
-      <Box size={[inlayW, 0.02, 0.08]} position={[0, plinthH + 0.07, -inlayD / 2]} material={signalRedLed} castShadow={false} />
-      <Box size={[inlayW, 0.02, 0.08]} position={[0, plinthH + 0.07, inlayD / 2]} material={signalRedLed} castShadow={false} />
-      <Box size={[0.08, 0.02, inlayD]} position={[-inlayW / 2, plinthH + 0.07, 0]} material={signalRedLed} castShadow={false} />
-      <Box size={[0.08, 0.02, inlayD]} position={[inlayW / 2, plinthH + 0.07, 0]} material={signalRedLed} castShadow={false} />
+      {/* LED inlay on the plinth top */}
+      <Box size={[inlayW, 0.02, 0.08]} position={[0, plinthH + 0.07, -inlayD / 2]} material={m.accent} castShadow={false} />
+      <Box size={[inlayW, 0.02, 0.08]} position={[0, plinthH + 0.07, inlayD / 2]} material={m.accent} castShadow={false} />
+      <Box size={[0.08, 0.02, inlayD]} position={[-inlayW / 2, plinthH + 0.07, 0]} material={m.accent} castShadow={false} />
+      <Box size={[0.08, 0.02, inlayD]} position={[inlayW / 2, plinthH + 0.07, 0]} material={m.accent} castShadow={false} />
 
       {/* Dark metal backers behind each stroke */}
-      <Box size={[stemW + 0.3, letterH + 0.3, 0.15]} position={[-halfSpan, y0, -0.5]} material={darkMetal} />
-      <Box size={[stemW + 0.3, letterH + 0.3, 0.15]} position={[halfSpan, y0, -0.5]} material={darkMetal} />
-      <Box size={[stemW + 0.3, diagLen, 0.15]} position={[0, y0, -0.5]} rotation={[0, 0, -diagAngle]} material={darkMetal} />
+      <Box size={[stemW + 0.3, letterH + 0.3, 0.15]} position={[-halfSpan, y0, -0.5]} material={m.darkMetal} />
+      <Box size={[stemW + 0.3, letterH + 0.3, 0.15]} position={[halfSpan, y0, -0.5]} material={m.darkMetal} />
+      <Box size={[stemW + 0.3, diagLen, 0.15]} position={[0, y0, -0.5]} rotation={[0, 0, -diagAngle]} material={m.darkMetal} />
 
       {/* LED strokes: two stems and the rising diagonal */}
-      <Box size={[stemW, letterH, letterD]} position={[-halfSpan, y0, 0]} material={signalRedLed} />
-      <Box size={[stemW, letterH, letterD]} position={[halfSpan, y0, 0]} material={signalRedLed} />
-      <Box size={[stemW, diagLen, letterD]} position={[0, y0, 0]} rotation={[0, 0, -diagAngle]} material={signalRedLed} />
+      <Box size={[stemW, letterH, letterD]} position={[-halfSpan, y0, 0]} material={m.accent} />
+      <Box size={[stemW, letterH, letterD]} position={[halfSpan, y0, 0]} material={m.accent} />
+      <Box size={[stemW, diagLen, letterD]} position={[0, y0, 0]} rotation={[0, 0, -diagAngle]} material={m.accent} />
 
-      <pointLight position={[0, plinthH + 3.5, 1.2]} color={PALETTE.signalRed} intensity={70} distance={22} decay={2} />
-      <pointLight position={[0, plinthH + 3.5, -1.4]} color={PALETTE.signalRed} intensity={40} distance={18} decay={2} />
+      <pointLight position={[0, plinthH + 3.5, 1.2]} color={m.accentHex} intensity={70 * m.ledIntensity} distance={22} decay={2} />
+      <pointLight position={[0, plinthH + 3.5, -1.4]} color={m.accentHex} intensity={40 * m.ledIntensity} distance={18} decay={2} />
     </group>
   );
 }

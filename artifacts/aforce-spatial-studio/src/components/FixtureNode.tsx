@@ -1,12 +1,14 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { TransformControls, useCursor } from "@react-three/drei";
 import type { ThreeEvent } from "@react-three/fiber";
 import type * as THREE from "three";
 
 import { editor, findFixture, useEditor } from "@/editor/store";
 import type { Fixture, Footprint } from "@/scene/model";
+import { resolveFixtureStyle } from "@/scene/style";
 
 import { FIXTURE_COMPONENTS } from "./fixtures";
+import { MaterialsProvider, useAssetTexture, useMaterialSet } from "./materials";
 import { SelectionFrame } from "./SelectionFrame";
 
 /**
@@ -23,6 +25,11 @@ export function FixtureNode({ fixture }: { fixture: Fixture }) {
   const startFootprint = useRef<Footprint>(fixture.footprint);
 
   useCursor(hovered && !selected);
+
+  const sceneStyle = useEditor((s) => s.doc.style);
+  const resolved = useMemo(() => resolveFixtureStyle(sceneStyle, fixture.style), [sceneStyle, fixture.style]);
+  const surfaceTexture = useAssetTexture(fixture.slots?.texture ?? null);
+  const materials = useMaterialSet(resolved, surfaceTexture);
 
   const Component = FIXTURE_COMPONENTS[fixture.kind];
 
@@ -96,7 +103,9 @@ export function FixtureNode({ fixture }: { fixture: Fixture }) {
         onPointerOver={onPointerOver}
         onPointerOut={onPointerOut}
       >
-        <Component fixture={fixture} />
+        <MaterialsProvider set={materials}>
+          <Component fixture={fixture} />
+        </MaterialsProvider>
         {(selected || hovered) && (
           <SelectionFrame footprint={fixture.footprint} tone={selected ? "signal" : "bone"} />
         )}
