@@ -33,8 +33,8 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 |---|---------|--------|
 | 1 | Scaffold + static 20 × 20 ft activation scene (six zones, real dimensions, orbit camera, dimension callouts) | Built |
 | 2 | Editor: select, move, rotate, scale, properties panel, live floor plan, add / duplicate / delete, undo | Built |
-| 3 | Cameras: 360° orbit presets, first-person walkthrough with collision | Next |
-| 4 | Materials, lighting and color controls; logo, texture and product image uploads | Planned |
+| 3 | Cameras: animated view presets, 360° turntable, frame selection, first-person walkthrough with collision | Built |
+| 4 | Materials, lighting and color controls; logo, texture and product image uploads | Next |
 | 5 | Save and reopen projects (IndexedDB first, Postgres behind Clerk later) | Planned |
 | 6 | GLB export and presentation-quality renders | Planned |
 | 7 | Natural-language design edits via api-server route | Planned |
@@ -71,3 +71,24 @@ inside the floor.
 
 Fixture components render in local space; `FixtureNode` owns the world
 transform, the selection frame and the gizmo.
+
+## Section 3: cameras
+
+`src/components/CameraRig.tsx` swaps between two rigs on `cameraMode`.
+
+**Orbit.** Full 360° azimuth, polar clamped just above the floor. Seven
+named views in `src/editor/camera.ts` (keys 1–7 or the View menu) fly the
+camera and its target over 0.9 s with an ease-in-out; any drag cancels the
+flight. F frames the selected fixture from the current approach angle, or
+returns to the hero view with nothing selected. O turns on a slow
+turntable. The orbit pose is remembered across walkthroughs.
+
+**Walk.** V (or the Walk button) enters first person at eye height
+5' 7" from the open front; click the card to engage pointer lock. W A S D
+or arrows move at 6 ft/s, Shift runs at 11 ft/s, mouse looks. Esc releases
+the mouse, Esc again exits. Movement is resolved in `src/editor/collision.ts`
+as a 1 ft body circle against rotated rectangles: the three perimeter walls
+and each fixture's collision shape, sliding along whatever it hits. Fixtures
+block their footprint unless they declare walkable interiors; the Lock-In
+tunnel is two side walls, the studio and the gallery block only their panels
+and equipment. The walk pose is remembered for re-entry.

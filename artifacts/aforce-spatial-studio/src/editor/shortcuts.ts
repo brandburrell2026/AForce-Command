@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { CAMERA_PRESETS } from "./camera";
 import { editor, getEditorState } from "./store";
 
 const ROTATE_STEP = Math.PI / 12; // 15°
@@ -12,15 +13,29 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 /**
  * Keyboard: W/E/R gizmo modes, S snap, Esc deselect, Delete remove, ⌘D
- * duplicate, ⌘Z / ⇧⌘Z undo and redo, arrows nudge 6 in (⇧ 1 ft), [ ] rotate 15°.
+ * duplicate, ⌘Z / ⇧⌘Z undo and redo, arrows nudge 6 in (⇧ 1 ft), [ ] rotate 15°,
+ * F frame selection, O 360° turntable, V walkthrough, 1–7 camera presets.
+ * In walk mode the walk rig owns the keyboard; only Esc (exit) is handled here.
  */
 export function useEditorShortcuts() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target)) return;
+      const snapshot = getEditorState();
+      if (snapshot.cameraMode === "walk") {
+        // Pointer lock swallows the first Esc; a second one leaves walk mode.
+        if (e.key === "Escape" && !snapshot.walkLocked) editor.exitWalk();
+        return;
+      }
       const meta = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();
-      const id = getEditorState().selectedId;
+      const id = snapshot.selectedId;
+
+      if (!meta && e.key >= "1" && e.key <= "7") {
+        const preset = CAMERA_PRESETS[Number(e.key) - 1];
+        if (preset) editor.goToPreset(preset.id);
+        return;
+      }
 
       if (meta && key === "z") {
         e.preventDefault();
@@ -54,6 +69,18 @@ export function useEditorShortcuts() {
         case "s":
         case "S":
           editor.toggleSnap();
+          return;
+        case "f":
+        case "F":
+          editor.frameSelection();
+          return;
+        case "o":
+        case "O":
+          editor.toggleAutoOrbit();
+          return;
+        case "v":
+        case "V":
+          editor.enterWalk();
           return;
         case "Escape":
           editor.select(null);

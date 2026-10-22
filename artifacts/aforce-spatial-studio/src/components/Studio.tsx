@@ -1,17 +1,13 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import {
-  Environment,
-  Lightformer,
-  OrbitControls,
-  PerspectiveCamera,
-} from "@react-three/drei";
+import { Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import type * as THREE from "three";
 
 import { editor, useEditor } from "@/editor/store";
 import type { Vec3 } from "@/scene/model";
 import { formatFootprint } from "@/scene/units";
 
+import { CameraRig } from "./CameraRig";
 import { FixtureNode } from "./FixtureNode";
 import { ZoneLabel } from "./labels";
 import { Room } from "./Room";
@@ -109,15 +105,7 @@ export function Studio() {
       <fog attach="fog" args={["#070707", 70, 170]} />
 
       <PerspectiveCamera makeDefault position={[27, 17, 31]} fov={38} near={0.5} far={400} />
-      <OrbitControls
-        makeDefault
-        target={[0, 3.5, 0]}
-        minDistance={8}
-        maxDistance={95}
-        maxPolarAngle={Math.PI / 2 - 0.03}
-        enableDamping
-        dampingFactor={0.08}
-      />
+      <CameraRig />
 
       <Suspense fallback={null}>
         <Lighting />

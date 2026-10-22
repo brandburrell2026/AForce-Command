@@ -9,6 +9,7 @@ import {
   type SceneDocument,
 } from "@/scene/model";
 
+import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
 import { MIN_DIM, clampPosition, normalizeAngle, round } from "./geometry";
 
 /**
@@ -29,6 +30,13 @@ export interface EditorState {
   future: SceneDocument[];
   /** True between beginEdit and endEdit: a gizmo or plan drag is in progress. */
   editing: boolean;
+  cameraMode: CameraMode;
+  /** Slow turntable around the orbit target. */
+  autoOrbit: boolean;
+  /** Pointer lock is engaged in walk mode. */
+  walkLocked: boolean;
+  /** One-shot camera move; the orbit rig animates to it. */
+  cameraRequest: CameraRequest | null;
 }
 
 export type FixturePatch = Partial<
@@ -46,7 +54,13 @@ let state: EditorState = {
   past: [],
   future: [],
   editing: false,
+  cameraMode: "orbit",
+  autoOrbit: false,
+  walkLocked: false,
+  cameraRequest: null,
 };
+
+let cameraNonce = 0;
 
 /** Clicks that land right after a gizmo interaction must not clear the selection. */
 let gizmoBusyUntil = 0;
@@ -253,5 +267,39 @@ export const editor = {
   resetLayout() {
     withHistory(ACTIVATION_20x20);
     set({ selectedId: null, hoveredId: null });
+  },
+
+  // ---- Camera -----------------------------------------------------------
+
+  goToPreset(id: CameraPresetId) {
+    cameraNonce += 1;
+    set({ cameraRequest: { nonce: cameraNonce, kind: "preset", id }, autoOrbit: false });
+  },
+
+  /** Frame the selected fixture, or return to the hero view with nothing selected. */
+  frameSelection() {
+    cameraNonce += 1;
+    set({
+      cameraRequest: { nonce: cameraNonce, kind: "frame", fixtureId: state.selectedId },
+      autoOrbit: false,
+    });
+  },
+
+  toggleAutoOrbit() {
+    set({ autoOrbit: !state.autoOrbit });
+  },
+
+  enterWalk() {
+    if (state.cameraMode === "walk") return;
+    set({ cameraMode: "walk", walkLocked: false, selectedId: null, hoveredId: null, autoOrbit: false });
+  },
+
+  exitWalk() {
+    if (state.cameraMode !== "walk") return;
+    set({ cameraMode: "orbit", walkLocked: false });
+  },
+
+  setWalkLocked(locked: boolean) {
+    if (state.walkLocked !== locked) set({ walkLocked: locked });
   },
 };
