@@ -3,14 +3,18 @@ import { useEffect, useState } from "react";
 import { useEditor } from "@/editor/store";
 
 import { AssetsPanel } from "./AssetsPanel";
+import { AssistantPanel } from "./AssistantPanel";
 import { ExportPanel } from "./ExportPanel";
 import { FixtureList } from "./FixtureList";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StylePanel } from "./StylePanel";
 
-type Tab = "fixture" | "scene" | "assets" | "export";
+type Tab = "ai" | "fixture" | "scene" | "assets" | "export";
+
+const TAB_IDS: readonly Tab[] = ["ai", "fixture", "scene", "assets", "export"];
 
 const TABS: Array<{ id: Tab; label: string }> = [
+  { id: "ai", label: "AI" },
   { id: "fixture", label: "Fixture" },
   { id: "scene", label: "Scene" },
   { id: "assets", label: "Assets" },
@@ -21,11 +25,17 @@ const TABS: Array<{ id: Tab; label: string }> = [
 export function Inspector() {
   const [tab, setTab] = useState<Tab>("fixture");
   const selectedId = useEditor((s) => s.selectedId);
+  const request = useEditor((s) => s.inspectorTabRequest);
 
-  // A fresh selection brings its properties forward.
+  // A fresh selection brings its properties forward, unless the assistant is open.
   useEffect(() => {
-    if (selectedId) setTab("fixture");
+    if (selectedId) setTab((current) => (current === "ai" ? current : "fixture"));
   }, [selectedId]);
+
+  // Cmd+K and other callers can ask for a tab by name.
+  useEffect(() => {
+    if (request && (TAB_IDS as readonly string[]).includes(request.tab)) setTab(request.tab as Tab);
+  }, [request]);
 
   return (
     <div className="flex min-h-0 w-[320px] flex-col gap-3">
@@ -45,7 +55,9 @@ export function Inspector() {
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="flex min-h-0 flex-[3] flex-col">
-          {tab === "fixture" ? (
+          {tab === "ai" ? (
+            <AssistantPanel />
+          ) : tab === "fixture" ? (
             <PropertiesPanel />
           ) : tab === "scene" ? (
             <StylePanel />

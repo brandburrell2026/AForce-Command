@@ -233,3 +233,11 @@ export function resolveSlot(fixture: Fixture, style: SceneStyle, key: string): s
   if (value !== undefined) return value;
   return key === "logo" ? style.brandLogoId : null;
 }
+
+/** First unused `${kind}-${n}` id in the document. */
+export function nextFixtureId(doc: SceneDocument, kind: FixtureKind): string {
+  const ids = new Set(doc.fixtures.map((f) => f.id));
+  let n = 1;
+  while (ids.has(`${kind}-${n}`)) n += 1;
+  return `${kind}-${n}`;
+}

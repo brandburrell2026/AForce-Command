@@ -41,7 +41,7 @@ export default function App() {
               <span className="block h-3 w-3 bg-signal" aria-hidden />
               <div className="flex flex-col">
                 <Mono>AForce Spatial Studio</Mono>
-                <Mono className="text-dim">Section 06 · Export</Mono>
+                <Mono className="text-dim">Section 07 · AI edits</Mono>
               </div>
               <span className="h-6 w-px bg-hairline" aria-hidden />
               <ProjectBar />
@@ -70,7 +70,7 @@ export default function App() {
           {/* Bottom rail */}
           <footer className="flex items-end justify-between gap-6 border-t border-hairline pt-3">
             <Mono className="text-muted">
-              Click to select · W E R move rotate scale · F frame · O 360° · V walk · 1–7 views · ⌫ delete
+              ⌘K ask the assistant · W E R move rotate scale · F frame · O 360° · V walk · 1–7 views · ⌫ delete
             </Mono>
             <Mono>
               Pause. Hydrate. <span className="text-signal">Lock-In.</span> Perform.

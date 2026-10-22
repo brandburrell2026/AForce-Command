@@ -37,7 +37,7 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | 4 | Scene and per-fixture colors, finishes and lighting; logo, texture and product image uploads with per-fixture slots | Built |
 | 5 | Save and reopen projects: IndexedDB with autosave, thumbnails, reopen on load, JSON export and import | Built |
 | 6 | High-resolution renders with supersampling and transparent backgrounds, a seven-view contact sheet, and GLB export in meters with embedded scene data | Built |
-| 7 | Natural-language design edits via api-server route | Next |
+| 7 | Natural-language design edits through an authenticated api-server route, applied as one undo step | Built |
 
 ## Section 1 layout (plan view, feet, origin at floor center, +z toward the open front)
 
@@ -177,3 +177,40 @@ Uploaded images embed as textures; LED materials carry emissive strength.
 The scene document (minus image data) is written to the root's extras.
 
 Shortcuts: ⌘E renders with the current settings, ⇧⌘E exports the GLB.
+
+## Section 7: natural-language edits
+
+**Where the model runs.** `POST /api/spatial-studio/edit` on api-server
+(`artifacts/api-server/src/routes/spatialStudio.ts`) calls Claude Opus 5.5
+through the official `@anthropic-ai/sdk` with a structured-output schema,
+adaptive thinking at medium effort, and a cached static system prompt that
+carries the AForce design language, the scene conventions and the
+operation vocabulary. The key is `ANTHROPIC_API_KEY` on the server, never
+in the client; without it the route answers 503 and the panel says so.
+`SPATIAL_STUDIO_MODEL` overrides the model. The route sits behind
+`requireAuth` (a Clerk session, with the demo user outside production) and
+a 20 requests per minute per client limit.
+
+**What travels.** The studio sends a slim document (no image data:
+fixtures with ids, labels, positions in feet, headings in degrees,
+footprints, style overrides and slot assignments; assets by id, kind and
+name) plus the instruction, the selected fixture and the last six turns.
+It stays under the server's 64 kB body cap for any realistic activation.
+
+**What comes back.** A summary, a list of operations and optional
+clarifying questions. The server validates every operation against the
+document it was given (`editOps.ts`: real targets, slots valid for the
+kind, asset names resolved to ids, dimensions clamped) and returns
+warnings for anything dropped. Operations: move, rotate, resize, add,
+remove, duplicate, rename, note, fixture_style, scene_style, set_slot,
+floor, camera.
+
+**How it lands.** `src/ai/apply.ts` applies the operations purely to the
+live document, through the same sanitizer as manual edits, and the editor
+commits the result as one undo step. The AI tab (⌘K) shows the transcript
+with one line per applied operation, skipped items, and questions; Undo
+last reverts a whole reply. A refusal from the model's safety layer shows
+as a declined turn with nothing applied.
+
+The client mirrors the server contract in `src/ai/types.ts`; change both
+together.

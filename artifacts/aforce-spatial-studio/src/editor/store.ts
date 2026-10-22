@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 import {
   ACTIVATION_20x20,
   createFixture,
+  nextFixtureId,
   type Asset,
   type Fixture,
   type FixtureKind,
@@ -11,6 +12,8 @@ import {
 import { sanitizeStyle, type SceneStyle } from "@/scene/style";
 
 import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
+import type { AssistantTurn } from "@/ai/types";
+
 import { DEFAULT_RENDER_SETTINGS, type RenderSettings } from "./renderSettings";
 import { sanitizeFixture } from "./sanitize";
 
@@ -54,6 +57,11 @@ export interface EditorState {
   /** Progress line for an export or render in flight. */
   exportStatus: string | null;
   exportBusy: boolean;
+  /** AI assistant transcript for this session (not persisted). */
+  assistantTurns: AssistantTurn[];
+  assistantBusy: boolean;
+  /** Ask the inspector to show a tab (Cmd+K opens the assistant). */
+  inspectorTabRequest: { tab: string; nonce: number } | null;
 }
 
 export type FixturePatch = Partial<
@@ -86,7 +94,12 @@ let state: EditorState = {
   exportPreview: false,
   exportStatus: null,
   exportBusy: false,
+  assistantTurns: [],
+  assistantBusy: false,
+  inspectorTabRequest: null,
 };
+
+let tabNonce = 0;
 
 let cameraNonce = 0;
 
@@ -141,13 +154,6 @@ function replaceFixture(
     ...doc,
     fixtures: doc.fixtures.map((f) => (f.id === id ? sanitizeFixture(updater(f), doc.floor) : f)),
   };
-}
-
-function nextId(kind: FixtureKind): string {
-  const ids = new Set(state.doc.fixtures.map((f) => f.id));
-  let n = 1;
-  while (ids.has(`${kind}-${n}`)) n += 1;
-  return `${kind}-${n}`;
 }
 
 export function findFixture(id: string | null): Fixture | null {
@@ -225,7 +231,7 @@ export const editor = {
   },
 
   add(kind: FixtureKind) {
-    const id = nextId(kind);
+    const id = nextFixtureId(state.doc, kind);
     const fixture = sanitizeFixture(createFixture(kind, id, [0, 0, 6]), state.doc.floor);
     withHistory({ ...state.doc, fixtures: [...state.doc.fixtures, fixture] });
     set({ selectedId: id });
@@ -234,7 +240,7 @@ export const editor = {
   duplicate(id: string) {
     const source = findFixture(id);
     if (!source) return;
-    const copyId = nextId(source.kind);
+    const copyId = nextFixtureId(state.doc, source.kind);
     const copy = sanitizeFixture(
       {
         ...source,
@@ -375,6 +381,34 @@ export const editor = {
 
   setProjectsOpen(open: boolean) {
     if (state.projectsOpen !== open) set({ projectsOpen: open });
+  },
+
+  // ---- Whole-document commits and the assistant ----------------------------
+
+  /** Replace the document as one undo step (AI edits, batch operations). */
+  commitDocument(next: SceneDocument, selectId: string | null | undefined = undefined) {
+    withHistory(next);
+    if (selectId !== undefined) {
+      const exists = selectId === null || next.fixtures.some((f) => f.id === selectId);
+      set({ selectedId: exists ? selectId : null });
+    }
+  },
+
+  assistantPush(turn: AssistantTurn) {
+    set({ assistantTurns: [...state.assistantTurns, turn].slice(-40) });
+  },
+
+  assistantSetBusy(busy: boolean) {
+    if (state.assistantBusy !== busy) set({ assistantBusy: busy });
+  },
+
+  assistantClear() {
+    set({ assistantTurns: [] });
+  },
+
+  requestInspectorTab(tab: string) {
+    tabNonce += 1;
+    set({ inspectorTabRequest: { tab, nonce: tabNonce } });
   },
 
   // ---- Export -------------------------------------------------------------

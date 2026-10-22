@@ -18,6 +18,7 @@ import {
 import voiceTtsRouter from "./voiceTts";
 import { buildConciergeRouter, buildDefaultConciergeDeps } from "./concierge";
 import designTokensRouter from "./designTokens";
+import spatialStudioRouter from "./spatialStudio";
 import referralsRouter from "./referrals";
 import earlyAccessRouter from "./earlyAccess";
 import adminDemandRouter from "./adminDemand";
@@ -205,6 +206,9 @@ router.use(voiceTtsRouter);
 // `ai_concierge_enabled` (OFF in production) until validation completes.
 router.use("/concierge", buildConciergeRouter(buildDefaultConciergeDeps()));
 router.use(designTokensRouter);
+// AForce Spatial Studio: natural-language design edits. requireAuth plus a
+// per-client rate limit; answers 503 ai_unavailable without ANTHROPIC_API_KEY.
+router.use(spatialStudioRouter);
 router.use("/referrals", referralsRouter);
 router.use("/early-access", earlyAccessRouter);
 router.use(adminDemandRouter);
