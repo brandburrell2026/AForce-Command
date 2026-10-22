@@ -1,4 +1,5 @@
 import { Studio } from "@/components/Studio";
+import { AspectFrame } from "@/components/hud/AspectFrame";
 import { FloorPlan } from "@/components/hud/FloorPlan";
 import { Inspector } from "@/components/hud/Inspector";
 import { ProjectBar } from "@/components/hud/ProjectBar";
@@ -19,12 +20,14 @@ export default function App() {
   const floor = useEditor((s) => s.doc.floor);
   const walking = useEditor((s) => s.cameraMode === "walk");
   const projectsOpen = useEditor((s) => s.projectsOpen);
+  const exportPreview = useEditor((s) => s.exportPreview);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink text-bone">
       <div className="absolute inset-0">
         <Studio />
       </div>
+      {exportPreview && !walking ? <AspectFrame /> : null}
 
       {walking ? (
         <WalkOverlay />
@@ -38,7 +41,7 @@ export default function App() {
               <span className="block h-3 w-3 bg-signal" aria-hidden />
               <div className="flex flex-col">
                 <Mono>AForce Spatial Studio</Mono>
-                <Mono className="text-dim">Section 05 · Projects</Mono>
+                <Mono className="text-dim">Section 06 · Export</Mono>
               </div>
               <span className="h-6 w-px bg-hairline" aria-hidden />
               <ProjectBar />

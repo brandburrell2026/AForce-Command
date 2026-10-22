@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { CAMERA_PRESETS } from "./camera";
+import { runGlbExport, runRender } from "./exportActions";
 import { saveProject } from "./projects";
 import { editor, getEditorState } from "./store";
 
@@ -16,7 +17,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
  * Keyboard: W/E/R gizmo modes, S snap, Esc deselect, Delete remove, ⌘D
  * duplicate, ⌘Z / ⇧⌘Z undo and redo, arrows nudge 6 in (⇧ 1 ft), [ ] rotate 15°,
  * F frame selection, O 360° turntable, V walkthrough, 1–7 camera presets,
- * ⌘S save, ⇧⌘S save as copy, ⌘O projects dialog.
+ * ⌘S save, ⇧⌘S save as copy, ⌘O projects dialog, ⌘E render, ⇧⌘E export GLB.
  * In walk mode the walk rig owns the keyboard; only Esc (exit) is handled here.
  */
 export function useEditorShortcuts() {
@@ -34,6 +35,12 @@ export function useEditorShortcuts() {
       if (metaKey && (e.key === "o" || e.key === "O")) {
         e.preventDefault();
         editor.setProjectsOpen(!snapshot.projectsOpen);
+        return;
+      }
+      if (metaKey && (e.key === "e" || e.key === "E")) {
+        e.preventDefault();
+        if (e.shiftKey) void runGlbExport(true);
+        else void runRender("still");
         return;
       }
       if (snapshot.projectsOpen) {

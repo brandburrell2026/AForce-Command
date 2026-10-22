@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useThree } from "@react-three/fiber";
 
+import { sceneBridge } from "@/editor/sceneBridge";
 import { snapshotBridge, type CaptureOptions } from "@/editor/snapshot";
 
 /**
@@ -14,6 +15,7 @@ export function Snapshot() {
   const camera = useThree((s) => s.camera);
 
   useEffect(() => {
+    sceneBridge.handles = { gl, scene, camera };
     snapshotBridge.capture = ({ width, type = "image/jpeg", quality = 0.8 }: CaptureOptions) => {
       gl.render(scene, camera);
       const source = gl.domElement;
@@ -29,6 +31,7 @@ export function Snapshot() {
     };
     return () => {
       snapshotBridge.capture = null;
+      sceneBridge.handles = null;
     };
   }, [gl, scene, camera]);
 

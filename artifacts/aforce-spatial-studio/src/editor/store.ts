@@ -11,6 +11,7 @@ import {
 import { sanitizeStyle, type SceneStyle } from "@/scene/style";
 
 import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
+import { DEFAULT_RENDER_SETTINGS, type RenderSettings } from "./renderSettings";
 import { sanitizeFixture } from "./sanitize";
 
 /**
@@ -47,6 +48,12 @@ export interface EditorState {
   saving: boolean;
   saveError: string | null;
   projectsOpen: boolean;
+  renderSettings: RenderSettings;
+  /** Show the render frame overlay (the Export tab is open). */
+  exportPreview: boolean;
+  /** Progress line for an export or render in flight. */
+  exportStatus: string | null;
+  exportBusy: boolean;
 }
 
 export type FixturePatch = Partial<
@@ -75,6 +82,10 @@ let state: EditorState = {
   saving: false,
   saveError: null,
   projectsOpen: false,
+  renderSettings: DEFAULT_RENDER_SETTINGS,
+  exportPreview: false,
+  exportStatus: null,
+  exportBusy: false,
 };
 
 let cameraNonce = 0;
@@ -145,6 +156,11 @@ export function findFixture(id: string | null): Fixture | null {
 }
 
 export const editor = {
+  /** The current state, for callers that only read once. */
+  snapshot(): EditorState {
+    return state;
+  },
+
   select(id: string | null) {
     if (state.selectedId !== id) set({ selectedId: id });
   },
@@ -359,6 +375,20 @@ export const editor = {
 
   setProjectsOpen(open: boolean) {
     if (state.projectsOpen !== open) set({ projectsOpen: open });
+  },
+
+  // ---- Export -------------------------------------------------------------
+
+  setRenderSettings(patch: Partial<RenderSettings>) {
+    set({ renderSettings: { ...state.renderSettings, ...patch } });
+  },
+
+  setExportPreview(on: boolean) {
+    if (state.exportPreview !== on) set({ exportPreview: on });
+  },
+
+  setExportStatus(status: string | null, busy = false) {
+    set({ exportStatus: status, exportBusy: busy });
   },
 
   // ---- Camera -----------------------------------------------------------

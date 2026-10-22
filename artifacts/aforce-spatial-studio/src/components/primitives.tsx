@@ -8,6 +8,8 @@ interface SolidProps {
   rotation?: Vec3;
   castShadow?: boolean;
   receiveShadow?: boolean;
+  /** Node name in exported models. */
+  name?: string;
 }
 
 /** Axis-aligned box: size is [width(x), height(y), depth(z)] in feet. */
@@ -18,9 +20,11 @@ export function Box({
   rotation,
   castShadow = true,
   receiveShadow = true,
+  name,
 }: SolidProps & { size: Vec3 }) {
   return (
     <mesh
+      name={name}
       position={position}
       rotation={rotation}
       material={material}

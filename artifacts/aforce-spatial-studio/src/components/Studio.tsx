@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { Environment, Lightformer, PerspectiveCamera } from "@react-three/drei";
 import type * as THREE from "three";
 
+import { ACTIVATION_NODE } from "@/editor/gltf";
 import { editor, useEditor } from "@/editor/store";
 import type { Vec3 } from "@/scene/model";
 import { KEY_TEMPERATURES, resolveFixtureStyle } from "@/scene/style";
@@ -90,12 +91,14 @@ function Fixtures() {
         return (
           <group key={fixture.id}>
             <FixtureNode fixture={fixture} />
-            <ZoneLabel
-              position={labelPos}
-              index={i + 1}
-              label={fixture.label}
-              dims={formatFootprint(width, depth, height)}
-            />
+            <group userData={{ editorOnly: true }}>
+              <ZoneLabel
+                position={labelPos}
+                index={i + 1}
+                label={fixture.label}
+                dims={formatFootprint(width, depth, height)}
+              />
+            </group>
           </group>
         );
       })}
@@ -128,8 +131,10 @@ export function Studio() {
       <Suspense fallback={null}>
         <Lighting />
         <SceneMaterials>
-          <Floor />
-          <Fixtures />
+          <group name={ACTIVATION_NODE}>
+            <Floor />
+            <Fixtures />
+          </group>
         </SceneMaterials>
       </Suspense>
     </Canvas>

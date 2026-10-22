@@ -97,6 +97,8 @@ export function FixtureNode({ fixture }: { fixture: Fixture }) {
     <>
       <group
         ref={setGroup}
+        name={fixture.label}
+        userData={{ fixtureId: fixture.id, kind: fixture.kind }}
         position={fixture.position}
         rotation={[0, fixture.rotationY, 0]}
         onClick={onClick}

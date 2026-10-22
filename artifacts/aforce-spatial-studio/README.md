@@ -36,8 +36,8 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | 3 | Cameras: animated view presets, 360° turntable, frame selection, first-person walkthrough with collision | Built |
 | 4 | Scene and per-fixture colors, finishes and lighting; logo, texture and product image uploads with per-fixture slots | Built |
 | 5 | Save and reopen projects: IndexedDB with autosave, thumbnails, reopen on load, JSON export and import | Built |
-| 6 | GLB export and presentation-quality renders | Next |
-| 7 | Natural-language design edits via api-server route | Planned |
+| 6 | High-resolution renders with supersampling and transparent backgrounds, a seven-view contact sheet, and GLB export in meters with embedded scene data | Built |
+| 7 | Natural-language design edits via api-server route | Next |
 
 ## Section 1 layout (plan view, feet, origin at floor center, +z toward the open front)
 
@@ -149,3 +149,31 @@ and the last written one, so an in-flight save never hides a newer edit.
 
 Still to come for persistence (section 5b, not yet scheduled): a Postgres
 table on api-server behind Clerk so projects follow the account.
+
+## Section 6: renders and GLB export
+
+**Renders** (`src/editor/render.ts`) come from the live renderer, not a
+second scene. `renderFrame` resizes the WebGL drawing buffer (CSS size
+untouched), sets the camera aspect to the target, renders once, copies the
+pixels to a 2D canvas, and restores everything in `finally`. Options:
+preset sizes up to 4K, PNG or JPEG, 2× supersampling for sizes up to
+2560 px (downsampled with high-quality smoothing), hide editor overlays
+(grid, footprint outline, selection frame, gizmo, dimension lines, all
+tagged `userData.editorOnly`), and transparent PNG (background and fog
+removed, clear alpha 0). The Export tab shows a letterbox frame on the
+viewport for the chosen aspect. Screen-space DOM labels and the OS totem's
+HTML readout are not part of the WebGL buffer and so do not appear.
+
+**Contact sheet**: the seven camera presets plus a title tile on one PNG
+(4 × 2 grid of 1280 × 720 tiles). The camera is moved directly and
+restored; OrbitControls re-derives its state from the restored pose.
+
+**GLB** (`src/editor/gltf.ts`): three's GLTFExporter on a clone of the
+`activation` group. Editor-only objects and the venue ground
+(`userData.exportExclude`) are pruned, lights optionally kept
+(KHR_lights_punctual), and the root is scaled by `METERS_PER_FOOT` so the
+file is in meters. Fixture groups are named by label, room parts by role.
+Uploaded images embed as textures; LED materials carry emissive strength.
+The scene document (minus image data) is written to the root's extras.
+
+Shortcuts: ⌘E renders with the current settings, ⇧⌘E exports the GLB.

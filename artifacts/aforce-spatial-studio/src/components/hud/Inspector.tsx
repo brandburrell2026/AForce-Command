@@ -3,16 +3,18 @@ import { useEffect, useState } from "react";
 import { useEditor } from "@/editor/store";
 
 import { AssetsPanel } from "./AssetsPanel";
+import { ExportPanel } from "./ExportPanel";
 import { FixtureList } from "./FixtureList";
 import { PropertiesPanel } from "./PropertiesPanel";
 import { StylePanel } from "./StylePanel";
 
-type Tab = "fixture" | "scene" | "assets";
+type Tab = "fixture" | "scene" | "assets" | "export";
 
 const TABS: Array<{ id: Tab; label: string }> = [
   { id: "fixture", label: "Fixture" },
   { id: "scene", label: "Scene" },
   { id: "assets", label: "Assets" },
+  { id: "export", label: "Export" },
 ];
 
 /** Right-hand column: tabbed panels above the fixture list. */
@@ -43,7 +45,15 @@ export function Inspector() {
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="flex min-h-0 flex-[3] flex-col">
-          {tab === "fixture" ? <PropertiesPanel /> : tab === "scene" ? <StylePanel /> : <AssetsPanel />}
+          {tab === "fixture" ? (
+            <PropertiesPanel />
+          ) : tab === "scene" ? (
+            <StylePanel />
+          ) : tab === "assets" ? (
+            <AssetsPanel />
+          ) : (
+            <ExportPanel />
+          )}
         </div>
         <div className="flex min-h-0 flex-[2] flex-col">
           <FixtureList />

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ACTIVATION_20x20, type SceneDocument } from "@/scene/model";
 
 import * as db from "./db";
+import { downloadBlob, slugify } from "./download";
 import { normalizeDocument } from "./sanitize";
 import { captureSnapshot } from "./snapshot";
 import { editor, getEditorState, subscribeEditor } from "./store";
@@ -106,10 +107,6 @@ export async function restoreLastProject(): Promise<void> {
 
 // ---- JSON files ------------------------------------------------------------
 
-function slug(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "activation";
-}
-
 export function exportProjectFile() {
   const doc = getEditorState().doc;
   const payload = {
@@ -119,14 +116,7 @@ export function exportProjectFile() {
     doc,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${slug(doc.name)}${FILE_SUFFIX}`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(blob, `${slugify(doc.name)}${FILE_SUFFIX}`);
 }
 
 /** Load a document from an exported file. It opens unsaved; save to keep it. */

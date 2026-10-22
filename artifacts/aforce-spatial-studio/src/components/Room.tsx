@@ -64,19 +64,27 @@ export function Room({ floor }: { floor: FloorPlan }) {
   ];
 
   return (
-    <group>
+    <group name="Room">
       {/* Venue ground beyond the footprint */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} material={ground} receiveShadow>
+      <mesh
+        name="Venue ground"
+        rotation={[-Math.PI / 2, 0, 0]}
+        position={[0, -0.01, 0]}
+        material={ground}
+        receiveShadow
+        userData={{ exportExclude: true }}
+      >
         <planeGeometry args={[240, 240]} />
       </mesh>
 
       {/* Activation floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} material={floorMaterial} receiveShadow>
+      <mesh name="Floor" rotation={[-Math.PI / 2, 0, 0]} material={floorMaterial} receiveShadow>
         <planeGeometry args={[W, D]} />
       </mesh>
 
       {/* 1 ft grid, 5 ft sections */}
       <Grid
+        userData={{ editorOnly: true }}
         position={[0, 0.006, 0]}
         args={[W, D]}
         cellSize={1}
@@ -90,15 +98,17 @@ export function Room({ floor }: { floor: FloorPlan }) {
         infiniteGrid={false}
       />
 
-      {/* Accent footprint outline */}
-      {outline.map((o, i) => (
-        <Box key={i} size={o.size} position={o.position} material={m.accentSoft} castShadow={false} receiveShadow={false} />
-      ))}
+      {/* Accent footprint outline: an editor cue, not part of the build */}
+      <group userData={{ editorOnly: true }}>
+        {outline.map((o, i) => (
+          <Box key={i} size={o.size} position={o.position} material={m.accentSoft} castShadow={false} receiveShadow={false} />
+        ))}
+      </group>
 
       {/* Perimeter walls: back, left, right. Front is open. */}
-      <Box size={[W + 2 * t, H, t]} position={[0, H / 2, -hd - t / 2]} material={m.panel} />
-      <Box size={[t, H, D]} position={[-hw - t / 2, H / 2, 0]} material={m.panel} />
-      <Box size={[t, H, D]} position={[hw + t / 2, H / 2, 0]} material={m.panel} />
+      <Box name="Wall back" size={[W + 2 * t, H, t]} position={[0, H / 2, -hd - t / 2]} material={m.panel} />
+      <Box name="Wall left" size={[t, H, D]} position={[-hw - t / 2, H / 2, 0]} material={m.panel} />
+      <Box name="Wall right" size={[t, H, D]} position={[hw + t / 2, H / 2, 0]} material={m.panel} />
 
       {/* Metal dado rail */}
       <Box size={[W, 0.05, 0.03]} position={[0, 4, -hd + 0.015]} material={m.metal} castShadow={false} />
@@ -112,8 +122,10 @@ export function Room({ floor }: { floor: FloorPlan }) {
       <pointLight position={[0, coveY - 0.5, -hd + 1.5]} color={m.accentHex} intensity={60 * m.ledIntensity} distance={24} decay={2} />
 
       {/* Dimension callouts outside the open front and the right edge */}
-      <Dimension from={[-hw, 0.02, hd + 1.6]} to={[hw, 0.02, hd + 1.6]} />
-      <Dimension from={[hw + 1.6, 0.02, -hd]} to={[hw + 1.6, 0.02, hd]} />
+      <group userData={{ editorOnly: true }}>
+        <Dimension from={[-hw, 0.02, hd + 1.6]} to={[hw, 0.02, hd + 1.6]} />
+        <Dimension from={[hw + 1.6, 0.02, -hd]} to={[hw + 1.6, 0.02, hd]} />
+      </group>
     </group>
   );
 }

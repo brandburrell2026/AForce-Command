@@ -34,7 +34,7 @@ export function SelectionFrame({ footprint, tone }: { footprint: Footprint; tone
   ];
 
   return (
-    <group>
+    <group userData={{ editorOnly: true }}>
       {edges.map((e, i) => (
         <Box key={i} size={e.size} position={e.position} material={material} castShadow={false} receiveShadow={false} />
       ))}
