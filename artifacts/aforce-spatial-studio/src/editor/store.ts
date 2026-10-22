@@ -14,6 +14,7 @@ import { sanitizeStyle, type SceneStyle } from "@/scene/style";
 import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
 import type { AssistantTurn } from "@/ai/types";
 
+import type { ProjectSource } from "./remote";
 import { DEFAULT_RENDER_SETTINGS, type RenderSettings } from "./renderSettings";
 import { sanitizeFixture } from "./sanitize";
 
@@ -51,6 +52,10 @@ export interface EditorState {
   saving: boolean;
   saveError: string | null;
   projectsOpen: boolean;
+  /** Where saves go this session: the account (api-server) or this browser. */
+  projectSource: ProjectSource;
+  /** Why the account is not in use, when it is not. */
+  accountNote: string | null;
   renderSettings: RenderSettings;
   /** Show the render frame overlay (the Export tab is open). */
   exportPreview: boolean;
@@ -90,6 +95,8 @@ let state: EditorState = {
   saving: false,
   saveError: null,
   projectsOpen: false,
+  projectSource: "unknown",
+  accountNote: null,
   renderSettings: DEFAULT_RENDER_SETTINGS,
   exportPreview: false,
   exportStatus: null,
@@ -381,6 +388,15 @@ export const editor = {
 
   setProjectsOpen(open: boolean) {
     if (state.projectsOpen !== open) set({ projectsOpen: open });
+  },
+
+  setProjectSource(source: ProjectSource, note: string | null) {
+    set({ projectSource: source, accountNote: note });
+  },
+
+  /** Clear a save error so autosave can resume (after the user acts on a conflict). */
+  clearSaveError() {
+    if (state.saveError) set({ saveError: null });
   },
 
   // ---- Whole-document commits and the assistant ----------------------------

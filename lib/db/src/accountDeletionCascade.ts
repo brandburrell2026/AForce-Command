@@ -97,6 +97,12 @@ export interface AccountDeletionCascadeDeps extends AccountDeletionCascadeStores
    * (api-server `buildDefaultAccountDeletionDeps`) always supply it.
    */
   conciergePurge?: (userId: string) => Promise<void>;
+  /**
+   * AForce Spatial Studio — hard-deletes every saved activation design
+   * (including soft-deleted rows). Optional for the same reason as
+   * `conciergePurge`; the production deps always supply it.
+   */
+  spatialStudioPurge?: (userId: string) => Promise<void>;
 }
 
 /**
@@ -200,6 +206,9 @@ export async function runAccountDeletionCascade(
   // A new data class (transcripts + assistant preferences); deleted in the
   // same transaction as everything else so the account leaves nothing behind.
   if (deps.conciergePurge) await deps.conciergePurge(userId);
+
+  // Step 3c — AForce Spatial Studio saved designs (documents + uploaded imagery).
+  if (deps.spatialStudioPurge) await deps.spatialStudioPurge(userId);
 
   // Step 4 — canonical health-record plane, hard delete.
   return deps.healthRecordsRepo.purgeUser(userId);

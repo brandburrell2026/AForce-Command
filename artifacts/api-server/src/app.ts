@@ -17,6 +17,7 @@ import {
 import { buildCorsOptions } from "./middlewares/corsPolicy";
 import { clerkConfigured } from "./middlewares/clerkConfig";
 import { sendApiError, classifyThrown } from "./lib/apiError";
+import { buildDefaultSpatialStudioProjectsRouter } from "./routes/spatialStudioProjects";
 
 const app: Express = express();
 
@@ -100,6 +101,15 @@ app.use("/api", smartCaptureRouter);
 // `./middlewares/corsPolicy.ts` for the full threat model and
 // `.env.example` for the local-dev setup line.
 app.use(cors(buildCorsOptions()));
+
+// AForce Spatial Studio project storage — saved designs carry uploaded
+// images as data URLs and run to several MB, so the router mounts its own
+// express.json({ limit: "12mb" }) on PUT and MUST sit before the global 64kB
+// parser below. Path-scoped clerkMiddleware for the same reason as
+// smart-capture above: requireAuth must find a decorated request.
+if (clerkConfigured()) app.use("/api/spatial-studio/projects", clerkMiddleware());
+app.use("/api/spatial-studio/projects", buildDefaultSpatialStudioProjectsRouter());
+
 // Explicit body-size cap. The largest legitimate payload is the
 // UserState snapshot (~12kB); 64kB leaves headroom without letting a
 // malicious client tie up the parser with multi-MB JSON.

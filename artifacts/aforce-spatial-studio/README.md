@@ -38,6 +38,7 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | 5 | Save and reopen projects: IndexedDB with autosave, thumbnails, reopen on load, JSON export and import | Built |
 | 6 | High-resolution renders with supersampling and transparent backgrounds, a seven-view contact sheet, and GLB export in meters with embedded scene data | Built |
 | 7 | Natural-language design edits through an authenticated api-server route, applied as one undo step | Built |
+| 5b | Account-backed projects: Postgres table behind Clerk on api-server, browser storage as the fallback, one-click move | Built |
 
 ## Section 1 layout (plan view, feet, origin at floor center, +z toward the open front)
 
@@ -147,8 +148,8 @@ kinds and dangling asset references, and sanitizes fixtures exactly like
 live edits. Dirty state is reference equality between the live document
 and the last written one, so an in-flight save never hides a newer edit.
 
-Still to come for persistence (section 5b, not yet scheduled): a Postgres
-table on api-server behind Clerk so projects follow the account.
+Section 5b (below) adds the account-backed source; IndexedDB stays as the
+fallback.
 
 ## Section 6: renders and GLB export
 
@@ -214,3 +215,39 @@ as a declined turn with nothing applied.
 
 The client mirrors the server contract in `src/ai/types.ts`; change both
 together.
+
+## Section 5b: projects in your account
+
+**Storage.** `aforce_spatial_studio_projects` (`lib/db/src/schema/spatialStudio.ts`,
+SQL in `lib/db/migrations/20261022_spatial_studio_projects.sql`): one row per
+project keyed by (user_id, id), the scene document as jsonb, a thumbnail,
+counts and sizes for listing, created/updated/deleted timestamps. The
+repository (`lib/db/src/spatialStudioRepo.ts`) scopes every query by user;
+another member's id reads as not found. Account deletion hard-purges the
+member's rows through the existing cascade (step 3c), guarded like the
+concierge so an environment without the table still deletes cleanly.
+
+**Routes.** `/api/spatial-studio/projects` on api-server
+(`routes/spatialStudioProjects.ts`): list, get, put (create or overwrite),
+delete (soft). Behind `requireAuth` and a per-user limit. Documents carry
+image data URLs, so PUT mounts its own 12 MB body parser and the router is
+mounted before the global 64 kB one, with a path-scoped Clerk middleware,
+the same way smart-capture is. Bodies are validated for shape and size
+(`lib/spatialStudio/projectBody.ts`); the studio re-normalizes on open.
+Optimistic concurrency: the client sends the `updatedAt` it last saw and a
+newer row answers 409 with the current metadata. A missing table answers
+503 `storage_unavailable`. Unit tests run the router against the in-memory
+store with an injected auth stub.
+
+**In the studio.** On load `probeAccount` calls the list endpoint once:
+200 means the account is the source for this session, 401 or 503 or a
+network failure means this browser is, and the project bar and dialog say
+which. Save, autosave, open, delete and reopen-on-load all dispatch on the
+source. A 409 shows as a save error and pauses autosave until the project
+is reopened. In account mode the dialog still lists projects left in this
+browser with a "Move to account" button that copies the document up under
+the same id and removes the local copy.
+
+**To enable.** Apply the migration (or `pnpm --filter db push`), make sure
+the studio is served from the same origin as api-server so the Clerk
+cookie travels, and sign in on that host.

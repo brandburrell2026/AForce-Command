@@ -8,14 +8,14 @@ import { Toolbar } from "@/components/hud/Toolbar";
 import { ViewControls } from "@/components/hud/ViewControls";
 import { WalkOverlay } from "@/components/hud/WalkOverlay";
 import { Mono } from "@/components/hud/ui";
-import { useAutosave, useRestoreLastProject } from "@/editor/projects";
+import { useAutosave, useInitProjects } from "@/editor/projects";
 import { useEditorShortcuts } from "@/editor/shortcuts";
 import { useEditor } from "@/editor/store";
 import { formatFeet, squareFeet } from "@/scene/units";
 
 export default function App() {
   useEditorShortcuts();
-  useRestoreLastProject();
+  useInitProjects();
   useAutosave();
   const floor = useEditor((s) => s.doc.floor);
   const walking = useEditor((s) => s.cameraMode === "walk");
@@ -41,7 +41,7 @@ export default function App() {
               <span className="block h-3 w-3 bg-signal" aria-hidden />
               <div className="flex flex-col">
                 <Mono>AForce Spatial Studio</Mono>
-                <Mono className="text-dim">Section 07 · AI edits</Mono>
+                <Mono className="text-dim">Section 5b · Account projects</Mono>
               </div>
               <span className="h-6 w-px bg-hairline" aria-hidden />
               <ProjectBar />

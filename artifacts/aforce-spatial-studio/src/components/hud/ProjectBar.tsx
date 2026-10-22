@@ -15,6 +15,7 @@ export function ProjectBar() {
   const saveError = useEditor((s) => s.saveError);
   const savedAt = useEditor((s) => s.savedAt);
   const autosave = useEditor((s) => s.autosave);
+  const source = useEditor((s) => s.projectSource);
 
   // Re-render every half minute so "saved 3 min ago" stays honest.
   const [, setTick] = useState(0);
@@ -37,7 +38,8 @@ export function ProjectBar() {
     status = autosave ? "Autosave pending…" : "Unsaved changes · ⌘S";
     tone = "text-muted";
   } else {
-    status = `Saved ${savedAt ? formatAgo(savedAt) : ""}${autosave ? " · autosave on" : ""}`;
+    const where = source === "account" ? "Account" : "This browser";
+    status = `${where} · saved ${savedAt ? formatAgo(savedAt) : ""}${autosave ? " · autosave on" : ""}`;
   }
 
   return (
