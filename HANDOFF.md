@@ -10,13 +10,14 @@ A GitHub mirror exists at `github.com/brandburrell2026/AForce-Command` but is cu
 
 ## 2. What's in the box
 
-This is a pnpm monorepo with five running artifacts:
+This is a pnpm monorepo with six running artifacts:
 
 | Artifact | Path | What it is | Workflow |
 |---|---|---|---|
 | `aforce-os` | `artifacts/aforce-os/` | React Native / Expo SDK 54 mobile app — the product | `artifacts/aforce-os: expo` |
 | `aforce-pitch` | `artifacts/aforce-pitch/` | Investor pitch deck (slides) | `artifacts/aforce-pitch: web` |
 | `aforce-site` | `artifacts/aforce-site/` | Marketing website | `artifacts/aforce-site: web` |
+| `aforce-spatial-studio` | `artifacts/aforce-spatial-studio/` | 3D event activation design studio (section 1: static 20 × 20 ft scene) | `artifacts/aforce-spatial-studio: web` |
 | `api-server` | `artifacts/api-server/` | Express 5 + PostgreSQL backend | `artifacts/api-server: API Server` |
 | `mockup-sandbox` | `artifacts/mockup-sandbox/` | Component preview server for canvas mockups | `artifacts/mockup-sandbox: Component Preview Server` |
 
