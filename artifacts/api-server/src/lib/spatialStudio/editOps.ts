@@ -9,7 +9,8 @@
  * imports no SDK so it is unit-testable in isolation. The studio client
  * mirrors these types in `artifacts/aforce-spatial-studio/src/ai/types.ts`.
  */
-import { z } from "zod";
+// zod/v4: the Anthropic SDK's zodOutputFormat helper types against zod v4, which zod 3.25 ships under this subpath.
+import { z } from "zod/v4";
 
 export const FIXTURE_KINDS = [
   "centerpiece",
