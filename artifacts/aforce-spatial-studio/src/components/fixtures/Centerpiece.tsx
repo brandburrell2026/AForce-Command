@@ -12,10 +12,10 @@ import type { FixtureProps } from "./types";
 export function Centerpiece({ fixture }: FixtureProps) {
   const { width, depth } = fixture.footprint;
   const plinthH = 1;
-  const letterH = 6.5;
+  const letterH = Math.max(2, fixture.footprint.height - plinthH);
   const stemW = 0.65;
   const letterD = 0.8;
-  const halfSpan = 1.7;
+  const halfSpan = Math.max(0.8, Math.min(1.7, width / 2 - 1.3));
   const diagLen = Math.hypot(halfSpan * 2, letterH - stemW);
   const diagAngle = Math.atan2(halfSpan * 2, letterH - stemW);
   const y0 = plinthH + letterH / 2;
@@ -24,7 +24,7 @@ export function Centerpiece({ fixture }: FixtureProps) {
   const inlayD = depth - inset * 2;
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Plinth */}
       <Box size={[width, plinthH, depth]} position={[0, plinthH / 2, 0]} material={matteBlack} />
       <Box size={[width + 0.1, 0.06, depth + 0.1]} position={[0, plinthH + 0.03, 0]} material={brushedMetal} />

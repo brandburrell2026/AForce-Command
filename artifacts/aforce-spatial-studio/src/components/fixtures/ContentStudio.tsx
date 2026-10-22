@@ -13,7 +13,7 @@ export function ContentStudio({ fixture }: FixtureProps) {
   const panelT = 0.2;
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Cyc corner */}
       <Box size={[W, H, panelT]} position={[0, H / 2, -D / 2 + panelT / 2]} material={matteBlack} />
       <Box size={[panelT, H, D]} position={[W / 2 - panelT / 2, H / 2, 0]} material={matteBlack} />

@@ -16,13 +16,13 @@ export function OSDemoStation({ fixture }: FixtureProps) {
   const counterD = 2;
   const counterZ = D / 2 - counterD / 2;
   const totemW = 3;
-  const totemH = 5;
+  const totemH = Math.max(2, fixture.footprint.height - 2);
   const totemZ = -D / 2 + 0.35;
   const totemY = 1.5 + totemH / 2;
   const screenFaceZ = totemZ + 0.08;
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Counter */}
       <Box size={[W, counterH, counterD]} position={[0, counterH / 2, counterZ]} material={matteBlack} />
       <Box size={[W + 0.15, 0.1, counterD + 0.15]} position={[0, counterH + 0.05, counterZ]} material={brushedMetal} />

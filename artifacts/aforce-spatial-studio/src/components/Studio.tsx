@@ -1,7 +1,6 @@
 import { Suspense, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
-  ContactShadows,
   Environment,
   Lightformer,
   OrbitControls,
@@ -9,10 +8,11 @@ import {
 } from "@react-three/drei";
 import type * as THREE from "three";
 
-import type { SceneDocument, Vec3 } from "@/scene/model";
+import { editor, useEditor } from "@/editor/store";
+import type { Vec3 } from "@/scene/model";
 import { formatFootprint } from "@/scene/units";
 
-import { FIXTURE_COMPONENTS } from "./fixtures";
+import { FixtureNode } from "./FixtureNode";
 import { ZoneLabel } from "./labels";
 import { Room } from "./Room";
 
@@ -67,20 +67,16 @@ function Lighting() {
   );
 }
 
-function Fixtures({ doc }: { doc: SceneDocument }) {
+function Fixtures() {
+  const fixtures = useEditor((s) => s.doc.fixtures);
   return (
     <>
-      {doc.fixtures.map((fixture, i) => {
-        const Component = FIXTURE_COMPONENTS[fixture.kind];
+      {fixtures.map((fixture, i) => {
         const { width, depth, height } = fixture.footprint;
-        const labelPos: Vec3 = [
-          fixture.position[0],
-          height + 1.1,
-          fixture.position[2],
-        ];
+        const labelPos: Vec3 = [fixture.position[0], height + 1.1, fixture.position[2]];
         return (
           <group key={fixture.id}>
-            <Component fixture={fixture} />
+            <FixtureNode fixture={fixture} />
             <ZoneLabel
               position={labelPos}
               index={i + 1}
@@ -94,12 +90,20 @@ function Fixtures({ doc }: { doc: SceneDocument }) {
   );
 }
 
-export function Studio({ doc }: { doc: SceneDocument }) {
+function Floor() {
+  const floor = useEditor((s) => s.doc.floor);
+  return <Room floor={floor} />;
+}
+
+export function Studio() {
   return (
     <Canvas
       shadows
       dpr={[1, 2]}
       gl={{ antialias: true, powerPreference: "high-performance" }}
+      onPointerMissed={() => {
+        if (!editor.isGizmoBusy()) editor.select(null);
+      }}
     >
       <color attach="background" args={["#070707"]} />
       <fog attach="fog" args={["#070707", 70, 170]} />
@@ -117,18 +121,8 @@ export function Studio({ doc }: { doc: SceneDocument }) {
 
       <Suspense fallback={null}>
         <Lighting />
-        <Room floor={doc.floor} />
-        <Fixtures doc={doc} />
-        <ContactShadows
-          position={[0, 0.01, 0]}
-          scale={48}
-          opacity={0.55}
-          blur={2}
-          far={14}
-          resolution={1024}
-          frames={1}
-          color="#000000"
-        />
+        <Floor />
+        <Fixtures />
       </Suspense>
     </Canvas>
   );

@@ -1,69 +1,63 @@
-import type { ReactNode } from "react";
-
 import { Studio } from "@/components/Studio";
-import { ACTIVATION_20x20 } from "@/scene/model";
-import { formatFeet, formatFootprint, squareFeet } from "@/scene/units";
-
-const doc = ACTIVATION_20x20;
-
-function Mono({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <span className={`font-mono text-[11px] uppercase tracking-[0.14em] ${className}`}>
-      {children}
-    </span>
-  );
-}
+import { FixtureList } from "@/components/hud/FixtureList";
+import { FloorPlan } from "@/components/hud/FloorPlan";
+import { PropertiesPanel } from "@/components/hud/PropertiesPanel";
+import { Toolbar } from "@/components/hud/Toolbar";
+import { Mono } from "@/components/hud/ui";
+import { useEditorShortcuts } from "@/editor/shortcuts";
+import { useEditor } from "@/editor/store";
+import { formatFeet, squareFeet } from "@/scene/units";
 
 export default function App() {
-  const { width, depth } = doc.floor;
+  useEditorShortcuts();
+  const name = useEditor((s) => s.doc.name);
+  const floor = useEditor((s) => s.doc.floor);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink text-bone">
       <div className="absolute inset-0">
-        <Studio doc={doc} />
+        <Studio />
       </div>
 
-      {/* HUD. Static in section 1; becomes the editor chrome in section 2. */}
-      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-5 md:p-6">
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-4 p-4 md:p-5">
         {/* Top rail */}
-        <header className="flex items-start justify-between gap-6 border-b border-hairline pb-4">
+        <header className="pointer-events-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-hairline pb-3">
           <div className="flex items-center gap-3">
             <span className="block h-3 w-3 bg-signal" aria-hidden />
-            <Mono>AForce Spatial Studio</Mono>
+            <div className="flex flex-col">
+              <Mono>AForce Spatial Studio</Mono>
+              <Mono className="text-dim">{name} · Section 02 · Editor</Mono>
+            </div>
           </div>
-          <div className="hidden text-center md:block">
-            <div className="font-display text-[15px] uppercase tracking-[0.04em]">{doc.name}</div>
-            <Mono className="text-muted">Section 01 · Static scene</Mono>
-          </div>
-          <div className="text-right">
+          <Toolbar />
+          <div className="hidden text-right lg:block">
             <Mono>
-              Floor {formatFeet(width)} × {formatFeet(depth)}
+              Floor {formatFeet(floor.width)} × {formatFeet(floor.depth)}
             </Mono>
             <br />
-            <Mono className="text-muted">{squareFeet(width, depth)} sq ft · open front</Mono>
+            <Mono className="text-muted">{squareFeet(floor.width, floor.depth)} sq ft · open front</Mono>
           </div>
         </header>
 
-        {/* Bottom rail */}
-        <footer className="flex items-end justify-between gap-6 border-t border-hairline pt-4">
-          <ol className="m-0 grid list-none gap-y-1 p-0 md:grid-cols-2 md:gap-x-10">
-            {doc.fixtures.map((f, i) => (
-              <li key={f.id} className="flex items-baseline gap-3">
-                <Mono className="text-signal">{String(i + 1).padStart(2, "0")}</Mono>
-                <Mono>{f.label}</Mono>
-                <Mono className="hidden text-dim lg:inline">
-                  {formatFootprint(f.footprint.width, f.footprint.depth, f.footprint.height)}
-                </Mono>
-              </li>
-            ))}
-          </ol>
-          <div className="text-right">
-            <Mono className="text-muted">Drag to orbit · Scroll to zoom · Shift+drag to pan</Mono>
-            <br />
-            <Mono>
-              Pause. Hydrate. <span className="text-signal">Lock-In.</span> Perform.
-            </Mono>
+        {/* Workspace: plan bottom-left, inspector column right */}
+        <div className="flex min-h-0 flex-1 items-stretch justify-between gap-4">
+          <div className="flex flex-col justify-end">
+            <FloorPlan />
           </div>
+          <div className="flex w-[300px] min-h-0 flex-col gap-3">
+            <PropertiesPanel />
+            <FixtureList />
+          </div>
+        </div>
+
+        {/* Bottom rail */}
+        <footer className="flex items-end justify-between gap-6 border-t border-hairline pt-3">
+          <Mono className="text-muted">
+            Click to select · W move · E rotate · R scale · Arrows nudge · ⌫ delete · Drag empty space to orbit
+          </Mono>
+          <Mono>
+            Pause. Hydrate. <span className="text-signal">Lock-In.</span> Perform.
+          </Mono>
         </footer>
       </div>
     </div>

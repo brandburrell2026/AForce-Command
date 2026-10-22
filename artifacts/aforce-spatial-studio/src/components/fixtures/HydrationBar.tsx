@@ -31,7 +31,7 @@ export function HydrationBar({ fixture }: FixtureProps) {
   const tapXs = [-3, 0, 3];
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Back-bar wall */}
       <Box size={[W, H, wallT]} position={[0, H / 2, wallZ]} material={panelBlack} />
       <Box size={[W - 0.4, 0.06, 0.06]} position={[0, H - 0.35, wallFace + 0.03]} material={signalRedLed} castShadow={false} />

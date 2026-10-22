@@ -32,8 +32,8 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | # | Section | Status |
 |---|---------|--------|
 | 1 | Scaffold + static 20 × 20 ft activation scene (six zones, real dimensions, orbit camera, dimension callouts) | Built |
-| 2 | Editor: select, drag, rotate, scale, properties panel, floor plan with measurements | Next |
-| 3 | Cameras: 360° orbit presets, first-person walkthrough with collision | Planned |
+| 2 | Editor: select, move, rotate, scale, properties panel, live floor plan, add / duplicate / delete, undo | Built |
+| 3 | Cameras: 360° orbit presets, first-person walkthrough with collision | Next |
 | 4 | Materials, lighting and color controls; logo, texture and product image uploads | Planned |
 | 5 | Save and reopen projects (IndexedDB first, Postgres behind Clerk later) | Planned |
 | 6 | GLB export and presentation-quality renders | Planned |
@@ -49,3 +49,25 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | AForce OS demo station | 5 × 3 × 7 | (6.5, 6) |
 | Wear the Standard apparel gallery | 2.5 × 9 × 9 | (8.75, −0.5) |
 | Content studio | 5 × 5 × 9 | (7.5, −7.5) |
+
+## Section 2: the editor
+
+State lives in `src/editor/store.ts`, a dependency-free external store
+(`useSyncExternalStore`) holding the scene document, selection, gizmo mode,
+snap and undo history. Every write passes through `sanitize`, which enforces
+a 6 in minimum dimension, wraps rotation, and clamps the rotated footprint
+inside the floor.
+
+| Action | How |
+|--------|-----|
+| Select | Click a fixture in 3D, in the floor plan, or in the list. Click empty space or press Esc to clear. |
+| Move | W, then drag the gizmo on the floor plane, or drag the fixture in the floor plan. Arrows nudge 6 in, Shift+arrows 1 ft. |
+| Rotate | E, then drag the ring. `[` and `]` step 15°. |
+| Scale | R, then drag the handles. Scaling rewrites the footprint (W × D × H) and the fixture rebuilds from it. |
+| Snap | S toggles 6 in / 15° / 0.25× snapping. |
+| Edit values | Properties panel: label, X / Z, rotation in degrees, W / D / H, notes. Enter or blur commits one undo step. |
+| Add / duplicate / delete | Toolbar "Add fixture", ⌘D, ⌫. |
+| Undo / redo | ⌘Z / ⇧⌘Z, 100 steps. Gizmo and plan drags are one step each. |
+
+Fixture components render in local space; `FixtureNode` owns the world
+transform, the selection frame and the gizmo.

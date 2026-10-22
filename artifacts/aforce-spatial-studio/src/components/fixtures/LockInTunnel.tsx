@@ -19,7 +19,7 @@ export function LockInTunnel({ fixture }: FixtureProps) {
   const ribH = H - t - 0.1;
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Shell */}
       <Box size={[t, H, L]} position={[-W / 2 + t / 2, H / 2, 0]} material={matteBlack} />
       <Box size={[t, H, L]} position={[W / 2 - t / 2, H / 2, 0]} material={matteBlack} />

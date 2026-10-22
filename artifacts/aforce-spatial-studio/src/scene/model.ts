@@ -138,3 +138,36 @@ export const ACTIVATION_20x20: SceneDocument = {
     },
   ],
 };
+
+export const FIXTURE_KINDS: readonly FixtureKind[] = [
+  "centerpiece",
+  "hydration-bar",
+  "lock-in-tunnel",
+  "os-demo-station",
+  "apparel-gallery",
+  "content-studio",
+];
+
+export const KIND_LABELS: Record<FixtureKind, string> = {
+  centerpiece: "Inverted-N centerpiece",
+  "hydration-bar": "Hydration bar",
+  "lock-in-tunnel": "Lock-In tunnel",
+  "os-demo-station": "AForce OS demo station",
+  "apparel-gallery": "Apparel gallery",
+  "content-studio": "Content studio",
+};
+
+/** A fresh fixture of the given kind, sized from the default activation's template. */
+export function createFixture(kind: FixtureKind, id: string, position: Vec3 = [0, 0, 0]): Fixture {
+  const template = ACTIVATION_20x20.fixtures.find((f) => f.kind === kind);
+  if (!template) {
+    throw new Error(`No template for fixture kind "${kind}"`);
+  }
+  return {
+    ...template,
+    id,
+    position,
+    rotationY: 0,
+    footprint: { ...template.footprint },
+  };
+}

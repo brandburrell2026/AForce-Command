@@ -35,7 +35,7 @@ export function ApparelGallery({ fixture }: FixtureProps) {
   const tagPos: Vec3 = [panelFace - 0.3, H + 0.6, 0];
 
   return (
-    <group position={fixture.position} rotation={[0, fixture.rotationY, 0]}>
+    <group>
       {/* Halo and panel */}
       <Box size={[0.02, H + 0.6, D + 0.6]} position={[W / 2 - 0.01, H / 2, 0]} material={warmWhiteLed} castShadow={false} />
       <Box size={[panelT, H, D]} position={[panelX, H / 2, 0]} material={panelBlack} />
