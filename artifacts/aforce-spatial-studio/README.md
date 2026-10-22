@@ -1,0 +1,253 @@
+# AForce Spatial Studio
+
+AI-powered 3D event activation design platform. Design, visualize, edit and
+export dimensionally accurate activation environments in AForce's visual
+language: matte black architecture, Signal Red LED, white typography,
+metallic accents.
+
+Brand positioning: **Performance Is Universal.**
+Ritual: Pause. Hydrate. **Lock-In.** Perform.
+
+## Stack
+
+- Vite + React 19 + TypeScript + Tailwind 4 (matches the sibling `artifacts/*` apps)
+- three.js via `@react-three/fiber`, helpers from `@react-three/drei`
+- Scene units are **feet** (world unit = 1 ft). GLB export (section 6)
+  converts to meters with `METERS_PER_FOOT` from `src/scene/units.ts`.
+- The scene is described by a plain JSON document (`src/scene/model.ts`).
+  The 3D view, floor plan, exports and AI edits all read and write that one
+  document.
+
+## Run
+
+```bash
+PORT=26120 BASE_PATH=/ pnpm --filter @workspace/aforce-spatial-studio run dev
+```
+
+`PORT` and `BASE_PATH` are required, the same contract as the other Vite
+artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
+
+## Build log (one numbered section at a time, per the build rules)
+
+| # | Section | Status |
+|---|---------|--------|
+| 1 | Scaffold + static 20 × 20 ft activation scene (six zones, real dimensions, orbit camera, dimension callouts) | Built |
+| 2 | Editor: select, move, rotate, scale, properties panel, live floor plan, add / duplicate / delete, undo | Built |
+| 3 | Cameras: animated view presets, 360° turntable, frame selection, first-person walkthrough with collision | Built |
+| 4 | Scene and per-fixture colors, finishes and lighting; logo, texture and product image uploads with per-fixture slots | Built |
+| 5 | Save and reopen projects: IndexedDB with autosave, thumbnails, reopen on load, JSON export and import | Built |
+| 6 | High-resolution renders with supersampling and transparent backgrounds, a seven-view contact sheet, and GLB export in meters with embedded scene data | Built |
+| 7 | Natural-language design edits through an authenticated api-server route, applied as one undo step | Built |
+| 5b | Account-backed projects: Postgres table behind Clerk on api-server, browser storage as the fallback, one-click move | Built |
+
+## Section 1 layout (plan view, feet, origin at floor center, +z toward the open front)
+
+| Zone | Footprint (w × d × h) | Center |
+|------|------------------------|--------|
+| Illuminated inverted-N centerpiece | 6 × 6 × 7.5 | (0, 0.5) |
+| AForce Hydration Bar (Watermelon · Soursop · Berry) | 12 × 6 × 9 | (−1.5, −7) |
+| Lock-In Tunnel (red LED) | 5 × 13 × 8.5 | (−7.5, 2.5) |
+| AForce OS demo station | 5 × 3 × 7 | (6.5, 6) |
+| Wear the Standard apparel gallery | 2.5 × 9 × 9 | (8.75, −0.5) |
+| Content studio | 5 × 5 × 9 | (7.5, −7.5) |
+
+## Section 2: the editor
+
+State lives in `src/editor/store.ts`, a dependency-free external store
+(`useSyncExternalStore`) holding the scene document, selection, gizmo mode,
+snap and undo history. Every write passes through `sanitize`, which enforces
+a 6 in minimum dimension, wraps rotation, and clamps the rotated footprint
+inside the floor.
+
+| Action | How |
+|--------|-----|
+| Select | Click a fixture in 3D, in the floor plan, or in the list. Click empty space or press Esc to clear. |
+| Move | W, then drag the gizmo on the floor plane, or drag the fixture in the floor plan. Arrows nudge 6 in, Shift+arrows 1 ft. |
+| Rotate | E, then drag the ring. `[` and `]` step 15°. |
+| Scale | R, then drag the handles. Scaling rewrites the footprint (W × D × H) and the fixture rebuilds from it. |
+| Snap | S toggles 6 in / 15° / 0.25× snapping. |
+| Edit values | Properties panel: label, X / Z, rotation in degrees, W / D / H, notes. Enter or blur commits one undo step. |
+| Add / duplicate / delete | Toolbar "Add fixture", ⌘D, ⌫. |
+| Undo / redo | ⌘Z / ⇧⌘Z, 100 steps. Gizmo and plan drags are one step each. |
+
+Fixture components render in local space; `FixtureNode` owns the world
+transform, the selection frame and the gizmo.
+
+## Section 3: cameras
+
+`src/components/CameraRig.tsx` swaps between two rigs on `cameraMode`.
+
+**Orbit.** Full 360° azimuth, polar clamped just above the floor. Seven
+named views in `src/editor/camera.ts` (keys 1–7 or the View menu) fly the
+camera and its target over 0.9 s with an ease-in-out; any drag cancels the
+flight. F frames the selected fixture from the current approach angle, or
+returns to the hero view with nothing selected. O turns on a slow
+turntable. The orbit pose is remembered across walkthroughs.
+
+**Walk.** V (or the Walk button) enters first person at eye height
+5' 7" from the open front; click the card to engage pointer lock. W A S D
+or arrows move at 6 ft/s, Shift runs at 11 ft/s, mouse looks. Esc releases
+the mouse, Esc again exits. Movement is resolved in `src/editor/collision.ts`
+as a 1 ft body circle against rotated rectangles: the three perimeter walls
+and each fixture's collision shape, sliding along whatever it hits. Fixtures
+block their footprint unless they declare walkable interiors; the Lock-In
+tunnel is two side walls, the studio and the gallery block only their panels
+and equipment. The walk pose is remembered for re-entry.
+
+## Section 4: materials, lighting and uploads
+
+**Style lives in the document.** `doc.style` (`src/scene/style.ts`) holds
+the accent (LED) color, surface, panel, metal and floor colors, surface and
+floor finishes, four lighting multipliers (LED glow, key, fill, reflections),
+key color temperature, the scene brand logo, and floor and wall textures. A
+fixture can override accent, surface, metal, finish and LED glow in
+`fixture.style`; anything unset inherits.
+
+**Materials are derived, not shared.** `createMaterialSet` in
+`src/scene/materials.ts` builds every material a fixture needs from one
+resolved style. `FixtureNode` builds a set per fixture and provides it
+through context; fixture components call `useMaterials()`. The room uses a
+scene-level set. Sets are rebuilt and the old ones disposed when the style
+changes. A surface texture turns the surface and panel colors white so the
+image carries the color.
+
+**Images.** The Assets tab imports PNG, JPG, WebP, GIF or SVG (up to 8 MB,
+downscaled to 2048 px, stored as data URLs in `doc.assets`) as logos,
+textures or product shots; drag-and-drop infers the kind from the file
+type. Each fixture kind declares image slots in `FIXTURE_SLOTS`; the "logo"
+slot inherits the scene brand logo so one upload brands the plinth, the
+bar fascia, the tunnel's outer wall, the OS counter, the apparel panel and
+the studio backdrop at once. The bar's three niches and the OS totem screen
+take product images. `ImagePanel` fits an image inside a slot (or covers it
+for screens) with a little emission so graphics read as backlit.
+
+Live controls (color pickers, sliders) stream through `useLiveEdit`, which
+opens one undo step on the first change and closes it after the stream
+goes quiet.
+
+## Section 5: projects
+
+Projects persist in the browser's IndexedDB (`src/editor/db.ts`): the
+`projects` store holds metadata and a 480 px thumbnail for listing, the
+`docs` store holds the full scene document including image data URLs.
+`src/editor/projects.ts` owns the flows.
+
+| Action | How |
+|--------|-----|
+| Save | ⌘S, the Save button, or the dialog. The first save creates the project; later saves overwrite it and refresh the thumbnail. |
+| Autosave | On by default. 1.5 s after the last change to a saved project, unless a drag is in progress. Toggle in the dialog. |
+| Open | ⌘O lists saved projects with thumbnails, counts, size and age. The last open project reopens on load (id in localStorage). |
+| Save as copy | ⇧⌘S or the dialog, with an optional new name. |
+| New | From the AForce template or an empty 20 × 20 floor. Unsaved until ⌘S. |
+| Delete | Two clicks. Deleting the open project keeps it on screen, unsaved. |
+| Export / import | `name.aforce.json` wraps the document with app and schema tags. Import opens unsaved. |
+
+Everything loaded from storage or a file goes through `normalizeDocument`
+in `src/editor/sanitize.ts`, which fills defaults, drops unknown fixture
+kinds and dangling asset references, and sanitizes fixtures exactly like
+live edits. Dirty state is reference equality between the live document
+and the last written one, so an in-flight save never hides a newer edit.
+
+Section 5b (below) adds the account-backed source; IndexedDB stays as the
+fallback.
+
+## Section 6: renders and GLB export
+
+**Renders** (`src/editor/render.ts`) come from the live renderer, not a
+second scene. `renderFrame` resizes the WebGL drawing buffer (CSS size
+untouched), sets the camera aspect to the target, renders once, copies the
+pixels to a 2D canvas, and restores everything in `finally`. Options:
+preset sizes up to 4K, PNG or JPEG, 2× supersampling for sizes up to
+2560 px (downsampled with high-quality smoothing), hide editor overlays
+(grid, footprint outline, selection frame, gizmo, dimension lines, all
+tagged `userData.editorOnly`), and transparent PNG (background and fog
+removed, clear alpha 0). The Export tab shows a letterbox frame on the
+viewport for the chosen aspect. Screen-space DOM labels and the OS totem's
+HTML readout are not part of the WebGL buffer and so do not appear.
+
+**Contact sheet**: the seven camera presets plus a title tile on one PNG
+(4 × 2 grid of 1280 × 720 tiles). The camera is moved directly and
+restored; OrbitControls re-derives its state from the restored pose.
+
+**GLB** (`src/editor/gltf.ts`): three's GLTFExporter on a clone of the
+`activation` group. Editor-only objects and the venue ground
+(`userData.exportExclude`) are pruned, lights optionally kept
+(KHR_lights_punctual), and the root is scaled by `METERS_PER_FOOT` so the
+file is in meters. Fixture groups are named by label, room parts by role.
+Uploaded images embed as textures; LED materials carry emissive strength.
+The scene document (minus image data) is written to the root's extras.
+
+Shortcuts: ⌘E renders with the current settings, ⇧⌘E exports the GLB.
+
+## Section 7: natural-language edits
+
+**Where the model runs.** `POST /api/spatial-studio/edit` on api-server
+(`artifacts/api-server/src/routes/spatialStudio.ts`) calls Claude Opus 5.5
+through the official `@anthropic-ai/sdk` with a structured-output schema,
+adaptive thinking at medium effort, and a cached static system prompt that
+carries the AForce design language, the scene conventions and the
+operation vocabulary. The key is `ANTHROPIC_API_KEY` on the server, never
+in the client; without it the route answers 503 and the panel says so.
+`SPATIAL_STUDIO_MODEL` overrides the model. The route sits behind
+`requireAuth` (a Clerk session, with the demo user outside production) and
+a 20 requests per minute per client limit.
+
+**What travels.** The studio sends a slim document (no image data:
+fixtures with ids, labels, positions in feet, headings in degrees,
+footprints, style overrides and slot assignments; assets by id, kind and
+name) plus the instruction, the selected fixture and the last six turns.
+It stays under the server's 64 kB body cap for any realistic activation.
+
+**What comes back.** A summary, a list of operations and optional
+clarifying questions. The server validates every operation against the
+document it was given (`editOps.ts`: real targets, slots valid for the
+kind, asset names resolved to ids, dimensions clamped) and returns
+warnings for anything dropped. Operations: move, rotate, resize, add,
+remove, duplicate, rename, note, fixture_style, scene_style, set_slot,
+floor, camera.
+
+**How it lands.** `src/ai/apply.ts` applies the operations purely to the
+live document, through the same sanitizer as manual edits, and the editor
+commits the result as one undo step. The AI tab (⌘K) shows the transcript
+with one line per applied operation, skipped items, and questions; Undo
+last reverts a whole reply. A refusal from the model's safety layer shows
+as a declined turn with nothing applied.
+
+The client mirrors the server contract in `src/ai/types.ts`; change both
+together.
+
+## Section 5b: projects in your account
+
+**Storage.** `aforce_spatial_studio_projects` (`lib/db/src/schema/spatialStudio.ts`,
+SQL in `lib/db/migrations/20261022_spatial_studio_projects.sql`): one row per
+project keyed by (user_id, id), the scene document as jsonb, a thumbnail,
+counts and sizes for listing, created/updated/deleted timestamps. The
+repository (`lib/db/src/spatialStudioRepo.ts`) scopes every query by user;
+another member's id reads as not found. Account deletion hard-purges the
+member's rows through the existing cascade (step 3c), guarded like the
+concierge so an environment without the table still deletes cleanly.
+
+**Routes.** `/api/spatial-studio/projects` on api-server
+(`routes/spatialStudioProjects.ts`): list, get, put (create or overwrite),
+delete (soft). Behind `requireAuth` and a per-user limit. Documents carry
+image data URLs, so PUT mounts its own 12 MB body parser and the router is
+mounted before the global 64 kB one, with a path-scoped Clerk middleware,
+the same way smart-capture is. Bodies are validated for shape and size
+(`lib/spatialStudio/projectBody.ts`); the studio re-normalizes on open.
+Optimistic concurrency: the client sends the `updatedAt` it last saw and a
+newer row answers 409 with the current metadata. A missing table answers
+503 `storage_unavailable`. Unit tests run the router against the in-memory
+store with an injected auth stub.
+
+**In the studio.** On load `probeAccount` calls the list endpoint once:
+200 means the account is the source for this session, 401 or 503 or a
+network failure means this browser is, and the project bar and dialog say
+which. Save, autosave, open, delete and reopen-on-load all dispatch on the
+source. A 409 shows as a save error and pauses autosave until the project
+is reopened. In account mode the dialog still lists projects left in this
+browser with a "Move to account" button that copies the document up under
+the same id and removes the local copy.
+
+**To enable.** Apply the migration (or `pnpm --filter db push`), make sure
+the studio is served from the same origin as api-server so the Clerk
+cookie travels, and sign in on that host.

@@ -57,3 +57,4 @@ export * from "./trainerRepo";
 export * from "./trainerDocsRepo";
 export * from "./trainerRtpRepo";
 export * from "./conciergeRepo";
+export * from "./spatialStudioRepo";

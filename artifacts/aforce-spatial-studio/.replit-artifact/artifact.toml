@@ -1,0 +1,30 @@
+kind = "web"
+previewPath = "/aforce-spatial-studio/"
+title = "AForce Spatial Studio"
+version = "0.1.0"
+id = "artifacts/aforce-spatial-studio"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/aforce-spatial-studio/" ]
+localPort = 26120
+
+[services.development]
+run = "pnpm --filter @workspace/aforce-spatial-studio run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/aforce-spatial-studio", "run", "build" ]
+publicDir = "artifacts/aforce-spatial-studio/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26120"

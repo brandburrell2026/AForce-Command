@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  /* Black Issue palette: the surface the design tool itself runs on. */
+  --color-ink: #0d0d0d;
+  --color-panel: #141414;
+  --color-hairline: #2d2a25;
+  --color-bone: #edeae3;
+  --color-muted: #a19c91;
+  --color-dim: #6b6b66;
+  --color-signal: #c1281b;
+  --color-soursop: #1fa35a;
+  --color-berry: #1e5bff;
+
+  --font-display: "Archivo Black", "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+canvas {
+  display: block;
+  touch-action: none;
+}
+
+/* ---- In-scene labels (drei <Html>) ------------------------------------ */
+
+.zone-label,
+.dim-label,
+.tag-label {
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  user-select: none;
+}
+
+.zone-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 8px;
+  font-size: 11px;
+  color: var(--color-bone);
+  background: rgba(13, 13, 13, 0.82);
+  border: 1px solid var(--color-hairline);
+  backdrop-filter: blur(6px);
+  transform: translateY(-6px);
+}
+
+.zone-label .idx {
+  color: var(--color-signal);
+  font-weight: 600;
+}
+
+.zone-label .dims {
+  color: var(--color-muted);
+  letter-spacing: 0.08em;
+}
+
+.dim-label {
+  font-size: 10px;
+  color: var(--color-muted);
+  background: var(--color-ink);
+  padding: 2px 6px;
+  border: 1px solid var(--color-hairline);
+}
+
+.tag-label {
+  font-size: 10px;
+  color: var(--color-muted);
+}
+
+.tag-label.signal {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-signal);
+  letter-spacing: 0.22em;
+}
+
+.tag-label.bone {
+  color: var(--color-bone);
+}
+
+/* OS demo totem screen content */
+.screen-ui {
+  pointer-events: none;
+  user-select: none;
+  width: 150px;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 12px;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  color: var(--color-bone);
+  background: #070707;
+  border: 1px solid #1c1c1c;
+}
+
+.screen-ui .eyebrow {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: var(--color-muted);
+}
+
+.screen-ui .ring {
+  align-self: center;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 3px solid #1f1f1f;
+  border-top-color: var(--color-signal);
+  border-right-color: var(--color-signal);
+  display: grid;
+  place-items: center;
+}
+
+.screen-ui .ring span {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.screen-ui .foot {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.screen-ui .foot b {
+  color: var(--color-signal);
+  font-weight: 600;
+}

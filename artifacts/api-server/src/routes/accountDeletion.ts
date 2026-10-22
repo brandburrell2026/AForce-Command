@@ -79,6 +79,7 @@ import {
   createDrizzleStravaTokenStoreForUser,
   createHealthRecordsRepo,
   createConciergeRepo,
+  createSpatialStudioRepo,
   runAccountDeletionCascade,
   createAccountDeletionAuthStateDb,
   type AccountDeletionCascadeTokenStore,
@@ -279,6 +280,23 @@ export async function purgeConciergeIfPresent(
   await createConciergeRepo(tx).purgeUser(userId);
 }
 
+/** Purge Spatial Studio designs only when the table exists in this database. */
+export async function purgeSpatialStudioIfPresent(
+  tx: NodePgDatabase<Record<string, unknown>>,
+  userId: string,
+  log?: Pick<Logger, "info" | "warn" | "error">,
+): Promise<void> {
+  const probe = await tx.execute(sql`
+    select to_regclass('public.aforce_spatial_studio_projects') as projects
+  `);
+  const row = (probe as { rows?: Array<Record<string, unknown>> }).rows?.[0] ?? {};
+  if (!row["projects"]) {
+    log?.warn?.({ userId: "[redacted]" }, "account-deletion: spatial studio table not present; nothing to purge");
+    return;
+  }
+  await createSpatialStudioRepo(tx).purgeUser(userId);
+}
+
 export function buildDefaultAccountDeletionDeps(
   db: NodePgDatabase<Record<string, unknown>>,
   log?: Pick<Logger, "info" | "warn" | "error">,
@@ -310,6 +328,10 @@ export function buildDefaultAccountDeletionDeps(
             // when the tables are absent there is nothing to purge and the
             // cascade continues; any other failure still rolls everything back.
             conciergePurge: (uid) => purgeConciergeIfPresent(tx, uid, log),
+            // Spatial Studio designs (documents + uploaded imagery) leave with
+            // the account. Same guard as the concierge: an absent table is
+            // "nothing to purge", any other failure rolls everything back.
+            spatialStudioPurge: (uid) => purgeSpatialStudioIfPresent(tx, uid, log),
           },
           userId,
         );

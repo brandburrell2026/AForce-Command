@@ -1,0 +1,87 @@
+import { FLAVORS } from "@/scene/model";
+import type { Vec3 } from "@/scene/model";
+
+import { Tag } from "../labels";
+import { ImagePanel, useMaterials } from "../materials";
+import { Box, Cyl } from "../primitives";
+import { useSlot } from "../slots";
+import type { FixtureProps } from "./types";
+
+/**
+ * Premium hydration bar. A 12 ft counter with a metal top, three taps with
+ * LED indicators, an LED toe-kick, and a back-bar wall with three backlit
+ * flavor niches: Watermelon, Soursop, Berry. Logo slot on the fascia and a
+ * product image slot in each niche.
+ */
+export function HydrationBar({ fixture }: FixtureProps) {
+  const m = useMaterials();
+  const logo = useSlot(fixture, "logo");
+  const niche0 = useSlot(fixture, "niche-0");
+  const niche1 = useSlot(fixture, "niche-1");
+  const niche2 = useSlot(fixture, "niche-2");
+  const nicheImages = [niche0, niche1, niche2];
+
+  const { width: W, depth: D, height: H } = fixture.footprint;
+  const counterD = 2.5;
+  const counterH = 3.5;
+  const counterZ = D / 2 - counterD / 2;
+  const counterFront = counterZ + counterD / 2;
+  const wallT = 0.5;
+  const wallZ = -D / 2 + wallT / 2;
+  const wallFace = wallZ + wallT / 2;
+  const nicheXs = [-4, 0, 4];
+  const tapXs = [-3, 0, 3];
+
+  return (
+    <group>
+      {/* Back-bar wall */}
+      <Box size={[W, H, wallT]} position={[0, H / 2, wallZ]} material={m.panel} />
+      <Box size={[W - 0.4, 0.06, 0.06]} position={[0, H - 0.35, wallFace + 0.03]} material={m.accent} castShadow={false} />
+
+      {/* Flavor niches */}
+      {FLAVORS.map((flavor, i) => {
+        const x = nicheXs[i] ?? 0;
+        const mat = m.flavorLed(flavor.color);
+        const tagPos: Vec3 = [x, 7.75, wallFace + 0.2];
+        const image = nicheImages[i] ?? null;
+        return (
+          <group key={flavor.id} position={[x, 0, wallFace]}>
+            {/* Halo: colored LED panel behind a dark inset */}
+            <Box size={[2.7, 3.5, 0.04]} position={[0, 5.6, 0.02]} material={mat} castShadow={false} />
+            <Box size={[2.35, 3.15, 0.08]} position={[0, 5.6, 0.07]} material={m.surface} />
+            <ImagePanel assetId={image} width={2.2} height={3.0} position={[0, 5.6, 0.14]} glow={0.5} />
+            {/* Shelf and product tower */}
+            <Box size={[2.7, 0.08, 0.95]} position={[0, 4.0, 0.47]} material={m.metal} />
+            {image ? null : (
+              <>
+                <Cyl args={[0.34, 0.34, 2.2, 32]} position={[0, 5.15, 0.47]} material={m.gloss} />
+                <Cyl args={[0.36, 0.36, 0.1, 32]} position={[0, 6.3, 0.47]} material={mat} castShadow={false} />
+                <Cyl args={[0.36, 0.36, 0.06, 32]} position={[0, 4.08, 0.47]} material={mat} castShadow={false} />
+              </>
+            )}
+            <pointLight position={[0, 5.4, 1.3]} color={flavor.color} intensity={10 * m.ledIntensity} distance={6} decay={2} />
+            <Tag position={tagPos}>{flavor.label}</Tag>
+          </group>
+        );
+      })}
+
+      {/* Counter */}
+      <Box size={[W, counterH, counterD]} position={[0, counterH / 2, counterZ]} material={m.surface} />
+      <Box size={[W + 0.2, 0.12, counterD + 0.2]} position={[0, counterH + 0.06, counterZ]} material={m.metal} />
+      <Box size={[W - 0.2, 0.06, 0.04]} position={[0, 0.35, counterFront + 0.02]} material={m.accent} castShadow={false} />
+      <Box size={[W - 0.2, 0.04, 0.03]} position={[0, counterH - 0.6, counterFront + 0.02]} material={m.metal} castShadow={false} />
+      <ImagePanel assetId={logo} width={Math.min(6, W - 2)} height={1.5} position={[0, 1.6, counterFront + 0.03]} glow={0.6} />
+
+      {/* Taps */}
+      {tapXs.map((x) => (
+        <group key={x} position={[x, counterH + 0.12, counterZ - 0.6]}>
+          <Cyl args={[0.1, 0.12, 1.1, 24]} position={[0, 0.55, 0]} material={m.metal} />
+          <Cyl args={[0.08, 0.08, 0.7, 24]} position={[0, 1.1, 0.3]} rotation={[Math.PI / 2, 0, 0]} material={m.metal} />
+          <Box size={[0.12, 0.12, 0.12]} position={[0, 0.9, 0.11]} material={m.accent} castShadow={false} />
+        </group>
+      ))}
+
+      <pointLight position={[0, H - 1, counterZ]} color="#FFF3E6" intensity={24} distance={12} decay={2} />
+    </group>
+  );
+}
