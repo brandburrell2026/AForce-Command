@@ -6,13 +6,12 @@ import {
   type Asset,
   type Fixture,
   type FixtureKind,
-  type FloorPlan,
   type SceneDocument,
 } from "@/scene/model";
-import { sanitizeFixtureStyle, sanitizeStyle, type SceneStyle } from "@/scene/style";
+import { sanitizeStyle, type SceneStyle } from "@/scene/style";
 
 import type { CameraMode, CameraPresetId, CameraRequest } from "./camera";
-import { MIN_DIM, clampPosition, normalizeAngle, round } from "./geometry";
+import { sanitizeFixture } from "./sanitize";
 
 /**
  * Editor state: the scene document plus selection, gizmo mode and undo
@@ -39,6 +38,15 @@ export interface EditorState {
   walkLocked: boolean;
   /** One-shot camera move; the orbit rig animates to it. */
   cameraRequest: CameraRequest | null;
+  /** Saved project this document belongs to, or null for an unsaved one. */
+  projectId: string | null;
+  /** The document as last written to storage; dirty when doc !== lastSavedDoc. */
+  lastSavedDoc: SceneDocument | null;
+  savedAt: number | null;
+  autosave: boolean;
+  saving: boolean;
+  saveError: string | null;
+  projectsOpen: boolean;
 }
 
 export type FixturePatch = Partial<
@@ -60,6 +68,13 @@ let state: EditorState = {
   autoOrbit: false,
   walkLocked: false,
   cameraRequest: null,
+  projectId: null,
+  lastSavedDoc: null,
+  savedAt: null,
+  autosave: true,
+  saving: false,
+  saveError: null,
+  projectsOpen: false,
 };
 
 let cameraNonce = 0;
@@ -106,28 +121,6 @@ function withHistory(next: SceneDocument) {
   set({ doc: next, past: pushPast(state.past, state.doc), future: [] });
 }
 
-/** Enforce minimum size, wrapped rotation and floor bounds on every write. */
-function sanitize(fixture: Fixture, floor: FloorPlan): Fixture {
-  const footprint = {
-    width: Math.max(MIN_DIM, round(fixture.footprint.width)),
-    depth: Math.max(MIN_DIM, round(fixture.footprint.depth)),
-    height: Math.max(MIN_DIM, round(fixture.footprint.height)),
-  };
-  const rotated: Fixture = {
-    ...fixture,
-    footprint,
-    rotationY: round(normalizeAngle(fixture.rotationY), 5),
-  };
-  const [x, , z] = clampPosition(rotated, floor);
-  const out: Fixture = { ...rotated, position: [round(x), 0, round(z)] };
-  const style = sanitizeFixtureStyle(fixture.style);
-  if (style) out.style = style;
-  else delete out.style;
-  if (fixture.slots && Object.keys(fixture.slots).length > 0) out.slots = fixture.slots;
-  else delete out.slots;
-  return out;
-}
-
 function replaceFixture(
   doc: SceneDocument,
   id: string,
@@ -135,7 +128,7 @@ function replaceFixture(
 ): SceneDocument {
   return {
     ...doc,
-    fixtures: doc.fixtures.map((f) => (f.id === id ? sanitize(updater(f), doc.floor) : f)),
+    fixtures: doc.fixtures.map((f) => (f.id === id ? sanitizeFixture(updater(f), doc.floor) : f)),
   };
 }
 
@@ -217,7 +210,7 @@ export const editor = {
 
   add(kind: FixtureKind) {
     const id = nextId(kind);
-    const fixture = sanitize(createFixture(kind, id, [0, 0, 6]), state.doc.floor);
+    const fixture = sanitizeFixture(createFixture(kind, id, [0, 0, 6]), state.doc.floor);
     withHistory({ ...state.doc, fixtures: [...state.doc.fixtures, fixture] });
     set({ selectedId: id });
   },
@@ -226,7 +219,7 @@ export const editor = {
     const source = findFixture(id);
     if (!source) return;
     const copyId = nextId(source.kind);
-    const copy = sanitize(
+    const copy = sanitizeFixture(
       {
         ...source,
         id: copyId,
@@ -316,9 +309,56 @@ export const editor = {
       for (const [key, value] of Object.entries(f.slots)) {
         if (value !== id) slots[key] = value;
       }
-      return sanitize({ ...f, slots }, doc.floor);
+      return sanitizeFixture({ ...f, slots }, doc.floor);
     });
     withHistory({ ...doc, style, fixtures, assets: doc.assets.filter((a) => a.id !== id) });
+  },
+
+  // ---- Projects -----------------------------------------------------------
+
+  /** Replace the document wholesale (open, new, import). History resets. */
+  loadDocument(doc: SceneDocument, projectId: string | null, savedAt: number | null) {
+    set({
+      doc,
+      past: [],
+      future: [],
+      selectedId: null,
+      hoveredId: null,
+      editing: false,
+      projectId,
+      lastSavedDoc: projectId ? doc : null,
+      savedAt,
+      saving: false,
+      saveError: null,
+    });
+  },
+
+  setDocName(name: string) {
+    const next = name.trim();
+    if (!next || next === state.doc.name) return;
+    withHistory({ ...state.doc, name: next });
+  },
+
+  setSaving(saving: boolean, error: string | null = null) {
+    set({ saving, saveError: error });
+  },
+
+  /** Record a successful write of `doc` (the snapshot that was saved, not the live one). */
+  markSaved(projectId: string, savedAt: number, doc: SceneDocument) {
+    set({ projectId, lastSavedDoc: doc, savedAt, saving: false, saveError: null });
+  },
+
+  /** The current project was deleted from storage; keep editing it unsaved. */
+  detachProject() {
+    set({ projectId: null, lastSavedDoc: null, savedAt: null });
+  },
+
+  setAutosave(on: boolean) {
+    if (state.autosave !== on) set({ autosave: on });
+  },
+
+  setProjectsOpen(open: boolean) {
+    if (state.projectsOpen !== open) set({ projectsOpen: open });
   },
 
   // ---- Camera -----------------------------------------------------------

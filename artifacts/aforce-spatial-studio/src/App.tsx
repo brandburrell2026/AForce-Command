@@ -1,19 +1,24 @@
 import { Studio } from "@/components/Studio";
 import { FloorPlan } from "@/components/hud/FloorPlan";
 import { Inspector } from "@/components/hud/Inspector";
+import { ProjectBar } from "@/components/hud/ProjectBar";
+import { ProjectsDialog } from "@/components/hud/ProjectsDialog";
 import { Toolbar } from "@/components/hud/Toolbar";
 import { ViewControls } from "@/components/hud/ViewControls";
 import { WalkOverlay } from "@/components/hud/WalkOverlay";
 import { Mono } from "@/components/hud/ui";
+import { useAutosave, useRestoreLastProject } from "@/editor/projects";
 import { useEditorShortcuts } from "@/editor/shortcuts";
 import { useEditor } from "@/editor/store";
 import { formatFeet, squareFeet } from "@/scene/units";
 
 export default function App() {
   useEditorShortcuts();
-  const name = useEditor((s) => s.doc.name);
+  useRestoreLastProject();
+  useAutosave();
   const floor = useEditor((s) => s.doc.floor);
   const walking = useEditor((s) => s.cameraMode === "walk");
+  const projectsOpen = useEditor((s) => s.projectsOpen);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-ink text-bone">
@@ -23,16 +28,20 @@ export default function App() {
 
       {walking ? (
         <WalkOverlay />
+      ) : projectsOpen ? (
+        <ProjectsDialog />
       ) : (
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-4 p-4 md:p-5">
           {/* Top rail */}
           <header className="pointer-events-auto flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-hairline pb-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <span className="block h-3 w-3 bg-signal" aria-hidden />
               <div className="flex flex-col">
                 <Mono>AForce Spatial Studio</Mono>
-                <Mono className="text-dim">{name} · Section 04 · Materials</Mono>
+                <Mono className="text-dim">Section 05 · Projects</Mono>
               </div>
+              <span className="h-6 w-px bg-hairline" aria-hidden />
+              <ProjectBar />
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Toolbar />

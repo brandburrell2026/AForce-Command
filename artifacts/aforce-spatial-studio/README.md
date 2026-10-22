@@ -35,8 +35,8 @@ artifacts. On Replit both come from `.replit-artifact/artifact.toml`.
 | 2 | Editor: select, move, rotate, scale, properties panel, live floor plan, add / duplicate / delete, undo | Built |
 | 3 | Cameras: animated view presets, 360° turntable, frame selection, first-person walkthrough with collision | Built |
 | 4 | Scene and per-fixture colors, finishes and lighting; logo, texture and product image uploads with per-fixture slots | Built |
-| 5 | Save and reopen projects (IndexedDB first, Postgres behind Clerk later) | Next |
-| 6 | GLB export and presentation-quality renders | Planned |
+| 5 | Save and reopen projects: IndexedDB with autosave, thumbnails, reopen on load, JSON export and import | Built |
+| 6 | GLB export and presentation-quality renders | Next |
 | 7 | Natural-language design edits via api-server route | Planned |
 
 ## Section 1 layout (plan view, feet, origin at floor center, +z toward the open front)
@@ -123,3 +123,29 @@ for screens) with a little emission so graphics read as backlit.
 Live controls (color pickers, sliders) stream through `useLiveEdit`, which
 opens one undo step on the first change and closes it after the stream
 goes quiet.
+
+## Section 5: projects
+
+Projects persist in the browser's IndexedDB (`src/editor/db.ts`): the
+`projects` store holds metadata and a 480 px thumbnail for listing, the
+`docs` store holds the full scene document including image data URLs.
+`src/editor/projects.ts` owns the flows.
+
+| Action | How |
+|--------|-----|
+| Save | ⌘S, the Save button, or the dialog. The first save creates the project; later saves overwrite it and refresh the thumbnail. |
+| Autosave | On by default. 1.5 s after the last change to a saved project, unless a drag is in progress. Toggle in the dialog. |
+| Open | ⌘O lists saved projects with thumbnails, counts, size and age. The last open project reopens on load (id in localStorage). |
+| Save as copy | ⇧⌘S or the dialog, with an optional new name. |
+| New | From the AForce template or an empty 20 × 20 floor. Unsaved until ⌘S. |
+| Delete | Two clicks. Deleting the open project keeps it on screen, unsaved. |
+| Export / import | `name.aforce.json` wraps the document with app and schema tags. Import opens unsaved. |
+
+Everything loaded from storage or a file goes through `normalizeDocument`
+in `src/editor/sanitize.ts`, which fills defaults, drops unknown fixture
+kinds and dangling asset references, and sanitizes fixtures exactly like
+live edits. Dirty state is reference equality between the live document
+and the last written one, so an in-flight save never hides a newer edit.
+
+Still to come for persistence (section 5b, not yet scheduled): a Postgres
+table on api-server behind Clerk so projects follow the account.

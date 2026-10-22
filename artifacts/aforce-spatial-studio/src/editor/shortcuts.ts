@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { CAMERA_PRESETS } from "./camera";
+import { saveProject } from "./projects";
 import { editor, getEditorState } from "./store";
 
 const ROTATE_STEP = Math.PI / 12; // 15°
@@ -14,14 +15,32 @@ function isTypingTarget(target: EventTarget | null): boolean {
 /**
  * Keyboard: W/E/R gizmo modes, S snap, Esc deselect, Delete remove, ⌘D
  * duplicate, ⌘Z / ⇧⌘Z undo and redo, arrows nudge 6 in (⇧ 1 ft), [ ] rotate 15°,
- * F frame selection, O 360° turntable, V walkthrough, 1–7 camera presets.
+ * F frame selection, O 360° turntable, V walkthrough, 1–7 camera presets,
+ * ⌘S save, ⇧⌘S save as copy, ⌘O projects dialog.
  * In walk mode the walk rig owns the keyboard; only Esc (exit) is handled here.
  */
 export function useEditorShortcuts() {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (isTypingTarget(e.target)) return;
       const snapshot = getEditorState();
+      const metaKey = e.metaKey || e.ctrlKey;
+      // Project shortcuts work even while typing in a field.
+      if (metaKey && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        if (e.shiftKey) void saveProject({ asNew: true, name: `${snapshot.doc.name} copy` });
+        else void saveProject();
+        return;
+      }
+      if (metaKey && (e.key === "o" || e.key === "O")) {
+        e.preventDefault();
+        editor.setProjectsOpen(!snapshot.projectsOpen);
+        return;
+      }
+      if (snapshot.projectsOpen) {
+        if (e.key === "Escape") editor.setProjectsOpen(false);
+        return;
+      }
+      if (isTypingTarget(e.target)) return;
       if (snapshot.cameraMode === "walk") {
         // Pointer lock swallows the first Esc; a second one leaves walk mode.
         if (e.key === "Escape" && !snapshot.walkLocked) editor.exitWalk();

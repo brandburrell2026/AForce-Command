@@ -14,6 +14,7 @@ import { FixtureNode } from "./FixtureNode";
 import { ZoneLabel } from "./labels";
 import { MaterialsProvider, useAssetTexture, useMaterialSet } from "./materials";
 import { Room } from "./Room";
+import { Snapshot } from "./Snapshot";
 
 /** Shadow-casting key light. Shadow settings live on the three object, so set them through a ref. */
 function KeyLight({ intensity, color }: { intensity: number; color: string }) {
@@ -122,6 +123,7 @@ export function Studio() {
 
       <PerspectiveCamera makeDefault position={[27, 17, 31]} fov={38} near={0.5} far={400} />
       <CameraRig />
+      <Snapshot />
 
       <Suspense fallback={null}>
         <Lighting />
