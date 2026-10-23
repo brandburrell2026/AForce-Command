@@ -1,0 +1,19 @@
+/* Pause-first creative proposal. Existing artwork and brand foundations retained. */
+.hero{min-height:94svh;align-items:stretch;text-align:left;padding:170px clamp(24px,7vw,112px) 120px;}
+.hero-video-overlay{background:linear-gradient(90deg,rgba(0,0,0,.79),rgba(0,0,0,.52) 52%,rgba(0,0,0,.18)),linear-gradient(0deg,rgba(0,0,0,.5),transparent 50%);}
+.hero .hero-foot{position:relative !important;inset:auto;margin:auto 0;align-items:flex-start;padding:0;gap:0;max-width:1020px;opacity:1;transform:none;}
+.hero .hero-taxonomy{color:#f5f0e8;text-align:left;letter-spacing:.17em;max-width:none;font-size:11px;}
+.pause-kicker{margin:44px 0 18px;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:#f0a098;}
+.hero h1{opacity:1;transform:none;font-size:clamp(44px,6.7vw,100px);line-height:1.02;letter-spacing:-.045em;text-wrap:balance;max-width:16ch;}
+.pause-promise{margin-top:26px;max-width:35ch;font-size:clamp(18px,1.6vw,23px);line-height:1.55;color:#eee9e1;}
+.pause-sequence{margin-top:28px;font-size:12px;font-weight:600;line-height:1.8;letter-spacing:.13em;text-transform:uppercase;}
+.hero .hero-foot .cta-row{margin-top:34px;justify-content:flex-start;gap:14px;}
+.hero .scroll-cue{color:#eee9e1;text-decoration:none;bottom:25px;}
+.hero .scroll-cue .line{background:rgba(245,240,232,.5);height:23px;}
+.pause-intro{margin-top:26px;max-width:48ch;font-size:17px;line-height:1.8;color:#54575e;}
+.ritual{scroll-margin-top:85px;}
+.ritual-line{margin-top:42px;}
+.pause-everyday{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:64px;padding-top:30px;border-top:1px solid var(--line);}
+.pause-everyday p{font-size:15px;line-height:1.7;color:#54575e;max-width:32ch;}
+.pause-everyday span{display:block;margin-bottom:10px;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--red);}
+@media(max-width:680px){.hero{padding:140px 24px 105px;min-height:100svh;}.pause-kicker{margin-top:30px;}.hero h1{font-size:clamp(40px,10.5vw,68px);}.hero .hero-foot .cta-row{width:100%;max-width:360px;display:grid;}.hero .btn{width:100%;text-align:center;}.pause-promise{font-size:18px;}.pause-sequence{font-size:10px;letter-spacing:.09em;}.pause-everyday{grid-template-columns:1fr;gap:24px;margin-top:40px;}.pause-everyday p{max-width:none;}}
