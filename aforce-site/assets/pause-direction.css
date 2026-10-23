@@ -5,7 +5,7 @@
 .hero .hero-taxonomy{color:#f5f0e8;text-align:left;letter-spacing:.17em;max-width:none;font-size:11px;}
 .pause-kicker{margin:44px 0 18px;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--red);}
 .hero h1{opacity:1;transform:none;font-size:clamp(32px,3.8vw,58px);line-height:1.02;letter-spacing:-.045em;text-wrap:balance;max-width:16ch;}
-.pause-promise{margin-top:26px;max-width:35ch;font-size:clamp(16px,1.35vw,19px);line-height:1.55;color:#eee9e1;}
+.pause-promise{margin-top:26px;max-width:35ch;font-size:clamp(16px,1.35vw,19px);line-height:1.55;color:var(--red);}
 .pause-sequence{margin-top:28px;font-size:12px;font-weight:600;line-height:1.8;letter-spacing:.13em;text-transform:uppercase;}
 .hero .hero-foot .cta-row{margin-top:34px;justify-content:flex-start;gap:14px;}
 .hero .scroll-cue{color:#eee9e1;text-decoration:none;bottom:25px;}
