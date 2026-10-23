@@ -5,7 +5,7 @@
 .hero .hero-taxonomy{color:#f5f0e8;text-align:left;letter-spacing:.17em;max-width:none;font-size:11px;}
 .pause-kicker{margin:44px 0 18px;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--red);}
 .hero h1{opacity:1;transform:none;font-size:clamp(32px,3.8vw,58px);line-height:1.02;letter-spacing:-.045em;text-wrap:balance;max-width:16ch;}
-.pause-promise{margin-top:26px;max-width:35ch;font-size:clamp(16px,1.35vw,19px);line-height:1.55;color:var(--red);}
+.pause-promise{margin-top:26px;max-width:35ch;font-size:clamp(16px,1.35vw,19px);line-height:1.55;color:#eee9e1;}
 .pause-sequence{margin-top:28px;font-size:12px;font-weight:600;line-height:1.8;letter-spacing:.13em;text-transform:uppercase;}
 .hero .hero-foot .cta-row{margin-top:34px;justify-content:flex-start;gap:14px;}
 .hero .scroll-cue{color:#eee9e1;text-decoration:none;bottom:25px;}
@@ -16,8 +16,28 @@
 .pause-everyday{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:64px;padding-top:30px;border-top:1px solid var(--line);}
 .pause-everyday p{font-size:15px;line-height:1.7;color:#54575e;max-width:32ch;}
 .pause-everyday span{display:block;margin-bottom:10px;font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--red);}
-@media(max-width:680px){.hero{padding:140px 24px 105px;min-height:100svh;}.pause-kicker{margin-top:30px;}.hero .hero-foot{max-width:100%;}.hero h1{font-size:clamp(30px,8vw,42px);}.hero .hero-foot .cta-row{width:100%;max-width:360px;display:grid;}.hero .btn{width:100%;text-align:center;}.pause-promise{font-size:18px;}.pause-sequence{font-size:10px;letter-spacing:.09em;}.pause-everyday{grid-template-columns:1fr;gap:24px;margin-top:40px;}.pause-everyday p{max-width:none;}}
-
 .hero .pause-lockin{color:var(--red);}
 .hero .btn-ghost{background:var(--red);border-color:var(--red);color:#fff;}
 .hero .btn-ghost:hover,.hero .btn-ghost:focus-visible{background:#a92318;border-color:#a92318;color:#fff;}
+@media(max-width:680px){.hero{padding:140px 24px 105px;min-height:100svh;}.pause-kicker{margin-top:30px;}.hero .hero-foot{max-width:100%;}.hero h1{font-size:clamp(30px,8vw,42px);}.hero .hero-foot .cta-row{width:100%;max-width:360px;display:grid;}.hero .btn{width:100%;text-align:center;}.pause-promise{font-size:18px;}.pause-sequence{font-size:10px;letter-spacing:.09em;}.pause-everyday{grid-template-columns:1fr;gap:24px;margin-top:40px;}.pause-everyday p{max-width:none;}}
+
+/* A shorter launch story: ritual, hydration, OS, origin, invitation. */
+.ritual-story-intro{display:grid;grid-template-columns:1.1fr 1fr;column-gap:64px;align-items:end;}
+.ritual-story-intro .eyebrow-label{grid-column:1/-1;}
+.ritual-story-intro .pause-intro{margin:0;max-width:46ch;}
+.ritual-story-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;margin-top:48px;}
+.ritual-frame{position:relative;aspect-ratio:3/2;overflow:hidden;background:#d9d2c5;}
+.ritual-frame img{position:absolute;display:block;width:200%;height:200%;max-width:none;object-fit:fill;}
+.frame-1 img{left:0;top:0;}.frame-2 img{left:-100%;top:0;}.frame-3 img{left:0;top:-100%;}.frame-4 img{left:-100%;top:-100%;}
+.ritual-story-caption{display:flex;align-items:baseline;gap:12px;margin:22px 0 12px;}
+.ritual-story-number{font-size:10px;font-weight:700;color:var(--red);}
+.ritual-story-caption h3{font-size:clamp(21px,2vw,28px);letter-spacing:-.02em;}
+.lockin-word{color:var(--red);}
+.ritual-story-step p{font-size:15px;line-height:1.7;color:#54575e;max-width:27ch;}
+.ritual-universal{margin-top:38px;font-size:13px;line-height:1.7;color:#54575e;}
+.product-launch-note{max-width:62ch;margin-top:24px;font-size:16px;line-height:1.8;color:#54575e;}
+.founder-story-grid{min-height:560px;}.founder-story-media{min-height:560px;}.founder-story-copy{padding:64px clamp(28px,5vw,80px);}
+.founder-story h2{font-size:clamp(36px,4.5vw,60px);}
+.founding{padding-top:88px;padding-bottom:96px;}
+@media(max-width:1000px){.ritual-story-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 24px;}.ritual-story-step p{max-width:38ch;}.ritual-story-intro{column-gap:32px;}}
+@media(max-width:680px){.ritual-story-intro{grid-template-columns:1fr;gap:20px;}.ritual-story-intro .eyebrow-label{margin-bottom:0;}.ritual-story-intro .pause-intro{max-width:none;}.ritual-story-grid{grid-template-columns:1fr;gap:36px;margin-top:32px;}.ritual-story-caption{margin-top:18px;}.ritual-story-step p{max-width:none;}.founder-story-grid,.founder-story-media{min-height:0;}.founder-story-copy{padding:48px 24px;}.founding{padding-top:64px;padding-bottom:72px;}}
