@@ -41,3 +41,22 @@
 .founding{padding-top:88px;padding-bottom:96px;}
 @media(max-width:1000px){.ritual-story-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:36px 24px;}.ritual-story-step p{max-width:38ch;}.ritual-story-intro{column-gap:32px;}}
 @media(max-width:680px){.ritual-story-intro{grid-template-columns:1fr;gap:20px;}.ritual-story-intro .eyebrow-label{margin-bottom:0;}.ritual-story-intro .pause-intro{max-width:none;}.ritual-story-grid{grid-template-columns:1fr;gap:36px;margin-top:32px;}.ritual-story-caption{margin-top:18px;}.ritual-story-step p{max-width:none;}.founder-story-grid,.founder-story-media{min-height:0;}.founder-story-copy{padding:48px 24px;}.founding{padding-top:64px;padding-bottom:72px;}}
+.hero > .afx-vid-toggle{position:absolute!important;right:16px;bottom:16px}
+
+/* Keep homepage copy out of the opening video's portrait area. */
+.hero .hero-foot{width:min(340px,23vw);max-width:min(340px,23vw)}
+.hero .hero-foot h1{font-size:clamp(30px,2.6vw,42px);max-width:100%;line-height:1.06;text-wrap:balance}
+@media(max-width:1023.98px){
+ .hero{padding:calc(var(--afx-h-mobile,64px) + env(safe-area-inset-top,0px)) 0 0;min-height:0;justify-content:flex-start;background:#0d0d0d}
+ .hero .hero-video{position:relative;inset:auto;width:100%;height:auto;min-height:0;max-height:none;aspect-ratio:16 / 9;object-fit:contain;object-position:center;flex:none}
+ .hero .hero-video-overlay{display:none}
+ .hero .hero-foot{width:100%;max-width:none;margin:0;padding:36px 24px 44px;background:#0d0d0d}
+ .hero .hero-foot h1{font-size:clamp(30px,7.4vw,40px)}
+ .hero .hero-foot .cta-row{width:100%;max-width:360px;display:grid;gap:10px}
+ .hero .btn{width:100%;text-align:center}
+ .hero .pause-kicker{margin-top:24px}
+ .hero .pause-promise{font-size:17px;margin-top:22px}
+ .hero .pause-sequence{margin-top:22px}
+ .hero .scroll-cue{position:relative!important;bottom:auto;width:100%;padding:0 24px 24px;margin:0;background:#0d0d0d}
+ .hero > .afx-vid-toggle{position:absolute!important;top:calc(var(--afx-h-mobile,64px) + env(safe-area-inset-top,0px) + 56.25vw - 56px);bottom:auto;right:12px;z-index:4}
+}
