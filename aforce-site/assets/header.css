@@ -258,3 +258,32 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
 @media (prefers-reduced-motion: reduce) {
   .afx-nav, .afx-burger .afx-bar { transition: none; }
 }
+
+/* Keep the shared Hydration action solid red on every header surface. */
+.afx-nav .afx-right .afx-shop,
+.afx-nav .afx-right .afx-shop:hover,
+.afx-nav .afx-right .afx-shop:focus-visible{
+  background:var(--red,#C1281B);
+  border-color:var(--red,#C1281B);
+  color:#fff;
+  opacity:1;
+}
+
+/* Slow red attention pulse for the two hydration entry points. */
+@keyframes afx-hydration-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(193,40,27,0),0 0 0 rgba(193,40,27,0)}
+  50%{box-shadow:0 0 0 4px rgba(193,40,27,.24),0 0 24px rgba(193,40,27,.65)}
+}
+.afx-nav .afx-right .afx-shop,
+.hero .hero-foot .btn-ghost{animation:afx-hydration-pulse 2.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+  .afx-nav .afx-right .afx-shop,
+  .hero .hero-foot .btn-ghost{animation:none}
+}
+
+/* Red navigation text and menu icons; Hydration styling stays independent. */
+.afx-nav .afx-right .afx-links a,
+.afx-nav .afx-right .afx-burger,
+.afx-nav .afx-right .afx-cart,
+.afx-drawer .afx-panel nav > a:not(.afx-drawer-shop),
+.afx-drawer .afx-panel .afx-drawer-close{color:var(--red,#C1281B)}
