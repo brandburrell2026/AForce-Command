@@ -280,3 +280,10 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
   .afx-nav .afx-right .afx-shop,
   .hero .hero-foot .btn-ghost{animation:none}
 }
+
+/* Red navigation text and menu icons; Hydration styling stays independent. */
+.afx-nav .afx-right .afx-links a,
+.afx-nav .afx-right .afx-burger,
+.afx-nav .afx-right .afx-cart,
+.afx-drawer .afx-panel nav > a:not(.afx-drawer-shop),
+.afx-drawer .afx-panel .afx-drawer-close{color:var(--red,#C1281B)}
