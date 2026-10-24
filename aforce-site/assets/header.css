@@ -287,3 +287,7 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
 .afx-nav .afx-right .afx-cart,
 .afx-drawer .afx-panel nav > a:not(.afx-drawer-shop),
 .afx-drawer .afx-panel .afx-drawer-close{color:var(--red,#C1281B)}
+
+/* White titles on the dark header; keep icons and Hydration independent. */
+.afx-nav .afx-right .afx-links a{color:#fff}
+.afx-nav.solid:not(.afx-open) .afx-right .afx-links a{color:var(--ink,#0D0D0D)}
