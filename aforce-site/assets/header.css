@@ -268,3 +268,15 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
   color:#fff;
   opacity:1;
 }
+
+/* Slow red attention pulse for the two hydration entry points. */
+@keyframes afx-hydration-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(193,40,27,0),0 0 0 rgba(193,40,27,0)}
+  50%{box-shadow:0 0 0 4px rgba(193,40,27,.24),0 0 24px rgba(193,40,27,.65)}
+}
+.afx-nav .afx-right .afx-shop,
+.hero .hero-foot .btn-ghost{animation:afx-hydration-pulse 2.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+  .afx-nav .afx-right .afx-shop,
+  .hero .hero-foot .btn-ghost{animation:none}
+}
