@@ -258,3 +258,13 @@ html.afx-locked, html.afx-locked body { overflow: hidden; touch-action: none; }
 @media (prefers-reduced-motion: reduce) {
   .afx-nav, .afx-burger .afx-bar { transition: none; }
 }
+
+/* Keep the shared Hydration action solid red on every header surface. */
+.afx-nav .afx-right .afx-shop,
+.afx-nav .afx-right .afx-shop:hover,
+.afx-nav .afx-right .afx-shop:focus-visible{
+  background:var(--red,#C1281B);
+  border-color:var(--red,#C1281B);
+  color:#fff;
+  opacity:1;
+}
