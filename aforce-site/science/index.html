@@ -6,16 +6,16 @@
 <title>AFORCE — The Science</title>
 <meta name="description" content="The Science of AFORCE — hydration, electrolytes, pH 8.8, retort precision, ritual behavior, and the AFORCE OS. Preparation begins long before performance is visible.">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="canonical" href="https://www.drinkaforce.com/science">
+<link rel="canonical" href="https://www.joinaforce.com/science">
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — The Science">
 <meta property="og:description" content="Hydration is only the beginning. Every ingredient. Every mineral. Every process. Chosen to support preparation before performance.">
-<meta property="og:url" content="https://www.drinkaforce.com/science">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/science-hero-poster.jpg">
+<meta property="og:url" content="https://www.joinaforce.com/science">
+<meta property="og:image" content="https://www.joinaforce.com/assets/science-hero-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE — The Science">
 <meta name="twitter:description" content="Hydration is only the beginning. Every ingredient. Every mineral. Every process. Chosen to support preparation before performance.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/science-hero-poster.jpg">
+<meta name="twitter:image" content="https://www.joinaforce.com/assets/science-hero-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap" rel="stylesheet">
@@ -88,8 +88,8 @@
   .nn .nflip{display:inline-block;transform:scaleX(-1);color:var(--red);}
   .afx-links{gap:clamp(16px,2.4vw,34px);font-weight:700;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;}
   .afx-links a{opacity:.6;transition:opacity .2s;white-space:nowrap;}
-  .afx-links a:hover,.afx-links a[aria-current="page"]{opacity:1;}
-  .afx-links a[aria-current="page"]{color:var(--red);}
+  .afx-links a:hover,.afx-links a[]{opacity:1;}
+  .afx-links a[]{color:var(--red);}
   .nav-toggle{display:none;}
 
   /* ---------- LAYOUT ---------- */
@@ -340,10 +340,10 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://www.drinkaforce.com/#organization",
+      "@id": "https://www.joinaforce.com/#organization",
       "name": "AFORCE Hydration, Inc.",
-      "url": "https://www.drinkaforce.com/",
-      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
+      "url": "https://www.joinaforce.com/",
+      "logo": "https://www.joinaforce.com/assets/favicon.svg",
       "slogan": "Performance Is Non-Negotiable.",
       "address": {
         "@type": "PostalAddress",
@@ -354,52 +354,52 @@
     },
     {
       "@type": "WebSite",
-      "@id": "https://www.drinkaforce.com/#website",
+      "@id": "https://www.joinaforce.com/#website",
       "name": "AFORCE",
-      "url": "https://www.drinkaforce.com/",
+      "url": "https://www.joinaforce.com/",
       "publisher": {
-        "@id": "https://www.drinkaforce.com/#organization"
+        "@id": "https://www.joinaforce.com/#organization"
       }
     },
     {
       "@type": "WebPage",
-      "@id": "https://www.drinkaforce.com/science#webpage",
-      "url": "https://www.drinkaforce.com/science",
+      "@id": "https://www.joinaforce.com/science#webpage",
+      "url": "https://www.joinaforce.com/science",
       "name": "AFORCE — The Science",
       "description": "The Science of AFORCE — hydration, electrolytes, pH 8.8, retort precision, ritual behavior, and the AFORCE OS. Preparation begins long before performance is visible.",
       "isPartOf": {
-        "@id": "https://www.drinkaforce.com/#website"
+        "@id": "https://www.joinaforce.com/#website"
       },
       "about": {
-        "@id": "https://www.drinkaforce.com/#organization"
+        "@id": "https://www.joinaforce.com/#organization"
       },
       "breadcrumb": {
-        "@id": "https://www.drinkaforce.com/science#breadcrumb"
+        "@id": "https://www.joinaforce.com/science#breadcrumb"
       }
     },
     {
       "@type": "BreadcrumbList",
-      "@id": "https://www.drinkaforce.com/science#breadcrumb",
+      "@id": "https://www.joinaforce.com/science#breadcrumb",
       "itemListElement": [
         {
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://www.drinkaforce.com/"
+          "item": "https://www.joinaforce.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Science",
-          "item": "https://www.drinkaforce.com/science"
+          "item": "https://www.joinaforce.com/science"
         }
       ]
     }
   ]
 }
 </script>
-</head>
-<body>
+<link rel="stylesheet" href="/assets/site-refinements.css"></head>
+<body class="pv-existing">
 <a class="afx-skip" href="#main">Skip to main content</a>
 
 <!-- ============ NAV (matches site N|N mark) ============ -->
@@ -407,13 +407,10 @@
   <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span></a>
   <div class="afx-right">
     <div class="afx-links">
-      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science" aria-current="page">Science</a><a href="/manifesto">Manifesto</a>
+      <a href="/#ritual" >Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
-    <a href="/shop" class="afx-shop">Shop</a>
-    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
+    <a href="/shop" class="afx-shop">Hydration</a>
+
     <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
       <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
     </button>
@@ -426,7 +423,7 @@
       <a href="/#ritual">Ritual</a>
       <a href="/aforce-os">The OS</a>
       <a href="/our-story">Our Story</a>
-      <a href="/science" aria-current="page">Science</a>
+      <a href="/science" >Science</a>
       <a href="/manifesto">Manifesto</a>
       <a href="/shop" class="afx-drawer-shop">Shop</a>
     </nav>
@@ -733,10 +730,10 @@
       <a class="sr-btn ghost" href="#standard">Read the principle ↗</a>
     </div>
   </div>
-</header>
+</header><section class="pv-section"><div class="pv-wrap"><p class="pv-eyebrow">Product facts first</p><h2>The formula, at a glance.</h2><div class="pv-facts"><div><b>12 fl oz (355 mL)</b><span>Ready-to-drink can</span></div><div><b>20 servings</b><span>Per stick box</span></div><div><b>0 g</b><span>Added sugar · current formula</span></div><div><b>pH 8.8+</b><span>Formulation standard</span></div></div><p class="pv-muted">Current formulation information, subject to final sign-off. pH is a formulation characteristic, not a claim about blood pH or health outcomes.</p><div class="pv-actions"><a class="pv-button" href="/shop">Explore hydration →</a><a class="pv-outline" href="#evidence">Read supporting references ↓</a></div></div></section>
 
 <!-- 01 · THE PRINCIPLE -->
-<section class="sr-sec" id="principle" aria-label="The principle">
+<details class="pv-detail"><summary>Why hydration matters</summary><section class="sr-sec" id="principle" aria-label="The principle">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">01<span class="s">—</span>The Principle<span class="s">·</span>Why Hydration Matters</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The body does not wait for the moment.<br>It prepares for it.</h2>
@@ -757,7 +754,7 @@
     </div>
     <p class="sr-disc reveal">These describe established physiological roles in general nutrition — not AFORCE-specific clinical outcomes.</p>
   </div>
-</section>
+</section></details>
 
 <!-- 02 · THE DIFFERENCE -->
 <section class="sr-sec" aria-label="The difference">
@@ -828,7 +825,7 @@
 </section>
 
 <!-- 03b · THE JOURNEY OF HYDRATION -->
-<section class="sr-sec" id="journey" aria-label="The journey of hydration">
+<details class="pv-detail"><summary>How hydration works</summary><section class="sr-sec" id="journey" aria-label="The journey of hydration">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">03 · Process<span class="s">—</span>How Hydration Works</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Hydration is not a claim.<br>It is a process.</h2>
@@ -844,10 +841,10 @@
     </div>
     <p class="sr-disc reveal">This visualization illustrates general hydration physiology, not an AFORCE-specific clinical outcome.</p>
   </div>
-</section>
+</section></details>
 
 <!-- 04 · THE REGULATION LAYER -->
-<section class="sr-sec" id="regulation" aria-label="The regulation layer">
+<details class="pv-detail"><summary>Electrolytes and their roles</summary><section class="sr-sec" id="regulation" aria-label="The regulation layer">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">04<span class="s">—</span>The Regulation Layer<span class="s">·</span>Established Physiology</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Electrolytes are not the spectacle.<br>Regulation is.</h2>
@@ -891,7 +888,7 @@
     </div>
     <p class="sr-disc reveal">These descriptions summarize established physiological roles of the minerals in general nutrition; they are not AFORCE-specific outcome claims.</p>
   </div>
-</section>
+</section></details>
 
 <!-- 04b · FORMULATION EXPLORER -->
 <section class="sr-sec" id="explorer" aria-label="Formulation explorer">
@@ -926,7 +923,7 @@
 </section>
 
 <!-- 05 · PRECISION -->
-<section class="sr-sec" id="precision" aria-label="Precision">
+<details class="pv-detail"><summary>Formulation and processing</summary><section class="sr-sec" id="precision" aria-label="Precision">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">05<span class="s">—</span>Precision<span class="s">·</span>Ready-to-Drink Engineering</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The product travels because the process is controlled.</h2>
@@ -946,10 +943,10 @@
     </ol>
     <p class="reveal sr-mt-l"><a class="sr-link" href="https://www.ecfr.gov/current/title-21/chapter-I/subchapter-B/part-113" target="_blank" rel="noopener">Read the regulatory framework · 21 CFR Part 113 ↗</a></p>
   </div>
-</section>
+</section></details>
 
 <!-- 05b · THE BEFORE -->
-<section class="sr-sec" id="before" aria-label="Prepare before the moment">
+<details class="pv-detail"><summary>Why the ritual starts before the moment</summary><section class="sr-sec" id="before" aria-label="Prepare before the moment">
   <div class="sr-wrap">
     <div class="sr-eyebrow reveal">05 · Behavior<span class="s">—</span>Before vs After</div>
     <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">The moment is too late to begin preparing.</h2>
@@ -975,46 +972,10 @@
     </div>
     <p class="sr-disc reveal bt-note">A behavioral contrast, not a performance claim: prepare before the moment instead of responding after it.</p>
   </div>
-</section>
+</section></details>
 
 <!-- 06 · BEHAVIOR -->
-<section class="sr-sec" id="os" aria-label="Behavior">
-  <div class="sr-wrap">
-    <div class="sr-eyebrow reveal">06<span class="s">—</span>Behavior<span class="s">·</span>The Second Half of the Science</div>
-    <h2 class="h-2 reveal sr-mt-m" style="text-transform:none;">Hydration is chemistry.<br>Preparation is behavior.</h2>
-    <div class="sr-ritual">
-      <div class="r reveal"><div class="rn">01</div><div class="rt">Pause</div><div class="rd">Create the space.</div></div>
-      <div class="r reveal"><div class="rn">02</div><div class="rt">Hydrate</div><div class="rd">Complete the act.</div></div>
-      <div class="r reveal"><div class="rn">03</div><div class="rt" style="color:var(--red)">Lock-In</div><div class="rd">Name the intention.</div></div>
-      <div class="r reveal"><div class="rn">04</div><div class="rt">Perform</div><div class="rd">Enter the moment.</div></div>
-    </div>
-    <div class="sr-os">
-      <div class="reveal">
-        <div class="sr-kicker">AFORCE OS</div>
-        <p class="sr-lead big sr-mt-s">The OS does not reward looking. It recognizes verified doing.</p>
-        <ul>
-          <li>A scan, recommendation, intention or purchase is score-neutral. Only verified behavior moves the metric.</li>
-          <li>HydroState remains the single hero metric.</li>
-          <li>Freshness, confidence and unknowns stay visible.</li>
-          <li>The body first. The recommendation second. The product last.</li>
-          <li>Code calculates. AI explains.</li>
-        </ul>
-        <p class="sr-mt-l"><a class="sr-link" href="/aforce-os">Explore AFORCE OS ↗</a></p>
-      </div>
-      <div class="sr-phone reveal" aria-label="Illustrative AFORCE OS interface">
-        <div class="pbar"><span>9:41</span><span>AFORCE OS •••</span></div>
-        <div class="pmetric">HydroState</div>
-        <div class="pstate">Calibrating</div>
-        <div class="pnote">Confidence building · Signals current · Unknowns visible</div>
-        <div class="pact">
-          <div class="pk">Now · Water-First</div>
-          <div class="pv">Take 1 unit now. One clear action. No dashboard clutter.</div>
-        </div>
-        <div class="pfoot">Completed behavior — verification required · Illustrative interface, not a live reading</div>
-      </div>
-    </div>
-  </div>
-</section>
+<section class="pv-section"><div class="pv-wrap"><p class="pv-eyebrow">The behavior behind the product</p><h2>Preparation is a practice.</h2><p class="pv-lead">Pause. Hydrate. Lock-In. Perform. The ritual gives preparation a repeatable structure. The AFORCE OS preview shows one way an app could support that routine.</p><a class="pv-text-link" href="/aforce-os">See the current OS preview →</a></div></section>
 
 <!-- 07 · THE PROOF LEDGER -->
 <section class="sr-sec" id="evidence" aria-label="The proof ledger">
@@ -1087,7 +1048,7 @@
       <nav class="ff-col" aria-label="System">
         <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
-        <a href="/shop">Shop</a>
+        <a href="/shop">Hydration</a>
         <a href="/aforce-os">AFORCE OS</a>
         <a href="/science">Science</a>
         <a href="/manifesto">Manifesto</a>
@@ -1133,7 +1094,7 @@
       <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
       <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
       <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
-      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
+      <p>AFORCE OS access and membership details will be confirmed at launch.</p>
     </div>
   </div>
 </footer>

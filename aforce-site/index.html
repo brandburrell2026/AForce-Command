@@ -9,19 +9,19 @@
 <meta name="description" content="Before your next move, take a pause. Explore AFORCE performance hydration and the Pause–Hydrate–Lock-In–Perform ritual, supported by AFORCE OS.">
 <meta name="theme-color" content="#E9E7E1">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="canonical" href="https://www.drinkaforce.com/">
+<link rel="canonical" href="https://www.joinaforce.com/">
 
 <!-- Open Graph / social share cards. og-image.jpg does not exist; using the
      live hero poster as the nonbroken fallback until a 1200x630 card is supplied. -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — Before your next move, take a pause.">
-<meta property="og:description" content="A moment to gather yourself before whatever comes next. Pause. Hydrate. Lock-In. Perform.">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
-<meta property="og:url" content="https://www.drinkaforce.com/">
+<meta property="og:description" content="Performance hydration in 12 fl oz cans and portable sticks, paired with a preparation app designed around your day. Pause. Hydrate. Lock-In. Perform.">
+<meta property="og:image" content="https://www.joinaforce.com/assets/hero-poster.jpg">
+<meta property="og:url" content="https://www.joinaforce.com/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE — Before your next move, take a pause.">
 <meta name="twitter:description" content="Before your next move, take a pause.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/hero-poster.jpg">
+<meta name="twitter:image" content="https://www.joinaforce.com/assets/hero-poster.jpg">
 
 <script type="application/ld+json">
 {
@@ -29,10 +29,10 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://www.drinkaforce.com/#organization",
+      "@id": "https://www.joinaforce.com/#organization",
       "name": "AFORCE Hydration, Inc.",
-      "url": "https://www.drinkaforce.com/",
-      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
+      "url": "https://www.joinaforce.com/",
+      "logo": "https://www.joinaforce.com/assets/favicon.svg",
       "description": "AFORCE is a performance hydration system built around readiness, ritual, and recovery.",
       "slogan": "Performance Is Non-Negotiable.",
       "address": {
@@ -44,10 +44,10 @@
     },
     {
       "@type": "WebSite",
-      "@id": "https://www.drinkaforce.com/#website",
+      "@id": "https://www.joinaforce.com/#website",
       "name": "AFORCE",
-      "url": "https://www.drinkaforce.com/",
-      "publisher": { "@id": "https://www.drinkaforce.com/#organization" }
+      "url": "https://www.joinaforce.com/",
+      "publisher": { "@id": "https://www.joinaforce.com/#organization" }
     }
   ]
 }
@@ -581,22 +581,19 @@
 <link rel="stylesheet" href="/assets/home-interactions.css">
 <link rel="stylesheet" href="/assets/pause-direction.css">
 <link rel="stylesheet" href="/assets/community-reviews.css">
-</head>
-<body>
+<link rel="stylesheet" href="/assets/site-refinements.css"></head>
+<body class="pv-existing">
 <a href="#main" class="skip-link">Skip to main content</a>
 <div class="grain" aria-hidden="true"></div>
 
-<header class="afx-nav afx-overlay" id="afxNav">
+<header class="afx-nav" id="afxNav">
   <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span></a>
   <div class="afx-right">
     <div class="afx-links">
-      <a href="/#ritual" aria-current="page">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+      <a href="/#ritual" >Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
     <a href="/shop" class="afx-shop">Hydration</a>
-    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
+
     <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
       <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
     </button>
@@ -606,7 +603,7 @@
   <div class="afx-backdrop" data-afx-close></div>
   <div class="afx-panel">
     <nav aria-label="Main">
-      <a href="/#ritual" aria-current="page">Ritual</a>
+      <a href="/#ritual" >Ritual</a>
       <a href="/aforce-os">The OS</a>
       <a href="/our-story">Our Story</a>
       <a href="/science">Science</a>
@@ -631,19 +628,19 @@
        ~11s, color, audio stripped. Full-bleed cover — the can leads. VP9 webm first (smaller),
        H.264 mp4 fallback. Falls back to the dark .hero-cine background if neither plays or
        autoplay is blocked (poster shows a matching frame). -->
-  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="metadata" poster="assets/hero-poster.jpg">
-    <source src="assets/hero-video.webm" type="video/webm">
-    <source src="assets/hero-video.mp4" type="video/mp4">
+  <video class="hero-video" id="heroVideo" autoplay muted loop playsinline preload="metadata" poster="/assets/hero-poster.jpg">
+    <source src="/assets/hero-video.webm" type="video/webm">
+    <source src="/assets/hero-video.mp4" type="video/mp4">
   </video>
   <div class="hero-video-overlay"></div>
   <div class="hero-foot">
     <p class="hero-taxonomy">AFORCE · Performance hydration</p>
     <p class="pause-kicker">The Pause</p>
     <h1>Before your next move,<br>take a pause.</h1>
-    <p class="pause-promise">A moment to gather yourself before whatever comes next.</p>
-    <p class="pause-sequence">Pause. Hydrate. <span class="pause-lockin">Lock-In.</span> Perform.</p>
+    <p class="pause-promise">Performance hydration in 12 fl oz cans and portable sticks, paired with a preparation app designed around your day.</p>
+    <p class="pv-availability">Coming soon · No purchase required to join</p><p class="pause-sequence">Pause. Hydrate. <span class="pause-lockin">Lock-In.</span> Perform.</p>
     <div class="cta-row">
-      <a href="#ritual" class="btn btn-primary">Discover the ritual <span aria-hidden="true">→</span></a>
+      <a href="#founding" class="btn btn-primary">Join the launch waitlist <span aria-hidden="true">→</span></a>
       <a href="/shop" class="btn btn-ghost">Explore hydration</a>
     </div>
   </div>
@@ -656,27 +653,27 @@
   <p class="product-launch-note">Cans for the everyday. Sticks for wherever you go. Products are coming soon; explore the range and join the waitlist for ordering updates.</p>
   <div class="product-layout">
     <a class="product-featured fade-in" href="/shop" data-sku="red" aria-label="Explore Watermelon Surge & Chlorella">
-      <div class="frame"><img src="assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella" loading="lazy" decoding="async"></div>
+      <div class="frame"><img src="/assets/can-red.png" alt="AFORCE Watermelon Surge & Chlorella" loading="lazy" decoding="async"></div>
       <span class="tag red">pH 8.8 · Morning</span>
       <h3>Watermelon Surge & Chlorella</h3>
-      <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 11 fl oz</div>
+      <div class="ph">Alkaline Hydration · Electrolytes + Minerals · 12 fl oz (355 mL)</div>
       <div class="buy">Explore flavor <span class="arw">→</span></div>
     </a>
     <div class="product-minor-stack">
       <a class="product-minor fade-in" href="/shop" data-sku="blue" aria-label="Explore Berry Blast & Dulse">
-        <img src="assets/can-blue.png" alt="AFORCE Berry Blast & Dulse" loading="lazy" decoding="async">
+        <img src="/assets/can-blue.png" alt="AFORCE Berry Blast & Dulse" loading="lazy" decoding="async">
         <div><span class="tag blue">pH 8.8 · Midday</span><h3>Berry Blast & Dulse</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Explore flavor <span class="arw">→</span></div></div>
       </a>
       <a class="product-minor fade-in" href="/shop" data-sku="green" aria-label="Explore Soursop Edge & Seamoss">
-        <img src="assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss" loading="lazy" decoding="async">
+        <img src="/assets/can-green.png" alt="AFORCE Soursop Edge & Seamoss" loading="lazy" decoding="async">
         <div><span class="tag green">pH 8.8 · Evening</span><h3>Soursop Edge & Seamoss</h3><div class="ph">Electrolytes + Minerals</div><div class="minor-cta">Explore flavor <span class="arw">→</span></div></div>
       </a>
     </div>
   </div>
   <div class="stick-strip">
-    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Watermelon"><img src="assets/stick-red.png" alt="AFORCE stick pack watermelon" loading="lazy" decoding="async"><div class="label">On-the-go stick · Watermelon</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Berry"><img src="assets/stick-blue.png" alt="AFORCE stick pack berry" loading="lazy" decoding="async"><div class="label">On-the-go stick · Berry</div></a>
-    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Soursop"><img src="assets/stick-green.png" alt="AFORCE stick pack soursop" loading="lazy" decoding="async"><div class="label">On-the-go stick · Soursop</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Watermelon"><img src="/assets/stick-red.png" alt="AFORCE stick pack watermelon" loading="lazy" decoding="async"><div class="label">On-the-go stick · Watermelon</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Berry"><img src="/assets/stick-blue.png" alt="AFORCE stick pack berry" loading="lazy" decoding="async"><div class="label">On-the-go stick · Berry</div></a>
+    <a class="stick fade-in" href="/shop" aria-label="Explore on-the-go stick — Soursop"><img src="/assets/stick-green.png" alt="AFORCE stick pack soursop" loading="lazy" decoding="async"><div class="label">On-the-go stick · Soursop</div></a>
   </div>
   <div class="products-shop fade-in"><a href="#founding" class="btn btn-primary">Join the launch waitlist <span class="arw">→</span></a></div>
 </section>
@@ -717,7 +714,7 @@
       </div>
     </div>
     <div class="ritual-media fade-in">
-      <img src="assets/ritual-studio.jpg" alt="A woman pauses in a recording studio with headphones around her neck and an AFORCE can in her hand" width="1800" height="1348" loading="lazy" style="object-position:44% center;">
+      <img src="/assets/ritual-studio.jpg" alt="A woman pauses in a recording studio with headphones around her neck and an AFORCE can in her hand" width="1800" height="1348" loading="lazy" style="object-position:44% center;">
     </div>
   </div>
   <div class="pause-everyday" aria-label="A ritual for different moments">
@@ -727,40 +724,7 @@
   </div>
 </section>
 
-<section class="os-hook" id="os">
-  <div class="copy">
-    <div class="eyebrow-label fade-in">The AFORCE OS</div>
-    <h2 class="section-title fade-in">Make preparation<br>a daily practice.</h2>
-    <p class="fade-in">The pause begins the ritual. Hydration makes it physical. AFORCE OS helps you log hydration, follow your routine and make preparation a daily practice.</p>
-    <div class="steps">
-      <div class="step fade-in"><span class="n">01</span><div><h3>Check in</h3><p>Log your hydration and review your daily routine.</p></div></div>
-      <div class="step fade-in"><span class="n">02</span><div><h3>Prepare</h3><p>Organize your routine around what comes next.</p></div></div>
-      <div class="step fade-in"><span class="n">03</span><div><h3>Reflect</h3><p>Look back at your habits and shape your next day.</p></div></div>
-    </div>
-    <a class="fade-in" href="/aforce-os" style="display:inline-block; margin-top:34px; font-family:'Inter',sans-serif; font-weight:600; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); border-bottom:1px solid var(--red); padding-bottom:4px;">Explore the OS preview &rarr;</a>
-  </div>
-  <div class="os-visual fade-in">
-    <div class="os-phones" role="group" aria-label="Explore AFORCE OS sample screens">
-      <button type="button" class="os-phone os-phone--back os-phone--shot" data-os-screen="protocol" aria-label="Bring the Protocol preview forward" aria-pressed="false">
-        <img src="assets/aforce-os/black-issue-protocol.png" alt="Sample Protocol screen showing Depletion Correction and hydration steps" width="390" height="844" loading="lazy" decoding="async" draggable="false">
-      </button>
-      <button type="button" class="os-phone os-phone--front os-phone--shot" data-os-screen="home" aria-label="Bring the Home preview forward" aria-pressed="true">
-        <img src="assets/aforce-os/black-issue-home.png" alt="Sample Home screen showing readiness 69 and a hydration reminder" width="390" height="844" loading="lazy" decoding="async" draggable="false">
-      </button>
-    </div>
-    <div class="os-preview-controls" role="group" aria-label="Choose an AFORCE OS preview">
-      <button type="button" data-os-screen="home" aria-pressed="true">Home</button>
-      <button type="button" data-os-screen="protocol" aria-pressed="false">Protocol</button>
-      <a href="/aforce-os">Explore AFORCE OS →</a>
-    </div>
-    <!-- margin-top is proportional: the front phone is absolutely positioned and
-         overflows the .os-phones aspect-ratio box by ~6.25% of its width, so a
-         fixed 16px landed the caption ON the phone. calc(6.5% + 16px) clears the
-         overflow at every viewport width (the % resolves against .os-visual's
-         width, which the phones scale with). -->
-    <p style="margin-top:calc(6.5% + 56px);text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:inherit;opacity:.72;">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-  </div>
-</section>
+<section class="pv-section" id="os"><div class="pv-wrap"><div class="pv-two"><div><p class="pv-eyebrow">The AFORCE OS · Product preview</p><h2>Say what’s coming.<br>Make room to prepare.</h2><p class="pv-lead">A preparation app in development. Describe an upcoming moment, review a proposed plan, and reflect afterward.</p><a class="pv-button" href="/aforce-os">Explore the OS preview →</a><p class="pv-muted">Features, availability and membership details will be confirmed at launch.</p></div><div class="pv-moment"><p class="pv-eyebrow">One Breath · Illustrative concept</p><h3>“I land at three.<br>My presentation is at six.”</h3><div class="pv-moment-row"><span>Your moment</span><strong>Presentation · 6:00 PM</strong></div><div class="pv-moment-row"><span>Proposed preparation</span><strong>4:30 PM · Time to settle in</strong></div><p>Review the plan. Approve what works for you.</p><span class="pv-moment-note">Preview only · No actions taken</span></div></div></div></section>
 
 <section class="homepage-film" aria-label="AFORCE brand film" style="position:relative;padding:0;width:100%;overflow:hidden;background:#0d0d0d;">
   <video autoplay muted loop playsinline preload="metadata" poster="/assets/homepage-film-poster.jpg" aria-label="Watch the AFORCE brand film" width="1920" height="1080" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0d0d0d;">
@@ -811,6 +775,14 @@
   </div>
 </section>
 
+<section class="pv-section pv-faq" id="launch-questions"><div class="pv-wrap"><p class="pv-eyebrow">Before you join</p><h2>A few things,<br>answered plainly.</h2><div class="pv-faq-grid">
+<details><summary>Can I order AFORCE yet?</summary><p>Products are coming soon. Join the launch waitlist to hear when ordering opens.</p></details>
+<details><summary>Does joining the waitlist cost anything?</summary><p>No purchase is required to join the launch waitlist.</p></details>
+<details><summary>What is AFORCE OS?</summary><p>A preparation app in development. The current preview shows how you could describe an upcoming moment, review a plan and reflect afterward. Features and access details will be confirmed at launch.</p></details>
+<details><summary>How is Founding 250 different?</summary><p>The general waitlist is for launch updates. Founding 250 is a proposed early-member program associated with the Brickell, Miami launch.</p></details>
+<details><summary>When will products launch, and where will you ship?</summary><p>Launch timing and shipping details will be announced before ordering opens.</p></details>
+<details><summary>Is AFORCE OS included with a purchase?</summary><p>AFORCE OS access, membership and pricing details will be confirmed at launch.</p></details>
+</div></div></section>
 <section class="founding" id="founding">
   <div class="eyebrow-label fade-in" style="display:inline-block;">Early access · AFORCE launch</div>
   <h2 class="section-title fade-in" style="margin:0 auto 20px;">Your next moment starts with a pause.</h2>
@@ -887,7 +859,7 @@
       <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
       <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
       <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
-      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
+      <p>AFORCE OS access and membership details will be confirmed at launch.</p>
     </div>
   </div>
 </footer>
