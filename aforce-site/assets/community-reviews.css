@@ -9,7 +9,7 @@
 .community-review{grid-column:span 2;min-width:0;display:flex;flex-direction:column;padding:30px 28px;background:linear-gradient(145deg,#1e1d1a,#151514 70%);border:1px solid #35332e;border-radius:3px;position:relative;}
 .community-review:nth-child(-n+2){grid-column:span 3;padding:36px;}
 .community-review:first-child{background:linear-gradient(130deg,#2a211b,#191715 80%);border-top:2px solid #bf4937;}
-.community-stars{font:400 18px/1 'Inter',sans-serif;letter-spacing:.2em;color:#edb36b;margin-bottom:28px;}
+.community-stars{font:400 18px/1 'Inter',sans-serif;letter-spacing:.2em;color:#C1281B;margin-bottom:28px;}
 .community-review h3{font:600 clamp(20px,2vw,28px)/1.16 'Inter',sans-serif;letter-spacing:-.025em;margin:0 0 18px;color:#f4f1e9;}
 .community-review:nth-child(-n+2) h3{font-size:clamp(25px,2.5vw,36px);}
 .community-review blockquote{margin:0 0 36px;}
