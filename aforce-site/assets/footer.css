@@ -38,6 +38,11 @@
 /* Brand */
 .afx-footer .ff-brand .ff-mark{ display:inline-flex; align-items:center; gap:12px; }
 .afx-footer .ff-nn{ display:inline-flex; align-items:center; gap:.13em; font-family:'Archivo Black',var(--ff-font); font-weight:400; font-size:clamp(21px,2.2vw,28px); line-height:1; }
+/* Match the header's N–И mark even on pages without inline logo styles. */
+.afx-footer .ff-nn .nn-logo{ display:inline-flex; align-items:center; font-family:Inter,sans-serif; font-weight:300; font-size:inherit; line-height:1; color:var(--ff-red); white-space:nowrap; }
+.afx-footer .ff-nn .nn-n{ display:inline-block; }
+.afx-footer .ff-nn .nn-flip{ transform:scaleX(-1); }
+.afx-footer .ff-nn .nn-bar{ display:inline-block; width:.4em; height:.056em; background:currentColor; margin:0 .05em; transform:translateY(-.015em); }
 .afx-footer .ff-nn .n1{ color:var(--ff-red); }
 .afx-footer .ff-nn .bar{ display:inline-block; width:.44em; height:.15em; background:var(--ff-red); }
 .afx-footer .ff-nn .n2{ display:inline-block; transform:scaleX(-1); color:var(--ff-red); }
