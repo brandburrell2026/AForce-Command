@@ -12,7 +12,7 @@ var LEGAL = {
   shortName: "AFORCE",
   hqCity: "New York, New York",
   hqAddress: "New York, New York",           // street address to be added by counsel
-  website: "https://drinkaforce.com",
+  website: "https://www.joinaforce.com",
   investorPortal: "https://invest.drinkaforce.com",
   email: {
     legal: "legal@drinkaforce.com",
