@@ -1013,6 +1013,9 @@ importers:
       '@clerk/express':
         specifier: 2.1.6
         version: 2.1.6(express@5.2.1)
+      '@opentelemetry/api':
+        specifier: 1.10.0
+        version: 1.10.0
       '@workspace/activation-core':
         specifier: workspace:*
         version: link:../../lib/activation-core
