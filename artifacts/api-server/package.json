@@ -13,6 +13,7 @@
     "@anthropic-ai/sdk": "0.137.0",
     "@clerk/backend": "3.2.14",
     "@clerk/express": "2.1.6",
+    "@opentelemetry/api": "1.10.0",
     "@workspace/activation-core": "workspace:*",
     "@workspace/analytics-contract": "workspace:*",
     "@workspace/api-zod": "workspace:*",
