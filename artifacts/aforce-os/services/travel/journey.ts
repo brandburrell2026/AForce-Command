@@ -78,6 +78,13 @@ export function createJourneyRepository(storage: JourneyStorage) {
       await storage.setItem(key, JSON.stringify(journey));
       return journey;
     }),
+    update: (owner: string, input: DepartureInput) => enqueue(owner, async key => {
+      const existing = await read(key);
+      if (!existing || existing.completedAt) throw new Error('No active journey to edit.');
+      const journey = { ...createJourney(input), createdAt: existing.createdAt };
+      await storage.setItem(key, JSON.stringify(journey));
+      return journey;
+    }),
     finish: (owner: string) => enqueue(owner, async key => {
       const existing = await read(key);
       if (!existing) throw new Error('No journey to finish.');

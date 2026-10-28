@@ -6,6 +6,7 @@
  * Editorial OS "Performance Story" composition renders instead;
  * `MomentDetailScreen` remains the live flag-OFF rollback branch.
  */
+import { TRAVEL_MOMENT_ID } from '@/services/travel/moment';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 
 import { AFScreen } from '@/components/ui';
@@ -20,6 +21,7 @@ export default function MomentDetailRoute() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const data = useMomentsData();
   if (!flags.moments_enabled) return <Redirect href="/" />;
+  if (id === TRAVEL_MOMENT_ID) return <Redirect href="/travel" />;
   const moment = typeof id === 'string' ? data.momentById(id) : undefined;
   if (!moment) {
     // Await hydration before deciding the id is unknown. `return null` painted

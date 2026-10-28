@@ -1,4 +1,5 @@
 import React from 'react';
+import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
 import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -222,6 +223,7 @@ export function SkinIntelligenceHomeScreen() {
       </View>
 
       {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
+      {flags.moments_enabled ? <HomeMomentsSection /> : null}
 
       <View style={styles.systemSection}>
         <Label>THE SYSTEM</Label>

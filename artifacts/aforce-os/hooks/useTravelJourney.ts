@@ -5,15 +5,15 @@ import { travelRuntime } from '@/services/travel/runtime';
 import { isTravelCacheForOwner } from '@/services/travel/cache';
 import type { DepartureInput, TravelJourney } from '@/services/travel/journey';
 
-export function useTravelJourney() {
+export function useTravelJourney(enabled = true) {
   const { userId, isSignedIn, isLoaded } = useAuth();
   const owner = isLoaded && isSignedIn && userId ? userId : null;
   const queryClient = useQueryClient();
   const queryKey = ['travel-journey-v1', owner] as const;
-  const query = useQuery({ queryKey, queryFn: () => journeyRepository.load(owner!), enabled: !!owner, retry: false });
+  const query = useQuery({ queryKey, queryFn: () => journeyRepository.load(owner!), enabled: enabled && !!owner, retry: false });
   const mutation = useMutation({
     mutationKey: queryKey,
-    mutationFn: async (action: { kind: 'save'; input: DepartureInput } | { kind: 'finish' } | { kind: 'remove' } | { kind: 'clear' }) => {
+    mutationFn: async (action: { kind: 'save' | 'update'; input: DepartureInput } | { kind: 'finish' } | { kind: 'remove' } | { kind: 'clear' }) => {
       if (!owner) throw new Error('Sign in to manage your journey.');
       const current = travelRuntime.captureOwner(owner);
       let journey: TravelJourney | null;
