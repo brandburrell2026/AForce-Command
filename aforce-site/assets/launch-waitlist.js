@@ -31,7 +31,7 @@
       } catch (_) {
         button.disabled = false;
         button.textContent = 'Join the Waitlist';
-        status.textContent = 'We couldn’t save your request. Please try again, or email contact@aforceritual.com.';
+        status.textContent = 'We couldn’t save your request. Please try again, or email info@alkalineforce.com.';
       } finally { clearTimeout(timeout); }
     });
   }
