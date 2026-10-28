@@ -1,3 +1,4 @@
+import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 /**
  * HomeScreenV2 — the Phase 2 · S3 Home redesign (spec §8.2), rendered
  * UNCONDITIONALLY as the Home tab (the `spec_home` flag that once gated it
@@ -850,6 +851,8 @@ export function HomeScreenV2() {
                 </Text>
               )}
             </Animated.View>
+
+            {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
 
             {/* AForce Moments (Phases 1–2, flag OFF in production) — NEXT MOMENT
                 + today's preparation-relevant list. Additive section; renders

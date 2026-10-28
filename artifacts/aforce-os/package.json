@@ -77,6 +77,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "@workspace/api-zod": "workspace:*",
     "@clerk/expo": "3.2.2",
     "@expo-google-fonts/archivo-black": "^0.4.1",
     "@expo-google-fonts/bebas-neue": "^0.4.1",

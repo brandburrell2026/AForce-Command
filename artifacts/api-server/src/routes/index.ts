@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import travelRouter from "./travel";
 import healthRouter from "./health";
 import scansRouter from "./scans";
 import profileRouter from "./profile";
@@ -181,6 +182,7 @@ const disconnectors = buildProviderDisconnectors(db, logger);
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/travel", travelRouter);
 router.use(scansRouter);
 router.use(cyclesRouter);
 router.use(checkoutRouter);

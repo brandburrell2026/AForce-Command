@@ -1,3 +1,4 @@
+import { TravelLifecycleMount } from '@/components/travel/TravelLifecycleMount';
 import '../polyfills';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { apiOrigin } from '@/lib/apiBase';
@@ -167,6 +168,7 @@ function RootLayoutNav() {
       <Stack.Screen name="urine-check" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="heat/guardian" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="phantom" options={{ headerShown: false, presentation: 'card' }} />
+      <Stack.Screen name="travel" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="cruise" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="ring" options={{ headerShown: false, presentation: 'card' }} />
       <Stack.Screen name="ring/session" options={{ headerShown: false, presentation: 'card' }} />
@@ -448,6 +450,7 @@ function AppShell() {
                   {/* Mounted *inside* AppProvider so the entitlement
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
+                  <TravelLifecycleMount />
                   {/* Records acquisition QR / activation deep-links; no routing. */}
                   <ActivationDeepLinkObserver />
                   {/* Read-only bridge: mirrors live runtime sources into the

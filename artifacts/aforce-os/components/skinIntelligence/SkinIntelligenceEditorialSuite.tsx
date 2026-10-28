@@ -1,4 +1,5 @@
 import React from 'react';
+import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -158,6 +159,7 @@ function SuiteLink({ index, title, detail, href }: { index: string; title: strin
 }
 
 export function SkinIntelligenceHomeScreen() {
+  const flags = useFlagsSlice();
   const user = useUserSlice();
   const hydrationPct = user.dailyTarget > 0
     ? Math.min(100, Math.round((user.unitsConsumedToday / user.dailyTarget) * 100))
@@ -218,6 +220,8 @@ export function SkinIntelligenceHomeScreen() {
       <View style={styles.block}>
         <ConciergeEntryCard tone="editorial" testID="skinia-concierge-entry" />
       </View>
+
+      {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
 
       <View style={styles.systemSection}>
         <Label>THE SYSTEM</Label>

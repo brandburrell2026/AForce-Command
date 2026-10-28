@@ -51,7 +51,7 @@ let handlerConfigured = false;
  * silently drops banners while the app is in the foreground, which
  * would make the cadence feel broken to anyone testing.
  */
-async function ensureForegroundHandler(): Promise<void> {
+export async function ensureForegroundHandler(): Promise<void> {
   if (handlerConfigured) return;
   const Notif = await loadNotifications();
   if (!Notif) return;

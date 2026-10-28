@@ -518,6 +518,8 @@ export interface UserProfile {
 
 // ─── Feature Flags ────────────────────────────────────────────────────────────
 export interface FeatureFlags {
+  /** Internal travel pilot. Always clamped in ordinary public builds. */
+  travel_mode_enabled: boolean;
   // Trainer surface (Phase 2). Both default false and both listed in
   // INTERNAL_TIER_FLAGS — medical-adjacent copy, same treatment as Clutch.
   trainer_board_enabled: boolean;
