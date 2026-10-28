@@ -92,3 +92,7 @@ html{scroll-padding-top:100px}
 .os-hero,.os-film,.os-travel,.os-concierge,.os-replay,.pause-os-bridge,.os-story [data-ui="88"],.os-story [data-ui="179"],.os-story [data-ui="277"],.os-moment [data-ui="240"]{padding-left:clamp(24px,5vw,64px)!important;padding-right:clamp(24px,5vw,64px)!important}
 
 @media(max-width:700px){.os-film [data-ui="81"]{width:56px!important;height:56px!important}.os-film [data-ui="84"]{left:16px!important;right:16px!important;bottom:12px!important}.os-film [data-ui="85"]{font-size:9px!important;letter-spacing:.1em!important}}
+/* Preserve the full WTC silhouette and spire rather than center-cropping the skyline. */
+.os-moment{aspect-ratio:8 / 5}
+.os-moment [data-ui="238"]{object-position:28% top!important}
+@media(max-width:700px){.os-moment{aspect-ratio:auto}}
