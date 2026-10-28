@@ -16,7 +16,7 @@ export function TravelHomeCard() {
 function AccountTravelHomeCard() {
   const { query } = useTravelJourney();
   const router = useRouter();
-  if (query.isPending || query.data?.completedAt) return null;
+  if (query.isPending) return null;
   const journey = query.data;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={query.isError ? 'Open Travel to retry loading your journey' : 'Open your travel journey'}
@@ -26,7 +26,7 @@ function AccountTravelHomeCard() {
       <Text style={styles.body}>{query.isError ? 'We couldn’t read your saved journey. Open Travel to try again.' : journey
         ? `${journey.details.flightNumber} · ${journey.details.departureDate} · ${journey.details.departureTime} (UTC${journey.details.utcOffset})`
         : 'Add a flight and keep your AForce rituals close.'}</Text>
-      <Text style={styles.body}>{journey ? 'Manually entered itinerary · open to check status' : 'Plan your journey →'}</Text>
+      <Text style={styles.body}>{journey?.completedAt ? 'Journey finished · open to add another flight' : journey ? 'Manually entered itinerary · open to check status' : 'Plan your journey →'}</Text>
     </Pressable>
   );
 }

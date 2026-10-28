@@ -98,7 +98,19 @@ describe('internal Travel journey', () => {
     await waitUI(() => expect(host.textContent).toContain('JFK → LAX'));
     await click('Finish journey');
     await waitUI(() => expect(host.textContent).toContain('Journey finished'));
-    expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
+    const homeCard = host.querySelector('[data-testid="travel-home-card"]') as HTMLElement;
+    expect(homeCard).not.toBeNull();
+    expect(homeCard.textContent).toContain('Journey finished · open to add another flight');
+    await act(async () => { homeCard.click(); });
+    expect(state.pushes.at(-1)).toBe('/travel');
+    // The completed trip remains reopenable after the query cache is discarded.
+    await act(async () => { client.removeQueries({ queryKey: ['travel-journey-v1'] }); });
+    await render();
+    await waitUI(() => expect(host.textContent).toContain('Journey finished'));
+    expect(host.querySelector('[data-testid="travel-home-card"]')).not.toBeNull();
+    await click('Add another flight');
+    expect(host.textContent).toContain('Save flight');
+    await click('Cancel');
     await click('Remove journey'); await click('Confirm removal');
     await waitUI(() => expect(host.textContent).toContain('Save flight'));
     expect(state.values.size).toBe(0);
