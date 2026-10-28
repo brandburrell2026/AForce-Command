@@ -52,6 +52,7 @@
  *     equivalent — it exists solely on V2's flag-OFF path.)
  */
 import React from 'react';
+import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
@@ -414,6 +415,8 @@ export function EditorialHomeScreen({
                     ) : null}
                   </AFCard>
                 ) : null}
+
+                {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
 
                 {momentsOn ? (
                   <View style={styles.momentsSection}>

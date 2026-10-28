@@ -10,6 +10,7 @@
 import type { FeatureFlags, SpecFlagName } from '../types';
 
 export const DEFAULT_FLAGS: FeatureFlags = {
+  travel_mode_enabled: false,
   // Trainer surface — Phase 2 morning board. Off in production; the seed is
   // simulated data and is marked as such wherever it renders.
   trainer_board_enabled: false,
@@ -470,6 +471,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
  * full Clutch + Guardian product stack.
  */
 export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
+  travel_mode_enabled: false,
   trainer_board_enabled: true,
   trainer_demo_seed_enabled: true,
   clutch_access_enabled: true,
@@ -725,6 +727,7 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
  */
 export const INTERNAL_TIER_FLAGS = [
+  'travel_mode_enabled',
   'circle_membership_enabled',
   'circle_sharing_enabled',
   'trainer_board_enabled',
@@ -754,6 +757,14 @@ export function currentUnlockContext(): UnlockContext {
     dev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
     internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
   };
+}
+
+/** Travel must be opted into explicitly in a development/internal build. */
+export function travelPilotAvailable(
+  flags: Pick<FeatureFlags, 'travel_mode_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return flags.travel_mode_enabled && (ctx.dev || ctx.internalTestflight);
 }
 
 /** A stored flag or generic demo must not expose the real-membership pilot

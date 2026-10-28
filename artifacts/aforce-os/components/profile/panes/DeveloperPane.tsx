@@ -181,6 +181,7 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           </Pressable>
         ) : null}
 
+        <FlagRow flag="travel_mode_enabled" label="Travel · TravelGate pilot" desc="Manual flight entry and AForce rituals. Internal only; live flight data is not connected." color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />

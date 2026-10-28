@@ -50,6 +50,12 @@ interface ModuleEntry {
 
 const MODULES: ModuleEntry[] = [
   {
+    id: 'travel', title: 'Travel',
+    blurb: 'Your journey and AForce rituals · powered by TravelGate',
+    href: '/travel', icon: 'compass', tint: '#E4E0D8',
+    gate: 'Internal pilot · travel_mode_enabled',
+  },
+  {
     id: 'social',
     title: 'Social',
     blurb: 'Signal · Command · Forecast · Crew · Shared Context',
