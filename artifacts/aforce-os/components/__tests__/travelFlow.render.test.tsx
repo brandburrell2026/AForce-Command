@@ -39,7 +39,7 @@ vi.mock('@/services/travel/runtime', async () => {
   } };
 });
 import TravelRoute from '../../app/travel';
-import { TravelHomeCard } from '../travel/TravelHomeCard';
+import { TravelMomentsEntry, TravelHomeCard } from '../travel/TravelHomeCard';
 import { useMomentsData } from '../moments/useMomentsData';
 
 vi.mock('@/services/momentsStore', () => ({ useMomentsStore: () => ({ hydrated: true, moments: [] }), hydrateMoments: vi.fn(), addMoment: vi.fn() }));
@@ -63,7 +63,7 @@ async function waitUI(assertion: () => void) {
   throw last;
 }
 async function render() {
-  await act(async () => { root.render(<QueryClientProvider client={client}><TravelRoute /><TravelHomeCard /><MomentsProbe /></QueryClientProvider>); });
+  await act(async () => { root.render(<QueryClientProvider client={client}><TravelRoute /><TravelHomeCard /><TravelMomentsEntry /><MomentsProbe /></QueryClientProvider>); });
   await waitUI(() => expect(host.textContent).not.toContain('Loading your journey'));
 }
 function button(label: string) {
@@ -104,7 +104,7 @@ describe('internal Travel journey', () => {
     expect(host.textContent).toContain('UTC-05:00');
     await waitUI(() => expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('JFK → LAX · AA123'));
     expect(host.textContent).toContain('Manually entered itinerary');
-    expect(host.querySelector('[data-testid="travel-home-card"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
     await click('Open hydration'); await click('Open Moments');
     expect(state.pushes).toEqual(['/(tabs)/journal', '/moments']);
     // Reopen from durable storage rather than the query cache.
@@ -122,17 +122,15 @@ describe('internal Travel journey', () => {
     expect(host.querySelector('[data-testid="moments-probe"]')?.children).toHaveLength(1);
     await click('Finish journey');
     await waitUI(() => expect(host.textContent).toContain('Journey finished'));
-    const homeCard = host.querySelector('[data-testid="travel-home-card"]') as HTMLElement;
-    expect(homeCard).not.toBeNull();
-    expect(homeCard.textContent).toContain('Journey finished · open to add another flight');
+    expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
     expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('');
-    await act(async () => { homeCard.click(); });
+    await click('Add or manage a flight →');
     expect(state.pushes.at(-1)).toBe('/travel');
     // The completed trip remains reopenable after the query cache is discarded.
     await act(async () => { client.removeQueries({ queryKey: ['travel-journey-v1'] }); });
     await render();
     await waitUI(() => expect(host.textContent).toContain('Journey finished'));
-    expect(host.querySelector('[data-testid="travel-home-card"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
     await click('Add another flight');
     expect(host.textContent).toContain('Save flight');
     await click('Cancel');

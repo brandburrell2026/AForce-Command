@@ -9,7 +9,7 @@ import { useTravelJourney } from '@/hooks/useTravelJourney';
 export function TravelHomeCard() {
   const flags = useFeatureFlags();
   const { userId, isSignedIn } = useAuth();
-  if (!travelPilotAvailable(flags) || !isSignedIn || !userId) return null;
+  if (flags.moments_enabled || !travelPilotAvailable(flags) || !isSignedIn || !userId) return null;
   return <AccountTravelHomeCard key={userId} />;
 }
 
@@ -36,3 +36,15 @@ const styles = StyleSheet.create({
   title: { fontFamily: 'Inter_700Bold', color: '#EDEAE3', fontSize: 25 },
   body: { fontFamily: 'Inter_400Regular', color: '#B7B1A5', fontSize: 13, lineHeight: 20 },
 });
+
+/** Moments remains the entry for adding/editing flights even with no upcoming trip. */
+export function TravelMomentsEntry() {
+  const flags = useFeatureFlags();
+  const { isSignedIn, userId } = useAuth();
+  const router = useRouter();
+  if (!flags.moments_enabled || !travelPilotAvailable(flags) || !isSignedIn || !userId) return null;
+  return <Pressable accessibilityRole="button" accessibilityLabel="Add or manage a flight"
+    testID="travel-moments-entry" onPress={() => router.push('/travel' as never)} style={styles.card}>
+    <Text style={styles.body}>Add or manage a flight →</Text>
+  </Pressable>;
+}

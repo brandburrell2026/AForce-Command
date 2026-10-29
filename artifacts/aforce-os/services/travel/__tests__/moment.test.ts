@@ -24,3 +24,29 @@ describe('journey-derived Travel Moment', () => {
     expect(mergeTravelMoment(merged, null)).toEqual([]);
   });
 });
+
+describe('one displayed flight', () => {
+  it('consolidates the explicit manual duplicate without deleting its record or readiness', () => {
+    const journey = createJourney(input);
+    const manual = { ...travelMoment(journey)!, id: 'manual-flight', title: 'Flight to FLL', preparedAtIso: '2026-10-28T20:00:00.000Z' };
+    const before = JSON.stringify(manual);
+    const displayed = mergeTravelMoment([manual], journey);
+    expect(displayed).toHaveLength(1);
+    expect(displayed[0].id).toBe(TRAVEL_MOMENT_ID);
+    expect(displayed[0].preparedAtIso).toBe(manual.preparedAtIso);
+    expect(JSON.stringify(manual)).toBe(before);
+    expect(mergeTravelMoment([manual], null)).toEqual([manual]);
+    expect(mergeTravelMoment([manual], { ...journey, completedAt: new Date().toISOString() })).toEqual([]);
+  });
+  it('preserves other times, destinations, sources, and independently named travel plans', () => {
+    const journey = createJourney(input);
+    const base = { ...travelMoment(journey)!, id: 'manual', title: 'Flight to FLL' };
+    const others = [
+      { ...base, id: 'other-time', startAtIso: '2026-10-29T14:45:00.000Z' },
+      { ...base, id: 'other-destination', title: 'Flight to MIA' },
+      { ...base, id: 'other-plan', title: 'Airport pickup' },
+      { ...base, id: 'calendar', source: 'calendar' as const },
+    ];
+    expect(mergeTravelMoment(others, journey)).toHaveLength(5);
+  });
+});
