@@ -11,10 +11,13 @@
 import { EditorialHomeScreen } from '@/components/editorial/home/EditorialHomeScreen';
 import { HomeScreenV2 } from '@/components/home/HomeScreenV2';
 import { SkinIntelligenceHomeScreen } from '@/components/skinIntelligence/SkinIntelligenceEditorialSuite';
+import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
 import { useFeatureFlags } from '@/store/useAppStore';
 
 export default function HomeScreen() {
   const flags = useFeatureFlags();
+  const momentsFirst = useMomentsFirstExperience();
+  if (momentsFirst) return <EditorialHomeScreen focused />;
   // The approved Skin Intelligence Figma system is the first screen in the
   // controlled internal build. Public binaries retain the established Home
   // seam until a separate production release is approved.

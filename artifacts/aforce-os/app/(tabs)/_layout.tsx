@@ -5,7 +5,7 @@
  *                 (route file stays `journal.tsx` so deep links + the
  *                 protected Timeline contract are untouched; only the
  *                 user-facing label + icon changed to "Hydration").
- *   Protocols   = AForce Protocol
+ *   Protocols   = AForce Protocol (internal Moments-first build substitutes Moments; Protocol stays routable)
  *   Community   = Rankings + Challenges + Battles + Teams + Map hub
  *                 (route file stays `competition.tsx`)
  *   Profile     = Profile & Settings
@@ -35,11 +35,13 @@ import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
   const { t } = useTranslation();
   const devMode = useDevMode();
+  const momentsFirst = useMomentsFirstExperience();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -50,10 +52,15 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
         <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="protocol">
+      {momentsFirst ? (
+        <NativeTabs.Trigger name="moments-tab">
+          <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
+          <Label>Moments</Label>
+        </NativeTabs.Trigger>
+      ) : <NativeTabs.Trigger name="protocol">
         <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
         <Label>{t('tabs.protocol')}</Label>
-      </NativeTabs.Trigger>
+      </NativeTabs.Trigger>}
       <NativeTabs.Trigger name="competition">
         <NativeTabIcon sf={{ default: 'trophy', selected: 'trophy.fill' }} />
         <Label>{t('tabs.competition')}</Label>
@@ -192,6 +199,7 @@ const plainTabButtonStyles = StyleSheet.create({
 function ClassicTabLayout() {
   const { t } = useTranslation();
   const devMode = useDevMode();
+  const momentsFirst = useMomentsFirstExperience();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
   // S2-14b: tracked mono labels yield their tracking at accessibility sizes.
@@ -265,10 +273,21 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="protocol"
         options={{
+          href: momentsFirst ? null : undefined,
           title: t('tabs.protocol'),
           tabBarIcon: ({ color, size, focused }) =>
             isIOS ? <SymbolView name={focused ? 'list.bullet.circle.fill' : 'list.bullet.circle'} tintColor={color} size={size} />
                   : <Icon name="list" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="moments-tab"
+        options={{
+          href: momentsFirst ? '/moments-tab' : null,
+          title: 'Moments',
+          tabBarIcon: ({ color, size }) => isIOS
+            ? <SymbolView name="calendar" tintColor={color} size={size} />
+            : <Icon name="calendar" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
