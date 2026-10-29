@@ -1,0 +1,1209 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Private AForce Travel Intelligence and TravelGate account sharing",
+    "version": "2.0.0",
+    "description": "Companion contract. Runtime validators and provider snapshots are defined by lib/api-zod/src/travelIntelligence.ts. Trips are member-confirmed; observations never change them without accept. All IDs are account-scoped. Linking grants remain server-only. Public cohort remains disabled."
+  },
+  "paths": {
+    "/api/travel/intelligence/state": {
+      "get": {
+        "operationId": "getTravelIntelligenceState",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        }
+      },
+      "put": {
+        "operationId": "putTravelIntelligenceState",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Sync"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteTravelIntelligenceState",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirm"
+                ],
+                "properties": {
+                  "confirm": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/travel/intelligence/check": {
+      "post": {
+        "operationId": "postcheckAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "legId"
+                ],
+                "properties": {
+                  "legId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/travel/intelligence/accept": {
+      "post": {
+        "operationId": "postacceptAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "revision",
+                  "legId",
+                  "key"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "legId": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/travel/intelligence/link": {
+      "post": {
+        "operationId": "postlinkAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "consent"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "consent": {
+                    "const": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletelinkAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        }
+      }
+    },
+    "/api/travel/intelligence/linked-trips": {
+      "get": {
+        "operationId": "getlinkedtripsAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        }
+      }
+    },
+    "/api/travel/intelligence/device": {
+      "post": {
+        "operationId": "postdeviceAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId",
+                  "token",
+                  "enabled",
+                  "consent"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "consent": {
+                    "const": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletedeviceAforce",
+        "security": [
+          {
+            "AForceSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deviceId"
+                ],
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aforce/shared-trips": {
+      "get": {
+        "operationId": "getsharedtripsTravelGate",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        }
+      },
+      "put": {
+        "operationId": "putsharedtripsTravelGate",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Sync"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aforce/review-flight": {
+      "post": {
+        "operationId": "postreviewflightTravelGate",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aforce/link-code": {
+      "post": {
+        "operationId": "postlinkcodeTravelGate",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "consent"
+                ],
+                "properties": {
+                  "consent": {
+                    "const": true
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aforce/link": {
+      "delete": {
+        "operationId": "deletelinkTravelGate",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        }
+      }
+    },
+    "/api/integrations/aforce/account/claim": {
+      "post": {
+        "operationId": "claimTravelGateGrant",
+        "security": [
+          {
+            "BridgeKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code",
+                  "consumer"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "consumer": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integrations/aforce/account/trips": {
+      "post": {
+        "operationId": "tripsTravelGateGrant",
+        "security": [
+          {
+            "BridgeKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant",
+                  "consumer"
+                ],
+                "properties": {
+                  "grant": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "consumer": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integrations/aforce/account/revoke": {
+      "post": {
+        "operationId": "revokeTravelGateGrant",
+        "security": [
+          {
+            "BridgeKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant",
+                  "consumer"
+                ],
+                "properties": {
+                  "grant": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "consumer": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integrations/aforce/flight-snapshot": {
+      "post": {
+        "operationId": "getTravelGateFlightSnapshot",
+        "security": [
+          {
+            "BridgeKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Verified authentication required"
+          },
+          "403": {
+            "description": "Private cohort only"
+          },
+          "409": {
+            "description": "Revision conflict: current revision and trips only"
+          },
+          "503": {
+            "description": "Not activated, schema unavailable, or upstream unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flight"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aforce/capabilities": {
+      "get": {
+        "operationId": "getAForceLinkPilotCapability",
+        "security": [
+          {
+            "TravelGateSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified private-cohort member; storage is ready"
+          },
+          "403": {
+            "description": "Private cohort required"
+          },
+          "503": {
+            "description": "Not activated or storage not ready"
+          }
+        }
+      }
+    },
+    "/api/travel/identity-events": {
+      "post": {
+        "operationId": "receiveTravelIdentityEvent",
+        "security": [
+          {
+            "ClerkWebhookSignature": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed event accepted; deletion is idempotent"
+          },
+          "401": {
+            "description": "Invalid or expired signature"
+          },
+          "503": {
+            "description": "Configuration or cleanup unavailable; sender must retry"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AForceSession": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "TravelGateSession": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "BridgeKey": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "ClerkWebhookSignature": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "svix-signature",
+        "description": "Verified by the official Clerk SDK with svix-id and svix-timestamp over the raw request body."
+      }
+    },
+    "schemas": {
+      "Flight": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "flightNumber",
+          "departureDate",
+          "origin",
+          "destination"
+        ],
+        "properties": {
+          "flightNumber": {
+            "type": "string"
+          },
+          "departureDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "origin": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "destination": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
+        }
+      },
+      "Leg": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "flight",
+          "departureAt",
+          "arrivalAt",
+          "originTimeZone",
+          "destinationTimeZone"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+          },
+          "flight": {
+            "$ref": "#/components/schemas/Flight"
+          },
+          "departureAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "arrivalAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "originTimeZone": {
+            "type": "string"
+          },
+          "destinationTimeZone": {
+            "type": "string"
+          },
+          "departurePreparedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "arrivalPreparedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Trip": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "legs",
+          "completedAt",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "legs": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "$ref": "#/components/schemas/Leg"
+            }
+          },
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "State": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "trips"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trips": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/Trip"
+            }
+          }
+        },
+        "description": "Active flight identities must be unique across trips. Runtime validators enforce connected-leg chronology and valid IANA time zones."
+      },
+      "Sync": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "revision",
+          "trips",
+          "consent"
+        ],
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trips": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/Trip"
+            }
+          },
+          "consent": {
+            "const": true
+          }
+        }
+      }
+    }
+  }
+}

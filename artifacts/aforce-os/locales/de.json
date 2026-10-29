@@ -799,8 +799,8 @@
     "recovery_card_title": "ERHOLUNGSMODUS",
     "recovery_morning_estimate": "Geschätzte Abbauzeit",
     "recovery_morning_clear": "Abgebaut",
-    "indicator_on": "Social Mode is on since {{time}}",
-    "indicator_stale": "A Social Mode session has been open since {{date}} and no longer counts. End it to clear it."
+    "indicator_on": "Night Out is on since {{time}}",
+    "indicator_stale": "A Night Out session has been open since {{date}} and no longer counts. End it to clear it."
   },
   "voice": {
     "drink_now": "Nimm jetzt 1 Einheit. In {{recheck}} Minuten prüfen.",

@@ -18,6 +18,7 @@ vi.mock('@/services/userScope', () => ({
 }));
 vi.mock('@/services/travel/runtime', () => ({ travelRuntime: { setEnabled: mock.setEnabled, sync: mock.sync, canOpenReminder: mock.canOpen } }));
 vi.mock('@/services/travel/reminderNative', () => ({ observeTravelReminderTaps: async (fn: typeof mock.taps) => { mock.taps = fn; return mock.unsubscribe; } }));
+vi.mock('../travel/TravelIntelligenceLifecycle', () => ({ TravelIntelligenceLifecycle: () => null }));
 import { TravelLifecycleMount } from '../travel/TravelLifecycleMount';
 let host: HTMLDivElement, root: Root, client: QueryClient;
 async function render() { await act(async () => { root.render(<QueryClientProvider client={client}><TravelLifecycleMount /></QueryClientProvider>); }); }

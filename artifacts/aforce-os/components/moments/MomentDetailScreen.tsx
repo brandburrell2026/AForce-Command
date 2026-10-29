@@ -67,12 +67,14 @@ export function MomentDetailScreen({
   rec,
   nowIso,
   readOnly,
+  onPrepared,
 }: {
   moment: Moment;
   rec: MomentRecommendation;
   nowIso: string;
   /** Gallery/demo fixtures render without store writes. */
   readOnly?: boolean;
+  onPrepared?:()=>void;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -192,7 +194,7 @@ export function MomentDetailScreen({
         label={prepared ? t('moments.status_completed') : t('moments.im_ready')}
         onPress={() => {
           if (!prepared && !readOnly) {
-            if (moment.source === 'calendar' && moment.calendarEventId) {
+            if(onPrepared){onPrepared();} else if (moment.source === 'calendar' && moment.calendarEventId) {
               void markCalendarMomentPrepared(moment.calendarEventId);
             } else {
               updateMoment(moment.id, { preparedAtIso: new Date().toISOString() });

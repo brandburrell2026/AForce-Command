@@ -19,11 +19,11 @@ vi.mock('@/store/useAppStore', () => ({ useFeatureFlags: () => ({ travel_mode_en
 vi.mock('@/components/ui/AFScreen', () => ({ AFScreen: ({ children }: { children: React.ReactNode }) => <div>{children}</div> }));
 vi.mock('@/services/travel/storage', async () => {
   const { createJourneyRepository } = await import('@/services/travel/journey');
-  return { journeyRepository: createJourneyRepository({
-    getItem: async key => state.values.get(key) ?? null,
-    setItem: async (key, value) => { if (state.failWrites) throw new Error('keychain locked'); state.values.set(key, value); },
-    removeItem: async key => { state.values.delete(key); },
-  }) };
+  const storage={
+    getItem: async (key:string) => state.values.get(key) ?? null,
+    setItem: async (key:string, value:string) => { if (state.failWrites) throw new Error('keychain locked'); state.values.set(key, value); },
+    removeItem: async (key:string) => { state.values.delete(key); },
+  };return {travelStorage:storage, journeyRepository:createJourneyRepository(storage)};
 });
 vi.mock('@/services/travel/runtime', async () => {
   const { journeyRepository } = await import('@/services/travel/storage');
@@ -125,7 +125,7 @@ describe('internal Travel journey', () => {
     expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
     expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('');
     await click('Add or manage a flight →');
-    expect(state.pushes.at(-1)).toBe('/travel');
+    expect(state.pushes.at(-1)).toBe('/travel-intelligence');
     // The completed trip remains reopenable after the query cache is discarded.
     await act(async () => { client.removeQueries({ queryKey: ['travel-journey-v1'] }); });
     await render();

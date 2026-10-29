@@ -19,6 +19,7 @@
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/demand-engine": "workspace:*",
+    "@workspace/health-core": "workspace:*",
     "@workspace/integrations-openai-ai-server": "workspace:*",
     "cookie-parser": "^1.4.7",
     "cors": "^2",
@@ -29,13 +30,13 @@
     "http-proxy-middleware": "^3.0.5",
     "pino": "^9",
     "pino-http": "^10",
-    "ws": "8.18.0",
-    "zod": "catalog:",
-    "@workspace/health-core": "workspace:*",
     "stripe": "^22.0.2",
-    "stripe-replit-sync": "^1.0.0"
+    "stripe-replit-sync": "^1.0.0",
+    "ws": "8.18.0",
+    "zod": "catalog:"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

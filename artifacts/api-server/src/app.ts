@@ -1,3 +1,5 @@
+import travelIdentityEventsRouter from './routes/travelIdentityEvents';
+import travelIntelligenceRouter from './routes/travelIntelligence';
 import express, { type Express } from "express";
 import { serializeError } from "./lib/serializeError";
 import { logger } from "./lib/logger";
@@ -109,6 +111,13 @@ app.use(cors(buildCorsOptions()));
 // smart-capture above: requireAuth must find a decorated request.
 if (clerkConfigured()) app.use("/api/spatial-studio/projects", clerkMiddleware());
 app.use("/api/spatial-studio/projects", buildDefaultSpatialStudioProjectsRouter());
+
+// Raw, signature-verified Clerk identity events must precede JSON and session middleware.
+app.use('/api/travel/identity-events',travelIdentityEventsRouter);
+
+// Travel trip lists have their own bounded parser; preserve the default cap for other routes.
+if (clerkConfigured()) app.use('/api/travel/intelligence', clerkMiddleware());
+app.use('/api/travel/intelligence', travelIntelligenceRouter);
 
 // Explicit body-size cap. The largest legitimate payload is the
 // UserState snapshot (~12kB); 64kB leaves headroom without letting a

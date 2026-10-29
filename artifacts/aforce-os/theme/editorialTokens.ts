@@ -105,6 +105,11 @@ type EdTypeRole = {
  * consumer may render in caps, and they carry the mono furniture voice.
  */
 export const edType: Record<string, EdTypeRole> = {
+  // Moments-first Home, founder-authorized 2026-10-28; preserves the reviewed type scale.
+  homeFocusTitle: {fontFamily:Typography.fonts.bold,fontSize:34,lineHeight:40,letterSpacing:-0.8},
+  homeCompactState: {fontFamily:Typography.fonts.bold,fontSize:26,lineHeight:32},
+  homeCompactNumber: {fontFamily:Typography.fonts.bold,fontSize:64,lineHeight:72},
+  homeFocusLink: {fontFamily:Typography.fonts.medium,fontSize:15},
   /** Oversized display statement (covers). */
   display: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
   /** Screen statement. */

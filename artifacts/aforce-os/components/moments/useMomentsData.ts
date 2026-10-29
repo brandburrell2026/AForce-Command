@@ -1,3 +1,5 @@
+import { useTravelIntelligence } from '@/hooks/useTravelIntelligence';
+import { mergeIntelligenceMoments } from '@/services/travel/intelligence';
 /**
  * useMomentsData — the one data hook every Moments surface shares
  * (Phases 1–2). Assembles: hydrated store moments, per-moment
@@ -50,6 +52,7 @@ export function useMomentsData(options?: {
   const flags = useFeatureFlags();
   const travelOn = flags.moments_enabled && travelPilotAvailable(flags) && !options?.fixtureMoments;
   const travel = useTravelJourney(travelOn);
+  const intelligence = useTravelIntelligence(!!travelOn);
   const calendarDerived = useCalendarMoments();
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -102,9 +105,9 @@ export function useMomentsData(options?: {
     () => {
       if (fixture) return fixture;
       const base = calendarOn ? [...store.moments, ...mergedCalendar] : store.moments;
-      return travelOn && travel.owner ? mergeTravelMoment(base, travel.query.data) : base;
+      return travelOn && travel.owner ? mergeIntelligenceMoments(mergeTravelMoment(base, travel.query.data), intelligence.query.data?.trips ?? []) : base;
     },
-    [fixture, calendarOn, store.moments, mergedCalendar, travelOn, travel.owner, travel.query.data],
+    [fixture, calendarOn, store.moments, mergedCalendar, travelOn, travel.owner, travel.query.data, intelligence.query.data],
   );
 
   // RP-3 (one hydration action): the mirror source. `engine` here is the
