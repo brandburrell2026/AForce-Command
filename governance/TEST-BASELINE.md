@@ -30,6 +30,29 @@ burn-down — PRs #750, #753, `baseline-override` label)
 > produce this result. Sections 2–4 below are preserved as the historical record of what the
 > baseline *was*; §5 is rewritten to the new standard.
 
+## 0. Active policy — the only lines the checker reads
+
+`scripts/src/check-test-baseline.mjs` reads the failure allowance from the block below and from
+**nowhere else**. Every table further down is the historical record of what the baseline *was*
+and is not read. The block must appear exactly once; a document without it, or with a missing,
+duplicated or non-integer row, fails the `tests-baseline` job **closed** — there is no fallback.
+
+<!-- test-baseline:active-policy:begin -->
+| Allowance | Value |
+|---|---|
+| **Active failure allowance — test files** | **0** |
+| **Active failure allowance — tests** | **0** |
+<!-- test-baseline:active-policy:end -->
+
+On a pull request the job reads this block from **both** the target branch's copy and the PR's
+own copy and enforces the lower value of each row: a PR can tighten the allowance, never loosen
+it, and any edit to this file still requires the reviewer-applied `baseline-override` label.
+
+> **Why this section exists (2026-09-23).** The 2026-08-12 declaration above set the ceiling to
+> zero in prose, but the checker read the §2 table — deliberately preserved as history — and its
+> fallbacks stayed at 45 / 18. For six weeks the document said zero and the gate enforced
+> eighteen. The allowance is now machine-read from this block alone.
+
 > **2026-08-05 reconciliation note:** a full canonical `npx vitest run` now reports **366 test
 > files / 4644 tests** total — up from the 255 files / 2614 tests recorded on 2026-07-22, from the
 > ordinary accumulation of Stage-2-era work (new features, new suites, this fold-in's own new
@@ -66,7 +89,7 @@ npx vitest run artifacts/aforce-os/utils artifacts/aforce-os/featureFlags artifa
 > Vitest `include` globs are **workspace-root-relative** — run from the repo root. Per-package
 > invocation silently matches nothing.
 
-## 2. Recorded baseline
+## 2. Recorded baseline — historical record, not read by the checker
 
 | Metric | 2026-07-22 recorded | 2026-08-05 reconciled |
 |---|---|---|
@@ -180,7 +203,9 @@ gone. The standard is now simply:
 
 A run is a regression if **any** holds:
 
-1. `node_modules/.bin/vitest run` reports **one or more failing tests or files**.
+1. `node_modules/.bin/vitest run` reports **one or more failing tests or files** — enforced by
+   the active-policy block in §0 (0 / 0), which `scripts/src/check-test-baseline.mjs` reads on
+   every pull request.
 2. The skip count is anything other than the **9 files / 71 tests** of the gated DB lane — a
    *growing* skip count is a regression wearing a disguise, and the DB lane's membership is an
    explicit file list in `vitest.db.config.ts` (no globs) precisely so it cannot silently grow.
