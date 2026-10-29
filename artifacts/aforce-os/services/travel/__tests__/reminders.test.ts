@@ -84,6 +84,19 @@ describe('single-owner reminder lifecycle', () => {
     expect(f.snapshot()?.state).toBe('external'); expect(f.scheduled.size).toBe(0);
     await f.controller.choose('A', 'off'); expect(f.snapshot()?.state).toBe('off');
   });
+  it('reschedules edits only after opt-in and keeps one durable journey', async () => {
+    const f = setup();
+    const original = await f.controller.changeJourney('A', { kind: 'save', input });
+    const updated = await f.controller.changeJourney('A', { kind: 'update', input: { ...input, departureTime: '15:45' } });
+    expect(updated?.createdAt).toBe(original?.createdAt);
+    expect((await f.journeys.load('A'))?.departureAt).toBe('2026-11-01T20:45:00.000Z');
+    expect(f.scheduled.size).toBe(0);
+    expect(f.native.permission).not.toHaveBeenCalled();
+    await f.controller.choose('A', 'aforce');
+    await f.controller.changeJourney('A', { kind: 'update', input: { ...input, departureTime: '16:00' } });
+    expect(f.scheduled.size).toBe(1);
+    expect(f.scheduled.get(TRAVEL_REMINDER_ID)).toBe('2026-11-01T19:00:00.000Z');
+  });
   it('cancels on completion/removal and makes the next journey usable', async () => {
     const f = setup(); await f.controller.changeJourney('A', { kind: 'save', input }); await f.controller.choose('A', 'aforce');
     await f.controller.changeJourney('A', { kind: 'finish' });

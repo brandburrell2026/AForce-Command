@@ -103,12 +103,13 @@ export function createTravelReminderController(deps: {
         await reconcile(ctx, choice === 'aforce');
       });
     },
-    changeJourney(owner: string, action: { kind: 'save'; input: DepartureInput } | { kind: 'finish' } | { kind: 'remove' }) {
+    changeJourney(owner: string, action: { kind: 'save' | 'update'; input: DepartureInput } | { kind: 'finish' } | { kind: 'remove' }) {
       const ctx = deps.context();
       return enqueue(async () => {
         requireOwner(ctx, owner);
         await deps.native.cancel(); requireOwner(ctx, owner);
         const journey = action.kind === 'save' ? await deps.journeys.save(owner, action.input)
+          : action.kind === 'update' ? await deps.journeys.update(owner, action.input)
           : action.kind === 'finish' ? await deps.journeys.finish(owner) : await deps.journeys.remove(owner);
         await reconcile(ctx);
         return journey;

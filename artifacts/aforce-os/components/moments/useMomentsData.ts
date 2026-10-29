@@ -10,6 +10,9 @@
  * they bypass the store and clock so fixtures render deterministically.
  */
 import React from 'react';
+import { useTravelJourney } from '@/hooks/useTravelJourney';
+import { travelPilotAvailable } from '@/featureFlags/flags';
+import { mergeTravelMoment } from '@/services/travel/moment';
 
 import type { Moment, MomentRecommendation } from '@/types/moments';
 import { useMomentsStore, hydrateMoments, addMoment } from '@/services/momentsStore';
@@ -45,6 +48,8 @@ export function useMomentsData(options?: {
 }): MomentsData {
   const store = useMomentsStore();
   const flags = useFeatureFlags();
+  const travelOn = flags.moments_enabled && travelPilotAvailable(flags) && !options?.fixtureMoments;
+  const travel = useTravelJourney(travelOn);
   const calendarDerived = useCalendarMoments();
   const engine = useEngineSlice();
   const userState = useUserSlice();
@@ -94,8 +99,12 @@ export function useMomentsData(options?: {
   const nowIso = options?.fixtureNowIso ?? tickIso;
   const mergedCalendar = DEMO_MODE || CAPTURE_MODE ? demoCalendarMoments : calendarDerived;
   const moments = React.useMemo(
-    () => fixture ?? (calendarOn ? [...store.moments, ...mergedCalendar] : store.moments),
-    [fixture, calendarOn, store.moments, mergedCalendar],
+    () => {
+      if (fixture) return fixture;
+      const base = calendarOn ? [...store.moments, ...mergedCalendar] : store.moments;
+      return travelOn && travel.owner ? mergeTravelMoment(base, travel.query.data) : base;
+    },
+    [fixture, calendarOn, store.moments, mergedCalendar, travelOn, travel.owner, travel.query.data],
   );
 
   // RP-3 (one hydration action): the mirror source. `engine` here is the

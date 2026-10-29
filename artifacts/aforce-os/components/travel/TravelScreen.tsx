@@ -1,4 +1,5 @@
 import React from 'react';
+import { resolveDepartureZone } from '@/services/travel/airportTimeZone';
 import { TravelReminderCard } from './TravelReminderCard';
 import { TravelClearError } from '@/services/travel/reminders';
 import { TravelFlightStatus } from './TravelFlightStatus';
@@ -32,6 +33,7 @@ export function TravelScreen() {
   const flags = useFeatureFlags();
   const { owner, query, mutation } = useTravelJourney();
   const [form, setForm] = React.useState<DepartureInput>(EMPTY);
+  const zone = React.useMemo(() => resolveDepartureZone(form.origin, form.departureDate, form.departureTime), [form.origin, form.departureDate, form.departureTime]);
   const [adding, setAdding] = React.useState(false);
   const [confirmRemove, setConfirmRemove] = React.useState(false);
   const [confirmClear, setConfirmClear] = React.useState(false);
@@ -41,6 +43,7 @@ export function TravelScreen() {
   const journey = query.data;
   const edit = async (action: Parameters<typeof mutation.mutateAsync>[0]) => {
     if (busy.current) return;
+    if ((action.kind === 'save' || action.kind === 'update') && zone.invalidLocalTime) { setActionError(zone.error); return; }
     busy.current = true;
     setActionError(null);
     try {
@@ -60,7 +63,7 @@ export function TravelScreen() {
         <Text style={styles.copy}>Your journey. Your AForce rituals. One place to prepare.</Text>
         <View style={styles.panel}>
           <Text style={styles.label}>Internal preview</Text>
-          <Text style={styles.copy}>Trips are manually entered and saved for your account on this device only. Flight status requires a connected internal pilot. Preparation reminders are optional. Flight-status alerts and TravelGate account linking are not enabled.</Text>
+          <Text style={styles.copy}>Trips are manually entered and saved for your account on this device only. Flight status requires a connected internal pilot. Preparation reminders are optional. Saving a flight also adds it to Moments on this device. Finishing or removing it removes that upcoming Moment. Flight-status alerts and TravelGate account linking are not enabled.</Text>
           {Platform.OS === 'web' ? <Text style={styles.copy}>Browser preview: this tab’s session storage is used; it is not encrypted device storage.</Text> : null}
         </View>
         {!owner ? <Text style={styles.copy}>Sign in to manage your journey.</Text> : query.isPending ? <Text style={styles.copy}>Loading your journey…</Text>
@@ -79,11 +82,13 @@ export function TravelScreen() {
                 {journey.completedAt ? <Action label="Add another flight" onPress={() => { setAdding(true); setActionError(null); }} /> : (
                   <Action label={mutation.isPending ? 'Saving…' : 'Finish journey'} disabled={mutation.isPending} onPress={() => { void edit({ kind: 'finish' }); }} />
                 )}
+                {!journey.completedAt ? <Action label="Edit flight" secondary disabled={mutation.isPending}
+                  onPress={() => { setForm(journey.details); setAdding(true); setActionError(null); }} /> : null}
                 <Action label="Remove journey" secondary disabled={mutation.isPending} onPress={() => setConfirmRemove(true)} />
               </View> : null}
               {!journey || adding ? <View style={styles.panel}>
-                <Text style={styles.label}>Add a flight</Text>
-                {FIELDS.map(field => <View key={field.key} style={styles.field}>
+                <Text style={styles.label}>{journey && !journey.completedAt ? 'Edit flight' : 'Add a flight'}</Text>
+                {FIELDS.filter(field => field.key !== 'utcOffset' || !zone.utcOffset).map(field => <View key={field.key} style={styles.field}>
                   <Text style={styles.fieldLabel}>{field.label}</Text>
                   <TextInput accessibilityLabel={field.label} accessibilityHint={field.hint} placeholder={field.placeholder}
                     placeholderTextColor="#9C978D" autoCorrect={false} autoCapitalize="characters"
@@ -92,8 +97,10 @@ export function TravelScreen() {
                     style={styles.input} testID={`travel-input-${field.key}`} />
                   {field.hint ? <Text style={styles.hint}>{field.hint}</Text> : null}
                 </View>)}
+                {zone.utcOffset ? <Text style={styles.hint}>Departure time zone: {zone.timeZone} · UTC{zone.utcOffset} (set automatically)</Text> : form.origin.length === 3 && zone.error ? <Text accessibilityRole="alert" style={styles.hint}>{zone.error}</Text> : null}
                 <Action label={mutation.isPending ? 'Saving…' : 'Save flight'} disabled={mutation.isPending}
-                  onPress={() => { void edit({ kind: 'save', input: form }); }} />
+                  onPress={() => { void edit({ kind: journey && !journey.completedAt ? 'update' : 'save', input: { ...form, utcOffset: zone.utcOffset ?? form.utcOffset } }); }} />
+                {actionError ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{actionError}</Text> : null}
                 {adding ? <Action label="Cancel" secondary disabled={mutation.isPending} onPress={() => { setAdding(false); setActionError(null); }} /> : null}
               </View> : null}
               {journey && !journey.completedAt ? <TravelFlightStatus key={journey.createdAt} journey={journey} /> : null}
@@ -116,7 +123,7 @@ export function TravelScreen() {
           <Action label="Confirm removal" disabled={mutation.isPending} onPress={() => { void edit({ kind: 'remove' }); }} />
           <Action label="Keep journey" secondary disabled={mutation.isPending} onPress={() => setConfirmRemove(false)} />
         </View> : null}
-        {actionError ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{actionError}</Text> : null}
+        {actionError && journey && !adding ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{actionError}</Text> : null}
       </AFScreen>
     </KeyboardAvoidingView>
   );

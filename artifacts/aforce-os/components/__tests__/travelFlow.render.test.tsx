@@ -33,12 +33,23 @@ vi.mock('@/services/travel/runtime', async () => {
     subscribe: () => () => {}, snapshot: () => snapshot,
     choose: async () => {},
     changeJourney: (owner: string, action: { kind: string; input: never }) => action.kind === 'save' ? journeyRepository.save(owner, action.input)
+      : action.kind === 'update' ? journeyRepository.update(owner, action.input)
       : action.kind === 'finish' ? journeyRepository.finish(owner) : journeyRepository.remove(owner),
     clear: async (owner: string) => { await journeyRepository.remove(owner); return { journey: true, preferences: true, reminders: true }; },
   } };
 });
 import TravelRoute from '../../app/travel';
 import { TravelHomeCard } from '../travel/TravelHomeCard';
+import { useMomentsData } from '../moments/useMomentsData';
+
+vi.mock('@/services/momentsStore', () => ({ useMomentsStore: () => ({ hydrated: true, moments: [] }), hydrateMoments: vi.fn(), addMoment: vi.fn() }));
+vi.mock('@/services/calendarMoments', () => ({ useCalendarMoments: () => [], refreshCalendarMoments: vi.fn() }));
+vi.mock('@/hooks/useAppStateGatedInterval', () => ({ useAppStateGatedInterval: vi.fn() }));
+vi.mock('@/store/slices', () => ({ useEngineSlice: () => ({ command: { id: 'command', action: null }, performanceState: { level: 'ready' } }), useUserSlice: () => ({ unitsConsumedToday: 0, dailyTarget: 8, complianceStreak: 0 }) }));
+function MomentsProbe() {
+  const data = useMomentsData({ fixtureNowIso: '2026-11-01T10:00:00.000Z' });
+  return <div data-testid="moments-probe">{data.surfaced.map(moment => <span key={moment.id}>{moment.title}</span>)}</div>;
+}
 
 let host: HTMLDivElement;
 let root: Root;
@@ -52,7 +63,7 @@ async function waitUI(assertion: () => void) {
   throw last;
 }
 async function render() {
-  await act(async () => { root.render(<QueryClientProvider client={client}><TravelRoute /><TravelHomeCard /></QueryClientProvider>); });
+  await act(async () => { root.render(<QueryClientProvider client={client}><TravelRoute /><TravelHomeCard /><MomentsProbe /></QueryClientProvider>); });
   await waitUI(() => expect(host.textContent).not.toContain('Loading your journey'));
 }
 function button(label: string) {
@@ -66,6 +77,7 @@ async function click(label: string) {
 async function fill() {
   for (const [key, value] of Object.entries({ flightNumber: 'AA123', origin: 'JFK', destination: 'LAX', departureDate: '2026-11-01', departureTime: '14:30', utcOffset: '-05:00' })) {
     const input = host.querySelector(`[data-testid="travel-input-${key}"]`) as HTMLInputElement;
+    if (!input) continue; // Known airports now calculate the UTC offset automatically.
     await act(async () => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, value);
       input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -84,10 +96,13 @@ afterEach(async () => { await act(async () => root.unmount()); client.clear(); h
 
 describe('internal Travel journey', () => {
   it('saves, reopens, finishes and removes a flight, with truthful provenance', async () => {
-    await render(); await fill(); await click('Save flight');
+    await render(); await fill();
+    expect(host.textContent).toContain('set automatically');
+    await click('Save flight');
     await waitUI(() => expect(host.textContent).toContain('Your journey'));
     expect(host.textContent).toContain('JFK → LAX');
     expect(host.textContent).toContain('UTC-05:00');
+    await waitUI(() => expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('JFK → LAX · AA123'));
     expect(host.textContent).toContain('Manually entered itinerary');
     expect(host.querySelector('[data-testid="travel-home-card"]')).not.toBeNull();
     await click('Open hydration'); await click('Open Moments');
@@ -96,9 +111,31 @@ describe('internal Travel journey', () => {
     await act(async () => { client.removeQueries({ queryKey: ['travel-journey-v1'] }); });
     await render();
     await waitUI(() => expect(host.textContent).toContain('JFK → LAX'));
+    await click('Edit flight');
+    const departureTime = host.querySelector('[data-testid="travel-input-departureTime"]') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(departureTime, '15:45');
+      departureTime.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await click('Save flight');
+    await waitUI(() => expect(host.textContent).toContain('15:45'));
+    expect(host.querySelector('[data-testid="moments-probe"]')?.children).toHaveLength(1);
     await click('Finish journey');
     await waitUI(() => expect(host.textContent).toContain('Journey finished'));
-    expect(host.querySelector('[data-testid="travel-home-card"]')).toBeNull();
+    const homeCard = host.querySelector('[data-testid="travel-home-card"]') as HTMLElement;
+    expect(homeCard).not.toBeNull();
+    expect(homeCard.textContent).toContain('Journey finished · open to add another flight');
+    expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('');
+    await act(async () => { homeCard.click(); });
+    expect(state.pushes.at(-1)).toBe('/travel');
+    // The completed trip remains reopenable after the query cache is discarded.
+    await act(async () => { client.removeQueries({ queryKey: ['travel-journey-v1'] }); });
+    await render();
+    await waitUI(() => expect(host.textContent).toContain('Journey finished'));
+    expect(host.querySelector('[data-testid="travel-home-card"]')).not.toBeNull();
+    await click('Add another flight');
+    expect(host.textContent).toContain('Save flight');
+    await click('Cancel');
     await click('Remove journey'); await click('Confirm removal');
     await waitUI(() => expect(host.textContent).toContain('Save flight'));
     expect(state.values.size).toBe(0);
@@ -107,6 +144,7 @@ describe('internal Travel journey', () => {
     await render(); await fill(); await click('Save flight');
     await waitUI(() => expect(host.textContent).toContain('JFK → LAX'));
     state.owner = 'account_B'; await render();
+    expect(host.querySelector('[data-testid="moments-probe"]')?.textContent).toBe('');
     expect(host.textContent).not.toContain('JFK → LAX');
     expect((host.querySelector('[data-testid="travel-input-flightNumber"]') as HTMLInputElement).value).toBe('');
     expect(host.textContent).toContain('Save flight');
