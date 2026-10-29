@@ -14,5 +14,14 @@ export function travelMoment(journey: TravelJourney | null | undefined): Moment 
 }
 export function mergeTravelMoment(moments: readonly Moment[], journey: TravelJourney | null | undefined): Moment[] {
   const linked = travelMoment(journey);
-  return [...moments.filter(moment => moment.id !== TRAVEL_MOMENT_ID), ...(linked ? [linked] : [])];
+  // Hide only the explicit manual "Flight to DEST" for the same departure.
+  // This is a display merge, never deletion or mutation of the saved Moment.
+  const duplicate = (moment: Moment) => !!journey && moment.source === 'manual' && moment.type === 'travel'
+    && Date.parse(moment.startAtIso) === Date.parse(journey.departureAt)
+    && moment.title.trim().replace(/\s+/g, ' ').toUpperCase() === `FLIGHT TO ${journey.details.destination}`;
+  const matching = moments.find(duplicate);
+  return [
+    ...moments.filter(moment => moment.id !== TRAVEL_MOMENT_ID && !duplicate(moment)),
+    ...(linked ? [{ ...linked, ...(matching?.preparedAtIso ? { preparedAtIso: matching.preparedAtIso } : {}) }] : []),
+  ];
 }

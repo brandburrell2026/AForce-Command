@@ -30,6 +30,7 @@
  * so it is a decision, not drift.
  */
 import React from 'react';
+import { TravelMomentsEntry } from '@/components/travel/TravelHomeCard';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
@@ -111,6 +112,7 @@ export function EditorialMomentsScreen({
             ) : null}
           </View>
           <EdRule />
+          {!fixtureMoments ? <TravelMomentsEntry /> : null}
 
           {!data.hydrated ? (
             /* Until the store answers, "no moments" is not something we know. */
