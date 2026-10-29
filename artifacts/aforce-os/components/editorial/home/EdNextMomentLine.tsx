@@ -27,7 +27,10 @@ import { useEdInk } from '../core';
 export function EdNextMomentLine({
   fixtureMoments,
   fixtureNowIso,
+  contextOnly = false,
 }: {
+  /** Focused Home owns the single command below; this lane carries context only. */
+  contextOnly?: boolean;
   /** Gallery-only deterministic override (the momentsFixture idiom). */
   fixtureMoments?: import('@/types/moments').Moment[];
   fixtureNowIso?: string;
@@ -85,7 +88,7 @@ export function EdNextMomentLine({
           testID="editorial-moments-all-today"
         >
           <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-            {t('moments.all_today').toUpperCase()}
+            {contextOnly ? 'THREE-DAY PLAN' : t('moments.all_today').toUpperCase()}
           </Text>
         </Pressable>
       </View>
@@ -104,7 +107,7 @@ export function EdNextMomentLine({
           </Text>
           {/* RP-3: the action mirrors the canonical command; no command →
               context only. Clock in the AA red when the window is live. */}
-          {action ? (
+          {action && !contextOnly ? (
             <Text style={[edType.micro as TextStyle, { color: ink.quiet, flexShrink: 1 }]}>
               {t(action.labelKey, action.labelParams).toUpperCase()}
             </Text>
@@ -116,13 +119,13 @@ export function EdNextMomentLine({
         <Text style={[edType.micro as TextStyle, { color: active ? edPositive : ink.quiet, marginTop: 6 }]}>
           {t('moments.prep_window')} {prepWindowLabel(rec)}
         </Text>
-        {action?.bestBeforeIso ? (
+        {action?.bestBeforeIso && !contextOnly ? (
           <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
             {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
           </Text>
         ) : null}
       </Pressable>
-      <View style={styles.underRow}>
+      {!contextOnly ? <View style={styles.underRow}>
         <Pressable
           onPress={() => setWhyOpen(true)}
           accessibilityRole="button"
@@ -136,7 +139,7 @@ export function EdNextMomentLine({
             </Text>
           </View>
         </Pressable>
-      </View>
+      </View> : null}
       <WhyThisSheet rec={rec} visible={whyOpen} onClose={() => setWhyOpen(false)} />
     </View>
   );

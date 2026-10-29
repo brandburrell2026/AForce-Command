@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { fetchTravelFlightStatus } from '../flightStatus';
 import { travelStatusPresentation } from '@/utils/travel/statusPresentation';
+// Accept both Expo-native and DOM fetch overloads in the test-only mock.
 const request = { flightNumber: 'AA123', departureDate: '2026-11-01', origin: 'JFK', destination: 'LAX' };
 const observation = () => ({
   version: 1 as const, availability: 'available' as const, provider: 'flightaware' as const, fetchedAt: new Date().toISOString(),
@@ -10,14 +11,14 @@ const options = () => ({ request, apiBase: 'https://aforce.example.test/api', ge
 
 describe('mobile flight status boundary', () => {
   it('sends the user session only to AForce and transmits no health or account-link data', async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(Response.json(observation()));
+    const fetch = vi.fn<(input: unknown, init?: unknown) => Promise<Response>>().mockResolvedValue(Response.json(observation()));
     await fetchTravelFlightStatus({ ...options(), fetch });
     expect(fetch).toHaveBeenCalledWith('https://aforce.example.test/api/travel/flight-status', expect.objectContaining({
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer synthetic-user-session' }, body: JSON.stringify(request),
     }));
   });
   it('does not fetch without a session or after an account-switch abort', async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>();
+    const fetch = vi.fn<(input: unknown, init?: unknown) => Promise<Response>>();
     await expect(fetchTravelFlightStatus({ ...options(), getToken: async () => null, fetch })).rejects.toMatchObject({ reason: 'unauthorized' });
     const controller = new AbortController(); controller.abort();
     await expect(fetchTravelFlightStatus({ ...options(), signal: controller.signal, fetch })).rejects.toMatchObject({ reason: 'cancelled' });
@@ -25,7 +26,7 @@ describe('mobile flight status boundary', () => {
   });
   it('ends a hung token lookup promptly when the request is aborted', async () => {
     const controller = new AbortController();
-    const fetch = vi.fn<typeof globalThis.fetch>();
+    const fetch = vi.fn<(input: unknown, init?: unknown) => Promise<Response>>();
     const pending = fetchTravelFlightStatus({ ...options(), getToken: () => new Promise(() => {}), signal: controller.signal, fetch });
     controller.abort();
     await expect(pending).rejects.toMatchObject({ reason: 'cancelled' });

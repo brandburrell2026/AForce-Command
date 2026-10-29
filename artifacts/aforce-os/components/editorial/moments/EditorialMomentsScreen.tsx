@@ -44,6 +44,8 @@ import {
   prepWindowLabel,
   windowPosture,
 } from '@/components/moments/momentsPresentation';
+import { useTabBarClearance } from '@/hooks/useTabBarClearance';
+import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
 import { useFeatureFlags } from '@/store/useAppStore';
 import type { Moment, MomentRecommendation } from '@/types/moments';
 import { af } from '@/theme';
@@ -61,11 +63,15 @@ import { returnLabel, spineStateFor } from './editorialMomentsPresentation';
 export function EditorialMomentsScreen({
   fixtureMoments,
   fixtureNowIso,
+  tabRoot = false,
 }: {
+  tabRoot?: boolean;
   fixtureMoments?: Moment[];
   fixtureNowIso?: string;
 }) {
   const { t } = useTranslation();
+  const momentsFirst = useMomentsFirstExperience();
+  const tabClearance = useTabBarClearance();
   const router = useRouter();
   const data = useMomentsData({ fixtureMoments, fixtureNowIso });
   const calendarOn = useFeatureFlags().moments_calendar_enabled;
@@ -89,13 +95,13 @@ export function EditorialMomentsScreen({
 
   return (
     <EdSurface stock="black" style={styles.fill}>
-      <AFScreen scroll contentContainerStyle={styles.scrollContent}>
+      <AFScreen scroll contentContainerStyle={[styles.scrollContent, tabRoot && { paddingBottom: tabClearance }]}>
         <Animated.View style={settle}>
           {/* Black Issue (2026-10-06): the wordmark masthead heads the day;
               the return idiom + calendar entry sit on the row beneath it. */}
           <AFMasthead testID="editorial-moments-masthead" />
           <View style={styles.headRow}>
-            <EdReturn now={now} fallback="/" />
+            {!tabRoot ? <EdReturn now={now} fallback="/" /> : null}
             {calendarOn ? (
               <Pressable
                 onPress={() => router.push('/calendar-settings')}
@@ -112,6 +118,14 @@ export function EditorialMomentsScreen({
             ) : null}
           </View>
           <EdRule />
+          {momentsFirst ? <View style={styles.headRow}>
+            <Pressable onPress={() => router.push('/one-breath')} accessibilityRole="button" style={styles.headAction}>
+              <Text style={[edType.confirm as TextStyle, { color: af.redText }]}>+ Plan a moment</Text>
+            </Pressable>
+            <Pressable onPress={() => router.push('/moments-plan')} accessibilityRole="button" style={styles.headAction}>
+              <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>PREPARE MY DAY →</Text>
+            </Pressable>
+          </View> : null}
           {!fixtureMoments ? <TravelMomentsEntry /> : null}
 
           {!data.hydrated ? (

@@ -49,6 +49,7 @@ const EXPECTED_ROUTE_FILES = [
   'journal.tsx',
   'profile.tsx',
   'protocol.tsx',
+  'moments-tab.tsx',
   'scan.tsx',
   'sleep.tsx',
   'social-legacy.tsx',

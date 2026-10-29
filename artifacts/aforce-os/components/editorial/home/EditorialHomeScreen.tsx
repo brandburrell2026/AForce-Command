@@ -131,7 +131,9 @@ interface HomeActions {
 
 export function EditorialHomeScreen({
   momentsFixture,
+  focused = false,
 }: {
+  focused?: boolean;
   /** Gallery-only deterministic override (the momentsFixture idiom). */
   momentsFixture?: { moments: import('@/types/moments').Moment[]; nowIso: string };
 } = {}) {
@@ -278,12 +280,24 @@ export function EditorialHomeScreen({
               breadcrumb={`${t('tabs.home')} / ${t('home.v2.readiness_label')}`}
               testID="editorial-masthead"
             />
+            {focused ? (
+              <View style={styles.focusIntro}>
+                <Text style={[edType.caption as TextStyle, { color: af.redText }]}>YOUR DAY, WITH INTENTION</Text>
+                <Text accessibilityRole="header" style={styles.focusTitle}>Your day. Your pace.</Text>
+                {momentsOn ? <EdNextMomentLine contextOnly fixtureMoments={momentsFixture?.moments} fixtureNowIso={momentsFixture?.nowIso} /> : null}
+                <AFPrimaryButton label="Plan a moment" onPress={() => router.push('/one-breath')} trailingIcon="plus" testID="home-plan-moment" />
+                <Pressable onPress={() => router.push('/moments')} accessibilityRole="button" style={styles.focusLink}>
+                  <Text style={styles.focusLinkText}>Your living plan →</Text>
+                </Pressable>
+              </View>
+            ) : null}
             <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
 
             {!isHydrated ? (
               <HomeSkeleton signals="row3" />
             ) : (
               <>
+                {focused ? <Text style={[edType.caption as TextStyle, { color: af.redText, marginTop: 20 }]}>HYDROSTATE / TODAY</Text> : null}
                 {/* Hero — exactly one of three, never a blend (Wave 5). */}
                 {evidence === 'pending' ? (
                   <View style={styles.heroSlot}>
@@ -291,7 +305,7 @@ export function EditorialHomeScreen({
                   </View>
                 ) : evidence === 'building' ? (
                   <View style={styles.heroSlot} testID="editorial-baseline-hero">
-                    <EdStatement accessibilityRole="header">{t('home.v2.baseline_title')}</EdStatement>
+                    <EdStatement style={focused ? styles.compactState : undefined} accessibilityRole="header">{t('home.v2.baseline_title')}</EdStatement>
                     <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 10 }]}>
                       {t('home.v2.baseline_body')}
                     </Text>
@@ -300,7 +314,7 @@ export function EditorialHomeScreen({
                   <View style={styles.heroSlot}>
                     {/* The statement is the screen's header: the canonical band
                         token in sentence case (D4). */}
-                    <EdStateWord word={engine.performanceState.level} variant="statement" accessibilityRole="header" style={styles.stateWord} />
+                    <EdStateWord word={engine.performanceState.level} variant="statement" accessibilityRole="header" style={focused ? { ...styles.stateWord, ...styles.compactState } : styles.stateWord} />
                     <Pressable
                       onPress={() => router.push('/weekly-report')}
                       accessibilityRole="button"
@@ -319,7 +333,7 @@ export function EditorialHomeScreen({
                       >
                         <Text
                           maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
-                          style={[edType.numberCover as TextStyle, styles.coverNumber, { color: ink.primary }]}
+                          style={[edType.numberCover as TextStyle, styles.coverNumber, focused && styles.compactNumber, { color: ink.primary }]}
                         >
                           {score}
                         </Text>
@@ -418,7 +432,7 @@ export function EditorialHomeScreen({
 
                 {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
 
-                {momentsOn ? (
+                {momentsOn && !focused ? (
                   <View style={styles.momentsSection}>
                     <EdNextMomentLine
                       fixtureMoments={momentsFixture?.moments}
@@ -427,6 +441,13 @@ export function EditorialHomeScreen({
                   </View>
                 ) : null}
 
+                {focused ? (
+                  <View style={styles.focusUtilities}>
+                    <Pressable onPress={() => router.push('/journal')} accessibilityRole="button" style={styles.focusLink}><Text style={styles.focusLinkText}>Hydration & daily progress →</Text></Pressable>
+                    <Pressable onPress={() => router.push('/protocol')} accessibilityRole="button" style={styles.focusLink}><Text style={styles.focusLinkText}>Your protocol →</Text></Pressable>
+                    {flags.advanced_visual_intelligence_enabled ? <Pressable onPress={() => router.push('/skinia')} accessibilityRole="button" style={styles.focusLink}><Text style={styles.focusLinkText}>Skin intelligence →</Text></Pressable> : null}
+                  </View>
+                ) : null}
                 {/* Social Mode indicator — a live or stale open session is a fact
                     about the member's state; shown with an End-the-night control
                     so a demo tap can never silently steer the command (2026-10-06). */}
@@ -469,6 +490,13 @@ export function EditorialHomeScreen({
 }
 
 const styles = StyleSheet.create({
+  focusIntro: { gap: 16, marginTop: 12, marginBottom: 12 },
+  focusTitle: { color: af.textPrimary, fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 40, letterSpacing: -0.8 },
+  compactState: { fontSize: 26, lineHeight: 32 },
+  compactNumber: { fontSize: 64, lineHeight: 72 },
+  focusLink: { minHeight: 44, justifyContent: 'center' },
+  focusLinkText: { color: af.textSecondary, fontFamily: 'Inter_500Medium', fontSize: 15 },
+  focusUtilities: { marginTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: af.divider },
   root: { flex: 1, backgroundColor: edStock.black },
   fill: { flex: 1 },
   heroSlot: {
