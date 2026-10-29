@@ -1,3 +1,4 @@
+import { af } from '@/theme/afTokens';
 import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -31,10 +32,10 @@ function AccountTravelHomeCard() {
   );
 }
 const styles = StyleSheet.create({
-  card: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#44413B', paddingVertical: 22, gap: 8, marginVertical: 20, minHeight: 48 },
-  eyebrow: { fontFamily: 'Inter_600SemiBold', color: '#B7B1A5', fontSize: 10, letterSpacing: 1.4 },
-  title: { fontFamily: 'Inter_700Bold', color: '#EDEAE3', fontSize: 25 },
-  body: { fontFamily: 'Inter_400Regular', color: '#B7B1A5', fontSize: 13, lineHeight: 20 },
+  card: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: af.divider, paddingVertical: 22, gap: 8, marginVertical: 20, minHeight: 48 },
+  eyebrow: { fontFamily: 'Inter_600SemiBold', color: af.textSecondary, fontSize: 10, letterSpacing: 1.4 },
+  title: { fontFamily: 'Inter_700Bold', color: af.textPrimary, fontSize: 25 },
+  body: { fontFamily: 'Inter_400Regular', color: af.textSecondary, fontSize: 13, lineHeight: 20 },
 });
 
 /** Moments remains the entry for adding/editing flights even with no upcoming trip. */
@@ -44,7 +45,7 @@ export function TravelMomentsEntry() {
   const router = useRouter();
   if (!flags.moments_enabled || !travelPilotAvailable(flags) || !isSignedIn || !userId) return null;
   return <Pressable accessibilityRole="button" accessibilityLabel="Add or manage a flight"
-    testID="travel-moments-entry" onPress={() => router.push('/travel' as never)} style={styles.card}>
+    testID="travel-moments-entry" onPress={() => router.push('/travel-intelligence' as never)} style={styles.card}>
     <Text style={styles.body}>Add or manage a flight →</Text>
   </Pressable>;
 }

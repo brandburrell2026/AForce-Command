@@ -1,3 +1,6 @@
+import { Alert } from "react-native";
+import { useTravelIntelligence } from "@/hooks/useTravelIntelligence";
+import { markTravelPrepared } from "@/services/travel/intelligence";
 /**
  * /moment/[id] — the flagship Moment Detail / Ritual screen (Phase 1).
  * Deep-linkable per-moment; flag-gated: `moments_enabled` OFF in production
@@ -6,23 +9,24 @@
  * Editorial OS "Performance Story" composition renders instead;
  * `MomentDetailScreen` remains the live flag-OFF rollback branch.
  */
-import { TRAVEL_MOMENT_ID } from '@/services/travel/moment';
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { TRAVEL_MOMENT_ID } from "@/services/travel/moment";
+import { Redirect, useLocalSearchParams } from "expo-router";
 
-import { AFScreen } from '@/components/ui';
-import { EditorialMomentDetailScreen } from '@/components/editorial/moments/EditorialMomentDetailScreen';
-import { MomentDetailScreen } from '@/components/moments/MomentDetailScreen';
+import { AFScreen } from "@/components/ui";
+import { EditorialMomentDetailScreen } from "@/components/editorial/moments/EditorialMomentDetailScreen";
+import { MomentDetailScreen } from "@/components/moments/MomentDetailScreen";
 import { MomentRitualSkeleton } from '@/components/moments/MomentsSkeleton';
-import { useMomentsData } from '@/components/moments/useMomentsData';
-import { useAppStore } from '@/store/useAppStore';
+import { useMomentsData } from "@/components/moments/useMomentsData";
+import { useAppStore } from "@/store/useAppStore";
 
 export default function MomentDetailRoute() {
   const flags = useAppStore().state.featureFlags;
   const { id } = useLocalSearchParams<{ id?: string }>();
   const data = useMomentsData();
+  const travel = useTravelIntelligence(flags.moments_enabled);
   if (!flags.moments_enabled) return <Redirect href="/" />;
   if (id === TRAVEL_MOMENT_ID) return <Redirect href="/travel" />;
-  const moment = typeof id === 'string' ? data.momentById(id) : undefined;
+  const moment = typeof id === "string" ? data.momentById(id) : undefined;
   if (!moment) {
     // Await hydration before deciding the id is unknown. `return null` painted
     // a genuinely blank screen for the length of that wait — on a deep link
@@ -38,9 +42,37 @@ export default function MomentDetailRoute() {
     return <Redirect href="/moments" />;
   }
   const rec = data.recFor(moment);
+  const onPrepared = moment.id.startsWith("travel2:")
+    ? () => {
+        void (async () => {
+          try {
+            await travel.save(
+              markTravelPrepared(travel.current().trips, moment.id),
+            );
+          } catch (error) {
+            Alert.alert(
+              "Travel update",
+              error instanceof Error
+                ? error.message
+                : "Could not save preparation.",
+            );
+          }
+        })();
+      }
+    : undefined;
   return flags.editorial_moments_enabled ? (
-    <EditorialMomentDetailScreen moment={moment} rec={rec} nowIso={data.nowIso} />
+    <EditorialMomentDetailScreen
+      moment={moment}
+      rec={rec}
+      nowIso={data.nowIso}
+      onPrepared={onPrepared}
+    />
   ) : (
-    <MomentDetailScreen moment={moment} rec={rec} nowIso={data.nowIso} />
+    <MomentDetailScreen
+      moment={moment}
+      rec={rec}
+      nowIso={data.nowIso}
+      onPrepared={onPrepared}
+    />
   );
 }

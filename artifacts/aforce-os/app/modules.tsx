@@ -1,3 +1,4 @@
+import { af } from '@/theme/afTokens';
 /**
  * Modules — INTERNAL evaluation launcher (developer-gated).
  *
@@ -52,7 +53,7 @@ const MODULES: ModuleEntry[] = [
   {
     id: 'travel', title: 'Travel',
     blurb: 'Your journey and AForce rituals · powered by TravelGate',
-    href: '/travel', icon: 'compass', tint: '#E4E0D8',
+    href: '/travel', icon: 'compass', tint: af.textPrimary,
     gate: 'Internal pilot · travel_mode_enabled',
   },
   {

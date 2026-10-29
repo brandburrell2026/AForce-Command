@@ -1,3 +1,4 @@
+import { startTravelMonitor } from './lib/travel/monitor';
 import { createServer } from "node:http";
 import { serializeError } from "./lib/serializeError";
 import { db } from "@workspace/db";
@@ -36,6 +37,7 @@ if (Number.isNaN(port) || port <= 0) {
 const server = createServer(app);
 attachAforceHub(server);
 
+const stopTravelMonitor=startTravelMonitor();
 server.listen(port, () => {
   logger.info({ port }, "Server listening");
   // Fire-and-forget — initStripe handles its own errors and falls back
@@ -121,6 +123,7 @@ process.on("uncaughtException", (err) => {
 // in-flight requests finish; a 20s deadline force-exits a wedged drain.
 process.on("SIGTERM", () => {
   logger.info("SIGTERM received — draining");
+  stopTravelMonitor();
   beginDrain();
   server.close(() => {
     logger.info("drained; exiting");

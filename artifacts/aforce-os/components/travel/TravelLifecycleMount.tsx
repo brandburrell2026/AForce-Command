@@ -1,3 +1,4 @@
+import { TravelIntelligenceLifecycle } from './TravelIntelligenceLifecycle';
 import React from 'react';
 import { AppState } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -9,7 +10,7 @@ import { travelRuntime } from '@/services/travel/runtime';
 import { observeTravelReminderTaps } from '@/services/travel/reminderNative';
 
 /** Root host: the OS scheduler must track sign-out even when Travel is closed. */
-export function TravelLifecycleMount(): null {
+export function TravelLifecycleMount() {
   const flags = useFeatureFlags();
   const enabled = travelPilotAvailable(flags);
   const router = useRouter();
@@ -22,7 +23,7 @@ export function TravelLifecycleMount(): null {
       const owner = identity.status === 'AUTHENTICATED' ? identity.userId : null;
       const predicate = (query: { queryKey: readonly unknown[] }) => {
         const key = query.queryKey;
-        return (key[0] === 'travel-journey-v1' || key[0] === 'travel-flight-status-v1') && key[1] !== owner;
+        return (key[0] === 'travel-journey-v1' || key[0] === 'travel-flight-status-v1' || key[0] === 'travel-intelligence-v2') && key[1] !== owner;
       };
       await queryClient.cancelQueries({ predicate });
       if (getScopeState() === identity) queryClient.removeQueries({ predicate });
@@ -49,5 +50,5 @@ export function TravelLifecycleMount(): null {
     }).then(unsubscribe => { if (stopped) unsubscribe(); else remove = unsubscribe; }).catch(() => {});
     return () => { stopped = true; remove?.(); };
   }, [enabled, router]);
-  return null;
+  return <TravelIntelligenceLifecycle enabled={enabled} />;
 }

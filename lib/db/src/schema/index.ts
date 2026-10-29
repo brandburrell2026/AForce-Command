@@ -7,3 +7,5 @@ export * from "./circleInvitations";
 export * from "./circleSharing";
 export * from "./concierge";
 export * from "./spatialStudio";
+
+export * from "./travel";

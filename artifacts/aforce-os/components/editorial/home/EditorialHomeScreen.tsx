@@ -491,11 +491,11 @@ export function EditorialHomeScreen({
 
 const styles = StyleSheet.create({
   focusIntro: { gap: 16, marginTop: 12, marginBottom: 12 },
-  focusTitle: { color: af.textPrimary, fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 40, letterSpacing: -0.8 },
-  compactState: { fontSize: 26, lineHeight: 32 },
-  compactNumber: { fontSize: 64, lineHeight: 72 },
+  focusTitle: { ...edType.homeFocusTitle, color: af.textPrimary },
+  compactState: { ...edType.homeCompactState },
+  compactNumber: { ...edType.homeCompactNumber },
   focusLink: { minHeight: 44, justifyContent: 'center' },
-  focusLinkText: { color: af.textSecondary, fontFamily: 'Inter_500Medium', fontSize: 15 },
+  focusLinkText: { ...edType.homeFocusLink, color: af.textSecondary },
   focusUtilities: { marginTop: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: af.divider },
   root: { flex: 1, backgroundColor: edStock.black },
   fill: { flex: 1 },

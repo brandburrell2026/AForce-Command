@@ -1,3 +1,4 @@
+import { af } from '@/theme/afTokens';
 import React from 'react';
 import { resolveDepartureZone } from '@/services/travel/airportTimeZone';
 import { TravelReminderCard } from './TravelReminderCard';
@@ -60,10 +61,11 @@ export function TravelScreen() {
         <Action label="Back" secondary onPress={() => router.canGoBack() ? router.back() : router.replace('/')} />
         <Text style={styles.eyebrow}>TRAVEL · POWERED BY TRAVELGATE</Text>
         <Text style={styles.heading}>Arrive ready.</Text>
+        <Action label="Travel Intelligence · trips, connections and arrival" onPress={() => router.push('/travel-intelligence' as never)} />
         <Text style={styles.copy}>Your journey. Your AForce rituals. One place to prepare.</Text>
         <View style={styles.panel}>
           <Text style={styles.label}>Internal preview</Text>
-          <Text style={styles.copy}>Trips are manually entered and saved for your account on this device only. Flight status requires a connected internal pilot. Preparation reminders are optional. Saving a flight also adds it to Moments on this device. Finishing or removing it removes that upcoming Moment. Flight-status alerts and TravelGate account linking are not enabled.</Text>
+          <Text style={styles.copy}>Trips are manually entered and saved for your account on this device only. Flight status requires a connected internal pilot. Preparation reminders are optional. Saving a flight also adds it to Moments on this device. Finishing or removing it removes that upcoming Moment. Open Travel Intelligence to manage connected trips, cloud sync, account linking and optional alerts.</Text>
           {Platform.OS === 'web' ? <Text style={styles.copy}>Browser preview: this tab’s session storage is used; it is not encrypted device storage.</Text> : null}
         </View>
         {!owner ? <Text style={styles.copy}>Sign in to manage your journey.</Text> : query.isPending ? <Text style={styles.copy}>Loading your journey…</Text>
@@ -91,7 +93,7 @@ export function TravelScreen() {
                 {FIELDS.filter(field => field.key !== 'utcOffset' || !zone.utcOffset).map(field => <View key={field.key} style={styles.field}>
                   <Text style={styles.fieldLabel}>{field.label}</Text>
                   <TextInput accessibilityLabel={field.label} accessibilityHint={field.hint} placeholder={field.placeholder}
-                    placeholderTextColor="#9C978D" autoCorrect={false} autoCapitalize="characters"
+                    placeholderTextColor={af.textTertiary} autoCorrect={false} autoCapitalize="characters"
                     maxLength={field.key === 'origin' || field.key === 'destination' ? 3 : field.key === 'departureDate' ? 10 : 12}
                     editable={!mutation.isPending} value={form[field.key]} onChangeText={value => setForm(previous => ({ ...previous, [field.key]: value }))}
                     style={styles.input} testID={`travel-input-${field.key}`} />
@@ -130,20 +132,20 @@ export function TravelScreen() {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { color: '#B7B1A5', fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5, marginTop: 32 },
-  heading: { color: '#EDEAE3', fontFamily: 'Inter_700Bold', fontSize: 44, letterSpacing: -1.7, marginTop: 12, marginBottom: 16 },
-  copy: { color: '#B7B1A5', fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23 },
-  panel: { borderTopWidth: 1, borderColor: '#44413B', paddingVertical: 22, marginTop: 22, gap: 14 },
-  label: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 19 },
-  route: { color: '#EDEAE3', fontFamily: 'Inter_700Bold', fontSize: 34 },
+  eyebrow: { color: af.textSecondary, fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.5, marginTop: 32 },
+  heading: { color: af.textPrimary, fontFamily: 'Inter_700Bold', fontSize: 44, letterSpacing: -1.7, marginTop: 12, marginBottom: 16 },
+  copy: { color: af.textSecondary, fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 23 },
+  panel: { borderTopWidth: 1, borderColor: af.divider, paddingVertical: 22, marginTop: 22, gap: 14 },
+  label: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 19 },
+  route: { color: af.textPrimary, fontFamily: 'Inter_700Bold', fontSize: 34 },
   field: { gap: 8 },
-  fieldLabel: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  hint: { color: '#B7B1A5', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
-  input: { color: '#EDEAE3', fontFamily: 'Inter_400Regular', fontSize: 17, minHeight: 52, padding: 14, borderColor: '#686257', borderWidth: 1, borderRadius: 4, backgroundColor: '#161512' },
-  button: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 18, backgroundColor: '#E4E0D8', borderWidth: 1, borderColor: '#E4E0D8', alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
-  secondary: { backgroundColor: 'transparent', borderColor: '#686257' },
-  buttonText: { color: '#1A1815', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  secondaryText: { color: '#EDEAE3' },
+  fieldLabel: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  hint: { color: af.textSecondary, fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 18 },
+  input: { color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 17, minHeight: 52, padding: 14, borderColor: af.textTertiary, borderWidth: 1, borderRadius: 4, backgroundColor: af.surface },
+  button: { minHeight: 48, paddingVertical: 14, paddingHorizontal: 18, backgroundColor: af.textPrimary, borderWidth: 1, borderColor: af.textPrimary, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
+  secondary: { backgroundColor: 'transparent', borderColor: af.textTertiary },
+  buttonText: { color: af.canvas, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  secondaryText: { color: af.textPrimary },
   disabled: { opacity: 0.5 },
-  error: { color: '#FFC2B8', fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, marginTop: 16 },
+  error: { color: af.redText, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, marginTop: 16 },
 });

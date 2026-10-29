@@ -1,3 +1,4 @@
+import { af } from '@/theme/afTokens';
 import React from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '@clerk/expo';
@@ -71,11 +72,11 @@ export function TravelFlightStatus({ journey }: { journey: TravelJourney }) {
   </View>;
 }
 const styles = StyleSheet.create({
-  panel: { borderTopWidth: 1, borderColor: '#44413B', paddingVertical: 22, marginTop: 22, gap: 14 },
-  label: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 19 },
-  title: { color: '#EDEAE3', fontFamily: 'Inter_700Bold', fontSize: 27 },
-  copy: { color: '#B7B1A5', fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
-  warning: { color: '#FFD6A0', fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 22 },
-  button: { borderWidth: 1, borderColor: '#686257', minHeight: 48, padding: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
-  buttonText: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  panel: { borderTopWidth: 1, borderColor: af.divider, paddingVertical: 22, marginTop: 22, gap: 14 },
+  label: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 19 },
+  title: { color: af.textPrimary, fontFamily: 'Inter_700Bold', fontSize: 27 },
+  copy: { color: af.textSecondary, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
+  warning: { color: af.amber, fontFamily: 'Inter_600SemiBold', fontSize: 14, lineHeight: 22 },
+  button: { borderWidth: 1, borderColor: af.textTertiary, minHeight: 48, padding: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
+  buttonText: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
 });

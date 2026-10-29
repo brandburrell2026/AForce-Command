@@ -381,6 +381,8 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     // legacy screens remain the flag-OFF branches, locked by
     // editorialMomentsLaw.test.ts.
     'app/moments.tsx',
+    // Founder-approved Moments-first tab (2026-10-28); same private flag seam as /moments.
+    'app/(tabs)/moments-tab.tsx',
     join('app', 'moment', '[id].tsx'),
     // E4 (founder decisions 2026-08-30): the Protocol route's three-way seam.
     // ProtocolScreenV2 and ProtocolScreenLegacy both remain rollback branches.

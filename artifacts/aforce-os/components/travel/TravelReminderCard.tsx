@@ -1,3 +1,4 @@
+import { af } from '@/theme/afTokens';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { travelRuntime } from '@/services/travel/runtime';
@@ -47,10 +48,10 @@ export function TravelReminderCard({ owner, onClear, disabled = false }: { owner
   </View>;
 }
 const styles = StyleSheet.create({
-  panel: { borderTopWidth: 1, borderColor: '#44413B', paddingVertical: 22, marginTop: 22, gap: 14 },
-  title: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 19 },
-  copy: { color: '#B7B1A5', fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
-  button: { borderWidth: 1, borderColor: '#686257', minHeight: 48, padding: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
-  buttonText: { color: '#EDEAE3', fontFamily: 'Inter_600SemiBold', fontSize: 14 },
-  error: { color: '#FFC2B8', fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
+  panel: { borderTopWidth: 1, borderColor: af.divider, paddingVertical: 22, marginTop: 22, gap: 14 },
+  title: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 19 },
+  copy: { color: af.textSecondary, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
+  button: { borderWidth: 1, borderColor: af.textTertiary, minHeight: 48, padding: 14, alignItems: 'center', justifyContent: 'center', borderRadius: 4 },
+  buttonText: { color: af.textPrimary, fontFamily: 'Inter_600SemiBold', fontSize: 14 },
+  error: { color: af.redText, fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22 },
 });

@@ -38,7 +38,7 @@ let prevEnv: Record<string, string | undefined> = {};
 
 const okReply = JSON.stringify({
   kind: "answer",
-  answer: "You are 40 oz into a 96 oz day; the engine's next move is 16 oz of water.",
+  answer: "You are 40 oz into a 96 oz day; your next move is 16 oz of water.",
   nextStep: "Drink 16 oz water now.",
   why: null,
   action: { type: "log_hydration", fluidType: "water", oz: 16, label: "Log 16 oz water" },

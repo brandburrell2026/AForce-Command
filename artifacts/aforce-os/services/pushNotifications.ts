@@ -56,12 +56,21 @@ export async function ensureForegroundHandler(): Promise<void> {
   const Notif = await loadNotifications();
   if (!Notif) return;
   Notif.setNotificationHandler({
-    handleNotification: async () => ({
+    handleNotification: async notification => {
+      const data=notification.request.content.data;
+      if(data?.kind==='travel.status.v2'||data?.kind==='travel.preparation.v2'){
+        const {getScopeState}=await import('@/services/userScope');const identity=getScopeState();
+        const Crypto=await import('expo-crypto');
+        const allowed=identity.status==='AUTHENTICATED'&&data.ownerHash===await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256,identity.userId);
+        if(!allowed)return {shouldShowBanner:false,shouldShowList:false,shouldPlaySound:false,shouldSetBadge:false};
+      }
+      return ({
       shouldShowBanner: true,
       shouldShowList: true,
       shouldPlaySound: false,
       shouldSetBadge: false,
-    }),
+    });
+    },
   });
   handlerConfigured = true;
 }
