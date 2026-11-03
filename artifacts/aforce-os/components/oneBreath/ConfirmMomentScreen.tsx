@@ -9,6 +9,8 @@ import { addMoment, hydrateMoments, useMomentsStore } from '@/services/momentsSt
 import { captureScope, isScopeCurrent } from '@/services/scopedWriteQueue';
 import { getScopeState } from '@/services/userScope';
 import { createConfirmedMoment, validateMomentDraft, type MomentDraft } from '@/services/momentDraft';
+import { useOneBreathVoice } from '@/hooks/useOneBreathVoice';
+import { suggestMomentDraft } from '@/services/oneBreathDraft';
 import type { MomentType } from '@/types/moments';
 
 const TYPES: MomentType[] = ['work', 'training', 'travel', 'recovery', 'personal', 'performance'];
@@ -21,6 +23,7 @@ export function ConfirmMomentScreen() {
   const [text, setText] = React.useState('');
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
   const [error, setError] = React.useState('');
+  const voice = useOneBreathVoice(setText);
   const [saved, setSaved] = React.useState(false);
   const confirming = React.useRef(false);
   React.useEffect(() => { if (!store.hydrated) void hydrateMoments(); }, [store.hydrated]);
@@ -46,9 +49,9 @@ export function ConfirmMomentScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 36 }]} keyboardShouldPersistTaps="handled">
       <View style={styles.header}>
         <Text style={styles.brand}>AFORCE</Text>
-        <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.touch}><Text style={styles.quiet}>Close</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => { voice.cancel(); router.back(); }} style={styles.touch}><Text style={styles.quiet}>Close</Text></Pressable>
       </View>
-      <Text style={styles.eyebrow}>ONE BREATH / TYPE MODE</Text>
+      <Text style={styles.eyebrow}>ONE BREATH / {voice.listening ? 'LISTENING' : 'YOUR NEXT MOMENT'}</Text>
       <Text accessibilityRole="header" style={styles.title}>{saved ? 'Your moment.\nIn your plan.' : draft ? 'Make it yours.' : 'One moment.\nOne clear plan.'}</Text>
       {saved ? (
         <>
@@ -58,7 +61,7 @@ export function ConfirmMomentScreen() {
         </>
       ) : draft ? (
         <>
-          <Text style={styles.body}>Review every field. Nothing is saved until you confirm.</Text>
+          <Text style={styles.body}>Review every field. Suggested dates and times use this device’s time zone. Missing or ambiguous details stay blank. Nothing is saved until you confirm.</Text>
           <Field label="Moment name" value={draft.title} onChangeText={(v) => update('title', v)} maxLength={160} />
           <View style={styles.pills}>{[0, 1, 2].map((offset) => {
             const date = new Date(); date.setDate(date.getDate() + offset);
@@ -85,10 +88,16 @@ export function ConfirmMomentScreen() {
         </>
       ) : (
         <>
-          <Text style={styles.body}>Write what’s coming up. Then choose its date and time, review, and confirm.</Text>
-          <TextInput accessibilityLabel="Describe your moment" placeholder="Dinner with the team. I want to arrive relaxed." placeholderTextColor={af.textTertiary} multiline value={text} onChangeText={setText} maxLength={160} style={[styles.input, styles.draft]} />
-          <Text style={styles.quiet}>Local draft · No microphone recording</Text>
-          <AFPrimaryButton label="Review my moment" disabled={!text.trim()} onPress={() => setDraft({ title: text.trim(), date: '', time: '', type: 'personal', prepGoal: '' })} testID="review-moment-draft" />
+          <Text style={styles.body}>Speak or type what’s coming up. Review the words, date, and time before you confirm.</Text>
+          {voice.available ? <>
+            <Text style={styles.quiet}>Voice uses on-device English transcription. Audio is not saved or sent to AForce. Tap to start; tap again to stop.</Text>
+            <AFSecondaryButton label={voice.busy ? (voice.listening ? 'Stop listening' : 'Finish voice capture') : 'Speak a moment'} onPress={voice.busy ? voice.stop : () => { void voice.start(); }} />
+            {voice.busy ? <AFSecondaryButton label="Cancel voice capture" onPress={voice.cancel} /> : null}
+          </> : <Text style={styles.quiet}>Type mode is ready. Voice requires supported on-device recognition on iPhone.</Text>}
+          {voice.error ? <Text accessibilityRole="alert" style={styles.error}>{voice.error}</Text> : null}
+          <TextInput editable={!voice.busy} accessibilityLabel="Describe your moment" placeholder="Dinner with the team. I want to arrive relaxed." placeholderTextColor={af.textTertiary} multiline value={text} onChangeText={setText} maxLength={160} style={[styles.input, styles.draft]} />
+          <Text style={styles.quiet}>Local draft · Nothing saved until you confirm</Text>
+          <AFPrimaryButton label="Review my moment" disabled={!text.trim() || voice.busy} onPress={() => { voice.cancel(); setDraft(suggestMomentDraft(text)); }} testID="review-moment-draft" />
           <AFSecondaryButton label="Add a flight" onPress={() => router.push('/travel')} />
         </>
       )}
