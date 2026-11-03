@@ -15,9 +15,9 @@ var LEGAL = {
   website: "https://www.joinaforce.com",
   investorPortal: "https://invest.drinkaforce.com",
   email: {
-    legal: "legal@drinkaforce.com",
-    support: "support@drinkaforce.com",
-    investors: "investors@drinkaforce.com"
+    legal: "info@alkalineforce.com",
+    support: "info@alkalineforce.com",
+    investors: "info@alkalineforce.com"
   },
   version: "0.1 (Draft)",
   prepared: "July 7, 2026",
