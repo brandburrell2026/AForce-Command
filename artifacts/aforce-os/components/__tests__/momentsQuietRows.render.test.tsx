@@ -37,6 +37,9 @@ describe('internal Moments quiet rows', () => {
   it('moves the single brief past completed and already prepared rows', () => {
     h.moments[0].startAtIso = '2026-11-02T07:00:00Z'; h.moments[1].preparedAtIso = '2026-11-02T11:00:00Z'; render();
     expect(row('0').getAttribute('aria-label')).not.toContain('Canonical preparation action');
+    expect(row('1').textContent).toContain('MOMENTS.STAGE_DONE');
+    expect(row('1').getAttribute('aria-label')).toContain('moments.stage_done');
+    expect(row('1').getAttribute('aria-label')).not.toContain('moments.do_this');
     expect(row('2').getAttribute('aria-label')).toContain('Canonical preparation action');
     expect(host.textContent!.split('Canonical preparation action')).toHaveLength(2);
   });

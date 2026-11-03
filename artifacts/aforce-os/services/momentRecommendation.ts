@@ -253,10 +253,10 @@ export function surfaceableMoments(moments: readonly Moment[], nowIso: string): 
     .sort((a, b) => Date.parse(a.startAtIso) - Date.parse(b.startAtIso));
 }
 
-/** The single NEXT moment for the Home card: first not-yet-started. */
+/** The single NEXT moment for Home: first unfinished, not-yet-started. */
 export function nextMoment(moments: readonly Moment[], nowIso: string): Moment | null {
   const nowMs = Date.parse(nowIso);
   return (
-    surfaceableMoments(moments, nowIso).find((m) => Date.parse(m.startAtIso) > nowMs) ?? null
+    surfaceableMoments(moments, nowIso).find((m) => !m.preparedAtIso && Date.parse(m.startAtIso) > nowMs) ?? null
   );
 }

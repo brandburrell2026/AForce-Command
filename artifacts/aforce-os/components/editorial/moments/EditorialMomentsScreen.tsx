@@ -273,7 +273,7 @@ function SpineMoment({
   const ink = edInkFor('black');
   const [whyOpen, setWhyOpen] = React.useState(false);
   const posture = windowPosture(rec, moment.startAtIso, nowIso);
-  const state = spineStateFor(posture);
+  const state = moment.preparedAtIso ? 'done' : spineStateFor(posture);
   const live = state === 'live';
   const title = moment.masked ? t('moments.private_event') : moment.title;
   const action = rec.primaryAction;
