@@ -129,11 +129,18 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only — never attendees, notes, or attachments. You choose which calendars.",
+          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only \u2014 never attendees, notes, or attachments. You choose which calendars.",
           "remindersPermission": "AForce does not use Reminders. This text exists only because the calendar module requires the entry; reminders access is never requested."
         }
       ],
-      "react-native-health-connect"
+      "react-native-health-connect",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "AForce uses your microphone when you choose Speak a moment. Audio is transcribed on this device and is not saved.",
+          "speechRecognitionPermission": "AForce turns your spoken moment into an editable draft. Nothing is added to your plan until you confirm."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -145,7 +152,7 @@
       }
     },
     "owner": "brandburrell2026",
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.0.0-one-breath-1",
     "updates": {
       "url": "https://u.expo.dev/c30ebfdb-7cce-475f-98f8-8ff14e58f5b3"
     }
