@@ -159,6 +159,14 @@ describe('surfacing', () => {
   it('nextMoment is the first not-yet-started', () => {
     expect(nextMoment(set, NOW)?.id).toBe('next');
   });
+
+  it('advances Home past a prepared future Moment while retaining it in the planner', () => {
+    const prepared = set.map((m) => m.id === 'next' ? { ...m, preparedAtIso: NOW } : m);
+    expect(nextMoment(prepared, NOW)?.id).toBe('later');
+    expect(surfaceableMoments(prepared, NOW).map((m) => m.id)).toContain('next');
+    expect(set.find((m) => m.id === 'next')?.preparedAtIso).toBeUndefined();
+    expect(nextMoment(prepared.map((m) => ({ ...m, preparedAtIso: NOW })), NOW)).toBeNull();
+  });
 });
 
 describe('presentation', () => {
