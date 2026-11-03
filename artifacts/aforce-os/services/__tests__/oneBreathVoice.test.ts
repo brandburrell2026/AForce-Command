@@ -38,6 +38,23 @@ describe('One Breath native capture lifecycle', () => {
     let pending!: Promise<void>; act(() => { pending = voice.start(); }); act(() => voice.stop());
     await act(async () => { resolve({ granted: true }); await pending; }); expect(h.start).not.toHaveBeenCalled();
   });
+  it('keeps a partial draft on interruption, ignores later results, and permits a fresh capture after end', async () => {
+    await act(async () => voice.start());
+    act(() => h.events.result!({ results: [{ transcript: 'Team meeting' }] }));
+    act(() => h.events.error!({ error: 'interrupted' }));
+    expect(voice.busy).toBe(false); expect(voice.error).toContain('Review');
+    act(() => h.events.result!({ results: [{ transcript: 'late result' }] }));
+    expect(transcript).toHaveBeenCalledTimes(1);
+    await act(async () => voice.start()); expect(h.start).toHaveBeenCalledTimes(1);
+    act(() => h.events.end!()); await act(async () => voice.start()); expect(h.start).toHaveBeenCalledTimes(2);
+  });
+  it('does not capture after permission resolves on a different account', async () => {
+    let resolve!: (value: any) => void; h.permission.mockImplementation(() => new Promise((r) => { resolve = r; }));
+    let pending!: Promise<void>; act(() => { pending = voice.start(); });
+    h.current = false; act(() => h.scope!());
+    await act(async () => { resolve({ granted: true }); await pending; });
+    expect(h.start).not.toHaveBeenCalled(); expect(transcript).not.toHaveBeenCalled();
+  });
   it('aborts on background/account changes and ignores late transcripts', async () => {
     await act(async () => voice.start()); act(() => h.app!('background'));
     act(() => h.events.result!({ results: [{ transcript: 'late' }] })); expect(transcript).not.toHaveBeenCalled();

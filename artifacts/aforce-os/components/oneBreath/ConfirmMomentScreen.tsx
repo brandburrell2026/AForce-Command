@@ -62,6 +62,7 @@ export function ConfirmMomentScreen() {
       ) : draft ? (
         <>
           <Text style={styles.body}>Review every field. Suggested dates and times use this device’s time zone. Missing or ambiguous details stay blank. Nothing is saved until you confirm.</Text>
+          <Text style={styles.quiet}>Your words: {text}</Text>
           <Field label="Moment name" value={draft.title} onChangeText={(v) => update('title', v)} maxLength={160} />
           <View style={styles.pills}>{[0, 1, 2].map((offset) => {
             const date = new Date(); date.setDate(date.getDate() + offset);

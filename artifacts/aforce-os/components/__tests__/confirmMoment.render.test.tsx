@@ -36,6 +36,8 @@ describe('Moment draft → review → explicit confirmation', () => {
   it('reviews a transcribed draft, permits correction, and creates exactly one Moment', () => {
     act(() => harness.transcribe!('Dinner tomorrow at 7 PM'));
     expect(harness.add).not.toHaveBeenCalled(); click('Review my moment');
+    expect(host.textContent).toContain('Your words: Dinner tomorrow at 7 PM');
+    expect((host.querySelector('[aria-label="Moment name"]') as HTMLInputElement).value).toBe('Dinner');
     expect(harness.add).not.toHaveBeenCalled();
     expect((host.querySelector('[aria-label="Time · HH:mm"]') as HTMLInputElement).value).toBe('19:00');
     field('Moment name', 'One Breath test'); field('Date · YYYY-MM-DD', '2027-01-08');

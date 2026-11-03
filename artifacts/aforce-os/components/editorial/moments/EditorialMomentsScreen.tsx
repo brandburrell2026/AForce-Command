@@ -93,6 +93,12 @@ export function EditorialMomentsScreen({
       .filter((m) => Date.parse(m.startAtIso) > nowMs).length;
   }, [calendarDays, data.nowIso]);
 
+  // The internal planner gives the next unfinished upcoming Moment the one brief,
+  // even when an earlier row belongs to a completed event.
+  const priorityMomentId = momentsFirst
+    ? calendarDays.flatMap((day) => day.moments).find((moment) => !moment.preparedAtIso && Date.parse(moment.startAtIso) > Date.parse(data.nowIso))?.id
+    : undefined;
+
   return (
     <EdSurface stock="black" style={styles.fill}>
       <AFScreen scroll contentContainerStyle={[styles.scrollContent, tabRoot && { paddingBottom: tabClearance }]}>
@@ -188,9 +194,10 @@ export function EditorialMomentsScreen({
                       moment={moment}
                       rec={data.recFor(moment)}
                       nowIso={data.nowIso}
-                      /* The first real upcoming Moment keeps the full brief;
-                         every subsequent row remains quiet. */
-                      priority={dayIndex === 0 && momentIndex === 0}
+                      /* The internal planner keeps one brief on the next unfinished Moment;
+                         public layout retains its established priority row. */
+                      priority={momentsFirst ? moment.id === priorityMomentId : dayIndex === 0 && momentIndex === 0}
+                      quietRows={momentsFirst}
                     />
                   ))}
                 </View>
@@ -253,11 +260,13 @@ function SpineMoment({
   rec,
   nowIso,
   priority,
+  quietRows = false,
 }: {
   moment: Moment;
   rec: MomentRecommendation;
   nowIso: string;
   priority: boolean;
+  quietRows?: boolean;
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -276,7 +285,7 @@ function SpineMoment({
   // Trailing meta: a done row says DONE (a word, not a tint); other rows show
   // the guarded action label or the state word.
   const actionPreview = (
-    state === 'done' ? stateWord : action ? t(action.labelKey, action.labelParams) : stateWord
+    state === 'done' ? stateWord : quietRows ? '' : action ? t(action.labelKey, action.labelParams) : stateWord
   ).toUpperCase();
   // The Pressable groups its children, so the composed label IS the whole
   // spoken row: time, title, state, window, and — on the priority row — the
@@ -290,7 +299,7 @@ function SpineMoment({
     // (no eligible command / a blocked mirror dropped), speaking the
     // imperative alone with nothing following it is a dangling command.
     // Mirror the visible composition: silent exactly when the action is.
-    priority ? (action ? stateWord : '') : stateWord,
+    quietRows ? (state === 'done' ? stateWord : priority && action ? stateWord : '') : priority ? (action ? stateWord : '') : stateWord,
     prepText,
     priority && action ? t(action.labelKey, action.labelParams) : '',
     priority && action?.bestBeforeIso
@@ -335,9 +344,9 @@ function SpineMoment({
           >
             {title}
           </Text>
-          <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? af.redText : ink.quiet, flexShrink: 1 }]}>
+          {actionPreview ? <Text style={[edType.micro as TextStyle, styles.rowAction, { color: live ? af.redText : ink.quiet, flexShrink: 1 }]}>
             {actionPreview}
-          </Text>
+          </Text> : null}
         </View>
         <Text style={[edType.micro as TextStyle, styles.rowWindow, { color: live ? af.redText : ink.quiet }]}>
           {prepText}
