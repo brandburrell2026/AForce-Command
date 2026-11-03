@@ -12,6 +12,7 @@ import { createConfirmedMoment, validateMomentDraft, type MomentDraft } from '@/
 import { useOneBreathVoice } from '@/hooks/useOneBreathVoice';
 import { suggestMomentDraft } from '@/services/oneBreathDraft';
 import type { MomentType } from '@/types/moments';
+import { MOMENT_NOTIFY_QUIET_START_HOUR, MOMENT_NOTIFY_QUIET_END_HOUR, MOMENT_NOTIFY_MAX_PER_DAY, MOMENT_NOTIFY_MIN_GAP_MIN } from '@/config/hydroStateModel';
 
 const TYPES: MomentType[] = ['work', 'training', 'travel', 'recovery', 'personal', 'performance'];
 
@@ -25,6 +26,7 @@ export function ConfirmMomentScreen() {
   const [error, setError] = React.useState('');
   const voice = useOneBreathVoice(setText);
   const [saved, setSaved] = React.useState(false);
+  const [helpOpen, setHelpOpen] = React.useState(false);
   const confirming = React.useRef(false);
   React.useEffect(() => { if (!store.hydrated) void hydrateMoments(); }, [store.hydrated]);
 
@@ -53,6 +55,19 @@ export function ConfirmMomentScreen() {
       </View>
       <Text style={styles.eyebrow}>ONE BREATH / {voice.listening ? 'LISTENING' : 'YOUR NEXT MOMENT'}</Text>
       <Text accessibilityRole="header" style={styles.title}>{saved ? 'Your moment.\nIn your plan.' : draft ? 'Make it yours.' : 'One moment.\nOne clear plan.'}</Text>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: helpOpen }} aria-expanded={helpOpen} onPress={() => setHelpOpen((open) => !open)} style={styles.touch}>
+        <Text style={styles.quiet}>{helpOpen ? 'Hide One Breath help' : 'Help with One Breath'}</Text>
+      </Pressable>
+      {helpOpen ? <View style={styles.delta}>
+        <Text accessibilityRole="header" style={styles.body}>Speak or type</Text>
+        <Text style={styles.quiet}>Voice requires supported on-device English recognition on iPhone. You can always type. AForce does not save or receive the audio.</Text>
+        <Text accessibilityRole="header" style={styles.body}>Review before saving</Text>
+        <Text style={styles.quiet}>Correct the suggested name, date, time, and kind of moment. Dates and times use this device’s time zone. Ambiguous details stay blank. Only Confirm plan saves a Moment on this device. Closing a draft saves nothing.</Text>
+        <Text accessibilityRole="header" style={styles.body}>Preparation reminders</Text>
+        <Text style={styles.quiet}>Your reminder preferences and notification permission apply. Quiet hours run from {MOMENT_NOTIFY_QUIET_START_HOUR}:00 to {String(MOMENT_NOTIFY_QUIET_END_HOUR).padStart(2, '0')}:00 local time. Reminders during quiet hours are skipped. Moments reminders are limited to {MOMENT_NOTIFY_MAX_PER_DAY} per day, at least {MOMENT_NOTIFY_MIN_GAP_MIN} minutes apart.</Text>
+        <Text accessibilityRole="header" style={styles.body}>Marking preparation ready</Text>
+        <Text style={styles.quiet}>Completion records that your preparation is ready. The Moment stays in your plan as Done and Home moves to the next unfinished Moment. Completion does not log water or change HydroState.</Text>
+      </View> : null}
       {saved ? (
         <>
           <Text style={styles.body}>{draft?.title} is now in Moments on this device. Preparation appears when AForce has an eligible action.</Text>

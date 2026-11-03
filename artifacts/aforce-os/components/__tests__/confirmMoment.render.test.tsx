@@ -33,6 +33,21 @@ beforeEach(() => {
 afterEach(() => { act(() => root.unmount()); host.remove(); });
 function review() { field('Describe your moment', 'Dinner with team'); click('Review my moment'); }
 describe('Moment draft → review → explicit confirmation', () => {
+  it('opens and closes help without writing a Moment or losing the draft', () => {
+    field('Describe your moment', 'Team dinner tomorrow at 7 PM');
+    click('Help with One Breath');
+    expect(button('Hide One Breath help').getAttribute('aria-expanded')).toBe('true');
+    expect(host.textContent).toContain('22:00 to 07:00 local time');
+    expect(host.textContent).toContain('Completion does not log water or change HydroState');
+    expect(harness.add).not.toHaveBeenCalled();
+    click('Hide One Breath help');
+    expect(host.textContent).not.toContain('Marking preparation ready');
+    expect((host.querySelector('[aria-label="Describe your moment"]') as HTMLInputElement).value).toBe('Team dinner tomorrow at 7 PM');
+    click('Review my moment');
+    click('Help with One Breath');
+    expect(host.textContent).toContain('Review before saving');
+    expect(harness.add).not.toHaveBeenCalled();
+  });
   it('reviews a transcribed draft, permits correction, and creates exactly one Moment', () => {
     act(() => harness.transcribe!('Dinner tomorrow at 7 PM'));
     expect(harness.add).not.toHaveBeenCalled(); click('Review my moment');
