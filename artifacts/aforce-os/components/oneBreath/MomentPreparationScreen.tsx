@@ -59,6 +59,8 @@ import {
   alcoholDisclosure,
   configuredMomentSafetyPolicy,
   withAlcoholContext,
+  matchesMomentSafetyConsent,
+  type MomentSafetyConsent,
 } from "@/services/momentSafetyContext";
 import { stopSpeaking } from "@/services/textToSpeech";
 
@@ -120,6 +122,13 @@ export function MomentPreparationScreen({
   const [occurringNow, setOccurringNow] = React.useState(false);
   const [changes, setChanges] = React.useState("");
   const [alcoholMentioned, setAlcoholMentioned] = React.useState(false);
+  const [safetyConsent, setSafetyConsent] =
+    React.useState<MomentSafetyConsent | null>(null);
+  const safetyPolicy = configuredMomentSafetyPolicy();
+  const retainContext = matchesMomentSafetyConsent(safetyPolicy, safetyConsent);
+  const attemptedConsent = React.useRef<MomentSafetyConsent | null>(null);
+  const consentRef = React.useRef(safetyConsent);
+  consentRef.current = safetyConsent;
   const [saving, setSaving] = React.useState(false);
   const [holding, setHolding] = React.useState(false);
   const [resumed, setResumed] = React.useState(false);
@@ -185,6 +194,11 @@ export function MomentPreparationScreen({
   const reviewStillCurrent = (moment: Moment): boolean => {
     const live = liveInputs.current;
     return (
+      (!moment.safetyContext ||
+        matchesMomentSafetyConsent(
+          configuredMomentSafetyPolicy(),
+          safetyConsent,
+        )) &&
       (!calendarOrigin.current ||
         calendarOrigin.current.key ===
           preparationContextKey(
@@ -460,12 +474,6 @@ export function MomentPreparationScreen({
       return;
     }
     const policy = configuredMomentSafetyPolicy();
-    if (disclosed && !policy) {
-      setError(
-        "Private context settings are not configured for this internal build. You can still open a ride app or contact someone.",
-      );
-      return;
-    }
     if (calendarOrigin.current) {
       const origin = sharedMoments.surfaced.find(
         (m) => m.id === calendarOrigin.current!.id,
@@ -497,7 +505,14 @@ export function MomentPreparationScreen({
         },
       };
     }
-    if (disclosed && policy) moment = withAlcoholContext(moment, policy);
+    if (
+      disclosed &&
+      policy &&
+      matchesMomentSafetyConsent(policy, safetyConsent)
+    ) {
+      moment = withAlcoholContext(moment, policy, safetyConsent);
+      attemptedConsent.current = safetyConsent;
+    } else moment = { ...moment, safetyContext: undefined };
     const updated = {
       ...moment,
       title: draft.title.trim(),
@@ -704,35 +719,120 @@ export function MomentPreparationScreen({
       !saved?.preparation ||
       !!saved.preparation.returnedAtIso ||
       !alcoholMentioned ||
+      !retainContext ||
+      attemptedConsent.current === safetyConsent ||
       activeAlcoholContext(saved) ||
       !allowed()
     )
       return;
     const policy = configuredMomentSafetyPolicy();
-    if (!policy) {
-      setError(
-        "Private context settings are not configured. Keep this screen open for safety options.",
-      );
-      return;
-    }
+    if (!policy || !matchesMomentSafetyConsent(policy, safetyConsent)) return;
     const token = captureScope();
     let stale = false;
+    attemptedConsent.current = safetyConsent;
     void commitReviewedMoment(
       {
-        ...withAlcoholContext(saved, policy),
+        ...withAlcoholContext(saved, policy, safetyConsent),
         preparation: { ...saved.preparation, transactionId: transaction() },
       },
       saved,
-    ).catch(() => {
-      if (!stale && isScopeCurrent(token))
-        setError(
-          "Could not retain this context after a restart. Keep this screen open for safety options.",
-        );
-    });
+    )
+      .then(async (result) => {
+        // Withdrawal while an acknowledged write was in flight queues a clear;
+        // optimistic concurrency cannot overwrite a later Return or plan edit.
+        if (
+          isScopeCurrent(token) &&
+          !matchesMomentSafetyConsent(
+            configuredMomentSafetyPolicy(),
+            consentRef.current,
+          )
+        ) {
+          await commitReviewedMoment(
+            {
+              ...result,
+              safetyContext: undefined,
+              preparation: {
+                ...result.preparation!,
+                transactionId: transaction(),
+              },
+            },
+            result,
+          );
+        }
+      })
+      .catch(() => {
+        if (!stale && isScopeCurrent(token))
+          setError(
+            "Could not retain this context after a restart. Keep this screen open for safety options.",
+          );
+      });
     return () => {
       stale = true;
     };
-  }, [saved, alcoholMentioned]);
+  }, [saved, alcoholMentioned, retainContext, safetyConsent]);
+  const clearPrivateContext = () => {
+    consentRef.current = null;
+    setSafetyConsent(null);
+    setAlcoholMentioned(true);
+    if (saved?.preparation && saved.safetyContext) {
+      void commit(
+        {
+          ...saved,
+          safetyContext: undefined,
+          preparation: { ...saved.preparation, transactionId: transaction() },
+        },
+        saved,
+        screen,
+      );
+    }
+  };
+  const contextControl =
+    alcoholMentioned || activeAlcoholContext(current) ? (
+      <View style={s.row}>
+        {safetyPolicy ? (
+          <>
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityLabel={`I am at least ${safetyPolicy.minimumAge} and want to retain this private context for ${safetyPolicy.retentionHours} ${safetyPolicy.retentionHours === 1 ? "hour" : "hours"}`}
+              accessibilityState={{ checked: retainContext, disabled: saving }}
+              aria-checked={retainContext}
+              aria-disabled={saving}
+              disabled={saving}
+              onPress={() => {
+                if (retainContext) clearPrivateContext();
+                else {
+                  consentRef.current = { ...safetyPolicy };
+                  setSafetyConsent(consentRef.current);
+                }
+              }}
+              style={s.button}
+            >
+              <Text style={s.buttonText}>
+                {retainContext ? "✓ " : ""}I am at least{" "}
+                {safetyPolicy.minimumAge} and want to retain this private
+                context for {safetyPolicy.retentionHours}{" "}
+                {safetyPolicy.retentionHours === 1 ? "hour" : "hours"}.
+              </Text>
+            </Pressable>
+            <Text style={s.muted}>
+              Region: {safetyPolicy.region}. This is a self-confirmation, not
+              identity verification.
+            </Text>
+          </>
+        ) : null}
+        {activeAlcoholContext(saved)
+          ? button("Clear private context", clearPrivateContext)
+          : null}
+        <Text style={s.muted}>
+          {retainContext
+            ? "Private context expires automatically and clears when you return."
+            : activeAlcoholContext(saved)
+              ? "Previously confirmed private context remains until expiry or Return. You can clear it now."
+              : "Without confirmation, alcohol context is not retained after this session. You can still save your plan and use safety options now."}{" "}
+          Expiry never means you are able to drive.
+        </Text>
+      </View>
+    ) : null;
   return (
     <View
       style={[s.root, screen === "quiet" && { backgroundColor: T.midnight }]}
@@ -1104,6 +1204,7 @@ export function MomentPreparationScreen({
                 <Text style={s.muted}>Your plan stays private.</Text>
               </>
             ) : null}
+            {contextControl}
             {button("Continue", makePlan, true)}
             {button("Edit my words", () => move("capture"))}
           </>
@@ -1145,6 +1246,13 @@ export function MomentPreparationScreen({
               <Text style={s.body}>
                 Heading back · {method} ·{" "}
                 {destination || "Choose in your ride app"}
+              </Text>
+            ) : null}
+            {alcoholMentioned ? (
+              <Text style={s.muted}>
+                {current?.safetyContext
+                  ? "Private context retained under your age and retention confirmation."
+                  : "Alcohol context will not be retained after this session."}
               </Text>
             ) : null}
             {button("Review & seal", () => move("seal"), true)}
@@ -1325,6 +1433,7 @@ export function MomentPreparationScreen({
                 {button("Back to Quiet", () => move("quiet"))}
               </>
             )}
+            {contextControl}
             {button(`Emergency? ${emergency}`, () => {
               void open(`tel:${emergency}`);
             })}
