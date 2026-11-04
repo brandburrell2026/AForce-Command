@@ -15,7 +15,7 @@ import { useOneBreathVoice } from '../../hooks/useOneBreathVoice.native';
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 let root: Root; let host: HTMLDivElement; let voice: ReturnType<typeof useOneBreathVoice>; const transcript = vi.fn();
 function Harness() { voice = useOneBreathVoice(transcript); return null; }
-beforeEach(() => { vi.useFakeTimers(); h.current = true; h.supported = true; h.events = {}; vi.clearAllMocks(); h.permission.mockResolvedValue({ granted: true }); host = document.createElement('div'); root = createRoot(host); act(() => root.render(React.createElement(Harness))); });
+beforeEach(() => { transcript.mockReset(); vi.useFakeTimers(); h.current = true; h.supported = true; h.events = {}; vi.clearAllMocks(); h.permission.mockResolvedValue({ granted: true }); host = document.createElement('div'); root = createRoot(host); act(() => root.render(React.createElement(Harness))); });
 afterEach(() => { act(() => root.unmount()); vi.useRealTimers(); });
 describe('One Breath native capture lifecycle', () => {
   it('starts only on request, transcribes locally without persisting audio, and stops after 30 seconds', async () => {
@@ -65,4 +65,17 @@ describe('One Breath native capture lifecycle', () => {
 
 it('ignores late transcripts after a member cancels voice to type, including permission wait',async()=>{
  await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Voice draft'}]}));expect(transcript).toHaveBeenCalledWith('Voice draft');act(()=>voice.cancel());act(()=>h.events.result!({results:[{transcript:'Late overwrite'}]}));expect(transcript).toHaveBeenCalledTimes(1);expect(voice.busy).toBe(false);expect(h.abort).toHaveBeenCalledOnce();act(()=>h.events.end!());let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>voice.cancel());await act(async()=>{resolve({granted:true});await pending;});expect(h.start).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenCalledTimes(1);
+});
+
+it('keeps existing words through empty recognition and failure, then accepts a fresh successful capture',async()=>{
+ let draft='Typed team dinner';transcript.mockImplementation((text:string)=>{draft=text;});
+ await act(async()=>voice.start());
+ for(const results of [[],[{transcript:''}],[{transcript:'   '}]] as const)act(()=>h.events.result!({results}));
+ expect(draft).toBe('Typed team dinner');expect(transcript).not.toHaveBeenCalled();
+ act(()=>h.events.error!({error:'no-speech'}));expect(draft).toBe('Typed team dinner');expect(voice.busy).toBe(false);expect(voice.error).toContain('Review');
+ act(()=>h.events.end!());await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Dinner with Julius'}]}));expect(draft).toBe('Dinner with Julius');
+ act(()=>h.events.result!({results:[{transcript:'\n  '}]}));expect(draft).toBe('Dinner with Julius');
+});
+it('does not erase a valid partial transcript with an empty final result',async()=>{
+ await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Pool party tomorrow'}]}));act(()=>h.events.result!({isFinal:true,results:[]}));act(()=>h.events.end!());expect(transcript).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenLastCalledWith('Pool party tomorrow');expect(voice.busy).toBe(false);
 });

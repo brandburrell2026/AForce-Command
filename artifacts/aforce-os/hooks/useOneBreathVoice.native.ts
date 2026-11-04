@@ -29,7 +29,12 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
     const valid = () => active.current && mounted.current && isScopeCurrent(token.current) && getScopeState().status === 'AUTHENTICATED';
     const subscriptions = [
       speech.addListener('start', () => { if (valid()) setListening(true); else cancel(); }),
-      speech.addListener('result', (event) => { if (valid()) callback.current((event.results[0]?.transcript ?? '').slice(0, 160)); }),
+      speech.addListener('result', (event) => {
+        if (!valid()) return;
+        const text = (event.results[0]?.transcript ?? '').slice(0, 160);
+        // An empty interim/final result is not a request to erase a draft.
+        if (text.trim()) callback.current(text);
+      }),
       speech.addListener('error', (event) => {
         if (!valid()) return;
         setError(event.error === 'not-allowed' ? 'Microphone access is off. You can type your moment instead.' : 'Voice capture stopped. Review the words below or type your moment.');
