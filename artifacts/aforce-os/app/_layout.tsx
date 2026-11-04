@@ -1,3 +1,4 @@
+import { useLaunchPhase, type LaunchPhase } from '@/hooks/useLaunchPhase';
 import '../polyfills';
 import { useMomentsStore } from '@/services/momentsStore';
 import { useQuietDeliveryBlocked } from '@/services/quietDelivery';
@@ -396,6 +397,11 @@ function WelcomeMount({
   phase: LaunchPhase;
   onEntered: () => void;
 }) {
+  const quiet = useQuietDeliveryBlocked();
+  const { hydrated: momentsHydrated } = useMomentsStore();
+  React.useEffect(() => {
+    if (quiet && momentsHydrated && phase !== 'done') onEntered();
+  }, [quiet, momentsHydrated, phase, onEntered]);
   const onGetStarted = React.useCallback(() => {
     router.replace('/onboarding' as never);
     onEntered();
@@ -405,7 +411,7 @@ function WelcomeMount({
     onEntered();
   }, [onEntered]);
 
-  if (phase === 'done') return null;
+  if (phase === 'done' || quiet) return null;
   return (
     <WelcomeHero
       active={phase === 'welcome'}
@@ -421,7 +427,6 @@ function WelcomeMount({
  * user picks an entry the front door dismisses (`done`) and the downstream
  * voice overlays are allowed to mount.
  */
-type LaunchPhase = 'opening' | 'welcome' | 'done';
 
 function AppShell() {
   // Cold-launch front-door state machine: opening → welcome → done. The
@@ -429,11 +434,7 @@ function AppShell() {
   // top-most overlays never stack on a cold launch. CAPTURE_MODE (dev-only
   // screenshot bypass) starts at 'done' so the cinematic + Welcome Hero
   // overlays never cover the surface being captured.
-  const [phase, setPhase] = React.useState<LaunchPhase>(CAPTURE_MODE ? 'done' : 'opening');
-  // Cinematic finished → crossfade into the Welcome Hero.
-  const handleOpeningDone = React.useCallback(() => setPhase('welcome'), []);
-  // User picked an entry → dismiss the hero, ungate downstream overlays.
-  const handleEntered = React.useCallback(() => setPhase('done'), []);
+  const { phase, handleOpeningDone, handleEntered } = useLaunchPhase(CAPTURE_MODE);
   const openingDone = phase === 'done';
   return (
     <SafeAreaProvider>

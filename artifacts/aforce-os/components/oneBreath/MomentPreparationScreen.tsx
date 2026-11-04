@@ -1662,7 +1662,7 @@ export function MomentPreparationScreen({
               </Text>
             </Pressable>
             <Text style={s.body}>
-              Adds 1 Moment · {steps.length} preparation steps.
+              {saved ? "Updates" : "Adds"} 1 Moment · {steps.length} preparation steps.
             </Text>
             {current?.preparation?.nextMoment && next ? (
               <Text style={s.body}>
