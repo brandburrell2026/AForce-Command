@@ -16,6 +16,7 @@
  */
 
 import { withoutExpiredSafetyContext } from './momentSafetyContext';
+import { preparationTransitionAllowed } from './momentPreparationLifecycle';
 import { scopedStorage } from './scopedStorage';
 import { getScopeState, subscribeUserScope } from './userScope';
 import { captureScope, commitIfCurrent, isScopeCurrent } from './scopedWriteQueue';
@@ -68,6 +69,7 @@ export function commitReviewedMoment(moment: Moment, expected?: Moment, reviewIs
     const current = state.moments.find(m => m.id === moment.id);
     if (moment.preparation?.transactionId && current?.preparation?.transactionId === moment.preparation.transactionId) return current;
     if (JSON.stringify(current) !== JSON.stringify(expected)) throw new Error('Your moment changed. Review it again.');
+    if (!preparationTransitionAllowed(current?.preparation, moment.preparation)) throw new Error('This preparation has ended. Start a new Moment.');
     // Recheck volatile review inputs when this queued commit actually drains.
     // Idempotent retries above return the already-acknowledged result.
     if (reviewIsCurrent && !reviewIsCurrent()) throw new Error('Review inputs changed. Review again.');

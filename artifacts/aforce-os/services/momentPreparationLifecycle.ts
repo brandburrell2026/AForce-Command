@@ -25,3 +25,18 @@ export function unconfirmedPreparationExpired(
     end <= nowMs
   );
 }
+
+/** A closed preparation keeps its original terminal outcome. Private Replay
+ * feedback can change without reopening Quiet or fabricating another outcome. */
+export function preparationTransitionAllowed(
+  before: MomentPreparation | undefined,
+  after: MomentPreparation | undefined,
+): boolean {
+  if (after?.returnedAtIso && after.cancelledAtIso) return false;
+  if (!preparationClosed(before)) return true;
+  return (
+    !!after &&
+    after.returnedAtIso === before?.returnedAtIso &&
+    after.cancelledAtIso === before?.cancelledAtIso
+  );
+}

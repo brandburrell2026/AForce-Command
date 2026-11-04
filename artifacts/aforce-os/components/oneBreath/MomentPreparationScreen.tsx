@@ -335,6 +335,30 @@ export function MomentPreparationScreen({
     setError(MOMENT_REMOVED);
   }, [store.hydrated, store.moments, saving, cancelHold, voice.cancel]);
   React.useEffect(() => {
+    if (
+      !saved?.preparation ||
+      !preparationClosed(saved.preparation) ||
+      busy.current ||
+      JSON.stringify(review) === JSON.stringify(saved)
+    )
+      return;
+    // Another shared surface can close this Moment while this view is open.
+    // Follow that acknowledged outcome; never offer an old Quiet/Return action.
+    cancelHold();
+    voice.cancel();
+    setReview(saved);
+    setDraft(null);
+    setWords("");
+    setChanges("");
+    setAlcoholMentioned(false);
+    setSafetyConsent(null);
+    setContactShown(false);
+    setContactNumber("");
+    setCandidateEndAt(null);
+    setScreen("next");
+    setError("");
+  }, [saved, saving, cancelHold, voice.cancel]);
+  React.useEffect(() => {
     const origin = calendarOrigin.current;
     if (!origin || busy.current) return;
     const visible = sharedMoments.surfaced.find((m) => m.id === origin.id);
