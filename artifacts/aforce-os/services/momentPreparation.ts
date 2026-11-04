@@ -146,6 +146,29 @@ export function nextPreparationContext(
   );
 }
 
+/** Resolve only the exact still-upcoming occurrence the member approved.
+ * Changed, masked, completed or revoked context requires a fresh choice. */
+export function reviewedNextPreparationContext(
+  current: Moment,
+  moments: readonly Moment[],
+  nowIso: string,
+): Moment | null {
+  const choice = current.preparation?.nextMoment;
+  if (
+    !choice ||
+    typeof choice.id !== "string" ||
+    !Number.isFinite(Date.parse(choice.startAtIso))
+  )
+    return null;
+  return nextPreparationContext(
+    moments.filter(
+      (m) => m.id === choice.id && m.startAtIso === choice.startAtIso,
+    ),
+    current,
+    nowIso,
+  );
+}
+
 /** Conservative in-app proposal adapter over existing Moments selectors and
  * the shared preference budget. No notifications, place inference or engine. */
 export function preparationProposalCandidate(

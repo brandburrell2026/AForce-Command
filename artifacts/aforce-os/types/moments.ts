@@ -70,6 +70,9 @@ export interface MomentPreparation {
   lockedInAtIso?: string;
   returnedAtIso?: string;
   replay?: 'yes' | 'not_really';
+  /** Member-selected follow-up only: no title snapshot, automatic command,
+   * extra Moment, reminder, or claim of physiological protection. */
+  nextMoment?: { id: string; startAtIso: string };
   returnMethod: 'none' | 'ride' | 'walking' | 'passenger' | 'staying';
   destination: string;
   emergencyNumber: '911' | '112' | '999';

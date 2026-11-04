@@ -34,6 +34,7 @@ import { suggestMomentDraft } from "@/services/oneBreathDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
   nextPreparationContext,
+  reviewedNextPreparationContext,
   isRealPreparationMoment,
   reviewedPreparationSteps,
   preparationReviewMatches,
@@ -90,6 +91,9 @@ export function MomentPreparationScreen({
   const store = useMomentsStore();
   const sharedMoments = useMomentsData();
   const [declineOptions, setDeclineOptions] = React.useState(false);
+  const [nextChoice, setNextChoice] = React.useState<string | null>(null);
+  const [timingOpen, setTimingOpen] = React.useState(false);
+  const [returnOpen, setReturnOpen] = React.useState(false);
   const { state: app } = useAppStore();
   const [scope] = React.useState(captureScope);
   const [screen, setScreen] = React.useState<Screen>("capture");
@@ -149,6 +153,14 @@ export function MomentPreparationScreen({
     anchor,
     sharedMoments.nowIso,
   );
+  const selectedNext = next && nextChoice === next.id ? next : null;
+  const followUp = current?.preparation?.nextMoment
+    ? reviewedNextPreparationContext(
+        current,
+        sharedMoments.surfaced,
+        sharedMoments.nowIso,
+      )
+    : next;
   // Hold callbacks use live inputs, never the closure captured on press-in.
   const liveInputs = React.useRef({
     command: app.engineOutput.command,
@@ -204,6 +216,7 @@ export function MomentPreparationScreen({
     cancelHold();
     setReview(null);
     setDraft(null);
+    setNextChoice(null);
     setWords("");
     setMethod(null);
     setDestination("");
@@ -212,10 +225,6 @@ export function MomentPreparationScreen({
       "That calendar event is no longer available. You can type a new Moment.",
     );
   }, [sharedMoments.surfaced, cancelHold, saving]);
-  React.useEffect(() => {
-    if (screen === "next" && saved?.preparation?.replay === "yes")
-      router.replace("/");
-  }, [screen, saved?.preparation?.replay, router]);
   React.useEffect(() => {
     if (resumed || !store.hydrated) return;
     setResumed(true);
@@ -353,6 +362,9 @@ export function MomentPreparationScreen({
   };
   const reviewWords = () => {
     voice.cancel();
+    setNextChoice(null);
+    setTimingOpen(false);
+    setReturnOpen(false);
     if (calendarOrigin.current) {
       calendarOrigin.current = null;
       setReview(null);
@@ -388,6 +400,7 @@ export function MomentPreparationScreen({
       occurringNow ? Number.NEGATIVE_INFINITY : Date.now(),
     );
     if (!result.ok) {
+      setTimingOpen(true);
       setError(result.error);
       return;
     }
@@ -467,6 +480,14 @@ export function MomentPreparationScreen({
       returnMethod: method ?? "none",
       destination,
       emergencyNumber: emergency,
+      ...(selectedNext
+        ? {
+            nextMoment: {
+              id: selectedNext.id,
+              startAtIso: selectedNext.startAtIso,
+            },
+          }
+        : {}),
       steps,
       policyVersion: PREPARATION_POLICY_VERSION,
     };
@@ -792,44 +813,76 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
-            <Text style={s.title}>Make it yours.</Text>
             {input("Moment", draft.title, (v) => field("title", v))}
-            {button("This is happening now", () => {
-              const now = new Date();
-              setOccurringNow(true);
-              setDraft((d) =>
-                d
-                  ? {
-                      ...d,
-                      date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`,
-                      time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
-                    }
-                  : d,
-              );
-            })}
-            {occurringNow ? (
-              <Text style={s.muted}>
-                Happening now · review before sealing.
-              </Text>
-            ) : null}
             {calendarOrigin.current ? (
               <Text style={s.muted}>
                 Calendar suggestion · review the details. Only the plan you
                 confirm is saved.
               </Text>
             ) : null}
-            {input("Date · YYYY-MM-DD", draft.date, (v) => field("date", v))}
-            {input("Time · HH:mm", draft.time, (v) => field("time", v))}
+
+            {!timingOpen && Number.isFinite(draftedStart) ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Edit date and time"
+                accessibilityState={{ expanded: false }}
+                aria-expanded={false}
+                onPress={() => setTimingOpen(true)}
+                style={s.row}
+              >
+                <Text style={s.eyebrow}>WHEN</Text>
+                <Text style={s.body}>
+                  {occurringNow ? "Happening now · " : ""}
+                  {new Date(draftedStart).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZoneName: "short",
+                  })}{" "}
+                  · Edit
+                </Text>
+              </Pressable>
+            ) : (
+              <>
+                {button("This is happening now", () => {
+                  const now = new Date();
+                  setOccurringNow(true);
+                  setDraft((d) =>
+                    d
+                      ? {
+                          ...d,
+                          date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`,
+                          time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+                        }
+                      : d,
+                  );
+                })}
+                {occurringNow ? (
+                  <Text style={s.muted}>
+                    Happening now · review before sealing.
+                  </Text>
+                ) : null}
+                {input("Date · YYYY-MM-DD", draft.date, (v) =>
+                  field("date", v),
+                )}
+                {input("Time · HH:mm", draft.time, (v) => field("time", v))}
+                <Text style={s.muted}>
+                  Device time zone:{" "}
+                  {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                </Text>
+                {Number.isFinite(draftedStart)
+                  ? button("Done editing time", () => setTimingOpen(false))
+                  : null}
+              </>
+            )}
             {input(
               "Priority",
               draft.prepGoal,
               (v) => field("prepGoal", v),
               "How do you want to arrive?",
             )}
-            <Text style={s.muted}>
-              Device time zone:{" "}
-              {Intl.DateTimeFormat().resolvedOptions().timeZone}
-            </Text>
             {next ? (
               <View style={s.row}>
                 <Text style={s.eyebrow}>WHAT’S NEXT</Text>
@@ -843,6 +896,27 @@ export function MomentPreparationScreen({
                     minute: "2-digit",
                   })}
                 </Text>
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityLabel="Include this next Moment in my plan"
+                  accessibilityState={{
+                    checked: !!selectedNext,
+                    disabled: saving,
+                  }}
+                  aria-checked={!!selectedNext}
+                  aria-disabled={saving}
+                  disabled={saving}
+                  onPress={() => setNextChoice(selectedNext ? null : next.id)}
+                  style={s.button}
+                >
+                  <Text style={s.buttonText}>
+                    {selectedNext ? "✓ " : ""}Plan around this Moment
+                  </Text>
+                </Pressable>
+                <Text style={s.muted}>
+                  Review its current guidance after you return. No extra
+                  reminders.
+                </Text>
               </View>
             ) : null}
             <Text style={s.body}>
@@ -851,34 +925,67 @@ export function MomentPreparationScreen({
             {social ? (
               <>
                 <Text style={s.eyebrow}>GETTING BACK</Text>
-                <View style={s.choices}>
-                  {(
-                    ["none", "ride", "walking", "passenger", "staying"] as const
-                  ).map((m, i) =>
-                    button(
-                      `${method === m ? "✓ " : ""}${["Nothing, I'm good", "Ride", "Walking", "Someone’s driving me", "Staying here"][i]}`,
-                      () => setMethod(m),
-                    ),
-                  )}
-                </View>
-                {method && method !== "none"
-                  ? input(
-                      "Destination · Home, Hotel or saved place",
-                      destination,
-                      setDestination,
-                      "Hotel",
-                    )
-                  : null}
-                <Text style={s.eyebrow}>LOCAL EMERGENCY NUMBER</Text>
-                <View style={s.choices}>
-                  {(["911", "112", "999"] as const).map((n) =>
-                    button(`${emergency === n ? "✓ " : ""}${n}`, () =>
-                      setEmergency(n),
-                    ),
-                  )}
-                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose getting-back plan"
+                  accessibilityState={{ expanded: returnOpen }}
+                  aria-expanded={returnOpen}
+                  onPress={() => setReturnOpen((open) => !open)}
+                  style={s.button}
+                >
+                  <Text style={s.buttonText}>
+                    {method
+                      ? {
+                          none: "Nothing, I'm good",
+                          ride: "Ride",
+                          walking: "Walking",
+                          passenger: "Someone’s driving me",
+                          staying: "Staying here",
+                        }[method]
+                      : "Choose"}
+                    {method && method !== "none" && destination
+                      ? ` · ${destination}`
+                      : ""}
+                  </Text>
+                </Pressable>
+                {returnOpen ? (
+                  <>
+                    <View style={s.choices}>
+                      {(
+                        [
+                          "none",
+                          "ride",
+                          "walking",
+                          "passenger",
+                          "staying",
+                        ] as const
+                      ).map((m, i) =>
+                        button(
+                          `${method === m ? "✓ " : ""}${["Nothing, I'm good", "Ride", "Walking", "Someone’s driving me", "Staying here"][i]}`,
+                          () => setMethod(m),
+                        ),
+                      )}
+                    </View>
+                    {method && method !== "none"
+                      ? input(
+                          "Destination · Home, Hotel or saved place",
+                          destination,
+                          setDestination,
+                          "Hotel",
+                        )
+                      : null}
+                    <Text style={s.eyebrow}>LOCAL EMERGENCY NUMBER</Text>
+                    <View style={s.choices}>
+                      {(["911", "112", "999"] as const).map((n) =>
+                        button(`${emergency === n ? "✓ " : ""}${n}`, () =>
+                          setEmergency(n),
+                        ),
+                      )}
+                    </View>
+                    {button("Done choosing return", () => setReturnOpen(false))}
+                  </>
+                ) : null}
                 <Text style={s.muted}>
-                  Check-in invitations are not enabled in this internal build.
                   Your plan stays private.
                 </Text>
               </>
@@ -893,6 +1000,17 @@ export function MomentPreparationScreen({
               YOUR PLAN · NOT SEALED YET
             </Text>
             <Text style={s.title}>Prepared for your moment.</Text>
+            {current?.preparation?.nextMoment && next ? (
+              <Text style={s.body}>
+                Next in your plan · {next.title} ·{" "}
+                {new Date(next.startAtIso).toLocaleString([], {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+              </Text>
+            ) : null}
             {steps.map((step, i) => (
               <View key={i} style={s.row}>
                 <Text style={[s.eyebrow, { color: accent }]}>
@@ -952,6 +1070,11 @@ export function MomentPreparationScreen({
             <Text style={s.body}>
               Adds 1 Moment · {steps.length} preparation steps.
             </Text>
+            {current?.preparation?.nextMoment && next ? (
+              <Text style={s.body}>
+                Next · {next.title}. Adds no extra Moment or reminder.
+              </Text>
+            ) : null}
             <Text style={s.muted}>
               Quiet: no reminders. No invitations or shared status. No location
               requested. Nothing is sent to a ride provider until you open its
@@ -1120,17 +1243,62 @@ export function MomentPreparationScreen({
           <>
             <Text style={[s.eyebrow, { color: accent }]}>NEXT</Text>
             <Text style={s.title}>{momentReturnLabel(new Date())}</Text>
-            {next ? (
-              <Text style={s.body}>
-                {next.title} ·{" "}
-                {new Date(next.startAtIso).toLocaleString([], {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-                . Let’s protect that first.
+            {followUp ? (
+              <>
+                <Text style={s.body}>
+                  {followUp.title} ·{" "}
+                  {new Date(followUp.startAtIso).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
+                </Text>
+                {button(
+                  "Prepare this Moment",
+                  () => {
+                    if (!current) return;
+                    if (!allowed()) {
+                      setError(
+                        "Your account changed. Close this plan and start again.",
+                      );
+                      return;
+                    }
+                    const live = liveInputs.current;
+                    const fresh = current.preparation?.nextMoment
+                      ? reviewedNextPreparationContext(
+                          current,
+                          live.moments,
+                          new Date().toISOString(),
+                        )
+                      : nextPreparationContext(
+                          live.moments,
+                          current,
+                          new Date().toISOString(),
+                        );
+                    if (
+                      !fresh ||
+                      fresh.id !== followUp.id ||
+                      fresh.startAtIso !== followUp.startAtIso
+                    ) {
+                      setError(
+                        "That Moment changed. Open Moments to review it.",
+                      );
+                      return;
+                    }
+                    router.replace({
+                      pathname: "/one-breath",
+                      params: { momentId: fresh.id },
+                    });
+                  },
+                  true,
+                )}
+              </>
+            ) : current?.preparation?.nextMoment ? (
+              <Text style={s.muted}>
+                Your chosen next Moment is no longer available at the reviewed
+                time. Open Moments to choose again.
               </Text>
             ) : null}
             <Text style={s.body}>Did it go the way you wanted?</Text>
@@ -1141,7 +1309,11 @@ export function MomentPreparationScreen({
             {saved?.preparation?.replay ? (
               <Text style={s.muted}>Your Replay stays private.</Text>
             ) : null}
-            {button("Open Moments", () => router.replace("/moments-tab"), true)}
+            {button(
+              "Open Moments",
+              () => router.replace("/moments-tab"),
+              !followUp,
+            )}
           </>
         ) : null}
         {error ? (

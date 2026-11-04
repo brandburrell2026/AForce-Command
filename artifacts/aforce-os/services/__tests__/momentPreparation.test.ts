@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {preparationReviewMatches,preparationContextKey,reviewedPreparationSteps,isDayMoment,rideHandoffUrl} from '../momentPreparation';
+import {reviewedNextPreparationContext,preparationReviewMatches,preparationContextKey,reviewedPreparationSteps,isDayMoment,rideHandoffUrl} from '../momentPreparation';
 import {evaluateMomentSafety} from '@/utils/intelligence/decisionGuard';
 import type {Moment} from '@/types/moments';
 const prepNow=(m:Moment)=>new Date(Date.parse(m.startAtIso)-10*60000).toISOString();
@@ -31,4 +31,15 @@ describe('review binding uses the existing command and validity window',()=>{
  it('fails closed for expired, missing or invalid validity',()=>{expect(preparationReviewMatches(reviewed(),command,now+300000)).toBe(false);const m=reviewed();delete m.preparation!.validUntilIso;expect(preparationReviewMatches(m,command,now)).toBe(false);expect(preparationReviewMatches(reviewed(),command,NaN)).toBe(false);});
  it('does not force an unreviewed hydration step into a command-free plan',()=>{const m=reviewed();m.preparation!.steps=[];expect(preparationReviewMatches(m,{id:'new',action:'20 oz now.'},now)).toBe(true);});
  it('binds changes in the visible upcoming context without persisting a calendar record',()=>{const next={...moment,source:'calendar' as const};expect(preparationContextKey(next)).not.toBe(preparationContextKey({...next,startAtIso:'2027-01-01T10:00:00Z'}));expect(preparationContextKey(next)).not.toBe(preparationContextKey(null));expect(next.preparation).toBeUndefined();});
+});
+
+describe('reviewed next Moment handoff',()=>{
+ const now=new Date(2027,0,8,17).toISOString();
+ const current={...moment,startAtIso:new Date(2027,0,8,19).toISOString()};
+ const next={...moment,id:'next',title:'Investor meeting',startAtIso:new Date(2027,0,9,10).toISOString()};
+ const selected={...current,preparation:{nextMoment:{id:next.id,startAtIso:next.startAtIso}} as Moment['preparation']};
+ it('has no implied choice before the member selects one',()=>expect(reviewedNextPreparationContext(current,[next],now)).toBeNull());
+ it('resolves the exact approved occurrence from current shared data',()=>expect(reviewedNextPreparationContext(selected,[next],now)).toBe(next));
+ it.each([{startAtIso:new Date(2027,0,9,11).toISOString()},{masked:true},{source:'demo' as const},{preparedAtIso:now}])('does not reauthorize changed, private or completed context: %s',patch=>expect(reviewedNextPreparationContext(selected,[{...next,...patch}],now)).toBeNull());
+ it('does not fall back to another event when the selected event disappears',()=>expect(reviewedNextPreparationContext(selected,[{...next,id:'other'}],now)).toBeNull());
 });
