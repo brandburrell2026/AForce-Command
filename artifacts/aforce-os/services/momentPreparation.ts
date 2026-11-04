@@ -96,6 +96,10 @@ export function preparationContextKey(moment: Moment | null): string {
         moment.title,
         moment.startAtIso,
         moment.endAtIso ?? null,
+        moment.type,
+        moment.importance,
+        moment.prepGoal ?? null,
+        moment.preparedAtIso ?? null,
         moment.masked ?? false,
       ])
     : "none";

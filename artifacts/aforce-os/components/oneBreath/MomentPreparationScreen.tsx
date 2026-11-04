@@ -79,6 +79,18 @@ type Screen =
   | "change"
   | "return"
   | "next";
+const CALENDAR_CHANGED =
+  "Calendar details changed. Review the plan again using the updated event.";
+const draftForMoment = (moment: Moment): MomentDraft => {
+  const at = new Date(moment.startAtIso);
+  return {
+    title: moment.title,
+    date: `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`,
+    time: `${at.getHours().toString().padStart(2, "0")}:${at.getMinutes().toString().padStart(2, "0")}`,
+    type: moment.type,
+    prepGoal: moment.prepGoal ?? "",
+  };
+};
 const CANDIDATE_ENDED =
   "That Moment has ended. Describe what’s happening now to start a new plan.";
 const transaction = () =>
@@ -101,6 +113,7 @@ export function MomentPreparationScreen({
   }>();
   const store = useMomentsStore();
   const sharedMoments = useMomentsData();
+  const [calendarChanged, setCalendarChanged] = React.useState(false);
   const [declineOptions, setDeclineOptions] = React.useState(false);
   const [nextChoice, setNextChoice] = React.useState<string | null>(null);
   const [timingOpen, setTimingOpen] = React.useState(false);
@@ -275,10 +288,62 @@ export function MomentPreparationScreen({
     const origin = calendarOrigin.current;
     if (!origin || busy.current) return;
     const visible = sharedMoments.surfaced.find((m) => m.id === origin.id);
-    if (visible && !visible.masked && visible.title.trim()) return;
+    if (
+      visible &&
+      visible.source === "calendar" &&
+      isRealPreparationMoment(visible) &&
+      !visible.masked &&
+      !visible.preparedAtIso &&
+      visible.title.trim() &&
+      !unconfirmedPreparationExpired(visible, Date.now())
+    ) {
+      if (
+        preparationContextKey(visible) !== origin.key &&
+        screen === "noticed"
+      ) {
+        // No review has been accepted yet: keep the proposal current without
+        // advancing it. A pending Prepare still compares its clicked snapshot.
+        calendarOrigin.current = {
+          id: visible.id,
+          key: preparationContextKey(visible),
+        };
+        setReview(visible);
+        setCandidateEndAt(
+          visible.endAtIso &&
+            Number.isFinite(Date.parse(visible.endAtIso)) &&
+            Date.parse(visible.endAtIso) > Date.parse(visible.startAtIso)
+            ? visible.endAtIso
+            : null,
+        );
+        return;
+      }
+      if (
+        preparationContextKey(visible) !== origin.key &&
+        visible.endAtIso &&
+        Number.isFinite(Date.parse(visible.endAtIso)) &&
+        Date.parse(visible.endAtIso) > Date.parse(visible.startAtIso) &&
+        (!candidateEndAt ||
+          Date.parse(visible.endAtIso) < Date.parse(candidateEndAt))
+      ) {
+        // An earlier source end can narrow validity immediately. An extension
+        // only becomes the reviewed deadline after the member accepts it.
+        setCandidateEndAt(visible.endAtIso);
+      }
+      if (preparationContextKey(visible) !== origin.key && !calendarChanged) {
+        cancelHold();
+        setCalendarChanged(true);
+        setDraft(
+          (previous) => previous ?? (current ? draftForMoment(current) : null),
+        );
+        setScreen("mirror");
+        setError(CALENDAR_CHANGED);
+      }
+      return;
+    }
     // Revoked calendar access, masking, or cancellation cannot leave a readable
     // source candidate on screen or allow it to be committed later.
     calendarOrigin.current = null;
+    setCalendarChanged(false);
     setCandidateEndAt(null);
     cancelHold();
     setReview(null);
@@ -289,9 +354,18 @@ export function MomentPreparationScreen({
     setDestination("");
     setScreen("capture");
     setError(
-      "That calendar event is no longer available. You can type a new Moment.",
+      visible && unconfirmedPreparationExpired(visible, Date.now())
+        ? CANDIDATE_ENDED
+        : "That calendar event is no longer available. You can type a new Moment.",
     );
-  }, [sharedMoments.surfaced, cancelHold, saving]);
+  }, [
+    sharedMoments.surfaced,
+    cancelHold,
+    saving,
+    calendarChanged,
+    screen,
+    candidateEndAt,
+  ]);
   React.useEffect(() => {
     if (resumed || !store.hydrated) return;
     setResumed(true);
@@ -382,6 +456,7 @@ export function MomentPreparationScreen({
       cancelHold();
       voice.cancel();
       calendarOrigin.current = null;
+      setCalendarChanged(false);
       setCandidateEndAt(null);
       setReview(null);
       setDraft(null);
@@ -476,6 +551,7 @@ export function MomentPreparationScreen({
   };
   const reviewWords = () => {
     setCandidateEndAt(null);
+    setCalendarChanged(false);
     setReservationReview(false);
     setReservationOpen(false);
     setReservationText("");
@@ -543,10 +619,18 @@ export function MomentPreparationScreen({
         );
         return;
       }
-      calendarOrigin.current = {
-        id: origin.id,
-        key: preparationContextKey(origin),
-      };
+      if (
+        calendarChanged ||
+        preparationContextKey(origin) !== calendarOrigin.current.key
+      ) {
+        setCalendarChanged(true);
+        setError(CALENDAR_CHANGED);
+        return;
+      }
+      if (unconfirmedPreparationExpired(origin, Date.now())) {
+        setError(CANDIDATE_ENDED);
+        return;
+      }
     }
     let moment =
       review && review.source !== "calendar"
@@ -931,6 +1015,46 @@ export function MomentPreparationScreen({
               "Prepare",
               async () => {
                 if (!(await proposalResponse("accepted"))) return;
+                if (current.source === "calendar") {
+                  const latest = liveInputs.current.moments.find(
+                    (m) => m.id === current.id,
+                  );
+                  if (
+                    !latest ||
+                    latest.source !== "calendar" ||
+                    latest.masked ||
+                    !!latest.preparedAtIso ||
+                    !latest.title.trim() ||
+                    unconfirmedPreparationExpired(latest, Date.now())
+                  ) {
+                    calendarOrigin.current = null;
+                    setCalendarChanged(false);
+                    setCandidateEndAt(null);
+                    setReview(null);
+                    move("capture");
+                    setError(
+                      latest &&
+                        unconfirmedPreparationExpired(latest, Date.now())
+                        ? CANDIDATE_ENDED
+                        : "That calendar event is no longer available. You can type a new Moment.",
+                    );
+                    return;
+                  }
+                  if (
+                    preparationContextKey(latest) !==
+                    preparationContextKey(current)
+                  ) {
+                    calendarOrigin.current = {
+                      id: current.id,
+                      key: preparationContextKey(current),
+                    };
+                    setDraft(draftForMoment(current));
+                    setCalendarChanged(true);
+                    move("mirror");
+                    setError(CALENDAR_CHANGED);
+                    return;
+                  }
+                }
                 if (unconfirmedPreparationExpired(current, Date.now())) {
                   setCandidateEndAt(null);
                   setReview(null);
@@ -938,14 +1062,7 @@ export function MomentPreparationScreen({
                   setError(CANDIDATE_ENDED);
                   return;
                 }
-                const at = new Date(current.startAtIso);
-                setDraft({
-                  title: current.title,
-                  date: `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`,
-                  time: `${at.getHours().toString().padStart(2, "0")}:${at.getMinutes().toString().padStart(2, "0")}`,
-                  type: current.type,
-                  prepGoal: current.prepGoal ?? "",
-                });
+                setDraft(draftForMoment(current));
                 move("mirror");
               },
               true,
@@ -1068,6 +1185,7 @@ export function MomentPreparationScreen({
                   () => {
                     const candidate = suggestReservationDraft(reservationText);
                     calendarOrigin.current = null;
+                    setCalendarChanged(false);
                     setCandidateEndAt(null);
                     setReview(null);
                     setWords("");
@@ -1098,6 +1216,74 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
+            {calendarChanged ? (
+              <View style={s.row}>
+                <Text accessibilityRole="alert" style={s.body}>
+                  {CALENDAR_CHANGED}
+                </Text>
+                <Text style={s.muted}>
+                  Reviewing the update replaces this draft with the latest event
+                  details.
+                </Text>
+                {button(
+                  "Review updated event",
+                  () => {
+                    if (!allowed()) {
+                      setError(
+                        "Your account changed. Close this plan and start again.",
+                      );
+                      return;
+                    }
+                    const latest = liveInputs.current.moments.find(
+                      (m) => m.id === calendarOrigin.current?.id,
+                    );
+                    if (
+                      !latest ||
+                      latest.source !== "calendar" ||
+                      latest.masked ||
+                      !!latest.preparedAtIso ||
+                      !latest.title.trim() ||
+                      !isRealPreparationMoment(latest)
+                    ) {
+                      setError(
+                        "That calendar event is no longer available. Start a new Moment.",
+                      );
+                      return;
+                    }
+                    if (unconfirmedPreparationExpired(latest, Date.now())) {
+                      calendarOrigin.current = null;
+                      setCalendarChanged(false);
+                      setCandidateEndAt(null);
+                      setReview(null);
+                      setDraft(null);
+                      move("capture");
+                      setError(CANDIDATE_ENDED);
+                      return;
+                    }
+                    calendarOrigin.current = {
+                      id: latest.id,
+                      key: preparationContextKey(latest),
+                    };
+                    setDraft(draftForMoment(latest));
+                    setReview(latest);
+                    setCandidateEndAt(
+                      latest.endAtIso &&
+                        Number.isFinite(Date.parse(latest.endAtIso)) &&
+                        Date.parse(latest.endAtIso) >
+                          Date.parse(latest.startAtIso)
+                        ? latest.endAtIso
+                        : null,
+                    );
+                    setOccurringNow(false);
+                    setNextChoice(null);
+                    setTimingOpen(true);
+                    setCalendarChanged(false);
+                    setError("");
+                  },
+                  true,
+                )}
+              </View>
+            ) : null}
             {reservationReview ? (
               <Text style={s.muted}>
                 Reservation details · confirm the name, date and local time.
@@ -1281,7 +1467,7 @@ export function MomentPreparationScreen({
               </>
             ) : null}
             {contextControl}
-            {button("Continue", makePlan, true)}
+            {button("Continue", makePlan, true, calendarChanged)}
             {button("Edit my words", () => move("capture"))}
           </>
         ) : null}
@@ -1642,7 +1828,13 @@ export function MomentPreparationScreen({
             )}
           </>
         ) : null}
-        {error && !(screen === "capture" && error === CANDIDATE_ENDED) ? (
+        {error &&
+        !(screen === "capture" && error === CANDIDATE_ENDED) &&
+        !(
+          screen === "mirror" &&
+          calendarChanged &&
+          error === CALENDAR_CHANGED
+        ) ? (
           <Text accessibilityRole="alert" style={s.body}>
             {error}
           </Text>

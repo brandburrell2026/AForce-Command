@@ -43,3 +43,7 @@ describe('reviewed next Moment handoff',()=>{
  it.each([{startAtIso:new Date(2027,0,9,11).toISOString()},{masked:true},{source:'demo' as const},{preparedAtIso:now}])('does not reauthorize changed, private or completed context: %s',patch=>expect(reviewedNextPreparationContext(selected,[{...next,...patch}],now)).toBeNull());
  it('does not fall back to another event when the selected event disappears',()=>expect(reviewedNextPreparationContext(selected,[{...next,id:'other'}],now)).toBeNull());
 });
+
+describe('source classification is part of in-memory review binding',()=>{
+ it.each([{type:'work' as const},{importance:'low' as const},{prepGoal:'Arrive focused'},{preparedAtIso:'2027-01-08T17:00:00Z'}])('binds changed reviewed preparation metadata: %s',patch=>{expect(preparationContextKey({...moment,...patch})).not.toBe(preparationContextKey(moment));});
+});
