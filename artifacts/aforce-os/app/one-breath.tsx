@@ -5,6 +5,8 @@ import { OneBreathScreen } from '@/components/oneBreath/OneBreathScreen';
 import { ConfirmMomentScreen } from '@/components/oneBreath/ConfirmMomentScreen';
 import { getScopeState, subscribeScopeState } from '@/services/userScope';
 import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
+import { MomentPreparationScreen } from '@/components/oneBreath/MomentPreparationScreen';
+import { preparationPreviewEnabled } from '@/services/preparationAccess';
 
 /** Public shell stays review-only; internal confirmation uses the existing account-scoped store. */
 export default function OneBreathRoute() {
@@ -15,5 +17,5 @@ export default function OneBreathRoute() {
   if (!isLoaded) return null;
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
   if (scope.status !== 'AUTHENTICATED' || scope.userId !== userId) return <Redirect href="/" />;
-  return <ConfirmMomentScreen key={userId} />;
+  return preparationPreviewEnabled() ? <MomentPreparationScreen key={userId} context="one_breath" /> : <ConfirmMomentScreen key={userId} />;
 }

@@ -1,3 +1,4 @@
+import { scheduleOutsideQuiet } from './quietDelivery';
 /**
  * momentNotifications — AForce Moments prep notifications (Phase 3a, DR-010).
  *
@@ -249,7 +250,7 @@ export async function syncMomentNotifications(
       ) {
         continue;
       }
-      await Notif.scheduleNotificationAsync({
+      await scheduleOutsideQuiet(() => Notif.scheduleNotificationAsync({
         identifier: p.tag,
         content: {
           title,
@@ -260,7 +261,7 @@ export async function syncMomentNotifications(
           type: Notif.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds,
         },
-      });
+      }));
     }
   } catch {
     // Never let notification plumbing break the app.

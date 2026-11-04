@@ -1,3 +1,4 @@
+import { scheduleOutsideQuiet } from '../quietDelivery';
 import { Platform } from "react-native";
 import { MOMENT_PREP_WINDOW_MIN } from "@/config/hydroStateModel";
 import type { TravelTrip } from "@workspace/api-zod";
@@ -39,7 +40,7 @@ export function reconcileIntelligenceReminders(
           }).format(date),
         );
         if (date.getTime() <= Date.now() || hour < 7 || hour >= 22) continue;
-        await N.scheduleNotificationAsync({
+        await scheduleOutsideQuiet(() => N.scheduleNotificationAsync({
           identifier: `travel2-prep-${leg.id}`,
           content: {
             title: "AForce travel reminder",
@@ -48,7 +49,7 @@ export function reconcileIntelligenceReminders(
             data: { kind, ownerHash: hash, tripId: trip.id, legId: leg.id },
           },
           trigger: { type: N.SchedulableTriggerInputTypes.DATE, date },
-        });
+        }));
       }
   };
   const next = queue.catch(() => undefined).then(run);

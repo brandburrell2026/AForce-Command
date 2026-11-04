@@ -1,3 +1,4 @@
+import { scheduleOutsideQuiet, quietMomentActive } from '../quietDelivery';
 /**
  * AForce Concierge — local reminders.
  *
@@ -169,12 +170,13 @@ async function writeStoredReminders(list: StoredReminder[]): Promise<void> {
 
 export type ScheduleReminderResult =
   | { ok: true; plan: PlannedReminder }
-  | { ok: false; reason: 'invalid' | 'in_past' | 'limit_reached' | 'permission' | 'unsupported' | 'blocked_copy' | 'failed' };
+  | { ok: false; reason: 'invalid' | 'in_past' | 'limit_reached' | 'permission' | 'unsupported' | 'blocked_copy' | 'failed' | 'quiet' };
 
 export async function scheduleConciergeReminder(
   req: ReminderRequest,
   now: Date = new Date(),
 ): Promise<ScheduleReminderResult> {
+  if (quietMomentActive()) return { ok: false, reason: 'quiet' };
   const existing = await readStoredReminders();
   const planned = planReminder(req, existing, now);
   if (!planned.ok) return planned;
@@ -199,11 +201,12 @@ export async function scheduleConciergeReminder(
       date: plan.fireAt,
     };
     const trigger: import('expo-notifications').NotificationTriggerInput = plan.recurrence === 'daily' ? daily : once;
-    await Notif.scheduleNotificationAsync({
+    const scheduled = await scheduleOutsideQuiet(async () => { await Notif.scheduleNotificationAsync({
       identifier: plan.identifier,
       content: { title: 'AForce OS', body: req.title.trim(), sound: false },
       trigger,
-    });
+    }); return true; });
+    if (scheduled === undefined) return { ok: false, reason: 'quiet' };
     await writeStoredReminders([
       ...existing,
       {

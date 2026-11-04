@@ -1,3 +1,4 @@
+import { useQuietDeliveryBlocked } from '@/services/quietDelivery';
 /**
  * NotificationBanner — in-app surface for the Day 0/1/3/7 welcome
  * cadence defined by Spec Rule #10.
@@ -43,6 +44,7 @@ import { emit } from '@/analytics/event_dispatcher';
 import { useAdaptiveReminderGate } from '@/hooks/useAdaptiveReminderGate';
 
 export function NotificationBanner() {
+  const quiet = useQuietDeliveryBlocked();
   const flags = useFeatureFlags();
   const [snapshot, setSnapshot] = useState<NotificationsSnapshot | null>(null);
 
@@ -104,6 +106,8 @@ export function NotificationBanner() {
   }, [due]);
 
   if (!flags.spec_notifications || !snapshot || !due) return null;
+
+  if (quiet) return null;
 
   return (
     <View style={styles.wrap}>

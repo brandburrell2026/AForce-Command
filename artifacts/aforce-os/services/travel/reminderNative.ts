@@ -1,3 +1,4 @@
+import { scheduleOutsideQuiet, quietMomentActive } from '../quietDelivery';
 import { Platform } from 'react-native';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { evaluateDeliverableCopy, evaluateDeliverableLabel } from '@/utils/intelligence/decisionGuard';
@@ -59,7 +60,7 @@ export const travelReminderNative: TravelReminderNative = {
     }
     const ownerHash = await travelOwnerHash(owner);
     if (Date.parse(fireAt) <= Date.now()) throw new Error('Preparation time has passed.');
-    await Notif.scheduleNotificationAsync({
+    const scheduled = await scheduleOutsideQuiet(async () => { await Notif.scheduleNotificationAsync({
       identifier: TRAVEL_REMINDER_ID,
       content: {
         title, body,
@@ -69,7 +70,8 @@ export const travelReminderNative: TravelReminderNative = {
         data: { kind: TRAVEL_REMINDER_KIND, ownerHash, journeyCreatedAt },
       },
       trigger: { type: Notif.SchedulableTriggerInputTypes.DATE, date: new Date(fireAt), channelId: 'travel-preparation' },
-    });
+    }); return true; });
+    if (scheduled === undefined) throw new Error('Preparation reminders are paused during Quiet.');
   },
 };
 

@@ -18,6 +18,7 @@ import { useMomentsData } from './useMomentsData';
 import { accentForType, clockLabel, daySummary } from './momentsPresentation';
 import { AddMomentSheet } from './AddMomentSheet';
 import { MomentsOverviewSkeleton } from './MomentsSkeleton';
+import { SocialProtocolEntry } from '@/components/oneBreath/SocialProtocolEntry';
 
 const DAY_MS = 86_400_000;
 
@@ -58,6 +59,7 @@ export function PrepareMyDayScreen({ fixtureMoments, fixtureNowIso }: { fixtureM
         onBack={() => router.back()}
       />
       <Text style={styles.date}>{dayName}</Text>
+      <SocialProtocolEntry />
 
       {/* Simple day strip — a plan selector, never a calendar grid */}
       <View style={styles.dayStrip} testID="plan-day-strip">

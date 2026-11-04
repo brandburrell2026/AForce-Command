@@ -149,7 +149,8 @@ describe('Moments notification lane — guard wired at qualification and deliver
     // no-forked-authority rule below still holds; the BODY keeps the full check.
     const guardTitle = MOMENTS_SRC.indexOf("evaluateDeliverableLabel(title).verdict === 'blocked'");
     const guardBody = MOMENTS_SRC.indexOf("evaluateDeliverableCopy(body).verdict === 'blocked'");
-    const schedule = MOMENTS_SRC.indexOf('await Notif.scheduleNotificationAsync({');
+    // Quiet delivery wraps the same native call; content guards still run first.
+    const schedule = MOMENTS_SRC.indexOf('await scheduleOutsideQuiet(() => Notif.scheduleNotificationAsync({');
     expect(scan).toBeGreaterThan(-1);
     expect(guardTitle).toBeGreaterThan(scan);
     expect(guardBody).toBeGreaterThan(guardTitle);
