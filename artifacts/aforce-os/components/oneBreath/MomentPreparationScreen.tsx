@@ -80,6 +80,8 @@ type Screen =
   | "change"
   | "return"
   | "next";
+const MOMENT_REMOVED =
+  "That Moment is no longer available. You can start a new plan.";
 const TIME_ZONE_CHANGED =
   "Your time zone changed. Review the local date and time before sealing.";
 const CALENDAR_CHANGED =
@@ -212,6 +214,7 @@ export function MomentPreparationScreen({
     command: app.engineOutput.command,
     moments: sharedMoments.surfaced,
   };
+  const memberOrigin = React.useRef<string | null>(null);
   const reviewedContext = React.useRef("none");
   const reviewedTimeZone = React.useRef<string | null>(null);
   const timeZoneChanged = (moment: Moment) =>
@@ -292,6 +295,41 @@ export function MomentPreparationScreen({
   React.useEffect(() => {
     if (!store.hydrated) void hydrateMoments();
   }, [store.hydrated]);
+  React.useEffect(() => {
+    const id = memberOrigin.current;
+    if (
+      !id ||
+      !store.hydrated ||
+      busy.current ||
+      store.moments.some((m) => m.id === id)
+    )
+      return;
+    // The store owns deletion. Do not let a cached view or delayed Prepare
+    // acknowledgement keep its words, private context or lifecycle alive.
+    memberOrigin.current = null;
+    calendarOrigin.current = null;
+    cancelHold();
+    voice.cancel();
+    setReview(null);
+    setDraft(null);
+    setWords("");
+    setChanges("");
+    setAlcoholMentioned(false);
+    setSafetyConsent(null);
+    attemptedConsent.current = null;
+    setCandidateEndAt(null);
+    setCalendarChanged(false);
+    setNextChoice(null);
+    setMethod(null);
+    setDestination("");
+    setContactShown(false);
+    setContactNumber("");
+    setReservationText("");
+    setReservationOpen(false);
+    setReservationReview(false);
+    setScreen("capture");
+    setError(MOMENT_REMOVED);
+  }, [store.hydrated, store.moments, saving, cancelHold, voice.cancel]);
   React.useEffect(() => {
     const origin = calendarOrigin.current;
     if (!origin || busy.current) return;
@@ -413,6 +451,7 @@ export function MomentPreparationScreen({
       }
       return;
     }
+    if (existing.source !== "calendar") memberOrigin.current = existing.id;
     if (existing.source === "calendar") {
       calendarOrigin.current = {
         id: existing.id,
@@ -741,6 +780,7 @@ export function MomentPreparationScreen({
         calendarOrigin.current = null;
         setCandidateEndAt(null);
       }
+      memberOrigin.current = result.id;
       setReview(result);
       move(target);
       if (target === "lock") hapticImpact("medium");
@@ -1032,6 +1072,14 @@ export function MomentPreparationScreen({
               "Prepare",
               async () => {
                 if (!(await proposalResponse("accepted"))) return;
+                if (
+                  current.source !== "calendar" &&
+                  (memberOrigin.current !== current.id ||
+                    !liveInputs.current.moments.some(
+                      (m) => m.id === current.id,
+                    ))
+                )
+                  return;
                 if (current.source === "calendar") {
                   const latest = liveInputs.current.moments.find(
                     (m) => m.id === current.id,
@@ -1123,7 +1171,7 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={s.title}>
               What would make {day ? "today" : "tonight"} go well?
             </Text>
-            {error === CANDIDATE_ENDED ? (
+            {error === CANDIDATE_ENDED || error === MOMENT_REMOVED ? (
               <Text accessibilityRole="alert" style={s.body}>
                 {error}
               </Text>
@@ -1851,7 +1899,10 @@ export function MomentPreparationScreen({
           </>
         ) : null}
         {error &&
-        !(screen === "capture" && error === CANDIDATE_ENDED) &&
+        !(
+          screen === "capture" &&
+          (error === CANDIDATE_ENDED || error === MOMENT_REMOVED)
+        ) &&
         !(screen === "mirror" && error === TIME_ZONE_CHANGED) &&
         !(
           screen === "mirror" &&
