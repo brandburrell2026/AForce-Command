@@ -1,3 +1,4 @@
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import type { Moment } from "@/types/moments";
 
 /** Region and lifetime are release configuration, never inferred from a
@@ -53,7 +54,7 @@ export function activeAlcoholContext(
   nowMs = Date.now(),
 ): boolean {
   const context = moment?.safetyContext;
-  if (!context || moment?.preparation?.returnedAtIso) return false;
+  if (!context || preparationClosed(moment?.preparation)) return false;
   const mentioned = Date.parse(context.mentionedAtIso);
   const expires = Date.parse(context.expiresAtIso);
   return (
@@ -78,7 +79,7 @@ export function withAlcoholContext(
   nowMs = Date.now(),
 ): Moment {
   if (
-    moment.preparation?.returnedAtIso ||
+    preparationClosed(moment.preparation) ||
     !matchesMomentSafetyConsent(policy, consent) ||
     !Number.isInteger(policy.minimumAge) ||
     policy.minimumAge <= 0 ||

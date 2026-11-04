@@ -69,6 +69,8 @@ export interface MomentPreparation {
   validUntilIso?: string;
   lockedInAtIso?: string;
   returnedAtIso?: string;
+  /** Explicit cancellation, never a successful return/check-in. */
+  cancelledAtIso?: string;
   replay?: 'yes' | 'not_really';
   /** Member-selected follow-up only: no title snapshot, automatic command,
    * extra Moment, reminder, or claim of physiological protection. */

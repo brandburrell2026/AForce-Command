@@ -1,3 +1,4 @@
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import React from "react";
 import { MomentProposalPrefsControl } from "./MomentProposalPrefsControl";
 import { useMomentsData } from "@/components/moments/useMomentsData";
@@ -295,7 +296,8 @@ export function MomentPreparationScreen({
         ))
       : store.moments.find(
           (m) =>
-            m.preparation?.context === context && !m.preparation.returnedAtIso,
+            m.preparation?.context === context &&
+            !preparationClosed(m.preparation),
         );
     if (!existing || !isRealPreparationMoment(existing)) {
       const previous = [...store.moments]
@@ -327,7 +329,7 @@ export function MomentPreparationScreen({
       setDestination(existing.preparation.destination);
       setEmergency(existing.preparation.emergencyNumber);
       setScreen(
-        existing.preparation.returnedAtIso
+        preparationClosed(existing.preparation)
           ? "next"
           : existing.preparation.lockedInAtIso
             ? "quiet"
@@ -644,9 +646,10 @@ export function MomentPreparationScreen({
   };
   const transition = (patch: Partial<MomentPreparation>, target: Screen) => {
     if (!saved?.preparation) return;
-    const base = patch.returnedAtIso
-      ? { ...saved, safetyContext: undefined }
-      : saved;
+    const base =
+      patch.returnedAtIso || patch.cancelledAtIso
+        ? { ...saved, safetyContext: undefined }
+        : saved;
     void commit(
       {
         ...base,
@@ -717,7 +720,7 @@ export function MomentPreparationScreen({
   React.useEffect(() => {
     if (
       !saved?.preparation ||
-      !!saved.preparation.returnedAtIso ||
+      preparationClosed(saved.preparation) ||
       !alcoholMentioned ||
       !retainContext ||
       attemptedConsent.current === safetyConsent ||
@@ -1426,7 +1429,7 @@ export function MomentPreparationScreen({
                 )}
                 {button("My plan is cancelled", () =>
                   transition(
-                    { returnedAtIso: new Date().toISOString() },
+                    { cancelledAtIso: new Date().toISOString() },
                     "next",
                   ),
                 )}
@@ -1480,8 +1483,15 @@ export function MomentPreparationScreen({
           <>
             <Text style={[s.eyebrow, { color: accent }]}>NEXT</Text>
             <Text {...headingProps} style={s.title}>
-              {momentReturnLabel(new Date())}
+              {current?.preparation?.cancelledAtIso
+                ? "Plan cancelled."
+                : momentReturnLabel(new Date())}
             </Text>
+            {current?.preparation?.cancelledAtIso ? (
+              <Text style={s.muted}>
+                Your plan has ended. This does not record a return or check-in.
+              </Text>
+            ) : null}
             {followUp ? (
               <>
                 <Text style={s.body}>
@@ -1540,13 +1550,17 @@ export function MomentPreparationScreen({
                 time. Open Moments to choose again.
               </Text>
             ) : null}
-            <Text style={s.body}>Did it go the way you wanted?</Text>
-            {button("Yes", () => transition({ replay: "yes" }, "next"))}
-            {button("Not really", () =>
-              transition({ replay: "not_really" }, "next"),
-            )}
-            {saved?.preparation?.replay ? (
-              <Text style={s.muted}>Your Replay stays private.</Text>
+            {!current?.preparation?.cancelledAtIso ? (
+              <>
+                <Text style={s.body}>Did it go the way you wanted?</Text>
+                {button("Yes", () => transition({ replay: "yes" }, "next"))}
+                {button("Not really", () =>
+                  transition({ replay: "not_really" }, "next"),
+                )}
+                {saved?.preparation?.replay ? (
+                  <Text style={s.muted}>Your Replay stays private.</Text>
+                ) : null}
+              </>
             ) : null}
             {button(
               "Open Moments",

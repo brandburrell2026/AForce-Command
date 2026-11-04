@@ -1,3 +1,4 @@
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import { Platform } from "react-native";
 import {
   getMomentsState,
@@ -9,7 +10,7 @@ import { preparationPreviewEnabled } from "./preparationAccess";
 /** Quiet is derived from persisted Moments. No second lifecycle or timer. */
 export function quietMomentActive(): boolean {
   return getMomentsState().moments.some(
-    (m) => !!m.preparation?.lockedInAtIso && !m.preparation.returnedAtIso,
+    (m) => !!m.preparation?.lockedInAtIso && !preparationClosed(m.preparation),
   );
 }
 
@@ -25,7 +26,8 @@ export function useQuietDeliveryBlocked(): boolean {
   return (
     (preparationPreviewEnabled() && !hydrated) ||
     moments.some(
-      (m) => !!m.preparation?.lockedInAtIso && !m.preparation.returnedAtIso,
+      (m) =>
+        !!m.preparation?.lockedInAtIso && !preparationClosed(m.preparation),
     )
   );
 }
@@ -41,10 +43,11 @@ function serialize<T>(operation: () => Promise<T>): Promise<T> {
 }
 export function scheduleOutsideQuiet<T>(
   schedule: () => Promise<T>,
+  isCurrent: () => boolean = () => true,
 ): Promise<T | undefined> {
   return serialize(async () => {
     if (preparationPreviewEnabled()) await hydrateMoments();
-    return ordinaryDeliveryBlocked() ? undefined : schedule();
+    return ordinaryDeliveryBlocked() || !isCurrent() ? undefined : schedule();
   });
 }
 

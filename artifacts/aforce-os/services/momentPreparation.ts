@@ -1,3 +1,4 @@
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 /** Projection adapters for the existing Moment + guarded RecoveryCommand loop. */
 import type { Moment, MomentPreparation } from "@/types/moments";
 import { nextMoment, surfaceableMoments } from "./momentRecommendation";
@@ -68,6 +69,7 @@ export function preparationReviewMatches(
   const p = moment.preparation;
   if (
     !p ||
+    preparationClosed(p) ||
     p.policyVersion !== PREPARATION_POLICY_VERSION ||
     !Number.isFinite(nowMs) ||
     !Number.isFinite(Date.parse(p.reviewedAtIso)) ||
@@ -189,7 +191,8 @@ export function preparationProposalCandidate(
     moments.some(
       (m) =>
         m.source !== "demo" &&
-        ((m.preparation?.sealedAtIso && !m.preparation.returnedAtIso) ||
+        !preparationClosed(m.preparation) &&
+        (m.preparation?.sealedAtIso ||
           (Date.parse(m.startAtIso) <= now &&
             m.endAtIso &&
             Date.parse(m.endAtIso) > now)),

@@ -27,6 +27,7 @@ export default function MomentDetailRoute() {
   if (!flags.moments_enabled) return <Redirect href="/" />;
   if (id === TRAVEL_MOMENT_ID) return <Redirect href="/travel" />;
   const moment = typeof id === "string" ? data.momentById(id) : undefined;
+  if (moment?.preparation?.cancelledAtIso) return <Redirect href="/moments" />;
   if (!moment) {
     // Await hydration before deciding the id is unknown. `return null` painted
     // a genuinely blank screen for the length of that wait — on a deep link

@@ -1,3 +1,4 @@
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import React from "react";
 import { useMomentsData } from "@/components/moments/useMomentsData";
 import { getMomentProposalPreferences } from "@/services/momentNotifications";
@@ -18,7 +19,7 @@ function EnabledSocialProtocolEntry() {
   const latestShared = React.useRef(shared.surfaced);
   latestShared.current = shared.surfaced;
   const active = moments.find(
-    (m) => !!m.preparation?.sealedAtIso && !m.preparation.returnedAtIso,
+    (m) => !!m.preparation?.sealedAtIso && !preparationClosed(m.preparation),
   );
   const [opening, setOpening] = React.useState(false);
   const open = async () => {
@@ -34,7 +35,8 @@ function EnabledSocialProtocolEntry() {
       if (!isScopeCurrent(token)) return;
       const latest = getMomentsState().moments;
       const activeNow = latest.find(
-        (m) => !!m.preparation?.sealedAtIso && !m.preparation.returnedAtIso,
+        (m) =>
+          !!m.preparation?.sealedAtIso && !preparationClosed(m.preparation),
       );
       const candidate =
         !activeNow && preferences

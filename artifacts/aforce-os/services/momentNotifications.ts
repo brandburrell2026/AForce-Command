@@ -34,6 +34,7 @@ import { scheduleOutsideQuiet } from './quietDelivery';
  * wiring lock in store/__tests__/decisionGuardSeam.lock.test.ts.
  */
 import { Platform } from 'react-native';
+import { getMomentsState } from './momentsStore';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { evaluateDeliverableCopy, evaluateDeliverableLabel } from '@/utils/intelligence/decisionGuard';
 import { scopedStorage } from './scopedStorage';
@@ -113,7 +114,7 @@ export function planMomentNotifications(
 ): PlannedMomentNotification[] {
   const nowMs = Date.parse(nowIso);
   const candidates = [...moments]
-    .filter((m) => !m.preparedAtIso) // already prepared → no ping
+    .filter((m) => !m.preparedAtIso && !m.preparation?.cancelledAtIso) // already prepared → no ping
     .filter((m) => Date.parse(m.startAtIso) > nowMs) // started → never
     .filter((m) => (prefs.mode === 'important' ? m.importance !== 'low' : true))
     .sort((a, b) => Date.parse(a.startAtIso) - Date.parse(b.startAtIso));
@@ -314,9 +315,7 @@ export async function syncMomentNotifications(
         .filter((n) => n.identifier.startsWith(TAG_PREFIX))
         .map((n) => Notif.cancelScheduledNotificationAsync(n.identifier)),
     );
-    const nowMs = Date.now();
     for (const p of plan) {
-      const seconds = Math.max(1, Math.round((Date.parse(p.fireAtIso) - nowMs) / 1000));
       const title = translate(p.titleKey, p.titleParams);
       const body = translate(p.bodyKey, p.bodyParams);
       // S1-4: OS-channel copy runs through the same §42 seam as the
@@ -336,7 +335,8 @@ export async function syncMomentNotifications(
       ) {
         continue;
       }
-      await scheduleOutsideQuiet(() => Notif.scheduleNotificationAsync({
+      const isCurrent = () => !getMomentsState().moments.find(m => m.id === p.momentId)?.preparation?.cancelledAtIso && Date.parse(p.fireAtIso) > Date.now();
+      const scheduled = await scheduleOutsideQuiet(() => Notif.scheduleNotificationAsync({
         identifier: p.tag,
         content: {
           title,
@@ -345,9 +345,12 @@ export async function syncMomentNotifications(
         },
         trigger: {
           type: Notif.SchedulableTriggerInputTypes.TIME_INTERVAL,
-          seconds,
+          seconds: Math.max(1, Math.round((Date.parse(p.fireAtIso) - Date.now()) / 1000)),
         },
-      }));
+      }), isCurrent);
+      // A cancellation can land while the native API is acknowledging a
+      // schedule. Remove that late acknowledgement instead of resurrecting it.
+      if (scheduled && !isCurrent()) await Notif.cancelScheduledNotificationAsync(scheduled);
     }
   } catch {
     // Never let notification plumbing break the app.

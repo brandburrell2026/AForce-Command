@@ -248,7 +248,7 @@ export function surfaceableMoments(moments: readonly Moment[], nowIso: string): 
   return [...moments]
     .filter((m) => {
       const t = Date.parse(m.startAtIso);
-      return Number.isFinite(t) && t >= dayStart.getTime() && t <= horizonMs;
+      return !m.preparation?.cancelledAtIso && Number.isFinite(t) && t >= dayStart.getTime() && t <= horizonMs;
     })
     .sort((a, b) => Date.parse(a.startAtIso) - Date.parse(b.startAtIso));
 }
