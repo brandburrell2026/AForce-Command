@@ -45,6 +45,47 @@ export function reviewedPreparationSteps(
       ...(s.key === "hydrate" ? { commandId: command.id } : {}),
     }));
 }
+/** Validate the exact reviewed command, not just its semantic ID. A command
+ * may change dose/copy while retaining its ID. This does not select advice. */
+export function preparationReviewMatches(
+  moment: Moment,
+  command: { id: string; action: string },
+  nowMs: number,
+): boolean {
+  const p = moment.preparation;
+  if (
+    !p ||
+    p.policyVersion !== PREPARATION_POLICY_VERSION ||
+    !Number.isFinite(nowMs) ||
+    !Number.isFinite(Date.parse(p.reviewedAtIso)) ||
+    Date.parse(p.reviewedAtIso) > nowMs ||
+    !Number.isFinite(Date.parse(p.validUntilIso ?? "")) ||
+    Date.parse(p.validUntilIso!) <= nowMs
+  )
+    return false;
+  return p.steps.every(
+    (step) =>
+      !step.commandId ||
+      (step.commandId === command.id &&
+        step.action === command.action &&
+        evaluateDeliverableCopy(command.action).verdict === "approved"),
+  );
+}
+
+/** In-memory review binding only. Calendar titles never become a new record. */
+export function preparationContextKey(moment: Moment | null): string {
+  return moment
+    ? JSON.stringify([
+        moment.id,
+        moment.source,
+        moment.title,
+        moment.startAtIso,
+        moment.endAtIso ?? null,
+        moment.masked ?? false,
+      ])
+    : "none";
+}
+
 export function isDayMoment(moment: Pick<Moment, "startAtIso">): boolean {
   const hour = new Date(moment.startAtIso).getHours();
   return hour >= 6 && hour < 18;

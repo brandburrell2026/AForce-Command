@@ -7,7 +7,7 @@ Branch: feat/social-v04. This is local implementation, not an internally release
 
 - One shared preparation screen for Social and One Breath, carried on the existing account-scoped Moment.
 - Capture, editable Mirror, canonical preparation review, hold-to-Seal, Lock In, Quiet, Plans changed, private return, and Replay.
-- Saved Seal acknowledgement, duplicate retry protection, stale-review rejection, scope checks and deletion tombstones.
+- Saved Seal acknowledgement, duplicate retry protection, stale-review rejection, scope checks and deletion tombstones. Seal binds the exact canonical command ID and action, the reviewed validity window and visible upcoming context. Live input checks cover mid-hold changes and queued save starts; acknowledged retries remain idempotent. Calendar context bindings remain in memory only.
 - Actual existing-Moment Noticed entry; no fabricated calendar event. Suggestions use fresh shared Moments/preferences at tap time, respect quiet hours, lead windows, active-plan suppression and one proposal per occurrence. Repeated declines reduce frequency; category opt-out and an independent restore control use the existing scoped Moments preferences key with acknowledged writes.
 - Upcoming context reads the existing shared Moments selector and displays the event after the reviewed Moment, including its date. Derived calendar rows are read-only context and are not silently saved as manual Moments.
 - Social entry remains inside Protocol / Prepare My Day, with no tab.
@@ -20,7 +20,7 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 ## Verified locally
 
-199 tests pass across 24 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+209 tests pass across 24 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
 
 The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,640 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
 

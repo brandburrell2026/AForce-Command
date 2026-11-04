@@ -35,6 +35,8 @@ import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
   nextPreparationContext,
   reviewedPreparationSteps,
+  preparationReviewMatches,
+  preparationContextKey,
   isDayMoment,
   momentReturnLabel,
   rideHandoffUrl,
@@ -146,6 +148,25 @@ export function MomentPreparationScreen({
     anchor,
     sharedMoments.nowIso,
   );
+  // Hold callbacks use live inputs, never the closure captured on press-in.
+  const liveInputs = React.useRef({
+    command: app.engineOutput.command,
+    moments: sharedMoments.surfaced,
+  });
+  liveInputs.current = {
+    command: app.engineOutput.command,
+    moments: sharedMoments.surfaced,
+  };
+  const reviewedContext = React.useRef("none");
+  const reviewStillCurrent = (moment: Moment): boolean => {
+    const live = liveInputs.current;
+    return (
+      preparationReviewMatches(moment, live.command, Date.now()) &&
+      preparationContextKey(
+        nextPreparationContext(live.moments, moment, new Date().toISOString()),
+      ) === reviewedContext.current
+    );
+  };
   const safety = evaluateMomentSafety(
     screen === "change" ? changes : words,
     alcoholMentioned || activeAlcoholContext(current),
@@ -365,6 +386,13 @@ export function MomentPreparationScreen({
       steps,
       policyVersion: PREPARATION_POLICY_VERSION,
     };
+    reviewedContext.current = preparationContextKey(
+      nextPreparationContext(
+        sharedMoments.surfaced,
+        updated,
+        new Date().toISOString(),
+      ),
+    );
     reviewedBase.current = saved;
     setReview({ ...updated, preparation });
     setHoldId(preparation.transactionId);
@@ -386,13 +414,18 @@ export function MomentPreparationScreen({
     try {
       const result = await (target === "quiet"
         ? lockInWithoutReminders(() => commitReviewedMoment(moment, expected))
-        : commitReviewedMoment(moment, expected));
+        : commitReviewedMoment(
+            moment,
+            expected,
+            target === "lock" ? () => reviewStillCurrent(moment) : undefined,
+          ));
       if (!allowed()) return;
       setReview(result);
       move(target);
       if (target === "lock") hapticImpact("medium");
     } catch {
-      if (allowed())
+      if (allowed()) {
+        if (target === "lock" && !reviewStillCurrent(moment)) move("mirror");
         setError(
           target === "lock"
             ? "Not sealed yet. Review your plan and try again."
@@ -400,6 +433,7 @@ export function MomentPreparationScreen({
               ? "Could not enter Quiet. Please try Lock In again."
               : "Could not save that change. Please try again.",
         );
+      }
     } finally {
       busy.current = false;
       setSaving(false);
@@ -408,15 +442,11 @@ export function MomentPreparationScreen({
   const seal = () => {
     if (!review?.preparation) return;
     const p = review.preparation;
-    const reviewedCommand = p.steps.find((step) => step.commandId)?.commandId;
-    if (reviewedCommand && reviewedCommand !== app.engineOutput.command.id) {
+    if (!reviewStillCurrent(review)) {
+      move("mirror");
       setError(
-        "Your preparation changed. Review the plan again before sealing.",
+        "Your preparation or upcoming context changed. Review the plan again before sealing.",
       );
-      return;
-    }
-    if (Date.now() >= Date.parse(p.validUntilIso ?? review.startAtIso)) {
-      setError("This review expired. Review your plan again.");
       return;
     }
     void commit(

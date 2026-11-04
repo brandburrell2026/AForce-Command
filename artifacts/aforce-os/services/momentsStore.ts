@@ -60,7 +60,7 @@ function persist(): void {
  * Uses the same storage key/queue as manual, calendar and travel Moments.
  * Optimistic concurrency rejects a review whose existing Moment changed.
  */
-export function commitReviewedMoment(moment: Moment, expected?: Moment): Promise<Moment> {
+export function commitReviewedMoment(moment: Moment, expected?: Moment, reviewIsCurrent?: () => boolean): Promise<Moment> {
   const token = captureScope();
   const gen = generation;
   const run = async (): Promise<Moment> => {
@@ -68,6 +68,9 @@ export function commitReviewedMoment(moment: Moment, expected?: Moment): Promise
     const current = state.moments.find(m => m.id === moment.id);
     if (moment.preparation?.transactionId && current?.preparation?.transactionId === moment.preparation.transactionId) return current;
     if (JSON.stringify(current) !== JSON.stringify(expected)) throw new Error('Your moment changed. Review it again.');
+    // Recheck volatile review inputs when this queued commit actually drains.
+    // Idempotent retries above return the already-acknowledged result.
+    if (reviewIsCurrent && !reviewIsCurrent()) throw new Error('Review inputs changed. Review again.');
     // Concurrent unrelated edits are merged before publishing. Pending legacy
     // writes read the live state at drain, so they cannot erase this commit.
     let next: Moment[];
