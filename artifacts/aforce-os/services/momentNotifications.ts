@@ -1,3 +1,6 @@
+import { captureScope, isScopeCurrent } from './scopedWriteQueue';
+import { getScopeState, subscribeUserScope } from './userScope';
+import { sanitizeMomentProposalPreferences, reduceMomentProposalPreference, type MomentProposalPreferences } from './momentProposalPreferences';
 import { scheduleOutsideQuiet } from './quietDelivery';
 /**
  * momentNotifications — AForce Moments prep notifications (Phase 3a, DR-010).
@@ -59,6 +62,7 @@ export interface MomentNotifyPrefs {
    *  when true, leadMin is ignored and the window start shifts by the
    *  bounded per-type adjustment. */
   adaptive?: boolean;
+  preparationProposals?: MomentProposalPreferences;
 }
 
 export const DEFAULT_MOMENT_NOTIFY_PREFS: MomentNotifyPrefs = {
@@ -171,32 +175,114 @@ export function planMomentNotifications(
 
 // ─── Prefs persistence (best-effort, defaults on any failure) ─────────────
 
+async function readMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
+  const raw = await scopedStorage.getItem(PREFS_KEY);
+  if (!raw) return DEFAULT_MOMENT_NOTIFY_PREFS;
+  const parsed = JSON.parse(raw) as Partial<MomentNotifyPrefs>;
+  const lead = parsed.leadMin;
+  return {
+    mode: parsed.mode === 'all' ? 'all' : 'important',
+    adaptive: parsed.adaptive === true,
+    preparationProposals: sanitizeMomentProposalPreferences(
+      parsed.preparationProposals,
+    ),
+    leadMin:
+      typeof lead === 'number' &&
+      (MOMENT_NOTIFY_LEAD_PRESETS_MIN as readonly number[]).includes(lead)
+        ? lead
+        : null,
+  };
+}
+
 export async function getMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
   try {
-    const raw = await scopedStorage.getItem(PREFS_KEY);
-    if (!raw) return DEFAULT_MOMENT_NOTIFY_PREFS;
-    const parsed = JSON.parse(raw) as Partial<MomentNotifyPrefs>;
-    const lead = parsed.leadMin;
-    return {
-      mode: parsed.mode === 'all' ? 'all' : 'important',
-      adaptive: parsed.adaptive === true,
-      leadMin:
-        typeof lead === 'number' &&
-        (MOMENT_NOTIFY_LEAD_PRESETS_MIN as readonly number[]).includes(lead)
-          ? lead
-          : null,
-    };
+    return await readMomentNotifyPrefs();
   } catch {
     return DEFAULT_MOMENT_NOTIFY_PREFS;
   }
 }
 
-export async function setMomentNotifyPrefs(prefs: MomentNotifyPrefs): Promise<void> {
+let preferenceQueue: Promise<unknown> = Promise.resolve();
+const preferenceListeners = new Set<() => void>();
+export function subscribeMomentPreferences(listener: () => void): () => void {
+  preferenceListeners.add(listener);
+  return () => preferenceListeners.delete(listener);
+}
+function preferenceChange() {
+  for (const listener of preferenceListeners) listener();
+}
+subscribeUserScope(preferenceChange);
+function mutateMomentPreferences(
+  update: (current: MomentNotifyPrefs) => MomentNotifyPrefs,
+  authenticated = false,
+): Promise<void> {
+  const token = captureScope();
+  const run = async () => {
+    if (
+      !isScopeCurrent(token) ||
+      (authenticated && getScopeState().status !== 'AUTHENTICATED')
+    )
+      throw new Error('Account changed.');
+    const current = await readMomentNotifyPrefs();
+    if (!isScopeCurrent(token)) throw new Error('Account changed.');
+    const next = update(current);
+    if (next === current) return;
+    await scopedStorage.setItem(PREFS_KEY, JSON.stringify(next));
+    if (!isScopeCurrent(token)) throw new Error('Account changed.');
+    preferenceChange();
+  };
+  const result = preferenceQueue.catch(() => undefined).then(run);
+  preferenceQueue = result.catch(() => undefined);
+  return result;
+}
+export async function setMomentNotifyPrefs(
+  prefs: MomentNotifyPrefs,
+): Promise<void> {
+  // A settings card may hold an older snapshot: never erase newer preparation choices.
   try {
-    await scopedStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    await mutateMomentPreferences((current) => ({
+      ...prefs,
+      preparationProposals: current.preparationProposals,
+    }));
   } catch {
-    // best-effort
+    /* legacy best-effort contract */
   }
+}
+export async function getMomentProposalPreferences(): Promise<MomentProposalPreferences> {
+  return sanitizeMomentProposalPreferences(
+    (await readMomentNotifyPrefs()).preparationProposals,
+  );
+}
+export function recordMomentProposal(
+  moment: Moment,
+  outcome: 'shown' | 'accepted' | 'declined',
+  neverType = false,
+): Promise<void> {
+  return mutateMomentPreferences((current) => {
+    const old = sanitizeMomentProposalPreferences(current.preparationProposals);
+    const next = reduceMomentProposalPreference(
+      old,
+      moment,
+      outcome,
+      neverType,
+    );
+    return next === old ? current : { ...current, preparationProposals: next };
+  }, true);
+}
+
+/** Restore suggestions without re-showing occurrences already presented. */
+export function allowMomentPreparationSuggestions(): Promise<void> {
+  return mutateMomentPreferences((current) => {
+    const old = sanitizeMomentProposalPreferences(current.preparationProposals);
+    return {
+      ...current,
+      preparationProposals: {
+        ...old,
+        neverTypes: [],
+        suggestionsAllowedAtIso: new Date().toISOString(),
+      },
+    };
+  }, true);
 }
 
 // ─── Native bridge (lazy, web/sim no-op — pushNotifications.ts pattern) ──

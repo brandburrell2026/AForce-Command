@@ -1,16 +1,19 @@
+vi.mock('@/components/oneBreath/MomentProposalPrefsControl',()=>({MomentProposalPrefsControl:()=>null}));
 // @vitest-environment happy-dom
 import React,{act} from 'react';
 import {AccessibilityInfo} from 'react-native';
 import {createRoot,type Root} from 'react-dom/client';
 import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
 import type {Moment} from '@/types/moments';
-const h=vi.hoisted(()=>({moments:[] as Moment[],params:{} as {momentId?:string},replace:vi.fn(),commit:vi.fn(),scope:true}));
-vi.mock('expo-router',()=>({useRouter:()=>({back:vi.fn(),replace:h.replace}),useLocalSearchParams:()=>h.params}));
+const h=vi.hoisted(()=>({moments:[] as Moment[],params:{} as {momentId?:string;proposal?:string},back:vi.fn(),replace:vi.fn(),commit:vi.fn(),scope:true,preference:vi.fn()}));
+vi.mock('expo-router',()=>({useRouter:()=>({back:h.back,replace:h.replace}),useLocalSearchParams:()=>h.params}));
 vi.mock('react-native-safe-area-context',()=>({useSafeAreaInsets:()=>({top:0,bottom:0})}));
 vi.mock('@/services/haptics',()=>({hapticImpact:vi.fn(),hapticSelection:vi.fn()}));
 vi.mock('@/services/textToSpeech',()=>({stopSpeaking:vi.fn()}));
 vi.mock('@/components/oneBreath/PreparationOrb',()=>({PreparationOrb:()=> <div aria-label="Orb"/>}));
 vi.mock('@/hooks/useOneBreathVoice',()=>{const voice={available:false,busy:false,listening:false,error:'',start:async()=>{},stop:()=>{},cancel:()=>{}};return{useOneBreathVoice:()=>voice};});
+vi.mock('@/components/moments/useMomentsData',()=>({useMomentsData:()=>({surfaced:h.moments,nowIso:new Date().toISOString()})}));
+vi.mock('@/services/momentNotifications',()=>({recordMomentProposal:async(...args:unknown[])=>{return h.preference(...args);}}));
 vi.mock('@/store/useAppStore',()=>({useAppStore:()=>({state:{engineOutput:{command:{id:'canonical',action:'Start with water.'}}}})}));
 vi.mock('@/services/scopedWriteQueue',()=>({captureScope:()=>({generation:1}),isScopeCurrent:()=>h.scope}));
 vi.mock('@/services/userScope',()=>({getScopeState:()=>({status:'AUTHENTICATED'})}));
@@ -23,9 +26,9 @@ function button(label:string){const found=Array.from(host.querySelectorAll('[rol
 function click(label:string){act(()=>button(label).click());}
 function field(label:string,value:string){const el=host.querySelector(`[aria-label="${label}"]`) as HTMLInputElement;const setter=Object.getOwnPropertyDescriptor(el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value')!.set!;act(()=>{setter.call(el,value);el.dispatchEvent(new Event('input',{bubbles:true}));});}
 const existing=():Moment=>({id:'real',source:'manual',title:'Team dinner',type:'personal',importance:'high',startAtIso:'2027-01-08T19:30:00Z',createdAtIso:'2026-11-04T12:00:00Z',preparation:{version:1,context:'social',transactionId:'review',reviewedAtIso:'2026-11-04T12:00:00Z',sealedAtIso:'2026-11-04T12:00:01Z',returnMethod:'ride',destination:'Hotel',emergencyNumber:'911',steps:[],policyVersion:'social-v0.4-phase-a'}});
-beforeEach(()=>{vi.spyOn(AccessibilityInfo,'isReduceMotionEnabled').mockResolvedValue(true);h.moments=[];h.params={};h.scope=true;h.commit.mockReset();h.replace.mockReset();host=document.createElement('div');document.body.append(host);root=createRoot(host);});
+beforeEach(()=>{vi.spyOn(AccessibilityInfo,'isReduceMotionEnabled').mockResolvedValue(true);h.moments=[];h.params={};h.scope=true;h.commit.mockReset();h.preference.mockReset();h.back.mockReset();h.replace.mockReset();host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(()=>{act(()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();});
-describe('Social v0.4 shared Moment screen interactions',async()=>{
+describe('Social v0.4 shared Moment screen interactions',()=>{
   it('typing reaches Mirror, Plan and Seal without saving or requiring voice',async()=>{await mount();field('Your moment','Dinner tomorrow at 7:30 PM');click('Review my moment');expect(host.textContent).toContain('HERE’S WHAT I HEARD');field('Date · YYYY-MM-DD','2027-01-08');click('Continue');expect(host.textContent).toContain('YOUR PLAN · NOT SEALED YET');expect(host.textContent).toContain('Start with water.');click('Review & seal');expect(host.textContent).toContain('Only what you approve');expect(h.commit).not.toHaveBeenCalled();});
   it('puts driving risk ahead of Mirror and offers no driving approval',async()=>{await mount();field('Your moment','I had tequila and I am driving');click('Review my moment');expect(host.textContent).toContain('AFORCE can’t assess');expect(button('Get a ride')).toBeTruthy();expect(button('Contact someone')).toBeTruthy();expect(button('Stay here')).toBeTruthy();expect(h.commit).not.toHaveBeenCalled();});
   it('resumes a sealed Moment in Lock In and persists Quiet through the shared commit',async()=>{h.moments=[existing()];await mount();expect(host.textContent).toContain('Go perform.');await act(async()=>button('Lock In').click());expect(host.textContent).toContain('Phone down.');expect(h.moments[0]!.preparation!.lockedInAtIso).toBeTruthy();expect(h.moments).toHaveLength(1);click('Heading back?');expect(host.textContent).toContain('Made it back.');await act(async()=>button('Made it back ✓').click());expect(host.textContent).toContain('Did it go the way you wanted?');expect(h.moments[0]!.preparation!.returnedAtIso).toBeTruthy();});
@@ -43,5 +46,10 @@ describe('Social v0.4 shared Moment screen interactions',async()=>{
     act(()=>ring.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0})));
     await act(async()=>{vi.advanceTimersByTime(1400);});expect(h.commit).toHaveBeenCalledTimes(1);expect(host.textContent).toContain('Go perform.');
   });
+
+  it('remembers a proposal decline without writing a Moment',async()=>{const m=existing();delete m.preparation;h.moments=[m];h.params={momentId:m.id,proposal:'1'};await mount();expect(h.preference).toHaveBeenCalledWith(m,'shown');await act(async()=>button('Not this one').click());expect(h.preference).toHaveBeenCalledWith(m,'declined',false);expect(h.commit).not.toHaveBeenCalled();});
+  it('stays on Noticed when saving a decline fails, then permits retry',async()=>{const m=existing();delete m.preparation;h.moments=[m];h.params={momentId:m.id,proposal:'1'};await mount();h.preference.mockRejectedValueOnce(new Error('disk unavailable'));await act(async()=>button('Not this one').click());expect(host.textContent).toContain('Could not save that preference');expect(h.back).not.toHaveBeenCalled();expect(h.commit).not.toHaveBeenCalled();await act(async()=>button('Not this one').click());expect(h.back).toHaveBeenCalledTimes(1);});
+  it('offers an accessible category opt-out as well as long press',async()=>{const m=existing();delete m.preparation;h.moments=[m];h.params={momentId:m.id,proposal:'1'};await mount();click('Suggestion options');expect(host.textContent).toContain('personal Moments');await act(async()=>button('Never for things like this').click());expect(h.preference).toHaveBeenCalledWith(m,'declined',true);});
+  it('does not mistake an earlier event for what follows the reviewed Moment',async()=>{const m=existing();delete m.preparation;m.startAtIso='2027-01-08T19:30:00Z';const earlier={...m,id:'earlier',title:'Earlier meeting',startAtIso:'2027-01-08T18:00:00Z'};const later={...m,id:'later',title:'Next morning meeting',startAtIso:'2027-01-09T15:00:00Z'};h.moments=[earlier,m,later];h.params={momentId:m.id};vi.useFakeTimers();vi.setSystemTime(new Date('2027-01-08T17:00:00Z'));await mount();await act(async()=>button('Prepare').click());expect(host.textContent).toContain('Next morning meeting');expect(host.textContent).not.toContain('Earlier meeting');});
 
 });

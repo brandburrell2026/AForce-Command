@@ -1,4 +1,7 @@
 import React from "react";
+import { MomentProposalPrefsControl } from "./MomentProposalPrefsControl";
+import { useMomentsData } from "@/components/moments/useMomentsData";
+import { recordMomentProposal } from "@/services/momentNotifications";
 import {
   AccessibilityInfo,
   Animated,
@@ -30,6 +33,7 @@ import {
 import { suggestMomentDraft } from "@/services/oneBreathDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
+  nextPreparationContext,
   reviewedPreparationSteps,
   isDayMoment,
   momentReturnLabel,
@@ -76,8 +80,13 @@ export function MomentPreparationScreen({
   const social = context === "social";
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ momentId?: string }>();
+  const params = useLocalSearchParams<{
+    momentId?: string;
+    proposal?: string;
+  }>();
   const store = useMomentsStore();
+  const sharedMoments = useMomentsData();
+  const [declineOptions, setDeclineOptions] = React.useState(false);
   const { state: app } = useAppStore();
   const [scope] = React.useState(captureScope);
   const [screen, setScreen] = React.useState<Screen>("capture");
@@ -125,14 +134,18 @@ export function MomentPreparationScreen({
   const current = review ?? saved;
   const day = current ? isDayMoment(current) : new Date().getHours() < 18;
   const accent = day ? T.dayAccent : T.nightAccent;
-  const next = store.moments
-    .filter(
-      (m) =>
-        m.source !== "demo" &&
-        m.id !== current?.id &&
-        Date.parse(m.startAtIso) > Date.now(),
-    )
-    .sort((a, b) => Date.parse(a.startAtIso) - Date.parse(b.startAtIso))[0];
+  const draftedStart = draft ? Date.parse(`${draft.date}T${draft.time}`) : NaN;
+  const anchor = Number.isFinite(draftedStart)
+    ? {
+        id: current?.id ?? "draft",
+        startAtIso: new Date(draftedStart).toISOString(),
+      }
+    : current;
+  const next = nextPreparationContext(
+    sharedMoments.surfaced,
+    anchor,
+    sharedMoments.nowIso,
+  );
   const safety = evaluateMomentSafety(
     screen === "change" ? changes : words,
     alcoholMentioned || activeAlcoholContext(current),
@@ -162,7 +175,24 @@ export function MomentPreparationScreen({
           (m) =>
             m.preparation?.context === context && !m.preparation.returnedAtIso,
         );
-    if (!existing) return;
+    if (!existing) {
+      const previous = [...store.moments]
+        .filter(
+          (m) =>
+            !!m.preparation?.sealedAtIso && m.preparation.context === context,
+        )
+        .sort(
+          (a, b) =>
+            Date.parse(b.preparation!.sealedAtIso) -
+            Date.parse(a.preparation!.sealedAtIso),
+        )[0]?.preparation;
+      if (previous) {
+        setMethod(previous.returnMethod);
+        setDestination(previous.destination);
+        setEmergency(previous.emergencyNumber);
+      }
+      return;
+    }
     setReview(existing);
     if (existing.preparation) {
       setMethod(existing.preparation.returnMethod);
@@ -213,6 +243,34 @@ export function MomentPreparationScreen({
       animation?.stop();
     };
   }, [screen, dim]);
+  React.useEffect(() => {
+    if (screen !== "noticed" || !current || params.proposal !== "1") return;
+    const token = captureScope();
+    void recordMomentProposal(current, "shown").catch(() => {
+      if (isScopeCurrent(token))
+        setError(
+          "Could not remember this suggestion. Your Moment is unchanged.",
+        );
+    });
+  }, [screen, current?.id, params.proposal]);
+  const proposalResponse = async (
+    outcome: "accepted" | "declined",
+    neverType = false,
+  ): Promise<boolean> => {
+    if (!current || !allowed()) return false;
+    if (params.proposal !== "1" && !neverType) return true;
+    setSaving(true);
+    try {
+      await recordMomentProposal(current, outcome, neverType);
+      return allowed();
+    } catch {
+      if (allowed())
+        setError("Could not save that preference. Please try again.");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
   const move = (s: Screen) => {
     cancelHold();
     setError("");
@@ -264,7 +322,9 @@ export function MomentPreparationScreen({
       alcoholDisclosure(words) ||
       alcoholDisclosure(draft.title);
     if (alcoholDisclosure(draft.title) || alcoholDisclosure(draft.prepGoal)) {
-      setError('Use a Moment name and priority without alcohol details. That context stays separate and temporary.');
+      setError(
+        "Use a Moment name and priority without alcohol details. That context stays separate and temporary.",
+      );
       return;
     }
     const policy = configuredMomentSafetyPolicy();
@@ -516,7 +576,8 @@ export function MomentPreparationScreen({
             </Text>
             {button(
               "Prepare",
-              () => {
+              async () => {
+                if (!(await proposalResponse("accepted"))) return;
                 const at = new Date(current.startAtIso);
                 setDraft({
                   title: current.title,
@@ -529,7 +590,35 @@ export function MomentPreparationScreen({
               },
               true,
             )}
-            {button("Not this one", () => router.back())}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Not this one"
+              accessibilityHint="Long press for more suggestion preferences"
+              disabled={saving}
+              onLongPress={() => setDeclineOptions(true)}
+              onPress={() => {
+                void proposalResponse("declined").then((ok) => {
+                  if (ok) router.back();
+                });
+              }}
+              style={s.button}
+            >
+              <Text style={s.buttonText}>Not this one</Text>
+            </Pressable>
+            {button("Suggestion options", () => setDeclineOptions((v) => !v))}
+            {declineOptions ? (
+              <>
+                <Text style={s.muted}>
+                  Stop preparation suggestions for {current.type} Moments. You
+                  can still prepare manually.
+                </Text>
+                {button("Never for things like this", () => {
+                  void proposalResponse("declined", true).then((ok) => {
+                    if (ok) router.back();
+                  });
+                })}
+              </>
+            ) : null}
           </>
         ) : null}
         {screen === "capture" ? (
@@ -580,6 +669,7 @@ export function MomentPreparationScreen({
               true,
               !words.trim() || voice.busy,
             )}
+            <MomentProposalPrefsControl />
           </>
         ) : null}
         {screen === "mirror" && draft ? (
@@ -623,7 +713,14 @@ export function MomentPreparationScreen({
               <View style={s.row}>
                 <Text style={s.eyebrow}>WHAT’S NEXT</Text>
                 <Text style={s.body}>
-                  {next.title} · {clock(next.startAtIso)}
+                  {next.title} ·{" "}
+                  {new Date(next.startAtIso).toLocaleString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })}
                 </Text>
               </View>
             ) : null}
@@ -643,7 +740,7 @@ export function MomentPreparationScreen({
                     ),
                   )}
                 </View>
-                {method !== "none"
+                {method && method !== "none"
                   ? input(
                       "Destination · Home, Hotel or saved place",
                       destination,
@@ -899,8 +996,15 @@ export function MomentPreparationScreen({
             <Text style={s.title}>{momentReturnLabel(new Date())}</Text>
             {next ? (
               <Text style={s.body}>
-                {next.title} · {clock(next.startAtIso)}. Let’s protect that
-                first.
+                {next.title} ·{" "}
+                {new Date(next.startAtIso).toLocaleString([], {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
+                . Let’s protect that first.
               </Text>
             ) : null}
             <Text style={s.body}>Did it go the way you wanted?</Text>
