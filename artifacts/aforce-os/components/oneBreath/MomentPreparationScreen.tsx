@@ -46,6 +46,7 @@ import {
   reviewedPreparationSteps,
   preparationReviewMatches,
   preparationContextKey,
+  preparationTimeZoneKey,
   isDayMoment,
   momentReturnLabel,
   rideHandoffUrl,
@@ -79,6 +80,8 @@ type Screen =
   | "change"
   | "return"
   | "next";
+const TIME_ZONE_CHANGED =
+  "Your time zone changed. Review the local date and time before sealing.";
 const CALENDAR_CHANGED =
   "Calendar details changed. Review the plan again using the updated event.";
 const draftForMoment = (moment: Moment): MomentDraft => {
@@ -210,12 +213,17 @@ export function MomentPreparationScreen({
     moments: sharedMoments.surfaced,
   };
   const reviewedContext = React.useRef("none");
+  const reviewedTimeZone = React.useRef<string | null>(null);
+  const timeZoneChanged = (moment: Moment) =>
+    !reviewedTimeZone.current ||
+    reviewedTimeZone.current !== preparationTimeZoneKey(moment.startAtIso);
   // Read-only provenance stays in RAM. A reviewed calendar candidate is
   // converted to an explicit manual Moment, never persisted as an import.
   const calendarOrigin = React.useRef<{ id: string; key: string } | null>(null);
   const reviewStillCurrent = (moment: Moment): boolean => {
     const live = liveInputs.current;
     return (
+      !timeZoneChanged(moment) &&
       (!candidateEndAt || Date.parse(candidateEndAt) > Date.now()) &&
       (!moment.safetyContext ||
         matchesMomentSafetyConsent(
@@ -701,6 +709,7 @@ export function MomentPreparationScreen({
         new Date().toISOString(),
       ),
     );
+    reviewedTimeZone.current = preparationTimeZoneKey(updated.startAtIso);
     reviewedBase.current = saved;
     setReview({ ...updated, preparation });
     setHoldId(preparation.transactionId);
@@ -737,10 +746,15 @@ export function MomentPreparationScreen({
       if (target === "lock") hapticImpact("medium");
     } catch {
       if (allowed()) {
-        if (target === "lock" && !reviewStillCurrent(moment)) move("mirror");
+        if (target === "lock" && !reviewStillCurrent(moment)) {
+          move("mirror");
+          if (timeZoneChanged(moment)) setTimingOpen(true);
+        }
         setError(
           target === "lock"
-            ? "Not sealed yet. Review your plan and try again."
+            ? timeZoneChanged(moment)
+              ? TIME_ZONE_CHANGED
+              : "Not sealed yet. Review your plan and try again."
             : target === "quiet"
               ? "Could not enter Quiet. Please try Lock In again."
               : "Could not save that change. Please try again.",
@@ -756,8 +770,11 @@ export function MomentPreparationScreen({
     const p = review.preparation;
     if (!reviewStillCurrent(review)) {
       move("mirror");
+      if (timeZoneChanged(review)) setTimingOpen(true);
       setError(
-        "Your preparation or upcoming context changed. Review the plan again before sealing.",
+        timeZoneChanged(review)
+          ? TIME_ZONE_CHANGED
+          : "Your preparation or upcoming context changed. Review the plan again before sealing.",
       );
       return;
     }
@@ -1216,6 +1233,11 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
+            {error === TIME_ZONE_CHANGED ? (
+              <Text accessibilityRole="alert" style={s.body}>
+                {TIME_ZONE_CHANGED}
+              </Text>
+            ) : null}
             {calendarChanged ? (
               <View style={s.row}>
                 <Text accessibilityRole="alert" style={s.body}>
@@ -1830,6 +1852,7 @@ export function MomentPreparationScreen({
         ) : null}
         {error &&
         !(screen === "capture" && error === CANDIDATE_ENDED) &&
+        !(screen === "mirror" && error === TIME_ZONE_CHANGED) &&
         !(
           screen === "mirror" &&
           calendarChanged &&

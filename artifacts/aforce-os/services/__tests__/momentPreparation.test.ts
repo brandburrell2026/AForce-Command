@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {reviewedNextPreparationContext,preparationReviewMatches,preparationContextKey,reviewedPreparationSteps,isDayMoment,rideHandoffUrl} from '../momentPreparation';
+import {reviewedNextPreparationContext,preparationReviewMatches,preparationContextKey,preparationTimeZoneKey,reviewedPreparationSteps,isDayMoment,rideHandoffUrl} from '../momentPreparation';
 import {evaluateMomentSafety} from '@/utils/intelligence/decisionGuard';
 import type {Moment} from '@/types/moments';
 const prepNow=(m:Moment)=>new Date(Date.parse(m.startAtIso)-10*60000).toISOString();
@@ -46,4 +46,9 @@ describe('reviewed next Moment handoff',()=>{
 
 describe('source classification is part of in-memory review binding',()=>{
  it.each([{type:'work' as const},{importance:'low' as const},{prepGoal:'Arrive focused'},{preparedAtIso:'2027-01-08T17:00:00Z'}])('binds changed reviewed preparation metadata: %s',patch=>{expect(preparationContextKey({...moment,...patch})).not.toBe(preparationContextKey(moment));});
+});
+
+describe('local-time review binding',()=>{
+ it('distinguishes timezone names even when their current offsets match',()=>{const before=process.env.TZ;try{process.env.TZ='America/New_York';const east=preparationTimeZoneKey('2027-01-08T19:30:00Z');process.env.TZ='America/Lima';expect(preparationTimeZoneKey('2027-01-08T19:30:00Z')).not.toBe(east);}finally{if(before===undefined)delete process.env.TZ;else process.env.TZ=before;}});
+ it('refuses invalid review timestamps',()=>expect(preparationTimeZoneKey('invalid')).toBeNull());
 });

@@ -105,6 +105,20 @@ export function preparationContextKey(moment: Moment | null): string {
     : "none";
 }
 
+/** RAM-only binding for the local time shown during review. A device timezone
+ * change requires another review; it never rewrites the saved UTC instant. */
+export function preparationTimeZoneKey(startAtIso: string): string | null {
+  const at = new Date(startAtIso);
+  if (!Number.isFinite(at.getTime())) return null;
+  let zone: string | null = null;
+  try {
+    zone = Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+  } catch {
+    /* Offset remains available offline. */
+  }
+  return JSON.stringify([zone, at.getTimezoneOffset()]);
+}
+
 export function isDayMoment(moment: Pick<Moment, "startAtIso">): boolean {
   const hour = new Date(moment.startAtIso).getHours();
   return hour >= 6 && hour < 18;
