@@ -27,6 +27,7 @@ Branch: feat/social-v04. This is local implementation, not an internally release
 - Social entry remains inside Protocol / Prepare My Day, with no tab.
 - Mirror day/night styling and upcoming context use valid draft timing as it is edited. Invalid or nonexistent dates never normalize into preview context; the opening question uses nighttime before dawn. The local daytime journey covers Seal, sun-orb Quiet and private Return. This adds no heat or recovery policy, and real-phone acceptance is pending.
 - Inter typography, source-derived mirrored-N geometry, blue/orange/sun orb variants, reduced-motion handling, eight-second Quiet dim.
+- A strict CI copy-contract step scans authored JSX, labels, errors and template fragments across shared/fallback One Breath components, the preparation adapter and native voice messages. It rejects prohibited status/impairment, drink-count, unproven real-time and deprecated send-off wording, plus mixed-case brand copy. Comments and member-provided runtime words are excluded. An injected prohibited claim was rejected and the original source restored. Conditional timing, dynamic engine guidance and native notifications still require their separate runtime checks.
 - “Go perform.” shared Lock In/Quiet wording. Current brand fill already matches #C1281B.
 - Quiet serializes native scheduling with cancellation before committing Lock In. Existing safety-kind schedules are preserved; ordinary schedules and TTS are suppressed, as is the morning voice overlay.
 - Local /os and /os/ permanent redirects to /aforce-os; not deployed.
@@ -35,7 +36,7 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 ## Verified locally
 
-470 tests pass across 40 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+489 tests pass across 41 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
 
 Local interruption/write tests verify inactive/background cancellation during a Seal hold, leaving the screen mid-hold, explicit retry after storage rejection, one acknowledged save after a delayed write, a retryable failed Return, and rehydration of Return with private context removed. These use injected lifecycle/storage events; they do not establish native force-close, offline or VoiceOver acceptance.
 
