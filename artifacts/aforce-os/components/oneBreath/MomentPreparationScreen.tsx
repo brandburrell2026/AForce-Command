@@ -33,6 +33,7 @@ import {
   type MomentDraft,
 } from "@/services/momentDraft";
 import { suggestMomentDraft } from "@/services/oneBreathDraft";
+import { suggestReservationDraft } from "@/services/reservationDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
   nextPreparationContext,
@@ -102,6 +103,9 @@ export function MomentPreparationScreen({
   const headingRef = React.useRef<Text>(null);
   const [screen, setScreen] = React.useState<Screen>("capture");
   const [words, setWords] = React.useState("");
+  const [reservationOpen, setReservationOpen] = React.useState(false);
+  const [reservationText, setReservationText] = React.useState("");
+  const [reservationReview, setReservationReview] = React.useState(false);
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
   const [review, setReview] = React.useState<Moment | null>(null);
   const [error, setError] = React.useState("");
@@ -200,7 +204,11 @@ export function MomentPreparationScreen({
   // A new lifecycle view starts at its heading. Editing within a view must not
   // steal focus from fields. A newly revealed safety screen is its own view.
   const focusKey =
-    screen === "change" ? `${screen}:${safety ?? "edit"}` : screen;
+    screen === "change"
+      ? `${screen}:${safety ?? "edit"}`
+      : screen === "capture"
+        ? `${screen}:${reservationOpen}`
+        : screen;
   React.useEffect(() => {
     let cancelled = false;
     scrollRef.current?.scrollTo({ y: 0, animated: false });
@@ -395,6 +403,9 @@ export function MomentPreparationScreen({
     setError("");
   };
   const reviewWords = () => {
+    setReservationReview(false);
+    setReservationOpen(false);
+    setReservationText("");
     voice.cancel();
     setNextChoice(null);
     setTimingOpen(false);
@@ -691,6 +702,7 @@ export function MomentPreparationScreen({
   React.useEffect(() => {
     if (
       !saved?.preparation ||
+      !!saved.preparation.returnedAtIso ||
       !alcoholMentioned ||
       activeAlcoholContext(saved) ||
       !allowed()
@@ -704,6 +716,7 @@ export function MomentPreparationScreen({
       return;
     }
     const token = captureScope();
+    let stale = false;
     void commitReviewedMoment(
       {
         ...withAlcoholContext(saved, policy),
@@ -711,11 +724,14 @@ export function MomentPreparationScreen({
       },
       saved,
     ).catch(() => {
-      if (isScopeCurrent(token))
+      if (!stale && isScopeCurrent(token))
         setError(
           "Could not retain this context after a restart. Keep this screen open for safety options.",
         );
     });
+    return () => {
+      stale = true;
+    };
   }, [saved, alcoholMentioned]);
   return (
     <View
@@ -803,46 +819,101 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={s.title}>
               What would make {day ? "today" : "tonight"} go well?
             </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                voice.listening ? "Stop listening" : "Speak your moment"
-              }
-              onPressIn={() => {
-                if (voice.available) void voice.start();
-              }}
-              onPressOut={voice.stop}
-              onAccessibilityTap={() => {
-                if (voice.busy) voice.stop();
-                else void voice.start();
-              }}
-            >
-              <PreparationOrb social={social} day={false} />
-            </Pressable>
-            <Text style={s.muted}>
-              {voice.available ? "Hold to speak · or type" : "Type your moment"}
-            </Text>
-            <TextInput
-              accessibilityLabel="Your moment"
-              value={words}
-              onChangeText={setWords}
-              multiline
-              maxLength={160}
-              placeholder="Dinner tomorrow at 7:30 PM. I want to arrive relaxed."
-              placeholderTextColor={T.muted}
-              style={[s.input, s.words]}
-            />
-            {voice.error ? (
-              <Text accessibilityRole="alert" style={s.body}>
-                Didn't catch that. Type it or try again.
-              </Text>
+            {!reservationOpen ? (
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    voice.listening ? "Stop listening" : "Speak your moment"
+                  }
+                  onPressIn={() => {
+                    if (voice.available) void voice.start();
+                  }}
+                  onPressOut={voice.stop}
+                  onAccessibilityTap={() => {
+                    if (voice.busy) voice.stop();
+                    else void voice.start();
+                  }}
+                >
+                  <PreparationOrb social={social} day={false} />
+                </Pressable>
+                <Text style={s.muted}>
+                  {voice.available
+                    ? "Hold to speak · or type"
+                    : "Type your moment"}
+                </Text>
+                <TextInput
+                  accessibilityLabel="Your moment"
+                  value={words}
+                  onChangeText={setWords}
+                  multiline
+                  maxLength={160}
+                  placeholder="Dinner tomorrow at 7:30 PM. I want to arrive relaxed."
+                  placeholderTextColor={T.muted}
+                  style={[s.input, s.words]}
+                />
+                {voice.error ? (
+                  <Text accessibilityRole="alert" style={s.body}>
+                    Didn't catch that. Type it or try again.
+                  </Text>
+                ) : null}
+                {button(
+                  "Review my moment",
+                  reviewWords,
+                  true,
+                  !words.trim() || voice.busy,
+                )}
+                {button("Use reservation details", () => {
+                  voice.cancel();
+                  setReservationOpen(true);
+                })}
+              </>
             ) : null}
-            {button(
-              "Review my moment",
-              reviewWords,
-              true,
-              !words.trim() || voice.busy,
-            )}
+            {reservationOpen ? (
+              <>
+                <Text style={s.muted}>
+                  Paste the restaurant or event, date and time using labels such
+                  as Restaurant:, Date: and Time:. Review the local time before
+                  sealing. No booking is checked or changed.
+                </Text>
+                <TextInput
+                  accessibilityLabel="Reservation details"
+                  value={reservationText}
+                  onChangeText={setReservationText}
+                  multiline
+                  maxLength={4000}
+                  placeholder={
+                    "Restaurant: Lilia\nDate: November 6, 2026\nTime: 7:30 PM"
+                  }
+                  placeholderTextColor={T.muted}
+                  style={[s.input, s.words]}
+                />
+                {button(
+                  "Review reservation",
+                  () => {
+                    const candidate = suggestReservationDraft(reservationText);
+                    calendarOrigin.current = null;
+                    setReview(null);
+                    setWords("");
+                    setNextChoice(null);
+                    setOccurringNow(false);
+                    setDraft(candidate);
+                    setTimingOpen(true);
+                    setReturnOpen(false);
+                    setReservationText("");
+                    setReservationOpen(false);
+                    setReservationReview(true);
+                    move("mirror");
+                  },
+                  true,
+                  !reservationText.trim(),
+                )}
+                {button("Cancel reservation details", () => {
+                  setReservationText("");
+                  setReservationOpen(false);
+                })}
+              </>
+            ) : null}
             <MomentProposalPrefsControl />
           </>
         ) : null}
@@ -851,6 +922,13 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
+            {reservationReview ? (
+              <Text style={s.muted}>
+                Reservation details · confirm the name, date and local time.
+                Only reviewed fields are saved at Seal. The pasted confirmation
+                is discarded.
+              </Text>
+            ) : null}
             {input("Moment", draft.title, (v) => field("title", v))}
             {calendarOrigin.current ? (
               <Text style={s.muted}>
