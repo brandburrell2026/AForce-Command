@@ -1182,22 +1182,26 @@ export function MomentPreparationScreen({
             ) : null}
             {!reservationOpen ? (
               <>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    voice.listening ? "Stop listening" : "Speak your moment"
-                  }
-                  onPressIn={() => {
-                    if (voice.available) void voice.start();
-                  }}
-                  onPressOut={voice.stop}
-                  onAccessibilityTap={() => {
-                    if (voice.busy) voice.stop();
-                    else void voice.start();
-                  }}
-                >
+                {voice.available ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      voice.listening ? "Stop listening" : "Speak your moment"
+                    }
+                    onPressIn={() => {
+                      if (voice.available) void voice.start();
+                    }}
+                    onPressOut={voice.stop}
+                    onAccessibilityTap={() => {
+                      if (voice.busy) voice.stop();
+                      else void voice.start();
+                    }}
+                  >
+                    <PreparationOrb social={social} day={false} />
+                  </Pressable>
+                ) : (
                   <PreparationOrb social={social} day={false} />
-                </Pressable>
+                )}
                 <Text style={s.muted}>
                   {voice.available
                     ? "Hold to speak · or type"
