@@ -30,7 +30,7 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 Local interruption/write tests verify inactive/background cancellation during a Seal hold, leaving the screen mid-hold, explicit retry after storage rejection, one acknowledged save after a delayed write, a retryable failed Return, and rehydration of Return with private context removed. These use injected lifecycle/storage events; they do not establish native force-close, offline or VoiceOver acceptance.
 
-The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,640 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
+The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,641 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
 
 Eleven local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
 
