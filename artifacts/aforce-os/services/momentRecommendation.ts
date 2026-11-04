@@ -25,6 +25,7 @@
  *    + hydration behavior only) — the founder's fallback requirement.
  */
 
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import type {
   Moment,
   MomentAction,
@@ -227,8 +228,8 @@ export function buildRecommendation(
     momentId: moment.id,
     prepWindowStartIso: iso(prepStartMs),
     prepWindowEndIso: iso(prepEndMs),
-    primaryAction: primaryActionFor(signals),
-    secondaryAction: secondaryActionFor(moment),
+    primaryAction: preparationClosed(moment.preparation) ? undefined : primaryActionFor(signals),
+    secondaryAction: preparationClosed(moment.preparation) ? undefined : secondaryActionFor(moment),
     ritual,
     evidence: buildEvidence(moment, signals, nowMs),
     confidence: moment.source === 'manual' || moment.source === 'demo' ? 'high' : 'medium',
@@ -257,7 +258,7 @@ export function surfaceableMoments(moments: readonly Moment[], nowIso: string): 
 export function nextMoment(moments: readonly Moment[], nowIso: string): Moment | null {
   const nowMs = Date.parse(nowIso);
   return (
-    surfaceableMoments(moments, nowIso).find((m) => !m.preparedAtIso && Date.parse(m.startAtIso) > nowMs) ?? null
+    surfaceableMoments(moments, nowIso).find((m) => !m.preparedAtIso && !preparationClosed(m.preparation) && Date.parse(m.startAtIso) > nowMs) ?? null
   );
 }
 

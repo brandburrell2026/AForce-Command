@@ -5,7 +5,8 @@ import { MomentPreparationScreen } from '@/components/oneBreath/MomentPreparatio
 import { getScopeState, subscribeScopeState } from '@/services/userScope';
 import { preparationPreviewEnabled } from '@/services/preparationAccess';
 
-export default function SocialRoute() {
+// Keep the existing /social compatibility route separate from preparation.
+export default function SocialPreparationRoute() {
   const {momentId}=useLocalSearchParams<{momentId?:string}>();
   const {isLoaded,isSignedIn,userId}=useAuth();
   const scope=React.useSyncExternalStore(subscribeScopeState,getScopeState,getScopeState);

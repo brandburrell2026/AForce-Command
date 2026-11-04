@@ -52,13 +52,13 @@ function EnabledSocialProtocolEntry() {
       router.push(
         activeNow || candidate
           ? {
-              pathname: "/social",
+              pathname: "/social-preparation",
               params: {
                 momentId: (activeNow ?? candidate)!.id,
                 ...(candidate ? { proposal: "1" } : {}),
               },
             }
-          : "/social",
+          : "/social-preparation",
       );
     } finally {
       if (isScopeCurrent(token)) setOpening(false);

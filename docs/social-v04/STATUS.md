@@ -69,3 +69,12 @@ Phase B remains deferred by the spec: accepted check-in-person invitations, temp
 Without all four policy values and an explicit session confirmation matching them, volunteered alcohol context is not durably written by this flow. Safety alternatives remain available immediately. Normal reviewed plans can still be sealed without this context, with a truthful notice that it will not remain after the session. Existing retained context is clearly disclosed and can be cleared. Self-attestation is not identity verification or a clinical assessment. No regional values have been approved or enabled in this checkpoint.
 
 Quiet additionally blocks ordinary audio during unresolved hydration, cancels pending native reminders before Lock In, suppresses the cold opening/voice overlay and welcome banner, and invalidates in-flight TTS so a late response cannot play after Lock In. The typed web fallback uses stable voice methods so rerenders cannot cancel a valid Seal hold. Early release and a complete hold are covered by actual pointer-event tests.
+
+
+## Native Simulator checkpoint — November 4
+
+The iPhone 16e Simulator completed native compilation and loaded the app with an authenticated internal account. Simulator UI checks covered Protocol → Social capture, local date/time review, getting-back options, plan review, accessibility activation of Seal, Lock In, resuming persisted Quiet, opening/backing out of Plans changed, Return and Next. The returned test Moment survived a full JavaScript reload and remains visible as DONE with no preparation brief and zero upcoming Moments. This does not establish a physical hold, full VoiceOver behavior, notification delivery, force-close/offline or physical-iPhone acceptance.
+
+Two runtime findings were corrected: the Social preparation route is now /social-preparation to avoid the existing /(tabs)/social compatibility route; returned plans remain in history but no longer receive preparation commands, own the priority brief or count as upcoming. Existing ritual completion fields are not fabricated by Return. The 134 focused tests for these changes and app TypeScript pass. The larger CI suite must run on this revision.
+
+Simulator screenshots and native build reports are preserved outside the worktree in outputs/social-v04-native-validation. The compiled Simulator shell predates the JavaScript fixes; the running Simulator loaded those fixes from Metro. No updated signed build, TestFlight upload or production deployment is claimed.
