@@ -260,3 +260,12 @@ export function nextMoment(moments: readonly Moment[], nowIso: string): Moment |
     surfaceableMoments(moments, nowIso).find((m) => !m.preparedAtIso && Date.parse(m.startAtIso) > nowMs) ?? null
   );
 }
+
+/** Collapse only the exact calendar occurrence explicitly approved at Seal.
+ * Other recurring occurrences and moved events remain independent context. */
+export function mergeReviewedCalendarMoments(manual: readonly Moment[], calendar: readonly Moment[]): Moment[] {
+  const approved = new Set(manual.filter(m => m.source === 'manual' && m.preparation?.sealedAtIso &&
+    typeof m.calendarSource?.eventId === 'string' && typeof m.calendarSource?.startAtIso === 'string')
+    .map(m => JSON.stringify([m.calendarSource!.eventId, m.calendarSource!.startAtIso])));
+  return [...manual, ...calendar.filter(m => !approved.has(JSON.stringify([m.calendarEventId ?? m.id, m.startAtIso])))];
+}

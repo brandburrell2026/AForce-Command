@@ -1,4 +1,5 @@
 import React from "react";
+import { useMomentsData } from "@/components/moments/useMomentsData";
 import { getMomentProposalPreferences } from "@/services/momentNotifications";
 import { captureScope, isScopeCurrent } from "@/services/scopedWriteQueue";
 import { preparationProposalCandidate } from "@/services/momentPreparation";
@@ -8,8 +9,14 @@ import { preparationPreviewEnabled } from "@/services/preparationAccess";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { getMomentsState, useMomentsStore } from "@/services/momentsStore";
 export function SocialProtocolEntry() {
+  return preparationPreviewEnabled() ? <EnabledSocialProtocolEntry /> : null;
+}
+function EnabledSocialProtocolEntry() {
   const router = useRouter();
   const { moments } = useMomentsStore();
+  const shared = useMomentsData();
+  const latestShared = React.useRef(shared.surfaced);
+  latestShared.current = shared.surfaced;
   const active = moments.find(
     (m) => !!m.preparation?.sealedAtIso && !m.preparation.returnedAtIso,
   );
@@ -32,7 +39,10 @@ export function SocialProtocolEntry() {
       const candidate =
         !activeNow && preferences
           ? preparationProposalCandidate(
-              latest,
+              [
+                ...latest,
+                ...latestShared.current.filter((m) => m.source === "calendar"),
+              ],
               preferences,
               new Date().toISOString(),
             )
@@ -52,7 +62,6 @@ export function SocialProtocolEntry() {
       if (isScopeCurrent(token)) setOpening(false);
     }
   };
-  if (!preparationPreviewEnabled()) return null;
   return (
     <Pressable
       accessibilityRole="button"

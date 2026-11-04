@@ -1,12 +1,14 @@
 import {beforeEach,describe,expect,it,vi} from 'vitest';
 import type {Moment} from '@/types/moments';
 import {EMPTY_MOMENT_PROPOSAL_PREFS,reduceMomentProposalPreference,proposalCooldownUntil,sanitizeMomentProposalPreferences} from '../momentProposalPreferences';
+import {mergeReviewedCalendarMoments} from '../momentRecommendation';
 import {nextPreparationContext,preparationProposalCandidate} from '../momentPreparation';
 const now=new Date(2026,10,4,12).getTime(), iso=new Date(now).toISOString();
 const moment=(id='dinner',hours=3,type:Moment['type']='personal'):Moment=>({id,source:'manual',title:'Team dinner',type,importance:'high',startAtIso:new Date(now+hours*3600000).toISOString(),createdAtIso:iso});
 describe('shared preparation context and proposal budget',()=>{
  it('selects only a real, timely, explicit candidate and never infers one from a generic personal event',()=>{expect(preparationProposalCandidate([moment()],EMPTY_MOMENT_PROPOSAL_PREFS,iso)?.id).toBe('dinner');expect(preparationProposalCandidate([{...moment(),title:'Personal time'}],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();expect(preparationProposalCandidate([moment('too-early',8)],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();expect(preparationProposalCandidate([moment('too-late',.1)],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();});
- it('ignores demo, unreadable and derived calendar candidates',()=>{for(const extra of [{source:'demo' as const},{source:'calendar' as const},{masked:true}])expect(preparationProposalCandidate([{...moment(),...extra}],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();});
+ it('ignores demo and unreadable candidates',()=>{for(const extra of [{source:'demo' as const},{source:'calendar' as const,id:'demo-cal-event'},{source:'calendar' as const,calendarEventId:'demo-cal-evt'},{masked:true}])expect(preparationProposalCandidate([{...moment(),...extra}],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();});
+ it('offers an explicit consent-filtered calendar candidate for review, without writing it',()=>{const m={...moment(),source:'calendar' as const};expect(preparationProposalCandidate([m],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBe(m);expect(m.preparation).toBeUndefined();for(const title of ['Maybe dinner','Tentative dinner','Cancelled dinner'])expect(preparationProposalCandidate([{...m,title}],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();});
  it('does not propose while another Moment is active or during quiet hours',()=>{expect(preparationProposalCandidate([moment(),{...moment('active',-1),endAtIso:new Date(now+3600000).toISOString()}],EMPTY_MOMENT_PROPOSAL_PREFS,iso)).toBeNull();expect(preparationProposalCandidate([moment()],EMPTY_MOMENT_PROPOSAL_PREFS,new Date(2026,10,4,23).toISOString())).toBeNull();});
  it('never repeats an already presented occurrence, including after retry',()=>{const prefs=reduceMomentProposalPreference(EMPTY_MOMENT_PROPOSAL_PREFS,moment(),'shown',false,now);expect(reduceMomentProposalPreference(prefs,moment(),'shown',false,now+1000)).toBe(prefs);expect(preparationProposalCandidate([moment()],prefs,iso)).toBeNull();});
  it('proposes less often after repeated declines, without manufacturing a score',()=>{let prefs=reduceMomentProposalPreference(EMPTY_MOMENT_PROPOSAL_PREFS,moment('one'),'declined',false,now-2000);prefs=reduceMomentProposalPreference(prefs,moment('two'),'declined',false,now-1000);expect(proposalCooldownUntil(prefs)).toBeGreaterThan(now);expect(preparationProposalCandidate([moment()],prefs,iso)).toBeNull();prefs=reduceMomentProposalPreference(prefs,moment('accepted'),'accepted',false,now);expect(proposalCooldownUntil(prefs)).toBe(0);});
@@ -26,4 +28,12 @@ describe('preparation responses persist in the existing Moments preference key',
  it('does not erase a new opt-out when an old notification settings card saves',async()=>{const s=await import('../momentNotifications');const stale=await s.getMomentNotifyPrefs();await s.recordMomentProposal(moment(),'declined',true);await s.setMomentNotifyPrefs({...stale,mode:'all'});expect((await s.getMomentProposalPreferences()).neverTypes).toContain('personal');});
  it('lets a member restore future suggestions without repeating old proposals',async()=>{const s=await import('../momentNotifications');await s.recordMomentProposal(moment('one'),'declined',true);await s.allowMomentPreparationSuggestions();const prefs=await s.getMomentProposalPreferences();expect(prefs.neverTypes).toEqual([]);expect(prefs.records[0]?.outcome).toBe('declined');expect(prefs.suggestionsAllowedAtIso).toBeTruthy();expect(proposalCooldownUntil(prefs)).toBe(0);});
 
+});
+
+describe('explicitly reviewed calendar occurrence merge',()=>{
+ const cal={...moment('cal-source'),source:'calendar' as const,calendarEventId:'opaque-event'};
+ const saved={...moment('approved'),calendarSource:{eventId:cal.calendarEventId,startAtIso:cal.startAtIso},preparation:{sealedAtIso:iso} as Moment['preparation']};
+ it('shows one approved plan for an occurrence without mutating the source',()=>{expect(mergeReviewedCalendarMoments([saved],[cal])).toEqual([saved]);expect(cal.source).toBe('calendar');expect(cal.preparation).toBeUndefined();});
+ it('keeps recurring occurrences and moved events visible',()=>{const later={...cal,id:'other-occurrence',startAtIso:new Date(now+86400000).toISOString()};expect(mergeReviewedCalendarMoments([saved],[cal,later])).toEqual([saved,later]);});
+ it('does not suppress source data before Seal or after the approved plan is removed',()=>{expect(mergeReviewedCalendarMoments([{...saved,preparation:undefined}],[cal])).toHaveLength(2);expect(mergeReviewedCalendarMoments([],[cal])).toEqual([cal]);});
 });

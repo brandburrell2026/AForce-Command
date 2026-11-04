@@ -34,6 +34,7 @@ import { suggestMomentDraft } from "@/services/oneBreathDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
   nextPreparationContext,
+  isRealPreparationMoment,
   reviewedPreparationSteps,
   preparationReviewMatches,
   preparationContextKey,
@@ -158,9 +159,18 @@ export function MomentPreparationScreen({
     moments: sharedMoments.surfaced,
   };
   const reviewedContext = React.useRef("none");
+  // Read-only provenance stays in RAM. A reviewed calendar candidate is
+  // converted to an explicit manual Moment, never persisted as an import.
+  const calendarOrigin = React.useRef<{ id: string; key: string } | null>(null);
   const reviewStillCurrent = (moment: Moment): boolean => {
     const live = liveInputs.current;
     return (
+      (!calendarOrigin.current ||
+        calendarOrigin.current.key ===
+          preparationContextKey(
+            live.moments.find((m) => m.id === calendarOrigin.current!.id) ??
+              null,
+          )) &&
       preparationReviewMatches(moment, live.command, Date.now()) &&
       preparationContextKey(
         nextPreparationContext(live.moments, moment, new Date().toISOString()),
@@ -184,6 +194,25 @@ export function MomentPreparationScreen({
     if (!store.hydrated) void hydrateMoments();
   }, [store.hydrated]);
   React.useEffect(() => {
+    const origin = calendarOrigin.current;
+    if (!origin || busy.current) return;
+    const visible = sharedMoments.surfaced.find((m) => m.id === origin.id);
+    if (visible && !visible.masked && visible.title.trim()) return;
+    // Revoked calendar access, masking, or cancellation cannot leave a readable
+    // source candidate on screen or allow it to be committed later.
+    calendarOrigin.current = null;
+    cancelHold();
+    setReview(null);
+    setDraft(null);
+    setWords("");
+    setMethod(null);
+    setDestination("");
+    setScreen("capture");
+    setError(
+      "That calendar event is no longer available. You can type a new Moment.",
+    );
+  }, [sharedMoments.surfaced, cancelHold, saving]);
+  React.useEffect(() => {
     if (screen === "next" && saved?.preparation?.replay === "yes")
       router.replace("/");
   }, [screen, saved?.preparation?.replay, router]);
@@ -191,12 +220,19 @@ export function MomentPreparationScreen({
     if (resumed || !store.hydrated) return;
     setResumed(true);
     const existing = params.momentId
-      ? store.moments.find((m) => m.id === params.momentId)
+      ? (store.moments.find((m) => m.id === params.momentId) ??
+        sharedMoments.surfaced.find(
+          (m) =>
+            m.id === params.momentId &&
+            m.source === "calendar" &&
+            !m.masked &&
+            m.title.trim(),
+        ))
       : store.moments.find(
           (m) =>
             m.preparation?.context === context && !m.preparation.returnedAtIso,
         );
-    if (!existing) {
+    if (!existing || !isRealPreparationMoment(existing)) {
       const previous = [...store.moments]
         .filter(
           (m) =>
@@ -214,6 +250,12 @@ export function MomentPreparationScreen({
       }
       return;
     }
+    if (existing.source === "calendar") {
+      calendarOrigin.current = {
+        id: existing.id,
+        key: preparationContextKey(existing),
+      };
+    }
     setReview(existing);
     if (existing.preparation) {
       setMethod(existing.preparation.returnMethod);
@@ -227,7 +269,14 @@ export function MomentPreparationScreen({
             : "lock",
       );
     } else setScreen("noticed");
-  }, [store.hydrated, store.moments, params.momentId, resumed, context]);
+  }, [
+    store.hydrated,
+    store.moments,
+    sharedMoments.surfaced,
+    params.momentId,
+    resumed,
+    context,
+  ]);
   React.useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") pruneMomentSafetyContext();
@@ -304,6 +353,10 @@ export function MomentPreparationScreen({
   };
   const reviewWords = () => {
     voice.cancel();
+    if (calendarOrigin.current) {
+      calendarOrigin.current = null;
+      setReview(null);
+    }
     if (alcoholDisclosure(words)) setAlcoholMentioned(true);
     if (
       evaluateMomentSafety(
@@ -355,7 +408,37 @@ export function MomentPreparationScreen({
       );
       return;
     }
-    let moment = review ?? createConfirmedMoment(draft, result.startAtIso);
+    if (calendarOrigin.current) {
+      const origin = sharedMoments.surfaced.find(
+        (m) => m.id === calendarOrigin.current!.id,
+      );
+      if (!origin || origin.masked) {
+        setError(
+          "That calendar event is no longer available. Start a new Moment to choose your own plan.",
+        );
+        return;
+      }
+      calendarOrigin.current = {
+        id: origin.id,
+        key: preparationContextKey(origin),
+      };
+    }
+    let moment =
+      review && review.source !== "calendar"
+        ? review
+        : createConfirmedMoment(draft, result.startAtIso);
+    if (calendarOrigin.current) {
+      const origin = sharedMoments.surfaced.find(
+        (m) => m.id === calendarOrigin.current!.id,
+      )!;
+      moment = {
+        ...moment,
+        calendarSource: {
+          eventId: origin.calendarEventId ?? origin.id,
+          startAtIso: origin.startAtIso,
+        },
+      };
+    }
     if (disclosed && policy) moment = withAlcoholContext(moment, policy);
     const updated = {
       ...moment,
@@ -367,6 +450,7 @@ export function MomentPreparationScreen({
       updated,
       app.engineOutput.command,
       new Date().toISOString(),
+      { happeningNow: occurringNow },
     );
     const preparation: MomentPreparation = {
       version: 1,
@@ -420,6 +504,7 @@ export function MomentPreparationScreen({
             target === "lock" ? () => reviewStillCurrent(moment) : undefined,
           ));
       if (!allowed()) return;
+      if (target === "lock") calendarOrigin.current = null;
       setReview(result);
       move(target);
       if (target === "lock") hapticImpact("medium");
@@ -727,6 +812,12 @@ export function MomentPreparationScreen({
                 Happening now · review before sealing.
               </Text>
             ) : null}
+            {calendarOrigin.current ? (
+              <Text style={s.muted}>
+                Calendar suggestion · review the details. Only the plan you
+                confirm is saved.
+              </Text>
+            ) : null}
             {input("Date · YYYY-MM-DD", draft.date, (v) => field("date", v))}
             {input("Time · HH:mm", draft.time, (v) => field("time", v))}
             {input(
@@ -810,6 +901,11 @@ export function MomentPreparationScreen({
                 <Text style={s.body}>{step.action}</Text>
               </View>
             ))}
+            {!steps.some((step) => step.commandId) ? (
+              <Text style={s.muted}>
+                Check your current guidance when you’re ready to prepare.
+              </Text>
+            ) : null}
             <Text style={s.muted}>No reminders during Quiet.</Text>
             {method && method !== "none" ? (
               <Text style={s.body}>

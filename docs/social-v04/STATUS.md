@@ -9,7 +9,9 @@ Branch: feat/social-v04. This is local implementation, not an internally release
 - Capture, editable Mirror, canonical preparation review, hold-to-Seal, Lock In, Quiet, Plans changed, private return, and Replay.
 - Saved Seal acknowledgement, duplicate retry protection, stale-review rejection, scope checks and deletion tombstones. Seal binds the exact canonical command ID and action, the reviewed validity window and visible upcoming context. Live input checks cover mid-hold changes and queued save starts; acknowledged retries remain idempotent. Calendar context bindings remain in memory only.
 - Actual existing-Moment Noticed entry; no fabricated calendar event. Suggestions use fresh shared Moments/preferences at tap time, respect quiet hours, lead windows, active-plan suppression and one proposal per occurrence. Repeated declines reduce frequency; category opt-out and an independent restore control use the existing scoped Moments preferences key with acknowledged writes.
-- Upcoming context reads the existing shared Moments selector and displays the event after the reviewed Moment, including its date. Derived calendar rows are read-only context and are not silently saved as manual Moments.
+- Upcoming context reads the existing shared Moments selector and displays the event after the reviewed Moment, including its date. Noticed may propose a real, readable calendar candidate supplied by the existing consent/category/confidence-gated calendar layer. Demo, masked and tentative/cancelled candidates are excluded. The internal gate mounts before shared data readers; production calendar settings remain unchanged.
+- A calendar candidate remains read-only through Mirror and Plan. Seal explicitly creates a member-reviewed manual Moment from approved fields, with a minimal opaque event/occurrence link to suppress only that exact calendar row. It never persists the source object, notes, attendees or body. Other recurring occurrences and moved events remain visible; removing the manual plan reveals the source again. Access revocation clears an unsealed source candidate. A sealed manual plan remains the member's own record.
+- Hydration instructions mirror the current guarded command only in the existing preparation window or explicit happening-now capture. Future plans do not freeze today's dose into a later action. Newly reviewed actions are never assigned past times. No Social-specific dose or timing policy was added.
 - Social entry remains inside Protocol / Prepare My Day, with no tab.
 - Inter typography, source-derived mirrored-N geometry, blue/orange/sun orb variants, reduced-motion handling, eight-second Quiet dim.
 - “Go perform.” shared Lock In/Quiet wording. Current brand fill already matches #C1281B.
@@ -20,7 +22,7 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 ## Verified locally
 
-209 tests pass across 24 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+358 tests pass across 36 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
 
 The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,640 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
 
@@ -28,7 +30,7 @@ Ten local browser projections were rendered from the actual shared component wit
 
 ## Required before release or claiming spec completion
 
-- Complete Context Arbitration / Decision Delta integration, including protected-next-context command authority and confidence gating. Decline preferences and real upcoming-context selection are implemented; next context remains read-only. Current action adapter mirrors existing guarded actions and does not claim the full requested arbitration implementation.
+- Complete Context Arbitration / Decision Delta integration for protected-next-context command authority and forwarded-reservation inputs. Manual words and existing consent/confidence-filtered calendar candidates, decline preferences, source change binding and real upcoming-context selection are implemented. Next context remains read-only; the action adapter mirrors existing guarded actions and does not invent event-driven command policy.
 - Regional policy selection remains pending. The code now preserves minimal volunteered context on the same scoped Moment, requires an explicitly configured region/lifetime/version, never extends expiry on read, purges metadata on hydration/foreground/active expiry, and clears it on member return. There is no drink count or raw-utterance log. Alcohol details are excluded from the persistent title/priority in this flow. Expiry is not sobriety or driving clearance. Validate regional age handling and emergency-number behavior before enabling the internal gate; deterministic phrase matching is not comprehensive emergency recognition or driving assessment.
 - Validate ongoing-event capture and revisions, cancellation, every interrupted hold/save, offline and force-close behavior, concurrent account changes and native notification cancellation/reconciliation. Do not replay stale reminders in a burst.
 - Finish visual comparison against all nine source screens and accessible focus/VoiceOver/large-text/reduced-motion checks on device.

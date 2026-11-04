@@ -23,8 +23,19 @@ export function reviewedPreparationSteps(
   moment: Moment,
   command: { id: string; action: string },
   nowIso: string,
+  options: { happeningNow?: boolean } = {},
 ): MomentPreparation["steps"] {
+  const now = Date.parse(nowIso);
+  const timing = buildRecommendation(moment, {}, nowIso);
+  // The canonical command describes the member NOW. Never freeze it into
+  // tomorrow's plan or claim that today's dose is valid at a future time.
+  // The existing Moments engine owns the preparation window; this adapter
+  // only decides whether its mirror is timely. Silence is valid (RP-3).
+  const inPreparation =
+    now >= Date.parse(timing.prepWindowStartIso) &&
+    (now <= Date.parse(moment.startAtIso) || options.happeningNow === true);
   const eligible =
+    inPreparation &&
     evaluateDeliverableCopy(command.action).verdict === "approved" &&
     !/\b(sticks?|aforce|electrolytes?|supplements?)\b/i.test(command.action);
   const rec = buildRecommendation(
@@ -35,7 +46,9 @@ export function reviewedPreparationSteps(
   return rec.ritual
     .filter((s) => s.key !== "perform")
     .map((s) => ({
-      atIso: s.atIso,
+      // A newly reviewed action cannot be scheduled retroactively. Timing
+      // stays with Moments; a current command is mirrored at review time.
+      atIso: new Date(Math.max(now, Date.parse(s.atIso))).toISOString(),
       action:
         s.key === "hydrate"
           ? command.action
@@ -100,6 +113,15 @@ export function rideHandoffUrl(provider: "uber" | "lyft"): string {
   return provider === "uber" ? "https://m.uber.com/" : "https://ride.lyft.com/";
 }
 
+/** Synthetic calendar fixtures are never an input to a persisted plan. */
+export function isRealPreparationMoment(moment: Moment): boolean {
+  return (
+    moment.source !== "demo" &&
+    !moment.id.startsWith("demo-") &&
+    !moment.calendarEventId?.startsWith("demo-")
+  );
+}
+
 /** Select real shared context, never a fabricated tomorrow or a completed/demo event. */
 export function nextPreparationContext(
   moments: readonly Moment[],
@@ -113,7 +135,7 @@ export function nextPreparationContext(
   return nextMoment(
     moments.filter(
       (m) =>
-        m.source !== "demo" &&
+        isRealPreparationMoment(m) &&
         !m.masked &&
         m.title.trim().length > 0 &&
         evaluateDeliverableLabel(m.title).verdict === "approved" &&
@@ -154,9 +176,11 @@ export function preparationProposalCandidate(
   return (
     surfaceableMoments(moments, nowIso).find((m) => {
       if (
-        m.source !== "manual" ||
+        !isRealPreparationMoment(m) ||
+        (m.source !== "manual" && m.source !== "calendar") ||
         evaluateDeliverableLabel(m.title).verdict !== "approved" ||
         m.masked ||
+        /\b(maybe|tentative|cancelled|canceled|declined)\b/i.test(m.title) ||
         m.preparedAtIso ||
         m.preparation ||
         m.importance === "low" ||

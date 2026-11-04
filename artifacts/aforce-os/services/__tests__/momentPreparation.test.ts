@@ -2,10 +2,14 @@ import {describe,expect,it} from 'vitest';
 import {preparationReviewMatches,preparationContextKey,reviewedPreparationSteps,isDayMoment,rideHandoffUrl} from '../momentPreparation';
 import {evaluateMomentSafety} from '@/utils/intelligence/decisionGuard';
 import type {Moment} from '@/types/moments';
+const prepNow=(m:Moment)=>new Date(Date.parse(m.startAtIso)-10*60000).toISOString();
 const moment:Moment={id:'real',source:'manual',title:'Pool party',type:'personal',importance:'high',createdAtIso:'2026-11-04T08:00:00Z',startAtIso:new Date(2026,10,4,14).toISOString()};
 describe('Social views reuse existing preparation authority',()=>{
-  it('mirrors an eligible command exactly, with no drink count',()=>{const action='Start with water.';const steps=reviewedPreparationSteps(moment,{id:'canonical',action},moment.createdAtIso);expect(steps).toContainEqual(expect.objectContaining({commandId:'canonical',action}));expect(steps.length).toBeLessThanOrEqual(4);});
-  it('never uses Social context to steer a product',()=>{const steps=reviewedPreparationSteps(moment,{id:'product',action:'20 oz water + 2 sticks.'},moment.createdAtIso);expect(steps.every(s=>!s.commandId)).toBe(true);});
+  it('mirrors an eligible command exactly, with no drink count',()=>{const action='Start with water.';const steps=reviewedPreparationSteps(moment,{id:'canonical',action},prepNow(moment));expect(steps).toContainEqual(expect.objectContaining({commandId:'canonical',action}));expect(steps.length).toBeLessThanOrEqual(4);});
+  it('never uses Social context to steer a product',()=>{const steps=reviewedPreparationSteps(moment,{id:'product',action:'20 oz water + 2 sticks.'},prepNow(moment));expect(steps.every(s=>!s.commandId)).toBe(true);});
+  it('never freezes a current dose into a future preparation window',()=>{const now=new Date(Date.parse(moment.startAtIso)-24*3600000).toISOString();const steps=reviewedPreparationSteps(moment,{id:'now',action:'Drink 20 oz now.'},now);expect(steps).toHaveLength(2);expect(steps.every(s=>!s.commandId&&!s.action.includes('20 oz'))).toBe(true);});
+  it('uses the current command only within the real preparation window',()=>{const now=prepNow(moment);const steps=reviewedPreparationSteps(moment,{id:'now',action:'Drink 20 oz now.'},now);expect(steps.find(s=>s.commandId)?.atIso).toBe(now);expect(steps.every(s=>Date.parse(s.atIso)>=Date.parse(now))).toBe(true);});
+  it('requires explicit ongoing capture before mirroring a command after the event start',()=>{const now=new Date(Date.parse(moment.startAtIso)+60000).toISOString();const cmd={id:'now',action:'Start with water.'};expect(reviewedPreparationSteps(moment,cmd,now).some(s=>s.commandId)).toBe(false);const steps=reviewedPreparationSteps(moment,cmd,now,{happeningNow:true});expect(steps.find(s=>s.commandId)?.action).toBe(cmd.action);expect(steps.every(s=>s.atIso===now)).toBe(true);});
   it('selects the sun from the actual Moment time',()=>{expect(isDayMoment(moment)).toBe(true);expect(isDayMoment({startAtIso:new Date(2026,10,4,20).toISOString()})).toBe(false);});
   it('handoffs include no health, alcohol, contact, or location data',()=>{expect(rideHandoffUrl('uber')).toBe('https://m.uber.com/');expect(rideHandoffUrl('lyft')).toBe('https://ride.lyft.com/');});
 });

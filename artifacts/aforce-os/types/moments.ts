@@ -48,6 +48,9 @@ export interface Moment {
   masked?: boolean;
   /** Source calendar event id (calendar moments only). */
   calendarEventId?: string;
+  /** Explicitly reviewed manual copy: opaque occurrence link prevents a
+   * duplicate calendar row. No body, notes, attendees or source snapshot. */
+  calendarSource?: { eventId: string; startAtIso: string };
   /** Set when the member taps I'M READY — Moments-internal state only. */
   preparedAtIso?: string;
   createdAtIso: string;
