@@ -1202,7 +1202,10 @@ export function MomentPreparationScreen({
                 <TextInput
                   accessibilityLabel="Your moment"
                   value={words}
-                  onChangeText={setWords}
+                  onChangeText={(value) => {
+                    voice.cancel();
+                    setWords(value);
+                  }}
                   multiline
                   maxLength={160}
                   placeholder="Dinner tomorrow at 7:30 PM. I want to arrive relaxed."

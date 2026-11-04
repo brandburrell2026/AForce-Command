@@ -62,3 +62,7 @@ describe('One Breath native capture lifecycle', () => {
     expect(h.abort).toHaveBeenCalled(); act(() => h.events.result!({ results: [{ transcript: 'another account' }] })); expect(transcript).not.toHaveBeenCalled();
   });
 });
+
+it('ignores late transcripts after a member cancels voice to type, including permission wait',async()=>{
+ await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Voice draft'}]}));expect(transcript).toHaveBeenCalledWith('Voice draft');act(()=>voice.cancel());act(()=>h.events.result!({results:[{transcript:'Late overwrite'}]}));expect(transcript).toHaveBeenCalledTimes(1);expect(voice.busy).toBe(false);expect(h.abort).toHaveBeenCalledOnce();act(()=>h.events.end!());let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>voice.cancel());await act(async()=>{resolve({granted:true});await pending;});expect(h.start).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenCalledTimes(1);
+});
