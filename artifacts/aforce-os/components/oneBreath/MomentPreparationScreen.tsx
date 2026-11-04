@@ -13,6 +13,7 @@ import {
   Linking,
   Platform,
   findNodeHandle,
+  useWindowDimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -112,6 +113,10 @@ export function MomentPreparationScreen({
   const social = context === "social";
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+  // At accessibility sizes, keep display headings closer to body size. Native
+  // text scaling remains enabled, including for instructions and safety copy.
+  const accessibleHeading = fontScale >= 2 ? s.accessibleHeading : undefined;
   const params = useLocalSearchParams<{
     momentId?: string;
     proposal?: string;
@@ -1090,7 +1095,7 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               AFORCE OS · YOUR MOMENT
             </Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               {current.title}?
             </Text>
             <Text style={s.body}>
@@ -1196,7 +1201,7 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
             </Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               What would make {day ? "today" : "tonight"} go well?
             </Text>
             {error === CANDIDATE_ENDED || error === MOMENT_REMOVED ? (
@@ -1581,7 +1586,7 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               YOUR PLAN · NOT SEALED YET
             </Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Prepared for your moment.
             </Text>
             {current?.preparation?.nextMoment && next ? (
@@ -1629,7 +1634,7 @@ export function MomentPreparationScreen({
         {screen === "seal" ? (
           <>
             <Text style={s.eyebrow}>SEAL</Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Only what you approve becomes your plan.
             </Text>
             <Pressable
@@ -1681,7 +1686,7 @@ export function MomentPreparationScreen({
           <>
             <Text style={s.eyebrow}>SEALED</Text>
             <PreparationOrb social={social} day={day} />
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Your plan is yours.
             </Text>
             <Text style={s.body}>Go perform.</Text>
@@ -1722,7 +1727,7 @@ export function MomentPreparationScreen({
             <Text style={s.eyebrow}>PLANS CHANGED</Text>
             {safetyView ? (
               <>
-                <Text {...headingProps} style={s.safetyTitle}>
+                <Text {...headingProps} style={[s.safetyTitle, accessibleHeading]}>
                   {safety === "emergency"
                     ? "Get emergency help now."
                     : safety === "water"
@@ -1769,7 +1774,7 @@ export function MomentPreparationScreen({
               </>
             ) : (
               <>
-                <Text {...headingProps} style={s.title}>
+                <Text {...headingProps} style={[s.title, accessibleHeading]}>
                   What changed?
                 </Text>
                 <TextInput
@@ -1809,7 +1814,7 @@ export function MomentPreparationScreen({
         {screen === "return" ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>HEADING BACK?</Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Made it back.
             </Text>
             <Text style={s.body}>Tap once when you’re in.</Text>
@@ -1846,7 +1851,7 @@ export function MomentPreparationScreen({
         {screen === "next" ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>NEXT</Text>
-            <Text {...headingProps} style={s.title}>
+            <Text {...headingProps} style={[s.title, accessibleHeading]}>
               {current?.preparation?.cancelledAtIso
                 ? "Plan cancelled."
                 : momentReturnLabel(new Date())}
@@ -1964,12 +1969,14 @@ const s = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
+    flexWrap: "wrap",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
   brand: { ...T.eyebrow, color: T.muted, fontSize: 10 },
   title: { ...T.headline, color: T.bone, marginTop: 16 },
+  accessibleHeading: { fontSize: 18, lineHeight: 24, letterSpacing: 0 },
   body: { ...T.body, color: T.bone },
   muted: { ...T.body, color: T.muted, fontSize: 14, lineHeight: 21 },
   eyebrow: { ...T.eyebrow, color: T.muted },
