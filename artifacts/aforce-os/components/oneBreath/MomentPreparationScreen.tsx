@@ -7,6 +7,8 @@ import {
   Animated,
   AppState,
   Linking,
+  Platform,
+  findNodeHandle,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -96,6 +98,8 @@ export function MomentPreparationScreen({
   const [returnOpen, setReturnOpen] = React.useState(false);
   const { state: app } = useAppStore();
   const [scope] = React.useState(captureScope);
+  const scrollRef = React.useRef<ScrollView>(null);
+  const headingRef = React.useRef<Text>(null);
   const [screen, setScreen] = React.useState<Screen>("capture");
   const [words, setWords] = React.useState("");
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
@@ -193,6 +197,36 @@ export function MomentPreparationScreen({
     screen === "change" ? changes : words,
     alcoholMentioned || activeAlcoholContext(current),
   );
+  // A new lifecycle view starts at its heading. Editing within a view must not
+  // steal focus from fields. A newly revealed safety screen is its own view.
+  const focusKey =
+    screen === "change" ? `${screen}:${safety ?? "edit"}` : screen;
+  React.useEffect(() => {
+    let cancelled = false;
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+    if (Platform.OS === "web") {
+      headingRef.current?.focus();
+    } else {
+      void AccessibilityInfo.isScreenReaderEnabled()
+        .then((enabled) => {
+          if (!enabled || cancelled || !headingRef.current) return;
+          const node = findNodeHandle(headingRef.current);
+          if (node !== null) AccessibilityInfo.setAccessibilityFocus(node);
+        })
+        .catch(() => {
+          /* Accessibility availability never blocks the plan. */
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [focusKey]);
+  const headingProps = {
+    ref: headingRef,
+    accessible: true,
+    accessibilityRole: "header" as const,
+    ...(Platform.OS === "web" ? { tabIndex: -1 as const } : {}),
+  };
   const allowed = () =>
     isScopeCurrent(scope) && getScopeState().status === "AUTHENTICATED";
   const cancelHold = React.useCallback(() => {
@@ -617,6 +651,7 @@ export function MomentPreparationScreen({
       key={label}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled || saving }}
+      aria-disabled={disabled || saving}
       disabled={disabled || saving}
       onPress={() => {
         hapticSelection();
@@ -687,6 +722,7 @@ export function MomentPreparationScreen({
       style={[s.root, screen === "quiet" && { backgroundColor: T.midnight }]}
     >
       <ScrollView
+        ref={scrollRef}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[
           s.content,
@@ -706,7 +742,9 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               AFORCE OS · YOUR MOMENT
             </Text>
-            <Text style={s.title}>{current.title}?</Text>
+            <Text {...headingProps} style={s.title}>
+              {current.title}?
+            </Text>
             <Text style={s.body}>
               {clock(current.startAtIso)}. Want me to prepare around it?
             </Text>
@@ -762,7 +800,7 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
             </Text>
-            <Text style={s.title}>
+            <Text {...headingProps} style={s.title}>
               What would make {day ? "today" : "tonight"} go well?
             </Text>
             <Pressable
@@ -810,7 +848,7 @@ export function MomentPreparationScreen({
         ) : null}
         {screen === "mirror" && draft ? (
           <>
-            <Text style={[s.eyebrow, { color: accent }]}>
+            <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
             {input("Moment", draft.title, (v) => field("title", v))}
@@ -985,9 +1023,7 @@ export function MomentPreparationScreen({
                     {button("Done choosing return", () => setReturnOpen(false))}
                   </>
                 ) : null}
-                <Text style={s.muted}>
-                  Your plan stays private.
-                </Text>
+                <Text style={s.muted}>Your plan stays private.</Text>
               </>
             ) : null}
             {button("Continue", makePlan, true)}
@@ -999,7 +1035,9 @@ export function MomentPreparationScreen({
             <Text style={[s.eyebrow, { color: accent }]}>
               YOUR PLAN · NOT SEALED YET
             </Text>
-            <Text style={s.title}>Prepared for your moment.</Text>
+            <Text {...headingProps} style={s.title}>
+              Prepared for your moment.
+            </Text>
             {current?.preparation?.nextMoment && next ? (
               <Text style={s.body}>
                 Next in your plan · {next.title} ·{" "}
@@ -1038,13 +1076,16 @@ export function MomentPreparationScreen({
         {screen === "seal" ? (
           <>
             <Text style={s.eyebrow}>SEAL</Text>
-            <Text style={s.title}>
+            <Text {...headingProps} style={s.title}>
               Only what you approve becomes your plan.
             </Text>
             <Pressable
               disabled={saving}
               accessibilityRole="button"
               accessibilityLabel="Hold to seal"
+              accessibilityState={{ disabled: saving, busy: saving }}
+              aria-disabled={saving}
+              aria-busy={saving}
               accessibilityHint="Hold for 1.2 seconds. VoiceOver users can double tap to approve this reviewed plan."
               onPressIn={startHold}
               onPressOut={cancelHold}
@@ -1087,7 +1128,9 @@ export function MomentPreparationScreen({
           <>
             <Text style={s.eyebrow}>SEALED</Text>
             <PreparationOrb social={social} day={day} />
-            <Text style={s.title}>Your plan is yours.</Text>
+            <Text {...headingProps} style={s.title}>
+              Your plan is yours.
+            </Text>
             <Text style={s.body}>Go perform.</Text>
             {button(
               "Lock In",
@@ -1106,7 +1149,10 @@ export function MomentPreparationScreen({
             <Animated.View style={{ opacity: dim }}>
               <Text style={[s.eyebrow, { color: accent }]}>LOCKED IN</Text>
               <PreparationOrb social={social} day={day} moon />
-              <Text style={[s.title, { textAlign: "center" }]}>
+              <Text
+                {...headingProps}
+                style={[s.title, { textAlign: "center" }]}
+              >
                 Go perform.
               </Text>
               <Text style={[s.muted, { textAlign: "center" }]}>
@@ -1123,7 +1169,7 @@ export function MomentPreparationScreen({
             <Text style={s.eyebrow}>PLANS CHANGED</Text>
             {safetyView ? (
               <>
-                <Text style={s.safetyTitle}>
+                <Text {...headingProps} style={s.safetyTitle}>
                   {safety === "emergency"
                     ? "Get emergency help now."
                     : safety === "water"
@@ -1170,7 +1216,9 @@ export function MomentPreparationScreen({
               </>
             ) : (
               <>
-                <Text style={s.title}>What changed?</Text>
+                <Text {...headingProps} style={s.title}>
+                  What changed?
+                </Text>
                 <TextInput
                   accessibilityLabel="What changed?"
                   value={changes}
@@ -1207,7 +1255,9 @@ export function MomentPreparationScreen({
         {screen === "return" ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>HEADING BACK?</Text>
-            <Text style={s.title}>Made it back.</Text>
+            <Text {...headingProps} style={s.title}>
+              Made it back.
+            </Text>
             <Text style={s.body}>Tap once when you’re in.</Text>
             <Text style={s.muted}>Your check-in stays private.</Text>
             {current?.preparation?.destination ? (
@@ -1242,7 +1292,9 @@ export function MomentPreparationScreen({
         {screen === "next" ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>NEXT</Text>
-            <Text style={s.title}>{momentReturnLabel(new Date())}</Text>
+            <Text {...headingProps} style={s.title}>
+              {momentReturnLabel(new Date())}
+            </Text>
             {followUp ? (
               <>
                 <Text style={s.body}>
