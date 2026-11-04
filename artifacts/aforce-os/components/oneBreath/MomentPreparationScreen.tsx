@@ -1,4 +1,7 @@
-import { preparationClosed } from "@/services/momentPreparationLifecycle";
+import {
+  preparationClosed,
+  unconfirmedPreparationExpired,
+} from "@/services/momentPreparationLifecycle";
 import React from "react";
 import { MomentProposalPrefsControl } from "./MomentProposalPrefsControl";
 import { useMomentsData } from "@/components/moments/useMomentsData";
@@ -76,6 +79,8 @@ type Screen =
   | "change"
   | "return"
   | "next";
+const CANDIDATE_ENDED =
+  "That Moment has ended. Describe what’s happening now to start a new plan.";
 const transaction = () =>
   `seal-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 const clock = (iso: string) =>
@@ -105,6 +110,9 @@ export function MomentPreparationScreen({
   const scrollRef = React.useRef<ScrollView>(null);
   const headingRef = React.useRef<Text>(null);
   const [screen, setScreen] = React.useState<Screen>("capture");
+  const [candidateEndAt, setCandidateEndAt] = React.useState<string | null>(
+    null,
+  );
   const [words, setWords] = React.useState("");
   const [reservationOpen, setReservationOpen] = React.useState(false);
   const [reservationText, setReservationText] = React.useState("");
@@ -195,6 +203,7 @@ export function MomentPreparationScreen({
   const reviewStillCurrent = (moment: Moment): boolean => {
     const live = liveInputs.current;
     return (
+      (!candidateEndAt || Date.parse(candidateEndAt) > Date.now()) &&
       (!moment.safetyContext ||
         matchesMomentSafetyConsent(
           configuredMomentSafetyPolicy(),
@@ -270,6 +279,7 @@ export function MomentPreparationScreen({
     // Revoked calendar access, masking, or cancellation cannot leave a readable
     // source candidate on screen or allow it to be committed later.
     calendarOrigin.current = null;
+    setCandidateEndAt(null);
     cancelHold();
     setReview(null);
     setDraft(null);
@@ -299,6 +309,10 @@ export function MomentPreparationScreen({
             m.preparation?.context === context &&
             !preparationClosed(m.preparation),
         );
+    if (existing && unconfirmedPreparationExpired(existing, Date.now())) {
+      setError(CANDIDATE_ENDED);
+      return;
+    }
     if (!existing || !isRealPreparationMoment(existing)) {
       const previous = [...store.moments]
         .filter(
@@ -323,6 +337,14 @@ export function MomentPreparationScreen({
         key: preparationContextKey(existing),
       };
     }
+    setCandidateEndAt(
+      !existing.preparation?.sealedAtIso &&
+        existing.endAtIso &&
+        Number.isFinite(Date.parse(existing.endAtIso)) &&
+        Date.parse(existing.endAtIso) > Date.parse(existing.startAtIso)
+        ? existing.endAtIso
+        : null,
+    );
     setReview(existing);
     if (existing.preparation) {
       setMethod(existing.preparation.returnMethod);
@@ -343,6 +365,40 @@ export function MomentPreparationScreen({
     params.momentId,
     resumed,
     context,
+  ]);
+  React.useEffect(() => {
+    if (!candidateEndAt || current?.preparation?.sealedAtIso) return;
+    const end = Date.parse(candidateEndAt);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const check = () => {
+      const remaining = end - Date.now();
+      if (remaining > 0) {
+        timer = setTimeout(check, Math.min(remaining, 2147483647));
+        return;
+      }
+      // An approval already awaiting durable acknowledgement must resolve
+      // honestly. Failure rechecks this deadline when saving becomes false.
+      if (busy.current) return;
+      cancelHold();
+      voice.cancel();
+      calendarOrigin.current = null;
+      setCandidateEndAt(null);
+      setReview(null);
+      setDraft(null);
+      setNextChoice(null);
+      setScreen("capture");
+      setError(CANDIDATE_ENDED);
+    };
+    check();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [
+    candidateEndAt,
+    current?.preparation?.sealedAtIso,
+    saving,
+    cancelHold,
+    voice.cancel,
   ]);
   React.useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
@@ -419,6 +475,7 @@ export function MomentPreparationScreen({
     setError("");
   };
   const reviewWords = () => {
+    setCandidateEndAt(null);
     setReservationReview(false);
     setReservationOpen(false);
     setReservationText("");
@@ -587,7 +644,10 @@ export function MomentPreparationScreen({
             target === "lock" ? () => reviewStillCurrent(moment) : undefined,
           ));
       if (!allowed()) return;
-      if (target === "lock") calendarOrigin.current = null;
+      if (target === "lock") {
+        calendarOrigin.current = null;
+        setCandidateEndAt(null);
+      }
       setReview(result);
       move(target);
       if (target === "lock") hapticImpact("medium");
@@ -871,6 +931,13 @@ export function MomentPreparationScreen({
               "Prepare",
               async () => {
                 if (!(await proposalResponse("accepted"))) return;
+                if (unconfirmedPreparationExpired(current, Date.now())) {
+                  setCandidateEndAt(null);
+                  setReview(null);
+                  move("capture");
+                  setError(CANDIDATE_ENDED);
+                  return;
+                }
                 const at = new Date(current.startAtIso);
                 setDraft({
                   title: current.title,
@@ -922,6 +989,11 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={s.title}>
               What would make {day ? "today" : "tonight"} go well?
             </Text>
+            {error === CANDIDATE_ENDED ? (
+              <Text accessibilityRole="alert" style={s.body}>
+                {error}
+              </Text>
+            ) : null}
             {!reservationOpen ? (
               <>
                 <Pressable
@@ -996,6 +1068,7 @@ export function MomentPreparationScreen({
                   () => {
                     const candidate = suggestReservationDraft(reservationText);
                     calendarOrigin.current = null;
+                    setCandidateEndAt(null);
                     setReview(null);
                     setWords("");
                     setNextChoice(null);
@@ -1569,7 +1642,7 @@ export function MomentPreparationScreen({
             )}
           </>
         ) : null}
-        {error ? (
+        {error && !(screen === "capture" && error === CANDIDATE_ENDED) ? (
           <Text accessibilityRole="alert" style={s.body}>
             {error}
           </Text>

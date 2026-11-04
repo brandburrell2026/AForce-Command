@@ -18,6 +18,7 @@ Branch: feat/social-v04. This is local implementation, not an internally release
 - Mirror summarizes a known date/time and expands its editors and getting-back controls on request. Unknown timing remains visible for explicit confirmation. Calendar provenance and approval wording remain visible.
 - An unchecked-by-default follow-up choice links only the member-selected next Moment at Seal. It is disclosed in Plan and Seal, persists on the same Moment, and creates no extra Moment, reminder or command. Return offers a fresh One Breath review of that exact occurrence; changed, masked, completed, expired or revoked context requires another choice. Replaying feedback leaves this handoff available. Same-member route changes remount local draft state; account changes block the handoff. A timed 6 AM crossing stays in Quiet until Return.
 - Explicit cancellation has its own timestamp on the same Moment, never a Return/check-in or Replay result. Acknowledged cancellation ends Quiet, clears private context and stays closed on reload. Cancelled records cannot become upcoming advice, proposals, detail rituals or prep reminders; no invitation or status is sent. Queued schedules recheck cancellation and due time before native delivery, and late native acknowledgements are removed. A failed cancellation remains retryable and never renders success.
+- Unconfirmed candidates expire only at a valid, source-provided end time. Reopening an ended candidate, crossing its end during a hold, and delayed proposal acknowledgements cannot revive it. No end is guessed, no source record is deleted and no completion/Return is written. An approval completed before the deadline waits honestly for durable acknowledgement; a failure after the deadline returns to capture, while a successful acknowledgement preserves the approved plan. Confirmed Quiet never ends from this clock.
 - Social entry remains inside Protocol / Prepare My Day, with no tab.
 - Inter typography, source-derived mirrored-N geometry, blue/orange/sun orb variants, reduced-motion handling, eight-second Quiet dim.
 - “Go perform.” shared Lock In/Quiet wording. Current brand fill already matches #C1281B.
@@ -28,13 +29,13 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 ## Verified locally
 
-429 tests pass across 40 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+438 tests pass across 40 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
 
 Local interruption/write tests verify inactive/background cancellation during a Seal hold, leaving the screen mid-hold, explicit retry after storage rejection, one acknowledged save after a delayed write, a retryable failed Return, and rehydration of Return with private context removed. These use injected lifecycle/storage events; they do not establish native force-close, offline or VoiceOver acceptance.
 
 The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,642 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
 
-Thirteen local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The additional privacy-control projection uses conspicuously labelled, unapproved synthetic policy values. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
+Fourteen local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The additional privacy-control projection uses conspicuously labelled, unapproved synthetic policy values. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
 
 ## Required before release or claiming spec completion
 

@@ -1,6 +1,6 @@
 import {describe,it,expect} from 'vitest';
 import type {Moment,MomentPreparation} from '@/types/moments';
-import {preparationClosed} from '../momentPreparationLifecycle';
+import {preparationClosed,unconfirmedPreparationExpired} from '../momentPreparationLifecycle';
 import {surfaceableMoments,nextMoment} from '../momentRecommendation';
 import {preparationProposalCandidate} from '../momentPreparation';
 import {activeAlcoholContext} from '../momentSafetyContext';
@@ -12,4 +12,11 @@ describe('shared terminal preparation outcomes',()=>{
  it('keeps cancelled records out of upcoming surfaces and preparation reminders',()=>{expect(surfaceableMoments([cancelled],now)).toEqual([]);expect(nextMoment([cancelled],now)).toBeNull();expect(planMomentNotifications([cancelled],DEFAULT_MOMENT_NOTIFY_PREFS,now)).toEqual([]);});
  it('does not let a cancelled ongoing record suppress another eligible proposal',()=>{const old={...cancelled,startAtIso:new Date(2027,0,8,16).toISOString()};const other={...cancelled,id:'next',title:'Dinner with team',preparation:undefined};expect(preparationProposalCandidate([old,other],{records:[],neverTypes:[]},now)?.id).toBe('next');});
  it('does not treat cancellation as an active private-context source',()=>{const m={...cancelled,safetyContext:{mentionedAtIso:now,expiresAtIso:new Date(Date.parse(now)+3600000).toISOString(),region:'test',policyVersion:'test'}};expect(activeAlcoholContext(m,Date.parse(now))).toBe(false);});
+});
+
+describe('known-end expiry for unconfirmed candidates',()=>{
+ const candidate={...cancelled,preparation:undefined};
+ it('expires at the exact valid end, without modifying the source',()=>{const end=Date.parse(candidate.endAtIso!);expect(unconfirmedPreparationExpired(candidate,end-1)).toBe(false);expect(unconfirmedPreparationExpired(candidate,end)).toBe(true);expect(candidate.preparation).toBeUndefined();});
+ it('does not guess an end or treat invalid timing as a lifecycle outcome',()=>{for(const endAtIso of [undefined,'bad',candidate.startAtIso,new Date(Date.parse(candidate.startAtIso)-60000).toISOString()])expect(unconfirmedPreparationExpired({...candidate,endAtIso},Date.parse(now)+86400000)).toBe(false);expect(unconfirmedPreparationExpired(candidate,NaN)).toBe(false);});
+ it('never ends a confirmed plan or Quiet from the clock alone',()=>{expect(unconfirmedPreparationExpired({...cancelled,preparation:{...cancelled.preparation!,cancelledAtIso:undefined}},Date.parse(now)+86400000)).toBe(false);});
 });
