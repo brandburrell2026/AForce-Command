@@ -25,6 +25,7 @@ Branch: feat/social-v04. This is local implementation, not an internally release
 - Unconfirmed candidates expire only at a valid, source-provided end time. Reopening an ended candidate, crossing its end during a hold, and delayed proposal acknowledgements cannot revive it. No end is guessed, no source record is deleted and no completion/Return is written. An approval completed before the deadline waits honestly for durable acknowledgement; a failure after the deadline returns to capture, while a successful acknowledgement preserves the approved plan. Confirmed Quiet never ends from this clock.
 - Removing a member-owned Moment invalidates its open preparation view, cancels any Seal hold and clears cached words, private context, destination and contact inputs. A delayed Prepare acknowledgement cannot revive the removed candidate. An in-flight rejected write settles before the view clears; the existing store still owns durable deletion and tombstones. Unrelated Moments remain intact.
 - Social entry remains inside Protocol / Prepare My Day, with no tab.
+- Mirror day/night styling and upcoming context use valid draft timing as it is edited. Invalid or nonexistent dates never normalize into preview context; the opening question uses nighttime before dawn. The local daytime journey covers Seal, sun-orb Quiet and private Return. This adds no heat or recovery policy, and real-phone acceptance is pending.
 - Inter typography, source-derived mirrored-N geometry, blue/orange/sun orb variants, reduced-motion handling, eight-second Quiet dim.
 - “Go perform.” shared Lock In/Quiet wording. Current brand fill already matches #C1281B.
 - Quiet serializes native scheduling with cancellation before committing Lock In. Existing safety-kind schedules are preserved; ordinary schedules and TTS are suppressed, as is the morning voice overlay.
@@ -34,13 +35,13 @@ Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off 
 
 ## Verified locally
 
-467 tests pass across 40 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+470 tests pass across 40 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
 
 Local interruption/write tests verify inactive/background cancellation during a Seal hold, leaving the screen mid-hold, explicit retry after storage rejection, one acknowledged save after a delayed write, a retryable failed Return, and rehydration of Return with private context removed. These use injected lifecycle/storage events; they do not establish native force-close, offline or VoiceOver acceptance.
 
 The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,642 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
 
-Seventeen local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The additional privacy-control projection uses conspicuously labelled, unapproved synthetic policy values. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
+Nineteen local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The additional privacy-control projection uses conspicuously labelled, unapproved synthetic policy values. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
 
 ## Required before release or claiming spec completion
 

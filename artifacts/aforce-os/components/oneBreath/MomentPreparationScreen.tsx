@@ -183,15 +183,19 @@ export function MomentPreparationScreen({
   }, []);
   const saved = store.moments.find((m) => m.id === review?.id);
   const current = review ?? saved;
-  const day = current ? isDayMoment(current) : new Date().getHours() < 18;
-  const accent = day ? T.dayAccent : T.nightAccent;
-  const draftedStart = draft ? Date.parse(`${draft.date}T${draft.time}`) : NaN;
-  const anchor = Number.isFinite(draftedStart)
-    ? {
-        id: current?.id ?? "draft",
-        startAtIso: new Date(draftedStart).toISOString(),
-      }
+  // Only valid, explicitly reviewed local timing can style or anchor a draft.
+  // Invalid partial dates must not be normalized into invented context.
+  const draftTiming = draft
+    ? validateMomentDraft(draft, Number.NEGATIVE_INFINITY)
+    : null;
+  const draftedStart = draftTiming?.ok
+    ? Date.parse(draftTiming.startAtIso)
+    : NaN;
+  const anchor = draftTiming?.ok
+    ? { id: current?.id ?? "draft", startAtIso: draftTiming.startAtIso }
     : current;
+  const day = isDayMoment(anchor ?? { startAtIso: new Date().toISOString() });
+  const accent = day ? T.dayAccent : T.nightAccent;
   const next = nextPreparationContext(
     sharedMoments.surfaced,
     anchor,
