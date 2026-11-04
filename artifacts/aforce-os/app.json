@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.aforce.os",
+      "associatedDomains": ["applinks:www.joinaforce.com"],
       "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.healthkit": true
