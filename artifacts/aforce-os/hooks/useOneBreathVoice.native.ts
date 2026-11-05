@@ -13,6 +13,9 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
   const session = React.useRef(0);
   const started = React.useRef(false);
   const draining = React.useRef(false);
+  const permissionPending = React.useRef(false);
+  const appState = React.useRef(AppState.currentState ?? 'active');
+  const resumeAfterPermission = React.useRef<null | (() => void)>(null);
   const mounted = React.useRef(true);
   const token = React.useRef(captureScope());
   const callback = React.useRef(onTranscript); callback.current = onTranscript;
@@ -20,7 +23,7 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
   const available = Platform.OS === 'ios' && speech.isRecognitionAvailable() && speech.supportsOnDeviceRecognition();
   const clearTimer = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; };
   const cancel = React.useCallback(() => {
-    session.current += 1; active.current = false; clearTimer();
+    session.current += 1; active.current = false; permissionPending.current = false; resumeAfterPermission.current = null; clearTimer();
     if (started.current) { draining.current = true; speech.abort(); }
     if (mounted.current) { setBusy(false); setListening(false); }
   }, []);
@@ -42,7 +45,14 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
       }),
       speech.addListener('end', () => { draining.current = false; started.current = false; active.current = false; clearTimer(); if (mounted.current) { setBusy(false); setListening(false); } }),
     ];
-    const app = AppState.addEventListener('change', (state) => { if (state !== 'active') cancel(); });
+    const app = AppState.addEventListener('change', (state) => {
+      appState.current = state;
+      if (state === 'active') {
+        const resume = resumeAfterPermission.current;
+        resumeAfterPermission.current = null;
+        resume?.();
+      } else if (state === 'background' || !permissionPending.current) cancel();
+    });
     const unsubscribe = subscribeScopeState(() => { if (!isScopeCurrent(token.current)) cancel(); });
     return () => { mounted.current = false; cancel(); subscriptions.forEach((s) => s.remove()); app.remove(); unsubscribe(); };
   }, [cancel]);
@@ -53,12 +63,21 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
     const attempt = ++session.current;
     token.current = captureScope(); active.current = true; setBusy(true); setError('');
     try {
+      permissionPending.current = true;
       const permission = await speech.requestMicrophonePermissionsAsync();
       if (attempt !== session.current || !active.current || !mounted.current || !isScopeCurrent(token.current)) return;
       if (!permission.granted) { cancel(); setError('Microphone access is off. You can type your moment instead.'); return; }
-      started.current = true;
-      speech.start({ lang: 'en-US', interimResults: true, continuous: false, maxAlternatives: 1, requiresOnDeviceRecognition: true, addsPunctuation: true, recordingOptions: { persist: false } });
-      timer.current = setTimeout(() => { speech.stop(); }, 30_000);
+      const begin = () => {
+        if (attempt !== session.current || !active.current || !mounted.current || !isScopeCurrent(token.current)) return;
+        permissionPending.current = false;
+        try {
+          started.current = true;
+          speech.start({ lang: 'en-US', interimResults: true, continuous: false, maxAlternatives: 1, requiresOnDeviceRecognition: true, addsPunctuation: true, recordingOptions: { persist: false } });
+          timer.current = setTimeout(() => { speech.stop(); }, 30_000);
+        } catch { started.current = false; cancel(); setError('On-device voice is unavailable. Type your moment instead.'); }
+      };
+      if (appState.current === 'active') begin();
+      else resumeAfterPermission.current = begin;
     } catch { if (attempt !== session.current) return; started.current = false; cancel(); if (mounted.current) setError('On-device voice is unavailable. Type your moment instead.'); }
   };
   const stop = () => { if (!started.current) { cancel(); return; } if (active.current) { clearTimer(); speech.stop(); setListening(false); } };

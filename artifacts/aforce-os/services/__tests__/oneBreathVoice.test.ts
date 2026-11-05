@@ -79,3 +79,20 @@ it('keeps existing words through empty recognition and failure, then accepts a f
 it('does not erase a valid partial transcript with an empty final result',async()=>{
  await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Pool party tomorrow'}]}));act(()=>h.events.result!({isFinal:true,results:[]}));act(()=>h.events.end!());expect(transcript).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenLastCalledWith('Pool party tomorrow');expect(voice.busy).toBe(false);
 });
+
+it('waits for the microphone prompt to close before starting on-device capture',async()=>{
+ let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+ let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>h.app!('inactive'));
+ await act(async()=>{resolve({granted:true});await pending;});expect(h.start).not.toHaveBeenCalled();expect(voice.busy).toBe(true);
+ act(()=>h.app!('active'));expect(h.start).toHaveBeenCalledOnce();act(()=>h.events.start!());expect(voice.listening).toBe(true);
+});
+it('never resumes permission-pending capture after real backgrounding or cancellation',async()=>{
+ let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+ let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>h.app!('inactive'));act(()=>h.app!('background'));
+ await act(async()=>{resolve({granted:true});await pending;});act(()=>h.app!('active'));expect(h.start).not.toHaveBeenCalled();expect(voice.busy).toBe(false);
+});
+it('cancels a granted capture waiting for the permission dialog to close',async()=>{
+ let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
+ let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>h.app!('inactive'));
+ await act(async()=>{resolve({granted:true});await pending;});act(()=>voice.stop());act(()=>h.app!('active'));expect(h.start).not.toHaveBeenCalled();expect(voice.busy).toBe(false);
+});

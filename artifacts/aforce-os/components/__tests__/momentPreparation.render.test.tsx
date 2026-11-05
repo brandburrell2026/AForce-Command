@@ -214,7 +214,7 @@ describe('daytime preparation and timing revisions',()=>{
 
 describe('voice availability is reflected in capture controls',()=>{
  it('has no inactive voice button when only typing is supported',async()=>{await mount();expect(host.querySelector('[aria-label="Speak your moment"]')).toBeNull();expect(host.textContent).toContain('Type your moment');field('Your moment','Dinner tomorrow at 7:30 PM');click('Review my moment');expect(host.textContent).toContain('HERE’S WHAT I HEARD');expect(h.commit).not.toHaveBeenCalled();});
- it('exposes the voice control only when recognition is supported',async()=>{h.voiceAvailable=true;await mount();expect(host.querySelector('[aria-label="Speak your moment"]')).toBeTruthy();expect(host.textContent).toContain('Hold to speak · or type');expect(host.querySelector('[aria-label="Your moment"]')).toBeTruthy();h.voiceAvailable=false;await mount();expect(host.querySelector('[aria-label="Speak your moment"]')).toBeNull();});
+ it('exposes the voice control only when recognition is supported',async()=>{h.voiceAvailable=true;await mount();expect(host.querySelector('[aria-label="Speak your moment"]')).toBeTruthy();expect(host.textContent).toContain('Tap to speak · or type');expect(host.querySelector('[aria-label="Your moment"]')).toBeTruthy();h.voiceAvailable=false;await mount();expect(host.querySelector('[aria-label="Speak your moment"]')).toBeNull();});
 });
 
 describe('shared terminal outcome updates an open screen',()=>{

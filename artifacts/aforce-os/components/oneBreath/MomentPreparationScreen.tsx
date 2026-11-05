@@ -560,7 +560,6 @@ export function MomentPreparationScreen({
       if (s === "active") pruneMomentSafetyContext();
       if (s !== "active") {
         cancelHold();
-        voice.cancel();
       }
     });
     return () => {
@@ -1217,10 +1216,10 @@ export function MomentPreparationScreen({
                     accessibilityLabel={
                       voice.listening ? "Stop listening" : "Speak your moment"
                     }
-                    onPressIn={() => {
-                      if (voice.available) void voice.start();
+                    onPress={() => {
+                      if (voice.busy) voice.stop();
+                      else void voice.start();
                     }}
-                    onPressOut={voice.stop}
                     onAccessibilityTap={() => {
                       if (voice.busy) voice.stop();
                       else void voice.start();
@@ -1233,7 +1232,11 @@ export function MomentPreparationScreen({
                 )}
                 <Text style={s.muted}>
                   {voice.available
-                    ? "Hold to speak · or type"
+                    ? voice.listening
+                      ? "Listening… Tap to stop."
+                      : voice.busy
+                        ? "Starting voice… Tap to cancel."
+                        : "Tap to speak · or type"
                     : "Type your moment"}
                 </Text>
                 <TextInput
@@ -1251,7 +1254,7 @@ export function MomentPreparationScreen({
                 />
                 {voice.error ? (
                   <Text accessibilityRole="alert" style={s.body}>
-                    Didn't catch that. Type it or try again.
+                    {voice.error}
                   </Text>
                 ) : null}
                 {button(
