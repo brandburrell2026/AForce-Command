@@ -137,6 +137,7 @@ export function MomentPreparationScreen({
     null,
   );
   const [words, setWords] = React.useState("");
+  const wordsInput = React.useRef<TextInput>(null);
   const [reservationOpen, setReservationOpen] = React.useState(false);
   const [reservationText, setReservationText] = React.useState("");
   const [reservationReview, setReservationReview] = React.useState(false);
@@ -1239,9 +1240,16 @@ export function MomentPreparationScreen({
                         : "Tap to speak · or type"
                     : "Type your moment"}
                 </Text>
+                {button(voice.available ? "Type instead" : "Type your moment", () => {
+                  voice.cancel();
+                  wordsInput.current?.focus();
+                })}
+                <Text style={s.muted}>Your moment</Text>
                 <TextInput
+                  ref={wordsInput}
                   accessibilityLabel="Your moment"
                   value={words}
+                  onFocus={voice.cancel}
                   onChangeText={(value) => {
                     voice.cancel();
                     setWords(value);
@@ -2003,7 +2011,14 @@ const s = StyleSheet.create({
     paddingVertical: 12,
     minHeight: 48,
   },
-  words: { minHeight: 110, fontSize: 21, lineHeight: 29 },
+  words: {
+    minHeight: 110,
+    fontSize: 21,
+    lineHeight: 29,
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 14,
+  },
   field: { gap: 6 },
   row: {
     gap: 10,
