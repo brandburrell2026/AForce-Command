@@ -57,6 +57,7 @@ import { captureScope, isScopeCurrent } from "@/services/scopedWriteQueue";
 import { getScopeState } from "@/services/userScope";
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { hapticImpact, hapticSelection } from "@/services/haptics";
+import { MomentTimingPicker } from "./MomentTimingPicker";
 import { PreparationMark } from "./PreparationMark";
 import { PreparationOrb } from "./PreparationOrb";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
@@ -625,7 +626,8 @@ export function MomentPreparationScreen({
     setScreen(s);
   };
   const field = (key: keyof MomentDraft, value: string) => {
-    if (key === "date" || key === "time") setOccurringNow(false);
+    if (key === "date" || key === "time" || key === "timeZone")
+      setOccurringNow(false);
     setDraft((d) => (d ? { ...d, [key]: value } : d));
     setError("");
   };
@@ -1240,10 +1242,13 @@ export function MomentPreparationScreen({
                         : "Tap to speak · or type"
                     : "Type your moment"}
                 </Text>
-                {button(voice.available ? "Type instead" : "Type your moment", () => {
-                  voice.cancel();
-                  wordsInput.current?.focus();
-                })}
+                {button(
+                  voice.available ? "Type instead" : "Type your moment",
+                  () => {
+                    voice.cancel();
+                    wordsInput.current?.focus();
+                  },
+                )}
                 <Text style={s.muted}>Your moment</Text>
                 <TextInput
                   ref={wordsInput}
@@ -1439,6 +1444,7 @@ export function MomentPreparationScreen({
                     hour: "numeric",
                     minute: "2-digit",
                     timeZoneName: "short",
+                    timeZone: draft.timeZone || undefined,
                   })}{" "}
                   · Edit
                 </Text>
@@ -1455,6 +1461,7 @@ export function MomentPreparationScreen({
                           ...d,
                           date: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`,
                           time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+                          timeZone: undefined,
                         }
                       : d,
                   );
@@ -1464,6 +1471,14 @@ export function MomentPreparationScreen({
                     Happening now · review before sealing.
                   </Text>
                 ) : null}
+                <MomentTimingPicker
+                  draft={draft}
+                  onChange={(key, value) => {
+                    setTimingOpen(true);
+                    field(key, value);
+                  }}
+                />
+                <Text style={s.muted}>Or enter the date and 24-hour time:</Text>
                 {input("Date · YYYY-MM-DD", draft.date, (v) =>
                   field("date", v),
                 )}
@@ -1612,6 +1627,23 @@ export function MomentPreparationScreen({
                 })}
               </Text>
             ) : null}
+            {draft?.timeZone && current ? (
+              <Text style={s.body}>
+                Moment time ·{" "}
+                {new Date(current.startAtIso).toLocaleString([], {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: draft.timeZone,
+                  timeZoneName: "short",
+                })}{" "}
+                · {draft.timeZone}
+              </Text>
+            ) : null}
+            <Text style={s.muted}>
+              Preparation times use your phone’s local time.
+            </Text>
             {steps.map((step, i) => (
               <View key={i} style={s.row}>
                 <Text style={[s.eyebrow, { color: accent }]}>
@@ -1649,6 +1681,20 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Only what you approve becomes your plan.
             </Text>
+            {draft?.timeZone && current ? (
+              <Text style={s.body}>
+                {current.title} ·{" "}
+                {new Date(current.startAtIso).toLocaleString([], {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: draft.timeZone,
+                  timeZoneName: "short",
+                })}{" "}
+                · {draft.timeZone}
+              </Text>
+            ) : null}
             <Pressable
               disabled={saving}
               accessibilityRole="button"
@@ -1679,7 +1725,8 @@ export function MomentPreparationScreen({
               </Text>
             </Pressable>
             <Text style={s.body}>
-              {saved ? "Updates" : "Adds"} 1 Moment · {steps.length} preparation steps.
+              {saved ? "Updates" : "Adds"} 1 Moment · {steps.length} preparation
+              steps.
             </Text>
             {current?.preparation?.nextMoment && next ? (
               <Text style={s.body}>
@@ -1739,7 +1786,10 @@ export function MomentPreparationScreen({
             <Text style={s.eyebrow}>PLANS CHANGED</Text>
             {safetyView ? (
               <>
-                <Text {...headingProps} style={[s.safetyTitle, accessibleHeading]}>
+                <Text
+                  {...headingProps}
+                  style={[s.safetyTitle, accessibleHeading]}
+                >
                   {safety === "emergency"
                     ? "Get emergency help now."
                     : safety === "water"

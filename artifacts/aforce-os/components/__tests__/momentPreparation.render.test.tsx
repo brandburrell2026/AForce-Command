@@ -35,6 +35,31 @@ const existing=():Moment=>({id:'real',source:'manual',title:'Team dinner',type:'
 beforeEach(()=>{vi.spyOn(AccessibilityInfo,'isReduceMotionEnabled').mockResolvedValue(true);h.command={id:'canonical',action:'Start with water.'};h.beforeValidate=null;h.voiceAvailable=false;h.voiceBusy=false;h.voiceCancel.mockReset();h.push.mockReset();h.sharedReads.mockReset();h.calendar=[];h.moments=[];h.params={};h.scope=true;h.commit.mockReset();h.preference.mockReset();h.back.mockReset();h.replace.mockReset();host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(()=>{act(()=>root.unmount());host.remove();vi.useRealTimers();vi.restoreAllMocks();vi.unstubAllEnvs();});
 describe('Social v0.4 shared Moment screen interactions',()=>{
+  it('selects a calendar date, time and event zone without typing timing or saving',async()=>{
+    vi.useFakeTimers();vi.setSystemTime(new Date(2027,0,8,10));await mount();
+    field('Your moment','QA team dinner');click('Review my moment');
+    click('Choose date · Not selected');
+    act(()=>(host.querySelector('[aria-label="Select 2027-01-09"]') as HTMLElement).click());
+    click('Choose time · Not selected');click('Hour 7');click('PM');click('Minute 30');click('Done choosing time');
+    const zoneButton=host.querySelector('[aria-label^="Choose time zone ·"]') as HTMLElement;
+    act(()=>zoneButton.click());field('Search time zones','New York');click('America/New_York');
+    expect((host.querySelector('[aria-label="Date · YYYY-MM-DD"]') as HTMLInputElement).value).toBe('2027-01-09');
+    expect((host.querySelector('[aria-label="Time · HH:mm"]') as HTMLInputElement).value).toBe('19:30');
+    expect(h.commit).not.toHaveBeenCalled();click('Continue');
+    expect(host.textContent).toContain('YOUR PLAN · NOT SEALED YET');expect(h.commit).not.toHaveBeenCalled();
+    click('Review & seal');
+    act(()=>(host.querySelector('[aria-label="Hold to seal"]') as HTMLElement).dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0})));
+    await act(async()=>vi.advanceTimersByTime(1400));
+    expect(h.moments[0]!.startAtIso).toBe('2027-01-10T00:30:00.000Z');
+  });
+  it('navigates calendar months and handles midnight selection',async()=>{
+    vi.useFakeTimers();vi.setSystemTime(new Date(2027,0,8,10));await mount();field('Your moment','QA trip');click('Review my moment');
+    click('Choose date · Not selected');act(()=>(host.querySelector('[aria-label="Next month"]') as HTMLElement).click());
+    expect(host.textContent).toContain('February 2027');act(()=>(host.querySelector('[aria-label="Previous month"]') as HTMLElement).click());
+    act(()=>(host.querySelector('[aria-label="Select 2027-01-10"]') as HTMLElement).click());
+    click('Choose time · Not selected');click('Hour 12');click('AM');click('Minute 00');click('Done choosing time');
+    expect((host.querySelector('[aria-label="Time · HH:mm"]') as HTMLInputElement).value).toBe('00:00');expect(h.commit).not.toHaveBeenCalled();
+  });
   it('typing reaches Mirror, Plan and Seal without saving or requiring voice',async()=>{await mount();field('Your moment','Dinner tomorrow at 7:30 PM');click('Review my moment');expect(host.textContent).toContain('HERE’S WHAT I HEARD');field('Date · YYYY-MM-DD','2027-01-08');click('Continue');expect(host.textContent).toContain('YOUR PLAN · NOT SEALED YET');expect(host.textContent).not.toContain('Start with water.');expect(host.textContent).toContain('Check your current guidance');click('Review & seal');expect(host.textContent).toContain('Only what you approve');expect(h.commit).not.toHaveBeenCalled();});
   it('discloses a revision as an update and keeps one existing Moment',async()=>{vi.useFakeTimers();vi.setSystemTime(new Date(2027,0,7,10));const m=existing();m.preparation!.lockedInAtIso=new Date().toISOString();h.moments=[m];h.params={momentId:m.id};await mount();click('Plans changed?');field('What changed?','Team dinner tomorrow at 1 PM');click('Review changes');click('Continue');click('Review & seal');expect(host.textContent).toContain('Updates 1 Moment');expect(host.textContent).not.toContain('Adds 1 Moment');const ring=host.querySelector('[aria-label="Hold to seal"]') as HTMLElement;act(()=>ring.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0})));await act(async()=>vi.advanceTimersByTime(1300));expect(h.moments).toHaveLength(1);expect(h.moments[0]!.id).toBe(m.id);expect(new Date(h.moments[0]!.startAtIso).getHours()).toBe(13);});
   it('puts driving risk ahead of Mirror and offers no driving approval',async()=>{await mount();field('Your moment','I had tequila and I am driving');click('Review my moment');expect(host.textContent).toContain('AFORCE can’t assess');expect(button('Get a ride')).toBeTruthy();expect(button('Contact someone')).toBeTruthy();expect(button('Stay here')).toBeTruthy();expect(h.commit).not.toHaveBeenCalled();});

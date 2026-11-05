@@ -123,3 +123,11 @@ The shared orb now uses tap-to-start/tap-to-stop with explicit starting/listenin
 ### Explicit typing entry
 
 The member could not discover typing in build 143 because the input looked like ordinary example text. Capture now provides Type instead (or Type your moment on unsupported voice platforms), labels and outlines the field, cancels pending voice before focusing, and cancels capture on direct input focus. The render regression verifies actual field focus, cancellation and typed review without saving. All 97 voice/shared-screen tests, app TypeScript and whitespace checks pass. This is a local follow-up for the next voice-fix build, not a change to installed build 143.
+
+### November 4: selectable timing for typed Moments (local source)
+
+Added a shared review calendar with month navigation, hour/minute and AM/PM selection, and a searchable IANA time-zone chooser. Phone time zone is the default; manual date/time entry remains available. Selecting timing keeps the editor open. Explicit event-zone time is shown in Plan and Seal, converted to an absolute saved instant, and saved Moments continue to display in device-local time. Happening now resets any event-zone override. No calendar access permission or new native dependency is required.
+
+Validation: 107 targeted tests pass across shared-screen interactions, draft timing and native voice; app TypeScript and git diff whitespace checks pass. Coverage includes no-save-before-Seal, selected-zone saved instant, month navigation, midnight, half-hour offsets, DST gaps/repeats, and invalid dates/zones.
+
+This change is local source only, after build 144. No new EAS build, upload, release or real-phone verification of these pickers has occurred.
