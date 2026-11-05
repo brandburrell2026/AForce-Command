@@ -95,3 +95,10 @@ Eight Simulator preferred-text-size increases exposed excessive display-heading 
 ### Internal Social build preparation
 
 All seven CI checks passed for 005cd6a5, and its iOS Hermes export completed successfully. A separate `internal-social` EAS profile now extends `internal`, enables `EXPO_PUBLIC_SOCIAL_V04=true`, and uses the `internal-social` update channel. Existing internal/production profiles and submit settings are unchanged. It inherits the existing internal preview flag; no regional retention policy is configured. This is configuration preparation only: no cloud build, signing, submission, channel publication or paid job was started. Use the exact reviewed revision for a later authorized build and submit only its explicit build ID. Real-phone acceptance, regional decisions and release authorization remain separate gates.
+
+
+### Native timing validation
+
+The shared One Breath route on iPhone 16e iOS 26.3 Simulator rejected 2027-02-30 and the New York DST gap 2027-03-14 02:30 without leaving Mirror. Explicit Happening now reset the review to the current local date/time and reached an unsealed Plan with preparation steps clamped to the current time. Closing without Seal retained prior history and zero upcoming Moments. Known-end expiry remains source-event based; manual capture does not invent an event end.
+
+This pass exposed a stale error after Happening now replaced invalid timing. That action now clears the prior validation error, consistent with manual field edits. The regression test covers invalid date → error → Happening now → no stale error → unsealed Plan with no commit. All 83 shared-screen render tests and app TypeScript pass. Native verification of the final one-line correction is pending reloading the local server. No physical-device or TestFlight result is implied.

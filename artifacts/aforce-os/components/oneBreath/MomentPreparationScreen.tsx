@@ -1436,6 +1436,7 @@ export function MomentPreparationScreen({
               <>
                 {button("This is happening now", () => {
                   const now = new Date();
+                  setError("");
                   setOccurringNow(true);
                   setDraft((d) =>
                     d
