@@ -1321,9 +1321,9 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
               HERE’S WHAT I HEARD
             </Text>
-            {error === TIME_ZONE_CHANGED ? (
+            {error && !(calendarChanged && error === CALENDAR_CHANGED) ? (
               <Text accessibilityRole="alert" style={s.body}>
-                {TIME_ZONE_CHANGED}
+                {error}
               </Text>
             ) : null}
             {calendarChanged ? (
@@ -1944,12 +1944,7 @@ export function MomentPreparationScreen({
           screen === "capture" &&
           (error === CANDIDATE_ENDED || error === MOMENT_REMOVED)
         ) &&
-        !(screen === "mirror" && error === TIME_ZONE_CHANGED) &&
-        !(
-          screen === "mirror" &&
-          calendarChanged &&
-          error === CALENDAR_CHANGED
-        ) ? (
+        screen !== "mirror" ? (
           <Text accessibilityRole="alert" style={s.body}>
             {error}
           </Text>
