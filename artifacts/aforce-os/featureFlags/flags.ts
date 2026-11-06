@@ -62,6 +62,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // prod so logIntake keeps its exact online-only path (byte-identical no-op),
   // ON in DEMO. Score-Protection: replays frozen scores, server dedupes.
   offline_intake_outbox_enabled: false,
+  // Gentle Hydration Mode is private and opt-in, but stays dark until its
+  // medical/legal copy review and internal-device validation are complete.
+  // It never changes a hydration target, score, reminder or Circle payload.
+  gentle_hydration_mode_enabled: false,
   per_user_storage_isolation_enabled: false,
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
@@ -495,6 +499,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   intent_capture_enabled: true,
   performance_statements_enabled: true,
   offline_intake_outbox_enabled: true,
+  // Local/demo preview only. This is not a public medical-support launch.
+  gentle_hydration_mode_enabled: true,
   per_user_storage_isolation_enabled: true,
   // Hydration restore is safe to demo (deterministic, never overwrites), but
   // keep it OFF here too until the reinstall release-gate passes — demo builds

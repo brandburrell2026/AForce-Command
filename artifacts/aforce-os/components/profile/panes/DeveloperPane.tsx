@@ -194,6 +194,14 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
 
         <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow
+          flag="gentle_hydration_mode_enabled"
+          label="Gentle Hydration preview"
+          desc="Private, opt-in pacing support. It does not change targets, scoring, reminders, or Circle sharing."
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
+        <FlagRow
           flag="circle_membership_enabled"
           label={t('community.members.pilot_label', { defaultValue: 'Circle membership pilot' })}
           desc={t('community.members.pilot_description', { defaultValue: 'Real invitations and members. Requires the Circle pilot server.' })}

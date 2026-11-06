@@ -593,6 +593,13 @@ export interface FeatureFlags {
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
   /**
+   * Gentle Hydration Mode — private, opt-in planning support for members who
+   * want a lower-pressure rhythm, including GLP-1 users. Ships dark until
+   * medical/legal copy review and internal-device validation are complete.
+   * It does not alter targets, scoring, reminders, or Circle sharing.
+   */
+  gentle_hydration_mode_enabled: boolean;
+  /**
    * Wave-2 PR6: per-user local data isolation. ON → ClerkAuthBridge scopes
    * every durable personal store to the Clerk userId (plus one-shot legacy
    * migration, WHOOP-token wipe and scoped-notification cancel on account
