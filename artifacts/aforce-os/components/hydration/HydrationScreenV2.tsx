@@ -63,6 +63,7 @@ import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { GentleHydrationModeCard } from './GentleHydrationModeCard';
+import { DEFAULT_GENTLE_HYDRATION_MODE, type GentleHydrationModeState } from '@/services/gentleHydrationMode';
 import { fireMoment } from '@/services/haptics';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -129,6 +130,12 @@ export function HydrationScreenV2() {
   const { userState } = state;
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+  const [gentleMode, setGentleMode] = React.useState<GentleHydrationModeState>(DEFAULT_GENTLE_HYDRATION_MODE);
+  const showGlp1Context = typeof state.profileIdentity?.birthYear === 'number' && new Date().getFullYear() - state.profileIdentity.birthYear >= 18;
+
+  React.useEffect(() => {
+    if (!flags.gentle_hydration_mode_enabled) setGentleMode(DEFAULT_GENTLE_HYDRATION_MODE);
+  }, [flags.gentle_hydration_mode_enabled]);
 
   // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
   // one frame both close over a pre-render `logIntake` whose own
@@ -332,9 +339,8 @@ export function HydrationScreenV2() {
 
       {flags.gentle_hydration_mode_enabled ? (
         <GentleHydrationModeCard
-          onLogWater={openWaterPicker}
-          ozConsumedToday={userState.ozConsumedToday}
-          ozTarget={userState.ozTarget}
+          showGlp1Context={showGlp1Context}
+          onModeChange={setGentleMode}
         />
       ) : null}
 
@@ -380,8 +386,8 @@ export function HydrationScreenV2() {
         )}
       </View>
 
-      {/* 7-day strip (streak, honest) */}
-      <View style={styles.section}>
+      {/* 7-day strip (streak, honest); private presentation may hide it. */}
+      {!gentleMode.pauseStreakDisplay ? <View style={styles.section}>
         {/* No count caption: `streak` is the target-met compliance streak,
             not a count of days logged (PR #1090 review B1) — the dots and
             their per-day labels carry what is known. */}
@@ -444,7 +450,7 @@ export function HydrationScreenV2() {
             testID="hydration-v2-history-link"
           />
         </AFCard>
-      </View>
+      </View> : null}
 
       </AFScreen>
 

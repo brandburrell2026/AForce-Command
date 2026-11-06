@@ -66,6 +66,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // medical/legal copy review and internal-device validation are complete.
   // It never changes a hydration target, score, reminder or Circle payload.
   gentle_hydration_mode_enabled: false,
+  gentle_hydration_prompts_enabled: false,
   per_user_storage_isolation_enabled: false,
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
@@ -499,8 +500,9 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   intent_capture_enabled: true,
   performance_statements_enabled: true,
   offline_intake_outbox_enabled: true,
-  // Local/demo preview only. This is not a public medical-support launch.
-  gentle_hydration_mode_enabled: true,
+  // Generic demo is not authorization for this private health-adjacent mode.
+  gentle_hydration_mode_enabled: false,
+  gentle_hydration_prompts_enabled: false,
   per_user_storage_isolation_enabled: true,
   // Hydration restore is safe to demo (deterministic, never overwrites), but
   // keep it OFF here too until the reinstall release-gate passes — demo builds
