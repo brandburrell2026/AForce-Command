@@ -712,9 +712,11 @@ body{font-family:Inter,system-ui,sans-serif}
 <div data-ui="326" aria-hidden="true" style="width: 96px; height: 96px; margin: 0px auto; border-radius: 50%; background: radial-gradient(circle at 38% 32%, rgb(255, 161, 96) 0%, rgb(255, 122, 46) 38%, rgb(232, 84, 26) 78%, rgb(201, 67, 15) 100%); box-shadow: rgba(255, 110, 40, 0.06) 0px 0px 0px 22px, rgba(255, 110, 40, 0.45) 0px 0px 90px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; color: rgb(255, 244, 236);">N‑И</div>
 <h2 data-ui="327" style="margin: 40px 0px 0px; font-size: clamp(44px, 6.6vw, 88px); line-height: 0.98; letter-spacing: -0.04em; font-weight: 800;">Your next moment<br data-ui="328">starts here.</h2>
 <p data-ui="329" style="margin: 22px auto 0px; max-width: 520px; font-size: 18px; line-height: 1.6; color: var(--os-muted);">Join the launch waitlist for AFORCE OS availability and Founding 250 updates.</p>
-<form data-ui="330" style="margin: 36px auto 0px; max-width: 520px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+<form data-ui="330" style="margin: 36px auto 0px; max-width: 520px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;" method="post" action="/api/founding-250" data-signup-source="aforce-os">
+<input type="hidden" name="source" value="aforce-os">
+<div aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none"><label>Leave blank<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
 <label data-ui="331" for="email" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px);">Email address</label>
-<input data-ui="332" id="email" type="email" required="" placeholder="you@email.com" style="flex: 1 1 260px; min-width: 0px; background: rgb(18, 17, 16); border: 1px solid rgb(58, 54, 49); border-radius: 999px; padding: 17px 22px; font-size: 16px; color: var(--os-bone); font-family: inherit;">
+<input data-ui="332" id="email" name="email" autocomplete="email" maxlength="254" type="email" required="" placeholder="you@email.com" style="flex: 1 1 260px; min-width: 0px; background: rgb(18, 17, 16); border: 1px solid rgb(58, 54, 49); border-radius: 999px; padding: 17px 22px; font-size: 16px; color: var(--os-bone); font-family: inherit;">
 <button data-ui="333" type="submit" style="background: var(--red); color: rgb(255, 255, 255); border: 0px; border-radius: 999px; padding: 17px 26px; font-size: 16px; font-weight: 600; cursor: pointer;">
 <span class="sc-interp">Join the waitlist</span>
 </button>

@@ -1,11 +1,11 @@
 /* Use the existing early-access capture; never confirm an unsaved signup. */
 (function () {
-  var form = document.querySelector('.founding form');
-  if (form) {
+  document.querySelectorAll('.founding form').forEach(function (form) {
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
-      var input = form.querySelector('input');
+      var input = form.querySelector('input[type="email"]');
       var button = form.querySelector('button');
+      var originalLabel = button.textContent;
       var status = form.querySelector('[role="status"]');
       if (button.disabled || !form.reportValidity()) return;
       var email = input.value.trim();
@@ -22,7 +22,7 @@
       try {
         var response = await fetch('/api/founding-250', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email }), signal: controller.signal
+          body: JSON.stringify({ email: email, source: form.dataset.signupSource, website: form.querySelector("[name=website]").value }), signal: controller.signal
         });
         var result = await response.json();
         if (!response.ok || result.ok !== true) throw new Error('Capture failed');
@@ -30,11 +30,11 @@
         status.textContent = 'Thank you. Your early-access request has been received.';
       } catch (_) {
         button.disabled = false;
-        button.textContent = 'Join the Waitlist';
+        button.textContent = originalLabel;
         status.textContent = 'We couldn’t save your request. Please try again, or email info@alkalineforce.com.';
       } finally { clearTimeout(timeout); }
     });
-  }
+  });
   // Load the below-the-fold film only as it approaches the viewport.
   var film = document.querySelector('.universal-video');
   if (!film) return;

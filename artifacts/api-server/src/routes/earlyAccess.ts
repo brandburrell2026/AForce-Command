@@ -20,6 +20,9 @@ import { z } from "zod";
 import { db, earlyAccessSignups } from "@workspace/db";
 import { requireAdmin } from "../middlewares/requireAdmin";
 import { sendEmailAndForget } from "../lib/mailer";
+import { captureWebsiteSignup, ensureSignupNotificationQueue } from "../lib/signupNotifications";
+import { microsoftSignupMailConfigured } from "../lib/signupMicrosoftMail";
+import { pool } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -57,52 +60,18 @@ function sendEarlyAccessConfirmation(email: string): void {
   });
 }
 
-// Internal notification. The founder wants every signup to land in one
-// inbox (SIGNUP_NOTIFY_EMAIL, default info@alkalineforce.com) rather than
-// only in the admin export, so a Founding 250 claim is seen the day it
-// happens. Fire-and-forget for the same reason as the confirmation above:
-// a mail-provider outage must not fail the member's signup.
-const NOTIFY_TO = process.env["SIGNUP_NOTIFY_EMAIL"] ?? "info@alkalineforce.com";
-
-function notifyTeamOfSignup(email: string, source: string): void {
-  sendEmailAndForget({
-    to: NOTIFY_TO,
-    subject: `New ${source} signup: ${email}`,
-    text:
-      `A new early-access signup was recorded.\n\n` +
-      `Email:  ${email}\n` +
-      `Source: ${source}\n\n` +
-      `The full list is available from the admin export.\n`,
-    html:
-      `<div style="font:14px/1.5 -apple-system,system-ui,sans-serif;color:#111">` +
-      `<p>A new early-access signup was recorded.</p>` +
-      `<p><strong>Email:</strong> ${email}<br><strong>Source:</strong> ${source}</p>` +
-      `<p style="color:#666">The full list is available from the admin export.</p>` +
-      `</div>`,
-  });
-}
-
 // ─── POST / — public signup capture ──────────────────────────────────────────
 router.post("/", signupLimiter, async (req, res): Promise<void> => {
+  // Honeypot also protects the directly reachable API, not only the website proxy.
+  if (req.body?.website) { res.status(400).json({ error: "invalid_input" }); return; }
   const parsed = SignupBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid_input" });
     return;
   }
   try {
-    // .returning() yields the inserted row only when there was no conflict, so
-    // an empty array means "duplicate email — row already existed". We use
-    // that signal to suppress resending the confirmation email.
-    const inserted = await db
-      .insert(earlyAccessSignups)
-      .values({ email: parsed.data.email, source: parsed.data.source })
-      .onConflictDoNothing({ target: earlyAccessSignups.email })
-      .returning({ id: earlyAccessSignups.id });
-
-    if (inserted.length > 0) {
-      sendEarlyAccessConfirmation(parsed.data.email);
-      notifyTeamOfSignup(parsed.data.email, parsed.data.source);
-    }
+    const inserted = await captureWebsiteSignup(parsed.data.email, parsed.data.source);
+    if (inserted) sendEarlyAccessConfirmation(parsed.data.email);
 
     res.json({ ok: true });
   } catch (err) {
@@ -113,6 +82,22 @@ router.post("/", signupLimiter, async (req, res): Promise<void> => {
 
 // All routes below require admin.
 router.use("/admin", requireAdmin);
+
+router.get("/admin/notifications", async (req, res): Promise<void> => {
+  try {
+    await ensureSignupNotificationQueue();
+    const summary = await pool.query(`SELECT
+      count(*) FILTER (WHERE accepted_at IS NULL)::int AS pending,
+      count(*) FILTER (WHERE accepted_at IS NOT NULL)::int AS accepted,
+      min(next_attempt_at) FILTER (WHERE accepted_at IS NULL) AS next_attempt_at
+      FROM aforce_signup_notifications`);
+    res.json({ provider: "microsoft365", configured: microsoftSignupMailConfigured(),
+      recipient: "info@alkalineforce.com", ...summary.rows[0] });
+  } catch (err) {
+    req.log.error({ err }, "Signup notification status unavailable");
+    res.status(503).json({ error: "notification_status_unavailable" });
+  }
+});
 
 // ─── GET /admin/list — JSON list, newest first ───────────────────────────────
 router.get("/admin/list", async (req, res): Promise<void> => {
