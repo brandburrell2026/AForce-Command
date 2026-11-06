@@ -292,9 +292,11 @@
     <div class="chips reveal in stagger"><span>Product feedback</span><span>Community participation</span><span>Program details pending</span></div>
 
     <div class="capture reveal in" id="capture" style="transition-delay:.3s;">
-      <form id="foundingForm" novalidate>
+      <form id="foundingForm" novalidate method="post" action="/api/founding-250" data-signup-source="founding-250">
+<input type="hidden" name="source" value="founding-250">
+<div aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none"><label>Leave blank<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
         <label class="sr-only" for="foundingEmail">Email address</label>
-        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" required>
+        <input type="email" id="foundingEmail" name="email" placeholder="Email address" autocomplete="email" maxlength="254" required>
         <button type="submit">Register interest</button>
       </form>
       <div class="err" id="foundingErr" role="alert">Please enter a valid email address.</div>
@@ -389,17 +391,20 @@
    was never recorded anywhere.
    ============================================================ */
 function submitFoundingSignup(email){
+  var controller = new AbortController();
+  var timeout = setTimeout(function(){ controller.abort(); }, 15000);
   return fetch("/api/founding-250", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email })
+    body: JSON.stringify({ email: email, source: "founding-250", website: document.querySelector("#foundingForm [name=website]").value }),
+    signal: controller.signal
   }).then(function(r){
-    return { ok: r.ok };
+    return r.json().then(function(result){ return { ok: r.ok && result.ok === true }; });
   }).catch(function(){
     // A network failure must surface as a failure. Reporting success here
     // would tell a member they hold a spot that does not exist.
     return { ok: false };
-  });
+  }).finally(function(){ clearTimeout(timeout); });
 }
 
 (function(){
@@ -410,6 +415,7 @@ function submitFoundingSignup(email){
 
   form.addEventListener("submit", function(e){
     e.preventDefault();
+    if (form.querySelector("button").disabled) return;
     var email = (input.value || "").trim();
     if(!EMAIL_RE.test(email)){
       capture.classList.add("invalid");

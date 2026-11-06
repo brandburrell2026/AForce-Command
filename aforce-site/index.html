@@ -789,7 +789,9 @@
   <div class="eyebrow-label fade-in" style="display:inline-block;">Early access · AFORCE launch</div>
   <h2 class="section-title fade-in" style="margin:0 auto 20px;">Your next moment starts with a pause.</h2>
   <p class="sub fade-in">Join the launch waitlist to hear when hydration ordering and AFORCE OS access open. Get availability and Founding 250 updates in one place.</p>
-  <form class="fade-in">
+  <form class="fade-in" method="post" action="/api/founding-250" data-signup-source="homepage">
+<input type="hidden" name="source" value="homepage">
+<div aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);pointer-events:none"><label>Leave blank<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
     <label class="sr-label" for="inviteEmail">Your email address</label>
     <input type="email" id="inviteEmail" name="email" autocomplete="email" maxlength="254" placeholder="Your email" required>
     <button type="submit">Join the Waitlist</button>
