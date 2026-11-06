@@ -62,6 +62,7 @@ import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
+import { GentleHydrationModeCard } from './GentleHydrationModeCard';
 import { fireMoment } from '@/services/haptics';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -328,6 +329,14 @@ export function HydrationScreenV2() {
           onPress={openWaterPicker}
         />
       </View>
+
+      {flags.gentle_hydration_mode_enabled ? (
+        <GentleHydrationModeCard
+          onLogWater={openWaterPicker}
+          ozConsumedToday={userState.ozConsumedToday}
+          ozTarget={userState.ozTarget}
+        />
+      ) : null}
 
       {/* Recent intake */}
       <View style={styles.section}>
