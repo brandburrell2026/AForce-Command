@@ -338,14 +338,16 @@
   .signal-states .s1.reached{ color:#E8756A; } .signal-states .s2.reached{ color:#6E86FF; } .signal-states .s3.reached{ color:#5FC98A; }
   .signal-foot{ display:flex; justify-content:space-between; gap:20px; margin-top:28px; padding-top:22px; border-top:1px solid rgba(245,240,232,.08); color:rgba(245,240,232,.3); font-family:'IBM Plex Mono',monospace; font-size:8px; letter-spacing:.16em; text-transform:uppercase; }
 
-  /* ---------- RITUAL — vertical connected timeline, not a grid ---------- */
+  /* ---------- RITUAL — full studio photo and connected ritual steps ---------- */
   .ritual{ background:var(--canvas); }
-  .ritual-grid{ display:grid; grid-template-columns: 1fr minmax(320px, 50%); gap:clamp(40px,6vw,88px); align-items:stretch; }
-  .ritual-media{ align-self:start; position:sticky; top:104px; height:auto; }
+  .ritual-grid{ display:grid; grid-template-columns:1fr; gap:48px; }
+  .ritual-copy{ display:grid; grid-template-columns:1.2fr 1fr; gap:clamp(40px,6vw,88px); align-items:end; }
+  .ritual-copy .pause-intro{ margin:0; padding-bottom:8px; }
+  .ritual-media{ height:auto; }
   .ritual-media img{ display:block; width:100%; height:auto; }
-  .ritual-line{ margin-top:70px; max-width:720px; position:relative; }
-  .ritual-line::before{ content:''; position:absolute; left:28px; top:10px; bottom:10px; width:1px; background:var(--line); }
-  .ritual-item{ position:relative; padding-left:76px; margin-bottom:56px; opacity:0; transform:translateY(16px); }
+  .ritual-line{ display:grid; grid-template-columns:repeat(4,1fr); gap:32px; margin-top:56px; max-width:none; position:relative; }
+  .ritual-line::before{ content:''; position:absolute; left:28px; right:28px; top:12px; height:1px; background:var(--line); }
+  .ritual-item{ position:relative; padding:44px 0 0; margin-bottom:0; opacity:0; transform:translateY(16px); }
   .ritual-item:last-child{ margin-bottom:0; }
   /* Scroll-activation: each stage lights up as it passes the viewport centre —
      dot fills, number + heading resolve to full weight. Editorial, not a stepper. */
@@ -496,7 +498,10 @@
     .os-hook, .signal-section{ grid-template-columns:1fr; }
     .signal-section .left{ border-right:0; border-bottom:1px solid rgba(245,240,232,.1); }
     .signal-section .right{ min-height:560px; }
-    .ritual-grid{ grid-template-columns:1fr; gap:48px; }
+    .ritual-grid{ grid-template-columns:1fr; gap:40px; }
+    .ritual-copy{ grid-template-columns:1fr; gap:24px; }
+    .ritual-line{ grid-template-columns:repeat(2,1fr); gap:32px; }
+    .ritual-line::before{ display:none; }
     .ritual-media{ position:static; height:auto; }
     .ritual-media img{ height:auto; }
     .arena-grid{ grid-template-columns:1fr; max-width:420px; margin-left:auto; margin-right:auto; }
@@ -518,7 +523,8 @@
     .stick-strip img{ height:auto; max-height:clamp(220px,58vw,324px); }
 
     /* Ritual timeline — proportional indent instead of a fixed 76px on narrow screens */
-    .ritual-item{ padding-left:56px; margin-bottom:44px; }
+    .ritual-line{ grid-template-columns:1fr; gap:32px; margin-top:40px; }
+    .ritual-item{ padding:0 0 0 56px; margin-bottom:0; }
     .ritual-line::before{ left:20px; }
     .ritual-item::before{ left:14px; }
   }
@@ -705,20 +711,22 @@
 <section class="ritual" id="ritual">
   <div class="ritual-grid">
     <div class="ritual-copy">
-      <div class="eyebrow-label fade-in">The Ritual</div>
-      <h2 class="section-title fade-in">The PAUSE is where<br>preparation begins.</h2>
-      <p class="pause-intro">Before the meeting, the school run, the first take or the first whistle: a moment to choose how you begin. A breath starts it. The full ritual carries it forward.</p>
-      <div class="ritual-line">
-        <div class="ritual-item fade-in"><span class="num">01</span><h3>PAUSE</h3><p>Take a breath. Make space before you act.</p></div>
-        <div class="ritual-item fade-in"><span class="num">02</span><h3>HYDRATE</h3><p>Make hydration your first intentional action.</p></div>
-        <div class="ritual-item fade-in"><span class="num">03</span><h3><span style="color:var(--red)">LOCK-IN</span></h3><p>Choose what matters. Bring your attention to it.</p></div>
-        <div class="ritual-item fade-in"><span class="num">04</span><h3>PERFORM</h3><p>Step into your moment. Put your preparation into practice.</p></div>
+      <div>
+        <div class="eyebrow-label fade-in">The Ritual</div>
+        <h2 class="section-title fade-in">The PAUSE is where<br>preparation begins.</h2>
       </div>
+      <p class="pause-intro">Before the meeting, the school run, the first take or the first whistle: a moment to choose how you begin. A breath starts it. The full ritual carries it forward.</p>
     </div>
     <div class="ritual-media fade-in">
       <img src="/assets/ritual-studio-ten-percent-wider.jpg" alt="A woman prepares in a recording studio with headphones around her neck and a silver-and-blue AFORCE can in her hand" width="1448" height="1086" loading="lazy">
     </div>
   </div>
+  <div class="ritual-line">
+        <div class="ritual-item fade-in"><span class="num">01</span><h3>PAUSE</h3><p>Take a breath. Make space before you act.</p></div>
+        <div class="ritual-item fade-in"><span class="num">02</span><h3>HYDRATE</h3><p>Make hydration your first intentional action.</p></div>
+        <div class="ritual-item fade-in"><span class="num">03</span><h3><span style="color:var(--red)">LOCK-IN</span></h3><p>Choose what matters. Bring your attention to it.</p></div>
+        <div class="ritual-item fade-in"><span class="num">04</span><h3>PERFORM</h3><p>Step into your moment. Put your preparation into practice.</p></div>
+      </div>
   <div class="pause-everyday" aria-label="A ritual for different moments">
     <p><span>Before the workday</span>One breath before the day asks more of you.</p>
     <p><span>Before the school run</span>A moment for yourself before showing up for others.</p>
