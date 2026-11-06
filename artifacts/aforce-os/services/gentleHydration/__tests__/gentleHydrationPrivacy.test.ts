@@ -17,6 +17,12 @@ describe("Gentle Hydration privacy boundary", () => {
       false,
     );
     expect(mayEmitAnalytics("app_opened", { topic: "glp-1" })).toBe(false);
+
+    const dispatcher = readFileSync(
+      join(root, "analytics", "event_dispatcher.ts"),
+      "utf8",
+    );
+    expect(dispatcher).toContain("if (!mayEmitAnalytics(eventType, payload)) return false;");
   });
   it("uses device-only Keychain accessibility and no plain-storage fallback", () => {
     const source = readFileSync(

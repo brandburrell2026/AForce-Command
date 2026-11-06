@@ -131,7 +131,12 @@ export function HydrationScreenV2() {
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
   const [gentleMode, setGentleMode] = React.useState<GentleHydrationModeState>(DEFAULT_GENTLE_HYDRATION_MODE);
-  const showGlp1Context = typeof state.profileIdentity?.birthYear === 'number' && new Date().getFullYear() - state.profileIdentity.birthYear >= 18;
+  // A birth year alone cannot confirm whether someone who turns 18 this year
+  // has already had their birthday. Keep the optional context hidden unless
+  // the available data proves adulthood without that ambiguity.
+  const showGlp1Context =
+    typeof state.profileIdentity?.birthYear === 'number' &&
+    new Date().getFullYear() - state.profileIdentity.birthYear > 18;
 
   React.useEffect(() => {
     if (!flags.gentle_hydration_mode_enabled) setGentleMode(DEFAULT_GENTLE_HYDRATION_MODE);
