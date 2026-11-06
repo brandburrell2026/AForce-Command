@@ -20,7 +20,7 @@ describe("durable signup notifications", () => {
     expect(await captureWebsiteSignup("lead@example.com", "homepage")).toBe(true);
     expect(mocks.clientQuery.mock.calls.map(([sql]) => sql)).toEqual([
       "BEGIN", expect.stringContaining("INSERT INTO early_access_signups"),
-      "INSERT INTO aforce_signup_notifications (signup_id) VALUES ($1)", "COMMIT",
+      expect.stringContaining("INSERT INTO aforce_signup_notifications"), "COMMIT",
     ]);
     expect(mocks.release).toHaveBeenCalledOnce();
   });
@@ -31,10 +31,11 @@ describe("durable signup notifications", () => {
     expect(mocks.clientQuery).toHaveBeenLastCalledWith("ROLLBACK");
     expect(mocks.release).toHaveBeenCalledOnce();
   });
-  it("duplicate submissions do not enqueue or resend", async () => {
-    mocks.clientQuery.mockResolvedValueOnce({}).mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({});
+  it("existing leads enqueue only if they lack a notification, without resending confirmation", async () => {
+    mocks.clientQuery.mockResolvedValueOnce({}).mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({}).mockResolvedValueOnce({});
     expect(await captureWebsiteSignup("lead@example.com", "shop-waitlist")).toBe(false);
-    expect(mocks.clientQuery).toHaveBeenCalledTimes(3);
+    expect(mocks.clientQuery).toHaveBeenCalledTimes(4);
+    expect(mocks.clientQuery.mock.calls[2][0]).toContain("ON CONFLICT (signup_id) DO NOTHING");
   });
   it("leaves notifications pending when Microsoft is unconfigured", async () => {
     mocks.configured.mockReturnValue(false);

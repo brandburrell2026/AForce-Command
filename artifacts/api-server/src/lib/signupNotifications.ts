@@ -28,9 +28,11 @@ export async function captureWebsiteSignup(email: string, source: string): Promi
       `INSERT INTO early_access_signups (email, source) VALUES ($1, $2)
        ON CONFLICT (email) DO NOTHING RETURNING id`, [email, source],
     );
-    if (inserted.rows[0]) {
-      await client.query("INSERT INTO aforce_signup_notifications (signup_id) VALUES ($1)", [inserted.rows[0].id]);
-    }
+    // A lead saved before this release gets one notification when it next
+    // subscribes. An existing pending/accepted notification is never duplicated.
+    await client.query(`INSERT INTO aforce_signup_notifications (signup_id)
+      SELECT id FROM early_access_signups WHERE email = $1
+      ON CONFLICT (signup_id) DO NOTHING`, [email]);
     await client.query("COMMIT");
     return inserted.rows.length > 0;
   } catch (error) {
