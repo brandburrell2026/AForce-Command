@@ -52,18 +52,17 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
         <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
-      {momentsFirst ? (
-        <NativeTabs.Trigger name="moments-tab">
-          <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
-          <Label>Moments</Label>
-        </NativeTabs.Trigger>
-      ) : <NativeTabs.Trigger name="protocol">
-        <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
-        <Label>{t('tabs.protocol')}</Label>
-      </NativeTabs.Trigger>}
+      <NativeTabs.Trigger name="one-breath-tab">
+        <NativeTabIcon sf={{ default: 'circle', selected: 'circle.fill' }} />
+        <Label>One Breath</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="moments-tab">
+        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
+        <Label>Moments</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="competition">
-        <NativeTabIcon sf={{ default: 'trophy', selected: 'trophy.fill' }} />
-        <Label>{t('tabs.competition')}</Label>
+        <NativeTabIcon sf={{ default: 'person.2', selected: 'person.2.fill' }} />
+        <Label>Circles</Label>
       </NativeTabs.Trigger>
       {devMode ? (
         <NativeTabs.Trigger name="social-legacy">
@@ -273,7 +272,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="protocol"
         options={{
-          href: momentsFirst ? null : undefined,
+          href: null,
           title: t('tabs.protocol'),
           tabBarIcon: ({ color, size, focused }) =>
             isIOS ? <SymbolView name={focused ? 'list.bullet.circle.fill' : 'list.bullet.circle'} tintColor={color} size={size} />
@@ -281,9 +280,18 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="one-breath-tab"
+        options={{
+          title: 'One Breath',
+          tabBarIcon: ({ color, size, focused }) => isIOS
+            ? <SymbolView name={focused ? 'circle.fill' : 'circle'} tintColor={color} size={size} />
+            : <Icon name="circle" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="moments-tab"
         options={{
-          href: momentsFirst ? '/moments-tab' : null,
+          href: '/moments-tab',
           title: 'Moments',
           tabBarIcon: ({ color, size }) => isIOS
             ? <SymbolView name="calendar" tintColor={color} size={size} />
@@ -293,15 +301,16 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="competition"
         options={{
-          title: t('tabs.competition'),
+          title: 'Circles',
           tabBarIcon: ({ color, size, focused }) =>
-            isIOS ? <SymbolView name={focused ? 'trophy.fill' : 'trophy'} tintColor={color} size={size} />
-                  : <Icon name="award" size={22} color={color} />,
+            isIOS ? <SymbolView name={focused ? 'person.2.fill' : 'person.2'} tintColor={color} size={size} />
+                  : <Icon name="users" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
+          href: null,
           title: t('tabs.profile'),
           tabBarIcon: ({ color, size, focused }) =>
             isIOS ? <SymbolView name={focused ? 'person.circle.fill' : 'person.circle'} tintColor={color} size={size} />

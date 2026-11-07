@@ -45,27 +45,27 @@ import { Spacing, Radii, Shadows } from './spacing';
 export const af = {
   // Surfaces
   canvas: Colors.background.primary, //   #0D0D0D — brand Cinematic Black, app root
-  canvasElevated: '#101010', //           subtle alternate page plane (neutral, no blue cast)
-  surface: '#141414', //                  cards, sheets, grouped content (Black Issue card)
-  surfaceRaised: '#1C1C1C', //            elevated / selected interactive surface
-  surfacePressed: '#242424', //           pressed state; also the "empty" bar in charts
-  canvasFocused: '#050506', //            deeper focused-mode field (Recovery Coach)
+  canvasElevated: '#090A0A', //           subtle alternate page plane (neutral, no blue cast)
+  surface: '#121313', //                  cards, sheets, grouped content (Black Issue card)
+  surfaceRaised: '#121313', //            elevated / selected interactive surface
+  surfacePressed: '#292A2A', //           pressed state; also the "empty" bar in charts
+  canvasFocused: '#090A0A', //            deeper focused-mode field (Recovery Coach)
 
   // Text — the Editorial OS ink family (edInk.ivory / quietOnBlack), 16.2:1
   // and 5.6:1 on the canvas. `textSecondary` is the Black Issue quiet grey
   // (7.1:1 canvas, 6.7:1 card). The brief's darker furniture greys (#6B665C,
   // #5A5852) fail AA as text and are kept out of the text ramp; #5A5852 is
   // the DISABLED/decorative tone only (never the sole carrier of meaning).
-  textPrimary: '#EDEAE3', //              primary text + large values (= edInk.ivory)
-  textSecondary: '#A19C91', //            supporting copy
-  textTertiary: '#8D897F', //             micro-labels + inactive labels (= edInk.quietOnBlack)
-  textDisabled: '#5A5852', //             disabled / decorative only (2.7:1 — not for text that carries meaning)
+  textPrimary: '#F7F4EF', //              primary text + large values (= edInk.ivory)
+  textSecondary: '#AEAAA3', //            supporting copy
+  textTertiary: '#8A867F', //             micro-labels + inactive labels (= edInk.quietOnBlack)
+  textDisabled: '#8A867F', //             disabled / decorative only (2.7:1 — not for text that carries meaning)
 
   // Lines — one warm solid hairline (= edRule.onBlack) replaces the alpha-white
   // family; cards and controls share it, `borderStrong` is the focus outline.
-  divider: '#2B2925', //                  hairlines + card edges
-  border: '#2B2925', //                   controls + card edges
-  borderStrong: '#3A3732', //             focus / high-emphasis outline
+  divider: '#292A2A', //                  hairlines + card edges
+  border: '#292A2A', //                   controls + card edges
+  borderStrong: '#292A2A', //             focus / high-emphasis outline
 
   // Brand red — FROZEN #C1281B (rgb 193,40,27). Primary action, live state,
   // critical accent. Distinct from the DEPLETED state red (#FF2800), which is
@@ -76,14 +76,14 @@ export const af = {
   // ~3.1:1). redText is a lightened Signal Red for red text/icon color ONLY —
   // AA-clean on canvas/surface/surfaceRaised (5.30/4.98/4.68:1). Fills, borders,
   // dots and pill backgrounds keep `red`. Brand fill red stays frozen #C1281B.
-  redText: '#E4564A', //                  red text/icons on dark surfaces (AA)
-  redDim: 'rgba(193,40,27,0.16)', //      red atmosphere / selected background
-  redHairline: 'rgba(193,40,27,0.34)', // progress + ambient rings
+  redText: '#FF5A63', //                  red text/icons on dark surfaces (AA)
+  redDim: 'rgba(229,30,42,0.16)', //      red atmosphere / selected background
+  redHairline: 'rgba(229,30,42,0.34)', // progress + ambient rings
   // Red-tinted ALERT surface — the depleted / critical card (Guardian roster
   // rows, Clutch grid, Performance Signal's depleted day). Solid, matched to
   // the Black Issue reference; pair with text/shape, never color alone.
-  surfaceAlert: '#231716', //             alert card fill
-  borderAlert: '#7A271F', //              alert card edge
+  surfaceAlert: '#121313', //             alert card fill
+  borderAlert: '#E51E2A', //              alert card edge
 
   // Guardian — #8B5CF6 (rgb 139,92,246). RATIFIED as a named af.* brand token
   // per founder Ruling E (RC-2, 2026-08-05): the value already shipped as the
