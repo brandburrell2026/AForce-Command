@@ -45,8 +45,8 @@ export const edInk = {
   black: '#090A0A',
   /** Furniture/captions/quiet statements on black (AA on #0D0D0D). */
   quietOnBlack: '#8A867F',
-  /** Furniture/captions/quiet statements on paper (AA on #E4E0D8). */
-  quietOnPaper: '#8A867F',
+  /** Furniture/captions/quiet statements on paper (AA on the Feature register). */
+  quietOnPaper: '#6F6C66',
   /** De-emphasized/disabled on black — decorative only, never sole carrier. */
   dimOnBlack: '#8A867F',
 } as const;
@@ -69,7 +69,7 @@ export const edAccent = {
 /** Rules — hairlines replace cards. */
 export const edRule = {
   onBlack: '#292A2A',
-  onPaper: '#292A2A',
+  onPaper: '#8A867F',
 } as const;
 
 /** Verified positive marks (checklist ticks) reuse the brand PEAK green. */
