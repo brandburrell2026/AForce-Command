@@ -9,8 +9,13 @@ import {
   aforceCircleStatuses as statuses,
 } from "@workspace/db";
 
+/**
+ * Circle membership is part of the released product.  Keep an explicit
+ * `false` kill switch for an incident, but do not make the live feature
+ * depend on an environment variable being provisioned in every deployment.
+ */
 export const membershipEnabled = () =>
-  process.env["CIRCLE_MEMBERSHIP_ENABLED"] === "true";
+  process.env["CIRCLE_MEMBERSHIP_ENABLED"] !== "false";
 export const hashInvitation = (code: string) =>
   createHash("sha256").update(code).digest("hex");
 export class CircleMembershipError extends Error {
