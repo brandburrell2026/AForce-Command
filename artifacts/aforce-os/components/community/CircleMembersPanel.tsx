@@ -17,7 +17,7 @@ import {
 } from '@/services/circleMembershipService';
 import type { CircleUser } from '@/types/circle';
 
-export function CircleMembersPanel() {
+export function CircleMembersPanel({ showLegacySharing = true }: { showLegacySharing?: boolean }) {
   const scope = React.useSyncExternalStore(
     subscribeScopeState,
     getScopeState,
@@ -26,10 +26,10 @@ export function CircleMembersPanel() {
   // Scope object identity changes on every identity transition, including A → B → A.
   const [session, setSession] = React.useState({ scope, key: 0 });
   if (session.scope !== scope) setSession({ scope, key: session.key + 1 });
-  return <MemberSession key={session.key} scope={scope} />;
+  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} />;
 }
 
-function MemberSession({ scope }: { scope: ScopeState }) {
+function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLegacySharing: boolean }) {
   const { t } = useTranslation();
   const sharingEnabled = isCircleSharingPilotEnabled(useFeatureFlags());
   const client = React.useMemo(
@@ -194,7 +194,7 @@ function MemberSession({ scope }: { scope: ScopeState }) {
           )}
         </View>
       ))}
-      {loaded && !loading ? (
+      {showLegacySharing && loaded && !loading ? (
         <CircleSharingPanel
           scope={scope}
           members={members}

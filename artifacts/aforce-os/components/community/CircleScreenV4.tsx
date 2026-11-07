@@ -17,7 +17,7 @@ export function CircleScreenV4() {
         <Text style={styles.noticeTitle}>Nothing is shared by default.</Text>
         <Text style={styles.noticeCopy}>Scores, HydroState, ranks, streaks, and health data never appear in a Circle.</Text>
       </AFCard>
-      <CircleMembersPanel />
+      <CircleMembersPanel showLegacySharing={false} />
     </AFScreen>
   );
 }
