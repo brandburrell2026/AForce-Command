@@ -105,7 +105,8 @@ export async function shareMoment(userId: string, input: CircleMomentInput) {
 }
 
 export async function listIncomingMomentShares(userId: string) {
-  if (!(await tableExists(db))) return [];
+  if (!(await tableExists(db)))
+    throw new CircleMomentError("circle_moment_sharing_unavailable", 503);
   const rows = await db
     .select()
     .from(shares)

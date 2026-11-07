@@ -56,7 +56,7 @@ function NativeTabLayout() {
         <Label>One Breath</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="moments-tab">
-        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar.fill' }} />
+        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
         <Label>Moments</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="competition">
