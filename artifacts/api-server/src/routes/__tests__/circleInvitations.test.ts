@@ -45,6 +45,11 @@ const post = (path: string, data: unknown) =>
     body: JSON.stringify(data),
   });
 describe("Circle invitation HTTP boundary", () => {
+  it("keeps released membership available when a deployment omits the flag", async () => {
+    delete process.env["CIRCLE_MEMBERSHIP_ENABLED"];
+    mock.create.mockResolvedValue({ invitation: { id: "i" }, code: "secret" });
+    expect((await post("/invitations", { displayName: "Alice" })).status).toBe(201);
+  });
   it("gates all new routes without touching persistence", async () => {
     vi.stubEnv("CIRCLE_MEMBERSHIP_ENABLED", "false");
     const response = await post("/invitations", { displayName: "Alice" });
