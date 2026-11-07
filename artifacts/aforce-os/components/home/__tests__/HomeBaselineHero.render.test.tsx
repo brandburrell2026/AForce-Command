@@ -66,9 +66,9 @@ afterEach(() => {
 });
 
 describe('HomeBaselineHero — says what is true', () => {
-  it('names the state as baseline-building, in the founder-approved spirit', () => {
+  it('names the evidence state without claiming a performance outcome', () => {
     renderHero();
-    expect(host.textContent).toContain('Building your baseline');
+    expect(host.textContent).toContain('Collecting');
   });
 
   it('keeps the hero slot labelled with the product\'s name for the state, so the member learns where it will appear', () => {
@@ -81,11 +81,10 @@ describe('HomeBaselineHero — says what is true', () => {
     expect(host.textContent).toContain('HYDROSTATE');
   });
 
-  it('explains that AForce is still gathering, and points at the one thing to do', () => {
+  it('points directly to the first useful action', () => {
     renderHero();
     const text = host.textContent ?? '';
-    expect(text).toContain('learning how your body responds');
-    expect(text.toLowerCase()).toContain('log what you drink');
+    expect(text).toContain('Starting point: log your first water.');
   });
 });
 
@@ -169,7 +168,7 @@ describe('HomeBaselineHero — the founder\'s hard constraints on the copy', () 
   it('mutation-verify: the copy assertions above would catch a reworded en.json key', () => {
     // Proves these tests read the SHIPPED strings rather than a hardcoded
     // expectation that could drift away from the locale file silently.
-    expect(EN_LOCALE.home.v2.baseline_title).toBe('Building your baseline');
-    expect(EN_LOCALE.home.v2.baseline_body).toContain('learning how your body responds');
+    expect(EN_LOCALE.home.v2.baseline_title).toBe('Collecting');
+    expect(EN_LOCALE.home.v2.baseline_body).toBe('Starting point: log your first water.');
   });
 });
