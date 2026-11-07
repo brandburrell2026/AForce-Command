@@ -88,6 +88,10 @@ export function createCircleAuthenticatedRequest(scope: ScopeState) {
         ...auth,
         accept: 'application/json',
         'content-type': 'application/json',
+        // Circle membership changes are user-directed and must never reuse a
+        // previously failed eligibility response after the server enables it.
+        'cache-control': 'no-store',
+        pragma: 'no-cache',
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });

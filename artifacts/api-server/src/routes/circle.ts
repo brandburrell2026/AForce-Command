@@ -230,6 +230,9 @@ function notificationRowToWire(row: typeof aforceCircleNotifications.$inferSelec
 router.use(
   ["/invitations", "/members"],
   (req, res, next) => {
+    // A temporary disabled response must not survive a feature rollout in a
+    // native HTTP cache. Membership data is always private and per-account.
+    res.setHeader("Cache-Control", "private, no-store");
     if (!membershipEnabled()) {
       res.status(503).json({ error: "circle_membership_unavailable" });
       return;
@@ -238,7 +241,6 @@ router.use(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    res.setHeader("Cache-Control", "private, no-store");
     next();
   },
   requireRealAuth,
