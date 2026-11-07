@@ -52,6 +52,13 @@ router.put("/sharing/:memberUserId", mutationLimiter, async (req, res) => {
     res.status(400).json({ error: "invalid_body" });
     return;
   }
+  // Circle v1.7 never transports performance scores or health state. Keep the
+  // endpoint only so an old client can revoke a legacy grant; any attempt to
+  // create or restore one fails closed regardless of rollout environment.
+  if (parsed.data.fields.length) {
+    res.status(410).json({ error: "legacy_circle_sharing_retired" });
+    return;
+  }
   try {
     res.json({
       grant: await updateSharingGrant(

@@ -234,7 +234,7 @@ describe('social entry points reachable in production resolve under Circle', () 
   it('Circle is terminal — the landing tab renders a screen and never redirects on', () => {
     const circle = readCode('app', '(tabs)', 'competition.tsx');
     expect(circle).not.toContain('Redirect');
-    expect(circle).toContain('<CircleScreenV3 />');
+    expect(circle).toContain('<CircleScreenV4 />');
     // Profile is terminal too — it is where the clamped Modules route bounces.
     expect(readCode('app', '(tabs)', 'profile.tsx')).not.toContain('Redirect');
   });

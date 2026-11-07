@@ -19,14 +19,14 @@ import { Typography } from '../typography';
 import { contrast } from './_wcagContrast';
 
 describe('af.* brand fidelity', () => {
-  it('red is the frozen Signal Red #C1281B, not the spec #E41E2B', () => {
-    expect(af.red.toUpperCase()).toBe('#C1281B');
+  it('red is the v1.7 Signal Red #E51E2A', () => {
+    expect(af.red.toUpperCase()).toBe('#E51E2A');
     expect(af.red).toBe(Colors.accent.primary);
-    expect(af.red.toUpperCase()).not.toBe('#E41E2B');
+    expect(af.red.toUpperCase()).not.toBe('#C1281B');
   });
 
-  it('canvas is the brand Cinematic Black, not the spec #050506', () => {
-    expect(af.canvas.toUpperCase()).toBe('#0D0D0D');
+  it('canvas is the v1.7 AForce Black', () => {
+    expect(af.canvas.toUpperCase()).toBe('#090A0A');
     expect(af.canvas).toBe(Colors.background.primary);
   });
 
@@ -129,14 +129,11 @@ describe('Black Issue — af.* equals the Editorial OS values it re-points to', 
     expect(af.border).toBe(edRule.onBlack);
   });
 
-  it('the surface ramp is neutral (no blue cast) and ascends in lightness', () => {
-    for (const v of [af.canvasElevated, af.surface, af.surfaceRaised, af.surfacePressed]) {
-      const [r, g, b] = [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
-      expect(r).toBe(g);
-      expect(g).toBe(b);
-    }
-    expect(af.surface).toBe('#141414');
-    expect(contrast(af.textPrimary, af.canvas)).toBeGreaterThan(contrast(af.textPrimary, af.surfacePressed));
+  it('uses the approved v1.7 black, panel, and line hierarchy', () => {
+    expect(af.canvas).toBe('#090A0A');
+    expect(af.surface).toBe('#121313');
+    expect(af.divider).toBe('#292A2A');
+    expect(contrast(af.textPrimary, af.canvas)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('micro furniture role matches the editorial floor', () => {
@@ -190,17 +187,17 @@ describe('afAlpha opacity scale', () => {
 
 describe('withAlpha — accepted input contract (safeguard #4)', () => {
   it('adds alpha to a solid #RRGGBB, byte-exact', () => {
-    expect(withAlpha(af.red, 0.16)).toBe('rgba(193,40,27,0.16)'); // #C1281B
-    expect(withAlpha(Colors.text.primary, 0.03)).toBe('rgba(255,255,255,0.03)'); // #FFFFFF
-    expect(withAlpha(Colors.text.inverse, 0.5)).toBe('rgba(0,0,0,0.5)'); // #000000
+    expect(withAlpha(af.red, 0.16)).toBe('rgba(229,30,42,0.16)'); // #E51E2A
+    expect(withAlpha(Colors.text.primary, 0.03)).toBe('rgba(247,244,239,0.03)'); // #F7F4EF
+    expect(withAlpha(Colors.text.inverse, 0.5)).toBe('rgba(9,10,10,0.5)'); // #090A0A
   });
   it('expands #RGB shorthand', () => {
     expect(withAlpha('#abc', 0.5)).toBe('rgba(170,187,204,0.5)');
     expect(withAlpha('#FFF', 0.24)).toBe('rgba(255,255,255,0.24)');
   });
   it('accepts the inclusive alpha bounds 0 and 1', () => {
-    expect(withAlpha(af.red, 0)).toBe('rgba(193,40,27,0)');
-    expect(withAlpha(af.red, 1)).toBe('rgba(193,40,27,1)');
+    expect(withAlpha(af.red, 0)).toBe('rgba(229,30,42,0)');
+    expect(withAlpha(af.red, 1)).toBe('rgba(229,30,42,1)');
   });
   it('rejects malformed color inputs with TypeError', () => {
     for (const bad of ['C1281B', '#12', '#GGGGGG', '#1234567', 'rgba(0,0,0,1)', 'red', '', 123 as unknown as string, null as unknown as string]) {

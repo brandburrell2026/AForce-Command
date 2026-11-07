@@ -87,7 +87,7 @@ function contrast(a: string, b: string): number {
 
 describe('editorial tokens — brand fidelity and WCAG contrast on each stock', () => {
   it('stocks and accents single-source the frozen brand values', () => {
-    expect(edStock.black).toBe('#0D0D0D'); // Cinematic Black, brand v2.2.0
+    expect(edStock.black).toBe('#090A0A'); // Cinematic Black, brand v2.2.0
     expect(edAccent.red).toBe(Colors.accent.primary); // Signal Red, by reference
     // The tokens file may not re-declare Signal Red as a literal — the
     // accent is single-sourced from the frozen brand palette.

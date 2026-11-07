@@ -27,6 +27,12 @@ vi.mock('@/services/circleMembershipService', () => ({
   createCircleMembershipClient: () => state,
   CircleMembershipError: class extends Error {},
 }));
+vi.mock('@/services/circleMomentSharingService', () => ({
+  createCircleMomentSharingClient: () => ({ incoming: () => Promise.reject(new Error('not migrated')) }),
+}));
+vi.mock('@/services/momentsStore', () => ({
+  useMomentsStore: () => ({ moments: [], hydrated: false }),
+}));
 vi.mock('@/theme', () => ({
   af: {
     textPrimary: '#ffffff',
@@ -34,6 +40,7 @@ vi.mock('@/theme', () => ({
     surface: '#141420',
     border: '#888888',
     redText: '#ff7777',
+    red: '#e51e2a',
   },
 }));
 vi.mock('react-i18next', () => ({
