@@ -41,7 +41,6 @@ import { useTranslation } from 'react-i18next';
 function NativeTabLayout() {
   const { t } = useTranslation();
   const devMode = useDevMode();
-  const momentsFirst = useMomentsFirstExperience();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -57,7 +56,7 @@ function NativeTabLayout() {
         <Label>One Breath</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="moments-tab">
-        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
+        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar.fill' }} />
         <Label>Moments</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="competition">
@@ -70,10 +69,6 @@ function NativeTabLayout() {
           <Label>Legacy</Label>
         </NativeTabs.Trigger>
       ) : null}
-      <NativeTabs.Trigger name="profile">
-        <NativeTabIcon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
-        <Label>{t('tabs.profile')}</Label>
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -293,8 +288,8 @@ function ClassicTabLayout() {
         options={{
           href: '/moments-tab',
           title: 'Moments',
-          tabBarIcon: ({ color, size }) => isIOS
-            ? <SymbolView name="calendar" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) => isIOS
+            ? <SymbolView name={focused ? 'calendar.circle.fill' : 'calendar'} tintColor={color} size={size} />
             : <Icon name="calendar" size={22} color={color} />,
         }}
       />

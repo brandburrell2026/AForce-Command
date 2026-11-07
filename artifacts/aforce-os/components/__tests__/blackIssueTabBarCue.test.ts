@@ -35,7 +35,7 @@ describe('tab selection carries a non-colour cue', () => {
 
   it('every iOS symbol swaps to its filled variant when focused', () => {
     const icons = src.match(/tabBarIcon: \(\{ color, size, focused \}\)/g) ?? [];
-    const filled = src.match(/focused \? '[a-z.]+\.fill' : '[a-z.]+'/g) ?? [];
+    const filled = src.match(/focused \? '[a-z0-9.]+\.fill' : '[a-z0-9.]+'/g) ?? [];
     expect(icons.length).toBeGreaterThanOrEqual(5);
     expect(filled.length).toBe(icons.length);
   });

@@ -10,6 +10,16 @@ describe('Circle v1.7 private-surface law', () => {
     expect(read('../../app/(tabs)/competition.tsx')).toContain('CircleScreenV4');
   });
 
+  it('uses the same five member tabs in native and fallback navigation', () => {
+    const layout = read('../../app/(tabs)/_layout.tsx');
+    const native = layout.slice(layout.indexOf('function NativeTabLayout'), layout.indexOf('function PlainTabButton'));
+    for (const route of ['index', 'journal', 'one-breath-tab', 'moments-tab', 'competition']) {
+      expect(native).toContain(`name="${route}"`);
+    }
+    expect(native).not.toContain('name="profile"');
+    expect(native).not.toContain('name="protocol"');
+  });
+
   it('does not render legacy competition or score-state sharing in the member surface', () => {
     const screen = stripComments(read('CircleScreenV4.tsx'));
     expect(screen).toContain('showLegacySharing={false}');
