@@ -18,7 +18,7 @@
 | Hydration | `app/(tabs)/journal.tsx`, `components/hydration/*` | Replace decorative red actions with neutral actions; retain the v2 private Gentle Hydration boundary. | Planned |
 | One Breath | `components/oneBreath/*` and its route | Use the short prompt and the red orb only where the v1.7 brief permits it. | Planned |
 | Moments/Profile | `app/(tabs)/moments-tab.tsx`, `components/editorial/moments/*`, `components/profile/*` | Hide unfinished/internal surfaces behind flags and remove member-facing gamification/status copy. | Planned |
-| Circle | `app/(tabs)/competition.tsx`, `components/community/*` | Keep a separate Phase 3 implementation: private people and exact, consented Moment fields only; no rank, score, HydroState, streak, challenge, or leaderboard. | Not started |
+| Circle | `app/(tabs)/competition.tsx`, `components/community/CircleScreenV4.tsx` | Default route now presents only real membership and invitations, with legacy score/state sharing suppressed. Moment-field consent and activity API replacement remain Phase 3 work. | Implemented; device proof pending |
 
 ### Routes that remain compatible while labels change
 
