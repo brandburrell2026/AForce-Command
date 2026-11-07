@@ -1,4 +1,5 @@
 import { lockCirclePair, clearCirclePairSharing } from "./circleSharing";
+import { revokePairMomentShares } from "./circleMoments";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, isNull, gt, ne, or, desc, sql } from "drizzle-orm";
 import {
@@ -207,6 +208,7 @@ export async function removeMembership(userId: string, memberUserId: string) {
   await db.transaction(async (tx) => {
     await lockCirclePair(tx, userId, memberUserId);
     await clearCirclePairSharing(tx, userId, memberUserId);
+    await revokePairMomentShares(tx, userId, memberUserId);
     const pair = (table: typeof members | typeof statuses) =>
       or(
         and(

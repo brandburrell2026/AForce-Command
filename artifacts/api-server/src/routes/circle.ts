@@ -29,6 +29,7 @@
  */
 
 import circleSharingRouter from "./circleSharing";
+import circleMomentsRouter from "./circleMoments";
 import { rateLimit } from "express-rate-limit";
 import {
   createInvitation,
@@ -57,6 +58,7 @@ const router: IRouter = Router();
 
 router.use(requireAuth);
 router.use(circleSharingRouter);
+router.use(circleMomentsRouter);
 
 function resolveUserId(req: Request): string {
   return req.userId ?? DEFAULT_USER_ID;
