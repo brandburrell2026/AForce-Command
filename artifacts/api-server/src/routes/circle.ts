@@ -28,7 +28,6 @@
  * state instead of a fabricated one.
  */
 
-import { sharingEnabled } from "../lib/circleSharing";
 import circleSharingRouter from "./circleSharing";
 import { rateLimit } from "express-rate-limit";
 import {
@@ -397,65 +396,10 @@ router.get("/pending", async (req, res) => {
 
 /* ─── GET /feed — active members + their latest shared status ─────────────── */
 router.get("/feed", async (req, res) => {
-  // The explicit-consent pilot has one read path. Legacy owner snapshots
-  // carry no fresh grants and must not bypass /activity's authorization.
-  if (sharingEnabled()) {
-    res.setHeader("Cache-Control", "private, no-store");
-    res.json({ feed: [] });
-    return;
-  }
-  try {
-    const userId = resolveUserId(req);
-    const groupParam = String(req.query["group"] ?? "");
-    const group = (CIRCLE_GROUPS as readonly string[]).includes(groupParam)
-      ? (groupParam as (typeof CIRCLE_GROUPS)[number])
-      : null;
-
-    const userWhere = group
-      ? and(
-          eq(aforceCircleUsers.ownerUserId, userId),
-          eq(aforceCircleUsers.status, "active"),
-          eq(aforceCircleUsers.group, group),
-          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
-        )
-      : and(
-          eq(aforceCircleUsers.ownerUserId, userId),
-          eq(aforceCircleUsers.status, "active"),
-          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
-        );
-
-    const userRows = await db.select().from(aforceCircleUsers).where(userWhere);
-    // The status query is filtered too, not just joined against the filtered
-    // users: a seeded status must never reach the feed even if a same-named
-    // member row somehow survives.
-    const statusRows = await db
-      .select()
-      .from(aforceCircleStatuses)
-      .where(
-        and(
-          eq(aforceCircleStatuses.ownerUserId, userId),
-          notInArray(aforceCircleStatuses.memberUserId, SEEDED_MEMBER_IDS),
-        ),
-      );
-
-    const statusByMember = new Map(
-      statusRows.map((r) => [r.memberUserId, statusRowToWire(r)]),
-    );
-
-    const feed = userRows
-      .map((u) => {
-        const s = statusByMember.get(u.memberUserId);
-        if (!s) return null;
-        return { ...s, user: userRowToWire(u) };
-      })
-      .filter((x): x is NonNullable<typeof x> => x !== null)
-      .sort((a, b) => b.score - a.score);
-
-    res.json({ feed });
-  } catch (err) {
-    req.log.error({ err }, "GET /circle/feed failed");
-    res.status(500).json({ error: "circle_feed_fetch_failed" });
-  }
+  // v1.7 replaces legacy score/state status cards with explicit Moment shares.
+  // Until the Moment consent API is installed, never expose the old feed.
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json({ feed: [] });
 });
 
 /* ─── POST /users/:memberUserId/status ────────────────────────────────────── */

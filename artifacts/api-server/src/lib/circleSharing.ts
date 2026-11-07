@@ -6,9 +6,6 @@ import {
   aforceCircleUsers as members,
 } from "@workspace/db";
 
-export const SHARING_ACKNOWLEDGEMENT = "circle-sharing-v1";
-export const sharingEnabled = () =>
-  process.env["CIRCLE_SHARING_ENABLED"] === "true";
 export type SharingField = "score" | "state";
 type Transaction = Pick<NodePgDatabase<Record<string, never>>, "execute" | "select" | "insert" | "update">;
 export class CircleSharingError extends Error {
@@ -129,15 +126,15 @@ export async function updateSharingGrant(
     acknowledgementVersion?: string;
   },
 ) {
-  if (input.fields.length && !sharingEnabled())
-    throw new CircleSharingError("circle_sharing_unavailable", 503);
+  // v1.7 retires score/state grants permanently. Revocation remains available
+  // so callers can remove stale legacy consent without needing a feature flag.
+  if (input.fields.length)
+    throw new CircleSharingError("legacy_circle_sharing_retired", 410);
   if (userId === memberUserId)
     throw new CircleSharingError("member_not_available", 404);
   return db.transaction(async (tx) => {
     await lockCirclePair(tx, userId, memberUserId);
     if (!(await sharingTableExists(tx))) {
-      if (input.fields.length)
-        throw new CircleSharingError("circle_sharing_unavailable", 503);
       return {
         memberUserId,
         fields: [] as SharingField[],
@@ -156,42 +153,13 @@ export async function updateSharingGrant(
       );
     if ((current?.version ?? 0) !== input.expectedVersion)
       throw new CircleSharingError("sharing_version_conflict", 409);
-    if (input.fields.length) {
-      if (!sharingEnabled())
-        throw new CircleSharingError("circle_sharing_unavailable", 503);
-      if (input.acknowledgementVersion !== SHARING_ACKNOWLEDGEMENT)
-        throw new CircleSharingError("sharing_acknowledgement_required", 400);
-      const connections = await tx
-        .select()
-        .from(members)
-        .where(
-          or(
-            and(
-              eq(members.ownerUserId, userId),
-              eq(members.memberUserId, memberUserId),
-            ),
-            and(
-              eq(members.ownerUserId, memberUserId),
-              eq(members.memberUserId, userId),
-            ),
-          ),
-        );
-      if (
-        userId === memberUserId ||
-        connections.length !== 2 ||
-        connections.some((row) => row.status !== "active")
-      )
-        throw new CircleSharingError("member_not_available", 404);
-    }
     const values = {
       sourceUserId: userId,
       recipientUserId: memberUserId,
       allowScore: input.fields.includes("score"),
       allowState: input.fields.includes("state"),
       version: (current?.version ?? 0) + 1,
-      acknowledgementVersion: input.fields.length
-        ? SHARING_ACKNOWLEDGEMENT
-        : null,
+      acknowledgementVersion: null,
       updatedAt: new Date(),
     };
     const [row] = await tx
@@ -206,86 +174,11 @@ export async function updateSharingGrant(
   });
 }
 
-export type RecordedSnapshot = {
-  score: number;
-  level: string;
-  capturedAt: Date;
-};
-/** Validate the latest record as a whole; never substitute an older valid record. */
-export function filterRecordedActivity(
-  snapshot: RecordedSnapshot,
-  fields: readonly SharingField[],
-  now = new Date(),
-) {
-  const age = now.getTime() - snapshot.capturedAt.getTime();
-  const states: Record<string, string> = {
-    PEAK: "Peak",
-    BALANCED: "Balanced",
-    RECOVERING: "Recovering",
-    DEPLETED: "Depleted",
-  };
-  if (
-    !fields.length ||
-    !Number.isFinite(age) ||
-    age < 0 ||
-    age > 86400000 ||
-    !Number.isInteger(snapshot.score) ||
-    snapshot.score < 0 ||
-    snapshot.score > 100 ||
-    !Object.hasOwn(states, snapshot.level)
-  )
-    return null;
-  return {
-    ...(fields.includes("score") ? { score: snapshot.score } : {}),
-    ...(fields.includes("state") ? { state: states[snapshot.level] } : {}),
-    recordedAt: snapshot.capturedAt.toISOString(),
-    source: "recorded_app_data" as const,
-  };
-}
-export async function readCircleActivity(userId: string) {
-  if (!sharingEnabled())
-    throw new CircleSharingError("circle_sharing_unavailable", 503);
-  // One SQL statement snapshots grants, reciprocal membership, and latest record.
-  // LATERAL selects latest BEFORE validation so NOT_COMPUTED cannot expose history.
-  const result = await db.execute(sql`
-    select g.source_user_id as "userId", visible.name, visible.initials,
-      g.allow_score as "allowScore", g.allow_state as "allowState",
-      latest.score, latest.level, latest.captured_at as "capturedAt"
-    from aforce_circle_sharing_grants g
-    join aforce_circle_users visible on visible.owner_user_id = g.recipient_user_id
-      and visible.member_user_id = g.source_user_id and visible.status = 'active'
-    join aforce_circle_users reciprocal on reciprocal.owner_user_id = g.source_user_id
-      and reciprocal.member_user_id = g.recipient_user_id and reciprocal.status = 'active'
-    join lateral (select score, level, captured_at from aforce_score_snapshots
-      where user_id = g.source_user_id order by captured_at desc, id desc limit 1) latest on true
-    where g.recipient_user_id = ${userId} and g.source_user_id <> ${userId}
-      and g.acknowledgement_version = ${SHARING_ACKNOWLEDGEMENT}
-      and (g.allow_score or g.allow_state)
-    order by latest.captured_at desc, g.source_user_id
-  `);
-  const now = new Date();
-  return result.rows.flatMap((row) => {
-    const fields: SharingField[] = [];
-    if (row.allowScore === true) fields.push("score");
-    if (row.allowState === true) fields.push("state");
-    const data = filterRecordedActivity(
-      {
-        score: row.score as number,
-        level: row.level as string,
-        capturedAt: new Date(row.capturedAt as string),
-      },
-      fields,
-      now,
-    );
-    return data
-      ? [
-          {
-            userId: row.userId as string,
-            name: row.name as string,
-            initials: row.initials as string,
-            ...data,
-          },
-        ]
-      : [];
-  });
+/**
+ * Legacy score/state activity is intentionally unavailable in Circle v1.7.
+ * Return an empty projection rather than reading records, even if historical
+ * grants remain in the database while migration tombstones are applied.
+ */
+export async function readCircleActivity(_userId: string) {
+  return [] as Array<never>;
 }

@@ -61,19 +61,18 @@ describe("sharing HTTP privacy boundary", () => {
     }
     expect(mock.update).not.toHaveBeenCalled();
   });
-  it("scopes writes and inspection to caller and prevents response caching", async () => {
-    mock.update.mockResolvedValue({ fields: ["score"], version: 1 });
+  it("rejects score/state grants before they reach the service and keeps inspection private", async () => {
     mock.list.mockResolvedValue([]);
-    const input = {
+    const response = await call("/sharing/recipient", "PUT", {
       fields: ["score"],
       expectedVersion: 0,
       acknowledgementVersion: "circle-sharing-v1",
-    };
-    const response = await call("/sharing/recipient", "PUT", input);
-    expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(mock.update).toHaveBeenCalledWith("source", "recipient", input);
-    await call("/sharing");
+    });
+    expect(response.status).toBe(410);
+    expect(await response.json()).toEqual({ error: "legacy_circle_sharing_retired" });
+    expect(mock.update).not.toHaveBeenCalled();
+    const grants = await call("/sharing");
+    expect(grants.headers.get("cache-control")).toBe("private, no-store");
     expect(mock.list).toHaveBeenCalledWith("source");
   });
   it("routes revoke with no acknowledgement even when rollout is off", async () => {
