@@ -95,4 +95,25 @@ describe("Circle invitation HTTP boundary", () => {
     ).toBe(400);
     expect(mock.accept).not.toHaveBeenCalled();
   });
+  it("accepts a copied invitation code with visual-wrap whitespace", async () => {
+    const code = `${"A".repeat(21)}${"B".repeat(22)}`;
+    mock.accept.mockResolvedValue({
+      memberUserId: "user_b",
+      name: "Alice",
+      initials: "A",
+      group: "friends",
+      status: "active",
+      joinedAt: new Date("2026-11-08T00:00:00.000Z"),
+    });
+    const response = await post("/invitations/accept", {
+      displayName: "Bob",
+      code: `${code.slice(0, 21)}\n ${code.slice(21)}`,
+    });
+    expect(response.status).toBe(200);
+    expect(mock.accept).toHaveBeenCalledWith("user_a", code, {
+      displayName: "Bob",
+      group: "friends",
+      code,
+    });
+  });
 });
