@@ -290,10 +290,10 @@ router.post("/invitations/accept", invitationLimiter, async (req, res) => {
       code: z
         .string()
         .trim()
-        // iOS can preserve a visual wrap as whitespace when a selectable code
-        // is copied. Invitation codes are base64url, so removing whitespace is
-        // unambiguous and lets recipients paste the code without retyping it.
-        .transform((code) => code.replace(/\s+/g, ""))
+        // A copied iOS code can contain visual-wrap whitespace or invisible
+        // formatting characters. Codes are base64url-only, so discard every
+        // non-code character before validation instead of requiring retyping.
+        .transform((code) => code.replace(/[^A-Za-z0-9_-]/g, ""))
         .pipe(z.string().regex(/^[A-Za-z0-9_-]{43}$/)),
     })
     .safeParse(req.body);
