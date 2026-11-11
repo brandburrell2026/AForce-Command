@@ -55,6 +55,12 @@ beforeAll(async () => {
     max: 8,
     statement_timeout: 10_000,
   });
+  // pg re-emits an idle client's error on the pool. At teardown, pool.end()
+  // can resolve before every idle client has disconnected; container.stop()
+  // then terminates those backends (57P01) and, with no listener, the error
+  // is unhandled — failing the whole run after every test passed. A query
+  // error still rejects its own promise, so nothing real is swallowed here.
+  pool.on("error", () => {});
   holder.db = drizzle(pool);
   // Apply the actual invitation migration, then the existing table subset it uses.
   await query(
