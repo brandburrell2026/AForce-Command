@@ -1,0 +1,30 @@
+{
+  "request": "Replace the soft Go perform picture with a clearer Higgsfield-created image.",
+  "provider": "Higgsfield",
+  "model": "gpt_image_2_6",
+  "reference": "https://www.joinaforce.com/assets/aforce-os/julius/img/walkin.jpg",
+  "assets": [
+    {
+      "path": "aforce-site/assets/aforce-os/julius/img/go-perform-clear-wide.jpg",
+      "dimensions": [
+        3840,
+        1648
+      ],
+      "sha256": "75597a6382d20c59f94a3a861bf462e43ba1a1ce8b70891b5e49ee67e68e232e",
+      "bytes": 968719,
+      "higgsfield_job_id": "56693930-74bf-4a81-b86b-76c012301a4a"
+    },
+    {
+      "path": "aforce-site/assets/aforce-os/julius/img/go-perform-clear-portrait.jpg",
+      "dimensions": [
+        2048,
+        3456
+      ],
+      "sha256": "7b874104eeb5432ff26fc29a4747b023d2725f99be3a8f33419ccaa423a88caf",
+      "bytes": 1046959,
+      "higgsfield_job_id": "d630b050-b78b-4f06-9a1a-bb2e84b07808"
+    }
+  ],
+  "web_preparation": "JPEG encoding at quality 93; no cropping, resizing, or content edits after generation.",
+  "scope": "Only the Go perform responsive picture sources and intrinsic dimensions change; original files remain available."
+}
