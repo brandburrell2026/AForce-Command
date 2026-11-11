@@ -670,3 +670,62 @@ export const MOMENT_PROPOSAL_COOLDOWN_HOURS = 24;
 export const MOMENT_PROPOSAL_MAX_COOLDOWN_HOURS = 168;
 export const MOMENT_PROPOSAL_LEAD_HOURS = { personal: 4, travel: 24 } as const;
 export const MOMENT_PROPOSAL_MIN_LEAD_MIN = 30;
+
+/* ─── Travel Intelligence — T1 engine tunables (founder go-ahead 2026-11-11) ── */
+/* Pure-engine tunables for utils/travel/, layered on the existing governed
+ * TravelTrip / TravelLeg model (PR-TRAVEL-INTELLIGENCE). These values only decide which travel STATE the UI
+ * shows and when arrival-protocol steps are laid out. Advisory only: nothing
+ * here feeds the score engine (Score Protection, DR-001), and none of it is a
+ * physiological claim — acclimation is a UI window the member can end early,
+ * not a model of jet lag. Sleep / light-exposure guidance is NOT built: it is
+ * gated on science + compliance review (claims register). */
+
+/** A trip starts surfacing as "preparing" this many hours before departure. */
+export const TRAVEL_PREPARING_HORIZON_HOURS = 72;
+
+/** "Arriving" begins this many minutes before the scheduled arrival. */
+export const TRAVEL_ARRIVING_WINDOW_MIN = 45;
+
+/** An unconfirmed arrival stops surfacing this long after scheduled arrival.
+ *  The engine never assumes the member landed; it waits for confirmation. */
+export const TRAVEL_UNCONFIRMED_ARRIVAL_MAX_HOURS = 12;
+
+/** A leg saved without an arrival time stops surfacing as in transit this
+ *  long after departure unless an arrival is reported or confirmed. */
+export const TRAVEL_NO_ARRIVAL_TIME_MAX_HOURS = 24;
+
+/** "Acclimating" is a UI window after confirmed arrival (not physiology). */
+export const TRAVEL_ACCLIMATING_MAX_HOURS = 24;
+
+/** "Ready" keeps surfacing this long before the trip leaves Home. */
+export const TRAVEL_READY_SURFACE_HOURS = 12;
+
+/** Time differences at or above this (hours) count as a big shift. Shift
+ *  guidance itself stays unbuilt until science review. */
+export const TRAVEL_BIG_SHIFT_HOURS = 3;
+
+/** Local-hour fallback dayparts when no sunrise/sunset data is available.
+ *  [startHour, endHour) in destination local time. */
+export const TRAVEL_DAYPART_HOURS = {
+  morning: [5, 11],
+  day: [11, 17],
+  sunset: [17, 20],
+} as const;
+
+/** Minutes either side of a provider sunset that count as "sunset". */
+export const TRAVEL_SUNSET_WINDOW_MIN = 60;
+
+/** Arrival protocol step offsets, minutes AFTER confirmed/scheduled arrival. */
+export const TRAVEL_PROTOCOL_OFFSETS_MIN = { pause: 15, hydrate: 25, reset: 60 } as const;
+
+/** First-hour arrival hydration range (oz) — the founder travel comp (12–16). */
+export const TRAVEL_ARRIVAL_HYDRATE_OZ = { min: 12, max: 16 } as const;
+
+/** Hot/dry arrivals use the top of the range (oz). */
+export const TRAVEL_ARRIVAL_HYDRATE_HEAT_OZ = { min: 16, max: 16 } as const;
+
+/** Reset (on your feet) length, minutes. */
+export const TRAVEL_RESET_MINUTES = 10;
+
+/** Pause length before leaving the airport, minutes. */
+export const TRAVEL_PAUSE_MINUTES = 2;
