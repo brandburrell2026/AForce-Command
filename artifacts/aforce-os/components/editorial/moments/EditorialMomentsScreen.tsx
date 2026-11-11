@@ -125,14 +125,24 @@ export function EditorialMomentsScreen({
             ) : null}
           </View>
           <EdRule />
-          {momentsFirst ? <View style={styles.headRow}>
-            <Pressable onPress={() => router.push('/one-breath')} accessibilityRole="button" style={styles.headAction}>
-              <Text style={[edType.confirm as TextStyle, { color: af.redText }]}>+ Plan a moment</Text>
-            </Pressable>
-            <Pressable onPress={() => router.push('/moments-plan')} accessibilityRole="button" style={styles.headAction}>
-              <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>PREPARE MY DAY →</Text>
-            </Pressable>
-          </View> : null}
+          {momentsFirst ? (
+            <View style={styles.momentsHero}>
+              <Text style={[edType.caption as TextStyle, { color: af.redText }]}>YOUR MOMENTS</Text>
+              <Text accessibilityRole="header" style={styles.momentsHeroTitle}>Every moment gets its own.</Text>
+              <Text style={styles.momentsHeroCopy}>Make a plan you approve, then let the rest of the day stay quiet.</Text>
+              <Pressable
+                onPress={() => router.push('/one-breath')}
+                accessibilityRole="button"
+                style={styles.momentsHeroPrimary}
+              >
+                <Text style={styles.momentsHeroPrimaryLabel}>Start One Breath</Text>
+                <Text style={styles.momentsHeroPrimaryArrow}>→</Text>
+              </Pressable>
+              <Pressable onPress={() => router.push('/moments-plan')} accessibilityRole="button" style={styles.headAction}>
+                <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>PREPARE MY DAY →</Text>
+              </Pressable>
+            </View>
+          ) : null}
           {!fixtureMoments ? <TravelMomentsEntry /> : null}
 
           {!data.hydrated ? (
@@ -409,6 +419,28 @@ const styles = StyleSheet.create({
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
   },
+  momentsHero: {
+    marginTop: 10,
+    paddingTop: 20,
+    paddingBottom: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: af.divider,
+    gap: 10,
+  },
+  momentsHeroTitle: { ...edType.title1, color: af.textPrimary, maxWidth: 310 },
+  momentsHeroCopy: { ...edType.body, color: af.textSecondary, maxWidth: 320 },
+  momentsHeroPrimary: {
+    minHeight: 54,
+    marginTop: 6,
+    paddingHorizontal: 18,
+    borderRadius: 8,
+    backgroundColor: af.red,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  momentsHeroPrimaryLabel: { ...edType.confirm, color: af.onRed },
+  momentsHeroPrimaryArrow: { ...edType.title3, color: af.onRed },
   statementWrap: { marginTop: 10 },
   statement: { marginTop: 8 },
   firstDay: { marginTop: 24 },

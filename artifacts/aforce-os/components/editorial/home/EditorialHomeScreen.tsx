@@ -94,7 +94,7 @@ import {
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
 import { parseEngineActionCopy } from '@/utils/recovery/recoveryCommandFromStore';
-import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE, withAlpha } from '@/theme';
 import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 import type { FluidType } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -282,12 +282,14 @@ export function EditorialHomeScreen({
             />
             {focused ? (
               <View style={styles.focusIntro}>
-                <Text style={[edType.caption as TextStyle, { color: af.redText }]}>YOUR DAY, WITH INTENTION</Text>
-                <Text accessibilityRole="header" style={styles.focusTitle}>Your day. Your pace.</Text>
+                <View style={styles.focusRail} />
+                <Text style={[edType.caption as TextStyle, { color: af.redText }]}>ONE BREATH · YOUR NEXT MOMENT</Text>
+                <Text accessibilityRole="header" style={styles.focusTitle}>The pause before{`\n`}the moment.</Text>
+                <Text style={styles.focusCopy}>Say what is coming, review it, then decide what AFORCE keeps.</Text>
                 {momentsOn ? <EdNextMomentLine contextOnly fixtureMoments={momentsFixture?.moments} fixtureNowIso={momentsFixture?.nowIso} /> : null}
-                <AFPrimaryButton label="Plan a moment" onPress={() => router.push('/one-breath')} trailingIcon="plus" testID="home-plan-moment" />
+                <AFPrimaryButton label="Start One Breath" onPress={() => router.push('/one-breath')} trailingIcon="plus" testID="home-plan-moment" />
                 <Pressable onPress={() => router.push('/moments')} accessibilityRole="button" style={styles.focusLink}>
-                  <Text style={styles.focusLinkText}>Your living plan →</Text>
+                  <Text style={styles.focusLinkText}>View your moments →</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -490,8 +492,20 @@ export function EditorialHomeScreen({
 }
 
 const styles = StyleSheet.create({
-  focusIntro: { gap: 16, marginTop: 12, marginBottom: 12 },
+  focusIntro: {
+    gap: 14,
+    marginTop: 16,
+    marginBottom: 18,
+    padding: 22,
+    overflow: 'hidden',
+    backgroundColor: af.surfaceAlert,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: withAlpha(af.red, 0.38),
+    borderRadius: 16,
+  },
+  focusRail: { position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: af.red },
   focusTitle: { ...edType.homeFocusTitle, color: af.textPrimary },
+  focusCopy: { ...edType.bodySmall, color: af.textSecondary, maxWidth: 300 },
   compactState: { ...edType.homeCompactState },
   compactNumber: { ...edType.homeCompactNumber },
   focusLink: { minHeight: 44, justifyContent: 'center' },
