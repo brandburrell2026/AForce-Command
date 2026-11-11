@@ -7,7 +7,7 @@ const blobURL=(t,ty)=>URL.createObjectURL(new Blob([t],{type:ty}));
 
 
 const H264=(()=>{try{return document.createElement('video').canPlayType('video/mp4; codecs="avc1.640028"')!==''}catch(_){return true}})();
-const FB={'/assets/aforce-os/julius/film-lock-in.mp4':'/assets/aforce-os/julius/film-lock-in.webm','/assets/aforce-os/julius/pause-lock-in.mp4':'/assets/aforce-os/julius/pause-lock-in.webm'};
+const FB={'/assets/aforce-os/julius/film-lock-in-red.mp4':'/assets/aforce-os/julius/film-lock-in-red.webm','/assets/aforce-os/julius/pause-lock-in.mp4':'/assets/aforce-os/julius/pause-lock-in.webm'};
 const pick=fb=>H264?fb:(FB[fb]||fb);
 function webmRescue(v,fb){let done=false;v.addEventListener('error',()=>{if(done||!FB[fb])return;const cs=v.currentSrc||'';if(/\.mp4(\?|$)/.test(cs)||cs.startsWith('blob:')){done=true;v.src=FB[fb];v.play().catch(()=>{})}})}
 function guard(v,get,fb,want){setTimeout(()=>{const h=get();if(h&&want()&&v.currentTime<0.2){try{h.destroy()}catch(_){};v.src=pick(fb);v.play().catch(()=>{})}},9000)}
@@ -21,7 +21,7 @@ const ppSet=on=>{pp.innerHTML=on?'❚❚&nbsp; Pause':'▶&nbsp; Play';pp.setAtt
 const hb=[...document.querySelectorAll('.heroBar [data-film]')];const hLabel=t=>hb.forEach(x=>x.innerHTML=t);
 let hh=null,heroSound=false,heroTrack=false;
 const heroGo=()=>{if(!R)loop.play().then(()=>ppSet(1)).catch(()=>ppSet(0))};
-let heroVis=true;addEventListener('DOMContentLoaded',()=>{hh=attach(loop,PL,'film',true,'/assets/aforce-os/julius/film-lock-in.mp4',heroGo);guard(loop,()=>hh,'/assets/aforce-os/julius/film-lock-in.mp4',()=>!R&&heroVis&&!heroSound&&!document.hidden)});
+let heroVis=true;addEventListener('DOMContentLoaded',()=>{hh=attach(loop,PL,'film',true,'/assets/aforce-os/julius/film-lock-in-red.mp4',heroGo);guard(loop,()=>hh,'/assets/aforce-os/julius/film-lock-in-red.mp4',()=>!R&&heroVis&&!heroSound&&!document.hidden)});
 pp.onclick=()=>{if(loop.paused){loop.play().then(()=>ppSet(1)).catch(()=>{})}else{loop.pause();ppSet(0)}};
 function soundOff(){heroSound=false;loop.muted=true;loop.controls=false;loop.loop=true;hLabel('🔊&nbsp; Watch with sound · 1:02')}
 function heroPlay(e){const fromBar=e&&e.currentTarget&&e.currentTarget.closest('.heroBar');
