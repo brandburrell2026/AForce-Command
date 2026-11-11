@@ -69,6 +69,7 @@
 
 import { Router, type IRouter } from "express";
 import { clearCircleSharingForUser } from "../lib/circleSharing";
+import { clearMomentSharesForUser } from "../lib/circleMoments";
 import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
@@ -316,6 +317,7 @@ export function buildDefaultAccountDeletionDeps(
     runCascadeInTransaction: (userId) =>
       db.transaction(async (tx) => {
         await clearCircleSharingForUser(tx, userId);
+        await clearMomentSharesForUser(tx, userId);
         return runAccountDeletionCascade(
           {
             ...buildTokenStoresFor(tx, log),

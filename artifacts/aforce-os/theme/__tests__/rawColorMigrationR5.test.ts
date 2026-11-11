@@ -8,14 +8,14 @@
  * existing token system — not to raise the allowance and not to add invented
  * literals to the baseline:
  *
- *   - Profile SkinIA entry icon disc: `'rgba(193,40,27,0.14)'` →
+ *   - Profile SkinIA entry icon disc: `'rgba(229,30,42,0.14)'` →
  *     `withAlpha(af.red, 0.14)` — required to be BYTE-IDENTICAL output.
- *   - One Breath idle voice-wave bars: `'rgba(161,156,145,0.5)'` →
+ *   - One Breath idle voice-wave bars: `'rgba(174,170,163,0.5)'` →
  *     `withAlpha(af.textSecondary, 0.5)` — the existing secondary-text grey
  *     through the alpha system. The bars are decorative (the container carries
  *     the accessibilityLabel "Voice capture is not enabled"; the active state is
  *     `af.red`). Black Issue (2026-10-06): af.textSecondary moved from #A6A5A1
- *     to #A19C91, which is exactly the rgb the retired literal encoded — the
+ *     to #AEAAA3, which is exactly the rgb the retired literal encoded — the
  *     bars are now byte-identical to their pre-A5 render.
  *   - SkinIA editorial suite: six invented literals mapped onto the existing
  *     brand palette (table pinned below).
@@ -52,12 +52,12 @@ const MIGRATED_FILES = [
 ] as const;
 
 describe('PR-R5 (A5): Profile SkinIA entry disc — withAlpha(af.red, 0.14) is byte-identical to the retired literal', () => {
-  it("withAlpha(af.red, 0.14) === 'rgba(193,40,27,0.14)'", () => {
-    expect(withAlpha(af.red, 0.14)).toBe('rgba(193,40,27,0.14)');
+  it("withAlpha(af.red, 0.14) === 'rgba(229,30,42,0.14)'", () => {
+    expect(withAlpha(af.red, 0.14)).toBe('rgba(229,30,42,0.14)');
   });
 
-  it('af.red is still the frozen brand Signal Red (#C1281B) the retired literal encoded', () => {
-    expect(af.red).toBe('#C1281B');
+  it('af.red is still the frozen brand Signal Red (#E51E2A) the retired literal encoded', () => {
+    expect(af.red).toBe('#E51E2A');
   });
 
   it('ProfileScreenV2 renders the SkinIA entry disc through withAlpha(af.red, 0.14) (call-site pin)', () => {
@@ -77,12 +77,12 @@ describe('PR-R5 (A5): Profile SkinIA entry disc — withAlpha(af.red, 0.14) is b
 });
 
 describe('PR-R5 (A5): One Breath idle wave bars — secondary-text grey through the alpha system', () => {
-  it("withAlpha(af.textSecondary, 0.5) === 'rgba(161,156,145,0.5)' (byte-identical to the retired literal)", () => {
-    expect(withAlpha(af.textSecondary, 0.5)).toBe('rgba(161,156,145,0.5)');
+  it("withAlpha(af.textSecondary, 0.5) === 'rgba(174,170,163,0.5)' (byte-identical to the retired literal)", () => {
+    expect(withAlpha(af.textSecondary, 0.5)).toBe('rgba(174,170,163,0.5)');
   });
 
-  it('af.textSecondary is #A19C91 (Black Issue quiet grey — the value the replacement resolves through)', () => {
-    expect(af.textSecondary).toBe('#A19C91');
+  it('af.textSecondary is #AEAAA3 (Black Issue quiet grey — the value the replacement resolves through)', () => {
+    expect(af.textSecondary).toBe('#AEAAA3');
   });
 
   it('the wave container still carries the non-listening label and the active bar is af.red (the bars stay decorative)', () => {
@@ -101,8 +101,8 @@ describe('PR-R5 (A5): SkinIA editorial suite — invented literals mapped onto t
     { site: 'Guardian roster accent, index >= 2 (positive)', old: '#2DBF8A', token: 'edPositive', value: edPositive, resolved: '#1FA35A' },
     { site: 'Clutch roster accent, index 1', old: '#00C49A', token: 'af.cyan', value: af.cyan, resolved: '#00E5C8' },
     { site: 'Clutch roster accent, index 2', old: '#4ADE80', token: 'edPositive', value: edPositive, resolved: '#1FA35A' },
-    { site: 'Clutch roster accent, index 3', old: '#E8E0C8', token: 'edInk.ivory', value: edInk.ivory, resolved: '#EDEAE3' },
-    { site: 'clutchRow backgroundColor', old: '#141414', token: 'edStock.blackRaised', value: edStock.blackRaised, resolved: '#161512' },
+    { site: 'Clutch roster accent, index 3', old: '#E8E0C8', token: 'edInk.ivory', value: edInk.ivory, resolved: '#F7F4EF' },
+    { site: 'clutchRow backgroundColor', old: '#141414', token: 'edStock.blackRaised', value: edStock.blackRaised, resolved: '#121313' },
   ];
 
   it.each(MAPPING)('$site: $old → $token resolves to $resolved', ({ value, resolved }) => {
@@ -144,8 +144,8 @@ describe('PR-R5 (A5): the three migrated files carry no raw colour literal (ratc
   }
 
   it('self-test: the scan flags a hex and an rgba() and ignores comments', () => {
-    const sample = "const a='#141414'; const b='rgba(161,156,145,0.5)';\n// #C8A84B comment\n/* rgba(1,2,3,1) */";
+    const sample = "const a='#141414'; const b='rgba(174,170,163,0.5)';\n// #C8A84B comment\n/* rgba(1,2,3,1) */";
     const matches = stripComments(sample).match(RAW_COLOR_RE) || [];
-    expect(matches).toEqual(['#141414', 'rgba(161,156,145,0.5)']);
+    expect(matches).toEqual(['#141414', 'rgba(174,170,163,0.5)']);
   });
 });

@@ -3,36 +3,36 @@
 
 export const Colors = {
   background: {
-    primary: '#0D0D0D',
-    secondary: '#050508',
-    card: '#0A0A0F',
-    elevated: '#101018',
-    surface: '#141420',
+    primary: '#090A0A',
+    secondary: '#090A0A',
+    card: '#121313',
+    elevated: '#121313',
+    surface: '#121313',
     overlay: 'rgba(0,0,0,0.92)',
   },
 
   gradient: {
-    background: ['#0D0D0D', '#050510', '#0D0D0D'],
+    background: ['#090A0A', '#090A0A', '#090A0A'],
     backgroundAngle: 160,
     header: ['rgba(0,0,0,0.95)', 'rgba(0,0,0,0.0)'],
-    card: ['#0A0A0F', '#101018'],
+    card: ['#121313', '#121313'],
   },
 
   accent: {
-    primary: '#C1281B',
-    glow: 'rgba(193,40,27,0.50)',
-    dim: 'rgba(193,40,27,0.12)',
-    subtle: 'rgba(193,40,27,0.06)',
-    secondary: '#1E5BFF',
+    primary: '#E51E2A',
+    glow: 'rgba(229,30,42,0.45)',
+    dim: 'rgba(229,30,42,0.12)',
+    subtle: 'rgba(229,30,42,0.06)',
+    secondary: '#2765FF',
     // AForce signal red — hero accent for the Home dashboard (readiness
     // eyebrow, ritual rail, streak, athlete + membership cards and the active
     // tab tint). Deliberately distinct from the DEPLETED state red (#FF2800);
     // use sparingly as thin lines / labels so the hydration state-color engine
     // still reads clearly.
-    brand: '#C1281B',
-    brandGlow: 'rgba(193,40,27,0.45)',
-    brandDim: 'rgba(193,40,27,0.12)',
-    brandSubtle: 'rgba(193,40,27,0.06)',
+    brand: '#E51E2A',
+    brandGlow: 'rgba(229,30,42,0.45)',
+    brandDim: 'rgba(229,30,42,0.12)',
+    brandSubtle: 'rgba(229,30,42,0.06)',
   },
 
   states: {
@@ -74,7 +74,7 @@ export const Colors = {
   },
 
   text: {
-    primary: '#FFFFFF',
+    primary: '#F7F4EF',
     // RC-1 verdict-pass correction (Wave-1 r2, item 7): the #530 AA pass
     // below fixed muted/ghost but left `secondary` at its pre-existing .55,
     // only .03 above the newly-raised `muted` (.52) — white-on-near-black
@@ -131,14 +131,14 @@ export const Colors = {
     // bare and filled surfaces.
     muted: 'rgba(255,255,255,0.52)',
     ghost: 'rgba(255,255,255,0.48)',
-    inverse: '#000000',
+    inverse: '#090A0A',
   },
 
   border: {
     subtle: 'rgba(255,255,255,0.04)',
     medium: 'rgba(255,255,255,0.08)',
     strong: 'rgba(255,255,255,0.14)',
-    accent: 'rgba(193,40,27,0.20)',
+    accent: 'rgba(229,30,42,0.20)',
   },
 
   fill: {
@@ -150,20 +150,20 @@ export const Colors = {
   success: '#1FA35A',
   warning: '#FFA01E',
   danger: '#FF2800',
-  info: '#1E5BFF',
+  info: '#2765FF',
 
   // Brand neutral — warm off-white ("bone") for tracked technical eyebrows
   // on the cinematic black canvas. Softer than pure #FFFFFF.
-  bone: '#F5F0E8',
+  bone: '#F7F4EF',
 
   // Black Issue tab bar: solid Cinematic Black with a warm hairline. The
   // active tint is TEXT/icon on black, so it uses the AA-clean red
   // (= af.redText, 5.3:1), not the #C1281B fill red (3.3:1 — fails AA).
   tabBar: {
-    background: '#0D0D0D',
-    active: '#E4564A',
-    inactive: '#8D897F',
-    hairline: '#2B2925',
+    background: '#090A0A',
+    active: '#FF5A63',
+    inactive: '#AEAAA3',
+    hairline: '#292A2A',
   },
 } as const;
 

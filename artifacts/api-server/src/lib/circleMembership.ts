@@ -1,4 +1,5 @@
 import { lockCirclePair, clearCirclePairSharing } from "./circleSharing";
+import { revokePairMomentShares } from "./circleMoments";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, isNull, gt, ne, or, desc, sql } from "drizzle-orm";
 import {
@@ -8,8 +9,13 @@ import {
   aforceCircleStatuses as statuses,
 } from "@workspace/db";
 
+/**
+ * Circle membership is part of the released product.  Keep an explicit
+ * `false` kill switch for an incident, but do not make the live feature
+ * depend on an environment variable being provisioned in every deployment.
+ */
 export const membershipEnabled = () =>
-  process.env["CIRCLE_MEMBERSHIP_ENABLED"] === "true";
+  process.env["CIRCLE_MEMBERSHIP_ENABLED"] !== "false";
 export const hashInvitation = (code: string) =>
   createHash("sha256").update(code).digest("hex");
 export class CircleMembershipError extends Error {
@@ -207,6 +213,7 @@ export async function removeMembership(userId: string, memberUserId: string) {
   await db.transaction(async (tx) => {
     await lockCirclePair(tx, userId, memberUserId);
     await clearCirclePairSharing(tx, userId, memberUserId);
+    await revokePairMomentShares(tx, userId, memberUserId);
     const pair = (table: typeof members | typeof statuses) =>
       or(
         and(

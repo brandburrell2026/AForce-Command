@@ -28,27 +28,27 @@ import { Typography } from './typography';
 /** Stocks — the two grounds. Never mixed on one screen outside the stock turn. */
 export const edStock = {
   /** B core — the OS ground. Same value as the brand Cinematic Black. */
-  black: '#0D0D0D',
+  black: '#090A0A',
   /** A Feature register — the deck's working paper. */
-  paper: '#E4E0D8',
+  paper: '#F7F4EF',
   /** Slightly lifted paper for plates on paper (deck slide texture). */
-  paperRaised: '#EBE8E1',
+  paperRaised: '#F7F4EF',
   /** Slightly lifted black for plates on black (scan viewfinder). */
-  blackRaised: '#161512',
+  blackRaised: '#121313',
 } as const;
 
 /** Inks — statement + quiet voices per stock. */
 export const edInk = {
   /** Primary copy on black. */
-  ivory: '#EDEAE3',
+  ivory: '#F7F4EF',
   /** Primary copy on paper. */
-  black: '#1A1815',
+  black: '#090A0A',
   /** Furniture/captions/quiet statements on black (AA on #0D0D0D). */
-  quietOnBlack: '#8D897F',
-  /** Furniture/captions/quiet statements on paper (AA on #E4E0D8). */
-  quietOnPaper: '#66625A',
+  quietOnBlack: '#8A867F',
+  /** Furniture/captions/quiet statements on paper (AA on the Feature register). */
+  quietOnPaper: '#6F6C66',
   /** De-emphasized/disabled on black — decorative only, never sole carrier. */
-  dimOnBlack: '#57534A',
+  dimOnBlack: '#8A867F',
 } as const;
 
 /** Accents — exactly two, with fixed meanings. */
@@ -63,13 +63,13 @@ export const edAccent = {
    * "membership" / "national stage"). Rare by rule; never the sole carrier
    * of state.
    */
-  lockIn: '#4A5FD0',
+  lockIn: '#E51E2A',
 } as const;
 
 /** Rules — hairlines replace cards. */
 export const edRule = {
-  onBlack: '#2B2925',
-  onPaper: '#C7C2B6',
+  onBlack: '#292A2A',
+  onPaper: '#8A867F',
 } as const;
 
 /** Verified positive marks (checklist ticks) reuse the brand PEAK green. */

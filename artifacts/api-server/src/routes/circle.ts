@@ -28,8 +28,8 @@
  * state instead of a fabricated one.
  */
 
-import { sharingEnabled } from "../lib/circleSharing";
 import circleSharingRouter from "./circleSharing";
+import circleMomentsRouter from "./circleMoments";
 import { rateLimit } from "express-rate-limit";
 import {
   createInvitation,
@@ -58,6 +58,7 @@ const router: IRouter = Router();
 
 router.use(requireAuth);
 router.use(circleSharingRouter);
+router.use(circleMomentsRouter);
 
 function resolveUserId(req: Request): string {
   return req.userId ?? DEFAULT_USER_ID;
@@ -229,6 +230,9 @@ function notificationRowToWire(row: typeof aforceCircleNotifications.$inferSelec
 router.use(
   ["/invitations", "/members"],
   (req, res, next) => {
+    // A temporary disabled response must not survive a feature rollout in a
+    // native HTTP cache. Membership data is always private and per-account.
+    res.setHeader("Cache-Control", "private, no-store");
     if (!membershipEnabled()) {
       res.status(503).json({ error: "circle_membership_unavailable" });
       return;
@@ -237,7 +241,6 @@ router.use(
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
-    res.setHeader("Cache-Control", "private, no-store");
     next();
   },
   requireRealAuth,
@@ -287,7 +290,11 @@ router.post("/invitations/accept", invitationLimiter, async (req, res) => {
       code: z
         .string()
         .trim()
-        .regex(/^[A-Za-z0-9_-]{43}$/),
+        // A copied iOS code can contain visual-wrap whitespace or invisible
+        // formatting characters. Codes are base64url-only, so discard every
+        // non-code character before validation instead of requiring retyping.
+        .transform((code) => code.replace(/[^A-Za-z0-9_-]/g, ""))
+        .pipe(z.string().regex(/^[A-Za-z0-9_-]{43}$/)),
     })
     .safeParse(req.body);
   if (!parsed.success) {
@@ -397,65 +404,10 @@ router.get("/pending", async (req, res) => {
 
 /* ─── GET /feed — active members + their latest shared status ─────────────── */
 router.get("/feed", async (req, res) => {
-  // The explicit-consent pilot has one read path. Legacy owner snapshots
-  // carry no fresh grants and must not bypass /activity's authorization.
-  if (sharingEnabled()) {
-    res.setHeader("Cache-Control", "private, no-store");
-    res.json({ feed: [] });
-    return;
-  }
-  try {
-    const userId = resolveUserId(req);
-    const groupParam = String(req.query["group"] ?? "");
-    const group = (CIRCLE_GROUPS as readonly string[]).includes(groupParam)
-      ? (groupParam as (typeof CIRCLE_GROUPS)[number])
-      : null;
-
-    const userWhere = group
-      ? and(
-          eq(aforceCircleUsers.ownerUserId, userId),
-          eq(aforceCircleUsers.status, "active"),
-          eq(aforceCircleUsers.group, group),
-          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
-        )
-      : and(
-          eq(aforceCircleUsers.ownerUserId, userId),
-          eq(aforceCircleUsers.status, "active"),
-          notInArray(aforceCircleUsers.memberUserId, SEEDED_MEMBER_IDS),
-        );
-
-    const userRows = await db.select().from(aforceCircleUsers).where(userWhere);
-    // The status query is filtered too, not just joined against the filtered
-    // users: a seeded status must never reach the feed even if a same-named
-    // member row somehow survives.
-    const statusRows = await db
-      .select()
-      .from(aforceCircleStatuses)
-      .where(
-        and(
-          eq(aforceCircleStatuses.ownerUserId, userId),
-          notInArray(aforceCircleStatuses.memberUserId, SEEDED_MEMBER_IDS),
-        ),
-      );
-
-    const statusByMember = new Map(
-      statusRows.map((r) => [r.memberUserId, statusRowToWire(r)]),
-    );
-
-    const feed = userRows
-      .map((u) => {
-        const s = statusByMember.get(u.memberUserId);
-        if (!s) return null;
-        return { ...s, user: userRowToWire(u) };
-      })
-      .filter((x): x is NonNullable<typeof x> => x !== null)
-      .sort((a, b) => b.score - a.score);
-
-    res.json({ feed });
-  } catch (err) {
-    req.log.error({ err }, "GET /circle/feed failed");
-    res.status(500).json({ error: "circle_feed_fetch_failed" });
-  }
+  // v1.7 replaces legacy score/state status cards with explicit Moment shares.
+  // Until the Moment consent API is installed, never expose the old feed.
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json({ feed: [] });
 });
 
 /* ─── POST /users/:memberUserId/status ────────────────────────────────────── */

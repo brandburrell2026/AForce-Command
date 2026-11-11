@@ -45,6 +45,11 @@ const post = (path: string, data: unknown) =>
     body: JSON.stringify(data),
   });
 describe("Circle invitation HTTP boundary", () => {
+  it("keeps released membership available when a deployment omits the flag", async () => {
+    delete process.env["CIRCLE_MEMBERSHIP_ENABLED"];
+    mock.create.mockResolvedValue({ invitation: { id: "i" }, code: "secret" });
+    expect((await post("/invitations", { displayName: "Alice" })).status).toBe(201);
+  });
   it("gates all new routes without touching persistence", async () => {
     vi.stubEnv("CIRCLE_MEMBERSHIP_ENABLED", "false");
     const response = await post("/invitations", { displayName: "Alice" });
@@ -89,5 +94,26 @@ describe("Circle invitation HTTP boundary", () => {
         .status,
     ).toBe(400);
     expect(mock.accept).not.toHaveBeenCalled();
+  });
+  it("accepts a copied invitation code with iOS visual-wrap artifacts", async () => {
+    const code = `${"A".repeat(21)}${"B".repeat(22)}`;
+    mock.accept.mockResolvedValue({
+      memberUserId: "user_b",
+      name: "Alice",
+      initials: "A",
+      group: "friends",
+      status: "active",
+      joinedAt: new Date("2026-11-08T00:00:00.000Z"),
+    });
+    const response = await post("/invitations/accept", {
+      displayName: "Bob",
+      code: `${code.slice(0, 21)}\u200B\n ${code.slice(21)}`,
+    });
+    expect(response.status).toBe(200);
+    expect(mock.accept).toHaveBeenCalledWith("user_a", code, {
+      displayName: "Bob",
+      group: "friends",
+      code,
+    });
   });
 });

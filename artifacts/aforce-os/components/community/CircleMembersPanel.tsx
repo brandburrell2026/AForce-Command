@@ -15,9 +15,11 @@ import {
   CircleMembershipError,
   type CircleInvitation,
 } from '@/services/circleMembershipService';
+import { createCircleMomentSharingClient } from '@/services/circleMomentSharingService';
+import { useMomentsStore } from '@/services/momentsStore';
 import type { CircleUser } from '@/types/circle';
 
-export function CircleMembersPanel() {
+export function CircleMembersPanel({ showLegacySharing = true }: { showLegacySharing?: boolean }) {
   const scope = React.useSyncExternalStore(
     subscribeScopeState,
     getScopeState,
@@ -26,16 +28,21 @@ export function CircleMembersPanel() {
   // Scope object identity changes on every identity transition, including A → B → A.
   const [session, setSession] = React.useState({ scope, key: 0 });
   if (session.scope !== scope) setSession({ scope, key: session.key + 1 });
-  return <MemberSession key={session.key} scope={scope} />;
+  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} />;
 }
 
-function MemberSession({ scope }: { scope: ScopeState }) {
+function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLegacySharing: boolean }) {
   const { t } = useTranslation();
   const sharingEnabled = isCircleSharingPilotEnabled(useFeatureFlags());
   const client = React.useMemo(
     () => createCircleMembershipClient(scope),
     [scope],
   );
+  const momentClient = React.useMemo(
+    () => createCircleMomentSharingClient(scope),
+    [scope],
+  );
+  const { moments, hydrated: momentsHydrated } = useMomentsStore();
   const [members, setMembers] = React.useState<CircleUser[]>([]);
   const [invitations, setInvitations] = React.useState<CircleInvitation[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -50,6 +57,11 @@ function MemberSession({ scope }: { scope: ScopeState }) {
     code: string;
   } | null>(null);
   const [removing, setRemoving] = React.useState<string | null>(null);
+  const [momentSharingReady, setMomentSharingReady] = React.useState(false);
+  const [selectedMomentId, setSelectedMomentId] = React.useState<string | null>(null);
+  const [sharingMoment, setSharingMoment] = React.useState(false);
+  const [momentShareError, setMomentShareError] = React.useState<string | null>(null);
+  const [momentShareNotice, setMomentShareNotice] = React.useState<string | null>(null);
   const loadVersion = React.useRef(0);
   const current = () => getScopeState() === scope;
   const copy = (key: string) => t(`community.members.${key}`);
@@ -102,6 +114,16 @@ function MemberSession({ scope }: { scope: ScopeState }) {
   React.useEffect(() => {
     if (scope.status === 'AUTHENTICATED') void load().catch(showError);
   }, [client]);
+  React.useEffect(() => {
+    let active = true;
+    setMomentSharingReady(false);
+    if (scope.status === 'AUTHENTICATED')
+      void momentClient
+        .incoming()
+        .then(() => active && setMomentSharingReady(true))
+        .catch(() => active && setMomentSharingReady(false));
+    return () => { active = false; };
+  }, [momentClient, scope.status]);
   async function act(action: () => Promise<unknown>, mutation = true) {
     if (busy || loading || !current()) return;
     setBusy(true);
@@ -135,6 +157,29 @@ function MemberSession({ scope }: { scope: ScopeState }) {
         <Text style={styles.buttonText}>{label}</Text>
       </Pressable>
     );
+  }
+  const shareableMoments = moments.filter(
+    (moment) => moment.source === 'manual' && !moment.masked,
+  );
+  const selectedMoment = shareableMoments.find(
+    (moment) => moment.id === selectedMomentId,
+  );
+  async function shareSelectedMoment(member: CircleUser) {
+    if (!selectedMoment || sharingMoment || !current()) return;
+    setSharingMoment(true);
+    setMomentShareError(null);
+    setMomentShareNotice(null);
+    try {
+      await momentClient.share(member.userId, selectedMoment);
+      if (current()) {
+        setMomentShareNotice(`${selectedMoment.title} shared with ${member.name}.`);
+        setSelectedMomentId(null);
+      }
+    } catch {
+      if (current()) setMomentShareError('Moment sharing is unavailable right now.');
+    } finally {
+      if (current()) setSharingMoment(false);
+    }
   }
   if (scope.status !== 'AUTHENTICATED')
     return (
@@ -194,7 +239,35 @@ function MemberSession({ scope }: { scope: ScopeState }) {
           )}
         </View>
       ))}
-      {loaded && !loading ? (
+      {momentSharingReady && loaded && momentsHydrated && members.some((member) => member.status === 'active') ? (
+        <View style={styles.row} testID="circle-moment-sharing">
+          <Text style={styles.title}>Share a Moment</Text>
+          <Text style={styles.copy}>
+            Choose a Moment and a person. Only its title and scheduled time are shared.
+          </Text>
+          {momentShareNotice ? <Text accessibilityLiveRegion="polite" style={styles.copy}>{momentShareNotice}</Text> : null}
+          {momentShareError ? <Text accessibilityLiveRegion="polite" style={styles.error}>{momentShareError}</Text> : null}
+          {shareableMoments.length ? shareableMoments.map((moment) => (
+            <Pressable
+              key={moment.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedMomentId === moment.id }}
+              onPress={() => setSelectedMomentId(moment.id)}
+              style={[styles.button, selectedMomentId === moment.id && styles.selectedButton]}
+            >
+              <Text style={styles.buttonText}>{moment.title}</Text>
+            </Pressable>
+          )) : <Text style={styles.copy}>Add a manual Moment to share it with your Circle.</Text>}
+          {selectedMoment ? members.filter((member) => member.status === 'active').map((member) =>
+            button(
+              `Share with ${member.name}`,
+              () => void shareSelectedMoment(member),
+              sharingMoment,
+            ),
+          ) : null}
+        </View>
+      ) : null}
+      {showLegacySharing && loaded && !loading ? (
         <CircleSharingPanel
           scope={scope}
           members={members}
@@ -304,5 +377,6 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: af.textPrimary, fontSize: 14, fontWeight: '600' },
   disabled: { opacity: 0.5 },
+  selectedButton: { borderColor: af.red, backgroundColor: af.red },
   code: { color: af.textPrimary, fontSize: 16 },
 });

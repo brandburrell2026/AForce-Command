@@ -181,19 +181,7 @@ describe("Circle GETs — real members still come back", () => {
     expect(fake.writes).toEqual([]);
   });
 
-  it("sharing rollout disables legacy snapshots without reading them", async () => {
-    const previous = process.env["CIRCLE_SHARING_ENABLED"];
-    process.env["CIRCLE_SHARING_ENABLED"] = "true";
-    try {
-      install({ aforce_circle_users: [memberRow(REAL_MEMBER, USER_A)], aforce_circle_statuses: [statusRow(REAL_MEMBER, USER_A)] });
-      expect((await harness.get("/api/circle/feed")).json).toEqual({ feed: [] });
-      expect(fake.selects).toEqual([]);
-    } finally {
-      if (previous === undefined) delete process.env["CIRCLE_SHARING_ENABLED"]; else process.env["CIRCLE_SHARING_ENABLED"] = previous;
-    }
-  });
-
-  it("GET /feed joins a real member to their real status", async () => {
+  it("GET /feed never returns legacy score or state snapshots", async () => {
     install({
       aforce_circle_users: [memberRow(REAL_MEMBER, USER_A)],
       aforce_circle_statuses: [statusRow(REAL_MEMBER, USER_A)],
@@ -201,9 +189,8 @@ describe("Circle GETs — real members still come back", () => {
 
     const res = await harness.get("/api/circle/feed");
 
-    expect(res.json).toMatchObject({
-      feed: [{ score: 77, user: { userId: REAL_MEMBER } }],
-    });
+    expect(res.json).toEqual({ feed: [] });
+    expect(fake.selects).toEqual([]);
     expect(fake.writes).toEqual([]);
   });
 });
@@ -238,19 +225,12 @@ describe("Circle GETs — legacy seeded rows are excluded on read, not deleted",
     expect(params).toEqual([USER_A, "pending", ...LEGACY_MEMBER_IDS]);
   });
 
-  it("GET /feed excludes seeded members from BOTH the users and statuses reads", async () => {
+  it("GET /feed does not read any legacy member or status rows", async () => {
     install();
 
     await harness.get("/api/circle/feed");
 
-    expect(whereFor("aforce_circle_users").params).toEqual([
-      USER_A,
-      "active",
-      ...LEGACY_MEMBER_IDS,
-    ]);
-    const statuses = whereFor("aforce_circle_statuses");
-    expect(statuses.sql).toContain('"aforce_circle_statuses"."member_user_id" not in');
-    expect(statuses.params).toEqual([USER_A, ...LEGACY_MEMBER_IDS]);
+    expect(fake.selects).toEqual([]);
   });
 
   it("GET /challenges excludes the seeded challenge ids, per caller", async () => {

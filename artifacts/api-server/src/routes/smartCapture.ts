@@ -34,7 +34,6 @@ import { findBlockedConcept } from "../lib/claimsGate";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
-import { openai } from "@workspace/integrations-openai-ai-server";
 import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
@@ -324,6 +323,11 @@ router.post(
     }
 
     try {
+      // The AI integration is intentionally resolved only when Smart Capture
+      // is used. Its client validates credentials at module import time; a
+      // static import would make every API route unavailable when this
+      // optional capability has not been provisioned.
+      const { openai } = await import("@workspace/integrations-openai-ai-server");
       const completion = await openai.chat.completions.create({
         model: "gpt-5.4",
         max_completion_tokens: 1024,
@@ -391,6 +395,10 @@ router.post(
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       log.error?.({ err: message }, "smart-capture: openai call failed");
+      if (message.includes("AI_INTEGRATIONS_OPENAI_")) {
+        res.status(503).json({ error: "Smart Capture is not configured yet. Please try again later." });
+        return;
+      }
       res.status(502).json({ error: "Smart Capture is temporarily unavailable. Please try again." });
     }
   },

@@ -67,7 +67,7 @@ export const ATMOSPHERE: Record<EnvironmentalState, Atmosphere> = {
   // does not fail — it declines to resolve, which is the honest picture of
   // "AForce cannot confidently read the environment yet".
   insufficient: {
-    base: [DEEP, af.canvas, af.canvas],
+    base: [DEEP, af.canvas, withAlpha(af.textTertiary, 0.04)],
     glow: withAlpha(af.textTertiary, 0.14), horizon: 0.56, vignette: 0.22, seam: 0.14, unresolved: true,
   },
 };

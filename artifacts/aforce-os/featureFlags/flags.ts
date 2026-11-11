@@ -43,7 +43,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
 
   // Athlete tier — Metabolic Readiness. Ships OFF in production; the
   // glucose lane stays OFF everywhere (engine-only, no UI yet).
@@ -62,6 +62,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // prod so logIntake keeps its exact online-only path (byte-identical no-op),
   // ON in DEMO. Score-Protection: replays frozen scores, server dedupes.
   offline_intake_outbox_enabled: false,
+  // Gentle Hydration Mode is private and opt-in, but stays dark until its
+  // medical/legal copy review and internal-device validation are complete.
+  // It never changes a hydration target, score, reminder or Circle payload.
+  gentle_hydration_mode_enabled: false,
   per_user_storage_isolation_enabled: false,
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
@@ -289,7 +293,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // hydration challenge, and the anonymous referral boards as the only
   // cross-user surface (no named-people rankings — SS-07). ON in
   // production — founder flip 2026-08-11 (all five V3 screens together).
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
   // Explicit internal pilot only. Joining never grants health-data sharing.
   circle_membership_enabled: false,
   circle_sharing_enabled: false,
@@ -487,7 +491,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
   metabolic_readiness_enabled: true,
   metabolic_glucose_enabled: false,
   performance_age_enabled: true,
@@ -495,6 +499,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   intent_capture_enabled: true,
   performance_statements_enabled: true,
   offline_intake_outbox_enabled: true,
+  // Local/demo preview only. This is not a public medical-support launch.
+  gentle_hydration_mode_enabled: true,
   per_user_storage_isolation_enabled: true,
   // Hydration restore is safe to demo (deterministic, never overwrites), but
   // keep it OFF here too until the reinstall release-gate passes — demo builds
@@ -577,7 +583,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
   // Generic demos must not create real social relationships.
   circle_membership_enabled: false,
   circle_sharing_enabled: false,

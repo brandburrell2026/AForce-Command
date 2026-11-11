@@ -53,7 +53,7 @@ describe('contrast — Signal Red is never TEXT on a dark surface', () => {
   it('the token file still documents the failure and still provides redText', () => {
     // If this ever stops being true the rule below is arguing with nothing.
     expect(tokens).toMatch(/fails WCAG AA/i);
-    expect(tokens).toMatch(/redText:\s*'#E4564A'/);
+    expect(tokens).toMatch(/redText:\s*'#FF5A63'/);
   });
 
   it('subscription status TEXT uses the AA token, not the brand fill red', () => {
@@ -231,7 +231,7 @@ describe('contrast — red icons on Phase-1 surfaces use the AA token', () => {
     // S2-8 collapsed the Smart Capture CTA into a default-tint AFListRow
     // inside the disclosure sheet, so the stronger invariant now holds:
     // this surface colors NO icon with brand red at all.
-    expect(tokens).toMatch(/redText: '#E4564A'/);
+    expect(tokens).toMatch(/redText: '#FF5A63'/);
     expect(scan).not.toContain('color={af.red}');
     expect(scan).toContain('testID="hydroscan-smart-capture"');
   });
