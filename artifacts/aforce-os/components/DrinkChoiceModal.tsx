@@ -11,6 +11,7 @@ import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import { hapticImpact, hapticSelection } from '@/services/haptics';
 import { Colors } from '@/theme/colors';
+import { af, withAlpha } from '@/theme/afTokens';
 
 export type NonWaterDrinkChoice = {
   categoryId: 'aforce' | 'coffee_or_tea' | 'custom';
@@ -143,7 +144,7 @@ export function DrinkChoiceModal({ visible, onCancel, onWater, onRecord, isSavin
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: withAlpha(af.canvas, 0.65), justifyContent: 'flex-end' },
   sheet: { backgroundColor: Colors.background.elevated, paddingTop: 16, paddingHorizontal: 20, paddingBottom: 28, borderTopLeftRadius: 24, borderTopRightRadius: 24, gap: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 3, color: Colors.text.primary },
