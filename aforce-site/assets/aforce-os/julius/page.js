@@ -131,7 +131,7 @@ $('#again').onclick=()=>{tone('');mode(0);act(null);scr('ask');$('#dQ').textCont
 
 /* ---------- Attract demo: plays the full loop on its own until the visitor takes over ---------- */
 (()=>{const bar=$('#demoBar'),txt=$('#demoTxt'),btn=$('#demoBtn'),sec=document.getElementById('try');
- if(!bar||RM)return;
+ if(!bar)return;
  const LIST=[{c:0},{c:1},{c:2},{c:3},{type:'Dinner Friday at 8 with the team.'}];
  let run=0,on=false,vis=false,taken=false,idx=0;const chips=[...document.querySelectorAll('.tChips .chip')];
  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -155,16 +155,23 @@ $('#again').onclick=()=>{tone('');mode(0);act(null);scr('ask');$('#dQ').textCont
   await sleep(3400);if(my!==run)return false;
   clean();return true}
  async function loop(my){await sleep(500);while(my===run){if(!await one(LIST[idx%LIST.length],my))return;idx++;await sleep(900)}}
- function start(){if(on||taken||!vis)return;on=true;window.__afxDemo=true;dev.setAttribute('aria-live','off');bar.hidden=false;bar.classList.remove('off');txt.textContent='Demo playing';btn.textContent='Tap to try it yourself';const my=++run;clean();loop(my)}
+ function start(){if(on||taken||!vis||document.hidden)return;on=true;window.__afxDemo=true;dev.setAttribute('aria-live','off');bar.hidden=false;bar.classList.remove('off');txt.textContent='Demo playing';btn.textContent='Tap to try it yourself';const my=++run;clean();loop(my)}
  function stop(byUser){if(!on&&!byUser)return;run++;on=false;window.__afxDemo=false;dev.setAttribute('aria-live','polite');clean();
   if(byUser){taken=true;bar.classList.add('off');txt.textContent='Your turn';btn.textContent='Play demo'}else{bar.classList.add('off');txt.textContent='Demo paused';btn.textContent='Play demo'}}
  btn.addEventListener('click',e=>{e.stopPropagation();if(on){stop(true)}else{taken=false;start()}});
- // any real interaction inside the section hands control to the visitor
- const take=e=>{if(taken||!e.isTrusted)return;if(bar.contains(e.target))return;if(e.type==='pointerdown'&&!e.target.closest('button,input,a,.ring,.chip,#dev'))return;if(on)stop(true);else taken=true};
- ['pointerdown','keydown','focusin'].forEach(ev=>sec.addEventListener(ev,take,true));
- const io=new IntersectionObserver(es=>es.forEach(e=>{vis=e.isIntersecting&&e.intersectionRatio>=.45;if(vis)start();else if(on)stop(false)}),{threshold:[0,.45,.7]});
- io.observe(dev);
- document.addEventListener('visibilitychange',()=>{if(document.hidden&&on)stop(false);else if(!document.hidden&&vis)start()});
+ // Only intentional use of a control takes over. Focus can also move programmatically
+ // during the demo, and touching the phone background may just be a mobile scroll.
+ const take=e=>{if(taken||!e.isTrusted||bar.contains(e.target))return;if(!e.target.closest('button,input,a,.ring,.chip'))return;if(e.type==='keydown'&&['Shift','Control','Alt','Meta','Escape','Tab'].includes(e.key))return;if(on)stop(true);else taken=true};
+ ['click','keydown','input'].forEach(ev=>sec.addEventListener(ev,take,true));
+ ring.addEventListener('pointerdown',take,true);
+ const visible=()=>{const r=dev.getBoundingClientRect(),top=Math.max(80,r.top),bottom=Math.min(innerHeight,r.bottom);return bottom-top>=Math.min(r.height,innerHeight-80)*.2};
+ const update=()=>{vis=visible();if(vis&&!RM)start();else if(!vis&&on)stop(false)};
+ if('IntersectionObserver' in window)new IntersectionObserver(update,{threshold:[0,.1,.2,.45,.7]}).observe(dev);
+ else addEventListener('scroll',update,{passive:true});
+ addEventListener('resize',update);update();
+ // Reduced-motion visitors still have an explicit Play demo control.
+ if(RM){bar.hidden=false;txt.textContent='Demo paused';btn.textContent='Play demo'}
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&on)stop(false);else if(!document.hidden)update()});
 })();
 })();
 
