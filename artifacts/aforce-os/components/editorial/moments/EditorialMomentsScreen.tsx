@@ -29,6 +29,7 @@
  * duplicates what the moment's title and placement already say. Recorded here
  * so it is a decision, not drift.
  */
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import React from 'react';
 import { TravelMomentsEntry } from '@/components/travel/TravelHomeCard';
 import { useRouter } from 'expo-router';
@@ -90,13 +91,13 @@ export function EditorialMomentsScreen({
     const nowMs = Date.parse(data.nowIso);
     return calendarDays
       .flatMap((d) => d.moments)
-      .filter((m) => Date.parse(m.startAtIso) > nowMs).length;
+      .filter((m) => !preparationClosed(m.preparation) && Date.parse(m.startAtIso) > nowMs).length;
   }, [calendarDays, data.nowIso]);
 
   // The internal planner gives the next unfinished upcoming Moment the one brief,
   // even when an earlier row belongs to a completed event.
   const priorityMomentId = momentsFirst
-    ? calendarDays.flatMap((day) => day.moments).find((moment) => !moment.preparedAtIso && Date.parse(moment.startAtIso) > Date.parse(data.nowIso))?.id
+    ? calendarDays.flatMap((day) => day.moments).find((moment) => !moment.preparedAtIso && !preparationClosed(moment.preparation) && Date.parse(moment.startAtIso) > Date.parse(data.nowIso))?.id
     : undefined;
 
   return (
@@ -273,7 +274,7 @@ function SpineMoment({
   const ink = edInkFor('black');
   const [whyOpen, setWhyOpen] = React.useState(false);
   const posture = windowPosture(rec, moment.startAtIso, nowIso);
-  const state = moment.preparedAtIso ? 'done' : spineStateFor(posture);
+  const state = moment.preparedAtIso || preparationClosed(moment.preparation) ? 'done' : spineStateFor(posture);
   const live = state === 'live';
   const title = moment.masked ? t('moments.private_event') : moment.title;
   const action = rec.primaryAction;

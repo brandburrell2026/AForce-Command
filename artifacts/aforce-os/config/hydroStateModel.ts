@@ -663,3 +663,10 @@ export const CONCIERGE_REQUEST_TIMEOUT_MS = 35_000;
  * older than this is treated as ended at (startedAt + max) — the recovery
  * window then runs from that point exactly as if "End night" had been tapped. */
 export const SOCIAL_SESSION_MAX_MS = 18 * FRESHNESS_HOUR_MS;
+
+/** Shared, in-app preparation proposal budget. No new score or notifications. */
+export const MOMENT_PROPOSAL_DECLINE_THRESHOLD = 2;
+export const MOMENT_PROPOSAL_COOLDOWN_HOURS = 24;
+export const MOMENT_PROPOSAL_MAX_COOLDOWN_HOURS = 168;
+export const MOMENT_PROPOSAL_LEAD_HOURS = { personal: 4, travel: 24 } as const;
+export const MOMENT_PROPOSAL_MIN_LEAD_MIN = 30;

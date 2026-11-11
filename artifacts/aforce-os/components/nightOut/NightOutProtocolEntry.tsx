@@ -12,6 +12,8 @@
  * alcohol, intake, or session state is touched.
  */
 import React from 'react';
+import { SocialProtocolEntry } from '@/components/oneBreath/SocialProtocolEntry';
+import { preparationPreviewEnabled } from '@/services/preparationAccess';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { Icon } from '@/components/Icon';
@@ -27,6 +29,8 @@ import {
 export function NightOutProtocolEntry() {
   const flags = useFeatureFlags();
   const router = useRouter();
+
+  if (preparationPreviewEnabled()) return <SocialProtocolEntry />;
 
   // Restricted flag + approved internal-preview context are BOTH required.
   if (!isNightOutEnabled(flags, nightOutInternalPreviewContext())) return null;

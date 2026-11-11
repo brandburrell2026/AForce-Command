@@ -156,6 +156,18 @@ describe('surfacing', () => {
     expect(surfaceableMoments(set, NOW).map((m) => m.id)).toEqual(['past', 'next', 'later']);
   });
 
+  it('keeps returned plans in history without reissuing preparation or selecting them next', () => {
+    const returned = moment({ id: 'next', preparation: { returnedAtIso: NOW } as Moment['preparation'] });
+    const records = set.map((m) => m.id === 'next' ? returned : m);
+    expect(surfaceableMoments(records, NOW).map((m) => m.id)).toContain('next');
+    expect(nextMoment(records, NOW)?.id).toBe('later');
+    const rec = buildRecommendation(returned, { canonicalCommand: CANON }, NOW);
+    expect(rec.primaryAction).toBeUndefined();
+    expect(rec.secondaryAction).toBeUndefined();
+    expect(returned.preparedAtIso).toBeUndefined();
+    expect(rec.ritual.some((stage) => stage.state !== 'completed')).toBe(true);
+  });
+
   it('nextMoment is the first not-yet-started', () => {
     expect(nextMoment(set, NOW)?.id).toBe('next');
   });

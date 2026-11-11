@@ -60,6 +60,18 @@ import type { MomentAction, MomentRecommendation, RitualStage } from '../../type
 import { DECISION_GUARD_MAX_DOSE_OZ } from '../../config/hydroStateModel';
 import { consumerCopyBlocked } from './languageGate/runtimeClaimScan';
 
+/** Universal Plans Changed safety gate. No impairment or clearance estimates. */
+export function evaluateMomentSafety(words: string, alcoholPreviouslyMentioned = false): 'emergency' | 'driving' | 'water' | 'pause' | null {
+  const text = words.toLowerCase();
+  if (/\b(can'?t breathe|cannot breathe|not breathing|unconscious|won'?t wake|seizure|chest pain|overdose)\b/.test(text)) return 'emergency';
+  const alcohol = alcoholPreviouslyMentioned || /\b(alcohol|beers?|wine|tequilas?|vodka|whisk(?:ey|y)|cocktails?|drinking|drinks|drunk|drank)\b/.test(text);
+  if (/\b(too tired|exhausted|falling asleep)\b/.test(text) && /\b(driv\w*|wheel)\b/.test(text)) return 'driving';
+  if (alcohol && /\b(driv\w*|wheel)\b/.test(text)) return 'driving';
+  if (alcohol && /\b(swim\w*|boat\w*|pool|water)\b/.test(text)) return 'water';
+  if (/\b(heavy drinking|too much to drink|many drinks|drank a lot)\b/.test(text)) return 'pause';
+  return null;
+}
+
 export type DecisionGuardReason =
   | 'malformed'
   | 'unsafe_dose'

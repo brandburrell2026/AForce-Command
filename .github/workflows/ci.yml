@@ -151,6 +151,11 @@ jobs:
             exit 1
           fi
 
+      # Social's copy contract is a strict gate, independent of the legacy
+      # test-failure allowance used by the canonical baseline comparison.
+      - name: Verify Social and One Breath copy contract
+        run: pnpm exec vitest run artifacts/aforce-os/components/__tests__/socialCopy.guard.test.ts
+
       # Canonical no-DB run (governance/TEST-BASELINE.md §1). DATABASE_URL is
       # deliberately left UNSET: the documented baseline already accounts for
       # the ~33 files that fail to load without it (Cause B in the doc). A

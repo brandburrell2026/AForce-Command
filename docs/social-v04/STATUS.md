@@ -1,0 +1,133 @@
+# Social v0.4 implementation checkpoint — 2026-11-04
+
+Source: Julius's linked Social v0.4 artifact, saved as source-spec-accessibility.txt.
+Branch: feat/social-v04. This is local implementation, not an internally released build.
+
+## Implemented behind the internal preview gate
+
+- One shared preparation screen for Social and One Breath, carried on the existing account-scoped Moment.
+- Capture, editable Mirror, canonical preparation review, hold-to-Seal, Lock In, Quiet, Plans changed, private return, and Replay.
+- Saved Seal acknowledgement, duplicate retry protection, stale-review rejection, scope checks and deletion tombstones. Seal binds the exact canonical command ID and action, the reviewed validity window and visible upcoming context. Live input checks cover mid-hold changes and queued save starts; acknowledged retries remain idempotent. Calendar context bindings remain in memory only.
+- Actual existing-Moment Noticed entry; no fabricated calendar event. Suggestions use fresh shared Moments/preferences at tap time, respect quiet hours, lead windows, active-plan suppression and one proposal per occurrence. Repeated declines reduce frequency; category opt-out and an independent restore control use the existing scoped Moments preferences key with acknowledged writes.
+- Upcoming context reads the existing shared Moments selector and displays the event after the reviewed Moment, including its date. Noticed may propose a real, readable calendar candidate supplied by the existing consent/category/confidence-gated calendar layer. Demo, masked and tentative/cancelled candidates are excluded. The internal gate mounts before shared data readers; production calendar settings remain unchanged.
+- A calendar candidate remains read-only through Mirror and Plan. Seal explicitly creates a member-reviewed manual Moment from approved fields, with a minimal opaque event/occurrence link to suppress only that exact calendar row. It never persists the source object, notes, attendees or body. Other recurring occurrences and moved events remain visible; removing the manual plan reveals the source again. Access revocation clears an unsealed source candidate. A sealed manual plan remains the member's own record.
+- Calendar revisions during an unsealed draft preserve member edits and block Continue/Seal until the member explicitly reviews the latest event. Earlier known end times constrain the pending draft immediately; extensions require review. Changed timing, classification, preparation goal and completion metadata invalidate the old binding. Revoked or completed sources cannot be revived by delayed Prepare acknowledgements. No calendar record is written.
+- The local time zone and reviewed event offset are bound in RAM at Plan. A zone change during a Seal hold or before a queued save starts returns to an expanded date/time review. No time-zone fingerprint is persisted; reopening an acknowledged plan preserves its UTC instant. Native travel acceptance is still pending.
+- Hydration instructions mirror the current guarded command only in the existing preparation window or explicit happening-now capture. Future plans do not freeze today's dose into a later action. Newly reviewed actions are never assigned past times. No Social-specific dose or timing policy was added.
+- Capture exposes a voice button only when supported on-device recognition is available. Unsupported devices keep the decorative orb and complete typed path without an inactive keyboard/screen-reader button. Browser geometry checks cover 39 visible controls across ten lifecycle projections, all at least 44 CSS pixels in each dimension; this is not native touch-target, large-text or VoiceOver acceptance. The measured local report is local-previews/touch-target-audit.json.
+- Each lifecycle view exposes a focusable screen-reader heading and resets scroll to the top when entered. Editing within the same view preserves input focus; revealing a different safety view moves focus to its heading. Native focus requests check screen-reader availability and cancel stale asynchronous requests. Seal reports its disabled/busy state. Browser interaction tests cover step transitions and uninterrupted typing; native VoiceOver behavior still requires phone acceptance.
+- Empty or whitespace-only native recognition results do not erase typed words or a valid partial transcript. Failed capture preserves the draft and allows another capture after recognition finishes draining; physical-device voice acceptance remains pending.
+- Typing in One Breath immediately cancels active or permission-pending voice capture before updating the draft. Late native transcripts cannot replace member edits, and typed review becomes available without waiting for recognition to end. Voice behavior still requires native-device acceptance.
+- Member-pasted reservation details can enter the same Mirror/Plan/Seal path. Conservative labelled-field parsing accepts an explicit name/date/local time, leaves missing or competing values editable and never checks or changes a booking. Raw confirmation text is discarded on review/cancel; guests, email addresses, confirmation codes and body text are not copied into the Moment or used to infer alcohol context. Only reviewed manual fields persist at Seal. This is not an automated forwarding inbox.
+- Retention requires an unchecked, session-only age-and-retention confirmation bound to the exact configured region, minimum age, duration and policy version. No age is inferred from birth year; no DOB or confirmation record is copied to the Moment. Without confirmation or approved configuration, the member can still Seal normal reviewed fields without persistent alcohol context and still access immediate safety options. Previously retained context is disclosed and can be cleared without ending the plan. Withdrawal during a pending write queues a guarded clear; read/expiry never reuses an earlier confirmation to renew the lifetime. This is self-attestation, not identity verification; invitee age handling remains Phase B.
+- Mirror summarizes a known date/time and expands its editors and getting-back controls on request. Unknown timing remains visible for explicit confirmation. Calendar provenance and approval wording remain visible.
+- An unchecked-by-default follow-up choice links only the member-selected next Moment at Seal. It is disclosed in Plan and Seal, persists on the same Moment, and creates no extra Moment, reminder or command. Return offers a fresh One Breath review of that exact occurrence; changed, masked, completed, expired or revoked context requires another choice. Replaying feedback leaves this handoff available. Same-member route changes remount local draft state; account changes block the handoff. A timed 6 AM crossing stays in Quiet until Return.
+- Acknowledged reviewed commits cannot remove or change an existing Return/cancellation timestamp, reopen a closed preparation, or combine both terminal outcomes. Private Replay feedback and new Moments remain available. Open views follow terminal outcomes acknowledged elsewhere in the shared store instead of offering stale Quiet/Return controls. This uses the existing Moment lifecycle and store, with no new engine.
+- Explicit cancellation has its own timestamp on the same Moment, never a Return/check-in or Replay result. Acknowledged cancellation ends Quiet, clears private context and stays closed on reload. Cancelled records cannot become upcoming advice, proposals, detail rituals or prep reminders; no invitation or status is sent. Queued schedules recheck cancellation and due time before native delivery, and late native acknowledgements are removed. A failed cancellation remains retryable and never renders success.
+- Unconfirmed candidates expire only at a valid, source-provided end time. Reopening an ended candidate, crossing its end during a hold, and delayed proposal acknowledgements cannot revive it. No end is guessed, no source record is deleted and no completion/Return is written. An approval completed before the deadline waits honestly for durable acknowledgement; a failure after the deadline returns to capture, while a successful acknowledgement preserves the approved plan. Confirmed Quiet never ends from this clock.
+- Removing a member-owned Moment invalidates its open preparation view, cancels any Seal hold and clears cached words, private context, destination and contact inputs. A delayed Prepare acknowledgement cannot revive the removed candidate. An in-flight rejected write settles before the view clears; the existing store still owns durable deletion and tombstones. Unrelated Moments remain intact.
+- Social entry remains inside Protocol / Prepare My Day, with no tab.
+- Mirror day/night styling and upcoming context use valid draft timing as it is edited. Invalid or nonexistent dates never normalize into preview context; the opening question uses nighttime before dawn. The local daytime journey covers Seal, sun-orb Quiet and private Return. This adds no heat or recovery policy, and real-phone acceptance is pending.
+- Inter typography, source-derived mirrored-N geometry, blue/orange/sun orb variants, reduced-motion handling, eight-second Quiet dim.
+- A strict CI copy-contract step scans authored JSX, labels, errors and template fragments across shared/fallback One Breath components, the preparation adapter and native voice messages. It rejects prohibited status/impairment, drink-count, unproven real-time and deprecated send-off wording, plus mixed-case brand copy. Comments and member-provided runtime words are excluded. An injected prohibited claim was rejected and the original source restored. Conditional timing, dynamic engine guidance and native notifications still require their separate runtime checks.
+- “Go perform.” shared Lock In/Quiet wording. Current brand fill already matches #C1281B.
+- Quiet serializes native scheduling with cancellation before committing Lock In. Existing safety-kind schedules are preserved; ordinary schedules and TTS are suppressed, as is the morning voice overlay.
+- Local /os and /os/ permanent redirects to /aforce-os; not deployed.
+
+Gate: EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true AND EXPO_PUBLIC_SOCIAL_V04=true. Off by default. Existing One Breath confirmation and restricted Night Out entry remain fallback behavior.
+
+## Verified locally
+
+500 tests pass across 41 focused and regression suites, including shared UI interactions, persistence, Decision Guard, existing voice, travel/Moments/Concierge reminders and Quiet scheduling races. App TypeScript passes.
+
+Local interruption/write tests verify inactive/background cancellation during a Seal hold, leaving the screen mid-hold, explicit retry after storage rejection, one acknowledged save after a delayed write, a retryable failed Return, and rehydration of Return with private context removed. These use injected lifecycle/storage events; they do not establish native force-close, offline or VoiceOver acceptance.
+
+The iOS Metro/Hermes bundle export succeeds with both internal preview flags enabled (4,642 modules). The local dependency layout was repaired without changing the original checkout. This is a bundle export, not a signed build or device acceptance.
+
+Nineteen local browser projections were rendered from the actual shared component with synthetic data. Fonts, mirrored-N mark, orb, plan, Seal and safety layouts were inspected. The additional privacy-control projection uses conspicuously labelled, unapproved synthetic policy values. The extra reservation-entry projection is a capture option, not a separate Social lifecycle. Files in local-previews/ are local review outputs and are not physical-iPhone evidence.
+
+## Required before release or claiming spec completion
+
+- Complete broader context-dependent recovery policies and automated forwarded-reservation ingestion. A member-pasted reservation review is implemented; no email-receiving/provider integration exists. Manual words, existing consent/confidence-filtered calendar candidates, decline preferences, source binding, explicit follow-up intent and a Return-to-One-Breath handoff are implemented. Current guidance still comes only from the guarded command authority. The example breakfast, walk, exercise-replacement and sleep-based next-morning rules are not implemented; the app does not invent those policies or promise protection/recovery.
+- Regional policy selection remains pending. The code now preserves minimal volunteered context on the same scoped Moment, requires an explicitly configured region/minimum age/lifetime/version and explicit member confirmation, never extends expiry on read, purges metadata on hydration/foreground/active expiry, and clears it on member return. Returned plans cannot re-retain context through the screen’s background effect, and stale async errors cannot affect a newer view. There is no drink count or raw-utterance log. Alcohol details are excluded from the persistent title/priority in this flow. Expiry is not sobriety or driving clearance. Validate regional age handling and emergency-number behavior before enabling the internal gate; deterministic phrase matching is not comprehensive emergency recognition or driving assessment.
+- Validate ongoing-event capture and revisions, native cancellation and known-end-time expiry for unconfirmed candidates, every interrupted hold/save, offline and force-close behavior, concurrent account changes and native notification cancellation/reconciliation. Do not replay stale reminders in a burst.
+- Finish visual comparison against all nine source screens and accessible focus/VoiceOver/large-text/reduced-motion checks on device.
+- Real iPhone demos: nighttime, daytime, travel/offline/restart. User deferred unlocking iPhone (2); no real-phone screenshots have been produced.
+- Signed build, internal TestFlight distribution and acceptance evidence. None is complete for Social; the local Metro/Hermes bundle export is verified above.
+- Website redirect deployment and public verification.
+
+Phase B remains deferred by the spec: accepted check-in-person invitations, temporary Circles, deeper ride integration and watch sync. Current ride links open the provider only; they do not book, charge, track or notify another person. No claim of Circle acceptance, shared status or delivery is made.
+
+## Configuration contract (no approved lifetime assumed)
+
+- EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true and EXPO_PUBLIC_SOCIAL_V04=true enable the preview route.
+- EXPO_PUBLIC_SOCIAL_POLICY_REGION: explicitly selected test region.
+- EXPO_PUBLIC_SOCIAL_CONTEXT_RETENTION_HOURS: positive, approved lifetime; no hard-coded default.
+- EXPO_PUBLIC_SOCIAL_POLICY_VERSION: version of that approved configuration.
+- EXPO_PUBLIC_SOCIAL_MINIMUM_AGE: approved positive integer threshold; no default and no inferred age from the profile.
+
+Without all four policy values and an explicit session confirmation matching them, volunteered alcohol context is not durably written by this flow. Safety alternatives remain available immediately. Normal reviewed plans can still be sealed without this context, with a truthful notice that it will not remain after the session. Existing retained context is clearly disclosed and can be cleared. Self-attestation is not identity verification or a clinical assessment. No regional values have been approved or enabled in this checkpoint.
+
+Quiet additionally blocks ordinary audio during unresolved hydration, cancels pending native reminders before Lock In, suppresses the cold opening/voice overlay and welcome banner, and invalidates in-flight TTS so a late response cannot play after Lock In. The typed web fallback uses stable voice methods so rerenders cannot cancel a valid Seal hold. Early release and a complete hold are covered by actual pointer-event tests.
+
+
+## Native Simulator checkpoint — November 4
+
+The iPhone 16e Simulator completed native compilation and loaded the app with an authenticated internal account. Simulator UI checks covered Protocol → Social capture, local date/time review, getting-back options, plan review, accessibility activation of Seal, Lock In, resuming persisted Quiet, opening/backing out of Plans changed, Return and Next. The returned test Moment survived a full JavaScript reload and remains visible as DONE with no preparation brief and zero upcoming Moments. This does not establish a physical hold, full VoiceOver behavior, notification delivery, force-close/offline or physical-iPhone acceptance.
+
+Two runtime findings were corrected: the Social preparation route is now /social-preparation to avoid the existing /(tabs)/social compatibility route; returned plans remain in history but no longer receive preparation commands, own the priority brief or count as upcoming. Existing ritual completion fields are not fabricated by Return. The 134 focused tests for these changes and app TypeScript pass. The larger CI suite must run on this revision.
+
+Simulator screenshots and native build reports are preserved outside the worktree in outputs/social-v04-native-validation. The compiled Simulator shell predates the JavaScript fixes; the running Simulator loaded those fixes from Metro. No updated signed build, TestFlight upload or production deployment is claimed.
+
+
+The next Simulator pass verified tomorrow/noon capture, editing the sealed plan to 13:00 on the same Moment ID with no duplicate, Lock In staying on Quiet, cancellation as a distinct non-check-in outcome, and cancellation remaining out of upcoming Moments after a full JavaScript reload. Daytime Quiet and cancellation screenshots are preserved with the earlier evidence.
+
+A native-discovered opening-overlay race is fixed: late cinematic completion cannot move an entered launch back to Welcome. A hydrated active Quiet plan suppresses the Welcome overlay and completes that front-door phase. The internal account's optional setup screen was encountered on the first Quiet reload and skipped; comprehensive native cold-start/account-switch acceptance remains pending. Revision Seal wording now says Updates 1 Moment for an existing saved plan. The 135 focused tests across six affected suites and app TypeScript pass. The previous revision b471b276 passed all CI jobs; this new revision needs its own CI result.
+
+
+### Active Quiet restart and larger-text follow-up
+
+On iPhone 16e iOS 26.3 Simulator, force-closing an active Quiet plan through the iOS app switcher and relaunching preserved authentication, bypassed the Welcome overlay, and reopened that saved plan in Quiet through Protocol. Cancelling only the labeled restart QA plan left the earlier returned history intact and zero upcoming Moments. This was online, not an offline or real-phone check. Commit 559dc8ff passed all CI jobs.
+
+Eight Simulator preferred-text-size increases exposed excessive display-heading wrapping. At accessibility font scales (2 and above), shared preparation headings now use a smaller base size while retaining native scaling; the header can wrap. The changed-plan heading improved from three lines to two after loading the updated source, and cancellation remained available through native accessibility activation. Eight matching decreases restored the original preference. Physical scrolling, full VoiceOver, all screen/size combinations and real-device acceptance remain pending. The 82 shared-screen render tests, two launch-phase tests and app TypeScript pass. No updated signed build, TestFlight release or production deployment is claimed. Evidence: outputs/social-v04-native-validation/restart-and-large-text-check.json in the task workspace.
+
+
+### Internal Social build preparation
+
+All seven CI checks passed for 005cd6a5, and its iOS Hermes export completed successfully. A separate `internal-social` EAS profile now extends `internal`, enables `EXPO_PUBLIC_SOCIAL_V04=true`, and uses the `internal-social` update channel. Existing internal/production profiles and submit settings are unchanged. It inherits the existing internal preview flag; no regional retention policy is configured. This is configuration preparation only: no cloud build, signing, submission, channel publication or paid job was started. Use the exact reviewed revision for a later authorized build and submit only its explicit build ID. Real-phone acceptance, regional decisions and release authorization remain separate gates.
+
+
+### Native timing validation
+
+The shared One Breath route on iPhone 16e iOS 26.3 Simulator rejected 2027-02-30 and the New York DST gap 2027-03-14 02:30 without leaving Mirror. Explicit Happening now reset the review to the current local date/time and reached an unsealed Plan with preparation steps clamped to the current time. Closing without Seal retained prior history and zero upcoming Moments. Known-end expiry remains source-event based; manual capture does not invent an event end.
+
+This pass exposed a stale error after Happening now replaced invalid timing. That action now clears the prior validation error, consistent with manual field edits. The regression test covers invalid date → error → Happening now → no stale error → unsealed Plan with no commit. All 83 shared-screen render tests and app TypeScript pass. Native verification of the final one-line correction is pending reloading the local server. No physical-device or TestFlight result is implied.
+
+
+### Internal build 142 and real-phone follow-up — November 4, 2026
+
+Signed build 142 from a40b62cc completed and was released to the existing internal AForce Testers group. TestFlight 1.0.0 (142) was installed and launched on the real iPhone via Mirroring. Social capture from Protocol, explicit next-day 20:00 EST review, unsealed Plan and Seal disclosure were observed. A short tap did not save. The member performed the physical hold and Lock In; the subsequent saved Quiet state and one QA Moment were verified. Quiet survived background/reopen. Cancelling only that QA plan restored zero upcoming Moments and preserved the pre-existing completed meeting, without recording Return/check-in. The shared reservation-details path reviewed fictional November 6 timing as 19:30 America/New_York; Close saved nothing. Invalid February 30 remained on Mirror, and Happening now recovered to a valid unsealed Plan. Real-phone screenshots and the detailed report are in the task workspace outputs/social-v04-real-device-142.
+
+The invalid-date message was not visible in the captured review viewport. Review errors now render near the top before editable fields, with no duplicate footer alert; dedicated calendar-change feedback stays in place. The regression verifies a single alert precedes the date input and clears after Happening now. All 84 shared-screen render tests, app TypeScript, and whitespace checks pass. This follow-up source change is not in build 142; updated native placement verification awaits another authorized build.
+
+Real-phone voice, offline, larger text/VoiceOver, true force-quit persistence, revision/reseal and Return remain unverified. Mirroring did not dismiss the app card, so no force-quit success is claimed. The physical hold and intermediate Lock In were member performed, not directly observed by the agent. No public release, external tester rollout, additional cloud build or website deployment is included in this follow-up.
+
+
+### Real-phone voice report and follow-up
+
+Build 143 from 4b4b5892 passed signed-artifact checks, was released to the existing internal group and installed through TestFlight. The member reached capture after signing in but reported that holding the orb did not work. The cause has not been confirmed with native recording evidence. Source inspection identified two first-use interruption paths: releasing the hold during microphone approval cancels the attempt, and an inactive permission prompt cancels voice in both the shared screen and hook.
+
+The shared orb now uses tap-to-start/tap-to-stop with explicit starting/listening text and the actual voice error. The native hook tolerates inactive only while microphone approval is pending, waits for active before starting, and still cancels on background, typing, unmount or account change. Parent AppState handling retains Seal cancellation and delegates voice lifecycle to the hook. On-device-only recognition and no audio persistence are unchanged. New regressions cover permission-prompt inactive/active, background while pending, and cancellation before activation. All 96 voice/shared-screen tests, app TypeScript and whitespace checks pass locally. This fix is not in build 143; a further signed build and real-phone voice acceptance remain required. No additional cloud build is started by this follow-up.
+
+
+### Explicit typing entry
+
+The member could not discover typing in build 143 because the input looked like ordinary example text. Capture now provides Type instead (or Type your moment on unsupported voice platforms), labels and outlines the field, cancels pending voice before focusing, and cancels capture on direct input focus. The render regression verifies actual field focus, cancellation and typed review without saving. All 97 voice/shared-screen tests, app TypeScript and whitespace checks pass. This is a local follow-up for the next voice-fix build, not a change to installed build 143.
+
+### November 4: selectable timing for typed Moments (local source)
+
+Added a shared review calendar with month navigation, hour/minute and AM/PM selection, and a searchable IANA time-zone chooser. Phone time zone is the default; manual date/time entry remains available. Selecting timing keeps the editor open. Explicit event-zone time is shown in Plan and Seal, converted to an absolute saved instant, and saved Moments continue to display in device-local time. Happening now resets any event-zone override. No calendar access permission or new native dependency is required.
+
+Validation: 107 targeted tests pass across shared-screen interactions, draft timing and native voice; app TypeScript and git diff whitespace checks pass. Coverage includes no-save-before-Seal, selected-zone saved instant, month navigation, midnight, half-hour offsets, DST gaps/repeats, and invalid dates/zones.
+
+This change is local source only, after build 144. No new EAS build, upload, release or real-phone verification of these pickers has occurred.

@@ -43,6 +43,14 @@ describe('internal Moments quiet rows', () => {
     expect(row('2').getAttribute('aria-label')).toContain('Canonical preparation action');
     expect(host.textContent!.split('Canonical preparation action')).toHaveLength(2);
   });
+  it('keeps a returned plan quiet and moves the brief to the next open Moment', () => {
+    h.moments[0].preparation = { returnedAtIso: '2026-11-02T11:00:00Z' };
+    render();
+    expect(row('0').getAttribute('aria-label')).toContain('moments.stage_done');
+    expect(row('0').getAttribute('aria-label')).not.toContain('moments.do_this');
+    expect(row('0').textContent).not.toContain('Canonical preparation action');
+    expect(row('1').getAttribute('aria-label')).toContain('Canonical preparation action');
+  });
   it('keeps an absent command silent and preserves the public layout when the internal gate is off', () => {
     h.action = false; render(); expect(host.textContent).not.toContain('Canonical preparation action');
     expect(row('0').getAttribute('aria-label')).not.toContain('moments.do_this');

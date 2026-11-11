@@ -22,6 +22,7 @@ import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
 import { buildDemoMoments, buildDemoCalendarMoments } from '@/data/demoMoments';
 import {
   buildRecommendation,
+  mergeReviewedCalendarMoments,
   surfaceableMoments,
   nextMoment,
   type MomentSignals,
@@ -104,7 +105,7 @@ export function useMomentsData(options?: {
   const moments = React.useMemo(
     () => {
       if (fixture) return fixture;
-      const base = calendarOn ? [...store.moments, ...mergedCalendar] : store.moments;
+      const base = calendarOn ? mergeReviewedCalendarMoments(store.moments, mergedCalendar) : store.moments;
       return travelOn && travel.owner ? mergeIntelligenceMoments(mergeTravelMoment(base, travel.query.data), intelligence.query.data?.trips ?? []) : base;
     },
     [fixture, calendarOn, store.moments, mergedCalendar, travelOn, travel.owner, travel.query.data, intelligence.query.data],
