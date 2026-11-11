@@ -1,5 +1,6 @@
 import { useTravelIntelligence } from '@/hooks/useTravelIntelligence';
 import { mergeIntelligenceMoments } from '@/services/travel/intelligence';
+import { useTravelArrivalContexts } from '@/hooks/useTravelArrivalContexts';
 /**
  * useMomentsData — the one data hook every Moments surface shares
  * (Phases 1–2). Assembles: hydrated store moments, per-moment
@@ -32,6 +33,9 @@ import { useFeatureFlags } from '@/store/useAppStore';
 import { useCalendarMoments, refreshCalendarMoments } from '@/services/calendarMoments';
 import { useAppStateGatedInterval } from '@/hooks/useAppStateGatedInterval';
 import { guardMomentRecommendation } from '@/utils/intelligence/decisionGuard';
+import type { TravelTrip } from '@workspace/api-zod';
+
+const EMPTY_TRIPS: readonly TravelTrip[] = [];
 
 const TICK_MS = 30_000;
 
@@ -102,13 +106,25 @@ export function useMomentsData(options?: {
   const fixture = options?.fixtureMoments;
   const nowIso = options?.fixtureNowIso ?? tickIso;
   const mergedCalendar = DEMO_MODE || CAPTURE_MODE ? demoCalendarMoments : calendarDerived;
+  const baseMoments = React.useMemo(
+    () => (calendarOn ? mergeReviewedCalendarMoments(store.moments, mergedCalendar) : store.moments),
+    [calendarOn, store.moments, mergedCalendar],
+  );
+  // Travel 2.0: destination weather + next commitment for the arrival plan.
+  // Inert (no network) unless the travel pilot is on for this member.
+  const arrivalContexts = useTravelArrivalContexts(
+    !!(travelOn && travel.owner),
+    intelligence.query.data?.trips ?? EMPTY_TRIPS,
+    baseMoments,
+  );
   const moments = React.useMemo(
     () => {
       if (fixture) return fixture;
-      const base = calendarOn ? mergeReviewedCalendarMoments(store.moments, mergedCalendar) : store.moments;
-      return travelOn && travel.owner ? mergeIntelligenceMoments(mergeTravelMoment(base, travel.query.data), intelligence.query.data?.trips ?? []) : base;
+      return travelOn && travel.owner
+        ? mergeIntelligenceMoments(mergeTravelMoment(baseMoments, travel.query.data), intelligence.query.data?.trips ?? [], arrivalContexts)
+        : baseMoments;
     },
-    [fixture, calendarOn, store.moments, mergedCalendar, travelOn, travel.owner, travel.query.data, intelligence.query.data],
+    [fixture, baseMoments, travelOn, travel.owner, travel.query.data, intelligence.query.data, arrivalContexts],
   );
 
   // RP-3 (one hydration action): the mirror source. `engine` here is the

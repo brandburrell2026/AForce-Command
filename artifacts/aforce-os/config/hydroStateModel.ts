@@ -729,3 +729,19 @@ export const TRAVEL_RESET_MINUTES = 10;
 
 /** Pause length before leaving the airport, minutes. */
 export const TRAVEL_PAUSE_MINUTES = 2;
+
+/* ─── Travel Intelligence — T2 data-layer tunables ───────────────────────── */
+
+/** Destination weather is reused for this long before refetching (ms). */
+export const TRAVEL_WEATHER_CACHE_MS = 10 * 60_000;
+
+/** Current conditions older than this (provider time) are shown as old and
+ *  never drive the arrival plan. */
+export const TRAVEL_WEATHER_MAX_AGE_MIN = 90;
+
+/** Forecasts are used for arrivals at most this many days ahead. */
+export const TRAVEL_FORECAST_HORIZON_DAYS = 7;
+
+/** A Moment counts as the "next commitment" after landing only if it starts
+ *  within this many hours of arrival. */
+export const TRAVEL_NEXT_COMMITMENT_HORIZON_HOURS = 12;
