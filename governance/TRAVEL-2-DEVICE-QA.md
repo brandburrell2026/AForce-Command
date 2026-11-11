@@ -73,3 +73,15 @@ Flight status does not need to be connected. Every row below works without Trave
 **Out of scope for this pass:** licensed city photography (not shipped; the type-only view is
 expected), the share card, sleep and light guidance (pending science review), and production
 rollout.
+
+---
+
+## Pass log
+
+| Pass | Date | Tester | Build | Device / iOS | Result |
+|---|---|---|---|---|---|
+| 1 | 2026-11-11 | Brandon | Internal TestFlight from `main@d352fc65` · build number **not recorded** | **Not recorded** | **Rows 0.1–24: all PASS**, plus the share card (tester-reported). Row 5 observed explicitly: stayed LOCK-IN past the planned arrival and never switched to arrived on its own. |
+
+**Share card, pass 1:** confirmed by the tester. *Share your arrival* worked, and the shared
+image carried no date or time. Fill in the build number and device/iOS for pass 1 if they are still
+to hand.
