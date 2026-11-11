@@ -43,7 +43,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
 
   // Athlete tier — Metabolic Readiness. Ships OFF in production; the
   // glucose lane stays OFF everywhere (engine-only, no UI yet).
@@ -294,7 +294,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // hydration challenge, and the anonymous referral boards as the only
   // cross-user surface (no named-people rankings — SS-07). ON in
   // production — founder flip 2026-08-11 (all five V3 screens together).
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
   // Explicit internal pilot only. Joining never grants health-data sharing.
   circle_membership_enabled: false,
   circle_sharing_enabled: false,
@@ -492,7 +492,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
   metabolic_readiness_enabled: true,
   metabolic_glucose_enabled: false,
   performance_age_enabled: true,
@@ -585,7 +585,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
   // Generic demos must not create real social relationships.
   circle_membership_enabled: false,
   circle_sharing_enabled: false,

@@ -1,8 +1,8 @@
 /**
  * V3 dashboard launch flip — flag-state lock (founder flip 2026-08-11).
  *
- * The five V3 screens (Home / Protocol / Signal / Week in Review / Circle,
- * PRs #705–#710) went live together: all five `*_v3_dashboard_enabled` flags
+ * The four remaining V3 screens (Home / Protocol / Signal / Week in Review,
+ * PRs #705–#709) went live together. Circle moved to the private V4 surface,
  * flipped ON in DEFAULT_FLAGS. These tests lock the launched production
  * defaults, prove an explicit override still selects the pre-V3 path (the
  * older screens remain in the binary until a post-soak cleanup PR), and pin
@@ -19,11 +19,10 @@ const V3_FLAGS = [
   'protocol_v3_dashboard_enabled',
   'signal_v3_dashboard_enabled',
   'weekly_v3_dashboard_enabled',
-  'circle_v3_dashboard_enabled',
 ] as const;
 
-describe('V3 dashboard launch flip — the five founder-comp screens', () => {
-  it('all five V3 screens are the DEFAULT production path', () => {
+describe('V3 dashboard launch flip — the four active founder screens', () => {
+  it('all four V3 screens are the DEFAULT production path', () => {
     for (const flag of V3_FLAGS) {
       expect(DEFAULT_FLAGS[flag], flag).toBe(true);
     }
@@ -41,10 +40,12 @@ describe('V3 dashboard launch flip — the five founder-comp screens', () => {
     expect(forcedPreV3.spec_weekly_report).toBe(DEFAULT_FLAGS.spec_weekly_report);
   });
 
-  it('demo/preview flag set is unchanged by the launch flip', () => {
+  it('demo/preview retains the four V3 surfaces while Circle stays on private V4', () => {
     for (const flag of V3_FLAGS) {
       expect(DEMO_ALL_ON_FLAGS[flag], flag).toBe(true);
     }
+    expect(DEFAULT_FLAGS.circle_v3_dashboard_enabled).toBe(false);
+    expect(DEMO_ALL_ON_FLAGS.circle_v3_dashboard_enabled).toBe(false);
   });
 
   it('the pre-V3 weekly-report fallback underneath the switch stays ON', () => {

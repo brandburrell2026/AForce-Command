@@ -9,6 +9,7 @@
 
 import {
   pgTable,
+  integer,
   serial,
   text,
   timestamp,
@@ -33,3 +34,13 @@ export const earlyAccessSignups = pgTable(
 );
 
 export type EarlyAccessSignupRow = typeof earlyAccessSignups.$inferSelect;
+
+/** Durable internal notifications; acceptedAt means provider acceptance, not delivery. */
+export const signupNotifications = pgTable("aforce_signup_notifications", {
+  signupId: integer("signup_id").primaryKey().references(() => earlyAccessSignups.id, { onDelete: "cascade" }),
+  attempts: integer("attempts").notNull().default(0),
+  nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true }).notNull().defaultNow(),
+  leaseUntil: timestamp("lease_until", { withTimezone: true }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  lastError: text("last_error"),
+});
