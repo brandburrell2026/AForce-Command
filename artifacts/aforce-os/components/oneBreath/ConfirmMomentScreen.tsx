@@ -60,7 +60,7 @@ export function ConfirmMomentScreen() {
       </Pressable>
       {helpOpen ? <View style={styles.delta}>
         <Text accessibilityRole="header" style={styles.body}>Speak or type</Text>
-        <Text style={styles.quiet}>Voice requires supported on-device English recognition on iPhone. You can always type. AForce does not save or receive the audio.</Text>
+        <Text style={styles.quiet}>Voice requires supported on-device English recognition on iPhone. You can always type. AFORCE does not save or receive the audio.</Text>
         <Text accessibilityRole="header" style={styles.body}>Review before saving</Text>
         <Text style={styles.quiet}>Correct the suggested name, date, time, and kind of moment. Dates and times use this device’s time zone. Ambiguous details stay blank. Only Confirm plan saves a Moment on this device. Closing a draft saves nothing.</Text>
         <Text accessibilityRole="header" style={styles.body}>Preparation reminders</Text>
@@ -70,7 +70,7 @@ export function ConfirmMomentScreen() {
       </View> : null}
       {saved ? (
         <>
-          <Text style={styles.body}>{draft?.title} is now in Moments on this device. Preparation appears when AForce has an eligible action.</Text>
+          <Text style={styles.body}>{draft?.title} is now in Moments on this device. Preparation appears when AFORCE has an eligible action.</Text>
           <AFPrimaryButton label="Open Moments" onPress={() => router.replace('/moments-tab')} testID="confirmed-open-moments" />
           <AFSecondaryButton label="Return Home" onPress={() => router.replace('/')} />
         </>
@@ -94,7 +94,7 @@ export function ConfirmMomentScreen() {
           <Field label="How do you want to arrive? · Optional" value={draft.prepGoal} onChangeText={(v) => update('prepGoal', v)} maxLength={500} placeholder="Focused, rested, ready." />
           <View style={styles.delta}>
             <Text style={styles.eyebrow}>BEFORE YOU CONFIRM</Text>
-            <Text style={styles.body}>Adds one Moment to your plan on this device. AForce uses your existing signals to show an eligible preparation action.</Text>
+            <Text style={styles.body}>Adds one Moment to your plan on this device. AFORCE uses your existing signals to show an eligible preparation action.</Text>
             <Text style={styles.quiet}>Does not log water, change HydroState, book travel, share with Circle, or write to your calendar. Existing reminder preferences still apply.</Text>
           </View>
           {draft.type === 'travel' ? <AFSecondaryButton label="Add or manage a flight instead" onPress={() => router.push('/travel')} /> : null}
@@ -106,7 +106,7 @@ export function ConfirmMomentScreen() {
         <>
           <Text style={styles.body}>Speak or type what’s coming up. Review the words, date, and time before you confirm.</Text>
           {voice.available ? <>
-            <Text style={styles.quiet}>Voice uses on-device English transcription. Audio is not saved or sent to AForce. Tap to start; tap again to stop.</Text>
+            <Text style={styles.quiet}>Voice uses on-device English transcription. Audio is not saved or sent to AFORCE. Tap to start; tap again to stop.</Text>
             <AFSecondaryButton label={voice.busy ? (voice.listening ? 'Stop listening' : 'Finish voice capture') : 'Speak a moment'} onPress={voice.busy ? voice.stop : () => { void voice.start(); }} />
             {voice.busy ? <AFSecondaryButton label="Cancel voice capture" onPress={voice.cancel} /> : null}
           </> : <Text style={styles.quiet}>Type mode is ready. Voice requires supported on-device recognition on iPhone.</Text>}

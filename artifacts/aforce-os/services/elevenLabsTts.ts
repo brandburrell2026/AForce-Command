@@ -11,12 +11,16 @@
  * silent — that's the whole point of having a fallback at this layer.
  */
 
+import { ordinaryDeliveryBlocked as quietMomentActive } from './quietDelivery';
 import { createAudioPlayer, type AudioPlayer } from 'expo-audio';
 import { getApiBase } from '../lib/api';
 
 let activePlayer: AudioPlayer | null = null;
+let playbackGeneration = 0;
+let activeBlob: string | null = null;
 
 function disposeActive(): void {
+  if (activeBlob) { URL.revokeObjectURL(activeBlob); activeBlob = null; }
   if (!activePlayer) return;
   try {
     activePlayer.pause();
@@ -52,7 +56,8 @@ export interface ElevenLabsSpeakOptions {
  */
 export async function speakWithElevenLabs(opts: ElevenLabsSpeakOptions): Promise<void> {
   const text = opts.text?.trim();
-  if (!text) return;
+  if (!text || quietMomentActive()) return;
+  const generation = ++playbackGeneration;
 
   const base = getApiBase();
   const url = `${base}/voice/tts`;
@@ -94,16 +99,24 @@ export async function speakWithElevenLabs(opts: ElevenLabsSpeakOptions): Promise
     playUri = `data:audio/mpeg;base64,${b64}`;
   }
 
+  // A request started before Lock In may finish after stopSpeaking().
+  if (generation !== playbackGeneration || quietMomentActive()) {
+    if (playUri.startsWith('blob:')) URL.revokeObjectURL(playUri);
+    return;
+  }
+
   // Tear down any previous utterance so a rapid second command doesn't
   // overlap — matches the de-dupe behavior in ttsService.
   disposeActive();
 
   const player = createAudioPlayer({ uri: playUri });
   activePlayer = player;
+  activeBlob = playUri.startsWith('blob:') ? playUri : null;
   player.play();
 }
 
 export function stopElevenLabs(): void {
+  playbackGeneration++;
   disposeActive();
 }
 

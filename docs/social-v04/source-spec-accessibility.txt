@@ -1,0 +1,800 @@
+Browser tab: 5, Title: "AFORCE OS · Social v0.4 — Build & Design Spec", URL: "https://claude.ai/artifact/3ZL4ffovyJE5e6V9fuV18d".
+0 AXWebArea AFORCE OS · Social v0.4 — Build & Design Spec, URL: claude.ai/artifact/3ZL4ffovyJE5e6V9fuV18d
+	1 container
+		2 container Description: Artifact controls, ID: hdr
+			3 pop up button (collapsed) AFORCE OS · Social v0.4 — Build & Design Spec, ID: base-ui-_r_3_, Secondary Actions: Expand
+			4 text Content is user-generated and unverified.
+			5 pop up button (collapsed) Description: Share, shared with anyone who has the link, ID: base-ui-_r_a_, Secondary Actions: Expand
+			6 link Description: Sign in, Value: claude.ai/login?returnTo=%2Fartifact%2F3ZL4ffovyJE5e6V9fuV18d
+		7 container Description: User-generated artifact content, ID: frame-content
+			8 AXWebArea AFORCE OS · Social v0.4 — Build & Design Spec, URL: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json
+				9 container
+					10 container AFORCE
+						11 text N N
+					12 text AFORCE OS
+					13 heading Social v0.4 Build & Design Spec, Value: 1
+						14 text Social v0.4
+						15 text Build & Design Spec
+					16 text What Social does, how it looks on every screen, and the rules underneath. It's written for Brandon, Claude Code and Codex, and it matches the One Breath prototype and joinaforce.com. DESIGN FROZEN · OCT 2, 2026 · REVISED NOV 3 2 FOUNDER DECISIONS OPEN (§11) REPLACES AUG 1 NIGHT OUT ADDENDUM (FLOW + SCREENS) INTER · CINEMATIC BLACK
+				17 container
+					18 link Description: What changed, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#changed
+					19 link Description: The rule, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#rule
+					20 link Description: Look & feel, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#look
+					21 link Description: The 9 screens, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#flow
+					22 link Description: Daytime, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#day
+					23 link Description: Safety, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#safety
+					24 link Description: Circle, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#circle
+					25 link Description: Privacy, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#privacy
+					26 link Description: Edge cases, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#edges
+					27 link Description: Copy, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#copy
+					28 link Description: Acceptance, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#tests
+					29 link Description: Decisions, Value: 14b5d37a-622f-4ecc-afca-7752b66e021a.frame.claudeusercontent.com/_f/1793722846-7ab8/?__frame_v=manifest.790ff6a726ef82ad.json#decide
+				30 container changed
+					31 text 00 · READ THIS FIRST
+					32 heading What changed since August, Value: 2
+						33 text What changed since August
+					34 text The Aug 1 email gave Brandon the rules: no BAC, private by default, and the Now / Next / Later layout. It didn't show what Social looks like or how it moves. This document adds both. Wherever the two disagree, this one wins.
+					35 table
+						36 row
+							37 cell
+								38 text AREA
+							39 cell
+								40 text AUGUST (NIGHT OUT ADDENDUM)
+							41 cell
+								42 text V0.4 (THIS SPEC)
+						43 row
+							44 cell
+								45 text Name
+							46 cell
+								47 text NIGHT OUT · Private Evening Protocol
+							48 cell
+								49 text Social , entered through Social One Breath (blue orb). Founder decision to confirm, see §11.
+						50 row
+							51 cell
+								52 text When it applies
+							53 cell
+								54 text Evenings
+							55 cell
+								56 text Any social Moment, day or night: dinner, a pool party, a boat day, a wedding, or a trip with several Moments in it
+						57 row
+							58 cell
+								59 text How it starts
+							60 cell
+								61 text Member opens it in Protocol
+							62 cell
+								63 text AForce  notices  and proposes it ("Looks like…"), or the member says it in One Breath. No menus.
+						64 row
+							65 cell
+								66 text Screen model
+							67 cell
+								68 text HydroState → Now → Next → Later
+							69 cell
+								70 text 9 screens on the canonical One Breath order: Noticed → One Breath → Mirror + Handled → Plan (Decision Delta) → Seal → Lock In / Quiet → Plans changed → Made it back → Next
+						71 row
+							72 cell
+								73 text Drink logging
+							74 cell
+								75 text Quick-log grid for every beverage
+							76 cell
+								77 text No drink grid and no drink counting. Alcohol is context only, and only if the member mentions it. Water reminders follow a steady time-based cadence set by the approved policy. They are never tied to how many drinks someone has had.
+						78 row
+							79 cell
+								80 text Getting home
+							81 cell
+								82 text Not covered
+							83 cell
+								84 text Getting back : works with any ride provider, destination is Home, Hotel or a saved place, and it's planned before the Moment starts
+						85 row
+							86 cell
+								87 text Circle
+							88 cell
+								89 text Never shares anything
+							90 cell
+								91 text Still private by default. Adds an opt-in check-in person (who has to accept first), "Made it back ✓", and temporary Circles
+						92 row
+							93 cell
+								94 text Next morning
+							95 cell
+								96 text Recovery Window handoff
+							97 cell
+								98 text Protect what's next : starts on a real signal only (app opened or validated sleep), never because the clock passed 6 AM
+				99 container rule
+					100 text 01 · GOVERNING RULE
+					101 heading Social is not a new engine, Value: 2
+						102 text Social is not a new engine
+					103 container
+						104 text Social v0.4 does not create a Social engine.  It defines Social behavior using the existing Moment, One Breath, Context Arbitration, Decision Guard, RecoveryCommand, Circle, Preparation Memory and Concierge contracts.
+					105 text Engineering must not build a second mini operating system inside AFORCE OS. Social is a kind of Moment. It has no separate score, state machine, memory or recommendation path.
+					106 table
+						107 row
+							108 cell
+								109 text SCREEN
+							110 cell
+								111 text IS A VIEW OF (EXISTING OS SERVICE)
+						112 row
+							113 cell
+								114 text 01 Noticed
+							115 cell
+								116 text Context Arbitration (calendar, forwarded reservations, member words) → Moment candidate. Declines go to the existing preference system.
+						117 row
+							118 cell
+								119 text 02 One Breath
+							120 cell
+								121 text One Breath capture → candidate Moment
+						122 row
+							123 cell
+								124 text 03 Mirror + Handled
+							125 cell
+								126 text One Breath Mirror · Concierge (Getting back) · Circle v1.1 (check-in consent)
+						127 row
+							128 cell
+								129 text 04 Plan
+							130 cell
+								131 text RecoveryCommand output, shown as the Decision Delta
+						132 row
+							133 cell
+								134 text 05 Seal → Lock In
+							135 cell
+								136 text The canonical Seal transaction · the existing Lock In state
+						137 row
+							138 cell
+								139 text 06 Quiet
+							140 cell
+								141 text Moment state: ACTIVE · the shared interruption budget
+						142 row
+							143 cell
+								144 text 07 Plans changed
+							145 cell
+								146 text The universal Plans Changed behavior · Decision Guard
+						147 row
+							148 cell
+								149 text 08 Made it back
+							150 cell
+								151 text Return · Circle status
+						152 row
+							153 cell
+								154 text 09 Next
+							155 cell
+								156 text Replay · Preparation Memory · the next Moment's RecoveryCommand
+					157 heading Promise to the member, Value: 4
+						158 text Promise to the member
+					159 text "AFORCE helps you prepare for the life you want to live, without trying to control how you live it."
+					160 heading Order of authority, Value: 4
+						161 text Order of authority
+					162 text AFORCE notices or the member says it → the member reviews it → Seal makes it true. AFORCE says "Looks like…" and never "You're going out drinking."
+					163 heading Experience rule, Value: 4
+						164 text Experience rule
+					165 text The prototype proves the magic and this spec proves the rigor. Keep compliance and edge-case detail off the screen. The member sees something simple.
+				166 container look
+					167 text 02 · LOOK & FEEL
+					168 heading How Social is supposed to look, Value: 2
+						169 text How Social is supposed to look
+					170 container
+						171 text Social uses the same cinematic, all-black, premium design system as One Breath and the website's AFORCE OS page (joinaforce.com/aforce-os). What makes it feel like Social is the  blue : the blue orb, blue highlights, and a midnight-blue Quiet screen with the moon. Use the tokens from  DESIGN-TOKENS.TS . Don't hard-code colors.
+					172 heading The mark, Value: 3
+						173 text The mark
+					174 container
+						175 text Use the same mark as joinaforce.com:  N, a thin bar, then a mirrored N (N–И) . It's set in Inter Light (300) in brand red. It isn't a slash, it isn't a heavy weight, and it isn't typed as the text "N|N." Build it as a component, never as a character string.
+					176 container AFORCE
+						177 text N N
+					178 text PRIMARY · RED ON INK
+					179 container AFORCE
+						180 text N N
+					181 text ON THE SOCIAL ORB · BONE
+					182 container
+						183 text Performance Is  Non- N egotiable.
+					184 text SIGNATURE LINE · MIRRORED N
+					185 table
+						186 row
+							187 cell
+								188 text PART
+							189 cell
+								190 text SPEC (MATCHES THE WEBSITE'S .NN-LOGO)
+						191 row
+							192 cell
+								193 text Letters
+							194 cell
+								195 text Inter 300, line-height 1. The second N is mirrored with scaleX(−1).
+						196 row
+							197 cell
+								198 text Bar
+							199 cell
+								200 text 0.4em wide × 0.056em tall, current color, 0.05em margin each side, raised 0.015em
+						201 row
+							202 cell
+								203 text Color
+							204 cell
+								205 text Red #C1281B on ink. Bone #F5F0E8 inside an orb.
+						206 row
+							207 cell
+								208 text Wordmark
+							209 cell
+								210 text "AFORCE OS" in all caps. Use IBM Plex Mono for small eyebrows and Inter 800 for headlines.
+					211 heading Colors, Value: 3
+						212 text Colors
+					213 text Ink
+					214 text #0D0D0D · background
+					215 text Panel
+					216 text #151513 · cards
+					217 text Bone
+					218 text #F5F0E8 · text
+					219 text Muted
+					220 text #A9A59C · secondary
+					221 text Blue
+					222 text #2F5BFF · Social primary
+					223 text Blue Hi
+					224 text #A9BEFF · eyebrows
+					225 text Social orb
+					226 text radial · light at 34/28
+					227 text Red
+					228 text #C1281B · mark, Lock In, urgency
+					229 heading Type, Value: 4
+						230 text Type
+					231 text Inter for everything readable. Headlines are 600 weight with −2.5% tracking. Body is 400. IBM Plex Mono is only for small uppercase eyebrows and times. No other typefaces.
+					232 heading Orbs are fixed, Value: 4
+						233 text Orbs are fixed
+					234 text One Breath is orange. Social One Breath is blue. The daytime Social Moment uses the sun orb. Never swap them. The N–И mark sits inside the orb in bone and breathes with it.
+					235 heading Sun orb (daytime Social), Value: 4
+						236 text Sun orb (daytime Social)
+					237 container
+						238 text Radial gradient, light source at 34% x / 28% y:  #FFF4D6 0% → #FFC56B 34% → #F08A24 68% → #9A3E0A 100% . Glow rgba(255,170,60,.45), blur 90. Accent #FFC56B for eyebrows and times, #F08A24 for the primary button. Same 6s breath, same size and same N–И placement as the blue orb. It only changes the light.
+					239 heading One focus per screen, Value: 4
+						240 text One focus per screen
+					241 text One headline and one primary button. Everything else stays quiet. Use generous black space and 1px hairline dividers, not heavy boxed cards.
+					242 heading Banned visuals, Value: 4
+						243 text Banned visuals
+					244 text No neon, bar or party imagery, confetti, mascots, drink counters, glasses or bottles. Never show Balanced or positive states in red.
+					245 heading Motion, Value: 4
+						246 text Motion
+					247 text The orb breathes on a 6-second cycle. Screens change with a soft fade and rise. The Quiet screen slowly dims to near-black. Every animation has a reduced-motion fallback. Nothing loops just for decoration.
+					248 heading Haptics & sound, Value: 4
+						249 text Haptics & sound
+					250 container
+						251 text Light tap when you select something. A medium pulse at Seal completion. Never a success haptic for logging alcohol. Sound and voice are off by default.  During Quiet:  no audio, no voice, no banners. Only the silent haptics the member saw and approved on the plan can fire, plus safety.
+					252 text Screens are drawn at 393 × 852 (iPhone 15/16). The mockups below are scaled down. Lay them out to the same proportions.
+				253 container flow
+					254 text 03 · THE LOOP
+					255 heading The 9 screens, in order, Value: 2
+						256 text The 9 screens, in order
+					257 container
+						258 text 9 screens. Seal and Lock In share screen 05  (Lock In wakes up after Seal), which is why some lists show 10 stages. These are views of the existing Moment lifecycle, not a separate Social flow (see the map in §1). They follow the Friday night scenario from the prototype: an outdoor dinner at 7:30, with an investor meeting the next morning at 10. Copy shown in quotes is the approved wording.
+					259 container
+						260 text ●●● ▮ 5:42 Friday, October 2
+						261 container AFORCE
+							262 text N N
+						263 text AFORCE OS · now Dinner tonight? Outdoor dinner at 7:30, and your investor meeting is at 10 tomorrow. Want me to prepare around it? Prepare Not this one
+					264 text 01 · NOTICED
+					265 heading AFORCE proposes the Moment, Value: 3
+						266 text AFORCE proposes the Moment
+					267 text Social should show up on its own, so nobody has to go looking for a mode. AFORCE notices a social Moment from the calendar, a reservation the member forwarded, or their own words, and sends one proposal.
+					268 definition list
+						269 container COPY
+							270 text COPY
+						271 text "Dinner tonight?" / "Want me to prepare around it?" · Prepare · Not this one
+						272 container TIMING
+							273 text TIMING
+						274 text One proposal per Moment, sent with enough lead time to prepare. For an evening dinner that's around the end of the workday. For a 2 PM pool party it's late morning. For a trip, it's the day before. Never during another Moment or quiet hours.
+						275 container SIGNALS
+							276 text SIGNALS
+						277 container
+							278 text Calendar, forwarded reservations, the member's words.  No location-based detection at launch.
+						279 container LEARNING
+							280 text LEARNING
+						281 container
+							282 text "Not this one" means not this Moment. A long-press offers "Never for things like this." Declines are stored in the  existing OS preference system , not a Social-only store, and if the member keeps declining, AFORCE proposes less often.
+						283 container MANUAL
+							284 text MANUAL
+						285 text The member can always start it themselves by holding Social One Breath and saying it.
+					286 container
+						287 text 5:43 ●●● ▮ SOCIAL ONE BREATH What would make tonight go well?
+						288 container AFORCE
+							289 text N N
+						290 text "Dinner with the team at 7:30, outside. Investor meeting at 10 tomorrow, so I want to stay sharp." Hold to speak · or  type
+					291 text 02 · ONE BREATH
+					292 heading The member says it once, Value: 3
+						293 text The member says it once
+					294 text Press and hold the blue orb, then speak. The orb breathes, the waveform listens, and the words appear live. Typing and touch work exactly the same way as speaking, and voice is never required.
+					295 definition list
+						296 container ORB
+							297 text ORB
+						298 text Blue Social orb, about 150pt, breathing on a 6s cycle. It grows a little (to 1.06×) while the member holds it.
+						299 container ASKS
+							300 text ASKS
+						301 text What it is · when · what you want to go well. Ask at most one clarifying question per turn, for example "7:30 PM?" when AM/PM is ambiguous.
+						302 container UNPLANNED
+							303 text UNPLANNED
+						304 text "We're at a bar, I've had a few tequilas" creates the Moment right there in the conversation. If the words already contain risk ("I'm driving"), the safety response comes first (§5).
+						305 container TRUTH
+							306 text TRUTH
+						307 container
+							308 text What the member says is a  candidate . Nothing becomes true until Seal.
+					309 container
+						310 text 5:44 ●●● ▮ HERE'S WHAT I HEARD TONIGHT Team dinner · 7:30 PM · outdoors TOMORROW Investor meeting · 10:00 AM PRIORITY Enjoy tonight. Sharp at 10. Anything you want handled before you go perform? Getting back Ride · Home Check-in person Maya · sees "Made it back" only Protect tomorrow Investor meeting Nothing, I'm good
+						311 button Continue
+					312 text 03 · MIRROR + HANDLED
+					313 heading Prepare before anything needs fixing, Value: 3
+						314 text Prepare before anything needs fixing
+					315 container
+						316 text AFORCE shows what it understood (the Mirror), then asks the most important question in Social. The plan exists  before  anyone has had a drink. This is the strongest idea in the design.
+					317 definition list
+						318 container MIRROR
+							319 text MIRROR
+						320 text Three rows: the Moment (labeled by its real time, like "Tonight" or "This afternoon") / what's next / Priority. Tap any row to correct it.
+						321 container OPTIONS
+							322 text OPTIONS
+						323 text Getting back · Check-in person · Protect tomorrow · Nothing, I'm good
+						324 container GETTING BACK
+							325 text GETTING BACK
+						326 text Ride (any provider available locally) · Walking · Someone's driving me · Staying here. Destination: Home · Hotel · Saved place · Choose.
+						327 container CHECK-IN
+							328 text CHECK-IN
+						329 container
+							330 text The chosen person must  accept  first, by text if they aren't an AFORCE member. Until they accept, show "Maya · waiting to accept."
+						331 container INVITE SAYS
+							332 text INVITE SAYS
+						333 text Exactly what the member approved at Seal: "Julius asked you to be his check-in for Friday evening. You'll see one thing: when he's made it back." The day and part of day are disclosed. No exact time, place, plan or anything about drinking.
+						334 container AFTER ACCEPT
+							335 text AFTER ACCEPT
+						336 container
+							337 text "Made it back" status, plus the neutral "hasn't checked in yet" nudge. An optional toggle,  off by default , "Share my getting-back plan with Maya," adds Ride · Home. That's the most anyone ever sees.
+						338 container DEFAULT
+							339 text DEFAULT
+						340 text Nothing is pre-checked on first use. After that, AFORCE remembers the member's last choices.
+					341 container
+						342 text 5:45 ●●● ▮ YOUR PLAN · NOT SEALED YET Prepared for tonight. Protected for 10. 6:00 PM Eat something real before you go. 7:15 PM A glass of water on the way. Any water counts. 7:30 PM Lock In. Then quiet. 2 silent water reminders · haptic only Heading back Ride · Home Maya sees "Made it back" only
+						343 button Review & seal
+						344 button Edit
+					345 text 04 · PLAN = DECISION DELTA
+					346 heading See the whole plan before anything is saved, Value: 3
+						347 text See the whole plan before anything is saved
+					348 container
+						349 text This is the canonical One Breath order: Mirror → Decision Delta → Seal. The plan itself is the Decision Delta. The member sees every step, every reminder and every share  before  approving. Nothing is written yet.
+					350 definition list
+						351 container BUILT BY
+							352 text BUILT BY
+						353 text RecoveryCommand, from real signals. 3–4 timed steps max, each with a time, one line of action and an optional one-line reason.
+						354 container QUIET RULES
+							355 text QUIET RULES
+						356 container
+							357 text Any reminder that will fire during Quiet is  named here  ("2 silent water reminders · haptic only"). If it isn't on this screen, it doesn't fire.
+						358 container WATER FIRST
+							359 text WATER FIRST
+						360 text Water, food, shade and rest can all outrank an AFORCE product. A product shows up only as optional support.
+						361 container AMOUNTS
+							362 text AMOUNTS
+						363 text Only from the approved deterministic policy. AI never invents quantities.
+						364 container LIVES IN
+							365 text LIVES IN
+						366 text The Protocol tab. Still five tabs, with no Social tab.
+					367 container
+						368 text 5:46 ●●● ▮ SEAL Only what you approve becomes your plan. Hold to seal Friday · Team dinner ADDS 1 Moment · 4 steps QUIET 2 silent reminders INVITE Text to Maya · sent at Seal MAYA SEES "Made it back" only LOCATION Only if you tap Get a ride
+						369 button Lock In · after Seal
+					370 text 05 · SEAL → LOCK IN
+					371 heading One approval, then the ritual, Value: 3
+						372 text One approval, then the ritual
+					373 container
+						374 text Seal is the  single commit . The ring fills over 1.2 seconds while the member holds it, then gives a medium haptic. After that, the Lock In button wakes up. Lock In begins the approved plan and opens Quiet. It never approves anything new.
+					375 definition list
+						376 container BINDS TO
+							377 text BINDS TO
+						378 text Member · reviewed version · Moment(s) · Decision Delta · policy versions · idempotent transaction ID · validity window. A retry can never create a duplicate Moment.
+						379 container RELEASE
+							380 text RELEASE
+						381 text Letting go early cancels it. Nothing is written.
+						382 container STALE
+							383 text STALE
+						384 text If the Moment changed after review, the member has to review it again.
+						385 container DISCLOSURE
+							386 text DISCLOSURE
+						387 container
+							388 text The summary under the ring repeats every outside party and what it gets:
+							389 text ·  Location:  requested only when the member taps Get a ride, used once, then released
+							390 text ·  Ride provider:  pickup and destination addresses only
+							391 text ·  Lock screen:  "Getting back · Ride · Home". Never any alcohol or HydroState info
+							392 text ·  Invitation:  recipient (Maya, by text), its exact wording shown in full, and when it sends (the moment Seal completes). Sent once per Seal, using the same idempotent transaction ID, so a retry can never send a second text.
+							393 text ·  Check-in person:  "Made it back" status only, unless the member also turned on "Share my getting-back plan" in step 03
+						394 container FAILURE
+							395 text FAILURE
+						396 text If saving fails: "Not sealed yet. Nothing changed." · Try again. Never show a half-sealed state.
+					397 container
+						398 text 7:31 ●●● ▮ LOCKED IN Go perform. Your Circle locked in with you.
+						399 text AFORCE will only come back if something changes. Phone down. Only what you approved.
+						400 button Plans changed?
+					401 text 06 · QUIET
+					402 heading The signature moment: AFORCE disappears, Value: 3
+						403 text The signature moment: AFORCE disappears
+					404 text The screen turns midnight blue, the moon rises and breathes, and "Go perform." appears. Then the interface fades to near-black. No dashboards at dinner. This screen is the brand.
+					405 definition list
+						406 container MOTION
+							407 text MOTION
+						408 text Blue orb fades out → moon rises (900ms) → text fades in → after 8s the screen dims to 15% brightness.
+						409 container DURING
+							410 text DURING
+						411 text No scores, counters, streaks, badges or live charts. No audio, voice or banners. Nothing fires except the silent haptics named in the Decision Delta, and safety. All other AFORCE notifications are held until Return.
+						412 container ENTRY
+							413 text ENTRY
+						414 text The only thing to tap is a small "Plans changed?" link. Swiping down or tapping the screen always opens the app, so the member can leave Quiet instantly.
+						415 container NEVER MUTED
+							416 text NEVER MUTED
+						417 text Quiet holds back distractions, never safety. Safety alerts, check-ins the member requested, and approved reminders always get through.
+						418 container LOCK-IN ECHO
+							419 text LOCK-IN ECHO
+						420 text "Your Circle locked in with you" appears only if the Circle actually opted in. Otherwise leave the line out.
+					421 container
+						422 text 10:48 ●●● ▮ PLANS CHANGED You mentioned alcohol. AFORCE can't assess whether you're able to drive.
+						423 button Get a ride
+						424 button Contact someone
+						425 button Stay here
+						426 text Emergency? 911
+					427 text 07 · PLANS CHANGED + DECISION GUARD
+					428 heading Safety outranks coaching, without judging, Value: 3
+						429 text Safety outranks coaching, without judging
+					430 text "Plans changed" works the same way across the whole OS, whether a flight is delayed or a meeting moves. In Social it covers the case where the member planned to drive and later says they've been drinking. Decision Guard takes over the screen.
+					431 definition list
+						432 container RULE
+							433 text RULE
+						434 container
+							435 text Once alcohol has been mentioned, AFORCE  never  accepts "yes, I'm still driving." It never confirms driving is okay, and it always offers alternatives.
+						436 container LAYOUT
+							437 text LAYOUT
+						438 text Built so an impaired person can use it: 28pt headline, three large buttons, nothing to scroll, voice works. Red is used only as a thin bar at the top.
+						439 container GET A RIDE
+							440 text GET A RIDE
+						441 text Opens a ride provider with only the two addresses. The member confirms and pays inside the provider's app. No alcohol information is ever passed along. Only the member can start it. AFORCE never books a ride on its own, and never promises a ride will arrive or that anyone gets home. The copy is "Open Uber" / "Open Lyft", not "Your ride is on the way".
+						442 container EMERGENCY
+							443 text EMERGENCY
+						444 container
+							445 text Shows the  local  emergency number (911 in the US and Mexico, 112 in the EU, 999 in the UK), and it works offline.
+					446 container
+						447 text 11:24 ●●● ▮ HEADING BACK? Made it back. Tap once when you're in. Only your check-ins see it.
+						448 button Made it back ✓
+						449 text JB Julius ✓ Made it back MA Maya ✓ Made it back DK Devon ✓ Made it back TR Tasha Not yet When everyone taps: "Everyone checked in. Good night."
+					450 text 08 · MADE IT BACK
+					451 heading The Circle closes the Moment together, Value: 3
+						452 text The Circle closes the Moment together
+					453 text Check-ins are voluntary. When everyone has tapped, the Circle sees "Everyone checked in." plus a sign-off matched to the time: "Good night." after 9 PM, "Enjoy the rest of your day." in daytime. Then the screen goes dark.
+					454 definition list
+						455 container WORDING
+							456 text WORDING
+						457 container
+							458 text "Made it back ✓".  Never  "safe." AFORCE can't certify that anyone is safe.
+						459 container MISSED
+							460 text MISSED
+						461 text The check-in person gets one neutral nudge: "Julius hasn't checked in yet." It never escalates into a group alarm.
+						462 container SHARED
+							463 text SHARED
+						464 text Only check-in status, plus the getting-back plan if the member turned that toggle on. Never drinks, HydroState or location.
+						465 container PHONE DEAD
+							466 text PHONE DEAD
+						467 text A dead phone can't show anything. The getting-back plan syncs to the watch before the Moment, where supported. If the member turned on plan sharing, the check-in person has it too.
+					468 container
+						469 text 7:30 ●●● ▮ SATURDAY · YOU OPENED AFORCE AT 7:30 AM Morning, Julius. Your night ran later than usual. Your investor meeting is at 10. Let's protect that first. Now Water and a real breakfast. 8:45 AM A 20-minute walk instead of your run. 9:35 AM Twenty quiet minutes. Then One Breath and Lock In. REPLAY
+						470 text Did last night go the way you wanted?  Yes  ·  Not really
+					471 text 09 · NEXT
+					472 heading Protect what's next, not "hangover recovery", Value: 3
+						473 text Protect what's next, not "hangover recovery"
+					474 text The next important Moment comes first. AFORCE prepares around what it actually knows, and the next morning is built only from things the member confirmed or permitted.
+					475 definition list
+						476 container TRIGGER
+							477 text TRIGGER
+						478 container
+							479 text The member opens the app, validated sleep data arrives, or another allowed signal.  Never  just because the clock passed midnight or 6 AM.
+						480 container REPLAY
+							481 text REPLAY
+						482 text One question: "Did it go the way you wanted?" It never asks about drinking. If the answer is Yes, AFORCE goes away.
+						483 container LEARNING
+							484 text LEARNING
+						485 text Preparation Memory ignores alcohol unless the member opted in. It never claims a step caused a better result.
+						486 container BANNED
+							487 text BANNED
+						488 text "Hangover," "recovery from drinking," any shame or streak threat.
+				489 container day
+					490 text 04 · DAYTIME + TRIPS
+					491 heading Social isn't only for nights, Value: 2
+						492 text Social isn't only for nights
+					493 container
+						494 text Social covers daytime Moments like a pool party or a boat day, and trips with several Moments. The daytime version uses the  sun orb  and warm daylight in place of the moon. Everything else (the flow, Seal, Quiet, Made it back) stays the same.
+					495 container
+						496 text 11:02 ●●● ▮ TRIP · TULUM · 4 DAYS Pool party this afternoon? 2 PM, outdoors, 91° and sunny. Boat day tomorrow at 9. Prepare around it?
+						497 container AFORCE
+							498 text N N
+						499 text 12:30 PM Eat a real lunch before you go. 1:45 PM Water before you head out, then a glass every hour. Heat and sun: 91°. Any water counts. 3:30 PM Find shade for a while at peak heat.
+						500 button Prepare
+						501 button Not this one
+					502 text DAY VARIANT
+					503 heading Same loop, different light, Value: 3
+						504 text Same loop, different light
+					505 container
+						506 text Day and night are two lighting conditions of  one  Social experience, not two modes. They share the same flow, components, copy rules and state. Only the orb, the background light and the accent color change, chosen by local time and the Moment's setting.
+					507 definition list
+						508 container NO "TONIGHT"
+							509 text NO "TONIGHT"
+						510 text Never assume evening or alcohol. Social headlines use the Moment's real name and time.
+						511 container TRIPS
+							512 text TRIPS
+						513 text A trip holds several Moments, all sharing one state and one chain of authority, so plans never contradict each other.
+						514 container DESTINATION
+							515 text DESTINATION
+						516 text Getting back defaults to Hotel when the member is traveling.
+						517 container ABROAD
+							518 text ABROAD
+						519 text The local emergency number (911 in Mexico) and the saved plan work offline, with no data plan needed.
+						520 container HOSTING
+							521 text HOSTING
+						522 text Hosting is a role inside a Moment, not a separate Moment type.
+						523 container TEMP CIRCLE
+							524 text TEMP CIRCLE
+						525 text One member can invite friends to "Tulum Pool Party." They see only the shared layer, and the Circle expires afterward. No points or referral rewards.
+				526 container safety
+					527 text 05 · SAFETY & DECISION GUARD
+					528 heading What AFORCE never does, Value: 2
+						529 text What AFORCE never does
+					530 content list
+						531 text Estimate BAC, impairment, intoxication or sobriety, or when alcohol will leave the body
+						532 text Tell anyone they're okay or safe to drive, or accept "still driving" after alcohol has been mentioned
+						533 text Recommend a "safe" amount of alcohol, encourage another drink, pace drinking, or compare people's drinking
+						534 text Use celebratory animation, success haptics or rewards when alcohol is logged
+						535 text Promise to prevent hangovers or guarantee recovery the next day
+						536 text Use Social context to sell AFORCE products
+						537 text Shame the member or penalize them for missing information
+					538 heading Water and heat Moments, Value: 3
+						539 text Water and heat Moments
+					540 text For a boat day, pool party or beach, the plan considers heat, sun and time outdoors (shade, water, rest). If alcohol is mentioned at a water Moment, the Plans changed screen offers "Take a break from the water" with the same three-button layout. AFORCE never judges whether someone can safely swim or boat, and the local emergency number is always one tap away.
+					541 heading Escalation ladder, Value: 3
+						542 text Escalation ladder
+					543 table
+						544 row
+							545 cell
+								546 text SITUATION
+							547 cell
+								548 text WHAT HAPPENS
+						549 row
+							550 cell
+								551 text Alcohol mentioned, no risk
+							552 cell
+								553 text Treated as context only. Nothing on screen changes. The only things that keep running are the time-based water reminders already shown in the Decision Delta.
+						554 row
+							555 cell
+								556 text Alcohol + driving
+							557 cell
+								558 text Decision Guard screen (Step 07): Get a ride · Contact someone · Stay here
+						559 row
+							560 cell
+								561 text Member says they're too tired to drive
+							562 cell
+								563 text Move them toward not driving. Never say "take a minute before you drive."
+						564 row
+							565 cell
+								566 text Heavy drinking disclosed
+							567 cell
+								568 text Safety comes before performance coaching. Normal plan steps pause.
+						569 row
+							570 cell
+								571 text Severe symptoms or danger
+							572 cell
+								573 text Everything else stops. Show the local emergency number, plus Contact someone.
+					574 container
+						575 text Configurable by region:  age handling and how long alcohol context is kept are settings, not hard-coded. Don't build one universal 21+ rule or a fixed deletion timer into the code.
+				576 container circle
+					577 text 06 · CIRCLE
+					578 heading Shared layer rules, Value: 2
+						579 text Shared layer rules
+					580 heading Consent first, Value: 4
+						581 text Consent first
+					582 text A check-in person has to accept before they're active, and can withdraw at any time with one tap. The member is told when that happens. Without their consent, check-ins turn into an alarm system they never agreed to.
+					583 heading Not a feed, Value: 4
+						584 text Not a feed
+					585 text Social is a private preparation experience for real-world Moments. It never becomes a social feed. No posting, timelines, likes, comments, or public activity.
+					586 heading What's shared, Value: 4
+						587 text What's shared
+					588 text By default, only Made it back. Opt-in extras: Lock In status, and the getting-back plan (Ride · Home) for the check-in person. Never drinks, HydroState, commands, location or how the next morning went.
+					589 heading Minors, Value: 4
+						590 text Minors
+					591 text The shared layer has no alcohol features at all. People who join by invite answer an age question. An 18–20-year-old can use Social fully, just without alcohol context.
+					592 heading Governed by, Value: 4
+						593 text Governed by
+					594 text The Circle v1.1 directive (Sept 23). Speaking to Social can't grant broader Circle access than the member reviewed at Seal.
+				595 container privacy
+					596 text 07 · PRIVACY
+					597 heading Private by default, Value: 2
+						598 text Private by default
+					599 content list
+						600 container
+							601 text Location is used only when needed, for example at Getting back. AFORCE keeps  no persistent location history for Social  without separate consent. (Brief processing and security logs will still exist, so don't promise "never stored.")
+						602 text Alcohol context is private and expires automatically unless the member chooses to keep it. The expiry period is a configurable setting.
+						603 text Ride handoff passes only the pickup and destination addresses.
+						604 container
+							605 text Analytics track acceptance, Seal, Quiet, Made it back and Replay. They  never  include drink counts or time spent in Social.
+						606 text The member can correct, export or delete any of it, Engineering requirement: a deletion must clear the cache and any queued events. Verified by test (§10).
+				607 container edges
+					608 text 08 · RED TEAM
+					609 heading Edge cases, already solved, Value: 2
+						610 text Edge cases, already solved
+					611 table
+						612 row
+							613 cell
+								614 text BREAKS WHEN…
+							615 cell
+								616 text FIX
+						617 row
+							618 cell
+								619 text The check-in person never agreed
+							620 cell
+								621 text They have to accept first, by text if they aren't a member
+						622 row
+							623 cell
+								624 text The phone dies
+							625 cell
+								626 text The plan syncs to the watch where supported, and to the check-in person only if the member shared it. The missed-check-in nudge stays neutral.
+						627 row
+							628 cell
+								629 text No mobile data abroad
+							630 cell
+								631 text The local emergency number and the saved plan work offline
+						632 row
+							633 cell
+								634 text The member planned to drive, then mentions drinking
+							635 cell
+								636 text The Decision Guard screen. It never accepts "yes, still driving."
+						637 row
+							638 cell
+								639 text The member can barely read the screen
+							640 cell
+								641 text Huge type, three buttons, voice works, nothing to scroll
+						642 row
+							643 cell
+								644 text A minor joins a temporary Circle
+							645 cell
+								646 text No alcohol features in the shared layer, plus an age question for invitees
+						647 row
+							648 cell
+								649 text Still out at 6 AM
+							650 cell
+								651 text The next day starts only on a real signal (app opened or validated sleep), never on the clock
+						652 row
+							653 cell
+								654 text Dinner was cancelled but the Moment is still sealed
+							655 cell
+								656 text "Plans changed" handles it. An unconfirmed Moment expires at its end time.
+						657 row
+							658 cell
+								659 text Nothing interesting happened
+							660 cell
+								661 text "Did it go the way you wanted? Yes." Then AFORCE goes away.
+						662 row
+							663 cell
+								664 text A wrong "dinner tonight?" guess
+							665 cell
+								666 text Strict accuracy bar. Track how often proposals are accepted, and propose less after repeated declines.
+				667 container copy
+					668 text 09 · COPY DECK
+					669 heading Approved lines, Value: 2
+						670 text Approved lines
+					671 table
+						672 row
+							673 cell
+								674 text MOMENT
+							675 cell
+								676 text LINE
+						677 row
+							678 cell
+								679 text Notice
+							680 cell
+								681 text "Dinner tonight?" · "Want me to prepare around it?" · Prepare · Not this one
+						682 row
+							683 cell
+								684 text One Breath
+							685 cell
+								686 text "What would make tonight go well?" (Day: "What would make today go well?")
+						687 row
+							688 cell
+								689 text Handled
+							690 cell
+								691 text "Anything you want handled before you go perform?"
+						692 row
+							693 cell
+								694 text Seal
+							695 cell
+								696 text "Only what you approve becomes your plan." · Hold to seal
+						697 row
+							698 cell
+								699 text Quiet
+							700 cell
+								701 text "Go perform." · "Phone down. We'll be quiet."
+						702 row
+							703 cell
+								704 text Driving
+							705 cell
+								706 text "You mentioned alcohol. AFORCE can't assess whether you're able to drive." Same line day or night. Never add "tonight."
+						707 row
+							708 cell
+								709 text Return
+							710 cell
+								711 text "Heading back?" · "Made it back ✓" · "Everyone checked in." + "Good night." (night) / "Enjoy the rest of your day." (day)
+						712 row
+							713 cell
+								714 text Next
+							715 cell
+								716 text "Morning, Julius. … Let's protect that first."
+						717 row
+							718 cell
+								719 text Replay
+							720 cell
+								721 text "Did it go the way you wanted?"
+					722 heading Banned words (CI grep), Value: 3
+						723 text Banned words (CI grep)
+					724 text BAC · SOBER · SOBRIETY · SAFE TO DRIVE · SAFE (AS A STATUS) · HANGOVER · DRUNK · WASTED · PARTY MODE · DRINKING MODE · NIGHT OWL · TONIGHT (WHEN THE MOMENT ISN'T ACTUALLY TONIGHT) · REAL-TIME (UNLESS PROVEN) · AFORCE IN UI (USE AFORCE)
+				725 container tests
+					726 text 10 · ACCEPTANCE
+					727 heading Done means all of this passes on a real phone, Value: 2
+						728 text Done means all of this passes on a real phone
+					729 content list
+						730 text Nine screens match these mockups at 393×852, using Inter only, design tokens only, and the blue orb (sun orb for day)
+						731 text Social has no separate engine, score or memory. It goes through One Breath → Context Arbitration → Decision Guard → RecoveryCommand
+						732 text The Social tab doesn't exist. Social lives in Protocol, with one optional entry point on Home
+						733 text Activating Social, scanning or intending to drink changes nothing in HydroState. Only confirmed intake counts.
+						734 text Alcohol + driving always shows the Decision Guard screen, and no path through it confirms driving
+						735 text The next morning never starts from the clock alone (test: still active at 6 AM, app not opened → no morning screen)
+						736 text Before acceptance, the check-in person receives only the member-approved invitation. No check-in status or plan data is shared until they accept.
+						737 text During Quiet, there's no audio or voice and no unapproved notification. Only the haptics listed in the Decision Delta fire (safety excepted).
+						738 text Safety and Social copy uses the Moment's real time of day. "Tonight" appears only when the Moment is at night.
+						739 text The emergency number and the saved plan work in airplane mode
+						740 text The banned-words grep passes, and no success haptic fires on an alcohol log
+						741 text Delete a Moment, then force-close, go offline and restart: nothing reappears from cache or queued events
+						742 text No screen, notification or reminder references a drink count
+						743 text Reduced motion, dynamic type, VoiceOver, WCAG AA contrast and 44pt touch targets on every screen
+						744 text Works in a loud restaurant or walking outside: typing is always one tap away, nothing depends on hearing audio, and an interruption (a call, app switch or lock) resumes exactly where the member left off
+						745 container
+							746 text Speed gates:  the Mirror appears ≤1.5s after the member stops speaking or taps done. Seal commits ≤1s after the ring fills. Plan → Seal → Lock In takes 3 taps or holds at most, with at most one clarifying question. Typing and touch reach Seal without voice.
+						747 container
+							748 text Failure paths:  if speech fails, AFORCE says "Didn't catch that. Type it or try again," and the typed text is kept. If saving fails, it says "Not sealed yet. Nothing changed." Neither ever leaves a half-saved Moment.
+						749 text The app survives force-close and restart without losing the Seal or Quiet state or creating duplicate events
+					750 heading Three end-to-end demos on a real iPhone, Value: 3
+						751 text Three end-to-end demos on a real iPhone
+					752 text Social isn't done until all three run start to finish on a real device, using real screens and transitions. Each one has to show that the privacy and safety rules actually work.
+					753 table
+						754 row
+							755 cell
+								756 text DEMO
+							757 cell
+								758 text MUST SHOW
+						759 row
+							760 cell
+								761 text Night out
+							762 cell
+								763 text Dinner → Seal → Lock In → Quiet → plans change (alcohol + driving) → open a ride app → check-in person accepts → Made it back → next morning starts only when the app is opened
+						764 row
+							765 cell
+								766 text Daytime
+							767 cell
+								768 text Boat or pool party → sun orb → heat-aware plan → Quiet → Made it back → Replay
+						769 row
+							770 cell
+								771 text Travel
+							772 cell
+								773 text Social Moment away from home → getting back to the Hotel → airplane mode / no data (emergency number + saved plan still work) → force-close and reopen mid-Moment with nothing lost
+					774 container
+						775 text Build order (protect January):
+						776 text Phase A, core Social:  Noticed, One Breath, Mirror, Plan, Seal, Lock In, Quiet, Plans changed (the Decision Guard screen with "Open Uber / Lyft" handoff links), Made it back for the member, Replay.
+						777 text Phase B, after real-device testing passes:  check-in person invites by text, temporary Circles, deeper ride-app integration, watch sync.
+						778 text Phase A ships on top of the proven core Moment loop. Phase B never holds up Phase A.
+				779 container decide
+					780 text 11 · FOUNDER DECISIONS
+					781 heading Two things Julius and Brandon lock, Value: 2
+						782 text Two things Julius and Brandon lock
+					783 container
+						784 text Neither blocks the build.  The name blocks only the final UI copy and marketing, and it's a single string swap. The tier is packaging config applied after validation (Build first. Validate second. Package third.).
+					785 heading 1 · The name, Value: 4
+						786 text 1 · The name
+					787 container
+						788 text The Aug 1 email said "NIGHT OUT." The frozen v0.4 design and the brand film say "Social" and "Social One Breath." Since Social now covers daytime and trips, "Night Out" no longer fits. Recommendation:  Social .
+					789 heading 2 · Which tier, Value: 4
+						790 text 2 · Which tier
+					791 text Proposed: Core gets self-created Social, Quiet and Circle check-ins. OS Performance adds detection, Protect tomorrow, and the morning rebuilt from sleep data. Under the build rule this is packaging config only, not architecture.
+					792 container AFORCE
+						793 text N N
+					794 container
+						795 text PERFORMANCE IS  NON- N EGOTIABLE.
+					796 text AFORCE OS · SOCIAL V0.4 · BUILT FROM THE OCT 2 FROZEN DESIGN AND THE AFORCE OS UI & EXPERIENCE SPEC TOKENS
+
+The focused UI element is 7 container Description: User-generated artifact content, ID: frame-content
