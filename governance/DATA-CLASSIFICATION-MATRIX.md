@@ -30,6 +30,10 @@ until every class it reads appears here.**
 | Adaptive Profile fields | S2 | Onboarding + edits | Adaptive Performance Profile™, recalibration |
 | Body measurements (weight, height) | S2 | Profile | Body Recalibration Engine™ |
 | Wearable biometrics | S2 | WHOOP / HealthKit / Garmin | Sleep Readiness™, Recovery Window™, §38 |
+| Concierge conversation text (member turns) — *Privacy review pending, DR-018 D-03* | S2 | Member-authored (AForce Concierge) | AI Coach at inference time; stored in `aforce_concierge_messages` keyed by Clerk userId; deletable per conversation / all / account cascade |
+| Concierge assistant turns (gated replies) — *Privacy review pending* | S2 | Model output after §42/§59/§64/DR-013 gates | The member; same table and deletion |
+| Concierge preferences (goal, routine, tone, notes) — *Privacy review pending* | S1 | Member-stated, explicit consent | AI Coach at inference time; `aforce_concierge_preferences`; per-field / all / cascade deletion |
+| Concierge grounding context (per turn) — *transient* | S0–S2 (derived from classes above) | App store + server facts | Sent to the AI processor at inference time only; never persisted |
 | HydroScan imagery | **S3** | Camera | HydroScan™ — **advisory only, never mutates score (DR-001)** |
 | Weather / location context | S1 | OpenWeather, device | Environmental Pressure™, Climate Profile™, §38 |
 | Personal Response Library | S1 | Derived from §59 | §59, §61, §38 |
@@ -64,7 +68,7 @@ widening the collection surface.
 | Actor | Access |
 |---|---|
 | The user | Full — own data, own patterns, own provenance, with challenge/dismissal controls (Founder Decision 4) |
-| AI Coach | Read-only, at inference time, per §64 |
+| AI Coach / AForce Concierge | Read-only, at inference time, per §64; writes only its own transcript + preference tables (DR-018) |
 | Founder Mode | Sandbox only; writes never reach Production (§62) |
 | Demo Mode | Seeded demo data only (`data/demoProfile.ts`); writes nothing |
 | Third parties | **None.** No intelligence data is sold, shared, or used for advertising. |

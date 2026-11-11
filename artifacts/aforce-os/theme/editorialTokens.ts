@@ -28,27 +28,27 @@ import { Typography } from './typography';
 /** Stocks — the two grounds. Never mixed on one screen outside the stock turn. */
 export const edStock = {
   /** B core — the OS ground. Same value as the brand Cinematic Black. */
-  black: '#0D0D0D',
+  black: '#090A0A',
   /** A Feature register — the deck's working paper. */
-  paper: '#E4E0D8',
+  paper: '#F7F4EF',
   /** Slightly lifted paper for plates on paper (deck slide texture). */
-  paperRaised: '#EBE8E1',
+  paperRaised: '#F7F4EF',
   /** Slightly lifted black for plates on black (scan viewfinder). */
-  blackRaised: '#161512',
+  blackRaised: '#121313',
 } as const;
 
 /** Inks — statement + quiet voices per stock. */
 export const edInk = {
   /** Primary copy on black. */
-  ivory: '#EDEAE3',
+  ivory: '#F7F4EF',
   /** Primary copy on paper. */
-  black: '#1A1815',
+  black: '#090A0A',
   /** Furniture/captions/quiet statements on black (AA on #0D0D0D). */
-  quietOnBlack: '#8D897F',
-  /** Furniture/captions/quiet statements on paper (AA on #E4E0D8). */
-  quietOnPaper: '#66625A',
+  quietOnBlack: '#8A867F',
+  /** Furniture/captions/quiet statements on paper (AA on the Feature register). */
+  quietOnPaper: '#6F6C66',
   /** De-emphasized/disabled on black — decorative only, never sole carrier. */
-  dimOnBlack: '#57534A',
+  dimOnBlack: '#8A867F',
 } as const;
 
 /** Accents — exactly two, with fixed meanings. */
@@ -63,13 +63,13 @@ export const edAccent = {
    * "membership" / "national stage"). Rare by rule; never the sole carrier
    * of state.
    */
-  lockIn: '#4A5FD0',
+  lockIn: '#E51E2A',
 } as const;
 
 /** Rules — hairlines replace cards. */
 export const edRule = {
-  onBlack: '#2B2925',
-  onPaper: '#C7C2B6',
+  onBlack: '#292A2A',
+  onPaper: '#8A867F',
 } as const;
 
 /** Verified positive marks (checklist ticks) reuse the brand PEAK green. */
@@ -105,6 +105,11 @@ type EdTypeRole = {
  * consumer may render in caps, and they carry the mono furniture voice.
  */
 export const edType: Record<string, EdTypeRole> = {
+  // Moments-first Home, founder-authorized 2026-10-28; preserves the reviewed type scale.
+  homeFocusTitle: {fontFamily:Typography.fonts.bold,fontSize:34,lineHeight:40,letterSpacing:-0.8},
+  homeCompactState: {fontFamily:Typography.fonts.bold,fontSize:26,lineHeight:32},
+  homeCompactNumber: {fontFamily:Typography.fonts.bold,fontSize:64,lineHeight:72},
+  homeFocusLink: {fontFamily:Typography.fonts.medium,fontSize:15},
   /** Oversized display statement (covers). */
   display: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
   /** Screen statement. */
@@ -115,6 +120,8 @@ export const edType: Record<string, EdTypeRole> = {
   confirm: { fontFamily: Typography.fonts.bold, fontSize: 18, lineHeight: 22, letterSpacing: -0.2 },
   /** Editorial numeral — hero (the pressure field's 69). */
   numberHero: { fontFamily: Typography.fonts.bold, fontSize: 68, lineHeight: 68, letterSpacing: -2.7 },
+  /** Editorial numeral — the Black Issue cover reading (Home's 69, Cruise's 72). */
+  numberCover: { fontFamily: Typography.fonts.bold, fontSize: 84, lineHeight: 84, letterSpacing: -3.4 },
   /** Editorial numeral — feature pull-stats. */
   numberFeature: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 44, letterSpacing: -1.7 },
   /** Body copy. */

@@ -50,6 +50,9 @@ export {
 export { AFOfflineBanner, type AFOfflineBannerProps } from './AFOfflineBanner';
 export { AFInlineErrorRow, type AFInlineErrorRowProps } from './AFInlineErrorRow';
 
+// Black Issue · the screen head on every reference screen (plan D5)
+export { AFMasthead, AF_WORDMARK, type AFMastheadProps } from './AFMasthead';
+
 // RC-1 Wave-5 · a11y breadth — composed numeral+label announcement
 export { AFStatPair, type AFStatPairProps } from './AFStatPair';
 // RC-1 Wave-5 · a11y breadth — reduced-motion-aware, modal-region-marked Modal

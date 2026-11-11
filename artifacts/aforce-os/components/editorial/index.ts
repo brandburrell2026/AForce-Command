@@ -35,4 +35,4 @@ export {
   useReduceMotionState,
   type EdNodeState,
 } from './instruments';
-export { edNumberDisplay, splitMirrorWord, edFolioIndex } from './editorialLogic';
+export { edNumberDisplay, splitMirrorWord, edFolioIndex, stateWordStatement } from './editorialLogic';

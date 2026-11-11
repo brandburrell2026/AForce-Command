@@ -10,6 +10,7 @@
 import type { FeatureFlags, SpecFlagName } from '../types';
 
 export const DEFAULT_FLAGS: FeatureFlags = {
+  travel_mode_enabled: false,
   // Trainer surface — Phase 2 morning board. Off in production; the seed is
   // simulated data and is marked as such wherever it renders.
   trainer_board_enabled: false,
@@ -42,7 +43,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
 
   // Athlete tier — Metabolic Readiness. Ships OFF in production; the
   // glucose lane stays OFF everywhere (engine-only, no UI yet).
@@ -61,6 +62,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // prod so logIntake keeps its exact online-only path (byte-identical no-op),
   // ON in DEMO. Score-Protection: replays frozen scores, server dedupes.
   offline_intake_outbox_enabled: false,
+  // Gentle Hydration Mode is private and opt-in, but stays dark until its
+  // medical/legal copy review and internal-device validation are complete.
+  // It never changes a hydration target, score, reminder or Circle payload.
+  gentle_hydration_mode_enabled: false,
   per_user_storage_isolation_enabled: false,
   // Lock §7 / RC-L11 — profile server rehydration + reconnect flush. OFF
   // until the physical-device reinstall gate passes (PASS-3 plan, slice 2).
@@ -288,7 +293,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // hydration challenge, and the anonymous referral boards as the only
   // cross-user surface (no named-people rankings — SS-07). ON in
   // production — founder flip 2026-08-11 (all five V3 screens together).
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
+  // Explicit internal pilot only. Joining never grants health-data sharing.
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   // AForce Moments (Phases 1-2, founder approval 2026-08-12) — manual/demo
   // moments only: Home NEXT MOMENT section, Moments overview, flagship
   // Moment Detail ritual, Prepare My Day, Add a Moment. ON in production —
@@ -377,6 +385,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // OFF in production; the policy is pure/observational and always safe to run.
   conversational_intelligence_enabled: false,
 
+  // AForce Concierge (Section 64 surface). OFF in production until the
+  // internal-preview validation, the privacy-policy disclosure and the
+  // CR-1 copy review clear (governance/proposals/PR-003-aforce-concierge.md).
+  ai_concierge_enabled: false,
+
   // Performance Memory™ — STEP 3 execution-memory expansion. Additive,
   // read-only command-completion recap (execution streak / recent follow-rate
   // + trend) read from the same ledger. OFF in the production binary so the
@@ -462,6 +475,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
  * full Clutch + Guardian product stack.
  */
 export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
+  travel_mode_enabled: false,
   trainer_board_enabled: true,
   trainer_demo_seed_enabled: true,
   clutch_access_enabled: true,
@@ -477,7 +491,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   city_competition_enabled: true,
   state_competition_enabled: true,
   team_competition_enabled: true,
-  global_leaderboard_enabled: true,
+  global_leaderboard_enabled: false,
   metabolic_readiness_enabled: true,
   metabolic_glucose_enabled: false,
   performance_age_enabled: true,
@@ -485,6 +499,8 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   intent_capture_enabled: true,
   performance_statements_enabled: true,
   offline_intake_outbox_enabled: true,
+  // Local/demo preview only. This is not a public medical-support launch.
+  gentle_hydration_mode_enabled: true,
   per_user_storage_isolation_enabled: true,
   // Hydration restore is safe to demo (deterministic, never overwrites), but
   // keep it OFF here too until the reinstall release-gate passes — demo builds
@@ -567,7 +583,10 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   protocol_v3_dashboard_enabled: true,
   signal_v3_dashboard_enabled: true,
   weekly_v3_dashboard_enabled: true,
-  circle_v3_dashboard_enabled: true,
+  circle_v3_dashboard_enabled: false,
+  // Generic demos must not create real social relationships.
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   moments_enabled: true,
   moments_notifications_enabled: true,
   moments_calendar_enabled: true,
@@ -605,6 +624,7 @@ export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
 
   // Section 64 — Conversational Intelligence™ ON for internal inspection.
   conversational_intelligence_enabled: true,
+  ai_concierge_enabled: true,
 
   // Performance Memory™ — STEP 3 execution-memory recap ON for internal inspection.
   performance_memory_execution_enabled: true,
@@ -713,6 +733,9 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  * (EXPO_PUBLIC_INTERNAL_TESTFLIGHT), which are founder-distributed.
  */
 export const INTERNAL_TIER_FLAGS = [
+  'travel_mode_enabled',
+  'circle_membership_enabled',
+  'circle_sharing_enabled',
   'trainer_board_enabled',
   'trainer_demo_seed_enabled',
   'guardian_intelligence_enabled',
@@ -740,6 +763,30 @@ export function currentUnlockContext(): UnlockContext {
     dev: typeof __DEV__ !== 'undefined' && __DEV__ === true,
     internalTestflight: process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true',
   };
+}
+
+/** Travel must be opted into explicitly in a development/internal build. */
+export function travelPilotAvailable(
+  flags: Pick<FeatureFlags, 'travel_mode_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return flags.travel_mode_enabled && (ctx.dev || ctx.internalTestflight);
+}
+
+/** A stored flag or generic demo must not expose the real-membership pilot
+ * in an ordinary public build. Server authorization is a separate boundary. */
+export function circleMembershipPilotAvailable(
+  flags: Pick<FeatureFlags, 'circle_membership_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return flags.circle_membership_enabled && (ctx.dev || ctx.internalTestflight);
+}
+
+export function isCircleSharingPilotEnabled(
+  flags: Pick<FeatureFlags, 'circle_membership_enabled' | 'circle_sharing_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return circleMembershipPilotAvailable(flags, ctx) && flags.circle_sharing_enabled;
 }
 
 /**

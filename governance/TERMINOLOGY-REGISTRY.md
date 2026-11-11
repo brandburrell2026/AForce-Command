@@ -55,6 +55,7 @@ Canonical detail: `docs/AFORCE-INTELLIGENCE-ARCHITECTURE.md` §2.
 | Term | Role | Section |
 |---|---|---|
 | **AI Coach** | Conversational surface, per Conversational Intelligence Architecture™ | §64 |
+| **AForce Concierge** | Member-facing name of the §64 conversational surface (DR-018 D-01, 2026-10-05; Julius pending). "AI Coach" remains the architectural term. | §64 |
 | **HydroScan™** | Advisory decision intelligence (advisory-only per DR-001) | §28–37 |
 | **Explainability** | Explainability Center — user route into the reasoning | §52 |
 | **Response Timeline** | Query layer over Performance Memory; data-gated 60–90 days | §60 |
@@ -119,6 +120,7 @@ New writing uses the canonical form only.
 | Advanced Visual Intelligence™ | Skin Performance Intelligence™ |
 | Conversational Intelligence Architecture™ | Intelligence Architecture™ |
 | Evidence Engine™ | The Evidence Engine™ |
+| AForce Concierge (member-facing) · AI Coach (architectural) | — (two registered names for one surface, by role; DR-018 D-01) |
 
 ## 5. Performance DNA™ pattern vocabulary (Founder Decision 4)
 

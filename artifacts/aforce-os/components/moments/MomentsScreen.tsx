@@ -13,6 +13,7 @@
  * the moment's own ritual screen.
  */
 import React from 'react';
+import { TravelMomentsEntry } from '@/components/travel/TravelHomeCard';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -56,6 +57,7 @@ export function MomentsScreen({ fixtureMoments, fixtureNowIso }: { fixtureMoment
         }
       />
 
+      {!fixtureMoments ? <TravelMomentsEntry /> : null}
       {!data.hydrated ? (
         /* Until the store answers, "no moments" is not something we know — it
            is the shape of not having asked yet. Showing the empty state here

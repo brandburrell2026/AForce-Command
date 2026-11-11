@@ -45,7 +45,22 @@ export const requireAuth: RequestHandler = (req, res, next) => {
     return next();
   }
 
-  const auth = getAuth(req);
+  let auth: ReturnType<typeof getAuth> | null = null;
+  try {
+    auth = getAuth(req);
+  } catch {
+    // clerkMiddleware() never decorated this request (Clerk only partially
+    // configured — see middlewares/clerkConfig.ts). That is "auth unavailable",
+    // never a 500: fail closed in production, demo user elsewhere.
+    if (IS_PRODUCTION) {
+      logger.error("[requireAuth] Clerk middleware not mounted in production — denying request");
+      incCounter("auth_failures.503_misconfig");
+      res.status(503).json({ error: "auth_unavailable" });
+      return;
+    }
+    req.userId = DEFAULT_USER_ID;
+    return next();
+  }
   // Clerk session JWTs carry the user id in the standard `sub` claim;
   // prefer it, then fall back to the resolved auth.userId.
   const userId =

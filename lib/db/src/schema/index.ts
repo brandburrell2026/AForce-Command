@@ -3,3 +3,10 @@ export * from "./marketing";
 export * from "./roster";
 export * from "./trainerDocs";
 export * from "./trainerRtp";
+export * from "./circleInvitations";
+export * from "./circleSharing";
+export * from "./circleMomentShares";
+export * from "./concierge";
+export * from "./spatialStudio";
+
+export * from "./travel";

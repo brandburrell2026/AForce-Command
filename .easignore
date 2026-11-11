@@ -23,7 +23,7 @@ node_modules/
 
 # ── Session/tooling state ──
 .claude/
-.git/
+.git
 **/.git/
 
 # ── Monorepo members not used by the app build ──

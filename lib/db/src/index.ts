@@ -56,3 +56,7 @@ export * from "./accountDeletionCascade";
 export * from "./trainerRepo";
 export * from "./trainerDocsRepo";
 export * from "./trainerRtpRepo";
+export * from "./conciergeRepo";
+export * from "./spatialStudioRepo";
+
+export type { Pool, PoolClient } from 'pg';

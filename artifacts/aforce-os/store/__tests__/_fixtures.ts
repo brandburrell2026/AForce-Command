@@ -90,6 +90,7 @@ export const baseEngine = makeEngine();
 export const baseUser = makeUserState();
 
 export const baseFlags: FeatureFlags = {
+  travel_mode_enabled: false,
   trainer_board_enabled: false,
   trainer_demo_seed_enabled: false,
   elite_home_experience_enabled: false,
@@ -103,6 +104,8 @@ export const baseFlags: FeatureFlags = {
   signal_v3_dashboard_enabled: false,
   weekly_v3_dashboard_enabled: false,
   circle_v3_dashboard_enabled: false,
+  circle_membership_enabled: false,
+  circle_sharing_enabled: false,
   moments_enabled: false,
   moments_notifications_enabled: false,
   moments_calendar_enabled: false,
@@ -132,6 +135,7 @@ export const baseFlags: FeatureFlags = {
   intent_capture_enabled: false,
   performance_statements_enabled: false,
   offline_intake_outbox_enabled: false,
+  gentle_hydration_mode_enabled: false,
   per_user_storage_isolation_enabled: false,
   profile_server_hydration_enabled: false,
   advanced_visual_intelligence_enabled: false,
@@ -197,6 +201,7 @@ export const baseFlags: FeatureFlags = {
   response_timeline_enabled: false,
   living_performance_enabled: false,
   conversational_intelligence_enabled: false,
+  ai_concierge_enabled: false,
   performance_memory_execution_enabled: false,
   performance_memory_governance_enabled: false,
   performance_identity_enabled: false,

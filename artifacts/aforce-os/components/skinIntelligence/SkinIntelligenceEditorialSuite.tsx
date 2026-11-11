@@ -1,11 +1,16 @@
 import React from 'react';
+import { HomeMomentsSection } from '@/components/moments/HomeMomentsSection';
+import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { mockRosterClutch, mockRosterGuardian } from '@/data/mockData';
 import { useFlagsSlice, useUserSlice } from '@/store/slices';
-import { edAccent, edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
+import { ConciergeEntryCard } from '@/components/concierge/ConciergeEntryCard';
+import { SocialModeIndicator } from '@/components/social/SocialModeIndicator';
+import { af } from '@/theme';
+import { edAccent, edInk, edPositive, edRule, edStock, edType } from '@/theme/editorialTokens';
 
 type RouteHref =
   | '/skinia'
@@ -155,6 +160,7 @@ function SuiteLink({ index, title, detail, href }: { index: string; title: strin
 }
 
 export function SkinIntelligenceHomeScreen() {
+  const flags = useFlagsSlice();
   const user = useUserSlice();
   const hydrationPct = user.dailyTarget > 0
     ? Math.min(100, Math.round((user.unitsConsumedToday / user.dailyTarget) * 100))
@@ -205,6 +211,19 @@ export function SkinIntelligenceHomeScreen() {
         </SignalCard>
         <PrimaryAction label="Start skin scan" href="/skinia" />
       </View>
+
+      {/* AForce Concierge entry — the internal TestFlight build renders THIS
+          Home (not the editorial Home), so the Section 64 surface needs its
+          affordance here too. Flag-gated inside the card; states nothing
+          about the body. */}
+      <SocialModeIndicator testID="skinia-social-indicator" />
+
+      <View style={styles.block}>
+        <ConciergeEntryCard tone="editorial" testID="skinia-concierge-entry" />
+      </View>
+
+      {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
+      {flags.moments_enabled ? <HomeMomentsSection /> : null}
 
       <View style={styles.systemSection}>
         <Label>THE SYSTEM</Label>
@@ -327,12 +346,12 @@ export function EditorialGuardianLandingScreen() {
       <View style={styles.block}>
         <Label>INTERNAL PREVIEW / SAMPLE ROSTER</Label>
         {preview.map((person, index) => (
-          <View key={person.id} style={[styles.rosterRow, { borderLeftColor: index === 0 ? edAccent.red : index === 1 ? '#C8A84B' : '#2DBF8A' }]}>
+          <View key={person.id} style={[styles.rosterRow, { borderLeftColor: index === 0 ? edAccent.red : index === 1 ? af.amber : edPositive }]}>
             <View style={styles.rosterCopy}>
               <Text style={styles.rosterName}>{person.name} · {person.position}</Text>
               <Text style={styles.rosterMeta}>SAMPLE HYDRATION {person.hydrationScore}</Text>
             </View>
-            <Text style={[styles.rosterScore, { color: index === 0 ? edAccent.red : index === 1 ? '#C8A84B' : '#2DBF8A' }]}>{person.guardianRisk}</Text>
+            <Text style={[styles.rosterScore, { color: index === 0 ? edAccent.red : index === 1 ? af.amber : edPositive }]}>{person.guardianRisk}</Text>
           </View>
         ))}
       </View>
@@ -345,7 +364,7 @@ export function EditorialClutchLandingScreen() {
   const flags = useFlagsSlice();
   const active = flags.clutch_access_enabled;
   const preview = mockRosterClutch.slice(0, 4);
-  const colors = [edAccent.red, '#00C49A', '#4ADE80', '#E8E0C8'];
+  const colors = [edAccent.red, af.cyan, edPositive, edInk.ivory];
 
   return (
     <ScreenShell
@@ -440,7 +459,7 @@ const styles = StyleSheet.create({
   monitorState: { ...edType.bodySmall, color: edInk.ivory, fontWeight: '700', marginTop: 3 },
   sectionStatement: { ...edType.command, color: edInk.ivory, marginTop: 24 },
   rosterRow: { alignItems: 'center', backgroundColor: edStock.blackRaised, borderLeftWidth: 2, borderRadius: 4, flexDirection: 'row', marginTop: 10, minHeight: 70, paddingHorizontal: 14, paddingVertical: 10 },
-  clutchRow: { alignItems: 'center', backgroundColor: '#141414', borderLeftWidth: 3, borderRadius: 8, flexDirection: 'row', marginTop: 12, minHeight: 72, paddingHorizontal: 14, paddingVertical: 10 },
+  clutchRow: { alignItems: 'center', backgroundColor: edStock.blackRaised, borderLeftWidth: 3, borderRadius: 8, flexDirection: 'row', marginTop: 12, minHeight: 72, paddingHorizontal: 14, paddingVertical: 10 },
   rosterCopy: { flex: 1 },
   rosterName: { ...edType.bodySmall, color: edInk.ivory },
   rosterMeta: { ...edType.micro, color: edInk.dimOnBlack, marginTop: 2 },

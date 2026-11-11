@@ -93,9 +93,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const LEGACY_DATA_QUARANTINED_KEY = 'aforce.namespaceMigration.quarantined';
 
 /**
- * Legacy GLOBAL AsyncStorage keys migrated into the claiming user's
- * namespace. (secureKV keys are migrated by scopedSecureKV itself, and
- * the WHOOP token is deliberately WIPED — never migrated — see below.)
+ * Legacy GLOBAL AsyncStorage keys from the pre-isolation namespace — the
+ * QUARANTINE manifest read by `migrateLegacyGlobals`. Since #987 nothing in
+ * this list is copied into a member namespace or deleted: if any of them is
+ * present the device is marked (`LEGACY_DATA_QUARANTINED_KEY`) and the bytes
+ * stay where they are, unattributed. (secureKV keys are handled by
+ * scopedSecureKV itself, which likewise never reads through the legacy
+ * global key.)
  */
 export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
   // Tier 1 — intelligence (device-only)
@@ -127,9 +131,13 @@ export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
   '@aforce/day7-offer-emitted',
   '@aforce/subscription-emitted',
   'aforce.notificationSettings',
-  // Consent is ALSO scoped — but via COPY-AND-RETAIN (see
-  // RETAIN_GLOBAL_COPY): the {granted, version, updatedAt} triple is
-  // legal evidence and must survive migration.
+  // Consent is in the manifest as QUARANTINE evidence only (DR-016,
+  // 2026-09-23): the legacy {granted, version, updatedAt} record is retained
+  // in place, never copied to a member namespace, never attributed to a
+  // member, and never read as that member's consent or as that member's
+  // answer to the prompt. Operative consent is the server's (S1-3 / #955);
+  // only a member's OWN scoped record is read, and only for prompt
+  // suppression.
   '@aforce/analytics-consent',
   // Tier 4 — personal mode/session state
   '@aforce/sleepMode/targetTimeHHMM',
@@ -140,20 +148,17 @@ export const MIGRATED_GLOBAL_KEYS: readonly string[] = [
   'aforce_night_out_command_timer_v1',
 ];
 
-/**
- * Wave-3 PR12: legacy globals whose ORIGINAL record must survive the
- * per-user migration (copied, never deleted). Analytics consent is a
- * legal artifact — "who consented, to version N, when" must stay
- * answerable even after the claiming user's copy is scoped.
- *
- * NOTE: the founder has ruled this must be removed as an OPERATIONAL
- * fallback (operative consent vs consent evidence). That removal lands in
- * the cutover PR together with the consent split; it is deliberately NOT
- * changed here, because PR A moves no data.
+/*
+ * There is deliberately no "retain a global copy" exception set any more.
+ * The Wave-3 PR12 copy-and-retain rule (commit 71c46b5c, 2026-08-12) — copy
+ * the legacy consent record to the claiming member, keep the original as
+ * evidence — was replaced by quarantine in #987 (2026-09-15); DR-016
+ * (2026-09-23) ratifies that replacement for the consent key. Since #987
+ * nothing in MIGRATED_GLOBAL_KEYS is copied (the other keys by #987 alone,
+ * without a decision record), so a per-key retention exception has nothing
+ * left to except from. The export that carried it had no consumers and is
+ * retired; DR-016 names it.
  */
-export const RETAIN_GLOBAL_COPY: ReadonlySet<string> = new Set([
-  '@aforce/analytics-consent',
-]);
 
 // ─── The state machine ────────────────────────────────────────────────
 

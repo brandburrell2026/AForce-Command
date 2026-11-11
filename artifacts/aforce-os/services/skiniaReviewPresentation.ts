@@ -12,14 +12,16 @@ export function resolveSkinIAReviewPresentation(
 
   return Object.freeze({
     title: captureAcceptedButFindingsGated
-      ? 'Technical capture complete'
+      ? 'Capture check passed'
       : result.kind === 'OBSERVATION' ? 'Your visual check.' : 'Unable to Analyze',
     kicker: captureAcceptedButFindingsGated ? 'INTERNAL QA CAPTURE RESULT' : 'VISUAL CHECK RESULT',
-    body: result.message,
+    body: captureAcceptedButFindingsGated
+      ? 'The image passed technical capture checks. This is not a skin reading.'
+      : result.message,
     qaNote: captureAcceptedButFindingsGated
-      ? 'Technical capture checks passed. This build does not display SkinIA observations; another scan will not unlock a finding.'
+      ? 'SkinIA observations are still under review. Another scan will not unlock a finding in this build.'
       : null,
-    action: captureAcceptedButFindingsGated ? 'Take another QA scan' : 'Take another scan',
+    action: captureAcceptedButFindingsGated ? 'Back to SkinIA' : 'Take another scan',
     qaCode: captureAcceptedButFindingsGated ? 'OBSERVATIONS_NOT_ADMITTED' as const : null,
   });
 }

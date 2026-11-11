@@ -33,7 +33,7 @@ export function AFMetric({ label, value, unit, trendDelta, timestamp, testID }: 
         <Text style={styles.value} allowFontScaling maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
           {value}
         </Text>
-        {unit && <Text style={styles.unit}>{unit}</Text>}
+        {unit && <Text style={[styles.unit, eyebrowType]}>{unit}</Text>}
       </View>
       {showTrend && (
         <View style={styles.trendRow} accessibilityLabel={`trend ${direction} ${Math.abs(trendDelta as number)}`}>
@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
   wrap: { gap: 4 },
   label: { ...afType.eyebrow, color: af.textTertiary },
   valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  value: { ...afType.title1, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  unit: { ...afType.secondary, color: af.textSecondary },
+  value: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  unit: { ...afType.eyebrow, color: af.textSecondary },
   trendRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   trend: { ...afType.caption, fontVariant: ['tabular-nums'] },
   timestamp: { ...afType.caption, color: af.textTertiary },

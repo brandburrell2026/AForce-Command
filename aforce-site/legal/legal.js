@@ -12,12 +12,12 @@ var LEGAL = {
   shortName: "AFORCE",
   hqCity: "New York, New York",
   hqAddress: "New York, New York",           // street address to be added by counsel
-  website: "https://drinkaforce.com",
+  website: "https://www.joinaforce.com",
   investorPortal: "https://invest.drinkaforce.com",
   email: {
-    legal: "legal@drinkaforce.com",
-    support: "support@drinkaforce.com",
-    investors: "investors@drinkaforce.com"
+    legal: "info@alkalineforce.com",
+    support: "info@alkalineforce.com",
+    investors: "info@alkalineforce.com"
   },
   version: "0.1 (Draft)",
   prepared: "July 7, 2026",

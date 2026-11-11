@@ -518,6 +518,8 @@ export interface UserProfile {
 
 // ─── Feature Flags ────────────────────────────────────────────────────────────
 export interface FeatureFlags {
+  /** Internal travel pilot. Always clamped in ordinary public builds. */
+  travel_mode_enabled: boolean;
   // Trainer surface (Phase 2). Both default false and both listed in
   // INTERNAL_TIER_FLAGS — medical-adjacent copy, same treatment as Clutch.
   trainer_board_enabled: boolean;
@@ -590,6 +592,13 @@ export interface FeatureFlags {
   // are replayed verbatim; the outbox never recomputes or fabricates score, and
   // the server's idempotency key prevents any double-apply.
   offline_intake_outbox_enabled: boolean;
+  /**
+   * Gentle Hydration Mode — private, opt-in planning support for members who
+   * want a lower-pressure rhythm, including GLP-1 users. Ships dark until
+   * medical/legal copy review and internal-device validation are complete.
+   * It does not alter targets, scoring, reminders, or Circle sharing.
+   */
+  gentle_hydration_mode_enabled: boolean;
   /**
    * Wave-2 PR6: per-user local data isolation. ON → ClerkAuthBridge scopes
    * every durable personal store to the Clerk userId (plus one-shot legacy
@@ -885,6 +894,11 @@ export interface FeatureFlags {
    * engine/analytics/referral-board data only. Default OFF.
    */
   circle_v3_dashboard_enabled: boolean;
+  /** Real invitations and reciprocal membership pilot. Off until explicitly
+   * enabled in local development/internal TestFlight; server rollout is separate. */
+  circle_membership_enabled: boolean;
+  /** Fresh, recipient-specific sharing of recorded score/state. Internal pilot only. */
+  circle_sharing_enabled: boolean;
   /**
    * AForce Moments Phases 1-2 (founder approval 2026-08-12) — manual/demo
    * moments, advisory-only prep. Default OFF. Phase 3 (calendar,
@@ -1027,6 +1041,17 @@ export interface FeatureFlags {
    * read-only, never scores.
    */
   conversational_intelligence_enabled: boolean;
+
+  /**
+   * AForce Concierge — the Section 64 conversational surface (text chat +
+   * on-demand briefing, server-gated AI). INTERNAL PREVIEW: OFF in the
+   * production binary, ON in DEMO_ALL_ON_FLAGS and toggleable from the
+   * Profile DEVELOPER tab. Governs mounting of the Home entry, the contextual
+   * "Ask Concierge" actions, the /concierge routes and the Profile memory row.
+   * Score-Protection: read-only — the concierge proposes actions that reuse the
+   * existing intake / reminder paths; it never writes a score.
+   */
+  ai_concierge_enabled: boolean;
 
   // HealthKit native module load gate. Controls whether the native
   // Nitro/HealthKit module (@kingstinct/react-native-healthkit) is loaded

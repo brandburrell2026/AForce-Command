@@ -40,3 +40,12 @@ export function mastheadDateLabel(now: Date, locale?: string): string {
   const month = new Intl.DateTimeFormat(locale, { month: 'short' }).format(now);
   return `${weekday} · ${month} ${now.getDate()}`.toUpperCase();
 }
+
+/**
+ * Masthead clock ("9:41 AM"). Furniture only (R1) — a pure function of the
+ * date handed in; it re-derives on the same foreground tick as the date, so it
+ * can lag the wall clock by up to that tick.
+ */
+export function mastheadTimeLabel(now: Date, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' }).format(now).toUpperCase();
+}

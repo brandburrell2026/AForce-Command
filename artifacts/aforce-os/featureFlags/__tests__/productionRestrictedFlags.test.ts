@@ -20,12 +20,39 @@ import {
   LEGAL_GATED_FLAGS,
   INTERNAL_TIER_FLAGS,
   INTERNAL_PREVIEW_RESTRICTED_FLAGS,
+  circleMembershipPilotAvailable,
+  isCircleSharingPilotEnabled,
 } from '../flags';
 import type { FeatureFlags } from '../../types';
 
 const PROD = { dev: false, internalTestflight: false };
 const INTERNAL_TF = { dev: false, internalTestflight: true };
 const LOCAL_DEV = { dev: true, internalTestflight: false };
+
+describe('Circle sharing pilot exposure', () => {
+  it('requires explicit membership and sharing flags in an internal build', () => {
+    const enabled = { circle_membership_enabled: true, circle_sharing_enabled: true };
+    expect(isCircleSharingPilotEnabled(enabled, INTERNAL_TF)).toBe(true);
+    expect(isCircleSharingPilotEnabled(enabled, PROD)).toBe(false);
+    expect(isCircleSharingPilotEnabled({ ...enabled, circle_membership_enabled: false }, INTERNAL_TF)).toBe(false);
+    expect(isCircleSharingPilotEnabled({ ...enabled, circle_sharing_enabled: false }, LOCAL_DEV)).toBe(false);
+    expect(isCircleSharingPilotEnabled(DEFAULT_FLAGS, INTERNAL_TF)).toBe(false);
+  });
+});
+
+describe('Circle membership pilot exposure', () => {
+  it('requires an explicit flag even in internal and local builds', () => {
+    expect(circleMembershipPilotAvailable(DEFAULT_FLAGS, INTERNAL_TF)).toBe(false);
+    expect(circleMembershipPilotAvailable(DEMO_ALL_ON_FLAGS, LOCAL_DEV)).toBe(false);
+  });
+  it('rejects a persisted enabled flag in public builds', () => {
+    expect(circleMembershipPilotAvailable({ circle_membership_enabled: true }, PROD)).toBe(false);
+  });
+  it('allows an explicitly enabled internal or local pilot', () => {
+    expect(circleMembershipPilotAvailable({ circle_membership_enabled: true }, INTERNAL_TF)).toBe(true);
+    expect(circleMembershipPilotAvailable({ circle_membership_enabled: true }, LOCAL_DEV)).toBe(true);
+  });
+});
 
 /** Adversarial base: every restricted flag incorrectly forced true. */
 function hostileBase(): FeatureFlags {

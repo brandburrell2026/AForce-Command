@@ -5,23 +5,20 @@
  * that later rules will fill with real content. Keeping these
  * primitives local to the hidden group prevents them from leaking
  * into the visible app surface.
+ *
+ * Black Issue (PR 3, 2026-10-07): re-pointed from raw white-alpha literals
+ * to the `af.*` tokens and the AF* primitives — AFMasthead for the head,
+ * AFSectionLabel + hairline rows for the sections. The props are unchanged.
  */
 
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
-import { Colors } from '@/theme/colors';
-import { Spacing } from '@/theme/spacing';
-import { af } from '@/theme';
-
-const ACCENT = Colors.accent.primary;
-// af.red (Colors.accent.primary, #C1281B) as TEXT measures ~3.3:1 on these
-// dark surfaces — under the 4.5:1 AA floor. ACCENT stays for fills/borders;
-// ACCENT_TEXT (af.redText, AA-verified ~5:1) is for text-color usages only.
-const ACCENT_TEXT = af.redText;
-const BORDER = 'rgba(255,255,255,0.04)';
-const LABEL_DIM = 'rgba(255,255,255,0.50)';
-const COPY_DIM = 'rgba(255,255,255,0.72)';
+import { AFMasthead } from '@/components/ui/AFMasthead';
+import { AFSectionLabel } from '@/components/ui/AFSectionLabel';
+import { useAFGutter } from '@/hooks/useAFGutter';
+import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 
 interface ScreenProps {
   eyebrow: string;
@@ -31,21 +28,22 @@ interface ScreenProps {
 }
 
 export function CruiseScreen({ eyebrow, title, hero, children }: ScreenProps) {
+  const gutter = useAFGutter();
+  const eyebrowType = useAFEyebrowType();
   return (
     <ScrollView
       style={styles.scroll}
-      contentContainerStyle={styles.scrollContent}
+      contentContainerStyle={[styles.scrollContent, { paddingHorizontal: gutter }]}
       showsVerticalScrollIndicator={false}>
-      <View style={styles.headerBlock}>
-        <Text style={styles.eyebrow}>{eyebrow}</Text>
-        <Text style={styles.title}>{title}</Text>
-      </View>
+      <AFMasthead breadcrumb={eyebrow} title={title} />
 
       {hero ? (
         <View style={styles.heroBlock}>
           <View style={styles.heroRow}>
-            <Text style={styles.heroValue}>{hero.value}</Text>
-            {hero.unit ? <Text style={styles.heroUnit}>{hero.unit}</Text> : null}
+            <Text style={styles.heroValue} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+              {hero.value}
+            </Text>
+            {hero.unit ? <Text style={[styles.heroUnit, eyebrowType]}>{hero.unit.toUpperCase()}</Text> : null}
           </View>
           {hero.caption ? <Text style={styles.heroCaption}>{hero.caption}</Text> : null}
         </View>
@@ -65,8 +63,8 @@ interface SectionProps {
 export function Section({ label, children, style }: SectionProps) {
   return (
     <View style={[styles.section, style]}>
-      <Text style={styles.sectionLabel}>{label}</Text>
-      <View style={styles.sectionCard}>{children}</View>
+      <AFSectionLabel label={label} />
+      <View style={styles.sectionBody}>{children}</View>
     </View>
   );
 }
@@ -91,93 +89,33 @@ export function Placeholder({ children }: { children: string }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: Colors.background.primary },
-  scrollContent: { paddingHorizontal: Spacing[5], paddingTop: Spacing[16], paddingBottom: Spacing[20] },
+  scroll: { flex: 1, backgroundColor: af.canvas },
+  scrollContent: { paddingTop: 64, paddingBottom: 80 },
 
-  headerBlock: { marginBottom: Spacing[8] },
-  eyebrow: {
-    color: ACCENT_TEXT,
-    fontSize: 11,
-    letterSpacing: 2.4,
-    textTransform: 'uppercase',
-    fontWeight: '700',
-    marginBottom: Spacing[2],
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 34,
-    lineHeight: 38,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-  },
+  heroBlock: { marginTop: 24, marginBottom: 8 },
+  heroRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 8 },
+  heroValue: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  heroUnit: { ...afType.eyebrow, color: af.textTertiary },
+  heroCaption: { ...afType.caption, color: af.textTertiary, marginTop: 8 },
 
-  heroBlock: { marginBottom: Spacing[10] },
-  heroRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing[2] },
-  heroValue: {
-    color: '#FFFFFF',
-    fontSize: 72,
-    lineHeight: 76,
-    fontWeight: '300',
-    letterSpacing: -2,
-    fontVariant: ['tabular-nums'],
-  },
-  heroUnit: {
-    color: LABEL_DIM,
-    fontSize: 16,
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  heroCaption: {
-    color: LABEL_DIM,
-    fontSize: 13,
-    letterSpacing: 0.6,
-    marginTop: Spacing[2],
-  },
-
-  body: { gap: Spacing[6] },
+  body: { gap: 28, marginTop: 24 },
 
   section: {},
-  sectionLabel: {
-    color: LABEL_DIM,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-    marginBottom: Spacing[3],
-    paddingHorizontal: Spacing[1],
-  },
-  sectionCard: {
-    backgroundColor: Colors.background.card,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: BORDER,
-    padding: Spacing[5],
-    gap: Spacing[3],
-  },
+  sectionBody: { marginTop: 4 },
 
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing[2],
+    columnGap: 12,
+    paddingVertical: 8,
+    minHeight: 48,
+    borderBottomWidth: afLayout.hairline,
+    borderBottomColor: af.divider,
   },
-  rowLabel: {
-    color: LABEL_DIM,
-    fontSize: 13,
-    letterSpacing: 0.4,
-  },
-  rowValue: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '500',
-    fontVariant: ['tabular-nums'],
-  },
-  rowValueEmphasis: { color: ACCENT_TEXT, fontWeight: '700' },
+  rowLabel: { ...afType.secondary, color: af.textSecondary, flexShrink: 1 },
+  rowValue: { ...afType.secondary, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1, textAlign: 'right' },
+  rowValueEmphasis: { color: af.redText, fontFamily: afType.bodyStrong.fontFamily },
 
-  placeholder: {
-    color: COPY_DIM,
-    fontSize: 14,
-    lineHeight: 20,
-  },
+  placeholder: { ...afType.secondary, color: af.textSecondary, paddingTop: 10 },
 });

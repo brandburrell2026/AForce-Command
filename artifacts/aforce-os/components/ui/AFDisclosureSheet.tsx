@@ -26,6 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '../Icon';
 import { af, afType, afLayout } from '@/theme';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import { AFModal } from './AFModal';
 
 export interface AFDisclosureSheetProps {
@@ -39,6 +40,7 @@ export interface AFDisclosureSheetProps {
 export function AFDisclosureSheet({ visible, onClose, title, children, testID }: AFDisclosureSheetProps) {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const gutter = useAFGutter();
   return (
     <AFModal visible={visible} transparent animationType="slide" onRequestClose={onClose} testID={testID}>
       <Pressable
@@ -47,7 +49,7 @@ export function AFDisclosureSheet({ visible, onClose, title, children, testID }:
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       />
-      <View style={[styles.panel, { paddingBottom: insets.bottom + 24 }]}>
+      <View style={[styles.panel, { paddingBottom: insets.bottom + 24, paddingHorizontal: gutter }]}>
         <View style={styles.grabber} />
         <View style={styles.header}>
           <Text style={styles.title} accessibilityRole="header">
@@ -80,7 +82,6 @@ const styles = StyleSheet.create({
     backgroundColor: af.surfaceRaised,
     borderTopLeftRadius: afLayout.radiusHero,
     borderTopRightRadius: afLayout.radiusHero,
-    paddingHorizontal: afLayout.screenPaddingX,
     paddingTop: 10,
   },
   grabber: {

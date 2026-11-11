@@ -31,6 +31,10 @@
  *          provider disconnect (product ruling D9 only covers
  *          disconnect, not account deletion).
  *
+ *     Circle sharing consent is revoked in the same transaction, including
+ *     stale-write protection. Membership and recorded hydration history remain;
+ *     sharing that history again requires fresh explicit consent.
+ *
  *     Idempotent: every step is a DELETE/no-op-safe operation (empty
  *     token stores stay empty, empty auth-state tables stay empty,
  *     `biometrics = NULL` on an already-null column is a no-op update,
@@ -64,6 +68,9 @@
  */
 
 import { Router, type IRouter } from "express";
+import { clearCircleSharingForUser } from "../lib/circleSharing";
+import { clearMomentSharesForUser } from "../lib/circleMoments";
+import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Logger } from "pino";
 import {
@@ -72,6 +79,8 @@ import {
   createDrizzleOuraTokenStoreForUser,
   createDrizzleStravaTokenStoreForUser,
   createHealthRecordsRepo,
+  createConciergeRepo,
+  createSpatialStudioRepo,
   runAccountDeletionCascade,
   createAccountDeletionAuthStateDb,
   type AccountDeletionCascadeTokenStore,
@@ -251,6 +260,44 @@ function buildTokenStoresFor(
   };
 }
 
+/** Purge concierge rows only when all three tables exist in this database. */
+export async function purgeConciergeIfPresent(
+  tx: NodePgDatabase<Record<string, unknown>>,
+  userId: string,
+  log?: Pick<Logger, "info" | "warn" | "error">,
+): Promise<void> {
+  const probe = await tx.execute(sql`
+    select
+      to_regclass('public.aforce_concierge_conversations') as conversations,
+      to_regclass('public.aforce_concierge_messages') as messages,
+      to_regclass('public.aforce_concierge_preferences') as preferences
+  `);
+  const row = (probe as { rows?: Array<Record<string, unknown>> }).rows?.[0] ?? {};
+  const present = Boolean(row["conversations"] && row["messages"] && row["preferences"]);
+  if (!present) {
+    log?.warn?.({ userId: "[redacted]" }, "account-deletion: concierge tables not present; nothing to purge");
+    return;
+  }
+  await createConciergeRepo(tx).purgeUser(userId);
+}
+
+/** Purge Spatial Studio designs only when the table exists in this database. */
+export async function purgeSpatialStudioIfPresent(
+  tx: NodePgDatabase<Record<string, unknown>>,
+  userId: string,
+  log?: Pick<Logger, "info" | "warn" | "error">,
+): Promise<void> {
+  const probe = await tx.execute(sql`
+    select to_regclass('public.aforce_spatial_studio_projects') as projects
+  `);
+  const row = (probe as { rows?: Array<Record<string, unknown>> }).rows?.[0] ?? {};
+  if (!row["projects"]) {
+    log?.warn?.({ userId: "[redacted]" }, "account-deletion: spatial studio table not present; nothing to purge");
+    return;
+  }
+  await createSpatialStudioRepo(tx).purgeUser(userId);
+}
+
 export function buildDefaultAccountDeletionDeps(
   db: NodePgDatabase<Record<string, unknown>>,
   log?: Pick<Logger, "info" | "warn" | "error">,
@@ -268,15 +315,28 @@ export function buildDefaultAccountDeletionDeps(
     // `db` used elsewhere in this file, exactly the seam
     // `buildTokenStoresFor` already provides for the token stores.
     runCascadeInTransaction: (userId) =>
-      db.transaction((tx) =>
-        runAccountDeletionCascade(
+      db.transaction(async (tx) => {
+        await clearCircleSharingForUser(tx, userId);
+        await clearMomentSharesForUser(tx, userId);
+        return runAccountDeletionCascade(
           {
             ...buildTokenStoresFor(tx, log),
             authStateDb: createAccountDeletionAuthStateDb(tx),
             healthRecordsRepo: createHealthRecordsRepo(tx),
+            // AForce Concierge transcripts + preferences leave with the account.
+            // Guarded: the concierge tables are additive and may not be pushed
+            // yet in a given environment (the feature ships dark). A delete on a
+            // missing relation would abort the WHOLE deletion transaction, so
+            // when the tables are absent there is nothing to purge and the
+            // cascade continues; any other failure still rolls everything back.
+            conciergePurge: (uid) => purgeConciergeIfPresent(tx, uid, log),
+            // Spatial Studio designs (documents + uploaded imagery) leave with
+            // the account. Same guard as the concierge: an absent table is
+            // "nothing to purge", any other failure rolls everything back.
+            spatialStudioPurge: (uid) => purgeSpatialStudioIfPresent(tx, uid, log),
           },
           userId,
-        ),
-      ),
+        );
+      }),
   };
 }

@@ -15,14 +15,8 @@ public final class SkinIAImageFeaturesModule: Module {
 }
 
 private enum SkinIAImageFeatures {
-  private struct Region {
-    let x0: Double
-    let y0: Double
-    let x1: Double
-    let y1: Double
-  }
-
   private struct Measures {
+    let sampleCount: Int
     let brightness: Double
     let redness: Double
     let shine: Double
@@ -36,17 +30,12 @@ private enum SkinIAImageFeatures {
     let sourceHeight = source.size.height * source.scale
     guard sourceWidth >= 480, sourceHeight >= 480 else { return ["state": "DIMENSIONS_UNUSABLE"] }
 
-    // UIImage.draw applies orientation. The downscaled image exists only in RAM.
-    let factor = min(1.0, 640.0 / max(sourceWidth, sourceHeight))
-    let width = max(1, Int((sourceWidth * factor).rounded()))
-    let height = max(1, Int((sourceHeight * factor).rounded()))
-    let format = UIGraphicsImageRendererFormat()
-    format.opaque = true
-    format.scale = 1
-    let rendered = UIGraphicsImageRenderer(size: CGSize(width: CGFloat(width), height: CGFloat(height)), format: format).image { _ in
-      source.draw(in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
+    // UIImage.draw applies orientation. The reduced image exists only in RAM.
+    guard let cgImage = SkinIAFrameCoordinates.renderUpright(source) else {
+      return ["state": "UNAVAILABLE"]
     }
-    guard let cgImage = rendered.cgImage else { return ["state": "UNAVAILABLE"] }
+    let width = cgImage.width
+    let height = cgImage.height
 
     let request = VNDetectFaceLandmarksRequest()
     do {
@@ -66,37 +55,30 @@ private enum SkinIAImageFeatures {
       return ["state": "FACE_NOT_CLEAR"]
     }
 
-    var rgba = [UInt8](repeating: 0, count: width * height * 4)
-    let drawn = rgba.withUnsafeMutableBytes { bytes -> Bool in
-      guard let address = bytes.baseAddress,
-            let context = CGContext(data: address, width: width, height: height,
-                                    bitsPerComponent: 8, bytesPerRow: width * 4,
-                                    space: CGColorSpaceCreateDeviceRGB(),
-                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue) else {
-        return false
-      }
-      context.translateBy(x: 0, y: CGFloat(height))
-      context.scaleBy(x: 1, y: -1)
-      context.draw(cgImage, in: CGRect(x: 0, y: 0, width: CGFloat(width), height: CGFloat(height)))
-      return true
+    guard let rgba = SkinIAFrameCoordinates.topLeftRGBA(cgImage) else {
+      return ["state": "UNAVAILABLE"]
     }
-    guard drawn else { return ["state": "UNAVAILABLE"] }
 
     // Vision's normalized box has a bottom-left origin; pixel rows are top-left.
-    let faceX = Double(box.minX) * Double(width)
-    let faceY = (1.0 - Double(box.maxY)) * Double(height)
-    let faceW = Double(box.width) * Double(width)
-    let faceH = Double(box.height) * Double(height)
-    func region(_ unit: Region) -> Measures {
-      measure(rgba, width, height, Region(
-        x0: faceX + unit.x0 * faceW, y0: faceY + unit.y0 * faceH,
-        x1: faceX + unit.x1 * faceW, y1: faceY + unit.y1 * faceH))
+    guard let faceRect = SkinIAFrameCoordinates.topLeftFaceRect(
+      fromVisionBox: box, width: width, height: height
+    ) else { return ["state": "REGIONS_UNUSABLE"] }
+    // These are coarse face-box sample zones, not landmark-verified skin or
+    // evidence that any named appearance cue is observable. Do not silently
+    // clamp a cropped zone onto background pixels.
+    func region(_ zone: SkinIAFrameCoordinates.QASampleZone) -> Measures? {
+      guard let pixels = SkinIAFrameCoordinates.qaSampleRect(
+        zone, in: faceRect, imageWidth: width, imageHeight: height
+      ) else { return nil }
+      return measure(rgba, width, height, pixels)
     }
-    let forehead = region(Region(x0: 0.30, y0: 0.12, x1: 0.70, y1: 0.28))
-    let leftCheek = region(Region(x0: 0.13, y0: 0.48, x1: 0.38, y1: 0.68))
-    let rightCheek = region(Region(x0: 0.62, y0: 0.48, x1: 0.87, y1: 0.68))
-    let nose = region(Region(x0: 0.43, y0: 0.42, x1: 0.57, y1: 0.66))
-    let chin = region(Region(x0: 0.35, y0: 0.75, x1: 0.65, y1: 0.88))
+    guard let forehead = region(.forehead),
+          let leftCheek = region(.leftCheek),
+          let rightCheek = region(.rightCheek),
+          let nose = region(.nose),
+          let chin = region(.chin),
+          [forehead, leftCheek, rightCheek, nose, chin].allSatisfy({ $0.sampleCount >= 32 })
+    else { return ["state": "REGIONS_UNUSABLE"] }
     let brightness = (leftCheek.brightness + rightCheek.brightness) / 2
     let clipping = (leftCheek.clipping + rightCheek.clipping) / 2
     let sharpness = (leftCheek.texture + rightCheek.texture) / 2
@@ -115,16 +97,40 @@ private enum SkinIAImageFeatures {
         "cheekTexture": sharpness,
         "brightEdgeDensity": (leftCheek.brightEdges + rightCheek.brightEdges + chin.brightEdges) / 3,
         "clippingFraction": clipping
+      ],
+      // QA-only per-zone measurements. No pixel array, image, landmark,
+      // bounding box, face template, appearance label, or confidence crosses.
+      "qaSampleZones": [
+        "revision": "FACE_BOX_SAMPLE_ZONES_V0_1",
+        "forehead": qaMeasures(forehead),
+        "leftCheek": qaMeasures(leftCheek),
+        "rightCheek": qaMeasures(rightCheek),
+        "nose": qaMeasures(nose),
+        "chin": qaMeasures(chin)
       ]
     ]
   }
 
-  private static func measure(_ rgba: [UInt8], _ width: Int, _ height: Int, _ box: Region) -> Measures {
+  private static func qaMeasures(_ values: Measures) -> [String: Any] {
+    return [
+      "sampleCount": values.sampleCount,
+      "brightness": values.brightness,
+      "redColorIndex": values.redness,
+      "brightPixelFraction": values.shine,
+      "edgeMagnitude": values.texture,
+      "brightEdgeFraction": values.brightEdges,
+      "clippingFraction": values.clipping
+    ]
+  }
+
+  private static func measure(
+    _ rgba: [UInt8], _ width: Int, _ height: Int, _ box: SkinIAFrameCoordinates.SampleRect
+  ) -> Measures {
     let x0 = max(1, min(width - 2, Int(box.x0)))
     let y0 = max(1, min(height - 2, Int(box.y0)))
     let x1 = max(x0 + 1, min(width - 1, Int(box.x1)))
     let y1 = max(y0 + 1, min(height - 1, Int(box.y1)))
-    var count = 0.0
+    var count = 0
     var brightness = 0.0
     var redness = 0.0
     var shine = 0.0
@@ -150,9 +156,10 @@ private enum SkinIAImageFeatures {
         if luma < 5 || luma > 250 { clipping += 1 }
       }
     }
-    let denominator = max(1, count)
-    return Measures(brightness: brightness / denominator, redness: redness / denominator,
-                    shine: shine / denominator, texture: texture / denominator,
-                    brightEdges: brightEdges / denominator, clipping: clipping / denominator)
+    let denominator = Double(max(1, count))
+    return Measures(sampleCount: count, brightness: brightness / denominator,
+                    redness: redness / denominator, shine: shine / denominator,
+                    texture: texture / denominator, brightEdges: brightEdges / denominator,
+                    clipping: clipping / denominator)
   }
 }

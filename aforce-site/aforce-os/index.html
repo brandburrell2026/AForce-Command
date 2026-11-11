@@ -1,789 +1,637 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<!-- build: 2026-09-15 travel photo wider -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>AFORCE OS | Before the Moment</title>
-<meta name="description" content="AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.">
-<meta name="robots" content="index,follow">
-<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="canonical" href="https://www.drinkaforce.com/aforce-os">
-<meta property="og:type" content="website">
-<meta property="og:title" content="AFORCE OS | Before the Moment">
-<meta property="og:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
-<meta property="og:url" content="https://www.drinkaforce.com/aforce-os">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AFORCE OS | Before the Moment">
-<meta name="twitter:description" content="Performance doesn't begin when the moment starts. AFORCE OS helps you prepare before it matters.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/os-hero-poster.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Universal header — loaded before the page style so the page's own colours win -->
-<link rel="stylesheet" href="/assets/header.css">
-<style>
-  :root{
-    --ink:#0D0D0D;
-    --ink-2:#070707;
-    --canvas:#E9E7E1;
-    --canvas-dim:#E1DDD4;
-    --bone:#F5F0E8;
-    --afx-surface:#F5F0E8;
-    --red:#C1281B;
-    --green:#1FA35A;
-    --bone-2:#EFEADF;
-    --metal:#6B6B66;
-    --line:rgba(13,13,13,.12);
-    --i80:rgba(13,13,13,.80);
-    --i64:rgba(13,13,13,.64);
-    --i46:rgba(13,13,13,.46);
-    --i30:rgba(13,13,13,.30);
-    --i22:rgba(13,13,13,.22);
-    --i12:rgba(13,13,13,.12);
-    --i08:rgba(13,13,13,.08);
-    --b80:rgba(245,240,232,.80);
-    --b64:rgba(245,240,232,.64);
-    --b40:rgba(245,240,232,.40);
-    --b24:rgba(245,240,232,.24);
-    --b14:rgba(245,240,232,.14);
-    --b08:rgba(245,240,232,.08);
-    --display:'Inter',sans-serif;
-    --body:'Inter',sans-serif;
-    --gutter:clamp(22px,6vw,88px);
-    --maxw:1240px;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{ background:var(--canvas); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.65; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
-  ::selection{ background:var(--ink); color:var(--canvas); }
-  a{color:inherit;text-decoration:none;}
-  button{font-family:inherit;cursor:pointer;color:inherit;background:none;border:none;}
-  :focus-visible{outline:2px solid var(--red);outline-offset:3px;}
-  img,svg{max-width:100%;display:block;}
-  .flip-n{ display:inline-block; transform:scaleX(-1); color:var(--red); }
-
-  /* ---------- TYPE (mirrors the homepage: Inter throughout) ---------- */
-  .kick{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--red); display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .kick .coming{ font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--metal); border:1px solid var(--i22); padding:5px 9px; border-radius:2px; }
-  .hd-xl{ font-family:var(--display); font-weight:800; line-height:1.0; letter-spacing:-0.015em; font-size:clamp(46px,8.5vw,120px); text-wrap:balance; overflow-wrap:break-word; }
-  .hd-l{ font-family:var(--display); font-weight:800; line-height:1.08; letter-spacing:-0.01em; font-size:clamp(34px,5vw,64px); text-wrap:balance; overflow-wrap:break-word; }
-  .hd-m{ font-family:var(--display); font-weight:800; line-height:1.1; letter-spacing:-0.008em; font-size:clamp(26px,3.4vw,46px); text-wrap:balance; }
-  .lead{ font-size:clamp(16px,1.35vw,20px); line-height:1.72; color:var(--i64); max-width:52ch; }
-  .lead b{ color:var(--ink); font-weight:600; }
-  .lines{ list-style:none; display:flex; flex-direction:column; }
-  .lines li{ font-family:var(--display); font-weight:600; font-size:clamp(17px,1.7vw,24px); line-height:1.25; padding:10px 0; border-top:1px solid var(--line); color:var(--ink); }
-  .lines li:last-child{ border-bottom:1px solid var(--line); }
-  .lines li.dim{ color:var(--metal); font-weight:400; }
-  .cap{ font-family:var(--body); font-weight:600; font-size:10.5px; line-height:1.55; letter-spacing:.08em; text-transform:uppercase; color:var(--metal); }
-  .note{ font-size:11.5px; line-height:1.6; letter-spacing:.01em; color:var(--i46); max-width:64ch; }
-  /* dark-ground variants */
-  .on-dark{ color:var(--bone); }
-  .on-dark .lead{ color:var(--b64); }
-  .on-dark .lead b{ color:var(--bone); }
-  .on-dark .cap{ color:var(--b40); }
-  .on-dark .note{ color:var(--b40); }
-  .on-dark .kick .coming{ color:var(--b64); border-color:var(--b24); }
-
-  /* ---------- NAV — visual treatment only (behaviour from /assets/header.css) ---------- */
-  .afx-nav{ color:#F5F0E8; background:transparent; border-bottom:1px solid transparent; transition:background .4s ease, color .4s ease, border-color .4s ease, padding .4s ease; }
-  .afx-nav.solid{ color:var(--ink); background:rgba(245,240,232,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom-color:var(--i08); padding-top:14px; padding-bottom:14px; }
-  .afx-nav.afx-open, .afx-nav.solid.afx-open{ background:var(--afx-surface); color:var(--afx-on-surface); border-bottom-color:transparent; }
-  .afx-nav .mark{ font-family:"Helvetica Now Display","Helvetica Neue",Helvetica,Arial,sans-serif; font-weight:700; font-size:18px; letter-spacing:-0.01em; display:flex; align-items:center; gap:10px; white-space:nowrap; }
-  .nn{ display:inline-flex; align-items:center; gap:5px; }
-  .afx-links{ gap:clamp(13px,1.9vw,28px); font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
-  .afx-links a{ opacity:.72; transition:opacity .2s, color .2s; white-space:nowrap; }
-  .afx-links a:hover{ opacity:1; color:var(--red); }
-  .afx-links a[aria-current="page"]{ opacity:1; color:var(--red); }
-  /* Figma brand-mark: thin monoline N–И monogram */
-  .nn-logo{ display:inline-flex; align-items:center; font-family:'Inter',sans-serif; font-weight:300; line-height:1; color:var(--red); white-space:nowrap; vertical-align:-0.08em; font-size:1.15em; }
-  .nn-logo .nn-n{ display:inline-block; }
-  .nn-logo .nn-flip{ transform:scaleX(-1); }
-  .nn-logo .nn-bar{ display:inline-block; width:0.40em; height:0.056em; background:currentColor; margin:0 0.05em; transform:translateY(-0.015em); }
-
-  /* ---------- BUTTONS (site convention: ink on canvas; red stays a signal) ---------- */
-  .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--body); font-weight:600; font-size:12px; letter-spacing:.14em; text-transform:uppercase; padding:16px 30px; border-radius:2px; transition:all .25s ease; border:1px solid transparent; }
-  .btn .arw{ transition:transform .25s; }
-  .btn:hover .arw{ transform:translateX(4px); }
-  .btn-primary{ background:var(--ink); color:var(--canvas); }
-  .btn-primary:hover{ background:var(--red); color:var(--bone); }
-  .on-dark .btn-primary{ background:var(--canvas); color:var(--ink); }
-  .on-dark .btn-primary:hover{ background:var(--red); color:var(--bone); }
-  .btn-outline-light{ border-color:var(--b40); color:var(--bone); }
-  .btn-outline-light:hover{ border-color:var(--bone); background:var(--bone); color:var(--ink); }
-  .cta-row{ display:flex; flex-wrap:wrap; gap:16px; }
-
-  /* ---------- REVEAL (visible at rest; motion is an entrance only) ---------- */
-  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 1.1s ease, transform 1.1s ease; }
-  .reveal.in{ opacity:1; transform:none; }
-  .stagger .reveal.in{ transition-delay:calc(var(--i,0) * .09s); }
-  html.no-io .reveal{ opacity:1; transform:none; }
-  html.no-io .verbs li{ color:var(--ink); } html.no-io .verbs li:last-child{ color:var(--red); }
-
-  /* ---------- LAYOUT ---------- */
-  .wrap{ max-width:var(--maxw); margin:0 auto; }
-  section{ position:relative; }
-  .blk{ padding:clamp(96px,15vh,190px) var(--gutter); background:var(--canvas); }
-  .blk + .blk{ border-top:1px solid var(--line); }
-  .split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,6vw,110px); align-items:center; }
-  .split.top{ align-items:start; }
-  .split.rev > :first-child{ order:2; }
-  .col-copy > * + *{ margin-top:clamp(18px,2.2vw,28px); }
-
-  /* phone frame — the Black Issue render carries its own bezel; only shadow + caption here */
-  .shot{ display:flex; flex-direction:column; align-items:center; gap:14px; }
-  .shot img{ width:min(390px,100%); max-width:100%; height:auto; border-radius:8.7% / 4%; box-shadow:0 44px 90px -30px rgba(13,13,13,.5), 0 18px 40px -14px rgba(13,13,13,.3); }
-  .shot .cap{ text-align:center; }
-
-  /* ================= 01 · HERO (cinematic — the one dark opener, as on the homepage) ================= */
-  .hero{ position:relative; min-height:100svh; display:grid; align-items:end; padding:clamp(120px,18vh,200px) var(--gutter) clamp(64px,9vh,110px); overflow:hidden; background:#000; }
-  /* full-bleed background video (the page's original hero film); the still stands in under reduced motion */
-  .hero-video, .hero-still{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; z-index:0; }
-  .hero-still{ display:none; }
-  .hero-scrim{ position:absolute; inset:0; z-index:1; background:
-    linear-gradient(90deg, rgba(13,13,13,.94) 0%, rgba(13,13,13,.82) 26%, rgba(13,13,13,.42) 48%, rgba(13,13,13,.06) 66%, rgba(13,13,13,0) 80%),
-    linear-gradient(180deg, rgba(13,13,13,.5) 0%, rgba(13,13,13,0) 26%, rgba(13,13,13,0) 60%, rgba(13,13,13,.9) 100%); }
-  .hero-grid{ position:relative; z-index:2; width:100%; max-width:var(--maxw); margin:0 auto; display:grid; grid-template-columns:minmax(0,1fr); align-items:end; }
-  .hero-copy{ max-width:640px; }
-  .hero-copy > * + *{ margin-top:clamp(20px,2.4vw,30px); }
-  .hero-copy .hd-xl{ max-width:9ch; }
-  .hero .lead{ color:var(--b80); }
-  .scroll-cue{ position:absolute; z-index:2; bottom:clamp(20px,3vh,34px); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:9px; font-family:var(--body); font-weight:600; font-size:10px; letter-spacing:.24em; text-transform:uppercase; color:var(--b40); }
-  .scroll-cue .line{ width:1px; height:36px; background:linear-gradient(var(--b40), transparent); }
-
-
-  /* ================= 03 · ONE COMMAND ================= */
-  .verbs{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .verbs li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(34px,5vw,74px); color:var(--i22); padding:6px 0; transition:color .6s ease; }
-  .verbs li.in{ color:var(--ink); }
-  .verbs li.on{ color:var(--red); }
-  /* Performance Navigator — the Protocol · Depletion Correction screen is the visual: AFORCE moving from interpretation into action.
-     Desktop: interface left, copy + verbs right. ≤1024px: eyebrow/headline/copy → interface → verbs. */
-  .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"stage intro" "stage verbs"; grid-template-rows:auto 1fr; column-gap:clamp(40px,6vw,110px); align-items:start; }
-  .pn-intro{ grid-area:intro; align-self:end; }
-  .pn-verbs{ grid-area:verbs; }
-  .pn-stage{ grid-area:stage; position:relative; margin:0; align-self:center; background:#030303; border-radius:6px; overflow:hidden; padding:clamp(22px,2.6vw,34px) 12% 0; display:flex; flex-direction:column; align-items:center; }
-  .pn-stage::before{ content:''; position:absolute; left:10%; right:10%; top:22%; height:46%; border-radius:50%; background:radial-gradient(closest-side, rgba(245,240,232,.07), transparent 72%); filter:blur(40px); pointer-events:none; }
-  .pn-rail{ position:relative; z-index:1; list-style:none; align-self:stretch; display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 10px; margin:0 0 clamp(20px,2.4vw,30px); padding-bottom:12px; border-bottom:1px solid var(--b14); font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--b40); }
-  .pn-rail li.on{ color:#E13B2A; }
-  /* the whole Protocol frame, uncropped and uncovered */
-  .pn-phone{ position:relative; z-index:1; width:100%; max-width:400px; }
-  .pn-screen img{ display:block; width:100%; height:auto; border-radius:11.8% / 5.45%; }
-  /* one extracted callout under the phone, drawn in the OS's own language: card #141414, hairline, mono label, red signal */
-  .pn-move{ position:relative; z-index:2; width:100%; max-width:400px; margin-top:clamp(16px,1.8vw,22px); display:flex; flex-direction:column; gap:6px; padding:13px 16px 12px; background:#141414; border:1px solid #2D2A25; border-left:2px solid #E13B2A; border-radius:4px; }
-  .pn-k, .pn-s{ font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; }
-  .pn-k{ color:#A19C91; }
-  .pn-v{ font-family:var(--body); font-weight:600; font-size:clamp(18px,1.6vw,22px); line-height:1.15; letter-spacing:-0.01em; color:#EDEAE3; }
-  .pn-s{ display:flex; align-items:center; gap:8px; color:#E13B2A; }
-  .pn-s i{ width:9px; height:9px; border-radius:50%; border:1.5px solid #E13B2A; box-shadow:inset 0 0 0 2px #141414; background:#E13B2A; }
-  .pn-stage .cap{ position:relative; z-index:1; align-self:stretch; text-align:center; margin-top:14px; padding:0 0 18px; color:var(--b40); }
-  .pn-none{ margin-top:clamp(22px,2.6vw,34px); padding-top:clamp(16px,1.8vw,22px); border-top:1px solid var(--line); max-width:34ch; font-size:clamp(16px,1.3vw,19px); line-height:1.55; color:var(--i64); }
-
-  /* ================= 05 · CYCLE ================= */
-  /* Anticipate → Support → Learn: During is the largest visual, Before restrained, After calmest. Subgrid keeps word, copy and screen on shared rows. */
-  .cycle-grid{ margin-top:clamp(48px,6vw,88px); display:grid; grid-template-columns:minmax(0,.96fr) minmax(0,1.16fr) minmax(0,.88fr); grid-template-rows:auto auto 1fr; column-gap:clamp(18px,2.6vw,40px); row-gap:0; align-items:start; }
-  .state{ display:grid; grid-row:span 3; grid-template-rows:subgrid; row-gap:clamp(18px,2vw,26px); align-content:start; padding-top:22px; border-top:1px solid var(--ink); }
-  .state .word{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(30px,3.6vw,52px); }
-  .state .copy{ color:var(--i64); font-size:15.5px; line-height:1.65; max-width:34ch; }
-  .state .copy b{ color:var(--ink); font-weight:600; display:block; margin-top:8px; }
-  .state .copy span{ display:block; margin-top:8px; }
-  .state .shot{ align-self:start; }
-  .state--before .shot img{ width:min(330px,100%); }
-  .state--during .shot img{ width:min(390px,100%); }
-  .state--after .shot img{ width:min(290px,100%); }
-
-  /* ================= 02 · HYDROSTATE ================= */
-  .hydro .split{ align-items:center; }
-  .hydro .shot{ position:relative; }
-  .hydro .shot::before{ content:''; position:absolute; inset:-12% -30%; border-radius:50%; background:radial-gradient(closest-side, rgba(13,13,13,.08), transparent 72%); filter:blur(40px); pointer-events:none; }
-  .hydro .shot img{ position:relative; width:min(430px,100%); }   /* the one hero presentation of Home / HydroState */
-  .signals{ list-style:none; margin-top:clamp(30px,3.6vw,48px); display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; border-top:1px solid var(--line); }
-  .signals li{ padding:18px 0 20px; border-bottom:1px solid var(--line); }
-  .signals .k{ font-family:var(--body); font-weight:700; font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--metal); }
-  .signals .v{ margin-top:6px; font-family:var(--display); font-weight:700; font-size:clamp(26px,3vw,40px); line-height:1; letter-spacing:-0.02em; font-variant-numeric:tabular-nums; }
-  .signals .v.red{ color:var(--red); }
-  .signals li:nth-child(odd){ padding-right:18px; }
-  .signals li:nth-child(even){ padding-left:18px; border-left:1px solid var(--line); }
-
-  /* ================= 07 · SKIN ================= */
-  .skin .three{ list-style:none; margin-top:clamp(26px,3vw,40px); }
-  .skin .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.015em; line-height:1; font-size:clamp(28px,4vw,58px); color:var(--i30); padding:5px 0; }
-  .skin .three li:last-child{ color:var(--ink); }
-  .skin-stage{ position:relative; }
-  .skin-stage::before{ content:''; position:absolute; inset:-6% -14%; background:radial-gradient(ellipse at 50% 40%, rgba(193,40,27,.10), transparent 60%); filter:blur(30px); pointer-events:none; }
-
-  /* ================= 08 · TRAVEL ================= */
-  /* photo and phone side by side — the photo is a contained editorial frame, not a full-bleed bed for the phone */
-  /* photo at the phone's height, wide enough (2:3) to keep the whole traveler: columns sized 1.4427 : 1 so a 2:3 photo and a 390×844 phone end at the same height */
-  .travel-visual{ margin:clamp(48px,6vw,88px) auto 0; width:min(100%, calc(879px + clamp(28px,5vw,80px))); display:grid; grid-template-columns:minmax(0,1.4427fr) minmax(0,1fr); gap:clamp(28px,5vw,80px); align-items:start; }
-  .travel-visual .photo{ position:relative; width:100%; aspect-ratio:2/3; overflow:hidden; }
-  .travel-visual .photo img{ width:100%; height:100%; object-fit:cover; object-position:80% 50%; }
-  .travel-visual .photo::after{ content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(13,13,13,.22), rgba(13,13,13,0) 40%); pointer-events:none; }
-  .travel-visual .shot{ width:100%; }
-  .travel-visual .shot img{ width:100%; }
-  .travel .lines{ max-width:420px; }
-
-  /* ================= 10 · PHANTOM (near black-on-black, by design) ================= */
-  .phantom{ background:var(--ink-2); }
-  .phantom .three{ list-style:none; margin-top:clamp(22px,2.6vw,34px); display:flex; gap:clamp(18px,3vw,40px); flex-wrap:wrap; }
-  .phantom .three li{ font-family:var(--display); font-weight:800; letter-spacing:-0.01em; font-size:clamp(20px,2.4vw,34px); color:var(--b64); }
-  .ph-stage{ position:relative; display:grid; grid-template-columns:minmax(0,1fr); place-items:center; min-height:clamp(420px,50vw,640px); }
-  /* one hero composition: band + OS phone + product, black-on-black; the band's red signal is the focal point */
-  .ph-stage .band{ position:absolute; z-index:0; width:clamp(240px,26vw,320px); left:-2%; top:3%; opacity:.95; }
-  .ph-stage .can{ position:absolute; z-index:0; width:clamp(110px,12vw,170px); right:2%; bottom:4%; opacity:.72; filter:grayscale(.35) brightness(.7) drop-shadow(0 30px 40px rgba(0,0,0,.85)); }
-  .ph-stage .shot{ position:relative; z-index:1; }
-  .ph-stage .shot img{ width:min(340px,100%); box-shadow:0 60px 120px -20px rgba(0,0,0,.95); }
-  .phantom .note{ margin-top:clamp(22px,2.6vw,34px); }
-
-  /* ================= 13 · 30 DAYS IN (restored from the 13 Sep page) ================= */
-  .thirty{ background:var(--bone-2); }
-  .h-2{ font-family:var(--display); font-weight:800; line-height:1.07; letter-spacing:-0.008em; font-size:clamp(28px,4vw,52px); }
-  .t30-grid{ margin-top:clamp(40px,5vw,64px); display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(18px,2.4vw,30px); }
-  .t30{ border-top:2px solid var(--ink); padding-top:20px; }
-  .t30-k{ font-family:var(--body); font-weight:700; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--i64); }
-  .t30-row{ margin-top:16px; display:flex; align-items:baseline; gap:9px; }
-  .t30-a{ font-family:var(--display); font-size:clamp(19px,2vw,26px); color:var(--i46); }
-  .t30-arw{ color:var(--i30); font-size:15px; }
-  .t30-b{ font-family:var(--display); font-size:clamp(34px,4vw,52px); line-height:1; letter-spacing:-0.01em; }
-  .t30-b.red{ color:var(--red); }
-  .t30-bar{ margin-top:16px; height:4px; border-radius:4px; background:var(--i08); overflow:hidden; }
-  .t30-bar i{ display:block; height:100%; border-radius:4px; background:var(--red); width:0; transition:width 1.3s cubic-bezier(.4,0,.2,1); }
-  .t30.in .t30-bar i{ width:var(--w,90%); }
-  .t30-d{ margin-top:13px; font-family:var(--body); font-weight:600; font-size:13px; color:var(--red); }
-  /* ---------- RESPONSIVE ---------- */
-  @media (max-width:900px){
-    .split, .split.rev{ grid-template-columns:minmax(0,1fr); gap:40px; }
-    .split.rev > :first-child{ order:0; }
-    .hero{ min-height:0; padding-top:clamp(96px,14vh,140px); }
-    .hero-scrim{ background:linear-gradient(180deg, rgba(13,13,13,.62) 0%, rgba(13,13,13,.36) 34%, rgba(13,13,13,.88) 70%, rgba(13,13,13,.98) 100%); }
-    .cycle-grid{ grid-template-columns:minmax(0,1fr); grid-template-rows:none; row-gap:56px; }
-    .state{ grid-row:auto; grid-template-rows:none; }
-    .state--during .shot img{ width:min(380px,100%); }
-    .state .word{ position:sticky; top:72px; z-index:2; background:var(--canvas); padding:8px 0; }
-    .travel-visual{ width:min(100%,440px); grid-template-columns:minmax(0,1fr); gap:28px; justify-items:center; }
-    .travel-visual .shot{ width:min(300px,100%); }
-    .t30-grid{ grid-template-columns:1fr 1fr; gap:24px; }
-    .ph-stage{ min-height:0; padding:30px 0; }
-    .ph-stage .band{ width:40vw; left:-6%; top:0; }
-  }
-  @media (min-width:1025px) and (max-width:1100px){
-    .pn-stage{ padding-left:9%; padding-right:9%; }
-  }
-  /* tablet and below: eyebrow/headline/copy → interface → verbs, so the protocol stays large enough to read */
-  @media (max-width:1024px){
-    .pn-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"intro" "stage" "verbs"; grid-template-rows:auto; row-gap:40px; }
-    .pn-intro{ align-self:start; }
-    .pn-stage{ width:min(620px,100%); justify-self:center; padding:22px 7% 0; }
-    .pn-phone, .pn-move{ max-width:440px; }
-  }
-  @media (max-width:600px){
-    /* phone widths: the full frame fills the stage */
-    .pn-stage{ padding:18px 10px 0; }
-  }
-  @media (max-width:390px){
-    .hd-xl{ font-size:44px; }
-    .t30-grid{ grid-template-columns:1fr; }   /* keeps every after-value in view at phone width */
-    .signals{ grid-template-columns:minmax(0,1fr); }
-    .signals li:nth-child(even){ padding-left:0; border-left:none; }
-    .signals li:nth-child(odd){ padding-right:0; }
-  }
-  @media (prefers-reduced-motion:reduce){
-    html{ scroll-behavior:auto; }
-    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
-    .stagger .reveal.in{ transition-delay:0s !important; }
-    .hero-video{ display:none; }
-    .hero-still{ display:block; }
-    .btn .arw, .verbs li{ transition:none !important; }
-    .t30-bar i{ transition:none; width:var(--w,90%); }
-    .verbs li{ color:var(--ink); } .verbs li:last-child{ color:var(--red); }
-  }
-</style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://www.drinkaforce.com/#organization",
-      "name": "AFORCE Hydration, Inc.",
-      "url": "https://www.drinkaforce.com/",
-      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
-      "slogan": "Performance Is Non-Negotiable.",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "New York",
-        "addressRegion": "NY",
-        "addressCountry": "US"
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>AFORCE OS — The pause before the moment</title>
+    <meta
+      name="description"
+      content="A preparation app in development. Try the AFORCE OS preview: describe a moment, review a plan, and choose what to carry forward."
+    />
+    <link rel="canonical" href="https://www.joinaforce.com/aforce-os" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.joinaforce.com/aforce-os" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      property="og:title"
+      content="AFORCE OS — The pause before the moment"
+    />
+    <meta
+      property="og:image"
+      content="https://www.joinaforce.com/assets/aforce-os/story-football.jpg"
+    />
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+    <link rel="stylesheet" href="/assets/header.css" />
+    <link rel="stylesheet" href="/assets/footer.css?v=3" />
+    <style>
+      .afx-nav {
+        color: #f5f0e8;
+        background: #0a0a0a;
+        border-bottom: 1px solid #252321;
       }
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://www.drinkaforce.com/#website",
-      "name": "AFORCE",
-      "url": "https://www.drinkaforce.com/",
-      "publisher": {
-        "@id": "https://www.drinkaforce.com/#organization"
+      .nn-logo {
+        display: inline-flex;
+        align-items: center;
+        font-family: Inter, sans-serif;
+        font-weight: 300;
+        line-height: 1;
+        color: #c1281b;
+        white-space: nowrap;
+        font-size: 1.15em;
       }
-    },
-    {
-      "@type": "WebPage",
-      "@id": "https://www.drinkaforce.com/aforce-os#webpage",
-      "url": "https://www.drinkaforce.com/aforce-os",
-      "name": "AFORCE OS | Before the Moment",
-      "description": "AFORCE OS is a performance intelligence system. It brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.",
-      "isPartOf": {
-        "@id": "https://www.drinkaforce.com/#website"
-      },
-      "about": {
-        "@id": "https://www.drinkaforce.com/#organization"
-      },
-      "breadcrumb": {
-        "@id": "https://www.drinkaforce.com/aforce-os#breadcrumb"
+      .nn-logo .nn-n {
+        display: inline-block;
       }
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://www.drinkaforce.com/aforce-os#breadcrumb",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://www.drinkaforce.com/"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "AFORCE OS",
-          "item": "https://www.drinkaforce.com/aforce-os"
-        }
-      ]
-    }
-  ]
-}
-</script>
-<link rel="stylesheet" href="/assets/footer.css?v=3">
-</head>
-<body>
-<a class="afx-skip" href="#main">Skip to main content</a>
+      .nn-logo .nn-flip {
+        transform: scaleX(-1);
+      }
+      .nn-logo .nn-bar {
+        display: inline-block;
+        width: 0.4em;
+        height: 0.056em;
+        background: currentColor;
+        margin: 0 0.05em;
+        transform: translateY(-0.015em);
+      }
+    </style>
+    <link rel="stylesheet" href="/assets/aforce-os/moment-preview.css" />
+  </head>
+  <body>
+    <a class="afx-skip" href="#main">Skip to main content</a>
+    <header class="afx-nav" id="afxNav">
+      <a class="afx-mark mark" href="/" aria-label="AFORCE — home"
+        ><span class="nn"
+          ><span class="nn-logo" aria-hidden="true"
+            ><span class="nn-n">N</span><span class="nn-bar"></span
+            ><span class="nn-n nn-flip">N</span></span
+          ></span
+        ></a
+      >
+      <div class="afx-right">
+        <div class="afx-links">
+          <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a
+          ><a href="/our-story">Our Story</a><a href="/science">Science</a
+          ><a href="/manifesto">Manifesto</a>
+        </div>
+        <a href="/shop" class="afx-shop">Hydration</a>
 
-<!-- ============ NAV ============ -->
-<header class="afx-nav afx-overlay" id="afxNav">
-  <a class="afx-mark mark" href="/" aria-label="AFORCE — home">
-    <span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span> AFORCE
-  </a>
-  <div class="afx-right">
-    <div class="afx-links">
-      <a href="/#ritual">Ritual</a><a href="/aforce-os" aria-current="page">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
-    </div>
-    <a href="/shop" class="afx-shop">Shop</a>
-    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
-    <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
-      <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
-    </button>
-  </div>
-</header>
-<div class="afx-drawer" id="afxDrawer" data-open="false">
-  <div class="afx-backdrop" data-afx-close></div>
-  <div class="afx-panel">
-    <nav aria-label="Main">
-      <a href="/#ritual">Ritual</a>
-      <a href="/aforce-os" aria-current="page">The OS</a>
-      <a href="/our-story">Our Story</a>
-      <a href="/science">Science</a>
-      <a href="/manifesto">Manifesto</a>
-      <a href="/shop" class="afx-drawer-shop">Shop</a>
-    </nav>
-  </div>
-</div>
-
-<main id="main" tabindex="-1">
-
-<!-- ============ 01 · HERO — BEFORE THE MOMENT ============ -->
-<header class="hero on-dark" id="top">
-  <video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="/assets/os-hero-poster.jpg" aria-label="AFORCE OS — the Readiness screen in hand beside the can at golden hour">
-    <source src="/assets/os-hero.webm" type="video/webm">
-    <source src="/assets/os-hero.mp4" type="video/mp4">
-  </video>
-  <img class="hero-still" src="/assets/os-hero-poster.jpg" alt="AFORCE OS — the Readiness screen in hand beside the can at golden hour" loading="eager" decoding="async" fetchpriority="high">
-  <div class="hero-scrim" aria-hidden="true"></div>
-  <div class="hero-grid">
-    <div class="hero-copy reveal in">
-      <div class="kick">AFORCE OS</div>
-      <h1 class="hd-xl">Before<br>the moment.</h1>
-      <p class="lead"><b>Performance doesn't begin when the moment starts.</b><br><br>AFORCE OS brings together your body's signals, hydration, recovery, environment and what your day demands to help you prepare before it matters.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="#hydrostate">Explore AFORCE OS <span class="arw">&rarr;</span></a>
-        <a class="btn btn-outline-light" href="#cycle">See how it works</a>
+        <button
+          class="afx-burger"
+          id="afxBurger"
+          type="button"
+          aria-controls="afxDrawer"
+          aria-expanded="false"
+          aria-label="Open menu"
+        >
+          <span class="afx-bar"></span><span class="afx-bar"></span
+          ><span class="afx-bar"></span>
+        </button>
+      </div>
+    </header>
+    <div class="afx-drawer" id="afxDrawer" data-open="false">
+      <div class="afx-backdrop" data-afx-close></div>
+      <div class="afx-panel">
+        <nav aria-label="Main">
+          <a href="/#ritual">Ritual</a>
+          <a href="/aforce-os">The OS</a>
+          <a href="/our-story">Our Story</a>
+          <a href="/science">Science</a>
+          <a href="/manifesto">Manifesto</a>
+          <a href="/shop" class="afx-drawer-shop">Hydration</a>
+        </nav>
       </div>
     </div>
-  </div>
-  <div class="scroll-cue" aria-hidden="true"><span>Scroll</span><span class="line"></span></div>
-</header>
 
-<!-- ============ 02 · HYDROSTATE ============ -->
-<section class="blk hydro" id="hydrostate">
-  <div class="wrap split">
-    <div class="shot reveal">
-      <img src="/assets/aforce-os/black-issue-home-recovering.png" alt="HydroState — Recovering, 69 on a 0 to 100 readiness band. Water 63 percent, recovery 74, sleep 7 hours 24 minutes, HRV 58 milliseconds." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Illustrative interface &middot; Sample state &middot; Not actual user results</p>
-    </div>
-    <div class="col-copy">
-      <div class="kick reveal">HydroState</div>
-      <h2 class="hd-l reveal">Your state.<br>Right now.</h2>
-      <p class="lead reveal">AFORCE OS reads hydration alongside recovery, activity, environment and the demands ahead &mdash; <b>a living state, so the next decision is clearer.</b></p>
-      <ul class="signals reveal" aria-label="The signals beneath the state, sample values">
-        <li><div class="k">Water</div><div class="v red">63%</div></li>
-        <li><div class="k">Recovery</div><div class="v">74</div></li>
-        <li><div class="k">Sleep</div><div class="v">7h 24m</div></li>
-        <li><div class="k">HRV</div><div class="v">58 ms</div></li>
-      </ul>
-    </div>
-  </div>
-</section>
+    <main id="main" class="os-page" tabindex="-1">
+      <section class="os-hero os-wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">AFORCE OS · Product preview</p>
+          <h1 id="hero-title">The pause<br />before the moment.</h1>
+          <p class="lead">
+            A preparation app that turns your next workout, presentation,
+            flight, or event into a plan you review and approve.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="#try"
+              >Try One Breath <span aria-hidden="true">↗</span></a
+            ><a class="button secondary" href="#film">Watch the film</a>
+          </div>
+          <p class="quiet">
+            In development. Explore the experience; join the waitlist for launch
+            updates.
+          </p>
+        </div>
+        <div class="hero-visual">
+          <img
+            src="/assets/aforce-os/story-travel.jpg"
+            alt="A traveler pauses in an airport lounge before the next part of the day"
+            fetchpriority="high"
+          />
+          <div class="visual-caption">
+            <span>ONE MOMENT AT A TIME</span
+            ><strong>Make room to prepare.</strong>
+          </div>
+        </div>
+      </section>
+      <nav class="os-local os-wrap" aria-label="On this page">
+        <a href="#try">Try it</a><a href="#how">How it works</a
+        ><a href="#ritual-os">The ritual</a><a href="#privacy">Circles</a
+        ><a href="#access">Get updates</a>
+      </nav>
+      <section class="demo-section" id="try" aria-labelledby="try-title">
+        <div class="os-wrap demo-layout">
+          <div class="demo-copy">
+            <p class="eyebrow">Try it · Interactive preview</p>
+            <h2 id="try-title">Say your moment.</h2>
+            <p class="lead">
+              Start with tomorrow’s presentation, or choose a different moment.
+              Review the words, try a preparation plan, and decide what to carry
+              forward.
+            </p>
+            <div class="presets" aria-label="Choose a sample moment">
+              <button
+                type="button"
+                data-preset="presentation"
+                aria-pressed="true"
+              >
+                Presentation <small>Tomorrow · 10 AM</small></button
+              ><button type="button" data-preset="lift" aria-pressed="false">
+                Morning lift <small>Tomorrow · 6:30 AM</small></button
+              ><button type="button" data-preset="flight" aria-pressed="false">
+                A flight <small>Saturday · 9:05 AM</small>
+              </button>
+            </div>
+            <form id="moment-form">
+              <label for="moment-input">Or type your moment</label>
+              <div class="input-row">
+                <input
+                  id="moment-input"
+                  name="moment"
+                  type="text"
+                  maxlength="180"
+                  placeholder="Presentation tomorrow at 10 AM"
+                  required
+                  autocomplete="off"
+                  aria-describedby="demo-disclosure moment-error"
+                /><button class="button primary" type="submit">
+                  Try my moment
+                </button>
+              </div>
+              <p id="moment-error" role="alert"></p>
+            </form>
+            <p class="demo-disclosure" id="demo-disclosure">
+              <strong>Illustrative demo.</strong> This is a typed and scripted
+              preview; no microphone is accessed. Typed demo text stays in this
+              page’s memory and clears when you reset or leave. No calendar
+              events, reminders, messages, or bookings are created.
+            </p>
+            <details>
+              <summary>What’s available?</summary>
+              <p>
+                These are demonstrations of the intended experience. Launch
+                features, connected services, availability, and membership
+                pricing will be confirmed at launch.
+              </p>
+            </details>
+          </div>
+          <div class="phone-area">
+            <div class="phone" aria-label="Interactive AFORCE OS preview">
+              <div class="phone-top">
+                <span>AFORCE <b>os</b></span
+                ><span class="preview-tag">DEMO</span>
+              </div>
+              <div id="demo-screen" aria-live="polite" aria-atomic="true"></div>
+              <p class="phone-foot">Your choices here affect this demo only.</p>
+            </div>
+            <button class="text-button" id="reset-demo" type="button">
+              Reset preview
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="os-wrap walkthrough" id="how" aria-labelledby="how-title">
+        <div class="section-intro">
+          <p class="eyebrow">One presentation · One complete loop</p>
+          <h2 id="how-title">
+            Prepare. Perform.<br />Make the next one better.
+          </h2>
+          <p>
+            Follow tomorrow’s 10 AM presentation from the first thought to the
+            next plan.
+          </p>
+        </div>
+        <div class="three-steps">
+          <article>
+            <span class="step-number">01 / DESCRIBE</span>
+            <h3>Say it once.</h3>
+            <p>
+              “Presentation tomorrow at 10. I want a little more time to get
+              ready.” Review what AFORCE understood and edit anything before
+              continuing.
+            </p>
+          </article>
+          <article>
+            <span class="step-number">02 / APPROVE</span>
+            <h3>Make room before it.</h3>
+            <p>
+              Review an illustrative plan: materials at 9:15, a quiet reset at
+              9:45, presentation at 10. Seal what works. An optional pre-Moment
+              reminder is a preview feature; the demo schedules nothing.
+            </p>
+          </article>
+          <article>
+            <span class="step-number">03 / REFLECT</span>
+            <h3>Carry your choice forward.</h3>
+            <p>
+              When you return, you can reflect or skip. If you wanted more
+              preparation time, approve an earlier start for your next
+              presentation. You choose the change.
+            </p>
+          </article>
+        </div>
+      </section>
+      <section class="change-section">
+        <div class="os-wrap change-layout">
+          <div>
+            <p class="eyebrow">When the day changes · Illustrative preview</p>
+            <h2>A later start.<br />A little more room.</h2>
+            <p>
+              The presentation moves from 10 to 10:30. AFORCE can propose a new
+              preparation window for you to review.
+            </p>
+            <p class="quiet">
+              This example uses fixed sample times. It does not read your
+              calendar, location, traffic, or flight status.
+            </p>
+          </div>
+          <div class="change-panel">
+            <span class="eyebrow">Tomorrow’s presentation</span>
+            <h3>10:00 → 10:30 AM</h3>
+            <div class="schedule">
+              <p><span>Review materials</span><strong>9:15 → 9:45</strong></p>
+              <p><span>Quiet reset</span><strong>9:45 → 10:15</strong></p>
+              <p><span>Presentation</span><strong>10:00 → 10:30</strong></p>
+            </div>
+            <button type="button" class="button primary" id="approve-change">
+              Approve example adjustment
+            </button>
+            <p id="change-status" role="status">
+              Nothing changes outside this preview.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section
+        class="film-section os-wrap"
+        id="film"
+        aria-labelledby="film-title"
+      >
+        <div class="section-intro">
+          <p class="eyebrow">The film · Product walkthrough</p>
+          <h2 id="film-title">Before the moment.</h2>
+          <p>
+            See the preparation experience in motion. Interface and features
+            shown are illustrative.
+          </p>
+        </div>
+        <video
+          id="os-film"
+          controls
+          playsinline
+          preload="none"
+          poster="/assets/aforce-os/product-film-poster.jpg"
+          aria-label="AFORCE OS product walkthrough with music"
+        >
+          <source
+            src="/assets/aforce-os/product-film-music.mp4"
+            type="video/mp4"
+          />
+          Your browser does not support this video.
+        </video>
+      </section>
+      <section class="ritual-section" id="ritual-os">
+        <div class="os-wrap ritual-layout">
+          <div class="product-stage">
+            <div class="can-row">
+              <img
+                loading="lazy"
+                src="/assets/can-red-12oz.png"
+                alt="AFORCE Watermelon Surge can"
+              /><img
+                loading="lazy"
+                src="/assets/can-blue-12oz.png"
+                alt="AFORCE Berry Blast can"
+              /><img
+                loading="lazy"
+                src="/assets/can-green-12oz.png"
+                alt="AFORCE Soursop Edge can"
+              />
+            </div>
+            <div class="stick-row">
+              <img
+                loading="lazy"
+                src="/assets/stick-red.png"
+                alt="AFORCE Watermelon Surge hydration stick"
+              /><img
+                loading="lazy"
+                src="/assets/stick-blue.png"
+                alt="AFORCE Berry Blast hydration stick"
+              /><img
+                loading="lazy"
+                src="/assets/stick-green.png"
+                alt="AFORCE Soursop Edge hydration stick"
+              />
+            </div>
+          </div>
+          <div>
+            <p class="eyebrow">The ritual</p>
+            <h2>The pause has<br />a physical start.</h2>
+            <p class="ritual-line">Pause. Hydrate. Lock-In. Perform.</p>
+            <p>
+              A can for the everyday. A stick for wherever you go. Hydration
+              gives the pause a physical action; AFORCE OS gives your
+              preparation a place in the day.
+            </p>
+            <a class="button dark" href="/shop">Explore hydration</a>
+            <p class="quiet">
+              Hydration products are coming soon. OS access and membership
+              details will be confirmed at launch.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="os-wrap circle-section" id="privacy">
+        <div>
+          <p class="eyebrow">Circles · Product preview</p>
+          <h2>Prepare together.<br />Choose what you share.</h2>
+          <p>
+            Invite your people into a shared Moment. The intended experience
+            lets you choose which Moment details to share and whether to send a
+            “Made it back” message yourself.
+          </p>
+          <p>
+            Health and hydration information and your private Replay are not
+            part of the Circle sharing preview.
+          </p>
+          <a class="text-link" href="/legal/privacy"
+            >Read our privacy policy →</a
+          >
+        </div>
+        <div class="circle-details">
+          <p><span>Moment title and time</span><strong>You choose</strong></p>
+          <p><span>“Made it back” message</span><strong>You send it</strong></p>
+          <p>
+            <span>Health and hydration data</span><strong>Not shared</strong>
+          </p>
+          <p><span>Your Replay</span><strong>Not shared</strong></p>
+          <p class="quiet">
+            Illustrative sharing controls. This page sends no Circle invitations
+            or messages.
+          </p>
+        </div>
+      </section>
+      <section class="founding os-wrap access-section" id="access">
+        <p class="eyebrow">Early access · No purchase required</p>
+        <h2>Your next moment<br />starts here.</h2>
+        <p>
+          Join the waitlist for AFORCE OS availability, membership details, and
+          Founding 250 updates.
+        </p>
+        <form
+          data-ui="330"
+          style="
+            margin: 36px auto 0px;
+            max-width: 520px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+          "
+          method="post"
+          action="/api/founding-250"
+          data-signup-source="aforce-os"
+        >
+          <input type="hidden" name="source" value="aforce-os" />
+          <div
+            aria-hidden="true"
+            style="
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              overflow: hidden;
+              clip-path: inset(50%);
+              pointer-events: none;
+            "
+          >
+            <label
+              >Leave blank<input
+                type="text"
+                name="website"
+                tabindex="-1"
+                autocomplete="off"
+            /></label>
+          </div>
+          <label
+            data-ui="331"
+            for="email"
+            style="
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              overflow: hidden;
+              clip: rect(0px, 0px, 0px, 0px);
+            "
+            >Email address</label
+          >
+          <input
+            data-ui="332"
+            id="email"
+            name="email"
+            autocomplete="email"
+            maxlength="254"
+            type="email"
+            required=""
+            placeholder="you@email.com"
+            style="
+              flex: 1 1 260px;
+              min-width: 0px;
+              background: rgb(18, 17, 16);
+              border: 1px solid rgb(58, 54, 49);
+              border-radius: 999px;
+              padding: 17px 22px;
+              font-size: 16px;
+              color: var(--os-bone);
+              font-family: inherit;
+            "
+          />
+          <button
+            data-ui="333"
+            type="submit"
+            style="
+              background: var(--red);
+              color: rgb(255, 255, 255);
+              border: 0px;
+              border-radius: 999px;
+              padding: 17px 26px;
+              font-size: 16px;
+              font-weight: 600;
+              cursor: pointer;
+            "
+          >
+            <span class="sc-interp">Join the waitlist</span>
+          </button>
+          <p
+            role="status"
+            aria-live="polite"
+            style="width: 100%; font-size: 14px"
+          ></p>
+        </form>
+        <p class="quiet">
+          By joining, you request early-access updates.
+          <a href="/legal/privacy">Privacy policy</a>.
+        </p>
+        <p class="quiet">
+          AFORCE OS is in development. The experience shown here is a product
+          preview, not a live planning service.
+        </p>
+      </section>
+    </main>
 
-<!-- ============ 03 · ONE COMMAND ============ -->
-<section class="blk command" id="command">
-  <div class="wrap pn-grid">
-    <div class="pn-intro col-copy">
-      <div class="kick reveal">Performance Navigator</div>
-      <h2 class="hd-l reveal">Not more data.<br>The next move.</h2>
-      <p class="lead reveal">Most platforms tell you how you scored.<br><br>AFORCE OS answers the question that actually matters:<br><b>What should I do now?</b></p>
-    </div>
-    <figure class="pn-stage reveal" aria-label="AFORCE OS protocol: signal, decision, next action, recheck">
-      <ol class="pn-rail" aria-label="How AFORCE moves from signal to action">
-        <li>Signal</li><li>Decision</li><li class="on">Next action</li><li>Recheck</li>
-      </ol>
-      <div class="pn-phone">
-      <div class="pn-screen">
-        <img src="/assets/aforce-os/black-issue-protocol.png" alt="AFORCE OS Protocol screen, Depletion Correction. Next recheck in 5 hours. Protocol steps, 1 of 4: confirm hydration signal, completed today; log next intake, the active step; recheck performance signals, after intake; confirm status, end of cycle. Hydration 54 of 96 oz. Recovery signals: heart rate and HRV." width="780" height="1688" loading="lazy" decoding="async">
-      </div>
-      </div>
-      <div class="pn-move" aria-hidden="true">
-        <span class="pn-k">Your next move</span>
-        <span class="pn-v">Log next intake.</span>
-        <span class="pn-s"><i></i>Active step</span>
-      </div>
-      <figcaption class="cap">Illustrative interface &middot; Sample data</figcaption>
-    </figure>
-    <div class="pn-verbs">
-      <ul class="verbs stagger" aria-label="The five commands">
-        <li class="reveal" style="--i:0">Hydrate.</li>
-        <li class="reveal" style="--i:1">Recover.</li>
-        <li class="reveal" style="--i:2">Prepare.</li>
-        <li class="reveal" style="--i:3">Move.</li>
-        <li class="reveal" style="--i:4">Hold.</li>
-      </ul>
-      <p class="pn-none reveal">Sometimes the smartest intervention is none at all.</p>
-    </div>
-  </div>
-</section>
+    <script src="/assets/header.js" defer></script>
+    <script src="/assets/aforce-os/moment-preview.js" defer></script>
+    <script src="/assets/launch-waitlist.js" defer></script>
+    <footer class="afx-footer" role="contentinfo">
+      <div class="ff-wrap">
+        <div class="ff-top">
+          <div class="ff-brand">
+            <a class="ff-mark" href="/" aria-label="AFORCE — home">
+              <span class="ff-nn" aria-hidden="true"
+                ><span class="nn-logo" aria-hidden="true"
+                  ><span class="nn-n">N</span><span class="nn-bar"></span
+                  ><span class="nn-n nn-flip">N</span></span
+                ></span
+              >
+              <span class="ff-word">AFORCE<span class="tm">™</span></span>
+            </a>
+            <div class="ff-tag">
+              Performance Is<br /><span class="red"
+                >Non-<span class="flip">N</span>egotiable.</span
+              >
+            </div>
+            <p class="ff-built">Built for what happens before.</p>
+          </div>
+          <nav class="ff-col" aria-label="System">
+            <h2>System</h2>
+            <a href="/#ritual">The Ritual</a>
+            <a href="/shop">Explore hydration</a>
+            <a href="/aforce-os">AFORCE OS</a>
+            <a href="/science">Science</a>
+            <a href="/manifesto">Manifesto</a>
+          </nav>
+          <nav class="ff-col" aria-label="Company">
+            <h2>Company</h2>
+            <a href="/our-story">Our Story</a>
+            <a href="/founding-250">Founding 250</a>
+            <a href="mailto:info@alkalineforce.com">Contact</a>
+            <a
+              href="mailto:info@alkalineforce.com?subject=Partnership%20or%20Investor%20Inquiry"
+              >Partnerships &amp; Investors</a
+            >
+          </nav>
+          <nav class="ff-col" aria-label="Follow the Standard">
+            <h2>Follow the Standard</h2>
+            <!-- TODO: real channel URLs -->
+            <a
+              href="https://www.instagram.com/aforceritual/"
+              target="_blank"
+              rel="noopener"
+              >Instagram <span class="arw" aria-hidden="true">↗</span></a
+            >
+            <a
+              href="https://www.tiktok.com/@joinaforce"
+              target="_blank"
+              rel="noopener"
+              >TikTok <span class="arw" aria-hidden="true">↗</span></a
+            >
+            <a
+              href="https://aforcehydration.substack.com/"
+              target="_blank"
+              rel="noopener"
+              >Substack <span class="arw" aria-hidden="true">↗</span></a
+            >
+            <a
+              href="https://www.linkedin.com/company/105984604/"
+              target="_blank"
+              rel="noopener"
+              >LinkedIn <span class="arw" aria-hidden="true">↗</span></a
+            >
+            <a
+              href="https://www.facebook.com/profile.php?id=61571235123160"
+              target="_blank"
+              rel="noopener"
+              >Facebook <span class="arw" aria-hidden="true">↗</span></a
+            >
+          </nav>
+          <nav class="ff-col" aria-label="Legal">
+            <h2>Legal</h2>
+            <a href="/legal">Legal Center</a>
+            <a href="/legal/privacy">Privacy</a>
+            <a href="/consumer-health-data-privacy"
+              >Consumer Health Data Privacy</a
+            >
+            <a href="/legal/terms">Terms</a>
+            <a href="/subscription-terms">Subscription Terms</a>
+            <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
+            <a href="/accessibility">Accessibility</a>
+            <a href="mailto:info@alkalineforce.com">Contact</a>
+          </nav>
+        </div>
 
-<!-- ============ 04 · MOMENTS ============ -->
-<section class="blk moments" id="moments">
-  <div class="wrap">
-    <div class="split top intro">
-      <div class="col-copy">
-        <div class="kick reveal">Moments</div>
-        <h2 class="hd-l reveal">Your day isn't a dashboard.<br>It's a series of moments.</h2>
-        <ul class="lines stagger" aria-label="Kinds of moments">
-          <li class="reveal dim" style="--i:0">An investor meeting.</li>
-          <li class="reveal dim" style="--i:1">A surgery.</li>
-          <li class="reveal dim" style="--i:2">A match.</li>
-          <li class="reveal dim" style="--i:3">A flight.</li>
-          <li class="reveal dim" style="--i:4">A presentation.</li>
-          <li class="reveal dim" style="--i:5">A workout.</li>
-          <li class="reveal dim" style="--i:6">A night that runs late.</li>
-        </ul>
-        <p class="lead reveal">Different moments make different demands on the body. <b>AFORCE OS prepares around what comes next.</b></p>
-      </div>
-      <div class="shot reveal">
-        <img src="/assets/aforce-os/black-issue-moments.png" alt="AFORCE OS Moments — a three-day view: today's workout, investor call, meeting with bank and flight to London, with tomorrow and the next day in London." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Illustrative interface &middot; Sample data &middot; Moments you enter yourself</p>
-      </div>
-    </div>
-  </div>
-</section>
+        <div class="ff-divider"></div>
 
-<!-- ============ 05 · BEFORE / DURING / AFTER ============ -->
-<section class="blk cycle" id="cycle">
-  <div class="wrap">
-    <div class="kick reveal">The Performance Cycle</div>
-    <h2 class="hd-l reveal" style="margin-top:18px;">Before.<br>During.<br>After.</h2>
-    <div class="cycle-grid stagger">
-      <div class="state state--before reveal" style="--i:0">
-        <div class="word">Before</div>
-        <p class="copy">AFORCE sees the moment ahead.<span>It interprets available signals, recent behavior, and what is coming next so preparation can begin before performance does.</span><b>Prepare. Hydrate. Lock in.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-ritual.png" alt="Before — AFORCE OS daily ritual, built from your signals: wake sip, morning stick, a 12 oz pre-call sip before the 9:06 investor call, Guardian on before the 2 to 5 PM outdoor block, a recovery stick moved earlier and up next, and a light wind-down. Thursday's flight adds a cabin protocol." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
+        <div class="ff-bottom">
+          <span class="ff-left">© 2026 AFORCE Hydration, Inc.</span>
+          <span class="ff-center"
+            >Performance Is
+            <span class="red"
+              >Non-<span class="flip">N</span>egotiable.</span
+            ></span
+          >
+          <span class="ff-right">New York.</span>
+        </div>
+
+        <div class="ff-legal">
+          <p>
+            AFORCE™ and
+            <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span>
+            are trademarks of AFORCE Hydration, Inc.
+          </p>
+          <p>
+            Statements regarding hydration, readiness, and performance support
+            have not been evaluated by the Food and Drug Administration. This
+            product is not intended to diagnose, treat, cure, or prevent any
+            disease. Individual results vary.
+          </p>
+          <p>
+            The AFORCE OS provides general wellness tracking and is not a
+            medical device and does not provide medical advice; consult a
+            physician before beginning any new hydration, supplement, or fitness
+            regimen, particularly if pregnant, nursing, or managing a medical
+            condition.
+          </p>
+          <p>
+            AFORCE OS access and membership details will be confirmed at launch.
+          </p>
         </div>
       </div>
-      <div class="state state--during reveal" style="--i:1">
-        <div class="word">During</div>
-        <p class="copy">Intelligence gets quieter when performance begins.<b>The system supports the moment &mdash; not competes with it.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-pickleball.png" alt="During — AFORCE OS match day: doubles at 6, game 2, your next move is to sip 5 oz at the next side switch." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
-        </div>
-      </div>
-      <div class="state state--after reveal" style="--i:2">
-        <div class="word">After</div>
-        <p class="copy">The outcome becomes intelligence.<span>A quick reflection helps AFORCE understand how the preparation and command matched the actual moment.</span><b>Then the next cycle gets smarter.</b></p>
-        <div class="shot">
-          <img src="/assets/aforce-os/black-issue-one-breath.png" alt="After — AFORCE OS One Breath: speak once, review what AFORCE heard, and seal only what you approve. Listening, with the spoken note shown on screen." width="390" height="844" loading="lazy" decoding="async">
-          <p class="cap">Illustrative interface &middot; Sample data</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 07 · SKIN INTELLIGENCE (coming) ============ -->
-<section class="blk skin" id="skin">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Skin Intelligence <span class="coming">Coming to AFORCE OS</span></div>
-      <h2 class="hd-l reveal">Skin is a signal.</h2>
-      <p class="lead reveal">Observe visible skin signals over time, in the context of hydration, recovery, environment and routine.</p>
-      <ul class="three reveal" aria-label="What Skin Intelligence is not">
-        <li>No beauty score.</li>
-        <li>No judgment.</li>
-        <li>Context.</li>
-      </ul>
-      <p class="cap reveal">Observational only &middot; Not a diagnosis</p>
-    </div>
-    <div class="shot skin-stage reveal">
-      <img src="/assets/aforce-os/black-issue-scan.png" alt="Skin Intelligence live scan — hold still, let the signal settle. A guided phone scan for consistent observation over time; observational only, not a diagnosis." width="390" height="844" loading="lazy" decoding="async">
-      <p class="cap">Design preview &middot; Sample data</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 08 · TRAVEL (coming) ============ -->
-<section class="blk travel" id="travel">
-  <div class="wrap">
-    <div class="split top">
-      <div class="col-copy">
-        <div class="kick reveal">Travel Intelligence <span class="coming">Coming to AFORCE OS</span></div>
-        <h2 class="hd-l reveal">Your body crosses<br>time zones too.</h2>
-        <p class="lead reveal">Flights change more than your location.</p>
-      </div>
-      <div class="col-copy">
-        <ul class="lines stagger" aria-label="What a flight changes">
-          <li class="reveal dim" style="--i:0">Cabin conditions.</li>
-          <li class="reveal dim" style="--i:1">Sleep timing.</li>
-          <li class="reveal dim" style="--i:2">Hydration.</li>
-          <li class="reveal dim" style="--i:3">Movement.</li>
-          <li class="reveal dim" style="--i:4">Schedule disruption.</li>
-          <li class="reveal dim" style="--i:5">The performance expected when you land.</li>
-        </ul>
-        <p class="lead reveal"><b>AFORCE OS prepares around the journey &mdash; not simply the destination.</b></p>
-      </div>
-    </div>
-    <div class="travel-visual reveal">
-      <div class="photo"><img src="/assets/discipline-airport.jpg" alt="A traveler in a quiet airport lounge at golden hour, suitcase beside him, an aircraft at the gate beyond the glass" loading="lazy" decoding="async"></div>
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-travel.png" alt="AFORCE OS in-flight protocol — JFK to Singapore at 38,000 feet, cabin protocol on, cabin humidity 12 percent, your next move: sip 8 oz now and add one electrolyte stick before the meal." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview &middot; Sample flight data</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 10 · PHANTOM (coming next) ============ -->
-<section class="blk phantom on-dark" id="phantom">
-  <div class="wrap split rev">
-    <div class="col-copy">
-      <div class="kick reveal">Coming next</div>
-      <h2 class="hd-l reveal">Intelligence<br>without another screen.</h2>
-      <p class="lead reveal">Phantom is the future wearable expression of AFORCE OS.</p>
-      <ul class="three reveal" aria-label="Phantom in three words">
-        <li>Screenless.</li>
-        <li>Quiet.</li>
-        <li>Connected.</li>
-      </ul>
-      <p class="cap reveal">Future product &middot; Not currently available &middot; Design preview</p>
-    </div>
-    <div class="ph-stage reveal">
-      <img class="band" src="/assets/aforce-os/phantom-band.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <img class="can" src="/assets/can-red.png" alt="" aria-hidden="true" loading="lazy" decoding="async">
-      <div class="shot">
-        <img src="/assets/aforce-os/black-issue-phantom.png" alt="Phantom Band design preview — matte black, no screen, one quiet signal on your wrist. Signals only, not a medical device." width="390" height="844" loading="lazy" decoding="async">
-        <p class="cap">Design preview</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ 13 · 30 DAYS IN (restored from the 13 Sep page) ============ -->
-<section class="blk thirty" id="thirty">
-  <div class="wrap">
-    <div class="kick reveal">30 Days In</div>
-    <h2 class="h-2 reveal" style="margin-top:16px;max-width:15ch;">The same person. A sharper system.</h2>
-    <p class="lead reveal" style="margin-top:22px;">One month of ritual, measured.</p>
-    <p style="margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--i64);">Illustrative interface &middot; Sample data &middot; Not actual user results</p>
-    <div class="t30-grid stagger">
-      <div class="t30 reveal" style="--i:0;--w:91%"><div class="t30-k">Readiness</div><div class="t30-row"><span class="t30-a">58</span><span class="t30-arw">&rarr;</span><span class="t30-b red" data-count="91">91</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +33</div></div>
-      <div class="t30 reveal" style="--i:1;--w:92%"><div class="t30-k">Recovery</div><div class="t30-row"><span class="t30-a">61%</span><span class="t30-arw">&rarr;</span><span class="t30-b red">92%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +31 pts</div></div>
-      <div class="t30 reveal" style="--i:2;--w:95%"><div class="t30-k">Hydration consistency</div><div class="t30-row"><span class="t30-a">42%</span><span class="t30-arw">&rarr;</span><span class="t30-b red">95%</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9650; +53 pts</div></div>
-      <div class="t30 reveal" style="--i:3;--w:62%"><div class="t30-k">Performance Age&trade;</div><div class="t30-row"><span class="t30-a">47</span><span class="t30-arw">&rarr;</span><span class="t30-b red">44</span></div><div class="t30-bar"><i></i></div><div class="t30-d">&#9660; 3 yrs</div></div>
-    </div>
-    <p style="margin-top:clamp(26px,3vw,36px);font-size:11.5px;line-height:1.6;letter-spacing:.02em;color:var(--i46);max-width:66ch;">Illustrative interface using sample data. Values shown are not claims of typical or expected results. AFORCE OS supports general wellness tracking and is not a medical device. Performance Age&trade; is a proprietary wellness-engagement indicator based on AFORCE OS inputs; it is not biological age, medical age, a measure of longevity, or a medical assessment.</p>
-  </div>
-</section>
-
-</main>
-
-<!-- ============ FOOTER ============ -->
-<footer class="afx-footer" role="contentinfo">
-  <div class="ff-wrap">
-    <div class="ff-top">
-      <div class="ff-brand">
-        <a class="ff-mark" href="/" aria-label="AFORCE — home">
-          <span class="ff-nn" aria-hidden="true"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span>
-          <span class="ff-word">AFORCE<span class="tm">™</span></span>
-        </a>
-        <div class="ff-tag">Performance Is<br><span class="red">Non-<span class="flip">N</span>egotiable.</span></div>
-        <p class="ff-built">Built for what happens before.</p>
-      </div>
-      <nav class="ff-col" aria-label="System">
-        <h2>System</h2>
-        <a href="/#ritual">The Ritual</a>
-        <a href="/shop">Shop</a>
-        <a href="/aforce-os">AFORCE OS</a>
-        <a href="/science">Science</a>
-        <a href="/manifesto">Manifesto</a>
-      </nav>
-      <nav class="ff-col" aria-label="Company">
-        <h2>Company</h2>
-        <a href="/our-story">Our Story</a>
-        <a href="/founding-250">Founding 250</a>
-        <a href="mailto:contact@aforceritual.com">Contact</a>
-      </nav>
-      <nav class="ff-col" aria-label="Follow the Standard">
-        <h2>Follow the Standard</h2>
-        <!-- TODO: real channel URLs -->
-        <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
-      </nav>
-      <nav class="ff-col" aria-label="Legal">
-        <h2>Legal</h2>
-        <a href="/legal">Legal Center</a>
-        <a href="/legal/privacy">Privacy</a>
-        <a href="/consumer-health-data-privacy">Consumer Health Data Privacy</a>
-        <a href="/legal/terms">Terms</a>
-        <a href="/subscription-terms">Subscription Terms</a>
-        <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
-        <a href="/accessibility">Accessibility</a>
-        <a href="mailto:support@drinkaforce.com">Contact</a>
-      </nav>
-    </div>
-
-    <div class="ff-divider"></div>
-
-    <div class="ff-bottom">
-      <span class="ff-left">© 2026 AFORCE Hydration, Inc.</span>
-      <span class="ff-center">Performance Is <span class="red">Non-<span class="flip">N</span>egotiable.</span></span>
-      <span class="ff-right">New York.</span>
-    </div>
-
-    <div class="ff-legal">
-      <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
-      <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
-      <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
-      <p>Skin Intelligence, Travel Intelligence and Phantom are in development and not currently available in AFORCE OS; interfaces shown for them are design previews and may change.</p>
-      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
-    </div>
-  </div>
-</footer>
-
-<script src="/assets/header.js" defer></script>
-<script>
-/* reveal on scroll — content is readable without JS (html.no-io fallback).
-   IntersectionObserver drives the entrance; a rect-based pass on scroll/load
-   guarantees nothing can stay hidden if the observer never fires. */
-(function(){
-  var els = Array.prototype.slice.call(document.querySelectorAll('.reveal:not(.in)'));
-  if(!('IntersectionObserver' in window)){ document.documentElement.classList.add('no-io'); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
-  }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
-  els.forEach(function(e){ io.observe(e); });
-  var ticking = false;
-  function sweep(){
-    ticking = false;
-    var limit = window.innerHeight * 0.96;
-    els = els.filter(function(e){
-      if(e.classList.contains('in')) return false;
-      var r = e.getBoundingClientRect();
-      if(r.top < limit && r.bottom > 0){ e.classList.add('in'); io.unobserve(e); return false; }
-      return true;
-    });
-  }
-  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(sweep); } }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  window.addEventListener('resize', onScroll, { passive:true });
-  window.addEventListener('load', function(){ setTimeout(sweep, 400); setTimeout(sweep, 2000); });
-})();
-
-/* one command — the five verbs light in sequence, the last holds red */
-(function(){
-  var verbs = document.querySelectorAll('.verbs li');
-  if(!verbs.length || !('IntersectionObserver' in window)) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce) return;
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if(!en.isIntersecting) return;
-      io.disconnect();
-      verbs.forEach(function(v,i){ setTimeout(function(){ v.classList.add('in'); if(i === verbs.length-1) v.classList.add('on'); }, 260 + i*220); });
-    });
-  }, { threshold:0.5 });
-  io.observe(verbs[0]);
-})();
-
-/* count-up on reveal (30 days in, Readiness) — respects reduced motion */
-(function(){
-  var els = document.querySelectorAll('[data-count]');
-  if(!els.length) return;
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  if(reduce || !('IntersectionObserver' in window)){ els.forEach(function(e){ e.textContent = e.getAttribute('data-count'); }); return; }
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(en){
-      if(!en.isIntersecting) return;
-      var el = en.target, target = parseInt(el.getAttribute('data-count'),10), start = Math.max(0, target - 22), t0 = null;
-      io.unobserve(el);
-      var safety = setTimeout(function(){ el.textContent = target; }, 1300);
-      requestAnimationFrame(function step(ts){
-        if(!t0) t0 = ts;
-        var p = Math.min(1, (ts - t0) / 1100), e = p < .5 ? 2*p*p : 1 - Math.pow(-2*p+2,2)/2;
-        el.textContent = Math.round(start + (target - start) * e);
-        if(p < 1){ requestAnimationFrame(step); } else { el.textContent = target; clearTimeout(safety); }
-      });
-    });
-  }, { threshold:0.55 });
-  els.forEach(function(e){ io.observe(e); });
-})();
-
-/* scroll-aware nav */
-(function(){
-  var nav = document.getElementById('afxNav');
-  var trigger = Math.max(120, window.innerHeight * 0.7);
-  function onScroll(){ nav.classList.toggle('solid', window.scrollY > trigger); }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  window.addEventListener('resize', function(){ trigger = Math.max(120, window.innerHeight * 0.7); onScroll(); });
-  onScroll();
-})();
-</script>
-</body>
+    </footer>
+  </body>
 </html>

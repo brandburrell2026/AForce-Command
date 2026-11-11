@@ -88,7 +88,13 @@ export async function resolveRole(req: Request): Promise<Role> {
   if (!process.env["CLERK_SECRET_KEY"]) {
     return IS_PRODUCTION ? "user" : "super_admin";
   }
-  const auth = getAuth(req);
+  let auth: ReturnType<typeof getAuth> | null = null;
+  try {
+    auth = getAuth(req);
+  } catch {
+    // Middleware not mounted (partial Clerk config) ⇒ no verified identity.
+    return IS_PRODUCTION ? "user" : "super_admin";
+  }
   const userId = auth?.userId;
   if (!userId) return "user";
 

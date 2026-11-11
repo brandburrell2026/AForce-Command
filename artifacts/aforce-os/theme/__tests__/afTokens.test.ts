@@ -12,19 +12,21 @@
 import { describe, it, expect } from 'vitest';
 import { af, afType, afLayout, afMotion, afAlpha, afElev, withAlpha } from '../afTokens';
 import { Colors } from '../colors';
+import { edInk, edRule, edType } from '../editorialTokens';
+import { Typography } from '../typography';
 // WCAG relative-luminance contrast. Shared with homePresentation.test.ts's
 // band-accent text guards so both measure AA with the identical implementation.
 import { contrast } from './_wcagContrast';
 
 describe('af.* brand fidelity', () => {
-  it('red is the frozen Signal Red #C1281B, not the spec #E41E2B', () => {
-    expect(af.red.toUpperCase()).toBe('#C1281B');
+  it('red is the v1.7 Signal Red #E51E2A', () => {
+    expect(af.red.toUpperCase()).toBe('#E51E2A');
     expect(af.red).toBe(Colors.accent.primary);
-    expect(af.red.toUpperCase()).not.toBe('#E41E2B');
+    expect(af.red.toUpperCase()).not.toBe('#C1281B');
   });
 
-  it('canvas is the brand Cinematic Black, not the spec #050506', () => {
-    expect(af.canvas.toUpperCase()).toBe('#0D0D0D');
+  it('canvas is the v1.7 AForce Black', () => {
+    expect(af.canvas.toUpperCase()).toBe('#090A0A');
     expect(af.canvas).toBe(Colors.background.primary);
   });
 
@@ -71,10 +73,33 @@ describe('af.* WCAG 2.2 AA contrast (spec §11)', () => {
     expect(contrast(af.textSecondary, af.canvas)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('tertiary micro-label clears 4.5:1 (the reason it is #85868C, not spec #727378)', () => {
+  it('tertiary micro-label clears 4.5:1 (the Black Issue furniture greys #6B665C / #5A5852 would not)', () => {
     expect(contrast(af.textTertiary, af.canvas)).toBeGreaterThanOrEqual(4.5);
-    // The spec literal would have failed — prove the guard is real.
-    expect(contrast('#727378', af.canvas)).toBeLessThan(4.5);
+    // The brief's darker greys would have failed — prove the guard is real.
+    expect(contrast('#6B665C', af.canvas)).toBeLessThan(4.5);
+    expect(contrast('#5A5852', af.canvas)).toBeLessThan(4.5);
+  });
+
+  it('secondary text clears 4.5:1 on the card surface too (quiet copy lives inside cards)', () => {
+    expect(contrast(af.textSecondary, af.surface)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('the alert card keeps ivory + red text AA-clean', () => {
+    expect(contrast(af.textPrimary, af.surfaceAlert)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(af.redText, af.surfaceAlert)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("D1: the brief's #E13B2A is NOT adopted as red text — it fails AA on the card surface", () => {
+    expect(contrast('#E13B2A', af.surface)).toBeLessThan(4.5);
+    expect(contrast(af.redText, af.surface)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('the tab bar active tint is red TEXT on black, so it is the AA token, not the fill red', () => {
+    expect(Colors.tabBar.active).toBe(af.redText);
+    expect(contrast(Colors.tabBar.active, Colors.tabBar.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(Colors.tabBar.inactive, Colors.tabBar.background)).toBeGreaterThanOrEqual(4.5);
+    expect(Colors.tabBar.background).toBe(af.canvas);
+    expect(Colors.tabBar.hairline).toBe(af.divider);
   });
 
   it('primary text stays legible on the raised surface too', () => {
@@ -95,17 +120,46 @@ describe('af.* WCAG 2.2 AA contrast (spec §11)', () => {
   });
 });
 
+// ─── Black Issue (docs/black-issue-restyle-plan.md, 2026-10-06) ─────────────
+describe('Black Issue — af.* equals the Editorial OS values it re-points to', () => {
+  it('ink, quiet ink and the hairline are single-sourced with editorialTokens', () => {
+    expect(af.textPrimary).toBe(edInk.ivory);
+    expect(af.textTertiary).toBe(edInk.quietOnBlack);
+    expect(af.divider).toBe(edRule.onBlack);
+    expect(af.border).toBe(edRule.onBlack);
+  });
+
+  it('uses the approved v1.7 black, panel, and line hierarchy', () => {
+    expect(af.canvas).toBe('#090A0A');
+    expect(af.surface).toBe('#121313');
+    expect(af.divider).toBe('#292A2A');
+    expect(contrast(af.textPrimary, af.canvas)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('micro furniture role matches the editorial floor', () => {
+    expect(afType.micro.fontFamily).toBe(edType.micro.fontFamily);
+    expect(afType.micro.fontSize).toBe(edType.micro.fontSize);
+    expect(afType.micro.fontSize).toBeGreaterThanOrEqual(9);
+  });
+});
+
 describe('af.* type + layout + motion structure', () => {
-  it('scores/timers use the tabular mono face; heroes use the display face', () => {
-    expect(afType.displayScore.fontFamily).toContain('Mono');
-    expect(afType.displayHero.fontFamily).toContain('Archivo');
+  it('D2: every statement and numeral is Inter 700; mono is furniture only', () => {
+    expect(afType.displayScore.fontFamily).toBe(Typography.fonts.bold);
+    expect(afType.displayHero.fontFamily).toBe(Typography.fonts.bold);
+    expect(afType.title1.fontFamily).toBe(Typography.fonts.bold);
+    expect(afType.displayHero.fontFamily).not.toMatch(/Archivo/);
+    expect(afType.eyebrow.fontFamily).toContain('Mono');
     expect(afType.eyebrow.letterSpacing).toBeGreaterThan(0);
   });
 
-  it('layout carries the spec §3.3 key sizes', () => {
-    expect(afLayout.buttonHeight).toBe(56);
-    expect(afLayout.screenPaddingX).toBe(24);
-    expect(afLayout.radiusCard).toBe(18);
+  it('layout carries the Black Issue key sizes (D6) and keeps the 44pt floor', () => {
+    expect(afLayout.buttonHeight).toBe(52);
+    expect(afLayout.buttonHeight).toBeGreaterThanOrEqual(afLayout.controlMinHeight);
+    expect(afLayout.screenPaddingX).toBe(32);
+    expect(afLayout.screenPaddingXCompact).toBe(24);
+    expect(afLayout.radiusCard).toBe(12);
+    expect(afLayout.radiusButton).toBe(10);
     expect(afLayout.maxContentWidth).toBe(640);
   });
 
@@ -133,17 +187,17 @@ describe('afAlpha opacity scale', () => {
 
 describe('withAlpha — accepted input contract (safeguard #4)', () => {
   it('adds alpha to a solid #RRGGBB, byte-exact', () => {
-    expect(withAlpha(af.red, 0.16)).toBe('rgba(193,40,27,0.16)'); // #C1281B
-    expect(withAlpha(Colors.text.primary, 0.03)).toBe('rgba(255,255,255,0.03)'); // #FFFFFF
-    expect(withAlpha(Colors.text.inverse, 0.5)).toBe('rgba(0,0,0,0.5)'); // #000000
+    expect(withAlpha(af.red, 0.16)).toBe('rgba(229,30,42,0.16)'); // #E51E2A
+    expect(withAlpha(Colors.text.primary, 0.03)).toBe('rgba(247,244,239,0.03)'); // #F7F4EF
+    expect(withAlpha(Colors.text.inverse, 0.5)).toBe('rgba(9,10,10,0.5)'); // #090A0A
   });
   it('expands #RGB shorthand', () => {
     expect(withAlpha('#abc', 0.5)).toBe('rgba(170,187,204,0.5)');
     expect(withAlpha('#FFF', 0.24)).toBe('rgba(255,255,255,0.24)');
   });
   it('accepts the inclusive alpha bounds 0 and 1', () => {
-    expect(withAlpha(af.red, 0)).toBe('rgba(193,40,27,0)');
-    expect(withAlpha(af.red, 1)).toBe('rgba(193,40,27,1)');
+    expect(withAlpha(af.red, 0)).toBe('rgba(229,30,42,0)');
+    expect(withAlpha(af.red, 1)).toBe('rgba(229,30,42,1)');
   });
   it('rejects malformed color inputs with TypeError', () => {
     for (const bad of ['C1281B', '#12', '#GGGGGG', '#1234567', 'rgba(0,0,0,1)', 'red', '', 123 as unknown as string, null as unknown as string]) {

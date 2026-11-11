@@ -53,7 +53,7 @@ window.AFORCE_SHOP_CONFIG = {
 
   /* Representative can shown on each Protocol card, tying each pack to the
      physical product. Per-protocol `cardImage` overrides this default. */
-  signatureCan: "/assets/can-blue.png",
+  signatureCan: "/assets/can-blue-12oz.png",
 
   /* ---------- SECTION A — PROTOCOL SELECTION ---------- */
   protocolsHeading: "Choose Your Performance Protocol",
@@ -74,7 +74,7 @@ window.AFORCE_SHOP_CONFIG = {
       id:"performance",
       name:"Performance Protocol",
       pack:"12-Pack",
-      cardImage:"/assets/can-blue.png",   // hero can stays on the most-chosen card
+      cardImage:"/assets/can-blue-12oz.png",   // hero can stays on the most-chosen card
       lines:["Most chosen.","Built for daily execution."],
       price:59.99,
       priceNote:"",
@@ -110,9 +110,9 @@ window.AFORCE_SHOP_CONFIG = {
   /* ---------- SECTION C — FLAVOR SELECTION ---------- */
   flavorsHeading: "Select Your Formulation",
   flavors: [
-    { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. Built for high heat and high activity days.", img:"/assets/can-red.png" },
-    { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation.",                   img:"/assets/can-blue.png" },
-    { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green.png" }
+    { id:"red",   name:"Watermelon Surge", desc:"Heat Guard optimized. Built for high heat and high activity days.", img:"/assets/can-red-12oz.png" },
+    { id:"blue",  name:"Berry Blast",      desc:"Daily performance. Your consistent foundation.",                   img:"/assets/can-blue-12oz.png" },
+    { id:"green", name:"Soursop Edge",     desc:"Recovery. Built for your hardest recovery days.",                  img:"/assets/can-green-12oz.png" }
   ],
 
   /* ---------- BRAND SHOWCASE — STICKS (below the cans, visual only) ----------

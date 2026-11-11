@@ -5,7 +5,7 @@
  *                 (route file stays `journal.tsx` so deep links + the
  *                 protected Timeline contract are untouched; only the
  *                 user-facing label + icon changed to "Hydration").
- *   Protocols   = AForce Protocol
+ *   Protocols   = AForce Protocol (internal Moments-first build substitutes Moments; Protocol stays routable)
  *   Community   = Rankings + Challenges + Battles + Teams + Map hub
  *                 (route file stays `competition.tsx`)
  *   Profile     = Profile & Settings
@@ -21,19 +21,21 @@
  */
 
 import React from 'react';
-import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import { Redirect, Tabs } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { Icon } from '../../components/Icon';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Colors } from '@/theme/colors';
+import { Typography } from '@/theme/typography';
+import { afEyebrowAt } from '@/theme/afTokens';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
@@ -49,13 +51,17 @@ function NativeTabLayout() {
         <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
         <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="protocol">
-        <NativeTabIcon sf={{ default: 'list.bullet.circle', selected: 'list.bullet.circle.fill' }} />
-        <Label>{t('tabs.protocol')}</Label>
+      <NativeTabs.Trigger name="one-breath-tab">
+        <NativeTabIcon sf={{ default: 'circle', selected: 'circle.fill' }} />
+        <Label>One Breath</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="moments-tab">
+        <NativeTabIcon sf={{ default: 'calendar', selected: 'calendar' }} />
+        <Label>Moments</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="competition">
-        <NativeTabIcon sf={{ default: 'trophy', selected: 'trophy.fill' }} />
-        <Label>{t('tabs.competition')}</Label>
+        <NativeTabIcon sf={{ default: 'person.2', selected: 'person.2.fill' }} />
+        <Label>Circles</Label>
       </NativeTabs.Trigger>
       {devMode ? (
         <NativeTabs.Trigger name="social-legacy">
@@ -63,10 +69,6 @@ function NativeTabLayout() {
           <Label>Legacy</Label>
         </NativeTabs.Trigger>
       ) : null}
-      <NativeTabs.Trigger name="profile">
-        <NativeTabIcon sf={{ default: 'person.circle', selected: 'person.circle.fill' }} />
-        <Label>{t('tabs.profile')}</Label>
-      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
@@ -84,14 +86,23 @@ function NativeTabLayout() {
  * `tabBarItemStyle` alone.
  */
 function PlainTabButton(props: Record<string, unknown>) {
-  const { children, onPress, accessibilityState, accessibilityLabel, testID } =
-    props as {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      accessibilityState?: Record<string, unknown>;
-      accessibilityLabel?: string;
-      testID?: string;
-    };
+  const {
+    children,
+    onPress,
+    accessibilityState,
+    accessibilityLabel,
+    testID,
+    'aria-selected': ariaSelected,
+    'aria-label': ariaLabel,
+  } = props as {
+    children?: React.ReactNode;
+    onPress?: () => void;
+    accessibilityState?: Record<string, unknown>;
+    accessibilityLabel?: string;
+    testID?: string;
+    'aria-selected'?: boolean;
+    'aria-label'?: string;
+  };
   // Wave-5 REMOVAL — no haptic on tab switch.
   //
   // This was the single most frequent vibration in the product: every tab press,
@@ -101,12 +112,27 @@ function PlainTabButton(props: Record<string, unknown>) {
   // between screens is not one of them. A haptic has to mean something, and one
   // that fires on every press means nothing.
 
+  // Black Issue review B2: the active tint (#E4564A) against the inactive grey
+  // (#8D897F) is ~1.05:1 in luminance, so hue cannot be the only selection
+  // cue (WCAG 1.4.1). A 2pt red mark above the selected item is the second,
+  // colour-independent cue on every platform; iOS also swaps to the filled
+  // symbol. React Navigation 7's BottomTabItem hands this button
+  // `aria-selected` / `aria-label` (NOT accessibilityState/Label — PR #1088
+  // review B1), so both spellings are read and the selected state is forwarded
+  // so the reader announces it.
+  const selected = Boolean(
+    ariaSelected ?? (accessibilityState as { selected?: boolean } | undefined)?.selected,
+  );
+  const label = ariaLabel ?? accessibilityLabel;
+
   return (
     <Pressable
       onPress={onPress as (() => void) | undefined}
       accessibilityRole="button"
-      accessibilityState={accessibilityState as never}
-      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ ...(accessibilityState as object | undefined), selected }}
+      accessibilityLabel={label}
+      aria-selected={selected}
+      aria-label={label}
       testID={testID}
       android_ripple={null}
       style={({ pressed }) => [
@@ -114,6 +140,14 @@ function PlainTabButton(props: Record<string, unknown>) {
         pressed && plainTabButtonStyles.pressed,
       ]}
     >
+      {selected ? (
+        <View
+          style={plainTabButtonStyles.selectedMark}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID="tab-selected-mark"
+        />
+      ) : null}
       {children}
     </Pressable>
   );
@@ -146,13 +180,25 @@ const plainTabButtonStyles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
+  selectedMark: {
+    position: 'absolute',
+    top: 0,
+    width: 28,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.tabBar.active,
+  },
 });
 
 function ClassicTabLayout() {
   const { t } = useTranslation();
   const devMode = useDevMode();
+  const momentsFirst = useMomentsFirstExperience();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
+  // S2-14b: tracked mono labels yield their tracking at accessibility sizes.
+  const { fontScale } = useWindowDimensions();
+  const labelTracking = afEyebrowAt(fontScale).letterSpacing;
 
   return (
     <Tabs
@@ -175,47 +221,26 @@ function ClassicTabLayout() {
           borderColor: 'transparent',
           ...(WEB_NO_OUTLINE as object),
         },
+        // Black Issue tab bar (2026-10-06): a solid Cinematic Black bar with
+        // one warm hairline on top — the blur glass is gone so the bar sits on
+        // the same field as the cards. Labels are tracked mono micro caps, the
+        // active item is the AA-clean red (Colors.tabBar.active = af.redText).
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : Colors.tabBar.background,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderTopColor: 'rgba(255,255,255,0.04)',
+          backgroundColor: Colors.tabBar.background,
+          borderTopWidth: 1,
+          borderTopColor: Colors.tabBar.hairline,
           elevation: 0,
           height: isWeb ? TAB_BAR_HEIGHT : undefined,
         },
-        tabBarBackground: () =>
-          isIOS ? (
-            <View style={StyleSheet.absoluteFill}>
-              {/* Max-intensity dark glass — Vision Pro / iOS 17 HUD feel */}
-              <BlurView intensity={100} tint="dark" style={StyleSheet.absoluteFill} />
-              {/* Whisper-thin dark wash to deepen the floating glass effect
-                  without sacrificing the translucency from the blur */}
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { backgroundColor: 'rgba(0,0,0,0.18)' },
-                ]}
-              />
-              {/* Soft top edge fade — a 1.5px gradient line that dissolves
-                  into the glass rather than terminating crisply */}
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 1.5,
-                  backgroundColor: 'rgba(255,255,255,0.05)',
-                }}
-              />
-            </View>
-          ) : (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
-          ),
+        tabBarBackground: () => (
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
+        ),
         tabBarLabelStyle: {
-          fontFamily: 'Inter_600SemiBold',
-          fontSize: 10,
-          letterSpacing: 0.5,
+          fontFamily: Typography.roles.mono,
+          fontSize: 9,
+          letterSpacing: labelTracking,
+          textTransform: 'uppercase',
           marginBottom: isWeb ? 10 : 4,
         },
       }}
@@ -225,8 +250,8 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="bolt.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'bolt.circle.fill' : 'bolt.circle'} tintColor={color} size={size} />
                   : <Icon name="zap" size={22} color={color} />,
         }}
       />
@@ -234,35 +259,56 @@ function ClassicTabLayout() {
         name="journal"
         options={{
           title: t('tabs.hydration'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="drop.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'drop.circle.fill' : 'drop.circle'} tintColor={color} size={size} />
                   : <Icon name="droplet" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="protocol"
         options={{
+          href: null,
           title: t('tabs.protocol'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="list.bullet.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'list.bullet.circle.fill' : 'list.bullet.circle'} tintColor={color} size={size} />
                   : <Icon name="list" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="one-breath-tab"
+        options={{
+          title: 'One Breath',
+          tabBarIcon: ({ color, size, focused }) => isIOS
+            ? <SymbolView name={focused ? 'circle.fill' : 'circle'} tintColor={color} size={size} />
+            : <Icon name="circle" size={22} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="moments-tab"
+        options={{
+          href: '/moments-tab',
+          title: 'Moments',
+          tabBarIcon: ({ color, size, focused }) => isIOS
+            ? <SymbolView name={focused ? 'calendar.circle.fill' : 'calendar'} tintColor={color} size={size} />
+            : <Icon name="calendar" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="competition"
         options={{
-          title: t('tabs.competition'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="trophy" tintColor={color} size={size} />
-                  : <Icon name="award" size={22} color={color} />,
+          title: 'Circles',
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'person.2.fill' : 'person.2'} tintColor={color} size={size} />
+                  : <Icon name="users" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
+          href: null,
           title: t('tabs.profile'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="person.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'person.circle.fill' : 'person.circle'} tintColor={color} size={size} />
                   : <Icon name="user" size={22} color={color} />,
         }}
       />
@@ -273,8 +319,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.scan'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="viewfinder.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'viewfinder.circle.fill' : 'viewfinder.circle'} tintColor={color} size={size} />
                   : <Icon name="maximize" size={22} color={color} />,
         }}
       />
@@ -283,8 +329,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.social'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="wineglass" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'wineglass.fill' : 'wineglass'} tintColor={color} size={size} />
                   : <Icon name="users" size={22} color={color} />,
         }}
       />
@@ -306,8 +352,8 @@ function ClassicTabLayout() {
         options={{
           href: null,
           title: t('tabs.sleep'),
-          tabBarIcon: ({ color, size }) =>
-            isIOS ? <SymbolView name="moon.circle" tintColor={color} size={size} />
+          tabBarIcon: ({ color, size, focused }) =>
+            isIOS ? <SymbolView name={focused ? 'moon.circle.fill' : 'moon.circle'} tintColor={color} size={size} />
                   : <Icon name="moon" size={22} color={color} />,
         }}
       />

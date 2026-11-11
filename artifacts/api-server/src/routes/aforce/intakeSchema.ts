@@ -63,6 +63,7 @@ export const intakeSchema = z.object({
       "recovery",
       "voice",
       "manual",
+      "concierge",
       "tap",
       "scan_log",
       "offline_replay",

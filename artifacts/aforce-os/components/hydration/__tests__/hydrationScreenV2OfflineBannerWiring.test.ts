@@ -36,7 +36,11 @@ describe('HydrationScreenV2 — offline intake outbox visibility (RC-1 Wave-2B, 
     expect(CODE).toMatch(
       /<AFOfflineBanner\s+pendingCount=\{outboxPendingCount\}\s+hasFailedItem=\{outboxHasFailedItem\}\s*\/>/,
     );
-    const topBarToBanner = CODE.slice(CODE.indexOf('<AFTopBar'), CODE.indexOf('<AFOfflineBanner'));
+    // Black Issue (PR 3): the screen head is AFMasthead now; slicing from a
+    // literal that no longer exists made this lock pass vacuously.
+    const headStart = CODE.indexOf('<AFMasthead');
+    expect(headStart, 'the screen must open with the AFMasthead head').toBeGreaterThan(-1);
+    const topBarToBanner = CODE.slice(headStart, CODE.indexOf('<AFOfflineBanner'));
     // Nothing else sits between the top bar and the banner.
     expect(topBarToBanner).not.toMatch(/<AFCard/);
   });

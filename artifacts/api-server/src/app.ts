@@ -1,3 +1,5 @@
+import travelIdentityEventsRouter from './routes/travelIdentityEvents';
+import travelIntelligenceRouter from './routes/travelIntelligence';
 import express, { type Express } from "express";
 import { serializeError } from "./lib/serializeError";
 import { logger } from "./lib/logger";
@@ -15,7 +17,9 @@ import {
   clerkProxyMiddleware,
 } from "./middlewares/clerkProxyMiddleware";
 import { buildCorsOptions } from "./middlewares/corsPolicy";
+import { clerkConfigured } from "./middlewares/clerkConfig";
 import { sendApiError, classifyThrown } from "./lib/apiError";
+import { buildDefaultSpatialStudioProjectsRouter } from "./routes/spatialStudioProjects";
 
 const app: Express = express();
 
@@ -84,7 +88,11 @@ app.use("/api", shopifyWebhookRouter);
 // can set headers and end a response — on the Stripe and Shopify money paths.
 // Running it twice on this path is safe by construction: the middleware's
 // first line is `if (request.auth) return next()`.
-app.use("/api/smart-capture", clerkMiddleware());
+// Both Clerk mounts are gated on full configuration: with the publishable key
+// absent, @clerk/express throws on every request and even the liveness probe
+// 500s (see middlewares/clerkConfig.ts). Unconfigured ⇒ no decoration ⇒ the
+// auth gates answer 503 auth_unavailable in production, exactly as documented.
+if (clerkConfigured()) app.use("/api/smart-capture", clerkMiddleware());
 app.use("/api", smartCaptureRouter);
 
 // CORS — allowlist driven. In production, set CORS_ALLOWED_ORIGINS to a
@@ -95,6 +103,22 @@ app.use("/api", smartCaptureRouter);
 // `./middlewares/corsPolicy.ts` for the full threat model and
 // `.env.example` for the local-dev setup line.
 app.use(cors(buildCorsOptions()));
+
+// AForce Spatial Studio project storage — saved designs carry uploaded
+// images as data URLs and run to several MB, so the router mounts its own
+// express.json({ limit: "12mb" }) on PUT and MUST sit before the global 64kB
+// parser below. Path-scoped clerkMiddleware for the same reason as
+// smart-capture above: requireAuth must find a decorated request.
+if (clerkConfigured()) app.use("/api/spatial-studio/projects", clerkMiddleware());
+app.use("/api/spatial-studio/projects", buildDefaultSpatialStudioProjectsRouter());
+
+// Raw, signature-verified Clerk identity events must precede JSON and session middleware.
+app.use('/api/travel/identity-events',travelIdentityEventsRouter);
+
+// Travel trip lists have their own bounded parser; preserve the default cap for other routes.
+if (clerkConfigured()) app.use('/api/travel/intelligence', clerkMiddleware());
+app.use('/api/travel/intelligence', travelIntelligenceRouter);
+
 // Explicit body-size cap. The largest legitimate payload is the
 // UserState snapshot (~12kB); 64kB leaves headroom without letting a
 // malicious client tie up the parser with multi-MB JSON.
@@ -103,8 +127,9 @@ app.use(express.urlencoded({ extended: true, limit: "64kb" }));
 
 // clerkMiddleware reads the bearer token / cookie and decorates the
 // request with auth context for downstream `getAuth(req)` calls. Safe
-// to mount even when CLERK_SECRET_KEY is unset (it just no-ops).
-app.use(clerkMiddleware());
+// to mount when configured; when either Clerk key is unset the middleware
+// is NOT mounted (it would throw per request — see clerkConfig.ts).
+if (clerkConfigured()) app.use(clerkMiddleware());
 
 // Wave-3 PR9: first wiring of observability/metrics.ts (previously zero
 // importers — nothing was measured). Route bucket = first two path

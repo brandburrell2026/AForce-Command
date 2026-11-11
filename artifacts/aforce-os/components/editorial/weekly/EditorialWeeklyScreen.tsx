@@ -7,7 +7,10 @@
  * `buildWeeklyV3Model` for the model, `performanceAgeBarAxis` for the chart
  * domain, `getWeeklyReportSection` for the postures. Nothing is re-derived.
  *
- * The approved Figma composition uses the app's black stock.
+ * The approved Figma composition uses the app's black stock. BLACK ISSUE
+ * (2026-10-07, PR 4): presentation restyle only — wordmark masthead, red mono
+ * section heads over hairlines, numerals, key/value rows, a timeline plate and
+ * a full-width CTA. No source, gate, copy authority or truth rule moves.
  *
  * FOUNDER DECISIONS ENFORCED HERE (locked by editorialWeeklyLaw.test.ts):
  *  D1 — NO positive status hue. Positive reads through weight, rule and
@@ -62,13 +65,14 @@ import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 
-import { AFScreen } from '@/components/ui';
+import { AFMasthead, AFPrimaryButton, AFScreen } from '@/components/ui';
 import { getAnalyticsSnapshot } from '@/services/analytics';
 import { fetchJournalRollups } from '@/services/realApi';
 import { getCommandLedgerState, hydrateCommandLedger } from '@/services/commandLedger';
 import { useUserSlice } from '@/store/slices';
 import { ledgerToPerformanceAgeSnapshots } from '@/utils/intelligence/commandEventAdapters';
 import { usePerformanceAge } from '@/hooks/usePerformanceAge';
+import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { PERFORMANCE_AGE_DISCLAIMER } from '@/utils/performanceAge';
 import { lastCompletedWeek, getWeeklyReportSection } from '@/utils/weeklyReport';
 import { sectionSummary } from '@/components/insights/weeklyReportCopy';
@@ -78,10 +82,10 @@ import {
   type WeeklyV3Inputs,
   type WeeklyV3Model,
 } from '@/components/insights/weeklyV3Presentation';
-import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { edAccent, edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
+import { af, afLayout, afType, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
-import { EdCaption, EdEvidenceLine, EdKicker, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
+import { EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from '../moments/EdReturn';
 import { EdFeatureNumbers } from './EdFeatureNumbers';
 import { featureDateRange, featureShortDate } from './editorialWeeklyPresentation';
@@ -99,6 +103,7 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
   const router = useRouter();
   const ink = edInkFor('black');
   const settle = useEdSettle();
+  const eyebrow = useAFEyebrowType();
 
   // PARITY — the ledger writer. See the header note.
   const pa = usePerformanceAge();
@@ -187,7 +192,6 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
     if (Platform.OS !== 'ios') return;
     AccessibilityInfo.announceForAccessibility(t('reports.v3.loaded_a11y'));
   }, [model, t]);
-
   if (!model) {
     return (
       <EdSurface stock="black" style={styles.fill}>
@@ -197,8 +201,11 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
         {/* AFScreen paints its own shell, so the approved black stock is
             restated explicitly rather than inherited implicitly. */}
         <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
+          <AFMasthead testID="editorial-weekly-masthead" />
           <EdReturn now={new Date()} />
-          <EdCaption text={t('reports.v3.eyebrow')} />
+          <Text style={[edType.caption as TextStyle, eyebrow, { color: af.redText }]}>
+            {t('reports.v3.eyebrow').toUpperCase()}
+          </Text>
           {/* Holds the report's shape while the sources are assembled. Rules,
               not shimmer blocks. One accessible
               progressbar wraps it so the rules don't each announce. */}
@@ -243,6 +250,14 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
       ? '—'
       : `${model.hydrationDays}/${model.daysTracked}`;
 
+  // The one red emphasis on the timeline: the most recent day that was
+  // actually measured. Every other measured day is drawn in the primary ink,
+  // so the accent never spreads into a wall of red. Height, the dot fill and
+  // the day letter's ink carry the same distinction, so hue is never the
+  // only carrier.
+  const latestMeasuredDate =
+    [...model.timeline].reverse().find((d) => d.score != null)?.date ?? null;
+
   return (
     <EdSurface stock="black" style={styles.fill}>
       <StatusBar style="light" />
@@ -250,15 +265,17 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
           because AFScreen paints af.canvas over whatever it sits inside. */}
       <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
         <Animated.View style={settle}>
+          <AFMasthead testID="editorial-weekly-masthead" />
           <EdReturn now={new Date()} />
 
-          {/* Masthead — THE FEATURE, then the real reported period (D2). */}
-          <EdCaption
-            text={period ? `${t('reports.v3.eyebrow')} · ${period}` : t('reports.v3.eyebrow')}
-          />
+          {/* Eyebrow — the report, then the real reported period (D2), in the
+              red mono furniture over a hairline. */}
+          <Text style={[edType.caption as TextStyle, eyebrow, styles.eyebrow, { color: af.redText }]}>
+            {(period ? `${t('reports.v3.eyebrow')} · ${period}` : t('reports.v3.eyebrow')).toUpperCase()}
+          </Text>
           <EdRule />
 
-          <EdStatement accessibilityRole="header">{t('reports.v3.title')}</EdStatement>
+          <EdStatement accessibilityRole="header">{t('reports.v3.title')}{t('reports.v3.title_stop')}</EdStatement>
 
           {/* Degraded, not broken. D6 — per-source honesty, stated where the
               loss happened, with a working retry.
@@ -287,74 +304,13 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             </View>
           ) : null}
 
-          {/* Weekly timeline — this is the visual centre of the report. It is
-              intentionally an observed hydration series, not an invented
-              composite score: each column preserves the model's measured or
-              unmeasured state. D1: height carries the reading; hue does not. */}
-          {model.timeline.length > 0 ? (
-            <View style={styles.signalSection} testID="editorial-weekly-timeline">
-              <EdCaption text={t('reports.v3.timeline_label')} />
-              <View style={styles.timeline}>
-                {model.timeline.map((d) => {
-                  // A day HydroState never observed keeps its column but draws
-                  // no bar and speaks "no reading" — the Editorial
-                  // truthful-neutral rule (an unmeasured value is the em-dash,
-                  // never a fabricated zero) applied to the timeline. Drawing
-                  // the server's sentinel would give a silent day a real,
-                  // readable height.
-                  const unmeasured = d.score == null;
-                  return (
-                    <View
-                      key={d.date}
-                      accessible
-                      accessibilityLabel={
-                        unmeasured
-                          ? t('reports.v3.timeline_day_unmeasured_a11y', {
-                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
-                              date: featureShortDate(d.date, i18n.language) ?? d.date,
-                            })
-                          : t('reports.v3.timeline_day_a11y', {
-                              day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
-                              date: featureShortDate(d.date, i18n.language) ?? d.date,
-                              score: d.score,
-                            })
-                      }
-                      style={styles.timelineDay}
-                      testID={`editorial-weekly-timeline-${d.date}`}
-                    >
-                      <View style={[styles.timelineTrack, { backgroundColor: ink.raised }]}>
-                        {unmeasured ? null : (
-                          <>
-                            <View style={{ flex: Math.max(0.02, 1 - Math.min(100, d.score!) / 100) }} />
-                            <View
-                              style={[
-                                styles.timelineFill,
-                                {
-                                  flex: Math.max(0.1, Math.min(100, d.score!) / 100),
-                                  backgroundColor: ink.primary,
-                                },
-                              ]}
-                            />
-                          </>
-                        )}
-                      </View>
-                      <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-                        {t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`)}
-                      </Text>
-                    </View>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-
           {/* The pull numbers — streak beside honest em dashes. */}
           <EdFeatureNumbers
             numbers={[
               {
                 value: habitStreak,
                 label: t('reports.v3.tile_streak'),
-                unit: t('reports.v3.days_unit'),
+                unit: t('reports.v3.days_unit').toUpperCase(),
                 testID: 'editorial-weekly-streak',
               },
               {
@@ -370,19 +326,24 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             ]}
           />
 
-          <EdRule style={styles.spacedRule} />
-
-          {/* Honest partials, as editorial matter-of-fact body. Recovery keeps
-              its hardcoded collecting posture — no persisted series exists, so
-              it never earns a number. */}
+          {/* Honest partials as key / value rows under hairlines. Recovery
+              keeps its hardcoded collecting posture — no persisted series
+              exists, so it never earns a number. Each row speaks as one unit;
+              the quiet note is the existing caption, said in the label too. */}
           <View
             accessible
             accessibilityLabel={`${t('reports.v3.tile_recovery')}: ${t('reports.v3.collecting')}. ${t('reports.v3.recovery_caption')}`}
+            style={[styles.kvRow, { borderTopColor: ink.rule }]}
             testID="editorial-weekly-recovery"
           >
-            <Text style={[edType.body as TextStyle, { color: ink.quiet }]}>
-              {t('reports.v3.tile_recovery')} · {t('reports.v3.collecting')} —{' '}
-              {t('reports.v3.recovery_caption')}
+            <Text style={[edType.caption as TextStyle, styles.kvKey, eyebrow, { color: af.redText }]}>
+              {t('reports.v3.tile_recovery')}
+            </Text>
+            <Text style={[afType.bodyStrong as TextStyle, styles.kvValue, { color: ink.primary }]}>
+              {t('reports.v3.collecting')}
+            </Text>
+            <Text style={[edType.micro as TextStyle, styles.kvNote, eyebrow, { color: ink.quiet }]}>
+              {t('reports.v3.recovery_caption').toUpperCase()}
             </Text>
           </View>
 
@@ -390,12 +351,17 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
           <View
             accessible
             accessibilityLabel={`${t('reports.v3.tile_hydration_days')}: ${hydrationDaysLine}. ${t('reports.v3.hydration_days_caption')}`}
-            style={styles.evidence}
+            style={[styles.kvRow, { borderTopColor: ink.rule }]}
             testID="editorial-weekly-hydration-days"
           >
-            <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet }]}>
-              {t('reports.v3.tile_hydration_days')} {hydrationDaysLine} ·{' '}
-              {t('reports.v3.hydration_days_caption')}
+            <Text style={[edType.caption as TextStyle, styles.kvKey, eyebrow, { color: af.redText }]}>
+              {t('reports.v3.tile_hydration_days')}
+            </Text>
+            <Text style={[afType.bodyStrong as TextStyle, styles.kvValue, { color: ink.primary }]}>
+              {hydrationDaysLine}
+            </Text>
+            <Text style={[edType.micro as TextStyle, styles.kvNote, eyebrow, { color: ink.quiet }]}>
+              {t('reports.v3.hydration_days_caption').toUpperCase()}
             </Text>
           </View>
 
@@ -407,15 +373,19 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
                 ? t('reports.v3.collecting')
                 : t('reports.v3.active_days', { n: habit.value ?? '0' })
             }. ${t(`reports.v3.habit_${habit.status}`)}`}
-            style={styles.evidence}
+            style={[styles.kvRow, { borderTopColor: ink.rule }]}
             testID="editorial-weekly-habit"
           >
-            <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet }]}>
-              {t('reports.v3.tile_habit')}{' '}
+            <Text style={[edType.caption as TextStyle, styles.kvKey, eyebrow, { color: af.redText }]}>
+              {t('reports.v3.tile_habit')}
+            </Text>
+            <Text style={[afType.bodyStrong as TextStyle, styles.kvValue, { color: ink.primary }]}>
               {habit.status === 'collecting'
                 ? t('reports.v3.collecting')
-                : t('reports.v3.active_days', { n: habit.value ?? '0' })}{' '}
-              · {t(`reports.v3.habit_${habit.status}`)}
+                : t('reports.v3.active_days', { n: habit.value ?? '0' })}
+            </Text>
+            <Text style={[edType.micro as TextStyle, styles.kvNote, eyebrow, { color: ink.quiet }]}>
+              {t(`reports.v3.habit_${habit.status}`).toUpperCase()}
             </Text>
           </View>
 
@@ -423,7 +393,17 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
               of the move is a glyph and a spoken sentence, never a colour. */}
           {paView.currentAge != null ? (
             <View style={styles.section} testID="editorial-weekly-performance-age">
-              <EdCaption text={t('reports.v3.pa_label')} />
+              <SectionHead
+                label={t('reports.v3.pa_label')}
+                meta={
+                  paView.bars.length >= 2 && paAxis
+                    ? t('reports.v3.pa_scale', {
+                        min: Math.round(paAxis.minAge),
+                        max: Math.round(paAxis.maxAge),
+                      })
+                    : null
+                }
+              />
               <View
                 accessible
                 accessibilityLabel={[
@@ -460,12 +440,14 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
                   {paView.currentAge}
                 </Text>
                 {paDelta != null ? (
-                  <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
-                    {paDelta <= 0 ? '▼' : '▲'} {Math.abs(paDelta)} {t('reports.v3.pa_years')}
+                  <Text style={[edType.micro as TextStyle, eyebrow, { color: ink.quiet }]}>
+                    {paDelta === 0
+                      ? `${t('reports.v3.pa_no_change')} · 0 ${t('reports.v3.pa_years')}`.toUpperCase()
+                      : `${paDelta <= 0 ? '▼' : '▲'} ${Math.abs(paDelta)} ${t('reports.v3.pa_years')}`.toUpperCase()}
                   </Text>
                 ) : paView.provisional ? (
-                  <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
-                    {t('reports.v3.pa_provisional')}
+                  <Text style={[edType.micro as TextStyle, eyebrow, { color: ink.quiet }]}>
+                    {t('reports.v3.pa_provisional').toUpperCase()}
                   </Text>
                 ) : null}
               </View>
@@ -494,18 +476,32 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
                         <View
                           style={[
                             styles.paBar,
-                            { flex: Math.max(0.02, paAxis.fractions[i]!), backgroundColor: ink.primary },
+                            {
+                              flex: Math.max(0.02, paAxis.fractions[i]!),
+                              backgroundColor:
+                                i === paView.bars.length - 1 ? ink.primary : af.surfacePressed,
+                            },
                           ]}
                         />
                       </View>
                     ))}
                   </View>
-                  <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 8 }]}>
-                    {t('reports.v3.pa_scale', {
-                      min: Math.round(paAxis.minAge),
-                      max: Math.round(paAxis.maxAge),
-                    })}
-                  </Text>
+                  {/* Day furniture under the bars. Hidden from the reader: the
+                      chart's own label already names every day and age. */}
+                  <View
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    style={styles.paDays}
+                  >
+                    {paView.bars.map((b) => (
+                      <Text
+                        key={b.dayIndex}
+                        style={[edType.micro as TextStyle, styles.paDay, { color: ink.quiet }]}
+                      >
+                        {t(`reports.v3.wd_${weekdayKeyForDayIndex(b.dayIndex)}`)}
+                      </Text>
+                    ))}
+                  </View>
                 </>
               ) : (
                 <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 10 }]}>
@@ -518,31 +514,138 @@ export function EditorialWeeklyScreen({ fixture }: { fixture?: WeeklyV3Inputs })
             </View>
           ) : null}
 
-          {/* The kicker carries the week's one instruction — the canonical
+          {/* Weekly timeline — this is the visual centre of the report. It is
+              intentionally an observed hydration series, not an invented
+              composite score: each column preserves the model's measured or
+              unmeasured state. D1: height carries the reading; hue does not. */}
+          {model.timeline.length > 0 ? (
+            <View style={styles.section} testID="editorial-weekly-timeline">
+              <SectionHead
+                label={t('reports.v3.timeline_label')}
+                meta={t('reports.v3.timeline_hint')}
+              />
+              <View style={styles.card}>
+                <View style={styles.timeline}>
+                  {model.timeline.map((d) => {
+                    // A day HydroState never observed keeps its column but
+                    // draws no bar — a flat dim dash and a hollow dot — and
+                    // speaks "no reading": the Editorial truthful-neutral rule
+                    // (an unmeasured value is the em-dash, never a fabricated
+                    // zero) applied to the timeline. Drawing the server's
+                    // sentinel would give a silent day a real, readable height.
+                    const unmeasured = d.score == null;
+                    const latest = d.date === latestMeasuredDate;
+                    const accent = latest ? af.red : ink.primary;
+                    const dayOfMonth = Number(d.date.slice(8, 10));
+                    return (
+                      <View
+                        key={d.date}
+                        accessible
+                        accessibilityLabel={
+                          unmeasured
+                            ? t('reports.v3.timeline_day_unmeasured_a11y', {
+                                day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
+                                date: featureShortDate(d.date, i18n.language) ?? d.date,
+                              })
+                            : t('reports.v3.timeline_day_a11y', {
+                                day: t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`),
+                                date: featureShortDate(d.date, i18n.language) ?? d.date,
+                                score: d.score,
+                              })
+                        }
+                        style={styles.timelineDay}
+                        testID={`editorial-weekly-timeline-${d.date}`}
+                      >
+                        <View style={styles.timelineTrack}>
+                          {/* An unobserved day draws NO bar (truth lock:
+                              denseRollupConsumers) — the hollow dot and the
+                              spoken "no reading" carry the absence. */}
+                          {unmeasured ? null : (
+                            <>
+                              <View style={{ flex: Math.max(0.02, 1 - Math.min(100, d.score!) / 100) }} />
+                              <View
+                                style={[
+                                  styles.timelineFill,
+                                  {
+                                    flex: Math.max(0.1, Math.min(100, d.score!) / 100),
+                                    backgroundColor: accent,
+                                  },
+                                ]}
+                              />
+                            </>
+                          )}
+                        </View>
+                        <View
+                          style={[
+                            styles.timelineDot,
+                            unmeasured
+                              ? { borderColor: af.textTertiary }
+                              : { backgroundColor: accent, borderColor: accent },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            edType.micro as TextStyle,
+                            { color: latest ? ink.primary : ink.quiet },
+                          ]}
+                        >
+                          {t(`reports.v3.wd_${WEEKDAY_KEYS[d.weekday]}`).charAt(0)}
+                        </Text>
+                        {Number.isFinite(dayOfMonth) ? (
+                          <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                            {dayOfMonth}
+                          </Text>
+                        ) : null}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          ) : null}
+
+          {/* The focus carries the week's one instruction — the canonical
               next-week focus, verbatim through sectionSummary. This surface
-              authors no instruction of its own (DR-013). */}
+              authors no instruction of its own (DR-013), so the head keeps the
+              honest name for it rather than calling it an observation. */}
           <View style={styles.section} testID="editorial-weekly-next-focus">
-            <EdCaption text={t('reports.v3.next_focus')} />
-            <EdKicker text={sectionSummary(t, nextFocus)} />
-            <Pressable
+            <SectionHead label={t('reports.v3.next_focus')} />
+            <Text style={[afType.bodyStrong as TextStyle, { color: ink.primary }]}>
+              {sectionSummary(t, nextFocus)}
+            </Text>
+            <AFPrimaryButton
+              label={t('reports.v3.open_next_protocol')}
               onPress={() => router.push('/protocol')}
-              accessibilityRole="button"
-              accessibilityLabel={t('reports.v3.open_next_protocol')}
+              trailingIcon="plus"
               style={styles.protocolButton}
               testID="editorial-weekly-open-protocol"
-            >
-              <Text style={[edType.confirm as TextStyle, styles.protocolButtonText]}>
-                {t('reports.v3.open_next_protocol')}
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.folio}>
-            <EdEvidenceLine parts={[t('reports.v3.eyebrow')]} />
+            />
           </View>
         </Animated.View>
       </AFScreen>
     </EdSurface>
+  );
+}
+
+/**
+ * The red mono section head: a tracked caption on the left, quiet mono meta on
+ * the right. Tracking yields at large Dynamic Type through useAFEyebrowType;
+ * the two halves wrap instead of clipping.
+ */
+function SectionHead({ label, meta }: { label: string; meta?: string | null }) {
+  const ink = edInkFor('black');
+  const eyebrow = useAFEyebrowType();
+  return (
+    <View style={styles.sectionHead}>
+      <Text style={[edType.caption as TextStyle, eyebrow, styles.sectionLabel, { color: af.redText }]}>
+        {label.toUpperCase()}
+      </Text>
+      {meta ? (
+        <Text style={[edType.micro as TextStyle, eyebrow, styles.sectionMeta, { color: ink.quiet }]}>
+          {meta.toUpperCase()}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -551,6 +654,7 @@ const styles = StyleSheet.create({
   /** Restates the stock on the AFScreen shell, which paints af.canvas. */
   canvas: { backgroundColor: edStock.black },
   content: { paddingBottom: edRhythm.minTarget * 2 },
+  eyebrow: { marginTop: 4 },
   degraded: { marginTop: 16 },
   retryTarget: {
     minHeight: edRhythm.minTarget,
@@ -559,48 +663,78 @@ const styles = StyleSheet.create({
   },
   spacedRule: { marginTop: 24 },
   section: { marginTop: 28 },
-  signalSection: { marginTop: 28 },
-  evidence: { marginTop: 10 },
+  sectionHead: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    columnGap: 12,
+    rowGap: 4,
+    marginBottom: 12,
+  },
+  sectionLabel: { flexShrink: 1 },
+  sectionMeta: { flexShrink: 1, textAlign: 'right' },
+  /** Key / value row: red mono key, bold value, quiet mono note. Wraps — the
+   *  note drops under the value at large type instead of being squeezed. */
+  kvRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'baseline',
+    columnGap: 10,
+    rowGap: 4,
+    paddingVertical: 14,
+    minHeight: edRhythm.minTarget,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  kvKey: { minWidth: 124, maxWidth: '100%' },
+  kvValue: { flexShrink: 0 },
+  kvNote: { flexGrow: 1, flexShrink: 1, flexBasis: 90, minWidth: 0, textAlign: 'right' },
   paRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     columnGap: 12,
     flexWrap: 'wrap',
     rowGap: 4,
-    marginTop: 8,
   },
   paBars: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    columnGap: 6,
+    columnGap: 8,
     height: 72,
     marginTop: 18,
   },
   paBarTrack: { flex: 1, justifyContent: 'flex-end' },
-  paBar: { width: '100%' },
+  paBar: { width: '100%', borderRadius: 2 },
+  paDays: { flexDirection: 'row', columnGap: 8, marginTop: 8 },
+  paDay: { flex: 1, textAlign: 'center' },
+  /** The timeline plate: card surface, hairline border, card radius. Built
+   *  here from the tokens because the weekly law bars the shared card
+   *  component from this layer. */
+  card: {
+    backgroundColor: af.surface,
+    borderColor: af.border,
+    borderWidth: 1,
+    borderRadius: afLayout.radiusCard,
+    padding: 16,
+  },
   timeline: {
     flexDirection: 'row',
     columnGap: 8,
-    marginTop: 14,
   },
   timelineDay: { flex: 1, alignItems: 'center', rowGap: 6 },
   timelineTrack: {
     height: 76,
     width: '100%',
-    justifyContent: 'flex-end',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  timelineFill: { width: '100%', borderRadius: 4 },
-  protocolButton: {
-    minHeight: edRhythm.minTarget,
-    marginTop: 18,
-    backgroundColor: edAccent.red,
-    borderRadius: 2,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 18,
+    justifyContent: 'flex-end',
   },
-  protocolButtonText: { color: edStock.paper },
-  folio: { marginTop: 30 },
+  timelineFill: { width: 16, borderRadius: 3 },
+  timelineDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  protocolButton: { marginTop: 22 },
 });

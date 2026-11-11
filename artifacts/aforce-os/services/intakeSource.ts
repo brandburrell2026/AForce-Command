@@ -47,6 +47,8 @@ export const INTAKE_SOURCES = [
   'voice',
   /** Manual entry of a non-AForce drink (AddDrinkModal and friends). */
   'manual',
+  /** AForce Concierge — a water log confirmed from a concierge action card. */
+  'concierge',
   // ── Legacy capture modes, retained so historical rows stay valid ──
   'tap',
   'scan_log',
@@ -65,6 +67,7 @@ export const NEW_INTAKE_SURFACES: readonly IntakeSource[] = [
   'recovery',
   'voice',
   'manual',
+  'concierge',
 ];
 
 export function isIntakeSource(value: unknown): value is IntakeSource {

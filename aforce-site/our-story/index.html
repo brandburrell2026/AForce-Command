@@ -7,16 +7,16 @@
 <meta name="description" content="Before AFORCE had a name, it had a ritual. The origin of AFORCE — two brothers, two moments of stillness, and one standard for how people prepare.">
 <meta name="robots" content="index,follow">
 <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
-<link rel="canonical" href="https://www.drinkaforce.com/our-story">
+<link rel="canonical" href="https://www.joinaforce.com/our-story">
 <meta property="og:type" content="website">
 <meta property="og:title" content="AFORCE — Our Story">
 <meta property="og:description" content="Before AFORCE had a name, it had a ritual. Two brothers. One standard.">
-<meta property="og:url" content="https://www.drinkaforce.com/our-story">
-<meta property="og:image" content="https://www.drinkaforce.com/assets/aforce-founders-couch-poster.jpg">
+<meta property="og:url" content="https://www.joinaforce.com/our-story">
+<meta property="og:image" content="https://www.joinaforce.com/assets/aforce-founders-couch-poster.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="AFORCE — Our Story">
 <meta name="twitter:description" content="Before AFORCE had a name, it had a ritual. Two brothers. One standard.">
-<meta name="twitter:image" content="https://www.drinkaforce.com/assets/aforce-founders-couch-poster.jpg">
+<meta name="twitter:image" content="https://www.joinaforce.com/assets/aforce-founders-couch-poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -158,6 +158,20 @@
   .portrait{ max-width:560px; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--canvas-dim); }
   .portrait img{ width:100%; height:auto; display:block; }
   .portrait figcaption{ font-family:var(--mono); font-size:11px; letter-spacing:0.22em; text-transform:uppercase; color:var(--mute); padding:14px 18px; }
+  .founders-now{ margin-top:clamp(38px,6vw,72px); display:grid; grid-template-columns:minmax(0,1.08fr) minmax(260px,.72fr); gap:clamp(28px,5vw,72px); align-items:end; }
+  .founders-now figure{ border:1px solid rgba(245,240,232,.14); border-radius:6px; overflow:hidden; background:#141414; }
+  .founders-now img{ width:100%; height:auto; aspect-ratio:2/3; object-fit:cover; object-position:center 25%; }
+  .founders-now figcaption{ padding:15px 18px; font-family:var(--mono); font-size:11px; letter-spacing:.17em; text-transform:uppercase; color:rgba(245,240,232,.58); }
+  .founders-now-copy{ padding-bottom:clamp(0px,2vw,28px); }
+  .founders-now-copy p{ color:rgba(245,240,232,.68); }
+  .founders-childhood{ margin-top:clamp(54px,8vw,96px); padding-top:clamp(44px,6vw,72px); border-top:1px solid rgba(245,240,232,.14); }
+  .brotherhood-still{ margin-top:clamp(34px,5vw,58px); border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--canvas-dim); }
+  .brotherhood-still img{ width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; object-position:center 42%; }
+  .brotherhood-still figcaption{ padding:14px 18px; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--mute); }
+  @media (max-width:760px){
+    .founders-now{ grid-template-columns:1fr; }
+    .founders-now figure{ max-width:560px; }
+  }
 
   /* Grid helpers */
   .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,5vw,72px); align-items:center; }
@@ -195,6 +209,7 @@
   .roles{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(18px,2.4vw,28px); margin-top:clamp(34px,5vw,56px); }
   @media (max-width:760px){ .roles{ grid-template-columns:1fr; } }
   .role{ border:1px solid var(--line); border-radius:6px; padding:clamp(24px,3vw,36px); background:linear-gradient(180deg, rgba(13,13,13,0.03), rgba(13,13,13,0)); }
+  .role .founder-portrait{ width:100%; height:auto; border-radius:4px; margin-bottom:24px; }
   .role .who{ font-family:var(--mono); font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:var(--faint); }
   .role .name{ font-size:clamp(22px,2.6vw,30px); font-weight:700; margin-top:10px; }
   .role .title{ font-style:italic; color:var(--red); margin-top:6px; font-size:clamp(17px,1.6vw,20px); }
@@ -302,10 +317,10 @@
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://www.drinkaforce.com/#organization",
+      "@id": "https://www.joinaforce.com/#organization",
       "name": "AFORCE Hydration, Inc.",
-      "url": "https://www.drinkaforce.com/",
-      "logo": "https://www.drinkaforce.com/assets/favicon.svg",
+      "url": "https://www.joinaforce.com/",
+      "logo": "https://www.joinaforce.com/assets/favicon.svg",
       "slogan": "Performance Is Non-Negotiable.",
       "address": {
         "@type": "PostalAddress",
@@ -316,66 +331,63 @@
     },
     {
       "@type": "WebSite",
-      "@id": "https://www.drinkaforce.com/#website",
+      "@id": "https://www.joinaforce.com/#website",
       "name": "AFORCE",
-      "url": "https://www.drinkaforce.com/",
+      "url": "https://www.joinaforce.com/",
       "publisher": {
-        "@id": "https://www.drinkaforce.com/#organization"
+        "@id": "https://www.joinaforce.com/#organization"
       }
     },
     {
       "@type": "WebPage",
-      "@id": "https://www.drinkaforce.com/our-story#webpage",
-      "url": "https://www.drinkaforce.com/our-story",
+      "@id": "https://www.joinaforce.com/our-story#webpage",
+      "url": "https://www.joinaforce.com/our-story",
       "name": "AFORCE — Our Story",
       "description": "Before AFORCE had a name, it had a ritual. The origin of AFORCE — two brothers, two moments of stillness, and one standard for how people prepare.",
       "isPartOf": {
-        "@id": "https://www.drinkaforce.com/#website"
+        "@id": "https://www.joinaforce.com/#website"
       },
       "about": {
-        "@id": "https://www.drinkaforce.com/#organization"
+        "@id": "https://www.joinaforce.com/#organization"
       },
       "breadcrumb": {
-        "@id": "https://www.drinkaforce.com/our-story#breadcrumb"
+        "@id": "https://www.joinaforce.com/our-story#breadcrumb"
       }
     },
     {
       "@type": "BreadcrumbList",
-      "@id": "https://www.drinkaforce.com/our-story#breadcrumb",
+      "@id": "https://www.joinaforce.com/our-story#breadcrumb",
       "itemListElement": [
         {
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://www.drinkaforce.com/"
+          "item": "https://www.joinaforce.com/"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Our Story",
-          "item": "https://www.drinkaforce.com/our-story"
+          "item": "https://www.joinaforce.com/our-story"
         }
       ]
     }
   ]
 }
 </script>
-</head>
-<body>
+<link rel="stylesheet" href="/assets/site-refinements.css"></head>
+<body class="pv-existing">
 <a class="afx-skip" href="#main">Skip to main content</a>
 
 <!-- ============ NAV (shared) ============ -->
-<header class="afx-nav afx-overlay" id="afxNav">
+<header class="afx-nav" id="afxNav">
   <a class="afx-mark mark" href="/" aria-label="AFORCE — home"><span class="nn"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span></a>
   <div class="afx-right">
     <div class="afx-links">
-      <a href="/#ritual">Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story" aria-current="page">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
+      <a href="/#ritual" >Ritual</a><a href="/aforce-os">The OS</a><a href="/our-story">Our Story</a><a href="/science">Science</a><a href="/manifesto">Manifesto</a>
     </div>
-    <a href="/shop" class="afx-shop">Shop</a>
-    <a href="/shop#cart" class="afx-cart" aria-label="Cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
-      <span class="afx-cart-count" id="afxCartCount" hidden>0</span>
-    </a>
+    <a href="/shop" class="afx-shop">Hydration</a>
+
     <button class="afx-burger" id="afxBurger" type="button" aria-controls="afxDrawer" aria-expanded="false" aria-label="Open menu">
       <span class="afx-bar"></span><span class="afx-bar"></span><span class="afx-bar"></span>
     </button>
@@ -387,7 +399,7 @@
     <nav aria-label="Main">
       <a href="/#ritual">Ritual</a>
       <a href="/aforce-os">The OS</a>
-      <a href="/our-story" aria-current="page">Our Story</a>
+      <a href="/our-story" >Our Story</a>
       <a href="/science">Science</a>
       <a href="/manifesto">Manifesto</a>
       <a href="/shop" class="afx-drawer-shop">Shop</a>
@@ -416,13 +428,27 @@
 <!-- ============ 00 · THE FOUNDERS ============ -->
 <section class="sec dark t-teal" id="founders" aria-label="The founders">
   <div class="wrap">
+    <div class="founders-childhood">
+      <h2 class="h-lg reveal">Brothers, before everything.</h2>
+      <figure class="portrait reveal mt-l">
+        <img src="/assets/our-story/founders-childhood.webp" width="883" height="883" loading="lazy" decoding="async" alt="Brandon and Julius Burrell as young brothers — a vintage black-and-white childhood portrait">
+        <figcaption>The quiet before — brothers, from the start</figcaption>
+      </figure>
+      <p class="credits reveal"><b>Julius Burrell</b> — Co-Founder &nbsp;·&nbsp; <b>Brandon Burrell</b> — Founder &amp; CEO</p>
+    </div>
     <div class="label reveal">The Founders<span class="sep">—</span>From the Beginning</div>
     <h2 class="h-lg reveal mt-m">Before the story was told.<br>Two brothers. One frame.</h2>
-    <figure class="portrait reveal mt-xl">
-      <img src="/assets/our-story/founders-childhood.webp" width="883" height="883" loading="lazy" decoding="async" alt="Brandon and Julius Burrell as young brothers — a vintage black-and-white childhood portrait">
-      <figcaption>The quiet before — brothers, from the start</figcaption>
-    </figure>
-    <p class="credits reveal"><b>Julius Burrell</b> — Co-Founder &nbsp;·&nbsp; <b>Brandon Burrell</b> — Founder &amp; CEO</p>
+    <div class="founders-now">
+      <figure class="reveal">
+        <img src="/assets/our-story/aforce-founders-director-chairs-clean.png" width="1024" height="1536" loading="lazy" decoding="async" alt="AFORCE founders Brandon and Julius Burrell seated in director chairs during a studio recording">
+        <figcaption>Brandon Burrell, Founder &amp; CEO · Julius Burrell, Co-Founder</figcaption>
+      </figure>
+      <div class="founders-now-copy">
+        <p class="lead reveal">The company began with two different strengths moving toward one standard.</p>
+        <p class="prose reveal mt-m">Brandon saw the possibility and created momentum. Julius gave the vision structure through operational discipline, infrastructure and scalable execution.</p>
+        <p class="oneline reveal">Different strengths. One shared standard.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -461,12 +487,14 @@
     <p class="prose big reveal mt-l">Julius immediately understood what Brandon saw. This was not simply another alkaline beverage. It was an opportunity to give hydration a different role — to make it part of how people prepared. That phone call became the first day of AFORCE.</p>
     <div class="roles stagger">
       <div class="role reveal" style="--i:0">
+        <img class="founder-portrait" src="/assets/our-story/brandon-founder-portrait.png" width="1024" height="1535" loading="lazy" decoding="async" alt="Brandon Burrell, AFORCE Founder and CEO, standing beside a studio window">
         <div class="who">Founder &amp; CEO</div>
         <div class="name">Brandon</div>
         <div class="title">The vision.</div>
         <div class="desc">Seeing the possibility, creating momentum and making people believe in what could exist.</div>
       </div>
       <div class="role reveal" style="--i:1">
+        <img class="founder-portrait" src="/assets/our-story/julius-founder-portrait.png" width="1025" height="1535" loading="lazy" decoding="async" alt="Julius Burrell, AFORCE Co-Founder, seated on a stool beside a studio window">
         <div class="who">Co-Founder</div>
         <div class="name">Julius</div>
         <div class="title">The structure.</div>
@@ -524,7 +552,7 @@
     <div class="concept reveal mt-m">Formulate. Fail. Adjust. Return.</div>
     <div class="grid-2 mt-xl">
       <p class="prose big reveal">The process required repeated formulations, difficult decisions, long days and the discipline to keep going when the result was not ready. They were not trying to make hydration more complicated. They were giving it a clearer role: the first physical action in a performance ritual.</p>
-      <div class="can-wrap reveal"><img src="/assets/can-blue.png" alt="AFORCE Berry Blast — pH 8.8 alkaline hydration can" loading="lazy"></div>
+      <div class="can-wrap reveal"><img src="/assets/can-blue-12oz.png" alt="AFORCE Berry Blast — pH 8.8 alkaline hydration can" loading="lazy"></div>
     </div>
     <div class="specs stagger">
       <div class="cell reveal" style="--i:0"><div class="k">Formulation</div><div class="v">pH 8.8</div></div>
@@ -566,17 +594,10 @@
   <div class="wrap">
     <div class="label reveal">07<span class="sep">—</span>The Brotherhood<span class="sep">—</span>Behind the Discipline</div>
     <h2 class="h-lg reveal mt-m">The work was serious.<br>The brotherhood stayed human.</h2>
-    <div class="film reveal mt-xl">
-      <video data-film autoplay muted loop playsinline preload="metadata" poster="/assets/aforce-founders-couch-poster.jpg" aria-label="Brandon and Julius on set, behind the scenes between takes">
-        <source src="/assets/aforce-founders-couch.webm" type="video/webm">
-        <source src="/assets/aforce-founders-couch.mp4" type="video/mp4">
-      </video>
-      <div class="film-cap">
-        <span class="c-l">Unscripted<span class="sep"> — </span>Between takes</span>
-        <span class="film-mono"><span class="nn-logo" aria-hidden="true"><span class="nn-n">N</span><span class="nn-bar"></span><span class="nn-n nn-flip">N</span></span></span>
-        <button class="replay" data-replay type="button">Replay film ↻</button>
-      </div>
-    </div>
+    <figure class="brotherhood-still reveal">
+      <img src="/assets/our-story/aforce-founders-brotherhood.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Brandon and Julius Burrell in conversation during the AFORCE photo shoot">
+      <figcaption>Between takes — the standard was serious; the brotherhood stayed human</figcaption>
+    </figure>
     <div class="grid-2 mt-xl" style="align-items:start;">
       <p class="prose big reveal">AFORCE was not built by two people who agreed on everything. It was built by brothers who trusted each other’s strengths enough to challenge the idea, protect the standard and keep moving.</p>
       <div>
@@ -603,51 +624,19 @@
 </section>
 
 <!-- ============ CODA · the ending ============ -->
-<section class="sec dark coda" aria-label="It was never about the water">
-  <div class="wrap">
-    <div class="label reveal">What It Was Always About</div>
-    <h2 class="display reveal mt-m">It was never<br>about the water.</h2>
-    <p class="lead reveal mt-l" style="max-width:31ch;">One of us woke before the sun, just to be still. One of us believed it could be bigger than a bottle.<br>Both were right.</p>
-  </div>
-</section>
 
-<section class="sec dark coda" aria-label="The moment before">
-  <div class="wrap">
-    <p class="statement reveal">The Moment Before</p>
-    <div class="coda-stack stagger mt-m">
-      <div class="ln reveal" style="--i:0">Before the whistle.</div>
-      <div class="ln reveal" style="--i:1">Before the meeting.</div>
-      <div class="ln reveal" style="--i:2">Before the first incision.</div>
-      <div class="ln reveal" style="--i:3">Before the word that changes everything.</div>
-    </div>
-    <p class="lead reveal mt-xl" style="max-width:26ch;">Everyone stands in that silence.<br>Most meet it unprepared.</p>
-  </div>
-</section>
 
-<section class="sec dark coda" aria-label="How it comes together">
-  <div class="wrap">
-    <div class="coda-flow stagger">
-      <div class="fl reveal" style="--i:0">One sip, taken on purpose.</div>
-      <div class="fl reveal" style="--i:1">Repeated until it was a ritual.</div>
-      <div class="fl reveal" style="--i:2">Lived until it was who you are.</div>
-      <div class="fl reveal" style="--i:3">Measured until you could trust it.</div>
-      <div class="fl reveal" style="--i:4">Carried into the moment that mattered.</div>
-    </div>
-    <p class="statement reveal mt-xl">Pause. &nbsp;Hydrate. &nbsp;<span style="color:var(--red)">Lock-In.</span> &nbsp;Perform.</p>
-  </div>
-</section>
 
-<section class="sec dark coda" aria-label="The preparation is silent">
-  <div class="wrap">
-    <h2 class="display reveal">The moment is loud.<br>The preparation is silent.<br>We built a company for the <span class="em-red">silence</span>.</h2>
-  </div>
-</section>
+
+
+
+
 
 <section class="sec dark coda" aria-label="Performance is non-negotiable">
   <div class="wrap">
     <h2 class="coda-final reveal">Performance is<br><span style="color:var(--red)">Non-<span class="flip-n">N</span>egotiable.</span></h2>
     <p class="coda-invite reveal">What began with two brothers, before sunrise, on an empty beach &mdash; no longer belongs to them. It belongs to everyone preparing for what comes next.</p>
-    <a class="soft-cta reveal" href="/aforce-os">Take the pause &rarr;</a>
+    <a class="soft-cta reveal" href="/#founding">Join the launch waitlist &rarr;</a>
   </div>
 </section>
 
@@ -668,7 +657,7 @@
       <nav class="ff-col" aria-label="System">
         <h2>System</h2>
         <a href="/#ritual">The Ritual</a>
-        <a href="/shop">Shop</a>
+        <a href="/shop">Hydration</a>
         <a href="/aforce-os">AFORCE OS</a>
         <a href="/science">Science</a>
         <a href="/manifesto">Manifesto</a>
@@ -677,17 +666,16 @@
         <h2>Company</h2>
         <a href="/our-story">Our Story</a>
         <a href="/founding-250">Founding 250</a>
-        <a href="mailto:contact@aforceritual.com">Contact</a>
+        <a href="mailto:info@alkalineforce.com">Contact</a>
+        <a href="mailto:info@alkalineforce.com?subject=Partnership%20or%20Investor%20Inquiry">Partnerships &amp; Investors</a>
       </nav>
       <nav class="ff-col" aria-label="Follow the Standard">
         <h2>Follow the Standard</h2>
         <!-- TODO: real channel URLs -->
         <a href="https://www.instagram.com/aforceritual/" target="_blank" rel="noopener">Instagram <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.tiktok.com/@joinaforce" target="_blank" rel="noopener">TikTok <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">YouTube <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://aforcehydration.substack.com/" target="_blank" rel="noopener">Substack <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.linkedin.com/company/105984604/" target="_blank" rel="noopener">LinkedIn <span class="arw" aria-hidden="true">↗</span></a>
-        <a href="#" rel="noopener" data-todo="social">X <span class="arw" aria-hidden="true">↗</span></a>
         <a href="https://www.facebook.com/profile.php?id=61571235123160" target="_blank" rel="noopener">Facebook <span class="arw" aria-hidden="true">↗</span></a>
       </nav>
       <nav class="ff-col" aria-label="Legal">
@@ -699,7 +687,7 @@
         <a href="/subscription-terms">Subscription Terms</a>
         <a href="/legal/shipping-returns">Shipping &amp; Returns</a>
         <a href="/accessibility">Accessibility</a>
-        <a href="mailto:support@drinkaforce.com">Contact</a>
+        <a href="mailto:info@alkalineforce.com">Contact</a>
       </nav>
     </div>
 
@@ -715,7 +703,7 @@
       <p>AFORCE™ and <span class="red">NON-<span class="flip">N</span>EGOTIABLE™</span> are trademarks of AFORCE Hydration, Inc.</p>
       <p>Statements regarding hydration, readiness, and performance support have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Individual results vary.</p>
       <p>The AFORCE OS provides general wellness tracking and is not a medical device and does not provide medical advice; consult a physician before beginning any new hydration, supplement, or fitness regimen, particularly if pregnant, nursing, or managing a medical condition.</p>
-      <p>Free AFORCE OS access requires proof of qualifying purchase; no purchase necessary to request Founding 250 access.</p>
+      <p>AFORCE OS access and membership details will be confirmed at launch.</p>
     </div>
   </div>
 </footer>

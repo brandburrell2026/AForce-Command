@@ -36,6 +36,18 @@ export function splitMirrorWord(word: string): MirrorSplit {
   };
 }
 
+/**
+ * Black Issue (founder decision D4, 2026-10-06): the state word as the
+ * screen statement — the canonical band token in sentence case with a full
+ * stop ("RECOVERING" → "Recovering."). A case change only: the token is
+ * never reworded, and the screen reader still hears the true token.
+ */
+export function stateWordStatement(word: string): string {
+  const trimmed = word.trim();
+  if (!trimmed) return '';
+  return `${trimmed.charAt(0).toUpperCase()}${trimmed.slice(1).toLowerCase()}.`;
+}
+
 /** Folio furniture: "02 / 07" from a 1-based index and a total. */
 export function edFolioIndex(index: number, total: number): string {
   const pad = (n: number) => String(Math.max(0, Math.trunc(n))).padStart(2, '0');

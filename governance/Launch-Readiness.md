@@ -141,6 +141,7 @@ runtime caller / no DB / no deploy) · **Not-built** (post-launch, no code) · *
 | §62 Founder Mode / four-environment architecture | Not-built (spec only) | — | Spec complete; zero implementation. Post-launch, internal-only, never in Production build |
 | §63 Guardian/Clutch/Cruise compliance pass | Shipped-live | — | Streak-loss language fixed org-wide. R63-1/R63-2 remain Phase-2 |
 | §64 Conversational Intelligence | Built-behind-flag (dark) | `conversational_intelligence_enabled` (OFF) | **RD-1 pending**: stays OFF until CR-1 clears coach copy |
+| §64 AForce Concierge (member-facing chat surface) | **Internal Preview** (TestFlight overlay ON, build 104+) | `ai_concierge_enabled` (OFF in production) | DR-018 D-08: production stays OFF until D-02 privacy update, D-04 urgent copy and D-06 CR-1 clear; live E2E verified 2026-10-05 |
 | Graph schema (§38 `aforce_graph_nodes`/`_edges`) | **Deployed to prod (founder-attested 2026-07-31)** | — | #395 defined + typecheck-verified; **R-21 closed on founder attestation** (`\d`/`\di`/smoke output not independently captured in-repo). No ingestion path yet — deployed schema ≠ working capability |
 | Intelligence constants (Stage 1–3 contracts, PKG builder/query, §42 gate) | **Source-only**, 150 tests green | — | #396: incident residue closed; app typecheck clean. Stages 1–3 officially "Partially Built" |
 | Demand Engine (`hydrationDemandSelector`) | Built-behind-flag (dark) | `spec_demand_engine` (OFF) | Pure module, no visible consumer |

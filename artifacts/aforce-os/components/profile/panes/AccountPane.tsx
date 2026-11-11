@@ -549,17 +549,6 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
       <SectionHeader label={t('profile.v2.privacy_label')} hint={t('profile.v2.privacy_hint')} />
       <View style={styles.card} testID="profile-privacy-card">
         <AnalyticsConsentRow />
-        <Divider />
-        {/* Community Sharing — the circle visibility control relocated from
-            the stranded /circles island (founder ruling 2026-08-27). */}
-        <AFListRow
-          icon="shield"
-          title={t('communitySharing.entry_title')}
-          subtitle={t('communitySharing.entry_sub')}
-          disclosure
-          onPress={() => router.push('/privacy/community-sharing')}
-          testID="profile-community-sharing-row"
-        />
         {/* Performance Memory™ governance — what the app has
             observed about this member, plus the delete action.
             Same question, same group. Flag gate unchanged. */}
@@ -567,6 +556,22 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
           <>
             <Divider />
             <PerformanceMemoryGovernanceCard />
+          </>
+        ) : null}
+        {/* AForce Concierge memory — what the concierge remembers (preferences
+            only, never health records) with edit + forget controls. Same
+            question as the rows above, same group. Flag-gated. */}
+        {flags.ai_concierge_enabled ? (
+          <>
+            <Divider />
+            <AFListRow
+              icon="message-circle"
+              title={t('concierge.memory.row_title')}
+              subtitle={t('concierge.memory.row_sub')}
+              disclosure
+              onPress={() => router.push('/concierge/memory')}
+              testID="profile-concierge-memory-row"
+            />
           </>
         ) : null}
       </View>

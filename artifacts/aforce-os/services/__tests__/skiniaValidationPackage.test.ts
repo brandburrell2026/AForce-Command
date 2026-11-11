@@ -9,7 +9,15 @@ describe('SkinIA validation package', () => {
   it('cannot represent templates or build success as completed validation', () => {
     const index = read('PHASE1-VALIDATION-PACKAGE.md');
     const gate = read('validation/REVIEW-AND-RELEASE-GATE.md');
-    expect(index).toContain('PENDING — EVIDENCE NOT COLLECTED');
+    expect(index).toContain('PENDING — ACCURACY EVIDENCE NOT COLLECTED');
+    expect(index).toContain('Build 102');
+    expect(index).toContain('two tester-reported iPhone 17 Pro technical captures');
+    expect(index).toContain('not independently audited study records or skin-accuracy results');
+    expect(index).toContain('QA-only pixel');
+    expect(index).toContain('OBSERVATIONS_NOT_ADMITTED');
+    expect(index).toContain('is not a sign-off');
+    expect(index).toContain('No study protocol or numerical target is frozen');
+    expect(index).toContain('changes required before');
     expect(index).toContain('unit tests are engineering checks, not validation.');
     expect(gate).toContain('Current decision: `BLOCKED`');
     expect(gate).toContain('§25.3 owner separately decides');

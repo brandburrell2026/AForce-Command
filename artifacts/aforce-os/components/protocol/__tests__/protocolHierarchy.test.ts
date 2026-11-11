@@ -61,31 +61,56 @@ function fontSizeOf(styleName: string): number {
 }
 
 describe('ProtocolScreenV2 — TODAY → NEXT → WHY → PROGRESS', () => {
-  it('renders the active step before the upcoming list, the WHY control and the progress block', () => {
-    const today = at('testID="protocol-active-step"');
-    const next = at("t('protocol.v2.next')");
-    const why = at("t('protocol.v2.why_this_plan')");
-    const progress = at("t('protocol.v3.progress')");
+  // Black Issue (#1088): the component carries the flag-off V2 branch FIRST
+  // in source and the V3 branch after it, so a plain first-match `at()` would
+  // resolve every V3 anchor inside the flag-off branch and test nothing
+  // (review should-fix 1). The V3 assertions run on the V3 slice only.
+  const V3_START = CODE.indexOf('testID="protocol-v3-masthead"');
+  const V3 = CODE.slice(V3_START);
+  const atV3 = (needle: string): number => {
+    const i = V3.indexOf(needle);
+    expect(i, `"${needle}" must appear in the V3 branch of ProtocolScreenV2`).toBeGreaterThan(-1);
+    return i;
+  };
 
-    expect(today).toBeLessThan(next);
-    expect(next).toBeLessThan(why);
+  it('V3 renders the recheck hero, then the step rail, the footer readout, the WHY control and the progress block — in that order', () => {
+    expect(V3_START).toBeGreaterThan(-1);
+    const recheck = atV3('testID="protocol-v3-recheck"');
+    const rail = atV3('testID="protocol-v3-steps"');
+    const hydration = atV3('testID="protocol-v3-hydration"');
+    const why = atV3("t('protocol.v2.why_this_plan')");
+    const progress = atV3("t('protocol.v3.progress')");
+    expect(recheck).toBeLessThan(rail);
+    expect(rail).toBeLessThan(hydration);
+    expect(hydration).toBeLessThan(why);
     expect(why).toBeLessThan(progress);
   });
 
-  it('puts the completion ring, the streak and the hydration bar below the active step', () => {
-    const today = at('testID="protocol-active-step"');
-    expect(at('testID="protocol-v3-hero"')).toBeGreaterThan(today);
-    expect(at('testID="protocol-v3-hydration"')).toBeGreaterThan(today);
+  it('puts the completion ring and the streak below the step rail', () => {
+    const rail = atV3('testID="protocol-v3-steps"');
+    expect(atV3('testID="protocol-v3-hero"')).toBeGreaterThan(rail);
   });
 
-  it('groups the three progress fragments into one card instead of three stacked blocks', () => {
-    // The hydration bar is nested inside the hero card now: its testID must
-    // appear before that card's closing tag, not after it.
-    const hero = at('testID="protocol-v3-hero"');
-    const hydration = at('testID="protocol-v3-hydration"');
-    const heroClose = CODE.indexOf('</AFCard>', hero);
-    expect(hydration).toBeGreaterThan(hero);
-    expect(hydration).toBeLessThan(heroClose);
+  it('the flag-off branch still leads with the active step, then NEXT, WHY, PROGRESS', () => {
+    const OFF = CODE.slice(0, V3_START);
+    const today = OFF.indexOf('testID="protocol-active-step"');
+    const next = OFF.indexOf("t('protocol.v2.next')");
+    const why = OFF.indexOf("t('protocol.v2.why_this_plan')");
+    expect(today).toBeGreaterThan(-1);
+    expect(today).toBeLessThan(next);
+    expect(next).toBeLessThan(why);
+  });
+
+  it('the hydration readout is stated once, in the two-up footer after the step rail (Black Issue layout)', () => {
+    // Black Issue restyle (docs/black-issue-restyle-plan.md §4 item 3,
+    // 2026-10-06): the reference places HYDRATION / RECOVERY SIGNALS as a
+    // two-up footer directly under the step rail, not inside the progress
+    // card. The hierarchy rule survives in its intent — the readout appears
+    // exactly once, after the rail, and never as a second stacked block.
+    const hydration = atV3('testID="protocol-v3-hydration"');
+    const rail = atV3('testID="protocol-v3-steps"');
+    expect(hydration).toBeGreaterThan(rail);
+    expect(CODE.match(/testID="protocol-v3-hydration"/g)).toHaveLength(1);
   });
 });
 

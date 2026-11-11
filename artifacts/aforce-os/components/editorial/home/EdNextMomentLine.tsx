@@ -19,14 +19,18 @@ import { useMomentsData } from '@/components/moments/useMomentsData';
 import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
 import { clockLabel, prepWindowLabel, windowPosture } from '@/components/moments/momentsPresentation';
 import { WhyThisSheet } from '@/components/moments/WhyThisSheet';
+import { af } from '@/theme';
 import { edPositive, edRhythm, edType } from '@/theme/editorialTokens';
 
-import { EdRule, useEdInk } from '../core';
+import { useEdInk } from '../core';
 
 export function EdNextMomentLine({
   fixtureMoments,
   fixtureNowIso,
+  contextOnly = false,
 }: {
+  /** Focused Home owns the single command below; this lane carries context only. */
+  contextOnly?: boolean;
   /** Gallery-only deterministic override (the momentsFixture idiom). */
   fixtureMoments?: import('@/types/moments').Moment[];
   fixtureNowIso?: string;
@@ -67,51 +71,15 @@ export function EdNextMomentLine({
 
   return (
     <View testID="editorial-next-moment">
-      <EdRule />
-      <Pressable
-        onPress={() => router.push(`/moment/${moment.id}`)}
-        accessibilityRole="button"
-        accessibilityLabel={`${t('moments.next_label')}: ${title}, ${clockLabel(moment.startAtIso)}`}
-        style={styles.line}
-      >
-        <View style={styles.titleRow}>
-          <Text style={[edType.caption as TextStyle, { color: active ? edPositive : ink.quiet }]}>
-            {t('moments.next_label')}
-          </Text>
-          <Text
-            style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1 }]}
-            numberOfLines={2}
-          >
-            {title}
-          </Text>
-          <Text style={[edType.data as TextStyle, { color: ink.quiet }]}>
-            {clockLabel(moment.startAtIso)}
-          </Text>
-        </View>
-        {/* RP-3: the action mirrors the canonical command; no command →
-            context only (the prep window is the Moment's own to state). */}
-        <Text style={[edType.micro as TextStyle, { color: active ? edPositive : ink.quiet, marginTop: 6 }]}>
-          {t('moments.prep_window')} {prepWindowLabel(rec)}
-          {action ? ` · ${t(action.labelKey, action.labelParams)}` : ''}
-        </Text>
-        {action?.bestBeforeIso ? (
-          <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
-            {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
-          </Text>
-        ) : null}
-      </Pressable>
-      <View style={styles.underRow}>
-        <Pressable
-          onPress={() => setWhyOpen(true)}
-          accessibilityRole="button"
-          hitSlop={8}
-          style={styles.underTarget}
-          testID="editorial-next-moment-why"
+      {/* Black Issue section head: red mono eyebrow over a hairline, with the
+          "All of today" doorway as its right-hand meta. */}
+      <View style={[styles.sectionHead, { borderBottomColor: ink.rule }]}>
+        <Text
+          accessibilityRole="header"
+          style={[edType.caption as TextStyle, { color: active ? edPositive : af.redText }]}
         >
-          <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-            {t('moments.why_this')}
-          </Text>
-        </Pressable>
+          {t('moments.next_label')}
+        </Text>
         <Pressable
           onPress={() => router.push('/moments')}
           accessibilityRole="button"
@@ -120,10 +88,58 @@ export function EdNextMomentLine({
           testID="editorial-moments-all-today"
         >
           <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-            {t('moments.all_today')}
+            {contextOnly ? 'THREE-DAY PLAN' : t('moments.all_today').toUpperCase()}
           </Text>
         </Pressable>
       </View>
+      <Pressable
+        onPress={() => router.push(`/moment/${moment.id}`)}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('moments.next_label')}: ${title}, ${clockLabel(moment.startAtIso)}`}
+        style={styles.line}
+      >
+        <View style={styles.titleRow}>
+          <Text
+            style={[edType.body as TextStyle, { color: ink.primary, flexShrink: 1, flexGrow: 1 }]}
+            numberOfLines={2}
+          >
+            {title}
+          </Text>
+          {/* RP-3: the action mirrors the canonical command; no command →
+              context only. Clock in the AA red when the window is live. */}
+          {action && !contextOnly ? (
+            <Text style={[edType.micro as TextStyle, { color: ink.quiet, flexShrink: 1 }]}>
+              {t(action.labelKey, action.labelParams).toUpperCase()}
+            </Text>
+          ) : null}
+          <Text style={[edType.data as TextStyle, { color: active ? af.redText : ink.primary }]}>
+            {clockLabel(moment.startAtIso)}
+          </Text>
+        </View>
+        <Text style={[edType.micro as TextStyle, { color: active ? edPositive : ink.quiet, marginTop: 6 }]}>
+          {t('moments.prep_window')} {prepWindowLabel(rec)}
+        </Text>
+        {action?.bestBeforeIso && !contextOnly ? (
+          <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 4 }]}>
+            {t('moments.best_before', { time: clockLabel(action.bestBeforeIso) })}
+          </Text>
+        ) : null}
+      </Pressable>
+      {!contextOnly ? <View style={styles.underRow}>
+        <Pressable
+          onPress={() => setWhyOpen(true)}
+          accessibilityRole="button"
+          hitSlop={8}
+          style={styles.underTarget}
+          testID="editorial-next-moment-why"
+        >
+          <View style={[styles.whyPill, { borderColor: af.redText }]}>
+            <Text style={[edType.micro as TextStyle, { color: af.redText }]}>
+              {t('moments.why_this')}
+            </Text>
+          </View>
+        </Pressable>
+      </View> : null}
       <WhyThisSheet rec={rec} visible={whyOpen} onClose={() => setWhyOpen(false)} />
     </View>
   );
@@ -134,9 +150,28 @@ const styles = StyleSheet.create({
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
   },
+  sectionHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    columnGap: 12,
+    // AX ruling: reflow, not clip — at accessibility sizes the eyebrow and
+    // the "All of today" doorway wrap instead of pushing the doorway off-screen.
+    flexWrap: 'wrap',
+    rowGap: 4,
+    borderBottomWidth: 1,
+    paddingBottom: 6,
+  },
   line: {
     minHeight: edRhythm.minTarget,
     justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  whyPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   titleRow: {
     flexDirection: 'row',

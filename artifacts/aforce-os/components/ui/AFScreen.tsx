@@ -13,6 +13,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, type ViewStyle, type StyleProp, type ScrollViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { af, afLayout } from '@/theme';
+import { useAFGutter } from '@/hooks/useAFGutter';
 
 type Edge = 'top' | 'bottom';
 
@@ -44,11 +45,14 @@ export function AFScreen({
 }: AFScreenProps) {
   const insets = useSafeAreaInsets();
   const background = canvas === 'focused' ? af.canvasFocused : af.canvas;
+  // Black Issue gutter (D6): 32pt at 390 wide, 24pt on compact phones — one
+  // rule, shared through useAFGutter so every surface agrees.
+  const gutter = useAFGutter();
 
   const padding: ViewStyle = {
     paddingTop: edges.includes('top') ? insets.top : 0,
     paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
-    paddingHorizontal: padded ? afLayout.screenPaddingX : 0,
+    paddingHorizontal: padded ? gutter : 0,
   };
 
   const column: StyleProp<ViewStyle> = center

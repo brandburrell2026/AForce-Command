@@ -24,6 +24,7 @@ import {
   bandFor,
   CRUISE_WINDOW_MS,
 } from './recoveryCapacity';
+import { SOCIAL_SESSION_MAX_MS } from '../config/hydroStateModel';
 
 export const RECOVERY_WINDOW_MS = 8 * 60 * 60 * 1000;
 
@@ -40,12 +41,44 @@ export function effectiveRecoveryWindowMs(
   return isModifierActive(sm.cruiseUntil, now) ? CRUISE_WINDOW_MS : RECOVERY_WINDOW_MS;
 }
 
+/**
+ * Is this session LIVE right now? `active: true` alone is not enough — a
+ * session left open (nobody tapped End night) stops being live once it is
+ * older than SOCIAL_SESSION_MAX_MS (config/hydroStateModel.ts). Pure; `now`
+ * injectable. Found 2026-10-06: a demo session from 2026-08-12 had steered
+ * every command for eight weeks.
+ */
+export function isSocialSessionLive(
+  sm: NonNullable<UserState['socialMode']> | undefined | null,
+  now: number = Date.now(),
+): boolean {
+  if (!sm || !sm.active) return false;
+  const startedMs = sm.startedAt instanceof Date ? sm.startedAt.getTime() : new Date(sm.startedAt).getTime();
+  if (!Number.isFinite(startedMs)) return false;
+  return now - startedMs < SOCIAL_SESSION_MAX_MS;
+}
+
+/**
+ * When the session is treated as having ENDED: the recorded endedAt, or — for
+ * an open session past its maximum — the implied end at startedAt + max, so
+ * the recovery window runs exactly as if End night had been tapped then.
+ */
+export function effectiveSessionEndMs(sm: NonNullable<UserState['socialMode']>, now: number = Date.now()): number | null {
+  if (sm.endedAt) return sm.endedAt.getTime();
+  if (sm.active && !isSocialSessionLive(sm, now)) {
+    const startedMs = sm.startedAt instanceof Date ? sm.startedAt.getTime() : new Date(sm.startedAt).getTime();
+    return Number.isFinite(startedMs) ? startedMs + SOCIAL_SESSION_MAX_MS : null;
+  }
+  return null;
+}
+
 export function buildSocialRollup(state: UserState, performanceScore: number, now: number = Date.now()): ScoreEngineOutput['social'] {
   const sm = state.socialMode;
   if (!sm) return null;
-  const endedAtMs = sm.endedAt ? sm.endedAt.getTime() : null;
+  const live = isSocialSessionLive(sm, now);
+  const endedAtMs = effectiveSessionEndMs(sm, now);
   const windowMs = effectiveRecoveryWindowMs(sm, now);
-  const inRecoveryWindow = !sm.active
+  const inRecoveryWindow = !live
     && endedAtMs != null
     && (now - endedAtMs) < windowMs;
   const cruiseActive = isModifierActive(sm.cruiseUntil, now);
@@ -53,7 +86,7 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
   // Voyage Shield is documented as an independent 12h floor — keep the
   // rollup alive while the shield is active even if the base recovery
   // window has expired, so the shield can actually apply its floor.
-  if (!sm.active && !inRecoveryWindow && !voyageShieldActive) return null;
+  if (!live && !inRecoveryWindow && !voyageShieldActive) return null;
 
   const currentWeatherForRecovery = resolveCurrentWeather(state, now);
 
@@ -106,11 +139,11 @@ export function buildSocialRollup(state: UserState, performanceScore: number, no
     : rawRecovery;
 
   return {
-    active: sm.active,
+    active: live,
     inRecoveryWindow,
     drinkCount: sm.drinks.length,
     hangoverRisk,
-    alcoholMultiplier: sm.active ? activeDecayMultiplier(sm.drinks, now) : 1,
+    alcoholMultiplier: live ? activeDecayMultiplier(sm.drinks, now) : 1,
     bac,
     impairment,
     transportation,

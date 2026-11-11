@@ -14,6 +14,7 @@ export interface AFChartProps {
   labels?: string[];
   mode?: 'line' | 'bar';
   height?: number;
+  /** Stroke/fill. Defaults: line = Signal Red, bar = ivory (Black Issue bars). */
   color?: string;
   /** Plain-language summary read by screen readers in place of the SVG. */
   summary?: string;
@@ -27,10 +28,11 @@ export function AFChart({
   labels,
   mode = 'line',
   height = 120,
-  color = af.red,
+  color,
   summary,
   testID,
 }: AFChartProps) {
+  const stroke = color ?? (mode === 'bar' ? af.textPrimary : af.red);
   const { points, polyline, min, max } = chartScale(values, WIDTH, height, 8);
   const autoSummary =
     summary ??
@@ -49,13 +51,13 @@ export function AFChart({
         <Svg width="100%" height={height} viewBox={`0 0 ${WIDTH} ${height}`} preserveAspectRatio="none">
           <Line x1={0} y1={height - 8} x2={WIDTH} y2={height - 8} stroke={af.divider} strokeWidth={1} />
           {mode === 'line' && points.length > 1 && (
-            <Polyline points={polyline} fill="none" stroke={color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+            <Polyline points={polyline} fill="none" stroke={stroke} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
           )}
           {mode === 'line' &&
-            points.map((p, i) => <Circle key={i} cx={p.x} cy={p.y} r={3} fill={color} />)}
+            points.map((p, i) => <Circle key={i} cx={p.x} cy={p.y} r={3} fill={stroke} />)}
           {mode === 'bar' &&
             points.map((p, i) => (
-              <Rect key={i} x={p.x - 8} y={p.y} width={16} height={height - 8 - p.y} rx={3} fill={color} />
+              <Rect key={i} x={p.x - 8} y={p.y} width={16} height={height - 8 - p.y} rx={2} fill={stroke} />
             ))}
         </Svg>
       </View>

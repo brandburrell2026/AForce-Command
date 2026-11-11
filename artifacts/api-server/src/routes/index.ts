@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import travelRouter from "./travel";
 import healthRouter from "./health";
 import scansRouter from "./scans";
 import profileRouter from "./profile";
@@ -16,7 +17,9 @@ import {
   buildDefaultAccountDeletionDeps,
 } from "./accountDeletion";
 import voiceTtsRouter from "./voiceTts";
+import { buildConciergeRouter, buildDefaultConciergeDeps } from "./concierge";
 import designTokensRouter from "./designTokens";
+import spatialStudioRouter from "./spatialStudio";
 import referralsRouter from "./referrals";
 import earlyAccessRouter from "./earlyAccess";
 import adminDemandRouter from "./adminDemand";
@@ -179,6 +182,7 @@ const disconnectors = buildProviderDisconnectors(db, logger);
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use("/travel", travelRouter);
 router.use(scansRouter);
 router.use(cyclesRouter);
 router.use(checkoutRouter);
@@ -199,7 +203,14 @@ router.use(
   buildAccountDeletionRouter(buildDefaultAccountDeletionDeps(db, logger)),
 );
 router.use(voiceTtsRouter);
+// AForce Concierge (Section 64 conversational surface). Always mounted; every
+// route is behind requireAuth and the client keeps it dark behind
+// `ai_concierge_enabled` (OFF in production) until validation completes.
+router.use("/concierge", buildConciergeRouter(buildDefaultConciergeDeps()));
 router.use(designTokensRouter);
+// AForce Spatial Studio: natural-language design edits. requireAuth plus a
+// per-client rate limit; answers 503 ai_unavailable without ANTHROPIC_API_KEY.
+router.use(spatialStudioRouter);
 router.use("/referrals", referralsRouter);
 router.use("/early-access", earlyAccessRouter);
 router.use(adminDemandRouter);

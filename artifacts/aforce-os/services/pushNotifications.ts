@@ -51,17 +51,26 @@ let handlerConfigured = false;
  * silently drops banners while the app is in the foreground, which
  * would make the cadence feel broken to anyone testing.
  */
-async function ensureForegroundHandler(): Promise<void> {
+export async function ensureForegroundHandler(): Promise<void> {
   if (handlerConfigured) return;
   const Notif = await loadNotifications();
   if (!Notif) return;
   Notif.setNotificationHandler({
-    handleNotification: async () => ({
+    handleNotification: async notification => {
+      const data=notification.request.content.data;
+      if(data?.kind==='travel.status.v2'||data?.kind==='travel.preparation.v2'){
+        const {getScopeState}=await import('@/services/userScope');const identity=getScopeState();
+        const Crypto=await import('expo-crypto');
+        const allowed=identity.status==='AUTHENTICATED'&&data.ownerHash===await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256,identity.userId);
+        if(!allowed)return {shouldShowBanner:false,shouldShowList:false,shouldPlaySound:false,shouldSetBadge:false};
+      }
+      return ({
       shouldShowBanner: true,
       shouldShowList: true,
       shouldPlaySound: false,
       shouldSetBadge: false,
-    }),
+    });
+    },
   });
   handlerConfigured = true;
 }

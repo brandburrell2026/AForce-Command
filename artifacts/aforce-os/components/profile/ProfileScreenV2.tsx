@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 
 import { GradientBackground } from '@/components/GradientBackground';
 import { WhoopSnapshotCard } from '@/components/WhoopSnapshotCard';
-import { af } from '@/theme';
+import { af, withAlpha } from '@/theme';
 import {
   SignOutRow,
   SectionHeader,
@@ -1106,7 +1106,7 @@ export function ProfileScreenV2() {
                   testID="profile-skinia-entry"
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                    <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(193,40,27,0.14)' }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: withAlpha(af.red, 0.14) }}>
                       <Icon name="scan" size={18} color={af.redText} />
                     </View>
                     <View style={{ flex: 1 }}>

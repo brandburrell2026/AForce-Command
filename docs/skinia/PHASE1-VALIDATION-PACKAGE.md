@@ -1,27 +1,28 @@
 # SkinIA Phase 1 validation package
 
-**State:** `PENDING — EVIDENCE NOT COLLECTED`
+**State:** `PENDING — ACCURACY EVIDENCE NOT COLLECTED`
 
 **Scope:** controlled internal engineering/QA testing only
 
 **Authority:** [AF-SI-001A](../../governance/approvals/AF-SI-001A-phase1-internal-testflight.md) and its implementation amendment
 
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-30
 
 This is the source-of-truth index for the Phase 1 validation deliverable. It is a
 collection plan, **not** a finding that SkinIA is accurate, fair, or ready to
-show observations. The current engine emits only LOW-confidence experimental
-candidates and withholds them from member results. The admitted observation set
-in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
+show observations. The build 102 capture path derives versioned QA-only pixel
+probes; it does not compute a label-specific score or emit a skin observation.
+The admitted observation set in
+[architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 ## Current build and evidence status
 
 | Item | Current state | Evidence still needed |
 | --- | --- | --- |
-| iOS internal build | Build 90 compiled and uploaded to internal TestFlight from `91b1bb74` | Physical iPhone test records across supported generations |
+| iOS internal build | Build 102 (AForce OS 1.0.0), EAS build `8637db3c-0926-4eb8-a488-fc61d7066609`, was submitted to internal TestFlight after merged [PR #1070](https://github.com/brandburrell2026/AForce-Command/pull/1070). One iPhone 17 Pro tester confirmed the build and supplied a `Capture check passed` screen with `OBSERVATIONS_NOT_ADMITTED`; a second iPhone 17 Pro tester reported the same QA-only outcome. These are **tester-reported engineering smoke checks**, not independently audited study records or skin-accuracy results. Synthetic coordinate tests from [PR #1071](https://github.com/brandburrell2026/AForce-Command/pull/1071) do not establish live skin-region alignment. | Physical-device zone alignment, frozen device/OS/light support cell, independent live reference, aggregate accuracy and quality evidence across the planned strata |
 | Android module | Source implemented; native build/device behavior unverified | Build and physical-device records on supported Android devices |
 | Image quality | Basic single-face, frontal, eye, exposure, and blur checks implemented | Acceptance/rejection performance by condition and skin type |
-| Observation candidates | Five approved labels, LOW confidence, not member-visible | Reference-label protocol, accuracy and repeatability evidence |
+| Observation candidates | Five authorized labels, but no label-specific candidate is emitted by build 102's capture path; its pixel probes are QA-only and not member-visible | Reference-label protocol, versioned label-specific score, accuracy and repeatability evidence |
 | Capture equivalence | Not established | Evidence that comparisons survive auto-exposure and auto-white-balance |
 | Privacy | Volatile-image design and tests | Device/log/network/crash inspection on all exit paths |
 | Confidence thresholds | No approved release thresholds | Pre-registered thresholds, calibration, and independent approval |
@@ -29,6 +30,37 @@ in [architecture §25.3](../AFORCE_OS_ARCHITECTURE_V1.md) remains empty.
 
 No entry in this table is a substitute for the evidence described below. Build
 success and unit tests are engineering checks, not validation.
+
+## Review status and next decision
+
+As of this update, the product/claims review records **changes required before
+approval**. The independent-method and privacy forms still say **UNSIGNED
+REVIEW FORM** and have no explicitly selected approval decision. The
+independent-method form leaves the build, method, support list, sample,
+exclusions, rubric, and threshold fields blank. The separate pre-registration
+revision packet calls itself a draft, not a frozen protocol. Do not interpret
+typed names, a merged PR, or build 102 as an approved enrollment or observation
+decision. Privacy must approve and verify the exact coded-record, access,
+retention, backup/version, and deletion controls before enrollment.
+
+The [live zone-alignment audit proposal](qa/LIVE-ZONE-ALIGNMENT-AUDIT-v0.1-PROPOSAL.md)
+is also pending separate privacy, product/claims, and independent-method
+decisions. Its [review request](https://github.com/brandburrell2026/AForce-Command/pull/1072#issuecomment-5911213099)
+is not a sign-off. Until those decisions are recorded, do not implement a
+transient face-display audit, request new audit scans, or authorize a paid
+audit build. No study protocol or numerical target is frozen by that proposal.
+
+The next bounded study decision is whether two blinded live reviewers can
+reliably judge **visible flaking** in a prospectively specified, diffuse-indoor
+light iPhone 17 Pro setup without retaining face images. That is a proposal for
+reference feasibility, not a finding that the existing bright-edge probe
+detects flakes. Before any participant enrollment, obtain explicit decisions
+on the narrow cue and region rule, reviewer training, ambiguity versus
+capture-quality exclusions, consent/privacy controls, exact sample and
+acceptance targets, and the immutable build/method version. A separate,
+versioned baseline-free candidate score and untouched evaluation are needed
+before algorithm accuracy can be assessed. Other cues, devices, lighting
+conditions, baseline comparisons, and member-visible results stay blocked.
 
 ## Required packet
 
@@ -53,7 +85,7 @@ that one successful build covers a device family.
 
 | Required coverage | Status | Record / issue |
 | --- | --- | --- |
-| Supported iPhone models and multiple camera generations | PENDING | — |
+| Supported iPhone models and multiple camera generations | PENDING | Build 102: two tester-reported iPhone 17 Pro technical captures; no audited accuracy or multi-generation coverage |
 | Supported Android flagships and multiple camera generations | PENDING | — |
 | Indoor, outdoor, warm, cool, and low-light conditions | PENDING | — |
 | Fitzpatrick I–VI coverage (voluntary, consented classification) | PENDING | — |

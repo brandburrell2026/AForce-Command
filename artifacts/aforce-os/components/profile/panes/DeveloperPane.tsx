@@ -181,6 +181,7 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           </Pressable>
         ) : null}
 
+        <FlagRow flag="travel_mode_enabled" label="Travel · TravelGate pilot" desc="Flight planning and AForce Moments. Connected services require private pilot access." color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_inventory_enabled" label={t('profile.v2.flag_replenish_label')} desc={t('profile.v2.flag_replenish_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
@@ -189,8 +190,33 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
         <FlagRow flag="guardian_intelligence_enabled" label={t('profile.v2.flag_guardian_label')} desc={t('profile.v2.flag_guardian_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="guardian_body_map_enabled" label={t('profile.v2.flag_riskmap_label')} desc={t('profile.v2.flag_riskmap_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="guardian_alerts_enabled" label={t('profile.v2.flag_alerts_label')} desc={t('profile.v2.flag_alerts_desc')} color={af.guardian} flags={flags} onToggle={toggleFlag} />
+        <FlagRow flag="ai_concierge_enabled" label={t('profile.v2.flag_concierge_label')} desc={t('profile.v2.flag_concierge_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
 
         <FlagRow flag="phantom_wearable_enabled" label={t('profile.v2.flag_phantom_label')} desc={t('profile.v2.flag_phantom_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
+        <FlagRow
+          flag="gentle_hydration_mode_enabled"
+          label="Gentle Hydration preview"
+          desc="Private, opt-in pacing support. It does not change targets, scoring, reminders, or Circle sharing."
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
+        <FlagRow
+          flag="circle_membership_enabled"
+          label={t('community.members.pilot_label', { defaultValue: 'Circle membership pilot' })}
+          desc={t('community.members.pilot_description', { defaultValue: 'Real invitations and members. Requires the Circle pilot server.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
+        <FlagRow
+          flag="circle_sharing_enabled"
+          label={t('community.sharing.pilot_label', { defaultValue: 'Circle sharing pilot' })}
+          desc={t('community.sharing.pilot_description', { defaultValue: 'Choose who can see your recorded score and state. Requires the membership pilot.' })}
+          color={af.cyan}
+          flags={flags}
+          onToggle={toggleFlag}
+        />
       </View>
     </>
   );

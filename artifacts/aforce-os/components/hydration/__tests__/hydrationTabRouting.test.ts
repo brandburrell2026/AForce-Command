@@ -145,7 +145,10 @@ describe('Performance Signal — still reachable, as a push destination', () => 
     expect(ROUTE).toContain(
       "import { PerformanceSignalV3 } from '@/components/hydration/PerformanceSignalV3';",
     );
-    expect(ROUTE).toMatch(/<PerformanceSignalV3\s+onBack=\{onBack\}\s*\/>/);
+    // The route may pass additional top-bar actions (AForce Concierge, 2026-10-05)
+    // but onBack stays the first prop and the screen stays the Wave-5 one.
+    expect(ROUTE).toMatch(/<PerformanceSignalV3\s+onBack=\{onBack\}[^>]*\/>/);
+    expect(ROUTE).toMatch(/topBarActions=\{askConcierge\}/);
   });
 
   it('still lets signal_v3_dashboard_enabled decide what the destination shows', () => {

@@ -555,7 +555,14 @@ describe("parity: GET /whoop/status shape", () => {
     await h.close();
   });
 
-  it("CLERK_SECRET_KEY set + no session, no clerkMiddleware upstream: actual behavior is 500 — NOT the hypothesized 401/503", async () => {
+  it("CLERK_SECRET_KEY set + no session, no clerkMiddleware upstream: requireAuth treats the undecorated request as auth-unavailable (demo user outside production), never a 500", async () => {
+    // 2026-10-05 (fix/clerk-unconfigured-liveness): getAuth() throwing because
+    // clerkMiddleware() never ran is now caught inside requireAuth — production
+    // answers 503 auth_unavailable, every other environment falls back to the
+    // demo user. The bare Express 500 HTML page this test used to pin (a
+    // stack-trace leak) is gone. The historical analysis below is kept for
+    // the record of WHY the harness reaches this branch at all.
+    //
     // requireAuth (middlewares/requireAuth.ts) has three branches:
     //   1. CLERK_SECRET_KEY unset + production     -> 503 auth_unavailable
     //   2. CLERK_SECRET_KEY unset + non-production  -> DEFAULT_USER_ID (200)
@@ -590,7 +597,12 @@ describe("parity: GET /whoop/status shape", () => {
     try {
       const h = await startRouteHarness();
       const res = await fetch(`${h.baseUrl}/whoop/status`);
-      expect(res.status).toBe(500);
+      // IS_PRODUCTION is frozen false in this process (see above), so the
+      // undecorated request resolves to the demo user and the route answers
+      // its normal not-connected shape — a JSON 200, not an HTML 500.
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body["connected"]).toBe(false);
       await h.close();
     } finally {
       delete process.env["CLERK_SECRET_KEY"];

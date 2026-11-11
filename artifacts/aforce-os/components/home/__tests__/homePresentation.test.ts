@@ -31,9 +31,9 @@ describe('resolveHomePresentation — band-tinted accent (brand af.* only)', () 
     expect(resolveHomePresentation('RECOVERING').accent).toBe(af.amber);
     expect(resolveHomePresentation('DEPLETED').accent).toBe(af.red);
   });
-  it('DEPLETED uses brand Signal Red #C1281B, never the off-limits statusColor #FF2800', () => {
+  it('DEPLETED uses brand Signal Red #E51E2A, never the off-limits statusColor #FF2800', () => {
     const accent = resolveHomePresentation('DEPLETED').accent;
-    expect(accent).toBe('#C1281B');
+    expect(accent).toBe('#E51E2A');
     expect(accent).not.toBe('#FF2800');
   });
   it('reorders signals most-relevant-first per band', () => {
@@ -68,7 +68,7 @@ describe('resolveHomePresentation — accentText is the AA-clean twin (Wave 5)',
 
   it('keeps the brand fill red for fills — accent is untouched by the text swap', () => {
     const p = resolveHomePresentation('DEPLETED');
-    expect(p.accent).toBe('#C1281B');
+    expect(p.accent).toBe('#E51E2A');
     expect(p.accentText).not.toBe(p.accent);
   });
 
