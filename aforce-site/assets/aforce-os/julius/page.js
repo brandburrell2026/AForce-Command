@@ -1,13 +1,13 @@
 
 const R=matchMedia('(prefers-reduced-motion: reduce)').matches,loop=document.getElementById('loop'),pp=document.getElementById('pp');
-// Original films, self-hosted with the reference player's MP4/WebM fallback.
+// Films with canonical LOCK-IN lettering, self-hosted with MP4/WebM fallback.
 const PL={},PP={};
 
 const blobURL=(t,ty)=>URL.createObjectURL(new Blob([t],{type:ty}));
 
 
 const H264=(()=>{try{return document.createElement('video').canPlayType('video/mp4; codecs="avc1.640028"')!==''}catch(_){return true}})();
-const FB={'/assets/aforce-os/julius/film_1080.mp4':'/assets/aforce-os/julius/film_720.webm','/assets/aforce-os/julius/pause_1080.mp4':'/assets/aforce-os/julius/pause_1080.webm'};
+const FB={'/assets/aforce-os/julius/film-lock-in-red.mp4':'/assets/aforce-os/julius/film-lock-in-red.webm','/assets/aforce-os/julius/pause-lock-in.mp4':'/assets/aforce-os/julius/pause-lock-in.webm'};
 const pick=fb=>H264?fb:(FB[fb]||fb);
 function webmRescue(v,fb){let done=false;v.addEventListener('error',()=>{if(done||!FB[fb])return;const cs=v.currentSrc||'';if(/\.mp4(\?|$)/.test(cs)||cs.startsWith('blob:')){done=true;v.src=FB[fb];v.play().catch(()=>{})}})}
 function guard(v,get,fb,want){setTimeout(()=>{const h=get();if(h&&want()&&v.currentTime<0.2){try{h.destroy()}catch(_){};v.src=pick(fb);v.play().catch(()=>{})}},9000)}
@@ -21,7 +21,7 @@ const ppSet=on=>{pp.innerHTML=on?'❚❚&nbsp; Pause':'▶&nbsp; Play';pp.setAtt
 const hb=[...document.querySelectorAll('.heroBar [data-film]')];const hLabel=t=>hb.forEach(x=>x.innerHTML=t);
 let hh=null,heroSound=false,heroTrack=false;
 const heroGo=()=>{if(!R)loop.play().then(()=>ppSet(1)).catch(()=>ppSet(0))};
-let heroVis=true;addEventListener('DOMContentLoaded',()=>{hh=attach(loop,PL,'film',true,'/assets/aforce-os/julius/film_1080.mp4',heroGo);guard(loop,()=>hh,'/assets/aforce-os/julius/film_1080.mp4',()=>!R&&heroVis&&!heroSound&&!document.hidden)});
+let heroVis=true;addEventListener('DOMContentLoaded',()=>{hh=attach(loop,PL,'film',true,'/assets/aforce-os/julius/film-lock-in-red.mp4',heroGo);guard(loop,()=>hh,'/assets/aforce-os/julius/film-lock-in-red.mp4',()=>!R&&heroVis&&!heroSound&&!document.hidden)});
 pp.onclick=()=>{if(loop.paused){loop.play().then(()=>ppSet(1)).catch(()=>{})}else{loop.pause();ppSet(0)}};
 function soundOff(){heroSound=false;loop.muted=true;loop.controls=false;loop.loop=true;hLabel('🔊&nbsp; Watch with sound · 1:02')}
 function heroPlay(e){const fromBar=e&&e.currentTarget&&e.currentTarget.closest('.heroBar');
@@ -36,7 +36,7 @@ if('IntersectionObserver' in window){new IntersectionObserver(es=>es.forEach(e=>
 // Bottom: The pause, a short words-free cut that plays muted when it comes into view
 const fv=document.getElementById('fv'),fpp=document.getElementById('fpp');let fh=null,fInit=false,fUser=false,fVis=false;
 const fSet=on=>{fpp.innerHTML=on?'❚❚&nbsp; Pause':'▶&nbsp; Play';fpp.setAttribute('aria-label',on?'Pause The pause':'Play The pause')};fSet(0);
-const fPlay=()=>{if(!fInit){fInit=true;fh=attach(fv,PP,'pause',false,'/assets/aforce-os/julius/pause_1080.mp4',()=>fv.play().then(()=>fSet(1)).catch(()=>fSet(0)));guard(fv,()=>fh,'/assets/aforce-os/julius/pause_1080.mp4',()=>fVis&&(!R||fUser));fv.addEventListener('playing',()=>fSet(1));return}fv.play().then(()=>fSet(1)).catch(()=>fSet(0))};
+const fPlay=()=>{if(!fInit){fInit=true;fh=attach(fv,PP,'pause',false,'/assets/aforce-os/julius/pause-lock-in.mp4',()=>fv.play().then(()=>fSet(1)).catch(()=>fSet(0)));guard(fv,()=>fh,'/assets/aforce-os/julius/pause-lock-in.mp4',()=>fVis&&(!R||fUser));fv.addEventListener('playing',()=>fSet(1));return}fv.play().then(()=>fSet(1)).catch(()=>fSet(0))};
 if('IntersectionObserver' in window){new IntersectionObserver(es=>es.forEach(e=>{fVis=e.isIntersecting;if(e.isIntersecting){if(!R||fUser)fPlay()}else if(fInit){fv.pause();fSet(0)}}),{threshold:.35}).observe(fv)}else if(!R)fPlay();
 fpp.onclick=()=>{fUser=true;if(!fInit||fv.paused)fPlay();else{fv.pause();fSet(0)}};
 // Header
@@ -110,12 +110,12 @@ let tok=0;function say(text,btn,typed){if(busy)return;busy=true;const my=++tok;a
  setTimeout(()=>{if(my!==tok)return;dev.dataset.os='idle';orb.classList.remove('listen');rip.classList.remove('go');P=parse(text);P.text=text;
   $('#dWords').textContent=text;$('#kA').textContent=P.title;$('#kW').textContent=(P.day?P.day+' · ':'')+P.time;mirrorExtras();scr('heard');busy=false},RM?300:typed?900:words.length*160+900)}
 function toSeal(){const r=$('#sRows');$('#sT').textContent=P.title;r.innerHTML='';
- const rows=P.h!=null?[[fmt(P.h,P.m,P.ap,-60),'Leave with time to spare','travel time from your plan'],[fmt(P.h,P.m,P.ap,-15),'One Breath','then phone face down'],[P.time.replace(/ /,'\u00a0'),'Lock In','AFORCE goes quiet'],['After','One question','optional · only you see it']]
-  :[['Before','Leave with time to spare','set the time when you seal'],['Before','One Breath','then phone face down'],['Start','Lock In','AFORCE goes quiet'],['After','One question','optional · only you see it']];
- if(P.social){rows.length=0;rows.push(...(P.h!=null?[[fmt(P.h,P.m,P.ap,-15),'One Breath','then phone face down'],[P.time.replace(/ /,'\u00a0'),'Lock In','AFORCE goes quiet'],['After','One optional question','skip ends it']]:[['Before','One Breath','then phone face down'],['Start','Lock In','AFORCE goes quiet'],['After','One optional question','skip ends it']]))}
- rows.forEach((x,i)=>{const d=document.createElement('div');d.innerHTML=`<i>${x[0]}</i><span${x[1]==='Lock In'?' style="color:#F23A45"':''}>${x[1]}<small>${x[2]}</small></span>`;r.appendChild(d);setTimeout(()=>d.classList.add('in'),RM?0:120+i*120)});
+ const rows=P.h!=null?[[fmt(P.h,P.m,P.ap,-60),'Leave with time to spare','travel time from your plan'],[fmt(P.h,P.m,P.ap,-15),'One Breath','then phone face down'],[P.time.replace(/ /,'\u00a0'),'LOCK-IN','AFORCE goes quiet'],['After','One question','optional · only you see it']]
+  :[['Before','Leave with time to spare','set the time when you seal'],['Before','One Breath','then phone face down'],['Start','LOCK-IN','AFORCE goes quiet'],['After','One question','optional · only you see it']];
+ if(P.social){rows.length=0;rows.push(...(P.h!=null?[[fmt(P.h,P.m,P.ap,-15),'One Breath','then phone face down'],[P.time.replace(/ /,'\u00a0'),'LOCK-IN','AFORCE goes quiet'],['After','One optional question','skip ends it']]:[['Before','One Breath','then phone face down'],['Start','LOCK-IN','AFORCE goes quiet'],['After','One optional question','skip ends it']]))}
+ rows.forEach((x,i)=>{const d=document.createElement('div');d.innerHTML=`<i>${x[0]}</i><span${x[1]==='LOCK-IN'?' style="color:#F23A45"':''}>${x[1]}<small>${x[2]}</small></span>`;r.appendChild(d);setTimeout(()=>d.classList.add('in'),RM?0:120+i*120)});
  $('#sWill').innerHTML=(P.social?[`· Adds this to ${P.day==='Soon'?'your plan':P.day==='Tomorrow'?'tomorrow':P.day==='Today'?'today':P.day}`,`· AFORCE stays quiet during your Moment`,`· One optional question after your Moment. Skip ends it.`,`· Your plan and Replay stay private. Send a check-in only if you choose.`].concat(P.next?[`· Keeps ${P.next.split(' · ')[0].toLowerCase()}${P.next.includes('tomorrow')?' tomorrow':''} as its own Moment, not merged`]:[]):[`· Adds this to ${P.day==='Soon'?'your plan':P.day==='Tomorrow'?'tomorrow':P.day==='Today'?'today':P.day}`,`· AFORCE stays quiet during your Moment`,`· One question afterward`,`· Nothing shared unless you invite`]).join('<br>');scr('seal')}
-let sealTok=0;function sealed(){scr('sealed');tone('seal');const st=++sealTok;setTimeout(()=>{if(st!==sealTok)return;$('#hImg').style.backgroundImage=`url('${P.img}')`;$('#hEy').textContent=(P.day+' · '+P.time).toUpperCase();$('#hD').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase().replace(',',' ·');$('#hT').textContent=P.title;{const H=new Date().getHours();document.querySelector('.hHi').textContent=H<12?'Good morning.':H<17?'Good afternoon.':'Good evening.'}$('#hL').innerHTML='<span style="color:#F23A45">Lock In</span> at '+(P.h!=null?P.time:'the start');dev.classList.remove('land');void dev.offsetWidth;dev.classList.add('land');scr('home')},RM?400:1500)}
+let sealTok=0;function sealed(){scr('sealed');tone('seal');const st=++sealTok;setTimeout(()=>{if(st!==sealTok)return;$('#hImg').style.backgroundImage=`url('${P.img}')`;$('#hEy').textContent=(P.day+' · '+P.time).toUpperCase();$('#hD').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase().replace(',',' ·');$('#hT').textContent=P.title;{const H=new Date().getHours();document.querySelector('.hHi').textContent=H<12?'Good morning.':H<17?'Good afternoon.':'Good evening.'}$('#hL').innerHTML='<span style="color:#F23A45">LOCK-IN</span> at '+(P.h!=null?P.time:'the start');dev.classList.remove('land');void dev.offsetWidth;dev.classList.add('land');scr('home')},RM?400:1500)}
 // hold to seal
 const ring=$('#ring');let t=null;const down=e=>{e&&e.preventDefault();clearTimeout(t);ring.classList.add('hold');t=setTimeout(()=>{ring.classList.remove('hold');sealed()},1200)},up=()=>{clearTimeout(t);ring.classList.remove('hold')};
 ring.addEventListener('pointerdown',down);['pointerup','pointerleave','pointercancel'].forEach(ev=>ring.addEventListener(ev,up));
