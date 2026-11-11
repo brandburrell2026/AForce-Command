@@ -34,6 +34,7 @@ import {
 } from "./consentAuthority";
 import { createEnvelope } from "./event_envelope";
 import { isConsentGranted } from "./privacy_manager";
+import { mayEmitAnalytics } from '@/services/gentleHydrationPrivacy';
 
 const OUTBOX_KEY = "@aforce/analytics-outbox";
 /** Bound the outbox so a long offline window can't grow it unbounded. */
@@ -209,6 +210,9 @@ export async function emit(
   payload?: Record<string, unknown>,
   occurredAt?: string,
 ): Promise<boolean> {
+  // Gentle Hydration never enters the analytics outbox, even if a future caller tries.
+  if (!mayEmitAnalytics(eventType, payload)) return false;
+
   // ONE gate, ONE read. This was two calls — `isConsentGranted()` then
   // `getAnalyticsId()` — which left a window in which consent could be revoked
   // between them and an event still be stamped. Two places deciding one thing

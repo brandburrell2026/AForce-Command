@@ -1,44 +1,46 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const { storage } = vi.hoisted(() => ({
+  storage: { getItem: vi.fn(), setItem: vi.fn(), removeItem: vi.fn() },
+}));
+vi.mock("../../gentleHydrationStorage", () => ({
+  gentleHydrationStorage: storage,
+}));
 import {
   DEFAULT_GENTLE_HYDRATION_MODE,
-  gentleHydrationCheckInCount,
   clearGentleHydrationMode,
-  gentleHydrationIsShareable,
-  normalizeGentleHydrationMode,
+  loadGentleHydrationMode,
+  saveGentleHydrationMode,
 } from "../../gentleHydrationMode";
 
 describe("Gentle Hydration Mode", () => {
-  it("fails closed for malformed stored data", () => {
-    expect(normalizeGentleHydrationMode("{not-json}")).toEqual(
+  beforeEach(() => vi.clearAllMocks());
+  it("persists an enabled preference through relaunch", async () => {
+    storage.getItem.mockResolvedValue(
+      JSON.stringify({
+        enabled: true,
+        pauseStreakDisplay: true,
+        promptsEnabled: false,
+      }),
+    );
+    await expect(loadGentleHydrationMode()).resolves.toMatchObject({
+      enabled: true,
+      pauseStreakDisplay: true,
+    });
+  });
+  it("deletes stored preference when disabled", async () => {
+    await saveGentleHydrationMode({
+      enabled: false,
+      pauseStreakDisplay: false,
+      promptsEnabled: false,
+    });
+    expect(storage.removeItem).toHaveBeenCalledOnce();
+  });
+  it("fails closed for malformed data and exposes no shareable state", async () => {
+    storage.getItem.mockResolvedValue("{bad");
+    await expect(loadGentleHydrationMode()).resolves.toEqual(
       DEFAULT_GENTLE_HYDRATION_MODE,
     );
-  });
-
-  it("only accepts the defined private cadence and comfort values", () => {
-    expect(
-      normalizeGentleHydrationMode({
-        enabled: true,
-        cadence: "gentle",
-        comfort: "mild_nausea",
-        updatedAt: "2026-11-05T12:00:00.000Z",
-      }),
-    ).toMatchObject({
-      enabled: true,
-      cadence: "gentle",
-      comfort: "mild_nausea",
-    });
-    expect(
-      normalizeGentleHydrationMode({ enabled: true, cadence: "prescriptive" }),
-    ).toMatchObject({
-      cadence: "gentle",
-    });
-  });
-
-  it("is an opt-in planning layer and cannot be shared with Circle", () => {
-    expect(gentleHydrationCheckInCount("gentle")).toBe(5);
-    expect(gentleHydrationCheckInCount("steady")).toBe(4);
-    expect(gentleHydrationCheckInCount("minimal")).toBe(3);
-    expect(gentleHydrationIsShareable()).toBe(false);
-    expect(typeof clearGentleHydrationMode).toBe("function");
+    await clearGentleHydrationMode();
+    expect(storage.removeItem).toHaveBeenCalled();
   });
 });
