@@ -35,7 +35,7 @@
  * action, still absent while ai_concierge_enabled is off).
  */
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
@@ -61,6 +61,8 @@ import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
+import { DrinkChoiceModal, type NonWaterDrinkChoice } from '@/components/DrinkChoiceModal';
+import { getRecordedDrinks, postRecordedDrink, type RecordedDrink } from '@/services/realApi';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { GentleHydrationModeCard } from './GentleHydrationModeCard';
 import { fireMoment } from '@/services/haptics';
@@ -129,6 +131,9 @@ export function HydrationScreenV2() {
   const { userState } = state;
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+  const [drinkPickerOpen, setDrinkPickerOpen] = React.useState(false);
+  const [isRecordingDrink, setIsRecordingDrink] = React.useState(false);
+  const [recordedDrinks, setRecordedDrinks] = React.useState<RecordedDrink[]>([]);
 
   // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
   // one frame both close over a pre-render `logIntake` whose own
@@ -143,6 +148,36 @@ export function HydrationScreenV2() {
 
   const cancelWaterPicker = React.useCallback(() => {
     setWaterPickerOpen(false);
+  }, []);
+
+  const openDrinkPicker = React.useCallback(() => {
+    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess || isRecordingDrink) return;
+    setDrinkPickerOpen(true);
+  }, [isCompletingCycle, showCycleSuccess, isRecordingDrink]);
+
+  const recordNonWaterDrink = React.useCallback(async (choice: NonWaterDrinkChoice, ozAmount: number) => {
+    if (isRecordingDrink) return;
+    setIsRecordingDrink(true);
+    try {
+      const drink = await postRecordedDrink({ ...choice, ozAmount, entrySource: 'hydration' });
+      setRecordedDrinks((current) => [drink, ...current.filter((item) => item.id !== drink.id)].slice(0, 10));
+      setDrinkPickerOpen(false);
+      Alert.alert('Saved to your log', 'It moves HydroState once its drink rule is approved.');
+    } catch {
+      Alert.alert('Could not save drink', 'Your HydroState has not changed. Please try again.');
+    } finally {
+      setIsRecordingDrink(false);
+    }
+  }, [isRecordingDrink]);
+
+  // The separate log is supplementary history only. If it cannot load, Hydration
+  // remains usable and never substitutes a record with a HydroState estimate.
+  React.useEffect(() => {
+    let current = true;
+    void getRecordedDrinks(10)
+      .then((drinks) => { if (current) setRecordedDrinks(drinks); })
+      .catch(() => {});
+    return () => { current = false; };
   }, []);
 
   // THE ONLY PLACE THIS SCREEN LOGS. The amount is the member's explicit
@@ -324,9 +359,9 @@ export function HydrationScreenV2() {
       <View style={styles.actions}>
         <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
         <AFSecondaryButton
-          label={t('hydration.v2.log_manually')}
+          label="Log a drink"
           testID="hydration-log-manually"
-          onPress={openWaterPicker}
+          onPress={openDrinkPicker}
         />
       </View>
 
@@ -379,6 +414,35 @@ export function HydrationScreenV2() {
           </AFCard>
         )}
       </View>
+
+      {recordedDrinks.length > 0 ? (
+        <View style={styles.section}>
+          <AFSectionLabel label="SAVED DRINKS" meta="NO HYDROSTATE CHANGE" />
+          <AFCard padded={false} style={styles.recentCard}>
+            {recordedDrinks.slice(0, 5).map((drink, index) => {
+              const when = intakeWhen(drink.recordedAt, i18n.language, {
+                today: t('hydration.v2.today'),
+                yesterday: t('hydration.v2.yesterday'),
+              });
+              return (
+                <View
+                  key={drink.id}
+                  style={[styles.intakeRow, index < Math.min(recordedDrinks.length, 5) - 1 && styles.intakeRowRuled]}
+                  accessible
+                  accessibilityLabel={`${drink.displayName}, ${when.text}, ${Math.round(drink.ozAmount)} ounces, saved to log only`}
+                >
+                  <View style={styles.intakeDot} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
+                  <View style={styles.intakeText}>
+                    <Text style={styles.intakeTitle}>{drink.displayName}</Text>
+                    <Text style={[styles.intakeWhen, eyebrowType]}>{when.text.toUpperCase()}</Text>
+                  </View>
+                  <Text style={[styles.intakeAmount, eyebrowType]}>LOGGED ONLY</Text>
+                </View>
+              );
+            })}
+          </AFCard>
+        </View>
+      ) : null}
 
       {/* 7-day strip (streak, honest) */}
       <View style={styles.section}>
@@ -450,6 +514,17 @@ export function HydrationScreenV2() {
 
       {/* Amount is an explicit member choice; cancel/backdrop/hardware-back
           all write nothing (WaterAmountModal routes them to one handler). */}
+      <DrinkChoiceModal
+        visible={drinkPickerOpen}
+        onCancel={() => setDrinkPickerOpen(false)}
+        onWater={() => {
+          setDrinkPickerOpen(false);
+          openWaterPicker();
+        }}
+        onRecord={recordNonWaterDrink}
+        isSaving={isRecordingDrink}
+      />
+
       <WaterAmountModal
         visible={waterPickerOpen}
         accentColor={af.red}

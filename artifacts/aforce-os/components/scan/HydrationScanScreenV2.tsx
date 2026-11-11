@@ -13,7 +13,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  View, Text, ScrollView, Platform, Pressable, TextInput,
+  Alert, View, Text, ScrollView, Platform, Pressable, TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
@@ -48,7 +48,7 @@ import { SmartCaptureModal } from '@/components/SmartCaptureModal';
 import { WhyThisForYouCard } from '@/components/WhyThisForYouCard';
 import { SuperfoodSignalsCard } from '@/components/SuperfoodSignalsCard';
 import { derivePersonalizationSignals } from '@/utils/personalizationSignals';
-import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
+import { postRecordedDrink } from '@/services/realApi';
 import { af, withAlpha } from '@/theme';
 import { styles, verdictColor, impactColor, toTextSafeColor, formatRelativeTime } from './scanKit';
 import { useAppStore } from '@/store/useAppStore';
@@ -421,10 +421,8 @@ export function HydrationScanScreenV2() {
     [hydroScanHistory, t],
   );
 
-  // Shared handler for any modal that confirms a drink (AddDrinkModal +
-  // SmartCaptureModal's "Log Correction" button). Logs through the
-  // existing intake pipeline with category-correct hydration coefficient
-  // applied to ozOverride and the real drink preserved in history.
+  // Only water uses the scored intake rail. Other drinks are retained as
+  // member records without changing HydroState or its score.
   const logDrinkFromModal = async (args: {
     categoryId: string;
     name: string;
@@ -433,27 +431,26 @@ export function HydrationScanScreenV2() {
     effectiveOz: number;
     hydrationCoefficient: number;
   }) => {
-    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
-    if (!cat) return;
     setLogging(true);
     try {
-      await logIntake(cat.fluidType, {
-        source: 'scan',
-        ozOverride: args.effectiveOz,
-        displayNameOverride: `${args.displayName} \u00b7 ${args.enteredOz} oz`,
-        categoryId: args.categoryId,
-      });
-      triggerSuccessFlash();
+      if (args.categoryId === 'water' || args.categoryId === 'bottled_water') {
+        await logIntake('water', { source: 'scan', ozOverride: args.enteredOz });
+        triggerSuccessFlash();
+      } else {
+        await postRecordedDrink({
+          categoryId: args.categoryId,
+          displayName: `${args.displayName} · ${args.enteredOz} oz`,
+          ozAmount: args.enteredOz,
+          entrySource: 'scan',
+        });
+        Alert.alert('Saved to your log', 'It moves HydroState once its drink rule is approved.');
+      }
     } finally {
       setLogging(false);
     }
   };
 
-  // AddDrinkModal handler — logs any of the 13 supported drink categories
-  // (water, coffee, tea, sports/energy drinks, social intake, custom, etc.)
-  // via the existing intake pipeline. Score impact uses the per-category
-  // hydration coefficient so a 12 oz coffee logs ≈10.2 oz water-equivalent
-  // while the history label preserves the real drink name.
+  // AddDrinkModal records a real drink but never infers hydration credit.
   const onConfirmDrink = async (args: {
     categoryId: string;
     name: string;
@@ -463,20 +460,7 @@ export function HydrationScanScreenV2() {
     hydrationCoefficient: number;
   }) => {
     setAddDrinkOpen(false);
-    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
-    if (!cat) return;
-    setLogging(true);
-    try {
-      await logIntake(cat.fluidType, {
-        source: 'scan',
-        ozOverride: args.effectiveOz,
-        displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
-        categoryId: args.categoryId,
-      });
-      triggerSuccessFlash();
-    } finally {
-      setLogging(false);
-    }
+    await logDrinkFromModal(args);
   };
 
   // SmartCaptureModal "LOG CORRECTION" — same logging path as onConfirmDrink
@@ -491,20 +475,7 @@ export function HydrationScanScreenV2() {
     hydrationCoefficient: number;
   }) => {
     setSmartCaptureOpen(false);
-    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
-    if (!cat) return;
-    setLogging(true);
-    try {
-      await logIntake(cat.fluidType, {
-        source: 'scan',
-        ozOverride: args.effectiveOz,
-        displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
-        categoryId: args.categoryId,
-      });
-      triggerSuccessFlash();
-    } finally {
-      setLogging(false);
-    }
+    await logDrinkFromModal(args);
   };
 
   return (

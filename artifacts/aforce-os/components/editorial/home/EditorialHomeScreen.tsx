@@ -56,13 +56,15 @@ import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
-import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
+import { Alert, Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
 import { AFCard, AFMasthead, AFPrimaryButton, AFScreen, AFOfflineBanner, AFSkeleton } from '@/components/ui';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
+import { DrinkChoiceModal, type NonWaterDrinkChoice } from '@/components/DrinkChoiceModal';
+import { postRecordedDrink } from '@/services/realApi';
 import { HomeSkeleton } from '@/components/home/HomeSkeleton';
 import { HomeFreshnessLabel } from '@/components/home/HomeFreshnessLabel';
 import { LiveStatusLine } from '@/components/home/LiveStatusLine';
@@ -158,6 +160,8 @@ export function EditorialHomeScreen({
   // open-only picker, synchronous double-log ref, settled-cycle haptic.
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+  const [drinkPickerOpen, setDrinkPickerOpen] = React.useState(false);
+  const [isRecordingDrink, setIsRecordingDrink] = React.useState(false);
   const confirmInFlightRef = React.useRef(false);
   const openWaterPicker = React.useCallback(() => {
     if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess) return;
@@ -166,6 +170,25 @@ export function EditorialHomeScreen({
   const cancelWaterPicker = React.useCallback(() => {
     setWaterPickerOpen(false);
   }, []);
+
+  const openDrinkPicker = React.useCallback(() => {
+    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess || isRecordingDrink) return;
+    setDrinkPickerOpen(true);
+  }, [isCompletingCycle, showCycleSuccess, isRecordingDrink]);
+
+  const recordNonWaterDrink = React.useCallback(async (choice: NonWaterDrinkChoice, ozAmount: number) => {
+    if (isRecordingDrink) return;
+    setIsRecordingDrink(true);
+    try {
+      await postRecordedDrink({ ...choice, ozAmount, entrySource: 'home' });
+      setDrinkPickerOpen(false);
+      Alert.alert('Saved to your log', 'It moves HydroState once its drink rule is approved.');
+    } catch {
+      Alert.alert('Could not save drink', 'Your HydroState has not changed. Please try again.');
+    } finally {
+      setIsRecordingDrink(false);
+    }
+  }, [isRecordingDrink]);
   const confirmWaterAmount = React.useCallback(
     (oz: number) => {
       if (confirmInFlightRef.current || isCompletingCycle || showCycleSuccess) return;
@@ -463,8 +486,8 @@ export function EditorialHomeScreen({
                     (open-only, CORRECTION 2). */}
                 <View style={styles.ctaSection}>
                   <AFPrimaryButton
-                    label={t('home.v2.log_water')}
-                    onPress={openWaterPicker}
+                    label="Log a drink"
+                    onPress={openDrinkPicker}
                     loading={isCompletingCycle}
                     trailingIcon="plus"
                     testID="editorial-log-water"
@@ -475,6 +498,17 @@ export function EditorialHomeScreen({
           </Animated.View>
         </AFScreen>
       </EdSurface>
+
+      <DrinkChoiceModal
+        visible={drinkPickerOpen}
+        onCancel={() => setDrinkPickerOpen(false)}
+        onWater={() => {
+          setDrinkPickerOpen(false);
+          openWaterPicker();
+        }}
+        onRecord={recordNonWaterDrink}
+        isSaving={isRecordingDrink}
+      />
 
       <WaterAmountModal
         visible={waterPickerOpen}

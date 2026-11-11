@@ -46,11 +46,12 @@ describe('S2-1.1 — no intake without an explicit quantity', () => {
     expect(hydration).not.toMatch(/engine\.command\.action/);
   });
 
-  it('the manual-log button opens the picker and writes nothing', () => {
+  it('the drink logger opens a choice sheet and water retains the confirmed picker', () => {
     const button = /<AFSecondaryButton[\s\S]{0,300}?\/>/.exec(hydration)?.[0] ?? '';
     expect(button).toContain('testID="hydration-log-manually"');
-    expect(button).toContain('onPress={openWaterPicker}');
+    expect(button).toContain('onPress={openDrinkPicker}');
     expect(button).not.toContain('logIntake');
+    expect(hydration).toMatch(/<DrinkChoiceModal[\s\S]{0,500}?onWater=\{\(\) => \{[\s\S]{0,200}?openWaterPicker\(\)/);
   });
 
   it("the screen's ONLY intake write takes the member's picker amount", () => {

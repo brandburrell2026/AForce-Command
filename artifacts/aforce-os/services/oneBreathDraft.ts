@@ -4,6 +4,15 @@ import type { MomentDraft } from './momentDraft';
 export function suggestMomentDraft(text: string, now = new Date()): MomentDraft {
   const draft: MomentDraft = { title: text.trim().slice(0, 160), date: '', time: '', type: 'personal', prepGoal: '' };
   const normalized = text.toLowerCase();
+  // A desired arrival state is a goal, not a workout subtype. In particular,
+  // "legs fresh" must never be treated as a lower-body workout unless the
+  // member explicitly says leg day/lower body/squats/deadlifts.
+  const goal = normalized.match(/\b(legs\s+fresh|build\s+strength)\b/i);
+  if (goal) draft.prepGoal = goal[1]!.replace(/\b\w/g, (letter) => letter.toUpperCase());
+  if (/\b(lift|lifting|workout|gym|train|training|upper body|lower body|leg day|squats?|deadlifts?)\b/.test(normalized)) {
+    draft.type = 'training';
+    draft.title = /\b(upper body)\b/.test(normalized) ? 'Upper-body session' : 'Morning lift';
+  }
   const dates: string[] = [];
   const dateSpans: Array<{ start: number; length: number }> = [];
   const format = (at: Date) => `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
@@ -47,6 +56,12 @@ export function suggestMomentDraft(text: string, now = new Date()): MomentDraft 
     title = title.replace(/\s+/g, ' ').replace(/\s+([,.;!?])/g, '$1').replace(/^[\s,.;:]+|[\s,.;:]+$/g, '');
     // Schedule-only input still needs a meaningful name; never produce a blank.
     if (title) draft.title = title.slice(0, 160);
+  }
+  // Keep the understood activity stable even after schedule words have been
+  // removed from the editable title above. The full utterance remains visible
+  // in One Breath as "Your words", so this does not discard what was said.
+  if (draft.type === 'training' && (/\bupper body\b/.test(normalized) || /\b(lift|lifting)\b/.test(normalized))) {
+    draft.title = /\bupper body\b/.test(normalized) ? 'Upper-body session' : 'Morning lift';
   }
   return draft;
 }

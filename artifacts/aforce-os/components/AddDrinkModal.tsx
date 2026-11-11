@@ -2,23 +2,17 @@
  * AddDrinkModal — HydroScan "Personalized Hydration Intelligence" (Slice 1)
  *
  * Manual search + custom drinks. Lets the user log any drink across the
- * 13 supported categories with the correct hydration coefficient applied
- * to the score impact. The actual drink name is preserved in history
- * (e.g. "Coffee · Starbucks Pike Place 16 oz") so a glance tells the
- * full story.
+ * 13 categories. Water is the only category that currently moves
+ * HydroState; every other drink is saved to the member's log without
+ * inventing hydration credit before its rule is reviewed.
  *
  * Flow:
  *   1. Search bar (debounce-free; small dataset) + category chip filter
  *   2. Result list → tap a drink → oz stepper sheet → confirm
  *   3. "Add custom drink" CTA → category + name + oz form → confirm
  *
- * Logging path uses the existing store `logIntake` with:
- *   - ozOverride = computeEffectiveOz(category, enteredOz, perDrinkCoef)
- *   - displayNameOverride = "{Category} · {Drink Name} ({entered} oz)"
- *
- * No scoring engine or server changes. Everything else (success flash,
- * voice command, history feed) is reused as-is from the existing log
- * pipeline.
+ * The parent selects the water or record-only write rail after the member
+ * confirms their amount. This component performs no persistence itself.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -421,9 +415,6 @@ function PickOzStage(props: {
   const { t } = useTranslation();
   const { drink, oz, accentColor, onAdjust, onPreset, onConfirm } = props;
   const cat = DRINK_CATEGORIES[drink.categoryId];
-  const coef = getDrinkCoefficient(drink);
-  const effective = computeEffectiveOz(drink.categoryId, oz, drink.hydrationCoefficient);
-
   return (
     <View style={{ gap: 14 }}>
       <View style={styles.previewCard}>
@@ -432,7 +423,9 @@ function PickOzStage(props: {
           {drink.brand ? `${drink.brand} — ` : ''}{drink.name}
         </Text>
         <Text style={styles.previewCoef}>
-          {t('hydroScan2.addDrink.hydration_credit', { pct: Math.round(coef * 100) })}
+          {drink.categoryId === 'water' || drink.categoryId === 'bottled_water'
+            ? 'Water moves HydroState today.'
+            : 'Saved to your log. It moves HydroState once its drink rule is approved.'}
         </Text>
       </View>
 
@@ -444,9 +437,11 @@ function PickOzStage(props: {
       />
 
       <View style={styles.impactCard}>
-        <Text style={styles.impactLabel}>{t('hydroScan2.addDrink.score_impact')}</Text>
+        <Text style={styles.impactLabel}>HYDROSTATE</Text>
         <Text style={[styles.impactValue, { color: accentColor }]}>
-          {t('hydroScan2.addDrink.water_equivalent', { oz: effective })}
+          {drink.categoryId === 'water' || drink.categoryId === 'bottled_water'
+            ? `${oz} oz water`
+            : 'No change today'}
         </Text>
       </View>
 
@@ -534,9 +529,11 @@ function CustomStage(props: {
       />
 
       <View style={styles.impactCard}>
-        <Text style={styles.impactLabel}>{t('hydroScan2.addDrink.score_impact')}</Text>
+        <Text style={styles.impactLabel}>HYDROSTATE</Text>
         <Text style={[styles.impactValue, { color: accentColor }]}>
-          {t('hydroScan2.addDrink.water_equivalent', { oz: effective })}
+          {categoryId === 'water' || categoryId === 'bottled_water'
+            ? `${oz} oz water`
+            : 'No change today'}
         </Text>
       </View>
 

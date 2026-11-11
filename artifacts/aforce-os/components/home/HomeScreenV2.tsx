@@ -193,7 +193,7 @@ import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
  * meet the number, the band, and a quiet note on how sure AForce is.
  */
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, type TextStyle, type StyleProp } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, type TextStyle, type StyleProp } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
 // The CONTEXT, never `useBottomTabBarHeight()` — the hook throws when the
@@ -232,6 +232,8 @@ import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@
 // was dead code (its only mount, `LogIntakeRow`, is imported by nothing); the
 // overlay's only mount was the unreachable legacy Home.
 import { WaterAmountModal } from '@/components/WaterAmountModal';
+import { DrinkChoiceModal, type NonWaterDrinkChoice } from '@/components/DrinkChoiceModal';
+import { postRecordedDrink } from '@/services/realApi';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { HomeSkeleton } from './HomeSkeleton';
 import { HomeBaselineHero } from './HomeBaselineHero';
@@ -380,6 +382,8 @@ export function HomeScreenV2() {
   // render-count harness proves that rather than trusting this comment.
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
+  const [drinkPickerOpen, setDrinkPickerOpen] = React.useState(false);
+  const [isRecordingDrink, setIsRecordingDrink] = React.useState(false);
 
   // A confirmed amount that has been dispatched but has not settled yet.
   // A ref, not state, because it has to be read and written SYNCHRONOUSLY
@@ -410,6 +414,25 @@ export function HomeScreenV2() {
   const cancelWaterPicker = React.useCallback(() => {
     setWaterPickerOpen(false);
   }, []);
+
+  const openDrinkPicker = React.useCallback(() => {
+    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess || isRecordingDrink) return;
+    setDrinkPickerOpen(true);
+  }, [isCompletingCycle, showCycleSuccess, isRecordingDrink]);
+
+  const recordNonWaterDrink = React.useCallback(async (choice: NonWaterDrinkChoice, ozAmount: number) => {
+    if (isRecordingDrink) return;
+    setIsRecordingDrink(true);
+    try {
+      await postRecordedDrink({ ...choice, ozAmount, entrySource: 'home' });
+      setDrinkPickerOpen(false);
+      Alert.alert('Saved to your log', 'It moves HydroState once its drink rule is approved.');
+    } catch {
+      Alert.alert('Could not save drink', 'Your HydroState has not changed. Please try again.');
+    } finally {
+      setIsRecordingDrink(false);
+    }
+  }, [isRecordingDrink]);
 
   // THE ONLY PLACE THIS SCREEN LOGS. `silent` is deliberately not passed: it
   // sets `showCycleSuccess: false`, which is exactly what made this action feel
@@ -840,8 +863,8 @@ export function HomeScreenV2() {
                 eyebrow={commandEyebrow}
                 title={title || t('home.v2.default_command_title')}
                 instruction={commandInstruction}
-                primaryLabel={t('home.v2.log_water')}
-                onPrimary={openWaterPicker}
+                primaryLabel="Log a drink"
+                onPrimary={openDrinkPicker}
                 primaryLoading={isCompletingCycle}
                 rationale={engine.command.explanation || undefined}
               />
@@ -924,6 +947,17 @@ export function HomeScreenV2() {
           the confirm button's FILL and a 56pt numeral, and fills take the fill
           token. It stays mounted with `visible=false` so the picker's own
           reset-to-16 effect runs on every open. */}
+      <DrinkChoiceModal
+        visible={drinkPickerOpen}
+        onCancel={() => setDrinkPickerOpen(false)}
+        onWater={() => {
+          setDrinkPickerOpen(false);
+          openWaterPicker();
+        }}
+        onRecord={recordNonWaterDrink}
+        isSaving={isRecordingDrink}
+      />
+
       <WaterAmountModal
         visible={waterPickerOpen}
         accentColor={accent}

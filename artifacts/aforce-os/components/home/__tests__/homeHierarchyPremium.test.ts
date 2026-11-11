@@ -220,8 +220,8 @@ describe('§5 — the hero: one dominant object, restraint not size', () => {
 describe('§6/§7 — the command card is subordinate, the action is preserved', () => {
   it('there is still exactly ONE command card, and it still carries the primary action', () => {
     expect((CODE.match(/<AFCommandCard/g) ?? []).length).toBe(1);
-    expect(CODE).toMatch(/primaryLabel=\{t\('home\.v2\.log_water'\)\}/);
-    expect(CODE).toMatch(/onPrimary=\{openWaterPicker\}/);
+    expect(CODE).toContain('primaryLabel="Log a drink"');
+    expect(CODE).toMatch(/onPrimary=\{openDrinkPicker\}/);
     expect(CODE).toMatch(/primaryLoading=\{isCompletingCycle\}/);
   });
 

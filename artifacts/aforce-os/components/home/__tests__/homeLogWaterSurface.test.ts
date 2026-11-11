@@ -89,26 +89,27 @@ describe('CORRECTION 2 — the surface is SHIPPED UI, re-mounted (nothing new wa
   });
 });
 
-describe('CORRECTION 2 — pressing LOG WATER OPENS the logger and writes nothing', () => {
-  it('the primary action is the picker-opening handler, not an inline commit', () => {
-    expect(CODE).toMatch(/onPrimary=\{openWaterPicker\}/);
+describe('LOG A DRINK opens the choice sheet and writes nothing', () => {
+  it('the primary action opens the drink chooser, not an inline commit', () => {
+    expect(CODE).toMatch(/onPrimary=\{openDrinkPicker\}/);
+    expect(CODE).toMatch(/<DrinkChoiceModal[\s\S]{0,500}?onWater=\{\(\) => \{[\s\S]{0,200}?openWaterPicker\(\)/);
   });
 
   it('opening writes NOTHING: no intake, no haptic moment, no navigation', () => {
     // "NO score credit merely from opening the logger" — founder acceptance.
-    const open = handlerBody('openWaterPicker');
+    const open = handlerBody('openDrinkPicker');
     expect(open).not.toContain('logIntake');
     expect(open).not.toContain('fireMoment');
     expect(open).not.toContain('router.push');
-    // All it may do is raise the surface.
-    expect(open).toContain('setWaterPickerOpen(true)');
+    // All it may do is raise the choice sheet.
+    expect(open).toContain('setDrinkPickerOpen(true)');
   });
 
   it('refuses to open while a write is already in flight', () => {
     // `logIntake` early-returns when `state.isCompletingCycle` is true, so an
     // amount confirmed in that window would be silently dropped — the member
     // would believe they logged.
-    const open = handlerBody('openWaterPicker');
+    const open = handlerBody('openDrinkPicker');
     // The guard also refuses while the confirmed-success overlay is up (added
     // with the durable-confirmation work); both in-flight conditions remain.
     expect(open).toMatch(/isCompletingCycle/);
@@ -118,10 +119,10 @@ describe('CORRECTION 2 — pressing LOG WATER OPENS the logger and writes nothin
 
   it('mutation-verify: an inline commit restored onto onPrimary is detectable', () => {
     const mutated = CODE.replace(
-      'onPrimary={openWaterPicker}',
+      'onPrimary={openDrinkPicker}',
       "onPrimary={() => { void logIntake('water'); }}",
     );
-    expect(mutated).not.toMatch(/onPrimary=\{openWaterPicker\}/);
+    expect(mutated).not.toMatch(/onPrimary=\{openDrinkPicker\}/);
     expect(mutated.slice(mutated.indexOf('onPrimary='), mutated.indexOf('primaryLoading'))).toContain(
       'logIntake(',
     );
