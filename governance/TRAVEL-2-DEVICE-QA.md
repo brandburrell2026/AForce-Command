@@ -80,9 +80,8 @@ rollout.
 
 | Pass | Date | Tester | Build | Device / iOS | Result |
 |---|---|---|---|---|---|
-| 1 | 2026-11-11 | Brandon | Internal TestFlight from `main@d352fc65` · build number **not recorded** | **Not recorded** | **Rows 0.1–24: all PASS** (tester-reported). Row 5 observed explicitly: stayed LOCK-IN past the planned arrival and never switched to arrived on its own. |
+| 1 | 2026-11-11 | Brandon | Internal TestFlight from `main@d352fc65` · build number **not recorded** | **Not recorded** | **Rows 0.1–24: all PASS**, plus the share card (tester-reported). Row 5 observed explicitly: stayed LOCK-IN past the planned arrival and never switched to arrived on its own. |
 
-**Not confirmed in pass 1:** sharing the arrival card to Messages and Instagram Stories, and
-checking that the saved image carries no date, time, flight or origin. This is not a numbered row,
-so add it to pass 2, or record it here when checked. Fill in the build number and device/iOS for
-pass 1 if they are still to hand.
+**Share card, pass 1:** confirmed by the tester. *Share your arrival* worked, and the shared
+image carried no date or time. Fill in the build number and device/iOS for pass 1 if they are still
+to hand.
