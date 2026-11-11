@@ -1,0 +1,58 @@
+[
+  {
+    "original": "h_train.webp",
+    "replacement": "h_train-lock-in.png",
+    "generated_source": "exec-87ea5d3d-4614-4a84-a811-ed13b4a24799.png",
+    "width": 839,
+    "height": 1875
+  },
+  {
+    "original": "h_work.webp",
+    "replacement": "h_work-lock-in.png",
+    "generated_source": "exec-6b94c79f-b7e0-422f-ac1a-9b04a0498b6b.png",
+    "width": 839,
+    "height": 1875
+  },
+  {
+    "original": "h_travel.webp",
+    "replacement": "h_travel-lock-in.png",
+    "generated_source": "exec-faee2b06-02b2-4828-a493-7c1bdcceb7bf.png",
+    "width": 839,
+    "height": 1875
+  },
+  {
+    "original": "d_rp1_v.webp",
+    "replacement": "d_rp1_v-lock-in.png",
+    "generated_source": "exec-b8e42c40-2aa7-4021-8aef-0ab85aebb5b1.png",
+    "width": 821,
+    "height": 1916
+  },
+  {
+    "original": "d_np_v.webp",
+    "replacement": "d_np_v-lock-in.png",
+    "generated_source": "exec-bad1c812-bc61-48b4-84d8-3c17c3f847e6.png",
+    "width": 748,
+    "height": 2103
+  },
+  {
+    "original": "can-red-12oz.png",
+    "replacement": "can-red-12oz-lock-in.png",
+    "generated_source": "exec-73691821-4a2b-46ba-b882-43eaebe8ce09.png",
+    "width": 782,
+    "height": 2010
+  },
+  {
+    "original": "can-green-12oz.png",
+    "replacement": "can-green-12oz-lock-in.png",
+    "generated_source": "exec-83ab8a40-a200-4bd5-b7ee-cd6c594f1067.png",
+    "width": 782,
+    "height": 2010
+  },
+  {
+    "original": "can-blue-12oz.png",
+    "replacement": "can-blue-12oz-lock-in.png",
+    "generated_source": "exec-ecbb9bb5-0268-499a-9416-2516a07a19af.png",
+    "width": 782,
+    "height": 2010
+  }
+]
