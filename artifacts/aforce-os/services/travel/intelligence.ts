@@ -9,6 +9,7 @@ import {
 import type { Moment } from "@/types/moments";
 import { resolveDepartureZone } from "./airportTimeZone";
 import type { JourneyStorage } from "./journey";
+import { tripArrivalPlan, type ArrivalContext } from "./arrival";
 export const travelDocumentSchema = z.object({
   localVersion: z.number().int().nonnegative().default(0),
   trips: travelTripsSchema,
@@ -21,6 +22,19 @@ export const travelDocumentSchema = z.object({
     z.string(),
     z.object({ identity: z.string(), snapshot: travelSnapshotSchema }),
   ),
+  /** Travel 2.0: the member's own arrival / ready confirmations, per trip.
+   * Device-local only — never part of the synced cloud state. */
+  arrivals: z
+    .record(
+      z.string(),
+      z
+        .object({
+          arrivalConfirmedAt: z.string().datetime({ offset: true }).nullable(),
+          readyAt: z.string().datetime({ offset: true }).nullable(),
+        })
+        .strict(),
+    )
+    .default({}),
 });
 export type TravelDocument = z.infer<typeof travelDocumentSchema>;
 export const emptyTravelDocument = (): TravelDocument => ({
@@ -32,6 +46,7 @@ export const emptyTravelDocument = (): TravelDocument => ({
   reminders: false,
   linked: false,
   observations: {},
+  arrivals: {},
 });
 export function createTravelDocuments(adapter: JourneyStorage) {
   const storage = createChunkStorage(adapter);
@@ -59,6 +74,12 @@ export function createTravelDocuments(adapter: JourneyStorage) {
         Object.entries(parsed.observations).filter(
           ([id, obs]) => identities.get(id) === obs.identity,
         ),
+      );
+      const activeTrips = new Set(
+        parsed.trips.filter((t) => !t.completedAt).map((t) => t.id),
+      );
+      parsed.arrivals = Object.fromEntries(
+        Object.entries(parsed.arrivals).filter(([id]) => activeTrips.has(id)),
       );
       const prior = queues.get(owner) ?? Promise.resolve();
       const next = prior
@@ -122,7 +143,19 @@ export function airportInstant(
     throw new Error("Check the date and time.");
   return { at: instant.toISOString(), zone: zone.timeZone };
 }
-export function tripMoments(trips: TravelTrip[]): Moment[] {
+/** Travel 2.0 arrival context per trip id (destination weather + next commitment). */
+export type ArrivalContexts = Readonly<Record<string, ArrivalContext>>;
+
+function arrivalGoal(trip: TravelTrip, leg: TravelTrip["legs"][number], contexts?: ArrivalContexts) {
+  const time = `Destination time ${localTravelTime(leg.arrivalAt!, leg.destinationTimeZone)}.`;
+  const isFinal = trip.legs[trip.legs.length - 1]?.id === leg.id;
+  const plan = isFinal ? tripArrivalPlan(trip, contexts?.[trip.id]) : null;
+  return plan?.line
+    ? `${time} Your arrival plan: ${plan.line}.`
+    : `${time} Follow your existing AForce recovery guidance.`;
+}
+
+export function tripMoments(trips: TravelTrip[], contexts?: ArrivalContexts): Moment[] {
   return trips
     .filter((t) => !t.completedAt)
     .flatMap((trip) =>
@@ -151,7 +184,7 @@ export function tripMoments(trips: TravelTrip[]): Moment[] {
                   type: "recovery" as const,
                   startAtIso: leg.arrivalAt,
                   preparedAtIso: leg.arrivalPreparedAt ?? undefined,
-                  prepGoal: `Destination time ${localTravelTime(leg.arrivalAt, leg.destinationTimeZone)}. Follow your existing AForce recovery guidance.`,
+                  prepGoal: arrivalGoal(trip, leg, contexts),
                 },
               ]
             : []),
@@ -159,8 +192,12 @@ export function tripMoments(trips: TravelTrip[]): Moment[] {
       }),
     );
 }
-export function mergeIntelligenceMoments(base: Moment[], trips: TravelTrip[]) {
-  const projected = tripMoments(trips);
+export function mergeIntelligenceMoments(
+  base: Moment[],
+  trips: TravelTrip[],
+  contexts?: ArrivalContexts,
+) {
+  const projected = tripMoments(trips, contexts);
   const departures = projected.filter((m) => m.type === "travel");
   return [
     ...base.filter(
