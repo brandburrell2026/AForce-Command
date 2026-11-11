@@ -34,7 +34,7 @@ export function OneBreathScreen() {
 
         <Text style={styles.eyebrow}>YOUR NEXT MOMENT</Text>
         <Text style={styles.title}>Say it in{`\n`}one breath.</Text>
-        <Text style={styles.subtitle}>Write once. Review what AForce sees. Nothing is saved until a future approved command flow is available.</Text>
+        <Text style={styles.subtitle}>Write once. Review what AFORCE sees. Nothing is saved until a future approved command flow is available.</Text>
 
         <View style={styles.rule} />
         <View style={styles.modeRow}>
@@ -78,8 +78,8 @@ export function OneBreathScreen() {
           <Text style={styles.primaryLabel}>Review draft</Text>
           <Text style={styles.primaryMark}>+</Text>
         </Pressable>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Return to AForce">
-          <Text style={styles.returnLink}>Return to AForce</Text>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Return to AFORCE">
+          <Text style={styles.returnLink}>Return to AFORCE</Text>
         </Pressable>
       </ScrollView>
     </GradientBackground>

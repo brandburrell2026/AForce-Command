@@ -214,35 +214,6 @@ export const aforceIntakeLogs = pgTable(
 );
 
 /**
- * A member's drink record when the current HydroState model has no approved
- * rule for it. These rows are deliberately separate from `aforce_intake_logs`:
- * an unapproved drink must never appear as intake evidence, alter a score, or
- * change any hydration counter merely because it was useful to remember.
- *
- * Water continues through the scored intake path. This table is append-only
- * and stores only the member's own label, category, amount, and capture
- * provenance so a future reviewed rule can be applied prospectively without
- * rewriting historical HydroState.
- */
-export const aforceRecordedDrinks = pgTable(
-  "aforce_recorded_drinks",
-  {
-    id: serial("id").primaryKey(),
-    userId: text("user_id").notNull(),
-    categoryId: text("category_id").notNull(),
-    displayName: text("display_name").notNull(),
-    ozAmount: real("oz_amount").notNull(),
-    entrySource: text("entry_source"),
-    clientEventId: text("client_event_id"),
-    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => ({
-    userRecordedIdx: index("aforce_recorded_drinks_user_recorded_idx").on(t.userId, t.recordedAt),
-    userClientUq: uniqueIndex("aforce_recorded_drinks_user_client_uq").on(t.userId, t.clientEventId),
-  }),
-);
-
-/**
  * Append-only longitudinal score snapshot. Drives the Hydration
  * Journal — chart of score over time, daily rollups, and PDF export.
  *
@@ -395,7 +366,6 @@ export type InsertAforceUserState = typeof aforceUserState.$inferInsert;
  */
 export type SafeUserStatePatch = Partial<Omit<InsertAforceUserState, 'historyStartAt'>>;
 export type AforceIntakeLogRow = typeof aforceIntakeLogs.$inferSelect;
-export type AforceRecordedDrinkRow = typeof aforceRecordedDrinks.$inferSelect;
 export type AforceConfirmationRow = typeof aforceConfirmations.$inferSelect;
 export type AforceUserRow = typeof aforceUsers.$inferSelect;
 export type InsertAforceUser = typeof aforceUsers.$inferInsert;

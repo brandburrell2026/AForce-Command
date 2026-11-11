@@ -1,3 +1,4 @@
+import { useQuietDeliveryBlocked, ordinaryDeliveryBlocked } from '@/services/quietDelivery';
 /**
  * PerformanceStatementMount — delivers the once-per-local-day, VOICE-ONLY
  * Performance Statement™.
@@ -64,6 +65,7 @@ function PerformanceStatementMountInner({
 }: {
   openingDone: boolean;
 }) {
+  const quiet = useQuietDeliveryBlocked();
   const flags = useFeatureFlags();
   const pathname = usePathname();
   const checkInState = useVoiceCheckInStore();
@@ -109,6 +111,7 @@ function PerformanceStatementMountInner({
     flags.voice_checkin_enabled && completedAgoMs < RECENT_CHECKIN_MS;
 
   const gatesOpen =
+    !quiet &&
     flags.performance_statements_enabled &&
     hydrated &&
     onboardingComplete &&
@@ -138,7 +141,7 @@ function PerformanceStatementMountInner({
     if (!isVoicePlaybackEnabled()) return;
 
     const timer = setTimeout(() => {
-      if (spokenRef.current) return;
+      if (spokenRef.current || ordinaryDeliveryBlocked()) return;
       // Re-check at speak time in case the app backgrounded or was muted during
       // the delay — never speak/mark while inactive or muted.
       if (AppState.currentState !== 'active') return;
@@ -164,7 +167,7 @@ function PerformanceStatementMountInner({
   // After the statement is spoken, surface the Intent Capture choice — but only
   // when intent capture is enabled. With that flag off, the prompt component
   // (and its intent-store hydration) never mounts, so it stays fully inert.
-  if (flags.intent_capture_enabled && spokenThisSession) {
+  if (!quiet && flags.intent_capture_enabled && spokenThisSession) {
     return <PostStatementIntentPrompt onDone={handleIntentDone} />;
   }
   return null;

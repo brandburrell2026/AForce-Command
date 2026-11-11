@@ -135,6 +135,11 @@ export const CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS = [
   'ai_concierge_enabled',
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
+/** Gentle Hydration is available only to the signed internal TestFlight QA build. */
+export const GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+  'gentle_hydration_mode_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
 /**
  * What the internal-TestFlight build actually turns ON: the union of the five
  * grants above (eleven keys), in ruling order. Nothing else. Every key here is
@@ -148,6 +153,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
   ...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
   ...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
+  ...GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];

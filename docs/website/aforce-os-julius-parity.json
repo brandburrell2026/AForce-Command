@@ -1,0 +1,255 @@
+{
+  "reference": "https://claude.ai/artifact/HFbZAYJVwBK7EExspCQwUX",
+  "main_structure_and_copy_match": true,
+  "styles": "Original reference CSS plus a focus-visible skip link",
+  "technical_adjustments": [
+    "Self-host original MP4/WebM fallbacks instead of frame HLS loader",
+    "Remove Claude frame runtime; externalize authored styles and scripts",
+    "Canonical metadata and existing aforce-os signup source identifier",
+    "Cancel interrupted Seal holds and support Enter as well as Space",
+    "Reject malformed clock values through the existing time-confirmation choices",
+    "Let user interaction take control before the attract demo starts"
+  ],
+  "validation": [
+    "Desktop 1280px and mobile 390px: no horizontal overflow",
+    "Presentation and typed dinner: review, one-tap Seal, correct scene",
+    "Quick Space press does not Seal",
+    "Original long film 61.97s and short film 11.08s play without media errors",
+    "Preview waitlist reports nothing sent; no signup posted",
+    "Existing signup proxy tests 9/9 passed",
+    "Browser console: no errors"
+  ],
+  "assets": [
+    {
+      "path": "assets/aforce-os/julius/film_1080.mp4",
+      "bytes": 16070306,
+      "sha256": "eb573786f838d28e48493683401f8b071997a92f238a04b6fb779e7c7aa68fa0"
+    },
+    {
+      "path": "assets/aforce-os/julius/film_720.webm",
+      "bytes": 5038708,
+      "sha256": "e47e0ac7ddbdc00cee2e123e56ff034000fb04c2ff2fa1725235a1208f434daa"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_calm.jpg",
+      "bytes": 37707,
+      "sha256": "8dc6905cfd9cd125a2fc5a18fc54655c8d9a71040918b2222fae588a6c73601a"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_dinner.jpg",
+      "bytes": 73389,
+      "sha256": "6d056211ae4bd822b7401403e344a585ea6e2873256847a3b1c22ff5f36e3d20"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_gym.jpg",
+      "bytes": 50103,
+      "sha256": "04ff094dab768e64f8308ce26fb441ec4f55d6e895748c84903009ec071454df"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_presentation_m.jpg",
+      "bytes": 48600,
+      "sha256": "ca747173b2bd97d6f69e0eb787c87627cc763e74dd8c3b771624f77d98e3c9e9"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_rehearsal_night.jpg",
+      "bytes": 67446,
+      "sha256": "805fc993b9d34b9335073ce5786139424782d5bd9c05afce8f3e527df018106d"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/bg_travel.jpg",
+      "bytes": 51993,
+      "sha256": "e6198d3da999425475355c8e3984ad094418fec0e3b002fdfb1f7864514063e7"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/can-blue-12oz.png",
+      "bytes": 871682,
+      "sha256": "b06463cd428b33a5b02345bed1ed35ff6a639c9ba3c13c8b7f2f9c4eec0797e2"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/can-green-12oz.png",
+      "bytes": 878527,
+      "sha256": "836fadecd605c651b696ca8f568354bda5272a01b9fcda5360321cae26133cf2"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/can-red-12oz.png",
+      "bytes": 1130432,
+      "sha256": "b14058fa28b5ef385d3b2aff41f437cdf302c6d6fe11e737a1457b4e47fa9b41"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/circ_back.webp",
+      "bytes": 162972,
+      "sha256": "c811194b83b651c04b2f09cceb7ecfb3fd7a1fa70bf85d9f2ab83d42aa50b810"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_np_bar.webp",
+      "bytes": 27914,
+      "sha256": "d7125253dd607d46075d202ec865b3f73f780ef2858e5e4e466a4a84fdb3af30"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_np_v.webp",
+      "bytes": 142400,
+      "sha256": "2be33b270cd175557f6b3443a4898b4a6cd13bc0e053be314d25448ca2787c33"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_rp1_bar.webp",
+      "bytes": 27914,
+      "sha256": "d7125253dd607d46075d202ec865b3f73f780ef2858e5e4e466a4a84fdb3af30"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_rp1_v.webp",
+      "bytes": 112448,
+      "sha256": "413766f86a39521a9dd669bc7081f13bfb09cb37162acb49712204d0870ad94c"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_rp3_bar.webp",
+      "bytes": 27914,
+      "sha256": "d7125253dd607d46075d202ec865b3f73f780ef2858e5e4e466a4a84fdb3af30"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/d_rp3_v.webp",
+      "bytes": 120172,
+      "sha256": "b2d56be8eca2e1cf95abf84134d01625a41767296d3f6b7f2b6ef27b1e983038"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/h_dinner.webp",
+      "bytes": 190038,
+      "sha256": "1d25f711dd41bfcfe32d3bb5e80066e3eff0b4e0ea9f04c6b8ce055c45f805fc"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/h_train.webp",
+      "bytes": 137728,
+      "sha256": "8399e3ea2f6c9e8036a5584894f6a5ea505e927f18acddc4b2f61e08e7286135"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/h_travel.webp",
+      "bytes": 143074,
+      "sha256": "d8a3e62931ea244bb513fe7277747c103977dbc2b54e42596226a0c1ae05e0dc"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/h_work.webp",
+      "bytes": 137290,
+      "sha256": "ac928d26c5e76db30ceb3eb66686acb3e4c519982eba14af2b43165a6d4d57b7"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/lock.webp",
+      "bytes": 68692,
+      "sha256": "273837cf9caa51b40bfcdb844f91af2f54ab77291f1af96e96e8e91fac0a8a40"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/ob_1500.webp",
+      "bytes": 24624,
+      "sha256": "430c2eeaf6e2ae7abffc6502032e68879e7daa682919a2c3357181905b6ee9bb"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/ob_5000.webp",
+      "bytes": 113734,
+      "sha256": "0b959aa8fd4a100d2f2f4001e823e8ad25ac38da5ef33008e93e1988f0dce6bd"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/ob_600.webp",
+      "bytes": 8140,
+      "sha256": "934df4694386752f54b520ea2f3afe03a99d61565dd538a349032e064c473e95"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/pause.jpg",
+      "bytes": 136825,
+      "sha256": "08b4e505727c9fc9d5c5478f553f84295002cd470415c189647fdb90220f529f"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/poster.jpg",
+      "bytes": 194822,
+      "sha256": "d5a74e7116af9f58ab968ecdd030463b6ec4c49674afc8337d667e63657e0ea7"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_baseball.jpg",
+      "bytes": 72077,
+      "sha256": "54d6a780f2b410709c9b08ee6f357603a1750c505a9cb2ad0baca67e1c95954e"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_basketball.jpg",
+      "bytes": 77680,
+      "sha256": "f47fd8545b692374b5e11aa2e0f35e22fae54af75d4aca5fd212a249dd3f9623"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_football.jpg",
+      "bytes": 88080,
+      "sha256": "527eae1ae7b851a08c7119291b4a5182bd706e334ea52505e6f6d6b6705ef34f"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_golf.jpg",
+      "bytes": 84696,
+      "sha256": "8fc1d59f5f8b6bfbcf35ff2ee9c58ed57d9e1a45f2021189ce5c969ec30b2958"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_pickleball.jpg",
+      "bytes": 107788,
+      "sha256": "7a5256c85a850c7d44880e581573aed52652838441d49884dfe1c46d636601c2"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_run.jpg",
+      "bytes": 70627,
+      "sha256": "cba250fb6e9f708c9b01985682b21e946deb3f7a91e7c9a4081325d59de250b3"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_soccer.jpg",
+      "bytes": 64760,
+      "sha256": "145bade21b029a15eddcc1c3318c7045e97005cad20cb5a3ffe302f0bbef9360"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_swim.jpg",
+      "bytes": 75109,
+      "sha256": "6cf3b7c8da35e039949310a212f2e0f4fcf844a2f9fd9439a0e27ddec16781b5"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/sp_tennis.jpg",
+      "bytes": 99325,
+      "sha256": "1cb6c14895f786c26cbbc6ae7d8dc1115eb79108fbd4e5da1d92efc91d650821"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/w_ask.webp",
+      "bytes": 45270,
+      "sha256": "babc57b83888692bc04b9e18a04f1d86e60a7da5471b686e8689f1fb67c61620"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/w_mirror.webp",
+      "bytes": 61448,
+      "sha256": "593bcbfdcf00f4a1eb8123d19005077a5574f021913678a6fb57a0e7784a7360"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/w_seal_tall_v.webp",
+      "bytes": 151318,
+      "sha256": "c22d6f53e2669fe3d3e6c46a2e6444e305174b197552613ed27de0a13237f72b"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/walkin.jpg",
+      "bytes": 581822,
+      "sha256": "dbd1497a48c612b38e366ec65f1b02cb018eb26b8ea2ca1157803c048087398f"
+    },
+    {
+      "path": "assets/aforce-os/julius/img/walkin_m.jpg",
+      "bytes": 558778,
+      "sha256": "123800016db51095f3cb612a11019f9d4c534088b1b4ad483e8c59944c6b3340"
+    },
+    {
+      "path": "assets/aforce-os/julius/page.css",
+      "bytes": 27754,
+      "sha256": "06829bc4a6fe0a45688caf3e447564d2bcd0ea72cc22997ead8df326e0065c46"
+    },
+    {
+      "path": "assets/aforce-os/julius/page.js",
+      "bytes": 32886,
+      "sha256": "553bd6e757ea279853c3d647db7eeb5c7349734429da78fedfd130fe1ae9c707"
+    },
+    {
+      "path": "assets/aforce-os/julius/pause_1080.mp4",
+      "bytes": 4776758,
+      "sha256": "7d7e5b8cbd980328b11f2a54a3420b8e44b0ed2b1bb214510d757833fc5a6d1f"
+    },
+    {
+      "path": "assets/aforce-os/julius/pause_1080.webm",
+      "bytes": 2212444,
+      "sha256": "cc05c76b934666dd6b9fe5b4ace2b9de59be4f8671ccb9ecaa81fc429a1ef86e"
+    }
+  ],
+  "subsequent_image_override": "The founder requested a clearer Go perform photo after the original restoration; see aforce-os-presenter-image.json for the Higgsfield desktop/mobile replacement."
+}

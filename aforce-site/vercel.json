@@ -58,6 +58,16 @@
   ],
   "redirects": [
     {
+      "source": "/os",
+      "destination": "/aforce-os",
+      "permanent": true
+    },
+    {
+      "source": "/os/",
+      "destination": "/aforce-os",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {

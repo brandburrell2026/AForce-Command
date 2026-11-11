@@ -13,6 +13,7 @@
  */
 
 import { speak as ttsSpeak, stop as ttsStop } from './ttsService';
+import { ordinaryDeliveryBlocked as quietMomentActive } from './quietDelivery';
 import { consumerCopyBlocked } from '@/utils/intelligence/languageGate/runtimeClaimScan';
 import { speakWithElevenLabs, stopElevenLabs } from './elevenLabsTts';
 import { resolvePersona } from './voicePersonaService';
@@ -108,6 +109,7 @@ export interface SpeakOpts {
  * lines land with controlled urgency without sounding excited.
  */
 export function speak(text: string, opts: SpeakOpts = {}): void {
+  if (quietMomentActive()) return;
   if (!enabled) return;
   if (effectiveCoachMode !== 'spoken') return;
   if (!text || !text.trim()) return;

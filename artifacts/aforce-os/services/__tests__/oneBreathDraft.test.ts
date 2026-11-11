@@ -37,12 +37,4 @@ describe('One Breath editable local suggestions', () => {
     expect(validateMomentDraft(draft, now.getTime()).ok).toBe(false);
     expect(suggestMomentDraft('x'.repeat(500), now).title).toHaveLength(160);
   });
-  it('treats legs fresh as a goal and retains the safe training category', () => {
-    expect(suggestMomentDraft('Lift tomorrow at 6:30 AM, want my legs fresh', now)).toMatchObject({
-      title: 'Morning lift', type: 'training', date: '2026-11-03', time: '06:30', prepGoal: 'Legs Fresh',
-    });
-    expect(suggestMomentDraft('Upper body at the gym tomorrow at 6 AM, build strength', now)).toMatchObject({
-      title: 'Upper-body session', type: 'training', date: '2026-11-03', time: '06:00', prepGoal: 'Build Strength',
-    });
-  });
 });

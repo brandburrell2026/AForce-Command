@@ -1,3 +1,4 @@
+import { MomentProposalPrefsControl } from '@/components/oneBreath/MomentProposalPrefsControl';
 /**
  * Notification Preferences screen.
  *
@@ -118,6 +119,7 @@ export function NotificationsScreenV2() {
           </View>
 
           {momentsOn && notificationSettings.momentPrep ? <MomentPrepPrefsCard /> : null}
+          {momentsOn ? <MomentProposalPrefsControl /> : null}
 
           <Text style={styles.footnote}>{t('notifications.v2.footnote')}</Text>
         </ScrollView>

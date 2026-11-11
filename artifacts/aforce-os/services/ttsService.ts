@@ -10,6 +10,7 @@
  * voice when one is installed.
  */
 
+import { ordinaryDeliveryBlocked as quietMomentActive } from './quietDelivery';
 import * as Speech from 'expo-speech';
 import { getVoiceLocale, type SupportedLanguage } from './i18nService';
 
@@ -30,7 +31,7 @@ let lastSpoken: { text: string; at: number } | null = null;
  * over a 500ms window so a re-render doesn't double-trigger the speaker.
  */
 export async function speak(text: string, opts: SpeakOptions = {}): Promise<void> {
-  if (!text || !text.trim()) return;
+  if (quietMomentActive() || !text || !text.trim()) return;
   const now = Date.now();
   if (lastSpoken && lastSpoken.text === text && now - lastSpoken.at < 500) return;
   lastSpoken = { text, at: now };

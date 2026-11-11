@@ -1,3 +1,4 @@
+import { scheduleOutsideQuiet } from './quietDelivery';
 /**
  * Push notifications — native bridge for the Day 0/1/3/7 cadence.
  *
@@ -57,6 +58,10 @@ export async function ensureForegroundHandler(): Promise<void> {
   if (!Notif) return;
   Notif.setNotificationHandler({
     handleNotification: async notification => {
+      const { ordinaryDeliveryBlocked: quietMomentActive } = await import('./quietDelivery');
+      if (quietMomentActive() && notification.request.content.data?.kind !== 'safety') {
+        return {shouldShowBanner:false,shouldShowList:false,shouldPlaySound:false,shouldSetBadge:false};
+      }
       const data=notification.request.content.data;
       if(data?.kind==='travel.status.v2'||data?.kind==='travel.preparation.v2'){
         const {getScopeState}=await import('@/services/userScope');const identity=getScopeState();
@@ -145,7 +150,7 @@ export async function scheduleCadenceNotifications(
       // Day 4 still receives Day 3 (the in-app banner does the same).
       const seconds = Math.max(1, Math.round((dueMs - now) / 1000));
       try {
-        await Notif.scheduleNotificationAsync({
+        await scheduleOutsideQuiet(() => Notif.scheduleNotificationAsync({
           identifier: slotTag(slot.day),
           content: {
             // Copy comes from the slot itself — deriveScheduledNotifications
@@ -160,7 +165,7 @@ export async function scheduleCadenceNotifications(
             seconds,
             repeats: false,
           },
-        });
+        }));
       } catch {
         // swallow — the in-app banner remains the source of truth
       }

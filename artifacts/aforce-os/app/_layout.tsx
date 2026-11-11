@@ -1,8 +1,13 @@
-import { TravelLifecycleMount } from '@/components/travel/TravelLifecycleMount';
+import { useLaunchPhase, type LaunchPhase } from '@/hooks/useLaunchPhase';
 import '../polyfills';
+import { useMomentsStore } from '@/services/momentsStore';
+import { useQuietDeliveryBlocked } from '@/services/quietDelivery';
+import { useMomentSafetyExpiry } from '@/hooks/useMomentSafetyExpiry';
+import { TravelLifecycleMount } from '@/components/travel/TravelLifecycleMount';
 import { setBaseUrl } from '@workspace/api-client-react';
 import { apiOrigin } from '@/lib/apiBase';
 import {
+  Inter_300Light,
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
@@ -218,6 +223,11 @@ function InvestorDemoMount() {
  * hook can read the store. Never dispatches / never touches score
  * (Score-Protection); see hooks/useCommandLedgerSync.ts.
  */
+function MomentPrivacyMaintenanceMount() {
+  useMomentSafetyExpiry();
+  return null;
+}
+
 function CommandLedgerSyncMount() {
   useCommandLedgerSync();
   return null;
@@ -233,6 +243,8 @@ function CommandLedgerSyncMount() {
  * score (Score-Protection): the opening never awards or mutates score.
  */
 function OpeningMount({ onDone }: { onDone: () => void }) {
+  const { hydrated: momentsHydrated } = useMomentsStore();
+  const quiet = useQuietDeliveryBlocked();
   const { t } = useTranslation();
   const engine = useEngineSlice();
   // WAVE-5 EVIDENCE GATE, applied here too. Build 60 opened on a confident
@@ -259,7 +271,8 @@ function OpeningMount({ onDone }: { onDone: () => void }) {
     setVisible(false);
     onDone();
   }, [onDone]);
-  if (!visible) return null;
+  React.useEffect(() => { if (quiet && momentsHydrated) handleFinish(); }, [quiet, momentsHydrated, handleFinish]);
+  if (!visible || quiet) return null;
   return (
     <OpeningSequence
       readinessScore={shownScore}
@@ -294,6 +307,7 @@ function OpeningMount({ onDone }: { onDone: () => void }) {
  */
 function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
   const flags = useFeatureFlags();
+  const quiet = useQuietDeliveryBlocked();
   const pathname = usePathname();
   const { isDue, hydrated, complete, snooze, snoozedUntilMs } = useVoiceCheckIn();
 
@@ -320,6 +334,7 @@ function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
     !pathname.startsWith('/onboarding') && !pathname.startsWith('/sign');
 
   const gatesOpen =
+    !quiet &&
     flags.voice_checkin_enabled &&
     hydrated &&
     onboardingComplete &&
@@ -343,7 +358,7 @@ function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
     return () => clearTimeout(id);
   }, [activated, gatesOpen, isDue, snoozedUntilMs]);
 
-  if (!activated) return null;
+  if (!activated || quiet) return null;
 
   return (
     <VoiceCheckInOverlay
@@ -382,6 +397,11 @@ function WelcomeMount({
   phase: LaunchPhase;
   onEntered: () => void;
 }) {
+  const quiet = useQuietDeliveryBlocked();
+  const { hydrated: momentsHydrated } = useMomentsStore();
+  React.useEffect(() => {
+    if (quiet && momentsHydrated && phase !== 'done') onEntered();
+  }, [quiet, momentsHydrated, phase, onEntered]);
   const onGetStarted = React.useCallback(() => {
     router.replace('/onboarding' as never);
     onEntered();
@@ -391,7 +411,7 @@ function WelcomeMount({
     onEntered();
   }, [onEntered]);
 
-  if (phase === 'done') return null;
+  if (phase === 'done' || quiet) return null;
   return (
     <WelcomeHero
       active={phase === 'welcome'}
@@ -407,7 +427,6 @@ function WelcomeMount({
  * user picks an entry the front door dismisses (`done`) and the downstream
  * voice overlays are allowed to mount.
  */
-type LaunchPhase = 'opening' | 'welcome' | 'done';
 
 function AppShell() {
   // Cold-launch front-door state machine: opening → welcome → done. The
@@ -415,11 +434,7 @@ function AppShell() {
   // top-most overlays never stack on a cold launch. CAPTURE_MODE (dev-only
   // screenshot bypass) starts at 'done' so the cinematic + Welcome Hero
   // overlays never cover the surface being captured.
-  const [phase, setPhase] = React.useState<LaunchPhase>(CAPTURE_MODE ? 'done' : 'opening');
-  // Cinematic finished → crossfade into the Welcome Hero.
-  const handleOpeningDone = React.useCallback(() => setPhase('welcome'), []);
-  // User picked an entry → dismiss the hero, ungate downstream overlays.
-  const handleEntered = React.useCallback(() => setPhase('done'), []);
+  const { phase, handleOpeningDone, handleEntered } = useLaunchPhase(CAPTURE_MODE);
   const openingDone = phase === 'done';
   return (
     <SafeAreaProvider>
@@ -451,6 +466,7 @@ function AppShell() {
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
                   <TravelLifecycleMount />
+                  <MomentPrivacyMaintenanceMount />
                   {/* Records acquisition QR / activation deep-links; no routing. */}
                   <ActivationDeepLinkObserver />
                   {/* Read-only bridge: mirrors live runtime sources into the
@@ -494,6 +510,7 @@ function AppShell() {
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
+    Inter_300Light,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,

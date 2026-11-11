@@ -22,6 +22,7 @@ import {
   ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS,
   SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
   CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
+  GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 } from '../internalTestflightOverlay';
 
 const RC2_FIVE = [
@@ -77,9 +78,10 @@ const SKINIA_ONE = ['advanced_visual_intelligence_enabled'] as const;
 
 // PR-003 D-05 (founder ruling 2026-10-05): AForce Concierge joins the internal build.
 const CONCIERGE_ONE = ['ai_concierge_enabled'] as const;
+const GENTLE_HYDRATION_ONE = ['gentle_hydration_mode_enabled'] as const;
 
 /** What the internal build actually flips: the union (ten keys), in ruling order. */
-const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_PARTNER_TWO, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE, ...CONCIERGE_ONE] as const;
+const ALL_GRANTED = [...RC2_FIVE, ...EDITORIAL_PARTNER_TWO, ...ENVIRONMENTAL_TWO, ...SKINIA_ONE, ...CONCIERGE_ONE, ...GENTLE_HYDRATION_ONE] as const;
 
 /** Every key that differs between two flag objects, sorted for a stable diff. */
 function changedKeys(before: FeatureFlags, after: FeatureFlags): string[] {
@@ -103,13 +105,14 @@ describe('INTERNAL_TESTFLIGHT_OVERLAY_FLAGS (RC-2 Ruling A)', () => {
     expect([...ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS]).toEqual([...ENVIRONMENTAL_TWO]);
     expect([...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...SKINIA_ONE]);
     expect([...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS]).toEqual([...CONCIERGE_ONE]);
+    expect([...GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...GENTLE_HYDRATION_ONE]);
     expect([...INTERNAL_TESTFLIGHT_OVERLAY_FLAGS]).toEqual([...ALL_GRANTED]);
   });
 
   it('THE SETS ARE DISJOINT — no key is granted twice or silently moved', () => {
     const sets = [RC2_OVERLAY_FLAGS, EDITORIAL_PARTNER_OVERLAY_FLAGS,
       ENVIRONMENTAL_INTERNAL_OVERLAY_FLAGS, SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
-      CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS];
+      CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS, GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS];
     const seen = new Set<string>();
     for (const set of sets) {
       for (const key of set) {

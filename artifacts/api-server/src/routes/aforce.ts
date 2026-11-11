@@ -28,7 +28,6 @@ import healthRecordsRouter from "./aforce/healthRecords";
 import achievementsRouter from "./aforce/achievements";
 import analyticsRouter from "./aforce/analytics";
 import analyticsIdentityRouter from "./aforce/analyticsIdentity";
-import recordedDrinksRouter from "./aforce/recordedDrinks";
 
 const router: IRouter = Router();
 
@@ -38,7 +37,6 @@ router.use(requireAuth);
 
 router.use(stateRouter);
 router.use(intakeRouter);
-router.use(recordedDrinksRouter);
 router.use(statusRouter);
 router.use(socialRouter);
 router.use(journalRouter);

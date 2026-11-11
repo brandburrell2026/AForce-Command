@@ -25,18 +25,12 @@ function field(label: string, value: string) {
   act(() => { setter.call(el, value); el.dispatchEvent(new Event('input', { bubbles: true })); });
 }
 function click(label: string) { act(() => button(label).click()); }
-function seal() {
-  act(() => { vi.advanceTimersByTime(800); });
-  field('Say or type a confirmation', 'Seal it');
-  click('Send phrase');
-}
 beforeEach(() => {
-  vi.useFakeTimers();
   harness.add.mockReset(); harness.current = true;
   host = document.createElement('div'); document.body.append(host); root = createRoot(host);
   act(() => root.render(<ConfirmMomentScreen />));
 });
-afterEach(() => { act(() => root.unmount()); host.remove(); vi.useRealTimers(); });
+afterEach(() => { act(() => root.unmount()); host.remove(); });
 function review() { field('Describe your moment', 'Dinner with team'); click('Review my moment'); }
 describe('Moment draft → review → explicit confirmation', () => {
   it('opens and closes help without writing a Moment or losing the draft', () => {
@@ -62,32 +56,21 @@ describe('Moment draft → review → explicit confirmation', () => {
     expect(harness.add).not.toHaveBeenCalled();
     expect((host.querySelector('[aria-label="Time · HH:mm"]') as HTMLInputElement).value).toBe('19:00');
     field('Moment name', 'One Breath test'); field('Date · YYYY-MM-DD', '2027-01-08');
-    seal();
+    const confirm = button('Confirm plan'); act(() => { confirm.click(); confirm.click(); });
     expect(harness.add).toHaveBeenCalledTimes(1); expect(harness.add.mock.calls[0]![0].title).toBe('One Breath test');
   });
   it('allows editing/cancel without any canonical write, blocks incomplete forms, then commits once', () => {
     review(); expect(harness.add).not.toHaveBeenCalled();
-    seal(); expect(harness.add).not.toHaveBeenCalled();
+    click('Confirm plan'); expect(harness.add).not.toHaveBeenCalled();
     expect(host.textContent).toContain('Choose a date');
     field('Moment name', 'Team dinner'); field('Date · YYYY-MM-DD', '2027-01-08'); field('Time · HH:mm', '19:30');
-    seal(); expect(harness.add).toHaveBeenCalledTimes(1);
+    click('Confirm plan'); expect(harness.add).toHaveBeenCalledTimes(1);
     expect(harness.add.mock.calls[0]![0]).toMatchObject({ source: 'manual', title: 'Team dinner', type: 'personal' });
     expect(host.textContent).toContain('In your plan.');
   });
-  it('opens a seven-second sealing window only after read-back and ignores an early Seal it', () => {
-    review();
-    field('Moment name', 'Morning lift'); field('Date · YYYY-MM-DD', '2027-01-08'); field('Time · HH:mm', '06:30');
-    field('Say or type a confirmation', 'Seal it'); click('Send phrase');
-    expect(harness.add).not.toHaveBeenCalled();
-    expect(host.textContent).toContain("Heard 'seal it' outside the window");
-    act(() => { vi.advanceTimersByTime(800); });
-    expect(host.textContent).toContain('Listening for “Seal it” · 7s');
-    field('Say or type a confirmation', 'Seal it'); click('Send phrase');
-    expect(harness.add).toHaveBeenCalledTimes(1);
-  });
   it('returns to the draft without saving and refuses a confirmation after account changes', () => {
     review(); click('Back to draft'); expect(harness.add).not.toHaveBeenCalled();
-    click('Review my moment'); harness.current = false; seal();
+    click('Review my moment'); harness.current = false; click('Confirm plan');
     expect(host.textContent).toContain('Your account changed'); expect(harness.add).not.toHaveBeenCalled();
   });
 });

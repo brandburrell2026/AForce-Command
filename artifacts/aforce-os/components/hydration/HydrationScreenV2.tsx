@@ -35,7 +35,7 @@
  * action, still absent while ai_concierge_enabled is off).
  */
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
@@ -61,10 +61,9 @@ import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
-import { DrinkChoiceModal, type NonWaterDrinkChoice } from '@/components/DrinkChoiceModal';
-import { getRecordedDrinks, postRecordedDrink, type RecordedDrink } from '@/services/realApi';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { GentleHydrationModeCard } from './GentleHydrationModeCard';
+import { DEFAULT_GENTLE_HYDRATION_MODE, type GentleHydrationModeState } from '@/services/gentleHydrationMode';
 import { fireMoment } from '@/services/haptics';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -131,9 +130,17 @@ export function HydrationScreenV2() {
   const { userState } = state;
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
-  const [drinkPickerOpen, setDrinkPickerOpen] = React.useState(false);
-  const [isRecordingDrink, setIsRecordingDrink] = React.useState(false);
-  const [recordedDrinks, setRecordedDrinks] = React.useState<RecordedDrink[]>([]);
+  const [gentleMode, setGentleMode] = React.useState<GentleHydrationModeState>(DEFAULT_GENTLE_HYDRATION_MODE);
+  // A birth year alone cannot confirm whether someone who turns 18 this year
+  // has already had their birthday. Keep the optional context hidden unless
+  // the available data proves adulthood without that ambiguity.
+  const showGlp1Context =
+    typeof state.profileIdentity?.birthYear === 'number' &&
+    new Date().getFullYear() - state.profileIdentity.birthYear > 18;
+
+  React.useEffect(() => {
+    if (!flags.gentle_hydration_mode_enabled) setGentleMode(DEFAULT_GENTLE_HYDRATION_MODE);
+  }, [flags.gentle_hydration_mode_enabled]);
 
   // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
   // one frame both close over a pre-render `logIntake` whose own
@@ -148,36 +155,6 @@ export function HydrationScreenV2() {
 
   const cancelWaterPicker = React.useCallback(() => {
     setWaterPickerOpen(false);
-  }, []);
-
-  const openDrinkPicker = React.useCallback(() => {
-    if (isCompletingCycle || confirmInFlightRef.current || showCycleSuccess || isRecordingDrink) return;
-    setDrinkPickerOpen(true);
-  }, [isCompletingCycle, showCycleSuccess, isRecordingDrink]);
-
-  const recordNonWaterDrink = React.useCallback(async (choice: NonWaterDrinkChoice, ozAmount: number) => {
-    if (isRecordingDrink) return;
-    setIsRecordingDrink(true);
-    try {
-      const drink = await postRecordedDrink({ ...choice, ozAmount, entrySource: 'hydration' });
-      setRecordedDrinks((current) => [drink, ...current.filter((item) => item.id !== drink.id)].slice(0, 10));
-      setDrinkPickerOpen(false);
-      Alert.alert('Saved to your log', 'It moves HydroState once its drink rule is approved.');
-    } catch {
-      Alert.alert('Could not save drink', 'Your HydroState has not changed. Please try again.');
-    } finally {
-      setIsRecordingDrink(false);
-    }
-  }, [isRecordingDrink]);
-
-  // The separate log is supplementary history only. If it cannot load, Hydration
-  // remains usable and never substitutes a record with a HydroState estimate.
-  React.useEffect(() => {
-    let current = true;
-    void getRecordedDrinks(10)
-      .then((drinks) => { if (current) setRecordedDrinks(drinks); })
-      .catch(() => {});
-    return () => { current = false; };
   }, []);
 
   // THE ONLY PLACE THIS SCREEN LOGS. The amount is the member's explicit
@@ -359,17 +336,16 @@ export function HydrationScreenV2() {
       <View style={styles.actions}>
         <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
         <AFSecondaryButton
-          label="Log a drink"
+          label={t('hydration.v2.log_manually')}
           testID="hydration-log-manually"
-          onPress={openDrinkPicker}
+          onPress={openWaterPicker}
         />
       </View>
 
       {flags.gentle_hydration_mode_enabled ? (
         <GentleHydrationModeCard
-          onLogWater={openWaterPicker}
-          ozConsumedToday={userState.ozConsumedToday}
-          ozTarget={userState.ozTarget}
+          showGlp1Context={showGlp1Context}
+          onModeChange={setGentleMode}
         />
       ) : null}
 
@@ -415,37 +391,8 @@ export function HydrationScreenV2() {
         )}
       </View>
 
-      {recordedDrinks.length > 0 ? (
-        <View style={styles.section}>
-          <AFSectionLabel label="SAVED DRINKS" meta="NO HYDROSTATE CHANGE" />
-          <AFCard padded={false} style={styles.recentCard}>
-            {recordedDrinks.slice(0, 5).map((drink, index) => {
-              const when = intakeWhen(drink.recordedAt, i18n.language, {
-                today: t('hydration.v2.today'),
-                yesterday: t('hydration.v2.yesterday'),
-              });
-              return (
-                <View
-                  key={drink.id}
-                  style={[styles.intakeRow, index < Math.min(recordedDrinks.length, 5) - 1 && styles.intakeRowRuled]}
-                  accessible
-                  accessibilityLabel={`${drink.displayName}, ${when.text}, ${Math.round(drink.ozAmount)} ounces, saved to log only`}
-                >
-                  <View style={styles.intakeDot} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
-                  <View style={styles.intakeText}>
-                    <Text style={styles.intakeTitle}>{drink.displayName}</Text>
-                    <Text style={[styles.intakeWhen, eyebrowType]}>{when.text.toUpperCase()}</Text>
-                  </View>
-                  <Text style={[styles.intakeAmount, eyebrowType]}>LOGGED ONLY</Text>
-                </View>
-              );
-            })}
-          </AFCard>
-        </View>
-      ) : null}
-
-      {/* 7-day strip (streak, honest) */}
-      <View style={styles.section}>
+      {/* 7-day strip (streak, honest); private presentation may hide it. */}
+      {!gentleMode.pauseStreakDisplay ? <View style={styles.section}>
         {/* No count caption: `streak` is the target-met compliance streak,
             not a count of days logged (PR #1090 review B1) — the dots and
             their per-day labels carry what is known. */}
@@ -508,23 +455,12 @@ export function HydrationScreenV2() {
             testID="hydration-v2-history-link"
           />
         </AFCard>
-      </View>
+      </View> : null}
 
       </AFScreen>
 
       {/* Amount is an explicit member choice; cancel/backdrop/hardware-back
           all write nothing (WaterAmountModal routes them to one handler). */}
-      <DrinkChoiceModal
-        visible={drinkPickerOpen}
-        onCancel={() => setDrinkPickerOpen(false)}
-        onWater={() => {
-          setDrinkPickerOpen(false);
-          openWaterPicker();
-        }}
-        onRecord={recordNonWaterDrink}
-        isSaving={isRecordingDrink}
-      />
-
       <WaterAmountModal
         visible={waterPickerOpen}
         accentColor={af.red}
