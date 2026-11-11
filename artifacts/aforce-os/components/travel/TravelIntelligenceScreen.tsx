@@ -27,6 +27,7 @@ import {
   localTravelTime,
 } from "@/services/travel/intelligence";
 import { resolveDepartureZone } from "@/services/travel/airportTimeZone";
+import { TravelJourneySection } from "./TravelJourneySection";
 import {
   travelDeviceId,
   travelPushRegistration,
@@ -216,6 +217,11 @@ export function TravelIntelligenceScreen() {
         separate until you review and accept them. AForce’s existing guidance
         remains your preparation source.
       </Text>
+      <TravelJourneySection
+        travel={travel}
+        busy={busy}
+        run={(task, success) => void act(task, success)}
+      />
       {message ? (
         <Text accessibilityRole="alert" style={styles.message}>
           {message}
