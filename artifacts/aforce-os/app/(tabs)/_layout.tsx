@@ -27,7 +27,7 @@ import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { Icon } from '../../components/Icon';
-import { Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
 import { afEyebrowAt } from '@/theme/afTokens';
@@ -188,7 +188,44 @@ const plainTabButtonStyles = StyleSheet.create({
     borderRadius: 1,
     backgroundColor: Colors.tabBar.active,
   },
+  oneBreathOrb: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent.primary,
+    shadowColor: Colors.accent.primary,
+    shadowOpacity: 0.42,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  oneBreathOrbIdle: {
+    backgroundColor: Colors.tabBar.inactive,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  oneBreathMark: {
+    color: Colors.bone,
+    fontFamily: Typography.fonts.bold,
+    fontSize: 8,
+    letterSpacing: -0.4,
+  },
 });
+
+/** The website's red orb carries the One Breath action through every tab state. */
+function OneBreathTabIcon({ focused }: { focused: boolean }) {
+  return (
+    <View
+      style={[plainTabButtonStyles.oneBreathOrb, !focused && plainTabButtonStyles.oneBreathOrbIdle]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <Text style={plainTabButtonStyles.oneBreathMark}>N–И</Text>
+    </View>
+  );
+}
 
 function ClassicTabLayout() {
   const { t } = useTranslation();
@@ -278,9 +315,7 @@ function ClassicTabLayout() {
         name="one-breath-tab"
         options={{
           title: 'One Breath',
-          tabBarIcon: ({ color, size, focused }) => isIOS
-            ? <SymbolView name={focused ? 'circle.fill' : 'circle'} tintColor={color} size={size} />
-            : <Icon name="circle" size={22} color={color} />,
+          tabBarIcon: ({ focused }) => <OneBreathTabIcon focused={focused} />,
         }}
       />
       <Tabs.Screen
