@@ -294,7 +294,7 @@ const s = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 5,
   },
-  selected: { backgroundColor: "#263966" },
+  selected: { backgroundColor: T.social[3] },
   week: { flexDirection: "row" },
   weekday: {
     width: "14.285714%",
