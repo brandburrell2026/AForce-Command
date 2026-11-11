@@ -60,3 +60,23 @@
  .hero .scroll-cue{position:relative!important;bottom:auto;width:100%;padding:0 24px 24px;margin:0;background:#0d0d0d}
  .hero > .afx-vid-toggle{position:absolute!important;top:calc(var(--afx-h-mobile,64px) + env(safe-area-inset-top,0px) + 56.25vw - 56px);bottom:auto;right:12px;z-index:4}
 }
+
+/* Keep the launch invitation in the first screen, before secondary ritual copy. */
+.hero{padding-top:112px;padding-bottom:76px;}
+.hero .pause-kicker{margin:22px 0 14px;}
+.hero .pause-promise{margin-top:18px;}
+.hero .hero-foot .cta-row{margin-top:22px;}
+.hero .pause-sequence{margin-top:18px;}
+.founding p.sub{margin-bottom:22px;}
+.launch-benefits{list-style:none;max-width:520px;margin:0 auto 30px;text-align:left;display:grid;gap:12px;}
+.launch-benefits li{font-size:15px;line-height:1.6;padding-left:22px;position:relative;}
+.launch-benefits li::before{content:'→';position:absolute;left:0;color:var(--red);}
+@media(max-width:1023.98px){
+ /* The shared header already occupies its own row. */
+ .hero{padding:0;}
+ .hero > .afx-vid-toggle{top:calc(56.25vw - 56px);}
+ .hero .hero-foot{padding:24px 24px 32px;}
+ .hero .pause-kicker{margin:16px 0 12px;}
+ .hero .pause-promise{font-size:16px;line-height:1.5;margin-top:16px;}
+ .hero .hero-foot .cta-row{margin-top:18px;}
+}
