@@ -1,0 +1,50 @@
+/* Homepage typography matched to the OS page's Inter system.
+   Source: /assets/aforce-os/julius/page.css (headings, .sub, .mono, .btn, nav).
+   Homepage composition, copy, imagery and destinations remain unchanged. */
+body.home-os-type{
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  font-feature-settings:"cv11","ss01";
+}
+.home-os-type .afx-footer{--ff-font:Inter,system-ui,-apple-system,sans-serif;}
+.home-os-type main h1,.home-os-type main h2,.home-os-type main h3{
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  font-weight:300;
+  letter-spacing:-.035em;
+  line-height:1;
+}
+.home-os-type .hero .hero-foot h1{font-weight:300;letter-spacing:-.045em;line-height:1;}
+.home-os-type main h3{letter-spacing:-.025em;line-height:1.08;}
+.home-os-type .section-title,.home-os-type .pv-section h2,.home-os-type .community-heading h2{
+  font-size:clamp(34px,4.6vw,72px);
+}
+.home-os-type .founder-story h2{font-size:clamp(34px,4.6vw,72px);}
+.home-os-type .pause-promise,.home-os-type .pause-intro,.home-os-type .pv-lead,
+.home-os-type .founder-story-body,.home-os-type .founding p.sub{
+  font-size:clamp(17px,1.45vw,20px);font-weight:400;line-height:1.55;
+}
+.home-os-type .community-review blockquote p{font-size:17px;line-height:1.55;}
+.home-os-type .ritual-item p,.home-os-type .launch-benefits li{font-size:17px;line-height:1.55;}
+.home-os-type .eyebrow-label,.home-os-type .pause-kicker,.home-os-type .hero-taxonomy,
+.home-os-type .pv-eyebrow,.home-os-type .community-eyebrow,.home-os-type .pause-sequence{
+  font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;letter-spacing:.08em;line-height:1.5;
+}
+.home-os-type .btn,.home-os-type .pv-button,.home-os-type .pv-outline,.home-os-type .founding button{
+  font:500 15px/1 Inter,system-ui,sans-serif;letter-spacing:normal;text-transform:none;min-height:52px;
+}
+.home-os-type .afx-nav .afx-links a{
+  font:400 14px Inter,system-ui,sans-serif!important;letter-spacing:normal!important;text-transform:none!important;
+}
+.home-os-type .afx-nav .afx-shop{font:500 13px Inter,system-ui,sans-serif!important;letter-spacing:normal;text-transform:none;}
+.home-os-type .afx-nav .afx-panel a{font-family:Inter,system-ui,sans-serif;}
+.home-os-type .founding input{font:400 16px Inter,system-ui,sans-serif;}
+.home-os-type .founding>a{font:500 15px/1.4 Inter,system-ui,sans-serif!important;letter-spacing:normal!important;text-transform:none!important;}
+.home-os-type .minor-cta,.home-os-type .pv-text-link{font-family:Inter,system-ui,sans-serif;font-weight:500;letter-spacing:normal;text-transform:none;}
+.home-os-type .pv-faq summary,.home-os-type .community-review figcaption strong{font-weight:500;}
+@media(max-width:680px){
+ .home-os-type .pause-promise{font-size:17px;}
+ .home-os-type .pause-sequence{font-size:11px;}
+}
