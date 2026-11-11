@@ -1,0 +1,815 @@
+:root {
+  --os-ink: #f0ece4;
+  --os-bg: #090b0a;
+  --os-muted: #aaa99f;
+  --os-red: #c1281b;
+  --afx-surface: #090b0a;
+  --afx-on-surface: #f0ece4;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
+}
+body {
+  margin: 0;
+  background: var(--os-bg);
+  color: var(--os-ink);
+  font-family: Inter, system-ui, sans-serif;
+}
+.os-page {
+  overflow: clip;
+}
+.os-page [hidden] {
+  display: none !important;
+}
+.os-page h1,
+.os-page h2,
+.os-page h3,
+.os-page p {
+  margin: 0;
+}
+.os-page h1 {
+  font-size: clamp(52px, 6.8vw, 94px);
+  font-weight: 500;
+  line-height: 1.03;
+  letter-spacing: -0.065em;
+}
+.os-page h2 {
+  font-size: clamp(36px, 4.7vw, 64px);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.05em;
+}
+.os-page h3 {
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+.os-page p {
+  font-size: 17px;
+  line-height: 1.65;
+  color: #bbbdb5;
+}
+.os-page .lead {
+  font-size: 20px;
+  line-height: 1.6;
+}
+.os-page button,
+.os-page input {
+  font: inherit;
+}
+.os-page button,
+.os-page a {
+  touch-action: manipulation;
+}
+.os-page a {
+  color: inherit;
+}
+.os-page .eyebrow,
+.step-number {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.os-page .eyebrow {
+  color: #e38c80;
+  margin-bottom: 22px;
+}
+.os-page .quiet {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #a4a79d;
+}
+.os-wrap {
+  width: min(1200px, 100%);
+  margin-inline: auto;
+  padding-inline: 40px;
+}
+.os-page .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  padding: 13px 23px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+.primary {
+  background: #c1281b;
+  color: #fff !important;
+}
+.secondary {
+  border-color: #4a4e45 !important;
+  background: transparent;
+  color: var(--os-ink);
+}
+.dark {
+  background: #10130f;
+  color: #fff !important;
+}
+.os-page button:hover,
+.os-page .button:hover {
+  filter: brightness(1.15);
+}
+.os-page :focus-visible {
+  outline: 3px solid #edb09c;
+  outline-offset: 5px;
+}
+.os-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 68px;
+  align-items: center;
+  padding-block: 80px;
+}
+.hero-copy .lead {
+  margin-top: 28px;
+  max-width: 550px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 30px 20px;
+}
+.hero-visual {
+  position: relative;
+  min-height: 550px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: #20241e;
+}
+.hero-visual > img {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  object-fit: cover;
+}
+.hero-visual:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 35%, #000b);
+}
+.visual-caption {
+  position: absolute;
+  bottom: 30px;
+  left: 28px;
+  right: 24px;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+}
+.visual-caption span {
+  font:
+    10px "IBM Plex Mono",
+    monospace;
+  letter-spacing: 0.16em;
+}
+.visual-caption strong {
+  font-size: 25px;
+  font-weight: 400;
+}
+.os-local {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  padding-block: 22px;
+  border-top: 1px solid #2a2f26;
+  border-bottom: 1px solid #2a2f26;
+}
+.os-local a {
+  font-size: 13px;
+  text-decoration: none;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.demo-section {
+  padding-block: 105px;
+  background: radial-gradient(ellipse at 80% 50%, #23110e 0, transparent 48%);
+}
+.demo-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+.demo-copy > .lead {
+  margin-block: 25px 28px;
+}
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.presets button {
+  color: var(--os-ink);
+  background: #11150f;
+  border: 1px solid #3b4236;
+  border-radius: 10px;
+  padding: 14px 8px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  min-height: 74px;
+}
+.presets button[aria-pressed="true"] {
+  border-color: #dc7767;
+  background: #24130f;
+}
+.presets small {
+  display: block;
+  font-size: 10px;
+  color: #b9bdb2;
+  margin-top: 7px;
+}
+.os-page label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.input-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.input-row input {
+  min-width: 0;
+  flex: 1 1 240px;
+  width: 100%;
+  border: 1px solid #4a5141;
+  border-radius: 8px;
+  background: #11150f;
+  color: #fff;
+  padding: 15px;
+  font-size: 16px;
+}
+.input-row .button {
+  flex: 1 0 auto;
+}
+#moment-error {
+  color: #ffb5a6;
+  font-size: 13px;
+  min-height: 24px;
+  margin-top: 8px;
+}
+.demo-disclosure {
+  font-size: 12px !important;
+  color: #a9aea0 !important;
+  margin-top: 18px !important;
+}
+.demo-copy details {
+  margin-top: 20px;
+  border-top: 1px solid #333a2c;
+  padding-top: 16px;
+}
+.demo-copy summary {
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.demo-copy details p {
+  font-size: 13px;
+  margin-top: 10px;
+}
+.phone-area {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+.phone {
+  background: #080b08;
+  border: 8px solid #292c25;
+  border-radius: 46px;
+  width: min(100%, 352px);
+  min-height: 640px;
+  box-shadow: 0 30px 90px #0007;
+  padding: 34px 22px 20px;
+  position: relative;
+}
+.phone:before {
+  content: "";
+  width: 88px;
+  height: 20px;
+  background: #000;
+  border-radius: 20px;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.phone-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  margin-block: 4px 28px;
+}
+.phone-top b {
+  font-size: 10px;
+  color: #e67d6b;
+}
+.preview-tag {
+  font:
+    9px "IBM Plex Mono",
+    monospace;
+  color: #aaa;
+}
+.phone h3 {
+  font-size: 27px;
+  margin-bottom: 18px;
+}
+.phone .screen-label {
+  font:
+    10px "IBM Plex Mono",
+    monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #d18c80;
+  margin-bottom: 22px;
+}
+.phone p {
+  font-size: 13px;
+}
+.phone .phone-foot {
+  margin-top: 24px;
+  font-size: 10px;
+  color: #9fa494;
+  text-align: center;
+}
+.screen {
+  min-height: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.screen .spacer {
+  flex: 1;
+}
+.screen .button {
+  width: 100%;
+  font-size: 13px;
+}
+.sample-orb {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  border: 1px solid #e78977;
+  background: radial-gradient(circle at 35% 30%, #e7927c, #a51e13 75%);
+  box-shadow: 0 0 70px #c1281b22;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  color: #fff;
+  cursor: pointer;
+  margin: 28px 0 6px;
+}
+.sample-orb .nn-logo {
+  font-size: 40px;
+  color: #fff;
+}
+.text-button {
+  background: transparent;
+  border: 0;
+  color: #bfc3b7;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.phone textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  background: #141910;
+  border: 1px solid #4f5745;
+  border-radius: 10px;
+  padding: 12px;
+  color: white;
+  font:
+    16px Inter,
+    system-ui,
+    sans-serif;
+}
+.heard {
+  padding: 16px;
+  border: 1px solid #333c29;
+  border-radius: 12px;
+  background: #11170e;
+}
+.heard p + p {
+  margin-top: 12px;
+}
+.phone .muted {
+  color: #a5b098;
+  font-size: 11px;
+}
+.demo-schedule {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0;
+}
+.demo-schedule li {
+  display: grid;
+  grid-template-columns: 62px 1fr;
+  gap: 10px;
+  border-bottom: 1px solid #2c3425;
+  padding: 13px 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.demo-schedule time {
+  color: #d89180;
+  font:
+    11px "IBM Plex Mono",
+    monospace;
+}
+.demo-schedule small {
+  display: block;
+  font-size: 10px;
+  color: #a4ad99;
+}
+.screen .privacy-note {
+  font-size: 10px;
+  color: #b3baa7;
+}
+.seal-hold {
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+.seal-hold:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #fff2;
+  transform: scaleX(var(--hold, 0));
+  transform-origin: left;
+  pointer-events: none;
+}
+.reflect-options {
+  display: grid;
+  gap: 8px;
+}
+.reflect-options button {
+  background: #151c11;
+  border: 1px solid #48563b;
+  border-radius: 9px;
+  color: #f0ece4;
+  min-height: 46px;
+  text-align: left;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.approved-badge {
+  color: #c6d4af !important;
+}
+.walkthrough {
+  padding-block: 110px;
+}
+.section-intro {
+  max-width: 760px;
+  margin-bottom: 45px;
+}
+.section-intro > p:last-child {
+  margin-top: 24px;
+}
+.three-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+}
+.three-steps article {
+  border-top: 1px solid #444c3b;
+  padding-top: 24px;
+}
+.step-number {
+  color: #ce8678;
+}
+.three-steps h3 {
+  margin-block: 20px 16px;
+}
+.three-steps p {
+  font-size: 15px;
+}
+.change-section {
+  background: #12170e;
+  padding-block: 90px;
+}
+.change-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 90px;
+  align-items: center;
+}
+.change-layout h2 {
+  margin-bottom: 24px;
+}
+.change-layout .quiet {
+  margin-top: 20px;
+}
+.change-panel {
+  border: 1px solid #3d4832;
+  border-radius: 18px;
+  padding: 30px;
+}
+.change-panel h3 {
+  margin-top: 16px;
+}
+.schedule {
+  margin-block: 25px;
+}
+.schedule p {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  border-bottom: 1px solid #37402e;
+  padding-block: 16px;
+  font-size: 13px;
+}
+.schedule strong {
+  font-size: 12px;
+  font-weight: 400;
+  color: #e9d4c0;
+}
+.change-panel .button {
+  width: 100%;
+}
+#change-status {
+  font-size: 12px;
+  margin-top: 15px;
+}
+.film-section {
+  padding-block: 110px;
+}
+.film-section video {
+  display: block;
+  width: 100%;
+  max-height: 680px;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 3px;
+}
+.ritual-section {
+  padding-block: 100px;
+  background: #e9e7e1;
+  color: #131710;
+}
+.ritual-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 85px;
+  align-items: center;
+}
+.ritual-section p {
+  color: #4c5148;
+}
+.ritual-section .eyebrow {
+  color: #983526;
+}
+.ritual-section .ritual-line {
+  font-size: 20px;
+  margin-block: 24px 16px;
+  color: #20261b;
+}
+.ritual-section .button {
+  margin-block: 26px 20px;
+}
+.ritual-section .quiet {
+  color: #5b6254;
+}
+.product-stage {
+  padding: 20px 0;
+}
+.can-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.can-row img {
+  width: 30%;
+  height: 280px;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 15px #0002);
+}
+.can-row img:nth-child(2) {
+  transform: translateY(-20px);
+}
+.stick-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 15px;
+}
+.stick-row img {
+  width: 23%;
+  height: 160px;
+  object-fit: contain;
+  transform: rotate(12deg);
+}
+.circle-section {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 90px;
+  padding-block: 110px;
+}
+.circle-section h2 {
+  margin-bottom: 25px;
+}
+.circle-section p + p {
+  margin-top: 18px;
+}
+.text-link {
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 14px;
+}
+.circle-details p {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding-block: 20px;
+  border-bottom: 1px solid #38412d;
+  font-size: 13px;
+}
+.circle-details strong {
+  font-weight: 500;
+  color: #e3d6c7;
+  white-space: nowrap;
+}
+.circle-details .quiet {
+  display: block;
+  border: 0;
+}
+.access-section {
+  text-align: center;
+  padding-block: 100px;
+  border-top: 1px solid #2d3525;
+}
+.access-section > p:not(.eyebrow) {
+  max-width: 580px;
+  margin: 24px auto;
+}
+.access-section form {
+  margin-top: 32px !important;
+}
+.os-page button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+.os-page .no-js {
+  margin-top: 15px;
+}
+.afx-nav {
+  z-index: 50;
+}
+@media (min-width: 1400px) {
+  .hero-visual {
+    min-height: 610px;
+  }
+}
+@media (max-width: 1000px) {
+  .os-hero {
+    gap: 35px;
+  }
+  .demo-layout {
+    gap: 45px;
+  }
+  .os-wrap {
+    padding-inline: 28px;
+  }
+  .hero-visual {
+    min-height: 480px;
+  }
+  .change-layout,
+  .ritual-layout,
+  .circle-section {
+    gap: 45px;
+  }
+  .three-steps {
+    gap: 24px;
+  }
+}
+@media (max-width: 700px) {
+  html {
+    scroll-padding-top: 85px;
+  }
+  .os-wrap {
+    padding-inline: 22px;
+  }
+  .os-hero {
+    grid-template-columns: 1fr;
+    padding-block: 48px;
+    gap: 35px;
+  }
+  .os-page h1 {
+    font-size: clamp(48px, 12vw, 72px);
+  }
+  .os-page .lead {
+    font-size: 18px;
+  }
+  .hero-visual {
+    min-height: 360px;
+  }
+  .os-local {
+    gap: 12px 25px;
+  }
+  .demo-section {
+    padding-block: 65px;
+  }
+  .demo-layout {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+  .phone {
+    min-height: 610px;
+  }
+  .screen {
+    min-height: 430px;
+  }
+  .presets {
+    gap: 7px;
+  }
+  .presets button {
+    font-size: 12px;
+  }
+  .three-steps {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .walkthrough,
+  .film-section,
+  .circle-section {
+    padding-block: 70px;
+  }
+  .change-layout,
+  .ritual-layout,
+  .circle-section {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .change-section,
+  .ritual-section {
+    padding-block: 65px;
+  }
+  .change-panel {
+    padding: 23px;
+  }
+  .film-section video {
+    aspect-ratio: 4/3;
+  }
+  .can-row img {
+    height: 230px;
+  }
+  .stick-row img {
+    height: 140px;
+  }
+  .ritual-layout > div:last-child {
+    grid-row: 1;
+  }
+  .access-section {
+    padding-block: 70px;
+  }
+  .circle-details p {
+    gap: 12px;
+    font-size: 12px;
+  }
+  .os-page .eyebrow {
+    font-size: 10px;
+  }
+  .actions .button {
+    padding-inline: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
