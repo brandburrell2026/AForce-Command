@@ -161,7 +161,7 @@ $('#again').onclick=()=>{tone('');mode(0);act(null);scr('ask');$('#dQ').textCont
  btn.addEventListener('click',e=>{e.stopPropagation();if(on){stop(true)}else{taken=false;start()}});
  // Only intentional use of a control takes over. Focus can also move programmatically
  // during the demo, and touching the phone background may just be a mobile scroll.
- const take=e=>{if(taken||!e.isTrusted||bar.contains(e.target))return;if(!e.target.closest('button,input,a,.ring,.chip'))return;if(e.type==='keydown'&&['Shift','Control','Alt','Meta','Escape','Tab'].includes(e.key))return;if(on)stop(true);else taken=true};
+ const take=e=>{if(taken||!e.isTrusted||bar.contains(e.target))return;if(!e.target.closest('button,input,a,.ring,.chip'))return;if(e.type==='keydown'&&['Shift','Control','Alt','Meta','Escape'].includes(e.key))return;if(on)stop(true);else taken=true};
  ['click','keydown','input'].forEach(ev=>sec.addEventListener(ev,take,true));
  ring.addEventListener('pointerdown',take,true);
  const visible=()=>{const r=dev.getBoundingClientRect(),top=Math.max(80,r.top),bottom=Math.min(innerHeight,r.bottom);return bottom-top>=Math.min(r.height,innerHeight-80)*.2};
