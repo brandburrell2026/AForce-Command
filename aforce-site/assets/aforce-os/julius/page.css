@@ -297,3 +297,17 @@ button.dOrb{border:0;padding:0;cursor:pointer;color:#F7F4EF;font:inherit}button.
 @media (prefers-reduced-motion:reduce){.ph .vw img{animation:none!important}html{scroll-behavior:auto}.rv{opacity:1;transform:none;transition:none}.orb{animation:none}.stage .phs .ph{transition:none}}
 
 .skip-link{position:fixed;top:8px;left:8px;z-index:1000;background:var(--bone);color:var(--ink);padding:12px 18px;transform:translateY(-160%)}.skip-link:focus{transform:translateY(0)}
+
+/* Match the live homepage's Inter typography; keep the OS page composition. */
+h1,h2,h3{font-family:Inter,system-ui,-apple-system,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:1.08}
+.heroT h1{font-size:clamp(32px,3.3vw,48px);letter-spacing:-.045em;line-height:1.06}
+h2.xl,h2.lg{font-size:clamp(34px,5vw,64px)}
+h3.md{font-size:clamp(20px,2vw,28px);font-weight:600;letter-spacing:-.025em;line-height:1.16}
+.sub{font-size:clamp(16px,1.35vw,19px);line-height:1.65}
+.mono{font-size:11px;font-weight:700;letter-spacing:.24em;line-height:1.5}
+header nav{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.btn,.cbtn{font-family:Inter,system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;line-height:1.4}
+header .btn{font-size:11px;font-weight:700;letter-spacing:.08em}
+@media(max-width:680px){
+ .heroT h1{font-size:clamp(30px,7.4vw,40px)}
+}
