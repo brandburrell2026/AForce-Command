@@ -22,6 +22,8 @@ export interface TravelJourneyActions {
   onUndoArrival: () => void;
   onReady: () => void;
   onOpenPlan: (momentId: string) => void;
+  /** Opens the arrival card preview. Optional: absent = no share action. */
+  onShare?: () => void;
 }
 
 function useReduceMotion(): boolean {
@@ -114,6 +116,9 @@ export function TravelJourneyView({ view, actions }: { view: JourneyView; action
         {view.kind === 'arrival' ? <Action label="I’m ready" onPress={actions.onReady} busy={actions.busy} /> : null}
         {view.kind === 'arrival' && view.state.arrivalSource === 'member' ? (
           <Action label="I haven’t landed yet" onPress={actions.onUndoArrival} busy={actions.busy} />
+        ) : null}
+        {(view.kind === 'arrival' || view.kind === 'ready') && actions.onShare ? (
+          <Action label="Share your arrival" onPress={actions.onShare} busy={actions.busy} />
         ) : null}
       </View>
     </Animated.View>

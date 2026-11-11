@@ -35,7 +35,7 @@ beforeEach(() => {
   host = document.createElement('div');
   document.body.appendChild(host);
   root = createRoot(host);
-  actions = { busy: false, onConfirmArrival: vi.fn(), onUndoArrival: vi.fn(), onReady: vi.fn(), onOpenPlan: vi.fn() };
+  actions = { busy: false, onConfirmArrival: vi.fn(), onUndoArrival: vi.fn(), onReady: vi.fn(), onOpenPlan: vi.fn(), onShare: vi.fn() };
 });
 afterEach(() => {
   act(() => root.unmount());
@@ -70,6 +70,13 @@ it('arrival shows the city, the standard line, and opens the arrival Moment', as
   expect(actions.onReady).toHaveBeenCalledTimes(1);
   await act(async () => button('I haven’t landed yet')!.click());
   expect(actions.onUndoArrival).toHaveBeenCalledTimes(1);
+  await act(async () => button('Share your arrival')!.click());
+  expect(actions.onShare).toHaveBeenCalledTimes(1);
+});
+
+it('no share action before arrival', async () => {
+  await render(<TravelJourneyView view={viewAt('2026-11-12T13:25:00Z')} actions={actions} />);
+  expect(button('Share your arrival')).toBeUndefined();
 });
 
 it('preview never shows invented weather', async () => {

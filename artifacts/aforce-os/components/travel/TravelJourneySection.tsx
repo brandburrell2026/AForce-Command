@@ -15,7 +15,9 @@ import type { useTravelIntelligence } from '@/hooks/useTravelIntelligence';
 import { confirmArrival, confirmationsFor, legSnapshots, markReady, undoArrival } from '@/services/travel/arrival';
 import { getDestinationWeather } from '@/services/travel/destinationWeather';
 import { placeForAirport } from '@/utils/travel/cityRegistry';
+import { arrivalSharePayload } from '@/utils/travel/arrivalShare';
 import { focusTrip, journeyView } from '@/utils/travel/journeyPresentation';
+import { ArrivalShareSheet } from './ArrivalShareCard';
 import { TravelJourneyView } from './TravelJourneyView';
 
 type Travel = ReturnType<typeof useTravelIntelligence>;
@@ -40,6 +42,7 @@ export function TravelJourneySection({
 }) {
   const router = useRouter();
   const now = useMinuteTick();
+  const [shareOpen, setShareOpen] = React.useState(false);
   const doc = travel.query.data;
 
   const input = React.useMemo(() => {
@@ -73,8 +76,14 @@ export function TravelJourneySection({
   if (!view) return null;
 
   const tripId = view.tripId;
+  // Identity, not data: only the city name and atmosphere reach the card.
+  const sharePayload =
+    view.kind === 'arrival' || view.kind === 'ready'
+      ? arrivalSharePayload({ cityName: view.cityName, atmosphere: view.atmosphere })
+      : null;
 
   return (
+    <>
     <TravelJourneyView
       view={view}
       actions={{
@@ -89,7 +98,12 @@ export function TravelJourneySection({
           run(() => travel.write(markReady(travel.current(), tripId, new Date().toISOString())), 'Marked ready.'),
         // Same route the Moments list uses; the seal flow lives there.
         onOpenPlan: (momentId) => router.push(`/moment/${momentId}` as never),
+        onShare: sharePayload ? () => setShareOpen(true) : undefined,
       }}
     />
+    {sharePayload ? (
+      <ArrivalShareSheet payload={sharePayload} visible={shareOpen} onClose={() => setShareOpen(false)} />
+    ) : null}
+    </>
   );
 }
