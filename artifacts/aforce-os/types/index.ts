@@ -599,6 +599,8 @@ export interface FeatureFlags {
    * It does not alter targets, scoring, reminders, or Circle sharing.
    */
   gentle_hydration_mode_enabled: boolean;
+  /** Gentle in-app banner eligibility; dark until explicit review approval. */
+  gentle_hydration_prompts_enabled: boolean;
   /**
    * Wave-2 PR6: per-user local data isolation. ON → ClerkAuthBridge scopes
    * every durable personal store to the Clerk userId (plus one-shot legacy

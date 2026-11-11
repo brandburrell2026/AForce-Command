@@ -3,56 +3,37 @@ import {
   decideGentleHydrationPrompt,
   GENTLE_PROMPT_MIN_GAP_MINUTES,
 } from "../../gentleHydrationPromptPolicy";
-
-const baseline = {
-  releaseApproved: true,
-  modeEnabled: true,
-  paused: false,
-  goalComplete: false,
-  cadence: "gentle" as const,
+const base = {
+  promptsFeatureEnabled: true,
+  promptsEnabled: true,
+  appIsActive: true,
   now: new Date("2026-11-05T14:00:00"),
   promptsSentToday: 0,
   minutesSinceLastPrompt: null,
 };
-
 describe("Gentle Hydration prompt policy", () => {
-  it("fails closed until the release review explicitly approves prompts", () => {
+  it("fails closed behind the sub-flag", () =>
     expect(
-      decideGentleHydrationPrompt({ ...baseline, releaseApproved: false }),
-    ).toMatchObject({ eligible: false, reason: "review_required" });
-  });
-
-  it("never prompts during quiet hours, after completion, or when paused", () => {
+      decideGentleHydrationPrompt({ ...base, promptsFeatureEnabled: false }),
+    ).toMatchObject({ eligible: false, reason: "sub_flag_off" }));
+  it("enforces background, quiet hours, caps, and three-hour gap", () => {
+    expect(
+      decideGentleHydrationPrompt({ ...base, appIsActive: false }),
+    ).toMatchObject({ reason: "app_backgrounded" });
     expect(
       decideGentleHydrationPrompt({
-        ...baseline,
-        now: new Date("2026-11-05T23:00:00"),
+        ...base,
+        now: new Date("2026-11-05T21:00:00"),
       }),
-    ).toMatchObject({ eligible: false, reason: "quiet_hours" });
+    ).toMatchObject({ reason: "quiet_hours" });
     expect(
-      decideGentleHydrationPrompt({ ...baseline, goalComplete: true }),
-    ).toMatchObject({ eligible: false, reason: "goal_complete" });
-    expect(
-      decideGentleHydrationPrompt({ ...baseline, paused: true }),
-    ).toMatchObject({ eligible: false, reason: "paused" });
-  });
-
-  it("enforces a two-hour floor and a user-selected daily budget", () => {
+      decideGentleHydrationPrompt({ ...base, promptsSentToday: 4 }),
+    ).toMatchObject({ reason: "daily_cap" });
     expect(
       decideGentleHydrationPrompt({
-        ...baseline,
+        ...base,
         minutesSinceLastPrompt: GENTLE_PROMPT_MIN_GAP_MINUTES - 1,
       }),
-    ).toMatchObject({ eligible: false, reason: "min_gap" });
-    expect(
-      decideGentleHydrationPrompt({ ...baseline, promptsSentToday: 2 }),
-    ).toMatchObject({ eligible: false, reason: "daily_cap" });
-    expect(
-      decideGentleHydrationPrompt({
-        ...baseline,
-        cadence: "minimal",
-        promptsSentToday: 1,
-      }),
-    ).toMatchObject({ eligible: false, reason: "daily_cap" });
+    ).toMatchObject({ reason: "min_gap" });
   });
 });
