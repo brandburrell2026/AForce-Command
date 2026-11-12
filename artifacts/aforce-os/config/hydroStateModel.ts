@@ -52,7 +52,13 @@ import type {
  * (`src/lib/hydroStateModelVersion.ts`) guarded by a parity test — update
  * BOTH together.
  */
-export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v1.0';
+// hydrostate-v2.0 (2026-11-12, founder decisions C1 + C2, spec v1.8.2):
+// only water moves HydroState (AFORCE as its mixing water, Phantom Band sips
+// as water; every other drink is saved to the drink log), and social context
+// never changes the score or the decay rate. MAJOR: a member's number moves
+// for the same inputs. Scientific sign-off for C1: Julius (recorded in
+// governance/PROOF-TRACKER.md §7.1 before merge).
+export const HYDROSTATE_MODEL_VERSION = 'hydrostate-v2.0';
 
 /* ─── HydroState v1.0 — model constants ───────────────────────────────────── */
 

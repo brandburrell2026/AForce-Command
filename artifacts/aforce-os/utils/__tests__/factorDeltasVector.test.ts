@@ -79,7 +79,6 @@ const FACTOR_KEYS = [
   'symptom',
   'urine',
   'health_signals',
-  'social_intake',
 ] as const;
 
 /** A spread of states exercising penalties, bonuses, clamps and social mode. */
