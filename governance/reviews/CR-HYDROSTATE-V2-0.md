@@ -59,7 +59,7 @@ None to scored data. Snapshots keep the version they were stamped with and are n
 `modelBoundary.ts` stops a chart from joining v1.0 and v2.0. Intake events already stored inside the
 24-hour window keep their stored impact until they age out. The `/drinks` table needs
 `lib/db/migrations/20261111_recorded_drinks.sql` applied on the production database (founder step)
-before saves succeed; until then a save shows "Not logged".
+before saves succeed; until then a save shows "Not logged". **Status 2026-11-12:** run on production (reported by Brandon).
 
 ## 8. Test impact
 
@@ -81,7 +81,7 @@ own table and are harmless to v1.0. No user data is rewritten either way.
 |---|---|---|
 | Founder | Brandon | Approved 2026-11-12 (decision brief, C1 + C2, including the off-limits scoring edit for C2) |
 | Engineering | Claude Code (this PR), human reviewer on merge | This PR |
-| Scientific (C1 changes drink credit) | Julius | **Required before merge**, recorded in `PROOF-TRACKER.md` §7.1 |
+| Scientific (C1 changes drink credit) | Julius | Approved 2026-11-12 (reported by Brandon). Recorded after the PR merged; noted in `PROOF-TRACKER.md` §7.1 |
 
 ## 11. Reconciliation
 
