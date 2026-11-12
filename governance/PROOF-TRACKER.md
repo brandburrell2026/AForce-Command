@@ -143,7 +143,7 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 
 | # | Decision | What follows | Status |
 |---|---|---|---|
-| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12). Change record `governance/reviews/CR-HYDROSTATE-V2-0.md` | **Merged · scientific sign-off (Julius) not yet recorded** |
+| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12). Change record `governance/reviews/CR-HYDROSTATE-V2-0.md` | **Merged · scientific sign-off: Julius, 2026-11-12** (reported by Brandon; recorded after merge) · `/drinks` migration run on production (reported by Brandon, 2026-11-12) |
 | C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12) | Merged |
 | C3 | No AI model in One Breath for beta. Fixed rules stay; a governance amendment comes once register #41 and #42 are decided | Nothing to build now | Decided |
 | C4 | Keep spoken read-backs behind Coach Mode, Quiet and Do Not Disturb. Choose the production voice (#47); then play read-backs with the silent switch on and report playback end | Waits on #47 | Decided |
