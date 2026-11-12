@@ -147,7 +147,7 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 | C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | One PR: remove `socialIntakePoints` from `utils/scoring/breakdown.ts`, update golden scoring tests, model-version entry | Open |
 | C3 | No AI model in One Breath for beta. Fixed rules stay; a governance amendment comes once register #41 and #42 are decided | Nothing to build now | Decided |
 | C4 | Keep spoken read-backs behind Coach Mode, Quiet and Do Not Disturb. Choose the production voice (#47); then play read-backs with the silent switch on and report playback end | Waits on #47 | Decided |
-| C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry in this PR; app change next | Registry done · app open |
+| C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry (#1206); app change: "AFORCE OS™" line under the opening caption and the Profile footer line (`feat/aforce-os-tm`) | Registry done · app in review |
 | C6 | Voice sealing stays internal until `ONE-BREATH-DEVICE-QA.md` passes on an iPhone and an Android phone and the concierge counsel brief is updated | Waits on the device run | Decided |
 | C7 | A timing-only calendar shift counts as one of the 3 automatic touches per Moment | Applies when the timing shift is built | Decided |
 

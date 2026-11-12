@@ -551,6 +551,11 @@ export const styles = StyleSheet.create({
     fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary,
     letterSpacing: 3, marginBottom: 4, marginTop: 8,
   },
+  trademarkFooter: {
+    fontSize: 11, fontFamily: 'Inter_500Medium', color: af.textTertiary,
+    lineHeight: 16, textAlign: 'center', marginTop: 32, marginBottom: 8,
+    paddingHorizontal: 8,
+  },
   title: {
     fontSize: 28, fontFamily: 'Inter_700Bold', color: af.textPrimary,
     letterSpacing: -0.5, marginBottom: 24,
