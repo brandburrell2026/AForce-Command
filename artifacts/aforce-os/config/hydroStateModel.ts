@@ -745,3 +745,18 @@ export const TRAVEL_FORECAST_HORIZON_DAYS = 7;
 /** A Moment counts as the "next commitment" after landing only if it starts
  *  within this many hours of arrival. */
 export const TRAVEL_NEXT_COMMITMENT_HORIZON_HOURS = 12;
+
+/* ─── One Breath — confirmation window (spec v1.8.2 Parts 6.1, 8.1) ────────── */
+
+/** The confirmation window opens once, after the full read-back, for this long. */
+export const ONE_BREATH_CONFIRM_WINDOW_MS = 7_000;
+
+/** A seal can be undone (button or "undo") for this long after it lands. */
+export const ONE_BREATH_SEAL_UNDO_MS = 5_000;
+
+/** Messages and shares wait this long, with Undo, before they leave the phone. */
+export const ONE_BREATH_SEND_DELAY_MS = 5_000;
+
+/** Speech below this recognition confidence never confirms anything.
+ *  Provisional until register #45 / #46 thresholds are set on real devices. */
+export const ONE_BREATH_MIN_CONFIRM_CONFIDENCE = 0.8;
