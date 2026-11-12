@@ -150,3 +150,8 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 | C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry in this PR; app change next | Registry done · app open |
 | C6 | Voice sealing stays internal until `ONE-BREATH-DEVICE-QA.md` passes on an iPhone and an Android phone and the concierge counsel brief is updated | Waits on the device run | Decided |
 | C7 | A timing-only calendar shift counts as one of the 3 automatic touches per Moment | Applies when the timing shift is built | Decided |
+
+**Follow-up choices (Brandon, 2026-11-12):**
+- **C1 + C2 ship together as one major model-version bump, `hydrostate-v0` → `hydrostate-v1.0`** (D-09 §1.4: both change HydroState output for identical inputs). One `MODEL-VERSION-REGISTRY.md` row, one release note, so scores change once.
+- **Scientific approver for C1 (D-09 §1.3): Julius.** His approval is recorded in this table before the C1 + C2 PR merges.
+- **C5 opening placement:** a small "AFORCE OS™" line under "NON — NEGOTIABLE" on the opening screen. The existing "AFORCE" wordmark stays unmarked. Plus the Profile footer line.
