@@ -18,6 +18,7 @@ export const RECORDED_DRINK_CATEGORY_IDS = [
   "electrolyte",
   "custom",
   "aforce",
+  "sparkling_water",
 ] as const;
 
 export const recordedDrinkSchema = z.object({
