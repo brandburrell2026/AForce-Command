@@ -214,3 +214,13 @@ describe('read-back duration', () => {
     expect(readBackDurationMs(line)).toBe(Math.ceil((18 / 2.5) * 1000));
   });
 });
+
+describe('the read-back heard back through the microphone (self-echo)', () => {
+  it.each(["Say 'seal it' to lock it in.", 'Morning lift, tomorrow at 6:30 AM. Say seal it to lock it in', "Sending Annette: home. Say 'send it.'"])(
+    '"%s" never confirms',
+    (text) => {
+      expect(classifyUtterance(text).kind).toBe('unclear');
+      expect(heard(opened(), classifyUtterance(text), T0 + 1000).effect).toBe('none');
+    },
+  );
+});

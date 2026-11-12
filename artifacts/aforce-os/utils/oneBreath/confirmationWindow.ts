@@ -121,6 +121,9 @@ export function classifyUtterance(text: string, confidence?: number): Utterance 
   if (confidence !== undefined && confidence < ONE_BREATH_MIN_CONFIRM_CONFIDENCE) {
     return { kind: 'unclear' };
   }
+  // The app's own read-back ("Say 'seal it' to lock it in") heard back through
+  // the microphone must never confirm anything.
+  if (/\bsay '?(seal it|lock it in|send it|share it)\b/.test(t)) return { kind: 'unclear' };
   if (/^undo\b/.test(t)) return { kind: 'undo' };
   if (HEAR_AGAIN.test(t)) return { kind: 'hear_again' };
   const names = HAS_DAY.test(t) || HAS_TIME.test(t);

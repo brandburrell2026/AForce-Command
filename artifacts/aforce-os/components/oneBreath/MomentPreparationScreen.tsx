@@ -972,6 +972,9 @@ export function MomentPreparationScreen({
   const startReadBack = (moment: Moment | null | undefined) => {
     if (!moment) return;
     clearReadBack();
+    // The mic never listens while the plan is read aloud; the member taps
+    // Speak again to reply. (Self-echo is also ignored by classifyUtterance.)
+    voice.cancel();
     const text = planReadBack({
       title: moment.title,
       startAtIso: moment.startAtIso,
