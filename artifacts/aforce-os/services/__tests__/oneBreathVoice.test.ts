@@ -24,7 +24,7 @@ describe('One Breath native capture lifecycle', () => {
     expect(h.start).toHaveBeenCalledWith(expect.objectContaining({ requiresOnDeviceRecognition: true, recordingOptions: { persist: false } }));
     act(() => h.events.start!()); expect(voice.listening).toBe(true);
     act(() => h.events.result!({ results: [{ transcript: 'Dinner tomorrow at 7 PM' }] }));
-    expect(transcript).toHaveBeenCalledWith('Dinner tomorrow at 7 PM');
+    expect(transcript).toHaveBeenCalledWith('Dinner tomorrow at 7 PM', { final: false });
     act(() => vi.advanceTimersByTime(30_000)); expect(h.stop).toHaveBeenCalledOnce();
     act(() => h.events.end!()); expect(voice.busy).toBe(false);
   });
@@ -64,7 +64,7 @@ describe('One Breath native capture lifecycle', () => {
 });
 
 it('ignores late transcripts after a member cancels voice to type, including permission wait',async()=>{
- await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Voice draft'}]}));expect(transcript).toHaveBeenCalledWith('Voice draft');act(()=>voice.cancel());act(()=>h.events.result!({results:[{transcript:'Late overwrite'}]}));expect(transcript).toHaveBeenCalledTimes(1);expect(voice.busy).toBe(false);expect(h.abort).toHaveBeenCalledOnce();act(()=>h.events.end!());let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>voice.cancel());await act(async()=>{resolve({granted:true});await pending;});expect(h.start).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenCalledTimes(1);
+ await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Voice draft'}]}));expect(transcript).toHaveBeenCalledWith('Voice draft',{final:false});act(()=>voice.cancel());act(()=>h.events.result!({results:[{transcript:'Late overwrite'}]}));expect(transcript).toHaveBeenCalledTimes(1);expect(voice.busy).toBe(false);expect(h.abort).toHaveBeenCalledOnce();act(()=>h.events.end!());let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>voice.cancel());await act(async()=>{resolve({granted:true});await pending;});expect(h.start).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenCalledTimes(1);
 });
 
 it('keeps existing words through empty recognition and failure, then accepts a fresh successful capture',async()=>{
@@ -77,7 +77,7 @@ it('keeps existing words through empty recognition and failure, then accepts a f
  act(()=>h.events.result!({results:[{transcript:'\n  '}]}));expect(draft).toBe('Dinner with Julius');
 });
 it('does not erase a valid partial transcript with an empty final result',async()=>{
- await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Pool party tomorrow'}]}));act(()=>h.events.result!({isFinal:true,results:[]}));act(()=>h.events.end!());expect(transcript).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenLastCalledWith('Pool party tomorrow');expect(voice.busy).toBe(false);
+ await act(async()=>voice.start());act(()=>h.events.result!({results:[{transcript:'Pool party tomorrow'}]}));act(()=>h.events.result!({isFinal:true,results:[]}));act(()=>h.events.end!());expect(transcript).toHaveBeenCalledTimes(1);expect(transcript).toHaveBeenLastCalledWith('Pool party tomorrow',{final:false});expect(voice.busy).toBe(false);
 });
 
 it('waits for the microphone prompt to close before starting on-device capture',async()=>{
@@ -95,4 +95,14 @@ it('cancels a granted capture waiting for the permission dialog to close',async(
  let resolve!:(value:any)=>void;h.permission.mockImplementationOnce(()=>new Promise(r=>{resolve=r;}));
  let pending!:Promise<void>;act(()=>{pending=voice.start();});act(()=>h.app!('inactive'));
  await act(async()=>{resolve({granted:true});await pending;});act(()=>voice.stop());act(()=>h.app!('active'));expect(h.start).not.toHaveBeenCalled();expect(voice.busy).toBe(false);
+});
+
+it('marks the final result and passes a reported confidence, never an unavailable one', async () => {
+  await act(async () => voice.start());
+  act(() => h.events.result!({ isFinal: true, results: [{ transcript: 'seal it', confidence: 0.92 }] }));
+  expect(transcript).toHaveBeenLastCalledWith('seal it', { final: true, confidence: 0.92 });
+  act(() => h.events.result!({ isFinal: true, results: [{ transcript: 'seal it', confidence: -1 }] }));
+  expect(transcript).toHaveBeenLastCalledWith('seal it', { final: true });
+  act(() => h.events.result!({ isFinal: false, results: [{ transcript: 'seal', confidence: 0 }] }));
+  expect(transcript).toHaveBeenLastCalledWith('seal', { final: false });
 });

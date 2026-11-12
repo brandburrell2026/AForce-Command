@@ -69,7 +69,24 @@ import {
   matchesMomentSafetyConsent,
   type MomentSafetyConsent,
 } from "@/services/momentSafetyContext";
-import { stopSpeaking } from "@/services/textToSpeech";
+import { speak, stopSpeaking } from "@/services/textToSpeech";
+import {
+  beginReadBack,
+  classifyUtterance,
+  heard,
+  initialWindow,
+  planReadBack,
+  readBackDurationMs,
+  readBackFinished,
+  sealedByHold,
+  tick,
+  windowEndLine,
+  windowOpenLine,
+  windowStrip,
+  type WindowState,
+} from "@/utils/oneBreath/confirmationWindow";
+import { changedTime } from "@/utils/oneBreath/timeChange";
+import { ONE_BREATH_SEAL_UNDO_MS } from "@/config/hydroStateModel";
 
 type Screen =
   | "noticed"
@@ -167,10 +184,33 @@ export function MomentPreparationScreen({
   const [holding, setHolding] = React.useState(false);
   const [resumed, setResumed] = React.useState(false);
   const [holdId, setHoldId] = React.useState(transaction);
+  // Confirmation window (spec v1.8.2 Parts 6.1, 8.1). Rules live in
+  // utils/oneBreath/confirmationWindow.ts; this screen only feeds them.
+  const [win, setWin] = React.useState<WindowState>(() => initialWindow("seal"));
+  const winRef = React.useRef(win);
+  const [winNow, setWinNow] = React.useState(() => Date.now());
+  const [readBack, setReadBack] = React.useState("");
+  const [winLines, setWinLines] = React.useState<string[]>([]);
+  const [reply, setReply] = React.useState("");
+  const [undoUntil, setUndoUntil] = React.useState<number | null>(null);
+  const readBackTimer = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const busy = React.useRef(false);
   const holdTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const reviewedBase = React.useRef<Moment | undefined>(undefined);
-  const voice = useOneBreathVoice(setWords);
+  const screenRef = React.useRef<Screen>(screen);
+  screenRef.current = screen;
+  const utteranceRef = React.useRef<
+    (text: string, confidence: number | undefined, how: "voice" | "typed") => void
+  >(() => {});
+  // On the seal and sealed views, a final transcript is a reply to the
+  // read-back; everywhere else it is the member's words for a new Moment.
+  const voice = useOneBreathVoice((text, info) => {
+    if (screenRef.current === "seal" || screenRef.current === "lock") {
+      if (info.final) utteranceRef.current(text, info.confidence, "voice");
+    } else setWords(text);
+  });
   const dim = React.useRef(new Animated.Value(1)).current;
   const progress = React.useRef(new Animated.Value(0)).current;
   const [reducedMotion, setReducedMotion] = React.useState(true);
@@ -659,8 +699,13 @@ export function MomentPreparationScreen({
     setDraft(suggestMomentDraft(words));
     move("mirror");
   };
-  const makePlan = () => {
-    if (!draft) return;
+  const liveDraft = draft;
+  const makePlan = (
+    override?: MomentDraft,
+    target: Screen = "plan",
+  ): Moment | null => {
+    const draft = override ?? liveDraft;
+    if (!draft) return null;
     if (
       evaluateMomentSafety(
         draft.title,
@@ -669,7 +714,7 @@ export function MomentPreparationScreen({
     ) {
       setChanges(draft.title);
       move("change");
-      return;
+      return null;
     }
     const result = validateMomentDraft(
       draft,
@@ -678,7 +723,7 @@ export function MomentPreparationScreen({
     if (!result.ok) {
       setTimingOpen(true);
       setError(result.error);
-      return;
+      return null;
     }
     const disclosed =
       alcoholMentioned ||
@@ -688,7 +733,7 @@ export function MomentPreparationScreen({
       setError(
         "Use a Moment name and priority without alcohol details. That context stays separate and temporary.",
       );
-      return;
+      return null;
     }
     const policy = configuredMomentSafetyPolicy();
     if (calendarOrigin.current) {
@@ -699,7 +744,7 @@ export function MomentPreparationScreen({
         setError(
           "That calendar event is no longer available. Start a new Moment to choose your own plan.",
         );
-        return;
+        return null;
       }
       if (
         calendarChanged ||
@@ -707,11 +752,11 @@ export function MomentPreparationScreen({
       ) {
         setCalendarChanged(true);
         setError(CALENDAR_CHANGED);
-        return;
+        return null;
       }
       if (unconfirmedPreparationExpired(origin, Date.now())) {
         setError(CANDIDATE_ENDED);
-        return;
+        return null;
       }
     }
     let moment =
@@ -785,16 +830,18 @@ export function MomentPreparationScreen({
     );
     reviewedTimeZone.current = preparationTimeZoneKey(updated.startAtIso);
     reviewedBase.current = saved;
-    setReview({ ...updated, preparation });
+    const reviewed = { ...updated, preparation };
+    setReview(reviewed);
     setHoldId(preparation.transactionId);
-    move("plan");
+    move(target);
+    return reviewed;
   };
   const commit = async (
     moment: Moment,
     expected: Moment | undefined,
     target: Screen,
-  ) => {
-    if (busy.current) return;
+  ): Promise<Moment | undefined> => {
+    if (busy.current) return undefined;
     if (!allowed()) {
       setError("Your account changed. Close this plan and start again.");
       return;
@@ -819,6 +866,7 @@ export function MomentPreparationScreen({
       setReview(result);
       move(target);
       if (target === "lock") hapticImpact("medium");
+      return result;
     } catch {
       if (allowed()) {
         if (target === "lock" && !reviewStillCurrent(moment)) {
@@ -839,8 +887,11 @@ export function MomentPreparationScreen({
       busy.current = false;
       setSaving(false);
     }
+    return undefined;
   };
-  const seal = () => {
+  const seal = (
+    by: NonNullable<MomentPreparation["sealedBy"]> = { method: "hold" },
+  ) => {
     if (!review?.preparation) return;
     const p = review.preparation;
     if (!reviewStillCurrent(review)) {
@@ -860,11 +911,16 @@ export function MomentPreparationScreen({
           ...p,
           transactionId: holdId,
           sealedAtIso: new Date().toISOString(),
+          sealedBy: by,
         },
       },
       reviewedBase.current,
       "lock",
-    );
+    ).then((result) => {
+      // Undo is offered after a spoken or typed seal (Part 6.1.7).
+      if (result && by.method !== "hold")
+        setUndoUntil(Date.now() + ONE_BREATH_SEAL_UNDO_MS);
+    });
   };
   const startHold = () => {
     if (saving || holding) return;
@@ -877,9 +933,186 @@ export function MomentPreparationScreen({
     holdTimer.current = setTimeout(() => {
       holdTimer.current = null;
       setHolding(false);
-      seal();
+      sealByHold();
     }, T.holdMs);
   };
+  const updateWin = (next: WindowState) => {
+    winRef.current = next;
+    setWin(next);
+  };
+  const pushLine = (line: string) => {
+    if (line) setWinLines((lines) => [...lines.slice(-3), line]);
+  };
+  /** The end-state line when `after` recorded a new window end, else "". */
+  const endLine = (before: WindowState, after: WindowState) => {
+    const last = after.history[after.history.length - 1];
+    return after.history.length > before.history.length && last
+      ? windowEndLine(last.end, after.intent)
+      : "";
+  };
+  const clearReadBack = () => {
+    if (readBackTimer.current) clearTimeout(readBackTimer.current);
+    readBackTimer.current = null;
+  };
+  /** Full read-back, then (and only then) the next numbered window. */
+  const startReadBack = (moment: Moment | null | undefined) => {
+    if (!moment) return;
+    clearReadBack();
+    const text = planReadBack({
+      title: moment.title,
+      startAtIso: moment.startAtIso,
+      nowMs: Date.now(),
+      ...(draft?.timeZone ? { timeZone: draft.timeZone } : {}),
+    });
+    setReadBack(text);
+    updateWin(beginReadBack(winRef.current));
+    speak(text);
+    readBackTimer.current = setTimeout(() => {
+      readBackTimer.current = null;
+      if (screenRef.current !== "seal") return;
+      const opened = readBackFinished(winRef.current, Date.now());
+      if (opened === winRef.current) return;
+      updateWin(opened);
+      setWinNow(Date.now());
+      pushLine(windowOpenLine(opened));
+    }, readBackDurationMs(text));
+  };
+  const openSeal = () => {
+    setWinLines([]);
+    updateWin(initialWindow("seal"));
+    move("seal");
+    startReadBack(current);
+  };
+  const sealByHold = () => {
+    const before = winRef.current;
+    const after = sealedByHold(before);
+    updateWin(after);
+    pushLine(endLine(before, after));
+    seal({ method: "hold", ...(before.number ? { window: before.number } : {}) });
+  };
+  const undoSeal = () => {
+    const sealed = saved;
+    if (
+      !undoUntil ||
+      Date.now() >= undoUntil ||
+      !sealed?.preparation?.sealedAtIso
+    )
+      return;
+    setUndoUntil(null);
+    const { sealedBy: _undone, ...unsealed } = sealed.preparation;
+    void commit(
+      {
+        ...sealed,
+        preparation: {
+          ...unsealed,
+          sealedAtIso: "",
+          transactionId: transaction(),
+        },
+      },
+      sealed,
+      "seal",
+    ).then((result) => {
+      if (!result) return;
+      reviewedBase.current = result;
+      setHoldId(transaction());
+      setWinLines(["Seal undone · awaiting seal"]);
+      startReadBack(result);
+    });
+  };
+  /** One heard or typed reply to the read-back. Voice and text share it. */
+  const handleUtterance = (
+    text: string,
+    confidence: number | undefined,
+    how: "voice" | "typed",
+  ) => {
+    const u = classifyUtterance(text, confidence);
+    if (screenRef.current === "lock") {
+      if (u.kind === "undo") undoSeal();
+      return;
+    }
+    if (screenRef.current !== "seal" || saving || holding) return;
+    const before = winRef.current;
+    const r = heard(before, u, Date.now());
+    updateWin(r.state);
+    const ended = endLine(before, r.state);
+    switch (r.effect) {
+      case "confirm":
+        pushLine(r.message);
+        seal({ method: how, window: before.number });
+        return;
+      case "cancel":
+        pushLine(ended);
+        pushLine(r.message);
+        return;
+      case "rebuild": {
+        pushLine(ended);
+        const time = draft ? changedTime(draft.time, text) : null;
+        if (!draft || !time) {
+          setTimingOpen(true);
+          move("mirror");
+          setError("Change the time below, then review again.");
+          return;
+        }
+        const changed = { ...draft, time };
+        // makePlan shows its own reason (or the safety view) when it can't
+        // rebuild; the draft only takes the new time once the plan does.
+        const rebuilt = makePlan(changed, "seal");
+        if (rebuilt) {
+          setDraft(changed);
+          startReadBack(rebuilt);
+        }
+        return;
+      }
+      case "answer":
+        pushLine(ended);
+        pushLine(
+          "I don’t have a reviewed answer for that yet. Your plan is still waiting for you to seal it.",
+        );
+        startReadBack(current);
+        return;
+      case "read_again":
+        startReadBack(current);
+        return;
+      default:
+        pushLine(r.message);
+    }
+  };
+  utteranceRef.current = handleUtterance;
+  React.useEffect(() => {
+    if (win.phase !== "open") return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setWinNow(now);
+      const before = winRef.current;
+      const after = tick(before, now);
+      if (after !== before) {
+        updateWin(after);
+        pushLine(endLine(before, after));
+      }
+    }, 250);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [win.phase, win.number]);
+  React.useEffect(() => {
+    if (screen === "seal") return;
+    // Leaving the seal view closes any window; an open one ends as corrected.
+    clearReadBack();
+    const before = winRef.current;
+    if (before.phase === "open")
+      updateWin(heard(before, { kind: "change" }, Date.now()).state);
+    else if (before.phase === "reading")
+      updateWin({ ...before, phase: "closed", closesAtMs: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
+  React.useEffect(() => {
+    if (undoUntil === null) return;
+    const id = setTimeout(
+      () => setUndoUntil(null),
+      Math.max(0, undoUntil - Date.now()),
+    );
+    return () => clearTimeout(id);
+  }, [undoUntil]);
+  React.useEffect(() => () => clearReadBack(), []);
   const transition = (patch: Partial<MomentPreparation>, target: Screen) => {
     if (!saved?.preparation) return;
     const base =
@@ -1671,7 +1904,7 @@ export function MomentPreparationScreen({
                   : "Alcohol context will not be retained after this session."}
               </Text>
             ) : null}
-            {button("Review & seal", () => move("seal"), true)}
+            {button("Review & seal", openSeal, true)}
             {button("Edit", () => move("mirror"))}
           </>
         ) : null}
@@ -1695,6 +1928,43 @@ export function MomentPreparationScreen({
                 · {draft.timeZone}
               </Text>
             ) : null}
+            {readBack ? (
+              <View style={s.row}>
+                <Text style={[s.eyebrow, { color: accent }]}>READ-BACK</Text>
+                <Text style={s.body}>{readBack}</Text>
+              </View>
+            ) : null}
+            <Text accessibilityLiveRegion="polite" style={s.muted}>
+              {windowStrip(win, winNow) ||
+                (win.number > 0
+                  ? "Listening is closed. Hear it again to reopen."
+                  : "")}
+            </Text>
+            {winLines.map((line, i) => (
+              <Text key={`${i}:${line}`} style={s.muted}>
+                {line}
+              </Text>
+            ))}
+            {voice.available
+              ? button(voice.listening ? "Stop listening" : "Speak", () => {
+                  if (voice.busy) voice.stop();
+                  else void voice.start();
+                })
+              : null}
+            {input("Or type it", reply, setReply, "Seal it, or a change")}
+            {button(
+              "Reply",
+              () => {
+                const typed = reply;
+                setReply("");
+                handleUtterance(typed, undefined, "typed");
+              },
+              false,
+              !reply.trim(),
+            )}
+            {win.phase === "closed" && win.number > 0
+              ? button("Hear it again", () => startReadBack(current))
+              : null}
             <Pressable
               disabled={saving}
               accessibilityRole="button"
@@ -1705,7 +1975,7 @@ export function MomentPreparationScreen({
               accessibilityHint="Hold for 1.2 seconds. VoiceOver users can double tap to approve this reviewed plan."
               onPressIn={startHold}
               onPressOut={cancelHold}
-              onAccessibilityTap={seal}
+              onAccessibilityTap={sealByHold}
               style={s.seal}
             >
               <Animated.View
@@ -1749,6 +2019,7 @@ export function MomentPreparationScreen({
               Your plan is yours.
             </Text>
             <Text style={s.body}>Go perform.</Text>
+            {undoUntil !== null ? button("Undo", undoSeal) : null}
             {button(
               "Lock In",
               () =>

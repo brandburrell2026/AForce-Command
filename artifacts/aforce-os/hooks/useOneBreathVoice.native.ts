@@ -5,7 +5,11 @@ import { captureScope, isScopeCurrent } from '@/services/scopedWriteQueue';
 import { getScopeState, subscribeScopeState } from '@/services/userScope';
 
 /** One bounded, on-device capture. No audio file, network fallback, or canonical write. */
-export function useOneBreathVoice(onTranscript: (text: string) => void) {
+/** `final` is true on the recognizer's last result; `confidence` is 0–1 when the
+ * platform reports one (it is omitted when unavailable). */
+export type VoiceTranscriptInfo = { final: boolean; confidence?: number };
+
+export function useOneBreathVoice(onTranscript: (text: string, info: VoiceTranscriptInfo) => void) {
   const [busy, setBusy] = React.useState(false);
   const [listening, setListening] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -36,7 +40,8 @@ export function useOneBreathVoice(onTranscript: (text: string) => void) {
         if (!valid()) return;
         const text = (event.results[0]?.transcript ?? '').slice(0, 160);
         // An empty interim/final result is not a request to erase a draft.
-        if (text.trim()) callback.current(text);
+        const reported = event.results[0]?.confidence;
+        if (text.trim()) callback.current(text, { final: event.isFinal === true, ...(event.isFinal === true && typeof reported === 'number' && reported >= 0 ? { confidence: reported } : {}) });
       }),
       speech.addListener('error', (event) => {
         if (!valid()) return;

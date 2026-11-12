@@ -11,6 +11,7 @@ import {
   initialWindow,
   messageReadBack,
   planReadBack,
+  readBackDurationMs,
   readBackFinished,
   sealUndoAvailable,
   sealedByHold,
@@ -203,5 +204,13 @@ describe('read-backs (Part 6.1.1, V6)', () => {
   it('reads back the recipient and exact text before a send', () => {
     expect(messageReadBack('Annette', "I'm heading home")).toBe("Sending Annette: I'm heading home. Say 'send it.'");
     expect(shareReadBack('Annette', 'your lift plan')).toBe("Sharing your lift plan with Annette. Say 'share it.'");
+  });
+});
+
+describe('read-back duration', () => {
+  it('scales with the words and never drops below the floor', () => {
+    expect(readBackDurationMs('Seal it.')).toBe(1500);
+    const line = "Morning lift, tomorrow at 6:30 AM. Nothing changed from last time. Say 'seal it' to lock it in.";
+    expect(readBackDurationMs(line)).toBe(Math.ceil((18 / 2.5) * 1000));
   });
 });
