@@ -1,6 +1,6 @@
 # Terminology Registry
 
-**Status:** Canonical · **Updated:** 2026-07-22 (Phase 2)
+**Status:** Canonical · **Updated:** 2026-11-12 (AFORCE OS™ mark use, spec v1.8.2 Part 8.6)
 
 Canonical definition for every branded term. A term used outside this definition is a defect.
 Aliases listed here are tolerated in legacy documents but must not be used in new writing.
@@ -15,6 +15,15 @@ Aliases listed here are tolerated in legacy documents but must not be used in ne
 | **AForce Intelligence™** | The coordinated intelligence architecture beneath AForce OS. The collective noun for every engine that observes, learns, explains, decides, and routes. *(Founder Decision 2)* | Not a subscription tier. Not a navigation surface. Not a user-facing score. Not a replacement for HydroState™. Not a separately marketed application. |
 | **Meridian™** | The future **Phase 3 premium / luxury product tier**. May consume and expose advanced AForce Intelligence™ capabilities as a premium experience. *(Founder Decision 2)* | Does **not** own, define, or route the underlying architecture. Any statement that "Meridian decides" is superseded. |
 | **Phantom Meridian** | A **hardware SKU** — the ceramic luxury edition of Phantom Band™ (`exports/phantom-rfp/`). Distinct from the Meridian™ software tier. | Not the software tier. Not an architecture layer. |
+
+> **AFORCE OS™ — mark use (Founder decision 2026-11-12; spec v1.8.2 Part 8.6).** In the app the
+> product name is written **AFORCE OS**. The ™ appears only on its first, most visible uses: the
+> opening-screen wordmark under the N–И mark, and the Profile footer line
+> "AFORCE OS™ · Beta preview · AFORCE, AFORCE OS and the N–И mark are trademarks of AFORCE Hydration, Inc."
+> Every later mention, menu item and button stays plain "AFORCE OS". Use ™, never ®, until a US
+> registration issues in software and app classes; a beverage registration does not cover the
+> app (decision register #49, AWG Law). The website AFORCE OS page follows the same rule (hero
+> wordmark, share title, footer line) in its own repo.
 
 > **Three distinct Meridian meanings existed before Phase 2.** Only two survive: the Phase 3
 > software tier and the Phantom hardware edition. The architectural meaning is retired — see
