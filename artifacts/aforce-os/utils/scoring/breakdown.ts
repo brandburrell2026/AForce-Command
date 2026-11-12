@@ -4,7 +4,6 @@ import type {
   ScoreContribution,
   ScorePrediction,
 } from '../../types';
-import { activeDecayMultiplier, socialIntakePoints, SOCIAL_INTAKE_MAX_PENALTY } from '../hangoverRisk';
 import { aggregateBiometrics } from '../biometricsAggregator';
 import { materializedIntakePoints, HYDRATION_PTS_PER_OZ } from '../../services/hydrationScoreService';
 import {
@@ -16,7 +15,6 @@ import type { EvidenceVerdict } from './hydroStateV1';
 import { depletionRatePerMinute } from '../depletionRate';
 import { resolveCurrentWeather } from '../environment/weatherFreshness';
 import { HEALTH_PROVIDERS } from '../../data/healthProviders';
-import { isSocialSessionLive } from '../../services/socialModeEngine';
 
 export function resolveState(score: number): PerformanceLevel {
   if (score >= 90) return 'PEAK';
@@ -131,12 +129,10 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
 
   const recovery = computeRecoverySignal(state, now);
 
-  // Per-event social-mode penalty: each logged alcohol drink moves the
-  // score immediately (alcohol diuresis ≈ 5 oz of net water loss per
-  // standard drink), with `/social/hydrate` confirmations cutting the
-  // penalty by 60 %. See `socialIntakePoints` for the time profile.
-  const socialDrinks = state.socialMode?.drinks ?? [];
-  const socialIntake = socialIntakePoints(socialDrinks, now);
+  // hydrostate-v2.0 (founder decision C2, 2026-11-12; register #4): Social
+  // context never changes HydroState. The per-drink social penalty and the
+  // social decay multiplier are gone; social drinks still steer commands and
+  // copy elsewhere, never the score.
 
   // HydroState v1.0 — PHYSIOLOGY ONLY.
   //
@@ -153,14 +149,14 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
   // them) and `sleepCarry` (overnight loss is priced by the same decay model's
   // sleep multiplier).
   const raw = baseIntake + recency + symptomPenalty + urinePoints
-            + recovery.delta + socialIntake.penalty;
+            + recovery.delta;
   const score = Math.max(0, Math.min(100, Math.round(raw)));
 
   // Instrumentation vector (founder-approved 2026-08-18): the EXACT unrounded
   // terms summed into `raw` above, captured so a persisted snapshot can answer
   // "why did this score change?" without a device test or code audit. The
-  // contribution rows below round some values for display (`recovery`,
-  // `social_intake`), so they cannot be reused here — the vector must sum to
+  // contribution rows below round some values for display (`recovery`),
+  // so they cannot be reused here — the vector must sum to
   // `raw` exactly or it explains nothing. `clamped` records what the 0-100
   // clamp absorbed. Deltas only: labels and maxMagnitude (the proprietary
   // weights) are deliberately excluded, here and at every consumer.
@@ -172,7 +168,6 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
     symptom: symptomPenalty + 0,
     urine: urinePoints + 0,
     health_signals: recovery.delta + 0,
-    social_intake: socialIntake.penalty + 0,
     raw: raw + 0,
     clamped: score - Math.round(raw) + 0,
   };
@@ -198,20 +193,6 @@ export function buildBreakdown(state: UserState, now: number = Date.now()): {
       hint: recovery.hint },
   ];
 
-  // Only surface the Social-mode row when there is something to show —
-  // an empty row at delta 0 is just visual noise on the breakdown sheet.
-  if (socialIntake.activeDrinks > 0) {
-    const hydratedNote = socialIntake.hydratedDrinks > 0
-      ? ` · ${socialIntake.hydratedDrinks} hydrated (-60 %)`
-      : '';
-    contributions.push({
-      id: 'social_intake',
-      label: 'Social mode intake',
-      delta: Math.round(socialIntake.penalty),
-      maxMagnitude: SOCIAL_INTAKE_MAX_PENALTY,
-      hint: `${socialIntake.activeDrinks} drink${socialIntake.activeDrinks === 1 ? '' : 's'} active${hydratedNote}`,
-    });
-  }
 
   const evidence = evaluateEvidence({
     urine,
@@ -280,15 +261,11 @@ function resolveEffectiveActivityLevel(
  * tested in plain node/vitest. See that file's header for the full
  * physiology references and anchor scenarios.
  *
- * This wrapper just adapts UserState → DepletionInputs and folds in
- * the social-mode multiplier (which depends on the drinks list, kept
- * outside the pure helper so the helper stays zero-dep).
+ * This wrapper just adapts UserState → DepletionInputs. Since
+ * hydrostate-v2.0 (C2) it passes no social-mode multiplier: social
+ * context never changes HydroState.
  */
 function computeDecayPerMinute(state: UserState, now: number = Date.now()): number {
-  const socialDecayMultiplier = isSocialSessionLive(state.socialMode, now)
-    ? activeDecayMultiplier(state.socialMode!.drinks, now)
-    : 1;
-
   const { level: activityLevel } = resolveEffectiveActivityLevel(state, now);
 
   // PR5 — ONE freshness truth. Core used the persisted reading at ANY age:
@@ -315,7 +292,6 @@ function computeDecayPerMinute(state: UserState, now: number = Date.now()): numb
     heatLoad: state.heatLoad,
     isAwake: state.isAwake,
     clutchActive: state.clutchActive,
-    socialDecayMultiplier,
   });
 }
 
@@ -528,9 +504,7 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   const recovery = computeRecoverySignal(state, now);
 
 
-  // Per-event social-mode penalty — must mirror buildBreakdown so that
-  // ScoreEngineOutput.score and the contribution sum agree.
-  const socialIntake = socialIntakePoints(state.socialMode?.drinks ?? [], now);
+  // hydrostate-v2.0 (C2): no social term — mirrors buildBreakdown.
 
   // HydroState v1.0 — PHYSIOLOGY ONLY.
   //
@@ -547,7 +521,7 @@ export function calculateBaseScore(state: UserState, now: number = Date.now()): 
   // them) and `sleepCarry` (overnight loss is priced by the same decay model's
   // sleep multiplier).
   const raw = baseIntake + recency + symptomPenalty + urinePoints
-            + recovery.delta + socialIntake.penalty;
+            + recovery.delta;
 
   return Math.max(0, Math.min(100, Math.round(raw)));
 }
