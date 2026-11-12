@@ -90,6 +90,7 @@ type Stage = 1 | 2 | 3 | 4;
  * not measured, which is the exact class of fabrication Waves 4–5 removed.
  */
 const EM_DASH = '—';
+export const OS_WORDMARK = 'AFORCE OS™';
 
 interface Props {
   /** Live readiness score to display. A real 0 is a real score and renders as
@@ -334,6 +335,18 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
             <Text style={styles.brandCaption}>{t('opening.brand_caption')}</Text>
             <View style={styles.captionRule} />
           </View>
+        </Reveal>
+        <Reveal active={active} reduce={reduce} delay={reduce ? 200 : 1600} dy={6}>
+          {/* Product wordmark with its mark (spec v1.8.2 Part 8.6; Terminology
+              Registry, decision C5). Brand text, not run through t(). The ™
+              appears only here and in the Profile footer; every other
+              mention stays plain "AFORCE OS". */}
+          <Text
+            style={styles.osWordmark}
+            accessibilityLabel="AFORCE OS, trademark"
+          >
+            {OS_WORDMARK}
+          </Text>
         </Reveal>
       </View>
     </StageLayer>
@@ -706,6 +719,14 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: BRAND,
     marginVertical: 9,
+  },
+  osWordmark: {
+    fontFamily: FONT_MONO,
+    fontSize: 12,
+    letterSpacing: 3,
+    color: DIM,
+    textAlign: 'center',
+    marginTop: 14,
   },
   brandCaption: {
     fontFamily: FONT_MONO,

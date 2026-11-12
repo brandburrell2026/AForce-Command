@@ -271,3 +271,14 @@ describe('OpeningSequence — the guard itself', () => {
     }
   });
 });
+
+describe('AFORCE OS™ mark (spec v1.8.2 Part 8.6, decision C5)', () => {
+  it('shows the product wordmark with ™ once, under the brand caption', () => {
+    render();
+    flushSync(() => vi.advanceTimersByTime(1_900 + 1_700));
+    const text = host.textContent ?? '';
+    expect(text).toContain('AFORCE OS™');
+    expect(text.split('™').length - 1).toBe(1);
+    expect(text.indexOf('AFORCE OS™')).toBeGreaterThan(text.indexOf('NON'));
+  });
+});

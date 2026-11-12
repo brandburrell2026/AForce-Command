@@ -37,6 +37,9 @@ import {
   type ProfileTabId,
 } from './profileKit';
 import { renderPerformanceSections } from './panes/PerformancePane';
+
+export const PROFILE_TRADEMARK_LINE =
+  'AFORCE OS™ · Beta preview · AFORCE, AFORCE OS and the N–И mark are trademarks of AFORCE Hydration, Inc.';
 import { renderDevicesSections } from './panes/DevicesPane';
 import { renderAccountSections } from './panes/AccountPane';
 import { renderDeveloperSections } from './panes/DeveloperPane';
@@ -1232,6 +1235,11 @@ export function ProfileScreenV2() {
               </>
             );
           })()}
+          {/* Spec v1.8.2 Part 8.6 (decision C5): the one Profile use of the
+              mark. Legal line, English only; not run through t(). */}
+          <Text style={styles.trademarkFooter} testID="profile-trademark-footer">
+            {PROFILE_TRADEMARK_LINE}
+          </Text>
         </ScrollView>
       </GradientBackground>
       <EditProfileModal
