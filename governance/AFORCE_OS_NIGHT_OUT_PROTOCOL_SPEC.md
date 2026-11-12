@@ -64,6 +64,12 @@ wearable/scan/inferred-alcohol — **activation requires an intentional user act
 
 ## 4. Alcohol ↔ HydroState reconciliation (§5) — **existing logic documented exactly**
 
+> **Superseded for scoring on 2026-11-12 by `hydrostate-v2.0`** (decisions C1 + C2,
+> `governance/reviews/CR-HYDROSTATE-V2-0.md`). Alcohol no longer changes HydroState in either way
+> described below: a logged alcohol drink is saved to the drink log (`/drinks`) with no credit, and the
+> Social Mode penalty and decay multiplier were removed from `utils/scoring/breakdown.ts`. Social context
+> still shapes commands and copy. The rest of this section is kept as the record of v1.0 behaviour.
+
 **Precise current behavior (evidence):**
 - **Activation / scan / selection / intention are score-neutral** — scanning writes a scan record with
   `scoreBefore === scoreAfter` (`HydrationScanScreenV2.tsx:243-244`); `ConsumptionStatus` advisory
