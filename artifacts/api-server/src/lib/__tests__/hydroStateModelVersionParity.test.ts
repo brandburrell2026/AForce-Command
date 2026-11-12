@@ -38,7 +38,11 @@ describe('HydroState model-version parity (server mirror ↔ app canonical)', ()
     // ruled on the urine treatment, PEAK eligibility and the confidence split.
     // Scientific validation of the individual MAGNITUDES remains outstanding
     // and is carried as model debt — see config/hydroStateModel.ts.
-    expect(APP_CANONICAL).toBe('hydrostate-v1.0');
+    //
+    // hydrostate-v2.0 (2026-11-12, founder decisions C1 + C2): only water
+    // moves HydroState and social context never does. Same inputs, different
+    // number, so MAJOR again.
+    expect(APP_CANONICAL).toBe('hydrostate-v2.0');
   });
 
   it('follows the canonical hydrostate-v<major>[.<minor>] format', () => {
