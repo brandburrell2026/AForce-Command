@@ -63,10 +63,10 @@ X expert review · ? product decision (Julius).
 
 | ID | Requirement | Source spec | Prototype | Implementation location | Test evidence | Platform | Gap |
 |---|---|---|---|---|---|---|---|
-| V1 | "Seal it" seals only inside the confirmation window after the full read-back; earlier or later does nothing | 6.1 | P | | | | D |
-| V2 | "Approve," "confirm," "yes," "okay," "sounds good" never seal or send; negations cancel | 6.1 | — | | | | D |
-| V3 | "Make it 7" rebuilds the plan, reads it back again, does not seal | 6.1 | P | | | | D |
-| V4 | A voice seal can be undone for about 5 s; undo returns the Moment to Awaiting seal everywhere | 6.1 | P | | | | D |
+| V1 | "Seal it" seals only inside the confirmation window after the full read-back; earlier or later does nothing | 6.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
+| V2 | "Approve," "confirm," "yes," "okay," "sounds good" never seal or send; negations cancel | 6.1 | — | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
+| V3 | "Make it 7" rebuilds the plan, reads it back again, does not seal | 6.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
+| V4 | A voice seal can be undone for about 5 s; undo returns the Moment to Awaiting seal everywhere | 6.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
 | V5 | Messages and shares pending 5 s with Undo; after delivery only "Send a correction" / "Stop sharing" | 6.1 | P | Partial: share revoke exists (`services/circleMomentSharingService.ts`); no send delay | | | D |
 | V6 | No message sent without the recipient and exact text read back first | 6.1 | P | | | | D |
 | V7 | An unclear word blocks the plan until fixed; a voice word saved only after "Remember" | 6.2 | P | | | | — |
@@ -92,16 +92,16 @@ X expert review · ? product decision (Julius).
 | CB10 | Offline or model timeout during planning: draft and words kept, "Nothing was saved or sent," retry without retyping | 7.9 | P (simulated) | | | | B, D |
 | CB11 | Learning off: no lesson created or applied from conversation; Replay saves a note and asks before turning learning on | 7.9 | P | | | | B |
 | CB12 | Voice vs text parity: same sentence gives the same understood fields and proposal | 7.9 | P (simulated) | Partial: voice and text share `services/oneBreathDraft.ts` | | | D |
-| CB13 | Double "seal it" or retry after a timeout: one sealed record, "Already sealed at …" | 7.9 | P (scripted) | Partial: `commitReviewedMoment` idempotency; no "Already sealed at" copy | | | B, D |
+| CB13 | Double "seal it" or retry after a timeout: one sealed record, "Already sealed at …" | 7.9 | P (scripted) | Partial: `commitReviewedMoment` idempotency; a second "seal it" never confirms (`confirmationWindow.ts`); no "Already sealed at" copy | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | B, D |
 | CB14 | Safety mention ("I had knee surgery three weeks ago"): approved safety behavior, no exercise options, coaching stops | 7.9 | P (scripted) | Partial: chest pain only (see R9) | | | B, X |
 
 ## 5. Confirmation window, understanding accuracy, voice output (Part 8.7)
 
 | ID | Requirement | Source spec | Prototype | Implementation location | Test evidence | Platform | Gap |
 |---|---|---|---|---|---|---|---|
-| V13 | Window visibly closed during the read-back, opens with a countdown when it ends, records one end state | 8.1 | P | | | | D |
-| V14 | "Seal it" during the read-back or after the window closes does nothing and shows the outside-window message; "Hear it again" reads back and opens a new window | 8.1 | P | | | | D |
-| V15 | A change or follow-up question closes the window, then a fresh read-back opens a new numbered window | 8.1 | P | | | | D |
+| V13 | Window visibly closed during the read-back, opens with a countdown when it ends, records one end state | 8.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
+| V14 | "Seal it" during the read-back or after the window closes does nothing and shows the outside-window message; "Hear it again" reads back and opens a new window | 8.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
+| V15 | A change or follow-up question closes the window, then a fresh read-back opens a new numbered window | 8.1 | P | Logic only, not wired: `utils/oneBreath/confirmationWindow.ts` | `utils/__tests__/oneBreathConfirmationWindow.test.ts` (logic) | | D |
 | V16 | "Want my legs fresh" gives Morning lift + Goal: Legs fresh, and no correction label | 8.2 | P | | | | B |
 | V17 | Upper-body request gets a timing-only plan and "Not offered yet" for exercises | 8.3 | P | | | | B, X |
 | V18 | Every scripted and preset line heard on a real iPhone and Android phone, including with the silent switch on; free-typed replies spoken by the production voice | 8.5 | — | | | | D, ? #47 |
