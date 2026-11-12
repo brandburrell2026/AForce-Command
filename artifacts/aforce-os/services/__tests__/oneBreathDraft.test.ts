@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { suggestMomentDraft } from '../oneBreathDraft';
+import { suggestMomentDraft, suggestTimeQuestion } from '../oneBreathDraft';
 import { validateMomentDraft } from '../momentDraft';
 const now = new Date(2026, 10, 2, 12);
 describe('One Breath editable local suggestions', () => {
@@ -36,5 +36,40 @@ describe('One Breath editable local suggestions', () => {
     const draft = suggestMomentDraft('Review 2026-02-30 at 9 AM', now);
     expect(validateMomentDraft(draft, now.getTime()).ok).toBe(false);
     expect(suggestMomentDraft('x'.repeat(500), now).title).toHaveLength(160);
+  });
+});
+
+describe('understanding matches what the member said (spec v1.8.2 Part 8.2)', () => {
+  it('"want my legs fresh" is a goal, not a workout type, and a bare lift gets its part of day (V16)', () => {
+    expect(suggestMomentDraft('Lift tomorrow at 6:30 AM, want my legs fresh', now)).toMatchObject({
+      title: 'Morning lift', date: '2026-11-03', time: '06:30', prepGoal: 'Legs fresh', type: 'personal',
+    });
+    expect(suggestMomentDraft('Lift tomorrow at 6 PM and I need fresh legs', now)).toMatchObject({ title: 'Evening lift', prepGoal: 'Legs fresh' });
+  });
+  it('captures "build strength" and keeps the named workout', () => {
+    expect(suggestMomentDraft('Upper body at the gym tomorrow at 6 AM, build strength', now)).toMatchObject({
+      title: 'Upper body at the gym', time: '06:00', prepGoal: 'Build strength',
+    });
+  });
+  it('leaves named activities and unstated goals alone', () => {
+    expect(suggestMomentDraft('Gym workout tomorrow at 7:00 AM', now)).toMatchObject({ title: 'Gym workout', prepGoal: '' });
+    expect(suggestMomentDraft('Dinner tomorrow at 7:30 PM', now).prepGoal).toBe('');
+  });
+});
+
+describe('one clarification for a bare time (CB3)', () => {
+  it('asks morning or evening for "Lift at 6:30" and creates no time', () => {
+    expect(suggestMomentDraft('Lift at 6:30', now).time).toBe('');
+    expect(suggestTimeQuestion('Lift at 6:30')).toEqual({
+      question: '6:30 in the morning or evening?',
+      options: [{ label: '6:30 AM', time: '06:30' }, { label: '6:30 PM', time: '18:30' }],
+    });
+    expect(suggestTimeQuestion('Lift tomorrow at 7')).toMatchObject({ question: '7:00 in the morning or evening?' });
+    expect(suggestTimeQuestion('Lift at 12:15')?.options).toEqual([{ label: '12:15 AM', time: '00:15' }, { label: '12:15 PM', time: '12:15' }]);
+  });
+  it('does not ask when AM/PM was said, when there are two times, or when the wording is uncertain', () => {
+    for (const text of ['Lift at 6:30 AM', 'Lift at 6:30 or 7:30', 'Maybe lift at 6:30', 'Dinner tomorrow', 'Flight at 6:30']) {
+      expect(suggestTimeQuestion(text)).toBeNull();
+    }
   });
 });
