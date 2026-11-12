@@ -315,6 +315,32 @@ export interface IntakeLogResponse {
   engineOutput: ScoreEngineOutput;
 }
 
+/** A stored drink with no approved HydroState rule. It cannot change state or score. */
+export interface RecordedDrink {
+  id: number;
+  categoryId: string;
+  displayName: string;
+  ozAmount: number;
+  recordedAt: string;
+}
+
+export async function postRecordedDrink(input: {
+  categoryId: string;
+  displayName: string;
+  ozAmount: number;
+  entrySource: 'home' | 'hydration' | 'scan' | 'manual';
+}): Promise<RecordedDrink> {
+  const clientEventId = `drink-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const response = await postJson<{ drink: RecordedDrink }>('/drinks', { ...input, clientEventId });
+  return response.drink;
+}
+
+/** Read only the private drink log. These records never become HydroState input. */
+export async function getRecordedDrinks(limit = 10): Promise<RecordedDrink[]> {
+  const response = await getJson<{ drinks: RecordedDrink[] }>(`/drinks?limit=${Math.max(1, Math.min(100, Math.floor(limit)))}`);
+  return response.drinks;
+}
+
 /**
  * The frozen result of `prepareIntake` — everything needed to EITHER send the
  * intake now OR durably queue it for offline replay. Captured once so the same

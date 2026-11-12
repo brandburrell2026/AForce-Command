@@ -172,10 +172,12 @@ describe('PR 2 — the boundary is now REAL, and the fences that guarded it are 
   // the engine. Leaving them would have meant either a red suite or a silently
   // weakened fence, so they assert the other side of the same boundary.
   it('the version declares a MAJOR bump, because the contract materially changed', () => {
-    expect(HYDROSTATE_MODEL_VERSION).toBe('hydrostate-v1.0');
-    // The boundary helper must agree this is NOT comparable to v0 — a minor
-    // bump would let a chart draw a line straight across the recalibration.
+    expect(HYDROSTATE_MODEL_VERSION).toBe('hydrostate-v2.0');
+    // The boundary helper must agree this is NOT comparable to v0 or v1.0 — a
+    // minor bump would let a chart draw a line straight across a recalibration
+    // (v2.0: water-only counting and no social term, decisions C1 + C2).
     expect(isComparableModelVersion('hydrostate-v0', HYDROSTATE_MODEL_VERSION)).toBe(false);
+    expect(isComparableModelVersion('hydrostate-v1.0', HYDROSTATE_MODEL_VERSION)).toBe(false);
   });
 
   it('the commercial term is gone from BOTH copies of the formula', () => {

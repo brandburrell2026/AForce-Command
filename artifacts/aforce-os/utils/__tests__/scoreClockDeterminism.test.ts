@@ -153,12 +153,16 @@ describe('score clock — purity through the social-mode path', () => {
     expect(calculateBaseScore(s)).toBe(calculateBaseScore(s, NOW));
   });
 
-  it('the social-mode penalty shrinks as the injected clock advances', () => {
+  it('social drinks never change HydroState (hydrostate-v2.0, decision C2)', () => {
     const s = withDrink();
-    const c0 = buildBreakdown(s, NOW).contributions.find((c) => c.id === 'social_intake');
-    const c1 = buildBreakdown(s, NOW + 90 * MIN).contributions.find((c) => c.id === 'social_intake');
-    expect(c0?.delta ?? 0).toBeLessThan(0);
-    expect(Math.abs(c1?.delta ?? 0)).toBeLessThanOrEqual(Math.abs(c0?.delta ?? 0));
+    const without = makeState();
+    for (const at of [NOW, NOW + 90 * MIN]) {
+      const withBreakdown = buildBreakdown(s, at);
+      expect(withBreakdown.contributions.find((c) => c.id === 'social_intake')).toBeUndefined();
+      expect(withBreakdown.factorDeltas).not.toHaveProperty('social_intake');
+      expect(withBreakdown.score).toBe(buildBreakdown(without, at).score);
+      expect(calculateBaseScore(s, at)).toBe(calculateBaseScore(without, at));
+    }
   });
 });
 
@@ -234,7 +238,6 @@ describe('score clock — golden breakdown (locks exact numbers)', () => {
           "health_signals": 0,
           "raw": -4.5,
           "recency": -37,
-          "social_intake": 0,
           "symptom": -8,
           "urine": -4,
         },

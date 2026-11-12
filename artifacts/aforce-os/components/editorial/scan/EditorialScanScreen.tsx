@@ -47,6 +47,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
+  Alert,
   Animated,
   Platform,
   Pressable,
@@ -67,7 +68,8 @@ import { CameraScanModal } from '@/components/CameraScanModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
 import { PRODUCTS } from '@/data/products';
-import { DRINK_CATEGORIES } from '@/data/drinkCatalog';
+import { postRecordedDrink } from '@/services/realApi';
+import { drinkRoute, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '@/utils/hydration/drinkRoute';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -129,9 +131,8 @@ export function EditorialScanScreen() {
   const [qtyOz, setQtyOz] = useState(0);
   const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
 
-  // Mirrors HydrationScanScreenV2's onConfirmDrink: same category lookup, same
-  // logIntake call, same overrides. Copied rather than reinvented so the two
-  // surfaces cannot drift into logging the same drink differently.
+  // Water uses the scored hydration path. Every other drink is an append-only
+  // record and cannot move HydroState until an approved rule exists.
   const onConfirmDrink = useCallback(async (args: {
     categoryId: string;
     name: string;
@@ -141,14 +142,23 @@ export function EditorialScanScreen() {
     hydrationCoefficient: number;
   }) => {
     setAddDrinkOpen(false);
-    const cat = DRINK_CATEGORIES[args.categoryId as keyof typeof DRINK_CATEGORIES];
-    if (!cat) return;
-    await logIntake(cat.fluidType, {
-      source: 'scan',
-      ozOverride: args.effectiveOz,
-      displayNameOverride: `${args.displayName} · ${args.enteredOz} oz`,
-      categoryId: args.categoryId,
-    });
+    const route = drinkRoute(args);
+    if (route.kind === 'water') {
+      await logIntake('water', { source: 'scan', ozOverride: route.oz });
+      return;
+    }
+    try {
+      await postRecordedDrink({
+        categoryId: route.categoryId,
+        displayName: `${args.displayName} · ${args.enteredOz} oz`,
+        ozAmount: route.oz,
+        entrySource: 'scan',
+      });
+      Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
+    } catch {
+      // Never claim a save that did not land (spec v1.8.2 Part 7.3, 7.7).
+      Alert.alert('Not logged', 'Your drink was not saved. Try again.');
+    }
   }, [logIntake]);
   const [undone, setUndone] = useState(false);
   // One write on screen at a time — drives busy states AND freezes SCAN
