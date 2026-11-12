@@ -135,3 +135,18 @@ names and goes to Julius + Brandon. No code has changed for any of them.
 | C5 | "AFORCE OS™" on the opening wordmark and Profile footer | Part 8.6 | `TERMINOLOGY-REGISTRY.md` lists "AForce OS" without ™; `SPECIFICATION-AUTHORITY.md` makes the registry canonical for ™ terms | Part 8.6 copy | Julius (+ AWG Law, register #49) |
 | C6 | Voice input and voice sealing are member-facing | Part 6.1 | One Breath voice is documented as internal and gated (`docs/pr-evidence/one-breath-voice.md`); the concierge counsel brief says there is no voice input | V1–V4, V13–V15 on device | Julius |
 | C7 | Timing-only calendar shift counts toward the 3 automatic touches | Part 7.10 (stricter rule kept; "needs confirmation") | No timing-only shift exists | V10, W15 | Julius |
+
+### 7.1 Decisions (2026-11-12)
+
+Brandon approved every recommendation in the decision brief "Spec v1.8.2 decision brief: C1–C7"
+(Claude Docs, 2026-11-12). Each change ships as its own PR; this table is updated as they land.
+
+| # | Decision | What follows | Status |
+|---|---|---|---|
+| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Use the existing "Log a drink" sheet on the live logging path; model-version entry (D-09); release note | Open |
+| C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | One PR: remove `socialIntakePoints` from `utils/scoring/breakdown.ts`, update golden scoring tests, model-version entry | Open |
+| C3 | No AI model in One Breath for beta. Fixed rules stay; a governance amendment comes once register #41 and #42 are decided | Nothing to build now | Decided |
+| C4 | Keep spoken read-backs behind Coach Mode, Quiet and Do Not Disturb. Choose the production voice (#47); then play read-backs with the silent switch on and report playback end | Waits on #47 | Decided |
+| C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry in this PR; app change next | Registry done · app open |
+| C6 | Voice sealing stays internal until `ONE-BREATH-DEVICE-QA.md` passes on an iPhone and an Android phone and the concierge counsel brief is updated | Waits on the device run | Decided |
+| C7 | A timing-only calendar shift counts as one of the 3 automatic touches per Moment | Applies when the timing shift is built | Decided |
