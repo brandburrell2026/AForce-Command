@@ -152,6 +152,7 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 | C7 | A timing-only calendar shift counts as one of the 3 automatic touches per Moment | Applies when the timing shift is built | Decided |
 
 **Follow-up choices (Brandon, 2026-11-12):**
-- **C1 + C2 ship together as one major model-version bump, `hydrostate-v0` → `hydrostate-v1.0`** (D-09 §1.4: both change HydroState output for identical inputs). One `MODEL-VERSION-REGISTRY.md` row, one release note, so scores change once.
+- **C1 + C2 ship together as one major model-version bump, `hydrostate-v1.0` → `hydrostate-v2.0`** (D-09 §1.4: both change HydroState output for identical inputs). The code was already at v1.0 although the registry still said v0, so the next major is v2.0 (confirmed by Brandon). One registry row, one release note, so scores change once.
+- **C1 details (Brandon):** plain water counts 1:1; AFORCE counts as its mixing water; Phantom Band sips count as water; sparkling water and every other drink are saved without changing HydroState, today's ounces or the decay clock; saved on the existing `/drinks` route (needs migration `20261111_recorded_drinks.sql` on production).
 - **Scientific approver for C1 (D-09 §1.3): Julius.** His approval is recorded in this table before the C1 + C2 PR merges.
 - **C5 opening placement:** a small "AFORCE OS™" line under "NON — NEGOTIABLE" on the opening screen. The existing "AFORCE" wordmark stays unmarked. Plus the Profile footer line.
