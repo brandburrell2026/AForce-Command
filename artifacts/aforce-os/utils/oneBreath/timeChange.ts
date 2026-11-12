@@ -46,3 +46,31 @@ export function changedTime(currentHHmm: string, text: string): string | null {
   }
   return `${pad(hour)}:${pad(minute)}`;
 }
+
+const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const ymd = (at: Date) =>
+  `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
+
+/**
+ * "No, Saturday" → a new draft date "YYYY-MM-DD" (spec v1.8.2 CB4), using the
+ * same conventions as the One Breath parser: today, tomorrow, or a weekday
+ * within the coming week. A weekday that is today, "next Saturday", or two
+ * different days return null so the member is asked instead.
+ */
+export function changedDate(text: string, now = new Date()): string | null {
+  const lower = text.toLowerCase();
+  const found: string[] = [];
+  for (const m of lower.matchAll(/\b(today|tonight|tomorrow)\b/g)) {
+    const at = new Date(now);
+    if (m[1] === 'tomorrow') at.setDate(at.getDate() + 1);
+    found.push(ymd(at));
+  }
+  for (const m of lower.matchAll(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/g)) {
+    const offset = (WEEKDAYS.indexOf(m[1]!) - now.getDay() + 7) % 7;
+    if (offset === 0 || /\bnext\s+$/.test(lower.slice(0, m.index))) return null;
+    const at = new Date(now);
+    at.setDate(at.getDate() + offset);
+    found.push(ymd(at));
+  }
+  return new Set(found).size === 1 ? found[0]! : null;
+}

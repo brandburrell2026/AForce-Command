@@ -37,7 +37,12 @@ import {
   validateMomentDraft,
   type MomentDraft,
 } from "@/services/momentDraft";
-import { suggestMomentDraft } from "@/services/oneBreathDraft";
+import {
+  suggestMomentDraft,
+  suggestTimeQuestion,
+  type TimeQuestion,
+} from "@/services/oneBreathDraft";
+import { exerciseRow, workoutFocus } from "@/utils/oneBreath/workoutFocus";
 import { suggestReservationDraft } from "@/services/reservationDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
 import {
@@ -85,7 +90,7 @@ import {
   windowStrip,
   type WindowState,
 } from "@/utils/oneBreath/confirmationWindow";
-import { changedTime } from "@/utils/oneBreath/timeChange";
+import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
 import { ONE_BREATH_SEAL_UNDO_MS } from "@/config/hydroStateModel";
 
 type Screen =
@@ -193,6 +198,12 @@ export function MomentPreparationScreen({
   const [winLines, setWinLines] = React.useState<string[]>([]);
   const [reply, setReply] = React.useState("");
   const [undoUntil, setUndoUntil] = React.useState<number | null>(null);
+  // One clarification for a bare clock time (spec v1.8.2 Part 7.2, CB3).
+  const [timeQuestion, setTimeQuestion] = React.useState<TimeQuestion | null>(
+    null,
+  );
+  // "Updated from your correction" only after a real correction (Part 8.2.3).
+  const [corrected, setCorrected] = React.useState(false);
   const readBackTimer = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -696,7 +707,10 @@ export function MomentPreparationScreen({
       move("change");
       return;
     }
-    setDraft(suggestMomentDraft(words));
+    const suggested = suggestMomentDraft(words);
+    setDraft(suggested);
+    setTimeQuestion(suggested.time ? null : suggestTimeQuestion(words));
+    setCorrected(false);
     move("mirror");
   };
   const liveDraft = draft;
@@ -978,6 +992,7 @@ export function MomentPreparationScreen({
     }, readBackDurationMs(text));
   };
   const openSeal = () => {
+    setCorrected(false);
     setWinLines([]);
     updateWin(initialWindow("seal"));
     move("seal");
@@ -1047,18 +1062,24 @@ export function MomentPreparationScreen({
       case "rebuild": {
         pushLine(ended);
         const time = draft ? changedTime(draft.time, text) : null;
-        if (!draft || !time) {
+        const date = changedDate(text);
+        if (!draft || (!time && !date)) {
           setTimingOpen(true);
           move("mirror");
-          setError("Change the time below, then review again.");
+          setError("Change the day or time below, then review again.");
           return;
         }
-        const changed = { ...draft, time };
+        const changed = {
+          ...draft,
+          ...(time ? { time } : {}),
+          ...(date ? { date } : {}),
+        };
         // makePlan shows its own reason (or the safety view) when it can't
         // rebuild; the draft only takes the new time once the plan does.
         const rebuilt = makePlan(changed, "seal");
         if (rebuilt) {
           setDraft(changed);
+          setCorrected(true);
           startReadBack(rebuilt);
         }
         return;
@@ -1185,6 +1206,8 @@ export function MomentPreparationScreen({
     </View>
   );
   const steps = current?.preparation?.steps ?? [];
+  // From the member's own words only; a goal never sets the workout type.
+  const focus = workoutFocus(words || current?.title || "");
   const safetyView = screen === "change" && safety !== null;
   React.useEffect(() => {
     if (
@@ -1658,6 +1681,17 @@ export function MomentPreparationScreen({
               </Text>
             ) : null}
 
+            {timeQuestion && !draft.time ? (
+              <View style={s.row}>
+                <Text style={s.body}>{timeQuestion.question}</Text>
+                {timeQuestion.options.map((option) =>
+                  button(option.label, () => {
+                    field("time", option.time);
+                    setTimeQuestion(null);
+                  }),
+                )}
+              </View>
+            ) : null}
             {!timingOpen && Number.isFinite(draftedStart) ? (
               <Pressable
                 accessibilityRole="button"
@@ -1726,7 +1760,7 @@ export function MomentPreparationScreen({
               </>
             )}
             {input(
-              "Priority",
+              social ? "Priority" : "Goal",
               draft.prepGoal,
               (v) => field("prepGoal", v),
               "How do you want to arrive?",
@@ -1890,6 +1924,12 @@ export function MomentPreparationScreen({
                 Check your current guidance when you’re ready to prepare.
               </Text>
             ) : null}
+            {focus ? (
+              <View style={s.row}>
+                <Text style={[s.eyebrow, { color: accent }]}>EXERCISES</Text>
+                <Text style={s.body}>{exerciseRow(focus)}</Text>
+              </View>
+            ) : null}
             <Text style={s.muted}>No reminders during Quiet.</Text>
             {method && method !== "none" ? (
               <Text style={s.body}>
@@ -1931,6 +1971,9 @@ export function MomentPreparationScreen({
             {readBack ? (
               <View style={s.row}>
                 <Text style={[s.eyebrow, { color: accent }]}>READ-BACK</Text>
+                {corrected ? (
+                  <Text style={s.muted}>Updated from your correction</Text>
+                ) : null}
                 <Text style={s.body}>{readBack}</Text>
               </View>
             ) : null}
