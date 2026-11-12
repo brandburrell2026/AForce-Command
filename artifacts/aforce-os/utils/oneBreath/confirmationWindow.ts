@@ -22,6 +22,8 @@
 import {
   ONE_BREATH_CONFIRM_WINDOW_MS,
   ONE_BREATH_MIN_CONFIRM_CONFIDENCE,
+  ONE_BREATH_READBACK_MIN_MS,
+  ONE_BREATH_READBACK_WORDS_PER_SEC,
   ONE_BREATH_SEAL_UNDO_MS,
 } from '@/config/hydroStateModel';
 
@@ -259,6 +261,13 @@ export const sealUndoAvailable = (sealedAtMs: number, nowMs: number) =>
   nowMs >= sealedAtMs && nowMs - sealedAtMs < ONE_BREATH_SEAL_UNDO_MS;
 
 /* ─── Read-backs (Part 6.1.1) ─────────────────────────────────────────────── */
+
+/** How long a read-back takes before its window may open. Estimated from its
+ *  words until the voice service reports when playback ends (register #47). */
+export function readBackDurationMs(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(ONE_BREATH_READBACK_MIN_MS, Math.ceil((words / ONE_BREATH_READBACK_WORDS_PER_SEC) * 1000));
+}
 
 const dayKey = (ms: number, timeZone?: string) =>
   new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(ms);

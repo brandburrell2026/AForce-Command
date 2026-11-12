@@ -760,3 +760,10 @@ export const ONE_BREATH_SEND_DELAY_MS = 5_000;
 /** Speech below this recognition confidence never confirms anything.
  *  Provisional until register #45 / #46 thresholds are set on real devices. */
 export const ONE_BREATH_MIN_CONFIRM_CONFIDENCE = 0.8;
+
+/** Until the voice service reports when playback ends (register #47), a
+ *  read-back counts as finished after its words at this pace. */
+export const ONE_BREATH_READBACK_WORDS_PER_SEC = 2.5;
+
+/** Shortest time a read-back is treated as taking, ms. */
+export const ONE_BREATH_READBACK_MIN_MS = 1_500;

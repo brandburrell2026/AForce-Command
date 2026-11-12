@@ -2,6 +2,8 @@ const unavailableVoice = { available: false, busy: false, listening: false, erro
 
 /** Web and unsupported platforms keep the complete typed flow. Stable methods
  * prevent an unrelated render from cancelling an active Seal hold. */
-export function useOneBreathVoice(_onTranscript: (text: string) => void) {
+export type VoiceTranscriptInfo = { final: boolean; confidence?: number };
+
+export function useOneBreathVoice(_onTranscript: (text: string, info: VoiceTranscriptInfo) => void) {
   return unavailableVoice;
 }
