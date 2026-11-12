@@ -1,6 +1,7 @@
 # Intelligence Event Registry
 
 **Status:** FROZEN (Phase 3.5) · **Frozen:** 2026-07-22 · **Authority:** tier 3
+**Amended:** 2026-11-12 under `governance/reviews/CR-HYDROSTATE-V2-0.md` (`hydrostate-v2.0`, decisions C1 + C2): caffeine and alcohol leave the HydroState-eligible set.
 
 Canonical event vocabulary. **No new runtime events were implemented in Phase 3.5** — this
 registry inventories what exists and freezes the naming, ownership, and eligibility rules.
@@ -47,13 +48,13 @@ completed-behaviour requirement · graph mapping · implementation status.
 | `recovery_observation` | outcome | ledger `recovery_session` | S1/S2 | R2 | ❌ | No | `outcome` node | **Specified** |
 | `environmental_pressure` | context | `aforce_demand_snapshots` | S1 | R3 | ❌ | No | `context` node | **Live** |
 | `heat_exposure` | context | derived from weather | S1 | R3 | ❌ | No | `context` node | **Live** |
-| `caffeine_logged` | behavior | `aforce_intake_logs` | S1 | R2 | ✅ | **Yes** | `action` node | **Live** |
-| `alcohol_logged` | behavior | `aforce_intake_logs` | S1 | R2 | ✅ | **Yes** | `action` node | **Live** |
+| `caffeine_logged` | behavior | `aforce_recorded_drinks` (drink log, since v2.0) | S1 | R2 | ❌ **not until a reviewed drink rule exists (C1)** | Yes | `action` node | **Live** |
+| `alcohol_logged` | behavior | `aforce_recorded_drinks` (drink log) · Social Mode `socialMode.drinks` | S1 | R2 | ❌ **never changes HydroState (C1 + C2)** | Yes | `action` node | **Live** |
 | `hydroscan_result` | outcome | `aforce_hydro_scans` | **S3** | R2 | ❌ **never (DR-001)** | **No** | `observation` node (advisory) | **Live** |
 | `product_scan` | behavior | `aforce_hydro_scans` | S3 | R2 | ❌ **never** | **No** | advisory only | **Live** |
 | `recommendation_viewed` | context | analytics only | S1 | R1 | ❌ **never** | **No** | **not graph-mapped** | **Live** (analytics) |
 | `product_purchased` | behavior | Stripe → Postgres | S1 | R2 | ❌ **never** | **No** | **not graph-mapped** | **Live** |
-| `product_consumed` | behavior | `aforce_intake_logs` | S1 | R2 | ✅ **only via an approved completed-action event** | **Yes — only when logged** | `action` node | **Live** |
+| `product_consumed` | behavior | `aforce_intake_logs` | S1 | R2 | ✅ **only via an approved completed-action event; since v2.0 an AFORCE product counts as its mixing water only** | **Yes — only when logged** | `action` node | **Live** |
 | `prediction_created` | prediction | `aforce_predictions` | S0 | R5 | ❌ | No | derived | **Specified** — not built |
 | `prediction_outcome_observed` | prediction_outcome | `aforce_prediction_outcomes` | S1 | R5 | ❌ | No | derived | **Specified** — not built |
 | `pattern_created` | pattern | `aforce_dna_patterns` | S1 | R6 | ❌ | No | derived | **Specified** — not built |
@@ -77,8 +78,10 @@ completed-behaviour requirement · graph mapping · implementation status.
 ## 5. Frozen rules
 
 1. **Only completed behaviour is score-eligible.** The complete score-eligible set is:
-   `hydration_logged` · `hydration_confirmed` · `command_completed` · `caffeine_logged` ·
-   `alcohol_logged` · `product_consumed` (when logged) · `workout_completed` (when built).
+   `hydration_logged` · `hydration_confirmed` · `command_completed` ·
+   `product_consumed` (when logged; AFORCE as its mixing water) · `workout_completed` (when built).
+   Since `hydrostate-v2.0` (2026-11-12, CR-HYDROSTATE-V2-0) `caffeine_logged` and `alcohol_logged` are
+   recorded but **not** score-eligible: only water moves HydroState until each drink has a reviewed rule.
 2. **Scans, views, and purchases are never score-eligible.** Frozen permanently.
 3. **Analytics and intelligence vocabularies stay separate.** Pseudonymous vs. user-identified.
 4. **`clientEventId` is frozen at creation** and never regenerated.

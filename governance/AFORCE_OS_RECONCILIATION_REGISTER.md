@@ -166,7 +166,7 @@ spec; the register records the conflicts.
 |---|---|---|---|---|
 | **NO-1** | Public term is "Social Mode" (`SocialModeV2Screen`, `socialModeEngine`, `spec_social`, `social.*` locale keys) vs addendum name-lock "Night Out". | Addendum §2 (name lock); "Social Mode" retained as legacy alias only. | Julius + Brandon | yes |
 | **NO-2** | Night Out must live **inside Protocol tab**; code exposes it as a hidden bottom-tab route (`(tabs)/social.tsx` href:null) + duplicate `social-v2` + legacy `social-legacy`. | Addendum §3; Build-Rule #14 (no new tab). | Founder + eng | yes |
-| **NO-3** | Alcohol-depletion constants (`PER_DRINK_WEIGHT=5`, `SOCIAL_INTAKE_MAX_PENALTY`, `decayMultiplier`/`activeMinutes`) hardcoded in `hangoverRisk.ts`/`alcoholDrinks.ts`. | Build-Rule #13 — tunables in `config/hydroStateModel.ts`. | eng (DR if thresholds change) | yes |
+| **NO-3** | Alcohol-depletion constants (`PER_DRINK_WEIGHT=5`, `SOCIAL_INTAKE_MAX_PENALTY`, `decayMultiplier`/`activeMinutes`) hardcoded in `hangoverRisk.ts`/`alcoholDrinks.ts`. **Resolved for scoring 2026-11-12 (`hydrostate-v2.0`, C2):** these constants no longer reach HydroState; they remain only in the Social Mode helpers. | Build-Rule #13 — tunables in `config/hydroStateModel.ts`. | eng (DR if thresholds change) | no (scoring) · open only if the helpers drive a future score |
 | **NO-4** | Confirmed-drink correction/deletion lives in client `state.socialMode.drinks`; no approved event-reconciliation/replay for it. | Addendum §5 (correction must follow approved replay, not silent rewrite). | eng | yes (before any correction) |
 | **NO-5** | `socialModeEngine` still computes BAC/impairment/transportation into `ScoreEngineOutput.social`; strings in 12 locales. | Addendum §12/§14; Constitution P5; = **SS-05**. | Founder + counsel | **S1** |
 | **NO-6** | "Hangover Risk" user-facing terminology (`calculateHangoverRisk`; `en.json:770,1397`). | Terminology §7 (banned "risk"); addendum §12. | Founder + counsel | yes |
@@ -175,7 +175,7 @@ spec; the register records the conflicts.
 | **NO-9** | No emergency-boundary path. | Addendum §18; legal + clinical. | Founder + counsel + clinical | yes (design) |
 | **NO-10** | No dedicated `night_out_enabled` flag / entitlement; `spec_social` is a reskin flag; Athlete tier retired. | Addendum §7; server-authoritative per SS-02. | Julius + Brandon | yes |
 
-**Aligned / confirmatory (no conflict):** alcohol's score influence is deterministic + capped +
+**Superseded 2026-11-12:** since `hydrostate-v2.0` alcohol has **no** score influence (C1 + C2). The original note follows. **Aligned / confirmatory (no conflict):** alcohol's score influence is deterministic + capped +
 time-decaying + prospective (addendum §5 ✔); alcohol logging is neutral via a separate `logSocialDrink`
 path, no celebration (addendum §11 ✔); `socialModeEngine` rollup does not mutate the score (Score
 Protection ✔); activation/scan/select/intent are score-neutral ✔.

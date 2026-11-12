@@ -93,7 +93,7 @@ These docs still describe the old behaviour and are superseded by v2.0 for scori
 - `AFORCE_OS_NIGHT_OUT_PROTOCOL_SPEC.md`: the alcohol effect on the score.
 - `AFORCE_OS_RECONCILIATION_REGISTER.md` NO-3.
 
-Update them in a follow-up docs PR.
+**Done 2026-11-12** in the follow-up docs PR (`docs/hydrostate-v2-cleanup`): each now points to v2.0.
 
 ## 12. Version increment
 
