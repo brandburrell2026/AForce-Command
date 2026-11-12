@@ -143,8 +143,8 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 
 | # | Decision | What follows | Status |
 |---|---|---|---|
-| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Use the existing "Log a drink" sheet on the live logging path; model-version entry (D-09); release note | Open |
-| C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | One PR: remove `socialIntakePoints` from `utils/scoring/breakdown.ts`, update golden scoring tests, model-version entry | Open |
+| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12). Change record `governance/reviews/CR-HYDROSTATE-V2-0.md` | **Merged · scientific sign-off (Julius) not yet recorded** |
+| C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12) | Merged |
 | C3 | No AI model in One Breath for beta. Fixed rules stay; a governance amendment comes once register #41 and #42 are decided | Nothing to build now | Decided |
 | C4 | Keep spoken read-backs behind Coach Mode, Quiet and Do Not Disturb. Choose the production voice (#47); then play read-backs with the silent switch on and report playback end | Waits on #47 | Decided |
 | C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry in this PR; app change next | Registry done · app open |
