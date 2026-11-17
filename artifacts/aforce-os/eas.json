@@ -71,6 +71,13 @@
       "env": {
         "EXPO_PUBLIC_SOCIAL_V04": "true"
       }
+    },
+    "internal-social-apk": {
+      "extends": "internal-social",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

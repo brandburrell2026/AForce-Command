@@ -25,7 +25,7 @@ columns) under the ID in brackets.
 
 | # | Step | Result |
 |---|---|---|
-| 0.1 | **Build.** Use an internal TestFlight (or Android internal) build with `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true` **and** `EXPO_PUBLIC_SOCIAL_V04=true`. Without both, the orb opens the older confirm screen and none of these rows can be reached. Producing the build is a founder step; this script does not trigger one. | ☐ |
+| 0.1 | **Build.** Use an internal TestFlight (or Android internal) build with `EXPO_PUBLIC_INTERNAL_TESTFLIGHT=true` **and** `EXPO_PUBLIC_SOCIAL_V04=true`. Without both, the orb opens the older confirm screen and none of these rows can be reached. EAS profiles (`artifacts/aforce-os/eas.json`): `internal-social` for the iPhone TestFlight build; `internal-social-apk` (Android only) for an APK installed straight from the build link. Producing the build is a founder step; this script does not trigger one. | ☐ |
 | 0.2 | Sign in. Moments must be on (same as the Travel pass setup). | ☐ |
 | 0.3 | **Profile → Devices → Coach Mode → Spoken.** Read-backs are only spoken in Spoken mode. Silent and Ambient show the read-back as text only, which is expected. | ☐ |
 | 0.4 | Tap the **One Breath orb**. The screen with *Your moment* and *Review my moment* opens. | ☐ |
