@@ -56,7 +56,7 @@ X expert review · ? product decision (Julius).
 | R11 | Primary action above the tab bar on first view at 390 × 844 and iPhone SE with text at 120% | Part 2 · Visual system | P | | | | D |
 | R12 | No member-facing text under 11 pt; no review labels in a member build | Part 2 · Visual system | P | | | | B |
 | R13 | Environment heat plan line only at 82°F or above, approved copy; Forecast details names source and update time | Part 2 · Later modules | P | | | | B, D |
-| R14 | "Log a drink": drink choice saved with every log; only drinks with an approved rule move HydroState; others "not counted yet"; Undo removes the log | Part 0; register #40 | P | Partial: `components/DrinkChoiceModal.tsx` follows the rule but is **not mounted**. The live path (`AddDrinkModal` → `computeEffectiveOz`, `data/drinkCatalog.ts`) counts non-water drinks by coefficient. See C1 | | | B, X |
+| R14 | "Log a drink": drink choice saved with every log; only drinks with an approved rule move HydroState; others "not counted yet"; Undo removes the log | Part 0; register #40 | P | Partial (C1, PR #1207, `hydrostate-v2.0`): the live paths (`AddDrinkModal`, `HydrationScanScreenV2`, `EditorialScanScreen`) route through `utils/hydration/drinkRoute.ts`. Plain water counts 1:1; every other drink is saved on `/drinks` with "Saved to your log" and does not move HydroState. Shipped copy is not the spec's "not counted yet"; Undo of a saved drink not checked | `utils/__tests__/drinkRoute.test.ts` (routing logic) | | B, X |
 | R15 | Photo light follows the real sunrise and sunset for the Moment's place and local date | Appendix D §6 | P | | | | B, D |
 
 ## 3. Voice approval, hydration loop, scenes, connected app (Part 6.7)
@@ -71,7 +71,7 @@ X expert review · ? product decision (Julius).
 | V6 | No message sent without the recipient and exact text read back first | 6.1 | P | | | | D |
 | V7 | An unclear word blocks the plan until fixed; a voice word saved only after "Remember" | 6.2 | P | | | | — |
 | V8 | Transcription benchmark by accent, noise and language recorded before a provider is chosen | 6.2 | — | | | | B |
-| V9 | A scan never logs without drink and amount confirmed; non-water drinks never change HydroState without an approved rule; HydroState always labeled an estimate | 6.3 | P | See R14 and C1 | | | D |
+| V9 | A scan never logs without drink and amount confirmed; non-water drinks never change HydroState without an approved rule; HydroState always labeled an estimate | 6.3 | P | Partial (C1, PR #1207): non-water drinks never change HydroState (`utils/hydration/drinkRoute.ts`, see R14). Scan confirmation and the estimate label not audited against this row | `utils/__tests__/drinkRoute.test.ts` (routing logic) | | D |
 | V10 | Calendar change beyond timing shows the difference and needs a new seal; timing-only shifts every step and tells the member once | 6.4 | P | Partial: re-review on change in `MomentPreparationScreen.tsx`; no timing-only shift | | | D |
 | V11 | Scene appears only after the Moment is identified; text WCAG AA over every scene; Social orb has the Proof Blue ring | 6.5 | P | | | | — |
 | V12 | Status line shows the same state on every page and updates on seal/move; Siri App Intents and Android App Actions pass on real devices before lock-screen voice is advertised | 6.6, 6.1 | P | Partial: Home only, `components/home/LiveStatusLine.tsx` | | | B |
@@ -85,7 +85,7 @@ X expert review · ? product decision (Julius).
 | CB3 | Ambiguous "Lift at 6:30": one clarification, no plan, nothing sealed | 7.9 | P (scripted) | Wired (internal preview): `suggestTimeQuestion` in `services/oneBreathDraft.ts` asks "6:30 in the morning or evening?" with two answers; nothing is created until answered | `services/__tests__/oneBreathDraft.test.ts` · `components/__tests__/momentPreparation.render.test.tsx` | | B |
 | CB4 | "No, Saturday" changes the understood day; "What I heard" keeps the original words | 7.9 | P (scripted) | Wired on the Seal view (internal preview): `changedDate` in `utils/oneBreath/timeChange.ts`; the typed/spoken words are not rewritten | `utils/__tests__/oneBreathTimeChange.test.ts` · `components/__tests__/momentPreparation.render.test.tsx` | | B |
 | CB5 | "How am I doing?": HydroState as an estimate with source and update time | 7.9 | P | | | | — |
-| CB6 | "Log a 12 oz coffee": logged, HydroState unchanged, "Counts once the coffee rule is approved." | 7.9 | P | See C1 | | | — |
+| CB6 | "Log a 12 oz coffee": logged, HydroState unchanged, "Counts once the coffee rule is approved." | 7.9 | P | Partial (C1, PR #1207): a coffee is saved without changing HydroState (`utils/hydration/drinkRoute.ts`). Shipped copy is "It moves HydroState once its drink rule is approved.", not the spec line; no conversational "log a coffee" path | `utils/__tests__/drinkRoute.test.ts` (routing logic) | | — |
 | CB7 | Question outside approved playbooks ("Should I take creatine?"): honest limit, no invented advice, one safe next step | 7.9 | P (scripted) | | | | B, X |
 | CB8 | Topic change while a plan is pending: answered; plan stays unsealed and says it's pending | 7.9 | P (scripted) | | | | B |
 | CB9 | Send/share in a conversation: read-back, only "send it" / "share it" in the window, 5 s Undo, then "Send a correction" / "Stop sharing" | 7.9 | P | | | | — |
@@ -143,8 +143,8 @@ Brandon approved every recommendation in the decision brief "Spec v1.8.2 decisio
 
 | # | Decision | What follows | Status |
 |---|---|---|---|
-| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Use the existing "Log a drink" sheet on the live logging path; model-version entry (D-09); release note | Open |
-| C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | One PR: remove `socialIntakePoints` from `utils/scoring/breakdown.ts`, update golden scoring tests, model-version entry | Open |
+| C1 | Water only moves HydroState. Every other drink is saved and shown as "not counted yet" until its own expert-reviewed rule is approved; AFORCE's rule first | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12). Change record `governance/reviews/CR-HYDROSTATE-V2-0.md` | **Merged · scientific sign-off: Julius, 2026-11-12** (reported by Brandon; recorded after merge) · `/drinks` migration run on production (reported by Brandon, 2026-11-12) |
+| C2 | Remove the social drink penalty. Explicit founder approval to edit the off-limits scoring code for this change only | Shipped in PR #1207 (`hydrostate-v2.0`, merged 2026-11-12) | Merged |
 | C3 | No AI model in One Breath for beta. Fixed rules stay; a governance amendment comes once register #41 and #42 are decided | Nothing to build now | Decided |
 | C4 | Keep spoken read-backs behind Coach Mode, Quiet and Do Not Disturb. Choose the production voice (#47); then play read-backs with the silent switch on and report playback end | Waits on #47 | Decided |
 | C5 | Add AFORCE OS™ to the Terminology Registry for the two app placements, then build it | Registry entry (#1206); app change: "AFORCE OS™" line under the opening caption and the Profile footer line (`feat/aforce-os-tm`) | Done: registry (#1206), app (#1208, merged 2026-11-12) |
