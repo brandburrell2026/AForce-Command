@@ -8,6 +8,12 @@ version = '1.0.0'
 
 android {
   namespace 'com.aforce.skinia'
+  // expo-module-gradle-plugin requires defaultConfig.versionName; without it
+  // Gradle fails while configuring this project.
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
 }
 
 dependencies {
