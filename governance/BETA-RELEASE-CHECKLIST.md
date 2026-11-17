@@ -4,7 +4,7 @@
 **Scope:** the operational ship gate for the closed beta. Strategy and launch-scope
 blockers stay in `governance/Launch-Readiness.md` (authoritative where they overlap).
 **Legend:** `[x]` verified with evidence · `[ ]` open (owner in parentheses).
-**Verified as of:** 2026-08-12.
+**Verified as of:** 2026-08-12. **Partially re-verified 2026-11-17** — see §10; boxes not named there were not re-checked and may be stale.
 
 ## 1 · Server activation (production Railway)
 
@@ -13,7 +13,7 @@ blockers stay in `governance/Launch-Readiness.md` (authoritative where they over
 - [x] Entitlement endpoint fail-closed (`/api/entitlement` → 401 unauthenticated, live probe)
 - [x] Webhook endpoints fail-closed (Stripe 400 unsigned; Shopify 401 invalid_hmac —
   proves `SHOPIFY_WEBHOOK_SECRET` configured)
-- [ ] Merge #738 (Stripe env decoupling) + #744 (metrics endpoint) (founder)
+- [x] Merge #738 (Stripe env decoupling) + #744 (metrics endpoint) — both merged 2026-08-12 (`gh pr view`, checked 2026-11-17)
 - [ ] Railway env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PUBLIC_BASE_URL` (founder)
 - [ ] `pnpm --filter @workspace/db push` against production — creates
   `aforce_webhook_deliveries` ledger table (founder)
@@ -102,6 +102,45 @@ blockers stay in `governance/Launch-Readiness.md` (authoritative where they over
   grant failure, score-integrity regression) and the rollback lever for each
   (server: Railway rollback; client: TestFlight build expiry/replacement) (Claude
   drafts in Wave-4 report; founder ratifies)
+
+## 10 · Re-verification — 2026-11-17 (`main@6bc3ee3f`)
+
+Partial pass requested by Brandon. Only the lines below were checked; everything else in §1–§9
+stands as last verified on 2026-08-12.
+
+**Checked and current**
+- Production probes: `/api/healthz` 200, `/api/healthz/deep` 200, `/api/entitlement` 401
+  unauthenticated, `/api/aforce/drinks` and `/api/aforce/intake` 401 unauthenticated.
+- #738 and #744 merged (§1 box ticked).
+- Required checks on `main`: typecheck, tests-baseline, focused-health, governance-drift,
+  integration. `db-lane` now runs and passes on PRs but is **not** in the required list (§4 still open).
+- `railway.toml` has no `healthcheckPath` (§1 still open).
+
+**Changed since August (supersedes the lines named)**
+- §2 client binary: iOS build **159** finished 2026-11-17 (EAS `24351d5c`, profile
+  `internal-social`, commit 3533a7fa). TestFlight submission `75fe76e1` failed on an App Store
+  Connect server error; re-submit pending. Build 59 lines are historical.
+- §6 Android: no longer "no build target". Profile `internal-social-apk` (#1211) built an
+  installable APK on 2026-11-17 (EAS `2f2d1c2b`, versionCode 3) after the SkinIA Gradle fix
+  (#1212). Whether Android is in beta scope is a founder decision; the line is not waived.
+- §6 device pass: the spec v1.8.2 script is `governance/ONE-BREATH-DEVICE-QA.md`, evidence in
+  `governance/PROOF-TRACKER.md`. No run logged yet on either platform.
+
+**Open gates not on the original list**
+- [ ] **Production Clerk instance.** Client and server are both on the Clerk *development*
+  instance; `governance/CLERK-PAIRING-STATE.md` marks public beta as blocked on this. Migration
+  plan written, not executed (`governance/PRODUCTION-CLERK-MIGRATION-PLAN.md`) (founder approval)
+- [ ] **Stop-ship register re-audit, 2026-11-17** (`governance/AFORCE_OS_STOP_SHIP_REGISTER.md`
+  §5): 30 rows — 7 fixed, 1 fixed for store builds only, 10 partly fixed, 12 still open, plus four
+  new items RA-N1..RA-N4. Each open S1 needs a fix or an explicit founder acceptance before
+  outside testers: SS-03 (tokens stored unencrypted), SS-04 (no in-app account deletion or
+  export), SS-05 (BAC / "do not drive" logic still in the build), SS-26 (alcohol logging with no
+  age check), and SS-02 with RA-N1 ("Activate Demo" turns on gated features client-side)
+- [ ] `aforce_recorded_drinks` added to the deletion path (`governance/reviews/CR-HYDROSTATE-V2-0.md` §4)
+
+**Not re-checked:** §3 commerce chain (Stripe test purchase, Shopify webhook registration),
+§5 crash-capture ruling and load tiers, §7 TestFlight group and reviewer info, §8 CR-1 booking,
+§9 beta operations. Railway environment values were not read.
 
 ---
 *Maintenance rule: check a box only with evidence (probe output, merged PR, screenshot,
