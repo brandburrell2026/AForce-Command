@@ -94,8 +94,9 @@ describe('af.* WCAG 2.2 AA contrast (spec §11)', () => {
     expect(contrast(af.redText, af.surface)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('the tab bar active tint is red TEXT on black, so it is the AA token, not the fill red', () => {
-    expect(Colors.tabBar.active).toBe(af.redText);
+  it('the tab bar active tint is warm white and the 2px indicator is Signal Red (Screen Upgrade v1.1)', () => {
+    expect(Colors.tabBar.active).toBe(af.textPrimary);
+    expect(Colors.tabBar.indicator).toBe(af.red);
     expect(contrast(Colors.tabBar.active, Colors.tabBar.background)).toBeGreaterThanOrEqual(4.5);
     expect(contrast(Colors.tabBar.inactive, Colors.tabBar.background)).toBeGreaterThanOrEqual(4.5);
     expect(Colors.tabBar.background).toBe(af.canvas);

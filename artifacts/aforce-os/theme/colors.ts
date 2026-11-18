@@ -159,9 +159,12 @@ export const Colors = {
   // Black Issue tab bar: solid Cinematic Black with a warm hairline. The
   // active tint is TEXT/icon on black, so it uses the AA-clean red
   // (= af.redText, 5.3:1), not the #C1281B fill red (3.3:1 — fails AA).
+  // Screen Upgrade v1.1 §1: inactive tabs are muted, the active tab is warm
+  // white with a 2px Signal Red indicator above it. Icons are never red.
   tabBar: {
     background: '#090A0A',
-    active: '#FF5A63',
+    active: '#F7F4EF',
+    indicator: '#E51E2A',
     inactive: '#AEAAA3',
     hairline: '#292A2A',
   },
