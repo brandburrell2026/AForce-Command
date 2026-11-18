@@ -5,6 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, Platform } from 'react-native';
+import { DAILY_TARGET_IS_PERSONAL } from '@/config/hydroStateModel';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../../components/Icon';
 
@@ -192,7 +193,7 @@ function ProtocolScreenLegacy() {
               ) : null}
 
               <View style={styles.summaryRow}>
-                <SummaryCard label="Hydration goal" value={`${userState.dailyTarget}/${userState.dailyTarget} units`} color={stateColor} />
+                <SummaryCard label={DAILY_TARGET_IS_PERSONAL ? 'Hydration goal' : 'Starting point'} value={`${userState.dailyTarget}/${userState.dailyTarget} units`} color={stateColor} />
                 <SummaryCard label="Completed" value={`${userState.unitsConsumedToday}/${userState.dailyTarget} units`} color={stateColor} />
                 <SummaryCard label="Streak" value={`${userState.complianceStreak}d`} color={Colors.states.PEAK.primary} />
               </View>

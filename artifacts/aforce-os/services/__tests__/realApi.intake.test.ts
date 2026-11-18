@@ -211,7 +211,7 @@ describe('postIntakeLog — water', () => {
 
 // ─── AForce stick — flavor wiring + bonuses ──────────────────────────────────
 describe('postIntakeLog — AForce stick', () => {
-  it('berry stick (no Heat Guard, score=70): baseImpact = 10', async () => {
+  it('berry stick (no Heat Guard, score=70): baseImpact = its 12 oz of mixing water', async () => {
     await postIntakeLog(freshUserState(), { fluidType: 'aforce_stick', flavor: 'berry' });
     const sent = captured[0]!.body;
     expect(sent.fluidType).toBe('aforce_stick');
@@ -238,7 +238,7 @@ describe('postIntakeLog — AForce stick', () => {
     expect(cool.event.baseImpact).toBe(hot.event.baseImpact);
   });
 
-  it('soursop stick + low score (<40): baseImpact = 13 (+2 depleted bonus)', async () => {
+  it('soursop stick + low score (<40): no depleted bonus, same baseImpact as water', async () => {
     // Force a low score by giving the user a depleted state. The mocked
     // calculateScore returns 50 + units*1 + oz*0.1, so a fresh user
     // with 0 units & 0 oz starts at score 50. To force scoreBefore<40

@@ -37,6 +37,7 @@ import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { DRINK_CATEGORIES, type DrinkCategoryId } from '../data/drinkCatalog';
 import { isDrinkCategoryAvailable } from '../utils/hydration/drinkAvailability';
+import { smartCaptureCorrectionMetaKey } from '../utils/hydration/smartCaptureCopy';
 import { postSmartCapture, type SmartCaptureResult, type LoadLevel } from '../services/smartCaptureApi';
 import { WhyThisForYouCard } from './WhyThisForYouCard';
 import type { PersonalizationOutput } from '../utils/personalizationSignals';
@@ -395,10 +396,10 @@ function ResultStage(props: {
           {cat?.label ?? t('hydroScan2.smartCapture.drink_fallback')} \u00b7 {result.correctionRecommendation.drinkName}
         </Text>
         <Text style={styles.correctionMeta}>
-          {t('hydroScan2.smartCapture.correction_meta', {
-            oz: result.correctionRecommendation.oz,
-            pct: Math.round((cat?.hydrationCoefficient ?? 0.8) * 100),
-          })}
+          {t(smartCaptureCorrectionMetaKey(
+            result.correctionRecommendation.drinkCategory,
+            result.correctionRecommendation.drinkName,
+          ), { oz: result.correctionRecommendation.oz })}
         </Text>
         <Text style={styles.correctionRationale} numberOfLines={4}>
           {result.correctionRecommendation.rationale}
