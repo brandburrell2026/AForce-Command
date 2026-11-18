@@ -19,6 +19,11 @@
  * minimal churn.
  */
 
+import {
+  createDrinkEventIdRegistry,
+  drinkFingerprint,
+  isDefinitiveRejection,
+} from './drinkLogIdempotency';
 import type {
   UserState,
   ScoreEngineOutput,
@@ -324,15 +329,32 @@ export interface RecordedDrink {
   recordedAt: string;
 }
 
+const drinkEventIds = createDrinkEventIdRegistry();
+
+/**
+ * Save a drink to the member's log. Safe to call again after a failure: the
+ * same drink keeps the same event id until the server answers, and the server
+ * stores an id once (RA-N5; see `drinkLogIdempotency.ts`).
+ */
 export async function postRecordedDrink(input: {
   categoryId: string;
   displayName: string;
   ozAmount: number;
   entrySource: 'home' | 'hydration' | 'scan' | 'manual';
 }): Promise<RecordedDrink> {
-  const clientEventId = `drink-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const response = await postJson<{ drink: RecordedDrink }>('/drinks', { ...input, clientEventId });
-  return response.drink;
+  const fingerprint = drinkFingerprint(input);
+  const clientEventId = drinkEventIds.idFor(fingerprint);
+  try {
+    const response = await postJson<{ drink: RecordedDrink }>('/drinks', { ...input, clientEventId });
+    drinkEventIds.settle(fingerprint);
+    return response.drink;
+  } catch (err) {
+    // Refused outright: the same bytes will never be accepted, so let go of
+    // the id. Anything else leaves the outcome unknown and the id is kept, so
+    // the member's "try again" cannot save the drink a second time.
+    if (isDefinitiveRejection(err)) drinkEventIds.settle(fingerprint);
+    throw err;
+  }
 }
 
 /** Read only the private drink log. These records never become HydroState input. */
