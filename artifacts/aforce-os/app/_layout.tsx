@@ -686,10 +686,10 @@ const identityGateStyles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   btnText: {
-    color: af.onRed,
+    color: af.onPrimaryFill,
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
   },

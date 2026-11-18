@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 14, borderRadius: 10,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   primaryButtonDisabled: { opacity: 0.4 },
   primaryButtonLabel: {

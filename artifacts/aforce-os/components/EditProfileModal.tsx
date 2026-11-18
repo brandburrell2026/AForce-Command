@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
   },
   btnPrimary: {
-    backgroundColor: Colors.accent.primary,
+    backgroundColor: Colors.text.primary,
   },
   btnPrimaryText: {
     fontSize: 12,

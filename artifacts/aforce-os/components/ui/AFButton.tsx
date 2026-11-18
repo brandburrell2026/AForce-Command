@@ -1,6 +1,7 @@
 /**
  * AFButton family (spec §5):
- *   AFPrimaryButton   — red fill, on-red label; loading + disabled states
+ *   AFPrimaryButton   — warm-white fill, black label (Screen Upgrade v1.1);
+ *                       loading + disabled states
  *   AFSecondaryButton — card-surface fill, hairline border
  *   AFTextButton      — tertiary / disclosure action
  *
@@ -72,12 +73,12 @@ export function AFPrimaryButton({ label, onPress, disabled, loading, icon, trail
       pressedStyle={styles.primaryPressed}
     >
       {loading ? (
-        <ActivityIndicator color={af.onRed} />
+        <ActivityIndicator color={af.onPrimaryFill} />
       ) : (
         <View style={[styles.content, trailingIcon && styles.contentSpread]}>
-          {icon && <Icon name={icon} size={16} color={af.onRed} />}
-          <Text style={[styles.label, { color: af.onRed }]}>{label}</Text>
-          {trailingIcon && <Icon name={trailingIcon} size={18} color={af.onRed} />}
+          {icon && <Icon name={icon} size={16} color={af.onPrimaryFill} />}
+          <Text style={[styles.label, { color: af.onPrimaryFill }]}>{label}</Text>
+          {trailingIcon && <Icon name={trailingIcon} size={18} color={af.onPrimaryFill} />}
         </View>
       )}
     </AFMotionPressable>
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
   // flexShrink so a long translated label wraps before it pushes a trailing
   // glyph off the edge (review nit).
   label: { ...afType.bodyStrong, flexShrink: 1 },
-  primary: { backgroundColor: af.red },
+  primary: { backgroundColor: af.primaryFill },
   primaryPressed: { opacity: 0.85 },
   secondary: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border },
   secondaryPressed: { backgroundColor: af.surfacePressed },

@@ -82,6 +82,11 @@ export const af = {
   // AA-clean on canvas/surface/surfaceRaised (5.30/4.98/4.68:1). Fills, borders,
   // dots and pill backgrounds keep `red`.
   redText: '#FF5A63', //                  red text/icons on dark surfaces (AA)
+  // Primary action (Master Brief §2, Screen Upgrade v1.1): warm white fill with
+  // black text — 18.0:1. Red is NOT the primary-button colour; it stays on the
+  // mark, the One Breath orb, Lock In and real urgency.
+  primaryFill: '#F7F4EF', //              primary button fill (= textPrimary warm white)
+  onPrimaryFill: '#090A0A', //            text/icons on primaryFill (= canvas black)
   // Proof Blue #2765FF. Reserved for Social and proof (Master Brief §2): the
   // Social orb and primary action, the live Social border, the thin ring on
   // the centre orb during Social, Replay, "Observed" and "Confirmed".

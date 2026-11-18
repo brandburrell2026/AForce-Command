@@ -84,11 +84,11 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   buttonText: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
-    color: af.onRed,
+    color: af.onPrimaryFill,
   },
 });

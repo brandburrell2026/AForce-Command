@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   exportBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 12, borderRadius: 10,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   exportLabel: {
     fontFamily: 'Inter_700Bold', fontSize: 11, color: af.canvas, letterSpacing: 1.4,

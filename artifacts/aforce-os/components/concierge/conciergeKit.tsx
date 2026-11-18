@@ -9,8 +9,8 @@
  * PILL: a 1pt outline, mono caps, tracked by useAFEyebrowType (tracking is
  * the only thing that yields to Dynamic Type — the label always reflows to a
  * second line, never clips). The visible pill is 36pt; hitSlop lifts the
- * target to the 44pt floor. `tone="filled"` is the one red emphasis (fills
- * use af.red; label on-red). Caps come from textTransform so the DOM/reader
+ * target to the 44pt floor. `tone="filled"` is the one primary emphasis (warm-white
+ * fill, black label). Caps come from textTransform so the DOM/reader
  * text stays the translated string.
  */
 import React from 'react';
@@ -25,7 +25,7 @@ export interface ConciergePillProps {
   label?: string;
   accessibilityLabel?: string;
   onPress: () => void;
-  /** outline (default) = hairline; filled = the red primary; quiet = grey meta pill. */
+  /** outline (default) = hairline; filled = the warm-white primary; quiet = grey meta pill. */
   tone?: 'outline' | 'filled' | 'quiet';
   icon?: IconName;
   trailingIcon?: IconName;
@@ -56,7 +56,7 @@ export function ConciergePill({
   const eyebrowType = useAFEyebrowType();
   const inert = Boolean(disabled || loading);
   const filled = tone === 'filled';
-  const ink = filled ? af.onRed : tone === 'quiet' ? af.textSecondary : af.textPrimary;
+  const ink = filled ? af.onPrimaryFill : tone === 'quiet' ? af.textSecondary : af.textPrimary;
   return (
     <Pressable
       onPress={inert ? undefined : onPress}
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   },
   outline: { backgroundColor: 'transparent', borderColor: af.borderStrong },
   outlinePressed: { backgroundColor: af.surfacePressed },
-  filled: { backgroundColor: af.red, borderColor: af.red },
+  filled: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
   filledPressed: { opacity: 0.85 },
   disabled: { opacity: 0.4 },
   label: { ...afType.eyebrow, flexShrink: 1, textTransform: 'uppercase' },

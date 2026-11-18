@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   addBtn: {
-    backgroundColor: Colors.accent.primary,
+    backgroundColor: Colors.text.primary,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',

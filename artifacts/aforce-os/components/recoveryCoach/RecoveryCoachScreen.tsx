@@ -222,10 +222,10 @@ export function RecoveryCoachScreen({ command, onClose, onPrimary, onAdjust, off
               onPress={onPrimaryTap}
               accessibilityRole="button"
               accessibilityLabel={primaryLabel}
-              style={({ pressed }) => [styles.primaryBtn, { backgroundColor: af.red, opacity: pressed ? 0.9 : 1 }]}
+              style={({ pressed }) => [styles.primaryBtn, { backgroundColor: af.primaryFill, opacity: pressed ? 0.9 : 1 }]}
             >
-              {showAck && !isExpired ? <Icon name="check" size={18} color={af.textPrimary} /> : null}
-              <Text style={[styles.primaryLabel, { color: af.textPrimary }]}>{primaryLabel}</Text>
+              {showAck && !isExpired ? <Icon name="check" size={18} color={af.onPrimaryFill} /> : null}
+              <Text style={[styles.primaryLabel, { color: af.onPrimaryFill }]}>{primaryLabel}</Text>
             </Pressable>
             {!isExpired ? (
               <Pressable

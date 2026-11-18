@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   amount: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
   amountValue: { color: Colors.accent.primary, fontSize: 56, fontFamily: 'Inter_700Bold', letterSpacing: -1 },
   amountUnit: { color: Colors.text.muted, fontSize: 18, fontFamily: 'Inter_600SemiBold' },
-  cta: { backgroundColor: Colors.accent.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  cta: { backgroundColor: Colors.text.primary, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   ctaPressed: { opacity: 0.85 },
   ctaText: { color: Colors.text.inverse, fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
 });
