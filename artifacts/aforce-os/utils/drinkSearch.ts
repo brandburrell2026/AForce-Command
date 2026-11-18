@@ -31,6 +31,8 @@ export interface SearchOptions {
   categoryId?: DrinkCategoryId;
   /** Cap on returned results; defaults to 30. */
   limit?: number;
+  /** Categories this build may not offer (see utils/hydration/drinkAvailability.ts). */
+  excludeCategories?: readonly DrinkCategoryId[];
 }
 
 interface Scored {
@@ -79,6 +81,7 @@ export function searchDrinks(
   CATALOG_DRINKS.forEach((drink, order) => {
     if (drink.categoryId === 'custom') return;
     if (options.categoryId && drink.categoryId !== options.categoryId) return;
+    if (options.excludeCategories?.includes(drink.categoryId)) return;
     const score = scoreDrink(drink, q);
     if (score <= 0) return;
     pool.push({ drink, score, order });
