@@ -51,7 +51,9 @@ billing records are kept; items shared with other members are removed; the Clerk
 data export ships after deletion. The per-table dispositions are in
 `lib/db/src/accountDeletionRegistry.ts` (data only, nothing executes it). K-3 stays open until
 Julius signs off, and the registry's `counselReview` rows (consent evidence, clinical notes,
-medical access audit) have not been reviewed by counsel. No deletion endpoint is built.
+medical access audit) have not been reviewed by counsel. A deletion endpoint
+(`POST /api/account/delete`) is written but switched off behind `ACCOUNT_FULL_DELETION_ENABLED`;
+it must stay off until this decision is closed.
 
 ### K-4 — Back-derivation at first run · 🟡
 
