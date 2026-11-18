@@ -303,23 +303,28 @@ export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[
           </View>
           <Icon name="chevron-right" size={16} color={af.textTertiary} />
         </Pressable>
-        <Divider />
-        <Pressable
-          onPress={() => router.push('/cruise')}
-          testID="profile-cruise-link"
-          style={styles.settingRow}
-          accessibilityRole="button"
-          accessibilityLabel={t('profile.v2.cruise_mode')}
-        >
-          <View style={styles.settingLeft}>
-            <Icon name="anchor" size={16} color={af.textSecondary} />
-            <View>
-              <Text style={styles.settingLabel}>{t('profile.v2.cruise_mode')}</Text>
-              <Text style={styles.settingSubLabel}>{t('profile.v2.cruise_mode_sub')}</Text>
-            </View>
-          </View>
-          <Icon name="chevron-right" size={16} color={af.textTertiary} />
-        </Pressable>
+        {/* RA-N4: no dead row when Cruise is off (the production default). */}
+        {flags.cruise_mode_enabled ? (
+          <>
+            <Divider />
+            <Pressable
+              onPress={() => router.push('/cruise')}
+              testID="profile-cruise-link"
+              style={styles.settingRow}
+              accessibilityRole="button"
+              accessibilityLabel={t('profile.v2.cruise_mode')}
+            >
+              <View style={styles.settingLeft}>
+                <Icon name="anchor" size={16} color={af.textSecondary} />
+                <View>
+                  <Text style={styles.settingLabel}>{t('profile.v2.cruise_mode')}</Text>
+                  <Text style={styles.settingSubLabel}>{t('profile.v2.cruise_mode_sub')}</Text>
+                </View>
+              </View>
+              <Icon name="chevron-right" size={16} color={af.textTertiary} />
+            </Pressable>
+          </>
+        ) : null}
         {/* NO-b: the "Social V2" discoverability link was removed —
             Night Out is reached only through its authorized Protocol
             entry (restricted flag + internal-preview context). */}
