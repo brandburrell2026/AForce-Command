@@ -5,7 +5,13 @@
  * unconditionally.
  */
 import { ProfileScreenV2 } from '@/components/profile/ProfileScreenV2';
+import { ScreenErrorBoundary } from '@/components/ScreenErrorBoundary';
 
 export default function ProfileRoute() {
-  return <ProfileScreenV2 />;
+  // SS-18: a render crash here must not blank the whole app.
+  return (
+    <ScreenErrorBoundary screen="profile">
+      <ProfileScreenV2 />
+    </ScreenErrorBoundary>
+  );
 }
