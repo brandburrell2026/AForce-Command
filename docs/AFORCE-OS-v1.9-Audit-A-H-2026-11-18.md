@@ -90,6 +90,8 @@ Status words: IMPLEMENTED · PARTIAL · MISSING · BLOCKED · CONFLICTING · UNV
 
 ### A.4 Defects found in what already ships (independent of the new specs)
 
+Full detail for each (affected code, severity, correction, tests, regression risk) is in **Part I.1**. Items 1–3 and the fixed target are on the stop-ship register as RA-N5 to RA-N8.
+
 1. **Smart Capture shows "{pct}% hydration credit"** for non-water drinks, which contradicts v2.0 (`A/components/SmartCaptureModal.tsx:400`, `A/locales/en.json:1365`).
 2. **A retried non-water drink log can duplicate** (`A/services/realApi.ts:333`).
 3. **No edit or delete for a logged drink.** The specs assume both.
@@ -276,16 +278,110 @@ Sweat-rate test and profiles (#52, D5a), active energy input (#61), behind-pace 
 
 ## H. Initial implementation plan
 
-**Recommended first pull request: R-1, the shipped-defect fixes.**
+**Recommended first pull request (revised per Part I.5): copy corrections only.**
 
-- Remove "% hydration credit" from Smart Capture for drinks that do not count.
-- Give non-water drink logs a stable client event id so a retry cannot duplicate.
-- Correct the two stale test titles and the catalog header comment.
+- Remove "% hydration credit" from Smart Capture for drinks that do not count (D2).
+- Label the 96 oz target as a starting point (D4).
+- Correct the two stale test titles and the catalog header comment (D8).
+
+The duplicate-log fix (D1) follows as its own pull request, after a read-only count of existing duplicates in production.
 
 **Why first.** It needs no new approval, because it brings shipped behaviour into line with a decision already made (C1, v2.0). It touches the hydration accounting that every later task builds on. It is small and changes no score.
 
-**How it is verified.** A unit test that a retried drink log is saved once; a render test that Smart Capture shows no credit for a recorded drink; the v2.0 golden outputs unchanged; typecheck and the app suite. Nothing in it needs a device, though Smart Capture should be looked at on a phone before the next build.
+**How it is verified.** Render tests that Smart Capture shows no credit for a recorded drink and that the target carries its label; the v2.0 golden outputs unchanged; typecheck and the app suite. Nothing in it needs a device, though Smart Capture should be looked at on a phone before the next build.
 
 **Second:** R-14 (document corrections), then R-2 (deletion stage 3) once Julius signs K-3 and counsel has the 14 rows.
 
 **Not started, by instruction:** anything from v1.8.3 or v1.9 that needs an approval row.
+
+---
+
+## I. Issue register by category (added at founder request, 2026-11-18)
+
+Nothing below is implemented. Severity is proposed for the founders to set: **S1** blocks outside
+testers, **S2** fix before the next build goes wider, **S3** fix soon. Register ids refer to
+`governance/AFORCE_OS_STOP_SHIP_REGISTER.md` §5.
+
+### I.1 Existing production defects requiring correction
+
+| # | Issue (register id) | Sev | Affected code | Proposed correction | Tests | Regression risk |
+|---|---|---|---|---|---|---|
+| D1 | A retried non-water drink log can be saved twice (RA-N5) | S2 | `A/services/realApi.ts:333`; `S/routes/aforce/` drinks route; `aforce_recorded_drinks` | Create the client event id once, when the member confirms, and carry it through the outbox and every retry, exactly as water does. Server: insert that ignores a repeat on (member, client event id), backed by a unique index | Same action sent twice saves one row (unit and server contract); offline queue replays once; a different action still saves a second row | A unique index fails to build if production already holds duplicates: count them first and decide what to do with them before the migration. Old app versions still send random keys; they keep today's behaviour, no worse |
+| D2 | Smart Capture shows "% hydration credit" the model does not award (RA-N6) | S2 | `A/components/SmartCaptureModal.tsx:400`; `A/locales/en.json:1365` (and 10 other locales); `A/data/drinkCatalog.ts` header | Take the line from the counting function (`drinkRoute`), not the catalog coefficient: water shows its ounces counted; everything else shows the approved "Saved to your log" wording. Correct the stale catalog comment | Render test per drink class: no "credit" text for a recorded drink; water still shows counted ounces; a lint test that no UI string interpolates the catalog coefficient | Low. Copy change in 11 locale files; the non-English strings need the same key change or they fall back to English |
+| D3 | No edit or delete for drink records (RA-N7) | S2 | `S/routes/aforce/intake.ts:196-275`; drinks route; `A/store/app/actions.ts`; score snapshots | One model for both rails, append-only: a correction record that supersedes the original (amend amount, change drink, or remove), within a stated window; the daily total and HydroState are recomputed from the surviving records. Undo stays as the 5-second case of the same operation. Snapshots already stamped keep their model version and are never rewritten (D-09) | Edit lowers and raises the total correctly; delete removes it; a second correction of the same record is refused or chained, by rule; a correction after midnight lands on the right day; decay clock behaviour after deleting the last drink; snapshots unchanged | **Highest of the three.** It touches score inputs. `scoringEngine.ts` and the band files are off-limits and should not need editing, but the recompute path must be proved against the v2.0 golden outputs. Needs a decision on the edit window and whether deletes are visible to a trainer |
+| D4 | Fixed 96 oz target shown as the member's goal (RA-N8) | S3 | `S/lib/aforceState.ts:111-112`; `A/components/hydration/HydrationScreenV2.tsx:193,304`; `A/app/(tabs)/protocol.tsx:195` | Copy only: label the number "Starting point" with one line saying it is the same for everyone until a personal target is approved. No change to the number, the ring maths or the score | Render tests on both screens; claims lint | Low. The week "goal met" dots keep their meaning; wording must not imply a recommendation |
+| D5 | Analytics payload fields are not enforced on the server | S2 | `lib/analytics-contract/src/zod.ts:34`; `S/routes/aforce/analytics.ts:70` | Validate each event's payload against its declared field list; drop or reject anything else | An undeclared field is rejected; every existing event type still passes | An event the client sends today with an undeclared field would start failing: run the validator in report-only mode first |
+| D6 | Notification title carries the Moment title to the lock screen | S2 | `A/services/momentNotifications.ts:166-167`; `A/locales/en.json:2641` | Generic title by default ("Your 10 AM Moment"); member can opt in to full titles | Unit test on the built notification content, both settings | Low |
+| D7 | `/leaderboard` and `/achievements` reachable without a flag | S3 | `A/components/profile/panes/AccountPane.tsx:172`, `PerformancePane.tsx:333`; routes | Gate behind existing competition flags clamped off in store builds, or remove the links | Route and render tests in a production flag set | Low; confirm nothing else links to them |
+| D8 | Stale test titles and catalog comment | S3 | `A/services/__tests__/realApi.intake.test.ts`; `A/data/drinkCatalog.ts:10` | Rename; no assertion changes | Suite still green | None |
+
+Already on the register and still open (not repeated in detail): SS-03 plaintext tokens, SS-04 account deletion stages 3–5, SS-05 BAC logic, SS-26 age check, SS-02 server entitlements, SS-11 / SS-12 bands and naming, SS-14 claims strings, SS-21 Heat Risk route, RA-N2 storage isolation, RA-N3 privacy policy, Clerk production instance.
+
+### I.2 Approved functionality that is missing or incomplete
+
+"Approved" here means a decision or governance row already exists.
+
+| # | Item | Approval | State | What is missing | Affected code | Tests needed | Risk |
+|---|---|---|---|---|---|---|---|
+| M1 | Full account deletion (SS-04) | Brandon 2026-11-18; Julius pending (K-3) | Stages 1–2 merged, endpoint off | Clerk user delete, Stripe cancel, in-app screen, export | `S/routes/accountDeletion.ts`; Profile panes | End-to-end with fakes; order-of-operations on partial failure | Billing left running if the order is wrong |
+| M2 | Encrypted-only provider tokens (SS-03) | Stop-ship row | Open | Encrypted-only writes, backfill, drop plaintext | `lib/db/src/*TokenStore.ts` | Write, read, backfill, fail-closed | A production data migration: founder-run, needs a ledger first |
+| M3 | Device run of One Breath (V1–V18, CB1–CB14) | Spec v1.8.2 | Not run | iPhone build 160 and the Android APK, 28 rows | `governance/ONE-BREATH-DEVICE-QA.md` | The script itself | None to code |
+| M4 | Calendar spotting (#35, approved Nov 6 per the One Breath review) | Stated in the review; **not found as a row in the proof tracker** | Built, flag off, legal-gated | Confirm the approval, Android permission check, a lint against calendar writes | `A/services/calendarBridge.ts` | Write-call lint; permission manifest test | Turning on a legal-gated flag without counsel |
+| M5 | Quiet hours and Do Not Disturb for spoken output (SS-17, C4) | Decision C4 | Partly | No Focus / DND check | `A/services/momentNotifications.ts`; `A/services/textToSpeech.ts` | Suppression tests | The OS may not expose Focus state; needs a device finding |
+| M6 | Deletion path covers `aforce_recorded_drinks` | CR-HYDROSTATE-V2-0 §4 | Done in the registry; unproven on a deployed database | Run with the endpoint on, in a test environment | — | Already covered locally | — |
+| M7 | Production migration ledger | Beta checklist | Missing | One list of what production has | new governance doc | — | Applying a migration twice or not at all |
+
+### I.3 Proposed features requiring founder approval
+
+None of these is approved. Each can be built dark (flag off) only where noted.
+
+| # | Feature | Source | Owner | Build dark now? | Depends on |
+|---|---|---|---|---|---|
+| P1 | `hydrostate-v3.0` drink rules | Amendment §2.1 (#50) | Julius + both founders | Yes, with a golden test that flag-off equals v2.0 | D1, D3 |
+| P2 | Target contract and "Why this target?" | §2.2 (#51) | Julius | Yes | D4 |
+| P3 | Clinician fluid-limit setting | §2.2 | Julius, counsel | Yes | P2 |
+| P4 | Overdrinking rules S53 | §2.5 (#53) | Julius | Yes; **must be on before P2 or P1 is switched on** | P2 |
+| P5 | Widgets, Siri, Control Center, watch | §2.8 (#56) | Brandon | Needs a new native dependency: approve first | D1, D3 |
+| P6 | Health write-back | §2.10 (#58) | Brandon | Yes | D3 |
+| P7 | Heat index and WBGT | §2.4 (#54) | Julius | Yes | P2 |
+| P8 | Recurring Moments, "Same as last time" | One Breath review (#63) | Both | Yes | — |
+| P9 | Hydration step through the Moment loop | Hydration-loop Part A (#69) | Julius | After P1 and the attribution rule (B8) | P1, P8 |
+| P10 | Calendar offers, series, change handling | Part B (#70) | Both, counsel | Extends existing code, flag off | P8 |
+| P11 | Morning / evening cards, Plan your week | (#62) | Both | Yes | P8, P10 |
+| P12 | Obstacle question; hydration experiments | (#65, #68) | Julius | Yes | P9 |
+| P13 | Useful-days measure | (#67) | Julius | After D5 | D5 |
+| P14 | Sweat-rate test and profiles, D5a | §2.6, §3.1 (#52) | Both + Julius | Later | P4 |
+| P15 | Active energy input, nudges, morning check | (#61, #57, #55) | Julius | Later | P2, P4 |
+| P16 | Direct Google / Microsoft calendars, .ics | (#71, #72) | Brandon, counsel | Later | P10 |
+| P17 | Bounded model in One Breath | (#66) | Both, counsel | **No. C3 stands** | #41, #42 |
+| P18 | Build rules 15–32 | Proposed `CLAUDE.md` | Both | n/a | — |
+
+### I.4 Scientific or legal decisions requiring additional review
+
+| # | Decision | Reviewer | Blocks |
+|---|---|---|---|
+| X1 | Water content and retention factor per drink class; whether one study generalises | Scientific approver (Julius, D-09 §1.3) | P1, P9 |
+| X2 | Baseline options, pregnancy / lactation additions, floor and ceiling of the target | Scientific approver | P2 |
+| X3 | S53 values (hourly ceiling, rapid-intake amount, daily excess factor) and the symptom wording | Scientific approver; counsel for the wording | P4, and through it P1, P2, P14 |
+| X4 | Heat bands and the fallback when solar data is missing | Scientific approver | P7 |
+| X5 | Hydration playbook lines and the drink-to-Moment attribution rule (not one universal window) | Julius | P9 |
+| X6 | Sweat test formula limits, recovery line, D5a | Scientific approver, both founders | P14 |
+| X7 | Deletion: the 14 flagged rows (consent evidence, clinical notes, medical access audit) | Counsel | M1 going live |
+| X8 | Age check, alcohol gate, regional rules | Counsel | SS-26, R-11 |
+| X9 | Health Breach Notification runbook; Washington consumer health data policy; per-feature consent | Counsel | Outside testers in affected states |
+| X10 | Calendar consent copy; the legal gate on `moments_calendar_enabled` | Counsel | M4, P10 |
+| X11 | Privacy policy vs Smart Capture photo access (RA-N3) | Counsel | Outside testers |
+| X12 | Edit window for drink records; whether a trainer sees corrections | Both founders | D3 |
+| X13 | BAC logic and Heat Risk: delete or keep gated | Both founders, counsel | SS-05, SS-21 |
+
+### I.5 Safest execution order
+
+1. **D8, D2, D4** in one small pull request: copy and comment corrections only. No data, no score. Lowest risk, and it stops the app saying things the model does not do.
+2. **D1**: count existing duplicates in production first (a read-only query the founder runs), then the stable id and the unique index.
+3. **D5, D6, D7**: privacy and "no leaderboards" corrections, each its own pull request.
+4. **X12 decided**, then **D3**: the edit / delete / undo model, proved against v2.0 golden outputs. Everything that follows (widgets, write-back, the hydration step) depends on it.
+5. **M7** (migration ledger), then **M2** (tokens) and **M1** (deletion stages 3–5) as their approvals arrive.
+6. **M3**: the device run, on a build that contains steps 1–4.
+7. Only then proposed work, dark: **P2 → P4 → P1** (target, safety, drink rules, in that order so safety exists before anything dynamic), then **P8 → P10 → P9 → P11**.
+
+`hydrostate-v2.0` is not changed by steps 1–6. Step 4 changes which records feed the score, not how the score is computed.
