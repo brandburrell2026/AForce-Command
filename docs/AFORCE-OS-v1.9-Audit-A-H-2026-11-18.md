@@ -52,7 +52,7 @@ Status words: IMPLEMENTED · PARTIAL · MISSING · BLOCKED · CONFLICTING · UNV
 |---|---|---|---|
 | Five-tab navigation | IMPLEMENTED | Home · Hydration · One Breath · Moments · Circles, in that order | `A/app/(tabs)/_layout.tsx:44-68,287-338` |
 | Moments tab in a store build | PARTIAL | Redirects to Home unless the build is internal TestFlight | `A/app/(tabs)/moments-tab.tsx:8-9` |
-| Profile from the member photo | UNVERIFIED | The Profile tab is hidden from the bar. Four searches found no visible button that opens it, only redirects. Needs a device check | `_layout.tsx:341-344` |
+| Profile from the member photo | MISSING until 2026-11-18 (RA-N12) | Confirmed on the founder's phone with build 161: no way into Profile since the tab was removed on 2026-11-06. A member-photo button on Home now opens it | `_layout.tsx:341-344` |
 | Moment model | IMPLEMENTED | `Moment` and `MomentPreparation`, stored on the device only, keyed per member | `A/types/moments.ts:36-88`; `A/services/momentsStore.ts` |
 | Loop stages | PARTIAL | Spot, Plan, Seal, Lock In, Return and Replay have screens (internal builds). "Today", "Before" and "Learn" as the specs describe them do not | `A/components/oneBreath/MomentPreparationScreen.tsx:96-106` |
 | Confirmation window, read-back, Undo | IMPLEMENTED (internal) | Built to spec v1.8.2; device run not done | `A/utils/oneBreath/confirmationWindow.ts` |

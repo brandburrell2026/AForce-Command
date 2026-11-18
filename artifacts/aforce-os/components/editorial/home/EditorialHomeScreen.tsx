@@ -59,7 +59,7 @@ import { useUser } from '@clerk/expo';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
-import { AFCard, AFMasthead, AFPrimaryButton, AFScreen, AFOfflineBanner, AFSkeleton } from '@/components/ui';
+import { AFCard, AFMasthead, AFMemberPhotoButton, AFPrimaryButton, AFScreen, AFOfflineBanner, AFSkeleton, memberInitials } from '@/components/ui';
 import { ConfidenceChip } from '@/components/ConfidenceChip';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
@@ -278,6 +278,16 @@ export function EditorialHomeScreen({
               meta={dateLabel}
               metaSecondary={timeLabel}
               breadcrumb={`${t('tabs.home')} / ${t('home.v2.readiness_label')}`}
+              accessory={
+                // The only way into Profile: the tab bar has no Profile tab.
+                <AFMemberPhotoButton
+                  imageUrl={clerkUser?.hasImage ? clerkUser.imageUrl : null}
+                  initials={memberInitials(clerkUser?.firstName, clerkUser?.lastName)}
+                  onPress={() => router.push('/(tabs)/profile')}
+                  accessibilityLabel={t('tabs.profile')}
+                  testID="home-profile-entry"
+                />
+              }
               testID="editorial-masthead"
             />
             {focused ? (
