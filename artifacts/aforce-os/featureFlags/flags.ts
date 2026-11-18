@@ -804,6 +804,28 @@ export function developerControlsAvailable(
 }
 
 /**
+ * Whether a locked `<FeatureGate>` may offer its client-side "Activate Demo"
+ * control for `flag` (stop-ship RA-N1, 2026-11-17). The gate used to flip the
+ * flag for any member in any build, which made a default-OFF flag a
+ * suggestion rather than a boundary. It now follows the same rules as the
+ * developer "unlock all" control:
+ *   - ordinary production build: never;
+ *   - any build: never for a flag `demoUnlockAllFlags` clamps in that build
+ *     (Legal/Privacy-gated, internal-preview, or internal-tier flags).
+ * This is a presentation clamp, not authorization; server entitlement is a
+ * separate boundary.
+ */
+export function featureGateSelfActivationAllowed(
+  flag: keyof FeatureFlags,
+  ctx: UnlockContext = currentUnlockContext(),
+  demoMode = process.env['EXPO_PUBLIC_DEMO_MODE'] === 'true',
+): boolean {
+  if (!developerControlsAvailable(ctx, demoMode)) return false;
+  const probe = demoUnlockAllFlags({ ...DEFAULT_FLAGS, [flag]: true }, ctx);
+  return probe[flag] === true;
+}
+
+/**
  * Payload for the developer "unlock all" control. Returns the demo-presentation
  * flag set with every restricted flag force-clamped to `false`, so the generic
  * client unlock can NEVER enable a restricted capability — regardless of what
