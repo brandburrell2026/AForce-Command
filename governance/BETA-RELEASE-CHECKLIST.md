@@ -135,7 +135,7 @@ stands as last verified on 2026-08-12.
   new items RA-N1..RA-N4. Each open S1 needs a fix or an explicit founder acceptance before
   outside testers: SS-03 (tokens stored unencrypted), SS-04 (no in-app account deletion or
   export), SS-05 (BAC / "do not drive" logic still in the build), SS-26 (alcohol logging with no
-  age check), and SS-02 with RA-N1 ("Activate Demo" turns on gated features client-side)
+  age check), and SS-02 (no server entitlement for enterprise surfaces; its client-side "Activate Demo" path, RA-N1, was closed in #1214 on 2026-11-17)
 - [ ] `aforce_recorded_drinks` added to the deletion path (`governance/reviews/CR-HYDROSTATE-V2-0.md` §4)
 
 **Not re-checked:** §3 commerce chain (Stripe test purchase, Shopify webhook registration),
