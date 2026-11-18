@@ -84,7 +84,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
   // is ON for internal builds, OFF for the public production binary.
   // Each Phase 2/3 sub-feature ships OFF by default and lights up on
   // its own staged release; see Release Plan in REPLIT.md / spec.
-  cruise_mode_enabled: true,
+  // Stop-ship RA-N4 (founder decision 2026-11-18): this default was `true`,
+  // contradicting the line above. It is now OFF here and granted to the
+  // internal TestFlight build by CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS.
+  cruise_mode_enabled: false,
   cruise_journey_pulse_enabled: false,
   cruise_commerce_enabled: false,
   cruise_inventory_enabled: false,

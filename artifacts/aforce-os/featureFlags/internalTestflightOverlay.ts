@@ -141,8 +141,19 @@ export const GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
- * What the internal-TestFlight build actually turns ON: the union of the five
- * grants above (eleven keys), in ruling order. Nothing else. Every key here is
+ * Cruise Mode master switch (stop-ship RA-N4, founder decision 2026-11-18).
+ * The spec has always said "ON for internal builds, OFF for the public
+ * production binary", but the production default was `true`. The default is
+ * now false and this list is what keeps Cruise on in internal TestFlight.
+ * Only the master switch: every Cruise sub-feature flag stays OFF.
+ */
+export const CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+  'cruise_mode_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
+ * What the internal-TestFlight build actually turns ON: the union of the
+ * grants above (twelve keys), in ruling order. Nothing else. Every key here is
  * OFF in `DEFAULT_FLAGS` — the overlay grants only what production does not.
  * `moments_calendar_enabled` is deliberately absent — it stays false pending
  * Legal + Privacy sign-off, and no editorial flag widens that gate.
@@ -154,6 +165,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...SKINIA_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
   ...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
   ...GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+  ...CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];
