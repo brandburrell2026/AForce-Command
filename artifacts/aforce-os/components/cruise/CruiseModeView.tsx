@@ -102,7 +102,7 @@ function Tile({ children, style }: { children: React.ReactNode; style?: StylePro
 }
 
 /**
- * The Black Issue CTA shape (AFPrimaryButton / AFSecondaryButton: red fill,
+ * The Black Issue CTA shape (AFPrimaryButton / AFSecondaryButton: warm-white fill,
  * label left, "+" flush right, 52pt, radius 10) as a plain Pressable. AFButton
  * is not imported because it rides AFMotionPressable → reanimated/worklets,
  * which the non-shipping render harness (cruiseModeView.render.test.tsx — a
@@ -126,8 +126,8 @@ function CtaButton({
         pressed && !disabled && styles.ctaBtnPressed,
       ]}
     >
-      <Text style={[styles.ctaLabel, { color: disabled ? af.textTertiary : af.onRed }]}>{label}</Text>
-      {trailingIcon ? <Icon name={trailingIcon} size={18} color={disabled ? af.textTertiary : af.onRed} /> : null}
+      <Text style={[styles.ctaLabel, { color: disabled ? af.textTertiary : af.onPrimaryFill }]}>{label}</Text>
+      {trailingIcon ? <Icon name={trailingIcon} size={18} color={disabled ? af.textTertiary : af.onPrimaryFill} /> : null}
     </Pressable>
   );
 }
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, paddingHorizontal: 20, paddingVertical: 8,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12,
   },
-  ctaBtnLive: { backgroundColor: af.red },
+  ctaBtnLive: { backgroundColor: af.primaryFill },
   ctaBtnPreview: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border },
   ctaBtnPressed: { opacity: 0.85 },
   ctaLabel: { ...afType.bodyStrong, flexShrink: 1 },

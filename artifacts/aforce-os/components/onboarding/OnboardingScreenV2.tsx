@@ -903,7 +903,7 @@ export function OnboardingScreenV2() {
             <Text style={styles.ctaLabel}>
               {step === 'ready' ? t('onboarding.v2.cta_enter') : t('onboarding.v2.cta_continue')}
             </Text>
-            <Icon name="arrow-right" size={18} color={af.onRed} />
+            <Icon name="arrow-right" size={18} color={af.onPrimaryFill} />
           </Pressable>
         </View>
       </View>
@@ -1154,7 +1154,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
     borderRadius: 16,
     paddingVertical: 18,
   },
@@ -1163,6 +1163,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_800ExtraBold',
     fontSize: 15,
     letterSpacing: 1.5,
-    color: af.onRed,
+    color: af.onPrimaryFill,
   },
 });

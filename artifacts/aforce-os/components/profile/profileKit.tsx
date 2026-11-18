@@ -830,12 +830,12 @@ export const styles = StyleSheet.create({
   },
   inviteShareBtn: {
     marginTop: 16, paddingVertical: 12, paddingHorizontal: 22, borderRadius: 999,
-    backgroundColor: af.red, flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: af.primaryFill, flexDirection: 'row', alignItems: 'center', gap: 8,
   },
   inviteShareBtnDisabled: { opacity: 0.4 },
   inviteShareBtnPressed: { opacity: 0.85 },
   inviteShareLabel: {
-    fontFamily: 'Inter_700Bold', fontSize: 12, color: af.onRed, letterSpacing: 1.5,
+    fontFamily: 'Inter_700Bold', fontSize: 12, color: af.onPrimaryFill, letterSpacing: 1.5,
   },
   inviteTierBadge: {
     paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999,

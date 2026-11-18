@@ -67,8 +67,8 @@ const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: af.canvas, gap: 16 },
   title: { color: af.textPrimary, fontSize: 22, textAlign: 'center' },
   body: { color: af.textSecondary, fontSize: 15, lineHeight: 22, textAlign: 'center' },
-  cta: { backgroundColor: af.red, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 8, marginTop: 8 },
-  ctaText: { color: af.onRed, fontSize: 16 },
+  cta: { backgroundColor: af.primaryFill, paddingVertical: 14, paddingHorizontal: 28, borderRadius: 8, marginTop: 8 },
+  ctaText: { color: af.onPrimaryFill, fontSize: 16 },
   note: { color: af.textTertiary, fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 8 },
 });
 

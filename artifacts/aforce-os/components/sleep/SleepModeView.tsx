@@ -100,7 +100,7 @@ function CtaButton({
       style={({ pressed }) => [styles.ctaBtn, pressed && styles.ctaBtnPressed]}
     >
       <Text style={styles.ctaLabel}>{label}</Text>
-      {trailingIcon ? <Icon name={trailingIcon} size={18} color={af.onRed} /> : null}
+      {trailingIcon ? <Icon name={trailingIcon} size={18} color={af.onPrimaryFill} /> : null}
     </Pressable>
   );
 }
@@ -370,8 +370,8 @@ const styles = StyleSheet.create({
   targetInput: { flex: 1, ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary, paddingVertical: 0 },
   editChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, minHeight: 44, justifyContent: 'center' },
   editChipText: { ...afType.eyebrow, color: af.textSecondary },
-  saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.red, minHeight: 44, justifyContent: 'center' },
-  saveBtnText: { ...afType.eyebrow, color: af.onRed },
+  saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.primaryFill, minHeight: 44, justifyContent: 'center' },
+  saveBtnText: { ...afType.eyebrow, color: af.onPrimaryFill },
   timeline: { gap: 6, marginTop: 4 },
   timelineTrack: { height: 4, borderRadius: 2, backgroundColor: af.divider, justifyContent: 'center' },
   timelineFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: af.red },
@@ -384,10 +384,10 @@ const styles = StyleSheet.create({
   ctaBtn: {
     minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, paddingHorizontal: 20, paddingVertical: 8,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   ctaBtnPressed: { opacity: 0.85 },
-  ctaLabel: { ...afType.bodyStrong, color: af.onRed, flexShrink: 1 },
+  ctaLabel: { ...afType.bodyStrong, color: af.onPrimaryFill, flexShrink: 1 },
 
   // Sections
   section: { marginTop: 32 },

@@ -349,16 +349,15 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 28, paddingVertical: 16, borderRadius: 14,
-    backgroundColor: af.red, alignItems: 'center',
+    backgroundColor: af.primaryFill, alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.4 },
   buttonPressed: { opacity: 0.85 },
   buttonText: {
-    // #0A0A0F on af.red measures ~3.37:1 — under AA. af.onRed (#FFFFFF,
-    // ~5.86:1) is AFButton's own AA-verified on-red text color (AFButton.tsx);
-    // matched here rather than restructuring this screen's custom Pressable
-    // onto AFPrimaryButton, for the smaller diff.
-    fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onRed, letterSpacing: 0.5,
+    // Warm-white fill with black text (Screen Upgrade v1.1), the same pair as
+    // AFPrimaryButton — 18:1. Kept as this screen's own Pressable rather than
+    // restructured onto AFPrimaryButton, for the smaller diff.
+    fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onPrimaryFill, letterSpacing: 0.5,
   },
   linkRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
   linkBtn: { alignItems: 'center', marginTop: 14 },

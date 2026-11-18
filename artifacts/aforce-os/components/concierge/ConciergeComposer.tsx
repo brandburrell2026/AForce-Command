@@ -79,7 +79,7 @@ export const ConciergeComposer = React.forwardRef<ConciergeComposerHandle, Conci
             hitSlop={6}
             testID={`${testID}-send`}
           >
-            <Icon name="arrow-up" size={18} color={canSend ? af.onRed : af.textTertiary} />
+            <Icon name="arrow-up" size={18} color={canSend ? af.onPrimaryFill : af.textTertiary} />
           </Pressable>
         )}
       </View>
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  send: { backgroundColor: af.red },
+  send: { backgroundColor: af.primaryFill },
   sendDisabled: { backgroundColor: af.surfaceRaised },
   stop: { backgroundColor: af.surfaceRaised, borderWidth: afLayout.hairline, borderColor: af.borderStrong },
   counter: { position: 'absolute', top: -6, ...afType.caption, color: af.textTertiary },

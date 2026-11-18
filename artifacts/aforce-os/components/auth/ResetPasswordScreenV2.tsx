@@ -211,11 +211,11 @@ const styles = StyleSheet.create({
   },
   error: { color: af.redText, fontSize: 13, fontFamily: 'Inter_500Medium', marginTop: 12 },
   button: {
-    backgroundColor: af.red, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 20,
+    backgroundColor: af.primaryFill, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 20,
   },
   buttonDisabled: { opacity: 0.5 },
   buttonPressed: { opacity: 0.85 },
-  buttonText: { color: af.onRed, fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 0.4 },
+  buttonText: { color: af.onPrimaryFill, fontSize: 15, fontFamily: 'Inter_700Bold', letterSpacing: 0.4 },
   backLink: { alignItems: 'center', marginTop: 18, minHeight: 44, justifyContent: 'center' },
   backLinkText: { color: af.textSecondary, fontSize: 13, fontFamily: 'Inter_500Medium' },
 });

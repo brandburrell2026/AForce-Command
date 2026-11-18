@@ -704,7 +704,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 4,
@@ -724,7 +724,7 @@ export const styles = StyleSheet.create({
         } as Record<string, unknown>)
       : {}),
   },
-  calcBtnText: { color: af.onRed, fontSize: 15, fontFamily: Typography.fonts.bold, letterSpacing: 0.3 },
+  calcBtnText: { color: af.onPrimaryFill, fontSize: 15, fontFamily: Typography.fonts.bold, letterSpacing: 0.3 },
   calcBtnDisabled: { backgroundColor: af.surface },
   calcBtnTextDisabled: { color: af.textTertiary },
 
@@ -1171,13 +1171,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
     paddingVertical: 12,
     borderRadius: 10,
     marginTop: 14,
   },
   restockBtnText: {
-    color: af.onRed,
+    color: af.onPrimaryFill,
     fontSize: 13,
     fontFamily: Typography.fonts.bold,
     letterSpacing: 0.4,

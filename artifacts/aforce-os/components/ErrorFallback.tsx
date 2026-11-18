@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // VS 3.0 foundation: retired the navy/lime scaffold palette (useColors →
 // constants/colors) for brand af.* tokens, mapped by role. The "Try Again"
-// button is a filled primary action → af.red fill + af.onRed label; body copy
+// button is a filled primary action → af.primaryFill + af.onPrimaryFill label; body copy
 // → textSecondary; surfaces → canvas/surface; the modal scrim + button shadow
 // keep pure black via Colors.text.inverse (byte-identical to the prior values).
 import { af, withAlpha } from "@/theme/afTokens";
@@ -87,7 +87,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           style={({ pressed }) => [
             styles.button,
             {
-              backgroundColor: af.red,
+              backgroundColor: af.primaryFill,
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             },
@@ -96,7 +96,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           <Text
             style={[
               styles.buttonText,
-              { color: af.onRed },
+              { color: af.onPrimaryFill },
             ]}
           >
             Try Again
