@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
   panel: { gap: 16 },
   sectionHeader: { flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' },
   sectionCopy: { flex: 1, gap: 5 },
-  kicker: { color: af.redText, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
+  kicker: { color: af.textSecondary, fontSize: 11, fontWeight: '700', letterSpacing: 1.5 },
   heading: { color: af.textPrimary, fontSize: 26, fontWeight: '700', letterSpacing: -0.5 },
   disclosure: { color: af.textSecondary, fontSize: 15, lineHeight: 21, marginTop: -5 },
   copy: { color: af.textSecondary, fontSize: 15, lineHeight: 21 },
