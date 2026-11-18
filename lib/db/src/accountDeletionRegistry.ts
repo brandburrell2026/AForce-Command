@@ -2,8 +2,8 @@
  * Account deletion registry (SS-04, stage 1 of 5).
  *
  * One entry per table in `./schema`, saying what full account deletion does
- * to it. This file is DATA ONLY. Nothing reads it to delete anything yet:
- * the server endpoint that executes it is stage 2 and is not built.
+ * to it. This file is DATA ONLY. `./accountDeletionExecutor` turns it into the
+ * statements that full account deletion runs (stage 2).
  *
  * The companion test (`__tests__/accountDeletionRegistry.test.ts`) fails when
  * a table is added to the schema without an entry here, or when a table gains
@@ -55,8 +55,16 @@ export interface DeletionKey {
    *  - `indirect`: column references a parent row named in `via`.
    */
   readonly match?: "member_id" | "email" | "indirect";
-  /** For `indirect`: `table.column` of the member-keyed parent. */
-  readonly via?: string;
+  /**
+   * For `indirect`: the member-keyed parent. This column matches
+   * `via.joinColumn` on rows of `via.table` whose `via.memberColumn` is the
+   * deleted member's id.
+   */
+  readonly via?: {
+    readonly table: string;
+    readonly joinColumn: string;
+    readonly memberColumn: string;
+  };
   readonly retainReason?: RetainReason;
   /** A row that may carry a legal retention duty. Not reviewed by counsel. */
   readonly counselReview?: true;
@@ -165,7 +173,7 @@ export const ACCOUNT_DELETION_REGISTRY: Readonly<Record<string, DeletionTableEnt
     keys: [
       purge("analytics_id", {
         match: "indirect",
-        via: "aforce_analytics_identities.analytics_id",
+        via: { table: "aforce_analytics_identities", joinColumn: "analytics_id", memberColumn: "user_id" },
         note:
           "Pseudonymous; no member id on the row. Must be read before the identity row is " +
           "removed. Stage 2 has to reconcile this with the existing analytics forget path.",
@@ -253,7 +261,7 @@ export const ACCOUNT_DELETION_REGISTRY: Readonly<Record<string, DeletionTableEnt
     keys: [
       purge("progression_id", {
         match: "indirect",
-        via: "aforce_rtp_progressions.athlete_user_id",
+        via: { table: "aforce_rtp_progressions", joinColumn: "id", memberColumn: "athlete_user_id" },
         note: "Sign-offs on the deleted athlete's progressions go with the progression.",
       }),
       authorOf("signed_by_user_id"),
