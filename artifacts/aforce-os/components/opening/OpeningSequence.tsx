@@ -54,6 +54,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
+import { AFMark } from '@/components/ui/AFMark';
 
 const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
@@ -65,6 +66,8 @@ const BRAND = Colors.accent.brand;
 // the caption all render in bone; signal red (Colors.accent.brand) is reserved for
 // the thin caption hairlines only. No Soursop green appears on this screen.
 const BONE = Colors.bone;
+/** Letter size of the N–И mark at the peak of the opening. */
+export const OPENING_MARK_SIZE = 76;
 const GLOW_SIZE = 320; // px box for the soft bone radial glow behind the monogram
 
 const FONT_EXTRABOLD = 'Inter_800ExtraBold';
@@ -212,14 +215,8 @@ function StageSymbol({ active, reduce }: { active: boolean; reduce: boolean }) {
 }
 
 // ─── Stage 2 — Brand reveal ──────────────────────────────────────────
-// The N|N monogram matches the physical can: a normal "N", an en-dash, then
-// the SAME "N" mirrored. The mirror is a pure horizontal flip —
-// `transform: [{ scaleX: -1 }]` on that one glyph (styles.monogramMirror) — so
-// it renders as a true reflection (reads "N–И"), never a different letter. The
-// bone glyphs scale up from 0.92 → 1.0 over a soft bone/silver radial glow (an
-// SVG RadialGradient fading to fully transparent — no hard edge, no visible
-// disc, reads as ambient light off metal) so it lands as the hero of the stage.
-// Reduced motion skips the scale + glow ramp and just fades.
+// The mark is the shared AFMark component (Inter 300, mirrored second N, red
+// bar): the opening screen no longer draws its own.
 function MonogramHero({
   active,
   reduce,
@@ -289,14 +286,10 @@ function MonogramHero({
         </Svg>
       </Animated.View>
       <Animated.View style={[styles.monogramRow, rowStyle]}>
-        <Text style={styles.monogramGlyph}>N</Text>
-        <Text style={styles.monogramDash}>–</Text>
-        {/* Mirror lives on the wrapping View, not the Text: React Native native
-            (Expo Go) ignores `transform` on a <Text>, so the flip must be on a
-            <View> for the reflected "И" to render on device as well as on web. */}
-        <View style={styles.monogramMirror}>
-          <Text style={styles.monogramGlyph}>N</Text>
-        </View>
+        {/* The one N–И component (Master Brief §2: built as a component, Inter
+            300, mirrored second N, Signal Red). The opening screen used to
+            draw its own in Archivo Black with bone letters. */}
+        <AFMark size={OPENING_MARK_SIZE} testID="opening-mark" />
       </Animated.View>
     </View>
   );
@@ -690,24 +683,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  monogramGlyph: {
-    fontFamily: FONT_DISPLAY,
-    fontSize: 76,
-    lineHeight: 84,
-    color: BONE,
-    includeFontPadding: false,
-    textAlignVertical: 'center',
-  },
-  monogramMirror: {
-    transform: [{ scaleX: -1 }],
-  },
-  monogramDash: {
-    fontFamily: FONT_DISPLAY,
-    fontSize: 52,
-    lineHeight: 84,
-    color: BRAND,
-    marginHorizontal: 8,
   },
   captionBlock: {
     alignItems: 'center',

@@ -135,3 +135,18 @@ describe('no screen types the mark as a string', () => {
     expect((ob.match(/<AFMark/g) ?? []).length).toBe(2);
   });
 });
+
+describe('the opening screen uses the one mark component', () => {
+  const opening = require('node:fs').readFileSync(
+    require('node:path').join(__dirname, '..', '..', 'opening', 'OpeningSequence.tsx'),
+    'utf8',
+  ) as string;
+
+  it('draws AFMark, not its own letters', () => {
+    expect(opening).toContain("import { AFMark } from '@/components/ui/AFMark'");
+    expect(opening).toContain('<AFMark size={OPENING_MARK_SIZE} testID="opening-mark" />');
+    expect(opening).not.toContain('monogramGlyph');
+    expect(opening).not.toContain('monogramMirror');
+    expect(opening).not.toContain('monogramDash');
+  });
+});
