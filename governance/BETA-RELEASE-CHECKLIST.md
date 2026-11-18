@@ -131,11 +131,11 @@ stands as last verified on 2026-08-12.
   instance; `governance/CLERK-PAIRING-STATE.md` marks public beta as blocked on this. Migration
   plan written, not executed (`governance/PRODUCTION-CLERK-MIGRATION-PLAN.md`) (founder approval)
 - [ ] **Stop-ship register re-audit, 2026-11-17** (`governance/AFORCE_OS_STOP_SHIP_REGISTER.md`
-  §5): 30 rows — 7 fixed, 1 fixed for store builds only, 10 partly fixed, 12 still open, plus four
-  new items RA-N1..RA-N4. Each open S1 needs a fix or an explicit founder acceptance before
+  §5): 30 rows — 8 fixed, 1 fixed for store builds only, 11 partly fixed, 10 still open (as updated
+  2026-11-18 after #1216–#1218), plus four new items RA-N1..RA-N4 (RA-N1 and RA-N4 closed). Each open S1 needs a fix or an explicit founder acceptance before
   outside testers: SS-03 (tokens stored unencrypted), SS-04 (no in-app account deletion or
   export), SS-05 (BAC / "do not drive" logic still in the build), SS-26 (alcohol logging with no
-  age check), and SS-02 (no server entitlement for enterprise surfaces; its client-side "Activate Demo" path, RA-N1, was closed in #1214 on 2026-11-17)
+  age check; hidden from store builds by #1217 on 2026-11-18, age check still missing), and SS-02 (no server entitlement for enterprise surfaces; its client-side "Activate Demo" path, RA-N1, was closed in #1214 on 2026-11-17)
 - [ ] `aforce_recorded_drinks` added to the deletion path (`governance/reviews/CR-HYDROSTATE-V2-0.md` §4)
 
 **Not re-checked:** §3 commerce chain (Stripe test purchase, Shopify webhook registration),
