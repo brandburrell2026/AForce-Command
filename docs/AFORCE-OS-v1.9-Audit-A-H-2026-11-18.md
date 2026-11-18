@@ -67,7 +67,7 @@ Status words: IMPLEMENTED · PARTIAL · MISSING · BLOCKED · CONFLICTING · UNV
 | Quiet hours | PARTIAL | Fixed 22:00–07:00, a 60-minute gap, a daily cap, and silence during Lock In. No Focus / Do Not Disturb check | `A/services/momentNotifications.ts:86-142` |
 | Lock-screen privacy | MISSING | The notification title includes the Moment title | `momentNotifications.ts:166-167` |
 | Circle sharing of Moments | IMPLEMENTED, flag off | Shares id, title, start time; manual Moments only | `A/services/circleMomentSharingService.ts:20-26` |
-| Streaks / leaderboards | PARTIAL | `/leaderboard` and `/achievements` have no flag gate and are linked from Profile panes | `A/components/profile/panes/AccountPane.tsx:172`, `PerformancePane.tsx:333` |
+| Referral leaderboard and achievement badges | IMPLEMENTED (founder-ruled 2026-08-27) | `/leaderboard` ranks invite claims with anonymous handles; `/achievements` is a badge grid. Neither ranks hydration. Whether they fit the proposed "no leaderboards, no badges" rule is a founder decision | `A/components/profile/panes/AccountPane.tsx:172`, `PerformancePane.tsx:333` |
 
 ### A.3 Platform, integrations, release plumbing
 
@@ -97,7 +97,7 @@ Full detail for each (affected code, severity, correction, tests, regression ris
 3. **No edit or delete for a logged drink.** The specs assume both.
 4. **Analytics payloads are not allow-listed** on the server.
 5. **Notification titles carry the Moment title** onto the lock screen.
-6. **`/leaderboard` and `/achievements` are reachable without a flag**, against "no streaks, no leaderboards".
+6. *(Withdrawn. The referral leaderboard and achievements screens are founder-ruled production screens, not a defect. See Part I.1, correction to D7.)*
 7. **Two test titles in `realApi.intake.test.ts` are stale** ("baseImpact = 10", "+2 depleted bonus"); the assertions are correct.
 8. **The catalog header still says coefficients set score impact.** They do not.
 
@@ -195,7 +195,7 @@ Owners: **B** Brandon, **J** Julius, **S** scientific approver (currently Julius
 | R-5 | SS-03 encrypted-only tokens, backfill, drop plaintext | — | `lib/db/src/*TokenStore.ts`, migrations | No plaintext column; fail-closed read test | B (touches production data: founder runs the migration) |
 | R-6 | Analytics payload allow-list on the server | — | `lib/analytics-contract`, `S/routes/aforce/analytics.ts` | An undeclared field is rejected (test) | B |
 | R-7 | Lock-screen privacy: generic notification title by default | — | `momentNotifications.ts` | Title shows "Your 10 AM Moment" unless the member opts in | B, J |
-| R-8 | Gate or remove `/leaderboard`, `/achievements` | — | Profile panes, routes | Not reachable in a store build (test) | B, J |
+| R-8 | *(Withdrawn: founder decision 11 in Part G, not an engineering task)* | — | — | — | B, J |
 | R-9 | Server entitlements for enterprise routes (SS-02) | Founder policy | `S/routes/` | 403 contract tests | B, J |
 | R-10 | BAC / "do not drive" and Heat Risk: delete or keep gated | Decision B15 | per decision | per decision | B, J, C |
 | R-11 | Age check and alcohol gate (SS-26) | Decision B18 | Clerk metadata, server | Server-verified; alcohol hidden by default | B, C |
@@ -267,6 +267,7 @@ Sweat-rate test and profiles (#52, D5a), active energy input (#61), behind-pace 
 8. Delete vs keep-gated for BAC logic, Heat Risk and the dark modules (B15).
 9. SS-11 band set, and approval to edit the off-limits band and colour files (B16).
 10. SS-02 policy: which surfaces need a server entitlement.
+11. Whether the referral leaderboard and achievement badges stay, given the proposed "no streaks, leaderboards or badges" rule. They are live, founder-ruled screens today.
 
 **Julius (science, D-09 §1.3):** #50 drink rules and each class; #51 target values and floor/ceiling; #53 S53 values and wording; #54 heat bands; #52 sweat test values; #55 morning check; #69 hydration playbook lines and the attribution rule (B8); #73 Replay wording; #67 cohort targets; #60 AFORCE product facts.
 
@@ -312,8 +313,17 @@ testers, **S2** fix before the next build goes wider, **S3** fix soon. Register 
 | D4 | Fixed 96 oz target shown as the member's goal (RA-N8) | S3 | `S/lib/aforceState.ts:111-112`; `A/components/hydration/HydrationScreenV2.tsx:193,304`; `A/app/(tabs)/protocol.tsx:195` | Copy only: label the number "Starting point" with one line saying it is the same for everyone until a personal target is approved. No change to the number, the ring maths or the score | Render tests on both screens; claims lint | Low. The week "goal met" dots keep their meaning; wording must not imply a recommendation |
 | D5 | Analytics payload fields are not enforced on the server | S2 | `lib/analytics-contract/src/zod.ts:34`; `S/routes/aforce/analytics.ts:70` | Validate each event's payload against its declared field list; drop or reject anything else | An undeclared field is rejected; every existing event type still passes | An event the client sends today with an undeclared field would start failing: run the validator in report-only mode first |
 | D6 | Notification title carries the Moment title to the lock screen | S2 | `A/services/momentNotifications.ts:166-167`; `A/locales/en.json:2641` | Generic title by default ("Your 10 AM Moment"); member can opt in to full titles | Unit test on the built notification content, both settings | Low |
-| D7 | `/leaderboard` and `/achievements` reachable without a flag | S3 | `A/components/profile/panes/AccountPane.tsx:172`, `PerformancePane.tsx:333`; routes | Gate behind existing competition flags clamped off in store builds, or remove the links | Route and render tests in a production flag set | Low; confirm nothing else links to them |
+| D7 | ~~`/leaderboard` and `/achievements` reachable without a flag~~ **Withdrawn 2026-11-18: not a defect. See the correction below the table** | n/a | `A/app/leaderboard.tsx`, `A/app/achievements.tsx` | None without a founder decision | n/a | n/a |
 | D8 | Stale test titles and catalog comment | S3 | `A/services/__tests__/realApi.intake.test.ts`; `A/data/drinkCatalog.ts:10` | Rename; no assertion changes | Suite still green | None |
+
+**Correction to D7 (2026-11-18).** When I opened both screens to gate them, the code did not support calling this a defect:
+
+- `/leaderboard` is the **referral** leaderboard: top recruiters by invite claims, anonymous "Operator XXXX" handles, real server data. It does not rank hydration, HydroState or any health value.
+- `/achievements` is a badge grid backed by real server data.
+- Both route files carry a founder ruling (2026-08-27) that they render the production screen unconditionally.
+- The "no streaks, leaderboards, badges" rule that made me flag them comes from the **proposed** build rules and the v1.8.2 spec text. I found no approved governance row in this repository that bans a referral leaderboard or achievement badges.
+
+Gating them would remove working, founder-ruled functionality on the strength of a proposed rule. Nothing was changed. Whether these two screens fit "trust over attention" is a founder decision (added to Part G).
 
 Already on the register and still open (not repeated in detail): SS-03 plaintext tokens, SS-04 account deletion stages 3–5, SS-05 BAC logic, SS-26 age check, SS-02 server entitlements, SS-11 / SS-12 bands and naming, SS-14 claims strings, SS-21 Heat Risk route, RA-N2 storage isolation, RA-N3 privacy policy, Clerk production instance.
 
@@ -378,7 +388,7 @@ None of these is approved. Each can be built dark (flag off) only where noted.
 
 1. **D8, D2, D4** in one small pull request: copy and comment corrections only. No data, no score. Lowest risk, and it stops the app saying things the model does not do.
 2. **D1**: count existing duplicates in production first (a read-only query the founder runs), then the stable id and the unique index.
-3. **D5, D6, D7**: privacy and "no leaderboards" corrections, each its own pull request.
+3. **D5, D6**: privacy corrections, each its own pull request (done: #1226, #1227). D7 was withdrawn.
 4. **X12 decided**, then **D3**: the edit / delete / undo model, proved against v2.0 golden outputs. Everything that follows (widgets, write-back, the hydration step) depends on it.
 5. **M7** (migration ledger), then **M2** (tokens) and **M1** (deletion stages 3–5) as their approvals arrive.
 6. **M3**: the device run, on a build that contains steps 1–4.
