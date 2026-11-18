@@ -7,28 +7,18 @@
  * so the catalog can be unit-tested in isolation and reused by every
  * input mode that ships later (barcode scan, camera scan, Smart Capture).
  *
- * ── Hydration coefficients ────────────────────────────────────────────
- * Each category carries a `hydrationCoefficient` in [0, 1.1] that scales
- * the effective hydration credit relative to plain water (1.0). Values
- * are dietetics rules-of-thumb, not clinical claims:
- *   1.10  electrolyte drinks  (better than water — sodium/potassium aid uptake)
- *   1.05  sports drinks       (electrolytes + small sugar boost)
- *   1.00  water / bottled water (baseline)
- *   0.95  tea                 (mild diuretic; net positive)
- *   0.90  smoothies           (fiber + water bound in pulp)
- *   0.85  coffee / juice      (caffeine or sugar load)
- *   0.70  pre-workout         (high caffeine + stimulants)
- *   0.60  soda                (sugar/caffeine)
- *   0.50  energy drinks       (high caffeine + sugar)
- *   0.10  alcohol             (net diuretic — minimal credit; the social
- *                              mode engine handles actual dehydration
- *                              math in a separate flow)
- *   0.80  custom drinks       (conservative default — user may edit)
+ * ── Hydration coefficients (HISTORICAL, not used by the score) ─────────
+ * Each category still carries a `hydrationCoefficient`. Until 2026-11-12 it
+ * scaled a drink's credit relative to water. Since `hydrostate-v2.0`
+ * (founder decision C1) it does NOT affect HydroState, today's ounces or the
+ * decay clock: `utils/hydration/drinkRoute.ts` decides what counts. Plain
+ * water counts 1:1 and every other drink is saved to the drink log with no
+ * credit until its own reviewed rule is approved.
  *
- * Score impact = enteredOz × hydrationCoefficient, stored as ozOverride
- * on the existing IntakeEvent. Display name preserves the real drink so
- * history reads "Coffee · Starbucks Pike Place 16 oz" rather than
- * "Water — 13.6 ounces".
+ * The values are kept only because older call sites still pass them along.
+ * Never show one to a member as a "hydration credit" (stop-ship RA-N6).
+ * Display names still preserve the real drink, so history reads
+ * "Coffee · Starbucks Pike Place 16 oz".
  */
 
 import type { FluidType } from '../types';

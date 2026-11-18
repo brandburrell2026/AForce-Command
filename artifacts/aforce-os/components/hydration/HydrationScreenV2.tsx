@@ -36,6 +36,7 @@
  */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { DAILY_TARGET_IS_PERSONAL } from '@/config/hydroStateModel';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
@@ -304,6 +305,11 @@ export function HydrationScreenV2() {
                 target: userState.ozTarget,
               })}
             />
+            {DAILY_TARGET_IS_PERSONAL ? null : (
+              <Text style={styles.statCaption}>
+                {t('hydration.v2.target_starting_point', { target: userState.ozTarget })}
+              </Text>
+            )}
             <Stat
               label={t('hydration.v2.stat_electrolytes')}
               value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
@@ -511,6 +517,7 @@ const styles = StyleSheet.create({
   stat: { gap: 2 },
   statLabel: { ...afType.eyebrow, color: af.textTertiary },
   statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  statCaption: { ...afType.caption, color: af.textTertiary, marginTop: -6 },
   recoveryRow: { gap: 2, alignItems: 'flex-start' },
   actions: { marginTop: 20, gap: 12 },
   section: { marginTop: 28, gap: 12 },

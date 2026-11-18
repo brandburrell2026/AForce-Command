@@ -773,3 +773,16 @@ export const ONE_BREATH_READBACK_WORDS_PER_SEC = 2.5;
 
 /** Shortest time a read-back is treated as taking, ms. */
 export const ONE_BREATH_READBACK_MIN_MS = 1_500;
+
+/**
+ * Whether the daily ounce target shown to a member is personal to them.
+ *
+ * It is not (stop-ship RA-N8): every member gets the same server default
+ * (8 units / 96 oz). The personal formula above is not connected to anything.
+ * While this is false, every surface that shows the target must label it a
+ * starting point and must not present it as a recommendation.
+ *
+ * Flip to true only when a personal target model is approved by the
+ * scientific approver (D-09 §1.3) AND connected end to end.
+ */
+export const DAILY_TARGET_IS_PERSONAL = false;
