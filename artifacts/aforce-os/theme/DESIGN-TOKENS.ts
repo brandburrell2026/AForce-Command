@@ -1,12 +1,33 @@
-/** Social v0.4. Brand fills match the website; readable text uses bone. */
+/**
+ * One Breath preparation tokens (the Seal flow: MomentPreparationScreen and
+ * its parts).
+ *
+ * These used to be a second, independent palette carrying retired values: the
+ * old red #C1281B, an old blue #2F5BFF, ink #0D0D0D, bone #F5F0E8, a navy
+ * "midnight" and an orange "sun" orb. The Master Brief (2026-11-05) retired
+ * all of them: "Orange anywhere ... is retired", "The daytime sun orb is
+ * retired", and no navy.
+ *
+ * The names stay so the six files that use them do not all have to change at
+ * once, but every colour here now comes from the canonical tokens in
+ * `afTokens.ts`. Do not add a colour literal to this file.
+ */
+import { af, afOrb } from './afTokens';
+
 export const preparationTokens = {
-  ink: '#0D0D0D', panel: '#151513', bone: '#F5F0E8', muted: '#A9A59C',
-  red: '#C1281B', blue: '#2F5BFF', blueHi: '#A9BEFF',
-  midnight: '#080E23', rule: '#343430',
-  sun: ['#FFF4D6', '#FFC56B', '#F08A24', '#9A3E0A'],
-  social: ['#A9BEFF', '#6287FF', '#2F5BFF', '#142778'],
-  orange: ['#FFF4D6', '#FFC56B', '#F08A24', '#9A3E0A'],
-  dayAccent: '#FFC56B', dayButton: '#F08A24', nightAccent: '#A9BEFF',
+  ink: af.canvas,
+  panel: af.surface,
+  bone: af.textPrimary,
+  muted: af.textSecondary,
+  red: af.red,
+  blue: af.blue,
+  onBlue: af.onBlue,
+  blueHi: af.blueText,
+  rule: af.divider,
+  /** The One Breath orb ramp. Signal Red, never orange. */
+  oneBreath: afOrb.oneBreath,
+  /** The Social orb ramp. Proof Blue. */
+  social: afOrb.social,
   holdMs: 1200, breathMs: 6000, quietDimMs: 8000,
   headline: { fontFamily: 'Inter_600SemiBold', fontSize: 34, lineHeight: 39, letterSpacing: -0.85 },
   body: { fontFamily: 'Inter_400Regular', fontSize: 17, lineHeight: 25 },

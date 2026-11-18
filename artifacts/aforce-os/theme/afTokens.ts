@@ -2,17 +2,24 @@
  * af.* — AForce OS premium-redesign semantic tokens (spec §3, §12).
  *
  * The redesign spec defines an `af.*` semantic token namespace. This module is
- * that namespace, built to the spec's STRUCTURE but bound to AForce's FROZEN
- * brand values — never the spec's off-brand literals — per the founder ruling
- * (2026-07-20):
+ * that namespace, bound to the AFORCE brand values in the Codex Master Brief
+ * (2026-11-05, App Spec v1.8.2 Appendix F §2), which is the governing source:
  *
- *   - Red is Signal Red **#C1281B** (`Colors.accent.primary`), NOT the spec's
- *     #E41E2B. Brand v2.2.0 is frozen; the spec's red is treated as an error.
- *   - Canvas is brand Cinematic Black **#0D0D0D** (`Colors.background.primary`),
- *     NOT the spec's #050506. The deeper focused-mode field (#050506) stays owned
- *     by `recoveryCoachTokens.ts` for the full-screen command surface.
- *   - Semantic status colors bind to the existing brand state palette
- *     (PEAK/RECOVERING/BALANCED), NOT the spec's #38C46A/#F2A93B/#62B7C8.
+ *   - AFORCE Black **#090A0A** is every background.
+ *   - Warm white **#F7F4EF** is text and the neutral primary button.
+ *   - Signal Red **#E51E2A** means four things only: the N–И mark, the One
+ *     Breath orb, Lock In, and real urgency. Small red text uses #FF5A63.
+ *   - Proof Blue **#2765FF** means two things only: Social and proof. Small
+ *     blue text uses #A9BEFF.
+ *
+ * HISTORY: a founder ruling of 2026-07-20 froze red at #C1281B and the canvas
+ * at #0D0D0D (Brand v2.2.0). The Master Brief reversed that on 2026-11-05 and
+ * the values changed on 2026-11-06; comments in this file kept saying #C1281B
+ * until 2026-11-18. #C1281B and #0D0D0D are retired in the app.
+ *
+ * Semantic status colors (green / amber / cyan below) still bind to the
+ * existing state palette. They are off the Master Brief palette and are
+ * tracked for removal (docs/AFORCE-OS-Visual-Gap-Report-2026-11-18.md §3.2).
  *
  * Everything that has a home in the existing token layer (`Colors`, `Typography`,
  * `Spacing`, `Radii`) REFERENCES it, so there is one source of truth and no
@@ -31,9 +38,7 @@
  * screens: neutral #141414 cards, warm #2B2925 hairlines, #EDEAE3 ivory ink,
  * Inter 700 for every statement and numeral, 32pt gutters, 12pt card radius.
  * Where an af.* value now equals an ed* value the equality is pinned by
- * theme/__tests__/afTokens.test.ts so the two layers cannot drift. The frozen
- * brand red is unchanged (D1): fills stay #C1281B and red TEXT stays the
- * AA-clean #E4564A — the brief's #E13B2A fails AA on cards (4.26:1).
+ * theme/__tests__/afTokens.test.ts so the two layers cannot drift.
  */
 import { Colors } from './colors';
 import { Typography } from './typography';
@@ -41,10 +46,10 @@ import { Spacing, Radii, Shadows } from './spacing';
 
 // ─── Color (spec §3.1) ───────────────────────────────────────────────────────
 // Surfaces ascend in lightness: canvas (root) → surface (cards) → raised
-// (elevated/selected) → pressed. Anchored at the brand Cinematic Black.
+// (elevated/selected) → pressed. Anchored at AFORCE Black.
 export const af = {
   // Surfaces
-  canvas: Colors.background.primary, //   #0D0D0D — brand Cinematic Black, app root
+  canvas: Colors.background.primary, //   #090A0A — AFORCE Black, app root
   canvasElevated: '#090A0A', //           subtle alternate page plane (neutral, no blue cast)
   surface: '#121313', //                  cards, sheets, grouped content (Black Issue card)
   surfaceRaised: '#121313', //            elevated / selected interactive surface
@@ -67,16 +72,22 @@ export const af = {
   border: '#292A2A', //                   controls + card edges
   borderStrong: '#292A2A', //             focus / high-emphasis outline
 
-  // Brand red — FROZEN #C1281B (rgb 193,40,27). Primary action, live state,
-  // critical accent. Distinct from the DEPLETED state red (#FF2800), which is
-  // owned by the off-limits statusColor.ts.
-  red: Colors.accent.primary, //          #C1281B — AForce Signal Red (FILLS only)
+  // Signal Red #E51E2A. Reserved for the N–И mark, the One Breath orb, Lock
+  // In and real urgency (Master Brief §2). Distinct from the DEPLETED state red
+  // (#FF2800), which is owned by the off-limits statusColor.ts.
+  red: Colors.accent.primary, //          #E51E2A — Signal Red (FILLS only)
   onRed: '#FFFFFF', //                    text/icons on af.red (AA-verified)
   // Signal Red is too dark for TEXT/icons on the dark surfaces (fails WCAG AA:
   // ~3.1:1). redText is a lightened Signal Red for red text/icon color ONLY —
   // AA-clean on canvas/surface/surfaceRaised (5.30/4.98/4.68:1). Fills, borders,
-  // dots and pill backgrounds keep `red`. Brand fill red stays frozen #C1281B.
+  // dots and pill backgrounds keep `red`.
   redText: '#FF5A63', //                  red text/icons on dark surfaces (AA)
+  // Proof Blue #2765FF. Reserved for Social and proof (Master Brief §2): the
+  // Social orb and primary action, the live Social border, the thin ring on
+  // the centre orb during Social, Replay, "Observed" and "Confirmed".
+  blue: Colors.accent.secondary, //       #2765FF — Proof Blue (FILLS only)
+  onBlue: '#FFFFFF', //                   text/icons on af.blue (4.8:1; warm white is 4.4:1)
+  blueText: '#A9BEFF', //                 blue text/icons on dark surfaces (AA)
   redDim: 'rgba(229,30,42,0.16)', //      red atmosphere / selected background
   redHairline: 'rgba(229,30,42,0.34)', // progress + ambient rings
   // Red-tinted ALERT surface — the depleted / critical card (Guardian roster
@@ -383,3 +394,18 @@ export function afGutterAt(width: number): number {
 
 export type AfColorToken = keyof typeof af;
 export type AfTypeToken = keyof typeof afType;
+
+/**
+ * Orb ramps (Master Brief §2). Radial gradients with the light source at
+ * 34% x / 28% y. The orb is the only glowing object on any screen.
+ */
+export const afOrb = {
+  oneBreath: ['#FFC9C4', '#F0525A', '#E51E2A', '#5C0A0E'],
+  oneBreathGlow: 'rgba(229,30,42,0.45)',
+  social: ['#CFDBFF', '#5B8BFF', '#2765FF', '#0E2E8C'],
+  socialGlow: 'rgba(39,101,255,0.45)',
+  /** Gradient stop offsets shared by both ramps. */
+  stops: [0, 0.32, 0.62, 1],
+  socialStops: [0, 0.32, 0.64, 1],
+  light: { cx: '34%', cy: '28%' },
+} as const;
