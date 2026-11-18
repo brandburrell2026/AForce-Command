@@ -30,7 +30,8 @@ import { Icon } from '../../components/Icon';
 import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
-import { afEyebrowAt } from '@/theme/afTokens';
+import { af, afEyebrowAt } from '@/theme/afTokens';
+import { AFMark } from '@/components/ui/AFMark';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
@@ -206,15 +207,12 @@ const plainTabButtonStyles = StyleSheet.create({
     shadowOpacity: 0,
     elevation: 0,
   },
-  oneBreathMark: {
-    color: Colors.bone,
-    fontFamily: Typography.fonts.bold,
-    fontSize: 8,
-    letterSpacing: -0.4,
-  },
 });
 
 /** The website's red orb carries the One Breath action through every tab state. */
+/** Letter size of the mark inside the tab-bar orb. */
+const ONE_BREATH_TAB_MARK_SIZE = 11;
+
 function OneBreathTabIcon({ focused }: { focused: boolean }) {
   return (
     <View
@@ -222,7 +220,7 @@ function OneBreathTabIcon({ focused }: { focused: boolean }) {
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <Text style={plainTabButtonStyles.oneBreathMark}>N–И</Text>
+      <AFMark size={ONE_BREATH_TAB_MARK_SIZE} color={af.textPrimary} decorative />
     </View>
   );
 }

@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { GradientBackground } from '@/components/GradientBackground';
 import { af, withAlpha } from '@/theme';
+import { AFMark } from '@/components/ui/AFMark';
 
 type OneBreathStep = 'ask' | 'heard' | 'seal' | 'sealed';
 
@@ -105,7 +106,7 @@ export function OneBreathScreen() {
       >
         <View style={styles.orbOuter}>
           <View style={styles.orbInner}>
-            <Text style={styles.orbMark}>N–И</Text>
+            <AFMark size={30} color={af.textPrimary} decorative />
           </View>
         </View>
         <Text style={styles.orbLabel}>TAP TO TYPE</Text>
@@ -218,7 +219,7 @@ export function OneBreathScreen() {
 
   const renderSealed = () => (
     <View style={styles.complete}>
-      <View style={styles.completeMark}><Text style={styles.completeMarkText}>N–И</Text></View>
+      <View style={styles.completeMark}><AFMark size={20} color={af.textPrimary} /></View>
       <Text style={styles.kicker}>REVIEWED</Text>
       <Text accessibilityRole="header" style={[styles.title, styles.completeTitle]}>You&apos;re{'\n'}ready.</Text>
       <Text style={[styles.subtitle, styles.completeCopy]}>Your words stayed on this device. Nothing was saved, scheduled, or shared.</Text>
@@ -294,7 +295,6 @@ const styles = StyleSheet.create({
   orbArea: { alignItems: 'center', paddingVertical: 10, minHeight: 190, justifyContent: 'center' },
   orbOuter: { width: 136, height: 136, borderRadius: 68, padding: 8, backgroundColor: withAlpha(af.red, 0.14), borderColor: withAlpha(af.red, 0.58), borderWidth: 1 },
   orbInner: { flex: 1, borderRadius: 60, alignItems: 'center', justifyContent: 'center', backgroundColor: af.red, shadowColor: af.red, shadowOpacity: 0.46, shadowRadius: 22, shadowOffset: { width: 0, height: 8 }, elevation: 7 },
-  orbMark: { color: af.onRed, fontFamily: 'Inter_800ExtraBold', fontSize: 23, letterSpacing: -1 },
   orbLabel: { color: af.textSecondary, fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.4, marginTop: 13 },
   draftSection: { borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth, borderColor: af.divider, paddingVertical: 14, gap: 8 },
   inputLabel: { color: af.textTertiary, fontFamily: 'Inter_600SemiBold', fontSize: 10, letterSpacing: 1.2 },
@@ -333,7 +333,6 @@ const styles = StyleSheet.create({
   holdMeta: { color: af.textSecondary, fontFamily: 'Inter_600SemiBold', fontSize: 9, letterSpacing: 1.1 },
   complete: { alignItems: 'center', flex: 1, paddingTop: 45, gap: 18 },
   completeMark: { width: 72, height: 72, borderRadius: 36, backgroundColor: af.red, alignItems: 'center', justifyContent: 'center', shadowColor: af.red, shadowOpacity: 0.45, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 6 },
-  completeMarkText: { color: af.onRed, fontFamily: 'Inter_800ExtraBold', fontSize: 16 },
   completeTitle: { textAlign: 'center' },
   completeCopy: { textAlign: 'center' },
   completeRule: { width: 48, height: 2, backgroundColor: af.red, marginTop: 4 },

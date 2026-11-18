@@ -52,6 +52,7 @@ export { AFInlineErrorRow, type AFInlineErrorRowProps } from './AFInlineErrorRow
 
 // Black Issue · the screen head on every reference screen (plan D5)
 export { AFMasthead, AF_WORDMARK, type AFMastheadProps } from './AFMasthead';
+export { AFMark, AF_MARK_FONT, AF_MARK_BAR_WIDTH_EM, AF_MARK_BAR_HEIGHT_EM, type AFMarkProps } from './AFMark';
 export { AFMemberPhotoButton, memberInitials, type AFMemberPhotoButtonProps } from './AFMemberPhotoButton';
 
 // RC-1 Wave-5 · a11y breadth — composed numeral+label announcement
