@@ -22,16 +22,19 @@
 
 import React from 'react';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
-import { Redirect, Tabs } from 'expo-router';
+import { Redirect, Tabs, usePathname, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import { Icon as NativeTabIcon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
 import { Icon } from '../../components/Icon';
-import { Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
-import { af, afEyebrowAt } from '@/theme/afTokens';
+import { af, afOrb } from '@/theme/afTokens';
 import { AFMark } from '@/components/ui/AFMark';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useOrbHidden } from '@/services/orbVisibility';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
@@ -45,7 +48,7 @@ function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <NativeTabIcon sf={{ default: 'bolt.circle', selected: 'bolt.circle.fill' }} />
+        <NativeTabIcon sf={{ default: 'house', selected: 'house.fill' }} />
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="journal">
@@ -90,6 +93,7 @@ function PlainTabButton(props: Record<string, unknown>) {
   const {
     children,
     onPress,
+    onLongPress,
     accessibilityState,
     accessibilityLabel,
     testID,
@@ -98,6 +102,7 @@ function PlainTabButton(props: Record<string, unknown>) {
   } = props as {
     children?: React.ReactNode;
     onPress?: () => void;
+    onLongPress?: () => void;
     accessibilityState?: Record<string, unknown>;
     accessibilityLabel?: string;
     testID?: string;
@@ -129,6 +134,7 @@ function PlainTabButton(props: Record<string, unknown>) {
   return (
     <Pressable
       onPress={onPress as (() => void) | undefined}
+      onLongPress={onLongPress as (() => void) | undefined}
       accessibilityRole="button"
       accessibilityState={{ ...(accessibilityState as object | undefined), selected }}
       accessibilityLabel={label}
@@ -168,6 +174,17 @@ const WEB_NO_OUTLINE = Platform.OS === 'web'
     } as Record<string, unknown>)
   : {};
 
+/** Screen Upgrade v1.1 §1: the orb is 64pt and raised 12pt above the bar. */
+export const ONE_BREATH_ORB_SIZE = 64;
+export const ONE_BREATH_ORB_RAISE = 12;
+/** Letter size of the mark inside the orb. */
+const ONE_BREATH_TAB_MARK_SIZE = 22;
+/** One slow breath, on Home only. */
+export const ONE_BREATH_ORB_BREATH_MS = 6000;
+const ONE_BREATH_ORB_BREATH_SCALE = 1.04;
+/** Screen Upgrade v1.1 §1: labels are Inter 11pt, sentence case. */
+export const TAB_LABEL_FONT_SIZE = 11;
+
 const plainTabButtonStyles = StyleSheet.create({
   base: {
     flex: 1,
@@ -187,40 +204,98 @@ const plainTabButtonStyles = StyleSheet.create({
     width: 28,
     height: 2,
     borderRadius: 1,
-    backgroundColor: Colors.tabBar.active,
+    backgroundColor: Colors.tabBar.indicator,
+  },
+  // The orb sits in the centre slot, raised above the bar's top edge. It is
+  // the only glowing object in the app (Master Brief §2).
+  oneBreathSlot: {
+    position: 'absolute',
+    top: -ONE_BREATH_ORB_RAISE,
+    width: ONE_BREATH_ORB_SIZE,
+    height: ONE_BREATH_ORB_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   oneBreathOrb: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: ONE_BREATH_ORB_SIZE,
+    height: ONE_BREATH_ORB_SIZE,
+    borderRadius: ONE_BREATH_ORB_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.accent.primary,
     shadowColor: Colors.accent.primary,
-    shadowOpacity: 0.42,
+    shadowOpacity: 0.45,
     shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  oneBreathOrbIdle: {
-    backgroundColor: Colors.tabBar.inactive,
-    shadowOpacity: 0,
-    elevation: 0,
+    shadowRadius: 14,
+    elevation: 6,
   },
 });
 
-/** The website's red orb carries the One Breath action through every tab state. */
-/** Letter size of the mark inside the tab-bar orb. */
-const ONE_BREATH_TAB_MARK_SIZE = 11;
+/**
+ * The centre One Breath orb (Screen Upgrade v1.1 §1).
+ *
+ *   - 64pt, raised 12pt above the bar, always Signal Red, never grey.
+ *   - The N–И mark inside it is warm white.
+ *   - No text label; the tab is announced as "One Breath".
+ *   - Breathes on a six-second cycle on Home only, and holds still everywhere
+ *     when Reduce Motion is on.
+ *   - Not drawn while a screen has asked for it to be hidden (Seal, Quiet).
+ *
+ * Tap only. Press-and-hold to speak is deliberately not wired here: a hold is
+ * how a plan is sealed, and the gesture needs its own safeguards first
+ * (docs/AFORCE-OS-Visual-Gap-Report-2026-11-18.md §5).
+ */
+function OneBreathTabIcon() {
+  const hidden = useOrbHidden();
+  const reducedMotion = useReducedMotion();
+  const onHome = usePathname() === '/';
+  const breathe = onHome && !reducedMotion && !hidden;
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const gradientId = React.useId().replace(/:/g, '');
 
-function OneBreathTabIcon({ focused }: { focused: boolean }) {
+  React.useEffect(() => {
+    if (!breathe) {
+      scale.stopAnimation();
+      scale.setValue(1);
+      return undefined;
+    }
+    const half = ONE_BREATH_ORB_BREATH_MS / 2;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: ONE_BREATH_ORB_BREATH_SCALE, duration: half, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1, duration: half, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [breathe, scale]);
+
+  if (hidden) return null;
   return (
     <View
-      style={[plainTabButtonStyles.oneBreathOrb, !focused && plainTabButtonStyles.oneBreathOrbIdle]}
+      style={plainTabButtonStyles.oneBreathSlot}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
+      testID="tab-one-breath-orb"
     >
-      <AFMark size={ONE_BREATH_TAB_MARK_SIZE} color={af.textPrimary} decorative />
+      <Animated.View style={[plainTabButtonStyles.oneBreathOrb, { transform: [{ scale }] }]}>
+        <Svg width={ONE_BREATH_ORB_SIZE} height={ONE_BREATH_ORB_SIZE} style={StyleSheet.absoluteFill}>
+          <Defs>
+            <RadialGradient id={gradientId} cx={afOrb.light.cx} cy={afOrb.light.cy} rx="75%" ry="75%">
+              {afOrb.oneBreath.map((stop, i) => (
+                <Stop key={stop} offset={afOrb.stops[i]} stopColor={stop} />
+              ))}
+            </RadialGradient>
+          </Defs>
+          <Circle
+            cx={ONE_BREATH_ORB_SIZE / 2}
+            cy={ONE_BREATH_ORB_SIZE / 2}
+            r={ONE_BREATH_ORB_SIZE / 2}
+            fill={`url(#${gradientId})`}
+          />
+        </Svg>
+        <AFMark size={ONE_BREATH_TAB_MARK_SIZE} color={af.textPrimary} decorative />
+      </Animated.View>
     </View>
   );
 }
@@ -231,9 +306,7 @@ function ClassicTabLayout() {
   const momentsFirst = useMomentsFirstExperience();
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
-  // S2-14b: tracked mono labels yield their tracking at accessibility sizes.
-  const { fontScale } = useWindowDimensions();
-  const labelTracking = afEyebrowAt(fontScale).letterSpacing;
+  const router = useRouter();
 
   return (
     <Tabs
@@ -256,10 +329,8 @@ function ClassicTabLayout() {
           borderColor: 'transparent',
           ...(WEB_NO_OUTLINE as object),
         },
-        // Black Issue tab bar (2026-10-06): a solid Cinematic Black bar with
-        // one warm hairline on top — the blur glass is gone so the bar sits on
-        // the same field as the cards. Labels are tracked mono micro caps, the
-        // active item is the AA-clean red (Colors.tabBar.active = af.redText).
+        // A solid AFORCE Black bar with one hairline on top. Labels are Inter
+        // 11pt sentence case; the active item is warm white with a 2px red mark.
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: Colors.tabBar.background,
@@ -271,11 +342,10 @@ function ClassicTabLayout() {
         tabBarBackground: () => (
           <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.tabBar.background }]} />
         ),
+        // Screen Upgrade v1.1 §1: Inter 11pt, sentence case. Not mono, not caps.
         tabBarLabelStyle: {
-          fontFamily: Typography.roles.mono,
-          fontSize: 9,
-          letterSpacing: labelTracking,
-          textTransform: 'uppercase',
+          fontFamily: Typography.fonts.medium,
+          fontSize: TAB_LABEL_FONT_SIZE,
           marginBottom: isWeb ? 10 : 4,
         },
       }}
@@ -286,12 +356,15 @@ function ClassicTabLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color, size, focused }) =>
-            isIOS ? <SymbolView name={focused ? 'bolt.circle.fill' : 'bolt.circle'} tintColor={color} size={size} />
-                  : <Icon name="zap" size={22} color={color} />,
+            // A thin-line house, not the lightning bolt (Screen Upgrade v1.1 §1).
+            isIOS ? <SymbolView name={focused ? 'house.fill' : 'house'} tintColor={color} size={size} />
+                  : <Icon name="home" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="journal"
+        // Screen Upgrade v1.1 §1: long-press Hydration opens HydroScan directly.
+        listeners={{ tabLongPress: () => router.push('/scan') }}
         options={{
           title: t('tabs.hydration'),
           tabBarIcon: ({ color, size, focused }) =>
@@ -313,7 +386,10 @@ function ClassicTabLayout() {
         name="one-breath-tab"
         options={{
           title: 'One Breath',
-          tabBarIcon: ({ focused }) => <OneBreathTabIcon focused={focused} />,
+          // The orb carries no text label; a screen reader hears "One Breath".
+          tabBarShowLabel: false,
+          tabBarAccessibilityLabel: 'One Breath',
+          tabBarIcon: () => <OneBreathTabIcon />,
         }}
       />
       <Tabs.Screen

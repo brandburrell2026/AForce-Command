@@ -30,7 +30,8 @@ describe('tab selection carries a non-colour cue', () => {
     expect(src).toContain('aria-selected={selected}');
     expect(src).toMatch(/accessibilityState=\{\{[^}]*selected\s*\}\}/);
     expect(src).toContain('testID="tab-selected-mark"');
-    expect(src).toMatch(/selectedMark:\s*\{[\s\S]*?height:\s*2[\s\S]*?backgroundColor:\s*Colors\.tabBar\.active/);
+    // Screen Upgrade v1.1: the mark is Signal Red; the active tint is warm white.
+    expect(src).toMatch(/selectedMark:\s*\{[\s\S]*?height:\s*2[\s\S]*?backgroundColor:\s*Colors\.tabBar\.indicator/);
   });
 
   it('every iOS symbol swaps to its filled variant when focused', () => {
@@ -40,8 +41,13 @@ describe('tab selection carries a non-colour cue', () => {
     expect(filled.length).toBe(icons.length);
   });
 
-  it('mono label tracking yields at accessibility sizes (S2-14b)', () => {
-    expect(src).toContain('afEyebrowAt(fontScale).letterSpacing');
-    expect(src).toMatch(/letterSpacing:\s*labelTracking/);
+  it('labels are Inter 11pt in sentence case, not tracked mono caps (Screen Upgrade v1.1)', () => {
+    expect(src).toContain('fontFamily: Typography.fonts.medium');
+    expect(src).toContain('fontSize: TAB_LABEL_FONT_SIZE');
+    expect(src).toContain('export const TAB_LABEL_FONT_SIZE = 11;');
+    const labelStyle = src.slice(src.indexOf('tabBarLabelStyle: {'), src.indexOf('}', src.indexOf('tabBarLabelStyle: {')));
+    expect(labelStyle).not.toContain('textTransform');
+    expect(labelStyle).not.toContain('Typography.roles.mono');
   });
+
 });

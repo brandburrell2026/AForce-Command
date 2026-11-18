@@ -64,6 +64,7 @@ import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { hapticImpact, hapticSelection } from "@/services/haptics";
 import { MomentTimingPicker } from "./MomentTimingPicker";
 import { PreparationMark } from "./PreparationMark";
+import { ORB_HIDDEN_PREPARATION_SCREENS, useHideOrbWhile } from "@/services/orbVisibility";
 import { PreparationOrb } from "./PreparationOrb";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
 import {
@@ -156,6 +157,8 @@ export function MomentPreparationScreen({
   const scrollRef = React.useRef<ScrollView>(null);
   const headingRef = React.useRef<Text>(null);
   const [screen, setScreen] = React.useState<Screen>("capture");
+  // Screen Upgrade v1.1 §1: the tab-bar orb is not shown on Seal or Quiet.
+  useHideOrbWhile(ORB_HIDDEN_PREPARATION_SCREENS.includes(screen));
   const [candidateEndAt, setCandidateEndAt] = React.useState<string | null>(
     null,
   );
