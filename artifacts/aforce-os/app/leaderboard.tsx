@@ -5,7 +5,13 @@
  * unconditionally.
  */
 import { LeaderboardScreenV2 } from '@/components/leaderboard/LeaderboardScreenV2';
+import { ScreenErrorBoundary } from '@/components/ScreenErrorBoundary';
 
 export default function LeaderboardRoute() {
-  return <LeaderboardScreenV2 />;
+  // SS-18: a render crash here must not blank the whole app.
+  return (
+    <ScreenErrorBoundary screen="leaderboard">
+      <LeaderboardScreenV2 />
+    </ScreenErrorBoundary>
+  );
 }
