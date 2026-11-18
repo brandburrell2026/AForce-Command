@@ -5,6 +5,7 @@ import { AFScreen, AFCard } from '@/components/ui';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { af, afType, afLayout } from '@/theme';
 import { CircleMembersPanel } from './CircleMembersPanel';
+import { ProfileEntryButton } from '@/components/profile/ProfileEntryButton';
 
 export function CircleScreenV4() {
   const tabClearance = useTabBarClearance();
@@ -15,7 +16,10 @@ export function CircleScreenV4() {
       testID="circle-v4-screen"
     >
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>CIRCLE / YOUR PEOPLE</Text>
+        <View style={styles.heroTop}>
+          <Text style={styles.eyebrow}>CIRCLE / YOUR PEOPLE</Text>
+          <ProfileEntryButton testID="circle-profile-entry" />
+        </View>
         <Text accessibilityRole="header" style={styles.title}>Circle.</Text>
         <Text style={styles.intro}>
           A private place for the people you choose. Share only the Moments and updates you approve.
@@ -37,6 +41,7 @@ export function CircleScreenV4() {
 
 const styles = StyleSheet.create({
   hero: { gap: 10, paddingTop: 10 },
+  heroTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   eyebrow: { ...afType.eyebrow, color: af.redText },
   title: { ...afType.displayHero, color: af.textPrimary },
   intro: { ...afType.body, color: af.textSecondary, lineHeight: 25, maxWidth: 480 },

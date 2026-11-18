@@ -39,6 +39,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { DAILY_TARGET_IS_PERSONAL } from '@/config/hydroStateModel';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { ProfileEntryButton } from '@/components/profile/ProfileEntryButton';
 import { useAskConciergeActions } from '@/components/concierge/AskConciergeAction';
 
 import {
@@ -256,6 +257,7 @@ export function HydrationScreenV2() {
         <AFMasthead
           breadcrumb={`${t('tabs.hydration')} / ${t('hydration.v2.eyebrow')}`}
           title={`${t('hydration.v2.title')}.`}
+          accessory={<ProfileEntryButton testID="hydration-profile-entry" />}
           testID="hydration-v2-masthead"
         />
         {askConcierge.length > 0 ? (
