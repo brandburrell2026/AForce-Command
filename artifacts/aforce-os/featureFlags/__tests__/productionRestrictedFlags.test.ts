@@ -17,6 +17,7 @@ import {
   DEMO_ALL_ON_FLAGS,
   demoUnlockAllFlags,
   developerControlsAvailable,
+  featureGateSelfActivationAllowed,
   LEGAL_GATED_FLAGS,
   INTERNAL_TIER_FLAGS,
   INTERNAL_PREVIEW_RESTRICTED_FLAGS,
@@ -133,6 +134,53 @@ describe('production defaults never ship a restricted flag ON', () => {
       ...INTERNAL_PREVIEW_RESTRICTED_FLAGS,
     ]) {
       expect(DEFAULT_FLAGS[k], k).toBe(false);
+    }
+  });
+});
+
+describe('FeatureGate self-activation clamp (stop-ship RA-N1)', () => {
+  const ALL_FLAGS = Object.keys(DEFAULT_FLAGS) as (keyof FeatureFlags)[];
+
+  it('an ordinary production build can self-activate no flag at all', () => {
+    for (const flag of ALL_FLAGS) {
+      expect(featureGateSelfActivationAllowed(flag, PROD, false), flag).toBe(false);
+    }
+  });
+
+  it('the gated enterprise surfaces stay locked in production', () => {
+    for (const flag of [
+      'guardian_intelligence_enabled',
+      'clutch_access_enabled',
+      'trainer_board_enabled',
+      'cruise_mode_enabled',
+    ] as const) {
+      expect(featureGateSelfActivationAllowed(flag, PROD, false), flag).toBe(false);
+    }
+  });
+
+  it('a demo build cannot self-activate an internal-tier flag', () => {
+    for (const flag of INTERNAL_TIER_FLAGS) {
+      expect(featureGateSelfActivationAllowed(flag, PROD, true), flag).toBe(false);
+    }
+    expect(featureGateSelfActivationAllowed('cruise_mode_enabled', PROD, true)).toBe(true);
+  });
+
+  it('internal TestFlight can self-activate internal-tier flags but never legal-gated or preview-restricted ones', () => {
+    for (const flag of INTERNAL_TIER_FLAGS) {
+      expect(featureGateSelfActivationAllowed(flag, INTERNAL_TF, false), flag).toBe(true);
+    }
+    for (const flag of [...LEGAL_GATED_FLAGS, ...INTERNAL_PREVIEW_RESTRICTED_FLAGS]) {
+      expect(featureGateSelfActivationAllowed(flag, INTERNAL_TF, false), flag).toBe(false);
+    }
+  });
+
+  it('local dev keeps the convenience, except for preview-restricted flags', () => {
+    expect(featureGateSelfActivationAllowed('guardian_intelligence_enabled', LOCAL_DEV, false)).toBe(true);
+    for (const flag of LEGAL_GATED_FLAGS) {
+      expect(featureGateSelfActivationAllowed(flag, LOCAL_DEV, false), flag).toBe(true);
+    }
+    for (const flag of INTERNAL_PREVIEW_RESTRICTED_FLAGS) {
+      expect(featureGateSelfActivationAllowed(flag, LOCAL_DEV, false), flag).toBe(false);
     }
   });
 });
