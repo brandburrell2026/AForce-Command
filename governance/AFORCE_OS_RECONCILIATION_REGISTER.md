@@ -110,6 +110,10 @@ resolution · decision owner · blocking?
 - **Impact:** a Phase-3-scoped surface is discoverable at launch (consumer, disclaimered, non-diagnostic).
 - **Recommended resolution:** confirm Personal Cruise is intentionally launch-scope (distinct from the
   Phase-3 Cruise Industry B2B), or gate it. Record the decision.
+- **Decision (Brandon, 2026-11-18): gate it.** `cruise_mode_enabled` now defaults **false** in
+  production; internal TestFlight keeps it through `CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS`; the
+  Profile row is hidden when off (stop-ship RA-N4). Personal Cruise is not launch-scope until a
+  later decision turns it back on.
 - **Owner:** Julius + Brandon. **Blocking:** no (consumer, disclaimered) — but record intent.
 
 ### PA-09 — "Section 63" naming: governance doc vs no code module

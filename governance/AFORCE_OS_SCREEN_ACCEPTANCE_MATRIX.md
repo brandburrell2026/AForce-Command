@@ -49,7 +49,7 @@
 | `modules` | **none** ("INTERNAL EVALUATION") | ✅ | ✗ | SS-19 |
 | `territory` | none found | ✅ | ✗ | needs-investigation gate |
 | `recovery-coach` | `spec_recoveryCoach` off → redirect | ✗ | ✗ | Built-Hidden |
-| `cruise` (root) | `cruise_mode_enabled` on | ✅ | ✗ | Personal Cruise live, disclaimered (PA-08) |
+| `cruise` (root) | `cruise_mode_enabled` on | ✅ | ✗ | Personal Cruise gated off in production since 2026-11-18 (PA-08 decision, RA-N4); internal TestFlight and demo only |
 | `guardian`, `heat`, `heat/guardian` | `guardian_intelligence_enabled` off | locked | ✗ | DR-006 copy gap SS-09 |
 | `clutch` | `clutch_access_enabled` off | locked | ✗ | mock; SS-09 |
 | `phantom`, `ring`, `ring/session` | flag off → redirect | ✗ | ✗ | Built-Hidden |
