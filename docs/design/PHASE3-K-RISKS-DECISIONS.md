@@ -45,6 +45,14 @@ No account-wide deletion endpoint exists — only `POST /analytics/forget` (pseu
 versions, intake, scans)? Does it interact with Clerk account deletion? Is there a grace period?
 **Blocks:** Output F §4.2 account-wide scope.
 
+**Update 2026-11-18 (Brandon; Julius's sign-off not yet recorded).** Brandon decided: all AForce
+data is removed, not intelligence data only; deletion is immediate with no grace period; only
+billing records are kept; items shared with other members are removed; the Clerk user is deleted;
+data export ships after deletion. The per-table dispositions are in
+`lib/db/src/accountDeletionRegistry.ts` (data only, nothing executes it). K-3 stays open until
+Julius signs off, and the registry's `counselReview` rows (consent evidence, clinical notes,
+medical access audit) have not been reviewed by counsel. No deletion endpoint is built.
+
 ### K-4 — Back-derivation at first run · 🟡
 
 Recommended (Output I §7): build the graph from existing ledger history so `DR-003` gates open
