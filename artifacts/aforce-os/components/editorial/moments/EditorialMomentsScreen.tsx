@@ -37,6 +37,7 @@ import { useTranslation } from 'react-i18next';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 
 import { AFMasthead, AFScreen } from '@/components/ui';
+import { ProfileEntryButton } from '@/components/profile/ProfileEntryButton';
 import { MomentsOverviewSkeleton } from '@/components/moments/MomentsSkeleton';
 import { WhyThisSheet } from '@/components/moments/WhyThisSheet';
 import { useMomentsData } from '@/components/moments/useMomentsData';
@@ -106,7 +107,10 @@ export function EditorialMomentsScreen({
         <Animated.View style={settle}>
           {/* Black Issue (2026-10-06): the wordmark masthead heads the day;
               the return idiom + calendar entry sit on the row beneath it. */}
-          <AFMasthead testID="editorial-moments-masthead" />
+          <AFMasthead
+            accessory={tabRoot ? <ProfileEntryButton testID="moments-profile-entry" /> : undefined}
+            testID="editorial-moments-masthead"
+          />
           <View style={styles.headRow}>
             {!tabRoot ? <EdReturn now={now} fallback="/" /> : null}
             {calendarOn ? (

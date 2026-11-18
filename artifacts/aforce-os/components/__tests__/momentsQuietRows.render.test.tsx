@@ -7,6 +7,7 @@ const h = vi.hoisted(() => ({ moments: [] as any[], internal: true, action: true
 vi.mock('expo-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string, params?: any) => params?.action ?? key }) }));
 vi.mock('@/components/travel/TravelHomeCard', () => ({ TravelMomentsEntry: () => null }));
+vi.mock('@/components/profile/ProfileEntryButton', () => ({ ProfileEntryButton: () => null }));
 vi.mock('@/components/ui', () => ({ AFMasthead: () => null, AFScreen: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@/components/editorial/index', () => ({ EdSurface: ({ children }: any) => <div>{children}</div>, EdRule: () => null, EdStatement: ({ children }: any) => <div>{children}</div>, useEdSettle: () => ({}) }));
 vi.mock('@/components/editorial/moments/EdReturn', () => ({ EdReturn: () => null }));
