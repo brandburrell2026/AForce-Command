@@ -44,7 +44,7 @@ describe('planMomentNotifications — timing', () => {
     expect(p).toBeDefined();
     const expected = Date.parse(m.startAtIso) - MOMENT_PREP_WINDOW_MIN.work.startBefore * 60_000;
     expect(Date.parse(p!.fireAtIso)).toBe(expected);
-    expect(p!.titleParams).toMatchObject({ title: 'Investor Meeting', minutes: 60 });
+    expect(p!.titleParams).toMatchObject({ minutes: 60 });
   });
 
   it('honors a lead preset; a lead beyond the start falls back to the window', () => {
@@ -125,5 +125,46 @@ describe('planMomentNotifications — behavioral copy only', () => {
       expect(withLead.bodyKey, `lead ${leadMin}`).toBe(withinWindow.bodyKey);
       expect(withLead.bodyParams, `lead ${leadMin}`).toEqual(withinWindow.bodyParams);
     }
+  });
+});
+
+describe('planMomentNotifications — the Moment title stays in the app by default', () => {
+  const sensitive = () => localMoment(3, { title: 'Oncology follow-up' });
+
+  it('default prefs: a generic title that carries no member-entered text', () => {
+    expect(DEFAULT_MOMENT_NOTIFY_PREFS.showTitles).toBe(false);
+    const [p] = planMomentNotifications([sensitive()], DEFAULT_MOMENT_NOTIFY_PREFS, NOW);
+    expect(p!.titleKey).toBe('moments.notify.title_private');
+    expect(p!.titleParams).toEqual({ minutes: 60 });
+    expect(JSON.stringify(p)).not.toContain('Oncology');
+  });
+
+  it('prefs saved before this setting existed are treated as hidden', () => {
+    const old = { mode: 'important', leadMin: null, adaptive: false } as const;
+    const [p] = planMomentNotifications([sensitive()], old, NOW);
+    expect(p!.titleKey).toBe('moments.notify.title_private');
+    expect(JSON.stringify(p)).not.toContain('Oncology');
+  });
+
+  it('the title appears only when the member turned it on', () => {
+    const [p] = planMomentNotifications(
+      [sensitive()],
+      { ...DEFAULT_MOMENT_NOTIFY_PREFS, showTitles: true },
+      NOW,
+    );
+    expect(p!.titleKey).toBe('moments.notify.title');
+    expect(p!.titleParams).toEqual({ title: 'Oncology follow-up', minutes: 60 });
+  });
+
+  it('the setting changes the wording only, never when or whether it fires', () => {
+    const [hidden] = planMomentNotifications([sensitive()], DEFAULT_MOMENT_NOTIFY_PREFS, NOW);
+    const [shown] = planMomentNotifications(
+      [sensitive()],
+      { ...DEFAULT_MOMENT_NOTIFY_PREFS, showTitles: true },
+      NOW,
+    );
+    expect(hidden!.fireAtIso).toBe(shown!.fireAtIso);
+    expect(hidden!.tag).toBe(shown!.tag);
+    expect(hidden!.bodyKey).toBe(shown!.bodyKey);
   });
 });

@@ -63,6 +63,13 @@ export interface MomentNotifyPrefs {
    *  when true, leadMin is ignored and the window start shifts by the
    *  bounded per-type adjustment. */
   adaptive?: boolean;
+  /**
+   * Whether a notification may show the Moment's own title. Off unless the
+   * member turns it on: a title can be sensitive ("Oncology follow-up") and a
+   * notification is read on the lock screen by whoever is near the phone.
+   * When false the title is the generic `moments.notify.title_private`.
+   */
+  showTitles?: boolean;
   preparationProposals?: MomentProposalPreferences;
 }
 
@@ -70,6 +77,7 @@ export const DEFAULT_MOMENT_NOTIFY_PREFS: MomentNotifyPrefs = {
   mode: 'important',
   leadMin: null,
   adaptive: false,
+  showTitles: false,
 };
 
 export interface PlannedMomentNotification {
@@ -163,8 +171,12 @@ export function planMomentNotifications(
       momentId: m.id,
       tag: `${TAG_PREFIX}${m.id}`,
       fireAtIso: new Date(fireMs).toISOString(),
-      titleKey: 'moments.notify.title',
-      titleParams: { title: m.title, minutes: minutesUntil },
+      // Private by default: the Moment's title leaves the app only when the
+      // member has asked for it (`showTitles`). The private title carries no
+      // member-entered text at all.
+      ...(prefs.showTitles === true
+        ? { titleKey: 'moments.notify.title', titleParams: { title: m.title, minutes: minutesUntil } }
+        : { titleKey: 'moments.notify.title_private', titleParams: { minutes: minutesUntil } }),
       bodyKey: 'moments.notify.body_starts_at',
       bodyParams: { time: clockLabel(m.startAtIso) },
     });
@@ -184,6 +196,7 @@ async function readMomentNotifyPrefs(): Promise<MomentNotifyPrefs> {
   return {
     mode: parsed.mode === 'all' ? 'all' : 'important',
     adaptive: parsed.adaptive === true,
+    showTitles: parsed.showTitles === true,
     preparationProposals: sanitizeMomentProposalPreferences(
       parsed.preparationProposals,
     ),

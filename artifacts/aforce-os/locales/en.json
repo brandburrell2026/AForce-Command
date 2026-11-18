@@ -2640,6 +2640,11 @@
     "home_empty_hint": "Your next important moment will appear here.",
     "notify": {
       "title": "{{title}} in {{minutes}} min",
+      "title_private": "Your Moment in {{minutes}} min",
+      "titles_label": "ON THE LOCK SCREEN",
+      "titles_hidden": "Hide titles",
+      "titles_shown": "Show titles",
+      "titles_hint": "Hidden: notifications say \"Your Moment\" instead of its name.",
       "prefs_label": "MOMENT PREP",
       "mode_important": "Important moments only",
       "mode_all": "All suggested moments",

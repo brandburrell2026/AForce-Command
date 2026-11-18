@@ -50,6 +50,19 @@ export function MomentPrepPrefsCard() {
         onChange={(key) => update({ ...prefs, mode: key as MomentNotifyPrefs['mode'] })}
         testID="moment-prep-mode"
       />
+      <Text style={styles.label}>{t('moments.notify.titles_label')}</Text>
+      <AFSegmentedControl
+        segments={[
+          { key: 'hidden', label: t('moments.notify.titles_hidden') },
+          { key: 'shown', label: t('moments.notify.titles_shown') },
+        ]}
+        value={prefs.showTitles === true ? 'shown' : 'hidden'}
+        onChange={(key) => update({ ...prefs, showTitles: key === 'shown' })}
+        testID="moment-prep-titles"
+      />
+      {prefs.showTitles === true ? null : (
+        <Text style={styles.lockedHint}>{t('moments.notify.titles_hint')}</Text>
+      )}
       <Text style={styles.label}>{t('moments.notify.lead_label')}</Text>
       <View style={styles.leadRow}>
         <LeadPill
