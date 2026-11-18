@@ -31,7 +31,6 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import {
-  CATEGORY_ORDER,
   DRINK_CATEGORIES,
   computeEffectiveOz,
   formatDrinkDisplayName,
@@ -41,6 +40,7 @@ import {
   type DrinkCategoryId,
 } from '../data/drinkCatalog';
 import { searchDrinks } from '../utils/drinkSearch';
+import { availableCategoryOrder, unavailableDrinkCategories } from '../utils/hydration/drinkAvailability';
 import { countsAsWater, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '../utils/hydration/drinkRoute';
 
 interface Props {
@@ -93,6 +93,8 @@ export function AddDrinkModal({ visible, accentColor, onCancel, onConfirm }: Pro
       searchDrinks(query, {
         categoryId: activeCategory ?? undefined,
         limit: 60,
+        // SS-26: age-restricted categories are not offered in store builds.
+        excludeCategories: unavailableDrinkCategories(),
       }),
     [query, activeCategory],
   );
@@ -307,7 +309,7 @@ function BrowseStage(props: {
           accentColor={accentColor}
           onPress={() => onCategoryChange(null)}
         />
-        {CATEGORY_ORDER.filter((id) => id !== 'custom').map((id) => (
+        {availableCategoryOrder().filter((id) => id !== 'custom').map((id) => (
           <CategoryChip
             key={id}
             label={DRINK_CATEGORIES[id].shortLabel}
@@ -507,7 +509,7 @@ function CustomStage(props: {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chipStrip}
         >
-          {CATEGORY_ORDER.map((id) => (
+          {availableCategoryOrder().map((id) => (
             <CategoryChip
               key={id}
               label={DRINK_CATEGORIES[id].shortLabel}

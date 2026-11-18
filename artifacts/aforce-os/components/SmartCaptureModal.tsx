@@ -36,6 +36,7 @@ import { AFModal } from './ui/AFModal';
 import { Icon } from './Icon';
 import { Colors } from '../theme/colors';
 import { DRINK_CATEGORIES, type DrinkCategoryId } from '../data/drinkCatalog';
+import { isDrinkCategoryAvailable } from '../utils/hydration/drinkAvailability';
 import { postSmartCapture, type SmartCaptureResult, type LoadLevel } from '../services/smartCaptureApi';
 import { WhyThisForYouCard } from './WhyThisForYouCard';
 import type { PersonalizationOutput } from '../utils/personalizationSignals';
@@ -180,6 +181,8 @@ export function SmartCaptureModal({ visible, accentColor, onCancel, onLogCorrect
     const rec = stage.result.correctionRecommendation;
     const cat = DRINK_CATEGORIES[rec.drinkCategory];
     if (!cat) return;
+    // SS-26: never log an age-restricted category from a store build.
+    if (!isDrinkCategoryAvailable(rec.drinkCategory)) return;
     const coef = cat.hydrationCoefficient;
     const effective = Math.round(Math.max(0, rec.oz) * Math.max(0, coef) * 10) / 10;
     if (Platform.OS !== 'web') {
