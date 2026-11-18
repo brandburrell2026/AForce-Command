@@ -43,6 +43,11 @@ export interface AFMastheadProps {
   backLabel?: string;
   /** Hide the wordmark row (for screens that render it elsewhere). */
   wordmark?: boolean;
+  /**
+   * A control at the far right of the wordmark row, after the meta lines.
+   * Home passes the member photo that opens Profile.
+   */
+  accessory?: React.ReactNode;
   testID?: string;
 }
 
@@ -58,6 +63,7 @@ export function AFMasthead({
   onBack,
   backLabel = 'Back',
   wordmark = true,
+  accessory,
   testID,
 }: AFMastheadProps) {
   const eyebrowType = useAFEyebrowType();
@@ -71,12 +77,17 @@ export function AFMasthead({
             </Text>
             {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
           </View>
-          {(meta || metaSecondary) && (
-            <View style={styles.metaGroup}>
-              {meta ? <Text style={[styles.meta, eyebrowType]}>{meta.toUpperCase()}</Text> : null}
-              {metaSecondary ? (
-                <Text style={[styles.meta, eyebrowType]}>{metaSecondary.toUpperCase()}</Text>
-              ) : null}
+          {(meta || metaSecondary || accessory) && (
+            <View style={styles.rightGroup}>
+              {(meta || metaSecondary) && (
+                <View style={styles.metaGroup}>
+                  {meta ? <Text style={[styles.meta, eyebrowType]}>{meta.toUpperCase()}</Text> : null}
+                  {metaSecondary ? (
+                    <Text style={[styles.meta, eyebrowType]}>{metaSecondary.toUpperCase()}</Text>
+                  ) : null}
+                </View>
+              )}
+              {accessory}
             </View>
           )}
         </View>
@@ -130,6 +141,7 @@ const styles = StyleSheet.create({
   // token (5.3:1 on the canvas); it is hidden from the screen reader.
   wordmark: { ...afType.bodyStrong, fontSize: 15, lineHeight: 20, letterSpacing: 0.4, color: af.redText },
   greeting: { ...afType.secondary, color: af.textSecondary },
+  rightGroup: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flexShrink: 1 },
   metaGroup: { alignItems: 'flex-end', gap: 4, flexShrink: 1 },
   meta: { ...afType.micro, color: af.textSecondary, textAlign: 'right' },
   breadcrumbRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
