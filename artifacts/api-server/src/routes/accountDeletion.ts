@@ -83,6 +83,8 @@ import {
   createSpatialStudioRepo,
   runAccountDeletionCascade,
   createAccountDeletionAuthStateDb,
+  executeAccountDeletion,
+  type AccountDeletionResult,
   type AccountDeletionCascadeTokenStore,
   type AccountDeletionCascadeAuthStateDb,
   type AccountDeletionCascadeDeps,
@@ -145,7 +147,35 @@ export interface AccountDeletionDeps
    * Revisit if that test is ever touched for other reasons.
    */
   runCascadeInTransaction?: (userId: string) => Promise<{ purged: number }>;
+  /**
+   * Full account deletion (SS-04 stage 2): the health-data cascade plus every
+   * table in `ACCOUNT_DELETION_REGISTRY`, in ONE transaction. Absent in
+   * DB-free harnesses, in which case `POST /delete` answers 503.
+   */
+  runFullDeletionInTransaction?: (userId: string) => Promise<AccountDeletionResult>;
+  /**
+   * Whether `POST /delete` is switched on. Defaults to the
+   * `ACCOUNT_FULL_DELETION_ENABLED` environment flag, which is OFF unless set
+   * to exactly "true". See `fullAccountDeletionEnabled`.
+   */
+  fullDeletionEnabled?: () => boolean;
 }
+
+/**
+ * `POST /delete` stays OFF until this is set to exactly "true".
+ *
+ * It is off by default on purpose. This endpoint removes the member's data
+ * but does not yet delete the sign-in account or cancel a subscription
+ * (stage 3), so switching it on early would leave a member with no data and
+ * a live subscription. It also waits on the second founder sign-off (K-3)
+ * and counsel review of the registry's flagged rows.
+ */
+export function fullAccountDeletionEnabled(): boolean {
+  return process.env["ACCOUNT_FULL_DELETION_ENABLED"] === "true";
+}
+
+/** The exact value the caller must send as `confirm`. */
+export const FULL_DELETION_CONFIRMATION = "DELETE";
 
 function errName(err: unknown): string {
   return err instanceof Error ? err.name : "unknown_error";
@@ -205,6 +235,72 @@ export function buildAccountDeletionRouter(deps: AccountDeletionDeps): IRouter {
           "accountDeletion:delete-health-data failed",
         );
         res.status(500).json({ error: "account_health_delete_failed" });
+      }
+    },
+  );
+
+  // Full account deletion (SS-04 stage 2). Irreversible. Guarded by the same
+  // origin allow-list, rate limit and real-auth check as the health-data
+  // purge, with a tighter bucket, an explicit confirmation in the body, and
+  // an off-by-default switch.
+  router.post(
+    "/delete",
+    ...destructiveGuards({
+      scope: "account_delete_full",
+      limit: deps.destructiveRateLimit?.limit ?? 3,
+      windowMs: deps.destructiveRateLimit?.windowMs,
+      auth: deps.destructiveAuth,
+    }),
+    async (req, res): Promise<void> => {
+      // The member is always the authenticated caller. Nothing in the body
+      // or the query string can name a different account.
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ error: "unauthorized" });
+        return;
+      }
+      const enabled = (deps.fullDeletionEnabled ?? fullAccountDeletionEnabled)();
+      if (!enabled || !deps.runFullDeletionInTransaction) {
+        res.status(503).json({ error: "account_deletion_unavailable" });
+        return;
+      }
+      const confirm = (req.body as { confirm?: unknown } | undefined)?.confirm;
+      if (confirm !== FULL_DELETION_CONFIRMATION) {
+        res.status(400).json({ error: "confirmation_required" });
+        return;
+      }
+      try {
+        const result = await deps.runFullDeletionInTransaction(userId);
+        if (result.skippedTables.length > 0) {
+          req.log?.warn(
+            { skippedTables: result.skippedTables },
+            "accountDeletion:delete tables not present; skipped",
+          );
+        }
+        req.log?.info(
+          {
+            userId,
+            tablesPurged: Object.keys(result.purged).length,
+            accountRowDeleted: result.accountRowDeleted,
+          },
+          "accountDeletion:delete complete",
+        );
+        res.status(200).json({
+          ok: true,
+          status: "deleted",
+          // False on a repeat call: there was nothing left to remove.
+          accountRowDeleted: result.accountRowDeleted,
+          // Stage 3. Until it ships the sign-in account and any subscription
+          // are untouched, and the response says so rather than implying otherwise.
+          signInAccountDeleted: false,
+          subscriptionCancelled: false,
+        });
+      } catch (err) {
+        req.log?.error(
+          { userId, err: errName(err) },
+          "accountDeletion:delete failed; nothing was removed",
+        );
+        res.status(500).json({ error: "account_delete_failed" });
       }
     },
   );
@@ -337,6 +433,25 @@ export function buildDefaultAccountDeletionDeps(
           },
           userId,
         );
+      }),
+    runFullDeletionInTransaction: (userId) =>
+      db.transaction(async (tx) => {
+        // The health-data cascade first (it knows about token encryption and
+        // the health-record plane), then every registry table. One
+        // transaction: any failure leaves the account exactly as it was.
+        await clearCircleSharingForUser(tx, userId);
+        await clearMomentSharesForUser(tx, userId);
+        await runAccountDeletionCascade(
+          {
+            ...buildTokenStoresFor(tx, log),
+            authStateDb: createAccountDeletionAuthStateDb(tx),
+            healthRecordsRepo: createHealthRecordsRepo(tx),
+            conciergePurge: (uid) => purgeConciergeIfPresent(tx, uid, log),
+            spatialStudioPurge: (uid) => purgeSpatialStudioIfPresent(tx, uid, log),
+          },
+          userId,
+        );
+        return executeAccountDeletion(tx, userId);
       }),
   };
 }

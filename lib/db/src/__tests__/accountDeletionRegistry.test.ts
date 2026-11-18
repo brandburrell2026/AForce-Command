@@ -117,8 +117,9 @@ describe("account deletion registry: the founder decisions", () => {
         expect(k.via, `${table}.${k.column}`).toBeUndefined();
         continue;
       }
-      const [parentTable, parentColumn] = (k.via ?? "").split(".");
-      expect(tables.get(parentTable ?? "") ?? [], `${table}.${k.column}`).toContain(parentColumn);
+      const parent = tables.get(k.via?.table ?? "") ?? [];
+      expect(parent, `${table}.${k.column}`).toContain(k.via?.joinColumn);
+      expect(parent, `${table}.${k.column}`).toContain(k.via?.memberColumn);
     }
   });
 

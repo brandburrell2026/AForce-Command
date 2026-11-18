@@ -54,6 +54,7 @@ export * from "./scoreSnapshotRepo";
 export * from "./healthRecordsRepo";
 export * from "./accountDeletionCascade";
 export * from "./accountDeletionRegistry";
+export * from "./accountDeletionExecutor";
 export * from "./trainerRepo";
 export * from "./trainerDocsRepo";
 export * from "./trainerRtpRepo";
