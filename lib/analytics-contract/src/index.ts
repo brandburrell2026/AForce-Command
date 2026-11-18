@@ -40,8 +40,9 @@ export interface AnalyticsEventEnvelope {
   /** ISO-8601 timestamp of when the behavior occurred. */
   occurredAt: string;
   schemaVersion: number;
-  /** Event-specific fields. Kept open so new fields are additive and
-   *  never require a schema-version bump. */
+  /** Event-specific fields. New fields are additive and never require a
+   *  schema-version bump, but each must be declared in `PHASE1_EVENTS`:
+   *  the server drops anything undeclared (`sanitizeAnalyticsPayload`). */
   payload: Record<string, unknown>;
 }
 
@@ -61,7 +62,7 @@ export const PHASE1_EVENTS = [
   { eventType: "ritual_completed", owner: "mobile", trigger: "User completes a hydration ritual / protocol", payloadFields: ["ritualId"] },
   { eventType: "water_cycle_logged", owner: "mobile", trigger: "User logs a water / AForce intake", payloadFields: ["fluidType", "oz"] },
   { eventType: "water_goal_completed", owner: "mobile", trigger: "Daily hydration goal is reached", payloadFields: [] },
-  { eventType: "hydration_score_updated", owner: "mobile", trigger: "Engine recomputes the hydration score band", payloadFields: ["score", "level"] },
+  { eventType: "hydration_score_updated", owner: "mobile", trigger: "Engine recomputes the hydration score band", payloadFields: ["score", "level", "modelVersion"] },
   { eventType: "command_followed", owner: "mobile", trigger: "User follows the coach command / recommendation", payloadFields: ["commandId"] },
   { eventType: "first_win_confirmed", owner: "mobile", trigger: "The user earns their first Daily Win — the activation funnel's First Win milestone; emitted at most once, ever (persistent client flag)", payloadFields: ["winId"] },
   { eventType: "impact_shown", owner: "mobile", trigger: "An impact / explainability surface is shown", payloadFields: ["impactKey"] },
@@ -95,6 +96,51 @@ export type AnalyticsEventType = (typeof PHASE1_EVENTS)[number]["eventType"];
 
 export const PHASE1_EVENT_TYPES: readonly AnalyticsEventType[] =
   PHASE1_EVENTS.map((e) => e.eventType);
+
+/** A stored payload value: a short string, a finite number or a boolean. */
+export type AnalyticsPayloadValue = string | number | boolean;
+
+/** Longest string a payload field may carry. Ids, slugs and enums fit; prose does not. */
+export const ANALYTICS_PAYLOAD_STRING_MAX = 128;
+
+const DECLARED_PAYLOAD_FIELDS: ReadonlyMap<string, ReadonlySet<string>> = new Map(
+  PHASE1_EVENTS.map((e) => [e.eventType, new Set<string>(e.payloadFields)]),
+);
+
+/**
+ * Keep only what an event is declared to carry.
+ *
+ * The event TYPE has always been allow-listed; the payload was not, so any
+ * key with any value was stored as sent. Analytics must never be a place
+ * where free text, a calendar title, a conversation or an unplanned health
+ * value can land (stop-ship register, analytics payload item).
+ *
+ * A field is kept only when its name is in the event's `payloadFields` AND
+ * its value is a string of at most `ANALYTICS_PAYLOAD_STRING_MAX` characters,
+ * a finite number or a boolean. Everything else is dropped, and named in
+ * `dropped` so the caller can count it. The event itself is still accepted:
+ * losing a whole event because a client added a field would hide real usage.
+ */
+export function sanitizeAnalyticsPayload(
+  eventType: string,
+  payload: unknown,
+): { payload: Record<string, AnalyticsPayloadValue>; dropped: string[] } {
+  const kept: Record<string, AnalyticsPayloadValue> = {};
+  const dropped: string[] = [];
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) {
+    return { payload: kept, dropped };
+  }
+  const declared = DECLARED_PAYLOAD_FIELDS.get(eventType);
+  for (const [key, value] of Object.entries(payload as Record<string, unknown>)) {
+    const allowedValue =
+      (typeof value === "string" && value.length <= ANALYTICS_PAYLOAD_STRING_MAX) ||
+      (typeof value === "number" && Number.isFinite(value)) ||
+      typeof value === "boolean";
+    if (declared?.has(key) && allowedValue) kept[key] = value as AnalyticsPayloadValue;
+    else dropped.push(key);
+  }
+  return { payload: kept, dropped };
+}
 
 export function isPhase1EventType(x: unknown): x is AnalyticsEventType {
   return (

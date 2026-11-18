@@ -7,7 +7,11 @@
  */
 import { z } from "zod";
 
-import { PHASE1_EVENT_TYPES, type AnalyticsEventType } from "./index";
+import {
+  PHASE1_EVENT_TYPES,
+  sanitizeAnalyticsPayload,
+  type AnalyticsEventType,
+} from "./index";
 
 export const analyticsEventTypeSchema = z.enum(
   PHASE1_EVENT_TYPES as [AnalyticsEventType, ...AnalyticsEventType[]],
@@ -25,14 +29,25 @@ export const analyticsEventTypeSchema = z.enum(
 const ANALYTICS_ID_RE = /^anon_[a-z0-9]+_[a-z0-9]+$/;
 const EVENT_ID_RE = /^evt_[a-z0-9]+_[a-z0-9]+$/;
 
-export const analyticsEnvelopeSchema = z.object({
-  eventId: z.string().min(8).max(128).regex(EVENT_ID_RE),
-  eventType: analyticsEventTypeSchema,
-  analytics_id: z.string().min(8).max(128).regex(ANALYTICS_ID_RE),
-  occurredAt: z.string().min(1).max(40),
-  schemaVersion: z.number().int().positive(),
-  payload: z.record(z.unknown()).default({}),
-});
+/**
+ * The payload is reduced to the event's declared fields as part of parsing,
+ * so EVERY writer that validates through this schema (the ingest route and
+ * the server-side emitter) stores only declared, primitive values. There is
+ * no way to obtain a parsed envelope that still carries an undeclared field.
+ */
+export const analyticsEnvelopeSchema = z
+  .object({
+    eventId: z.string().min(8).max(128).regex(EVENT_ID_RE),
+    eventType: analyticsEventTypeSchema,
+    analytics_id: z.string().min(8).max(128).regex(ANALYTICS_ID_RE),
+    occurredAt: z.string().min(1).max(40),
+    schemaVersion: z.number().int().positive(),
+    payload: z.record(z.unknown()).default({}),
+  })
+  .transform((envelope) => ({
+    ...envelope,
+    payload: sanitizeAnalyticsPayload(envelope.eventType, envelope.payload).payload,
+  }));
 
 export type AnalyticsEnvelopeInput = z.infer<typeof analyticsEnvelopeSchema>;
 
