@@ -253,7 +253,8 @@ export function MomentPreparationScreen({
     ? { id: current?.id ?? "draft", startAtIso: draftTiming.startAtIso }
     : current;
   const day = isDayMoment(anchor ?? { startAtIso: new Date().toISOString() });
-  const accent = day ? T.dayAccent : T.nightAccent;
+  // The orange day accent is retired (Master Brief §2): one accent, day or night.
+  const accent = T.blueHi;
   const next = nextPreparationContext(
     sharedMoments.surfaced,
     anchor,
@@ -1181,11 +1182,11 @@ export function MomentPreparationScreen({
       }}
       style={[
         s.button,
-        primary && { backgroundColor: day ? T.dayButton : T.blue },
+        primary && { backgroundColor: T.blue },
         disabled && s.disabled,
       ]}
     >
-      <Text style={[s.buttonText, primary && { color: day ? T.ink : T.bone }]}>
+      <Text style={[s.buttonText, primary && { color: T.onBlue }]}>
         {label}
       </Text>
     </Pressable>
@@ -1333,7 +1334,7 @@ export function MomentPreparationScreen({
     ) : null;
   return (
     <View
-      style={[s.root, screen === "quiet" && { backgroundColor: T.midnight }]}
+      style={[s.root, screen === "quiet" && { backgroundColor: T.ink }]}
     >
       <ScrollView
         ref={scrollRef}

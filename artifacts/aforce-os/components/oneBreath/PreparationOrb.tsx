@@ -52,7 +52,10 @@ export function PreparationOrb({
     loop.start();
     return () => loop.stop();
   }, [reduced, scale]);
-  const colors = day ? T.sun : social ? T.social : T.orange;
+  // Master Brief §2: the One Breath orb is Signal Red and the Social orb is
+  // Proof Blue. The orange orb and the daytime sun orb are retired, so `day`
+  // no longer changes the colour; it only decides whether the moon is drawn.
+  const colors = social ? T.social : T.oneBreath;
   return (
     <Animated.View
       accessible={false}
@@ -69,7 +72,7 @@ export function PreparationOrb({
         </Defs>
         <Circle cx={75} cy={75} r={74} fill={`url(#${id})`} />
         {moon && !day ? (
-          <Circle cx={104} cy={45} r={61} fill={T.midnight} />
+          <Circle cx={104} cy={45} r={61} fill={T.ink} />
         ) : null}
       </Svg>
       {!moon ? <PreparationMark size={34} color={T.bone} /> : null}
