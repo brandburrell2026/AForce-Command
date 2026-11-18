@@ -35,6 +35,8 @@ import { AFMark } from '@/components/ui/AFMark';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOrbHidden } from '@/services/orbVisibility';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { oneBreathOrbRaise, oneBreathTabHitSlop } from '@/utils/navigation/oneBreathOrbGeometry';
 import { DEMO_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
@@ -94,6 +96,7 @@ function PlainTabButton(props: Record<string, unknown>) {
     children,
     onPress,
     onLongPress,
+    hitSlop,
     accessibilityState,
     accessibilityLabel,
     testID,
@@ -103,6 +106,7 @@ function PlainTabButton(props: Record<string, unknown>) {
     children?: React.ReactNode;
     onPress?: () => void;
     onLongPress?: () => void;
+    hitSlop?: { top?: number };
     accessibilityState?: Record<string, unknown>;
     accessibilityLabel?: string;
     testID?: string;
@@ -135,6 +139,7 @@ function PlainTabButton(props: Record<string, unknown>) {
     <Pressable
       onPress={onPress as (() => void) | undefined}
       onLongPress={onLongPress as (() => void) | undefined}
+      hitSlop={hitSlop}
       accessibilityRole="button"
       accessibilityState={{ ...(accessibilityState as object | undefined), selected }}
       accessibilityLabel={label}
@@ -252,6 +257,9 @@ function OneBreathTabIcon() {
   const breathe = onHome && !reducedMotion && !hidden;
   const scale = React.useRef(new Animated.Value(1)).current;
   const gradientId = React.useId().replace(/:/g, '');
+  // Raised 12pt; a little more on phones with no home indicator so the bottom
+  // of the orb is never cut off (see oneBreathOrbGeometry).
+  const raise = oneBreathOrbRaise(useSafeAreaInsets().bottom);
 
   React.useEffect(() => {
     if (!breathe) {
@@ -273,7 +281,7 @@ function OneBreathTabIcon() {
   if (hidden) return null;
   return (
     <View
-      style={plainTabButtonStyles.oneBreathSlot}
+      style={[plainTabButtonStyles.oneBreathSlot, { top: -raise }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       testID="tab-one-breath-orb"
@@ -307,6 +315,7 @@ function ClassicTabLayout() {
   const isIOS = Platform.OS === 'ios';
   const isWeb = Platform.OS === 'web';
   const router = useRouter();
+  const bottomInset = useSafeAreaInsets().bottom;
 
   return (
     <Tabs
@@ -390,6 +399,13 @@ function ClassicTabLayout() {
           tabBarShowLabel: false,
           tabBarAccessibilityLabel: 'One Breath',
           tabBarIcon: () => <OneBreathTabIcon />,
+          // The raised part of the orb is part of the button's touch area.
+          tabBarButton: (btnProps) => (
+            <PlainTabButton
+              {...(btnProps as unknown as Record<string, unknown>)}
+              hitSlop={oneBreathTabHitSlop(bottomInset)}
+            />
+          ),
         }}
       />
       <Tabs.Screen
