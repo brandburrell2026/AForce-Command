@@ -57,7 +57,7 @@ import {
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon } from '@/components/Icon';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
-import { EM_DASH } from './signalV3Presentation';
+import { hydrationStatRows } from './hydrationStatRows';
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
@@ -195,6 +195,7 @@ export function HydrationScreenV2() {
     userState.ozTarget > 0
       ? Math.max(0, Math.min(1, userState.ozConsumedToday / userState.ozTarget))
       : 0;
+  const statRows = hydrationStatRows({ aforceUnitsToday: userState.aforceUnitsToday });
   const recent: IntakeEvent[] = (userState.intakeEvents ?? []).slice(0, 5);
   const streak = Math.max(0, Math.min(7, userState.complianceStreak));
   const todayIdx = new Date(userState.lastIntakeTime).getDay();
@@ -312,30 +313,16 @@ export function HydrationScreenV2() {
                 {t('hydration.v2.target_starting_point', { target: userState.ozTarget })}
               </Text>
             )}
-            <Stat
-              label={t('hydration.v2.stat_electrolytes')}
-              value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
-            />
-            {/* CORRECTION-6 TWIN (command-authority wave 1, founder-authorized).
-                This badge was NOT a recovery reading: it restated
-                engine.performanceState.level — the band the engine already
-                owns — title-cased under a "Recovery" label: a second verdict
-                beside the intake hero, presenting a measurement nobody took.
-                Home's identical Recovery tile was ruled out twice (founder §1
-                2026-08-13; Correction 6, build-61 device QA). This mirrors
-                Correction 6 exactly: the honest-data em dash until a real
-                recovery input exists. The engine and its band are untouched —
-                this is a presentation decision belonging to this screen.
-                Black Issue: the reference's "STEADY · HRV 58 MS" line has no
-                source on this screen, so it is not drawn. */}
-            <View
-              style={styles.recoveryRow}
-              accessible
-              accessibilityLabel={`${t('hydration.v2.recovery_label')} ${EM_DASH}`}
-            >
-              <Text style={[styles.statLabel, eyebrowType]}>{t('hydration.v2.recovery_label')}</Text>
-              <Text style={styles.statValue}>{EM_DASH}</Text>
-            </View>
+            {/* Screen Upgrade v1.1: a row is hidden until it has data. Zero
+                AFORCE servings and the Recovery em dash are not drawn.
+                Recovery has no reading on this screen, and the engine's band
+                must never be restated as one (hydrationRecoveryTileTruth). */}
+            {statRows.electrolytes ? (
+              <Stat
+                label={t('hydration.v2.stat_electrolytes')}
+                value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
+              />
+            ) : null}
           </View>
         </View>
       </AFCard>
@@ -520,7 +507,6 @@ const styles = StyleSheet.create({
   statLabel: { ...afType.eyebrow, color: af.textTertiary },
   statValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   statCaption: { ...afType.caption, color: af.textTertiary, marginTop: -6 },
-  recoveryRow: { gap: 2, alignItems: 'flex-start' },
   actions: { marginTop: 20, gap: 12 },
   section: { marginTop: 28, gap: 12 },
   recentCard: { paddingHorizontal: 16 },
