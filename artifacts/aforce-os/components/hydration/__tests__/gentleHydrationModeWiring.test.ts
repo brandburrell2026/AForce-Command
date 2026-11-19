@@ -17,6 +17,24 @@ describe("Gentle Hydration Mode wiring", () => {
     expect(hydration).toMatch(/if \(!flags\.gentle_hydration_mode_enabled\) setGentleMode\(DEFAULT_GENTLE_HYDRATION_MODE\)/);
     expect(hydration).toContain("!gentleMode.pauseStreakDisplay");
   });
+  it("keeps its controls off the Hydration tab and on their own screen, opened from Profile", () => {
+    const hydration = read("components", "hydration", "HydrationScreenV2.tsx");
+    // The approved Hydration layout has no Gentle hydration card.
+    expect(hydration).not.toContain("<GentleHydrationModeCard");
+    // The tab still reads the saved choice so "pause the display" is honoured.
+    expect(hydration).toContain("loadGentleHydrationMode()");
+    const screen = read("components", "hydration", "GentleHydrationScreen.tsx");
+    expect(screen).toContain("<GentleHydrationModeCard");
+    expect(screen).toContain("if (!flags.gentle_hydration_mode_enabled) return <Redirect");
+    expect(read("app", "gentle-hydration.tsx")).toContain("GentleHydrationScreen");
+    const profile = read("components", "profile", "ProfileScreenV2.tsx");
+    expect(profile).toContain("router.push('/gentle-hydration' as never)");
+    expect(profile).toContain("flags.gentle_hydration_mode_enabled ? (");
+  });
+  it("writes the Recent day word with a capital, as the reference does", () => {
+    const hydration = read("components", "hydration", "HydrationScreenV2.tsx");
+    expect(hydration).toContain("when.text.charAt(0).toUpperCase() + when.text.slice(1)");
+  });
   it("does not touch protected scoring or status files", () => {
     const protectedFiles = ["utils/scoringEngine.ts", "theme/statusColor.ts"];
     for (const file of protectedFiles)

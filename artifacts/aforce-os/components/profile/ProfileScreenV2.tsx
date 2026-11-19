@@ -1097,6 +1097,27 @@ export function ProfileScreenV2() {
             // server-resolved cohort decision that protects /skinia itself.
             // A non-entitled member never sees a teaser, a locked card, or a
             // path to the camera capture surface.
+            // Gentle hydration's private controls. They used to sit on the
+            // Hydration tab; the approved Hydration layout has no place for
+            // them, so they open from here. Same flag as before.
+            const gentleEntry = flags.gentle_hydration_mode_enabled ? (
+              <TouchableOpacity
+                style={[styles.card, { padding: 18 }]}
+                onPress={() => router.push('/gentle-hydration' as never)}
+                activeOpacity={0.78}
+                accessibilityRole="button"
+                accessibilityLabel="Gentle hydration. Private to this device."
+                testID="profile-gentle-hydration-entry"
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.settingLabel}>Gentle hydration</Text>
+                    <Text style={styles.settingSubLabel}>Private to this device</Text>
+                  </View>
+                  <Icon name="chevron-right" size={18} color={af.textTertiary} />
+                </View>
+              </TouchableOpacity>
+            ) : null;
             const skinIAEntry = skinIAEnabled ? (
               <>
                 <SectionHeader label="INTERNAL TESTING" />
@@ -1212,6 +1233,7 @@ export function ProfileScreenV2() {
                 <View style={styles.twoCol} testID="profile-two-col">
                   <View style={[styles.col, styles.colLeft]}>
                     {identityBlock}
+                    {gentleEntry}
                     {skinIAEntry}
                     {tabBar}
                   </View>
@@ -1227,7 +1249,8 @@ export function ProfileScreenV2() {
             return (
               <>
                 {identityBlock}
-                {skinIAEntry}
+                {gentleEntry}
+                    {skinIAEntry}
                 {tabBar}
                 {activeSections.map((node, i) => (
                   <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>

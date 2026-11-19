@@ -71,8 +71,7 @@ import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { GentleHydrationModeCard } from './GentleHydrationModeCard';
-import { DEFAULT_GENTLE_HYDRATION_MODE, type GentleHydrationModeState } from '@/services/gentleHydrationMode';
+import { DEFAULT_GENTLE_HYDRATION_MODE, loadGentleHydrationMode, type GentleHydrationModeState } from '@/services/gentleHydrationMode';
 import { fireMoment } from '@/services/haptics';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -140,15 +139,21 @@ export function HydrationScreenV2() {
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
   const [gentleMode, setGentleMode] = React.useState<GentleHydrationModeState>(DEFAULT_GENTLE_HYDRATION_MODE);
-  // A birth year alone cannot confirm whether someone who turns 18 this year
-  // has already had their birthday. Keep the optional context hidden unless
-  // the available data proves adulthood without that ambiguity.
-  const showGlp1Context =
-    typeof state.profileIdentity?.birthYear === 'number' &&
-    new Date().getFullYear() - state.profileIdentity.birthYear > 18;
-
+  // Gentle hydration's controls live on their own screen (Profile → Gentle
+  // hydration). This tab only reads the saved choice, so "pause the history
+  // display" is still honoured here.
   React.useEffect(() => {
     if (!flags.gentle_hydration_mode_enabled) setGentleMode(DEFAULT_GENTLE_HYDRATION_MODE);
+  }, [flags.gentle_hydration_mode_enabled]);
+  React.useEffect(() => {
+    if (!flags.gentle_hydration_mode_enabled) return undefined;
+    let live = true;
+    void loadGentleHydrationMode().then((saved) => {
+      if (live) setGentleMode(saved);
+    });
+    return () => {
+      live = false;
+    };
   }, [flags.gentle_hydration_mode_enabled]);
 
   // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
@@ -294,13 +299,6 @@ export function HydrationScreenV2() {
         <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
       </HydrationHero>
 
-      {flags.gentle_hydration_mode_enabled ? (
-        <GentleHydrationModeCard
-          showGlp1Context={showGlp1Context}
-          onModeChange={setGentleMode}
-        />
-      ) : null}
-
       {/* Recent intake */}
       <View style={styles.section}>
         <HydrationEyebrow label="Recent" />
@@ -314,7 +312,7 @@ export function HydrationScreenV2() {
               <HydrationRecentRow
                 key={e.id}
                 title={t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`)}
-                when={when.text}
+                when={when.text.charAt(0).toUpperCase() + when.text.slice(1)}
                 amount={t('hydration.v2.oz_value', { oz: Math.round(e.oz) })}
                 last={i === intakeRows.length - 1}
               />
