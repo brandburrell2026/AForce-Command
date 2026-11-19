@@ -4,16 +4,31 @@
  * opens One Breath, where planning and sealing already live.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { type ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
+import { WorldPhotoThumb } from '@/components/world/WorldPhoto';
 import { af } from '@/theme';
 import type { FirstMomentCardModel } from '@/utils/firstMoment';
 
-export function HomeFirstMomentCard({ card, onPlan }: { card: FirstMomentCardModel | null; onPlan: () => void }) {
+export function HomeFirstMomentCard({
+  card,
+  onPlan,
+  photo,
+}: {
+  card: FirstMomentCardModel | null;
+  onPlan: () => void;
+  /** The small World photograph on the card. Optional. */
+  photo?: ImageSourcePropType;
+}) {
   if (!card) return null;
   return (
     <View style={styles.card} testID="home-first-moment-card">
-      <Text style={styles.eyebrow}>{card.eyebrow.toUpperCase()}</Text>
-      <Text style={styles.title} accessibilityRole="header">{card.title}</Text>
+      <View style={styles.head}>
+        <WorldPhotoThumb source={photo} testID="home-first-moment-thumb" />
+        <View style={styles.headText}>
+          <Text style={styles.eyebrow}>{card.eyebrow.toUpperCase()}</Text>
+          <Text style={styles.title} accessibilityRole="header">{card.title}</Text>
+        </View>
+      </View>
       <Text style={styles.note}>{card.note}</Text>
       <Pressable
         onPress={onPlan}
@@ -33,6 +48,8 @@ const styles = StyleSheet.create({
     backgroundColor: af.surface, borderWidth: 1, borderColor: af.border, borderRadius: 20,
     padding: 18, gap: 10, marginTop: 14,
   },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headText: { flex: 1, gap: 4 },
   eyebrow: {
     fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2,
     color: af.textSecondary,

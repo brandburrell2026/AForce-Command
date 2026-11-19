@@ -149,7 +149,13 @@ Thirteen World photographs were made for AFORCE on 2026-11-19 (AI-generated, 233
 | Home hero | The next Moment's photograph, chosen from its own words, else its type; a private Moment is never matched on its title | ◐ no slow drift; one photo per scene, not per weather or time of day. Not checked on a phone |
 | Moments hero | Same photograph, edge to edge behind the top row and hero | ◐ same. Not checked on a phone |
 | Protocols tiles | Recovery, Sleep and Travel each sit on their photograph | ◐ Not checked on a phone |
-| Moment screen, Replay, Recovery, Sleep, Circles, the small thumbnails on Home cards, sign-in promise screen | No photograph yet | ✘ |
+| Moment screen | The Moment's photograph behind the back row and title | ◐ Not checked on a phone |
+| Replay (after "Made it back") | The Moment's photograph, in the demo's shorter hero | ◐ only on that step, not on Lock In, Quiet or Return. Not checked on a phone |
+| Recovery and Sleep | The recovery-stretch and bedroom photographs behind the title | ◐ Not checked on a phone |
+| Circles | The set-table photograph behind "Your people. Your Moments." | ◐ Not checked on a phone |
+| Home cards (Before, Return, Your first Moment) | The demo's 44pt square photograph beside the title | ◐ Not checked on a phone |
+| Sign-in promise screen | The basketball-court photograph behind the promise | ◐ one photograph, not the demo's rotating three. Not checked on a phone |
+| One Breath, Hydration, Profile, Travel, Calendar | No photograph | ✘ Travel waits on its own licensed city photographs |
 
 ## Decisions that block an exact match
 

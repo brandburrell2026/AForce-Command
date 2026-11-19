@@ -74,6 +74,18 @@ export function worldSceneForMoment(
   return TYPE_SCENES[moment.type] ?? WORLD_EMPTY_SCENE;
 }
 
+/** The scene on Home's "Your first Moment" card, by the answer given at first run. */
+export const FIRST_MOMENT_SCENES = {
+  train: 'gym',
+  work: 'presentation',
+  night: 'dinner',
+  travel: 'travel',
+} as const satisfies Record<'train' | 'work' | 'night' | 'travel', WorldScene>;
+
+/** Screens with one fixed photograph, as the prototype pairs them. */
+export const CIRCLES_SCENE: WorldScene = 'mb_social';
+export const WELCOME_SCENE: WorldScene = 'mb_sport';
+
 /** The scenes behind the three Protocols tiles, as the prototype pairs them. */
 export const PROTOCOL_SCENES = {
   recovery: 'yoga_night',
