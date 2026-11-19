@@ -84,7 +84,7 @@ The demo marks this page "Design review · gated · sample data". The app's Trav
 |---|---|---|
 | "‹ Moments" and "Travel" | Same, as "Travel · Private pilot" | ✔ |
 | Route line: JFK 9:05 — LAX · −3 h 12:20 | Built, from the member's itinerary, each time in that airport's local time, labelled "Planned times from your itinerary" | ✔ no capture yet |
-| Title "New York to Los Angeles" | The destination city ("Los Angeles"), per the earlier Travel mockup | ◐ decision: which title |
+| Title "New York to Los Angeles" | The destination city ("Los Angeles"), per the earlier Travel mockup | ✔ decided: keep the destination city (Brandon, 2026-11-19) |
 | World photograph | Daypart tone, type only | ✘ no licensed photography |
 | "Your plan" timeline (leave, boarding · Lock In, in the air, land · Return) | Rows for countdown, time difference, weather; the plan lives on the arrival Moment | ✘ not rebuilt |
 | "From Travel Gate" and "Time-zone plan" concept cards | Not shown | ✘ Travel Gate not connected; sleep/light advice awaits review (CR-T1) |
