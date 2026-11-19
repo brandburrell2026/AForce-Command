@@ -47,7 +47,7 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Red Moment marks above the bars | None | ✘ data |
 | "Shortcut" card | None | ✘ feature |
 | No Gentle hydration card | Moved to Profile | ✔ |
-| Log sheet: 64pt light number, oz and mL, "Log 16 oz" | Older sheet | ✘ not rebuilt |
+| Log sheet: 64pt light number, oz and mL, "Log 16 oz" | Built: title and Close, round steppers, 64pt light number with "fl oz · mL", pill amounts, "Log N oz". No status colour. Used by Hydration and Home | ◐ titled "Log water" and has no drink chips (AFORCE, coffee, other): it logs water only. Steppers are 44pt, not 40 (touch target). Not checked on a phone |
 | Log result: calm confirmation with Undo | Older result screen | ✘ not rebuilt; Undo needs the edit/delete decision |
 
 ## Breath (One Breath)
