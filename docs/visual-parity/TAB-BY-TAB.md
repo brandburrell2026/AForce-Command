@@ -88,7 +88,7 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | "Choose what your Circle can see" card | Same | ✔ |
 | "Your Moments" card | None | ✘ gallery not built |
 
-## You (Profile) — header and pills rebuilt; section contents not yet
+## You (Profile) — header, pills and all three sections rebuilt
 
 | Demo | Rebuilt header |
 |---|---|
@@ -101,7 +101,7 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | "Add a photo · optional" | "Edit profile" (opens the existing editor; photo upload is not built) | ◐ feature |
 | Three pills: Performance · Devices · Account | Same, sentence case, the selected one warm white. Internal builds add a fourth, Developer | ◐ internal only |
 | No rank, streak or aura chips | Removed | ✔ |
-| Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | The app's existing Performance cards | ✘ not rebuilt; gallery and learning are not built |
+| Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | Rebuilt as the demo's list: status line, "Private. No counts, no streaks.", What AFORCE remembers · How AFORCE works · Modes and checks. Rows open the same cards as before | ◐ no "Your Moments" strip (gallery not built); "Modes and checks" is extra, kept so its tools stay reachable; "What AFORCE remembers" shows target, body weight and wake time, not lessons; no capture yet |
 | Devices: one row per source with On / Off / Check | Rebuilt as the demo's list: source, what it reads, state, pill (On · Check · Demo · Later · Off), the note and "Manage devices and apps". Manage holds the same device cards as before | ◐ no last-updated time on rows (the list has none to show); Phantom sits on Manage, not in the list; no capture yet |
 | Account: Plan, Settings, Shop; Privacy; Download data; Delete account | Rebuilt as the demo's list: Plan · Settings; Privacy (What your Circle can see · Body details · Your data); Help. Each row opens a view holding the same controls as before | ◐ no "Shop AFORCE"; "Your data" instead of "Download or delete your data" — the app has no in-app download or account deletion; no capture yet |
 

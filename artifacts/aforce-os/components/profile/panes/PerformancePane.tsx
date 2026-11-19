@@ -124,6 +124,13 @@ import {
 } from '@/services/garmin';
 import type { ProfilePaneCtx } from './types';
 
+/**
+ * The order of the blocks `renderPerformanceSections` returns. Profile files
+ * each one under a named view by this order
+ * (components/profile/PerformanceHome.tsx); a test keeps the two in step.
+ */
+export const PERFORMANCE_SECTION_ORDER = ['performanceProfileBlock', 'protocolToolsCard'] as const;
+
 export function renderPerformanceSections(ctx: ProfilePaneCtx): React.ReactNode[] {
   const {
     flags,
