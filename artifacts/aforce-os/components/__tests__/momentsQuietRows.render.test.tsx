@@ -24,37 +24,45 @@ function render() { act(() => root.render(<EditorialMomentsScreen tabRoot />)); 
 function row(id: string) { return host.querySelector(`[data-testid="editorial-moment-row-${id}"]`)!; }
 beforeEach(() => { h.internal = true; h.action = true; h.moments = [7, 8, 9, 14].map((hour, index) => ({ id: String(index), title: ['Gym workout', 'Meeting with Julius', 'One Breath test', 'Meeting with Kendra'][index], startAtIso: `2026-11-03T${String(hour + 5).padStart(2, '0')}:00:00Z`, type: 'personal' })); host = document.createElement('div'); document.body.append(host); root = createRoot(host); });
 afterEach(() => { act(() => root.unmount()); host.remove(); });
-describe('internal Moments quiet rows', () => {
-  it('renders the canonical instruction exactly once while keeping every title and prep window', () => {
-    render(); expect(host.textContent!.split('Canonical preparation action')).toHaveLength(2);
-    expect(row('0').getAttribute('aria-label')).toContain('Canonical preparation action');
-    for (const id of ['1', '2', '3']) {
-      expect(row(id).textContent).not.toContain('Canonical preparation action');
-      expect(row(id).getAttribute('aria-label')).not.toContain('moments.do_this');
-      expect(row(id).textContent).toContain('moments.prep_window');
-    }
-    expect(host.textContent).toContain('Meeting with Julius'); expect(host.textContent).toContain('Meeting with Kendra');
-  });
-  it('moves the single brief past completed and already prepared rows', () => {
-    h.moments[0].startAtIso = '2026-11-02T07:00:00Z'; h.moments[1].preparedAtIso = '2026-11-02T11:00:00Z'; render();
-    expect(row('0').getAttribute('aria-label')).not.toContain('Canonical preparation action');
-    expect(row('1').textContent).toContain('MOMENTS.STAGE_DONE');
-    expect(row('1').getAttribute('aria-label')).toContain('moments.stage_done');
-    expect(row('1').getAttribute('aria-label')).not.toContain('moments.do_this');
-    expect(row('2').getAttribute('aria-label')).toContain('Canonical preparation action');
-    expect(host.textContent!.split('Canonical preparation action')).toHaveLength(2);
-  });
-  it('keeps a returned plan quiet and moves the brief to the next open Moment', () => {
-    h.moments[0].preparation = { returnedAtIso: '2026-11-02T11:00:00Z' };
+// The internal Moments tab is laid out as the approved prototype since 2026-11-18:
+// a hero for the next Moment, "Plan a Moment · say it", then Upcoming and Done as
+// quiet rows. The engine's instruction is not repeated on the list (it lives on the
+// Moment's own screen); the public layout is unchanged.
+function proto(id: string) { return host.querySelector(`[data-testid="moments-row-${id}"]`)!; }
+describe('internal Moments tab (prototype layout)', () => {
+  it('shows every upcoming Moment once as a quiet row, with no instruction on the list', () => {
     render();
-    expect(row('0').getAttribute('aria-label')).toContain('moments.stage_done');
-    expect(row('0').getAttribute('aria-label')).not.toContain('moments.do_this');
-    expect(row('0').textContent).not.toContain('Canonical preparation action');
-    expect(row('1').getAttribute('aria-label')).toContain('Canonical preparation action');
+    expect(host.textContent).not.toContain('Canonical preparation action');
+    for (const [id, title] of [['0', 'Gym workout'], ['1', 'Meeting with Julius'], ['2', 'One Breath test'], ['3', 'Meeting with Kendra']] as const) {
+      expect(proto(id).textContent).toContain(title);
+      expect(proto(id).getAttribute('aria-label')).toContain('not prepared');
+      expect(proto(id).textContent).toContain('Plan');
+    }
+    expect(host.textContent).toContain('UPCOMING');
+    expect(host.textContent).toContain('Plan a Moment · say it');
   });
-  it('keeps an absent command silent and preserves the public layout when the internal gate is off', () => {
-    h.action = false; render(); expect(host.textContent).not.toContain('Canonical preparation action');
-    expect(row('0').getAttribute('aria-label')).not.toContain('moments.do_this');
-    h.action = true; h.internal = false; render(); expect((host.textContent!.match(/Canonical preparation action/gi) ?? [])).toHaveLength(5);
+  it('leads with the next Moment in the hero', () => {
+    render();
+    const hero = host.querySelector('[data-testid="moments-hero"]')!;
+    expect(hero.textContent).toContain('Gym workout');
+    expect(hero.textContent).toContain('NEXT');
+  });
+  it('moves a returned Moment to Done and keeps it quiet', () => {
+    h.moments[0].preparation = { sealedAtIso: '2026-11-02T10:00:00Z', returnedAtIso: '2026-11-02T11:00:00Z' };
+    render();
+    expect(host.textContent).toContain('DONE');
+    expect(proto('0').getAttribute('aria-label')).toContain('Replay ready');
+    expect(proto('0').getAttribute('aria-label')).not.toContain('not prepared');
+    expect(host.querySelector('[data-testid="moments-hero"]')!.textContent).toContain('Meeting with Julius');
+  });
+  it('shows the first-Moment hero and an empty note when nothing is planned', () => {
+    h.moments = []; render();
+    expect(host.textContent).toContain('Your first Moment');
+    expect(host.querySelector('[data-testid="moments-empty"]')).toBeTruthy();
+  });
+  it('preserves the public layout when the internal gate is off', () => {
+    h.internal = false; render();
+    expect((host.textContent!.match(/Canonical preparation action/gi) ?? [])).toHaveLength(5);
+    expect(row('0')).toBeTruthy();
   });
 });
