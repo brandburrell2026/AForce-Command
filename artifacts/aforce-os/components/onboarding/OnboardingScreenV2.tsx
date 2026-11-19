@@ -1,7 +1,9 @@
 /**
  * Onboarding Engine — first-run setup wizard.
  *
- * Flow: Name ("What should we call you?", as in the approved prototype) →
+ * Flow: Name ("What should we call you?") → First Moment ("What's coming up
+ *       first?", optional; only where One Breath planning is on) — both as in
+ *       the approved prototype →
  *       Goal → Activity →
  *       Profile (body model + unit system) →
  *       Lifestyle (caffeine / occupation / travel) → Ready.
@@ -65,6 +67,9 @@ import { Icon } from '@/components/Icon';
 import { HeightField, WeightField } from '@/components/bodyModel';
 import { useUser } from '@clerk/expo';
 import { useAppStore } from '@/store/useAppStore';
+import { useFirstMomentAvailable } from '@/hooks/useFirstMomentAvailable';
+import { writeFirstMomentChoice } from '@/services/firstMomentChoice';
+import { FIRST_MOMENT_OPTIONS, type FirstMomentChoice } from '@/utils/firstMoment';
 import { useProfileIdentitySlice } from '@/store/slices';
 import { saveProfileVersion } from '@/services/profileSyncService';
 import { af } from '@/theme';
@@ -91,6 +96,7 @@ import {
 
 type Step =
   | 'name'
+  | 'prep'
   | 'goal'
   | 'activity'
   | 'profile'
@@ -202,6 +208,11 @@ export function OnboardingScreenV2() {
   const [nameTouched, setNameTouched] = React.useState(false);
   const [nameSaving, setNameSaving] = React.useState(false);
   const [nameError, setNameError] = React.useState(false);
+  // "What's coming up first?" — optional, one answer, and shown only where
+  // the Home card it chooses can really open a plan.
+  const prepAvailable = useFirstMomentAvailable();
+  const afterName: Step = prepAvailable ? 'prep' : 'goal';
+  const [prep, setPrep] = React.useState<FirstMomentChoice | null>(null);
   const accountFirstName = clerkUser?.firstName ?? '';
   React.useEffect(() => {
     if (!nameTouched && accountFirstName) setFirstName(accountFirstName);
@@ -371,19 +382,27 @@ export function OnboardingScreenV2() {
     const next = firstName.trim();
     if (!next || next === accountFirstName || !clerkUser || nameError) {
       setNameError(false);
-      setStep('goal');
+      setStep(afterName);
       return;
     }
     setNameSaving(true);
     try {
       await clerkUser.update({ firstName: next });
-      setStep('goal');
+      setStep(afterName);
     } catch {
       setNameError(true);
     } finally {
       setNameSaving(false);
     }
-  }, [tap, nameSaving, firstName, accountFirstName, clerkUser, nameError]);
+  }, [tap, nameSaving, firstName, accountFirstName, clerkUser, nameError, afterName]);
+
+  // Keeps the answer (or clears it, for "Decide later") and moves on. The
+  // write is best-effort and never holds the member here.
+  const submitPrep = React.useCallback(() => {
+    tap();
+    void writeFirstMomentChoice(prep);
+    setStep('goal');
+  }, [tap, prep]);
 
   const goNext = React.useCallback(() => {
     tap();
@@ -399,19 +418,22 @@ export function OnboardingScreenV2() {
   const goBack = React.useCallback(() => {
     tap();
     setStep((s) => {
-      if (s === 'goal') return 'name';
+      if (s === 'prep') return 'name';
+      if (s === 'goal') return prepAvailable ? 'prep' : 'name';
       if (s === 'activity') return 'goal';
       if (s === 'profile') return 'activity';
       if (s === 'lifestyle') return 'profile';
       if (s === 'ready') return 'lifestyle';
       return s;
     });
-  }, [tap]);
+  }, [tap, prepAvailable]);
 
   const stepIndex = INPUT_STEPS.indexOf(step);
   const canContinue =
     // The name is optional — Continue is never gated on it.
     (step === 'name' && !nameSaving) ||
+    // Optional: with nothing picked the button reads "Decide later".
+    step === 'prep' ||
     (step === 'goal' && primaryGoal != null) ||
     (step === 'activity' && activityLevel != null) ||
     step === 'profile' ||
@@ -440,8 +462,10 @@ export function OnboardingScreenV2() {
 
           {step === 'ready' ? (
             <View style={styles.dots} />
-          ) : step === 'name' ? (
-            <Text style={styles.stepLabel}>{t('onboarding.v2.name_eyebrow').toUpperCase()}</Text>
+          ) : step === 'name' || step === 'prep' ? (
+            <Text style={styles.stepLabel}>
+              {t(step === 'name' ? 'onboarding.v2.name_eyebrow' : 'onboarding.v2.prep_eyebrow').toUpperCase()}
+            </Text>
           ) : (
             <View style={styles.dots}>
               {INPUT_STEPS.map((s, i) => (
@@ -505,6 +529,35 @@ export function OnboardingScreenV2() {
                   {t('onboarding.v2.name_error')}
                 </Text>
               ) : null}
+            </View>
+          )}
+
+          {step === 'prep' && (
+            <View testID="onboarding-prep">
+              <Text accessibilityRole="header" style={styles.nameTitle}>{t('onboarding.v2.prep_title')}</Text>
+              <Text style={styles.nameSub}>{t('onboarding.v2.prep_sub')}</Text>
+              <View style={styles.prepList} accessibilityRole="radiogroup">
+                {FIRST_MOMENT_OPTIONS.map((opt) => {
+                  const selected = prep === opt.value;
+                  const label = t(`onboarding.v2.prep_${opt.value}`);
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => {
+                        tap();
+                        setPrep(selected ? null : opt.value);
+                      }}
+                      style={[styles.prepRow, selected && styles.prepRowOn]}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: selected }}
+                      accessibilityLabel={label}
+                      testID={`onboarding-prep-${opt.value}`}
+                    >
+                      <Text style={styles.prepRowText}>{label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           )}
 
@@ -909,17 +962,27 @@ export function OnboardingScreenV2() {
         {/* Footer CTA */}
         <View style={styles.footer}>
           <Pressable
-            onPress={step === 'ready' ? finish : step === 'name' ? submitName : goNext}
+            onPress={step === 'ready' ? finish : step === 'name' ? submitName : step === 'prep' ? submitPrep : goNext}
             disabled={!canContinue && step !== 'ready'}
             style={[
               styles.cta,
               !canContinue && step !== 'ready' && styles.ctaDisabled,
             ]}
             accessibilityRole="button"
-            accessibilityLabel={step === 'ready' ? t('onboarding.v2.cta_enter_a11y') : t('onboarding.v2.cta_continue_a11y')}
+            accessibilityLabel={
+              step === 'ready'
+                ? t('onboarding.v2.cta_enter_a11y')
+                : step === 'prep' && prep == null
+                  ? t('onboarding.v2.prep_later')
+                  : t('onboarding.v2.cta_continue_a11y')
+            }
           >
             <Text style={styles.ctaLabel}>
-              {step === 'ready' ? t('onboarding.v2.cta_enter') : t('onboarding.v2.cta_continue')}
+              {step === 'ready'
+                ? t('onboarding.v2.cta_enter')
+                : step === 'prep' && prep == null
+                  ? t('onboarding.v2.prep_later')
+                  : t('onboarding.v2.cta_continue')}
             </Text>
             <Icon name="arrow-right" size={18} color={af.onPrimaryFill} />
           </Pressable>
@@ -975,6 +1038,13 @@ const styles = StyleSheet.create({
     backgroundColor: af.canvas, paddingHorizontal: 14,
     color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 16,
   },
+  prepList: { gap: 8 },
+  prepRow: {
+    minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: af.border,
+    paddingHorizontal: 16, justifyContent: 'center',
+  },
+  prepRowOn: { borderColor: af.textPrimary, backgroundColor: af.surfacePressed },
+  prepRowText: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 20, color: af.textPrimary },
   nameError: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.redText, marginTop: 10 },
   kicker: {
     fontFamily: 'Inter_700Bold',

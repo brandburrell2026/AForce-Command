@@ -78,8 +78,9 @@ const DEVICE_GLOBAL_ALLOWLIST: ReadonlyArray<{
     file: 'components/onboarding/OnboardingScreenV2.tsx',
     keys: ['aforce.hasCompletedOnboarding'],
     why:
-      'Writes the same gate. Verified: this is the screen’s ONLY durable write — ' +
-      'no answer the member gives during onboarding is persisted here.',
+      'Writes the same gate. Verified: this is the screen’s ONLY raw durable ' +
+      'write. The one answer it keeps on the device, the optional first-Moment ' +
+      'choice, goes through the account-scoped facade (services/firstMomentChoice).',
   },
   {
     file: 'components/performanceStatement/PerformanceStatementMount.tsx',
