@@ -63,6 +63,10 @@ import { edInkFor, edPositive, edRhythm, edStock, edType } from '@/theme/editori
 
 import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdBriefChecklist } from './EdBriefChecklist';
+import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { PROTOCOL_SCENES } from '@/utils/worldPhoto';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import { EdCanonicalClock } from './EdCanonicalClock';
 import { briefGaugeFraction } from './editorialProtocolPresentation';
 
@@ -84,6 +88,8 @@ export function EditorialProtocolScreen() {
   const tabClearance = useTabBarClearance();
   const ink = edInkFor('black');
   const settle = useEdSettle();
+  const photo = worldPhoto(PROTOCOL_SCENES.recovery);
+  const gutter = useAFGutter();
 
   // Same lazy fetch rule as the live screen: rollups only once a surface
   // that shows compliance activates.
@@ -132,11 +138,13 @@ export function EditorialProtocolScreen() {
   return (
     <EdSurface stock="black" style={styles.fill}>
       <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
+        <WorldPhotoHero source={photo} bleed={gutter} testID="editorial-protocol-photo" />
         <Animated.View style={settle}>
           {/* Root tab: masthead furniture only — no back control. */}
           <View style={styles.topRow}>
             <Text style={styles.eyebrow}>{t('protocol.v2.eyebrow')}</Text>
           </View>
+          <WorldPhotoGap source={photo} />
 
           {/* D2 — the same notice Home renders, from the same flag and key. */}
           {lastRefreshStale ? (

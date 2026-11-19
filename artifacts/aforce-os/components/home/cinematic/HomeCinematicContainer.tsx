@@ -15,7 +15,8 @@ import { useMomentsStore } from '@/services/momentsStore';
 import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
 import type { Moment } from '@/types/moments';
 import { HomeCinematic } from './HomeCinematic';
-import { worldPhotoForMoment } from '@/components/world/worldPhotoSources';
+import { worldPhoto, worldPhotoForMoment } from '@/components/world/worldPhotoSources';
+import { FIRST_MOMENT_SCENES } from '@/utils/worldPhoto';
 import { HomeMomentCards } from './HomeMomentCards';
 import { HomeFirstMomentCard } from './HomeFirstMomentCard';
 import { useFirstMomentAvailable } from '@/hooks/useFirstMomentAvailable';
@@ -80,6 +81,11 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
   const privateLabel = t('moments.private_event');
   const beforeCard = homeBeforeCard(allMoments, props.now, privateLabel);
   const returnCard = homeReturnCard(allMoments, props.now, privateLabel, skippedReturns);
+  // Each card's small photograph is its own Moment's scene.
+  const cardPhoto = (id: string | undefined) => {
+    const m = id ? allMoments.find((x) => x.id === id) : undefined;
+    return m ? worldPhotoForMoment(m) : undefined;
+  };
   // The prototype's "Your first Moment" card: only for a member with no
   // Moment yet, and only where One Breath really ends in a plan to seal.
   const firstMomentAvailable = useFirstMomentAvailable();
@@ -127,12 +133,18 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
       sourceLine={source}
       notice={props.notice}
     >
-      <HomeFirstMomentCard card={firstCard} onPlan={() => router.push('/one-breath')} />
+      <HomeFirstMomentCard
+        card={firstCard}
+        onPlan={() => router.push('/one-breath')}
+        photo={firstCard && firstChoice ? worldPhoto(FIRST_MOMENT_SCENES[firstChoice]) : undefined}
+      />
       <HomeMomentCards
         before={beforeCard}
         back={returnCard}
         onOpen={(id) => router.push(`/moment/${id}`)}
         onSkipReturn={(id) => setSkippedReturns((prev) => new Set(prev).add(id))}
+        beforePhoto={cardPhoto(beforeCard?.momentId)}
+        backPhoto={cardPhoto(returnCard?.momentId)}
       />
       {props.children}
     </HomeCinematic>

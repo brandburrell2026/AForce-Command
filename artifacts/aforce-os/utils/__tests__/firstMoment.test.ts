@@ -102,7 +102,7 @@ describe('wiring', () => {
   });
 
   it('the card\'s one button opens One Breath and nothing else', () => {
-    expect(HOME).toContain("<HomeFirstMomentCard card={firstCard} onPlan={() => router.push('/one-breath')} />");
+    expect(HOME).toMatch(/<HomeFirstMomentCard\s+card=\{firstCard\}\s+onPlan=\{\(\) => router\.push\('\/one-breath'\)\}/);
     const card = strip(read('components/home/cinematic/HomeFirstMomentCard.tsx'));
     expect(card.match(/onPress=/g)).toHaveLength(1);
     expect(card).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(/);

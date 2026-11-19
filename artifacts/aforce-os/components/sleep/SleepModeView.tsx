@@ -21,7 +21,8 @@
  * colour-independent status.
  */
 import React from 'react';
-import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TextInput, StyleSheet, type ImageSourcePropType } from 'react-native';
+import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
 import { af, afType, afLayout, afAlpha, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon, type IconName } from '@/components/Icon';
 import { AFSectionLabel } from '@/components/ui/AFSectionLabel';
@@ -52,10 +53,14 @@ export interface SleepModeViewProps {
    * the container can scroll it into view for the H3 focus-checklist action.
    */
   onChecklistLayout?: (y: number) => void;
+  /** The World photograph behind the top of the screen. Optional. */
+  photo?: ImageSourcePropType;
 }
 
 /** The demo's card corner and mono furniture face. */
 const CARD_RADIUS = 20;
+/** The view sits below the status bar; the photograph runs up behind it. */
+const SLEEP_PHOTO_LIFT = 80;
 const MONO = 'IBMPlexMono_400Regular';
 
 const CHIP_COLOR: Record<HealthChip, string> = {
@@ -114,7 +119,7 @@ function CtaButton({
 export function SleepModeView({
   view, editingTarget, targetDraft,
   onBack, onEditTarget, onChangeTargetDraft, onSaveTarget,
-  onToggleChecklist, onPrimaryCta, onHealthCta, onChecklistLayout,
+  onToggleChecklist, onPrimaryCta, onHealthCta, onChecklistLayout, photo,
 }: SleepModeViewProps) {
   const { header, hero, target, recovery, health, checklist, lifecycle, guidance, mode, gatedNotice } = view;
   const gutter = useAFGutter();
@@ -128,6 +133,7 @@ export function SleepModeView({
     <View style={[styles.root, { paddingHorizontal: gutter }]} testID="sleep-mode-view">
       {/* 1 · Masthead — wordmark, breadcrumb, statement, quiet line. Every
           string is the existing header / hero copy (relocated, not rewritten). */}
+      <WorldPhotoHero source={photo} bleed={gutter} lift={SLEEP_PHOTO_LIFT} testID="sleep-photo" />
       <View style={styles.topRow} testID="sleep">
         <Pressable
           onPress={onBack}
@@ -142,6 +148,7 @@ export function SleepModeView({
         </Pressable>
         <Text style={styles.topEyebrow}>{header.title}</Text>
       </View>
+      <WorldPhotoGap source={photo} />
       <Text accessibilityRole="header" style={styles.title} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
         {header.tagline}
       </Text>

@@ -16,6 +16,12 @@ export default defineConfig({
         find: /^(.*\/)?data\/products$/,
         replacement: path.resolve(__dirname, 'artifacts/aforce-os/data/products.node-stub.ts'),
       },
+      // expo-linear-gradient ships untranspiled JSX for a native surface —
+      // unparseable in node. Tests get a stand-in that draws nothing.
+      {
+        find: /^expo-linear-gradient$/,
+        replacement: path.resolve(__dirname, 'artifacts/aforce-os/test-stubs/expoLinearGradient.ts'),
+      },
       // Mirror the aforce-os tsconfig path alias so tests can resolve
       // `@/services/...`, `@/types/...`, `@/data/...` the same way the app does.
       { find: /^@\//, replacement: path.resolve(__dirname, 'artifacts/aforce-os') + '/' },

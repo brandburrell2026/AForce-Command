@@ -75,6 +75,9 @@ import { edAccent, edInkFor, edPositive, edRhythm, edStock, edType } from '@/the
 
 import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from './EdReturn';
+import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhotoForMoment } from '@/components/world/worldPhotoSources';
+import { useAFGutter } from '@/hooks/useAFGutter';
 import { chapterNumber } from './editorialMomentsPresentation';
 
 /** Charter-locked ritual identity — the same keys the legacy screen uses. */
@@ -103,6 +106,9 @@ export function EditorialMomentDetailScreen({
   const router = useRouter();
   const ink = edInkFor('black');
   const settle = useEdSettle();
+  // The Moment's World photograph (internal builds); nothing elsewhere.
+  const photo = readOnly ? undefined : worldPhotoForMoment(moment);
+  const gutter = useAFGutter();
   const eta = startsIn(moment.startAtIso, nowIso);
   const prepared = Boolean(moment.preparedAtIso);
   const title = moment.masked ? t('moments.private_event') : moment.title;
@@ -190,8 +196,10 @@ export function EditorialMomentDetailScreen({
   return (
     <EdSurface stock="black" style={styles.fill}>
       <AFScreen scroll contentContainerStyle={styles.scrollContent}>
+        <WorldPhotoHero source={photo} bleed={gutter} testID="editorial-moment-photo" />
         <Animated.View style={settle}>
           <EdReturn now={new Date(nowIso)} fallback="/moments" />
+          <WorldPhotoGap source={photo} />
 
           <Text
             accessibilityRole="header"

@@ -5,7 +5,8 @@
  * Nothing is approved, changed or recorded from here.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { type ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
+import { WorldPhotoThumb } from '@/components/world/WorldPhoto';
 import { af } from '@/theme';
 import type { HomeMomentCardModel } from './homeMomentCardsLogic';
 
@@ -15,9 +16,12 @@ export interface HomeMomentCardsProps {
   onOpen: (momentId: string) => void;
   /** Hides the Return card for this Moment until the app is next opened. */
   onSkipReturn: (momentId: string) => void;
+  /** The small World photograph on each card. Optional. */
+  beforePhoto?: ImageSourcePropType;
+  backPhoto?: ImageSourcePropType;
 }
 
-export function HomeMomentCards({ before, back, onOpen, onSkipReturn }: HomeMomentCardsProps) {
+export function HomeMomentCards({ before, back, onOpen, onSkipReturn, beforePhoto, backPhoto }: HomeMomentCardsProps) {
   if (!before && !back) return null;
   return (
     <View style={styles.wrap}>
@@ -29,15 +33,25 @@ export function HomeMomentCards({ before, back, onOpen, onSkipReturn }: HomeMome
           style={({ pressed }) => [styles.card, pressed && styles.pressed]}
           testID="home-before-card"
         >
-          <Text style={styles.eyebrow}>{before.eyebrow.toUpperCase()}</Text>
-          <Text style={styles.title}>{before.title}</Text>
+          <View style={styles.head}>
+            <WorldPhotoThumb source={beforePhoto} testID="home-before-thumb" />
+            <View style={styles.headText}>
+              <Text style={styles.eyebrow}>{before.eyebrow.toUpperCase()}</Text>
+              <Text style={styles.title}>{before.title}</Text>
+            </View>
+          </View>
           <Text style={styles.note}>{before.note}</Text>
         </Pressable>
       ) : null}
       {back ? (
         <View style={styles.card} testID="home-return-card">
-          <Text style={styles.eyebrow}>{back.eyebrow.toUpperCase()}</Text>
-          <Text style={styles.title}>{back.title}</Text>
+          <View style={styles.head}>
+            <WorldPhotoThumb source={backPhoto} testID="home-return-thumb" />
+            <View style={styles.headText}>
+              <Text style={styles.eyebrow}>{back.eyebrow.toUpperCase()}</Text>
+              <Text style={styles.title}>{back.title}</Text>
+            </View>
+          </View>
           <Text style={styles.note}>{back.note}</Text>
           <View style={styles.actions}>
             <Pressable
@@ -71,6 +85,8 @@ const styles = StyleSheet.create({
   wrap: { gap: 14, marginTop: 14 },
   card: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border, borderRadius: 20, padding: 18, gap: 4 },
   pressed: { opacity: 0.72 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headText: { flex: 1 },
   eyebrow: { fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: af.textSecondary },
   title: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: af.textPrimary, marginTop: 3 },
   note: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary },

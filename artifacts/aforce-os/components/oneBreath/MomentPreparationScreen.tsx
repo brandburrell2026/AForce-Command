@@ -25,6 +25,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Moment, MomentPreparation } from "@/types/moments";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
+import { WorldPhotoGap, WorldPhotoHero } from "@/components/world/WorldPhoto";
+import { worldPhotoForMoment } from "@/components/world/worldPhotoSources";
 import { useAppStore } from "@/store/useAppStore";
 import {
   commitReviewedMoment,
@@ -1253,6 +1255,8 @@ export function MomentPreparationScreen({
     </View>
   );
   const steps = current?.preparation?.steps ?? [];
+  // Replay's World photograph: the Moment's own scene, internal builds only.
+  const replayPhoto = current ? worldPhotoForMoment(current) : undefined;
   // From the member's own words only; a goal never sets the workout type.
   const focus = workoutFocus(words || current?.title || "");
   const safetyView = screen === "change" && safety !== null;
@@ -2226,6 +2230,8 @@ export function MomentPreparationScreen({
         ) : null}
         {screen === "next" ? (
           <>
+            <WorldPhotoHero source={replayPhoto} bleed={28} lift={120} height={300} testID="replay-photo" />
+            <WorldPhotoGap source={replayPhoto} height={70} />
             <Text style={[s.eyebrow, { color: accent }]}>NEXT</Text>
             <Text {...headingProps} style={[s.title, accessibleHeading]}>
               {current?.preparation?.cancelledAtIso

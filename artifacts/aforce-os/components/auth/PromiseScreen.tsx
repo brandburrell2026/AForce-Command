@@ -6,8 +6,8 @@
  * buttons open the existing Clerk sign-up and sign-in screens unchanged.
  *
  * Differences from the prototype, on purpose:
- *   - No photograph behind it. Which photographs internal builds may use is
- *     an open founder decision, so the screen sits on the app's own canvas.
+ *   - The photograph behind it shows in internal builds only (see
+ *     utils/worldPhoto.ts); elsewhere the screen sits on the app's own canvas.
  *   - No word-by-word entrance. The copy is simply there.
  */
 import React from 'react';
@@ -17,9 +17,14 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/GradientBackground';
 import { af } from '@/theme';
+import { WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { WELCOME_SCENE } from '@/utils/worldPhoto';
 
 /** Same mark as the cold-launch sequence (spec v1.8.2 Part 8.6, decision C5). */
 export const PROMISE_WORDMARK = 'AFORCE OS™';
+/** The photograph fills the upper screen and fades out above the promise. */
+const PROMISE_PHOTO_HEIGHT = 560;
 
 export function PromiseScreen() {
   const { t } = useTranslation();
@@ -28,6 +33,7 @@ export function PromiseScreen() {
 
   return (
     <GradientBackground>
+      <WorldPhotoHero source={worldPhoto(WELCOME_SCENE)} height={PROMISE_PHOTO_HEIGHT} testID="promise-photo" />
       <View
         style={[styles.container, { paddingTop: insets.top + 18, paddingBottom: insets.bottom + 18 }]}
         testID="promise-screen"

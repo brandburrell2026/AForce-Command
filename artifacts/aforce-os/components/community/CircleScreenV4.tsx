@@ -11,6 +11,9 @@ import React from 'react';
 import { Pressable, Text, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AFScreen } from '@/components/ui';
+import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { CIRCLES_SCENE } from '@/utils/worldPhoto';
 import { AFMark } from '@/components/ui/AFMark';
 import { Icon } from '@/components/Icon';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
@@ -29,6 +32,7 @@ export function CircleScreenV4() {
   const moments = useMomentsData();
   const [inviteOpen, setInviteOpen] = React.useState(false);
   const [privacyOpen, setPrivacyOpen] = React.useState(false);
+  const circlePhoto = worldPhoto(CIRCLES_SCENE);
   const statusLine = homeStatusLine(
     moments.hydrated ? moments.surfaced : [],
     moments.hydrated ? moments.next ?? null : null,
@@ -40,6 +44,7 @@ export function CircleScreenV4() {
       contentContainerStyle={{ paddingBottom: tabClearance, paddingHorizontal: CIRCLES_GUTTER }}
       testID="circle-v4-screen"
     >
+      <WorldPhotoHero source={circlePhoto} bleed={CIRCLES_GUTTER} testID="circle-photo" />
       <View style={styles.topRow}>
         <View style={styles.markRow}>
           <AFMark size={15} decorative />
@@ -47,6 +52,7 @@ export function CircleScreenV4() {
         </View>
         <ProfileEntryButton testID="circle-profile-entry" />
       </View>
+      <WorldPhotoGap source={circlePhoto} height={110} />
 
       <View style={styles.hero}>
         <Text accessibilityRole="header" style={styles.title} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
