@@ -38,6 +38,12 @@ import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'rea
 
 import { AFMasthead, AFScreen } from '@/components/ui';
 import { ProfileEntryButton } from '@/components/profile/ProfileEntryButton';
+import { MomentsCinematic } from '@/components/moments/cinematic/MomentsCinematic';
+import { momentsModel, MOMENTS_EMPTY_HERO } from '@/components/moments/cinematic/momentsCinematicLogic';
+import { homeStatusLine } from '@/components/home/cinematic/homeCinematicLogic';
+
+/** Side gutter of the cinematic Moments tab, as in the reference (20pt). */
+export const MOMENTS_GUTTER = 20;
 import { MomentsOverviewSkeleton } from '@/components/moments/MomentsSkeleton';
 import { WhyThisSheet } from '@/components/moments/WhyThisSheet';
 import { useMomentsData } from '@/components/moments/useMomentsData';
@@ -100,6 +106,45 @@ export function EditorialMomentsScreen({
   const priorityMomentId = momentsFirst
     ? calendarDays.flatMap((day) => day.moments).find((moment) => !moment.preparedAtIso && !preparationClosed(moment.preparation) && Date.parse(moment.startAtIso) > Date.parse(data.nowIso))?.id
     : undefined;
+
+  // Internal Moments tab: laid out as the approved prototype's Moments tab.
+  // Same store, same rows, same destinations; only the layout changes.
+  if (tabRoot && momentsFirst) {
+    const model = momentsModel(data.hydrated ? data.surfaced : [], now, t('moments.private_event'));
+    return (
+      <EdSurface stock="black" style={styles.fill}>
+        <AFScreen
+          scroll
+          padded={false}
+          contentContainerStyle={{ paddingBottom: tabClearance, paddingHorizontal: MOMENTS_GUTTER }}
+        >
+          {!data.hydrated ? (
+            <MomentsOverviewSkeleton />
+          ) : (
+            <MomentsCinematic
+              profileEntry={<ProfileEntryButton testID="moments-cinematic-profile-entry" />}
+              hero={model.hero ?? MOMENTS_EMPTY_HERO}
+              onPressHero={data.next ? () => router.push(`/moment/${data.next!.id}`) : undefined}
+              statusLine={homeStatusLine(data.surfaced, data.next ?? null)}
+              planLabel="Plan a Moment · say it"
+              onPlan={() => router.push('/one-breath')}
+              upcoming={model.upcoming}
+              done={model.done}
+              onPressRow={(id) => router.push(`/moment/${id}`)}
+              links={[
+                ...(calendarOn
+                  ? [{ title: 'Calendar', sub: 'All Moments', onPress: () => router.push('/calendar-settings'), testID: 'moments-link-calendar' }]
+                  : []),
+                { title: 'Protocols', sub: 'Recovery · Sleep · Travel', onPress: () => router.push('/protocol'), testID: 'moments-link-protocols' },
+              ]}
+            >
+              {!fixtureMoments ? <TravelMomentsEntry /> : null}
+            </MomentsCinematic>
+          )}
+        </AFScreen>
+      </EdSurface>
+    );
+  }
 
   return (
     <EdSurface stock="black" style={styles.fill}>
