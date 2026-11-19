@@ -166,10 +166,6 @@ export function MomentPreparationScreen({
   const [words, setWords] = React.useState("");
   const wordsInput = React.useRef<TextInput>(null);
   const [reservationOpen, setReservationOpen] = React.useState(false);
-  // Capture has two views: the orb, and typing. Typing is also the view when
-  // voice is not available, and once words are on the screen.
-  const [typing, setTyping] = React.useState(false);
-  const focusWords = React.useRef(false);
   const [reservationText, setReservationText] = React.useState("");
   const [reservationReview, setReservationReview] = React.useState(false);
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
@@ -261,14 +257,6 @@ export function MomentPreparationScreen({
     ? { id: current?.id ?? "draft", startAtIso: draftTiming.startAtIso }
     : current;
   const day = isDayMoment(anchor ?? { startAtIso: new Date().toISOString() });
-  const typingView =
-    typing || !voice.available || (words.trim().length > 0 && !voice.busy);
-  React.useEffect(() => {
-    if (typingView && focusWords.current) {
-      focusWords.current = false;
-      wordsInput.current?.focus();
-    }
-  }, [typingView]);
   // The orange day accent is retired (Master Brief §2): one accent, day or night.
   const accent = T.blueHi;
   const next = nextPreparationContext(
@@ -1375,15 +1363,17 @@ export function MomentPreparationScreen({
           { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 30 },
         ]}
       >
-        <View style={s.header}>
-          <Text style={[s.eyebrow, social && { color: accent }]}>
-            {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
-          </Text>
-          {textButton("Close", () => {
-            voice.cancel();
-            router.back();
-          })}
-        </View>
+        {screen === "capture" && !reservationOpen ? null : (
+          <View style={s.header}>
+            <Text style={[s.eyebrow, social && { color: accent }]}>
+              {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
+            </Text>
+            {textButton("Close", () => {
+              voice.cancel();
+              router.back();
+            })}
+          </View>
+        )}
         {screen === "noticed" && current ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>
@@ -1495,31 +1485,23 @@ export function MomentPreparationScreen({
             {!reservationOpen ? (
               <OneBreathCapture
                 social={social}
-                question={`What matters ${day ? "today" : "tonight"}?`}
-                compactHeading={Boolean(accessibleHeading)}
                 headingProps={headingProps}
                 alert={
                   error === CANDIDATE_ENDED || error === MOMENT_REMOVED
                     ? error
                     : null
                 }
-                typingView={typingView}
                 voiceAvailable={voice.available}
                 voiceListening={voice.listening}
                 voiceBusy={voice.busy}
                 voiceError={voice.error}
-                onOrb={() => {
+                onTalk={() => {
                   if (voice.busy) voice.stop();
                   else void voice.start();
                 }}
-                onTypeInstead={() => {
+                onClose={() => {
                   voice.cancel();
-                  focusWords.current = true;
-                  setTyping(true);
-                }}
-                onBack={() => {
-                  setWords("");
-                  setTyping(false);
+                  router.back();
                 }}
                 words={words}
                 onChangeWords={(value) => {
@@ -1528,25 +1510,14 @@ export function MomentPreparationScreen({
                 }}
                 onFocusWords={voice.cancel}
                 inputRef={wordsInput}
-                continueDisabled={!words.trim() || voice.busy || saving}
-                onContinue={reviewWords}
-                onReservation={() => {
-                  voice.cancel();
-                  setReservationOpen(true);
-                }}
+                sendDisabled={!words.trim() || voice.busy || saving}
+                onSend={reviewWords}
                 press={(action) => () => {
                   hapticSelection();
                   action();
                 }}
               />
-            ) : (
-              <Text
-                {...headingProps}
-                style={[s.title, s.captureTitle, accessibleHeading]}
-              >
-                What matters {day ? "today" : "tonight"}?
-              </Text>
-            )}
+            ) : null}
             {reservationOpen ? (
               <>
                 <Text style={s.muted}>

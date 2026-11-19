@@ -80,29 +80,34 @@ Reference, lower half: ![](hydration/reference-hydration-lower.jpg)
 
 **Why no History bars:** the tab has today's total and a rolling 24 hours of entries; it does not hold a per-day ounce history. Drawing bars needs that data loaded, which is a data change, not styling.
 
-## 3c. One Breath · Capture
+## 3c. One Breath · opening screen
 
-| Reference (short approved version) | Rebuilt | Rebuilt, typing |
-|---|---|---|
-| ![](one-breath/reference-capture.jpg) | ![](one-breath/rebuilt-capture.jpg) | ![](one-breath/rebuilt-capture-typing.jpg) |
+Founder instruction, 2026-11-18: One Breath must look 100% like the demo.
 
-**Which reference.** The prototype has two One Breath entry screens. Its default is the *conversational* one (![](one-breath/reference-conversational-one-breath.jpg) — orb with tick ring, "Tap to talk", suggestion chips, a chat field), which needs the AI model that decision C3 keeps off for beta. The other is the **short approved version** that Appendix G names ("What matters tonight?" · "Hold to speak. Release when done." · "Type instead."). The rebuild follows the short version. Decision O1 below.
+| Demo | Rebuilt |
+|---|---|
+| ![](one-breath/reference-one-breath.jpg) | ![](one-breath/rebuilt-capture.jpg) |
 
-| Element | Reference | Rebuilt | Match |
+(The demo capture has a "Demo stopped" banner over its top row and some typed text in the bar; both come from the demo's tour.)
+
+| Element | Demo | Rebuilt | Match |
 |---|---|---|---|
-| "ONE BREATH" eyebrow left, "Close" right | Yes | Yes (blue eyebrow in a Social Moment) | ✔ |
-| Question, centred | "What matters tonight?" / "today?" (the image shows the "What's coming up?" variant) | "What matters tonight?" / "today?" | ✔ |
-| 170pt orb, centred in the space, soft sphere, glow | Yes | Yes. The gradient was ending early and left a hard dark edge; corrected. Glow is on the device only, not in the browser render | ✔ |
-| Line under the orb | "Hold to speak. Release when done." | "**Tap to speak. Tap again when done.**" | ◐ gesture O2 |
-| "Type instead" as quiet text | Yes | Yes | ✔ |
-| Typing is a separate step: field "A few words is enough", "Continue" | Yes | Yes | ✔ |
-| Suggestion chips ("Big meeting", "Early start", "Finish strong") | Yes | Not added | ◐ |
-| Primary button | Warm white | Warm white; blue only in a Social Moment (was blue everywhere) | ✔ |
-| Buttons are pills | Yes | Yes, across the whole flow | ✔ |
-| "Use reservation details" paste form | Removed by the spec | **Still reachable** as quiet text on the typing step | ◐ decision O3 |
-| Old header (mark + "AFORCE OS") and long prompt "What would make tonight go well?" | Not present | Removed | ✔ |
+| Mark + status word ("Standby") top left | Yes | Yes; reads "Listening" while the mic is on | ✔ |
+| Round Close button top right | Yes | Yes | ✔ |
+| Round "Spoken replies" button beside it | Yes | **Not shown**: spoken replies are set in Coach Mode, not here | ✘ feature |
+| "Health · Phantom · Calendar · Synced 2m" row | Yes (simulated sample data) | **Not shown**: the app has no real source list on this screen | ✘ data |
+| Orb inside a ring of ticks, "Tap to talk" under it | Yes | Yes | ✔ |
+| One line of prompt | "Log a drink, check your HydroState, plan a Moment. Just say it." | "**Plan a Moment. Just say it.**" One Breath cannot log a drink or report HydroState yet, so it does not say so | ◐ truthful |
+| "Operations · none yet" card | Yes | **Not shown**: it belongs to the conversational engine, which is off for beta (C3) | ✘ feature |
+| Example chips in one scrolling row | Six, including "Log 16 oz of water", "How am I doing?", "Scan a drink" | Three, all things One Breath can plan | ◐ truthful |
+| Bar at the foot: "Talk or type to AFORCE", mic, warm-white send | Yes | Yes | ✔ |
+| Long question, separate typing step, "Type instead", "Use reservation details" | Not in the demo | **Removed** | ✔ |
 
-**Not changed:** what Continue does (it goes to review, never to a save), the voice session, the seven-second confirmation window, hold-to-seal, safety screens. Mirror, Plan, Seal, Lock In, Quiet, Return and Replay are not rebuilt yet.
+**What Send does:** the same as before. It takes the words to review (Mirror). No AI model is used and nothing is saved until the member seals.
+
+**Removed entry:** "Use reservation details" (paste a confirmation) is no longer reachable. The spec asks for its removal and it is not in the demo. Its review code is still in the screen and three of its tests are skipped; they should be deleted together, or the entry restored, on a founder's word.
+
+**Not rebuilt yet:** Mirror, Plan, Seal, Lock In, Quiet, Return, Replay. Buttons in those steps are already warm-white pills.
 
 ## 4. Parity checklist — remaining screens
 
@@ -117,7 +122,7 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | Hydration · History bars | ✔ | — | ✔ | — (needs per-day data) | — |
 | Hydration · log sheet | — | — | — | — | — |
 | Hydration · log result | — | — | — | — | — |
-| One Breath · Capture (orb, typing) | ✔ | ✔ harness | ✔ | PR (Capture) | — |
+| One Breath · opening screen | ✔ | ✔ harness | ✔ | PR #1245 | — |
 | One Breath · Mirror / Plan / Seal / Lock In / Quiet / Return / Replay | — | — | — | — | — |
 | Moments · Now / Upcoming / Done | — | — | — | — | — |
 | Circles · empty / with people / invite / pending / privacy | — | — | — | — | — |
@@ -145,8 +150,8 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | H2 | **"Log a drink" vs "Log water".** The spec (register #40) wants "Log a drink" with a drink choice. Home's sheet logs water only. | Keep "Log water" until the drink-choice sheet is wired, then rename. Labelling a water-only sheet "Log a drink" would mislead |
 | H3 | **Gutter.** Prototype 20pt; an earlier founder decision (D6) set 32pt. | Adopt 20pt screen by screen as each is rebuilt |
 | H4 | **May internal TestFlight builds show the prototype's AI sample photos?** The spec clears them for TestFlight and investor demos. | Founders' call (D8). The Home hero is built to take a photo the moment this is answered |
-| O1 | **Which One Breath entry.** The prototype's default is the conversational screen; it needs the model C3 keeps off. | Build the short approved version now; revisit when C3 is decided |
+| O1 | **One Breath's opening screen** now follows the demo's layout, but Send still goes to the fixed-rules review, not a conversation (C3). | Keep until C3 is decided |
 | O2 | **Hold to speak.** The prototype holds; the app taps. Hold needs the safeguards in the orb gesture audit (accidental recording, the Seal boundary). | Keep tap until those are built and tested on devices |
-| O3 | **"Use reservation details".** The spec says remove the paste form; it is a working way in today. | Founders to confirm removal; it is demoted to quiet text meanwhile |
+| O3 | **"Use reservation details"** is removed from the screen (spec + demo). Its code and three skipped tests remain. | Confirm, then delete the code and tests |
 | Y1 | **Above the target.** The app now shows "262 oz" and "273% of starting target" with a full ring and no caution. No overdrinking rule exists (stop-ship RA-N9). | Keep the plain facts; wording of any caution is Julius's |
 | H5 | **Confidence line** beside the reading is not in the prototype. | Keep: stop-ship SS-22 depends on it |

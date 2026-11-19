@@ -1,6 +1,6 @@
 import React from "react";
 import { AccessibilityInfo, Animated, StyleSheet, View } from "react-native";
-import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
+import Svg, { Defs, RadialGradient, Stop, Circle, Line } from "react-native-svg";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { PreparationMark } from "./PreparationMark";
 
@@ -9,12 +9,15 @@ export function PreparationOrb({
   social,
   moon = false,
   size = 150,
+  dial,
 }: {
   day: boolean;
   social: boolean;
   moon?: boolean;
   /** Diameter in points. The capture screen uses 170 (prototype). */
   size?: number;
+  /** Outer diameter of a still ring of tick marks drawn around the orb (prototype One Breath). */
+  dial?: number;
 }) {
   const scale = React.useRef(new Animated.Value(1)).current;
   const [reduced, setReduced] = React.useState(true);
@@ -59,7 +62,7 @@ export function PreparationOrb({
   // Proof Blue. The orange orb and the daytime sun orb are retired, so `day`
   // no longer changes the colour; it only decides whether the moon is drawn.
   const colors = social ? T.social : T.oneBreath;
-  return (
+  const orb = (
     <Animated.View
       accessible={false}
       style={[
@@ -86,6 +89,34 @@ export function PreparationOrb({
       </Svg>
       {!moon ? <PreparationMark size={Math.round(size * 0.227)} color={T.bone} /> : null}
     </Animated.View>
+  );
+  if (!dial) return orb;
+  const c = dial / 2;
+  const ticks = 72;
+  return (
+    <View style={{ width: dial, height: dial, alignItems: "center", justifyContent: "center" }}>
+      <Svg width={dial} height={dial} style={StyleSheet.absoluteFill}>
+        {Array.from({ length: ticks }).map((_, i) => {
+          const a = (i / ticks) * 2 * Math.PI;
+          const major = i % 6 === 0;
+          const outer = c - 1;
+          const inner = outer - (major ? 9 : 5);
+          return (
+            <Line
+              key={i}
+              x1={c + Math.cos(a) * inner}
+              y1={c + Math.sin(a) * inner}
+              x2={c + Math.cos(a) * outer}
+              y2={c + Math.sin(a) * outer}
+              stroke={T.bone}
+              strokeOpacity={major ? 0.6 : 0.22}
+              strokeWidth={major ? 1.5 : 1}
+            />
+          );
+        })}
+      </Svg>
+      {orb}
+    </View>
   );
 }
 const s = StyleSheet.create({
