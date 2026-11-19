@@ -16,7 +16,7 @@ import {
   homeRing,
   homeStatusLine,
   isMomentSealed,
-} from '../homeCinematicLogic';
+} from '../cinematic/homeCinematicLogic';
 import type { Moment } from '@/types/moments';
 
 const at = (y: number, mo: number, d: number, h = 0, mi = 0) => new Date(y, mo - 1, d, h, mi);
@@ -121,8 +121,8 @@ describe('HydroState ring', () => {
 });
 
 describe('the Home layout is presentation only', () => {
-  const view = readFileSync(join(__dirname, '..', 'HomeCinematic.tsx'), 'utf8');
-  const container = readFileSync(join(__dirname, '..', 'HomeCinematicContainer.tsx'), 'utf8');
+  const view = readFileSync(join(__dirname, '..', 'cinematic', 'HomeCinematic.tsx'), 'utf8');
+  const container = readFileSync(join(__dirname, '..', 'cinematic', 'HomeCinematicContainer.tsx'), 'utf8');
   it('reads no store and logs nothing itself', () => {
     expect(view).not.toMatch(/useAppStore|useUserSlice|logIntake|calculateScore/);
     expect(container).not.toMatch(/logIntake|calculateScore/);
@@ -138,7 +138,7 @@ describe('the Home layout is presentation only', () => {
 });
 
 describe('the internal Home ends with the next-move panel, as the demo does', () => {
-  const screen = readFileSync(join(__dirname, '..', '..', '..', 'editorial', 'home', 'EditorialHomeScreen.tsx'), 'utf8');
+  const screen = readFileSync(join(__dirname, '..', '..', 'editorial', 'home', 'EditorialHomeScreen.tsx'), 'utf8');
   const cinematic = screen.slice(screen.indexOf('<HomeCinematicContainer'), screen.indexOf('</HomeCinematicContainer>'));
   it('draws no Travel card, Concierge entry or quiet list under it', () => {
     expect(cinematic).not.toContain('<TravelHomeCard');
