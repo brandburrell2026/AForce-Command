@@ -154,8 +154,8 @@ describe('ProfileScreenV2 — every founder section has exactly one headed home'
     const identity = balancedDeclaration('identityBlock');
     expect(identity).toContain("t('profile.v2.identity_label')");
     expect(identity).toContain('{profileCard}');
-    // ...and now sits after the Account sections, never above the pills.
-    expect(CODE).toMatch(/profileTab === 'account'\s*\? \[\.\.\.tabSections\.account, identityBlock, gentleEntry, skinIAEntry\]/);
+    // ...and now opens from Account → Body details, never above the pills.
+    expect(CODE).toContain('const accountBlocks: Record<string, React.ReactNode> = { identityBlock, gentleEntry, skinIAEntry };');
     expect(CODE).not.toMatch(/\{identityBlock\}[\s\S]{0,100}\{tabBar\}/);
     expect(CODE).toMatch(/if \(devicesActive\)[\s\S]*?\{tabBar\}[\s\S]*?activeSections\.map/);
     for (const blocks of Object.values(tabSectionsMap())) expect(blocks).not.toContain('identityBlock');

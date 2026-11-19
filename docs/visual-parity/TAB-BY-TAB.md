@@ -103,9 +103,9 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | No rank, streak or aura chips | Removed | ✔ |
 | Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | The app's existing Performance cards | ✘ not rebuilt; gallery and learning are not built |
 | Devices: one row per source with On / Off / Check | The app's existing device cards | ✘ not rebuilt |
-| Account: Plan, Settings, Shop; Privacy; Download data; Delete account | The app's existing Account cards, followed by body details, Gentle hydration and (internal) Skin | ✘ not rebuilt |
+| Account: Plan, Settings, Shop; Privacy; Download data; Delete account | Rebuilt as the demo's list: Plan · Settings; Privacy (What your Circle can see · Body details · Your data); Help. Each row opens a view holding the same controls as before | ◐ no "Shop AFORCE"; "Your data" instead of "Download or delete your data" — the app has no in-app download or account deletion; no capture yet |
 
-Nothing was made unreachable: everything that sat above the pills (body details, Gentle hydration, the internal Skin entry) now follows the Account sections.
+Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian entries when on, invites) · Settings (notifications and voice, language, coach, units, sign out, Gentle hydration, internal Skin) · Body details · Your data (analytics consent, memory controls) · Help (terms, privacy, health disclaimer, support, build line). A test checks every block has exactly one view.
 
 ## Sign in and opening
 
