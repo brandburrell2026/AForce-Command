@@ -123,8 +123,8 @@ describe('WaterAmountModal — opening the logger writes NOTHING', () => {
     const onConfirm = vi.fn();
     render({ onConfirm });
     // The surface is up…
-    expect(text()).toContain('LOG WATER');
-    expect(text()).toContain('ounces');
+    expect(text()).toContain('Log water');
+    expect(text()).toContain('fl oz');
     // …and nothing has been logged by the act of opening it.
     expect(onConfirm).not.toHaveBeenCalled();
   });
@@ -235,5 +235,41 @@ describe('WaterAmountModal — repeated submit', () => {
     press(byLabel('Log 20 ounces of water'));
     expect(onConfirm).toHaveBeenCalledTimes(3);
     expect(onConfirm.mock.calls.every(([oz]) => oz === 20)).toBe(true);
+  });
+});
+
+describe('WaterAmountModal — the approved prototype\'s log sheet', () => {
+  const byTestId = (id: string) => {
+    const el = document.body.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+    if (!el) throw new Error(`no element with testID "${id}" — rendered: ${text()}`);
+    return el;
+  };
+
+  it('shows the amount, its millilitres, and a plain "Log N oz" button', () => {
+    render({});
+    expect(byTestId('water-amount').textContent).toBe('16');
+    expect(text()).toContain('fl oz · 473 mL');
+    expect(byTestId('water-confirm').textContent).toBe('Log 16 oz');
+    expect(text()).toContain('Close');
+  });
+
+  it('the millilitres follow the amount', () => {
+    render({});
+    press(byLabel('32 ounces'));
+    expect(text()).toContain('fl oz · 946 mL');
+    expect(byTestId('water-confirm').textContent).toBe('Log 32 oz');
+  });
+
+  it('offers water only — the other drinks are not presented as loggable here', () => {
+    render({});
+    for (const drink of ['AFORCE', 'Coffee or tea', 'Other']) {
+      expect(text()).not.toContain(drink);
+    }
+  });
+
+  it('draws no status colour: the accent a caller passes is not used', () => {
+    render({});
+    expect(document.body.innerHTML.toLowerCase()).not.toContain('rgb(30, 91, 255)');
+    expect(document.body.innerHTML.toLowerCase()).not.toContain(ACCENT.toLowerCase());
   });
 });
