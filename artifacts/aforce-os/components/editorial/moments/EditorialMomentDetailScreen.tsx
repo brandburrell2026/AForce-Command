@@ -76,7 +76,7 @@ import { edAccent, edInkFor, edPositive, edRhythm, edStock, edType } from '@/the
 import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from './EdReturn';
 import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
-import { worldPhotoForMoment } from '@/components/world/worldPhotoSources';
+import { worldDetailPhotoForMoment } from '@/components/world/worldPhotoSources';
 import { useAFGutter } from '@/hooks/useAFGutter';
 import { chapterNumber } from './editorialMomentsPresentation';
 
@@ -107,7 +107,7 @@ export function EditorialMomentDetailScreen({
   const ink = edInkFor('black');
   const settle = useEdSettle();
   // The Moment's World photograph (internal builds); nothing elsewhere.
-  const photo = readOnly ? undefined : worldPhotoForMoment(moment);
+  const photo = readOnly ? undefined : worldDetailPhotoForMoment(moment);
   const gutter = useAFGutter();
   const eta = startsIn(moment.startAtIso, nowIso);
   const prepared = Boolean(moment.preparedAtIso);

@@ -142,20 +142,24 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 
 ## Photographs (internal builds only)
 
-Thirteen World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935): gym, dinner, run, pickleball, presentation, travel, bedtime, celebration, flag football, set table, basketball court, desk, recovery stretch. They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
+39 World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935, 9.5 MB in all). They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
 
-| Where | App | |
+**No two places share a photograph** (Brandon, 2026-11-19); a test enforces it. Three separate sets: 13 Moment scenes for Home, a second photograph of each for the Moment's own screen, and 13 fixed photographs, one per screen.
+
+| Where | Photograph | |
 |---|---|---|
-| Home hero | The next Moment's photograph, chosen from its own words, else its type; a private Moment is never matched on its title | ◐ no slow drift; one photo per scene, not per weather or time of day. Not checked on a phone |
-| Moments hero | Same photograph, edge to edge behind the top row and hero | ◐ same. Not checked on a phone |
-| Protocols tiles | Recovery, Sleep and Travel each sit on their photograph | ◐ Not checked on a phone |
-| Moment screen | The Moment's photograph behind the back row and title | ◐ Not checked on a phone |
-| Replay (after "Made it back") | The Moment's photograph, in the demo's shorter hero | ◐ only on that step, not on Lock In, Quiet or Return. Not checked on a phone |
-| Recovery and Sleep | The recovery-stretch and bedroom photographs behind the title | ◐ Not checked on a phone |
-| Circles | The set-table photograph behind "Your people. Your Moments." | ◐ Not checked on a phone |
-| Home cards (Before, Return, Your first Moment) | The demo's 44pt square photograph beside the title | ◐ Not checked on a phone |
-| Sign-in promise screen | The basketball-court photograph behind the promise | ◐ one photograph, not the demo's rotating three. Not checked on a phone |
-| One Breath, Hydration, Profile, Travel, Calendar | No photograph | ✘ Travel waits on its own licensed city photographs |
+| Home hero | The next Moment's scene, from its own words, else its type; a private Moment is never matched on its title | ◐ no slow drift; no weather or time-of-day versions. Not checked on a phone |
+| Moments tab | Its own: a city crossing at dusk | ◐ differs from the demo, which shows the next Moment's photo here. Not checked on a phone |
+| Moment screen | The second photograph of that Moment's scene | ◐ Not checked on a phone |
+| Home cards (Before, Return, Your first Moment) | The 44pt square is the photograph of the Moment screen the card opens | ◐ the one deliberate repeat: a card previews the screen behind it. Not checked on a phone |
+| Replay | Its own: keys in a bowl by the front door | ◐ Not checked on a phone |
+| Protocols tiles | Their own three: foam roller, bedside clock, packed case | ◐ Not checked on a phone |
+| Recovery, Sleep | Their own: morning stretch on the bed, sleeper in a dark room | ◐ Not checked on a phone |
+| Circles | Its own: four friends walking at night | ◐ Not checked on a phone |
+| Sign-in promise screen | Its own: figure at the top of stadium steps at dawn | ◐ Not checked on a phone |
+| One Breath (first screen), Profile | Their own, under a darker wash | ◐ Not checked on a phone |
+| Hydration, Calendar | Their own, under a darker wash | ◐ **not in the demo** — the demo shows no photograph on these two; added at Brandon's request. Not checked on a phone |
+| Travel | None | ✘ waits on its own licensed city photographs |
 
 ## Decisions that block an exact match
 

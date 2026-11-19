@@ -73,18 +73,21 @@ describe('every screen asks through the same check', () => {
     'components/auth/PromiseScreen.tsx',
     'components/home/cinematic/HomeCinematicContainer.tsx',
     'screens/SleepModeScreen.tsx',
+    'components/hydration/HydrationScreenV2.tsx',
+    'components/profile/ProfileHeader.tsx',
+    'components/moments/cinematic/MomentsCalendarScreen.tsx',
   ];
   it('no screen reads the image table directly', () => {
     for (const f of SCREENS) {
       const src = readFileSync(join(AOS, f), 'utf8');
-      expect(src, f).toMatch(/worldPhoto(ForMoment)?\(/);
+      expect(src, f).toMatch(/world(Detail)?Photo(ForMoment)?\(/);
       expect(src, f).not.toContain('WORLD_PHOTO_SOURCES');
     }
   });
 
   it('a gallery or demo copy of the Moment screen takes no photograph', () => {
     const src = readFileSync(join(AOS, 'components/editorial/moments/EditorialMomentDetailScreen.tsx'), 'utf8');
-    expect(src).toContain('readOnly ? undefined : worldPhotoForMoment(moment)');
+    expect(src).toContain('readOnly ? undefined : worldDetailPhotoForMoment(moment)');
   });
 
   it('the fixed pairings name real scenes', () => {

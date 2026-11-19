@@ -8,6 +8,9 @@
  * otherwise their initials — never a stand-in face.
  */
 import React from 'react';
+import { WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { PROFILE_SCENE } from '@/utils/worldPhoto';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
@@ -45,6 +48,7 @@ export function ProfileHeader(p: ProfileHeaderProps) {
   const showPhoto = typeof p.photoUri === 'string' && p.photoUri.length > 0 && !failed;
   return (
     <View testID="profile-header">
+      <WorldPhotoHero source={worldPhoto(PROFILE_SCENE)} bleed={40} lift={80} height={320} dim testID="profile-photo" />
       <View style={styles.topRow}>
         <Pressable
           onPress={p.onBack}

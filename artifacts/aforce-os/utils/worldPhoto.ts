@@ -14,11 +14,35 @@
 import { currentUnlockContext, type UnlockContext } from '@/featureFlags/flags';
 import type { MomentType } from '@/types/moments';
 
-export const WORLD_SCENES = [
+/**
+ * No two places show the same photograph. There are three separate sets:
+ *
+ *   MOMENT_SCENES        behind a Moment on Home (chosen from its words/type)
+ *   `${scene}_b`         a second photograph of each, for the Moment's own
+ *                        screen and the small square on a Home card that
+ *                        opens it
+ *   SCREEN_SCENES        one photograph for each screen with a fixed picture
+ */
+export const MOMENT_SCENES = [
   'gym', 'dinner', 'run', 'pickleball', 'presentation', 'travel', 'bedtime',
   'celebration', 'football_night', 'mb_social', 'mb_sport', 'mb_work', 'yoga_night',
 ] as const;
-export type WorldScene = (typeof WORLD_SCENES)[number];
+export type MomentScene = (typeof MOMENT_SCENES)[number];
+export type MomentDetailScene = `${MomentScene}_b`;
+
+export const SCREEN_SCENES = [
+  'moments_tab', 'replay', 'tile_recovery', 'tile_sleep', 'tile_travel',
+  'screen_recovery', 'screen_sleep', 'circles', 'welcome',
+  'one_breath', 'hydration', 'profile', 'calendar',
+] as const;
+export type ScreenScene = (typeof SCREEN_SCENES)[number];
+
+export const WORLD_SCENES = [
+  ...MOMENT_SCENES,
+  ...MOMENT_SCENES.map((s) => `${s}_b` as MomentDetailScene),
+  ...SCREEN_SCENES,
+] as const;
+export type WorldScene = MomentScene | MomentDetailScene | ScreenScene;
 
 /** Development and internal builds only. */
 export function worldPhotosAvailable(ctx: UnlockContext = currentUnlockContext()): boolean {
@@ -26,7 +50,7 @@ export function worldPhotosAvailable(ctx: UnlockContext = currentUnlockContext()
 }
 
 /** First match wins; whole words only, so "runway" is not a run. */
-const WORD_SCENES: readonly (readonly [RegExp, WorldScene])[] = [
+const WORD_SCENES: readonly (readonly [RegExp, MomentScene])[] = [
   [/\b(pickleball)\b/i, 'pickleball'],
   [/\b(football|kickoff)\b/i, 'football_night'],
   [/\b(basketball|hoops|soccer|tennis|baseball|softball|volleyball|match|game)\b/i, 'mb_sport'],
@@ -41,7 +65,7 @@ const WORD_SCENES: readonly (readonly [RegExp, WorldScene])[] = [
 ];
 
 /** The scene for each kind of Moment when its words name nothing we have. */
-const TYPE_SCENES: Record<MomentType, WorldScene> = {
+const TYPE_SCENES: Record<MomentType, MomentScene> = {
   work: 'mb_work',
   training: 'gym',
   travel: 'travel',
@@ -51,9 +75,9 @@ const TYPE_SCENES: Record<MomentType, WorldScene> = {
 };
 
 /** The scene Home and Moments show when there is no Moment yet. */
-export const WORLD_EMPTY_SCENE: WorldScene = 'run';
+export const WORLD_EMPTY_SCENE: MomentScene = 'run';
 
-export function worldSceneForWords(words: string): WorldScene | null {
+export function worldSceneForWords(words: string): MomentScene | null {
   for (const [pattern, scene] of WORD_SCENES) if (pattern.test(words)) return scene;
   return null;
 }
@@ -65,7 +89,7 @@ export function worldSceneForWords(words: string): WorldScene | null {
  */
 export function worldSceneForMoment(
   moment: { title: string; type: MomentType; masked?: boolean } | null,
-): WorldScene {
+): MomentScene {
   if (!moment) return WORLD_EMPTY_SCENE;
   if (!moment.masked) {
     const fromWords = worldSceneForWords(moment.title);
@@ -74,21 +98,40 @@ export function worldSceneForMoment(
   return TYPE_SCENES[moment.type] ?? WORLD_EMPTY_SCENE;
 }
 
-/** The scene on Home's "Your first Moment" card, by the answer given at first run. */
+/** The second photograph of a Moment's scene: its own screen, and the Home card that opens it. */
+export function worldDetailSceneForMoment(
+  moment: { title: string; type: MomentType; masked?: boolean } | null,
+): MomentDetailScene {
+  return `${worldSceneForMoment(moment)}_b`;
+}
+
+/** The square on Home's "Your first Moment" card, by the answer given at first run. */
 export const FIRST_MOMENT_SCENES = {
-  train: 'gym',
-  work: 'presentation',
-  night: 'dinner',
-  travel: 'travel',
-} as const satisfies Record<'train' | 'work' | 'night' | 'travel', WorldScene>;
+  train: 'gym_b',
+  work: 'presentation_b',
+  night: 'dinner_b',
+  travel: 'travel_b',
+} as const satisfies Record<'train' | 'work' | 'night' | 'travel', MomentDetailScene>;
 
-/** Screens with one fixed photograph, as the prototype pairs them. */
-export const CIRCLES_SCENE: WorldScene = 'mb_social';
-export const WELCOME_SCENE: WorldScene = 'mb_sport';
+/** Screens with one fixed photograph each. */
+export const MOMENTS_TAB_SCENE: ScreenScene = 'moments_tab';
+export const REPLAY_SCENE: ScreenScene = 'replay';
+export const CIRCLES_SCENE: ScreenScene = 'circles';
+export const WELCOME_SCENE: ScreenScene = 'welcome';
+export const ONE_BREATH_SCENE: ScreenScene = 'one_breath';
+export const HYDRATION_SCENE: ScreenScene = 'hydration';
+export const PROFILE_SCENE: ScreenScene = 'profile';
+export const CALENDAR_SCENE: ScreenScene = 'calendar';
 
-/** The scenes behind the three Protocols tiles, as the prototype pairs them. */
+/** The three Protocols tiles. */
 export const PROTOCOL_SCENES = {
-  recovery: 'yoga_night',
-  sleep: 'bedtime',
-  travel: 'travel',
-} as const satisfies Record<'recovery' | 'sleep' | 'travel', WorldScene>;
+  recovery: 'tile_recovery',
+  sleep: 'tile_sleep',
+  travel: 'tile_travel',
+} as const satisfies Record<'recovery' | 'sleep' | 'travel', ScreenScene>;
+
+/** The Recovery and Sleep screens the tiles open. */
+export const PROTOCOL_SCREEN_SCENES = {
+  recovery: 'screen_recovery',
+  sleep: 'screen_sleep',
+} as const satisfies Record<'recovery' | 'sleep', ScreenScene>;

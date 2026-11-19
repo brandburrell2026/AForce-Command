@@ -3,6 +3,19 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
+  CALENDAR_SCENE,
+  CIRCLES_SCENE,
+  FIRST_MOMENT_SCENES,
+  HYDRATION_SCENE,
+  MOMENT_SCENES,
+  MOMENTS_TAB_SCENE,
+  ONE_BREATH_SCENE,
+  PROFILE_SCENE,
+  PROTOCOL_SCREEN_SCENES,
+  REPLAY_SCENE,
+  SCREEN_SCENES,
+  WELCOME_SCENE,
+  worldDetailSceneForMoment,
   PROTOCOL_SCENES,
   WORLD_EMPTY_SCENE,
   WORLD_SCENES,
@@ -84,7 +97,58 @@ describe('World photographs — which scene', () => {
     expect(WORLD_SCENES).toContain(WORLD_EMPTY_SCENE);
   });
 
-  it('the Protocols tiles pair as the prototype does', () => {
-    expect(PROTOCOL_SCENES).toEqual({ recovery: 'yoga_night', sleep: 'bedtime', travel: 'travel' });
+  it('the Protocols tiles and the screens they open each have their own', () => {
+    expect(PROTOCOL_SCENES).toEqual({ recovery: 'tile_recovery', sleep: 'tile_sleep', travel: 'tile_travel' });
+    expect(PROTOCOL_SCREEN_SCENES).toEqual({ recovery: 'screen_recovery', sleep: 'screen_sleep' });
+  });
+});
+
+describe('World photographs — no two places share one (Brandon, 2026-11-19)', () => {
+  const fixed = [
+    MOMENTS_TAB_SCENE, REPLAY_SCENE, CIRCLES_SCENE, WELCOME_SCENE, ONE_BREATH_SCENE,
+    HYDRATION_SCENE, PROFILE_SCENE, CALENDAR_SCENE,
+    ...Object.values(PROTOCOL_SCENES), ...Object.values(PROTOCOL_SCREEN_SCENES),
+  ];
+
+  it('every screen with a fixed photograph has a different one, and every one is used', () => {
+    expect(new Set(fixed).size).toBe(fixed.length);
+    expect([...fixed].sort()).toEqual([...SCREEN_SCENES].sort());
+  });
+
+  it('a fixed screen never shows a photograph a Moment can show', () => {
+    const momentPhotos = new Set<string>([...MOMENT_SCENES, ...MOMENT_SCENES.map((s) => `${s}_b`)]);
+    for (const s of fixed) expect(momentPhotos.has(s), s).toBe(false);
+  });
+
+  it('a Moment has one photograph on Home and a different one on its own screen', () => {
+    for (const title of ['Team dinner', 'Morning lift', 'Something']) {
+      for (const type of ['work', 'training', 'travel', 'recovery', 'personal', 'performance'] as const) {
+        const home = worldSceneForMoment({ title, type });
+        const detail = worldDetailSceneForMoment({ title, type });
+        expect(detail).toBe(`${home}_b`);
+        expect(detail).not.toBe(home);
+        expect(WORLD_SCENES).toContain(detail);
+      }
+    }
+  });
+
+  it('Home\'s small cards use the Moment-screen photograph, never the one behind Home', () => {
+    for (const s of Object.values(FIRST_MOMENT_SCENES)) expect(s.endsWith('_b')).toBe(true);
+    const home = readFileSync(join(AOS, 'components/home/cinematic/HomeCinematicContainer.tsx'), 'utf8');
+    expect(home).toMatch(/return m \? worldDetailPhotoForMoment\(m\) : undefined;/);
+    expect(home).toContain('photo={worldPhotoForMoment(next)}');
+  });
+
+  it('the Moments tab no longer borrows the next Moment\'s photograph', () => {
+    const tab = readFileSync(join(AOS, 'components/editorial/moments/EditorialMomentsScreen.tsx'), 'utf8');
+    expect(tab).toContain('photo={worldPhoto(MOMENTS_TAB_SCENE)}');
+    expect(tab).not.toContain('worldPhotoForMoment');
+  });
+
+  it('there are 39 photographs and no two files are the same picture', () => {
+    expect(WORLD_SCENES.length).toBe(39);
+    expect(new Set(WORLD_SCENES).size).toBe(39);
+    const sizes = WORLD_SCENES.map((s) => readFileSync(join(AOS, 'assets', 'world', `${s}.jpg`)).length);
+    expect(new Set(sizes).size).toBe(39);
   });
 });
