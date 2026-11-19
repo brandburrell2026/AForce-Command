@@ -1,0 +1,99 @@
+/**
+ * HomeCinematicContainer — feeds HomeCinematic with the member's real data.
+ *
+ * It reads the next Moment from the Moments store and turns the values the
+ * Home screen has already resolved (HydroState, evidence, the engine's next
+ * move, intake, data source) into the words on the screen. It computes no
+ * score, changes no target and logs nothing itself: logging stays with the
+ * Home screen's existing open-only picker.
+ */
+import React from 'react';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { useMomentsData } from '@/components/moments/useMomentsData';
+import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
+import type { Moment } from '@/types/moments';
+import { HomeCinematic } from './HomeCinematic';
+import {
+  homeClock,
+  homeDateLine,
+  homeGreeting,
+  homeIntakeNote,
+  homeMomentHero,
+  homeRing,
+  homeStatusLine,
+  type HomeEvidence,
+} from './homeCinematicLogic';
+
+export interface HomeCinematicContainerProps {
+  now: Date;
+  firstName?: string | null;
+  profileEntry?: React.ReactNode;
+  evidence: HomeEvidence;
+  /** HydroState 0–100, already resolved by the scoring engine. */
+  score: number;
+  moveTitle: string;
+  why?: string;
+  consumedOz: number;
+  targetOz: number;
+  /** Null when nothing has been logged in the current window. */
+  lastLoggedAt: Date | null;
+  confidenceLine?: string;
+  sourceLabel?: string;
+  sourceFetchedAtMs?: number | null;
+  notice?: string;
+  logLabel: string;
+  onLog: () => void;
+  logBusy?: boolean;
+  fixtureMoments?: Moment[];
+  fixtureNowIso?: string;
+  children?: React.ReactNode;
+}
+
+export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const data = useMomentsData(
+    props.fixtureMoments ? { fixtureMoments: props.fixtureMoments, fixtureNowIso: props.fixtureNowIso } : undefined,
+  );
+  // Same scheduling side effect the previous Home ran from its Moment line.
+  useMomentPrepScheduling();
+
+  const next = data.hydrated ? data.next ?? null : null;
+  const hero = homeMomentHero(next, props.now, t('moments.private_event'));
+  const ring = homeRing(props.evidence, props.score);
+  const source =
+    props.sourceLabel && props.sourceFetchedAtMs
+      ? `${props.sourceLabel} · ${homeClock(new Date(props.sourceFetchedAtMs))}`
+      : props.sourceLabel;
+
+  return (
+    <HomeCinematic
+      dateLine={homeDateLine(props.now)}
+      greeting={homeGreeting(props.now, props.firstName)}
+      profileEntry={props.profileEntry}
+      momentEyebrow={hero.eyebrow}
+      momentTitle={hero.title}
+      momentStatus={hero.status}
+      onPressMoment={() => router.push(hero.target === 'moments' ? '/moments-tab' : '/one-breath')}
+      statusLine={homeStatusLine(data.hydrated ? data.surfaced : [], next)}
+      ring={ring}
+      ringAccessibilityLabel={
+        ring.label === 'Collecting' ? 'HydroState. Collecting.' : `HydroState ${ring.value} out of 100`
+      }
+      moveTitle={props.moveTitle}
+      intakeNote={homeIntakeNote(props.consumedOz, props.targetOz, props.lastLoggedAt)}
+      readingNote={ring.label === 'HydroState' ? props.confidenceLine : undefined}
+      logLabel={props.logLabel}
+      onLog={props.onLog}
+      logBusy={props.logBusy}
+      scanLabel={t('hydration.v2.scan_a_drink')}
+      onScan={() => router.push('/scan')}
+      why={props.why}
+      sourceLine={source}
+      notice={props.notice}
+    >
+      {props.children}
+    </HomeCinematic>
+  );
+}

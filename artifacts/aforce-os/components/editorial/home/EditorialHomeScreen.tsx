@@ -56,6 +56,8 @@ import { TravelHomeCard } from '@/components/travel/TravelHomeCard';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
+import { HomeCinematicContainer } from '@/components/home/cinematic/HomeCinematicContainer';
+import { HomeQuietList } from '@/components/home/cinematic/HomeCinematic';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
@@ -128,6 +130,9 @@ interface HomeActions {
   ) => Promise<void>;
   dismissSuccess: () => void;
 }
+
+/** Side gutter of the cinematic Home, as in the reference (20pt, not the 32pt Black Issue gutter). */
+export const HOME_CINEMATIC_GUTTER = 20;
 
 export function EditorialHomeScreen({
   momentsFixture,
@@ -268,7 +273,68 @@ export function EditorialHomeScreen({
   return (
     <View style={styles.root} testID="editorial-home-root">
       <EdSurface stock="black" style={styles.fill}>
-        <AFScreen scroll contentContainerStyle={{ paddingBottom: scrollBottomPadding }}>
+        <AFScreen
+          scroll
+          padded={!focused}
+          contentContainerStyle={
+            focused
+              ? { paddingBottom: scrollBottomPadding, paddingHorizontal: HOME_CINEMATIC_GUTTER }
+              : { paddingBottom: scrollBottomPadding }
+          }
+        >
+          {focused ? (
+            <Animated.View style={settle}>
+              {!isHydrated ? (
+                <HomeSkeleton signals="row3" />
+              ) : (
+                <HomeCinematicContainer
+                  now={new Date(dateTick)}
+                  firstName={clerkUser?.firstName}
+                  profileEntry={
+                    <AFMemberPhotoButton
+                      imageUrl={clerkUser?.hasImage ? clerkUser.imageUrl : null}
+                      initials={memberInitials(clerkUser?.firstName, clerkUser?.lastName)}
+                      onPress={() => router.push('/(tabs)/profile')}
+                      accessibilityLabel={t('tabs.profile')}
+                      testID="home-profile-entry"
+                    />
+                  }
+                  evidence={evidence === 'pending' || evidence === 'building' ? evidence : 'ready'}
+                  score={score}
+                  moveTitle={title || t('home.v2.default_command_title')}
+                  why={engine.command.explanation || instruction || undefined}
+                  consumedOz={userState.ozConsumedToday}
+                  targetOz={userState.ozTarget}
+                  lastLoggedAt={intakeEventCount > 0 ? new Date(userState.lastIntakeTime) : null}
+                  confidenceLine={t('home.v2.confidence_chip', { rating: confidence.chip.label })}
+                  sourceLabel={signalData.chip?.label}
+                  sourceFetchedAtMs={freshestFetchedAtMs}
+                  notice={lastRefreshStale ? t('home.v2.stale_notice') : undefined}
+                  logLabel={t('home.v2.log_water')}
+                  onLog={openWaterPicker}
+                  logBusy={isCompletingCycle}
+                  fixtureMoments={momentsFixture?.moments}
+                  fixtureNowIso={momentsFixture?.nowIso}
+                >
+                  <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
+                  {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
+                  <SocialModeIndicator testID="editorial-social-indicator" />
+                  <View style={styles.conciergeSection}>
+                    <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
+                  </View>
+                  {/* One quiet list (Appendix G §3 · Home). */}
+                  <HomeQuietList
+                    rows={[
+                      { label: 'Your protocol', onPress: () => router.push('/protocol') },
+                      ...(flags.advanced_visual_intelligence_enabled
+                        ? [{ label: 'Skin intelligence', onPress: () => router.push('/skinia') }]
+                        : []),
+                    ]}
+                  />
+                </HomeCinematicContainer>
+              )}
+            </Animated.View>
+          ) : (
           <Animated.View style={settle}>
             {/* Masthead: wordmark, the member's name as subordinate furniture
                 (R3: nothing when unknown), date + clock on the right (R1). The
@@ -485,6 +551,7 @@ export function EditorialHomeScreen({
               </>
             )}
           </Animated.View>
+          )}
         </AFScreen>
       </EdSurface>
 
