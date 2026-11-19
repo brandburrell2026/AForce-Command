@@ -1212,6 +1212,28 @@ export function MomentPreparationScreen({
       </Text>
     </Pressable>
   );
+  // A Replay answer: the prototype's full-width chip. The chosen answer is
+  // marked by a brighter edge and said to a screen reader as selected.
+  const replayChip = (label: string, value: "yes" | "not_really") => {
+    const chosen = saved?.preparation?.replay === value;
+    return (
+      <Pressable
+        key={label}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: saving, selected: chosen }}
+        aria-disabled={saving}
+        aria-selected={chosen}
+        disabled={saving}
+        onPress={() => {
+          hapticSelection();
+          transition({ replay: value }, "next");
+        }}
+        style={[s.replayChip, chosen && s.replayChipChosen]}
+      >
+        <Text style={s.replayChipText}>{label}</Text>
+      </Pressable>
+    );
+  };
   const input = (
     label: string,
     value: string,
@@ -2275,11 +2297,25 @@ export function MomentPreparationScreen({
             ) : null}
             {!current?.preparation?.cancelledAtIso ? (
               <>
-                <Text style={s.body}>Did it go the way you wanted?</Text>
-                {button("Yes", () => transition({ replay: "yes" }, "next"))}
-                {button("Not really", () =>
-                  transition({ replay: "not_really" }, "next"),
-                )}
+                {/* Replay, laid out as the prototype shows it: the plan that
+                    was sealed, the one question, answers as full-width
+                    chips. Same question, same two answers, same save. */}
+                {steps.length > 0 ? (
+                  <View testID="replay-sealed-plan">
+                    <Text style={s.eyebrow}>THE PLAN YOU SEALED</Text>
+                    {steps.map((step, i) => (
+                      <View key={i} style={s.planRow}>
+                        <Text style={[s.eyebrow, s.planTime]}>{clock(step.atIso)}</Text>
+                        <Text style={[s.muted, s.planText]}>{step.action}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+                <Text style={s.replayQuestion}>Did it go the way you wanted?</Text>
+                <View style={s.replayChips} testID="replay-answers">
+                  {replayChip("Yes", "yes")}
+                  {replayChip("Not really", "not_really")}
+                </View>
                 {saved?.preparation?.replay ? (
                   <Text style={s.muted}>Your Replay stays private.</Text>
                 ) : null}
@@ -2390,6 +2426,19 @@ const s = StyleSheet.create({
   },
   planTime: { width: 84 },
   planText: { flex: 1 },
+  replayQuestion: { fontFamily: "Inter_600SemiBold", fontSize: 24, lineHeight: 28, letterSpacing: -0.4, color: T.bone },
+  replayChips: { gap: 8 },
+  replayChip: {
+    minHeight: 52,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: T.rule,
+    borderRadius: 14,
+    justifyContent: "center",
+  },
+  replayChipChosen: { borderColor: T.bone },
+  replayChipText: { fontFamily: "Inter_500Medium", fontSize: 15, lineHeight: 20, color: T.bone },
   safetyLine: { height: 2, backgroundColor: T.red },
   safetyTitle: { ...T.headline, fontSize: 28, lineHeight: 34, color: T.bone },
 });

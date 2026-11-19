@@ -28,6 +28,10 @@
  *    guards — it is the only write path for the Moments learning corpus.
  *  • Both Wave-5 announcement guards are kept: iOS-only (Android has the
  *    live region) and mount-seeded (announce on ADVANCE, never on open).
+ *  • LOOK (2026-11-19) — styled after the approved prototype's Moment page:
+ *    a large Inter 600 title, mono meta, the chapters and the reason each in
+ *    a 20pt card, and "I'm ready" as a filled pill. Presentation only: the
+ *    chapters, their order, every word and every write are unchanged.
  *  • The И is absent: this surface has no canonical single-token state word.
  *    (The spec's "И flips on confirm" is a motion flourish with no state to
  *    attach to — see the PR's prototype-vs-production conflicts.)
@@ -58,7 +62,7 @@ import {
   type MomentPrepFeedback,
 } from '@/services/momentFeedback';
 import { useFeatureFlags } from '@/store/useAppStore';
-import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import {
   clockLabel,
   prepWindowLabel,
@@ -69,7 +73,7 @@ import {
 import type { Moment, MomentRecommendation, RitualStage } from '@/types/moments';
 import { edAccent, edInkFor, edPositive, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
-import { EdCaption, EdEvidenceLine, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
+import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdReturn } from './EdReturn';
 import { chapterNumber } from './editorialMomentsPresentation';
 
@@ -188,25 +192,28 @@ export function EditorialMomentDetailScreen({
       <AFScreen scroll contentContainerStyle={styles.scrollContent}>
         <Animated.View style={settle}>
           <EdReturn now={new Date(nowIso)} fallback="/moments" />
-          <EdRule />
 
-          <EdStatement style={styles.title} accessibilityRole="header">
+          <Text
+            accessibilityRole="header"
+            maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+            style={styles.title}
+          >
             {title}
-          </EdStatement>
+          </Text>
           {/* Mono meta. Every value keeps the label that names it — a bare
               "22 min" says nothing on its own, in print or to a reader. */}
           <View style={styles.metaRow}>
-            <EdCaption text={clockLabel(moment.startAtIso)} />
+            <Text style={styles.meta}>{clockLabel(moment.startAtIso)}</Text>
             {eta ? (
-              <EdCaption
-                text={`${t('moments.starts_in')} ${
+              <Text style={styles.meta}>
+                {`${t('moments.starts_in')} ${
                   eta.hours > 0
                     ? t('moments.in_h_m', { h: eta.hours, m: eta.minutes })
                     : t('moments.in_m', { m: eta.minutes })
                 }`}
-              />
+              </Text>
             ) : null}
-            <EdCaption text={`${t('moments.prep_window')} ${prepWindowLabel(rec)}`} />
+            <Text style={styles.meta}>{`${t('moments.prep_window')} ${prepWindowLabel(rec)}`}</Text>
           </View>
 
           {/* The chapters — charter-locked order, straight from rec.ritual. */}
@@ -216,17 +223,15 @@ export function EditorialMomentDetailScreen({
             testID="editorial-moment-ritual"
           >
             {rec.ritual.map((stage, i) => (
-              <Chapter key={stage.key} stage={stage} index={i} />
+              <React.Fragment key={stage.key}>
+                {i > 0 ? <View style={styles.hairline} /> : null}
+                <Chapter stage={stage} index={i} />
+              </React.Fragment>
             ))}
           </View>
 
-          <EdRule />
-
-          <View testID="editorial-moment-confirm">
-            <Text style={[edType.caption as TextStyle, { color: ink.quiet }]}>
-              <Text style={{ color: edAccent.red }}>{'—— '}</Text>
-              {t('moments.why_this')}
-            </Text>
+          <View style={styles.card} testID="editorial-moment-confirm">
+            <Text style={styles.meta}>{t('moments.why_this')}</Text>
             <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 8 }]}>
               {t(rec.evidence.summaryKey)}
             </Text>
@@ -240,18 +245,16 @@ export function EditorialMomentDetailScreen({
             accessibilityState={{ disabled: prepared }}
             style={({ pressed }) => [
               styles.confirm,
-              {
-                borderColor: prepared ? ink.quiet : ink.primary,
-                opacity: prepared ? 0.55 : pressed ? 0.75 : 1,
-              },
+              prepared ? styles.confirmDone : styles.confirmReady,
+              { opacity: prepared ? 0.55 : pressed ? 0.75 : 1 },
             ]}
             testID="editorial-moment-im-ready"
           >
             <Text
               maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
               style={[
-                edType.confirm as TextStyle,
-                { color: prepared ? ink.quiet : ink.primary },
+                edType.protoButton as TextStyle,
+                { color: prepared ? ink.quiet : af.onPrimaryFill, textAlign: 'center' },
               ]}
             >
               {prepared ? t('moments.status_completed') : t('moments.im_ready')}
@@ -325,7 +328,7 @@ function Chapter({ stage, index }: { stage: RitualStage; index: number }) {
              an iOS mid-word break. */
           maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
           style={[
-            (live ? edType.command : edType.body) as TextStyle,
+            (live ? edType.protoStepLive : edType.protoStep) as TextStyle,
             { color: done ? ink.quiet : ink.primary, flexShrink: 1 },
           ]}
         >
@@ -355,7 +358,13 @@ function Chapter({ stage, index }: { stage: RitualStage; index: number }) {
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: edStock.black },
   scrollContent: { paddingBottom: 96 },
-  title: { marginTop: 18 },
+  title: { ...(edType.protoHero as TextStyle), color: af.textPrimary, marginTop: 14 },
+  meta: { ...(edType.protoEyebrow as TextStyle), color: af.textSecondary },
+  card: {
+    marginTop: 12, padding: 18, borderRadius: 20, borderWidth: 1,
+    borderColor: af.border, backgroundColor: af.surface,
+  },
+  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: af.divider, marginVertical: 12 },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -363,7 +372,10 @@ const styles = StyleSheet.create({
     rowGap: 4,
     marginTop: 10,
   },
-  chapters: { marginTop: 26, rowGap: 20 },
+  chapters: {
+    marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1,
+    borderColor: af.border, backgroundColor: af.surface,
+  },
   chapter: {},
   chapterHead: {
     flexDirection: 'row',
@@ -373,14 +385,16 @@ const styles = StyleSheet.create({
     rowGap: 2,
   },
   confirm: {
-    marginTop: 22,
-    minHeight: edRhythm.minTarget,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 2,
+    marginTop: 16,
+    minHeight: 52,
+    borderWidth: 1,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: 22,
   },
+  confirmReady: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
+  confirmDone: { backgroundColor: af.canvas, borderColor: af.border },
   feedback: { marginTop: 26 },
   feedbackRow: {
     flexDirection: 'row',
@@ -395,7 +409,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: edInkFor('black').rule,
-    borderRadius: 2,
+    borderRadius: 999,
   },
   folio: { marginTop: 30 },
 });
