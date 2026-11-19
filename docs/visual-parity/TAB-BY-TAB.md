@@ -57,8 +57,10 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Orb in a ring of ticks, "Tap to talk" | Same | ✔ |
 | Prompt, example chips, talk-or-type bar | Same layout; the prompt and chips name only what One Breath can do | ◐ truthful |
 | "Spoken replies" button, sources row, "Operations" log | None | ✘ conversational engine and voice output are off for beta |
-| Conversation: "What I heard", plan card, "Seal it" strip, 7-second window | Older step screens (Mirror, Plan, Seal) with warm-white pill buttons; the 7-second window exists | ✘ not rebuilt |
-| Lock In, Quiet, Return, Replay | Older screens | ✘ not rebuilt |
+| Conversation: "What I heard", plan card with times at the left | Same headings ("What I heard", "Your plan"), time-left plan rows; small labels blue only in a Social Moment | ◐ still separate step screens, not one conversation thread; no harness or device capture yet |
+| Seal: 150pt ring that fills while held, "Release early to cancel", 7-second window | Same ring and note; hold time, 7-second window and approval logic untouched | ◐ no capture yet; the demo's "Seal with one tap instead" was deliberately not added (approval rule) |
+| Lock In: centred, large orb | Centred, 170pt orb | ◐ no capture yet |
+| Quiet, Return, Replay | Older screens | ✘ not rebuilt |
 
 ## Moments
 

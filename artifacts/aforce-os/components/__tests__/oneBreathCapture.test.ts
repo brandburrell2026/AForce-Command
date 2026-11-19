@@ -67,3 +67,42 @@ describe('One Breath opening screen', () => {
     expect(screen).toContain('onSend={reviewWords}');
   });
 });
+
+describe('One Breath steps after the opening screen (prototype styling)', () => {
+  const ring = readFileSync(join(DIR, 'SealRing.tsx'), 'utf8');
+  const ringCode = ring.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+  it('small labels are blue only in a Social Moment', () => {
+    expect(screen).toContain('const accent = social ? T.blueHi : T.muted;');
+  });
+
+  it('Mirror is headed "What I heard" and Plan "Your plan"', () => {
+    expect(screen).toContain('WHAT I HEARD');
+    expect(screen).not.toContain('HERE’S WHAT I HEARD');
+    expect(screen).toMatch(/>\s*Your plan\s*<\/Text>/);
+  });
+
+  it('Plan rows put the time at the left of each step', () => {
+    expect(screen).toContain('<View key={i} style={s.planRow}>');
+    expect(screen).toMatch(/planRow: \{\s*flexDirection: "row",/);
+  });
+
+  it('the seal control is the 150pt ring, warm white (blue in Social), not a red fill', () => {
+    expect(ring).toContain('SEAL_RING_SIZE = 150');
+    expect(ring).toContain('stroke={social ? T.blueHi : T.bone}');
+    expect(ringCode).not.toMatch(/T\.red|af\.red/);
+    expect(screen).toContain('<SealRing progress={progress} social={social}>');
+    expect(screen).toContain('Release early to cancel. Nothing is saved until sealed.');
+  });
+
+  it('the ring only draws: the hold, its timing and the approval stay with the screen', () => {
+    expect(ringCode).not.toMatch(/onPress|commit|seal\(|Animated\.timing|setTimeout/);
+    // Exactly the same hold wiring as before on the pressable around it.
+    expect(screen).toMatch(/onPressIn=\{startHold\}\s*onPressOut=\{cancelHold\}\s*onAccessibilityTap=\{sealByHold\}/);
+    expect(screen).toContain('accessibilityLabel="Hold to seal"');
+  });
+
+  it('no one-tap seal was added', () => {
+    expect(screen).not.toMatch(/Seal with one tap/i);
+  });
+});

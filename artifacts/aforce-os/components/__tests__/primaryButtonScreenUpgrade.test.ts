@@ -23,7 +23,7 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   // The orb and Lock In
   'app/(tabs)/_layout.tsx': { count: 1, why: 'One Breath orb' },
   'components/oneBreath/OneBreathScreen.tsx': { count: 5, why: 'orb, hold-to-seal fill, progress line, completion mark and rule' },
-  'components/oneBreath/MomentPreparationScreen.tsx': { count: 2, why: 'progress line and safety line' },
+  'components/oneBreath/MomentPreparationScreen.tsx': { count: 1, why: 'safety line' },
   // Thin rules, progress fills and dots — not buttons
   'components/home/HomeBaselineHero.tsx': { count: 1, why: '2pt rule' },
   'components/hydration/cinematic/HydrationHistory.tsx': { count: 1, why: '5pt Moment mark above a History bar (prototype)' },
