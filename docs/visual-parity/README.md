@@ -133,6 +133,30 @@ Founder instruction, 2026-11-18: One Breath must look 100% like the demo.
 
 **Unchanged:** the Moments store, what a row opens (the Moment's own screen), private-event masking, the store-build layout.
 
+## 3e. Circles tab
+
+| Demo, top | Demo, lower |
+|---|---|
+| ![](circles/reference-circles-top.jpg) | ![](circles/reference-circles-lower.jpg) |
+
+**No rebuilt image.** The Circles screen loads people and invitations from the server, so it cannot be rendered in the browser harness. It needs a look on a device.
+
+| Element | Demo | Rebuilt | Match |
+|---|---|---|---|
+| Mark + "Circles", member photo | Yes | Yes | ✔ |
+| "Your people. Your Moments." at 40pt, one line under it | Yes | Yes | ✔ |
+| Photograph behind the hero | Yes | **No photograph** (none licensed) | ✘ asset |
+| Status line | Yes | Yes | ✔ |
+| "Start a Moment" (warm white) and "Invite someone" | Yes | Yes. Start opens One Breath; the demo's Moment-type picker is not built. Invite opens the existing invite form in place | ◐ feature |
+| "Your Circle · n": rows with initials, name, one line, chevron | Yes | Yes. Tapping a row shows Remove (the demo opens a member screen, which is not built) | ◐ feature |
+| "Available" pill on a person | Yes | **Not shown**: there is no availability data | ✘ data |
+| "Pending": rows with a pill | Yes | Yes; the pill is "Revoke", which is the action available | ◐ |
+| Card "Choose what your Circle can see · Private by default" | Yes | Yes; opens the privacy promise in place | ✔ |
+| Card "Your Moments · Private keepsakes" | Yes | **Not shown**: the gallery is not built | ✘ feature |
+| Old header, intro paragraph, "Private by default" notice card, bordered member cards, red avatar ring, always-open invite form | Not in the demo | **Removed / restyled** | ✔ |
+
+**Unchanged:** who is in a Circle, invitations, remove with confirmation, revoke, sharing a Moment, the membership disclosure (still shown), and the rule that no score, HydroState, rank or health data appears in a Circle.
+
 ## 4. Parity checklist — remaining screens
 
 Reference captured means a real image of the prototype exists in this folder. "—" means not yet done.
@@ -149,6 +173,8 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | One Breath · Mirror / Plan / Seal / Lock In / Quiet / Return / Replay | — | — | — | — | — |
 | Moments · tab (hero, Upcoming, Done, links) | ✔ | ✔ harness | ✔ | PR (Moments) | — |
 | Circles · empty / with people / invite / pending / privacy | — | — | — | — | — |
+| Moments · Now / Upcoming / Done | — | — | — | — | — |
+| Circles · tab | ✔ | — (needs a device) | ✔ | PR (Circles) | — |
 | Profile | — | — | — | — | — |
 | HydroScan · five steps | — | — | — | — | — |
 | Opening / first launch | ✔ (seen, not saved) | — | — | — | — |

@@ -1,7 +1,7 @@
 /**
- * Circle landing hierarchy (App Spec v1.8.2 · Appendix D §2, Circle v1.2).
- * Header "Circles · Your people. Your moments.", then your people, then what
- * your Circle can see. Red is not used for section labels.
+ * Circles tab, laid out as the approved prototype: mark + "Circles" and the
+ * member photo, "Your people. Your Moments.", the status line, "Start a
+ * Moment" / "Invite someone", people, pending, one privacy card.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -10,33 +10,53 @@ import { join } from 'node:path';
 const screen = readFileSync(join(__dirname, '..', 'CircleScreenV4.tsx'), 'utf8');
 const panel = readFileSync(join(__dirname, '..', 'CircleMembersPanel.tsx'), 'utf8');
 
-describe('Circle landing hierarchy', () => {
-  it('uses the approved header', () => {
-    expect(screen).toContain('style={styles.title}>Circles</Text>');
-    expect(screen).toContain('Your people. Your moments.');
+describe('Circles tab (prototype layout)', () => {
+  it('uses the demo header and hero', () => {
+    expect(screen).toContain('>CIRCLES</Text>');
+    expect(screen).toContain("Your people.{'\\n'}Your Moments.");
+    expect(screen).toContain('Plans you make together, then both make it back.');
     expect(screen).not.toContain('CIRCLE / YOUR PEOPLE');
   });
 
-  it('shows people before the sharing notice', () => {
+  it('has the two actions; Start a Moment opens One Breath, Invite opens the invite form', () => {
+    expect(screen).toMatch(/onPress=\{\(\) => router\.push\('\/one-breath'\)\}[\s\S]{0,200}accessibilityLabel="Start a Moment"/);
+    expect(screen).toContain('accessibilityLabel="Invite someone"');
+    expect(screen).toContain('inviteOpen={inviteOpen}');
+  });
+
+  it('people come before the privacy card', () => {
     expect(screen.indexOf('<CircleMembersPanel')).toBeGreaterThan(-1);
     expect(screen.indexOf('<CircleMembersPanel')).toBeLessThan(screen.indexOf('circle-v4-privacy'));
+    expect(screen).toContain('layout="demo"');
   });
 
   it('keeps the privacy promise word for word', () => {
+    expect(screen).toContain('Choose what your Circle can see');
+    expect(screen).toContain('Private by default');
     expect(screen).toContain('Nothing is shared by default.');
     expect(screen).toContain('Scores, HydroState, ranks, streaks, and health data never appear in a Circle.');
   });
 
-  it('section labels are muted, not red', () => {
+  it('uses no red on the screen; error text in the panel stays red', () => {
     expect(screen).not.toMatch(/af\.red(Text)?\b/);
-    expect(panel).toMatch(/kicker: \{ color: af\.textSecondary,/);
-  });
-
-  it('error text in the panel stays red', () => {
     expect(panel).toMatch(/error: \{ color: af\.redText,/);
   });
 
-  it('does not draw controls for features that are not built', () => {
-    expect(screen).not.toMatch(/label="Start a Moment"|>Start a Moment</);
+  it('the demo layout keeps every control: remove with confirmation, revoke, invite, accept', () => {
+    expect(panel).toContain("copy('confirm_remove')");
+    expect(panel).toContain("accessibilityLabel={copy('revoke')}");
+    expect(panel).toContain('client.invite(name)');
+    expect(panel).toContain('client.accept(code, name)');
+    // The membership disclosure is still shown in the demo layout.
+    expect(panel).toMatch(/demo \? \(\s*<Text style=\{styles\.demoNote\}>/);
+  });
+
+  it('shows no leaderboard, score or availability claim', () => {
+    expect(screen).not.toMatch(/leaderboard|Available/);
+  });
+
+  it('does not draw the gallery that is not built', () => {
+    expect(screen).not.toContain('Your Moments</Text>');
+    expect(screen).not.toContain('Private keepsakes');
   });
 });
