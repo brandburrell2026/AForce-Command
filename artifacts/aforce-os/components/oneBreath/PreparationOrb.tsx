@@ -8,10 +8,13 @@ export function PreparationOrb({
   day,
   social,
   moon = false,
+  size = 150,
 }: {
   day: boolean;
   social: boolean;
   moon?: boolean;
+  /** Diameter in points. The capture screen uses 170 (prototype). */
+  size?: number;
 }) {
   const scale = React.useRef(new Animated.Value(1)).current;
   const [reduced, setReduced] = React.useState(true);
@@ -59,14 +62,20 @@ export function PreparationOrb({
   return (
     <Animated.View
       accessible={false}
-      style={[s.orb, { transform: [{ scale }] }]}
+      style={[
+        s.orb,
+        { width: size, height: size, shadowColor: colors[2], transform: [{ scale }] },
+      ]}
     >
-      <Svg width={150} height={150} style={StyleSheet.absoluteFill}>
+      <Svg width={size} height={size} viewBox="0 0 150 150" style={StyleSheet.absoluteFill}>
         <Defs>
-          <RadialGradient id={id} cx="34%" cy="28%" rx="75%" ry="75%">
+          {/* The Master Brief gradient is "circle at 34% 28%" running to the
+              farthest corner (about 98% of the width) with stops at 0 / 32 /
+              62 / 100. A 75% radius ended early and left a hard dark edge. */}
+          <RadialGradient id={id} cx="34%" cy="28%" r="98%">
             <Stop offset="0" stopColor={colors[0]} />
-            <Stop offset=".34" stopColor={colors[1]} />
-            <Stop offset=".68" stopColor={colors[2]} />
+            <Stop offset=".32" stopColor={colors[1]} />
+            <Stop offset=".62" stopColor={colors[2]} />
             <Stop offset="1" stopColor={colors[3]} />
           </RadialGradient>
         </Defs>
@@ -75,7 +84,7 @@ export function PreparationOrb({
           <Circle cx={104} cy={45} r={61} fill={T.ink} />
         ) : null}
       </Svg>
-      {!moon ? <PreparationMark size={34} color={T.bone} /> : null}
+      {!moon ? <PreparationMark size={Math.round(size * 0.227)} color={T.bone} /> : null}
     </Animated.View>
   );
 }
@@ -87,5 +96,9 @@ const s = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     marginVertical: 24,
+    // The orb is the one glowing object in the app (Master Brief §2).
+    shadowOpacity: 0.4,
+    shadowRadius: 40,
+    shadowOffset: { width: 0, height: 0 },
   },
 });
