@@ -57,8 +57,8 @@ import {
 import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon } from '@/components/Icon';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
-import { hydrationStatRows } from './hydrationStatRows';
 import { HydrationHero, HydrationRecentRow, HydrationEyebrow } from './cinematic/HydrationHero';
+import { HydrationHistory } from './cinematic/HydrationHistory';
 import { hydrationHero } from './cinematic/hydrationCinematicLogic';
 import { homeStatusLine } from '@/components/home/cinematic/homeCinematicLogic';
 import { useMomentsData } from '@/components/moments/useMomentsData';
@@ -211,8 +211,7 @@ export function HydrationScreenV2() {
     (userState.intakeEvents?.length ?? 0) > 0 ? new Date(userState.lastIntakeTime) : null,
     DAILY_TARGET_IS_PERSONAL,
   );
-  const statRows = hydrationStatRows({ aforceUnitsToday: userState.aforceUnitsToday });
-  const recent: IntakeEvent[] = (userState.intakeEvents ?? []).slice(0, 5);
+  const recent: IntakeEvent[] = (userState.intakeEvents ?? []).slice(0, 4);
   const streak = Math.max(0, Math.min(7, userState.complianceStreak));
   const todayIdx = new Date(userState.lastIntakeTime).getDay();
 
@@ -276,21 +275,7 @@ export function HydrationScreenV2() {
           card and the two actions. Values are the member's own. */}
       <HydrationHero
         topRight={
-          <>
-            {askConcierge.slice(0, 2).map((a) => (
-              <Pressable
-                key={a.label}
-                onPress={a.onPress}
-                accessibilityRole="button"
-                accessibilityLabel={a.label}
-                hitSlop={4}
-                style={({ pressed }) => [styles.conciergeBtn, pressed && styles.conciergePressed]}
-              >
-                <Icon name={a.icon} size={20} color={af.textPrimary} />
-              </Pressable>
-            ))}
-            <ProfileEntryButton testID="hydration-profile-entry" />
-          </>
+          <ProfileEntryButton testID="hydration-profile-entry" />
         }
         amount={hero.amount}
         line={hero.line}
@@ -299,12 +284,7 @@ export function HydrationScreenV2() {
         ringAccessibilityLabel={t('hydration.v2.ring_a11y', { pct: Math.round(pct * 100) })}
         percentLine={hero.percentLine}
         sourceLine={hero.sourceLine}
-        facts={
-          statRows.electrolytes
-            ? [`${t('hydration.v2.stat_electrolytes')} · ${t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}`]
-            : []
-        }
-        targetNote={DAILY_TARGET_IS_PERSONAL ? null : (t('hydration.v2.target_starting_point', { target: userState.ozTarget }))}
+        targetExplanation={DAILY_TARGET_IS_PERSONAL ? null : (t('hydration.v2.target_starting_point', { target: userState.ozTarget }))}
         scanLabel={t('hydration.v2.scan_a_drink')}
         onScan={() => router.push('/scan')}
         logLabel={t('hydration.v2.log_manually')}
@@ -326,11 +306,7 @@ export function HydrationScreenV2() {
         <HydrationEyebrow label="Recent" />
         {recent.length === 0 ? (
           <AFCard>
-            <AFEmptyState
-              icon="droplet"
-              title={t('hydration.v2.empty_title')}
-              message={t('hydration.v2.empty_message')}
-            />
+            <Text style={styles.emptyNote}>Nothing logged yet.</Text>
           </AFCard>
         ) : (
           <View testID="hydration-recent-list">
@@ -347,71 +323,19 @@ export function HydrationScreenV2() {
         )}
       </View>
 
-      {/* 7-day strip (streak, honest); private presentation may hide it. */}
-      {!gentleMode.pauseStreakDisplay ? <View style={styles.section}>
-        {/* No count caption: `streak` is the target-met compliance streak,
-            not a count of days logged (PR #1090 review B1) — the dots and
-            their per-day labels carry what is known. */}
-        <HydrationEyebrow label={t('hydration.v2.this_week')} />
-        <View style={styles.strip}>
-          {weekdayInitials.map((d, i) => {
-            // Fill the most recent `streak` days up to and including today.
-            const daysBack = (todayIdx - i + 7) % 7;
-            const filled = daysBack < streak;
-            const isToday = i === todayIdx;
-            return (
-              <View
-                key={i}
-                style={styles.dayCol}
-                accessible
-                /*
-                 * A11y fix (Wave-5 Phase-1 pass — state by appearance alone):
-                 * the label was the weekday and nothing else, so "logged" vs
-                 * "not logged" — the entire point of the strip — existed only
-                 * as a filled vs hollow dot, and "today" only as a lighter
-                 * ring. `accessibilityState.selected` is not announced for a
-                 * plain non-interactive View, so a screen-reader member heard
-                 * seven weekday names and no week. The label now says all
-                 * three facts in words; the dots keep saying them visually.
-                 */
-                accessibilityLabel={[
-                  weekdayLabels[i],
-                  isToday ? t('common.today') : null,
-                  t(filled ? 'hydration.v2.day_logged' : 'hydration.v2.day_not_logged'),
-                ]
-                  .filter(Boolean)
-                  .join(', ')}
-              >
-                {/* Today is a ring AROUND the dot; logged is a filled dot, not
-                    logged a hollow one — three states told apart by shape. */}
-                <View style={[styles.dayMark, isToday && styles.dayMarkToday]}>
-                  <View style={[styles.dayDot, filled && styles.dayDotFilled]} />
-                </View>
-                <Text style={[styles.dayLabel, eyebrowType, isToday && styles.dayLabelToday]}>{d}</Text>
-              </View>
-            );
-          })}
-        </View>
-
-        {/* HISTORY — one tap deeper, never in place of this screen.
-            Build-61 correction: Performance Signal used to REPLACE this tab
-            (app/(tabs)/journal.tsx branched on `signal_v3_dashboard_enabled`
-            first), so the ring, the two log affordances and this strip were
-            unreachable in production. It is a pushed detail route now — the
-            same root → detail push Home uses for /weekly-report — which is
-            also why the week fails softly: history lives entirely on the
-            destination, so nothing above depends on it loading. */}
-        <AFCard padded={false} style={styles.recentCard}>
-          <AFListRow
-            icon="bar-chart-2"
-            title={t('hydration.v2.history_title')}
-            subtitle={t('hydration.v2.history_subtitle')}
-            disclosure
-            onPress={() => router.push('/performance-signal')}
-            testID="hydration-v2-history-link"
-          />
-        </AFCard>
-      </View> : null}
+      {/* History, as in the approved prototype: a bar per day against the
+          starting target. It loads on its own and is not drawn if the daily
+          totals cannot be read, so nothing above depends on it. A private
+          presentation may hide it. */}
+      {!gentleMode.pauseStreakDisplay ? (
+        <HydrationHistory
+          targetOz={userState.ozTarget}
+          todayOz={userState.ozConsumedToday}
+          onOpen={() => router.push('/performance-signal')}
+          openLabel={`${t('hydration.v2.history_title')}. ${t('hydration.v2.history_subtitle')}`}
+          openTestID="hydration-v2-history-link"
+        />
+      ) : null}
 
       </AFScreen>
 
@@ -447,6 +371,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 
 const styles = StyleSheet.create({
+  emptyNote: { ...afType.secondary, color: af.textSecondary },
   root: { flex: 1 },
   mastheadWrap: { position: 'relative' },
   // Free right side of the wordmark row. 44pt target centred on the 20pt

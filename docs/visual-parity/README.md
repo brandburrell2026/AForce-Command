@@ -55,30 +55,31 @@ Reference, lower half: ![](home/reference-home-lower.jpg) · Nothing planned: ![
 
 ## 3b. Hydration tab
 
-| Reference | Rebuilt | Above the target (262 of 96 oz) |
-|---|---|---|
-| ![](hydration/reference-hydration-top.jpg) | ![](hydration/rebuilt-hydration-top.jpg) | ![](hydration/rebuilt-hydration-above-target.jpg) |
+Founder instruction, 2026-11-18: the Hydration screen must look 100% like the demo, and anything not in the demo must not be there.
 
-Reference, lower half: ![](hydration/reference-hydration-lower.jpg)
-
-| Element | Reference | Rebuilt | Match |
+| Demo, top | Rebuilt, top | Demo, lower | Rebuilt, lower |
 |---|---|---|---|
-| Member photo top right; no wordmark header | Yes | Yes | ✔ |
-| Mark + "Hydration · today", today's ounces at 96pt light, "of 96 oz starting target · logged" | Yes | Yes, real values | ✔ |
-| Status line pill | Yes | Yes, from real Moments; hidden when nothing is planned | ✔ |
-| Ring card: 120pt ring ("42 oz · of 96"), "44% of starting target", "Estimated from what you logged · time" | Yes | Yes | ✔ |
-| "How the target works" link | Opens a sheet | **Replaced by the explanation shown in place, always visible** | ◐ safety (stop-ship RA-N8) |
-| "Scan a drink" (primary) and "Log manually" (ghost), equal width | Yes | Yes | ✔ |
-| Electrolytes / Recovery rows | Not shown | Hidden until they have data; AFORCE servings appear as one quiet line when logged | ✔ |
-| "Shortcut" card (one-tap repeat of a scanned drink) | Yes (sample) | Not built: it is a feature, not styling | ✘ feature |
-| Recent: name, "Today · time", ounces, hairline rows | Yes | Yes | ✔ |
-| History: Week / Month bars against the target, Moment marks, no flagged misses | Yes | **Not built.** The week dots remain (now warm white, as Screen Upgrade asks), with the link to the history screen | ✘ data |
-| Above the target | Not shown in the prototype | Ring stops at a full circle; the numbers show the true total and percentage | decision Y1 |
-| Side gutter | 20pt | 20pt | ✔ |
+| ![](hydration/reference-hydration-top.jpg) | ![](hydration/rebuilt-hydration-top.jpg) | ![](hydration/reference-hydration-lower.jpg) | ![](hydration/rebuilt-hydration-lower.jpg) |
 
-**Not changed:** logging through the existing open-only picker, duplicate protection, the offline banner, Gentle mode, the 96 oz starting point, the score.
+| Element | Demo | Rebuilt | Match |
+|---|---|---|---|
+| Member photo top right; nothing else in the top row | Yes | Yes (the Concierge quick buttons are removed from this screen) | ✔ |
+| Mark + "Hydration · today", ounces at 96pt light, "of 96 oz starting target · logged" | Yes | Yes | ✔ |
+| Status line pill | Yes | Yes; hidden when nothing is planned, as the demo does for a new member | ✔ |
+| Ring card: 120pt ring, "44% of starting target", "Estimated from what you logged · time" | Yes | Yes | ✔ |
+| "How the target works" link opening a sheet | Yes | Yes; the sheet holds the starting-point explanation | ✔ |
+| "Scan a drink" and "Log manually", equal width | Yes | Yes | ✔ |
+| Recent: up to four hairline rows; "Nothing logged yet." when empty | Yes | Yes | ✔ |
+| History: Week / Month switch, a bar per day, dashed target line, footnote | Yes | Yes, from the member's real daily totals | ✔ |
+| Red Moment marks above the bars | Yes | **Not drawn**; the footnote does not mention them | ✘ data |
+| "Shortcut" card | Yes (sample) | **Not drawn**: the one-tap repeat feature does not exist | ✘ feature |
+| Electrolytes row, Recovery row, week dots, separate history row, always-visible target note | Not in the demo | **Removed** | ✔ |
 
-**Why no History bars:** the tab has today's total and a rolling 24 hours of entries; it does not hold a per-day ounce history. Drawing bars needs that data loaded, which is a data change, not styling.
+**Kept though not visible in the demo, because they are not always on screen:** the offline banner (only when logs are waiting to sync), and Gentle mode (only when its switch is on).
+
+**Kept working without adding anything to the screen:** Performance Signal used to open from a separate history row. That row is gone; tapping the History chart opens it.
+
+**History data:** read-only, from the existing daily-totals request. If it cannot be read, the History section is not drawn.
 
 ## 4. Parity checklist — remaining screens
 
@@ -89,8 +90,7 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | Home · Moment planned | ✔ | ✔ harness | ✔ | this PR | — |
 | Home · nothing planned / new member | — | ✔ harness | — | this PR | — |
 | Home · Social tonight | ✔ (seen, not saved) | — | — | — | — |
-| Hydration · tab (top, Recent) | ✔ | ✔ harness | ✔ | PR (Hydration) | — |
-| Hydration · History bars | ✔ | — | ✔ | — (needs per-day data) | — |
+| Hydration · tab (top, Recent, History) | ✔ | ✔ harness | ✔ | PR #1244 + demo-exact PR | — |
 | Hydration · log sheet | — | — | — | — | — |
 | Hydration · log result | — | — | — | — | — |
 | One Breath · Capture | ✔ | — | — | — | — |

@@ -124,7 +124,7 @@ describe('Hydration tab — the tab root IS the hydration experience', () => {
     expect(HYDRATION).toContain("t('hydration.v2.log_manually')");
     expect(HYDRATION).toContain('<HydrationHero');
     expect(HYDRATION).toContain('ring={hero.ring}');
-    expect(HYDRATION).toContain("t('hydration.v2.this_week')");
+    expect(HYDRATION).toContain('<HydrationHistory');
   });
 });
 
@@ -159,12 +159,11 @@ describe('Performance Signal — still reachable, as a push destination', () => 
   });
 
   it('is pushed from the Hydration root by an obvious, labelled affordance', () => {
-    expect(HYDRATION).toContain("onPress={() => router.push('/performance-signal')}");
-    expect(HYDRATION).toContain('testID="hydration-v2-history-link"');
-    // A shipped primitive, not a new component: AFListRow already renders
-    // icon · title · subtitle · disclosure chevron and announces them as one.
-    expect(HYDRATION).toMatch(/<AFListRow[\s\S]{0,400}?hydration-v2-history-link/);
-    expect(HYDRATION).toMatch(/<AFListRow[\s\S]{0,400}?disclosure/);
+    expect(HYDRATION).toContain("onOpen={() => router.push('/performance-signal')}");
+    expect(HYDRATION).toContain('openTestID="hydration-v2-history-link"');
+    // The prototype has no separate history row, so the History chart itself
+    // is the control: one labelled button that opens the full history.
+    expect(HYDRATION).toMatch(/<HydrationHistory[\s\S]{0,500}?hydration-v2-history-link/);
   });
 
   it('names its destination in the row, using the destination screen\'s own title', () => {
