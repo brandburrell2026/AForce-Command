@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { hydrationHero } from '../hydrationCinematicLogic';
+import { hydrationHero } from '../cinematic/hydrationCinematicLogic';
 
 const at = (h: number, m: number) => new Date(2026, 10, 18, h, m);
 
@@ -45,7 +45,7 @@ describe('hydration hero', () => {
 });
 
 describe('the hero is presentation only', () => {
-  const view = readFileSync(join(__dirname, '..', 'HydrationHero.tsx'), 'utf8');
+  const view = readFileSync(join(__dirname, '..', 'cinematic', 'HydrationHero.tsx'), 'utf8');
   it('reads no store, logs nothing, uses no red and no sample copy', () => {
     expect(view).not.toMatch(/useAppStore|logIntake|calculateScore/);
     expect(view).not.toMatch(/af\.red(Text)?\b/);

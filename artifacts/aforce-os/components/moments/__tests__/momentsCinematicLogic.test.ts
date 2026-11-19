@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { isMomentDone, isMomentLive, momentsModel, momentWhenShort, MOMENTS_EMPTY_HERO } from '../momentsCinematicLogic';
+import { isMomentDone, isMomentLive, momentsModel, momentWhenShort, MOMENTS_EMPTY_HERO } from '../cinematic/momentsCinematicLogic';
 import type { Moment } from '@/types/moments';
 
 const at = (d: number, h = 0, mi = 0) => new Date(2026, 10, d, h, mi);
@@ -75,7 +75,7 @@ describe('moments model', () => {
 });
 
 describe('the Moments layout is presentation only', () => {
-  const view = readFileSync(join(__dirname, '..', 'MomentsCinematic.tsx'), 'utf8');
+  const view = readFileSync(join(__dirname, '..', 'cinematic', 'MomentsCinematic.tsx'), 'utf8');
   it('reads no store, uses no red and no sample copy', () => {
     expect(view).not.toMatch(/useMomentsStore|useMomentsData|commitReviewedMoment/);
     expect(view).not.toMatch(/af\.red(Text)?\b/);

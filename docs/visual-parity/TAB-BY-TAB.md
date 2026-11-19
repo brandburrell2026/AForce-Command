@@ -31,7 +31,8 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Panel is translucent over the photo | Solid | ◐ follows the photo |
 | Nothing under the panel | Nothing under the panel (Travel card, Concierge entry and the quiet list are removed) | ✔ (Home PR) |
 | No confidence line | Moved inside "Why?" | ✔ (Home PR) |
-| "Before the Moment" and "Return" cards when they apply | Not built | ✘ feature |
+| "Before the Moment" card ahead of a sealed Moment | Built: shows within 12 hours of a sealed Moment that is not yet locked in — "Your preparation is set.", when it was sealed and the next reviewed step. Opens the Moment | ◐ says nothing about "what changed since you sealed": the app does not check that. No re-seal offer. No capture yet |
+| "Return" card after a Moment | Built: shows for 24 hours once the member has recorded they are back and the replay is unanswered — "Back from …", "Replay · 1 question", Skip | ◐ never inferred from the clock; Skip hides it until the app is next opened. No capture yet |
 
 ## Hydration
 

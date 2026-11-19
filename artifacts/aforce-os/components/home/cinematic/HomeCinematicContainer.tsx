@@ -11,9 +11,12 @@ import React from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useMomentsData } from '@/components/moments/useMomentsData';
+import { useMomentsStore } from '@/services/momentsStore';
 import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
 import type { Moment } from '@/types/moments';
 import { HomeCinematic } from './HomeCinematic';
+import { HomeMomentCards } from './HomeMomentCards';
+import { homeBeforeCard, homeReturnCard } from './homeMomentCardsLogic';
 import {
   homeClock,
   homeDateLine,
@@ -62,6 +65,16 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
   const next = data.hydrated ? data.next ?? null : null;
   const hero = homeMomentHero(next, props.now, t('moments.private_event'));
   const ring = homeRing(props.evidence, props.score);
+  // The prototype's two Moment cards. They appear only when they apply and
+  // only open the Moment's own screen.
+  const [skippedReturns, setSkippedReturns] = React.useState<ReadonlySet<string>>(() => new Set());
+  // Read from the member's own Moments, not the today-forward list: a Moment
+  // that began last night can still be waiting for its replay this morning.
+  const store = useMomentsStore();
+  const allMoments = props.fixtureMoments ?? (store.hydrated ? store.moments : []);
+  const privateLabel = t('moments.private_event');
+  const beforeCard = homeBeforeCard(allMoments, props.now, privateLabel);
+  const returnCard = homeReturnCard(allMoments, props.now, privateLabel, skippedReturns);
   const source =
     props.sourceLabel && props.sourceFetchedAtMs
       ? `${props.sourceLabel} · ${homeClock(new Date(props.sourceFetchedAtMs))}`
@@ -93,6 +106,12 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
       sourceLine={source}
       notice={props.notice}
     >
+      <HomeMomentCards
+        before={beforeCard}
+        back={returnCard}
+        onOpen={(id) => router.push(`/moment/${id}`)}
+        onSkipReturn={(id) => setSkippedReturns((prev) => new Set(prev).add(id))}
+      />
       {props.children}
     </HomeCinematic>
   );

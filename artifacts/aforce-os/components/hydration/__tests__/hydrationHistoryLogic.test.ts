@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { dayKey, historyBars, historyDates, historyTargetLine } from '../hydrationHistoryLogic';
+import { dayKey, historyBars, historyDates, historyTargetLine } from '../cinematic/hydrationHistoryLogic';
 
 // Wednesday 18 Nov 2026; its calendar week is Sun 15 – Sat 21.
 const today = new Date(2026, 10, 18, 19, 0);
@@ -66,8 +66,8 @@ describe('history bars — month', () => {
 });
 
 describe('the History section', () => {
-  const src = readFileSync(join(__dirname, '..', 'HydrationHistory.tsx'), 'utf8');
-  const screen = readFileSync(join(__dirname, '..', '..', 'HydrationScreenV2.tsx'), 'utf8');
+  const src = readFileSync(join(__dirname, '..', 'cinematic', 'HydrationHistory.tsx'), 'utf8');
+  const screen = readFileSync(join(__dirname, '..', 'HydrationScreenV2.tsx'), 'utf8');
   it('only reads, and never hides itself', () => {
     expect(src).toContain('fetchJournalRollups(30)');
     expect(src).not.toMatch(/postJson|logIntake|putJson|deleteJson/);
