@@ -110,6 +110,17 @@ export const edType: Record<string, EdTypeRole> = {
   homeCompactState: {fontFamily:Typography.fonts.bold,fontSize:26,lineHeight:32},
   homeCompactNumber: {fontFamily:Typography.fonts.bold,fontSize:64,lineHeight:72},
   homeFocusLink: {fontFamily:Typography.fonts.medium,fontSize:15},
+  // Approved-prototype look (2026-11-19) — the roles the Recovery screen uses
+  // so it reads like the rest of the app: Inter 600 titles, a light numeral,
+  // 11pt mono furniture. Additive; no existing role changes.
+  protoTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 36, lineHeight: 38, letterSpacing: -0.72 },
+  protoLede: { fontFamily: Typography.fonts.regular, fontSize: 15, lineHeight: 22 },
+  protoEyebrow: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2 },
+  protoNumeral: { fontFamily: 'Inter_300Light', fontSize: 64, lineHeight: 68, letterSpacing: -1.9 },
+  protoReading: { fontFamily: 'Inter_600SemiBold', fontSize: 20, lineHeight: 24 },
+  protoStep: { fontFamily: Typography.fonts.regular, fontSize: 16, lineHeight: 22 },
+  protoStepLive: { fontFamily: 'Inter_600SemiBold', fontSize: 18, lineHeight: 22, letterSpacing: -0.2 },
+  protoButton: { fontFamily: 'Inter_600SemiBold', fontSize: 15, lineHeight: 20 },
   /** Oversized display statement (covers). */
   display: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
   /** Screen statement. */

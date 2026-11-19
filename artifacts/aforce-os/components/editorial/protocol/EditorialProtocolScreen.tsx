@@ -22,6 +22,11 @@
  *       English the derivation ships, recorded as post-E4 debt.
  *  D4 — ProtocolScreenLegacy remains the rollback branch (route seam).
  *
+ * LOOK (2026-11-19) — styled after the approved prototype like the rest of
+ * the app: the mono name, an Inter 600 title, cards with the 20pt corner and
+ * a pill for the one control. Presentation only: every value, word, key,
+ * action and test id above is unchanged, and the law test is untouched.
+ *
  * STRUCTURAL NOTES
  *  • Protocol is a ROOT TAB, so there is NO back control and no `EdReturn` —
  *    the opposite of the two pushed Moments routes.
@@ -53,10 +58,10 @@ import { deriveProtocol } from '@/services/protocolDerivation';
 import { useAppStore } from '@/store/useAppStore';
 import { useBootstrapSlice } from '@/store/slices';
 import { explainFieldArbitration } from '@/utils/biometricsAggregator';
-import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edInkFor, edPositive, edRhythm, edStock, edType } from '@/theme/editorialTokens';
 
-import { EdCaption, EdEvidenceLine, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
+import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdBriefChecklist } from './EdBriefChecklist';
 import { EdCanonicalClock } from './EdCanonicalClock';
 import { briefGaugeFraction } from './editorialProtocolPresentation';
@@ -129,8 +134,9 @@ export function EditorialProtocolScreen() {
       <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
         <Animated.View style={settle}>
           {/* Root tab: masthead furniture only — no back control. */}
-          <EdCaption text={t('protocol.v2.eyebrow')} />
-          <EdRule />
+          <View style={styles.topRow}>
+            <Text style={styles.eyebrow}>{t('protocol.v2.eyebrow')}</Text>
+          </View>
 
           {/* D2 — the same notice Home renders, from the same flag and key. */}
           {lastRefreshStale ? (
@@ -144,10 +150,14 @@ export function EditorialProtocolScreen() {
 
           {/* The stage as context. Verbatim from the derivation — never a
               locale key here, and never paraphrased (D3). */}
-          <EdStatement accessibilityRole="header">{protocol.stage}</EdStatement>
-          <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 10 }]}>
-            {protocol.description}
+          <Text
+            accessibilityRole="header"
+            maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
+            style={styles.title}
+          >
+            {protocol.stage}
           </Text>
+          <Text style={styles.description}>{protocol.description}</Text>
 
           <NightOutProtocolEntry />
 
@@ -162,9 +172,9 @@ export function EditorialProtocolScreen() {
             })}`}
           />
 
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <EdCaption text={t('protocol.v2.today_section')} />
+          <View style={styles.card}>
+            <View style={styles.sectionHeadRow}>
+              <Text style={styles.eyebrow}>{t('protocol.v2.today_section')}</Text>
               {/* The count V2 renders beside its Completed-today header. A
                   count, not a percentage — D1 bans derived metrics, not the
                   step tally the checklist already states. */}
@@ -188,9 +198,9 @@ export function EditorialProtocolScreen() {
               own target. Omitted entirely when there is no target: no
               invented denominator (the resolver returns null). */}
           {signals.hydration ? (
-            <View style={styles.section} testID="editorial-protocol-hydration">
-              <EdCaption text={t('protocol.v3.hydration')} />
-              <Text style={[edType.data as TextStyle, { color: ink.primary, marginTop: 6 }]}>
+            <View style={styles.card} testID="editorial-protocol-hydration">
+              <Text style={styles.eyebrow}>{t('protocol.v3.hydration')}</Text>
+              <Text style={styles.reading}>
                 {t('protocol.v3.hydration_oz', {
                   consumed: signals.hydration.consumed,
                   target: signals.hydration.target,
@@ -199,8 +209,8 @@ export function EditorialProtocolScreen() {
             </View>
           ) : null}
 
-          <View style={styles.section}>
-            <EdCaption text={t('protocol.v3.recovery_signals')} />
+          <View style={styles.card}>
+            <Text style={styles.eyebrow}>{t('protocol.v3.recovery_signals')}</Text>
             {anySignal ? (
               <>
                 {/* Live is a freshness qualifier on the section, not a third
@@ -234,11 +244,11 @@ export function EditorialProtocolScreen() {
               delete"); the E4 review caught this surface dropping it. Same
               slice, same five entries, same fields. */}
           {observedHistory.length > 0 ? (
-            <View style={styles.section} testID="editorial-protocol-history">
-              <EdCaption text={t('protocol.v2.recent_activity')} />
+            <View style={styles.card} testID="editorial-protocol-history">
+              <Text style={styles.eyebrow}>{t('protocol.v2.recent_activity')}</Text>
               {observedHistory.slice(0, 5).map((entry) => (
                 <View key={entry.id}>
-                  <EdRule />
+                  <View style={styles.hairline} />
                   <View
                     accessible
                     accessibilityLabel={`${entry.action} ${formatTimeAgo(entry.timestamp)} ${entry.score}`}
@@ -270,9 +280,7 @@ export function EditorialProtocolScreen() {
             style={styles.whyTarget}
             testID="editorial-protocol-why"
           >
-            <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-              {t('protocol.v2.why_this_plan')}
-            </Text>
+            <Text style={styles.whyText}>{t('protocol.v2.why_this_plan')}</Text>
           </Pressable>
 
           <View style={styles.folio}>
@@ -308,23 +316,31 @@ function Signal({ label, value }: { label: string; value: string }) {
   return (
     <View accessible accessibilityLabel={`${label} ${value}`.trim()} style={styles.signal}>
       <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>{label}</Text>
-      {value ? (
-        <Text style={[edType.data as TextStyle, { color: ink.primary, marginTop: 3 }]}>{value}</Text>
-      ) : null}
+      {value ? <Text style={styles.reading}>{value}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: edStock.black },
-  section: { marginTop: 26 },
-  sectionHead: {
+  topRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', minHeight: edRhythm.minTarget },
+  eyebrow: { ...(edType.protoEyebrow as TextStyle), color: af.textSecondary },
+  title: { ...(edType.protoTitle as TextStyle), color: af.textPrimary, marginTop: 14 },
+  description: { ...(edType.protoLede as TextStyle), color: af.textSecondary, marginTop: 8 },
+  card: {
+    marginTop: 12, padding: 18, borderRadius: 20, borderWidth: 1,
+    borderColor: af.border, backgroundColor: af.surface,
+  },
+  sectionHeadRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
     columnGap: 12,
     flexWrap: 'wrap',
+    marginBottom: 6,
   },
+  reading: { ...(edType.protoReading as TextStyle), color: af.textPrimary, marginTop: 6 },
+  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: af.divider, marginVertical: 10 },
   historyRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -342,10 +358,15 @@ const styles = StyleSheet.create({
   },
   signal: { minWidth: 64 },
   whyTarget: {
-    marginTop: 26,
-    minHeight: edRhythm.minTarget,
+    marginTop: 16,
+    minHeight: 52,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: af.border,
+    paddingHorizontal: 22,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'flex-start',
   },
+  whyText: { ...(edType.protoButton as TextStyle), color: af.textPrimary, textAlign: 'center' },
   folio: { marginTop: 24 },
 });

@@ -6,11 +6,13 @@
  * it is testable in isolation (render harness) and can never enable a gated
  * feature.
  *
- * Black Issue (PR 4, 2026-10-07): AFMasthead, the current-state numeral over a
- * red progress hairline, the recovery metric row, the sleep-target plan card,
- * the one red protocol CTA, then the existing recovery / health source /
- * protocol checklist / lifecycle / guidance sections as AFSectionLabel +
- * hairline rows (relocated, never dropped). Status colours (health chip,
+ * Styled after the approved prototype (2026-11-19): back + mono name, the
+ * Inter 600 title, then cards with the demo's 20pt corner — the current-state
+ * numeral over a red progress line, the recovery metric row, the sleep-target
+ * plan card and a single pill button — then the existing recovery / health
+ * source / protocol checklist / lifecycle / guidance sections. Presentation
+ * only: every word, value, action and test id is the one it was
+ * (relocated, never dropped). Status colours (health chip,
  * recovery posture dot) stay system-sourced (D3). Sleep data is never
  * fabricated: an absent night renders the resolver's em-dash / "no signal"
  * treatment and an empty progress track, never a zero. Reduced-motion aware
@@ -22,7 +24,6 @@ import React from 'react';
 import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { af, afType, afLayout, afAlpha, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon, type IconName } from '@/components/Icon';
-import { AFMasthead } from '@/components/ui/AFMasthead';
 import { AFSectionLabel } from '@/components/ui/AFSectionLabel';
 import { AFCard } from '@/components/ui/AFCard';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
@@ -52,6 +53,10 @@ export interface SleepModeViewProps {
    */
   onChecklistLayout?: (y: number) => void;
 }
+
+/** The demo's card corner and mono furniture face. */
+const CARD_RADIUS = 20;
+const MONO = 'IBMPlexMono_400Regular';
 
 const CHIP_COLOR: Record<HealthChip, string> = {
   connected: af.green,
@@ -89,8 +94,8 @@ function SectionBlock({
  * haptic, so nothing is lost.
  */
 function CtaButton({
-  label, onPress, trailingIcon, testID,
-}: { label: string; onPress: () => void; trailingIcon?: IconName; testID: string }) {
+  label, onPress, testID,
+}: { label: string; onPress: () => void; testID: string }) {
   return (
     <Pressable
       onPress={onPress}
@@ -100,7 +105,6 @@ function CtaButton({
       style={({ pressed }) => [styles.ctaBtn, pressed && styles.ctaBtnPressed]}
     >
       <Text style={styles.ctaLabel}>{label}</Text>
-      {trailingIcon ? <Icon name={trailingIcon} size={18} color={af.onPrimaryFill} /> : null}
     </Pressable>
   );
 }
@@ -124,13 +128,24 @@ export function SleepModeView({
     <View style={[styles.root, { paddingHorizontal: gutter }]} testID="sleep-mode-view">
       {/* 1 · Masthead — wordmark, breadcrumb, statement, quiet line. Every
           string is the existing header / hero copy (relocated, not rewritten). */}
-      <AFMasthead
-        breadcrumb={header.title}
-        title={header.tagline}
-        subtitle={hero.description}
-        onBack={onBack}
-        testID="sleep"
-      />
+      <View style={styles.topRow} testID="sleep">
+        <Pressable
+          onPress={onBack}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          hitSlop={8}
+          style={styles.back}
+          testID="sleep-back"
+        >
+          <Icon name="chevron-left" size={18} color={af.textPrimary} />
+          <Text style={styles.backText}>Back</Text>
+        </Pressable>
+        <Text style={styles.topEyebrow}>{header.title}</Text>
+      </View>
+      <Text accessibilityRole="header" style={styles.title} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+        {header.tagline}
+      </Text>
+      <Text style={styles.subtitle}>{hero.description}</Text>
 
       {/* Kill switch (sleep_mode_enabled) — legacy-banner parity. Rendered
           loud so the gated state is never silent; text carries the meaning
@@ -160,7 +175,6 @@ export function SleepModeView({
       ) : null}
 
       {/* 2 · Current-state readout — caption, numeral, phase word, red hairline */}
-      <View style={styles.rule} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
       <View style={styles.hero} testID={`sleep-hero-${lifecycle.states[lifecycle.activeIndex]?.key ?? 'idle'}`}>
         <View accessible accessibilityRole="text" accessibilityLabel={heroSpoken}>
           <Text style={[styles.heroLabel, eyebrowType]}>{ring.caption}</Text>
@@ -182,7 +196,7 @@ export function SleepModeView({
 
       {/* 3 · Recovery metric row — real values only (resolver contract) */}
       {recovery.metrics.length > 0 ? (
-        <View style={styles.metricRow}>
+        <View style={styles.metricRow} testID="sleep-metric-row">
           {recovery.metrics.map((m) => (
             <View key={m.label} style={styles.metric} accessible accessibilityLabel={`${m.label}: ${m.value}`}>
               <Text style={[styles.metricLabel, eyebrowType]}>{m.label}</Text>
@@ -246,7 +260,7 @@ export function SleepModeView({
       {/* 5 · The one red CTA — same action and label as before; the protocol
           checklist it points at follows below. */}
       <View style={styles.cta}>
-        <CtaButton label={checklist.primaryCtaLabel} onPress={onPrimaryCta} trailingIcon="plus" testID="sleep-primary-cta" />
+        <CtaButton label={checklist.primaryCtaLabel} onPress={onPrimaryCta} testID="sleep-primary-cta" />
       </View>
 
       {/* 6 · Recovery readiness — posture + interpretation (metrics sit above) */}
@@ -279,7 +293,7 @@ export function SleepModeView({
       {/* 8 · Pre-sleep protocol checklist */}
       <View onLayout={(e) => onChecklistLayout?.(e.nativeEvent.layout.y)}>
         <SectionBlock label="Pre-sleep protocol" meta={checklist.progressLabel}>
-          <View>
+          <View style={styles.checkCard}>
             {checklist.items.map((item, i) => (
               <Pressable
                 key={item.id}
@@ -327,47 +341,53 @@ export function SleepModeView({
 const styles = StyleSheet.create({
   root: { paddingTop: 8, paddingBottom: 24 },
 
-  rule: { height: afLayout.hairline, backgroundColor: af.divider, marginVertical: 20 },
+  // Top of the page, as on the Protocols list: back, the mono name, the title.
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 12, minHeight: 44 },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingRight: 8 },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 15, color: af.textPrimary },
+  topEyebrow: { fontFamily: MONO, fontSize: 11, lineHeight: 14, letterSpacing: 2, color: af.textSecondary, flexShrink: 1 },
+  title: { fontFamily: 'Inter_600SemiBold', fontSize: 36, lineHeight: 38, letterSpacing: -0.72, color: af.textPrimary, marginTop: 14 },
+  subtitle: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, color: af.textSecondary, marginTop: 8 },
 
   gatedBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16,
-    paddingVertical: 10, paddingHorizontal: 14, borderRadius: afLayout.radiusCard, minHeight: 44,
+    paddingVertical: 10, paddingHorizontal: 14, borderRadius: CARD_RADIUS, minHeight: 44,
     borderWidth: 1, borderColor: withAlpha(af.amber, afAlpha.a50), backgroundColor: withAlpha(af.amber, afAlpha.a08),
   },
   gatedBannerText: { ...afType.eyebrow, color: af.amber, flex: 1 },
 
   shell: {
-    marginTop: 16, padding: 16, borderRadius: afLayout.radiusCard, borderWidth: 1,
+    marginTop: 16, padding: 16, borderRadius: CARD_RADIUS, borderWidth: 1,
     borderColor: af.border, backgroundColor: af.surface, flexDirection: 'row', alignItems: 'center', gap: 10,
   },
   shellError: { borderColor: af.borderAlert, backgroundColor: af.surfaceAlert },
   shellText: { ...afType.secondary, color: af.textSecondary, flex: 1 },
 
   // Current-state readout
-  hero: {},
+  hero: { marginTop: 20, padding: 18, borderRadius: CARD_RADIUS, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface },
   heroLabel: { ...afType.eyebrow, color: af.textTertiary },
   numeralRow: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', columnGap: 16, rowGap: 4, marginTop: 8 },
-  numeral: { ...afType.displayScore, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
+  numeral: { fontFamily: 'Inter_300Light', fontSize: 64, lineHeight: 68, letterSpacing: -1.9, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
   stateCol: { paddingBottom: 10, gap: 4, flexShrink: 1 },
   stateEyebrow: { ...afType.micro, color: af.textTertiary },
   stateWord: { ...afType.eyebrow, color: af.textSecondary },
-  track: { height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 20 },
+  track: { height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 16 },
   trackFill: { height: 4, borderRadius: 2, backgroundColor: af.red },
 
   // Metric row
-  metricRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28, rowGap: 16, marginTop: 28 },
+  metricRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28, rowGap: 16, marginTop: 12, padding: 18, borderRadius: CARD_RADIUS, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface },
   metric: { gap: 6, flexShrink: 1 },
   metricLabel: { ...afType.micro, color: af.textTertiary, textTransform: 'uppercase' },
-  metricValue: { ...afType.title3, color: af.textPrimary, fontVariant: ['tabular-nums'] },
-  metricEmpty: { ...afType.secondary, color: af.textTertiary, marginTop: 28 },
+  metricValue: { fontFamily: 'Inter_600SemiBold', fontSize: 20, lineHeight: 24, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  metricEmpty: { ...afType.secondary, color: af.textTertiary, marginTop: 16 },
 
   // Plan card
-  planCard: { marginTop: 28, gap: 12 },
+  planCard: { marginTop: 12, gap: 12, borderRadius: CARD_RADIUS },
   planSentence: { ...afType.bodyStrong, color: af.textPrimary },
   targetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 12, rowGap: 8, minHeight: 44 },
   targetEditRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  targetTime: { ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
-  targetInput: { flex: 1, ...afType.displayHero, fontSize: 40, lineHeight: 44, color: af.textPrimary, paddingVertical: 0 },
+  targetTime: { fontFamily: 'Inter_300Light', fontSize: 40, lineHeight: 44, letterSpacing: -1.2, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
+  targetInput: { flex: 1, fontFamily: 'Inter_300Light', fontSize: 40, lineHeight: 44, letterSpacing: -1.2, color: af.textPrimary, paddingVertical: 0 },
   editChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, minHeight: 44, justifyContent: 'center' },
   editChipText: { ...afType.eyebrow, color: af.textSecondary },
   saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.primaryFill, minHeight: 44, justifyContent: 'center' },
@@ -382,12 +402,12 @@ const styles = StyleSheet.create({
   // CTA
   cta: { marginTop: 20 },
   ctaBtn: {
-    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusButton, paddingHorizontal: 20, paddingVertical: 8,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', columnGap: 12,
+    minHeight: afLayout.buttonHeight, borderRadius: afLayout.radiusPill, paddingHorizontal: 22, paddingVertical: 8,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', columnGap: 12,
     backgroundColor: af.primaryFill,
   },
   ctaBtnPressed: { opacity: 0.85 },
-  ctaLabel: { ...afType.bodyStrong, color: af.onPrimaryFill, flexShrink: 1 },
+  ctaLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 20, color: af.onPrimaryFill, flexShrink: 1, textAlign: 'center' },
 
   // Sections
   section: { marginTop: 32 },
@@ -408,9 +428,10 @@ const styles = StyleSheet.create({
   healthCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, borderTopWidth: 1, borderTopColor: af.divider },
   healthCtaText: { ...afType.secondary, color: af.textSecondary },
 
+  checkCard: { borderRadius: CARD_RADIUS, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface, paddingHorizontal: 14, paddingVertical: 4 },
   checkItem: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 6 },
   checkItemRuled: { borderTopWidth: 1, borderTopColor: af.divider },
-  checkbox: { width: 32, height: 32, borderRadius: 10, borderWidth: 1, borderColor: af.border, alignItems: 'center', justifyContent: 'center', backgroundColor: af.canvasElevated },
+  checkbox: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: af.border, alignItems: 'center', justifyContent: 'center', backgroundColor: af.canvasElevated },
   checkboxDone: { backgroundColor: af.textPrimary, borderColor: af.textPrimary },
   checkTextWrap: { flex: 1, gap: 1 },
   checkLabel: { ...afType.bodyStrong, color: af.textPrimary },
