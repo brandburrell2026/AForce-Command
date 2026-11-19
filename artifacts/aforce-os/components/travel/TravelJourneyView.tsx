@@ -115,6 +115,32 @@ export function TravelJourneyView({ view, actions }: { view: JourneyView; action
         </View>
       ) : null}
 
+      {view.plan.length > 0 ? (
+        <View testID="travel-journey-plan">
+          <Text style={styles.planEyebrow} accessibilityRole="header">YOUR PLAN</Text>
+          <View style={styles.plan}>
+            {view.plan.map((step, i) => (
+              <View
+                key={step.title}
+                style={styles.planRow}
+                accessible
+                accessibilityLabel={`${step.time}. ${step.title}. ${step.note}.${step.status === 'done' ? ' Done.' : step.status === 'now' ? ' Now.' : ''}`}
+              >
+                <Text style={[styles.planTime, step.status === 'done' && styles.planPast]}>{step.time}</Text>
+                <View style={styles.planRail}>
+                  <View style={[styles.planDot, step.status !== 'next' && styles.planDotOn]} />
+                  {i < view.plan.length - 1 ? <View style={styles.planLine} /> : null}
+                </View>
+                <View style={styles.planBody}>
+                  <Text style={[styles.planTitle, step.status === 'done' && styles.planPast]}>{step.title}</Text>
+                  <Text style={styles.planNote}>{step.note}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.card}>
         {view.rows.map((row, i) => (
           <View key={row.label} style={[styles.row, i > 0 && styles.rowRule]}>
@@ -159,6 +185,18 @@ const styles = StyleSheet.create({
   routeRight: { alignItems: 'flex-end' },
   routeCode: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, letterSpacing: 1, color: af.textPrimary, opacity: 0.9 },
   routeTime: { fontFamily: 'Inter_300Light', fontSize: 28, lineHeight: 32, color: af.textPrimary },
+  planEyebrow: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2, color: af.textSecondary, marginBottom: 8 },
+  plan: { backgroundColor: af.surface, borderWidth: afLayout.hairline, borderColor: af.border, borderRadius: 20, paddingHorizontal: afLayout.cardPadding, paddingTop: 16 },
+  planRow: { flexDirection: 'row', gap: 12 },
+  planTime: { width: 78, fontFamily: 'IBMPlexMono_400Regular', fontSize: 12, lineHeight: 20, color: af.textPrimary },
+  planRail: { width: 9, alignItems: 'center' },
+  planDot: { width: 9, height: 9, borderRadius: 5, borderWidth: 1, borderColor: af.textSecondary, marginTop: 5 },
+  planDotOn: { backgroundColor: af.textPrimary, borderColor: af.textPrimary },
+  planLine: { flex: 1, width: afLayout.hairline, backgroundColor: af.divider, marginTop: 4 },
+  planBody: { flex: 1, paddingBottom: 16 },
+  planTitle: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 20, color: af.textPrimary },
+  planNote: { ...afType.caption, color: af.textSecondary, marginTop: 2 },
+  planPast: { color: af.textSecondary },
   review: { ...afType.secondary, color: af.textPrimary, borderWidth: afLayout.hairline, borderColor: af.borderAlert, borderRadius: afLayout.radiusCard, padding: afLayout.cardPadding },
   progressWrap: { gap: 8 },
   track: { height: 3, borderRadius: 3, backgroundColor: af.surfacePressed, overflow: 'hidden' },

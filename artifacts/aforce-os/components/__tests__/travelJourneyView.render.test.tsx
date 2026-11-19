@@ -133,3 +133,24 @@ it('the route line never invents an arrival time or a shift', async () => {
     expect(view.route.shift).toBeNull();
   }
 });
+
+it('shows "Your plan" with the three planned steps, read aloud with their state', async () => {
+  await render(<TravelJourneyView view={viewAt('2026-11-12T13:25:00Z')} actions={actions} />);
+  const plan = host.querySelector('[data-testid="travel-journey-plan"]')!;
+  expect(plan.textContent).toContain('YOUR PLAN');
+  expect(plan.textContent).toContain('7:05 AM');
+  expect(plan.textContent).toContain('Depart JFK · LOCK-IN');
+  expect(plan.textContent).toContain('In the air');
+  expect(plan.textContent).toContain('Land in Miami');
+  const labels = Array.from(plan.querySelectorAll('[aria-label]')).map((n) => n.getAttribute('aria-label'));
+  expect(labels).toEqual([
+    '7:05 AM. Depart JFK · LOCK-IN. New York time · planned. Done.',
+    'In the air. Quiet. Until you land. Now.',
+    '10:12 AM. Land in Miami. Miami time · planned.',
+  ]);
+});
+
+it('no plan section when the view carries no steps', async () => {
+  await render(<TravelJourneyView view={{ ...viewAt('2026-11-12T13:25:00Z'), plan: [] }} actions={actions} />);
+  expect(host.querySelector('[data-testid="travel-journey-plan"]')).toBeNull();
+});
