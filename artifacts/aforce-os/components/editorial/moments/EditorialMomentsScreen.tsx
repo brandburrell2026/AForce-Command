@@ -132,9 +132,10 @@ export function EditorialMomentsScreen({
               done={model.done}
               onPressRow={(id) => router.push(`/moment/${id}`)}
               links={[
-                ...(calendarOn
-                  ? [{ title: 'Calendar', sub: 'All Moments', onPress: () => router.push('/calendar-settings'), testID: 'moments-link-calendar' }]
-                  : []),
+                // The prototype's Calendar page: the member's own Moments by day.
+                // It reads nothing from the phone; connecting a phone calendar
+                // stays on its own flag-gated screen, reached from that page.
+                { title: 'Calendar', sub: 'All Moments', onPress: () => router.push('/moments-calendar' as never), testID: 'moments-link-calendar' },
                 { title: 'Protocols', sub: 'Recovery · Sleep · Travel', onPress: () => router.push('/protocol'), testID: 'moments-link-protocols' },
               ]}
             >
