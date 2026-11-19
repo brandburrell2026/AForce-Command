@@ -40,7 +40,8 @@ import { renderPerformanceSections } from './panes/PerformancePane';
 
 export const PROFILE_TRADEMARK_LINE =
   'AFORCE OS™ · Beta preview · AFORCE, AFORCE OS and the N–И mark are trademarks of AFORCE Hydration, Inc.';
-import { renderDevicesSections } from './panes/DevicesPane';
+import { deviceSummaries, renderDevicesSections } from './panes/DevicesPane';
+import { DevicesHome, DevicesManageHeader } from './DevicesHome';
 import { ACCOUNT_SECTION_ORDER, renderAccountSections } from './panes/AccountPane';
 import { ACCOUNT_VIEW_BLOCKS, AccountHome, AccountViewHeader, type AccountViewId } from './AccountHome';
 import { renderDeveloperSections } from './panes/DeveloperPane';
@@ -328,8 +329,12 @@ export function ProfileScreenV2() {
   // Which Account view is open; null is the Account list itself. Leaving the
   // Account section always returns to the list.
   const [accountView, setAccountView] = useState<AccountViewId | null>(null);
+  // Devices opens on the short list; "Manage devices and apps" shows the
+  // full device cards. Leaving the section returns to the list.
+  const [devicesManaging, setDevicesManaging] = useState(false);
   const setProfileTab = useCallback((tab: ProfileTabId) => {
     setAccountView(null);
+    setDevicesManaging(false);
     setProfileTabRaw(tab);
   }, []);
   // Mocked OAuth state for the third-party health platforms shown in
@@ -1204,10 +1209,20 @@ export function ProfileScreenV2() {
               return (
                 <>
                   {tabBar}
-                  <Text style={styles.devicePagePromise}>{t('profile.v2.devices_promise')}</Text>
-                  {activeSections.map((node, i) => (
-                    <React.Fragment key={`devices-${i}`}>{node}</React.Fragment>
-                  ))}
+                  {devicesManaging ? (
+                    <>
+                      <DevicesManageHeader onBack={() => setDevicesManaging(false)} />
+                      <Text style={styles.devicePagePromise}>{t('profile.v2.devices_promise')}</Text>
+                      {activeSections.map((node, i) => (
+                        <React.Fragment key={`devices-${i}`}>{node}</React.Fragment>
+                      ))}
+                    </>
+                  ) : (
+                    <DevicesHome
+                      rows={whoopStatusChecked && garminStatusChecked ? deviceSummaries(paneCtx) : null}
+                      onManage={() => setDevicesManaging(true)}
+                    />
+                  )}
                 </>
               );
             }
