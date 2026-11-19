@@ -114,6 +114,7 @@ export const edType: Record<string, EdTypeRole> = {
   // so it reads like the rest of the app: Inter 600 titles, a light numeral,
   // 11pt mono furniture. Additive; no existing role changes.
   protoTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 36, lineHeight: 38, letterSpacing: -0.72 },
+  protoHero: { fontFamily: 'Inter_600SemiBold', fontSize: 44, lineHeight: 46, letterSpacing: -1.1 },
   protoLede: { fontFamily: Typography.fonts.regular, fontSize: 15, lineHeight: 22 },
   protoEyebrow: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2 },
   protoNumeral: { fontFamily: 'Inter_300Light', fontSize: 64, lineHeight: 68, letterSpacing: -1.9 },
