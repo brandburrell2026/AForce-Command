@@ -76,6 +76,7 @@ describe('every screen asks through the same check', () => {
     'components/hydration/HydrationScreenV2.tsx',
     'components/profile/ProfileHeader.tsx',
     'components/moments/cinematic/MomentsCalendarScreen.tsx',
+    'components/travel/TravelIntelligenceScreen.tsx',
   ];
   it('no screen reads the image table directly', () => {
     for (const f of SCREENS) {

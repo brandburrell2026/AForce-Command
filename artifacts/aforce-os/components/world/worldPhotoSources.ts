@@ -50,6 +50,10 @@ import one_breath from '@/assets/world/one_breath.jpg';
 import hydration from '@/assets/world/hydration.jpg';
 import profile from '@/assets/world/profile.jpg';
 import calendar from '@/assets/world/calendar.jpg';
+import travel_page from '@/assets/world/travel_page.jpg';
+import travel_before from '@/assets/world/travel_before.jpg';
+import travel_air from '@/assets/world/travel_air.jpg';
+import travel_arrived from '@/assets/world/travel_arrived.jpg';
 
 export const WORLD_PHOTO_SOURCES: Record<WorldScene, ImageSourcePropType> = {
   gym,
@@ -91,6 +95,10 @@ export const WORLD_PHOTO_SOURCES: Record<WorldScene, ImageSourcePropType> = {
   hydration,
   profile,
   calendar,
+  travel_page,
+  travel_before,
+  travel_air,
+  travel_arrived,
 };
 
 /** The photograph for a scene, or nothing in a build that may not show them. */

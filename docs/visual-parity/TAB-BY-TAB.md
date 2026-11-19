@@ -142,9 +142,9 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 
 ## Photographs (internal builds only)
 
-39 World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935, 9.5 MB in all). They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
+43 World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935, about 10 MB in all). They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
 
-**No two places share a photograph** (Brandon, 2026-11-19); a test enforces it. Three separate sets: 13 Moment scenes for Home, a second photograph of each for the Moment's own screen, and 13 fixed photographs, one per screen.
+**No two places share a photograph** (Brandon, 2026-11-19); a test enforces it. Three separate sets: 13 Moment scenes for Home, a second photograph of each for the Moment's own screen, and 17 fixed photographs: one per screen, and four for Travel.
 
 | Where | Photograph | |
 |---|---|---|
@@ -159,7 +159,7 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 | Sign-in promise screen | Its own: figure at the top of stadium steps at dawn | ◐ Not checked on a phone |
 | One Breath (first screen), Profile | Their own, under a darker wash | ◐ Not checked on a phone |
 | Hydration, Calendar | Their own, under a darker wash | ◐ **not in the demo** — the demo shows no photograph on these two; added at Brandon's request. Not checked on a phone |
-| Travel | None | ✘ waits on its own licensed city photographs |
+| Travel page | Its own four, by where the journey stands: empty departures hall (no trip), loading the car before dawn (before leaving), a dim cabin (in the air), a jet bridge (arrived), under a darker wash | ◐ photographs of travelling, never of a place. The city card keeps its type-only view and "City photography coming": city photographs still wait on licensed images, and Travel's rule forbids a generic or invented skyline. Not checked on a phone |
 
 ## Decisions that block an exact match
 
