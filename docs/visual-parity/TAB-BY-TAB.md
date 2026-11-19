@@ -76,6 +76,20 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | "Spot Moments on my calendar" (reads the phone's calendar: Outlook, Gmail, iCloud accounts on the device) | Built, read-only, OFF: `moments_calendar_enabled` is blocked until Legal and Privacy sign PR-002 Appendix A (DR-011) | ✘ blocked on sign-off, not on engineering |
 | Moment screen, Replay, Protocols pages | Older screens | ✘ not rebuilt |
 
+## Travel (a Moment page, opened from Moments — internal pilot)
+
+The demo marks this page "Design review · gated · sample data". The app's Travel page was built earlier to its own approved Travel mockup and passed a device check, so only additions that do not conflict with that were made.
+
+| Demo | App | |
+|---|---|---|
+| "‹ Moments" and "Travel" | Same, as "Travel · Private pilot" | ✔ |
+| Route line: JFK 9:05 — LAX · −3 h 12:20 | Built, from the member's itinerary, each time in that airport's local time, labelled "Planned times from your itinerary" | ✔ no capture yet |
+| Title "New York to Los Angeles" | The destination city ("Los Angeles"), per the earlier Travel mockup | ✔ decided: keep the destination city (Brandon, 2026-11-19) |
+| World photograph | Daypart tone, type only | ✘ no licensed photography |
+| "Your plan" timeline (leave, boarding · Lock In, in the air, land · Return) | Rows for countdown, time difference, weather; the plan lives on the arrival Moment | ✘ not rebuilt |
+| "From Travel Gate" and "Time-zone plan" concept cards | Not shown | ✘ Travel Gate not connected; sleep/light advice awaits review (CR-T1) |
+| Nothing else | Trip entry form, flight status and reminders sit below the journey view | ◐ working pilot controls, kept |
+
 ## Circles
 
 | Demo | App | |

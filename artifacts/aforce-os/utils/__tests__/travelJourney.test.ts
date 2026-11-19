@@ -138,3 +138,13 @@ describe('journeyView', () => {
     expect(diffLabel(5.5, 'London')).toBe('5h 30m ahead of London');
   });
 });
+
+describe('route line shift', () => {
+  it('formats the time shift the way the route line shows it', async () => {
+    const { shiftShort } = await import('@/utils/travel/journeyPresentation');
+    expect(shiftShort(-3)).toBe('−3 h');
+    expect(shiftShort(5.5)).toBe('+5.5 h');
+    expect(shiftShort(0)).toBe('same time');
+    expect(shiftShort(null)).toBeNull();
+  });
+});

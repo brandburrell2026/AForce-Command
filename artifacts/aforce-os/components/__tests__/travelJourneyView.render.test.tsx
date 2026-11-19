@@ -97,3 +97,39 @@ it('busy disables actions', async () => {
   await act(async () => button('I’ve landed')!.click());
   expect(actions.onConfirmArrival).not.toHaveBeenCalled();
 });
+
+it('the hero shows the planned route line: codes, local times and the time shift', async () => {
+  const west: TravelTrip = {
+    ...trip,
+    id: 'lax',
+    legs: [{
+      ...trip.legs[0]!,
+      flight: { flightNumber: 'AA1', departureDate: '2026-11-14', origin: 'JFK', destination: 'LAX' },
+      departureAt: '2026-11-14T14:05:00Z', arrivalAt: '2026-11-14T20:20:00Z',
+      originTimeZone: 'America/New_York', destinationTimeZone: 'America/Los_Angeles',
+    }],
+  };
+  const view = journeyView({ trips: [west], snapshots: {}, confirmations: () => ({}), nowMs: Date.parse('2026-11-14T10:00:00Z') })!;
+  expect(view.route).toMatchObject({ originCode: 'JFK', departClock: '9:05 AM', destinationCode: 'LAX', shift: '−3 h', arriveClock: '12:20 PM' });
+  await render(<TravelJourneyView view={view} actions={actions} />);
+  const strip = host.querySelector('[data-testid="travel-journey-route"]')!;
+  expect(strip.textContent).toContain('JFK');
+  expect(strip.textContent).toContain('9:05 AM');
+  expect(strip.textContent).toContain('LAX · −3 h');
+  expect(strip.textContent).toContain('12:20 PM');
+  expect(strip.getAttribute('aria-label')).toBe('Planned: leaves JFK at 9:05 AM, arrives LAX at 12:20 PM local time. 3h behind New York');
+  // The times are the itinerary's, and the screen says so.
+  expect(host.textContent).toContain('Planned times from your itinerary');
+});
+
+it('the route line never invents an arrival time or a shift', async () => {
+  const open: TravelTrip = {
+    ...trip,
+    legs: [{ ...trip.legs[0]!, arrivalAt: null as unknown as string, destinationTimeZone: 'Not/AZone' }],
+  };
+  const view = journeyView({ trips: [open], snapshots: {}, confirmations: () => ({}), nowMs: Date.parse('2026-11-12T08:00:00Z') });
+  if (view?.route) {
+    expect(view.route.arriveClock).toBeNull();
+    expect(view.route.shift).toBeNull();
+  }
+});
