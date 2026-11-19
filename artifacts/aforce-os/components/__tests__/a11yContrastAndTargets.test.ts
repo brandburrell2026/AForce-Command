@@ -165,13 +165,14 @@ describe('state is never left to colour or a glyph alone', () => {
     expect(timeline).toContain('accessibilityLabel={timelineStepA11yLabel(step, stateLabels)}');
   });
 
-  it('the Hydration week strip says logged / not logged / today in words', () => {
-    // The dots said it by fill and border colour; `accessibilityState.selected`
-    // is not announced on a plain non-interactive View, so the strip spoke
-    // seven weekday names and no week.
-    expect(hydration).toContain("'hydration.v2.day_logged'");
-    expect(hydration).toContain("'hydration.v2.day_not_logged'");
-    expect(hydration).toContain("t('common.today')");
+  it('the Hydration history bars say each day in words, not by bar height alone', () => {
+    // The week strip of dots was replaced by the prototype's History bars.
+    // Each bar carries its date and its ounces, or "nothing recorded".
+    const history = read('components/hydration/cinematic/HydrationHistory.tsx');
+    expect(history).toContain('`${b.date}, nothing recorded`');
+    expect(history).toContain('`${b.date}, ${b.oz} ounces`');
+    expect(history).toContain("accessibilityRole=\"tab\"");
+    expect(history).toContain('accessibilityState={{ selected: on }}');
   });
 
   it('Circle\'s own-rank movement pill says which way it moved', () => {

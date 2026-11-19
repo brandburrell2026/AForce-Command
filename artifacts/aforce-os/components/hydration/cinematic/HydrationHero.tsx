@@ -6,10 +6,10 @@
  * Presentation only: every value arrives as a prop.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AFMark } from '@/components/ui/AFMark';
 import { HomeHydroRing } from '@/components/home/cinematic/HomeHydroRing';
-import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 
 export const HYDRATION_RING_SIZE = 120;
 
@@ -23,14 +23,12 @@ export interface HydrationHeroProps {
   ringAccessibilityLabel: string;
   percentLine: string;
   sourceLine: string;
-  /** Extra facts that have data today (for example AFORCE servings). */
-  facts?: string[];
   /**
-   * What the target is. Always visible while the target is the same starting
-   * point for every member (stop-ship RA-N8); the prototype puts this behind a
-   * "How the target works" link.
+   * What the target is, shown in a sheet from the "How the target works" link,
+   * as in the prototype. The hero line above already calls it a starting
+   * target (stop-ship RA-N8). Null hides the link.
    */
-  targetNote?: string | null;
+  targetExplanation?: string | null;
   scanLabel: string;
   onScan: () => void;
   logLabel: string;
@@ -40,6 +38,7 @@ export interface HydrationHeroProps {
 }
 
 export function HydrationHero(props: HydrationHeroProps) {
+  const [sheet, setSheet] = React.useState(false);
   return (
     <View testID="hydration-cinematic">
       <View style={styles.topRow}>
@@ -88,13 +87,36 @@ export function HydrationHero(props: HydrationHeroProps) {
           <View style={styles.cardText}>
             <Text style={styles.percent}>{props.percentLine}</Text>
             <Text style={styles.note}>{props.sourceLine}</Text>
-            {(props.facts ?? []).map((f) => (
-              <Text key={f} style={styles.note}>{f}</Text>
-            ))}
+            {props.targetExplanation ? (
+              <Pressable
+                onPress={() => setSheet(true)}
+                accessibilityRole="button"
+                hitSlop={8}
+                style={styles.linkHit}
+                testID="hydration-target-link"
+              >
+                <Text style={styles.link}>How the target works</Text>
+              </Pressable>
+            ) : null}
           </View>
         </View>
-        {props.targetNote ? <Text style={styles.note} testID="hydration-target-note">{props.targetNote}</Text> : null}
       </View>
+
+      <Modal visible={sheet} transparent animationType="slide" onRequestClose={() => setSheet(false)}>
+        <Pressable style={styles.scrim} onPress={() => setSheet(false)} accessibilityLabel="Close" accessibilityRole="button" />
+        <View style={styles.sheet} testID="hydration-target-sheet">
+          <View style={styles.grabber} />
+          <Text accessibilityRole="header" style={styles.sheetTitle}>How the target works</Text>
+          <Text style={styles.sheetBody}>{props.targetExplanation}</Text>
+          <Pressable
+            onPress={() => setSheet(false)}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.btnSolo, styles.primary, pressed && styles.pressed]}
+          >
+            <Text style={styles.primaryLabel}>Done</Text>
+          </Pressable>
+        </View>
+      </Modal>
 
       <View style={styles.actions}>
         <Pressable
@@ -172,6 +194,17 @@ const styles = StyleSheet.create({
   cardText: { flex: 1, gap: 6 },
   percent: { fontFamily: 'Inter_600SemiBold', fontSize: 16, lineHeight: 21, color: af.textPrimary },
   note: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary },
+  linkHit: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
+  link: { fontFamily: 'Inter_400Regular', fontSize: 14, color: af.textPrimary, textDecorationLine: 'underline' },
+  scrim: { flex: 1, backgroundColor: withAlpha(af.canvas, 0.6) },
+  sheet: {
+    backgroundColor: af.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderWidth: 1, borderColor: af.border, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 34, gap: 14,
+  },
+  grabber: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: af.surfacePressed, marginBottom: 6 },
+  sheetTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 24, lineHeight: 27, letterSpacing: -0.48, color: af.textPrimary },
+  sheetBody: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22, color: af.textSecondary },
+  btnSolo: { minHeight: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
   actions: { flexDirection: 'row', gap: 12, marginBottom: 22 },
   btn: { flex: 1, minHeight: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 },
   primary: { backgroundColor: af.primaryFill },

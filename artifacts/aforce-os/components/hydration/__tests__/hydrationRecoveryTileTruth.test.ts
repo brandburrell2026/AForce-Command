@@ -39,7 +39,8 @@ describe('Hydration card — rows are hidden until they have data', () => {
   });
 
   it('the screen draws Electrolytes only through the rule, and no Recovery row', () => {
-    expect(SRC).toMatch(/statRows\.electrolytes\s*\?/);
+    // The prototype's Hydration tab has no Electrolytes row, so none is drawn.
+    expect(SRC).not.toContain('stat_electrolytes');
     expect(SRC).not.toContain("hydration.v2.recovery_label");
     expect(SRC).not.toContain('EM_DASH');
   });
