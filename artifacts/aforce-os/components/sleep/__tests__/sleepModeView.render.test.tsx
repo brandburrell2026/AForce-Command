@@ -206,3 +206,31 @@ describe('H3 — CTA + checklist presses reach their handlers', () => {
     expect(spy).toHaveBeenCalledWith('breathe');
   });
 });
+
+describe('prototype look (2026-11-19) — presentation only', () => {
+  it('opens with back, the mono name and the title as the page heading', () => {
+    const view = render('idle');
+    const top = q('[data-testid="sleep"]');
+    expect(top?.textContent).toContain(view.header.title);
+    expect(q('[data-testid="sleep-back"]')?.getAttribute('role')).toBe('button');
+    const heading = q('[role="heading"]');
+    expect(heading?.textContent).toBe(view.header.tagline);
+    expect(host.textContent).toContain(view.hero.description);
+  });
+
+  it('the one button is a pill carrying only its label', () => {
+    render('idle');
+    const cta = q('[data-testid="sleep-primary-cta"]') as HTMLElement;
+    expect(parseFloat(getComputedStyle(cta).borderRadius)).toBeGreaterThanOrEqual(100);
+    expect(cta.querySelector('[data-icon]')).toBeNull();
+  });
+
+  it('the recovery metrics still show every real value, now in one card', () => {
+    const view = render('morning');
+    const row = q('[data-testid="sleep-metric-row"]');
+    for (const m of view.recovery.metrics) {
+      expect(row?.textContent).toContain(m.label);
+      expect(row?.textContent).toContain(m.value);
+    }
+  });
+});

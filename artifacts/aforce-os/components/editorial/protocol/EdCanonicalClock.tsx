@@ -13,7 +13,7 @@
 import React from 'react';
 import { StyleSheet, Text, type TextStyle, View } from 'react-native';
 
-import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edAccent, edInkFor, edType } from '@/theme/editorialTokens';
 
 export function EdCanonicalClock({
@@ -45,7 +45,7 @@ export function EdCanonicalClock({
       {/* minutesLabel is deliberately not rendered — see its prop doc. */}
       <Text
         maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
-        style={[edType.numberHero as TextStyle, { color: ink.primary }]}
+        style={styles.numeral}
       >
         {minutes}
       </Text>
@@ -61,16 +61,23 @@ export function EdCanonicalClock({
         <View style={[styles.fill, { flex: pct, backgroundColor: edAccent.red }]} />
         <View style={{ flex: 1 - pct }} />
       </View>
-      <Text style={[edType.micro as TextStyle, { color: ink.quiet, marginTop: 8 }]}>{caption}</Text>
+      <Text style={styles.caption}>{caption}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 24 },
+  // The prototype's card: 20pt corner, a light numeral, a 4pt progress line.
+  wrap: {
+    marginTop: 20, padding: 18, borderRadius: 20, borderWidth: 1,
+    borderColor: af.border, backgroundColor: af.surface,
+  },
+  numeral: { ...(edType.protoNumeral as TextStyle), color: af.textPrimary },
+  caption: { ...(edType.protoEyebrow as TextStyle), color: af.textSecondary, marginTop: 10 },
   track: {
-    height: StyleSheet.hairlineWidth * 2,
-    marginTop: 14,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 12,
     alignSelf: 'stretch',
     flexDirection: 'row',
     overflow: 'hidden',

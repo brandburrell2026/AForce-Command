@@ -10,10 +10,9 @@
 import React from 'react';
 import { StyleSheet, Text, type TextStyle, View } from 'react-native';
 
-import { AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { edInkFor, edPositive, edType } from '@/theme/editorialTokens';
 
-import { EdRule } from '../core';
 
 export interface BriefStep {
   id: string;
@@ -54,7 +53,7 @@ export function EdBriefChecklist({
           .join(', ');
         return (
           <View key={step.id}>
-            <EdRule />
+            {i > 0 ? <View style={styles.hairline} /> : null}
             <View
               accessible
               accessibilityLabel={a11y}
@@ -75,7 +74,7 @@ export function EdBriefChecklist({
                    oversized word must never force an iOS mid-word break. */
                 maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
                 style={[
-                  (live ? edType.command : edType.body) as TextStyle,
+                  live ? styles.labelLive : styles.label,
                   { color: step.complete ? ink.quiet : ink.primary, flexShrink: 1 },
                 ]}
               >
@@ -99,4 +98,7 @@ const styles = StyleSheet.create({
     rowGap: 2,
     paddingVertical: 4,
   },
+  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: af.divider, marginVertical: 8 },
+  label: { ...(edType.protoStep as TextStyle) },
+  labelLive: { ...(edType.protoStepLive as TextStyle) },
 });
