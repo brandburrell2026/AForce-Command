@@ -19,7 +19,18 @@ import { createCircleMomentSharingClient } from '@/services/circleMomentSharingS
 import { useMomentsStore } from '@/services/momentsStore';
 import type { CircleUser } from '@/types/circle';
 
-export function CircleMembersPanel({ showLegacySharing = true }: { showLegacySharing?: boolean }) {
+export interface CircleMembersPanelProps {
+  showLegacySharing?: boolean;
+  /**
+   * 'demo' lays the same people, invitations and controls out as the approved
+   * prototype's Circles tab: hairline rows, a Pending group, and the invite
+   * form only when `inviteOpen`. The default layout is unchanged.
+   */
+  layout?: 'default' | 'demo';
+  inviteOpen?: boolean;
+}
+
+export function CircleMembersPanel({ showLegacySharing = true, layout = 'default', inviteOpen = true }: CircleMembersPanelProps) {
   const scope = React.useSyncExternalStore(
     subscribeScopeState,
     getScopeState,
@@ -28,10 +39,10 @@ export function CircleMembersPanel({ showLegacySharing = true }: { showLegacySha
   // Scope object identity changes on every identity transition, including A → B → A.
   const [session, setSession] = React.useState({ scope, key: 0 });
   if (session.scope !== scope) setSession({ scope, key: session.key + 1 });
-  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} />;
+  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} demo={layout === 'demo'} inviteOpen={inviteOpen} />;
 }
 
-function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLegacySharing: boolean }) {
+function MemberSession({ scope, showLegacySharing, demo, inviteOpen }: { scope: ScopeState; showLegacySharing: boolean; demo: boolean; inviteOpen: boolean }) {
   const { t } = useTranslation();
   const sharingEnabled = isCircleSharingPilotEnabled(useFeatureFlags());
   const client = React.useMemo(
@@ -57,6 +68,7 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
     code: string;
   } | null>(null);
   const [removing, setRemoving] = React.useState<string | null>(null);
+  const [openRow, setOpenRow] = React.useState<string | null>(null);
   const [momentSharingReady, setMomentSharingReady] = React.useState(false);
   const [selectedMomentId, setSelectedMomentId] = React.useState<string | null>(null);
   const [sharingMoment, setSharingMoment] = React.useState(false);
@@ -195,6 +207,13 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
   const activeMemberCount = members.filter((member) => member.status !== 'muted').length;
   return (
     <View style={styles.panel} testID="circle-members-panel">
+      {demo ? (
+        <View style={styles.demoHead}>
+          <Text style={styles.demoEyebrow}>{`YOUR CIRCLE · ${loaded ? activeMemberCount : 0}`}</Text>
+          {error ? button(copy('retry'), () => void act(async () => {}, false), busy || loading) : null}
+        </View>
+      ) : null}
+      {demo ? null : (
       <View style={styles.sectionHeader}>
         <View style={styles.sectionCopy}>
           <Text style={styles.kicker}>YOUR CIRCLE</Text>
@@ -205,11 +224,14 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
         </View>
         {button(copy('retry'), () => void act(async () => {}, false), busy || loading)}
       </View>
+      )}
+      {demo ? null : (
       <Text style={styles.disclosure}>
         {sharingEnabled
           ? t('community.sharing.membership_disclosure')
           : copy('disclosure')}
       </Text>
+      )}
       {error && (
         <View accessibilityLiveRegion="polite" style={styles.feedback}>
           <Text style={styles.error}>{copy(error)}</Text>
@@ -227,7 +249,59 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
           <Text style={styles.copy}>{copy('empty')}</Text>
         </View>
       )}
-      {members.map((member) => (
+      {demo ? members.map((member, index) => (
+        <View key={member.userId} style={[styles.demoRowWrap, index < members.length - 1 && styles.demoRuled]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: openRow === member.userId }}
+            accessibilityLabel={`${member.name}. ${member.status === 'muted' ? copy('muted') : 'In your Circle'}`}
+            onPress={() => setOpenRow(openRow === member.userId ? null : member.userId)}
+            style={({ pressed }) => [styles.demoRow, pressed && styles.pressed]}
+            testID={`circle-row-${member.userId}`}
+          >
+            <View style={styles.demoAvatar} accessibilityElementsHidden>
+              <Text style={styles.demoAvatarText}>{initials(member.name)}</Text>
+            </View>
+            <View style={styles.demoRowText}>
+              <Text style={styles.demoName}>{member.name}</Text>
+              <Text style={styles.demoSub}>{member.status === 'muted' ? copy('muted') : 'In your Circle'}</Text>
+            </View>
+            <Text style={styles.demoChev}>›</Text>
+          </Pressable>
+          {openRow === member.userId || removing === member.userId ? (
+            <View style={styles.demoRowOpen}>
+            {removing === member.userId ? (
+              <View style={styles.removeConfirmation}>
+                <Text style={styles.copy}>{copy('remove_confirm')}</Text>
+                <View style={styles.inlineActions}>
+                  {button(
+                    copy('confirm_remove'),
+                    () =>
+                      void act(async () => {
+                        await client.remove(member.userId);
+                        if (current()) setRemoving(null);
+                      }),
+                    busy,
+                    true,
+                  )}
+                  {button(copy('cancel'), () => setRemoving(null), busy)}
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                disabled={busy || loading}
+                onPress={() => setRemoving(member.userId)}
+                style={({ pressed }) => [styles.removeButton, pressed && styles.pressed]}
+              >
+                <Text style={styles.removeButtonText}>{copy('remove')}</Text>
+              </Pressable>
+            )}
+            </View>
+          ) : null}
+        </View>
+      )) : null}
+      {demo ? null : members.map((member) => (
         <View key={member.userId} style={styles.memberCard}>
           <View style={styles.avatar} accessibilityElementsHidden>
             <Text style={styles.avatarText}>{initials(member.name)}</Text>
@@ -301,6 +375,39 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
         />
       ) : null}
 
+      {demo ? invitations
+        .filter((invite) => invite.status === 'pending')
+        .map((invite, index, all) => (
+          <View key={invite.id}>
+            {index === 0 ? <Text style={[styles.demoEyebrow, styles.demoEyebrowGap]}>PENDING</Text> : null}
+            <View style={[styles.demoRow, index < all.length - 1 && styles.demoRuled]}>
+              <View style={styles.demoAvatar} accessibilityElementsHidden>
+                <Text style={styles.demoAvatarText}>•</Text>
+              </View>
+              <View style={styles.demoRowText}>
+                <Text style={styles.demoName}>Invitation pending</Text>
+                <Text style={styles.demoSub}>
+                  {t('community.members.expires', { date: new Date(invite.expiresAt).toLocaleDateString() })}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={copy('revoke')}
+                disabled={busy || loading}
+                onPress={() =>
+                  void act(async () => {
+                    await client.revoke(invite.id);
+                    if (current() && issued?.id === invite.id) setIssued(null);
+                  })
+                }
+                style={({ pressed }) => [styles.demoPill, pressed && styles.pressed]}
+              >
+                <Text style={styles.demoPillText}>{copy('revoke')}</Text>
+              </Pressable>
+            </View>
+          </View>
+        )) : null}
+      {demo && !inviteOpen ? null : (
       <View style={styles.connectSection}>
         <Text style={styles.kicker}>ADD TO YOUR CIRCLE</Text>
         <Text style={styles.connectTitle}>{copy('connect')}</Text>
@@ -354,7 +461,13 @@ function MemberSession({ scope, showLegacySharing }: { scope: ScopeState; showLe
           busy || !name.trim() || !code.trim(),
         )}
       </View>
-      {invitations
+      )}
+      {demo ? (
+        <Text style={styles.demoNote}>
+          {sharingEnabled ? t('community.sharing.membership_disclosure') : copy('disclosure')}
+        </Text>
+      ) : null}
+      {demo ? null : invitations
         .filter((invite) => invite.status === 'pending')
         .map((invite) => (
           <View key={invite.id} style={styles.pendingInvite}>
@@ -386,6 +499,25 @@ function initials(name: string) {
 }
 
 const styles = StyleSheet.create({
+  demoHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  demoEyebrow: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, letterSpacing: 2, color: af.textSecondary },
+  demoEyebrowGap: { marginTop: 8, marginBottom: 6 },
+  demoRowWrap: {},
+  demoRuled: { borderBottomWidth: 1, borderBottomColor: af.divider },
+  demoRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8 },
+  demoRowOpen: { paddingLeft: 52, paddingBottom: 12, gap: 8 },
+  demoAvatar: {
+    width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: af.border,
+    backgroundColor: af.surface, alignItems: 'center', justifyContent: 'center',
+  },
+  demoAvatarText: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: af.textPrimary },
+  demoRowText: { flex: 1, gap: 2 },
+  demoName: { fontFamily: 'Inter_400Regular', fontSize: 15, color: af.textPrimary },
+  demoSub: { fontFamily: 'Inter_400Regular', fontSize: 12.5, lineHeight: 17, color: af.textSecondary },
+  demoChev: { fontFamily: 'Inter_400Regular', fontSize: 20, color: af.textTertiary },
+  demoPill: { borderWidth: 1, borderColor: af.border, borderRadius: 999, paddingVertical: 5, paddingHorizontal: 10, minHeight: 32, justifyContent: 'center' },
+  demoPillText: { fontFamily: 'Inter_400Regular', fontSize: 12, color: af.textPrimary },
+  demoNote: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary },
   panel: { gap: 16 },
   sectionHeader: { flexDirection: 'row', gap: 12, justifyContent: 'space-between', alignItems: 'flex-start' },
   sectionCopy: { flex: 1, gap: 5 },
