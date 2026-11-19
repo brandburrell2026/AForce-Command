@@ -92,6 +92,7 @@ The demo marks this page "Design review · gated · sample data". The app's Trav
 | "From Travel Gate" concept card ("coming soon") | The app is ahead of the demo: a working "Connect TravelGate" control with a linking code sits in the pilot controls below | ✔ the "coming soon" card is not shown |
 | "Time-zone plan" concept card ("needs expert review. No advice shown.") | Not shown, and no advice shown | ✘ blocked: sleep/light advice awaits the human reviewer (CR-T1). No code until dispositions are recorded |
 | Nothing else | Trip entry form, flight status and reminders sit below the journey view | ◐ working pilot controls, kept |
+| (Not in the demo) Adding a trip by voice | Built on request (Brandon, 2026-11-19): "Say your trip" at the top of the trip form. One spoken sentence fills the flight number, airports, date and time it clearly states; the member checks and saves as before | ◐ iPhone only (on-device speech); typing unchanged elsewhere. A city with several airports is not guessed. Not checked on a phone |
 
 ## Circles
 
