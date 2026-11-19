@@ -64,6 +64,7 @@ import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { hapticImpact, hapticSelection } from "@/services/haptics";
 import { MomentTimingPicker } from "./MomentTimingPicker";
 import { PreparationMark } from "./PreparationMark";
+import { OneBreathCapture } from "./OneBreathCapture";
 import { ORB_HIDDEN_PREPARATION_SCREENS, useHideOrbWhile } from "@/services/orbVisibility";
 import { PreparationOrb } from "./PreparationOrb";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
@@ -1167,6 +1168,20 @@ export function MomentPreparationScreen({
       setError("Could not open that app. Contact someone or stay here.");
     }
   };
+  const textButton = (label: string, action: () => void) => (
+    <Pressable
+      key={label}
+      accessibilityRole="button"
+      hitSlop={6}
+      onPress={() => {
+        hapticSelection();
+        action();
+      }}
+      style={s.textButton}
+    >
+      <Text style={s.textButtonText}>{label}</Text>
+    </Pressable>
+  );
   const button = (
     label: string,
     action: () => void,
@@ -1185,11 +1200,12 @@ export function MomentPreparationScreen({
       }}
       style={[
         s.button,
-        primary && { backgroundColor: T.blue },
+        // Warm white is the primary; blue belongs to Social only (Master Brief §2).
+        primary && { backgroundColor: social ? T.blue : T.bone, borderColor: social ? T.blue : T.bone },
         disabled && s.disabled,
       ]}
     >
-      <Text style={[s.buttonText, primary && { color: T.onBlue }]}>
+      <Text style={[s.buttonText, primary && { color: social ? T.onBlue : T.ink }]}>
         {label}
       </Text>
     </Pressable>
@@ -1347,14 +1363,17 @@ export function MomentPreparationScreen({
           { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 30 },
         ]}
       >
-        <View style={s.header}>
-          <PreparationMark />
-          <Text style={s.brand}>AFORCE OS</Text>
-          {button("Close", () => {
-            voice.cancel();
-            router.back();
-          })}
-        </View>
+        {screen === "capture" && !reservationOpen ? null : (
+          <View style={s.header}>
+            <Text style={[s.eyebrow, social && { color: accent }]}>
+              {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
+            </Text>
+            {textButton("Close", () => {
+              voice.cancel();
+              router.back();
+            })}
+          </View>
+        )}
         {screen === "noticed" && current ? (
           <>
             <Text style={[s.eyebrow, { color: accent }]}>
@@ -1463,87 +1482,41 @@ export function MomentPreparationScreen({
         ) : null}
         {screen === "capture" ? (
           <>
-            <Text style={[s.eyebrow, { color: accent }]}>
-              {social ? "SOCIAL ONE BREATH" : "ONE BREATH"}
-            </Text>
-            <Text {...headingProps} style={[s.title, accessibleHeading]}>
-              What would make {day ? "today" : "tonight"} go well?
-            </Text>
-            {error === CANDIDATE_ENDED || error === MOMENT_REMOVED ? (
-              <Text accessibilityRole="alert" style={s.body}>
-                {error}
-              </Text>
-            ) : null}
             {!reservationOpen ? (
-              <>
-                {voice.available ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      voice.listening ? "Stop listening" : "Speak your moment"
-                    }
-                    onPress={() => {
-                      if (voice.busy) voice.stop();
-                      else void voice.start();
-                    }}
-                    onAccessibilityTap={() => {
-                      if (voice.busy) voice.stop();
-                      else void voice.start();
-                    }}
-                  >
-                    <PreparationOrb social={social} day={false} />
-                  </Pressable>
-                ) : (
-                  <PreparationOrb social={social} day={false} />
-                )}
-                <Text style={s.muted}>
-                  {voice.available
-                    ? voice.listening
-                      ? "Listening… Tap to stop."
-                      : voice.busy
-                        ? "Starting voice… Tap to cancel."
-                        : "Tap to speak · or type"
-                    : "Type your moment"}
-                </Text>
-                {button(
-                  voice.available ? "Type instead" : "Type your moment",
-                  () => {
-                    voice.cancel();
-                    wordsInput.current?.focus();
-                  },
-                )}
-                <Text style={s.muted}>Your moment</Text>
-                <TextInput
-                  ref={wordsInput}
-                  accessibilityLabel="Your moment"
-                  value={words}
-                  onFocus={voice.cancel}
-                  onChangeText={(value) => {
-                    voice.cancel();
-                    setWords(value);
-                  }}
-                  multiline
-                  maxLength={160}
-                  placeholder="Dinner tomorrow at 7:30 PM. I want to arrive relaxed."
-                  placeholderTextColor={T.muted}
-                  style={[s.input, s.words]}
-                />
-                {voice.error ? (
-                  <Text accessibilityRole="alert" style={s.body}>
-                    {voice.error}
-                  </Text>
-                ) : null}
-                {button(
-                  "Review my moment",
-                  reviewWords,
-                  true,
-                  !words.trim() || voice.busy,
-                )}
-                {button("Use reservation details", () => {
+              <OneBreathCapture
+                social={social}
+                headingProps={headingProps}
+                alert={
+                  error === CANDIDATE_ENDED || error === MOMENT_REMOVED
+                    ? error
+                    : null
+                }
+                voiceAvailable={voice.available}
+                voiceListening={voice.listening}
+                voiceBusy={voice.busy}
+                voiceError={voice.error}
+                onTalk={() => {
+                  if (voice.busy) voice.stop();
+                  else void voice.start();
+                }}
+                onClose={() => {
                   voice.cancel();
-                  setReservationOpen(true);
-                })}
-              </>
+                  router.back();
+                }}
+                words={words}
+                onChangeWords={(value) => {
+                  voice.cancel();
+                  setWords(value);
+                }}
+                onFocusWords={voice.cancel}
+                inputRef={wordsInput}
+                sendDisabled={!words.trim() || voice.busy || saving}
+                onSend={reviewWords}
+                press={(action) => () => {
+                  hapticSelection();
+                  action();
+                }}
+              />
             ) : null}
             {reservationOpen ? (
               <>
@@ -2352,21 +2325,24 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
   },
-  brand: { ...T.eyebrow, color: T.muted, fontSize: 10 },
   title: { ...T.headline, color: T.bone, marginTop: 16 },
   accessibleHeading: { fontSize: 18, lineHeight: 24, letterSpacing: 0 },
   body: { ...T.body, color: T.bone },
   muted: { ...T.body, color: T.muted, fontSize: 14, lineHeight: 21 },
   eyebrow: { ...T.eyebrow, color: T.muted },
   button: {
-    minHeight: 48,
+    minHeight: 52,
     paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    borderWidth: 1,
     borderColor: T.rule,
-    borderRadius: 5,
+    borderRadius: 999,
     justifyContent: "center",
   },
+  textButton: { minHeight: 44, justifyContent: "center", alignSelf: "center", paddingHorizontal: 12 },
+  textButtonText: { fontFamily: "Inter_500Medium", fontSize: 14, color: T.muted, textAlign: "center" },
+  captureTitle: { textAlign: "center", marginTop: 24 },
+  centered: { textAlign: "center" },
   buttonText: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 16,
