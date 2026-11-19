@@ -92,7 +92,7 @@ describe('the One Breath orb', () => {
 
   it('breathes on Home only, six seconds, and never with Reduce Motion', () => {
     expect(layout).toContain('export const ONE_BREATH_ORB_BREATH_MS = 6000;');
-    expect(orb).toContain("const onHome = usePathname() === '/';");
+    expect(orb).toContain("const onHome = pathname === '/';");
     expect(orb).toContain('const breathe = onHome && !reducedMotion && !hidden;');
     expect(orb).toMatch(/if \(!breathe\) \{\s*scale\.stopAnimation\(\);\s*scale\.setValue\(1\);/);
   });
@@ -116,7 +116,8 @@ describe('the orb is hidden on Seal and Quiet', () => {
   });
 
   it('the orb renders nothing while hidden', () => {
-    expect(orb).toContain('const hidden = useOrbHidden();');
+    expect(orb).toContain('const requestedHidden = useOrbHidden();');
+    expect(orb).toContain('const hidden = orbHiddenOn(pathname, requestedHidden);');
     expect(orb).toContain('if (hidden) return null;');
   });
 
@@ -153,5 +154,29 @@ describe('long-press Hydration opens HydroScan', () => {
 describe('what this change leaves alone', () => {
   it('tab-change haptics stay off (an earlier founder rule; the spec asks for a tick)', () => {
     expect(layout).not.toMatch(/hapticSelection|hapticImpact|Haptics\./);
+  });
+});
+
+describe('the orb never disappears from the other tabs (build 168 device report)', () => {
+  const layout = require('node:fs').readFileSync(
+    require('node:path').join(__dirname, '..', '..', 'app', '(tabs)', '_layout.tsx'),
+    'utf8',
+  ) as string;
+  // The rule, restated so it runs without loading the navigator.
+  const orbHiddenOn = (pathname: string, requested: boolean) => requested && pathname.startsWith('/one-breath');
+
+  it('the layout hides the orb only on One Breath routes', () => {
+    expect(layout).toContain("return requested && pathname.startsWith('/one-breath');");
+  });
+  it('a hide request left behind on Seal or Quiet does not hide the orb elsewhere', () => {
+    for (const path of ['/', '/journal', '/moments-tab', '/competition', '/profile']) {
+      expect(orbHiddenOn(path, true)).toBe(false);
+    }
+    expect(orbHiddenOn('/one-breath-tab', true)).toBe(true);
+    expect(orbHiddenOn('/one-breath', true)).toBe(true);
+    expect(orbHiddenOn('/one-breath-tab', false)).toBe(false);
+  });
+  it('no text label is drawn under the orb', () => {
+    expect(layout).toContain('tabBarLabel: () => null,');
   });
 });
