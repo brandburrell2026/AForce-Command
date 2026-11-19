@@ -14,6 +14,7 @@ vi.mock('expo-linear-gradient', () => ({ LinearGradient: () => <div data-testid=
 import {
   WORLD_DRIFT_FROM,
   WORLD_DRIFT_MS,
+  WORLD_TINT_ALPHA,
   WorldPhotoGap,
   WorldPhotoHero,
   WorldPhotoImage,
@@ -61,6 +62,27 @@ describe('the shared pieces', () => {
     render(<><WorldPhotoGap source={SRC} height={90} /><WorldPhotoThumb source={SRC} testID="thumb" /></>);
     expect((host.firstElementChild as HTMLElement).style.height).toBe('90px');
     expect(host.querySelector('[data-testid="thumb"]')).toBeTruthy();
+  });
+});
+
+describe('the Social tint on One Breath', () => {
+  it('is a light wash over the photograph, under the fade, only when asked for', () => {
+    render(<WorldPhotoHero source={SRC} testID="hero" />);
+    expect(host.querySelector('[data-testid="hero-tint"]')).toBeNull();
+    act(() => root.unmount());
+    root = createRoot(host);
+    render(<WorldPhotoHero source={SRC} tint="#2765FF" testID="hero" />);
+    const hero = host.querySelector('[data-testid="hero"]')!;
+    const kids = Array.from(hero.children).map((k) => k.getAttribute('data-testid'));
+    expect(kids.indexOf('hero-tint')).toBeGreaterThan(-1);
+    expect(kids.indexOf('hero-tint')).toBeLessThan(kids.indexOf('fade'));
+    expect(WORLD_TINT_ALPHA).toBe(0.14);
+  });
+
+  it('is blue, and only for a Social Moment', () => {
+    const src = readFileSync(join(AOS, 'components/oneBreath/MomentPreparationScreen.tsx'), 'utf8');
+    expect(src).toContain('tint={social ? T.blue : undefined}');
+    expect((src.match(/tint=\{/g) ?? []).length).toBe(1);
   });
 });
 

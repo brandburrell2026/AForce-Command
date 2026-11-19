@@ -27,6 +27,8 @@ export const WORLD_HERO_GAP = 150;
 /** The prototype's drift: from 6% enlarged to rest, over six seconds. */
 export const WORLD_DRIFT_FROM = 1.06;
 export const WORLD_DRIFT_MS = 6000;
+/** The prototype's tint strength: 14%. */
+export const WORLD_TINT_ALPHA = 0.14;
 
 /** Reduce Motion, read from the system directly (this file must load without Reanimated). */
 function useReduceMotion(): boolean {
@@ -109,6 +111,7 @@ export function WorldPhotoHero({
   wash,
   fill = false,
   fadeMs = 0,
+  tint,
   testID = 'world-photo-hero',
 }: {
   source: ImageSourcePropType | undefined;
@@ -124,6 +127,8 @@ export function WorldPhotoHero({
   /** Cover the whole parent instead of a band at its top (One Breath). */
   fill?: boolean;
   fadeMs?: number;
+  /** A colour laid lightly over the photograph (One Breath's Social blue). */
+  tint?: string;
   testID?: string;
 }) {
   if (source == null) return null;
@@ -141,6 +146,12 @@ export function WorldPhotoHero({
       testID={testID}
     >
       <WorldPhotoImage source={source} fadeMs={fadeMs} />
+      {tint ? (
+        <View
+          style={[StyleSheet.absoluteFill, styles.tint, { backgroundColor: withAlpha(tint, WORLD_TINT_ALPHA) }]}
+          testID={`${testID}-tint`}
+        />
+      ) : null}
       <LinearGradient colors={w.colors} locations={w.locations} style={StyleSheet.absoluteFill} />
     </View>
   );
@@ -170,4 +181,7 @@ const styles = StyleSheet.create({
   hero: { position: 'absolute', top: 0, overflow: 'hidden' },
   fill: { width: '100%', height: '100%' },
   thumb: { width: 44, height: 44, borderRadius: 12 },
+  // The prototype blends the tint as colour only. Where the phone cannot
+  // blend that way the style is ignored and the tint is a plain light wash.
+  tint: { mixBlendMode: 'color' },
 });
