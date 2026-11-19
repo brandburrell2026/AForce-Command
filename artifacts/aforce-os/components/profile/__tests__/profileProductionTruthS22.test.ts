@@ -73,8 +73,8 @@ describe('S2-2 — tier comes from the server entitlement, honestly gated', () =
     expect(profile).not.toMatch(/tierKey\s*=\s*['"]core['"]/);
   });
 
-  it('the tier CHIP renders only from a real planId (unknown ⇒ no chip, not a guess)', () => {
-    expect(profile).toMatch(/\{tierKey && tier \? \([\s\S]{0,300}?IdentityChip[\s\S]{0,300}?\) : null\}/);
+  it('no tier chip is drawn at all (approved design: no ranks or trophies on Profile)', () => {
+    expect(profile).not.toMatch(/<IdentityChip/);
   });
 
   it('unknown entitlement gets a neutral accent, not a tier color', () => {
@@ -83,10 +83,8 @@ describe('S2-2 — tier comes from the server entitlement, honestly gated', () =
 });
 
 describe('S2-2 — engine and member state replace the fixtures', () => {
-  it('the streak chip is the engine complianceStreak, gated on a real streak', () => {
-    expect(profile).toMatch(
-      /userState\.complianceStreak > 0 \?[\s\S]{0,200}?day_streak', \{ days: userState\.complianceStreak \}/,
-    );
+  it('no streak chip is drawn (approved design: no streaks on Profile)', () => {
+    expect(profile).not.toContain("day_streak'");
   });
 
   it('daily target renders real unit and real oz targets — no invented ×12', () => {

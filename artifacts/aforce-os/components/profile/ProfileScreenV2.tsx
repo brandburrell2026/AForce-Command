@@ -97,6 +97,8 @@ import {
 } from '@/services/coachMode';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useUser } from '@clerk/expo';
+import { ProfileHeader, profileMemberLine } from './ProfileHeader';
+import { memberInitials } from '@/components/ui/AFMemberPhotoButton';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { createPortalSession } from '@/lib/api';
@@ -865,41 +867,35 @@ export function ProfileScreenV2() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/*
-           * Quick jump back to Home. Profile is a tab, so the OS tab
-           * bar already lets you switch — but on tall scroll surfaces
-           * users repeatedly asked for an in-content way back to the
-           * command center without hunting for the tab bar.
-           */}
-          <Pressable
-            onPress={() => {
-              // Profile is often reached via the iOS "More" overflow
-              // (7 tabs → 5 visible + More), which puts this screen
-              // inside the More navigation stack. `router.replace('/(tabs)')`
-              // on a group route won't pop that stack, so we pop first
-              // when we can and fall back to a root replace otherwise.
-              // Same pattern as goHome() in app/(tabs)/social.tsx.
+          {/* The top of Profile, as in the approved prototype: Back and
+              "Profile", the photo, the name, where and since when, and one
+              quiet link. Profile is often reached via the iOS "More" overflow,
+              which puts it inside another stack, so Back pops when it can and
+              otherwise returns Home. */}
+          <ProfileHeader
+            testID="profile-back-home"
+            onBack={() => {
               if (router.canGoBack()) router.back();
               else router.replace('/');
             }}
-            style={styles.backHomeBtn}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t('profile.v2.back_a11y')}
-            testID="profile-back-home"
-          >
-            <Icon name="chevron-left" size={14} color={af.textSecondary} />
-            <Text style={styles.backHomeText}>{t('profile.v2.home')}</Text>
-          </Pressable>
-          <Text style={styles.eyebrow}>
-            {devicesActive ? t('profile.v2.devices_eyebrow') : t('profile.v2.eyebrow')}
-          </Text>
-          <Text style={[styles.title, devicesActive ? styles.devicePageTitle : null]}>
-            {devicesActive ? t('profile.v2.devices_title') : t('profile.v2.title')}
-          </Text>
-          {devicesActive ? (
-            <Text style={styles.devicePagePromise}>{t('profile.v2.devices_promise')}</Text>
-          ) : null}
+            backLabel="Back"
+            backAccessibilityLabel={t('profile.v2.back_a11y')}
+            photoUri={
+              profileIdentity.avatarUri.length > 0
+                ? profileIdentity.avatarUri
+                : clerkUser?.hasImage
+                  ? clerkUser.imageUrl
+                  : null
+            }
+            initials={memberInitials(clerkUser?.firstName, clerkUser?.lastName) || avatarInitial}
+            name={displayName}
+            memberLine={profileMemberLine(
+              [profileIdentity.city, profileIdentity.country].filter((p) => p.length > 0).join(', '),
+              clerkUser?.createdAt ?? null,
+            )}
+            editLabel={t('profile.v2.edit_a11y')}
+            onEdit={() => setIsEditingProfile(true)}
+          />
 
           {(() => {
             // ─── Reusable section fragments ──────────────────────
@@ -993,42 +989,8 @@ export function ProfileScreenV2() {
                     <Icon name="edit-2" size={14} color={af.textSecondary} />
                   </Pressable>
                 </View>
-                <View style={styles.profileChipDivider} />
-                <View style={styles.profileChipStrip}>
-                  {tierKey && tier ? (
-                    <IdentityChip
-                      icon="award"
-                      label={t(`profile.v2.tier_${tierKey}_label`).toUpperCase()}
-                      color={tier.color}
-                    />
-                  ) : null}
-                  {userState.complianceStreak > 0 ? (
-                    <IdentityChip
-                      icon="zap"
-                      label={t('profile.v2.day_streak', { days: userState.complianceStreak })}
-                      color={af.amber}
-                    />
-                  ) : null}
-                  {profileIdentity.teamCircle ? (
-                    <IdentityChip
-                      icon="users"
-                      label={profileIdentity.teamCircle.toUpperCase()}
-                      color={af.cyan}
-                    />
-                  ) : null}
-                  {profileIdentity.territoryBadge ? (
-                    <IdentityChip
-                      icon="map"
-                      label={profileIdentity.territoryBadge}
-                      color={af.cyan}
-                    />
-                  ) : null}
-                  <IdentityChip
-                    icon="activity"
-                    label={t('profile.v2.aura', { aura: profileIdentity.auraState })}
-                    color={auraColor}
-                  />
-                </View>
+                {/* The tier, streak, team, territory and aura chips are gone:
+                    the approved design shows no ranks, streaks or trophies. */}
                 {/* Build-60 device QA: the goal read "Recovery O…". The strip
                     was a hard three-across row, so the goal — the only prose
                     value here — got a third of the card (~91pt at 375, ~73pt
@@ -1206,7 +1168,13 @@ export function ProfileScreenV2() {
               account: renderAccountSections(paneCtx),
               developer: renderDeveloperSections(paneCtx),
             };
-            const activeSections = tabSections[profileTab];
+            // Body details, Gentle hydration and the internal Skin entry sat
+            // above the sections; the prototype's Profile opens straight on
+            // the three pills, so they follow the Account sections instead.
+            const activeSections =
+              profileTab === 'account'
+                ? [...tabSections.account, identityBlock, gentleEntry, skinIAEntry]
+                : tabSections[profileTab];
             const tabBar = (
               <ProfileTabBar active={profileTab} onChange={setProfileTab} />
             );
@@ -1218,6 +1186,7 @@ export function ProfileScreenV2() {
               return (
                 <>
                   {tabBar}
+                  <Text style={styles.devicePagePromise}>{t('profile.v2.devices_promise')}</Text>
                   {activeSections.map((node, i) => (
                     <React.Fragment key={`devices-${i}`}>{node}</React.Fragment>
                   ))}
@@ -1226,17 +1195,11 @@ export function ProfileScreenV2() {
             }
 
             if (layout.isWide) {
-              // Two-column wide layout: identity card + tab bar on the
-              // left, active tab's sections fill the right column. Keeps
-              // the avatar visible while swapping groups.
+              // Two-column wide layout: the pills on the left, the active
+              // section's content on the right.
               return (
                 <View style={styles.twoCol} testID="profile-two-col">
-                  <View style={[styles.col, styles.colLeft]}>
-                    {identityBlock}
-                    {gentleEntry}
-                    {skinIAEntry}
-                    {tabBar}
-                  </View>
+                  <View style={[styles.col, styles.colLeft]}>{tabBar}</View>
                   <View style={[styles.col, styles.colRight]} testID="profile-right-col">
                     {activeSections.map((node, i) => (
                       <React.Fragment key={`wide-${profileTab}-${i}`}>{node}</React.Fragment>
@@ -1248,9 +1211,6 @@ export function ProfileScreenV2() {
 
             return (
               <>
-                {identityBlock}
-                {gentleEntry}
-                    {skinIAEntry}
                 {tabBar}
                 {activeSections.map((node, i) => (
                   <React.Fragment key={`narrow-${profileTab}-${i}`}>{node}</React.Fragment>

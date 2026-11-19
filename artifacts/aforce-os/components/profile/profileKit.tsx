@@ -685,50 +685,34 @@ export const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     marginBottom: 10, marginTop: 6,
   },
-  tabBarWrap: {
-    marginTop: 4,
-    marginBottom: 22,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: af.divider,
-  },
-  tabBarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 2,
-    paddingVertical: 2,
-  },
+  // The prototype's three pills: equal width, 6pt apart, the selected one
+  // warm white with black text. No red and no glow.
+  tabBarWrap: { marginTop: 18, marginBottom: 18 },
+  tabBarRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexGrow: 1 },
   tabPill: {
     minHeight: 44,
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: af.divider,
+    borderColor: af.border,
     backgroundColor: 'transparent',
   },
-  tabPillActive: {
-    backgroundColor: af.red,
-    borderColor: af.red,
-    shadowColor: af.red,
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
-  },
+  tabPillActive: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
+  // Sentence-case pill labels, as in the prototype.
   tabPillLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2,
-    color: af.textTertiary,
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    color: af.textPrimary,
   },
   tabPillLabelActive: {
-    // S2-10: '#000000' on the af.red active fill measured ~3.59:1 — the
-    // screen's PRIMARY navigation failed AA. af.onRed is the AA-verified
-    // on-red token (same fix SignIn documented; Profile never received it).
-    color: af.onRed,
+    // Black on the warm-white selected pill: 18:1. (White here would be
+    // invisible on the new fill.)
+    color: af.onPrimaryFill,
+    fontFamily: 'Inter_600SemiBold',
   },
   sectionLabel: {
     fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 2.5,

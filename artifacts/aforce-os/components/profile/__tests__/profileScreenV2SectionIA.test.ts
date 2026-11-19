@@ -131,10 +131,11 @@ describe('ProfileScreenV2 — every founder section has exactly one headed home'
     });
   }
 
-  it('CONNECTED DATA is promoted to the dedicated Devices page header', () => {
-    expect(SHELL_CODE).toContain("t('profile.v2.devices_eyebrow')");
-    expect(SHELL_CODE).toContain("t('profile.v2.devices_title')");
+  it('the Devices section keeps its one-line promise under the pills', () => {
+    // The prototype's Profile has one header for all three sections, so the
+    // separate Devices page eyebrow and title are gone; the promise stays.
     expect(SHELL_CODE).toContain("t('profile.v2.devices_promise')");
+    expect(SHELL_CODE).not.toContain("t('profile.v2.devices_title')");
   });
 
   it('CONNECTED DATA still has exactly one reachable tab home', () => {
@@ -145,16 +146,18 @@ describe('ProfileScreenV2 — every founder section has exactly one headed home'
     expect(memberFacingTabs().devices).toContain('connectedDataBlock');
   });
 
-  it('IDENTITY leads non-Devices layouts while Devices leads without old profile chrome', () => {
+  it('the prototype header leads every layout; body details follow the Account sections', () => {
+    // One header for all three sections (prototype), drawn above the pills.
+    expect(CODE).toContain('<ProfileHeader');
+    expect(CODE.indexOf('<ProfileHeader')).toBeLessThan(CODE.indexOf('const tabBar = ('));
+    // The body-details card keeps its label and content...
     const identity = balancedDeclaration('identityBlock');
     expect(identity).toContain("t('profile.v2.identity_label')");
     expect(identity).toContain('{profileCard}');
-    // Wide and narrow non-Devices layouts retain identity before the tabs.
-    expect(CODE.split(/\{identityBlock\}[\s\S]{0,100}\{tabBar\}/).length - 1).toBe(2);
-    // The dedicated branch returns before either identity layout and renders
-    // the tab bar + Devices sections directly.
+    // ...and now sits after the Account sections, never above the pills.
+    expect(CODE).toMatch(/profileTab === 'account'\s*\? \[\.\.\.tabSections\.account, identityBlock, gentleEntry, skinIAEntry\]/);
+    expect(CODE).not.toMatch(/\{identityBlock\}[\s\S]{0,100}\{tabBar\}/);
     expect(CODE).toMatch(/if \(devicesActive\)[\s\S]*?\{tabBar\}[\s\S]*?activeSections\.map/);
-    // ...and it is therefore NOT one of the per-tab sections.
     for (const blocks of Object.values(tabSectionsMap())) expect(blocks).not.toContain('identityBlock');
   });
 });
