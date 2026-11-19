@@ -102,7 +102,7 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Three pills: Performance · Devices · Account | Same, sentence case, the selected one warm white. Internal builds add a fourth, Developer | ◐ internal only |
 | No rank, streak or aura chips | Removed | ✔ |
 | Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | The app's existing Performance cards | ✘ not rebuilt; gallery and learning are not built |
-| Devices: one row per source with On / Off / Check | The app's existing device cards | ✘ not rebuilt |
+| Devices: one row per source with On / Off / Check | Rebuilt as the demo's list: source, what it reads, state, pill (On · Check · Demo · Later · Off), the note and "Manage devices and apps". Manage holds the same device cards as before | ◐ no last-updated time on rows (the list has none to show); Phantom sits on Manage, not in the list; no capture yet |
 | Account: Plan, Settings, Shop; Privacy; Download data; Delete account | Rebuilt as the demo's list: Plan · Settings; Privacy (What your Circle can see · Body details · Your data); Help. Each row opens a view holding the same controls as before | ◐ no "Shop AFORCE"; "Your data" instead of "Download or delete your data" — the app has no in-app download or account deletion; no capture yet |
 
 Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian entries when on, invites) · Settings (notifications and voice, language, coach, units, sign out, Gentle hydration, internal Skin) · Body details · Your data (analytics consent, memory controls) · Help (terms, privacy, health disclaimer, support, build line). A test checks every block has exactly one view.

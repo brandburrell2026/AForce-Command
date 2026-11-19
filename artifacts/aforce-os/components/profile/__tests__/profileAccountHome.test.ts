@@ -82,7 +82,7 @@ describe('Account wiring in Profile', () => {
   });
 
   it('switching section returns Account to its list', () => {
-    expect(shell).toMatch(/const setProfileTab = useCallback\(\(tab: ProfileTabId\) => \{\s*setAccountView\(null\);\s*setProfileTabRaw\(tab\);/);
+    expect(shell).toMatch(/const setProfileTab = useCallback\(\(tab: ProfileTabId\) => \{\s*setAccountView\(null\);[\s\S]{0,80}setProfileTabRaw\(tab\);/);
   });
 });
 

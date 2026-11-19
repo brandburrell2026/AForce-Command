@@ -60,6 +60,7 @@ import {
   healthFlagsFromFeatureFlags,
   providerRowA11yKind,
   PROVIDER_ROW_A11Y_I18N_KEY,
+  type ProviderRowA11yKind,
 } from '@/utils/health/providerRowStatus';
 import {
   isAppleHealthSupported,
@@ -123,6 +124,70 @@ import {
   syncGarminSnapshot,
 } from '@/services/garmin';
 import type { ProfilePaneCtx } from './types';
+
+/**
+ * One resolver for a provider's row, shared by the full device cards and the
+ * short Devices list, so the two can never disagree.
+ */
+export function deviceStatusResolver(ctx: ProfilePaneCtx) {
+  const {
+    flags,
+    garminState,
+    isLiveGarminState,
+    linkedProviders,
+    sortedHealthProviders,
+    whoopState,
+    whoopExpiresAt,
+  } = ctx;
+  return (p: (typeof sortedHealthProviders)[number]) => {
+    const isGarmin = p.id === 'garmin';
+    const isWhoop = p.id === 'whoop';
+    const garminDemo = isGarmin && garminState === 'demo';
+    const row = deriveProviderRowStatus({
+      provider: p.id,
+      platform:
+        Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web',
+      whoopState,
+      whoopExpiresAt,
+      garminLive: isGarmin ? isLiveGarminState(garminState) : undefined,
+      garminDemo,
+      garminCredentialsMissing: isGarmin ? garminState === 'credentials_missing' : undefined,
+      locallyLinked: linkedProviders.has(p.id),
+      appleNativeReady: p.id === 'apple_health' ? isAppleHealthSupported() : undefined,
+      // Foundation 1A — health_* flags govern connectability
+      // (all default OFF; WHOOP keeps its server-credential
+      // gating until the provider-kit cutover in PR 1B).
+      //
+      // RC-1 verdict-pass disclosure (Wave-1 r2, item 8): what
+      // this actually does — `healthFlagsFromFeatureFlags`
+      // projects the current `health_apple_enabled` /
+      // `health_google_connect_enabled` / `health_oura_enabled`
+      // / `health_strava_enabled` / `health_garmin_enabled` /
+      // `health_samsung_direct_enabled` flags into a per-
+      // provider connectability map that `deriveProviderRowStatus`
+      // gates every non-WHOOP provider's row on (see
+      // `utils/health/providerRowStatus.ts`'s `enabled =
+      // f.provider === 'whoop' ? true : f.healthFlags?.[f.provider]
+      // === true`). It is INERT TODAY: every `health_*` flag
+      // defaults OFF (enforced by
+      // `featureFlags/__tests__/healthFlagsDefaultOff.test.ts`),
+      // so `enabled` resolves `false` for every provider this
+      // wiring governs and each row renders exactly as it did
+      // before this was added — no behavior change under
+      // `DEFAULT_FLAGS`. It ENGAGES the moment any one of those
+      // flags flips to `true`: that provider's row immediately
+      // becomes eligible to show a real "Connected" state
+      // instead of being permanently capped at DEMO/Coming
+      // Soon/Approval Pending. This is intentional forward
+      // wiring — cohort/beta rollout work will flip these
+      // flags per-provider without needing a follow-up code
+      // change here; do not revert this wiring as "unused."
+      healthFlags: healthFlagsFromFeatureFlags(flags),
+    });
+    const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
+    return { row, demoLinked, linked: row.live || demoLinked, isGarmin, isWhoop, garminDemo };
+  };
+}
 
 export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
   const {
@@ -188,6 +253,8 @@ export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
   // for every member, paired or not — the screen asserting a live
   // connection the data cannot support, immediately above the
   // provider list that reports the per-provider truth honestly.
+  const statusFor = deviceStatusResolver(ctx);
+
   const connectedDataBlock = (
     <>
       <View style={styles.card}>
@@ -204,52 +271,7 @@ export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
           // expired token demotes to Needs Attention, and providers
           // with no real client wiring (Oura/Strava/Google) can only
           // ever show a labeled DEMO, never a live connection.
-          const isGarmin = p.id === 'garmin';
-          const isWhoop = p.id === 'whoop';
-          const garminDemo = isGarmin && garminState === 'demo';
-          const row = deriveProviderRowStatus({
-            provider: p.id,
-            platform:
-              Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web',
-            whoopState,
-            whoopExpiresAt,
-            garminLive: isGarmin ? isLiveGarminState(garminState) : undefined,
-            garminDemo,
-            garminCredentialsMissing: isGarmin ? garminState === 'credentials_missing' : undefined,
-            locallyLinked: linkedProviders.has(p.id),
-            appleNativeReady: p.id === 'apple_health' ? isAppleHealthSupported() : undefined,
-            // Foundation 1A — health_* flags govern connectability
-            // (all default OFF; WHOOP keeps its server-credential
-            // gating until the provider-kit cutover in PR 1B).
-            //
-            // RC-1 verdict-pass disclosure (Wave-1 r2, item 8): what
-            // this actually does — `healthFlagsFromFeatureFlags`
-            // projects the current `health_apple_enabled` /
-            // `health_google_connect_enabled` / `health_oura_enabled`
-            // / `health_strava_enabled` / `health_garmin_enabled` /
-            // `health_samsung_direct_enabled` flags into a per-
-            // provider connectability map that `deriveProviderRowStatus`
-            // gates every non-WHOOP provider's row on (see
-            // `utils/health/providerRowStatus.ts`'s `enabled =
-            // f.provider === 'whoop' ? true : f.healthFlags?.[f.provider]
-            // === true`). It is INERT TODAY: every `health_*` flag
-            // defaults OFF (enforced by
-            // `featureFlags/__tests__/healthFlagsDefaultOff.test.ts`),
-            // so `enabled` resolves `false` for every provider this
-            // wiring governs and each row renders exactly as it did
-            // before this was added — no behavior change under
-            // `DEFAULT_FLAGS`. It ENGAGES the moment any one of those
-            // flags flips to `true`: that provider's row immediately
-            // becomes eligible to show a real "Connected" state
-            // instead of being permanently capped at DEMO/Coming
-            // Soon/Approval Pending. This is intentional forward
-            // wiring — cohort/beta rollout work will flip these
-            // flags per-provider without needing a follow-up code
-            // change here; do not revert this wiring as "unused."
-            healthFlags: healthFlagsFromFeatureFlags(flags),
-          });
-          const demoLinked = garminDemo || (!isGarmin && !isWhoop && linkedProviders.has(p.id));
-          const linked = row.live || demoLinked;
+          const { row, demoLinked, linked, isGarmin, isWhoop, garminDemo } = statusFor(p);
           // A11y fix (Squad-F HIGH #3): the announced label used to be
           // a blind Connect/Disconnect off `linked` alone, so states
           // like Approval Pending / Coming Soon / Unsupported / Needs
@@ -542,4 +564,37 @@ export function renderDevicesSections(ctx: ProfilePaneCtx): React.ReactNode[] {
 
 
   return [connectedDataBlock, hardwareCard];
+}
+
+export type DeviceSummaryPill = 'On' | 'Check' | 'Demo' | 'Later' | 'Off';
+
+export interface DeviceSummary {
+  id: string;
+  name: string;
+  sub: string;
+  pill: DeviceSummaryPill;
+}
+
+/** What the short Devices list says for each row kind. */
+export const DEVICE_SUMMARY_BY_KIND: Record<ProviderRowA11yKind, { pill: DeviceSummaryPill; word: string }> = {
+  live: { pill: 'On', word: 'Connected' },
+  needs_attention: { pill: 'Check', word: 'Needs attention' },
+  demo: { pill: 'Demo', word: 'Sample data' },
+  approval_pending: { pill: 'Later', word: 'Approval pending' },
+  coming_soon: { pill: 'Later', word: 'Coming soon' },
+  via_health_connect: { pill: 'Off', word: 'Through Health Connect' },
+  unsupported: { pill: 'Off', word: 'Not available on this phone' },
+  connect: { pill: 'Off', word: 'Not connected' },
+};
+
+
+/** The short Devices list: one line per source, from the same resolver as the cards. */
+export function deviceSummaries(ctx: ProfilePaneCtx): DeviceSummary[] {
+  const statusFor = deviceStatusResolver(ctx);
+  return ctx.sortedHealthProviders.map((p) => {
+    const { row, demoLinked } = statusFor(p);
+    const kind = providerRowA11yKind({ demoLinked, live: row.live, status: row.status });
+    const { pill, word } = DEVICE_SUMMARY_BY_KIND[kind];
+    return { id: p.id, name: p.name, sub: `${p.pulls} · ${word}`, pill };
+  });
 }
