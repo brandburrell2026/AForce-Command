@@ -23,7 +23,9 @@ const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
  *      onboarding flag to resolve. Render a black canvas while we wait
  *      so the splash stays visually continuous.
  *   2. If the user is NOT signed in AND DEMO_MODE is OFF → redirect
- *      to `/(auth)/sign-in`. DEMO_MODE remains a deliberate escape
+ *      to `/(auth)/welcome`, the promise screen, whose two buttons open
+ *      sign-up and sign-in. Every other signed-out redirect in the app
+ *      still goes straight to `/(auth)/sign-in`. DEMO_MODE remains a deliberate escape
  *      hatch for pitch / marketing screenshots (see services/demoMode).
  *   3. Otherwise route on onboarding completion: `/onboarding` on first
  *      launch, else `/(tabs)`. The cinematic intro is the cold-launch
@@ -48,7 +50,7 @@ export default function Index() {
   }
 
   if (!isSignedIn && !DEMO_MODE && !CAPTURE_MODE) {
-    return <Redirect href={'/(auth)/sign-in' as never} />;
+    return <Redirect href={'/(auth)/welcome' as never} />;
   }
 
   return <Redirect href={(onboarded || CAPTURE_MODE ? '/(tabs)' : '/onboarding') as never} />;

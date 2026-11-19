@@ -189,9 +189,9 @@ export function SignInScreenV2() {
             </Text>
           </Pressable>
 
-          {/* Not in the prototype's sign-in. The prototype reaches "Create
-              account" from its opening promise screen, which the app does not
-              have yet, so the only way to sign up stays here as quiet text.
+          {/* Not in the prototype's sign-in. "Create account" now lives on the
+              promise screen, but sign-out and expired sessions land here
+              directly, so the way to sign up stays as quiet text.
               The legal line is a compliance requirement. */}
           <View style={styles.linkRow}>
             <Link href="/(auth)/sign-up" replace>
