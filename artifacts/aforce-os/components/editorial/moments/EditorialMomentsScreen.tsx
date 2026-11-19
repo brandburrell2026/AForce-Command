@@ -55,6 +55,9 @@ import {
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
 import { useFeatureFlags } from '@/store/useAppStore';
+import { useAuth } from '@clerk/expo';
+import { travelPilotAvailable } from '@/featureFlags/flags';
+import { protocolsSubline } from '@/components/moments/cinematic/protocolsListLogic';
 import type { Moment, MomentRecommendation } from '@/types/moments';
 import { af } from '@/theme';
 import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
@@ -82,7 +85,10 @@ export function EditorialMomentsScreen({
   const tabClearance = useTabBarClearance();
   const router = useRouter();
   const data = useMomentsData({ fixtureMoments, fixtureNowIso });
-  const calendarOn = useFeatureFlags().moments_calendar_enabled;
+  const flags = useFeatureFlags();
+  const { isSignedIn } = useAuth();
+  const calendarOn = flags.moments_calendar_enabled;
+  const travelOn = travelPilotAvailable(flags) && !!isSignedIn && !fixtureMoments;
   const ink = edInkFor('black');
   const settle = useEdSettle();
 
@@ -136,11 +142,22 @@ export function EditorialMomentsScreen({
                 // It reads nothing from the phone; connecting a phone calendar
                 // stays on its own flag-gated screen, reached from that page.
                 { title: 'Calendar', sub: 'All Moments', onPress: () => router.push('/moments-calendar' as never), testID: 'moments-link-calendar' },
-                { title: 'Protocols', sub: 'Recovery · Sleep · Travel', onPress: () => router.push('/protocol'), testID: 'moments-link-protocols' },
+                // The prototype's Protocols page: Recovery, Sleep and Travel.
+                // The sub-line names only what that page lists in this build.
+                {
+                  title: 'Protocols',
+                  sub: protocolsSubline({ travelAvailable: travelPilotAvailable(flags) && !!isSignedIn }),
+                  onPress: () => router.push('/protocols' as never),
+                  testID: 'moments-link-protocols',
+                },
+                // Travel sits in the same list as Calendar and Protocols, so it
+                // is seen. Same conditions the old "Add or manage a flight"
+                // line used: the pilot is available and the member is signed in.
+                ...(travelOn
+                  ? [{ title: 'Travel', sub: 'Add or manage a flight', onPress: () => router.push('/travel-intelligence' as never), testID: 'moments-link-travel' }]
+                  : []),
               ]}
-            >
-              {!fixtureMoments ? <TravelMomentsEntry /> : null}
-            </MomentsCinematic>
+            />
           )}
         </AFScreen>
       </EdSurface>
