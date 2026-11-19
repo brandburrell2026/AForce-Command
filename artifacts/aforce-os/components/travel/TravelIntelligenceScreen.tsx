@@ -28,6 +28,7 @@ import {
 } from "@/services/travel/intelligence";
 import { resolveDepartureZone } from "@/services/travel/airportTimeZone";
 import { TravelJourneySection } from "./TravelJourneySection";
+import { SayYourTrip } from "./SayYourTrip";
 import {
   travelDeviceId,
   travelPushRegistration,
@@ -355,6 +356,19 @@ export function TravelIntelligenceScreen() {
           {editing ? (
             <View style={styles.panel}>
               <Text style={styles.label}>Review your itinerary</Text>
+              {/* Speak the trip instead of typing it. Fills only what was clearly
+                  said, into the leg being added; every field stays editable and
+                  nothing is saved until the member saves. */}
+              <SayYourTrip
+                legNumber={forms.length}
+                onFields={(spoken) =>
+                  setForms((all) =>
+                    all.map((item, i) =>
+                      i === all.length - 1 ? { ...item, ...spoken } : item,
+                    ),
+                  )
+                }
+              />
               <TextInput
                 accessibilityLabel="Trip title"
                 style={styles.input}
