@@ -34,6 +34,7 @@ export const SCREEN_SCENES = [
   'moments_tab', 'replay', 'tile_recovery', 'tile_sleep', 'tile_travel',
   'screen_recovery', 'screen_sleep', 'circles', 'welcome',
   'one_breath', 'hydration', 'profile', 'calendar',
+  'travel_page', 'travel_before', 'travel_air', 'travel_arrived',
 ] as const;
 export type ScreenScene = (typeof SCREEN_SCENES)[number];
 
@@ -122,6 +123,20 @@ export const ONE_BREATH_SCENE: ScreenScene = 'one_breath';
 export const HYDRATION_SCENE: ScreenScene = 'hydration';
 export const PROFILE_SCENE: ScreenScene = 'profile';
 export const CALENDAR_SCENE: ScreenScene = 'calendar';
+
+/**
+ * The Travel page, by where the journey stands. These are photographs of
+ * travelling, never of a place: Travel's own rule forbids a generic or
+ * invented skyline standing in for a real city, and city photographs still
+ * wait on licensed images (utils/travel/cityRegistry.ts).
+ */
+export type TravelStage = 'preview' | 'lock_in' | 'arrival' | 'ready';
+export function travelSceneForStage(stage: TravelStage | null): ScreenScene {
+  if (stage === 'preview') return 'travel_before';
+  if (stage === 'lock_in') return 'travel_air';
+  if (stage === 'arrival' || stage === 'ready') return 'travel_arrived';
+  return 'travel_page';
+}
 
 /** The three Protocols tiles. */
 export const PROTOCOL_SCENES = {

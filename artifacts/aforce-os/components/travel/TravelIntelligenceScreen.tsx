@@ -1,4 +1,8 @@
 import { ZodError } from "zod";
+import { WorldPhotoHero } from "@/components/world/WorldPhoto";
+import { worldPhoto } from "@/components/world/worldPhotoSources";
+import { travelSceneForStage, type TravelStage } from "@/utils/worldPhoto";
+import { useAFGutter } from "@/hooks/useAFGutter";
 import { af } from "@/theme/afTokens";
 import {
   enableIntelligenceReminders,
@@ -85,6 +89,8 @@ function formFor(leg: TravelLeg): LegForm {
   };
 }
 export function TravelIntelligenceScreen() {
+  const [stage, setStage] = React.useState<TravelStage | null>(null);
+  const gutter = useAFGutter();
   const router = useRouter(),
     travel = useTravelIntelligence(),
     legacy = useTravelJourney();
@@ -210,6 +216,14 @@ export function TravelIntelligenceScreen() {
       edges={["top", "bottom"]}
       contentContainerStyle={{ paddingBottom: 50 }}
     >
+      {/* A photograph of the journey, never of a city (see utils/worldPhoto.ts). */}
+      <WorldPhotoHero
+        source={worldPhoto(travelSceneForStage(stage))}
+        bleed={gutter}
+        height={320}
+        dim
+        testID="travel-photo"
+      />
       {/* Top row as on the approved prototype's Travel page: back to Moments,
           the word Travel. "Private pilot" stays: this is a pilot. */}
       <View style={styles.topRow}>
@@ -235,6 +249,7 @@ export function TravelIntelligenceScreen() {
         travel={travel}
         busy={busy}
         run={(task, success) => void act(task, success)}
+        onStage={setStage}
       />
       {message ? (
         <Text accessibilityRole="alert" style={styles.message}>

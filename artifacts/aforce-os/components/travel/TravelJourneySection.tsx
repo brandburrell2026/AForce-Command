@@ -16,7 +16,7 @@ import { confirmArrival, confirmationsFor, legSnapshots, markReady, undoArrival 
 import { getDestinationWeather } from '@/services/travel/destinationWeather';
 import { placeForAirport } from '@/utils/travel/cityRegistry';
 import { arrivalSharePayload } from '@/utils/travel/arrivalShare';
-import { focusTrip, journeyView } from '@/utils/travel/journeyPresentation';
+import { focusTrip, journeyView, type JourneyView } from '@/utils/travel/journeyPresentation';
 import { ArrivalShareSheet } from './ArrivalShareCard';
 import { TravelJourneyView } from './TravelJourneyView';
 
@@ -35,10 +35,13 @@ export function TravelJourneySection({
   travel,
   busy,
   run,
+  onStage,
 }: {
   travel: Travel;
   busy: boolean;
   run: (task: () => Promise<unknown>, success: string) => void;
+  /** Tells the page where the journey stands (or null), for its photograph only. */
+  onStage?: (stage: JourneyView['kind'] | null) => void;
 }) {
   const router = useRouter();
   const now = useMinuteTick();
@@ -71,9 +74,12 @@ export function TravelJourneySection({
     retry: false,
   });
 
-  if (!input || !focus) return null;
-  const view = journeyView({ ...input, weather: weather.data ?? null });
-  if (!view) return null;
+  const view = input && focus ? journeyView({ ...input, weather: weather.data ?? null }) : null;
+  const stage = view?.kind ?? null;
+  React.useEffect(() => {
+    onStage?.(stage);
+  }, [stage, onStage]);
+  if (!input || !focus || !view) return null;
 
   const tripId = view.tripId;
   // Identity, not data: only the city name and atmosphere reach the card.

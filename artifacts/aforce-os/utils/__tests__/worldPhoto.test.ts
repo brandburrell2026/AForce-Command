@@ -16,6 +16,7 @@ import {
   SCREEN_SCENES,
   WELCOME_SCENE,
   worldDetailSceneForMoment,
+  travelSceneForStage,
   PROTOCOL_SCENES,
   WORLD_EMPTY_SCENE,
   WORLD_SCENES,
@@ -103,10 +104,32 @@ describe('World photographs — which scene', () => {
   });
 });
 
+const TRAVEL_STAGE_SCENES = [
+  travelSceneForStage(null), travelSceneForStage('preview'),
+  travelSceneForStage('lock_in'), travelSceneForStage('arrival'),
+];
+
+describe('World photographs — Travel', () => {
+  it('follows the journey: no trip, before leaving, in the air, arrived', () => {
+    expect(TRAVEL_STAGE_SCENES).toEqual(['travel_page', 'travel_before', 'travel_air', 'travel_arrived']);
+    // Arrived and ready are the same place on the same screen.
+    expect(travelSceneForStage('ready')).toBe('travel_arrived');
+  });
+
+  it('never touches the city photographs, which still wait on licensed images', () => {
+    const registry = readFileSync(join(AOS, 'utils/travel/cityRegistry.ts'), 'utf8');
+    expect(registry).not.toMatch(/worldPhoto|assets\/world/);
+    const view = readFileSync(join(AOS, 'components/travel/TravelJourneyView.tsx'), 'utf8');
+    expect(view).not.toMatch(/worldPhoto|WorldPhoto/);
+    expect(view).toContain('City photography coming');
+  });
+});
+
 describe('World photographs — no two places share one (Brandon, 2026-11-19)', () => {
   const fixed = [
     MOMENTS_TAB_SCENE, REPLAY_SCENE, CIRCLES_SCENE, WELCOME_SCENE, ONE_BREATH_SCENE,
     HYDRATION_SCENE, PROFILE_SCENE, CALENDAR_SCENE,
+    ...TRAVEL_STAGE_SCENES,
     ...Object.values(PROTOCOL_SCENES), ...Object.values(PROTOCOL_SCREEN_SCENES),
   ];
 
@@ -145,10 +168,10 @@ describe('World photographs — no two places share one (Brandon, 2026-11-19)', 
     expect(tab).not.toContain('worldPhotoForMoment');
   });
 
-  it('there are 39 photographs and no two files are the same picture', () => {
-    expect(WORLD_SCENES.length).toBe(39);
-    expect(new Set(WORLD_SCENES).size).toBe(39);
+  it('there are 43 photographs and no two files are the same picture', () => {
+    expect(WORLD_SCENES.length).toBe(43);
+    expect(new Set(WORLD_SCENES).size).toBe(43);
     const sizes = WORLD_SCENES.map((s) => readFileSync(join(AOS, 'assets', 'world', `${s}.jpg`)).length);
-    expect(new Set(sizes).size).toBe(39);
+    expect(new Set(sizes).size).toBe(43);
   });
 });
