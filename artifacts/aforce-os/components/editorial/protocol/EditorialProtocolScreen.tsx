@@ -65,7 +65,7 @@ import { EdEvidenceLine, EdSurface, useEdSettle } from '../index';
 import { EdBriefChecklist } from './EdBriefChecklist';
 import { WorldPhotoGap, WorldPhotoHero } from '@/components/world/WorldPhoto';
 import { worldPhoto } from '@/components/world/worldPhotoSources';
-import { PROTOCOL_SCENES } from '@/utils/worldPhoto';
+import { PROTOCOL_SCREEN_SCENES } from '@/utils/worldPhoto';
 import { useAFGutter } from '@/hooks/useAFGutter';
 import { EdCanonicalClock } from './EdCanonicalClock';
 import { briefGaugeFraction } from './editorialProtocolPresentation';
@@ -88,7 +88,7 @@ export function EditorialProtocolScreen() {
   const tabClearance = useTabBarClearance();
   const ink = edInkFor('black');
   const settle = useEdSettle();
-  const photo = worldPhoto(PROTOCOL_SCENES.recovery);
+  const photo = worldPhoto(PROTOCOL_SCREEN_SCENES.recovery);
   const gutter = useAFGutter();
 
   // Same lazy fetch rule as the live screen: rollups only once a surface

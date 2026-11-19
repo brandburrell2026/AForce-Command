@@ -23,6 +23,7 @@ export function WorldPhotoHero({
   bleed = 0,
   height = WORLD_HERO_HEIGHT,
   lift = 0,
+  dim = false,
   testID = 'world-photo-hero',
 }: {
   source: ImageSourcePropType | undefined;
@@ -31,6 +32,8 @@ export function WorldPhotoHero({
   height?: number;
   /** How far the photograph starts above its parent (a parent that sits below the status bar). */
   lift?: number;
+  /** A darker wash, for screens whose controls or readings sit on the photograph. */
+  dim?: boolean;
   testID?: string;
 }) {
   if (source == null) return null;
@@ -45,7 +48,11 @@ export function WorldPhotoHero({
     >
       <Image source={source} style={styles.fill} resizeMode="cover" />
       <LinearGradient
-        colors={[withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.1), withAlpha(af.canvas, 0.05), withAlpha(af.canvas, 0.6), af.canvas]}
+        colors={
+          dim
+            ? [withAlpha(af.canvas, 0.7), withAlpha(af.canvas, 0.55), withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.85), af.canvas]
+            : [withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.1), withAlpha(af.canvas, 0.05), withAlpha(af.canvas, 0.6), af.canvas]
+        }
         locations={[0, 0.22, 0.42, 0.72, 1]}
         style={StyleSheet.absoluteFill}
       />

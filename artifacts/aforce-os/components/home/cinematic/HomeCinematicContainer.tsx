@@ -15,7 +15,7 @@ import { useMomentsStore } from '@/services/momentsStore';
 import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
 import type { Moment } from '@/types/moments';
 import { HomeCinematic } from './HomeCinematic';
-import { worldPhoto, worldPhotoForMoment } from '@/components/world/worldPhotoSources';
+import { worldDetailPhotoForMoment, worldPhoto, worldPhotoForMoment } from '@/components/world/worldPhotoSources';
 import { FIRST_MOMENT_SCENES } from '@/utils/worldPhoto';
 import { HomeMomentCards } from './HomeMomentCards';
 import { HomeFirstMomentCard } from './HomeFirstMomentCard';
@@ -81,10 +81,11 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
   const privateLabel = t('moments.private_event');
   const beforeCard = homeBeforeCard(allMoments, props.now, privateLabel);
   const returnCard = homeReturnCard(allMoments, props.now, privateLabel, skippedReturns);
-  // Each card's small photograph is its own Moment's scene.
+  // Each card's small photograph is the one on the Moment screen it opens —
+  // never the photograph already behind the top of Home.
   const cardPhoto = (id: string | undefined) => {
     const m = id ? allMoments.find((x) => x.id === id) : undefined;
-    return m ? worldPhotoForMoment(m) : undefined;
+    return m ? worldDetailPhotoForMoment(m) : undefined;
   };
   // The prototype's "Your first Moment" card: only for a member with no
   // Moment yet, and only where One Breath really ends in a plan to seal.

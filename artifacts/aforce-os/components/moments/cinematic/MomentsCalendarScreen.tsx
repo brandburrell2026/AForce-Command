@@ -12,6 +12,9 @@
  * when that flag is on.
  */
 import React from 'react';
+import { WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { CALENDAR_SCENE } from '@/utils/worldPhoto';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +48,7 @@ export function MomentsCalendarScreen() {
   if (!flags.moments_enabled) return <Redirect href="/" />;
   return (
     <AFScreen scroll padded={false} contentContainerStyle={styles.content} testID="moments-calendar-screen">
+      <WorldPhotoHero source={worldPhoto(CALENDAR_SCENE)} bleed={GUTTER} height={300} dim testID="moments-calendar-photo" />
       <View style={styles.topRow}>
         <Pressable
           onPress={() => (router.canGoBack() ? router.back() : router.replace('/moments' as never))}

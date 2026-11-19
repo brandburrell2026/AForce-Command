@@ -29,7 +29,7 @@ import {
 import { sleepSignalsForContainer } from '@/services/health/sleepSignals';
 import { SleepModeView } from '@/components/sleep/SleepModeView';
 import { worldPhoto } from '@/components/world/worldPhotoSources';
-import { PROTOCOL_SCENES } from '@/utils/worldPhoto';
+import { PROTOCOL_SCREEN_SCENES } from '@/utils/worldPhoto';
 
 const SLEEP_TIME_KEY = '@aforce/sleepMode/targetTimeHHMM';
 const SEVEN_NIGHT_KEY = '@aforce/sleepMode/sevenNightAvg';
@@ -262,7 +262,7 @@ function SleepModeRedesign() {
         >
           <SleepModeView
             view={view}
-            photo={worldPhoto(PROTOCOL_SCENES.sleep)}
+            photo={worldPhoto(PROTOCOL_SCREEN_SCENES.sleep)}
             reducedMotion={reducedMotion}
             editingTarget={editing}
             targetDraft={draft}

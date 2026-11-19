@@ -35,6 +35,9 @@
  * action, still absent while ai_concierge_enabled is off).
  */
 import React from 'react';
+import { WorldPhotoHero } from '@/components/world/WorldPhoto';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { HYDRATION_SCENE } from '@/utils/worldPhoto';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { DAILY_TARGET_IS_PERSONAL } from '@/config/hydroStateModel';
 import { useTranslation } from 'react-i18next';
@@ -271,6 +274,7 @@ export function HydrationScreenV2() {
       {/* Top of the tab, laid out as in the approved prototype (App Spec
           v1.8.2 · Hydration tab): today's ounces, the status line, the ring
           card and the two actions. Values are the member's own. */}
+      <WorldPhotoHero source={worldPhoto(HYDRATION_SCENE)} bleed={HYDRATION_GUTTER} height={340} dim testID="hydration-photo" />
       <HydrationHero
         topRight={
           <ProfileEntryButton testID="hydration-profile-entry" />
