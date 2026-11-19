@@ -5,6 +5,9 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import type { Moment, MomentRecommendation } from '@/types/moments';
 const h = vi.hoisted(() => ({ moments: [] as any[], internal: true, action: true }));
 vi.mock('expo-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
+// The screen reads sign-in state to decide whether Travel is listed; Clerk's
+// native module does not load here.
+vi.mock('@clerk/expo', () => ({ useAuth: () => ({ isSignedIn: true }) }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string, params?: any) => params?.action ?? key }) }));
 vi.mock('@/components/travel/TravelHomeCard', () => ({ TravelMomentsEntry: () => null }));
 vi.mock('@/components/profile/ProfileEntryButton', () => ({ ProfileEntryButton: () => null }));

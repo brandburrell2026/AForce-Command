@@ -152,8 +152,22 @@ export const CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 /**
+ * Travel (founder decision 2026-11-19, Brandon: "it needs to show"). Travel
+ * was built as an opt-in internal pilot — off until a tester found its switch
+ * under Profile — so testers did not see it at all. It is now ON by default
+ * in the internal TestFlight build. Production stays OFF, and
+ * `travelPilotAvailable` still refuses the flag outside a dev/internal build,
+ * so a public build cannot show Travel whatever is stored. The Profile switch
+ * still turns it off for the session. Nothing is sent to the travel service
+ * until the member adds a flight and asks for its status.
+ */
+export const TRAVEL_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
+  'travel_mode_enabled',
+] as const satisfies readonly (keyof FeatureFlags)[];
+
+/**
  * What the internal-TestFlight build actually turns ON: the union of the
- * grants above (twelve keys), in ruling order. Nothing else. Every key here is
+ * grants above (thirteen keys), in ruling order. Nothing else. Every key here is
  * OFF in `DEFAULT_FLAGS` — the overlay grants only what production does not.
  * `moments_calendar_enabled` is deliberately absent — it stays false pending
  * Legal + Privacy sign-off, and no editorial flag widens that gate.
@@ -166,6 +180,7 @@ export const INTERNAL_TESTFLIGHT_OVERLAY_FLAGS = [
   ...CONCIERGE_INTERNAL_PREVIEW_OVERLAY_FLAGS,
   ...GENTLE_HYDRATION_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
   ...CRUISE_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
+  ...TRAVEL_INTERNAL_TESTFLIGHT_OVERLAY_FLAGS,
 ] as const satisfies readonly (keyof FeatureFlags)[];
 
 export type InternalTestflightOverlayFlagKey = (typeof INTERNAL_TESTFLIGHT_OVERLAY_FLAGS)[number];

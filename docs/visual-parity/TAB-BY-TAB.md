@@ -74,7 +74,9 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | "uses 1 lesson" on a row | None | ✘ learning loop |
 | Calendar page: month, 14-day strip with dots, Moment rows | Same layout at `/moments-calendar`, with the member's own Moments; always linked from the tab | ◐ no photographs on rows; no harness or device capture yet |
 | "Spot Moments on my calendar" (reads the phone's calendar: Outlook, Gmail, iCloud accounts on the device) | Built, read-only, OFF: `moments_calendar_enabled` is blocked until Legal and Privacy sign PR-002 Appendix A (DR-011) | ✘ blocked on sign-off, not on engineering |
-| Moment screen, Replay, Protocols pages | Older screens | ✘ not rebuilt |
+| Protocols list page (Recovery · Sleep · Travel) | Built: "‹ Moments · PROTOCOLS", "Plans for the Moments around your Moments.", a tile each for Recovery, Sleep and Travel with the demo's lines. Each opens the real screen (today's protocol, Sleep, Travel) | ◐ no photographs behind the tiles; no "Each one becomes a Moment you seal" line (not true of Recovery or Sleep today); the demo's placeholder protocol pages are not built because real screens exist. Not checked on a phone |
+| Travel reachable | A "Travel · Add or manage a flight" row sits with Calendar and Protocols. Travel is on by default in internal builds (Brandon, 2026-11-19); off in public builds | ✔ |
+| Moment screen, Replay, and the Recovery and Sleep screens the tiles open | Older screens | ✘ not rebuilt |
 
 ## Travel (a Moment page, opened from Moments — internal pilot)
 
