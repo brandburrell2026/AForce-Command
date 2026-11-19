@@ -136,3 +136,21 @@ describe('the Home layout is presentation only', () => {
     expect(view).toContain('color: af.onPrimaryFill');
   });
 });
+
+describe('the internal Home ends with the next-move panel, as the demo does', () => {
+  const screen = readFileSync(join(__dirname, '..', '..', '..', 'editorial', 'home', 'EditorialHomeScreen.tsx'), 'utf8');
+  const cinematic = screen.slice(screen.indexOf('<HomeCinematicContainer'), screen.indexOf('</HomeCinematicContainer>'));
+  it('draws no Travel card, Concierge entry or quiet list under it', () => {
+    expect(cinematic).not.toContain('<TravelHomeCard');
+    expect(cinematic).not.toContain('<ConciergeEntryCard');
+    expect(cinematic).not.toContain('<HomeQuietList');
+  });
+  it('keeps the offline notice and the Social control, which only appear when they apply', () => {
+    expect(cinematic).toContain('<AFOfflineBanner');
+    expect(cinematic).toContain('<SocialModeIndicator');
+  });
+  it('keeps the confidence statement, inside "Why?"', () => {
+    expect(cinematic).toContain("t('home.v2.confidence_chip', { rating: confidence.chip.label })");
+    expect(cinematic).not.toContain('confidenceLine=');
+  });
+});
