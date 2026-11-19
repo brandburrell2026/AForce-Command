@@ -97,7 +97,7 @@ describe('three screens, in the prototype\'s order', () => {
 describe('nothing about creating an account changed', () => {
   it('the Clerk calls are the same ones, in the same order', () => {
     const start = between('const handleStart', 'const handleVerify');
-    expect(start).toMatch(/signUp\.create\(\{\s*emailAddress,\s*password,\s*\.\.\.\(firstName \? \{ firstName \} : \{\}\),\s*\}\)/);
+    expect(start).toContain('signUp.create({ emailAddress, password })');
     expect(start).toContain("signUp.prepareEmailAddressVerification({ strategy: 'email_code' })");
     const verify = between('const handleVerify', 'const handleResend');
     expect(verify).toContain('signUp.attemptEmailAddressVerification({ code })');
@@ -105,8 +105,9 @@ describe('nothing about creating an account changed', () => {
     expect(CODE).toContain("strategy: 'oauth_google'");
   });
 
-  it('nothing became unreachable: first name and referral code are still asked', () => {
-    expect(EMAIL).toContain('onChangeText={setFirstName}');
+  it('nothing became unreachable: the referral code is still asked, and the name moved to first run', () => {
+    expect(CODE).not.toContain('firstName');
+    expect(read('components/onboarding/OnboardingScreenV2.tsx')).toContain("clerkUser.update({ firstName: next })");
     expect(CHOOSE).toContain('setReferralCode(v.toUpperCase())');
     // The referral field sits with the Google button, so it still applies to Google sign-up.
     expect(between('const handleGoogle', 'const handleStart')).toContain('await tryClaimReferral()');

@@ -1,7 +1,8 @@
 /**
  * Onboarding Engine — first-run setup wizard.
  *
- * Flow: Promise intro (3 screens) → Goal → Activity →
+ * Flow: Name ("What should we call you?", as in the approved prototype) →
+ *       Goal → Activity →
  *       Profile (body model + unit system) →
  *       Lifestyle (caffeine / occupation / travel) → Ready.
  * Designed for a sub-60s setup that lands the user in (tabs), where
@@ -62,6 +63,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollViewCompat } from '@/components/KeyboardAwareScrollViewCompat';
 import { Icon } from '@/components/Icon';
 import { HeightField, WeightField } from '@/components/bodyModel';
+import { useUser } from '@clerk/expo';
 import { useAppStore } from '@/store/useAppStore';
 import { useProfileIdentitySlice } from '@/store/slices';
 import { saveProfileVersion } from '@/services/profileSyncService';
@@ -88,44 +90,20 @@ import {
 } from '@/utils/units';
 
 type Step =
-  | 'promise1'
-  | 'promise2'
-  | 'promise3'
+  | 'name'
   | 'goal'
   | 'activity'
   | 'profile'
   | 'lifestyle'
   | 'ready';
-// Phase 5 — three "promise" intro screens play before any required input,
-// framing the core loop (readiness → command → log) in a premium, direct
-// tone. They collect nothing, so the wizard still finishes with phone +
-// manual inputs only (no wearable is ever required).
-const PROMISE_STEPS: Step[] = ['promise1', 'promise2', 'promise3'];
+// The first step is the approved prototype's "What should we call you?". The
+// three older promise slides that used to open this wizard are gone: the
+// promise now lives on the signed-out promise screen (components/auth/
+// PromiseScreen), and nothing here repeats it.
 const INPUT_STEPS: Step[] = ['goal', 'activity', 'profile', 'lifestyle'];
 
-interface PromiseScreen {
-  eyebrowKey: string;
-  titleKey: string;
-  bodyKey: string;
-}
-
-const PROMISE_SCREENS: readonly PromiseScreen[] = [
-  {
-    eyebrowKey: 'promise_1_eyebrow',
-    titleKey: 'promise_1_title',
-    bodyKey: 'promise_1_body',
-  },
-  {
-    eyebrowKey: 'promise_2_eyebrow',
-    titleKey: 'promise_2_title',
-    bodyKey: 'promise_2_body',
-  },
-  {
-    eyebrowKey: 'promise_3_eyebrow',
-    titleKey: 'promise_3_title',
-    bodyKey: 'promise_3_body',
-  },
-] as const;
+/** Longest first name the step accepts. */
+export const FIRST_NAME_MAX = 40;
 
 // Age guardrails for the year-of-birth conversion.
 const AGE_MIN = 13;
@@ -215,7 +193,19 @@ export function OnboardingScreenV2() {
   const { setProfileIdentity, setUnitPreference, unitPreferences } = useAppStore();
   const currentIdentity = useProfileIdentitySlice();
 
-  const [step, setStep] = React.useState<Step>('promise1');
+  const clerkUser = useUser().user;
+  const [step, setStep] = React.useState<Step>('name');
+  // First name lives on the member's account (Clerk), where Home's greeting
+  // and the profile initials already read it. Prefilled when the account has
+  // one (Google sign-up); saved only when the member changes it.
+  const [firstName, setFirstName] = React.useState('');
+  const [nameTouched, setNameTouched] = React.useState(false);
+  const [nameSaving, setNameSaving] = React.useState(false);
+  const [nameError, setNameError] = React.useState(false);
+  const accountFirstName = clerkUser?.firstName ?? '';
+  React.useEffect(() => {
+    if (!nameTouched && accountFirstName) setFirstName(accountFirstName);
+  }, [accountFirstName, nameTouched]);
   const [primaryGoal, setPrimaryGoal] = React.useState<PrimaryGoal | null>(null);
   const [activityLevel, setActivityLevel] = React.useState<number | null>(null);
   // Performance Profile (Section 19).
@@ -372,12 +362,32 @@ export function OnboardingScreenV2() {
     setProfileIdentity,
   ]);
 
+  // Saves the name to the member's account, then moves on. A blank or
+  // unchanged name saves nothing. If the save fails the member is told once,
+  // and the next press moves on without it rather than trapping them here.
+  const submitName = React.useCallback(async () => {
+    tap();
+    if (nameSaving) return;
+    const next = firstName.trim();
+    if (!next || next === accountFirstName || !clerkUser || nameError) {
+      setNameError(false);
+      setStep('goal');
+      return;
+    }
+    setNameSaving(true);
+    try {
+      await clerkUser.update({ firstName: next });
+      setStep('goal');
+    } catch {
+      setNameError(true);
+    } finally {
+      setNameSaving(false);
+    }
+  }, [tap, nameSaving, firstName, accountFirstName, clerkUser, nameError]);
+
   const goNext = React.useCallback(() => {
     tap();
     setStep((s) => {
-      if (s === 'promise1') return 'promise2';
-      if (s === 'promise2') return 'promise3';
-      if (s === 'promise3') return 'goal';
       if (s === 'goal') return 'activity';
       if (s === 'activity') return 'profile';
       if (s === 'profile') return 'lifestyle';
@@ -389,9 +399,7 @@ export function OnboardingScreenV2() {
   const goBack = React.useCallback(() => {
     tap();
     setStep((s) => {
-      if (s === 'promise2') return 'promise1';
-      if (s === 'promise3') return 'promise2';
-      if (s === 'goal') return 'promise3';
+      if (s === 'goal') return 'name';
       if (s === 'activity') return 'goal';
       if (s === 'profile') return 'activity';
       if (s === 'lifestyle') return 'profile';
@@ -401,10 +409,9 @@ export function OnboardingScreenV2() {
   }, [tap]);
 
   const stepIndex = INPUT_STEPS.indexOf(step);
-  const promiseIndex = PROMISE_STEPS.indexOf(step);
   const canContinue =
-    // Promise intro screens are always advanceable — they collect nothing.
-    promiseIndex >= 0 ||
+    // The name is optional — Continue is never gated on it.
+    (step === 'name' && !nameSaving) ||
     (step === 'goal' && primaryGoal != null) ||
     (step === 'activity' && activityLevel != null) ||
     step === 'profile' ||
@@ -421,27 +428,20 @@ export function OnboardingScreenV2() {
           <Pressable
             onPress={goBack}
             hitSlop={12}
-            disabled={step === 'promise1'}
+            disabled={step === 'name'}
             accessibilityRole="button"
             accessibilityLabel={t('onboarding.v2.back_a11y')}
             style={styles.headerBtn}
           >
-            {step !== 'promise1' && step !== 'ready' ? (
+            {step !== 'name' && step !== 'ready' ? (
               <Icon name="chevron-left" size={22} color={af.textSecondary} />
             ) : null}
           </Pressable>
 
           {step === 'ready' ? (
             <View style={styles.dots} />
-          ) : promiseIndex >= 0 ? (
-            <View style={styles.dots}>
-              {PROMISE_STEPS.map((s, i) => (
-                <View
-                  key={s}
-                  style={[styles.dot, i <= promiseIndex && styles.dotActive]}
-                />
-              ))}
-            </View>
+          ) : step === 'name' ? (
+            <Text style={styles.stepLabel}>{t('onboarding.v2.name_eyebrow').toUpperCase()}</Text>
           ) : (
             <View style={styles.dots}>
               {INPUT_STEPS.map((s, i) => (
@@ -476,17 +476,35 @@ export function OnboardingScreenV2() {
           showsVerticalScrollIndicator={false}
           bottomOffset={24}
         >
-          {promiseIndex >= 0 && (
-            <View style={styles.promiseWrap}>
-              <Text style={styles.promiseEyebrow}>
-                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].eyebrowKey}`)}
-              </Text>
-              <Text style={styles.promiseTitle}>
-                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].titleKey}`)}
-              </Text>
-              <Text style={styles.promiseBody}>
-                {t(`onboarding.v2.${PROMISE_SCREENS[promiseIndex].bodyKey}`)}
-              </Text>
+          {step === 'name' && (
+            <View testID="onboarding-name">
+              <Text accessibilityRole="header" style={styles.nameTitle}>{t('onboarding.v2.name_title')}</Text>
+              <Text style={styles.nameSub}>{t('onboarding.v2.name_sub')}</Text>
+              <Text style={styles.nameLabel}>{t('onboarding.v2.name_label')}</Text>
+              <TextInput
+                style={styles.nameInput}
+                value={firstName}
+                onChangeText={(v) => {
+                  setNameTouched(true);
+                  setNameError(false);
+                  setFirstName(v.slice(0, FIRST_NAME_MAX));
+                }}
+                autoCapitalize="words"
+                autoComplete="given-name"
+                textContentType="givenName"
+                returnKeyType="done"
+                onSubmitEditing={submitName}
+                maxLength={FIRST_NAME_MAX}
+                placeholder={t('onboarding.v2.name_label')}
+                placeholderTextColor={af.textTertiary}
+                accessibilityLabel={t('onboarding.v2.name_label')}
+                testID="onboarding-name-input"
+              />
+              {nameError ? (
+                <Text style={styles.nameError} accessibilityRole="alert" accessibilityLiveRegion="polite">
+                  {t('onboarding.v2.name_error')}
+                </Text>
+              ) : null}
             </View>
           )}
 
@@ -891,7 +909,7 @@ export function OnboardingScreenV2() {
         {/* Footer CTA */}
         <View style={styles.footer}>
           <Pressable
-            onPress={step === 'ready' ? finish : goNext}
+            onPress={step === 'ready' ? finish : step === 'name' ? submitName : goNext}
             disabled={!canContinue && step !== 'ready'}
             style={[
               styles.cta,
@@ -939,25 +957,25 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   scroll: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 },
-  promiseWrap: { paddingTop: 56, paddingRight: 12, gap: 16 },
-  promiseEyebrow: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 12,
-    letterSpacing: 2,
-    color: af.redText,
-  },
-  promiseTitle: {
-    fontFamily: 'Inter_800ExtraBold',
-    fontSize: 34,
-    lineHeight: 39,
-    color: af.textPrimary,
-  },
-  promiseBody: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 17,
-    lineHeight: 25,
+  stepLabel: {
+    fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2,
     color: af.textSecondary,
   },
+  nameTitle: {
+    fontFamily: 'Inter_600SemiBold', fontSize: 32, lineHeight: 34, letterSpacing: -0.96,
+    color: af.textPrimary, marginTop: 18, marginBottom: 8,
+  },
+  nameSub: {
+    fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22,
+    color: af.textSecondary, marginBottom: 22,
+  },
+  nameLabel: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary, marginBottom: 6 },
+  nameInput: {
+    minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: af.border,
+    backgroundColor: af.canvas, paddingHorizontal: 14,
+    color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 16,
+  },
+  nameError: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.redText, marginTop: 10 },
   kicker: {
     fontFamily: 'Inter_700Bold',
     fontSize: 12,
