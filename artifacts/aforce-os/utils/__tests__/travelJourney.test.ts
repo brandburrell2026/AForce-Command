@@ -148,3 +148,57 @@ describe('route line shift', () => {
     expect(shiftShort(null)).toBeNull();
   });
 });
+
+describe('"Your plan" steps', () => {
+  it('before departure: three planned steps from the itinerary, none done', () => {
+    const v = journeyView(input([lisbon], '2026-11-11T23:05:00Z'))!;
+    expect(v.kind).toBe('preview');
+    expect(v.plan).toEqual([
+      { time: '7:05 AM', title: 'Depart JFK · LOCK-IN', note: 'New York time · planned', status: 'next' },
+      { time: 'In the air', title: 'Quiet', note: 'Until you land', status: 'next' },
+      // Lisbon is not in the city registry, so the airport code stands in for the name.
+      { time: '10:00 PM', title: 'Land in LIS', note: 'LIS time · planned', status: 'next' },
+    ]);
+  });
+
+  it('in transit: departure done, the quiet stretch is now', () => {
+    const v = journeyView(input([miami], '2026-11-12T13:25:00Z'))!;
+    expect(v.plan.map((s) => s.status)).toEqual(['done', 'now', 'next']);
+  });
+
+  it('past the planned arrival but not confirmed: landing is still ahead', () => {
+    const v = journeyView(input([miami], '2026-11-12T15:40:00Z'))!;
+    expect(v.kind).toBe('lock_in');
+    expect(v.plan.map((s) => s.status)).toEqual(['done', 'now', 'next']);
+  });
+
+  it('after the member confirms landing: all done', () => {
+    const v = journeyView(input([miami], '2026-11-12T15:30:00Z', { mia: { arrivalConfirmedAtIso: '2026-11-12T15:20:00Z' } }))!;
+    expect(v.kind).toBe('arrival');
+    expect(v.plan.map((s) => s.status)).toEqual(['done', 'done', 'done']);
+  });
+
+  it('no arrival time on the itinerary: a dash, said plainly, never a guess', () => {
+    const open: TravelTrip = { ...miami, legs: [{ ...miami.legs[0], arrivalAt: null }] } as TravelTrip;
+    const v = journeyView(input([open], '2026-11-11T23:05:00Z'))!;
+    expect(v.plan[2]).toEqual({ time: '—', title: 'Land in Miami', note: 'Not on your itinerary', status: 'next' });
+  });
+
+  it('a connection is "In transit", with the number of flights', () => {
+    const two: TravelTrip = {
+      ...miami,
+      legs: [
+        { ...miami.legs[0], flight: { ...flight, destination: 'ATL' }, arrivalAt: '2026-11-12T14:30:00Z' },
+        { ...miami.legs[0], id: 'l1b', flight: { ...flight, origin: 'ATL' }, departureAt: '2026-11-12T16:00:00Z', arrivalAt: '2026-11-12T18:00:00Z' },
+      ],
+    };
+    const v = journeyView(input([two], '2026-11-11T23:05:00Z'))!;
+    expect(v.plan[1]).toEqual({ time: 'In transit', title: 'Quiet', note: '2 flights · until you land', status: 'next' });
+    expect(v.plan[2].time).toBe('1:00 PM');
+  });
+
+  it('states no leave-for-the-airport time: the app does not know it', () => {
+    const v = journeyView(input([miami], '2026-11-11T23:05:00Z'))!;
+    expect(JSON.stringify(v.plan)).not.toMatch(/Leave for|Boarding/);
+  });
+});

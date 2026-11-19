@@ -57,6 +57,20 @@ export interface JourneyRoute {
   accessibilityLabel: string;
 }
 
+/**
+ * One step of "Your plan", as on the approved prototype's Travel page. Only
+ * what the itinerary states is listed: the planned departure, the stretch in
+ * between, and the planned arrival. The prototype's "Leave for the airport"
+ * row is not here, because the app does not know when the member leaves.
+ */
+export interface JourneyPlanStep {
+  /** Left column: a local clock time, or "In the air" / "In transit". */
+  time: string;
+  title: string;
+  note: string;
+  status: 'done' | 'now' | 'next';
+}
+
 /** "−3 h" / "+5.5 h" / "same time"; null when unknown. */
 export function shiftShort(hours: number | null): string | null {
   if (hours == null) return null;
@@ -75,6 +89,8 @@ export interface JourneyView {
   cityName: string;
   /** Null when the departure time on the itinerary cannot be read. */
   route: JourneyRoute | null;
+  /** "Your plan" steps, planned times only. Empty when the departure time cannot be read. */
+  plan: JourneyPlanStep[];
   atmosphere: Atmosphere;
   /** Background tone for the type-only treatment, by daypart. */
   tone: string;
@@ -194,9 +210,37 @@ export function journeyView(input: JourneyInput): JourneyView | null {
           (diff == null ? '' : `. ${diffLabel(diff, originCity)}`),
       }
     : null;
+  // Where the member is in the plan follows the view, which follows the
+  // travel state; nothing here is inferred from the clock alone.
+  const departed = viewKind !== 'preview';
+  const landed = viewKind === 'arrival' || viewKind === 'ready';
+  const flights = trip.legs.length;
+  const plan: JourneyPlanStep[] = Number.isFinite(departMs)
+    ? [
+        {
+          time: clock(departMs, first.originTimeZone),
+          title: `Depart ${first.flight.origin} · LOCK-IN`,
+          note: `${originCity} time · planned`,
+          status: departed ? 'done' : 'next',
+        },
+        {
+          time: flights > 1 ? 'In transit' : 'In the air',
+          title: 'Quiet',
+          note: flights > 1 ? `${flights} flights · until you land` : 'Until you land',
+          status: landed ? 'done' : departed ? 'now' : 'next',
+        },
+        {
+          time: arriveClock ?? '—',
+          title: `Land in ${dest.name}`,
+          note: arriveClock ? `${dest.name} time · planned` : 'Not on your itinerary',
+          status: landed ? 'done' : 'next',
+        },
+      ]
+    : [];
   const base = {
     tripId: trip.id,
     route: routeLine,
+    plan,
     arrivalMomentId,
     needsReview: state.needsReview,
     cityName: dest.name,

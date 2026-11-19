@@ -85,9 +85,10 @@ The demo marks this page "Design review · gated · sample data". The app's Trav
 | "‹ Moments" and "Travel" | Same, as "Travel · Private pilot" | ✔ |
 | Route line: JFK 9:05 — LAX · −3 h 12:20 | Built, from the member's itinerary, each time in that airport's local time, labelled "Planned times from your itinerary" | ✔ no capture yet |
 | Title "New York to Los Angeles" | The destination city ("Los Angeles"), per the earlier Travel mockup | ✔ decided: keep the destination city (Brandon, 2026-11-19) |
-| World photograph | Daypart tone, type only | ✘ no licensed photography |
-| "Your plan" timeline (leave, boarding · Lock In, in the air, land · Return) | Rows for countdown, time difference, weather; the plan lives on the arrival Moment | ✘ not rebuilt |
-| "From Travel Gate" and "Time-zone plan" concept cards | Not shown | ✘ Travel Gate not connected; sleep/light advice awaits review (CR-T1) |
+| World photograph | Daypart tone, type only | ✘ blocked: no licensed photography. 28 of 40 picks cleared; 12 need re-picking by Brandon, then counsel and the licence |
+| "Your plan" timeline (leave, boarding · Lock In, in the air, land · Return) | Built: three steps from the itinerary — "Depart JFK · LOCK-IN", "In the air · Quiet · Until you land", "Land in Los Angeles" — each with its planned local time, marked done / now as the trip moves | ◐ no "Leave for the airport" or boarding time (the app does not know them); no "phone on Quiet" or "one question" notes (not claimed). No capture yet |
+| "From Travel Gate" concept card ("coming soon") | The app is ahead of the demo: a working "Connect TravelGate" control with a linking code sits in the pilot controls below | ✔ the "coming soon" card is not shown |
+| "Time-zone plan" concept card ("needs expert review. No advice shown.") | Not shown, and no advice shown | ✘ blocked: sleep/light advice awaits the human reviewer (CR-T1). No code until dispositions are recorded |
 | Nothing else | Trip entry form, flight status and reminders sit below the journey view | ◐ working pilot controls, kept |
 
 ## Circles
