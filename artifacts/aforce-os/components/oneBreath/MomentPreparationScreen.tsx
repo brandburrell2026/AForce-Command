@@ -26,8 +26,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { Moment, MomentPreparation } from "@/types/moments";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { WorldPhotoGap, WorldPhotoHero } from "@/components/world/WorldPhoto";
-import { worldPhoto } from "@/components/world/worldPhotoSources";
-import { ONE_BREATH_SCENE, REPLAY_SCENE } from "@/utils/worldPhoto";
+import { worldBreathPhotoForMoment, worldPhoto } from "@/components/world/worldPhotoSources";
+import { REPLAY_SCENE } from "@/utils/worldPhoto";
 import { useAppStore } from "@/store/useAppStore";
 import {
   commitReviewedMoment,
@@ -97,6 +97,9 @@ import {
 } from "@/utils/oneBreath/confirmationWindow";
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
 import { ONE_BREATH_SEAL_UNDO_MS } from "@/config/hydroStateModel";
+
+/** The screens that sit on the Moment's photograph: from understood to Quiet. */
+const BREATH_SCENE_SCREENS: readonly string[] = ["mirror", "plan", "seal", "lock", "quiet"];
 
 type Screen =
   | "noticed"
@@ -1258,6 +1261,12 @@ export function MomentPreparationScreen({
   const steps = current?.preparation?.steps ?? [];
   // Replay's own World photograph, internal builds only.
   const replayPhoto = worldPhoto(REPLAY_SCENE);
+  // One Breath's scene, as the prototype shows it: nothing while it listens,
+  // then the Moment's own photograph fades in behind everything once the
+  // Moment is understood, and turns right down in Quiet.
+  const breathPhoto = BREATH_SCENE_SCREENS.includes(screen)
+    ? worldBreathPhotoForMoment(current)
+    : undefined;
   // From the member's own words only; a goal never sets the workout type.
   const focus = workoutFocus(words || current?.title || "");
   const safetyView = screen === "change" && safety !== null;
@@ -1384,6 +1393,13 @@ export function MomentPreparationScreen({
     <View
       style={[s.root, screen === "quiet" && { backgroundColor: T.ink }]}
     >
+      <WorldPhotoHero
+        source={breathPhoto}
+        fill
+        wash={screen === "quiet" ? "breathQuiet" : "breath"}
+        fadeMs={1400}
+        testID="one-breath-scene"
+      />
       <ScrollView
         ref={scrollRef}
         keyboardShouldPersistTaps="handled"
@@ -1511,7 +1527,6 @@ export function MomentPreparationScreen({
         ) : null}
         {screen === "capture" ? (
           <>
-            <WorldPhotoHero source={worldPhoto(ONE_BREATH_SCENE)} bleed={28} lift={120} height={380} dim testID="one-breath-photo" />
             {!reservationOpen ? (
               <OneBreathCapture
                 social={social}

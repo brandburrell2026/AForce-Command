@@ -9,13 +9,13 @@ import {
   HYDRATION_SCENE,
   MOMENT_SCENES,
   MOMENTS_TAB_SCENE,
-  ONE_BREATH_SCENE,
   PROFILE_SCENE,
   PROTOCOL_SCREEN_SCENES,
   REPLAY_SCENE,
   SCREEN_SCENES,
   WELCOME_SCENE,
   worldDetailSceneForMoment,
+  worldBreathSceneForMoment,
   travelSceneForStage,
   PROTOCOL_SCENES,
   WORLD_EMPTY_SCENE,
@@ -125,9 +125,25 @@ describe('World photographs — Travel', () => {
   });
 });
 
+describe('World photographs — One Breath, as the prototype shows it', () => {
+  const src = readFileSync(join(AOS, 'components/oneBreath/MomentPreparationScreen.tsx'), 'utf8');
+
+  it('shows nothing while it listens: the opening screen has no photograph', () => {
+    expect(src).toContain('const BREATH_SCENE_SCREENS: readonly string[] = ["mirror", "plan", "seal", "lock", "quiet"];');
+    expect(src).not.toMatch(/one-breath-photo|ONE_BREATH_SCENE/);
+    const capture = src.slice(src.indexOf('{screen === "capture" ? ('), src.indexOf('{screen === "mirror"'));
+    expect(capture).not.toContain('WorldPhotoHero');
+  });
+
+  it('then the Moment\'s own photograph fades in behind everything, and turns down in Quiet', () => {
+    expect(src).toMatch(/BREATH_SCENE_SCREENS\.includes\(screen\)\s*\? worldBreathPhotoForMoment\(current\)/);
+    expect(src).toMatch(/source=\{breathPhoto\}\s+fill\s+wash=\{screen === "quiet" \? "breathQuiet" : "breath"\}\s+fadeMs=\{1400\}/);
+  });
+});
+
 describe('World photographs — no two places share one (Brandon, 2026-11-19)', () => {
   const fixed = [
-    MOMENTS_TAB_SCENE, REPLAY_SCENE, CIRCLES_SCENE, WELCOME_SCENE, ONE_BREATH_SCENE,
+    MOMENTS_TAB_SCENE, REPLAY_SCENE, CIRCLES_SCENE, WELCOME_SCENE,
     HYDRATION_SCENE, PROFILE_SCENE, CALENDAR_SCENE,
     ...TRAVEL_STAGE_SCENES,
     ...Object.values(PROTOCOL_SCENES), ...Object.values(PROTOCOL_SCREEN_SCENES),
@@ -139,7 +155,9 @@ describe('World photographs — no two places share one (Brandon, 2026-11-19)', 
   });
 
   it('a fixed screen never shows a photograph a Moment can show', () => {
-    const momentPhotos = new Set<string>([...MOMENT_SCENES, ...MOMENT_SCENES.map((s) => `${s}_b`)]);
+    const momentPhotos = new Set<string>([
+      ...MOMENT_SCENES, ...MOMENT_SCENES.map((s) => `${s}_b`), ...MOMENT_SCENES.map((s) => `${s}_c`),
+    ]);
     for (const s of fixed) expect(momentPhotos.has(s), s).toBe(false);
   });
 
@@ -151,6 +169,10 @@ describe('World photographs — no two places share one (Brandon, 2026-11-19)', 
         expect(detail).toBe(`${home}_b`);
         expect(detail).not.toBe(home);
         expect(WORLD_SCENES).toContain(detail);
+        // …and a third in One Breath.
+        const breath = worldBreathSceneForMoment({ title, type });
+        expect(breath).toBe(`${home}_c`);
+        expect(WORLD_SCENES).toContain(breath);
       }
     }
   });
@@ -168,10 +190,10 @@ describe('World photographs — no two places share one (Brandon, 2026-11-19)', 
     expect(tab).not.toContain('worldPhotoForMoment');
   });
 
-  it('there are 43 photographs and no two files are the same picture', () => {
-    expect(WORLD_SCENES.length).toBe(43);
-    expect(new Set(WORLD_SCENES).size).toBe(43);
+  it('there are 55 photographs and no two files are the same picture', () => {
+    expect(WORLD_SCENES.length).toBe(55);
+    expect(new Set(WORLD_SCENES).size).toBe(55);
     const sizes = WORLD_SCENES.map((s) => readFileSync(join(AOS, 'assets', 'world', `${s}.jpg`)).length);
-    expect(new Set(sizes).size).toBe(43);
+    expect(new Set(sizes).size).toBe(55);
   });
 });
