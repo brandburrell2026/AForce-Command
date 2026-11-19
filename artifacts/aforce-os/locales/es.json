@@ -854,6 +854,11 @@
     "start": "EMPEZAR",
     "back": "Atrás",
     "v2": {
+      "name_eyebrow": "Almost there",
+      "name_title": "What should we call you?",
+      "name_sub": "Shown to you, and to people you invite later.",
+      "name_label": "First name",
+      "name_error": "That didn't save. Press Continue to go on without it; you can try again later.",
       "promise_1_eyebrow": "01 — 03",
       "promise_1_title": "Know when your body is ready.",
       "promise_1_body": "AForce turns hydration, recovery, and environment into one clear readiness signal.",

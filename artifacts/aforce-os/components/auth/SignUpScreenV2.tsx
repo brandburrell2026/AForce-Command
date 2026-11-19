@@ -7,10 +7,10 @@
  *   code   — "Check your email" (2 of 2): the 6-digit code.
  *
  * Kept from the older screen, because the prototype has no place for them
- * and nothing may become unreachable: the optional first name (on the email
- * step; the prototype asks it after the code) and the optional referral code
- * (behind "Have an invite code?" on the first step, so it still applies to
- * Google sign-up). Apple sign-in is not set up, so it is not offered.
+ * and nothing may become unreachable: the optional referral code (behind
+ * "Have an invite code?" on the first step, so it still applies to Google
+ * sign-up). The first name is asked after sign-up, on first run's
+ * "What should we call you?" step, as in the prototype. Apple sign-in is not set up, so it is not offered.
  *
  * Uses @clerk/expo's `useSignUp` with the canonical create() →
  * sendEmailCode() → attemptEmailAddressVerification() → setActive()
@@ -47,7 +47,6 @@ export function SignUpScreenV2() {
   const { getToken } = useAuth();
   const router = useRouter();
   const [emailAddress, setEmailAddress] = React.useState('');
-  const [firstName, setFirstName] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [referralCode, setReferralCode] = React.useState('');
   const [code, setCode] = React.useState('');
@@ -108,11 +107,7 @@ export function SignUpScreenV2() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      await signUp.create({
-        emailAddress,
-        password,
-        ...(firstName ? { firstName } : {}),
-      });
+      await signUp.create({ emailAddress, password });
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setPendingVerification(true);
     } catch (err: unknown) {
@@ -323,17 +318,6 @@ export function SignUpScreenV2() {
                 accessibilityLabel={t('auth.v2.a11y_password')}
               />
 
-              <Text style={styles.label}>{t('auth.v2.signup_label_firstname_optional')}</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                autoComplete="given-name"
-                placeholder={t('auth.v2.signup_label_firstname')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.signup_a11y_firstname')}
-              />
               {errorLine}
 
               <View style={styles.spacer} />
