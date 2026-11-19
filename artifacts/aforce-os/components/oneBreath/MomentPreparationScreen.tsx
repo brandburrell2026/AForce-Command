@@ -63,8 +63,8 @@ import { getScopeState } from "@/services/userScope";
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { hapticImpact, hapticSelection } from "@/services/haptics";
 import { MomentTimingPicker } from "./MomentTimingPicker";
-import { PreparationMark } from "./PreparationMark";
 import { OneBreathCapture } from "./OneBreathCapture";
+import { SealRing } from "./SealRing";
 import { ORB_HIDDEN_PREPARATION_SCREENS, useHideOrbWhile } from "@/services/orbVisibility";
 import { PreparationOrb } from "./PreparationOrb";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
@@ -258,7 +258,9 @@ export function MomentPreparationScreen({
     : current;
   const day = isDayMoment(anchor ?? { startAtIso: new Date().toISOString() });
   // The orange day accent is retired (Master Brief §2): one accent, day or night.
-  const accent = T.blueHi;
+  // Blue belongs to a Social Moment only (Master Brief §2); everywhere else
+  // the small labels are muted.
+  const accent = social ? T.blueHi : T.muted;
   const next = nextPreparationContext(
     sharedMoments.surfaced,
     anchor,
@@ -1571,7 +1573,7 @@ export function MomentPreparationScreen({
         {screen === "mirror" && draft ? (
           <>
             <Text {...headingProps} style={[s.eyebrow, { color: accent }]}>
-              HERE’S WHAT I HEARD
+              WHAT I HEARD
             </Text>
             {error && !(calendarChanged && error === CALENDAR_CHANGED) ? (
               <Text accessibilityRole="alert" style={s.body}>
@@ -1861,7 +1863,7 @@ export function MomentPreparationScreen({
               YOUR PLAN · NOT SEALED YET
             </Text>
             <Text {...headingProps} style={[s.title, accessibleHeading]}>
-              Prepared for your moment.
+              Your plan
             </Text>
             {current?.preparation?.nextMoment && next ? (
               <Text style={s.body}>
@@ -1891,12 +1893,14 @@ export function MomentPreparationScreen({
             <Text style={s.muted}>
               Preparation times use your phone’s local time.
             </Text>
+            {/* Plan rows as the prototype lists them: the time at the left,
+                the step beside it, a hairline between rows. */}
             {steps.map((step, i) => (
-              <View key={i} style={s.row}>
-                <Text style={[s.eyebrow, { color: accent }]}>
+              <View key={i} style={s.planRow}>
+                <Text style={[s.eyebrow, s.planTime, { color: accent }]}>
                   {clock(step.atIso)}
                 </Text>
-                <Text style={s.body}>{step.action}</Text>
+                <Text style={[s.body, s.planText]}>{step.action}</Text>
               </View>
             ))}
             {!steps.some((step) => step.commandId) ? (
@@ -1905,9 +1909,9 @@ export function MomentPreparationScreen({
               </Text>
             ) : null}
             {focus ? (
-              <View style={s.row}>
-                <Text style={[s.eyebrow, { color: accent }]}>EXERCISES</Text>
-                <Text style={s.body}>{exerciseRow(focus)}</Text>
+              <View style={s.planRow}>
+                <Text style={[s.eyebrow, s.planTime, { color: accent }]}>EXERCISES</Text>
+                <Text style={[s.body, s.planText]}>{exerciseRow(focus)}</Text>
               </View>
             ) : null}
             <Text style={s.muted}>No reminders during Quiet.</Text>
@@ -2001,22 +2005,16 @@ export function MomentPreparationScreen({
               onAccessibilityTap={sealByHold}
               style={s.seal}
             >
-              <Animated.View
-                style={[
-                  s.progress,
-                  {
-                    width: progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ["0%", "100%"],
-                    }),
-                  },
-                ]}
-              />
-              <PreparationMark color={T.bone} size={46} />
-              <Text style={s.body}>
-                {saving ? "Saving…" : holding ? "Keep holding" : "Hold to seal"}
-              </Text>
+              {/* The prototype's ring: an arc fills while the member holds. */}
+              <SealRing progress={progress} social={social}>
+                <Text style={s.sealLabel}>
+                  {saving ? "Saving…" : holding ? "Keep holding" : "Hold to seal"}
+                </Text>
+              </SealRing>
             </Pressable>
+            <Text style={[s.muted, s.centered]}>
+              Release early to cancel. Nothing is saved until sealed.
+            </Text>
             <Text style={s.body}>
               {saved ? "Updates" : "Adds"} 1 Moment · {steps.length} preparation
               steps.
@@ -2036,12 +2034,12 @@ export function MomentPreparationScreen({
         ) : null}
         {screen === "lock" ? (
           <>
-            <Text style={s.eyebrow}>SEALED</Text>
-            <PreparationOrb social={social} day={day} />
-            <Text {...headingProps} style={[s.title, accessibleHeading]}>
+            <Text style={[s.eyebrow, s.centered]}>SEALED</Text>
+            <PreparationOrb social={social} day={day} size={170} />
+            <Text {...headingProps} style={[s.title, s.centered, accessibleHeading]}>
               Your plan is yours.
             </Text>
-            <Text style={s.body}>Go perform.</Text>
+            <Text style={[s.body, s.centered]}>Go perform.</Text>
             {undoUntil !== null ? button("Undo", undoSeal) : null}
             {button(
               "Lock In",
@@ -2058,7 +2056,7 @@ export function MomentPreparationScreen({
         {screen === "quiet" ? (
           <>
             <Animated.View style={{ opacity: dim }}>
-              <Text style={[s.eyebrow, { color: accent }]}>LOCKED IN</Text>
+              <Text style={[s.eyebrow, s.centered, { color: accent }]}>LOCKED IN</Text>
               <PreparationOrb social={social} day={day} moon />
               <Text
                 {...headingProps}
@@ -2374,25 +2372,24 @@ const s = StyleSheet.create({
     borderColor: T.rule,
   },
   choices: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  // The hold-to-seal control is the prototype's 150pt ring (SealRing).
   seal: {
-    width: 210,
-    height: 210,
     alignSelf: "center",
-    borderRadius: 105,
-    borderWidth: 2,
-    borderColor: T.red,
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
-    overflow: "hidden",
-    marginVertical: 24,
+    marginVertical: 18,
   },
-  progress: {
-    position: "absolute",
-    height: "100%",
-    left: 0,
-    backgroundColor: T.red,
+  sealLabel: { fontFamily: "Inter_600SemiBold", fontSize: 15, color: T.bone, textAlign: "center" },
+  planRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 12,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: T.rule,
   },
+  planTime: { width: 84 },
+  planText: { flex: 1 },
   safetyLine: { height: 2, backgroundColor: T.red },
   safetyTitle: { ...T.headline, fontSize: 28, lineHeight: 34, color: T.bone },
 });
