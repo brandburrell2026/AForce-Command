@@ -35,6 +35,7 @@ import { AFMark } from '@/components/ui/AFMark';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { useOrbHidden } from '@/services/orbVisibility';
+import { TabGlyph } from '@/components/navigation/TabGlyph';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { oneBreathOrbRaise, oneBreathTabHitSlop } from '@/utils/navigation/oneBreathOrbGeometry';
 import { DEMO_MODE } from '@/services/demoMode';
@@ -179,11 +180,12 @@ const WEB_NO_OUTLINE = Platform.OS === 'web'
     } as Record<string, unknown>)
   : {};
 
-/** Screen Upgrade v1.1 §1: the orb is 64pt and raised 12pt above the bar. */
-export const ONE_BREATH_ORB_SIZE = 64;
-export const ONE_BREATH_ORB_RAISE = 12;
+/** The prototype's bar orb: 46pt, raised 22pt, with a 5pt ring of the bar's own black around it. */
+export const ONE_BREATH_ORB_SIZE = 46;
+export const ONE_BREATH_ORB_RAISE = 22;
+export const ONE_BREATH_ORB_RING = 5;
 /** Letter size of the mark inside the orb. */
-const ONE_BREATH_TAB_MARK_SIZE = 22;
+const ONE_BREATH_TAB_MARK_SIZE = 12;
 /** One slow breath, on Home only. */
 export const ONE_BREATH_ORB_BREATH_MS = 6000;
 const ONE_BREATH_ORB_BREATH_SCALE = 1.04;
@@ -215,9 +217,12 @@ const plainTabButtonStyles = StyleSheet.create({
   // the only glowing object in the app (Master Brief §2).
   oneBreathSlot: {
     position: 'absolute',
-    top: -ONE_BREATH_ORB_RAISE,
-    width: ONE_BREATH_ORB_SIZE,
-    height: ONE_BREATH_ORB_SIZE,
+    top: -(ONE_BREATH_ORB_RAISE + ONE_BREATH_ORB_RING),
+    width: ONE_BREATH_ORB_SIZE + ONE_BREATH_ORB_RING * 2,
+    height: ONE_BREATH_ORB_SIZE + ONE_BREATH_ORB_RING * 2,
+    borderRadius: (ONE_BREATH_ORB_SIZE + ONE_BREATH_ORB_RING * 2) / 2,
+    // The ring of the bar's own black around the orb (prototype).
+    backgroundColor: Colors.tabBar.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -292,7 +297,7 @@ function OneBreathTabIcon() {
   if (hidden) return null;
   return (
     <View
-      style={[plainTabButtonStyles.oneBreathSlot, { top: -raise }]}
+      style={[plainTabButtonStyles.oneBreathSlot, { top: -(raise + ONE_BREATH_ORB_RING) }]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
       testID="tab-one-breath-orb"
@@ -300,7 +305,7 @@ function OneBreathTabIcon() {
       <Animated.View style={[plainTabButtonStyles.oneBreathOrb, { transform: [{ scale }] }]}>
         <Svg width={ONE_BREATH_ORB_SIZE} height={ONE_BREATH_ORB_SIZE} style={StyleSheet.absoluteFill}>
           <Defs>
-            <RadialGradient id={gradientId} cx={afOrb.light.cx} cy={afOrb.light.cy} rx="75%" ry="75%">
+            <RadialGradient id={gradientId} cx={afOrb.light.cx} cy={afOrb.light.cy} r="98%">
               {afOrb.oneBreath.map((stop, i) => (
                 <Stop key={stop} offset={afOrb.stops[i]} stopColor={stop} />
               ))}
@@ -375,10 +380,8 @@ function ClassicTabLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
-          tabBarIcon: ({ color, size, focused }) =>
-            // A thin-line house, not the lightning bolt (Screen Upgrade v1.1 §1).
-            isIOS ? <SymbolView name={focused ? 'house.fill' : 'house'} tintColor={color} size={size} />
-                  : <Icon name="home" size={22} color={color} />,
+          // The prototype's own icon: a ring with a centre dot.
+          tabBarIcon: ({ color }) => <TabGlyph name="home" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -387,9 +390,7 @@ function ClassicTabLayout() {
         listeners={{ tabLongPress: () => router.push('/scan') }}
         options={{
           title: t('tabs.hydration'),
-          tabBarIcon: ({ color, size, focused }) =>
-            isIOS ? <SymbolView name={focused ? 'drop.circle.fill' : 'drop.circle'} tintColor={color} size={size} />
-                  : <Icon name="droplet" size={22} color={color} />,
+          tabBarIcon: ({ color }) => <TabGlyph name="hydration" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -405,11 +406,8 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="one-breath-tab"
         options={{
-          title: 'One Breath',
-          // The orb carries no text label; a screen reader hears "One Breath".
-          tabBarShowLabel: false,
-          // Belt and braces: never draw a text label under the orb.
-          tabBarLabel: () => null,
+          // The prototype labels the orb "Breath"; a screen reader hears "One Breath".
+          title: 'Breath',
           tabBarAccessibilityLabel: 'One Breath',
           tabBarIcon: () => <OneBreathTabIcon />,
           // The raised part of the orb is part of the button's touch area.
@@ -426,18 +424,14 @@ function ClassicTabLayout() {
         options={{
           href: '/moments-tab',
           title: 'Moments',
-          tabBarIcon: ({ color, size, focused }) => isIOS
-            ? <SymbolView name={focused ? 'calendar.circle.fill' : 'calendar'} tintColor={color} size={size} />
-            : <Icon name="calendar" size={22} color={color} />,
+          tabBarIcon: ({ color }) => <TabGlyph name="moments" color={color} />,
         }}
       />
       <Tabs.Screen
         name="competition"
         options={{
           title: 'Circles',
-          tabBarIcon: ({ color, size, focused }) =>
-            isIOS ? <SymbolView name={focused ? 'person.2.fill' : 'person.2'} tintColor={color} size={size} />
-                  : <Icon name="users" size={22} color={color} />,
+          tabBarIcon: ({ color }) => <TabGlyph name="circles" color={color} />,
         }}
       />
       <Tabs.Screen

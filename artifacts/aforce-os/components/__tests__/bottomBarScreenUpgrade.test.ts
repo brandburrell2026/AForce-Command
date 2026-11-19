@@ -46,15 +46,24 @@ describe('order and icons', () => {
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
 
-  it('Home is a house, not a lightning bolt', () => {
+  // Founder instruction 2026-11-18: the bar must match the approved prototype.
+  // Its four icons are the prototype's own drawings, the same on both platforms.
+  it('uses the prototype icons for the four tabs', () => {
+    for (const name of ['home', 'hydration', 'moments', 'circles']) {
+      expect(classic).toContain(`<TabGlyph name="${name}" color={color} />`);
+    }
     expect(layout).not.toMatch(/bolt\.circle|name="zap"/);
-    expect(classic).toContain("focused ? 'house.fill' : 'house'");
-    expect(classic).toContain('<Icon name="home"');
+    expect(layout).not.toMatch(/trophy/i);
   });
 
-  it('Circles is two people, never a trophy', () => {
-    expect(classic).toContain("focused ? 'person.2.fill' : 'person.2'");
-    expect(layout).not.toMatch(/trophy/i);
+  it('draws them as the prototype does: 18pt, 1.4pt stroke', () => {
+    const glyph = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'navigation', 'TabGlyph.tsx'),
+      'utf8',
+    ) as string;
+    expect(glyph).toContain('TAB_GLYPH_SIZE = 18');
+    expect(glyph).toContain('const STROKE = 1.4;');
+    expect(glyph).toContain('M3 5h12M3 9h9M3 13h6');
   });
 });
 
@@ -68,10 +77,12 @@ describe('labels', () => {
 });
 
 describe('the One Breath orb', () => {
-  it('is 64pt and raised 12pt', () => {
-    expect(layout).toContain('export const ONE_BREATH_ORB_SIZE = 64;');
-    expect(layout).toContain('export const ONE_BREATH_ORB_RAISE = 12;');
-    expect(layout).toContain('top: -ONE_BREATH_ORB_RAISE');
+  it('is 46pt, raised 22pt, with a 5pt black ring, as in the prototype', () => {
+    expect(layout).toContain('export const ONE_BREATH_ORB_SIZE = 46;');
+    expect(layout).toContain('export const ONE_BREATH_ORB_RAISE = 22;');
+    expect(layout).toContain('export const ONE_BREATH_ORB_RING = 5;');
+    expect(layout).toContain('top: -(ONE_BREATH_ORB_RAISE + ONE_BREATH_ORB_RING)');
+    expect(layout).toContain('backgroundColor: Colors.tabBar.background,');
   });
 
   it('is always red: there is no idle or grey state', () => {
@@ -84,9 +95,10 @@ describe('the One Breath orb', () => {
     expect(orb).toContain('<AFMark size={ONE_BREATH_TAB_MARK_SIZE} color={af.textPrimary} decorative />');
   });
 
-  it('has no text label and is announced as "One Breath"', () => {
+  it('is labelled "Breath", as in the prototype, and announced as "One Breath"', () => {
     const screen = classic.slice(classic.indexOf('name="one-breath-tab"'), classic.indexOf('name="moments-tab"'));
-    expect(screen).toContain('tabBarShowLabel: false');
+    expect(screen).toContain("title: 'Breath'");
+    expect(screen).not.toContain('tabBarShowLabel: false');
     expect(screen).toContain("tabBarAccessibilityLabel: 'One Breath'");
   });
 
@@ -176,7 +188,8 @@ describe('the orb never disappears from the other tabs (build 168 device report)
     expect(orbHiddenOn('/one-breath', true)).toBe(true);
     expect(orbHiddenOn('/one-breath-tab', false)).toBe(false);
   });
-  it('no text label is drawn under the orb', () => {
-    expect(layout).toContain('tabBarLabel: () => null,');
+  it('the label under the orb is the prototype\'s "Breath", not the route name', () => {
+    expect(layout).toContain("title: 'Breath'");
+    expect(layout).not.toContain("title: 'One Breath'");
   });
 });
