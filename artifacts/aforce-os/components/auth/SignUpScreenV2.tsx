@@ -1,5 +1,16 @@
 /**
- * Custom sign-up screen with email-code verification.
+ * Custom sign-up screen with email-code verification, laid out as the
+ * approved prototype's three account screens:
+ *
+ *   choose — "Create your account": Google, or continue with email.
+ *   email  — "Your email" (1 of 2): email and password.
+ *   code   — "Check your email" (2 of 2): the 6-digit code.
+ *
+ * Kept from the older screen, because the prototype has no place for them
+ * and nothing may become unreachable: the optional first name (on the email
+ * step; the prototype asks it after the code) and the optional referral code
+ * (behind "Have an invite code?" on the first step, so it still applies to
+ * Google sign-up). Apple sign-in is not set up, so it is not offered.
  *
  * Uses @clerk/expo's `useSignUp` with the canonical create() →
  * sendEmailCode() → attemptEmailAddressVerification() → setActive()
@@ -9,11 +20,13 @@
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
+  View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSSO, useAuth } from '@clerk/expo';
 import { useSignUp } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
+import { Icon } from '@/components/Icon';
 import { useTranslation } from 'react-i18next';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
@@ -28,6 +41,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function SignUpScreenV2() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { isLoaded, signUp, setActive } = useSignUp();
   const { startSSOFlow } = useSSO();
   const { getToken } = useAuth();
@@ -38,6 +52,9 @@ export function SignUpScreenV2() {
   const [referralCode, setReferralCode] = React.useState('');
   const [code, setCode] = React.useState('');
   const [pendingVerification, setPendingVerification] = React.useState(false);
+  // Presentation only: which of the two pre-verification screens is showing.
+  const [emailStep, setEmailStep] = React.useState(false);
+  const [inviteOpen, setInviteOpen] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [oauthBusy, setOauthBusy] = React.useState(false);
@@ -137,6 +154,28 @@ export function SignUpScreenV2() {
 
   const startDisabled = !isLoaded || !emailAddress || !password || submitting;
   const verifyDisabled = !isLoaded || !code || submitting;
+  const stage: SignUpStage = pendingVerification ? 'code' : emailStep ? 'email' : 'choose';
+
+  const goBack = () => {
+    setSubmitError(null);
+    if (stage === 'code') {
+      // "Use a different email": the next Continue starts a fresh sign-up.
+      setCode('');
+      setPendingVerification(false);
+    } else if (stage === 'email') {
+      setEmailStep(false);
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(auth)/welcome' as never);
+    }
+  };
+
+  const errorLine = submitError ? (
+    <Text style={styles.error} accessibilityLiveRegion="assertive" accessibilityRole="alert">
+      {submitError}
+    </Text>
+  ) : null;
 
   return (
     <GradientBackground>
@@ -144,165 +183,95 @@ export function SignUpScreenV2() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        <View style={styles.container}>
-          <Text style={styles.eyebrow}>{t('auth.v2.eyebrow')}</Text>
-          <Text style={styles.title}>{pendingVerification ? t('auth.v2.signup_title_verify') : t('auth.v2.signup_title_create')}</Text>
-          <Text style={styles.subtitle}>
-            {pendingVerification
-              ? t('auth.v2.signup_subtitle_verify')
-              : t('auth.v2.signup_subtitle_create')}
-          </Text>
+        <ScrollView
+          contentContainerStyle={[styles.container, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled"
+          testID={`signup-${stage}`}
+        >
+          <View style={styles.topRow}>
+            <Pressable
+              onPress={goBack}
+              style={({ pressed }) => [styles.back, pressed && styles.buttonPressed]}
+              accessibilityRole="button"
+              accessibilityLabel={t('auth.v2.back')}
+              hitSlop={8}
+              testID="signup-back"
+            >
+              <Icon name="chevron-left" size={18} color={af.textPrimary} />
+              <Text style={styles.backText}>{t('auth.v2.back')}</Text>
+            </Pressable>
+            {stage !== 'choose' ? (
+              <Text style={styles.stepLabel}>
+                {t(stage === 'email' ? 'auth.v2.signup_step_1' : 'auth.v2.signup_step_2').toUpperCase()}
+              </Text>
+            ) : null}
+          </View>
 
-          {pendingVerification ? (
+          {stage === 'choose' ? (
             <>
-              <Text style={styles.label}>{t('auth.v2.signup_label_code')}</Text>
-              <TextInput
-                style={styles.input}
-                value={code}
-                onChangeText={setCode}
-                keyboardType="number-pad"
-                placeholder={t('auth.v2.signup_placeholder_code')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.signup_a11y_code')}
-              />
-              {submitError && (
-                <Text
-                  style={styles.error}
-                  accessibilityLiveRegion="assertive"
-                  accessibilityRole="alert"
-                >
-                  {submitError}
-                </Text>
-              )}
-
-              <Pressable
-                onPress={handleVerify}
-                disabled={verifyDisabled}
-                style={({ pressed }) => [
-                  styles.button,
-                  verifyDisabled && styles.buttonDisabled,
-                  pressed && styles.buttonPressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={t('auth.v2.signup_a11y_verify')}
-              >
-                <Text style={styles.buttonText}>
-                  {submitting ? t('auth.v2.signup_verifying') : t('auth.v2.signup_verify')}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={handleResend}
-                style={({ pressed }) => [styles.linkBtn, pressed && { opacity: 0.6 }]}
-                accessibilityRole="button"
-                accessibilityLabel={t('auth.v2.signup_a11y_resend')}
-              >
-                <Text style={styles.link}>{t('auth.v2.signup_resend')}</Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
-              <Text style={styles.label}>{t('auth.v2.signup_label_firstname')}</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                placeholder={t('auth.v2.signup_placeholder_firstname')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.signup_a11y_firstname')}
-              />
-
-              <Text style={styles.label}>{t('auth.v2.label_email')}</Text>
-              <TextInput
-                style={styles.input}
-                value={emailAddress}
-                onChangeText={setEmailAddress}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                placeholder={t('auth.v2.placeholder_email')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.a11y_email')}
-              />
-
-              <Text style={styles.label}>{t('auth.v2.label_password')}</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                placeholder={t('auth.v2.signup_placeholder_password')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.a11y_password')}
-              />
-
-              <Text style={styles.label}>{t('auth.v2.signup_label_referral')}</Text>
-              <TextInput
-                style={styles.input}
-                value={referralCode}
-                onChangeText={(v) => setReferralCode(v.toUpperCase())}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                placeholder={t('auth.v2.signup_placeholder_referral')}
-                placeholderTextColor={af.textTertiary}
-                accessibilityLabel={t('auth.v2.signup_a11y_referral')}
-                maxLength={16}
-              />
-              {submitError && (
-                <Text
-                  style={styles.error}
-                  accessibilityLiveRegion="assertive"
-                  accessibilityRole="alert"
-                >
-                  {submitError}
-                </Text>
-              )}
-
-              <Pressable
-                onPress={handleStart}
-                disabled={startDisabled}
-                style={({ pressed }) => [
-                  styles.button,
-                  startDisabled && styles.buttonDisabled,
-                  pressed && styles.buttonPressed,
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={t('auth.v2.signup_a11y_continue')}
-              >
-                <Text style={styles.buttonText}>
-                  {submitting ? t('auth.v2.signup_working') : t('auth.v2.signup_continue')}
-                </Text>
-              </Pressable>
-
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>{t('auth.v2.or')}</Text>
-                <View style={styles.dividerLine} />
-              </View>
+              <Text accessibilityRole="header" style={styles.title}>{t('auth.v2.signup_choose_title')}</Text>
+              <Text style={styles.subtitle}>{t('auth.v2.signup_choose_sub')}</Text>
 
               <Pressable
                 onPress={handleGoogle}
                 disabled={oauthBusy || !isLoaded}
                 style={({ pressed }) => [
-                  styles.oauthButton,
+                  styles.button,
                   (oauthBusy || !isLoaded) && styles.buttonDisabled,
                   pressed && styles.buttonPressed,
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel={t('auth.v2.continue_google')}
+                testID="signup-google"
               >
-                <Text style={styles.oauthButtonText}>
-                  {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.continue_google')}
-                </Text>
+                <View style={styles.oauthRow}>
+                  <Text style={styles.oauthGlyph} accessibilityElementsHidden importantForAccessibility="no">G</Text>
+                  <Text style={styles.buttonText}>
+                    {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.continue_google')}
+                  </Text>
+                </View>
               </Pressable>
 
-              <View style={styles.linkRow}>
-                <Text style={styles.linkText}>{t('auth.v2.signup_have_account')}</Text>
-                <Link href="/(auth)/sign-in" replace>
-                  <Text style={styles.link}>{t('auth.v2.signup_signin_link')}</Text>
-                </Link>
-              </View>
+              <Pressable
+                onPress={() => { setSubmitError(null); setEmailStep(true); }}
+                style={({ pressed }) => [styles.ghostButton, pressed && styles.buttonPressed]}
+                accessibilityRole="button"
+                accessibilityLabel={t('auth.v2.signup_continue_email')}
+                testID="signup-email"
+              >
+                <Text style={styles.ghostButtonText}>{t('auth.v2.signup_continue_email')}</Text>
+              </Pressable>
+
+              {errorLine}
+
+              {inviteOpen ? (
+                <>
+                  <Text style={[styles.label, styles.inviteLabel]}>{t('auth.v2.signup_label_referral')}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={referralCode}
+                    onChangeText={(v) => setReferralCode(v.toUpperCase())}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    placeholder={t('auth.v2.signup_placeholder_referral')}
+                    placeholderTextColor={af.textTertiary}
+                    accessibilityLabel={t('auth.v2.signup_a11y_referral')}
+                    maxLength={16}
+                  />
+                </>
+              ) : (
+                <Pressable
+                  onPress={() => setInviteOpen(true)}
+                  style={styles.quietLink}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.v2.signup_invite_toggle')}
+                  testID="signup-invite-toggle"
+                >
+                  <Text style={styles.quietLinkText}>{t('auth.v2.signup_invite_toggle')}</Text>
+                </Pressable>
+              )}
+
+              <View style={styles.spacer} />
 
               <Text style={styles.acknowledgment}>
                 {t('auth.v2.ack_prefix_signup')}
@@ -314,83 +283,212 @@ export function SignUpScreenV2() {
                 {t('auth.v2.ack_suffix_signup')}
               </Text>
 
+              <View style={styles.linkRow}>
+                <Link href="/(auth)/sign-in" replace>
+                  <Text style={styles.textButtonText}>{t('auth.v2.signup_have_account_cta')}</Text>
+                </Link>
+              </View>
+            </>
+          ) : null}
+
+          {stage === 'email' ? (
+            <>
+              <Text accessibilityRole="header" style={[styles.title, styles.titleAlone]}>
+                {t('auth.v2.signup_email_title')}
+              </Text>
+
+              <Text style={styles.label}>{t('auth.v2.label_email')}</Text>
+              <TextInput
+                style={styles.input}
+                value={emailAddress}
+                onChangeText={setEmailAddress}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                autoComplete="email"
+                placeholder={t('auth.v2.placeholder_email')}
+                placeholderTextColor={af.textTertiary}
+                accessibilityLabel={t('auth.v2.a11y_email')}
+              />
+
+              <Text style={styles.label}>{t('auth.v2.label_password')}</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="new-password"
+                placeholder={t('auth.v2.signup_placeholder_password_v3')}
+                placeholderTextColor={af.textTertiary}
+                accessibilityLabel={t('auth.v2.a11y_password')}
+              />
+
+              <Text style={styles.label}>{t('auth.v2.signup_label_firstname_optional')}</Text>
+              <TextInput
+                style={styles.input}
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCapitalize="words"
+                autoComplete="given-name"
+                placeholder={t('auth.v2.signup_label_firstname')}
+                placeholderTextColor={af.textTertiary}
+                accessibilityLabel={t('auth.v2.signup_a11y_firstname')}
+              />
+              {errorLine}
+
+              <View style={styles.spacer} />
+
+              <Pressable
+                onPress={handleStart}
+                disabled={startDisabled}
+                style={({ pressed }) => [
+                  styles.button,
+                  startDisabled && styles.buttonDisabled,
+                  pressed && styles.buttonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('auth.v2.signup_a11y_continue')}
+                testID="signup-continue"
+              >
+                <Text style={styles.buttonText}>
+                  {submitting ? t('auth.v2.signup_working') : t('auth.v2.signup_continue')}
+                </Text>
+              </Pressable>
+
               {/* Required for Clerk's bot sign-up protection */}
               <View nativeID="clerk-captcha" />
             </>
-          )}
-        </View>
+          ) : null}
+
+          {stage === 'code' ? (
+            <>
+              <Text accessibilityRole="header" style={styles.title}>{t('auth.v2.signup_code_title')}</Text>
+              <Text style={styles.subtitle}>
+                {t('auth.v2.signup_code_sub_prefix')}
+                <Text style={styles.subtitleStrong}>{emailAddress}</Text>
+                {t('auth.v2.signup_code_sub_suffix')}
+              </Text>
+
+              <Text style={styles.label}>{t('auth.v2.signup_label_code_v3')}</Text>
+              <TextInput
+                style={[styles.input, styles.codeInput]}
+                value={code}
+                onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
+                keyboardType="number-pad"
+                autoComplete="one-time-code"
+                textContentType="oneTimeCode"
+                maxLength={6}
+                placeholder="••••••"
+                placeholderTextColor={af.textTertiary}
+                accessibilityLabel={t('auth.v2.signup_a11y_code')}
+              />
+              {errorLine}
+
+              <View style={styles.codeLinks}>
+                <Pressable
+                  onPress={handleResend}
+                  style={({ pressed }) => [styles.quietLink, pressed && styles.buttonPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.v2.signup_a11y_resend')}
+                  testID="signup-resend"
+                >
+                  <Text style={styles.underlineLink}>{t('auth.v2.signup_resend')}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={goBack}
+                  style={({ pressed }) => [styles.quietLink, pressed && styles.buttonPressed]}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.v2.signup_change_email')}
+                  testID="signup-change-email"
+                >
+                  <Text style={styles.quietLinkText}>{t('auth.v2.signup_change_email')}</Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.spacer} />
+
+              <Pressable
+                onPress={handleVerify}
+                disabled={verifyDisabled}
+                style={({ pressed }) => [
+                  styles.button,
+                  verifyDisabled && styles.buttonDisabled,
+                  pressed && styles.buttonPressed,
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={t('auth.v2.signup_a11y_verify')}
+                testID="signup-verify"
+              >
+                <Text style={styles.buttonText}>
+                  {submitting ? t('auth.v2.signup_verifying') : t('auth.v2.signup_verify')}
+                </Text>
+              </Pressable>
+            </>
+          ) : null}
+        </ScrollView>
       </KeyboardAvoidingView>
     </GradientBackground>
   );
 }
 
+export type SignUpStage = 'choose' | 'email' | 'code';
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  container: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
-  eyebrow: {
-    fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 2,
-    color: af.textTertiary, marginBottom: 8,
+  container: { flexGrow: 1, paddingHorizontal: 22 },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 },
+  back: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, paddingRight: 8 },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 15, color: af.textPrimary },
+  stepLabel: {
+    fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2,
+    color: af.textSecondary,
   },
   title: {
-    fontFamily: 'Inter_700Bold', fontSize: 32, color: af.textPrimary, marginBottom: 4,
+    fontFamily: 'Inter_600SemiBold', fontSize: 32, lineHeight: 34, letterSpacing: -0.96,
+    color: af.textPrimary, marginTop: 18, marginBottom: 8,
   },
+  titleAlone: { marginBottom: 22 },
   subtitle: {
-    fontFamily: 'Inter_400Regular', fontSize: 14, color: af.textTertiary, marginBottom: 32,
+    fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 22,
+    color: af.textSecondary, marginBottom: 24,
   },
-  label: {
-    fontFamily: 'Inter_500Medium', fontSize: 12, color: af.textTertiary,
-    marginTop: 16, marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase',
-  },
+  subtitleStrong: { color: af.textPrimary },
+  label: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary, marginBottom: 6 },
+  inviteLabel: { marginTop: 18 },
   input: {
-    backgroundColor: af.surface,
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
-    color: af.textPrimary, fontFamily: 'Inter_500Medium', fontSize: 16,
-    borderWidth: 1, borderColor: af.divider,
+    minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: af.border,
+    backgroundColor: af.canvas, paddingHorizontal: 14,
+    color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 16, marginBottom: 14,
   },
+  codeInput: { fontSize: 22, letterSpacing: 11, textAlign: 'center' },
+  // Warm-white fill with black text, the same pair as AFPrimaryButton — 18:1.
   button: {
-    marginTop: 28, paddingVertical: 16, borderRadius: 14,
-    backgroundColor: af.primaryFill, alignItems: 'center',
+    minHeight: 52, borderRadius: 999, backgroundColor: af.primaryFill,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20,
   },
   buttonDisabled: { opacity: 0.4 },
   buttonPressed: { opacity: 0.85 },
-  buttonText: {
-    // Warm-white fill with black text (Screen Upgrade v1.1), the same pair as
-    // AFPrimaryButton — 18:1. Kept as this screen's own Pressable rather than
-    // restructured onto AFPrimaryButton, for the smaller diff.
-    fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onPrimaryFill, letterSpacing: 0.5,
+  buttonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.onPrimaryFill },
+  oauthRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  oauthGlyph: { fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onPrimaryFill },
+  ghostButton: {
+    minHeight: 52, borderRadius: 999, borderWidth: 1, borderColor: af.border,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, marginTop: 10,
   },
-  linkRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  linkBtn: { alignItems: 'center', marginTop: 14 },
-  linkText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.textTertiary },
-  link: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: af.textPrimary },
-  error: {
-    fontFamily: 'Inter_400Regular', fontSize: 12, color: af.redText, marginTop: 6,
+  ghostButtonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.textPrimary },
+  quietLink: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
+  quietLinkText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: af.textSecondary },
+  underlineLink: {
+    fontFamily: 'Inter_400Regular', fontSize: 14, color: af.textPrimary, textDecorationLine: 'underline',
   },
-  dividerRow: {
-    flexDirection: 'row', alignItems: 'center', marginTop: 22, marginBottom: 14,
-  },
-  dividerLine: {
-    flex: 1, height: 1, backgroundColor: af.divider,
-  },
-  dividerText: {
-    fontFamily: 'Inter_500Medium', fontSize: 11, color: af.textTertiary,
-    marginHorizontal: 12, letterSpacing: 1, textTransform: 'uppercase',
-  },
-  oauthButton: {
-    paddingVertical: 14, borderRadius: 14, alignItems: 'center',
-    backgroundColor: af.surface,
-    borderWidth: 1, borderColor: af.divider,
-  },
-  oauthButtonText: {
-    fontFamily: 'Inter_600SemiBold', fontSize: 14, color: af.textPrimary,
-    letterSpacing: 0.3,
-  },
+  codeLinks: { flexDirection: 'row', gap: 18 },
+  spacer: { flexGrow: 1, minHeight: 24 },
+  linkRow: { alignItems: 'center', justifyContent: 'center', minHeight: 52 },
+  textButtonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.textPrimary },
+  error: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.redText, marginTop: 6, marginBottom: 6 },
   acknowledgment: {
-    fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16,
-    color: af.textTertiary, textAlign: 'center',
-    marginTop: 22, paddingHorizontal: 12,
+    fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17,
+    color: af.textSecondary, textAlign: 'center', marginTop: 14,
   },
-  acknowledgmentLink: {
-    fontFamily: 'Inter_600SemiBold', color: af.textSecondary,
-  },
+  acknowledgmentLink: { color: af.textSecondary, textDecorationLine: 'underline' },
 });
