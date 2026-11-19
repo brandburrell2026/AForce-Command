@@ -71,7 +71,9 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Upcoming and Done rows with pills | Same | ✔ |
 | Calendar and Protocols card | Same | ✔ |
 | "uses 1 lesson" on a row | None | ✘ learning loop |
-| Moment screen, Replay, Calendar, Protocols pages | Older screens | ✘ not rebuilt |
+| Calendar page: month, 14-day strip with dots, Moment rows | Same layout at `/moments-calendar`, with the member's own Moments; always linked from the tab | ◐ no photographs on rows; no harness or device capture yet |
+| "Spot Moments on my calendar" (reads the phone's calendar: Outlook, Gmail, iCloud accounts on the device) | Built, read-only, OFF: `moments_calendar_enabled` is blocked until Legal and Privacy sign PR-002 Appendix A (DR-011) | ✘ blocked on sign-off, not on engineering |
+| Moment screen, Replay, Protocols pages | Older screens | ✘ not rebuilt |
 
 ## Circles
 
