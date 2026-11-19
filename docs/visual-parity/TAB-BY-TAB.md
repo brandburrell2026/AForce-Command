@@ -82,17 +82,24 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | "Choose what your Circle can see" card | Same | ✔ |
 | "Your Moments" card | None | ✘ gallery not built |
 
-## You (Profile) — not rebuilt
+## You (Profile) — header and pills rebuilt; section contents not yet
 
-| Demo | App |
+| Demo | Rebuilt header |
 |---|---|
-| "Back" and "Profile"; an 84pt photo; the name at 34pt; "city · member since"; "Add a photo" | The older Profile: a long screen with chips, tabs and many cards |
-| Three pills: Performance · Devices · Account | Different tabs |
-| Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | Not built |
-| Devices: one row per source with On / Off / Check, "Manage devices and apps" | Device controls exist in a different layout |
-| Account: Plan, Settings, Shop; Privacy; Download data; Delete account | Exist in a different layout; account deletion is switched off |
+| ![](profile/reference-profile.jpg) | ![](profile/rebuilt-profile-header.jpg) |
 
-Profile holds working features that have no place in the demo's layout (sweat calculator, Coach Mode, developer controls, the Travel pilot switch, Gentle hydration). Rebuilding it means deciding where each of those goes, so it needs a plan from you before I remove anything.
+| Demo | App | |
+|---|---|---|
+| "Back" and "Profile" | Same | ✔ |
+| 84pt photo with a warm-white ring; name at 34pt; "city · member since" | Same, from the member's own photo, name, city and join date | ✔ |
+| "Add a photo · optional" | "Edit profile" (opens the existing editor; photo upload is not built) | ◐ feature |
+| Three pills: Performance · Devices · Account | Same, sentence case, the selected one warm white. Internal builds add a fourth, Developer | ◐ internal only |
+| No rank, streak or aura chips | Removed | ✔ |
+| Performance: status line, "Your Moments" strip, "What AFORCE remembers", "How AFORCE works" | The app's existing Performance cards | ✘ not rebuilt; gallery and learning are not built |
+| Devices: one row per source with On / Off / Check | The app's existing device cards | ✘ not rebuilt |
+| Account: Plan, Settings, Shop; Privacy; Download data; Delete account | The app's existing Account cards, followed by body details, Gentle hydration and (internal) Skin | ✘ not rebuilt |
+
+Nothing was made unreachable: everything that sat above the pills (body details, Gentle hydration, the internal Skin entry) now follows the Account sections.
 
 ## Sign in and opening
 
@@ -106,5 +113,5 @@ Profile holds working features that have no place in the demo's layout (sweat ca
 1. **Photography.** May internal builds use the demo's AI sample photos? This is the largest visible gap on Home, Moments and Circles.
 2. **The Home ring:** intake percentage (demo) or HydroState score (app)?
 3. **"Log a drink":** rename now, or after the drink-choice sheet is built?
-4. **Profile:** where do the features with no place in the demo go?
+4. **Profile sections:** the header and pills match; the cards inside each section are still the old design. Features with no place in the demo (sweat calculator, Coach Mode, developer controls, Travel switch, Gentle hydration) are kept under Account for now.
 5. **"Use reservation details":** delete its code, or restore it?

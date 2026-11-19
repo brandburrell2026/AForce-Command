@@ -39,7 +39,8 @@ describe('S2-10 — AA on red, everywhere on this screen', () => {
   });
 
   it('the active tab label and invite controls take af.onRed', () => {
-    expect(code).toMatch(/tabPillLabelActive: \{\s*color: af\.onRed,/);
+    // The selected pill is warm white since the prototype rebuild, so its label is black.
+    expect(code).toMatch(/tabPillLabelActive: \{[\s\S]{0,200}?color: af\.onPrimaryFill,/);
     expect(code).toContain('color={af.onRed}');
   });
 });
