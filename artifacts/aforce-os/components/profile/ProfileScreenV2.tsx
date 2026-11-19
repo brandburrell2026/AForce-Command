@@ -36,7 +36,8 @@ import {
   voicePickerStyles,
   type ProfileTabId,
 } from './profileKit';
-import { renderPerformanceSections } from './panes/PerformancePane';
+import { PERFORMANCE_SECTION_ORDER, renderPerformanceSections } from './panes/PerformancePane';
+import { PERFORMANCE_VIEW_BLOCKS, PerformanceHome, PerformanceViewHeader, type PerformanceViewId } from './PerformanceHome';
 
 export const PROFILE_TRADEMARK_LINE =
   'AFORCE OS™ · Beta preview · AFORCE, AFORCE OS and the N–И mark are trademarks of AFORCE Hydration, Inc.';
@@ -332,9 +333,12 @@ export function ProfileScreenV2() {
   // Devices opens on the short list; "Manage devices and apps" shows the
   // full device cards. Leaving the section returns to the list.
   const [devicesManaging, setDevicesManaging] = useState(false);
+  // Which Performance view is open; null is the Performance list itself.
+  const [performanceView, setPerformanceView] = useState<PerformanceViewId | null>(null);
   const setProfileTab = useCallback((tab: ProfileTabId) => {
     setAccountView(null);
     setDevicesManaging(false);
+    setPerformanceView(null);
     setProfileTabRaw(tab);
   }, []);
   // Mocked OAuth state for the third-party health platforms shown in
@@ -1189,6 +1193,12 @@ export function ProfileScreenV2() {
             ACCOUNT_SECTION_ORDER.forEach((name, i) => {
               accountBlocks[name] = tabSections.account[i];
             });
+            // Performance is the prototype's short list (PerformanceHome);
+            // its two blocks are filed under its views, unchanged.
+            const performanceBlocks: Record<string, React.ReactNode> = {};
+            PERFORMANCE_SECTION_ORDER.forEach((name, i) => {
+              performanceBlocks[name] = tabSections.performance[i];
+            });
             const activeSections =
               profileTab === 'account'
                 ? accountView
@@ -1197,7 +1207,14 @@ export function ProfileScreenV2() {
                       ...ACCOUNT_VIEW_BLOCKS[accountView].map((name) => accountBlocks[name]),
                     ]
                   : [<AccountHome onOpen={setAccountView} onOpenCircle={() => router.push('/competition')} />]
-                : tabSections[profileTab];
+                : profileTab === 'performance'
+                  ? performanceView
+                    ? [
+                        <PerformanceViewHeader view={performanceView} onBack={() => setPerformanceView(null)} />,
+                        ...PERFORMANCE_VIEW_BLOCKS[performanceView].map((name) => performanceBlocks[name]),
+                      ]
+                    : [<PerformanceHome onOpen={setPerformanceView} onOpenHow={() => router.push('/science')} />]
+                  : tabSections[profileTab];
             const tabBar = (
               <ProfileTabBar active={profileTab} onChange={setProfileTab} />
             );
