@@ -81,6 +81,30 @@ Founder instruction, 2026-11-18: the Hydration screen must look 100% like the de
 
 **History data:** read-only, from the existing daily-totals request. If it cannot be read, the History section is not drawn.
 
+## 3d. Moments tab
+
+| Demo, top | Demo, lower | Rebuilt |
+|---|---|---|
+| ![](moments/reference-moments-top.jpg) | ![](moments/reference-moments-lower.jpg) | ![](moments/rebuilt-moments.jpg) |
+
+| Element | Demo | Rebuilt | Match |
+|---|---|---|---|
+| Mark + "Moments", member photo | Yes | Yes | ✔ |
+| Hero: "Next · day time", the Moment's name at 40pt, one line under it | Yes | Yes; "Now ·" when a sealed Moment has started | ✔ |
+| Full-bleed World photograph behind the hero | Yes | **No photograph** (none licensed) | ✘ asset |
+| Line under the name | Place and state ("CityPickle, Central Park · planned") | State only ("Sealed" / "Not prepared yet"); Moments carry no place yet | ◐ data |
+| Status line | Yes | Yes | ✔ |
+| "Plan a Moment · say it" (warm white) | Yes | Yes; opens One Breath | ✔ |
+| "Upcoming": hairline rows, "Plan" / "Sealed" pill or chevron | Yes | Yes | ✔ |
+| "Done": muted rows, "Replay ready" / "Replay done" | Yes | Yes; also "Cancelled" | ✔ |
+| Card with Calendar and Protocols | Yes | Yes (Calendar only when the calendar feature is on) | ✔ |
+| "Uses 1 lesson" on a row | Yes | Not shown: the learning loop is not built | ✘ feature |
+| Red section heads, day-by-day calendar, "Your Moments" red card, "Prepare my day", the instruction repeated on a row | Not in the demo | **Removed** from the internal tab | ✔ |
+
+**Kept though not in the demo:** the Travel entry, only when Travel mode is on.
+
+**Unchanged:** the Moments store, what a row opens (the Moment's own screen), private-event masking, the store-build layout.
+
 ## 4. Parity checklist — remaining screens
 
 Reference captured means a real image of the prototype exists in this folder. "—" means not yet done.
@@ -95,7 +119,7 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | Hydration · log result | — | — | — | — | — |
 | One Breath · Capture | ✔ | — | — | — | — |
 | One Breath · Mirror / Plan / Seal / Lock In / Quiet / Return / Replay | — | — | — | — | — |
-| Moments · Now / Upcoming / Done | — | — | — | — | — |
+| Moments · tab (hero, Upcoming, Done, links) | ✔ | ✔ harness | ✔ | PR (Moments) | — |
 | Circles · empty / with people / invite / pending / privacy | — | — | — | — | — |
 | Profile | — | — | — | — | — |
 | HydroScan · five steps | — | — | — | — | — |
