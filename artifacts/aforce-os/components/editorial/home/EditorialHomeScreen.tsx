@@ -57,7 +57,6 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useUser } from '@clerk/expo';
 import { HomeCinematicContainer } from '@/components/home/cinematic/HomeCinematicContainer';
-import { HomeQuietList } from '@/components/home/cinematic/HomeCinematic';
 import { Animated, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 
@@ -302,11 +301,15 @@ export function EditorialHomeScreen({
                   evidence={evidence === 'pending' || evidence === 'building' ? evidence : 'ready'}
                   score={score}
                   moveTitle={title || t('home.v2.default_command_title')}
-                  why={engine.command.explanation || instruction || undefined}
+                  // "Why?" carries the reason and, with it, how confident the
+                  // reading is. The demo has no separate confidence line, so it
+                  // is one tap away rather than always on screen.
+                  why={[engine.command.explanation || instruction, t('home.v2.confidence_chip', { rating: confidence.chip.label })]
+                    .filter(Boolean)
+                    .join(' ')}
                   consumedOz={userState.ozConsumedToday}
                   targetOz={userState.ozTarget}
                   lastLoggedAt={intakeEventCount > 0 ? new Date(userState.lastIntakeTime) : null}
-                  confidenceLine={t('home.v2.confidence_chip', { rating: confidence.chip.label })}
                   sourceLabel={signalData.chip?.label}
                   sourceFetchedAtMs={freshestFetchedAtMs}
                   notice={lastRefreshStale ? t('home.v2.stale_notice') : undefined}
@@ -317,20 +320,12 @@ export function EditorialHomeScreen({
                   fixtureNowIso={momentsFixture?.nowIso}
                 >
                   <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
-                  {flags.travel_mode_enabled ? <TravelHomeCard /> : null}
+                  {/* Nothing else: the demo's Home ends with the next-move
+                      panel. Travel and Protocols open from Moments, Skin from
+                      Profile; the Concierge entry stays hidden until its
+                      service is live (Appendix G). The Social control stays
+                      because it only appears during an open Social session. */}
                   <SocialModeIndicator testID="editorial-social-indicator" />
-                  <View style={styles.conciergeSection}>
-                    <ConciergeEntryCard tone="editorial" testID="editorial-concierge-entry" />
-                  </View>
-                  {/* One quiet list (Appendix G §3 · Home). */}
-                  <HomeQuietList
-                    rows={[
-                      { label: 'Your protocol', onPress: () => router.push('/protocol') },
-                      ...(flags.advanced_visual_intelligence_enabled
-                        ? [{ label: 'Skin intelligence', onPress: () => router.push('/skinia') }]
-                        : []),
-                    ]}
-                  />
                 </HomeCinematicContainer>
               )}
             </Animated.View>
