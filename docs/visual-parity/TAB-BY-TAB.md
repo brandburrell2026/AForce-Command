@@ -82,6 +82,8 @@ Legend: ✔ matches · ◐ differs for a stated reason · ✘ missing.
 | Mark + "Circles", photo; "Your people. Your Moments." | Same, no photograph | ◐ photography |
 | Status line; "Start a Moment" · "Invite someone" | Same; Start opens One Breath, Invite opens the form in place | ◐ the demo's picker and invite screens are not built |
 | People rows; Pending rows | Same; tap a person to remove | ◐ no member screen |
+| Empty Circle: two rings, "Prepare with the people you trust.", Invite someone, privacy note | Same card; the action opens the invite form in place | ◐ wording shortened: the app has no per-Moment or time-limited invite; no capture yet |
+| Member screen: what they see, Pause sharing, Remove, Block or report | Remove only, in the row | ✘ pause, block and report have no server support |
 | "Available" pill | None | ✘ no data |
 | "Choose what your Circle can see" card | Same | ✔ |
 | "Your Moments" card | None | ✘ gallery not built |
