@@ -47,10 +47,13 @@ describe('S2-1.1 — no intake without an explicit quantity', () => {
   });
 
   it('the manual-log button opens the picker and writes nothing', () => {
-    const button = /<AFSecondaryButton[\s\S]{0,300}?\/>/.exec(hydration)?.[0] ?? '';
-    expect(button).toContain('testID="hydration-log-manually"');
-    expect(button).toContain('onPress={openWaterPicker}');
-    expect(button).not.toContain('logIntake');
+    // The button lives in HydrationHero now (prototype layout); the screen
+    // hands it the open-only picker and nothing else.
+    const hero = hydration.slice(hydration.indexOf('<HydrationHero'), hydration.indexOf('</HydrationHero>'));
+    expect(read('components/hydration/cinematic/HydrationHero.tsx')).toContain('testID="hydration-log-manually"');
+    expect(hero).toContain('onLog={openWaterPicker}');
+    expect(hero).not.toContain('logIntake');
+    expect(read('components/hydration/cinematic/HydrationHero.tsx')).not.toContain('logIntake');
   });
 
   it("the screen's ONLY intake write takes the member's picker amount", () => {

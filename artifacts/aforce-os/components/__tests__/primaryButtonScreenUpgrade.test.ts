@@ -45,7 +45,6 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   'components/moments/MomentPrepPrefsCard.tsx': { count: 1, why: 'selected pill (V9)' },
   'components/moments/AddMomentSheet.tsx': { count: 1, why: 'selected pill (V9)' },
   'components/moments/PrepareMyDayScreen.tsx': { count: 1, why: 'selected day (V9)' },
-  'components/hydration/HydrationScreenV2.tsx': { count: 1, why: 'filled day dot (V8)' },
   'components/community/CircleScreenV3.tsx': { count: 2, why: 'selected tab pill (V9), challenge fill' },
   'components/profile/profileKit.tsx': { count: 2, why: 'selected tab pill and unit pill (V9)' },
   'components/share/SharePreviewScreenV2.tsx': { count: 3, why: 'selected voice, format and radio (V9)' },
