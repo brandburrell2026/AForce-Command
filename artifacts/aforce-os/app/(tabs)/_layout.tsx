@@ -250,10 +250,21 @@ const plainTabButtonStyles = StyleSheet.create({
  * how a plan is sealed, and the gesture needs its own safeguards first
  * (docs/AFORCE-OS-Visual-Gap-Report-2026-11-18.md §5).
  */
+/** The orb is hidden only on the One Breath screens that asked for it. */
+export function orbHiddenOn(pathname: string, requested: boolean): boolean {
+  return requested && pathname.startsWith('/one-breath');
+}
+
 function OneBreathTabIcon() {
-  const hidden = useOrbHidden();
+  const requestedHidden = useOrbHidden();
+  const pathname = usePathname();
+  // One Breath is a tab, so it stays mounted when the member switches tabs.
+  // If it was left on Seal or Quiet, its request to hide the orb stayed in
+  // force on every tab and the orb disappeared from the whole app (device
+  // report, build 168). The orb is only hidden while One Breath is on screen.
+  const hidden = orbHiddenOn(pathname, requestedHidden);
   const reducedMotion = useReducedMotion();
-  const onHome = usePathname() === '/';
+  const onHome = pathname === '/';
   const breathe = onHome && !reducedMotion && !hidden;
   const scale = React.useRef(new Animated.Value(1)).current;
   const gradientId = React.useId().replace(/:/g, '');
@@ -397,6 +408,8 @@ function ClassicTabLayout() {
           title: 'One Breath',
           // The orb carries no text label; a screen reader hears "One Breath".
           tabBarShowLabel: false,
+          // Belt and braces: never draw a text label under the orb.
+          tabBarLabel: () => null,
           tabBarAccessibilityLabel: 'One Breath',
           tabBarIcon: () => <OneBreathTabIcon />,
           // The raised part of the orb is part of the button's touch area.
