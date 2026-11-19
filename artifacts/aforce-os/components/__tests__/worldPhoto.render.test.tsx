@@ -11,7 +11,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('expo-linear-gradient', () => ({ LinearGradient: () => <div data-testid="fade" /> }));
 
-import { WorldPhotoGap, WorldPhotoHero, WorldPhotoThumb } from '../world/WorldPhoto';
+import {
+  WORLD_DRIFT_FROM,
+  WORLD_DRIFT_MS,
+  WorldPhotoGap,
+  WorldPhotoHero,
+  WorldPhotoImage,
+  WorldPhotoThumb,
+} from '../world/WorldPhoto';
 import { worldPhoto, worldPhotoForMoment } from '../world/worldPhotoSources';
 import { CIRCLES_SCENE, FIRST_MOMENT_SCENES, WELCOME_SCENE, WORLD_SCENES } from '@/utils/worldPhoto';
 
@@ -54,6 +61,37 @@ describe('the shared pieces', () => {
     render(<><WorldPhotoGap source={SRC} height={90} /><WorldPhotoThumb source={SRC} testID="thumb" /></>);
     expect((host.firstElementChild as HTMLElement).style.height).toBe('90px');
     expect(host.querySelector('[data-testid="thumb"]')).toBeTruthy();
+  });
+});
+
+describe('the slow drift', () => {
+  const read = (f: string) => readFileSync(join(AOS, f), 'utf8');
+  const piece = read('components/world/WorldPhoto.tsx');
+
+  it('is the prototype\'s: 6% enlarged, easing to rest over six seconds', () => {
+    expect(WORLD_DRIFT_FROM).toBe(1.06);
+    expect(WORLD_DRIFT_MS).toBe(6000);
+    expect(piece).toMatch(/Animated\.timing\(scale, \{ toValue: 1, duration: WORLD_DRIFT_MS/);
+  });
+
+  it('runs once per picture, never loops, and is skipped with Reduce Motion', () => {
+    expect(piece).not.toMatch(/Animated\.loop|withRepeat/);
+    expect(piece).toMatch(/if \(reduced\) \{\s*scale\.setValue\(1\);\s*opacity\.setValue\(1\);\s*return;/);
+    expect(piece).toContain("addEventListener?.('reduceMotionChanged'");
+  });
+
+  it('a photograph renders at once and stays inside its frame', () => {
+    render(<WorldPhotoImage source={SRC} testID="img" />);
+    expect(host.querySelector('[data-testid="img"]')).toBeTruthy();
+    expect(read('components/home/cinematic/HomeCinematic.tsx')).toMatch(/heroPhoto: \{[^}]*overflow: 'hidden'/);
+    expect(read('components/moments/cinematic/MomentsCinematic.tsx')).toMatch(/photo: \{[^}]*overflow: 'hidden'/);
+  });
+
+  it('Home and Moments use the drifting picture; the small squares do not move', () => {
+    expect(read('components/home/cinematic/HomeCinematic.tsx')).toContain('<WorldPhotoImage source={props.photo!}');
+    expect(read('components/moments/cinematic/MomentsCinematic.tsx')).toContain('<WorldPhotoImage source={p.photo}');
+    const thumb = piece.slice(piece.indexOf('export function WorldPhotoThumb'));
+    expect(thumb).not.toContain('Animated');
   });
 });
 

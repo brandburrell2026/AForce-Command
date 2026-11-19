@@ -16,7 +16,6 @@
  */
 import React from 'react';
 import {
-  ImageBackground,
   Pressable,
   StyleSheet,
   Text,
@@ -24,6 +23,7 @@ import {
   type ImageSourcePropType,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { WorldPhotoImage } from '@/components/world/WorldPhoto';
 import { AFMark } from '@/components/ui/AFMark';
 import { af, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { HomeHydroRing } from './HomeHydroRing';
@@ -107,7 +107,8 @@ export function HomeCinematic(props: HomeCinematicProps) {
   return (
     <View testID="home-cinematic">
       {hasPhoto ? (
-        <ImageBackground source={props.photo!} style={styles.heroPhoto} resizeMode="cover" testID="home-hero-photo">
+        <View style={styles.heroPhoto} testID="home-hero-photo">
+          <WorldPhotoImage source={props.photo!} style={StyleSheet.absoluteFill} />
           <LinearGradient
             pointerEvents="none"
             colors={[withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.1), withAlpha(af.canvas, 0), withAlpha(af.canvas, 0.55), af.canvas]}
@@ -115,7 +116,7 @@ export function HomeCinematic(props: HomeCinematicProps) {
             style={StyleSheet.absoluteFill}
           />
           {heroContent}
-        </ImageBackground>
+        </View>
       ) : (
         <View style={styles.heroPlain}>{heroContent}</View>
       )}
@@ -214,6 +215,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     justifyContent: 'space-between',
     backgroundColor: af.canvas,
+    // The photograph drifts in slightly enlarged; keep it inside the hero.
+    overflow: 'hidden',
   },
   heroPlain: { paddingTop: 8, gap: 44, paddingBottom: 24 },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },

@@ -142,13 +142,15 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 
 ## Photographs (internal builds only)
 
-43 World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935, about 10 MB in all). They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
+55 World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935, about 14 MB in all). They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
 
-**No two places share a photograph** (Brandon, 2026-11-19); a test enforces it. Three separate sets: 13 Moment scenes for Home, a second photograph of each for the Moment's own screen, and 17 fixed photographs: one per screen, and four for Travel.
+**No two places share a photograph** (Brandon, 2026-11-19); a test enforces it. Four separate sets: 13 Moment scenes for Home, a second photograph of each for the Moment's own screen, a third of each for One Breath, and 16 fixed photographs: one per screen, and four for Travel.
+
+**Slow drift** (the demo's): every large photograph starts 6% enlarged and eases to rest over six seconds, once each time the picture changes. Not with Reduce Motion. The small squares and the Protocols tiles do not move.
 
 | Where | Photograph | |
 |---|---|---|
-| Home hero | The next Moment's scene, from its own words, else its type; a private Moment is never matched on its title | ◐ no slow drift; no weather or time-of-day versions. Not checked on a phone |
+| Home hero | The next Moment's scene, from its own words, else its type; a private Moment is never matched on its title | ◐ no weather or time-of-day versions. Not checked on a phone |
 | Moments tab | Its own: a city crossing at dusk | ◐ differs from the demo, which shows the next Moment's photo here. Not checked on a phone |
 | Moment screen | The second photograph of that Moment's scene | ◐ Not checked on a phone |
 | Home cards (Before, Return, Your first Moment) | The 44pt square is the photograph of the Moment screen the card opens | ◐ the one deliberate repeat: a card previews the screen behind it. Not checked on a phone |
@@ -157,7 +159,8 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 | Recovery, Sleep | Their own: morning stretch on the bed, sleeper in a dark room | ◐ Not checked on a phone |
 | Circles | Its own: four friends walking at night | ◐ Not checked on a phone |
 | Sign-in promise screen | Its own: figure at the top of stadium steps at dawn | ◐ Not checked on a phone |
-| One Breath (first screen), Profile | Their own, under a darker wash | ◐ Not checked on a phone |
+| One Breath | As the demo: no photograph while it listens; once the Moment is understood its own photograph fades in behind the whole screen (clear at the top, gone by mid-screen) and stays through plan, seal and Lock In, then turns right down in Quiet | ◐ a third photograph of the Moment's scene, so it never matches Home or the Moment screen. No blue tint for Social. An earlier build wrongly put a fixed portrait on the opening screen; removed. Not checked on a phone |
+| Profile | Its own, under a darker wash | ◐ Not checked on a phone |
 | Hydration, Calendar | Their own, under a darker wash | ◐ **not in the demo** — the demo shows no photograph on these two; added at Brandon's request. Not checked on a phone |
 | Travel page | Its own four, by where the journey stands: empty departures hall (no trip), loading the car before dawn (before leaving), a dim cabin (in the air), a jet bridge (arrived), under a darker wash | ◐ photographs of travelling, never of a place. The city card keeps its type-only view and "City photography coming": city photographs still wait on licensed images, and Travel's rule forbids a generic or invented skyline. Not checked on a phone |
 

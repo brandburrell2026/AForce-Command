@@ -13,8 +13,9 @@
  * hero is drawn on AFORCE Black, as before.
  */
 import React from 'react';
-import { ImageBackground, type ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
+import { type ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { WorldPhotoImage } from '@/components/world/WorldPhoto';
 import { AFMark } from '@/components/ui/AFMark';
 import { af, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import type { MomentRowModel } from './momentsCinematicLogic';
@@ -100,7 +101,8 @@ export function MomentsCinematic(p: MomentsCinematicProps) {
   return (
     <View testID="moments-cinematic">
       {p.photo ? (
-        <ImageBackground source={p.photo} style={styles.photo} resizeMode="cover" testID="moments-hero-photo">
+        <View style={styles.photo} testID="moments-hero-photo">
+          <WorldPhotoImage source={p.photo} style={StyleSheet.absoluteFill} />
           <LinearGradient
             pointerEvents="none"
             colors={[withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.1), withAlpha(af.canvas, 0), withAlpha(af.canvas, 0.55), af.canvas]}
@@ -108,7 +110,7 @@ export function MomentsCinematic(p: MomentsCinematicProps) {
             style={StyleSheet.absoluteFill}
           />
           {top}
-        </ImageBackground>
+        </View>
       ) : (
         top
       )}
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
   hero: { paddingTop: 44, paddingBottom: 30 },
   // The prototype's tall hero: the photograph runs edge to edge behind the
   // top row, with the Moment's words at its foot.
-  photo: { minHeight: 460, marginHorizontal: -MOMENTS_PHOTO_BLEED, paddingHorizontal: MOMENTS_PHOTO_BLEED, justifyContent: 'space-between' },
+  photo: { minHeight: 460, marginHorizontal: -MOMENTS_PHOTO_BLEED, paddingHorizontal: MOMENTS_PHOTO_BLEED, justifyContent: 'space-between', overflow: 'hidden' },
   heroTitle: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 40,

@@ -21,6 +21,8 @@ import type { MomentType } from '@/types/moments';
  *   `${scene}_b`         a second photograph of each, for the Moment's own
  *                        screen and the small square on a Home card that
  *                        opens it
+ *   `${scene}_c`         a third, for One Breath once it has understood
+ *                        the Moment
  *   SCREEN_SCENES        one photograph for each screen with a fixed picture
  */
 export const MOMENT_SCENES = [
@@ -29,11 +31,12 @@ export const MOMENT_SCENES = [
 ] as const;
 export type MomentScene = (typeof MOMENT_SCENES)[number];
 export type MomentDetailScene = `${MomentScene}_b`;
+export type MomentBreathScene = `${MomentScene}_c`;
 
 export const SCREEN_SCENES = [
   'moments_tab', 'replay', 'tile_recovery', 'tile_sleep', 'tile_travel',
   'screen_recovery', 'screen_sleep', 'circles', 'welcome',
-  'one_breath', 'hydration', 'profile', 'calendar',
+  'hydration', 'profile', 'calendar',
   'travel_page', 'travel_before', 'travel_air', 'travel_arrived',
 ] as const;
 export type ScreenScene = (typeof SCREEN_SCENES)[number];
@@ -41,9 +44,10 @@ export type ScreenScene = (typeof SCREEN_SCENES)[number];
 export const WORLD_SCENES = [
   ...MOMENT_SCENES,
   ...MOMENT_SCENES.map((s) => `${s}_b` as MomentDetailScene),
+  ...MOMENT_SCENES.map((s) => `${s}_c` as MomentBreathScene),
   ...SCREEN_SCENES,
 ] as const;
-export type WorldScene = MomentScene | MomentDetailScene | ScreenScene;
+export type WorldScene = MomentScene | MomentDetailScene | MomentBreathScene | ScreenScene;
 
 /** Development and internal builds only. */
 export function worldPhotosAvailable(ctx: UnlockContext = currentUnlockContext()): boolean {
@@ -106,6 +110,16 @@ export function worldDetailSceneForMoment(
   return `${worldSceneForMoment(moment)}_b`;
 }
 
+/**
+ * The third photograph of a Moment's scene: One Breath, once it has
+ * understood the Moment. One Breath shows no photograph before that.
+ */
+export function worldBreathSceneForMoment(
+  moment: { title: string; type: MomentType; masked?: boolean },
+): MomentBreathScene {
+  return `${worldSceneForMoment(moment)}_c`;
+}
+
 /** The square on Home's "Your first Moment" card, by the answer given at first run. */
 export const FIRST_MOMENT_SCENES = {
   train: 'gym_b',
@@ -119,7 +133,6 @@ export const MOMENTS_TAB_SCENE: ScreenScene = 'moments_tab';
 export const REPLAY_SCENE: ScreenScene = 'replay';
 export const CIRCLES_SCENE: ScreenScene = 'circles';
 export const WELCOME_SCENE: ScreenScene = 'welcome';
-export const ONE_BREATH_SCENE: ScreenScene = 'one_breath';
 export const HYDRATION_SCENE: ScreenScene = 'hydration';
 export const PROFILE_SCENE: ScreenScene = 'profile';
 export const CALENDAR_SCENE: ScreenScene = 'calendar';

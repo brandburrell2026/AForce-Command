@@ -5,6 +5,7 @@
  */
 import type { ImageSourcePropType } from 'react-native';
 import {
+  worldBreathSceneForMoment,
   worldDetailSceneForMoment,
   worldPhotosAvailable,
   worldSceneForMoment,
@@ -37,6 +38,19 @@ import mb_social_b from '@/assets/world/mb_social_b.jpg';
 import mb_sport_b from '@/assets/world/mb_sport_b.jpg';
 import mb_work_b from '@/assets/world/mb_work_b.jpg';
 import yoga_night_b from '@/assets/world/yoga_night_b.jpg';
+import gym_c from '@/assets/world/gym_c.jpg';
+import dinner_c from '@/assets/world/dinner_c.jpg';
+import run_c from '@/assets/world/run_c.jpg';
+import pickleball_c from '@/assets/world/pickleball_c.jpg';
+import presentation_c from '@/assets/world/presentation_c.jpg';
+import travel_c from '@/assets/world/travel_c.jpg';
+import bedtime_c from '@/assets/world/bedtime_c.jpg';
+import celebration_c from '@/assets/world/celebration_c.jpg';
+import football_night_c from '@/assets/world/football_night_c.jpg';
+import mb_social_c from '@/assets/world/mb_social_c.jpg';
+import mb_sport_c from '@/assets/world/mb_sport_c.jpg';
+import mb_work_c from '@/assets/world/mb_work_c.jpg';
+import yoga_night_c from '@/assets/world/yoga_night_c.jpg';
 import moments_tab from '@/assets/world/moments_tab.jpg';
 import replay from '@/assets/world/replay.jpg';
 import tile_recovery from '@/assets/world/tile_recovery.jpg';
@@ -46,7 +60,6 @@ import screen_recovery from '@/assets/world/screen_recovery.jpg';
 import screen_sleep from '@/assets/world/screen_sleep.jpg';
 import circles from '@/assets/world/circles.jpg';
 import welcome from '@/assets/world/welcome.jpg';
-import one_breath from '@/assets/world/one_breath.jpg';
 import hydration from '@/assets/world/hydration.jpg';
 import profile from '@/assets/world/profile.jpg';
 import calendar from '@/assets/world/calendar.jpg';
@@ -82,6 +95,19 @@ export const WORLD_PHOTO_SOURCES: Record<WorldScene, ImageSourcePropType> = {
   mb_sport_b,
   mb_work_b,
   yoga_night_b,
+  gym_c,
+  dinner_c,
+  run_c,
+  pickleball_c,
+  presentation_c,
+  travel_c,
+  bedtime_c,
+  celebration_c,
+  football_night_c,
+  mb_social_c,
+  mb_sport_c,
+  mb_work_c,
+  yoga_night_c,
   moments_tab,
   replay,
   tile_recovery,
@@ -91,7 +117,6 @@ export const WORLD_PHOTO_SOURCES: Record<WorldScene, ImageSourcePropType> = {
   screen_sleep,
   circles,
   welcome,
-  one_breath,
   hydration,
   profile,
   calendar,
@@ -118,4 +143,11 @@ export function worldDetailPhotoForMoment(
   moment: { title: string; type: MomentType; masked?: boolean } | null,
 ): ImageSourcePropType | undefined {
   return worldPhoto(worldDetailSceneForMoment(moment));
+}
+
+/** The third photograph of a Moment: One Breath, once it has understood the Moment. */
+export function worldBreathPhotoForMoment(
+  moment: { title: string; type: MomentType; masked?: boolean } | null | undefined,
+): ImageSourcePropType | undefined {
+  return moment ? worldPhoto(worldBreathSceneForMoment(moment)) : undefined;
 }
