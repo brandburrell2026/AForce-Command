@@ -8,6 +8,8 @@ vi.mock('expo-router', () => ({ useRouter: () => ({ push: vi.fn() }) }));
 // The screen reads sign-in state to decide whether Travel is listed; Clerk's
 // native module does not load here.
 vi.mock('@clerk/expo', () => ({ useAuth: () => ({ isSignedIn: true }) }));
+// The Moments hero can sit on a photograph; its gradient is a native surface.
+vi.mock('expo-linear-gradient', () => ({ LinearGradient: () => null }));
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string, params?: any) => params?.action ?? key }) }));
 vi.mock('@/components/travel/TravelHomeCard', () => ({ TravelMomentsEntry: () => null }));
 vi.mock('@/components/profile/ProfileEntryButton', () => ({ ProfileEntryButton: () => null }));

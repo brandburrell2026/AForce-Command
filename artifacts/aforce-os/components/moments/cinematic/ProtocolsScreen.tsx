@@ -3,18 +3,21 @@
  *
  * "Back · Moments", the title, then one tile each for Recovery, Sleep and
  * Travel. Presentation only: each tile opens a screen that already exists
- * (see protocolsListLogic). No photographs sit behind the tiles; which
- * photographs builds may use is an open founder decision.
+ * (see protocolsListLogic). Each tile sits on its World photograph in builds
+ * that may show them (internal builds); elsewhere the tile is plain.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/expo';
 import { Icon } from '@/components/Icon';
 import { AFScreen } from '@/components/ui';
 import { travelPilotAvailable } from '@/featureFlags/flags';
 import { useFeatureFlags } from '@/store/useAppStore';
-import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { worldPhoto } from '@/components/world/worldPhotoSources';
+import { PROTOCOL_SCENES } from '@/utils/worldPhoto';
 import { PROTOCOLS_TITLE, protocolTiles } from './protocolsListLogic';
 
 const MONO = 'IBMPlexMono_400Regular';
@@ -54,20 +57,48 @@ export function ProtocolsScreen() {
       </Text>
 
       <View style={styles.tiles}>
-        {tiles.map((tile) => (
-          <Pressable
-            key={tile.key}
-            onPress={() => router.push(tile.route as never)}
-            accessibilityRole="button"
-            accessibilityLabel={`${tile.name}. ${tile.eyebrow}. ${tile.note}`}
-            style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
-            testID={`protocols-tile-${tile.key}`}
-          >
-            <Text style={styles.tileEyebrow}>{tile.eyebrow.toUpperCase()}</Text>
-            <Text style={styles.tileName}>{tile.name}</Text>
-            <Text style={styles.tileNote}>{tile.note}</Text>
-          </Pressable>
-        ))}
+        {tiles.map((tile) => {
+          const photo = worldPhoto(PROTOCOL_SCENES[tile.key]);
+          const hasPhoto = photo != null;
+          const words = (
+            <>
+              <Text style={[styles.tileEyebrow, hasPhoto && styles.onPhoto]}>{tile.eyebrow.toUpperCase()}</Text>
+              <Text style={styles.tileName}>{tile.name}</Text>
+              <Text style={[styles.tileNote, hasPhoto && styles.onPhoto]}>{tile.note}</Text>
+            </>
+          );
+          return (
+            <Pressable
+              key={tile.key}
+              onPress={() => router.push(tile.route as never)}
+              accessibilityRole="button"
+              accessibilityLabel={`${tile.name}. ${tile.eyebrow}. ${tile.note}`}
+              style={({ pressed }) => [styles.tile, hasPhoto && styles.tileWithPhoto, pressed && styles.pressed]}
+              testID={`protocols-tile-${tile.key}`}
+            >
+              {hasPhoto ? (
+                <ImageBackground
+                  source={photo}
+                  style={styles.tilePhoto}
+                  imageStyle={styles.tilePhotoImage}
+                  resizeMode="cover"
+                  testID={`protocols-tile-photo-${tile.key}`}
+                >
+                  {/* Darkens the foot of the photograph so the words hold. */}
+                  <LinearGradient
+                    pointerEvents="none"
+                    colors={[withAlpha(af.canvas, 0.05), withAlpha(af.canvas, 0.45), withAlpha(af.canvas, 0.9)]}
+                    locations={[0, 0.5, 1]}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  {words}
+                </ImageBackground>
+              ) : (
+                words
+              )}
+            </Pressable>
+          );
+        })}
       </View>
     </AFScreen>
   );
@@ -88,6 +119,11 @@ const styles = StyleSheet.create({
     minHeight: 148, borderRadius: 22, borderWidth: 1, borderColor: af.border,
     backgroundColor: af.surface, padding: 18, justifyContent: 'flex-end', gap: 4,
   },
+  // With a photograph the tile is the demo's taller card and the picture fills it.
+  tileWithPhoto: { minHeight: 190, padding: 0, overflow: 'hidden' },
+  tilePhoto: { flex: 1, minHeight: 190, padding: 18, justifyContent: 'flex-end', gap: 4 },
+  tilePhotoImage: { borderRadius: 21 },
+  onPhoto: { color: af.textPrimary, opacity: 0.9 },
   pressed: { opacity: 0.72 },
   tileEyebrow: { fontFamily: MONO, fontSize: 11, lineHeight: 14, letterSpacing: 2, color: af.textSecondary },
   tileName: { fontFamily: 'Inter_600SemiBold', fontSize: 28, lineHeight: 32, letterSpacing: -0.56, color: af.textPrimary },

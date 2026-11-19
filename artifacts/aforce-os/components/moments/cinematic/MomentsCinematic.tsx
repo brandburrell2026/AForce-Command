@@ -9,13 +9,18 @@
  *   links     Calendar, Protocols
  *
  * Presentation only: every string and row arrives as a prop. The hero takes a
- * World photograph when one is licensed; today it is drawn on AFORCE Black.
+ * World photograph when the build may show one (`photo`); without it the
+ * hero is drawn on AFORCE Black, as before.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, type ImageSourcePropType, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AFMark } from '@/components/ui/AFMark';
-import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
+import { af, withAlpha, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import type { MomentRowModel } from './momentsCinematicLogic';
+
+/** The screen's side gutter, which the photograph bleeds past. */
+const MOMENTS_PHOTO_BLEED = 20;
 
 export interface MomentsLink {
   title: string;
@@ -27,6 +32,8 @@ export interface MomentsLink {
 export interface MomentsCinematicProps {
   profileEntry?: React.ReactNode;
   hero: { eyebrow: string; title: string; sub: string };
+  /** The World photograph behind the top row and hero. Optional. */
+  photo?: ImageSourcePropType;
   onPressHero?: () => void;
   statusLine: { left: string; right: string } | null;
   planLabel: string;
@@ -64,8 +71,8 @@ function Row({ row, onPress, last, muted }: { row: MomentRowModel; onPress: () =
 }
 
 export function MomentsCinematic(p: MomentsCinematicProps) {
-  return (
-    <View testID="moments-cinematic">
+  const top = (
+    <>
       <View style={styles.topRow}>
         <View style={styles.markRow}>
           <AFMark size={15} decorative />
@@ -88,6 +95,23 @@ export function MomentsCinematic(p: MomentsCinematicProps) {
         </Text>
         <Text style={styles.heroSub}>{p.hero.sub}</Text>
       </Pressable>
+    </>
+  );
+  return (
+    <View testID="moments-cinematic">
+      {p.photo ? (
+        <ImageBackground source={p.photo} style={styles.photo} resizeMode="cover" testID="moments-hero-photo">
+          <LinearGradient
+            pointerEvents="none"
+            colors={[withAlpha(af.canvas, 0.6), withAlpha(af.canvas, 0.1), withAlpha(af.canvas, 0), withAlpha(af.canvas, 0.55), af.canvas]}
+            locations={[0, 0.24, 0.44, 0.7, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+          {top}
+        </ImageBackground>
+      ) : (
+        top
+      )}
 
       {p.statusLine ? (
         <View style={styles.statusLine}>
@@ -173,6 +197,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: af.textSecondary, marginBottom: 6 },
   eyebrowCard: { fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: af.textSecondary },
   hero: { paddingTop: 44, paddingBottom: 30 },
+  // The prototype's tall hero: the photograph runs edge to edge behind the
+  // top row, with the Moment's words at its foot.
+  photo: { minHeight: 460, marginHorizontal: -MOMENTS_PHOTO_BLEED, paddingHorizontal: MOMENTS_PHOTO_BLEED, justifyContent: 'space-between' },
   heroTitle: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 40,

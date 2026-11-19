@@ -140,9 +140,20 @@ Nothing was made unreachable. Account views: Plan (subscription, Clutch/Guardian
 | Create account: Apple, Google, email; email + code in two steps | Built as three screens: "Create your account" (Google, Continue with email, legal line, "I already have an account") → "Your email" 1 of 2 → "Check your email" 2 of 2 (Resend code, Use a different email, Verify). Back on each | ◐ no Apple (not set up), so Google is the filled button. Kept, not in the demo: "Have an invite code?" on the first screen. The first name moved to first run, as in the demo. No offline banner, no "already has an account" card (Clerk's own error text shows). Not checked on a phone |
 | Sign in: "Welcome back", Apple and Google pills, fields, "Forgot password?", Sign in | Same, without Apple and "Back" | ◐ Apple sign-in and the promise screen are not built |
 
+## Photographs (internal builds only)
+
+Thirteen World photographs were made for AFORCE on 2026-11-19 (AI-generated, 2336×3504 originals, shipped at 1290×1935): gym, dinner, run, pickleball, presentation, travel, bedtime, celebration, flag football, set table, basketball court, desk, recovery stretch. They show in development and internal builds only; a public build draws the same screens on black until Legal clears them.
+
+| Where | App | |
+|---|---|---|
+| Home hero | The next Moment's photograph, chosen from its own words, else its type; a private Moment is never matched on its title | ◐ no slow drift; one photo per scene, not per weather or time of day. Not checked on a phone |
+| Moments hero | Same photograph, edge to edge behind the top row and hero | ◐ same. Not checked on a phone |
+| Protocols tiles | Recovery, Sleep and Travel each sit on their photograph | ◐ Not checked on a phone |
+| Moment screen, Replay, Recovery, Sleep, Circles, the small thumbnails on Home cards, sign-in promise screen | No photograph yet | ✘ |
+
 ## Decisions that block an exact match
 
-1. **Photography.** May internal builds use the demo's AI sample photos? This is the largest visible gap on Home, Moments and Circles.
+1. **Photography.** Decided 2026-11-19 (Brandon): a new AI-generated set, internal builds only. Still open: Legal clearance for a public release, and the remaining screens and scenes.
 2. **The Home ring:** intake percentage (demo) or HydroState score (app)?
 3. **"Log a drink":** rename now, or after the drink-choice sheet is built?
 4. **Profile sections:** the header and pills match; the cards inside each section are still the old design. Features with no place in the demo (sweat calculator, Coach Mode, developer controls, Travel switch, Gentle hydration) are kept under Account for now.

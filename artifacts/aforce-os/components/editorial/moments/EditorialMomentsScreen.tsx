@@ -58,6 +58,7 @@ import { useFeatureFlags } from '@/store/useAppStore';
 import { useAuth } from '@clerk/expo';
 import { travelPilotAvailable } from '@/featureFlags/flags';
 import { protocolsSubline } from '@/components/moments/cinematic/protocolsListLogic';
+import { worldPhotoForMoment } from '@/components/world/worldPhotoSources';
 import type { Moment, MomentRecommendation } from '@/types/moments';
 import { af } from '@/theme';
 import { edInkFor, edRhythm, edStock, edType } from '@/theme/editorialTokens';
@@ -130,6 +131,7 @@ export function EditorialMomentsScreen({
             <MomentsCinematic
               profileEntry={<ProfileEntryButton testID="moments-cinematic-profile-entry" />}
               hero={model.hero ?? MOMENTS_EMPTY_HERO}
+              photo={worldPhotoForMoment(data.next ?? null)}
               onPressHero={data.next ? () => router.push(`/moment/${data.next!.id}`) : undefined}
               statusLine={homeStatusLine(data.surfaced, data.next ?? null)}
               planLabel="Plan a Moment · say it"
