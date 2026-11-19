@@ -15,6 +15,7 @@ import { useMomentsStore } from '@/services/momentsStore';
 import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepScheduling';
 import type { Moment } from '@/types/moments';
 import { HomeCinematic } from './HomeCinematic';
+import { worldPhotoForMoment } from '@/components/world/worldPhotoSources';
 import { HomeMomentCards } from './HomeMomentCards';
 import { HomeFirstMomentCard } from './HomeFirstMomentCard';
 import { useFirstMomentAvailable } from '@/hooks/useFirstMomentAvailable';
@@ -103,6 +104,8 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
       dateLine={homeDateLine(props.now)}
       greeting={homeGreeting(props.now, props.firstName)}
       profileEntry={props.profileEntry}
+      // The Moment's World photograph: internal builds only, else no photo.
+      photo={worldPhotoForMoment(next)}
       momentEyebrow={hero.eyebrow}
       momentTitle={hero.title}
       momentStatus={hero.status}
