@@ -122,7 +122,8 @@ describe('Hydration tab — the tab root IS the hydration experience', () => {
     // The user-visible loss in Build 60, stated positively.
     expect(HYDRATION).toContain("t('hydration.v2.scan_a_drink')");
     expect(HYDRATION).toContain("t('hydration.v2.log_manually')");
-    expect(HYDRATION).toContain('<AFProgressRing');
+    expect(HYDRATION).toContain('<HydrationHero');
+    expect(HYDRATION).toContain('ring={hero.ring}');
     expect(HYDRATION).toContain("t('hydration.v2.this_week')");
   });
 });

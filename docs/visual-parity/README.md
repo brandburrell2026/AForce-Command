@@ -53,6 +53,33 @@ Reference, lower half: ![](home/reference-home-lower.jpg) · Nothing planned: ![
 
 **Kept working:** water logging through the existing open-only picker, the offline banner, the last-known-delivery notice, the Travel card and Concierge entry behind their flags, the Social indicator, Profile entry.
 
+## 3b. Hydration tab
+
+| Reference | Rebuilt | Above the target (262 of 96 oz) |
+|---|---|---|
+| ![](hydration/reference-hydration-top.jpg) | ![](hydration/rebuilt-hydration-top.jpg) | ![](hydration/rebuilt-hydration-above-target.jpg) |
+
+Reference, lower half: ![](hydration/reference-hydration-lower.jpg)
+
+| Element | Reference | Rebuilt | Match |
+|---|---|---|---|
+| Member photo top right; no wordmark header | Yes | Yes | ✔ |
+| Mark + "Hydration · today", today's ounces at 96pt light, "of 96 oz starting target · logged" | Yes | Yes, real values | ✔ |
+| Status line pill | Yes | Yes, from real Moments; hidden when nothing is planned | ✔ |
+| Ring card: 120pt ring ("42 oz · of 96"), "44% of starting target", "Estimated from what you logged · time" | Yes | Yes | ✔ |
+| "How the target works" link | Opens a sheet | **Replaced by the explanation shown in place, always visible** | ◐ safety (stop-ship RA-N8) |
+| "Scan a drink" (primary) and "Log manually" (ghost), equal width | Yes | Yes | ✔ |
+| Electrolytes / Recovery rows | Not shown | Hidden until they have data; AFORCE servings appear as one quiet line when logged | ✔ |
+| "Shortcut" card (one-tap repeat of a scanned drink) | Yes (sample) | Not built: it is a feature, not styling | ✘ feature |
+| Recent: name, "Today · time", ounces, hairline rows | Yes | Yes | ✔ |
+| History: Week / Month bars against the target, Moment marks, no flagged misses | Yes | **Not built.** The week dots remain (now warm white, as Screen Upgrade asks), with the link to the history screen | ✘ data |
+| Above the target | Not shown in the prototype | Ring stops at a full circle; the numbers show the true total and percentage | decision Y1 |
+| Side gutter | 20pt | 20pt | ✔ |
+
+**Not changed:** logging through the existing open-only picker, duplicate protection, the offline banner, Gentle mode, the 96 oz starting point, the score.
+
+**Why no History bars:** the tab has today's total and a rolling 24 hours of entries; it does not hold a per-day ounce history. Drawing bars needs that data loaded, which is a data change, not styling.
+
 ## 4. Parity checklist — remaining screens
 
 Reference captured means a real image of the prototype exists in this folder. "—" means not yet done.
@@ -62,7 +89,8 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | Home · Moment planned | ✔ | ✔ harness | ✔ | this PR | — |
 | Home · nothing planned / new member | — | ✔ harness | — | this PR | — |
 | Home · Social tonight | ✔ (seen, not saved) | — | — | — | — |
-| Hydration · tab | — | — | — | — | — |
+| Hydration · tab (top, Recent) | ✔ | ✔ harness | ✔ | PR (Hydration) | — |
+| Hydration · History bars | ✔ | — | ✔ | — (needs per-day data) | — |
 | Hydration · log sheet | — | — | — | — | — |
 | Hydration · log result | — | — | — | — | — |
 | One Breath · Capture | ✔ | — | — | — | — |
@@ -93,4 +121,5 @@ Reference captured means a real image of the prototype exists in this folder. "�
 | H2 | **"Log a drink" vs "Log water".** The spec (register #40) wants "Log a drink" with a drink choice. Home's sheet logs water only. | Keep "Log water" until the drink-choice sheet is wired, then rename. Labelling a water-only sheet "Log a drink" would mislead |
 | H3 | **Gutter.** Prototype 20pt; an earlier founder decision (D6) set 32pt. | Adopt 20pt screen by screen as each is rebuilt |
 | H4 | **May internal TestFlight builds show the prototype's AI sample photos?** The spec clears them for TestFlight and investor demos. | Founders' call (D8). The Home hero is built to take a photo the moment this is answered |
+| Y1 | **Above the target.** The app now shows "262 oz" and "273% of starting target" with a full ring and no caution. No overdrinking rule exists (stop-ship RA-N9). | Keep the plain facts; wording of any caution is Julius's |
 | H5 | **Confidence line** beside the reading is not in the prototype. | Keep: stop-ship SS-22 depends on it |

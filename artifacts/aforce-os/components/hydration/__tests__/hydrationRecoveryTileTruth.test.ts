@@ -39,13 +39,13 @@ describe('Hydration card — rows are hidden until they have data', () => {
   });
 
   it('the screen draws Electrolytes only through the rule, and no Recovery row', () => {
-    expect(SRC).toMatch(/\{statRows\.electrolytes \? \(/);
+    expect(SRC).toMatch(/statRows\.electrolytes\s*\?/);
     expect(SRC).not.toContain("hydration.v2.recovery_label");
     expect(SRC).not.toContain('EM_DASH');
   });
 
-  it('water logged and the starting-point caption are still shown', () => {
-    expect(SRC).toContain("hydration.v2.stat_water_logged");
+  it("today's intake and the starting-point caption are still shown", () => {
+    expect(SRC).toContain('amount={hero.amount}');
     expect(SRC).toContain("hydration.v2.target_starting_point");
   });
 });

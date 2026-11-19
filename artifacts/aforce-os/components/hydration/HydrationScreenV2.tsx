@@ -58,6 +58,13 @@ import { af, afType, afLayout, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
 import { Icon } from '@/components/Icon';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { hydrationStatRows } from './hydrationStatRows';
+import { HydrationHero, HydrationRecentRow, HydrationEyebrow } from './cinematic/HydrationHero';
+import { hydrationHero } from './cinematic/hydrationCinematicLogic';
+import { homeStatusLine } from '@/components/home/cinematic/homeCinematicLogic';
+import { useMomentsData } from '@/components/moments/useMomentsData';
+
+/** Side gutter of the Hydration tab, as in the reference (20pt). */
+export const HYDRATION_GUTTER = 20;
 import { useAppStore, useFeatureFlags } from '@/store/useAppStore';
 import { useCycleSlice, useEngineSlice, useActionsSlice } from '@/store/slices';
 import { useTabBarClearance } from '@/hooks/useTabBarClearance';
@@ -195,6 +202,15 @@ export function HydrationScreenV2() {
     userState.ozTarget > 0
       ? Math.max(0, Math.min(1, userState.ozConsumedToday / userState.ozTarget))
       : 0;
+  const momentsData = useMomentsData();
+  const nextMoment = momentsData.hydrated ? momentsData.next ?? null : null;
+  const statusLine = homeStatusLine(momentsData.hydrated ? momentsData.surfaced : [], nextMoment);
+  const hero = hydrationHero(
+    userState.ozConsumedToday,
+    userState.ozTarget,
+    (userState.intakeEvents?.length ?? 0) > 0 ? new Date(userState.lastIntakeTime) : null,
+    DAILY_TARGET_IS_PERSONAL,
+  );
   const statRows = hydrationStatRows({ aforceUnitsToday: userState.aforceUnitsToday });
   const recent: IntakeEvent[] = (userState.intakeEvents ?? []).slice(0, 5);
   const streak = Math.max(0, Math.min(7, userState.complianceStreak));
@@ -250,19 +266,17 @@ export function HydrationScreenV2() {
 
   return (
     <View style={styles.root}>
-      <AFScreen scroll contentContainerStyle={{ paddingBottom: tabClearance }}>
-      {/* Masthead: wordmark, red breadcrumb, statement. No right-hand meta —
-          this screen has no city/temperature/clock source of its own, and the
-          masthead never invents one. */}
-      <View style={styles.mastheadWrap}>
-        <AFMasthead
-          breadcrumb={`${t('tabs.hydration')} / ${t('hydration.v2.eyebrow')}`}
-          title={`${t('hydration.v2.title')}.`}
-          accessory={<ProfileEntryButton testID="hydration-profile-entry" />}
-          testID="hydration-v2-masthead"
-        />
-        {askConcierge.length > 0 ? (
-          <View style={styles.conciergeSlot}>
+      <AFScreen
+        scroll
+        padded={false}
+        contentContainerStyle={{ paddingBottom: tabClearance, paddingHorizontal: HYDRATION_GUTTER }}
+      >
+      {/* Top of the tab, laid out as in the approved prototype (App Spec
+          v1.8.2 · Hydration tab): today's ounces, the status line, the ring
+          card and the two actions. Values are the member's own. */}
+      <HydrationHero
+        topRight={
+          <>
             {askConcierge.slice(0, 2).map((a) => (
               <Pressable
                 key={a.label}
@@ -275,67 +289,30 @@ export function HydrationScreenV2() {
                 <Icon name={a.icon} size={20} color={af.textPrimary} />
               </Pressable>
             ))}
-          </View>
-        ) : null}
-      </View>
-
-      {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
-      <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
-
-      {/* Intake ring + stats */}
-      <AFCard style={styles.mainCard}>
-        <View style={styles.ringRow}>
-          {/* The ring's only reading used to be the centered `{pct}%`, and
-              AFProgressRing hid it — so the day's intake was unreachable by
-              VoiceOver. Naming the ring makes it one announced progressbar
-              ("Today's intake, 62% of your target") instead of a nameless bar
-              or silence. */}
-          <AFProgressRing
-            progress={pct}
-            size={92}
-            stroke={8}
-            accessibilityLabel={t('hydration.v2.ring_a11y', { pct: Math.round(pct * 100) })}
-          >
-            <Text style={styles.ringPct} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
-              {Math.round(pct * 100)}%
-            </Text>
-          </AFProgressRing>
-          <View style={styles.stats}>
-            <Stat
-              label={t('hydration.v2.stat_water_logged')}
-              value={t('hydration.v2.stat_water_value', {
-                consumed: Math.round(userState.ozConsumedToday),
-                target: userState.ozTarget,
-              })}
-            />
-            {DAILY_TARGET_IS_PERSONAL ? null : (
-              <Text style={styles.statCaption}>
-                {t('hydration.v2.target_starting_point', { target: userState.ozTarget })}
-              </Text>
-            )}
-            {/* Screen Upgrade v1.1: a row is hidden until it has data. Zero
-                AFORCE servings and the Recovery em dash are not drawn.
-                Recovery has no reading on this screen, and the engine's band
-                must never be restated as one (hydrationRecoveryTileTruth). */}
-            {statRows.electrolytes ? (
-              <Stat
-                label={t('hydration.v2.stat_electrolytes')}
-                value={t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}
-              />
-            ) : null}
-          </View>
-        </View>
-      </AFCard>
-
-      {/* Actions */}
-      <View style={styles.actions}>
-        <AFPrimaryButton label={t('hydration.v2.scan_a_drink')} icon="camera" onPress={() => router.push('/scan')} />
-        <AFSecondaryButton
-          label={t('hydration.v2.log_manually')}
-          testID="hydration-log-manually"
-          onPress={openWaterPicker}
-        />
-      </View>
+            <ProfileEntryButton testID="hydration-profile-entry" />
+          </>
+        }
+        amount={hero.amount}
+        line={hero.line}
+        statusLine={statusLine}
+        ring={hero.ring}
+        ringAccessibilityLabel={t('hydration.v2.ring_a11y', { pct: Math.round(pct * 100) })}
+        percentLine={hero.percentLine}
+        sourceLine={hero.sourceLine}
+        facts={
+          statRows.electrolytes
+            ? [`${t('hydration.v2.stat_electrolytes')} · ${t('hydration.v2.stat_electrolytes_value', { count: userState.aforceUnitsToday })}`]
+            : []
+        }
+        targetNote={DAILY_TARGET_IS_PERSONAL ? null : (t('hydration.v2.target_starting_point', { target: userState.ozTarget }))}
+        scanLabel={t('hydration.v2.scan_a_drink')}
+        onScan={() => router.push('/scan')}
+        logLabel={t('hydration.v2.log_manually')}
+        onLog={openWaterPicker}
+      >
+        {/* RC-1 Wave-2B (item 1) — offline intake outbox visibility. */}
+        <AFOfflineBanner pendingCount={outboxPendingCount} hasFailedItem={outboxHasFailedItem} />
+      </HydrationHero>
 
       {flags.gentle_hydration_mode_enabled ? (
         <GentleHydrationModeCard
@@ -346,7 +323,7 @@ export function HydrationScreenV2() {
 
       {/* Recent intake */}
       <View style={styles.section}>
-        <AFSectionLabel label={t('hydration.v2.recent_intake')} meta={recentMeta} />
+        <HydrationEyebrow label="Recent" />
         {recent.length === 0 ? (
           <AFCard>
             <AFEmptyState
@@ -356,33 +333,17 @@ export function HydrationScreenV2() {
             />
           </AFCard>
         ) : (
-          <AFCard padded={false} style={styles.recentCard}>
-            {intakeRows.map(({ event: e, when }, i) => {
-              const title = t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`);
-              const amount = t('hydration.v2.oz_value', { oz: Math.round(e.oz) });
-              return (
-                <View
-                  key={e.id}
-                  style={[styles.intakeRow, i < intakeRows.length - 1 && styles.intakeRowRuled]}
-                  accessible
-                  accessibilityLabel={`${title}, ${when.text}, ${amount}`}
-                >
-                  {/* Hollow marker: shape, not colour, and decorative — the
-                      row's composed label carries the content. */}
-                  <View
-                    style={styles.intakeDot}
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                  />
-                  <View style={styles.intakeText}>
-                    <Text style={styles.intakeTitle}>{title}</Text>
-                    <Text style={[styles.intakeWhen, eyebrowType]}>{when.text.toUpperCase()}</Text>
-                  </View>
-                  <Text style={[styles.intakeAmount, eyebrowType]}>{amount.toUpperCase()}</Text>
-                </View>
-              );
-            })}
-          </AFCard>
+          <View testID="hydration-recent-list">
+            {intakeRows.map(({ event: e, when }, i) => (
+              <HydrationRecentRow
+                key={e.id}
+                title={t(`hydration.v2.${FLUID_KEY[e.fluidType] ?? 'fluid_default'}`)}
+                when={when.text}
+                amount={t('hydration.v2.oz_value', { oz: Math.round(e.oz) })}
+                last={i === intakeRows.length - 1}
+              />
+            ))}
+          </View>
         )}
       </View>
 
@@ -391,7 +352,7 @@ export function HydrationScreenV2() {
         {/* No count caption: `streak` is the target-met compliance streak,
             not a count of days logged (PR #1090 review B1) — the dots and
             their per-day labels carry what is known. */}
-        <AFSectionLabel label={t('hydration.v2.this_week')} />
+        <HydrationEyebrow label={t('hydration.v2.this_week')} />
         <View style={styles.strip}>
           {weekdayInitials.map((d, i) => {
             // Fill the most recent `streak` days up to and including today.
@@ -544,7 +505,8 @@ const styles = StyleSheet.create({
     borderColor: af.textTertiary,
     backgroundColor: 'transparent',
   },
-  dayDotFilled: { backgroundColor: af.red, borderColor: af.red },
+  // Screen Upgrade v1.1: warm-white filled = goal met, outline = not.
+  dayDotFilled: { backgroundColor: af.textPrimary, borderColor: af.textPrimary },
   dayLabel: { ...afType.eyebrow, color: af.textTertiary },
   dayLabelToday: { color: af.textPrimary },
 });

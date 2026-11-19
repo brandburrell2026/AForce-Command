@@ -151,8 +151,8 @@ describe('charts + rings always leave a text alternative', () => {
   it('the Hydration intake ring names itself', () => {
     // The only consumer that hid a real reading. Its `{pct}%` was unreachable.
     const ringBlock = hydration.slice(
-      hydration.indexOf('<AFProgressRing'),
-      hydration.indexOf('</AFProgressRing>'),
+      hydration.indexOf('<HydrationHero'),
+      hydration.indexOf('</HydrationHero>'),
     );
     expect(ringBlock).toContain("t('hydration.v2.ring_a11y'");
   });
