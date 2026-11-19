@@ -23,7 +23,7 @@ describe('the name step — the prototype\'s copy', () => {
     ['name_label', 'First name'],
   ])('%s', (key, value) => {
     expect(en[key]).toBe(value);
-    expect(CODE).toContain(`t('onboarding.v2.${key}')`);
+    expect(CODE).toContain(`'onboarding.v2.${key}'`);
   });
 
   it('every locale file carries the keys', () => {
@@ -43,8 +43,9 @@ describe('the name step — where it sits', () => {
   });
 
   it('it leads to the goal step, and Back from goal returns to it', () => {
-    expect(CODE).toContain("if (s === 'goal') return 'name';");
-    expect(between('const submitName', 'const goNext').match(/setStep\('goal'\)/g)).toHaveLength(2);
+    expect(CODE).toContain("if (s === 'goal') return prepAvailable ? 'prep' : 'name';");
+    expect(between('const submitName', 'const submitPrep').match(/setStep\(afterName\)/g)).toHaveLength(2);
+    expect(CODE).toContain("const afterName: Step = prepAvailable ? 'prep' : 'goal';");
   });
 
   it('the body questions are all still there, in the same order', () => {
@@ -56,7 +57,7 @@ describe('the name step — where it sits', () => {
 });
 
 describe('the name step — saving', () => {
-  const submit = between('const submitName', 'const goNext');
+  const submit = between('const submitName', 'const submitPrep');
 
   it('saves to the member\'s account, where the greeting already reads it', () => {
     expect(submit).toContain('await clerkUser.update({ firstName: next })');
@@ -64,7 +65,7 @@ describe('the name step — saving', () => {
   });
 
   it('a blank or unchanged name saves nothing and still moves on', () => {
-    expect(submit).toMatch(/if \(!next \|\| next === accountFirstName \|\| !clerkUser \|\| nameError\) \{[\s\S]*?setStep\('goal'\);\s*return;/);
+    expect(submit).toMatch(/if \(!next \|\| next === accountFirstName \|\| !clerkUser \|\| nameError\) \{[\s\S]*?setStep\(afterName\);\s*return;/);
   });
 
   it('a failed save tells the member, and the next press moves on rather than trapping them', () => {

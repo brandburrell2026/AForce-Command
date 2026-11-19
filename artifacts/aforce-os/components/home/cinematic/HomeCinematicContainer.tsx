@@ -16,6 +16,10 @@ import { useMomentPrepScheduling } from '@/components/moments/useMomentPrepSched
 import type { Moment } from '@/types/moments';
 import { HomeCinematic } from './HomeCinematic';
 import { HomeMomentCards } from './HomeMomentCards';
+import { HomeFirstMomentCard } from './HomeFirstMomentCard';
+import { useFirstMomentAvailable } from '@/hooks/useFirstMomentAvailable';
+import { readFirstMomentChoice } from '@/services/firstMomentChoice';
+import { firstMomentCard, type FirstMomentChoice } from '@/utils/firstMoment';
 import { homeBeforeCard, homeReturnCard } from './homeMomentCardsLogic';
 import {
   homeClock,
@@ -75,6 +79,20 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
   const privateLabel = t('moments.private_event');
   const beforeCard = homeBeforeCard(allMoments, props.now, privateLabel);
   const returnCard = homeReturnCard(allMoments, props.now, privateLabel, skippedReturns);
+  // The prototype's "Your first Moment" card: only for a member with no
+  // Moment yet, and only where One Breath really ends in a plan to seal.
+  const firstMomentAvailable = useFirstMomentAvailable();
+  const [firstChoice, setFirstChoice] = React.useState<FirstMomentChoice | null>(null);
+  React.useEffect(() => {
+    if (!firstMomentAvailable) return;
+    let live = true;
+    void readFirstMomentChoice().then((c) => { if (live) setFirstChoice(c); });
+    return () => { live = false; };
+  }, [firstMomentAvailable]);
+  const firstCard =
+    firstMomentAvailable && !props.fixtureMoments
+      ? firstMomentCard(firstChoice, { hydrated: store.hydrated, count: store.moments.length })
+      : null;
   const source =
     props.sourceLabel && props.sourceFetchedAtMs
       ? `${props.sourceLabel} · ${homeClock(new Date(props.sourceFetchedAtMs))}`
@@ -106,6 +124,7 @@ export function HomeCinematicContainer(props: HomeCinematicContainerProps) {
       sourceLine={source}
       notice={props.notice}
     >
+      <HomeFirstMomentCard card={firstCard} onPlan={() => router.push('/one-breath')} />
       <HomeMomentCards
         before={beforeCard}
         back={returnCard}
