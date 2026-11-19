@@ -1398,6 +1398,9 @@ export function MomentPreparationScreen({
         fill
         wash={screen === "quiet" ? "breathQuiet" : "breath"}
         fadeMs={1400}
+        // Blue belongs to Social only (Master Brief §2): a Social Moment's
+        // photograph carries the prototype's light blue tint.
+        tint={social ? T.blue : undefined}
         testID="one-breath-scene"
       />
       <ScrollView
