@@ -28,9 +28,11 @@ export interface CircleMembersPanelProps {
    */
   layout?: 'default' | 'demo';
   inviteOpen?: boolean;
+  /** 'demo' only: opens the invite form from the empty Circle card. */
+  onInvite?: () => void;
 }
 
-export function CircleMembersPanel({ showLegacySharing = true, layout = 'default', inviteOpen = true }: CircleMembersPanelProps) {
+export function CircleMembersPanel({ showLegacySharing = true, layout = 'default', inviteOpen = true, onInvite }: CircleMembersPanelProps) {
   const scope = React.useSyncExternalStore(
     subscribeScopeState,
     getScopeState,
@@ -39,10 +41,10 @@ export function CircleMembersPanel({ showLegacySharing = true, layout = 'default
   // Scope object identity changes on every identity transition, including A → B → A.
   const [session, setSession] = React.useState({ scope, key: 0 });
   if (session.scope !== scope) setSession({ scope, key: session.key + 1 });
-  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} demo={layout === 'demo'} inviteOpen={inviteOpen} />;
+  return <MemberSession key={session.key} scope={scope} showLegacySharing={showLegacySharing} demo={layout === 'demo'} inviteOpen={inviteOpen} onInvite={onInvite} />;
 }
 
-function MemberSession({ scope, showLegacySharing, demo, inviteOpen }: { scope: ScopeState; showLegacySharing: boolean; demo: boolean; inviteOpen: boolean }) {
+function MemberSession({ scope, showLegacySharing, demo, inviteOpen, onInvite }: { scope: ScopeState; showLegacySharing: boolean; demo: boolean; inviteOpen: boolean; onInvite?: () => void }) {
   const { t } = useTranslation();
   const sharingEnabled = isCircleSharingPilotEnabled(useFeatureFlags());
   const client = React.useMemo(
@@ -243,7 +245,32 @@ function MemberSession({ scope, showLegacySharing, demo, inviteOpen }: { scope: 
         </Text>
       )}
       {loading && <Text style={styles.copy}>{copy('loading')}</Text>}
-      {loaded && !loading && !members.length && (
+      {demo && loaded && !loading && !members.length && !invitations.some((invite) => invite.status === 'pending') ? (
+        // The prototype's empty Circle: two rings, one promise, one action.
+        <View style={styles.demoEmpty} testID="circle-empty-card">
+          <View style={styles.demoRings} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+            <View style={styles.demoRing} />
+            <View style={[styles.demoRing, styles.demoRingRight]} />
+          </View>
+          <Text accessibilityRole="header" style={styles.demoEmptyTitle}>Prepare with the people you trust.</Text>
+          <Text style={styles.demoEmptySub}>
+            Invite someone to your Circle. You choose exactly what they see.
+          </Text>
+          {onInvite && !inviteOpen ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Invite someone"
+              onPress={onInvite}
+              style={({ pressed }) => [styles.demoEmptyButton, pressed && styles.pressed]}
+              testID="circle-empty-invite"
+            >
+              <Text style={styles.demoEmptyButtonText}>Invite someone</Text>
+            </Pressable>
+          ) : null}
+          <Text style={styles.demoEmptyNote}>Private by default. Nothing is shared until you confirm it.</Text>
+        </View>
+      ) : null}
+      {!demo && loaded && !loading && !members.length && (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>Start with one person.</Text>
           <Text style={styles.copy}>{copy('empty')}</Text>
@@ -528,6 +555,15 @@ const styles = StyleSheet.create({
   error: { color: af.redText, fontSize: 15, lineHeight: 21 },
   feedback: { borderLeftWidth: 2, borderLeftColor: af.red, paddingLeft: 12 },
   feedbackText: { color: af.textPrimary, fontSize: 15, lineHeight: 21 },
+  demoEmpty: { alignItems: 'center', gap: 10, paddingVertical: 30, paddingHorizontal: 22, borderRadius: 20, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface },
+  demoRings: { flexDirection: 'row', height: 40, marginBottom: 6 },
+  demoRing: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.4, borderColor: af.primaryFill, marginTop: 4 },
+  demoRingRight: { marginLeft: -16 },
+  demoEmptyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 22, lineHeight: 27, letterSpacing: -0.4, color: af.textPrimary, textAlign: 'center' },
+  demoEmptySub: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20, color: af.textSecondary, textAlign: 'center' },
+  demoEmptyButton: { alignSelf: 'stretch', minHeight: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: af.primaryFill, marginTop: 6 },
+  demoEmptyButtonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.onPrimaryFill },
+  demoEmptyNote: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary, textAlign: 'center' },
   emptyState: { gap: 6, paddingVertical: 18, paddingHorizontal: 18, borderWidth: 1, borderColor: af.border, borderRadius: 16, backgroundColor: af.surface },
   emptyTitle: { color: af.textPrimary, fontSize: 21, fontWeight: '700', letterSpacing: -0.3 },
   memberCard: { flexDirection: 'row', gap: 14, padding: 16, borderWidth: 1, borderColor: af.border, borderRadius: 18, backgroundColor: af.surface },

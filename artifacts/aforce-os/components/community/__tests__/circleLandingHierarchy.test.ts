@@ -60,3 +60,28 @@ describe('Circles tab (prototype layout)', () => {
     expect(screen).not.toContain('Private keepsakes');
   });
 });
+
+describe('Empty Circle (prototype card)', () => {
+  it('shows the card only when there is nobody and no pending invitation', () => {
+    expect(panel).toContain(
+      "{demo && loaded && !loading && !members.length && !invitations.some((invite) => invite.status === 'pending') ? (",
+    );
+    expect(panel).toContain('Prepare with the people you trust.');
+    expect(panel).toContain('Private by default. Nothing is shared until you confirm it.');
+  });
+
+  it('its one action opens the same invite form as the button above', () => {
+    expect(panel).toMatch(/onPress=\{onInvite\}[\s\S]{0,200}testID="circle-empty-invite"/);
+    expect(screen).toContain('onInvite={() => setInviteOpen(true)}');
+  });
+
+  it('promises nothing the app cannot do: no per-Moment or time-limited invite', () => {
+    const card = panel.slice(panel.indexOf('circle-empty-card'), panel.indexOf('{!demo && loaded'));
+    expect(card).not.toMatch(/for how long|check-in after dinner|to a Moment/);
+  });
+
+  it('the older layout keeps its own empty state', () => {
+    expect(panel).toContain('{!demo && loaded && !loading && !members.length && (');
+    expect(panel).toContain('Start with one person.');
+  });
+});

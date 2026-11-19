@@ -87,7 +87,7 @@ export function CircleScreenV4() {
         </Pressable>
       </View>
 
-      <CircleMembersPanel showLegacySharing={false} layout="demo" inviteOpen={inviteOpen} />
+      <CircleMembersPanel showLegacySharing={false} layout="demo" inviteOpen={inviteOpen} onInvite={() => setInviteOpen(true)} />
 
       <Pressable
         onPress={() => setPrivacyOpen((v) => !v)}
