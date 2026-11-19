@@ -41,7 +41,8 @@ import { renderPerformanceSections } from './panes/PerformancePane';
 export const PROFILE_TRADEMARK_LINE =
   'AFORCE OS™ · Beta preview · AFORCE, AFORCE OS and the N–И mark are trademarks of AFORCE Hydration, Inc.';
 import { renderDevicesSections } from './panes/DevicesPane';
-import { renderAccountSections } from './panes/AccountPane';
+import { ACCOUNT_SECTION_ORDER, renderAccountSections } from './panes/AccountPane';
+import { ACCOUNT_VIEW_BLOCKS, AccountHome, AccountViewHeader, type AccountViewId } from './AccountHome';
 import { renderDeveloperSections } from './panes/DeveloperPane';
 
 import { AFInlineErrorRow, AFStatPair } from '@/components/ui';
@@ -323,7 +324,14 @@ export function ProfileScreenV2() {
   // Notification Preferences screen, one row away in the NOTIFICATIONS group.
   // Active group on the premium tab bar. Defaults to PERFORMANCE so the
   // user lands on engine modules / goals on first open.
-  const [profileTab, setProfileTab] = useState<ProfileTabId>('performance');
+  const [profileTab, setProfileTabRaw] = useState<ProfileTabId>('performance');
+  // Which Account view is open; null is the Account list itself. Leaving the
+  // Account section always returns to the list.
+  const [accountView, setAccountView] = useState<AccountViewId | null>(null);
+  const setProfileTab = useCallback((tab: ProfileTabId) => {
+    setAccountView(null);
+    setProfileTabRaw(tab);
+  }, []);
   // Mocked OAuth state for the third-party health platforms shown in
   // the "HEALTH PLATFORMS" card. In a real build, each id would map
   // to its provider SDK / OAuth grant. Here we toggle locally so the
@@ -1168,12 +1176,22 @@ export function ProfileScreenV2() {
               account: renderAccountSections(paneCtx),
               developer: renderDeveloperSections(paneCtx),
             };
-            // Body details, Gentle hydration and the internal Skin entry sat
-            // above the sections; the prototype's Profile opens straight on
-            // the three pills, so they follow the Account sections instead.
+            // Account is the prototype's short list (AccountHome). Every
+            // block that used to sit on the section — and body details,
+            // Gentle hydration and the internal Skin entry — is filed under
+            // one of its views, unchanged.
+            const accountBlocks: Record<string, React.ReactNode> = { identityBlock, gentleEntry, skinIAEntry };
+            ACCOUNT_SECTION_ORDER.forEach((name, i) => {
+              accountBlocks[name] = tabSections.account[i];
+            });
             const activeSections =
               profileTab === 'account'
-                ? [...tabSections.account, identityBlock, gentleEntry, skinIAEntry]
+                ? accountView
+                  ? [
+                      <AccountViewHeader view={accountView} onBack={() => setAccountView(null)} />,
+                      ...ACCOUNT_VIEW_BLOCKS[accountView].map((name) => accountBlocks[name]),
+                    ]
+                  : [<AccountHome onOpen={setAccountView} onOpenCircle={() => router.push('/competition')} />]
                 : tabSections[profileTab];
             const tabBar = (
               <ProfileTabBar active={profileTab} onChange={setProfileTab} />

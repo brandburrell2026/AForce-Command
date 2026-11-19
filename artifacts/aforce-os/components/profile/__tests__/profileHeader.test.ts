@@ -61,7 +61,8 @@ describe('Profile screen', () => {
   it('no rank, streak or aura chips', () => {
     expect(screen).not.toMatch(/<IdentityChip/);
   });
-  it('every feature that sat above the pills is still on the screen, in Account', () => {
-    expect(screen).toMatch(/\[\.\.\.tabSections\.account, identityBlock, gentleEntry, skinIAEntry\]/);
+  it('every feature that sat above the pills is still reachable, from Account', () => {
+    expect(screen).toContain('const accountBlocks: Record<string, React.ReactNode> = { identityBlock, gentleEntry, skinIAEntry };');
+    expect(screen).toContain('...ACCOUNT_VIEW_BLOCKS[accountView].map((name) => accountBlocks[name])');
   });
 });

@@ -124,6 +124,21 @@ import {
 } from '@/services/garmin';
 import type { ProfilePaneCtx } from './types';
 
+/**
+ * The order of the blocks `renderAccountSections` returns. The Account
+ * section of Profile files each one under a named view by this order
+ * (components/profile/AccountHome.tsx); a test keeps the two in step.
+ */
+export const ACCOUNT_SECTION_ORDER = [
+  'subscriptionBlock',
+  'phaseEntryRow',
+  'notificationsBlock',
+  'privacyBlock',
+  'inviteCard',
+  'settingsBlock',
+  'legalBlock',
+] as const;
+
 export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
   const {
     coachMode,
