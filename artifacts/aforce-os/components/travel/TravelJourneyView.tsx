@@ -75,6 +75,27 @@ export function TravelJourneyView({ view, actions }: { view: JourneyView; action
           {view.headline}
         </Text>
         <Text style={styles.subline}>{view.subline}</Text>
+        {view.route ? (
+          <View
+            style={styles.route}
+            accessible
+            accessibilityLabel={view.route.accessibilityLabel}
+            testID="travel-journey-route"
+          >
+            <View>
+              <Text style={styles.routeCode}>{view.route.originCode}</Text>
+              <Text style={styles.routeTime}>{view.route.departClock}</Text>
+            </View>
+            <View style={styles.routeRule} />
+            <View style={styles.routeRight}>
+              <Text style={styles.routeCode}>
+                {view.route.shift ? `${view.route.destinationCode} · ${view.route.shift}` : view.route.destinationCode}
+              </Text>
+              <Text style={styles.routeTime}>{view.route.arriveClock ?? '—'}</Text>
+            </View>
+          </View>
+        ) : null}
+        {view.route ? <Text style={styles.note}>Planned times from your itinerary</Text> : null}
         {photoNote ? <Text style={styles.note}>{photoNote}</Text> : null}
       </View>
 
@@ -133,6 +154,11 @@ const styles = StyleSheet.create({
   lockIn: { color: af.redText },
   subline: { ...afType.body, color: af.textPrimary },
   note: { ...afType.caption, color: af.textSecondary },
+  route: { flexDirection: 'row', alignItems: 'flex-end', gap: 14, marginTop: 6 },
+  routeRule: { flex: 1, height: afLayout.hairline, backgroundColor: af.textSecondary, marginBottom: 8 },
+  routeRight: { alignItems: 'flex-end' },
+  routeCode: { fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, letterSpacing: 1, color: af.textPrimary, opacity: 0.9 },
+  routeTime: { fontFamily: 'Inter_300Light', fontSize: 28, lineHeight: 32, color: af.textPrimary },
   review: { ...afType.secondary, color: af.textPrimary, borderWidth: afLayout.hairline, borderColor: af.borderAlert, borderRadius: afLayout.radiusCard, padding: afLayout.cardPadding },
   progressWrap: { gap: 8 },
   track: { height: 3, borderRadius: 3, backgroundColor: af.surfacePressed, overflow: 'hidden' },

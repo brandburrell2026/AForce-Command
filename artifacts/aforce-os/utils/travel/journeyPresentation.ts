@@ -38,6 +38,33 @@ export interface JourneyRow {
   source: string;
 }
 
+/**
+ * The route line under the title, as on the approved prototype's Travel page:
+ * origin code and departure time, destination code, time shift and arrival
+ * time. Every time is the planned time from the member's itinerary, shown in
+ * that airport's own local time. Never live status.
+ */
+export interface JourneyRoute {
+  originCode: string;
+  /** Local departure time, e.g. "9:05 AM". */
+  departClock: string;
+  destinationCode: string;
+  /** "−3 h", "+5.5 h", "same time", or null when a time zone is unknown. */
+  shift: string | null;
+  /** Local arrival time, or null when the itinerary has none. */
+  arriveClock: string | null;
+  /** Read aloud in place of the visual strip. */
+  accessibilityLabel: string;
+}
+
+/** "−3 h" / "+5.5 h" / "same time"; null when unknown. */
+export function shiftShort(hours: number | null): string | null {
+  if (hours == null) return null;
+  if (hours === 0) return 'same time';
+  const h = Math.abs(hours);
+  return `${hours > 0 ? '+' : '−'}${Number.isInteger(h) ? h : h.toFixed(1)} h`;
+}
+
 export interface JourneyView {
   kind: JourneyViewKind;
   tripId: string;
@@ -46,6 +73,8 @@ export interface JourneyView {
   needsReview: boolean;
   eyebrow: string;
   cityName: string;
+  /** Null when the departure time on the itinerary cannot be read. */
+  route: JourneyRoute | null;
   atmosphere: Atmosphere;
   /** Background tone for the type-only treatment, by daypart. */
   tone: string;
@@ -150,8 +179,24 @@ export function journeyView(input: JourneyInput): JourneyView | null {
   const diff = timeDifferenceHours(first.originTimeZone, zone, now);
   const route = `${first.flight.origin} to ${last.flight.destination}`;
   const arrivalMomentId = last.arrivalAt ? `travel2:${trip.id}:${last.id}:arrival` : null;
+  const shift = shiftShort(diff);
+  const arriveClock = Number.isFinite(arriveMs) ? clock(arriveMs, zone) : null;
+  const routeLine: JourneyRoute | null = Number.isFinite(departMs)
+    ? {
+        originCode: first.flight.origin,
+        departClock: clock(departMs, first.originTimeZone),
+        destinationCode: last.flight.destination,
+        shift,
+        arriveClock,
+        accessibilityLabel:
+          `Planned: leaves ${first.flight.origin} at ${clock(departMs, first.originTimeZone)}` +
+          (arriveClock ? `, arrives ${last.flight.destination} at ${arriveClock} local time` : `, to ${last.flight.destination}`) +
+          (diff == null ? '' : `. ${diffLabel(diff, originCity)}`),
+      }
+    : null;
   const base = {
     tripId: trip.id,
+    route: routeLine,
     arrivalMomentId,
     needsReview: state.needsReview,
     cityName: dest.name,

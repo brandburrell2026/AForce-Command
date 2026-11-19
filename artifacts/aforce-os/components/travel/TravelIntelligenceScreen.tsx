@@ -209,8 +209,21 @@ export function TravelIntelligenceScreen() {
       edges={["top", "bottom"]}
       contentContainerStyle={{ paddingBottom: 50 }}
     >
-      {button("Back", () => router.back())}
-      <Text style={styles.eyebrow}>TRAVEL INTELLIGENCE · PRIVATE PILOT</Text>
+      {/* Top row as on the approved prototype's Travel page: back to Moments,
+          the word Travel. "Private pilot" stays: this is a pilot. */}
+      <View style={styles.topRow}>
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace("/moments-tab"))}
+          accessibilityRole="button"
+          accessibilityLabel="Back to Moments"
+          hitSlop={8}
+          style={styles.topBack}
+          testID="travel-back"
+        >
+          <Text style={styles.topBackText}>‹ Moments</Text>
+        </Pressable>
+        <Text style={styles.topEyebrow}>TRAVEL · PRIVATE PILOT</Text>
+      </View>
       <Text style={styles.heading}>One journey. Every moment.</Text>
       <Text style={styles.copy}>
         Saved plans create departure and arrival Moments. Provider updates are
@@ -821,6 +834,10 @@ const styles = StyleSheet.create({
     marginVertical: 14,
   },
   eyebrow: { color: af.redText, fontSize: 13, letterSpacing: 2, marginTop: 24 },
+  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44, marginBottom: 8 },
+  topBack: { minHeight: 44, justifyContent: "center" },
+  topBackText: { fontFamily: "Inter_400Regular", fontSize: 15, color: af.textPrimary },
+  topEyebrow: { fontFamily: "IBMPlexMono_400Regular", fontSize: 11, letterSpacing: 2, color: af.textSecondary },
   copy: {
     color: af.textSecondary,
     fontSize: 16,
