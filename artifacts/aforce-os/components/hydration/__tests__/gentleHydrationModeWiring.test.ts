@@ -12,17 +12,16 @@ describe("Gentle Hydration Mode wiring", () => {
       /gentle_hydration_mode_enabled: false/,
     );
   });
-  it("falls back cleanly when the feature flag flips off", () => {
+  it("does not touch the Hydration tab: the History chart is not a streak and is never hidden by it", () => {
     const hydration = read("components", "hydration", "HydrationScreenV2.tsx");
-    expect(hydration).toMatch(/if \(!flags\.gentle_hydration_mode_enabled\) setGentleMode\(DEFAULT_GENTLE_HYDRATION_MODE\)/);
-    expect(hydration).toContain("!gentleMode.pauseStreakDisplay");
+    expect(hydration).not.toContain("pauseStreakDisplay");
+    expect(hydration).not.toContain("gentleHydrationMode");
+    expect(hydration).toContain("<HydrationHistory");
   });
   it("keeps its controls off the Hydration tab and on their own screen, opened from Profile", () => {
     const hydration = read("components", "hydration", "HydrationScreenV2.tsx");
     // The approved Hydration layout has no Gentle hydration card.
     expect(hydration).not.toContain("<GentleHydrationModeCard");
-    // The tab still reads the saved choice so "pause the display" is honoured.
-    expect(hydration).toContain("loadGentleHydrationMode()");
     const screen = read("components", "hydration", "GentleHydrationScreen.tsx");
     expect(screen).toContain("<GentleHydrationModeCard");
     expect(screen).toContain("if (!flags.gentle_hydration_mode_enabled) return <Redirect");
