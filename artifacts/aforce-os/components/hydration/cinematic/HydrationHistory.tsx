@@ -3,15 +3,16 @@
  * approved prototype: a Week / Month switch and one bar per day against the
  * starting target.
  *
- * `HydrationHistoryChart` is presentation only. `HydrationHistory` loads the
- * days through the existing read-only daily-totals request and fails softly:
- * if the totals cannot be read, the section is not drawn. It never writes.
+ * `HydrationHistoryChart` is presentation only. `HydrationHistory` loads past
+ * days through the existing read-only daily-totals request. The chart is
+ * always drawn: today's bar comes from the live total, and if the past totals
+ * cannot be read those days are simply empty. It never writes.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { af } from '@/theme';
 import { fetchJournalRollups } from '@/services/realApi';
-import { dayKey, historyBars, historyTargetLine, type HistoryBar, type HistoryRange } from './hydrationHistoryLogic';
+import { historyBars, historyTargetLine, type HistoryBar, type HistoryRange } from './hydrationHistoryLogic';
 
 const CHART_HEIGHT = 112;
 const MONO = 'IBMPlexMono_400Regular';
@@ -63,7 +64,7 @@ export function HydrationHistoryChart({ range, onRange, bars, targetOz, targetLi
         <View style={styles.plot}>
           {targetLine > 0 ? (
             <View style={[styles.targetLine, { bottom: targetLine * CHART_HEIGHT }]} pointerEvents="none">
-              <Text style={styles.targetLabel}>{`${Math.round(targetOz)} OZ`}</Text>
+              <Text style={styles.targetLabel}>{`${Math.round(targetOz)} oz`}</Text>
             </View>
           ) : null}
           <View style={styles.bars}>
@@ -72,8 +73,9 @@ export function HydrationHistoryChart({ range, onRange, bars, targetOz, targetLi
                 key={b.date}
                 style={styles.col}
                 accessible
-                accessibilityLabel={b.oz == null ? `${b.date}, nothing recorded` : `${b.date}, ${b.oz} ounces`}
+                accessibilityLabel={`${b.oz == null ? `${b.date}, nothing recorded` : `${b.date}, ${b.oz} ounces`}${b.hasMoment ? ', a Moment' : ''}`}
               >
+                {b.hasMoment ? <View style={styles.momentMark} testID={`hydration-history-moment-${b.date}`} /> : null}
                 <View
                   style={[
                     styles.bar,
@@ -96,7 +98,7 @@ export function HydrationHistoryChart({ range, onRange, bars, targetOz, targetLi
         ) : null}
       </Pressable>
       <Text style={styles.note}>
-        Bars show what you logged against your starting target. Missed days aren't flagged.
+        Bars show what you logged against your starting target. Red marks are Moments. Missed days aren't flagged.
       </Text>
     </View>
   );
@@ -105,18 +107,21 @@ export function HydrationHistoryChart({ range, onRange, bars, targetOz, targetLi
 export function HydrationHistory({
   targetOz,
   todayOz,
+  momentDays,
   onOpen,
   openLabel,
   openTestID,
 }: {
   targetOz: number;
   todayOz: number;
+  /** Day keys (YYYY-MM-DD) that have a Moment. */
+  momentDays?: ReadonlySet<string>;
   onOpen?: () => void;
   openLabel?: string;
   openTestID?: string;
 }) {
   const [range, setRange] = React.useState<HistoryRange>('Week');
-  const [days, setDays] = React.useState<{ date: string; oz: number | null }[] | null>(null);
+  const [days, setDays] = React.useState<{ date: string; oz: number | null }[]>([]);
 
   React.useEffect(() => {
     let live = true;
@@ -126,16 +131,16 @@ export function HydrationHistory({
         setDays(rows.map((r) => ({ date: r.date, oz: r.snapshotsCount > 0 ? r.endOzConsumed : null })));
       })
       .catch(() => {
-        // Unavailable is not "no data": the section is simply not drawn.
-        if (live) setDays(null);
+        // Past totals unavailable: the chart still draws, with today's bar
+        // from the live total and the unknown days left empty.
+        if (live) setDays([]);
       });
     return () => {
       live = false;
     };
   }, []);
 
-  if (!days || days.length === 0) return null;
-  const bars = historyBars(days, targetOz, dayKey(new Date()), todayOz, range);
+  const bars = historyBars(days, targetOz, new Date(), todayOz, range, momentDays);
   return (
     <HydrationHistoryChart
       range={range}
@@ -159,17 +164,20 @@ const styles = StyleSheet.create({
   segText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: af.textSecondary },
   segTextOn: { color: af.onPrimaryFill, fontFamily: 'Inter_600SemiBold' },
   card: { backgroundColor: af.surface, borderWidth: 1, borderColor: af.border, borderRadius: 20, paddingHorizontal: 14, paddingTop: 22, paddingBottom: 12 },
-  plot: { height: CHART_HEIGHT, justifyContent: 'flex-end' },
+  plot: { height: CHART_HEIGHT, justifyContent: 'flex-end', marginTop: 10 },
   targetLine: { position: 'absolute', left: 0, right: 0, borderTopWidth: 1, borderTopColor: af.border, borderStyle: 'dashed', alignItems: 'flex-end' },
-  targetLabel: { fontFamily: MONO, fontSize: 9, letterSpacing: 1.2, color: af.textTertiary, marginTop: -14 },
+  targetLabel: { fontFamily: MONO, fontSize: 9.5, letterSpacing: 1, color: af.textTertiary, marginTop: -14 },
   bars: { flexDirection: 'row', alignItems: 'flex-end', height: CHART_HEIGHT, gap: 4 },
   col: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: CHART_HEIGHT },
   bar: { width: 22, borderRadius: 5 },
   barThin: { width: 5, borderRadius: 2.5 },
   barMet: { backgroundColor: af.textPrimary },
-  barUnder: { backgroundColor: af.textTertiary },
+  // A past day under the target is a dark bar, as in the prototype.
+  barUnder: { backgroundColor: af.textTertiary, opacity: 0.45 },
   barEmpty: { backgroundColor: af.surfacePressed },
-  barToday: { backgroundColor: af.textPrimary, borderWidth: 2, borderColor: af.surfacePressed },
+  barToday: { backgroundColor: af.textPrimary, opacity: 1, borderWidth: 2, borderColor: af.surfacePressed },
+  // The one small red mark for a day that has a Moment (prototype).
+  momentMark: { position: 'absolute', top: -14, width: 5, height: 5, borderRadius: 2.5, backgroundColor: af.red },
   labels: { flexDirection: 'row', gap: 4, marginTop: 8 },
   dayLabel: { flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 9.5, letterSpacing: 1, color: af.textTertiary },
   note: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary, marginTop: 10 },

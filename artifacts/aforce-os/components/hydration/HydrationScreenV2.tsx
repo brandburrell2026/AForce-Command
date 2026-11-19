@@ -59,6 +59,7 @@ import { Icon } from '@/components/Icon';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { HydrationHero, HydrationRecentRow, HydrationEyebrow } from './cinematic/HydrationHero';
 import { HydrationHistory } from './cinematic/HydrationHistory';
+import { dayKey } from './cinematic/hydrationHistoryLogic';
 import { hydrationHero } from './cinematic/hydrationCinematicLogic';
 import { homeStatusLine } from '@/components/home/cinematic/homeCinematicLogic';
 import { useMomentsData } from '@/components/moments/useMomentsData';
@@ -71,7 +72,6 @@ import { useTabBarClearance } from '@/hooks/useTabBarClearance';
 import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@/services/intakeOutbox';
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
-import { DEFAULT_GENTLE_HYDRATION_MODE, loadGentleHydrationMode, type GentleHydrationModeState } from '@/services/gentleHydrationMode';
 import { fireMoment } from '@/services/haptics';
 import type { FluidType, IntakeEvent } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
@@ -138,23 +138,6 @@ export function HydrationScreenV2() {
   const { userState } = state;
   const { showCycleSuccess, lastCycleResult, isCompletingCycle } = useCycleSlice();
   const [waterPickerOpen, setWaterPickerOpen] = React.useState(false);
-  const [gentleMode, setGentleMode] = React.useState<GentleHydrationModeState>(DEFAULT_GENTLE_HYDRATION_MODE);
-  // Gentle hydration's controls live on their own screen (Profile → Gentle
-  // hydration). This tab only reads the saved choice, so "pause the history
-  // display" is still honoured here.
-  React.useEffect(() => {
-    if (!flags.gentle_hydration_mode_enabled) setGentleMode(DEFAULT_GENTLE_HYDRATION_MODE);
-  }, [flags.gentle_hydration_mode_enabled]);
-  React.useEffect(() => {
-    if (!flags.gentle_hydration_mode_enabled) return undefined;
-    let live = true;
-    void loadGentleHydrationMode().then((saved) => {
-      if (live) setGentleMode(saved);
-    });
-    return () => {
-      live = false;
-    };
-  }, [flags.gentle_hydration_mode_enabled]);
 
   // Synchronous double-tap guard — same reasoning as HomeScreenV2: two taps in
   // one frame both close over a pre-render `logIntake` whose own
@@ -210,6 +193,16 @@ export function HydrationScreenV2() {
   const momentsData = useMomentsData();
   const nextMoment = momentsData.hydrated ? momentsData.next ?? null : null;
   const statusLine = homeStatusLine(momentsData.hydrated ? momentsData.surfaced : [], nextMoment);
+  const momentDays = React.useMemo(() => {
+    const set = new Set<string>();
+    if (momentsData.hydrated) {
+      for (const m of momentsData.surfaced) {
+        const d = new Date(m.startAtIso);
+        if (!Number.isNaN(d.getTime())) set.add(dayKey(d));
+      }
+    }
+    return set;
+  }, [momentsData.hydrated, momentsData.surfaced]);
   const hero = hydrationHero(
     userState.ozConsumedToday,
     userState.ozTarget,
@@ -322,18 +315,17 @@ export function HydrationScreenV2() {
       </View>
 
       {/* History, as in the approved prototype: a bar per day against the
-          starting target. It loads on its own and is not drawn if the daily
-          totals cannot be read, so nothing above depends on it. A private
-          presentation may hide it. */}
-      {!gentleMode.pauseStreakDisplay ? (
-        <HydrationHistory
-          targetOz={userState.ozTarget}
-          todayOz={userState.ozConsumedToday}
-          onOpen={() => router.push('/performance-signal')}
-          openLabel={`${t('hydration.v2.history_title')}. ${t('hydration.v2.history_subtitle')}`}
-          openTestID="hydration-v2-history-link"
-        />
-      ) : null}
+          starting target, always drawn. (It used to be hidden by Gentle
+          hydration's "Pause streak display"; a chart of what was logged is
+          not a streak, so that switch no longer touches it.) */}
+      <HydrationHistory
+        targetOz={userState.ozTarget}
+        todayOz={userState.ozConsumedToday}
+        momentDays={momentDays}
+        onOpen={() => router.push('/performance-signal')}
+        openLabel={`${t('hydration.v2.history_title')}. ${t('hydration.v2.history_subtitle')}`}
+        openTestID="hydration-v2-history-link"
+      />
 
       </AFScreen>
 
