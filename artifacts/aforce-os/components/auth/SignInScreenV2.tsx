@@ -14,8 +14,9 @@
 
 import React from 'react';
 import {
-  View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform,
+  View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSSO } from '@clerk/expo';
 import { useSignIn } from '@clerk/expo/legacy';
 import { Link, useRouter } from 'expo-router';
@@ -32,6 +33,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function SignInScreenV2() {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { isLoaded, signIn, setActive } = useSignIn();
   const { startSSOFlow } = useSSO();
   const router = useRouter();
@@ -98,10 +100,33 @@ export function SignInScreenV2() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        <View style={styles.container}>
-          <Text style={styles.eyebrow}>{t('auth.v2.eyebrow')}</Text>
-          <Text style={styles.title}>{t('auth.v2.signin_title')}</Text>
-          <Text style={styles.subtitle}>{t('auth.v2.signin_subtitle')}</Text>
+        {/* Laid out as the approved prototype's sign-in: the title, the
+            sign-in-with button, the two fields, "Forgot password?", and
+            Sign in at the foot. */}
+        <ScrollView
+          contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text accessibilityRole="header" style={styles.title}>{t('auth.v2.signin_title')}</Text>
+
+          <Pressable
+            onPress={handleGoogle}
+            disabled={oauthBusy || !isLoaded}
+            style={({ pressed }) => [
+              styles.oauthButton,
+              (oauthBusy || !isLoaded) && styles.buttonDisabled,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={t('auth.v2.signin_google')}
+          >
+            <View style={styles.oauthRow}>
+              <Text style={styles.oauthGlyph} accessibilityElementsHidden importantForAccessibility="no">G</Text>
+              <Text style={styles.oauthButtonText}>
+                {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.signin_google')}
+              </Text>
+            </View>
+          </Pressable>
 
           <Text style={styles.label}>{t('auth.v2.label_email')}</Text>
           <TextInput
@@ -146,6 +171,8 @@ export function SignInScreenV2() {
             <Text style={styles.forgotLinkText}>{t('auth.v2.forgot_password')}</Text>
           </Pressable>
 
+          <View style={styles.spacer} />
+
           <Pressable
             onPress={handleSubmit}
             disabled={disabled}
@@ -162,30 +189,11 @@ export function SignInScreenV2() {
             </Text>
           </Pressable>
 
-          <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t('auth.v2.or')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <Pressable
-            onPress={handleGoogle}
-            disabled={oauthBusy || !isLoaded}
-            style={({ pressed }) => [
-              styles.oauthButton,
-              (oauthBusy || !isLoaded) && styles.buttonDisabled,
-              pressed && styles.buttonPressed,
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={t('auth.v2.continue_google')}
-          >
-            <Text style={styles.oauthButtonText}>
-              {oauthBusy ? t('auth.v2.connecting') : t('auth.v2.continue_google')}
-            </Text>
-          </Pressable>
-
+          {/* Not in the prototype's sign-in. The prototype reaches "Create
+              account" from its opening promise screen, which the app does not
+              have yet, so the only way to sign up stays here as quiet text.
+              The legal line is a compliance requirement. */}
           <View style={styles.linkRow}>
-            <Text style={styles.linkText}>{t('auth.v2.signin_new_here')}</Text>
             <Link href="/(auth)/sign-up" replace>
               <Text style={styles.link}>{t('auth.v2.signin_create')}</Text>
             </Link>
@@ -200,80 +208,51 @@ export function SignInScreenV2() {
             <Link href="/legal/health-disclaimer"><Text style={styles.acknowledgmentLink}>{t('auth.v2.ack_health')}</Text></Link>
             {t('auth.v2.ack_suffix_signin')}
           </Text>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  forgotLink: { alignSelf: 'flex-end', marginTop: 10, minHeight: 44, justifyContent: 'center' },
-  forgotLinkText: { color: af.textSecondary, fontSize: 13, fontFamily: 'Inter_500Medium' },
   flex: { flex: 1 },
-  container: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
-  eyebrow: {
-    fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 2,
-    color: af.textTertiary, marginBottom: 8,
-  },
+  container: { flexGrow: 1, paddingHorizontal: 22 },
   title: {
-    fontFamily: 'Inter_700Bold', fontSize: 32, color: af.textPrimary, marginBottom: 4,
+    fontFamily: 'Inter_600SemiBold', fontSize: 32, lineHeight: 34, letterSpacing: -0.96,
+    color: af.textPrimary, marginTop: 62, marginBottom: 22,
   },
-  subtitle: {
-    fontFamily: 'Inter_400Regular', fontSize: 14, color: af.textTertiary, marginBottom: 32,
+  oauthButton: {
+    minHeight: 52, borderRadius: 999, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: af.border, marginBottom: 18, paddingHorizontal: 20,
   },
-  label: {
-    fontFamily: 'Inter_500Medium', fontSize: 12, color: af.textTertiary,
-    marginTop: 16, marginBottom: 8, letterSpacing: 1, textTransform: 'uppercase',
-  },
+  oauthButtonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.textPrimary },
+  oauthRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  oauthGlyph: { fontFamily: 'Inter_700Bold', fontSize: 15, color: af.textPrimary },
+  label: { fontFamily: 'Inter_400Regular', fontSize: 13, lineHeight: 19, color: af.textSecondary, marginBottom: 6 },
   input: {
-    backgroundColor: af.surface,
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14,
-    color: af.textPrimary, fontFamily: 'Inter_500Medium', fontSize: 16,
-    borderWidth: 1, borderColor: af.divider,
+    minHeight: 52, borderRadius: 14, borderWidth: 1, borderColor: af.border,
+    backgroundColor: af.canvas, paddingHorizontal: 14,
+    color: af.textPrimary, fontFamily: 'Inter_400Regular', fontSize: 16, marginBottom: 14,
   },
+  error: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.redText, marginBottom: 6 },
+  forgotLink: { alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' },
+  forgotLinkText: {
+    color: af.textPrimary, fontSize: 14, fontFamily: 'Inter_400Regular', textDecorationLine: 'underline',
+  },
+  spacer: { flexGrow: 1, minHeight: 24 },
   button: {
-    marginTop: 28, paddingVertical: 16, borderRadius: 14,
-    backgroundColor: af.primaryFill, alignItems: 'center',
+    minHeight: 52, borderRadius: 999, backgroundColor: af.primaryFill,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20,
   },
   buttonDisabled: { opacity: 0.4 },
   buttonPressed: { opacity: 0.85 },
-  buttonText: {
-    // Warm-white fill with black text (Screen Upgrade v1.1), the same pair as
-    // AFPrimaryButton — 18:1. Kept as this screen's own Pressable rather than
-    // restructured onto AFPrimaryButton, for the smaller diff.
-    fontFamily: 'Inter_700Bold', fontSize: 15, color: af.onPrimaryFill, letterSpacing: 0.5,
-  },
-  linkRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  linkText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: af.textTertiary },
-  link: { fontFamily: 'Inter_600SemiBold', fontSize: 13, color: af.textPrimary },
-  error: {
-    fontFamily: 'Inter_400Regular', fontSize: 12, color: af.redText, marginTop: 6,
-  },
-  dividerRow: {
-    flexDirection: 'row', alignItems: 'center', marginTop: 22, marginBottom: 14,
-  },
-  dividerLine: {
-    flex: 1, height: 1, backgroundColor: af.divider,
-  },
-  dividerText: {
-    fontFamily: 'Inter_500Medium', fontSize: 11, color: af.textTertiary,
-    marginHorizontal: 12, letterSpacing: 1, textTransform: 'uppercase',
-  },
-  oauthButton: {
-    paddingVertical: 14, borderRadius: 14, alignItems: 'center',
-    backgroundColor: af.surface,
-    borderWidth: 1, borderColor: af.divider,
-  },
-  oauthButtonText: {
-    fontFamily: 'Inter_600SemiBold', fontSize: 14, color: af.textPrimary,
-    letterSpacing: 0.3,
-  },
+  // Warm-white fill with black text, the same pair as AFPrimaryButton — 18:1.
+  buttonText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.onPrimaryFill },
+  linkRow: { alignItems: 'center', justifyContent: 'center', minHeight: 44, marginTop: 6 },
+  link: { fontFamily: 'Inter_500Medium', fontSize: 14, color: af.textSecondary },
   acknowledgment: {
-    fontFamily: 'Inter_400Regular', fontSize: 11, lineHeight: 16,
-    color: af.textTertiary, textAlign: 'center',
-    marginTop: 22, paddingHorizontal: 12,
+    fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17,
+    color: af.textSecondary, textAlign: 'center', marginTop: 8,
   },
-  acknowledgmentLink: {
-    fontFamily: 'Inter_600SemiBold', color: af.textSecondary,
-  },
+  acknowledgmentLink: { color: af.textSecondary, textDecorationLine: 'underline' },
 });
