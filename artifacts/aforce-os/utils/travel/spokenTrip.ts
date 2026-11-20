@@ -18,6 +18,7 @@
  */
 
 import airportTimeZones from '@/data/airportTimeZones.json';
+import { airportsNamed } from './airportNames';
 import { resolveDestination } from './cityRegistry';
 
 const KNOWN_AIRPORT = (code: string) => Object.prototype.hasOwnProperty.call(airportTimeZones, code);
@@ -116,6 +117,12 @@ function airport(raw: string, role: 'Departure' | 'Arrival'): { code?: string; n
     const { airports, name } = found.city;
     if (airports.length === 1) return { code: airports[0] };
     return { note: `${role}: ${name} has ${airports.join(', ')}. Type the one you mean.` };
+  }
+  // A well-known airport or city by name: one airport fills, several are offered, never picked.
+  const named = airportsNamed(said);
+  if (named) {
+    if (named.codes.length === 1) return { code: named.codes[0] };
+    return { note: `${role}: ${named.name} has ${named.codes.join(', ')}. Type the one you mean.` };
   }
   return { note: `${role}: “${said}” isn’t an airport AFORCE knows by name. Type its three-letter code.` };
 }
