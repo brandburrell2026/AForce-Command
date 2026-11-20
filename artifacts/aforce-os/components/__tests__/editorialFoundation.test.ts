@@ -410,8 +410,9 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   // or AF-SI-001A — neither mentions the editorial layer; DR-017 is the record
   // that grants it. Kept SEPARATE from ALLOWED: these are not E-step route seams.
   const DR017_SKINIA_PRESENTATION_ALLOWED = new Set([
-    'app/skinia.tsx',
-    'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx',
+    // 'app/skinia.tsx' and 'AdvancedVisualIntelligenceScreen.tsx' left this
+    // list on 2026-11-20: both were restyled to the app's own tokens and no
+    // longer import editorialTokens, so their exemption would be dormant.
     'components/advancedVisual/SkinIACameraCaptureScreen.tsx',
     'components/advancedVisual/SkinIAObservationResultsFixture.tsx',
     'components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx',
@@ -445,9 +446,10 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   });
 
   it('DR-017 allowlist names exact files, no wildcard, and every file exists', () => {
-    // Five, exactly. A sixth requires amending DR-017 (the record says so) AND
-    // this pin — the two must move together.
-    expect(DR017_SKINIA_PRESENTATION_ALLOWED.size).toBe(5);
+    // Three, exactly (five until 2026-11-20, when two screens were restyled off
+    // editorialTokens and left the list). Adding one requires amending DR-017
+    // (the record says so) AND this pin — the two must move together.
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.size).toBe(3);
     for (const entry of DR017_SKINIA_PRESENTATION_ALLOWED) {
       expect(entry, `${entry} — no wildcard`).not.toMatch(/\*/);
       expect(entry, `${entry} — no directory suffix`).not.toMatch(/\/$/);
@@ -479,7 +481,7 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   // the SAME three sets as the real sweep (no fixture-only configuration that
   // could drift from what actually guards the tree). Every path is built with
   // path.join so the Windows-safe key normalization in the helper still applies.
-  const DR017_FIXTURE_ENTRY = 'components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx';
+  const DR017_FIXTURE_ENTRY = 'components/advancedVisual/SkinIACameraCaptureScreen.tsx';
 
   // Unlisted consumers that are ALWAYS planted and must ALWAYS be reported.
   // Each sits exactly where an exemption wider than "these exact files" would
@@ -501,7 +503,8 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
   // name-prefix rogue imports by alias; the layer-prefix rogue imports the
   // LAYER ('@/components/editorial/core') in every case; only the plain rogue
   // varies per case.
-  const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'Sibling.tsx'];
+  // Named to sort after the fixture entry, which the expected offender order below relies on.
+  const UNLISTED_SAME_DIR = ['components', 'advancedVisual', 'UnlistedSibling.tsx'];
   const UNLISTED_NAME_PREFIX = ['app', 'skinia-rogue.tsx'];
   const UNLISTED_LAYER_PREFIX = ['components', 'editorialRogue', 'Leak.tsx'];
   const UNLISTED_ELSEWHERE = ['components', 'rogue', 'Leak.tsx'];
@@ -563,7 +566,9 @@ describe('E1 isolation — zero production consumers (zero-behavioral-diff proof
     expect(DR017_FIXTURE_ENTRY.startsWith(`${UNLISTED_SAME_DIR.slice(0, -1).join('/')}/`)).toBe(
       true,
     );
-    expect(DR017_SKINIA_PRESENTATION_ALLOWED.has('app/skinia.tsx')).toBe(true);
+    // 'app/skinia.tsx' is no longer exempt (restyled 2026-11-20). The planted
+    // 'app/skinia-rogue.tsx' must still be reported, exactly as before.
+    expect(DR017_SKINIA_PRESENTATION_ALLOWED.has('app/skinia.tsx')).toBe(false);
     // The layer-prefix rogue proves something only if its directory really is
     // a bare-prefix collision with the layer path and not the layer itself.
     const layerPrefixDir = join(...UNLISTED_LAYER_PREFIX.slice(0, -1));

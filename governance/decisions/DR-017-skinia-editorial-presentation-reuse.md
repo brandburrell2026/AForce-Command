@@ -154,3 +154,31 @@ tokens module (a dormant exemption is removed, not kept).
   - Each case asserts the exact sorted offender list, so an exemption that is
     directory-wide, glob-based, name-prefix-based, or specifier-form-specific
     fails the fixture even while the real tree happens to be clean.
+
+---
+
+## Amendment — 2026-11-20: the list narrows from five files to three
+
+At Brandon's direction ("update the section to look like the new app"), two of
+the five files were restyled to the app's own tokens and no longer import
+`@/theme/editorialTokens`:
+
+- `app/skinia.tsx`
+- `components/advancedVisual/AdvancedVisualIntelligenceScreen.tsx`
+
+The lock treats an allowlisted file that does not use the exemption as a
+dormant exemption that must leave the list, so both were removed. The
+allowlist is now exactly three files:
+
+1. `components/advancedVisual/SkinIACameraCaptureScreen.tsx`
+2. `components/advancedVisual/SkinIAObservationResultsFixture.tsx`
+3. `components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx`
+
+Nothing was widened. Every other term of this record stands, with "five" read
+as "three". Putting either file back, or adding any other, still requires an
+amendment to this record and the matching change to the pin in
+`components/__tests__/editorialFoundation.test.ts`, moved together.
+
+No access control changed: `app/skinia.tsx` still requires the feature flag,
+the internal-build signal and a server-resolved cohort grant, and still
+redirects on DENY.

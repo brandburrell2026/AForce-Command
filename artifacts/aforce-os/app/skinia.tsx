@@ -8,7 +8,8 @@ import { SkinIACameraCaptureScreen } from '@/components/advancedVisual/SkinIACam
 import { resolveSkinIARouteDecision } from '@/services/skiniaCohortGate';
 import { useFlagsSlice } from '@/store/slices';
 import { useSkinIACohortAccess } from '@/services/skiniaCohortAccess';
-import { edAccent, edInk, edStock, edType } from '@/theme/editorialTokens';
+import { af } from '@/theme';
+import { SkinIABackButton } from '@/components/advancedVisual/SkinIABackButton';
 
 /**
  * Advanced Visual Intelligence™ stays dark by default. An internal build and
@@ -25,13 +26,16 @@ export default function SkiniaRoute() {
     cohort,
   });
   const [captureOpen, setCaptureOpen] = useState(false);
+  const router = useRouter();
+  // Back goes to wherever the member came from; Profile when there is nothing behind.
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(tabs)/profile'));
   if (decision === 'WAIT') return <SkinIAAccessCheck />;
   if (flags.advanced_visual_intelligence_enabled && process.env['EXPO_PUBLIC_INTERNAL_TESTFLIGHT'] === 'true' && cohort.status === 'DENIED' && (cohort.reason === 'ACCESS_TIMED_OUT' || cohort.reason === 'ACCESS_UNAVAILABLE')) {
     return <SkinIAAccessCheck unavailable onRetry={() => setRetryKey((key) => key + 1)} />;
   }
   if (decision === 'DENY') return <Redirect href="/(tabs)/profile" />;
   if (captureOpen) return <SkinIACameraCaptureScreen onExit={() => setCaptureOpen(false)} />;
-  return <AdvancedVisualIntelligenceScreen onBeginCapture={() => setCaptureOpen(true)} />;
+  return <AdvancedVisualIntelligenceScreen onBeginCapture={() => setCaptureOpen(true)} onBack={goBack} />;
 }
 
 function SkinIAAccessCheck({ unavailable = false, onRetry }: { unavailable?: boolean; onRetry?: () => void }) {
@@ -39,7 +43,7 @@ function SkinIAAccessCheck({ unavailable = false, onRetry }: { unavailable?: boo
   const router = useRouter();
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]} accessibilityLabel="Checking SkinIA internal access">
-      <Text style={styles.wordmark}>AFORCE</Text>
+      <SkinIABackButton onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))} />
       <Text style={styles.kicker}>SKINIA VISUAL CHECK / INTERNAL TESTFLIGHT</Text>
       <Text style={styles.title}>{unavailable ? 'Access check unavailable.' : 'Checking access.'}</Text>
       <Text style={styles.body}>{unavailable ? 'We could not verify internal access. Check your connection and try again. No camera access has started.' : 'No camera access has started.'}</Text>
@@ -49,14 +53,14 @@ function SkinIAAccessCheck({ unavailable = false, onRetry }: { unavailable?: boo
   );
 }
 
+const MONO = 'IBMPlexMono_500Medium';
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: edStock.black, paddingHorizontal: 32 },
-  wordmark: { ...edType.caption, color: edAccent.red, fontWeight: '700' },
-  kicker: { ...edType.micro, color: edAccent.red, marginTop: 64 },
-  title: { ...edType.statement, color: edInk.ivory, marginTop: 14 },
-  body: { ...edType.bodySmall, color: edInk.quietOnBlack, marginTop: 10 },
-  action: { backgroundColor: edInk.ivory, marginTop: 32, padding: 18 },
-  actionText: { ...edType.bodySmall, color: edStock.black },
-  back: { marginTop: 24, paddingVertical: 12 },
-  backText: { ...edType.bodySmall, color: edInk.ivory },
+  screen: { flex: 1, backgroundColor: af.canvas, paddingHorizontal: 24 },
+  kicker: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.8, color: af.textTertiary, marginTop: 32 },
+  title: { fontFamily: 'Inter_600SemiBold', fontSize: 32, lineHeight: 37, letterSpacing: -0.8, color: af.textPrimary, marginTop: 12 },
+  body: { fontFamily: 'Inter_400Regular', fontSize: 16, lineHeight: 23, color: af.textSecondary, marginTop: 12 },
+  action: { minHeight: 52, borderRadius: 26, backgroundColor: af.primaryFill, alignItems: 'center', justifyContent: 'center', marginTop: 28, paddingHorizontal: 20 },
+  actionText: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: af.onPrimaryFill },
+  back: { minHeight: 48, borderRadius: 24, borderWidth: 1, borderColor: af.divider, alignItems: 'center', justifyContent: 'center', marginTop: 10, paddingHorizontal: 20 },
+  backText: { fontFamily: 'Inter_500Medium', fontSize: 15, color: af.textPrimary },
 });
