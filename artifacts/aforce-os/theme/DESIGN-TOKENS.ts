@@ -28,6 +28,17 @@ export const preparationTokens = {
   rule: af.divider,
   /** The One Breath orb ramp. Signal Red, never orange. */
   oneBreath: afOrb.oneBreath,
+  /** The approved prototype's One Breath sphere: ramp, stops, glow and its light. */
+  oneBreathDeep: {
+    ramp: afOrb.oneBreathDeep,
+    stops: afOrb.oneBreathDeepStops,
+    glow: afOrb.oneBreathDeepGlow,
+    shade: afOrb.orbShade,
+    bloom: afOrb.orbBloom,
+    specular: afOrb.orbSpecular,
+    rimLight: afOrb.orbRimLight,
+    rimLow: afOrb.orbRimLow,
+  },
   /** The Social orb ramp. Proof Blue. */
   social: afOrb.social,
   holdMs: 1200, breathMs: 6000, quietDimMs: 8000,

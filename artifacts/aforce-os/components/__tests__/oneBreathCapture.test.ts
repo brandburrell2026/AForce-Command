@@ -48,7 +48,7 @@ describe('One Breath opening screen', () => {
   });
 
   it('the orb uses the Master Brief gradient and a still tick ring', () => {
-    expect(code).toContain('ONE_BREATH_ORB_SIZE = 132');
+    expect(code).toContain('ONE_BREATH_ORB_SIZE = 149');
     expect(orb).toContain('r="98%"');
     expect(orb).toContain('offset=".32"');
     expect(orb).toContain('offset=".62"');
@@ -104,5 +104,47 @@ describe('One Breath steps after the opening screen (prototype styling)', () => 
 
   it('no one-tap seal was added', () => {
     expect(screen).not.toMatch(/Seal with one tap/i);
+  });
+
+  // "Make sure One Breath looks just like the link" (Brandon, 2026-11-20).
+  // Values are the prototype's own, measured from its source at 390pt wide.
+  it('the orb and dial are the prototype\'s sizes: a 149pt orb in a 234pt dial in a 290pt stage', () => {
+    expect(code).toContain('ONE_BREATH_ORB_SIZE = 149');
+    expect(code).toContain('ONE_BREATH_DIAL_SIZE = 234');
+    expect(code).toContain('const STAGE_HEIGHT = 290');
+  });
+
+  it('the dial is the prototype\'s bezel: 120 ticks, every tenth longer and brighter, starting at the top', () => {
+    expect(orb).toContain('const ticks = 120;');
+    expect(orb).toContain('const major = i % 10 === 0;');
+    expect(orb).toContain('strokeOpacity={major ? 0.38 : 0.14}');
+    expect(orb).toContain('- Math.PI / 2');
+  });
+
+  it('the personal orb in its dial is the prototype\'s sphere; every other orb keeps the Master Brief ramp', () => {
+    expect(orb).toContain('const deep = !!dial && !social && !moon;');
+    expect(orb).toContain('D.ramp.map(');
+    expect(orb).toContain('<Circle cx={75} cy={75} r={74} fill={`url(#${id})`} />');
+    const tokens = readFileSync(join(__dirname, '..', '..', 'theme', 'afTokens.ts'), 'utf8');
+    expect(tokens).toContain("oneBreathDeep: ['#FF7A7F', '#EE2C37', '#B5121C', '#33040A'],");
+    expect(tokens).toContain("oneBreath: ['#FFC9C4', '#F0525A', '#E51E2A', '#5C0A0E'],");
+    // No colour is written into the component itself.
+    expect(orb.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')).not.toMatch(/#[0-9a-fA-F]{6}\b|rgba?\(/);
+  });
+
+  it('the glow is a round halo, never a square', () => {
+    expect(orb).toContain('borderRadius: size / 2');
+  });
+
+  it('chips, the bar and the Close button sit on the panel surface; the hint and placeholder are the dim tone', () => {
+    expect(code.match(/backgroundColor: T\.panel/g)!.length).toBeGreaterThanOrEqual(3);
+    expect(code).toContain('placeholderTextColor={T.dim}');
+    expect(code).toContain('marginHorizontal: -5');
+  });
+
+  it('the send button keeps its warm white when empty, and still reports disabled', () => {
+    expect(code).not.toContain('p.sendDisabled && s.disabled');
+    expect(code).toContain('accessibilityState={{ disabled: p.sendDisabled }}');
+    expect(code).toContain('disabled={p.sendDisabled}');
   });
 });

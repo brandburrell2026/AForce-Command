@@ -408,6 +408,19 @@ export type AfTypeToken = keyof typeof afType;
 export const afOrb = {
   oneBreath: ['#FFC9C4', '#F0525A', '#E51E2A', '#5C0A0E'],
   oneBreathGlow: 'rgba(229,30,42,0.45)',
+  // The approved prototype's One Breath orb (One Breath Final Build Spec,
+  // 2026-11-20, "The look: locked to the prototype"). A deeper sphere than the
+  // Master Brief ramp above, which is kept unchanged for every other orb.
+  // Values are the prototype's own canvas drawing, read from its source.
+  oneBreathDeep: ['#FF7A7F', '#EE2C37', '#B5121C', '#33040A'],
+  oneBreathDeepStops: [0, 0.35, 0.7, 1],
+  oneBreathDeepGlow: 'rgba(229,30,42,0.5)',
+  /** Edge shade, soft bloom, specular highlight and rim of that sphere. */
+  orbShade: '#1E0103',
+  orbBloom: '#FFE1DE',
+  orbSpecular: '#FFFFFF',
+  orbRimLight: '#FFD6D2',
+  orbRimLow: '#FF7878',
   social: ['#CFDBFF', '#5B8BFF', '#2765FF', '#0E2E8C'],
   socialGlow: 'rgba(39,101,255,0.45)',
   /** Gradient stop offsets shared by both ramps. */

@@ -19,8 +19,10 @@ import { AFMark } from "@/components/ui/AFMark";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { PreparationOrb } from "./PreparationOrb";
 
-export const ONE_BREATH_ORB_SIZE = 132;
-export const ONE_BREATH_DIAL_SIZE = 208;
+// The prototype's stage: a 290pt square holding a 149pt orb inside a 234pt
+// dial (its canvas is 660 units for 290pt; orb radius 170, bezel radius 266).
+export const ONE_BREATH_ORB_SIZE = 149;
+export const ONE_BREATH_DIAL_SIZE = 234;
 const STAGE_HEIGHT = 290;
 
 /** Things One Breath can plan today. Tapping one fills the bar; nothing is sent. */
@@ -150,7 +152,7 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
           onChangeText={p.onChangeWords}
           maxLength={160}
           placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
-          placeholderTextColor={T.muted}
+          placeholderTextColor={T.dim}
           returnKeyType="send"
           onSubmitEditing={p.sendDisabled ? undefined : p.onSend}
           style={s.input}
@@ -176,7 +178,8 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
             s.round40,
             // Warm white is the primary; blue belongs to Social only.
             { backgroundColor: p.social ? T.blue : T.bone },
-            p.sendDisabled && s.disabled,
+            // The prototype's send button is always the same warm white; its
+            // disabled state is carried for assistive tech, not by fading it.
           ]}
         >
           <Icon name="arrow-up" size={18} color={p.social ? T.onBlue : T.ink} />
@@ -200,6 +203,7 @@ const s = StyleSheet.create({
     borderRadius: 21,
     borderWidth: 1,
     borderColor: T.rule,
+    backgroundColor: T.panel,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -213,7 +217,7 @@ const s = StyleSheet.create({
     fontFamily: MONO,
     fontSize: 9.5,
     letterSpacing: 2.1,
-    color: T.muted,
+    color: T.dim,
     textTransform: "uppercase",
   },
   prompt: {
@@ -236,6 +240,7 @@ const s = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: T.rule,
+    backgroundColor: T.panel,
     justifyContent: "center",
   },
   chipText: { fontFamily: "Inter_500Medium", fontSize: 13, color: T.bone },
@@ -249,6 +254,9 @@ const s = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: T.rule,
+    backgroundColor: T.panel,
+    // The prototype's bar is 344pt wide in a 390pt screen: 5pt wider each side than the text column.
+    marginHorizontal: -5,
   },
   input: { flex: 1, minWidth: 0, minHeight: 40, fontFamily: "Inter_400Regular", fontSize: 16, color: T.bone },
   round40: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
