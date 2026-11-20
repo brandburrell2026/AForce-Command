@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Ellipse, Line } from 'react-native-svg';
 import { edStock } from '@/theme/editorialTokens';
 import { af, afLayout, afType, withAlpha } from '@/theme/afTokens';
 import { AFMasthead } from '@/components/ui/AFMasthead';
 import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { useAFGutter } from '@/hooks/useAFGutter';
+import { SkinIABackButton } from './SkinIABackButton';
 import { assessSkinIATechnicalQuality, type SkinIATechnicalQuality } from '@/services/skiniaTechnicalQuality';
 import { extractSkinIAImageFeatures, type SkinIAImageFeatureState } from '@/modules/skinia-image-features';
 import { deriveSkinIABaselineFreeQaProbes } from '@/services/skiniaImageAnalysis';
@@ -28,9 +28,12 @@ type InternalQaCode = QualityCode | 'OBSERVATIONS_NOT_ADMITTED';
  * reference before any state transition.
  *
  * Black Issue restyle (PR 4, 2026-10-07; Figma frame 12): presentation only.
- * AFMasthead, the camera preview inside a bordered viewfinder plate (corner
- * brackets, guide ellipse, a live-preview pill and the pinned guidance line),
- * the camera-status row and the one red capture CTA. The reference also draws
+ * AFMasthead, the camera preview inside a rounded plate with a live-preview
+ * pill, the camera-status row and the capture button. Founder direction
+ * 2026-11-20: the face outline, crosshair, corner brackets, pinned guidance
+ * line and the two darkening scrims over the preview were removed so the
+ * screen is just the camera; the guidance stays as the line under the title.
+ * A back control was added at the top. The reference also draws
  * QUALITY / FRAME / ALIGN / LIGHT / DIST readouts, a LIGHT / ANGLE / MOTION
  * row and "SCAN n OF SERIES"; the capture pipeline measures none of those
  * before a capture (only `ready`), so none is drawn. Imports editorialTokens
@@ -190,6 +193,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
         contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, paddingHorizontal: gutter }]}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.backRow}><SkinIABackButton onPress={exitCapture} /></View>
         <AFMasthead
           tone="quiet"
           meta="CONTROLLED TESTFLIGHT"
@@ -205,23 +209,13 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
             mirror
             onCameraReady={() => { if (!interrupted.current) setReady(true); }}
           />
-          <View pointerEvents="none" style={styles.scrim} />
           <View style={styles.viewfinder} pointerEvents="none">
-            <Svg style={styles.guideSvg} viewBox="0 0 100 120" preserveAspectRatio="xMidYMid meet" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-              <Line x1="50" y1="0" x2="50" y2="120" stroke={af.textTertiary} strokeOpacity={0.35} strokeWidth={0.4} />
-              <Line x1="0" y1="60" x2="100" y2="60" stroke={af.textTertiary} strokeOpacity={0.35} strokeWidth={0.4} />
-              <Ellipse cx="50" cy="60" rx="34" ry="46" stroke={af.textSecondary} strokeOpacity={0.5} strokeWidth={0.6} fill="none" />
-              <Ellipse cx="50" cy="60" rx="27" ry="37" stroke={af.textPrimary} strokeWidth={0.9} fill="none" />
-            </Svg>
-            <View style={[styles.corner, styles.topLeft]} /><View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} /><View style={[styles.corner, styles.bottomRight]} />
             <View style={styles.pillRow}>
               <View style={[styles.pill, ready && styles.pillLive]}>
                 {ready ? <View style={styles.pillDot} /> : null}
                 <Text style={[styles.pillText, eyebrowType]}>{ready ? 'LIVE PREVIEW' : 'PREPARING'}</Text>
               </View>
             </View>
-            <View style={styles.guideWrap}><Text style={[styles.guide, eyebrowType]}>ALIGN FACE / EVEN LIGHT / NO FILTERS</Text></View>
           </View>
         </View>
         <View style={styles.meta} accessible accessibilityLabel={`Camera status, ${ready ? 'ready' : 'preparing'}`}>
@@ -267,6 +261,7 @@ function StaticState({ title, kicker, body, action, onAction, secondary, onSecon
   return (
     <View style={styles.staticScreen}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, paddingHorizontal: gutter }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.backRow}><SkinIABackButton onPress={onSecondary ?? onAction} /></View>
         <AFMasthead tone="quiet" meta="CONTROLLED TESTFLIGHT" breadcrumb={`SKINIA VISUAL CHECK / ${kicker}`} title={title} subtitle={body} />
         {process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaNote ? <Text style={styles.qaNote}>{qaNote}</Text> : null}
         {process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode ? <Text style={[styles.qaCode, eyebrowType]}>INTERNAL QA CODE: {qaCode}</Text> : null}
@@ -279,28 +274,19 @@ function StaticState({ title, kicker, body, action, onAction, secondary, onSecon
   );
 }
 
-const CORNER = 22;
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: af.canvas },
   staticScreen: { flex: 1, backgroundColor: af.canvas },
   scroll: { flexGrow: 1 },
-  // Pinned preview scrims (skiniaCameraCapture.test.ts): the camera stays legible, the guide stays visible.
-  scrim: { ...StyleSheet.absoluteFillObject, backgroundColor: withAlpha(edStock.black, 0.34) },
   plate: { backgroundColor: af.surface, borderColor: af.border, borderRadius: afLayout.radiusCard, borderWidth: 1, flexGrow: 1, marginTop: 24, minHeight: 300, overflow: 'hidden' },
-  viewfinder: { ...StyleSheet.absoluteFillObject, backgroundColor: withAlpha(edStock.black, 0.06) },
-  guideSvg: { ...StyleSheet.absoluteFillObject },
-  corner: { borderColor: af.textPrimary, height: CORNER, position: 'absolute', width: CORNER },
-  topLeft: { borderLeftWidth: 2, borderTopWidth: 2, left: 14, top: 14 },
-  topRight: { borderRightWidth: 2, borderTopWidth: 2, right: 14, top: 14 },
-  bottomLeft: { borderBottomWidth: 2, borderLeftWidth: 2, bottom: 14, left: 14 },
-  bottomRight: { borderBottomWidth: 2, borderRightWidth: 2, bottom: 14, right: 14 },
+  backRow: { flexDirection: 'row', marginBottom: 12 },
+  // The camera is shown as it is: no face outline, crosshair, corner marks or darkening over it.
+  viewfinder: { ...StyleSheet.absoluteFillObject },
   pillRow: { flexDirection: 'row', left: 28, position: 'absolute', right: 28, top: 22 },
   pill: { alignItems: 'center', backgroundColor: withAlpha(edStock.black, 0.6), borderColor: af.border, borderRadius: 999, borderWidth: 1, columnGap: 6, flexDirection: 'row', flexShrink: 1, minHeight: 28, paddingHorizontal: 12, paddingVertical: 4 },
   pillLive: { borderColor: af.border },
   pillDot: { backgroundColor: af.redText, borderRadius: 3, height: 6, width: 6 },
   pillText: { ...afType.micro, color: af.textPrimary, flexShrink: 1 },
-  guideWrap: { alignItems: 'center', bottom: 20, left: 28, position: 'absolute', right: 28 },
-  guide: { ...afType.micro, backgroundColor: withAlpha(edStock.black, 0.6), borderRadius: 4, color: af.textPrimary, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 3, textAlign: 'center' },
   meta: { alignItems: 'baseline', borderBottomColor: af.border, borderBottomWidth: StyleSheet.hairlineWidth, borderTopColor: af.border, borderTopWidth: StyleSheet.hairlineWidth, columnGap: 12, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 20, paddingVertical: 14 },
   metaLabel: { ...afType.secondary, color: af.textPrimary, fontWeight: '700' },
   metaValue: { ...afType.micro, color: af.textSecondary },

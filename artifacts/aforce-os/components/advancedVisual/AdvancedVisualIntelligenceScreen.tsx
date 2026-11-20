@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
+import { af } from '@/theme';
+import { SkinIABackButton } from './SkinIABackButton';
 import { SKINIA_MEMBER_LABEL } from '@/services/advancedVisualIntelligence';
 
 /**
  * PR 2 consent and privacy shell. It does not request permission, open a
  * camera, accept an image, or persist a consent record.
+ *
+ * New-style restyle (2026-11-20): presentation only, every word kept. Ink
+ * canvas, Inter headings, grey mono eyebrows, a rounded card and a warm-white
+ * pill, plus a back control on every view: the first view goes back to the
+ * previous screen, the others go back to the first view.
  */
-export function AdvancedVisualIntelligenceScreen({ onBeginCapture }: { onBeginCapture?: () => void }) {
+export function AdvancedVisualIntelligenceScreen({ onBeginCapture, onBack }: { onBeginCapture?: () => void; onBack?: () => void }) {
   const insets = useSafeAreaInsets();
   const [view, setView] = useState<'overview' | 'consent' | 'privacy' | 'acknowledged' | 'guidance' | 'permissionDenied' | 'qualityUnknown' | 'baselineUnavailable' | 'consentRevoked'>('overview');
   const title = view === 'consent' ? 'Before you continue.' : view === 'privacy' ? 'Your image does not stay.' : view === 'acknowledged' ? 'You are in control.' : view === 'guidance' ? 'Prepare, then decide.' : view === 'permissionDenied' ? 'Camera access is off.' : view === 'qualityUnknown' ? 'Do not force a result.' : view === 'baselineUnavailable' ? 'Your baseline is not ready.' : view === 'consentRevoked' ? 'Consent has been withdrawn.' : 'SkinIA QA.\nNo findings yet.';
@@ -16,7 +22,10 @@ export function AdvancedVisualIntelligenceScreen({ onBeginCapture }: { onBeginCa
   return (
     <View style={styles.screen} accessibilityLabel={SKINIA_MEMBER_LABEL}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28 }]}>
-        <View style={styles.furniture}><Text style={styles.wordmark}>AFORCE</Text><Text style={styles.date}>CONTROLLED TESTFLIGHT</Text></View>
+        <View style={styles.furniture}>
+          {view === 'overview' ? (onBack ? <SkinIABackButton onPress={onBack} /> : <View />) : <SkinIABackButton onPress={() => setView('overview')} label="Back to SkinIA" />}
+          <Text style={styles.date}>CONTROLLED TESTFLIGHT</Text>
+        </View>
         <Text style={styles.kicker}>SKINIA VISUAL CHECK / {view.toUpperCase()}</Text>
         <Text style={styles.title}>{title}</Text>
         {view === 'overview' ? <Overview onConsent={() => setView('consent')} onPrivacy={() => setView('privacy')} /> : null}
@@ -48,12 +57,13 @@ function Panel({ kicker, lines }: { kicker: string; lines: string[] }) { return 
 function Action({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Text style={styles.actionLabel}>{label}</Text></Pressable>; }
 function Secondary({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}><Text style={styles.secondaryLabel}>{label}</Text></Pressable>; }
 
+const MONO = 'IBMPlexMono_500Medium';
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: edStock.black }, content: { flexGrow: 1, paddingHorizontal: 32 },
-  furniture: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, wordmark: { ...edType.caption, color: edInk.quietOnBlack, fontWeight: '600' }, date: { ...edType.micro, color: edInk.quietOnBlack, textAlign: 'right' },
-  kicker: { ...edType.micro, color: edInk.quietOnBlack, marginTop: 42 }, title: { ...edType.statement, color: edInk.ivory, marginTop: 14 }, body: { ...edType.bodySmall, color: edInk.quietOnBlack, marginTop: 10 },
-  guidance: { backgroundColor: edStock.blackRaised, borderRadius: 18, marginTop: 28, padding: 22, gap: 14 }, guidanceKicker: { ...edType.micro, color: edInk.quietOnBlack }, guidanceLine: { ...edType.bodySmall, color: edInk.ivory },
-  action: { minHeight: 52, borderRadius: 26, backgroundColor: edStock.paper, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 28, paddingHorizontal: 20 }, actionLabel: { ...edType.bodySmall, color: edInk.black, fontWeight: '600' },
-  secondary: { minHeight: 44, justifyContent: 'center', alignItems: 'flex-start', marginTop: 8, paddingHorizontal: 2 }, secondaryLabel: { ...edType.bodySmall, color: edInk.quietOnBlack, textDecorationLine: 'underline' }, pressed: { opacity: 0.72 }, disclosure: { ...edType.micro, color: edInk.quietOnBlack, marginTop: 13 },
-  footer: { flex: 1, justifyContent: 'flex-end', paddingTop: 56 }, rule: { height: StyleSheet.hairlineWidth, backgroundColor: edRule.onBlack }, footerRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12 }, footerText: { ...edType.micro, color: edInk.quietOnBlack },
+  screen: { flex: 1, backgroundColor: af.canvas }, content: { flexGrow: 1, paddingHorizontal: 24 },
+  furniture: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', minHeight: 44 }, date: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.8, color: af.textTertiary, textAlign: 'right' },
+  kicker: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.8, color: af.textTertiary, marginTop: 32 }, title: { fontFamily: 'Inter_600SemiBold', fontSize: 32, lineHeight: 37, letterSpacing: -0.8, color: af.textPrimary, marginTop: 12 }, body: { fontFamily: 'Inter_400Regular', fontSize: 16, lineHeight: 23, color: af.textSecondary, marginTop: 12 },
+  guidance: { backgroundColor: af.surface, borderColor: af.divider, borderWidth: 1, borderRadius: 20, marginTop: 24, padding: 20, gap: 12 }, guidanceKicker: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.8, color: af.textTertiary }, guidanceLine: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 21, color: af.textPrimary },
+  action: { minHeight: 52, borderRadius: 26, backgroundColor: af.primaryFill, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 24, paddingHorizontal: 20 }, actionLabel: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: af.onPrimaryFill },
+  secondary: { minHeight: 48, borderRadius: 24, borderWidth: 1, borderColor: af.divider, justifyContent: 'center', alignItems: 'center', marginTop: 10, paddingHorizontal: 20 }, secondaryLabel: { fontFamily: 'Inter_500Medium', fontSize: 15, color: af.textPrimary }, pressed: { opacity: 0.72 }, disclosure: { fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, color: af.textTertiary, marginTop: 16 },
+  footer: { flex: 1, justifyContent: 'flex-end', paddingTop: 40 }, rule: { height: StyleSheet.hairlineWidth, backgroundColor: af.divider }, footerRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12 }, footerText: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.8, color: af.textTertiary },
 });

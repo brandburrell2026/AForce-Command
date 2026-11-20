@@ -6,7 +6,7 @@ const source = readFileSync(resolve(__dirname, '..', 'advancedVisual', 'SkinIACa
 
 describe('SkinIA controlled camera capture', () => {
   it('uses the approved editorial scan framing and clear user-triggered permission flow', () => {
-    for (const label of ['SKINIA VISUAL CHECK / SCAN', 'ALIGN FACE / EVEN LIGHT / NO FILTERS', 'Camera status', 'Capture review image']) expect(source).toContain(label);
+    for (const label of ['SKINIA VISUAL CHECK / SCAN', 'Camera status', 'Capture review image']) expect(source).toContain(label);
     expect(source).toContain('onRequest={() => { void requestCameraPermission(); }}');
     expect(source).toContain('Capture for QA.');
     expect(source).toContain('No skin reading yet.');
@@ -42,10 +42,15 @@ describe('SkinIA controlled camera capture', () => {
     expect(source).toContain("secondary={findingsGated ? undefined : 'Back to SkinIA'}");
   });
 
-  it('keeps the face guide visible and captures detail without added JPEG blur', () => {
+  it('shows just the camera: no face outline, crosshair, corner marks, pinned line or darkening over it (founder direction 2026-11-20)', () => {
+    // Reverses the earlier pinned face guide and the two preview scrims.
+    expect(source).not.toMatch(/react-native-svg|<Ellipse|<Line |styles\.corner|styles\.scrim|ALIGN FACE/);
+    expect(source).toContain('viewfinder: { ...StyleSheet.absoluteFillObject },');
+    expect(source).toContain("{ready ? 'LIVE PREVIEW' : 'PREPARING'}");
+  });
+
+  it('keeps the capture guidance as words and captures detail without added JPEG blur', () => {
     expect(source).toContain('Center your full face, 30–45 cm away, with even light in front of you.');
-    expect(source).toContain('backgroundColor: withAlpha(edStock.black, 0.34)');
-    expect(source).toContain('backgroundColor: withAlpha(edStock.black, 0.06)');
     expect(source).toContain('takePictureAsync({ pictureRef: true, quality: 1 })');
   });
 
