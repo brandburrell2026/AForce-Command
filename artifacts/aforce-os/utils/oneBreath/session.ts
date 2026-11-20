@@ -91,6 +91,13 @@ export interface OneBreathContext {
   networkUp: boolean;
   /** The sealed Moment that is in its window, when there is one. Keys the Lock In effect so it happens once. */
   currentMomentId?: string;
+  /**
+   * HydroState as its owner reports it right now. The session only repeats
+   * it. Absent means it could not be read, and the session says so.
+   */
+  hydroState?: { value: number; word: string; estimated: boolean; source: string; asOf?: string };
+  /** Upcoming Moments from the Moments store, soonest first. Absent means the list could not be read. */
+  upcoming?: { title: string; day: string; time: string }[];
 }
 
 export interface PlanDraft {
@@ -167,6 +174,30 @@ export const emptyOneBreathState = (): OneBreathState => ({
   lockedIn: false,
 });
 
+/** Screens One Breath can open, by the words members use for them. Keys are for the router to map; no route is decided here. */
+const SCREENS: readonly [RegExp, string][] = [
+  [/hydroscan|scanner|\bscan\b/, 'scan'],
+  [/hydrat/, 'hydration'],
+  [/circle/, 'circle'],
+  [/remembers/, 'remembers'],
+  [/moments?/, 'moments'],
+  [/profile/, 'profile'],
+  [/settings/, 'settings'],
+  [/store|shop/, 'store'],
+  [/sleep/, 'sleep'],
+  [/recovery/, 'recovery'],
+  [/weekly report/, 'weekly_report'],
+  [/travel/, 'travel'],
+  [/performance signal/, 'performance_signal'],
+  [/devices/, 'devices'],
+  [/\bhome\b/, 'home'],
+];
+
+export function screenNamed(words: string): string | null {
+  const t = words.toLowerCase();
+  return SCREENS.find(([pattern]) => pattern.test(t))?.[1] ?? null;
+}
+
 /** Member-facing lines. From the approved prototype and the spec; wording is for Julius to review before any screen shows it. */
 export const ONE_BREATH_LINES = {
   limit:
@@ -183,6 +214,10 @@ export const ONE_BREATH_LINES = {
   noPlan: "There\u2019s no plan waiting to be sealed.",
   alreadySealed: "Already sealed. Nothing changed.",
   stillWaiting: "Nothing saved. Your plan is still waiting for you to seal it.",
+  statusUnavailable: "I can\u2019t read your HydroState right now, so I won\u2019t guess it.",
+  upcomingUnavailable: "I can\u2019t read your Moments right now.",
+  upcomingNone: "Nothing is planned yet.",
+  askScreen: "Which screen?",
   alcoholNotCounted:
     "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
 } as const;
@@ -201,6 +236,9 @@ const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): On
  * Social, Lock In inside or outside its window, and planning a Moment (one
  * question at a time, read-back, a spoken or typed change, "seal it" once).
  * A plan is saved only by an explicit "seal it" on a complete read-back.
+ * Read-only requests are answered from what the caller supplies: HydroState
+ * and upcoming Moments are repeated with their source, never computed here,
+ * and a screen is opened by key.
  * Every other request is understood by the interpreter but answered
  * 'not_built' with no effects. No screen calls this yet.
  */
@@ -297,6 +335,37 @@ export function oneBreathTurn(
     const started = planFromWords(input.words, now, { social: context.social, timingOnly: safety });
     if (started.asking) return ask(started.plan, started.asking);
     return safety ? readBack(started.plan, 'safety', `${ONE_BREATH_LINES.safety} `) : readBack(started.plan);
+  }
+
+  // Read-only requests: no approval, and nothing is changed.
+  if (heard.request === 'status') {
+    const hs = context.hydroState;
+    if (!hs) return answer('act', 'status', ONE_BREATH_LINES.statusUnavailable);
+    const line = `HydroState ${hs.value}, ${hs.word}.`;
+    const turn = answer(
+      'act',
+      'status',
+      `${line}${hs.estimated ? ' That\u2019s an estimate.' : ''} From ${hs.source}${hs.asOf ? `, ${hs.asOf}` : ''}.`,
+    );
+    return { ...turn, reply: { ...turn.reply, claims: [{ text: line, source: hs.source, estimate: hs.estimated }] } };
+  }
+
+  if (heard.request === 'upcoming') {
+    const list = context.upcoming;
+    if (!list) return answer('act', 'upcoming', ONE_BREATH_LINES.upcomingUnavailable);
+    if (list.length === 0) return answer('act', 'upcoming', ONE_BREATH_LINES.upcomingNone);
+    const lines = list.map((m) => `${m.title} \u00b7 ${m.day} ${m.time}`);
+    const turn = answer('act', 'upcoming', `${lines.join('. ')}.`);
+    return { ...turn, reply: { ...turn.reply, claims: lines.map((text) => ({ text, source: 'Moments' })) } };
+  }
+
+  if (heard.request === 'open_screen') {
+    const screen = heard.outcome === 'act' ? screenNamed(input.words) : null;
+    if (!screen) {
+      const turn = answer('ask', 'open_screen', ONE_BREATH_LINES.askScreen);
+      return { ...turn, reply: { ...turn.reply, question: ONE_BREATH_LINES.askScreen } };
+    }
+    return answer('act', 'open_screen', '', kept, [{ kind: 'open_screen', id: `open:${screen}`, screen }]);
   }
 
   return notBuilt(kept, heard.request);

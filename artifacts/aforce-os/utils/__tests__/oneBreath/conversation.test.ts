@@ -10,7 +10,7 @@
  * A scenario marked `it.fails` is not built yet: it fails today and is reported
  * as an expected failure. When a slice makes it pass, vitest fails that
  * `it.fails`, and the marker comes off in the same PR. Built so far: CB1, CB3,
- * CB4, CB7, CB10, CB12, CB13, CB14, L1, L2, D9, S7, S10. Each scenario asserts at least one thing the empty session cannot
+ * CB4, CB5, CB7, CB8, CB10, CB12, CB13, CB14, L1, L2, D9, S7, S10. Each scenario asserts at least one thing the empty session cannot
  * do, so none passes by accident.
  *
  * These run the session contract only. They are not device evidence.
@@ -65,7 +65,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(writes(r.effects)).toEqual([]);
   });
 
-  it.fails('CB5 · "How am I doing?" is an estimate with its source', () => {
+  it('CB5 · "How am I doing?" is an estimate with its source', () => {
     const r = run([say('How am I doing?')]);
     expect(r.last.reply.request).toBe('status');
     expect(r.last.reply.outcome).toBe('act');
@@ -89,7 +89,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(writes(r.effects)).toEqual([]);
   });
 
-  it.fails('CB8 · a topic change leaves the plan pending, not sealed', () => {
+  it('CB8 · a topic change leaves the plan pending, not sealed', () => {
     const r = run([say(LIFT), say("What's coming up this week?")]);
     expect(r.last.reply.request).toBe('upcoming');
     expect(r.last.reply.outcome).toBe('act');

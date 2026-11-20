@@ -20,6 +20,9 @@ export const BASE_CONTEXT: OneBreathContext = {
   learningOn: true,
   interpreterReachable: true,
   networkUp: true,
+  // Sample values for tests only. In the app these come from HydroState and the Moments store.
+  hydroState: { value: 51, word: 'Behind', estimated: true, source: 'drinks you logged today' },
+  upcoming: [{ title: 'Morning lift', day: 'Fri, Nov 20', time: '6:30 AM' }],
 };
 
 export const say = (words: string, via: 'typed' | 'spoken' = 'typed'): OneBreathInput => ({ kind: 'say', words, via });
