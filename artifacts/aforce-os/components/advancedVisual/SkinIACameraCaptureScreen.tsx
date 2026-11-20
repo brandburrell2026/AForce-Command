@@ -191,6 +191,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
         showsVerticalScrollIndicator={false}
       >
         <AFMasthead
+          tone="quiet"
           meta="CONTROLLED TESTFLIGHT"
           breadcrumb="SKINIA VISUAL CHECK / SCAN"
           title={'Capture for QA.\nNo skin reading yet.'}
@@ -210,7 +211,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
               <Line x1="50" y1="0" x2="50" y2="120" stroke={af.textTertiary} strokeOpacity={0.35} strokeWidth={0.4} />
               <Line x1="0" y1="60" x2="100" y2="60" stroke={af.textTertiary} strokeOpacity={0.35} strokeWidth={0.4} />
               <Ellipse cx="50" cy="60" rx="34" ry="46" stroke={af.textSecondary} strokeOpacity={0.5} strokeWidth={0.6} fill="none" />
-              <Ellipse cx="50" cy="60" rx="27" ry="37" stroke={af.redText} strokeWidth={0.9} fill="none" />
+              <Ellipse cx="50" cy="60" rx="27" ry="37" stroke={af.textPrimary} strokeWidth={0.9} fill="none" />
             </Svg>
             <View style={[styles.corner, styles.topLeft]} /><View style={[styles.corner, styles.topRight]} />
             <View style={[styles.corner, styles.bottomLeft]} /><View style={[styles.corner, styles.bottomRight]} />
@@ -227,7 +228,7 @@ function NativeSkinIACameraCapture({ onExit }: { onExit: () => void }) {
           <Text style={styles.metaLabel}>Camera status</Text><Text style={[styles.metaValue, eyebrowType]}>{ready ? 'READY' : 'PREPARING'}</Text>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Capture SkinIA image" accessibilityState={{ disabled: !ready || state === 'CAPTURING' }} disabled={!ready || state === 'CAPTURING'} onPress={takeEphemeralPicture} style={({ pressed }) => [styles.action, (!ready || state === 'CAPTURING') && styles.disabled, pressed && styles.pressed]}>
-          <Text style={styles.actionLabel}>{state === 'CAPTURING' ? 'Capturing securely' : 'Capture review image'}</Text><Text style={styles.actionPlus}>+</Text>
+          <Text style={styles.actionLabel}>{state === 'CAPTURING' ? 'Capturing securely' : 'Capture review image'}</Text>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Cancel SkinIA capture" onPress={exitCapture} style={styles.cancel}><Text style={styles.cancelText}>Cancel and discard</Text></Pressable>
         <Text style={[styles.disclosure, eyebrowType]}>OBSERVATIONAL ONLY / NOT A DIAGNOSIS</Text>
@@ -266,10 +267,10 @@ function StaticState({ title, kicker, body, action, onAction, secondary, onSecon
   return (
     <View style={styles.staticScreen}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24, paddingHorizontal: gutter }]} showsVerticalScrollIndicator={false}>
-        <AFMasthead meta="CONTROLLED TESTFLIGHT" breadcrumb={`SKINIA VISUAL CHECK / ${kicker}`} title={title} subtitle={body} />
+        <AFMasthead tone="quiet" meta="CONTROLLED TESTFLIGHT" breadcrumb={`SKINIA VISUAL CHECK / ${kicker}`} title={title} subtitle={body} />
         {process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaNote ? <Text style={styles.qaNote}>{qaNote}</Text> : null}
         {process.env.EXPO_PUBLIC_INTERNAL_TESTFLIGHT === 'true' && qaCode ? <Text style={[styles.qaCode, eyebrowType]}>INTERNAL QA CODE: {qaCode}</Text> : null}
-        <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Text style={styles.actionLabel}>{action}</Text><Text style={styles.actionPlus}>+</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Text style={styles.actionLabel}>{action}</Text></Pressable>
         {secondary && onSecondary ? <Pressable accessibilityRole="button" accessibilityLabel={secondary} onPress={onSecondary} style={styles.cancel}><Text style={styles.cancelText}>{secondary}</Text></Pressable> : null}
         <Text style={styles.disclosureBody}>Visual observations only. SkinIA does not diagnose conditions or measure hydration.</Text>
         <Folio eyebrowType={eyebrowType} />
@@ -288,26 +289,25 @@ const styles = StyleSheet.create({
   plate: { backgroundColor: af.surface, borderColor: af.border, borderRadius: afLayout.radiusCard, borderWidth: 1, flexGrow: 1, marginTop: 24, minHeight: 300, overflow: 'hidden' },
   viewfinder: { ...StyleSheet.absoluteFillObject, backgroundColor: withAlpha(edStock.black, 0.06) },
   guideSvg: { ...StyleSheet.absoluteFillObject },
-  corner: { borderColor: af.redText, height: CORNER, position: 'absolute', width: CORNER },
+  corner: { borderColor: af.textPrimary, height: CORNER, position: 'absolute', width: CORNER },
   topLeft: { borderLeftWidth: 2, borderTopWidth: 2, left: 14, top: 14 },
   topRight: { borderRightWidth: 2, borderTopWidth: 2, right: 14, top: 14 },
   bottomLeft: { borderBottomWidth: 2, borderLeftWidth: 2, bottom: 14, left: 14 },
   bottomRight: { borderBottomWidth: 2, borderRightWidth: 2, bottom: 14, right: 14 },
   pillRow: { flexDirection: 'row', left: 28, position: 'absolute', right: 28, top: 22 },
   pill: { alignItems: 'center', backgroundColor: withAlpha(edStock.black, 0.6), borderColor: af.border, borderRadius: 999, borderWidth: 1, columnGap: 6, flexDirection: 'row', flexShrink: 1, minHeight: 28, paddingHorizontal: 12, paddingVertical: 4 },
-  pillLive: { borderColor: af.redText },
+  pillLive: { borderColor: af.border },
   pillDot: { backgroundColor: af.redText, borderRadius: 3, height: 6, width: 6 },
   pillText: { ...afType.micro, color: af.textPrimary, flexShrink: 1 },
   guideWrap: { alignItems: 'center', bottom: 20, left: 28, position: 'absolute', right: 28 },
   guide: { ...afType.micro, backgroundColor: withAlpha(edStock.black, 0.6), borderRadius: 4, color: af.textPrimary, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 3, textAlign: 'center' },
   meta: { alignItems: 'baseline', borderBottomColor: af.border, borderBottomWidth: StyleSheet.hairlineWidth, borderTopColor: af.border, borderTopWidth: StyleSheet.hairlineWidth, columnGap: 12, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginTop: 20, paddingVertical: 14 },
   metaLabel: { ...afType.secondary, color: af.textPrimary, fontWeight: '700' },
-  metaValue: { ...afType.micro, color: af.redText },
+  metaValue: { ...afType.micro, color: af.textSecondary },
   qaNote: { ...afType.secondary, color: af.textSecondary, marginTop: 16 },
   qaCode: { ...afType.micro, color: af.textSecondary, marginTop: 12 },
-  action: { alignItems: 'center', backgroundColor: af.primaryFill, borderRadius: afLayout.radiusButton, columnGap: 12, flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, minHeight: afLayout.buttonHeight, paddingHorizontal: 20, paddingVertical: 8 },
+  action: { alignItems: 'center', backgroundColor: af.primaryFill, borderRadius: 999, columnGap: 12, flexDirection: 'row', justifyContent: 'center', marginTop: 20, minHeight: afLayout.buttonHeight, paddingHorizontal: 20, paddingVertical: 8 },
   actionLabel: { ...afType.bodyStrong, color: af.onPrimaryFill, flexShrink: 1 },
-  actionPlus: { ...afType.title3, color: af.onPrimaryFill },
   disabled: { opacity: 0.56 },
   pressed: { opacity: 0.85 },
   cancel: { justifyContent: 'center', marginTop: 8, minHeight: 44 },

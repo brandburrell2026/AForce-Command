@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { edAccent, edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
+import { edInk, edRule, edStock, edType } from '@/theme/editorialTokens';
 import { SKINIA_MEMBER_LABEL } from '@/services/advancedVisualIntelligence';
 
 /**
@@ -45,15 +45,15 @@ function QualityUnknown({ onBack }: { onBack: () => void }) { return <><Text sty
 function BaselineUnavailable({ onBack }: { onBack: () => void }) { return <><Text style={styles.body}>A comparison is not available until there is a suitable personal baseline under equivalent conditions.</Text><Panel kicker="NO COMPARABLE BASELINE" lines={['Status: NOT ENOUGH INFORMATION', 'No result is shown instead of inventing a comparison.', 'SkinIA never compares you with other members or a population.']} /><Action label="Back to SkinIA" onPress={onBack} /><Text style={styles.disclosure}>{disclosure}</Text></>; }
 function ConsentRevoked({ onBack }: { onBack: () => void }) { return <><Text style={styles.body}>Your consent has been withdrawn. Any future visual-check flow must stop immediately.</Text><Panel kicker="CONSENT REVOKED" lines={['No new camera access may begin.', 'Any temporary raw image must be deleted immediately.', 'No observation is produced after withdrawal.']} /><Action label="Back to SkinIA" onPress={onBack} /><Text style={styles.disclosure}>This is a safe state, not an error.</Text></>; }
 function Panel({ kicker, lines }: { kicker: string; lines: string[] }) { return <View style={styles.guidance} accessibilityRole="summary"><Text style={styles.guidanceKicker}>{kicker}</Text>{lines.map((line) => <Text key={line} style={styles.guidanceLine}>{line}</Text>)}</View>; }
-function Action({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Text style={styles.actionLabel}>{label}</Text><Text style={styles.actionPlus}>+</Text></Pressable>; }
+function Action({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Text style={styles.actionLabel}>{label}</Text></Pressable>; }
 function Secondary({ label, onPress }: { label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}><Text style={styles.secondaryLabel}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: edStock.black }, content: { flexGrow: 1, paddingHorizontal: 32 },
-  furniture: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, wordmark: { ...edType.caption, color: edAccent.red, fontWeight: '700' }, date: { ...edType.micro, color: edInk.quietOnBlack, textAlign: 'right' },
-  kicker: { ...edType.micro, color: edAccent.red, marginTop: 42 }, title: { ...edType.statement, color: edInk.ivory, marginTop: 14 }, body: { ...edType.bodySmall, color: edInk.quietOnBlack, marginTop: 10 },
-  guidance: { backgroundColor: edStock.blackRaised, borderRadius: 18, marginTop: 28, padding: 22, gap: 14 }, guidanceKicker: { ...edType.micro, color: edAccent.red }, guidanceLine: { ...edType.bodySmall, color: edInk.ivory },
-  action: { minHeight: 48, backgroundColor: edStock.paper, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, paddingHorizontal: 16 }, actionLabel: { ...edType.bodySmall, color: edInk.black, fontWeight: '700' }, actionPlus: { color: edAccent.red, fontSize: 20, lineHeight: 22 },
+  furniture: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, wordmark: { ...edType.caption, color: edInk.quietOnBlack, fontWeight: '600' }, date: { ...edType.micro, color: edInk.quietOnBlack, textAlign: 'right' },
+  kicker: { ...edType.micro, color: edInk.quietOnBlack, marginTop: 42 }, title: { ...edType.statement, color: edInk.ivory, marginTop: 14 }, body: { ...edType.bodySmall, color: edInk.quietOnBlack, marginTop: 10 },
+  guidance: { backgroundColor: edStock.blackRaised, borderRadius: 18, marginTop: 28, padding: 22, gap: 14 }, guidanceKicker: { ...edType.micro, color: edInk.quietOnBlack }, guidanceLine: { ...edType.bodySmall, color: edInk.ivory },
+  action: { minHeight: 52, borderRadius: 26, backgroundColor: edStock.paper, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 28, paddingHorizontal: 20 }, actionLabel: { ...edType.bodySmall, color: edInk.black, fontWeight: '600' },
   secondary: { minHeight: 44, justifyContent: 'center', alignItems: 'flex-start', marginTop: 8, paddingHorizontal: 2 }, secondaryLabel: { ...edType.bodySmall, color: edInk.quietOnBlack, textDecorationLine: 'underline' }, pressed: { opacity: 0.72 }, disclosure: { ...edType.micro, color: edInk.quietOnBlack, marginTop: 13 },
   footer: { flex: 1, justifyContent: 'flex-end', paddingTop: 56 }, rule: { height: StyleSheet.hairlineWidth, backgroundColor: edRule.onBlack }, footerRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 12 }, footerText: { ...edType.micro, color: edInk.quietOnBlack },
 });
