@@ -63,3 +63,31 @@ When enforcing brand colors, if a change appears to require editing `statusColor
 ## Trainer dashboard work
 When working on the trainer dashboard, read `docs/TRAINER-DASHBOARD-BRIEF.md` in full
 and treat `docs/TRAINER-DASHBOARD-RULES.md` as standing constraints on every turn.
+
+## One Breath
+The spec is `docs/one-breath/SPEC.pdf`. Read it before any One Breath work.
+The visual source of truth is `reference/one-breath/prototype/index.html` and
+`reference/one-breath/screenshots/`. Match it exactly. Never import its demo
+code, scripts or sample data into the app.
+
+Where the spec conflicts with an approved product rule, the approved rule wins
+and the conflict goes to Julius and Brandon to decide.
+
+Rules
+- Audit and plan before editing. Stop for approval before code changes.
+- AI interprets and explains. Rules and the protected engines decide and act.
+- Never write HydroState, RecoveryCommand, Score Protection, Quiet or
+  permissions directly. Go through their owning services.
+- Never show a source, save, send or result that didn't happen.
+- No duplicate writes: every save, log and send is idempotent.
+- Reuse the existing Moment state machine and design tokens. Don't create
+  parallel ones.
+- If a dependency is missing, stop and report it. Don't invent a substitute.
+
+Before saying a slice is done
+- Run the test suite, the 14 conversation tests (CB1-CB14), the drink tests
+  (D1-D9), the Social tests (S1-S10) and the phrasing set.
+- Capture each One Breath state on the emulator next to the prototype
+  screenshot at the same size, list the differences, fix them, repeat.
+- Report changed files, exact commands and results, screenshots and known
+  gaps. "Tests pass" without evidence doesn't count.
