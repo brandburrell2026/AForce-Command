@@ -102,8 +102,15 @@ export function momentsModel(moments: readonly Moment[], now: Date, privateLabel
       .reverse()
       .map((m) => {
         const p = m.preparation!;
-        const replayed = p.replay != null;
-        const state = p.cancelledAtIso ? 'Cancelled' : replayed ? 'Replay done' : 'Replay ready';
+        const skipped = p.replay === 'skipped';
+        const replayed = p.replay != null && !skipped;
+        const state = p.cancelledAtIso
+          ? 'Cancelled'
+          : skipped
+            ? 'Replay skipped'
+            : replayed
+              ? 'Replay done'
+              : 'Replay ready';
         return {
           id: m.id,
           title: title(m, privateLabel),

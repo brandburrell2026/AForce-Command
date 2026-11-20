@@ -71,7 +71,14 @@ export interface MomentPreparation {
   returnedAtIso?: string;
   /** Explicit cancellation, never a successful return/check-in. */
   cancelledAtIso?: string;
-  replay?: 'yes' | 'not_really';
+  /** The member's private answer to Replay. 'skipped' closes the Replay and
+   * keeps nothing else. */
+  replay?: 'yes' | 'partly' | 'not_really' | 'skipped';
+  /** "What got in the way?" — the member's own pick, or that they skipped it.
+   * A private note only: it never changes a plan, a target or a score. */
+  replayObstacle?: 'late' | 'drain' | 'water' | 'other' | 'skipped';
+  /** The member's own words (140 max). On this device only. */
+  replayNote?: string;
   /** Member-selected follow-up only: no title snapshot, automatic command,
    * extra Moment, reminder, or claim of physiological protection. */
   nextMoment?: { id: string; startAtIso: string };
