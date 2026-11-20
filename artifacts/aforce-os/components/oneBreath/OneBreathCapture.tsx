@@ -13,11 +13,12 @@
  * data) and its "Operations" log (the conversational engine, off for beta).
  */
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, type TextInput, View } from "react-native";
 import { Icon } from "@/components/Icon";
 import { AFMark } from "@/components/ui/AFMark";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { PreparationOrb } from "./PreparationOrb";
+import { TalkTypeBar } from "./kit/TalkTypeBar";
 
 // The prototype's stage: a 290pt square holding a 149pt orb inside a 234pt
 // dial (its canvas is 660 units for 290pt; orb radius 170, bezel radius 266).
@@ -143,48 +144,21 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
         ))}
       </ScrollView>
 
-      <View style={s.composer}>
-        <TextInput
-          ref={p.inputRef}
-          accessibilityLabel="Your moment"
-          value={p.words}
-          onFocus={p.onFocusWords}
-          onChangeText={p.onChangeWords}
-          maxLength={160}
-          placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
-          placeholderTextColor={T.dim}
-          returnKeyType="send"
-          onSubmitEditing={p.sendDisabled ? undefined : p.onSend}
-          style={s.input}
-        />
-        {p.voiceAvailable ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={p.voiceListening ? "Stop" : "Speak"}
-            onPress={p.onTalk}
-            style={[s.round40, s.mic]}
-          >
-            <Icon name="mic" size={18} color={T.bone} />
-          </Pressable>
-        ) : null}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Send"
-          accessibilityState={{ disabled: p.sendDisabled }}
-          aria-disabled={p.sendDisabled}
-          disabled={p.sendDisabled}
-          onPress={press(p.onSend)}
-          style={[
-            s.round40,
-            // Warm white is the primary; blue belongs to Social only.
-            { backgroundColor: p.social ? T.blue : T.bone },
-            // The prototype's send button is always the same warm white; its
-            // disabled state is carried for assistive tech, not by fading it.
-          ]}
-        >
-          <Icon name="arrow-up" size={18} color={p.social ? T.onBlue : T.ink} />
-        </Pressable>
-      </View>
+      <TalkTypeBar
+        social={p.social}
+        value={p.words}
+        onChangeText={p.onChangeWords}
+        onFocus={p.onFocusWords}
+        inputRef={p.inputRef}
+        inputLabel="Your moment"
+        placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
+        voiceAvailable={p.voiceAvailable}
+        voiceListening={p.voiceListening}
+        onTalk={p.onTalk}
+        sendDisabled={p.sendDisabled}
+        onSend={p.onSend}
+        press={press}
+      />
     </View>
   );
 }
@@ -244,22 +218,4 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   chipText: { fontFamily: "Inter_500Medium", fontSize: 13, color: T.bone },
-  composer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 6,
-    paddingRight: 6,
-    paddingLeft: 16,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: T.rule,
-    backgroundColor: T.panel,
-    // The prototype's bar is 344pt wide in a 390pt screen: 5pt wider each side than the text column.
-    marginHorizontal: -5,
-  },
-  input: { flex: 1, minWidth: 0, minHeight: 40, fontFamily: "Inter_400Regular", fontSize: 16, color: T.bone },
-  round40: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  mic: { borderWidth: 1, borderColor: T.rule },
-  disabled: { opacity: 0.4 },
 });

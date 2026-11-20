@@ -15,6 +15,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('@/components/Icon', () => ({ Icon: () => null }));
 import { OperationsLog, ResultCard, SourceChips, UndoStrip, logLineLabel, resultCardLabel, sourceChipLabel, undoLabel } from '../oneBreath/kit';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -112,6 +113,10 @@ describe('the kit holds no colour, score or behaviour of its own', () => {
   });
 
   it('every button is at least 44pt tall', () => {
-    expect(code.match(/minHeight: (\d+)/g)?.every((m) => Number(m.split(' ')[1]) >= 44)).toBe(true);
+    // Buttons only: the text box is 40pt inside a 54pt bar and grows with text size.
+    const buttons = code.split('\n').filter((l) => !/^\s*input:/.test(l)).join('\n');
+    expect(buttons.match(/minHeight: (\d+)/g)?.every((m) => Number(m.split(' ')[1]) >= 44)).toBe(true);
+    // The bar's 40pt round buttons reach 44pt through their touch area.
+    expect(code.match(/hitSlop=\{2\}/g)).toHaveLength(2);
   });
 });
