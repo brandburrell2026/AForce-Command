@@ -129,6 +129,12 @@ import type { ProfilePaneCtx } from './types';
  * section of Profile files each one under a named view by this order
  * (components/profile/AccountHome.tsx); a test keeps the two in step.
  */
+/** "STANDARD" → "Standard". The words are the locale's; only the lettering
+ *  changes, as on the app's other controls. */
+function sentenceCase(label: string): string {
+  return label.length > 0 ? label[0]!.toUpperCase() + label.slice(1).toLowerCase() : label;
+}
+
 export const ACCOUNT_SECTION_ORDER = [
   'subscriptionBlock',
   'phaseEntryRow',
@@ -278,7 +284,7 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
             <Icon
               name={voiceCoachEnabled ? 'volume-2' : 'volume-x'}
               size={16}
-              color={voiceCoachEnabled ? af.green : af.textSecondary}
+              color={voiceCoachEnabled ? af.textPrimary : af.textSecondary}
             />
             <View style={{ flex: 1 }}>
               <Text style={styles.settingLabel}>{t('profile.voice_section.row_label')}</Text>
@@ -292,6 +298,9 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
           <Switch
             value={voiceCoachEnabled}
             onValueChange={setVoiceCoachEnabled}
+            trackColor={{ false: af.surfacePressed, true: af.textPrimary }}
+            thumbColor={voiceCoachEnabled ? af.canvas : af.textPrimary}
+            ios_backgroundColor={af.surfacePressed}
             testID="profile-voice-coach-toggle"
             accessibilityLabel={t('profile.voice_section.row_label')}
           />
@@ -299,7 +308,7 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
 
         {voiceCoachEnabled ? (
           <View style={{ paddingHorizontal: 14, paddingTop: 4, paddingBottom: 12 }}>
-            <Text style={[styles.flagDesc, { marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+            <Text style={voicePickerStyles.groupLabel}>
               {t('profile.v2.coach_voice')}
             </Text>
             <View style={{ gap: 6 }}>
@@ -325,7 +334,7 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
                       <Text style={voicePickerStyles.rowDesc}>{v.description}</Text>
                     </View>
                     {selected ? (
-                      <Icon name="check" size={16} color={af.green} />
+                      <Icon name="check" size={16} color={af.textPrimary} />
                     ) : null}
                   </Pressable>
                 );
@@ -339,40 +348,26 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
                 Calm = full sentences, Standard = spec phrases
                 (auto-Pressure when DEPLETED), Pressure = forced
                 short sharp lines for every command. */}
-            <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+            <Text style={[voicePickerStyles.groupLabel, { marginTop: 18 }]}>
               {t('profile.v2.voice_intensity')}
             </Text>
             <View style={voicePickerStyles.segmentRow}>
               {(['calm', 'standard', 'pressure'] as const).map((opt) => {
                 const selected = voiceIntensity === opt;
-                const accent = opt === 'pressure'
-                  ? af.red
-                  : opt === 'calm'
-                    ? af.cyan
-                    : af.green;
                 return (
                   <Pressable
                     key={opt}
                     onPress={() => setVoiceIntensity(opt as VoiceIntensity)}
-                    style={[
-                      voicePickerStyles.segment,
-                      selected && {
-                        borderColor: `${accent}AA`,
-                        backgroundColor: `${accent}1A`,
-                      },
-                    ]}
+                    style={[voicePickerStyles.segment, selected && voicePickerStyles.segmentSelected]}
                     testID={`profile-voice-intensity-${opt}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
                     accessibilityLabel={t(`profile.v2.vintensity_${opt}`)}
                   >
                     <Text
-                      style={[
-                        voicePickerStyles.segmentLabel,
-                        selected && { color: accent },
-                      ]}
+                      style={[voicePickerStyles.segmentLabel, selected && voicePickerStyles.segmentLabelSelected]}
                     >
-                      {t(`profile.v2.vintensity_${opt}`)}
+                      {sentenceCase(t(`profile.v2.vintensity_${opt}`))}
                     </Text>
                   </Pressable>
                 );
@@ -390,39 +385,27 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
                 Controls which categories of voice events are
                 allowed to fire. 'muted' is silent at the
                 category gate even if the master toggle is on. */}
-            <Text style={[styles.flagDesc, { marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 }]}>
+            <Text style={[voicePickerStyles.groupLabel, { marginTop: 18 }]}>
               {t('profile.v2.when_voice_plays')}
             </Text>
             <View style={voicePickerStyles.segmentRow}>
               {(['all', 'risk', 'commands', 'muted'] as const).map((opt) => {
                 const selected = voiceScope === opt;
                 const label = t(`profile.v2.scope_${opt}`);
-                const accent = opt === 'muted'
-                  ? af.textTertiary
-                  : af.green;
                 return (
                   <Pressable
                     key={opt}
                     onPress={() => setVoiceScope(opt as VoiceScope)}
-                    style={[
-                      voicePickerStyles.segment,
-                      selected && {
-                        borderColor: `${accent}AA`,
-                        backgroundColor: `${accent}1A`,
-                      },
-                    ]}
+                    style={[voicePickerStyles.segment, selected && voicePickerStyles.segmentSelected]}
                     testID={`profile-voice-scope-${opt}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
                     accessibilityLabel={label}
                   >
                     <Text
-                      style={[
-                        voicePickerStyles.segmentLabel,
-                        selected && { color: accent },
-                      ]}
+                      style={[voicePickerStyles.segmentLabel, selected && voicePickerStyles.segmentLabelSelected]}
                     >
-                      {label}
+                      {sentenceCase(label)}
                     </Text>
                   </Pressable>
                 );
@@ -440,28 +423,13 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
             <Pressable
               onPress={() => { replayLastCommand(); }}
               disabled={!getLastCommand()}
-              style={({ pressed }) => [
-                voicePickerStyles.replayBtn,
-                {
-                  borderColor: getLastCommand()
-                    ? `${af.green}55`
-                    : af.divider,
-                  backgroundColor: getLastCommand()
-                    ? pressed
-                      ? `${af.green}1A`
-                      : `${af.green}10`
-                    : 'transparent',
-                },
-              ]}
+              style={({ pressed }) => [voicePickerStyles.replayBtn, pressed && { opacity: 0.72 }]}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !getLastCommand() }}
               testID="profile-voice-replay"
             >
-              <Text
-                style={[
-                  voicePickerStyles.replayLabel,
-                  { color: getLastCommand() ? af.green : af.textTertiary },
-                ]}
-              >
-                {getLastCommand() ? t('profile.v2.replay_last') : t('profile.v2.nothing_to_replay')}
+              <Text style={[voicePickerStyles.replayLabel, !getLastCommand() && voicePickerStyles.replayLabelOff]}>
+                {sentenceCase(getLastCommand() ? t('profile.v2.replay_last') : t('profile.v2.nothing_to_replay'))}
               </Text>
             </Pressable>
 
@@ -473,27 +441,13 @@ export function renderAccountSections(ctx: ProfilePaneCtx): React.ReactNode[] {
             {flags.demo_mode_enabled ? (
               <Pressable
                 onPress={() => { setInvestorDemoActive(true); }}
-                style={({ pressed }) => [
-                  voicePickerStyles.replayBtn,
-                  {
-                    marginTop: 10,
-                    borderColor: `${af.green}66`,
-                    backgroundColor: pressed
-                      ? `${af.green}1F`
-                      : `${af.green}12`,
-                  },
-                ]}
+                style={({ pressed }) => [voicePickerStyles.replayBtn, { marginTop: 10 }, pressed && { opacity: 0.72 }]}
                 testID="profile-investor-demo-launch"
                 accessibilityRole="button"
                 accessibilityLabel={t('profile.v2.investor_demo_a11y')}
               >
-                <Text
-                  style={[
-                    voicePickerStyles.replayLabel,
-                    { color: af.green },
-                  ]}
-                >
-                  {t('profile.v2.investor_demo_label')}
+                <Text style={voicePickerStyles.replayLabel}>
+                  {sentenceCase(t('profile.v2.investor_demo_label'))}
                 </Text>
               </Pressable>
             ) : null}

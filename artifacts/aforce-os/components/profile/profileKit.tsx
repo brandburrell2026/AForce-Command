@@ -178,7 +178,7 @@ const signOutStyles = StyleSheet.create({
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16, marginTop: 12, marginBottom: 4,
-    borderRadius: 12, borderWidth: 1, borderColor: af.divider,
+    borderRadius: 20, borderWidth: 1, borderColor: af.border,
     backgroundColor: af.surface,
   },
   email: {
@@ -186,10 +186,10 @@ const signOutStyles = StyleSheet.create({
   },
   btn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
-    borderWidth: 1, borderColor: af.divider,
+    paddingHorizontal: 14, minHeight: 36, borderRadius: 999,
+    borderWidth: 1, borderColor: af.border,
   },
-  btnText: { fontFamily: 'Inter_600SemiBold', fontSize: 12, color: af.textPrimary },
+  btnText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: af.textPrimary },
 });
 
 export function SectionHeader({ label, hint }: { label: string; hint?: string }) {
@@ -315,12 +315,13 @@ export function HardwareRow({ name, kind, ledColor, status }: { name: string; ki
 }
 
 export function FlagRow({
-  flag, label, desc, color, flags, onToggle,
+  flag, label, desc, flags, onToggle,
 }: {
   flag: keyof FeatureFlags;
   label: string;
   desc: string;
-  color: string;
+  /** Kept so callers need not change. Switches are no longer colour-coded. */
+  color?: string;
   flags: FeatureFlags;
   onToggle: (k: keyof FeatureFlags) => void;
 }) {
@@ -328,15 +329,16 @@ export function FlagRow({
   return (
     <View style={styles.flagRow}>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.flagLabel, value && { color }]}>{label}</Text>
+        <Text style={styles.flagLabel}>{label}</Text>
         <Text style={styles.flagDesc}>{desc}</Text>
       </View>
       <Switch
         value={value}
         onValueChange={() => onToggle(flag)}
-        trackColor={{ false: af.surface, true: color }}
-        thumbColor={af.textPrimary}
-        ios_backgroundColor={af.surface}
+        // One look for every switch: warm-white when on, with an ink thumb.
+        trackColor={{ false: af.surfacePressed, true: af.textPrimary }}
+        thumbColor={value ? af.canvas : af.textPrimary}
+        ios_backgroundColor={af.surfacePressed}
         accessibilityLabel={label}
       />
     </View>
@@ -721,8 +723,8 @@ export const styles = StyleSheet.create({
     fontSize: 10, fontFamily: 'Inter_500Medium', color: af.textSecondary, letterSpacing: 0.5,
   },
   card: {
-    backgroundColor: af.surface, borderRadius: 16, borderWidth: 1,
-    borderColor: af.divider, marginBottom: 22, overflow: 'hidden',
+    backgroundColor: af.surface, borderRadius: 20, borderWidth: 1,
+    borderColor: af.border, marginBottom: 22, overflow: 'hidden',
   },
   encHeaderRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -847,7 +849,8 @@ export const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 14,
   },
-  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  // flex + shrink so a long label can never push the row's control off the edge.
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1, flexShrink: 1, paddingRight: 12 },
   settingLabel: { fontSize: 15, fontFamily: 'Inter_500Medium', color: af.textPrimary },
   settingSubLabel: { fontSize: 11, color: af.textTertiary, marginTop: 2 },
   settingValue: { fontSize: 14, fontFamily: 'Inter_500Medium', color: af.textSecondary },
@@ -872,7 +875,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   unitPrefPillActive: {
-    backgroundColor: af.red,
+    backgroundColor: af.primaryFill,
   },
   unitPrefPillText: {
     fontSize: 13,
@@ -881,7 +884,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   unitPrefPillTextActive: {
-    color: af.onRed,
+    color: af.onPrimaryFill,
   },
   hardwareRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -964,19 +967,22 @@ export const styles = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: af.divider,
   },
   flagLabel: {
-    fontSize: 14, fontFamily: 'Inter_600SemiBold', color: af.textPrimary,
+    fontSize: 15, fontFamily: 'Inter_500Medium', color: af.textPrimary,
   },
   flagDesc: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: af.textTertiary, marginTop: 2,
   },
   demoMaster: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    paddingVertical: 12, marginHorizontal: 12, marginTop: 12, marginBottom: 4,
-    borderRadius: 10, borderWidth: 1,
+    minHeight: 44, paddingVertical: 10, marginHorizontal: 12, marginTop: 12, marginBottom: 4,
+    borderRadius: 999, borderWidth: 1, borderColor: af.border,
   },
+  // On is the app's warm-white pill; there is no colour per button.
+  demoMasterOn: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
   demoMasterText: {
-    fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 1,
+    fontSize: 14, fontFamily: 'Inter_500Medium', color: af.textPrimary,
   },
+  demoMasterTextOn: { color: af.onPrimaryFill },
   phaseRow: { flexDirection: 'row', gap: 10, marginBottom: 22 },
   phaseCard: {
     flex: 1, backgroundColor: af.surface, borderRadius: 16,
@@ -1037,15 +1043,15 @@ export const voicePickerStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: af.divider,
     backgroundColor: af.canvasElevated,
   },
+  // Selected is said with a warm-white edge and a check, never a colour.
   rowSelected: {
-    borderColor: af.green,
-    backgroundColor: `${af.green}14`,
+    borderColor: af.textPrimary,
   },
   rowLabel: {
     fontSize: 13,
@@ -1070,31 +1076,47 @@ export const voicePickerStyles = StyleSheet.create({
   },
   segment: {
     flex: 1,
+    minHeight: 44,
     paddingVertical: 10,
     paddingHorizontal: 8,
-    borderRadius: 10,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: af.divider,
-    backgroundColor: af.canvasElevated,
+    borderColor: af.border,
     alignItems: 'center',
+    justifyContent: 'center',
   },
+  // The app's selected pill: warm-white fill, ink text. One look for every
+  // option; the choice is not colour-coded.
+  segmentSelected: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
   segmentLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    color: af.textPrimary,
+  },
+  segmentLabelSelected: { color: af.onPrimaryFill },
+  groupLabel: {
+    fontFamily: 'IBMPlexMono_400Regular',
     fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.4,
+    letterSpacing: 1.6,
     color: af.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   replayBtn: {
     marginTop: 16,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    minHeight: 44,
+    borderRadius: 999,
     borderWidth: 1,
+    borderColor: af.border,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   replayLabel: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2,
+    fontSize: 14,
+    fontFamily: 'Inter_500Medium',
+    color: af.textPrimary,
   },
+  replayLabelOff: { color: af.textTertiary },
 });
