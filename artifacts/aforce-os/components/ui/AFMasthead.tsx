@@ -31,6 +31,9 @@ export interface AFMastheadProps {
   title?: string;
   /** One quiet line under the statement. */
   subtitle?: string;
+  /** 'quiet' draws the wordmark and breadcrumb in the secondary text colour,
+   *  as the newer screens do. Default is red. */
+  tone?: 'red' | 'quiet';
   /** Right-aligned mono meta on the wordmark row ("NEW YORK · 72°F"). */
   meta?: string;
   /** Second mono meta line under the first ("SAT · AUG 29 · 9:41 AM"). */
@@ -63,6 +66,7 @@ export function AFMasthead({
   onBack,
   backLabel = 'Back',
   wordmark = true,
+  tone = 'red',
   accessory,
   testID,
 }: AFMastheadProps) {
@@ -72,7 +76,7 @@ export function AFMasthead({
       {wordmark && (
         <View style={styles.wordmarkRow}>
           <View style={styles.wordmarkGroup}>
-            <Text style={styles.wordmark} aria-hidden>
+            <Text style={[styles.wordmark, tone === 'quiet' && styles.quiet]} aria-hidden>
               {AF_WORDMARK}
             </Text>
             {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
@@ -108,7 +112,7 @@ export function AFMasthead({
             </Pressable>
           )}
           {breadcrumb ? (
-            <Text style={[styles.breadcrumb, eyebrowType]}>{breadcrumb.toUpperCase()}</Text>
+            <Text style={[[styles.breadcrumb, eyebrowType], tone === 'quiet' && styles.quiet]}>{breadcrumb.toUpperCase()}</Text>
           ) : null}
         </View>
       )}
@@ -146,6 +150,7 @@ const styles = StyleSheet.create({
   meta: { ...afType.micro, color: af.textSecondary, textAlign: 'right' },
   breadcrumbRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
   breadcrumb: { ...afType.eyebrow, color: af.redText, flexShrink: 1 },
+  quiet: { color: af.textSecondary },
   backBtn: {
     width: 36,
     height: 36,
