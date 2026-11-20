@@ -129,8 +129,8 @@ export function AFTextButton({ label, onPress, disabled, icon, style, testID }: 
       pressedStyle={styles.textPressed}
     >
       <View style={styles.content}>
-        {icon && <Icon name={icon} size={14} color={disabled ? af.textDisabled : af.redText} />}
-        <Text style={[afType.bodyStrong, { color: disabled ? af.textDisabled : af.redText }]}>{label}</Text>
+        {icon && <Icon name={icon} size={14} color={disabled ? af.textDisabled : af.textPrimary} />}
+        <Text style={[afType.bodyStrong, { color: disabled ? af.textDisabled : af.textPrimary }]}>{label}</Text>
       </View>
     </AFMotionPressable>
   );

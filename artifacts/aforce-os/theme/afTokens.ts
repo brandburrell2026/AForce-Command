@@ -138,18 +138,19 @@ export const af = {
 
 // ─── Typography (spec §3.2) ──────────────────────────────────────────────────
 // Ready-to-spread RN text-style fragments (family + size + line height, plus
-// tracking where the spec calls for it). Black Issue (D2): every statement
-// and numeral is Inter 700, sentence case, tightly tracked — the Editorial OS
-// display ruling. Archivo Black stays loaded for the brand mark only; mono is
+// tracking where the spec calls for it). App prototype style (founder,
+// 2026-11-20): statements are Inter 600, the hero numeral is Inter 300, both
+// sentence case and tightly tracked. This supersedes the Black Issue (D2)
+// Inter 700 ruling for these roles. Archivo Black stays loaded for the brand mark only; mono is
 // reserved for furniture (eyebrow / micro) and live data.
 export const afType = {
   // Hero numeral (69 / 72 / 82). Tabular lining figures via fontVariant at the
   // call site keep digits from jittering as values change.
-  displayScore: { fontFamily: Typography.fonts.bold, fontSize: 84, lineHeight: 84, letterSpacing: -3.4 },
-  displayHero: { fontFamily: Typography.fonts.bold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
-  title1: { fontFamily: Typography.fonts.bold, fontSize: 34, lineHeight: 38, letterSpacing: -0.7 },
-  title2: { fontFamily: Typography.fonts.bold, fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
-  title3: { fontFamily: Typography.fonts.bold, fontSize: 21, lineHeight: 27, letterSpacing: -0.35 },
+  displayScore: { fontFamily: 'Inter_300Light', fontSize: 84, lineHeight: 84, letterSpacing: -3.4 },
+  displayHero: { fontFamily: Typography.fonts.semibold, fontSize: 44, lineHeight: 48, letterSpacing: -0.9 },
+  title1: { fontFamily: Typography.fonts.semibold, fontSize: 34, lineHeight: 38, letterSpacing: -0.7 },
+  title2: { fontFamily: Typography.fonts.semibold, fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
+  title3: { fontFamily: Typography.fonts.semibold, fontSize: 21, lineHeight: 27, letterSpacing: -0.35 },
   body: { fontFamily: Typography.fonts.regular, fontSize: 17, lineHeight: 24 },
   bodyStrong: { fontFamily: Typography.fonts.semibold, fontSize: 17, lineHeight: 24 },
   secondary: { fontFamily: Typography.fonts.regular, fontSize: 15, lineHeight: 21 },
@@ -181,9 +182,9 @@ export const afLayout = {
   sectionGap: Spacing[8], //              32 — gap between sections
   buttonHeight: 52, //                    primary button height (44pt floor + margin)
   controlMinHeight: 44, //                minimum touch target (iOS)
-  radiusCard: Radii.md, //                12 — standard card radius (Black Issue)
-  radiusHero: 14, //                      hero / sheet radius
-  radiusButton: 10, //                    button radius
+  radiusCard: 20, //                      card radius: the app's rounder card (was 12)
+  radiusHero: 24, //                      hero / sheet radius (was 14)
+  radiusButton: 26, //                    button radius: a pill at buttonHeight 52 (was 10)
   radiusPill: Radii.full, //              9999 — compact filters / statuses only
   hairline: 1, //                         1pt borders
   maxContentWidth: 640, //                tablet operational column max width

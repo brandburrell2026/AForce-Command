@@ -17,14 +17,15 @@ export interface AFSectionLabelProps {
   action?: { label: string; onPress: () => void };
   /** Right-aligned mono metadata (already formatted; rendered uppercase). */
   meta?: string;
-  /** 'red' (default) = section header; 'quiet' = grey metadata eyebrow. */
+  /** 'quiet' (default) = grey mono eyebrow, the app's look; 'red' = the
+   *  earlier Black Issue header, opt-in only. */
   tone?: 'red' | 'quiet';
   /** Hairline under the row. Default true. */
   rule?: boolean;
   testID?: string;
 }
 
-export function AFSectionLabel({ label, action, meta, tone = 'red', rule = true, testID }: AFSectionLabelProps) {
+export function AFSectionLabel({ label, action, meta, tone = 'quiet', rule = true, testID }: AFSectionLabelProps) {
   const eyebrowType = useAFEyebrowType();
   return (
     <View style={[styles.row, rule && styles.ruled]} testID={testID}>
@@ -62,7 +63,7 @@ const styles = StyleSheet.create({
   ruled: { paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: af.divider },
   label: { ...afType.eyebrow },
   labelRed: { color: af.redText },
-  labelQuiet: { color: af.textTertiary },
+  labelQuiet: { color: af.textSecondary },
   meta: { ...afType.eyebrow, color: af.textTertiary },
-  action: { ...afType.eyebrow, color: af.redText },
+  action: { ...afType.eyebrow, color: af.textPrimary },
 });

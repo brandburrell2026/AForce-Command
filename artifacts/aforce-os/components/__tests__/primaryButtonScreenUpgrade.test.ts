@@ -41,7 +41,6 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   'components/concierge/conciergeKit.tsx': { count: 1, why: 'concierge avatar' },
   // Selected states — not primary buttons. Reviewed with the segmented-control
   // step (gap report V9), not here.
-  'components/ui/AFSegmentedControl.tsx': { count: 1, why: 'selected pill (V9)' },
   'components/journal/JournalRangePicker.tsx': { count: 1, why: 'selected range (V9)' },
   'components/moments/MomentPrepPrefsCard.tsx': { count: 1, why: 'selected pill (V9)' },
   'components/moments/AddMomentSheet.tsx': { count: 1, why: 'selected pill (V9)' },
