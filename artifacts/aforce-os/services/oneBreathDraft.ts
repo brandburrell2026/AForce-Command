@@ -5,6 +5,9 @@ import type { MomentDraft } from './momentDraft';
 const GOALS: ReadonlyArray<{ pattern: RegExp; goal: string }> = [
   { pattern: /[,;]?\s*(?:and\s+)?(?:i\s+)?(?:want|need|wanna)\s+(?:my\s+)?legs\s+(?:to\s+(?:be|feel)\s+)?fresh\b/i, goal: 'Legs fresh' },
   { pattern: /[,;]?\s*(?:and\s+)?(?:i\s+)?(?:want|need|wanna)\s+fresh\s+legs\b/i, goal: 'Legs fresh' },
+  // The approved prototype's own phrasings (CB1, CB2): "legs need to be fresh", ", legs fresh".
+  { pattern: /[,;]?\s*(?:and\s+)?(?:my\s+)?legs\s+(?:need|have)\s+to\s+(?:be|feel)\s+fresh\b/i, goal: 'Legs fresh' },
+  { pattern: /[,;]\s*legs\s+fresh\b/i, goal: 'Legs fresh' },
   { pattern: /[,;]?\s*(?:and\s+|to\s+)?(?:i\s+)?(?:want\s+to\s+|wanna\s+)?build\s+strength\b/i, goal: 'Build strength' },
 ];
 
