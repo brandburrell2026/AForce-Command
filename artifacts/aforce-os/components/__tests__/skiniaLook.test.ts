@@ -13,7 +13,8 @@ const capture = read('SkinIACameraCaptureScreen.tsx');
 describe('SkinIA looks like the rest of the app', () => {
   it('no red kickers, wordmark or framing', () => {
     expect(intro).not.toContain('edAccent.red');
-    expect(capture).not.toMatch(/af\.redText(?![^\n]*pillDot)/);
+    // The only red left on the capture screen is the live indicator's dot.
+    expect(capture.match(/af\.red(Text)?\b/g)).toHaveLength(1);
     expect(capture.match(/<AFMasthead/g)!.length).toBe(capture.match(/tone="quiet"/g)!.length);
   });
 
