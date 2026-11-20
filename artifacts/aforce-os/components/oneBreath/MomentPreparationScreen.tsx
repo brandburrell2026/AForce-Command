@@ -114,6 +114,8 @@ import {
   type WindowState,
 } from "@/utils/oneBreath/confirmationWindow";
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
+import { screenAnswer, type ScreenAnswer } from "@/utils/oneBreath/screenAnswer";
+import { OneBreathStatusAnswer } from "./OneBreathStatusAnswer";
 import {
   LOCK_IN_NOT_YET,
   lockInOpensInMs,
@@ -207,6 +209,8 @@ export function MomentPreparationScreen({
   const [reservationReview, setReservationReview] = React.useState(false);
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
   const [review, setReview] = React.useState<Moment | null>(null);
+  // One Breath's answer to words that are not a plan (shown on the opening screen).
+  const [answer, setAnswer] = React.useState<ScreenAnswer | null>(null);
   // Lock In belongs to the Moment's start, not to sealing (One Breath Final
   // Build Spec). Personal One Breath only: the Social flow's Lock In also
   // opens Return, and narrowing that is a founder decision.
@@ -769,6 +773,25 @@ export function MomentPreparationScreen({
       move("change");
       return;
     }
+    // Not a plan: answer in place or go where it lives. A plan, and anything
+    // the rules are unsure of, falls through to Mirror exactly as before.
+    const reply = screenAnswer(words, {
+      social,
+      moments: store.moments,
+      nowMs: Date.now(),
+    });
+    if (reply) {
+      setWords("");
+      if (reply.kind === "open") {
+        setAnswer(null);
+        router.push(reply.route as never);
+      } else if (reply.kind === "moment") {
+        setAnswer(null);
+        router.replace({ pathname: "/one-breath", params: { momentId: reply.momentId } });
+      } else setAnswer(reply);
+      return;
+    }
+    setAnswer(null);
     const suggested = suggestMomentDraft(words);
     setDraft(suggested);
     setTimeQuestion(suggested.time ? null : suggestTimeQuestion(words));
@@ -1660,6 +1683,15 @@ export function MomentPreparationScreen({
                 onFocusWords={voice.cancel}
                 inputRef={wordsInput}
                 sendDisabled={!words.trim() || voice.busy || saving}
+                answer={
+                  answer?.kind === "status" ? (
+                    <OneBreathStatusAnswer social={social} />
+                  ) : answer?.kind === "text" ? (
+                    <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={s.answerText}>
+                      {answer.text}
+                    </Text>
+                  ) : undefined
+                }
                 onSend={reviewWords}
                 press={(action) => () => {
                   hapticSelection();
@@ -2651,6 +2683,12 @@ export function MomentPreparationScreen({
   );
 }
 const s = StyleSheet.create({
+  answerText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 16.5,
+    lineHeight: 24,
+    color: T.bone,
+  },
   root: { flex: 1, backgroundColor: T.ink },
   content: {
     paddingHorizontal: 28,
