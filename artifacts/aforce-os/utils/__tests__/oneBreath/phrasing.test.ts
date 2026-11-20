@@ -7,12 +7,13 @@
  *  - Real, always-on gates: the set is well formed, and no phrase ever causes
  *    an unintended or duplicate write, or a claim with no source. These pass
  *    today because the session does nothing, and must never stop passing.
- *  - Understanding: every phrase gets its expected request and outcome. That
- *    is `it.fails` until the interpreter slices land.
+ *  - Understanding: the rules interpreter names every tuning phrase as
+ *    expected. The held-out set is graded with a ceiling and never tuned on.
  *
  * Expectations are a draft for founder review. This is not device evidence.
  */
 import { describe, it, expect } from 'vitest';
+import { interpretByRules } from '@/services/oneBreath/rulesInterpreter';
 import { emptyOneBreathState, oneBreathTurn, type OneBreathTurn } from '@/utils/oneBreath/session';
 import { BASE_CONTEXT, duplicateWriteIds, writes } from './drive';
 import { PHRASING_SET, type Phrase } from './phrasingSet';
@@ -38,7 +39,10 @@ function grade(set: Phrase[]) {
     if (writes(t.effects).length > p.writes) unintended.push(p.id);
     if (duplicateWriteIds(t.effects).length > 0) duplicates.push(p.id);
     if ((t.reply.claims ?? []).some((c) => !c.source)) unsourced.push(p.id);
-    if (t.reply.request !== p.request || t.reply.outcome !== p.outcome) misunderstood.push(p.id);
+    const heard = interpretByRules(p.text, { social: p.social, momentInWindow: p.inWindow });
+    if (heard.request !== p.request || heard.outcome !== p.outcome) misunderstood.push(p.id);
+    // Understanding a request is never a write: only the session may ask for one.
+    if (heard.outcome === 'act' && p.writes === 0 && ['log_drink', 'lock_in', 'made_it_back'].includes(heard.request)) unintended.push(p.id);
   }
   return { unintended, duplicates, unsourced, misunderstood };
 }
@@ -80,10 +84,12 @@ describe('One Breath · phrasing set is well formed', () => {
 });
 
 describe.each([
-  ['tuning set', PHRASING_SET],
-  ['held-out set', PHRASING_HELD_OUT],
-])('One Breath · phrasing %s', (_name, set) => {
-  const result = grade(set);
+  ['tuning set', PHRASING_SET, 0],
+  // Graded only. The rules were written against the tuning set and never
+  // adjusted to these phrases; the ceiling only stops it getting worse.
+  ['held-out set', PHRASING_HELD_OUT, 3],
+] as const)('One Breath · phrasing %s', (_name, set, allowedMisses) => {
+  const result = grade([...set]);
 
   it('zero unintended writes or sends (blocks release)', () => {
     expect(result.unintended).toEqual([]);
@@ -97,7 +103,7 @@ describe.each([
     expect(result.unsourced).toEqual([]);
   });
 
-  it.fails('every request is understood as expected', () => {
-    expect(result.misunderstood).toEqual([]);
+  it(`the rules understand every request, give or take ${allowedMisses}`, () => {
+    expect(result.misunderstood.length).toBeLessThanOrEqual(allowedMisses);
   });
 });
