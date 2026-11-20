@@ -76,6 +76,7 @@ describe('accessibility', () => {
     const cta = q('[data-testid="sleep-primary-cta"]');
     expect(cta?.getAttribute('role')).toBe('button');
     expect(cta?.getAttribute('aria-label')).toBe('START PRE-SLEEP PROTOCOL');
+    expect(cta?.textContent).toBe('Start pre-sleep protocol');
   });
 
   it('checklist items are role=checkbox and signal completion color-independently (check icon)', () => {

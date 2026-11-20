@@ -79,13 +79,13 @@ const POSTURE_COLOR: Record<RecoveryPosture, string> = {
 
 // ─── Small primitives ────────────────────────────────────────────────────────
 
-/** Black Issue section: red mono eyebrow over a hairline, then the content. */
+/** A section: quiet mono eyebrow over a hairline, then the content. */
 function SectionBlock({
   label, meta, children, testID,
 }: { label: string; meta?: string; children: React.ReactNode; testID?: string }) {
   return (
     <View style={styles.section} testID={testID}>
-      <AFSectionLabel label={label} meta={meta} />
+      <AFSectionLabel label={label} meta={meta} tone="quiet" />
       <View style={styles.sectionBody}>{children}</View>
     </View>
   );
@@ -98,6 +98,12 @@ function SectionBlock({
  * load (same finding as the Cruise restyle, PR 3). The container fires the
  * haptic, so nothing is lost.
  */
+/** "START PRE-SLEEP PROTOCOL" → "Start pre-sleep protocol". The words are the
+ *  service's; only the lettering changes, as on the app's other buttons. */
+export function sentenceCase(label: string): string {
+  return label.length > 0 ? label[0]!.toUpperCase() + label.slice(1).toLowerCase() : label;
+}
+
 function CtaButton({
   label, onPress, testID,
 }: { label: string; onPress: () => void; testID: string }) {
@@ -109,7 +115,7 @@ function CtaButton({
       testID={testID}
       style={({ pressed }) => [styles.ctaBtn, pressed && styles.ctaBtnPressed]}
     >
-      <Text style={styles.ctaLabel}>{label}</Text>
+      <Text style={styles.ctaLabel}>{sentenceCase(label)}</Text>
     </Pressable>
   );
 }
@@ -217,7 +223,7 @@ export function SleepModeView({
 
       {/* 4 · Sleep target — the plan card (red eyebrow + the existing plan sentence) */}
       <AFCard style={styles.planCard} testID="sleep-target-card">
-        <AFSectionLabel label="Sleep target" rule={false} />
+        <AFSectionLabel label="Sleep target" rule={false} tone="quiet" />
         <Text style={styles.planSentence}>{target.countdownCopy}</Text>
         {editingTarget ? (
           <View style={styles.targetEditRow}>
@@ -234,7 +240,7 @@ export function SleepModeView({
               maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
             />
             <Pressable onPress={onSaveTarget} style={styles.saveBtn} accessibilityRole="button" accessibilityLabel="Save sleep target">
-              <Text style={[styles.saveBtnText, eyebrowType]}>SAVE</Text>
+              <Text style={styles.saveBtnText}>Save</Text>
             </Pressable>
           </View>
         ) : (
@@ -247,7 +253,7 @@ export function SleepModeView({
             testID="sleep-target-edit"
           >
             <Text style={styles.targetTime} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>{target.timeLabel}</Text>
-            <View style={styles.editChip}><Text style={[styles.editChipText, eyebrowType]}>EDIT TARGET</Text></View>
+            <View style={styles.editChip}><Text style={styles.editChipText}>Edit target</Text></View>
           </Pressable>
         )}
         {/* timeline */}
@@ -286,9 +292,10 @@ export function SleepModeView({
             <Text style={styles.healthProvider}>{health.provider}</Text>
             <Text style={styles.healthFreshness}>{health.freshness}</Text>
           </View>
-          <View style={[styles.chip, { borderColor: CHIP_COLOR[health.chip] }]} accessible accessibilityLabel={`Status: ${health.chipLabel}`}>
+          {/* The status colour is the dot only; the pill and its words are neutral. */}
+          <View style={styles.chip} accessible accessibilityLabel={`Status: ${health.chipLabel}`}>
             <View style={[styles.chipDot, { backgroundColor: CHIP_COLOR[health.chip] }]} />
-            <Text style={[styles.chipText, { color: CHIP_COLOR[health.chip] }]}>{health.chipLabel}</Text>
+            <Text style={styles.chipText}>{health.chipLabel}</Text>
           </View>
         </View>
         <Pressable onPress={onHealthCta} style={styles.healthCta} accessibilityRole="button" accessibilityLabel={health.ctaLabel} testID="sleep-health-cta">
@@ -379,7 +386,7 @@ const styles = StyleSheet.create({
   stateEyebrow: { ...afType.micro, color: af.textTertiary },
   stateWord: { ...afType.eyebrow, color: af.textSecondary },
   track: { height: 4, borderRadius: 2, backgroundColor: af.divider, overflow: 'hidden', marginTop: 16 },
-  trackFill: { height: 4, borderRadius: 2, backgroundColor: af.red },
+  trackFill: { height: 4, borderRadius: 2, backgroundColor: af.textPrimary },
 
   // Metric row
   metricRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 28, rowGap: 16, marginTop: 12, padding: 18, borderRadius: CARD_RADIUS, borderWidth: 1, borderColor: af.border, backgroundColor: af.surface },
@@ -396,12 +403,12 @@ const styles = StyleSheet.create({
   targetTime: { fontFamily: 'Inter_300Light', fontSize: 40, lineHeight: 44, letterSpacing: -1.2, color: af.textPrimary, fontVariant: ['tabular-nums'], flexShrink: 1 },
   targetInput: { flex: 1, fontFamily: 'Inter_300Light', fontSize: 40, lineHeight: 44, letterSpacing: -1.2, color: af.textPrimary, paddingVertical: 0 },
   editChip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, minHeight: 44, justifyContent: 'center' },
-  editChipText: { ...afType.eyebrow, color: af.textSecondary },
+  editChipText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: af.textPrimary },
   saveBtn: { paddingVertical: 10, paddingHorizontal: 18, borderRadius: afLayout.radiusPill, backgroundColor: af.primaryFill, minHeight: 44, justifyContent: 'center' },
-  saveBtnText: { ...afType.eyebrow, color: af.onPrimaryFill },
+  saveBtnText: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: af.onPrimaryFill },
   timeline: { gap: 6, marginTop: 4 },
   timelineTrack: { height: 4, borderRadius: 2, backgroundColor: af.divider, justifyContent: 'center' },
-  timelineFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: af.red },
+  timelineFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: af.textSecondary },
   timelineDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: af.textPrimary, marginLeft: -6, top: -4 },
   timelineLabels: { flexDirection: 'row', justifyContent: 'space-between', columnGap: 8 },
   timelineLabel: { ...afType.caption, color: af.textTertiary, flexShrink: 1 },
@@ -429,9 +436,9 @@ const styles = StyleSheet.create({
   healthLeft: { flex: 1, gap: 2 },
   healthProvider: { ...afType.bodyStrong, color: af.textPrimary },
   healthFreshness: { ...afType.caption, color: af.textTertiary },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: afLayout.radiusPill, borderWidth: 1, flexShrink: 1 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 10, borderRadius: afLayout.radiusPill, borderWidth: 1, borderColor: af.border, flexShrink: 1 },
   chipDot: { width: 6, height: 6, borderRadius: 3 },
-  chipText: { ...afType.caption, fontSize: 12, flexShrink: 1 },
+  chipText: { ...afType.caption, fontSize: 12, color: af.textSecondary, flexShrink: 1 },
   healthCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, borderTopWidth: 1, borderTopColor: af.divider },
   healthCtaText: { ...afType.secondary, color: af.textSecondary },
 
@@ -450,7 +457,7 @@ const styles = StyleSheet.create({
   lifecycle: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, marginTop: 24 },
   lifecycleItem: { alignItems: 'center', gap: 6, flex: 1 },
   lifecycleDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: af.border },
-  lifecycleDotActive: { backgroundColor: af.red, width: 10, height: 10, borderRadius: 5 },
+  lifecycleDotActive: { backgroundColor: af.textPrimary, width: 10, height: 10, borderRadius: 5 },
   lifecycleDotDone: { backgroundColor: af.textTertiary },
   lifecycleLabel: { ...afType.micro, color: af.textTertiary, textAlign: 'center' },
   lifecycleLabelActive: { color: af.textPrimary },

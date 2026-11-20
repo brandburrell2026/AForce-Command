@@ -33,7 +33,6 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   'components/editorial/instruments.tsx': { count: 1, why: 'timeline node' },
   'components/editorial/home/EditorialHomeScreen.tsx': { count: 2, why: 'readiness fill and focus rail' },
   'components/editorial/protocol/EdCanonicalClock.tsx': { count: 1, why: 'clock fill' },
-  'components/sleep/SleepModeView.tsx': { count: 3, why: 'track fill, timeline fill, lifecycle dot' },
   'components/protocol/ProtocolScreenV2.tsx': { count: 2, why: 'progress fills' },
   'components/community/CircleMembersPanel.tsx': { count: 1, why: 'pending dot' },
   'components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx': { count: 1, why: '3pt rule' },
