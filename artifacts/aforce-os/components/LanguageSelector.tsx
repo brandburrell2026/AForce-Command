@@ -18,6 +18,7 @@ import {
   type SupportedLanguage,
 } from '@/services/i18nService';
 import { useAppStore } from '@/store/useAppStore';
+import { af } from '@/theme';
 
 interface LanguageSelectorProps {
   /** Persists the chosen language to the server (via the store). */
@@ -73,6 +74,7 @@ export function LanguageSelector({ onPersist }: LanguageSelectorProps) {
               key={opt.id}
               accessibilityRole="button"
               accessibilityLabel={`${t('profile.language')}: ${opt.label}`}
+              accessibilityState={{ selected: isCurrent }}
               onPress={() => pick(opt)}
               style={[
                 styles.row,
@@ -96,9 +98,10 @@ export function LanguageSelector({ onPersist }: LanguageSelectorProps) {
 const styles = StyleSheet.create({
   wrap: { paddingVertical: 12 },
   title: {
-    color: '#cdd0d6',
-    fontSize: 13,
-    letterSpacing: 0.6,
+    fontFamily: 'IBMPlexMono_400Regular',
+    color: af.textSecondary,
+    fontSize: 11,
+    letterSpacing: 1.6,
     textTransform: 'uppercase',
     marginBottom: 10,
   },
@@ -107,21 +110,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    minHeight: 48,
+    paddingVertical: 12,
     paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 14,
+    backgroundColor: af.canvasElevated,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: af.divider,
   },
-  rowActive: {
-    backgroundColor: 'rgba(120,180,255,0.12)',
-    borderColor: 'rgba(120,180,255,0.45)',
-  },
+  // Selected is a warm-white edge and a check, never a colour.
+  rowActive: { borderColor: af.textPrimary },
   rowPending: { opacity: 0.6 },
-  rowLabel: { color: '#e7e9ee', fontSize: 16, fontWeight: '500' },
-  rowLabelActive: { color: '#9ec8ff' },
-  rowCheck: { color: '#9ec8ff', fontSize: 18, fontWeight: '700' },
-  statusOk: { marginTop: 10, color: '#7ad08a', fontSize: 13 },
-  statusBad: { marginTop: 10, color: '#e07b7b', fontSize: 13 },
+  rowLabel: { fontFamily: 'Inter_400Regular', color: af.textPrimary, fontSize: 16 },
+  rowLabelActive: { fontFamily: 'Inter_500Medium' },
+  rowCheck: { color: af.textPrimary, fontSize: 18 },
+  statusOk: { marginTop: 10, color: af.textSecondary, fontSize: 13 },
+  statusBad: { marginTop: 10, color: af.redText, fontSize: 13 },
 });

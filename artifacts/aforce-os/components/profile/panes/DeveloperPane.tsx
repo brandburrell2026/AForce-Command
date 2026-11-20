@@ -152,13 +152,13 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
       <View style={styles.card}>
         <Pressable
           onPress={() => setFeatureFlags(allOn ? resolveInitialFeatureFlags(DEFAULT_FLAGS) : demoUnlockPayload)}
-          style={[styles.demoMaster, { borderColor: allOn ? af.green : af.border }]}
+          style={[styles.demoMaster, allOn && styles.demoMasterOn]}
           accessibilityRole="button"
           accessibilityState={{ selected: allOn }}
           accessibilityLabel={allOn ? t('profile.v2.lock_all') : t('profile.v2.unlock_all')}
         >
-          <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? af.green : af.textSecondary} />
-          <Text style={[styles.demoMasterText, { color: allOn ? af.green : af.textPrimary }]}>
+          <Icon name={allOn ? 'eye-off' : 'eye'} size={14} color={allOn ? af.onPrimaryFill : af.textSecondary} />
+          <Text style={[styles.demoMasterText, allOn && styles.demoMasterTextOn]}>
             {allOn ? t('profile.v2.lock_all') : t('profile.v2.unlock_all')}
           </Text>
         </Pressable>
@@ -172,10 +172,10 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
               setFeatureFlags({ ...flags, spec_recoveryCoach: true });
               router.push('/recovery-coach');
             }}
-            style={[styles.demoMaster, { borderColor: af.red, marginTop: 10 }]}
+            style={[styles.demoMaster, { marginTop: 10 }]}
           >
-            <Icon name="activity" size={14} color={af.red} />
-            <Text style={[styles.demoMasterText, { color: af.redText }]}>
+            <Icon name="activity" size={14} color={af.textSecondary} />
+            <Text style={styles.demoMasterText}>
               {t('profile.v2.preview_recovery_coach')}
             </Text>
           </Pressable>
@@ -238,14 +238,12 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           accessibilityLabel={t('profile.demo_modes.activate_social')}
           style={[
             styles.demoMaster,
-            {
-              borderColor: socialActive ? '#9D7CFB' : af.border,
-              opacity: demoBusy && demoBusy !== 'social' ? 0.5 : 1,
-            },
+            socialActive && styles.demoMasterOn,
+            { opacity: demoBusy && demoBusy !== 'social' ? 0.5 : 1 },
           ]}
         >
-          <Icon name="moon" size={14} color={socialActive ? '#9D7CFB' : af.textSecondary} />
-          <Text style={[styles.demoMasterText, { color: socialActive ? '#9D7CFB' : af.textPrimary }]}>
+          <Icon name="moon" size={14} color={socialActive ? af.onPrimaryFill : af.textSecondary} />
+          <Text style={[styles.demoMasterText, socialActive && styles.demoMasterTextOn]}>
             {demoBusy === 'social'
               ? t('profile.demo_modes.activating_social')
               : socialActive
@@ -261,14 +259,12 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           accessibilityLabel={t('profile.demo_modes.enter_recovery')}
           style={[
             styles.demoMaster,
-            {
-              borderColor: inRecovery ? af.amber : af.border,
-              opacity: demoBusy && demoBusy !== 'recovery' ? 0.5 : 1,
-            },
+            inRecovery && styles.demoMasterOn,
+            { opacity: demoBusy && demoBusy !== 'recovery' ? 0.5 : 1 },
           ]}
         >
-          <Icon name="sun" size={14} color={inRecovery ? af.amber : af.textSecondary} />
-          <Text style={[styles.demoMasterText, { color: inRecovery ? af.amber : af.textPrimary }]}>
+          <Icon name="sun" size={14} color={inRecovery ? af.onPrimaryFill : af.textSecondary} />
+          <Text style={[styles.demoMasterText, inRecovery && styles.demoMasterTextOn]}>
             {demoBusy === 'recovery'
               ? t('profile.demo_modes.entering_recovery')
               : inRecovery
@@ -331,8 +327,9 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           <Switch
             value={devMode}
             onValueChange={(v) => { void setDevMode(v); }}
-            trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#C1281B' }}
-            thumbColor={Platform.OS === 'android' ? '#0a0014' : undefined}
+            trackColor={{ false: af.surfacePressed, true: af.textPrimary }}
+            thumbColor={devMode ? af.canvas : af.textPrimary}
+            ios_backgroundColor={af.surfacePressed}
             accessibilityLabel={t('profile.v2.developer_mode_a11y')}
           />
         </View>
