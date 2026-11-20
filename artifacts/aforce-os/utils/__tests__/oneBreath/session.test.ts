@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 import { ONE_BREATH_LINES } from '@/utils/oneBreath/session';
 import { PHRASING_SET } from './phrasingSet';
-import { run, say, scan, tap, wait, writes } from './drive';
+import { interrupt, run, say, scan, tap, wait, writes } from './drive';
 
 describe('One Breath session · built so far', () => {
   it('keeps the member\'s words even when nothing can be reached', () => {
@@ -25,6 +25,14 @@ describe('One Breath session · built so far', () => {
       expect(turn.reply.outcome).toBe('not_active');
       expect(turn.effects).toEqual([]);
     });
+  });
+
+  it('Quiet begins at Lock In and nowhere else', () => {
+    const sealed = run([say('Lift tomorrow at 6:30 AM'), say('seal it')]);
+    expect(sealed.turns.every((t) => t.status !== 'quiet')).toBe(true);
+    const locked = run([say('Lock me in')], { momentInWindow: true, currentMomentId: 'm1' });
+    expect(locked.last.status).toBe('quiet');
+    expect(run([say('Lock me in')], { momentInWindow: false }).last.status).not.toBe('quiet');
   });
 
   it('Lock In is keyed to the Moment, so a repeat can only be carried out once', () => {
@@ -115,36 +123,75 @@ describe('One Breath session · planning a Moment', () => {
 });
 
 describe('One Breath session · drinks', () => {
-  it('logs a clear drink once, repeats the rules\' credit note, and opens a 6-second Undo', () => {
-    const r = run([say('Log a 12 oz coffee')]);
+  const WATER = 'Had 16 ounces of water';
+
+  it('holds a clear drink for six seconds and writes nothing until then', () => {
+    const r = run([say('Log a 12 oz coffee'), wait(5999)]);
+    expect(r.effects).toEqual([]);
+    expect(r.turns[0].reply.text).toBe('12 oz coffee. Logging in 6 seconds.');
+    expect(r.turns[0].reply.undo).toEqual({ reverses: '12 oz coffee', ms: 6000 });
+    expect(r.last.state.pendingDrink?.msLeft).toBe(1);
+  });
+
+  it('commits once when the window ends, and says "Logged" only then', () => {
+    const r = run([say('Log a 12 oz coffee'), wait(3000), wait(3000), wait(6000), wait(6000)]);
     expect(r.of('log_drink')).toEqual([{ kind: 'log_drink', id: 'drink:0:coffee:12', categoryId: 'coffee', name: 'coffee', oz: 12 }]);
-    expect(r.last.reply.text).toBe('Logged 12 oz coffee. Partial credit pending.');
-    expect(r.last.reply.undo).toEqual({ reverses: 'Logged 12 oz coffee', ms: 6000 });
+    expect(r.turns[0].reply.text).not.toMatch(/^Logged/);
+    expect(r.turns[2].reply.text).toBe('Logged 12 oz coffee. Partial credit pending.');
+    expect(r.last.state.pendingDrink).toBeUndefined();
   });
 
   it('says nothing about credit when the hydration rules say nothing', () => {
-    const r = run([say('Log a 12 oz coffee')], { creditNote: undefined });
+    const r = run([say('Log a 12 oz coffee'), wait(6000)], { creditNote: undefined });
     expect(r.last.reply.text).toBe('Logged 12 oz coffee.');
   });
 
-  it('Undo inside the window asks for that one log to be reversed; after it, Undo does nothing', () => {
-    const inside = run([say('Had 16 ounces of water'), wait(3000), tap('undo')]);
-    expect(inside.of('undo_drink')).toEqual([{ kind: 'undo_drink', id: 'undo:drink:0:water:16', of: 'drink:0:water:16' }]);
-    expect(inside.last.reply.outcome).toBe('undone');
-    const late = run([say('Had 16 ounces of water'), wait(6000), tap('undo')]);
-    expect(late.of('undo_drink')).toEqual([]);
-    expect(run([say('Had 16 ounces of water'), tap('undo'), tap('undo')]).of('undo_drink')).toHaveLength(1);
+  it('Undo, tapped or spoken, drops the pending drink: nothing is ever written', () => {
+    for (const undo of [tap('undo'), say('undo'), say('Undo that')]) {
+      const r = run([say(WATER), wait(3000), undo, wait(6000), wait(6000)]);
+      expect(r.effects).toEqual([]);
+      expect(r.turns[2].reply.outcome).toBe('undone');
+      expect(r.turns[2].reply.text).toBe(ONE_BREATH_LINES.notLogged);
+    }
   });
 
-  it('two separate drinks are two logs with different ids', () => {
-    const r = run([say('Had 16 ounces of water'), say('Had 16 ounces of water')]);
+  it('after the window, Undo does nothing and the log stands once', () => {
+    const r = run([say(WATER), wait(6000), tap('undo'), tap('undo')]);
+    expect(r.of('log_drink')).toHaveLength(1);
+    expect(r.last.reply.outcome).not.toBe('undone');
+  });
+
+  it('if the screen closes or the app backgrounds mid-window, the drink is committed once, not lost', () => {
+    const r = run([say(WATER), wait(2000), interrupt(), interrupt(), wait(6000)]);
+    expect(r.of('log_drink')).toHaveLength(1);
+    expect(r.turns[2].reply.text).toBe('Logged 16 oz water.');
+  });
+
+  it('an interruption after Undo commits nothing', () => {
+    expect(run([say(WATER), tap('undo'), interrupt(), wait(6000)]).effects).toEqual([]);
+  });
+
+  it('moving on to something else commits the pending drink first, once', () => {
+    const r = run([say(WATER), say('How am I doing?'), wait(6000)]);
+    expect(r.of('log_drink')).toHaveLength(1);
+    expect(r.turns[1].effects.map((e) => e.kind)).toEqual(['log_drink']);
+    expect(r.turns[1].reply.request).toBe('status');
+  });
+
+  it('two separate drinks are two logs with different ids, even back to back', () => {
+    const r = run([say(WATER), say(WATER), wait(6000)]);
     expect(r.of('log_drink').map((e) => e.id)).toEqual(['drink:0:water:16', 'drink:1:water:16']);
   });
 
+  it('tapping Log again while a drink is pending adds nothing', () => {
+    const r = run([scan('0012345000019', { name: 'Water', categoryId: 'water', packageOz: 8.5 }), tap('log'), tap('log'), tap('log'), wait(6000)]);
+    expect(r.of('log_drink')).toHaveLength(1);
+  });
+
   it('takes the category from the app\'s drink catalog and never picks between two', () => {
-    expect(run([say('Had a 16 oz LMNT')]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte', name: 'LMNT' });
-    expect(run([say('drank 12 oz of Pedialyte')]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte' });
-    expect(run([say('had a 16 oz Monster')]).of('log_drink')[0]).toMatchObject({ categoryId: 'energy_drink' });
+    expect(run([say('Had a 16 oz LMNT'), wait(6000)]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte', name: 'LMNT' });
+    expect(run([say('drank 12 oz of Pedialyte'), wait(6000)]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte' });
+    expect(run([say('had a 16 oz Monster'), wait(6000)]).of('log_drink')[0]).toMatchObject({ categoryId: 'energy_drink' });
   });
 
   it('a drink the catalog does not list is asked about, not filed somewhere', () => {
@@ -154,7 +201,7 @@ describe('One Breath session · drinks', () => {
   });
 
   it('reads amounts in ounces, millilitres, litres and cups, and refuses unclear ones', () => {
-    const oz = (words: string) => run([say(words)]).of('log_drink')[0]?.oz;
+    const oz = (words: string) => run([say(words), wait(6000)]).of('log_drink')[0]?.oz;
     expect(oz('add a 16.9 oz bottle of water')).toBe(16.9);
     expect(oz('log 500 ml of water')).toBe(16.9);
     expect(oz('i drank 1 liter of water')).toBe(33.8);
@@ -223,18 +270,27 @@ describe('One Breath session · read-only requests', () => {
 const DIRECT_LOG_FLOOR = 43;
 
 describe('One Breath session · for every written request', () => {
-  it('a single utterance never writes more than its phrase allows, and only a drink log or Lock In', () => {
+  it('a single utterance alone writes nothing except Lock In inside its window', () => {
     for (const p of PHRASING_SET) {
       const r = run([say(p.text)], { social: p.social, momentInWindow: p.inWindow });
+      const w = writes(r.effects);
+      if (p.request === 'lock_in' && p.inWindow) expect(w.map((e) => e.kind), p.id).toEqual(['lock_in']);
+      else expect(w, `${p.id} ${p.text}`).toEqual([]);
+    }
+  });
+
+  it('after its Undo window, an utterance has written no more than its phrase allows', () => {
+    for (const p of PHRASING_SET) {
+      const r = run([say(p.text), wait(6000)], { social: p.social, momentInWindow: p.inWindow });
       const w = writes(r.effects);
       expect(w.length, `${p.id} ${p.text}`).toBeLessThanOrEqual(p.writes);
       for (const e of w) expect(['log_drink', 'lock_in'], p.id).toContain(e.kind);
     }
   });
 
-  it('most clear drink phrases log directly; the rest ask instead of guessing', () => {
+  it('most clear drink phrases log without a question; the rest ask instead of guessing', () => {
     const clear = PHRASING_SET.filter((p) => p.request === 'log_drink' && p.outcome === 'act');
-    const logged = clear.filter((p) => run([say(p.text)]).of('log_drink').length === 1);
+    const logged = clear.filter((p) => run([say(p.text), wait(6000)]).of('log_drink').length === 1);
     const asked = clear.filter((p) => run([say(p.text)]).last.reply.outcome === 'ask');
     expect(logged.length + asked.length).toBe(clear.length);
     expect(logged.length).toBeGreaterThanOrEqual(DIRECT_LOG_FLOOR);

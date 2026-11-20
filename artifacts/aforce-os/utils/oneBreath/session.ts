@@ -77,7 +77,9 @@ export type OneBreathInput =
   /** A barcode read in HydroScan. `product` is absent when it is not recognized. */
   | { kind: 'scan'; barcode: string; product?: { name: string; categoryId: string; packageOz?: number } }
   /** Time passing, for Undo and outbox windows. */
-  | { kind: 'wait'; ms: number };
+  | { kind: 'wait'; ms: number }
+  /** The screen closed, the app went to the background, or the session was cut off. */
+  | { kind: 'interrupt' };
 
 export interface OneBreathContext {
   nowIso: string;
@@ -126,9 +128,7 @@ export type OneBreathEffect =
   | { kind: 'save_moment'; id: string; plan: PlanDraft }
   | { kind: 'undo_moment'; id: string; of: string }
   | { kind: 'log_drink'; id: string; categoryId: string; name?: string; oz: number }
-  | { kind: 'undo_drink'; id: string; of: string }
   | { kind: 'lock_in'; id: string }
-  | { kind: 'enter_quiet'; id: string; untilIso?: string }
   | { kind: 'send_message'; id: string; to: string; text: string }
   | { kind: 'share_plan'; id: string; to: string; fields: string[] }
   | { kind: 'made_it_back'; id: string }
@@ -162,8 +162,12 @@ export interface OneBreathState {
   scanned?: { barcode: string; name?: string; categoryId?: string; oz?: number };
   /** A drink named without an amount: the one question is "How much?". */
   askingDrink?: NamedDrink;
-  /** The last drink logged, while its Undo is still open. */
-  lastDrink?: { id: string; label: string; msLeft: number };
+  /**
+   * A drink the member asked to log, held for its Undo window. Nothing has been
+   * written yet. It is committed once when the window ends, and dropped if the
+   * member undoes it (founder decision, 2026-11-20).
+   */
+  pendingDrink?: { id: string; categoryId: string; name: string; oz: number; label: string; msLeft: number };
   /** Drinks logged this session. Part of each log's id, so one action is one log. */
   logged: number;
   /** The words of every turn, kept when the interpreter is unreachable. */
@@ -213,9 +217,10 @@ export function screenNamed(words: string): string | null {
 
 /** Member-facing lines. From the approved prototype and the spec; wording is for Julius to review before any screen shows it. */
 export const ONE_BREATH_LINES = {
+  // The spec's line also offers "message your Circle". It is left out until messaging is built: the line must not promise it.
   limit:
-    "I don\u2019t have a reviewed answer for that, so I won\u2019t guess. I can plan a Moment, log a drink, check your HydroState, message your Circle, or start Lock In.",
-  unavailable: "I couldn\u2019t reach AFORCE. Your words are kept and nothing was saved. Try again, or type it.",
+    "I don\u2019t have a reviewed answer for that, so I won\u2019t guess. I can plan a Moment, log a drink, check your HydroState, or start Lock In.",
+  unavailable: "I couldn\u2019t reach AFORCE. Your words are kept. Nothing was saved. Try again, or type it.",
   lockInNotActive: "No Moment is starting right now. Lock In opens when your next Moment begins. Want to plan one?",
   lockInStarted: "Locked in.",
   lockInAlready: "Already locked in. Nothing changed.",
@@ -224,9 +229,9 @@ export const ONE_BREATH_LINES = {
   askTime: "What time?",
   askDay: "What day?",
   askChange: "What should change: the day or the time?",
-  noPlan: "There\u2019s no plan waiting to be sealed.",
+  noPlan: "No plan is waiting.",
   alreadySealed: "Already sealed. Nothing changed.",
-  stillWaiting: "Nothing saved. Your plan is still waiting for you to seal it.",
+  stillWaiting: "Nothing saved. Your plan is waiting.",
   statusUnavailable: "I can\u2019t read your HydroState right now, so I won\u2019t guess it.",
   upcomingUnavailable: "I can\u2019t read your Moments right now.",
   upcomingNone: "Nothing is planned yet.",
@@ -236,28 +241,53 @@ export const ONE_BREATH_LINES = {
   logIt: "Log it?",
   unknownBarcode: "I don\u2019t know this product yet. I won\u2019t guess what it is. Pick what kind of drink it is, or type it.",
   nothingLogged: "Nothing is logged.",
-  undoGone: "That can\u2019t be undone here any more.",
+  notLogged: "Not logged.",
   alcoholNotCounted:
     "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
 } as const;
 
 const drinkLabel = (oz: number, name: string) => `${oz} oz ${name}`;
 
-/** Asks the hydration path to log one drink, once, and opens its Undo. Credit is the owner's to state. */
-function logDrink(state: OneBreathState, drink: NamedDrink, oz: number, context: OneBreathContext): OneBreathTurn {
-  const id = `drink:${state.logged}:${drink.categoryId}:${oz}`;
-  const label = drinkLabel(oz, drink.name);
-  const note = context.creditNote?.(drink.categoryId) ?? '';
+/**
+ * Commits the pending drink: the one and only request to the hydration path
+ * for it. Credit is the owner's to state; One Breath repeats its note.
+ */
+function commitDrink(state: OneBreathState, context: OneBreathContext): OneBreathTurn {
+  const d = state.pendingDrink!;
+  const note = context.creditNote?.(d.categoryId) ?? '';
   return {
-    state: { ...state, logged: state.logged + 1, scanned: undefined, askingDrink: undefined, lastDrink: { id, label, msLeft: ONE_BREATH_DRINK_UNDO_MS } },
+    state: { ...state, pendingDrink: undefined },
+    status: 'responding',
+    reply: { outcome: 'act', request: 'log_drink', text: `Logged ${d.label}.${note ? ` ${note}` : ''}` },
+    effects: [{ kind: 'log_drink', id: d.id, categoryId: d.categoryId, name: d.name, oz: d.oz }],
+  };
+}
+
+/**
+ * Holds a drink for its Undo window. Nothing is written here. If another drink
+ * is already pending, that one is committed first so it is never lost.
+ */
+function holdDrink(state: OneBreathState, drink: NamedDrink, oz: number, context: OneBreathContext): OneBreathTurn {
+  const flushed = state.pendingDrink ? commitDrink(state, context) : null;
+  const base = flushed ? flushed.state : state;
+  const id = `drink:${base.logged}:${drink.categoryId}:${oz}`;
+  const label = drinkLabel(oz, drink.name);
+  return {
+    state: {
+      ...base,
+      logged: base.logged + 1,
+      scanned: undefined,
+      askingDrink: undefined,
+      pendingDrink: { id, categoryId: drink.categoryId, name: drink.name, oz, label, msLeft: ONE_BREATH_DRINK_UNDO_MS },
+    },
     status: 'responding',
     reply: {
       outcome: 'act',
       request: 'log_drink',
-      text: `Logged ${label}.${note ? ` ${note}` : ''}`,
-      undo: { reverses: `Logged ${label}`, ms: ONE_BREATH_DRINK_UNDO_MS },
+      text: `${label}. Logging in ${ONE_BREATH_DRINK_UNDO_MS / 1000} seconds.`,
+      undo: { reverses: label, ms: ONE_BREATH_DRINK_UNDO_MS },
     },
-    effects: [{ kind: 'log_drink', id, categoryId: drink.categoryId, name: drink.name, oz }],
+    effects: flushed ? flushed.effects : [],
   };
 }
 
@@ -273,9 +303,17 @@ function drinkControl(state: OneBreathState, input: Exclude<OneBreathInput, { ki
   });
 
   if (input.kind === 'wait') {
-    if (!state.lastDrink) return null;
-    const msLeft = state.lastDrink.msLeft - input.ms;
-    return reply('nothing', '', { ...state, lastDrink: msLeft > 0 ? { ...state.lastDrink, msLeft } : undefined });
+    if (!state.pendingDrink) return null;
+    const msLeft = state.pendingDrink.msLeft - input.ms;
+    // The window ended with no Undo: commit, once.
+    if (msLeft <= 0) return commitDrink(state, context);
+    return reply('nothing', '', { ...state, pendingDrink: { ...state.pendingDrink, msLeft } });
+  }
+
+  if (input.kind === 'interrupt') {
+    // Undo is out of reach once the screen is gone. The member's instruction
+    // stands, so the pending drink is committed now rather than lost or left waiting.
+    return state.pendingDrink ? commitDrink(state, context) : null;
   }
 
   if (input.kind === 'scan') {
@@ -288,6 +326,8 @@ function drinkControl(state: OneBreathState, input: Exclude<OneBreathInput, { ki
     return reply('ask', text, { ...state, scanned }, { question: ONE_BREATH_LINES.logIt, choices: ['Log it', 'Not now'] });
   }
 
+  if (input.kind !== 'tap') return null;
+
   if (input.control === 'close' && state.scanned) return reply('nothing', ONE_BREATH_LINES.nothingLogged, { ...state, scanned: undefined });
 
   if (input.control === 'log') {
@@ -295,12 +335,12 @@ function drinkControl(state: OneBreathState, input: Exclude<OneBreathInput, { ki
     // No scan waiting (a second tap lands here): nothing more to log.
     if (!sc) return reply('nothing', '', state);
     if (!sc.categoryId || !sc.name || !sc.oz) return reply('ask', ONE_BREATH_LINES.askAmount, state, { question: ONE_BREATH_LINES.askAmount });
-    return logDrink(state, { categoryId: sc.categoryId as NamedDrink['categoryId'], name: sc.name }, sc.oz, context);
+    return holdDrink(state, { categoryId: sc.categoryId as NamedDrink['categoryId'], name: sc.name }, sc.oz, context);
   }
 
-  if (input.control === 'undo' && state.lastDrink) {
-    const last = state.lastDrink;
-    return reply('undone', `Undone. ${last.label} was not logged.`, { ...state, lastDrink: undefined }, {}, [{ kind: 'undo_drink', id: `undo:${last.id}`, of: last.id }]);
+  if (input.control === 'undo' && state.pendingDrink) {
+    // Nothing was written, so there is nothing to reverse: the pending log is dropped.
+    return reply('undone', ONE_BREATH_LINES.notLogged, { ...state, pendingDrink: undefined });
   }
 
   return null;
@@ -322,8 +362,9 @@ const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): On
  * A plan is saved only by an explicit "seal it" on a complete read-back.
  * Read-only requests are answered from what the caller supplies: HydroState
  * and upcoming Moments are repeated with their source, never computed here,
- * and a screen is opened by key. A drink is logged when the member names it
- * with a clear amount, or taps "Log it" after a scan; the category comes from
+ * and a screen is opened by key. A drink the member names with a clear amount,
+ * or confirms with "Log it" after a scan, is held for six seconds and then
+ * committed once; Undo, spoken or tapped, drops it before anything is written; the category comes from
  * the app's drink catalog and the words about credit from the hydration
  * rules, never from here.
  * Every other request is understood by the interpreter but answered
@@ -336,6 +377,16 @@ export function oneBreathTurn(
   interpret: Interpreter = interpretByRules,
 ): OneBreathTurn {
   if (input.kind !== 'say') return drinkControl(state, input, context) ?? notBuilt(state);
+
+  if (state.pendingDrink) {
+    if (classifyUtterance(input.words).kind === 'undo') {
+      return { state: { ...state, pendingDrink: undefined, words: [...state.words, input.words] }, status: 'responding', reply: { outcome: 'undone', request: 'log_drink', text: ONE_BREATH_LINES.notLogged }, effects: [] };
+    }
+    // The member moved on without undoing: commit the pending drink, then answer.
+    const committed = commitDrink(state, context);
+    const turn = oneBreathTurn(committed.state, input, context, interpret);
+    return { ...turn, effects: [...committed.effects, ...turn.effects] };
+  }
 
   const kept: OneBreathState = { ...state, words: [...state.words, input.words] };
   const answer = (
@@ -381,12 +432,11 @@ export function oneBreathTurn(
         'plan_moment',
         `Sealed. ${pending.title} \u00b7 ${pending.day} ${pending.time}.`,
         { ...kept, pendingPlan: undefined, asking: undefined, sealed: [...kept.sealed, id] },
-        [
-          { kind: 'save_moment', id, plan: pending },
-          { kind: 'enter_quiet', id: `quiet:${id}` },
-        ],
+        // Seal approves and saves. Quiet begins at Lock In, through the existing
+        // owner, and nowhere else (founder decision, 2026-11-20).
+        [{ kind: 'save_moment', id, plan: pending }],
       );
-      return { ...sealed, status: 'quiet', reply: { ...sealed.reply, undo: { reverses: `Sealed ${pending.title}`, ms: ONE_BREATH_SEAL_UNDO_MS } } };
+      return { ...sealed, reply: { ...sealed.reply, undo: { reverses: `Sealed ${pending.title}`, ms: ONE_BREATH_SEAL_UNDO_MS } } };
     }
     if (said.kind === 'change') {
       const changed = changePlan(pending, input.words, now);
@@ -405,7 +455,7 @@ export function oneBreathTurn(
   // 4. An answer to "How much?" for a drink already named.
   if (kept.askingDrink) {
     const oz = ouncesSaid(input.words);
-    if (oz !== null) return logDrink({ ...kept, askingDrink: undefined }, kept.askingDrink, oz, context);
+    if (oz !== null) return holdDrink({ ...kept, askingDrink: undefined }, kept.askingDrink, oz, context);
   }
 
   const heard = interpret(input.words, { social: context.social, momentInWindow: context.momentInWindow });
@@ -418,9 +468,14 @@ export function oneBreathTurn(
     // The window is checked here, from context, never taken from the interpreter's word for it.
     if (!context.momentInWindow) return answer('not_active', 'lock_in', ONE_BREATH_LINES.lockInNotActive);
     if (kept.lockedIn) return answer('already_done', 'lock_in', ONE_BREATH_LINES.lockInAlready);
-    return answer('act', 'lock_in', ONE_BREATH_LINES.lockInStarted, { ...kept, lockedIn: true }, [
-      { kind: 'lock_in', id: `lock-in:${context.currentMomentId ?? 'current'}` },
-    ]);
+    // Lock In is where Quiet begins: the owner of this effect is the existing
+    // Lock In, which already cancels ordinary reminders.
+    return {
+      ...answer('act', 'lock_in', ONE_BREATH_LINES.lockInStarted, { ...kept, lockedIn: true }, [
+        { kind: 'lock_in', id: `lock-in:${context.currentMomentId ?? 'current'}` },
+      ]),
+      status: 'quiet',
+    };
   }
 
   if (heard.request === 'plan_moment') {
@@ -434,7 +489,7 @@ export function oneBreathTurn(
     const drink = drinkNamed(input.words);
     const oz = ouncesSaid(input.words);
     // A clear drink and amount is the member's instruction. Anything less is one question.
-    if (drink && oz !== null && heard.outcome === 'act') return logDrink(kept, drink, oz, context);
+    if (drink && oz !== null && heard.outcome === 'act') return holdDrink(kept, drink, oz, context);
     const question = drink ? ONE_BREATH_LINES.askAmount : ONE_BREATH_LINES.askDrink;
     const turn = answer('ask', 'log_drink', question, { ...kept, askingDrink: drink ?? undefined });
     return { ...turn, reply: { ...turn.reply, question } };

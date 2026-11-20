@@ -35,6 +35,7 @@ export const BASE_CONTEXT: OneBreathContext = {
 export const say = (words: string, via: 'typed' | 'spoken' = 'typed'): OneBreathInput => ({ kind: 'say', words, via });
 export const tap = (control: string, value?: string): OneBreathInput => ({ kind: 'tap', control, value });
 export const wait = (ms: number): OneBreathInput => ({ kind: 'wait', ms });
+export const interrupt = (): OneBreathInput => ({ kind: 'interrupt' });
 export const scan = (
   barcode: string,
   product?: { name: string; categoryId: string; packageOz?: number },
