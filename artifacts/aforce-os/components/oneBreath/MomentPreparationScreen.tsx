@@ -44,7 +44,7 @@ import {
   lessonForMoment,
   useMomentLessons,
 } from "@/services/momentLessons";
-import { lessonScopeLabel } from "@/utils/lessonPresentation";
+import { lessonScopeLabel, planLessonOffers, togglePlanLesson } from "@/utils/lessonPresentation";
 import { MOMENT_LESSON_TEXT_MAX } from "@/config/hydroStateModel";
 import { useAppStore } from "@/store/useAppStore";
 import {
@@ -1303,6 +1303,21 @@ export function MomentPreparationScreen({
   const replayPrep = saved?.preparation;
   const replayAt = replayStep(replayPrep, replayEditing);
   const replayAnswerLine = replayNoteLine(replayPrep, current?.type);
+  // The member's own lessons for this kind of Moment, offered on the plan
+  // before it is sealed. Nothing is on the plan until they add it.
+  const planLessons = planLessonOffers({
+    lessons: lessonState.lessons,
+    learningOn: lessonState.hydrated && lessonState.learningOn,
+    type: review?.type,
+    added: review?.preparation?.lessons,
+  });
+  const addedLessons = current?.preparation?.lessons ?? [];
+  const togglePlan = (offer: { id: string; text: string }) =>
+    setReview((r) =>
+      r?.preparation && !r.preparation.sealedAtIso
+        ? { ...r, preparation: { ...r.preparation, lessons: togglePlanLesson(r.preparation.lessons, offer) } }
+        : r,
+    );
   const replayLesson = lessonForMoment(lessonState.lessons, current?.id);
   const replayScope = lessonScopeLabel(current?.type);
   const approveRule = () => {
@@ -2024,6 +2039,39 @@ export function MomentPreparationScreen({
                 <Text style={[s.body, s.planText]}>{exerciseRow(focus)}</Text>
               </View>
             ) : null}
+            {planLessons.length > 0 ? (
+              <View style={s.planLessons} testID="plan-lessons">
+                <Text style={s.eyebrow}>FROM YOUR LESSONS</Text>
+                <Text style={s.muted}>
+                  Yours to add. Nothing joins this plan unless you choose it.
+                </Text>
+                {planLessons.map((l) => (
+                  <View key={l.id} style={s.replayCard} testID={`plan-lesson-${l.id}`}>
+                    <Text style={s.replayRuleText}>{l.text}</Text>
+                    <Text style={s.muted}>{l.reason}</Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        l.added ? `Remove from this plan: ${l.text}` : `Add to this plan: ${l.text}`
+                      }
+                      accessibilityState={{ selected: l.added }}
+                      aria-selected={l.added}
+                      onPress={() => {
+                        hapticSelection();
+                        togglePlan(l);
+                      }}
+                      style={[s.planLessonChip, l.added && s.planLessonChipOn]}
+                      testID={`plan-lesson-${l.id}-toggle`}
+                    >
+                      <Text style={[s.planLessonChipText, l.added && s.planLessonChipTextOn]}>
+                        {l.added ? "In this plan · remove" : "Add to this plan"}
+                      </Text>
+                    </Pressable>
+                  </View>
+                ))}
+                {textButton("Manage in What AFORCE remembers", () => router.push("/remembers" as never))}
+              </View>
+            ) : null}
             <Text style={s.muted}>No reminders during Quiet.</Text>
             {method && method !== "none" ? (
               <Text style={s.body}>
@@ -2048,6 +2096,16 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.title, accessibleHeading]}>
               Only what you approve becomes your plan.
             </Text>
+            {addedLessons.length > 0 ? (
+              <View testID="seal-lessons">
+                {addedLessons.map((l) => (
+                  <View key={l.id} style={s.planRow}>
+                    <Text style={[s.eyebrow, s.planTime, { color: accent }]}>YOUR LESSON</Text>
+                    <Text style={[s.body, s.planText]}>{l.text}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
             {draft?.timeZone && current ? (
               <Text style={s.body}>
                 {current.title} ·{" "}
@@ -2390,13 +2448,19 @@ export function MomentPreparationScreen({
                 {/* Replay, laid out as the prototype shows it: the plan that
                     was sealed, the one question, answers as full-width
                     chips. Same question, same two answers, same save. */}
-                {steps.length > 0 && replayAt === "ask" ? (
+                {(steps.length > 0 || addedLessons.length > 0) && replayAt === "ask" ? (
                   <View testID="replay-sealed-plan">
                     <Text style={s.eyebrow}>THE PLAN YOU SEALED</Text>
                     {steps.map((step, i) => (
                       <View key={i} style={s.planRow}>
                         <Text style={[s.eyebrow, s.planTime]}>{clock(step.atIso)}</Text>
                         <Text style={[s.muted, s.planText]}>{step.action}</Text>
+                      </View>
+                    ))}
+                    {addedLessons.map((l) => (
+                      <View key={l.id} style={s.planRow}>
+                        <Text style={[s.eyebrow, s.planTime]}>YOUR LESSON</Text>
+                        <Text style={[s.muted, s.planText]}>{l.text}</Text>
                       </View>
                     ))}
                   </View>
@@ -2491,7 +2555,8 @@ export function MomentPreparationScreen({
                         <Text style={s.eyebrow}>YOUR RULE FOR NEXT TIME</Text>
                         <Text style={s.replayRuleText}>{replayLesson.text}</Text>
                         <Text style={s.muted}>
-                          Only for {replayScope}. Kept on this phone. Change, pause or delete it anytime.
+                          Only for {replayScope}. Offered on your next one, and added only if you choose.
+                          Change, pause or delete it anytime.
                         </Text>
                       </View>
                     ) : null}
@@ -2523,8 +2588,8 @@ export function MomentPreparationScreen({
                       style={[s.input, s.replayNoteInput]}
                     />
                     <Text style={s.muted}>
-                      Only for {replayScope}. Kept on this phone, private to you. It changes no plan,
-                      target or score.
+                      Only for {replayScope}. Kept on this phone, private to you. It is offered on a
+                      matching plan and joins only if you add it. It changes no target or score.
                     </Text>
                     {button("Approve", approveRule, true, saving || !replayRuleText.trim())}
                     {textButton("Cancel", () => setReplayEditing(null))}
@@ -2662,6 +2727,19 @@ const s = StyleSheet.create({
     borderColor: T.rule,
     borderRadius: 14,
   },
+  planLessons: { gap: 10, marginTop: 8 },
+  planLessonChip: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: T.rule,
+    borderRadius: 22,
+    alignSelf: "flex-start",
+    justifyContent: "center",
+  },
+  planLessonChipOn: { backgroundColor: T.bone, borderColor: T.bone },
+  planLessonChipText: { fontFamily: "Inter_500Medium", fontSize: 14, color: T.bone },
+  planLessonChipTextOn: { color: T.ink },
   replayRuleText: { fontFamily: "Inter_600SemiBold", fontSize: 17, lineHeight: 23, color: T.bone },
   replayCardText: { ...T.body, color: T.bone, fontSize: 16, lineHeight: 23 },
   replayNoteInput: {
