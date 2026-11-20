@@ -37,6 +37,16 @@ export interface SpokenTripFields {
   arrivalTime?: string;
 }
 
+/**
+ * Something heard but not filled, in a form a question can be built from.
+ * `leg` is 0 for the way out and 1 for the way back.
+ */
+export type TripOpen =
+  | { field: 'origin' | 'destination'; leg: 0; kind: 'several'; name: string; codes: readonly string[] }
+  | { field: 'origin' | 'destination'; leg: 0; kind: 'unknown'; said: string }
+  | { field: 'time' | 'arrivalTime'; leg: 0 | 1; kind: 'am_pm'; hour: number; minute: number }
+  | { field: 'date'; leg: 0 | 1; kind: 'which_day'; said: string; options: readonly [string, string] };
+
 export interface SpokenTrip {
   fields: SpokenTripFields;
   /** Plain sentences about anything heard but not filled in. */
@@ -49,6 +59,8 @@ export interface SpokenTrip {
   returnLeg?: SpokenTripFields;
   /** The airline's code when an airline was named with no flight number ("flying Delta"). */
   airline?: string;
+  /** The same gaps the notes describe, as data, so one question can be asked for each. Absent when there are none. */
+  open?: TripOpen[];
 }
 
 /** Airlines recognised by name. Anything else needs its two-character code. */
@@ -102,7 +114,18 @@ function flightNumber(text: string): string | undefined {
 }
 
 /** A spoken place → an airport code, or a note saying why not. */
-function airport(raw: string, role: 'Departure' | 'Arrival'): { code?: string; note?: string } {
+type SaidAirport = { code?: string; note?: string; several?: { name: string; codes: readonly string[] }; unknown?: string };
+
+/** A spoken place → an airport code, the airports it could mean, or that it is not known. No role wording. */
+export function resolveSaidAirport(raw: string): { code: string } | { several: { name: string; codes: readonly string[] } } | { unknown: string } | null {
+  const r = airport(raw, 'Arrival');
+  if (r.code) return { code: r.code };
+  if (r.several) return { several: r.several };
+  if (r.unknown) return { unknown: r.unknown };
+  return null;
+}
+
+function airport(raw: string, role: 'Departure' | 'Arrival'): SaidAirport {
   const said = raw.trim().replace(/\s+airport$/, '');
   if (!said) return {};
   const letters = said.replace(/[\s.]/g, '');
@@ -110,21 +133,21 @@ function airport(raw: string, role: 'Departure' | 'Arrival'): { code?: string; n
   if (/^[a-z]{3}$/.test(letters) && (letters === said || /^([a-z][\s.]+){2}[a-z]\.?$/.test(said))) {
     const code = letters.toUpperCase();
     // A code is taken as said only when it is a real airport; a mis-heard one is not passed on.
-    return KNOWN_AIRPORT(code) ? { code } : { note: `${role}: “${code}” isn’t an airport code AFORCE knows. Check it and type it.` };
+    return KNOWN_AIRPORT(code) ? { code } : { unknown: code, note: `${role}: “${code}” isn’t an airport code AFORCE knows. Check it and type it.` };
   }
   const found = resolveDestination(said);
   if (found?.kind === 'featured') {
     const { airports, name } = found.city;
     if (airports.length === 1) return { code: airports[0] };
-    return { note: `${role}: ${name} has ${airports.join(', ')}. Type the one you mean.` };
+    return { several: { name, codes: airports }, note: `${role}: ${name} has ${airports.join(', ')}. Type the one you mean.` };
   }
   // A well-known airport or city by name: one airport fills, several are offered, never picked.
   const named = airportsNamed(said);
   if (named) {
     if (named.codes.length === 1) return { code: named.codes[0] };
-    return { note: `${role}: ${named.name} has ${named.codes.join(', ')}. Type the one you mean.` };
+    return { several: { name: named.name, codes: named.codes }, note: `${role}: ${named.name} has ${named.codes.join(', ')}. Type the one you mean.` };
   }
-  return { note: `${role}: “${said}” isn’t an airport AFORCE knows by name. Type its three-letter code.` };
+  return { unknown: said, note: `${role}: “${said}” isn’t an airport AFORCE knows by name. Type its three-letter code.` };
 }
 
 function date(text: string, now: Date): string | undefined {
@@ -158,14 +181,19 @@ const WEEKDAY_RE = '(sunday|monday|tuesday|wednesday|thursday|friday|saturday)';
  * because people mean different dates by them: "next Friday", and a weekday
  * said on that same weekday.
  */
-function weekday(text: string, today: Date): { date?: string; note?: string } {
+function weekday(text: string, today: Date): { date?: string; note?: string; said?: string; options?: readonly [string, string] } {
   const m = new RegExp(`\\b(?:(this|next)\\s+)?${WEEKDAY_RE}\\b`).exec(text);
   if (!m) return {};
   const name = m[2]!;
   const said = name.charAt(0).toUpperCase() + name.slice(1);
-  if (m[1] === 'next') return { note: `Date: “next ${said}” can mean two different dates. Say the date, like “November 27”.` };
   const offset = (WEEKDAYS.indexOf(name) - today.getDay() + 7) % 7;
-  if (offset === 0) return { note: `Date: today is ${said}. Say “today”, or the date you mean.` };
+  const on = (days: number) => { const t = new Date(today); t.setDate(t.getDate() + days); return ymd(t.getFullYear(), t.getMonth() + 1, t.getDate()); };
+  // The two dates it could be: the nearest one, and the one a week after.
+  if (m[1] === 'next') {
+    const first = offset === 0 ? 7 : offset;
+    return { said: `next ${said}`, options: [on(first), on(first + 7)], note: `Date: “next ${said}” can mean two different dates. Say the date, like “November 27”.` };
+  }
+  if (offset === 0) return { said, options: [on(0), on(7)], note: `Date: today is ${said}. Say “today”, or the date you mean.` };
   const t = new Date(today); t.setDate(t.getDate() + offset);
   return { date: ymd(t.getFullYear(), t.getMonth() + 1, t.getDate()) };
 }
@@ -206,6 +234,14 @@ const ARRIVAL_MARK = /\b(?:arriving|arrives|arrive|landing|lands|land|getting in
 const RETURN_MARK = /\b(?:returning|coming back|flying back|heading back|and back)\b/;
 
 /** A clock time said with no AM or PM and no part of day: not filled, and the member is told why. */
+function bareTime(text: string): { hour: number; minute: number } | undefined {
+  const m = /\bat\s+(\d{1,2})(?:[:.](\d{2}))?\b(?!\s*(?:[ap]\.?\s?m|in the|at night|o'?clock))/.exec(text);
+  if (!m) return undefined;
+  const hour = Number(m[1]);
+  const minute = m[2] ? Number(m[2]) : 0;
+  return hour >= 1 && hour <= 12 && minute <= 59 ? { hour, minute } : undefined;
+}
+
 function bareTimeNote(text: string, label: string): string | undefined {
   const m = /\bat\s+(\d{1,2})(?:[:.](\d{2}))?\b(?!\s*(?:[ap]\.?\s?m|in the|at night|o'?clock))/.exec(text);
   if (!m) return undefined;
@@ -229,6 +265,19 @@ export function parseSpokenTrip(spoken: string, now: Date): SpokenTrip {
   const arriving = arrivalAt ? outbound.slice(arrivalAt.index + arrivalAt[0].length).trim() : '';
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+  const open: TripOpen[] = [];
+  const place = (field: 'origin' | 'destination', a: SaidAirport) => {
+    if (a.several) open.push({ field, leg: 0, kind: 'several', name: a.several.name, codes: a.several.codes });
+    else if (a.unknown) open.push({ field, leg: 0, kind: 'unknown', said: a.unknown });
+  };
+  const day = (leg: 0 | 1, w: ReturnType<typeof weekday>) => {
+    if (w.options && w.said) open.push({ field: 'date', leg, kind: 'which_day', said: w.said, options: w.options });
+  };
+  const clock = (field: 'time' | 'arrivalTime', leg: 0 | 1, textPart: string) => {
+    const b = bareTime(textPart);
+    if (b) open.push({ field, leg, kind: 'am_pm', hour: b.hour, minute: b.minute });
+  };
+
   const flight = flightNumber(outbound);
   if (flight) fields.flightNumber = flight;
 
@@ -240,31 +289,38 @@ export function parseSpokenTrip(spoken: string, now: Date): SpokenTrip {
     if (from.code) fields.origin = from.code;
     if (to.code) fields.destination = to.code;
     for (const n of [from.note, to.note]) if (n) notes.push(n);
+    place('origin', from);
+    place('destination', to);
   } else if (toOnly) {
     const to = airport(toOnly[1]!, 'Arrival');
     if (to.code) fields.destination = to.code;
     if (to.note) notes.push(to.note);
+    place('destination', to);
   }
 
   const d = date(leaving, now);
   if (d) fields.date = d;
   else {
-    const why = weekday(leaving, today).note;
-    if (why) notes.push(why);
+    const w = weekday(leaving, today);
+    if (w.note) notes.push(w.note);
+    day(0, w);
   }
   const t = time(leaving);
   if (t) fields.time = t;
   else {
     const why = bareTimeNote(leaving, 'Departure time');
     if (why) notes.push(why);
+    clock('time', 0, leaving);
   }
 
   if (arriving) {
     const at = time(arriving);
     if (at) fields.arrivalTime = at;
     else {
-      const why = bareTimeNote(`at ${arriving.replace(/^at\s+/, '')}`, 'Arrival time');
+      const said = `at ${arriving.replace(/^at\s+/, '')}`;
+      const why = bareTimeNote(said, 'Arrival time');
       if (why) notes.push(why);
+      clock('arrivalTime', 0, said);
     }
     // The arrival date is filled only when it was said; an overnight flight lands on another day.
     const on = date(arriving, now);
@@ -290,18 +346,21 @@ export function parseSpokenTrip(spoken: string, now: Date): SpokenTrip {
     const backDate = date(back, now);
     if (backDate) leg.date = backDate;
     else {
-      const why = weekday(back, today).note;
-      if (why) notes.push(why.replace(/^Date:/, 'Return date:'));
+      const w = weekday(back, today);
+      if (w.note) notes.push(w.note.replace(/^Date:/, 'Return date:'));
+      day(1, w);
     }
     const backTime = time(back);
     if (backTime) leg.time = backTime;
     else {
       const why = bareTimeNote(back, 'Return time');
       if (why) notes.push(why);
+      clock('time', 1, back);
     }
     result.returnLeg = leg;
   }
 
+  if (open.length > 0) result.open = open;
   return result;
 }
 
