@@ -75,7 +75,6 @@ import { classifyStreakEligibility, observedRows, reportedSpanDays } from '@/uti
 import {
   buildDayViews,
   buildBars,
-  accentTextForScore,
   EM_DASH,
   historyCompletenessLevel,
   weeklyChecks,
@@ -267,7 +266,7 @@ export function PerformanceSignalV3({
       {/* Build-61: this screen is pushed from the Hydration root now, so it
           gets AFTopBar's back control (spec §4.2 — a back control is used only
           when the destination is not a root tab; it is no longer a root tab). */}
-      <AFTopBar eyebrow={t('signal.v3.eyebrow')} title={t('signal.v3.title')} onBack={onBack} actions={topBarActions} />
+      <AFTopBar eyebrow={t('signal.v3.eyebrow')} eyebrowTone="quiet" title={t('signal.v3.title')} onBack={onBack} actions={topBarActions} />
 
       {/* BUILD-61 CORRECTION — the regions below are SIBLINGS, not one nested
           ternary. They used to be a single `loading : empty-or-error : history`
@@ -381,7 +380,7 @@ export function PerformanceSignalV3({
           <View style={styles.summaryRow}>
             <View>
               <Text
-                style={[styles.summaryAvg, { color: accentTextForScore(recap.avgScore) }]}
+                style={styles.summaryAvg}
                 maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}
               >
                 {recap.avgScore}
@@ -391,7 +390,7 @@ export function PerformanceSignalV3({
             <View style={styles.barsWrap} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
               {bars.map((b) => (
                 <View key={b.date} style={styles.barTrack}>
-                  <View style={[styles.bar, { height: `${Math.round(b.height * 100)}%`, backgroundColor: b.accent }]} />
+                  <View style={[styles.bar, { height: `${Math.round(b.height * 100)}%` }]} />
                 </View>
               ))}
             </View>
@@ -433,19 +432,18 @@ export function PerformanceSignalV3({
                   checks: d.checks,
                 })}
               >
-                <View style={[styles.dayAccent, { backgroundColor: d.accent }]} />
                 <View style={styles.dayMain}>
                   <Text style={styles.dayName}>{dayName}</Text>
                   <Text style={styles.dayDate}>{shortDate(d.date)}</Text>
                 </View>
-                {/* The band WORD, not a tinted pill: the accent bar and the
-                    score colour already carry the band, and the word keeps it
-                    perceivable without relying on colour. */}
-                <Text style={styles.dayBand}>{band}</Text>
-                {/* accentTextForScore, not d.accent: as TEXT the DEPLETED
-                    band's Signal Red fails AA on this canvas (~3.1:1). The
-                    rail above keeps the fill accent. */}
-                <Text style={[styles.dayScore, { color: accentTextForScore(d.score) }]} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
+                {/* The band is said in words. Its colour is one small dot, as
+                    on the rest of the app: never the row, the rail or the
+                    number. */}
+                <View style={styles.dayBandRow}>
+                  <View style={[styles.dayDot, { backgroundColor: d.accent }]} />
+                  <Text style={styles.dayBand}>{band}</Text>
+                </View>
+                <Text style={styles.dayScore} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
                   {d.score}
                 </Text>
                 <Icon name="chevron-right" size={16} color={af.textTertiary} />
@@ -553,13 +551,14 @@ const styles = StyleSheet.create({
   stateTitle: { ...afType.title3, color: af.textPrimary, textAlign: 'center' },
   stateBody: { ...afType.body, color: af.textTertiary, textAlign: 'center' },
   staleWrap: { marginTop: 20 },
-  summaryCard: { marginTop: 20 },
+  summaryCard: { marginTop: 20, borderRadius: 20 },
   summaryRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[6] },
-  summaryAvg: { ...afType.displayScore, fontSize: 56, lineHeight: 60 },
+  // The app's numeral: light, warm white. The band never colours it.
+  summaryAvg: { ...afType.displayScore, fontFamily: 'Inter_300Light', fontSize: 56, lineHeight: 60, letterSpacing: -2, color: af.textPrimary, fontVariant: ['tabular-nums'] },
   summaryLabel: { ...afType.eyebrow, color: af.textTertiary, marginTop: 4 },
   barsWrap: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 8, height: 96 },
   barTrack: { flex: 1, height: '100%', justifyContent: 'flex-end' },
-  bar: { borderRadius: 6 },
+  bar: { borderRadius: 6, backgroundColor: af.textPrimary },
   summaryFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -574,13 +573,14 @@ const styles = StyleSheet.create({
   // 14pt gaps (was 12) — the rows carry a third of the elements they used to,
   // so the list can breathe without growing taller than the old one.
   dayList: { marginTop: 24, gap: 14 },
-  dayCard: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dayAccent: { width: 4, alignSelf: 'stretch', borderRadius: 2 },
+  dayCard: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 18 },
+  dayBandRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dayDot: { width: 6, height: 6, borderRadius: 3 },
   dayMain: { flex: 1 },
-  dayName: { ...afType.title3, color: af.textPrimary },
+  dayName: { ...afType.title3, fontFamily: 'Inter_600SemiBold', fontSize: 17, color: af.textPrimary },
   dayDate: { ...afType.caption, color: af.textTertiary, marginTop: 2 },
   dayBand: { ...afType.caption, color: af.textSecondary },
-  dayScore: { ...afType.title1, color: af.textPrimary, fontVariant: ['tabular-nums'] },
+  dayScore: { ...afType.title1, fontFamily: 'Inter_300Light', letterSpacing: -1, color: af.textPrimary, fontVariant: ['tabular-nums'], minWidth: 36, textAlign: 'right' },
   weekDetailRow: { marginTop: 20, alignItems: 'flex-start' },
   sheetEyebrow: { ...afType.eyebrow, color: af.textTertiary },
   sheetEyebrowSpaced: { marginTop: 24 },

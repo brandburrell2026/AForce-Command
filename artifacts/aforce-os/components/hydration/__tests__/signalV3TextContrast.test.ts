@@ -53,8 +53,8 @@ describe('accentTextForScore — every band is readable at every surface', () =>
   });
 });
 
-describe('the Hydration tab renders text with the text accent and fills with the fill accent', () => {
-  it('no band accent reaches a `color:` style, and the rail/bars keep the fill', async () => {
+describe('Performance Signal keeps the band colour to one small dot (founder, 2026-11-20)', () => {
+  it('no band colour reaches a number, a bar, a rail or any text', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
     const src = readFileSync(
@@ -62,14 +62,16 @@ describe('the Hydration tab renders text with the text accent and fills with the
       'utf8',
     ).replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/.*$/gm, '');
 
-    // Text: both numerals resolve through the AA-clean helper.
-    expect(src).toContain('color: accentTextForScore(recap.avgScore)');
-    expect(src).toContain('color: accentTextForScore(d.score)');
-    // Fill: the day rail and the chart bars are untouched.
-    expect(src).toContain('backgroundColor: d.accent');
-    expect(src).toContain('backgroundColor: b.accent');
-    // And nothing paints text with a raw fill accent any more.
-    expect(src).not.toMatch(/color:\s*d\.accent/);
-    expect(src).not.toMatch(/color:\s*accentForScore\(/);
+    // The band's colour appears exactly once: the 6pt dot beside the band word.
+    expect(src.match(/d\.accent/g)).toHaveLength(1);
+    expect(src).toContain('styles.dayDot, { backgroundColor: d.accent }');
+    expect(src).toMatch(/dayDot: \{ width: 6, height: 6, borderRadius: 3 \}/);
+    // Numbers and bars are the app's warm white.
+    expect(src).not.toMatch(/accentTextForScore|accentForScore|b\.accent/);
+    expect(src).toMatch(/summaryAvg: \{[^}]*color: af\.textPrimary/);
+    expect(src).toMatch(/dayScore: \{[^}]*color: af\.textPrimary/);
+    expect(src).toMatch(/bar: \{[^}]*backgroundColor: af\.textPrimary/);
+    // The band is still said in words on every row.
+    expect(src).toContain('<Text style={styles.dayBand}>{band}</Text>');
   });
 });

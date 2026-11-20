@@ -18,6 +18,9 @@ export interface AFTopBarAction {
 export interface AFTopBarProps {
   title?: string;
   eyebrow?: string;
+  /** 'quiet' draws the eyebrow in the secondary text colour, as the newer
+   *  screens do. Default is the red breadcrumb. */
+  eyebrowTone?: 'red' | 'quiet';
   onBack?: () => void;
   onClose?: () => void;
   actions?: AFTopBarAction[]; // max 2 (spec §4.2)
@@ -38,7 +41,7 @@ function IconButton({ icon, onPress, label }: AFTopBarAction) {
   );
 }
 
-export function AFTopBar({ title, eyebrow, onBack, onClose, actions = [], testID }: AFTopBarProps) {
+export function AFTopBar({ title, eyebrow, eyebrowTone = 'red', onBack, onClose, actions = [], testID }: AFTopBarProps) {
   const eyebrowType = useAFEyebrowType();
   const trailing = actions.slice(0, 2);
   return (
@@ -48,7 +51,7 @@ export function AFTopBar({ title, eyebrow, onBack, onClose, actions = [], testID
           <IconButton icon="chevron-left" onPress={onBack} label="Back" />
         )}
         <View style={styles.titleGroup}>
-          {eyebrow && <Text style={[styles.eyebrow, eyebrowType]}>{eyebrow.toUpperCase()}</Text>}
+          {eyebrow && <Text style={[[styles.eyebrow, eyebrowType], eyebrowTone === 'quiet' && styles.eyebrowQuiet]}>{eyebrow.toUpperCase()}</Text>}
           {title && (
             /*
              * A11y fix (Wave-5 Phase-1 pass, Dynamic Type): the title was
@@ -97,6 +100,7 @@ const styles = StyleSheet.create({
   trailing: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   // Black Issue: the eyebrow is the red breadcrumb ("CRUISE MODE / SEA DAY").
   eyebrow: { ...afType.eyebrow, color: af.redText },
+  eyebrowQuiet: { color: af.textSecondary },
   title: { ...afType.title2, color: af.textPrimary },
   // 36pt circle + 8pt hitSlop = 52pt target; the hairline ring is the
   // reference's back control.
