@@ -56,9 +56,10 @@ describe('parseSpokenTrip', () => {
   });
 
   it('a place it does not know is left blank and said so', () => {
-    const r = p('from boise to miami');
+    // Boise is known by name since 2026-11-20; Springfield (there are many) is not.
+    const r = p('from springfield to miami');
     expect(r.fields).toEqual({ destination: 'MIA' });
-    expect(r.notes[0]).toContain('“boise” isn’t an airport AFORCE knows by name');
+    expect(r.notes[0]).toContain('“springfield” isn’t an airport AFORCE knows by name');
   });
 
   it('"flying to …" gives the arrival only', () => {
