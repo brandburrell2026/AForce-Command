@@ -10,7 +10,9 @@ import { join } from 'node:path';
 
 const DIR = join(__dirname, '..', 'oneBreath');
 const view = readFileSync(join(DIR, 'OneBreathCapture.tsx'), 'utf8');
-const code = view.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+// The talk-or-type bar lives in the shared kit; the opening screen is this view plus that bar.
+const bar = readFileSync(join(DIR, 'kit', 'TalkTypeBar.tsx'), 'utf8');
+const code = (view + '\n' + bar).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const screen = readFileSync(join(DIR, 'MomentPreparationScreen.tsx'), 'utf8');
 const orb = readFileSync(join(DIR, 'PreparationOrb.tsx'), 'utf8');
 
@@ -23,7 +25,8 @@ describe('One Breath opening screen', () => {
     expect(code).toContain('Plan a Moment. Just say it.');
     expect(code).toContain('"Talk or type to AFORCE"');
     expect(code).toContain('accessibilityLabel="Send"');
-    expect(code).toContain('accessibilityLabel="Your moment"');
+    expect(code).toContain('inputLabel="Your moment"');
+    expect(code).toContain('accessibilityLabel={p.inputLabel}');
   });
 
   it('the long question and the reservation paste entry are gone', () => {

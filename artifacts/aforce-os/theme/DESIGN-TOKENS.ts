@@ -22,6 +22,8 @@ export const preparationTokens = {
   /** Tertiary text and mono labels (the prototype's `dim`). */
   dim: af.textTertiary,
   red: af.red,
+  /** Red for small text on dark (AA); fills keep `red`. */
+  redText: af.redText,
   blue: af.blue,
   onBlue: af.onBlue,
   blueHi: af.blueText,
