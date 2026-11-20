@@ -28,6 +28,16 @@ import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { WorldPhotoGap, WorldPhotoHero } from "@/components/world/WorldPhoto";
 import { worldBreathPhotoForMoment, worldPhoto } from "@/components/world/worldPhotoSources";
 import { REPLAY_SCENE } from "@/utils/worldPhoto";
+import {
+  REPLAY_ANSWERS,
+  REPLAY_NOTE_MAX,
+  cleanReplayNote,
+  replayNoteLine,
+  replayObstacleOptions,
+  replayStep,
+  type ReplayAnswer,
+  type ReplayObstacle,
+} from "@/utils/replayFollowUp";
 import { useAppStore } from "@/store/useAppStore";
 import {
   commitReviewedMoment,
@@ -159,6 +169,9 @@ export function MomentPreparationScreen({
   const [nextChoice, setNextChoice] = React.useState<string | null>(null);
   const [timingOpen, setTimingOpen] = React.useState(false);
   const [returnOpen, setReturnOpen] = React.useState(false);
+  // Replay: where the member is on screen before anything is saved.
+  const [replayEditing, setReplayEditing] = React.useState<"ask" | "other" | null>(null);
+  const [replayNoteText, setReplayNoteText] = React.useState("");
   const { state: app } = useAppStore();
   const [scope] = React.useState(captureScope);
   const scrollRef = React.useRef<ScrollView>(null);
@@ -1218,28 +1231,42 @@ export function MomentPreparationScreen({
       </Text>
     </Pressable>
   );
-  // A Replay answer: the prototype's full-width chip. The chosen answer is
+  // A Replay choice: the prototype's full-width chip. The chosen one is
   // marked by a brighter edge and said to a screen reader as selected.
-  const replayChip = (label: string, value: "yes" | "not_really") => {
-    const chosen = saved?.preparation?.replay === value;
-    return (
-      <Pressable
-        key={label}
-        accessibilityRole="button"
-        accessibilityState={{ disabled: saving, selected: chosen }}
-        aria-disabled={saving}
-        aria-selected={chosen}
-        disabled={saving}
-        onPress={() => {
-          hapticSelection();
-          transition({ replay: value }, "next");
-        }}
-        style={[s.replayChip, chosen && s.replayChipChosen]}
-      >
-        <Text style={s.replayChipText}>{label}</Text>
-      </Pressable>
-    );
+  const replayChip = (label: string, chosen: boolean, onPress: () => void) => (
+    <Pressable
+      key={label}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: saving, selected: chosen }}
+      aria-disabled={saving}
+      aria-selected={chosen}
+      disabled={saving}
+      onPress={() => {
+        hapticSelection();
+        onPress();
+      }}
+      style={[s.replayChip, chosen && s.replayChipChosen]}
+    >
+      <Text style={s.replayChipText}>{label}</Text>
+    </Pressable>
+  );
+  // Every Replay save is the member's own answer about this one Moment. A new
+  // answer clears the follow-up that belonged to the old one.
+  const answerReplay = (replay: ReplayAnswer) => {
+    setReplayEditing(null);
+    setReplayNoteText("");
+    transition({ replay, replayObstacle: undefined, replayNote: undefined }, "next");
   };
+  const answerObstacle = (replayObstacle: ReplayObstacle, replayNote?: string) => {
+    setReplayEditing(null);
+    transition({ replayObstacle, replayNote }, "next");
+  };
+  const replayCard = (eyebrow: string, line: string, testID: string) => (
+    <View style={s.replayCard} testID={testID}>
+      <Text style={s.eyebrow}>{eyebrow}</Text>
+      <Text style={s.replayCardText}>{line}</Text>
+    </View>
+  );
   const input = (
     label: string,
     value: string,
@@ -1259,6 +1286,9 @@ export function MomentPreparationScreen({
     </View>
   );
   const steps = current?.preparation?.steps ?? [];
+  const replayPrep = saved?.preparation;
+  const replayAt = replayStep(replayPrep, replayEditing);
+  const replayAnswerLine = replayNoteLine(replayPrep, current?.type);
   // Replay's own World photograph, internal builds only.
   const replayPhoto = worldPhoto(REPLAY_SCENE);
   // One Breath's scene, as the prototype shows it: nothing while it listens,
@@ -2326,7 +2356,7 @@ export function MomentPreparationScreen({
                 {/* Replay, laid out as the prototype shows it: the plan that
                     was sealed, the one question, answers as full-width
                     chips. Same question, same two answers, same save. */}
-                {steps.length > 0 ? (
+                {steps.length > 0 && replayAt === "ask" ? (
                   <View testID="replay-sealed-plan">
                     <Text style={s.eyebrow}>THE PLAN YOU SEALED</Text>
                     {steps.map((step, i) => (
@@ -2337,14 +2367,98 @@ export function MomentPreparationScreen({
                     ))}
                   </View>
                 ) : null}
-                <Text style={s.replayQuestion}>Did it go the way you wanted?</Text>
-                <View style={s.replayChips} testID="replay-answers">
-                  {replayChip("Yes", "yes")}
-                  {replayChip("Not really", "not_really")}
-                </View>
-                {saved?.preparation?.replay ? (
-                  <Text style={s.muted}>Your Replay stays private.</Text>
+                {replayAt === "ask" ? (
+                  <>
+                    <Text style={s.replayQuestion}>Did that plan work for you?</Text>
+                    <Text style={s.muted}>Private. Only you see this.</Text>
+                    <View style={s.replayChips} testID="replay-answers">
+                      {REPLAY_ANSWERS.map((a) =>
+                        replayChip(a.label, replayPrep?.replay === a.value, () =>
+                          answerReplay(a.value),
+                        ),
+                      )}
+                    </View>
+                    {textButton("Skip", () => answerReplay("skipped"))}
+                  </>
                 ) : null}
+                {replayAt === "miss" ? (
+                  <>
+                    <Text style={s.muted}>You said: {replayAnswerLine}</Text>
+                    <Text style={s.replayQuestion}>What got in the way?</Text>
+                    <Text style={s.muted}>
+                      Pick one, or skip. It stays a private note. Your next plan stays the same.
+                    </Text>
+                    <View style={s.replayChips} testID="replay-obstacles">
+                      {replayObstacleOptions(current?.type).map((o) =>
+                        replayChip(o.label, false, () =>
+                          o.value === "other"
+                            ? setReplayEditing("other")
+                            : answerObstacle(o.value),
+                        ),
+                      )}
+                    </View>
+                    {textButton("Skip", () => answerObstacle("skipped"))}
+                  </>
+                ) : null}
+                {replayAt === "other" ? (
+                  <View style={s.field} testID="replay-own-words">
+                    <Text style={s.replayQuestion}>In your words</Text>
+                    <TextInput
+                      accessibilityLabel="What got in the way?"
+                      value={replayNoteText}
+                      onChangeText={setReplayNoteText}
+                      placeholder="What got in the way?"
+                      placeholderTextColor={T.muted}
+                      maxLength={REPLAY_NOTE_MAX}
+                      multiline
+                      style={[s.input, s.replayNoteInput]}
+                    />
+                    <Text style={s.muted}>
+                      Saved as a private note on this phone. It never becomes a rule.
+                    </Text>
+                    {button(
+                      "Save note",
+                      () => answerObstacle("other", cleanReplayNote(replayNoteText)),
+                      true,
+                      saving,
+                    )}
+                    {textButton("Cancel", () => setReplayEditing(null))}
+                  </View>
+                ) : null}
+                {replayAt === "yes"
+                  ? replayCard(
+                      "SAME PLAN NEXT TIME",
+                      "AFORCE won’t change what’s working. Your answer is saved as a private note.",
+                      "replay-closed-yes",
+                    )
+                  : null}
+                {replayAt === "skipped"
+                  ? replayCard(
+                      "SKIPPED",
+                      "No answer saved. This Replay is closed.",
+                      "replay-closed-skipped",
+                    )
+                  : null}
+                {replayAt === "noted" ? (
+                  <>
+                    {replayCard(
+                      "SAVED AS A NOTE",
+                      "Your next plan stays the same. Your answer is a private note only.",
+                      "replay-closed-noted",
+                    )}
+                    {replayAnswerLine ? (
+                      <Text style={s.muted} testID="replay-note-line">
+                        You said: {replayAnswerLine}
+                      </Text>
+                    ) : null}
+                  </>
+                ) : null}
+                {replayAt === "yes" || replayAt === "skipped" || replayAt === "noted"
+                  ? textButton("Change answer", () => {
+                      setReplayNoteText(replayPrep?.replayNote ?? "");
+                      setReplayEditing("ask");
+                    })
+                  : null}
               </>
             ) : null}
             {button(
@@ -2464,6 +2578,21 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   replayChipChosen: { borderColor: T.bone },
+  replayCard: {
+    gap: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: T.rule,
+    borderRadius: 14,
+  },
+  replayCardText: { ...T.body, color: T.bone, fontSize: 16, lineHeight: 23 },
+  replayNoteInput: {
+    minHeight: 90,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    textAlignVertical: "top",
+  },
   replayChipText: { fontFamily: "Inter_500Medium", fontSize: 15, lineHeight: 20, color: T.bone },
   safetyLine: { height: 2, backgroundColor: T.red },
   safetyTitle: { ...T.headline, fontSize: 28, lineHeight: 34, color: T.bone },

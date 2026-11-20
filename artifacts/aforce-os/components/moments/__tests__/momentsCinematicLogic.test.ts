@@ -61,6 +61,13 @@ describe('moments model', () => {
     expect(isMomentDone(replayReady)).toBe(true);
   });
 
+  it('a skipped Replay says so and is not marked done', () => {
+    const skipped = { ...replayReady, preparation: { ...replayReady.preparation!, replay: 'skipped' as const } };
+    const { done } = momentsModel([skipped], now, 'P');
+    expect(done[0]!.sub.split(' · ').pop()).toBe('Replay skipped');
+    expect(done[0]!.pill).toBeNull();
+  });
+
   it('a live Moment is not listed as upcoming or done', () => {
     const model = momentsModel([live], now, 'P');
     expect(model.upcoming).toEqual([]);
