@@ -19,6 +19,8 @@ export const preparationTokens = {
   panel: af.surface,
   bone: af.textPrimary,
   muted: af.textSecondary,
+  /** Tertiary text and mono labels (the prototype's `dim`). */
+  dim: af.textTertiary,
   red: af.red,
   blue: af.blue,
   onBlue: af.onBlue,
