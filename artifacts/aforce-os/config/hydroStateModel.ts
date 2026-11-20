@@ -629,6 +629,15 @@ export const MOMENT_FEEDBACK_ASK_MAX_PER_DAY = 1;
 /** Max stored feedback records (oldest dropped past the cap). */
 export const MOMENT_FEEDBACK_MAX_RECORDS = 200;
 
+/* ─── Member-written lessons (Replay, Phase 1) ─── */
+
+/** Longest lesson a member can write, in characters. */
+export const MOMENT_LESSON_TEXT_MAX = 90;
+
+/** Most lessons kept on the device. A new one past the cap is refused, never
+ * swapped in for an older one the member approved. */
+export const MOMENT_LESSON_MAX = 50;
+
 /* ─── Decision Guard (directive §2 invariants, §11 lifecycle, §21 release gates) ─── */
 
 /**
