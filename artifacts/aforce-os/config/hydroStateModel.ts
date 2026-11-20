@@ -775,6 +775,11 @@ export const ONE_BREATH_SEAL_UNDO_MS = 5_000;
 /** Messages and shares wait this long, with Undo, before they leave the phone. */
 export const ONE_BREATH_SEND_DELAY_MS = 5_000;
 
+/** How long Undo stays available after One Breath logs a drink (One Breath
+ * Final Build Spec, 2026-11-20: "a clear drink and amount logs right away with
+ * a 6-second Undo"). Presentation timing only; it changes no hydration value. */
+export const ONE_BREATH_DRINK_UNDO_MS = 6_000;
+
 /** Speech below this recognition confidence never confirms anything.
  *  Provisional until register #45 / #46 thresholds are set on real devices. */
 export const ONE_BREATH_MIN_CONFIRM_CONFIDENCE = 0.8;
