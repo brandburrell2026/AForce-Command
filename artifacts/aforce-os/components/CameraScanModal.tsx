@@ -64,6 +64,109 @@ export function CameraScanModal({ visible, onClose, onScan }: Props) {
   );
 }
 
+/** What the live reader needs from the screen when the camera cannot run. */
+export interface BarcodeReaderBlocked {
+  /** Still asking the system; nothing to show yet. */
+  pending: boolean;
+  canAskAgain: boolean;
+  request: () => void;
+}
+
+/**
+ * LiveBarcodeReader — the same barcode decoder as the modal, inline. It fills
+ * its parent and reads codes while `paused` is false. It takes no picture,
+ * keeps nothing and sends nothing; the torch is the only control.
+ *
+ * Without permission (or on web, which has no native reader) it renders
+ * whatever `blocked` returns, so the screen stays usable by typing.
+ */
+export function LiveBarcodeReader({
+  paused,
+  torch,
+  onScan,
+  onRunning,
+  blocked,
+}: {
+  paused: boolean;
+  torch: boolean;
+  onScan: (result: CameraScanResult) => void;
+  /** Told when the reader starts or stops running, so the screen can offer the light only then. */
+  onRunning?: (running: boolean) => void;
+  blocked: (state: BarcodeReaderBlocked | null) => React.ReactNode;
+}) {
+  if (Platform.OS === "web") return <>{blocked(null)}</>;
+  return <LiveBarcodeReaderNative paused={paused} torch={torch} onScan={onScan} onRunning={onRunning} blocked={blocked} />;
+}
+
+function LiveBarcodeReaderNative({
+  paused,
+  torch,
+  onScan,
+  onRunning,
+  blocked,
+}: {
+  paused: boolean;
+  torch: boolean;
+  onScan: (result: CameraScanResult) => void;
+  /** Told when the reader starts or stops running, so the screen can offer the light only then. */
+  onRunning?: (running: boolean) => void;
+  blocked: (state: BarcodeReaderBlocked | null) => React.ReactNode;
+}) {
+  // Lazy require so web bundling never tries to resolve the native module.
+  const ExpoCamera = require("expo-camera") as typeof import("expo-camera");
+  const { CameraView, useCameraPermissions } = ExpoCamera;
+  const [permission, requestPermission] = useCameraPermissions();
+  const lastScannedRef = useRef<{ data: string; at: number } | null>(null);
+
+  useEffect(() => {
+    if (permission && !permission.granted && permission.canAskAgain) {
+      requestPermission().catch(() => {});
+    }
+  }, [permission, requestPermission]);
+
+  const running = !!permission?.granted;
+  useEffect(() => {
+    onRunning?.(running);
+    return () => onRunning?.(false);
+  }, [running, onRunning]);
+
+  const handleScanned = useCallback(
+    (event: { type: string; data: string }) => {
+      // Debounce identical reads within 1.2s — cameras fire many per second.
+      const last = lastScannedRef.current;
+      const now = Date.now();
+      if (last && last.data === event.data && now - last.at < 1200) return;
+      lastScannedRef.current = { data: event.data, at: now };
+      onScan({ type: event.type, data: event.data, kind: event.type === "qr" ? "qr" : "barcode" });
+    },
+    [onScan],
+  );
+
+  if (!permission || !permission.granted) {
+    return (
+      <>
+        {blocked({
+          pending: !permission,
+          canAskAgain: permission?.canAskAgain ?? true,
+          request: () => {
+            requestPermission().catch(() => {});
+          },
+        })}
+      </>
+    );
+  }
+
+  return (
+    <CameraView
+      style={StyleSheet.absoluteFillObject}
+      facing="back"
+      enableTorch={torch}
+      barcodeScannerSettings={{ barcodeTypes: SUPPORTED_BARCODES as never }}
+      onBarcodeScanned={paused ? undefined : handleScanned}
+    />
+  );
+}
+
 function CameraScanBody({
   onClose,
   onScan,
