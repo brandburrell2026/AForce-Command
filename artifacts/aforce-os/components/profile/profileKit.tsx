@@ -717,7 +717,7 @@ export const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
   },
   sectionLabel: {
-    fontSize: 10, fontFamily: 'Inter_700Bold', color: af.textTertiary, letterSpacing: 2.5,
+    fontSize: 11, fontFamily: 'IBMPlexMono_400Regular', color: af.textSecondary, letterSpacing: 2,
   },
   sectionHint: {
     fontSize: 10, fontFamily: 'Inter_500Medium', color: af.textSecondary, letterSpacing: 0.5,

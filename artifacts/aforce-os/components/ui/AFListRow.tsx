@@ -69,7 +69,9 @@ export function AFListRow({
         <Switch
           value={toggle.value}
           onValueChange={toggle.onValueChange}
-          trackColor={{ false: af.border, true: af.red }}
+          trackColor={{ false: af.surfacePressed, true: af.textPrimary }}
+          thumbColor={toggle.value ? af.canvas : af.textPrimary}
+          ios_backgroundColor={af.surfacePressed}
           accessibilityLabel={composedLabel}
         />
       )}

@@ -31,8 +31,8 @@ export interface AFMastheadProps {
   title?: string;
   /** One quiet line under the statement. */
   subtitle?: string;
-  /** 'quiet' draws the wordmark and breadcrumb in the secondary text colour,
-   *  as the newer screens do. Default is red. */
+  /** 'quiet' (default) draws the wordmark and breadcrumb in the secondary text
+   *  colour, the app's look. 'red' is the earlier masthead, opt-in only. */
   tone?: 'red' | 'quiet';
   /** Right-aligned mono meta on the wordmark row ("NEW YORK · 72°F"). */
   meta?: string;
@@ -66,7 +66,7 @@ export function AFMasthead({
   onBack,
   backLabel = 'Back',
   wordmark = true,
-  tone = 'red',
+  tone = 'quiet',
   accessory,
   testID,
 }: AFMastheadProps) {
@@ -76,7 +76,7 @@ export function AFMasthead({
       {wordmark && (
         <View style={styles.wordmarkRow}>
           <View style={styles.wordmarkGroup}>
-            <Text style={[styles.wordmark, tone === 'quiet' && styles.quiet]} aria-hidden>
+            <Text style={[styles.wordmark, tone === 'red' && styles.red]} aria-hidden>
               {AF_WORDMARK}
             </Text>
             {greeting ? <Text style={styles.greeting}>{greeting}</Text> : null}
@@ -112,7 +112,7 @@ export function AFMasthead({
             </Pressable>
           )}
           {breadcrumb ? (
-            <Text style={[[styles.breadcrumb, eyebrowType], tone === 'quiet' && styles.quiet]}>{breadcrumb.toUpperCase()}</Text>
+            <Text style={[[styles.breadcrumb, eyebrowType], tone === 'red' && styles.red]}>{breadcrumb.toUpperCase()}</Text>
           ) : null}
         </View>
       )}
@@ -143,14 +143,14 @@ const styles = StyleSheet.create({
   wordmarkGroup: { gap: 2, flexShrink: 1 },
   // The wordmark is a mark, not copy: 15pt Inter 700 in the AA red text
   // token (5.3:1 on the canvas); it is hidden from the screen reader.
-  wordmark: { ...afType.bodyStrong, fontSize: 15, lineHeight: 20, letterSpacing: 0.4, color: af.redText },
+  wordmark: { ...afType.bodyStrong, fontSize: 15, lineHeight: 20, letterSpacing: 0.4, color: af.textSecondary },
   greeting: { ...afType.secondary, color: af.textSecondary },
   rightGroup: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, flexShrink: 1 },
   metaGroup: { alignItems: 'flex-end', gap: 4, flexShrink: 1 },
   meta: { ...afType.micro, color: af.textSecondary, textAlign: 'right' },
   breadcrumbRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  breadcrumb: { ...afType.eyebrow, color: af.redText, flexShrink: 1 },
-  quiet: { color: af.textSecondary },
+  breadcrumb: { ...afType.eyebrow, color: af.textSecondary, flexShrink: 1 },
+  red: { color: af.redText },
   backBtn: {
     width: 36,
     height: 36,

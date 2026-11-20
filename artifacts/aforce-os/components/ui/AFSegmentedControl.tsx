@@ -43,7 +43,7 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
             hitSlop={{ top: 6, bottom: 6 }}
             style={[styles.pill, active ? styles.pillActive : styles.pillIdle]}
           >
-            <Text style={[[styles.label, eyebrowType], { color: active ? af.onRed : af.textSecondary }]}>
+            <Text style={[[styles.label, eyebrowType], { color: active ? af.onPrimaryFill : af.textSecondary }]}>
               {seg.label.toUpperCase()}
             </Text>
           </Pressable>
@@ -55,7 +55,7 @@ export function AFSegmentedControl({ segments, value, onChange, testID }: AFSegm
 
 const styles = StyleSheet.create({
   rail: { gap: 8, paddingVertical: 2 },
-  // Black Issue filter pill: mono micro caps, hairline idle, filled-red active.
+  // Filter pill: mono micro caps, hairline idle, warm-white fill when active.
   // 44pt target with the vertical hitSlop.
   pill: {
     minHeight: 34,
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: 'center',
   },
-  pillActive: { backgroundColor: af.red, borderColor: af.red },
+  pillActive: { backgroundColor: af.primaryFill, borderColor: af.primaryFill },
   pillIdle: { backgroundColor: 'transparent', borderColor: af.border },
   label: { ...afType.micro },
 });

@@ -145,22 +145,26 @@ describe('Black Issue — af.* equals the Editorial OS values it re-points to', 
 });
 
 describe('af.* type + layout + motion structure', () => {
-  it('D2: every statement and numeral is Inter 700; mono is furniture only', () => {
-    expect(afType.displayScore.fontFamily).toBe(Typography.fonts.bold);
-    expect(afType.displayHero.fontFamily).toBe(Typography.fonts.bold);
-    expect(afType.title1.fontFamily).toBe(Typography.fonts.bold);
+  // Founder, 2026-11-20: the app prototype's type replaces the Black Issue
+  // (D2) Inter 700 ruling for these roles.
+  it('statements are Inter 600 and the hero numeral is Inter 300; mono is furniture only', () => {
+    expect(afType.displayScore.fontFamily).toBe('Inter_300Light');
+    for (const role of [afType.displayHero, afType.title1, afType.title2, afType.title3]) {
+      expect(role.fontFamily).toBe(Typography.fonts.semibold);
+    }
     expect(afType.displayHero.fontFamily).not.toMatch(/Archivo/);
     expect(afType.eyebrow.fontFamily).toContain('Mono');
     expect(afType.eyebrow.letterSpacing).toBeGreaterThan(0);
   });
 
-  it('layout carries the Black Issue key sizes (D6) and keeps the 44pt floor', () => {
+  it("layout carries the app's key sizes (rounder cards, pill buttons) and keeps the 44pt floor", () => {
     expect(afLayout.buttonHeight).toBe(52);
     expect(afLayout.buttonHeight).toBeGreaterThanOrEqual(afLayout.controlMinHeight);
     expect(afLayout.screenPaddingX).toBe(32);
     expect(afLayout.screenPaddingXCompact).toBe(24);
-    expect(afLayout.radiusCard).toBe(12);
-    expect(afLayout.radiusButton).toBe(10);
+    expect(afLayout.radiusCard).toBe(20);
+    // Half the button height: a full pill.
+    expect(afLayout.radiusButton).toBe(afLayout.buttonHeight / 2);
     expect(afLayout.maxContentWidth).toBe(640);
   });
 
