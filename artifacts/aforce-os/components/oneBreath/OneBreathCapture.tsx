@@ -35,6 +35,8 @@ export interface OneBreathCaptureProps {
   headingProps?: Record<string, unknown>;
   /** A notice above the bar (for example an ended Moment). */
   alert?: string | null;
+  /** One Breath's answer to the last words, shown in place of the prompt. */
+  answer?: React.ReactNode;
   voiceAvailable: boolean;
   voiceListening: boolean;
   voiceBusy: boolean;
@@ -105,9 +107,13 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
         <Text style={s.hint}>{oneBreathHint(p.voiceAvailable, p.voiceListening, p.voiceBusy)}</Text>
       </View>
 
-      <Text {...p.headingProps} style={s.prompt}>
-        Plan a Moment. Just say it.
-      </Text>
+      {p.answer ? (
+        <View style={s.answer}>{p.answer}</View>
+      ) : (
+        <Text {...p.headingProps} style={s.prompt}>
+          Plan a Moment. Just say it.
+        </Text>
+      )}
       {p.alert ? (
         <Text accessibilityRole="alert" style={s.alert}>
           {p.alert}
@@ -226,6 +232,7 @@ const s = StyleSheet.create({
     marginTop: 18,
     paddingHorizontal: 6,
   },
+  answer: { marginTop: 18, alignSelf: "stretch" },
   alert: { ...T.body, fontSize: 14, lineHeight: 20, color: T.bone, textAlign: "center", marginTop: 12 },
   spacer: { flexGrow: 1, minHeight: 20 },
   chipsBleed: { flexGrow: 0, marginHorizontal: -28 },

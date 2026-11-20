@@ -232,6 +232,7 @@ export const ONE_BREATH_LINES = {
   noPlan: "No plan is waiting.",
   alreadySealed: "Already sealed. Nothing changed.",
   stillWaiting: "Nothing saved. Your plan is waiting.",
+  statusCollecting: "Still collecting. Log a few drinks and I\u2019ll have your HydroState.",
   statusUnavailable: "I can\u2019t read your HydroState right now, so I won\u2019t guess it.",
   upcomingUnavailable: "I can\u2019t read your Moments right now.",
   upcomingNone: "Nothing is planned yet.",
