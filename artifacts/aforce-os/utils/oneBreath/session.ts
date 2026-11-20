@@ -21,7 +21,8 @@
 import type { MomentType } from '@/types/moments';
 import type { Interpreter } from '@/services/oneBreath/interpreter';
 import { interpretByRules } from '@/services/oneBreath/rulesInterpreter';
-import { ONE_BREATH_SEAL_UNDO_MS } from '@/config/hydroStateModel';
+import { ONE_BREATH_DRINK_UNDO_MS, ONE_BREATH_SEAL_UNDO_MS } from '@/config/hydroStateModel';
+import { drinkNamed, ouncesSaid, type NamedDrink } from './drinkWords';
 import { classifyUtterance, sayPhrasePrompt } from './confirmationWindow';
 import { answerPlanQuestion, changePlan, planComplete, planFromWords, planSealId, type PlanQuestion } from './planTurn';
 
@@ -96,6 +97,11 @@ export interface OneBreathContext {
    * it. Absent means it could not be read, and the session says so.
    */
   hydroState?: { value: number; word: string; estimated: boolean; source: string; asOf?: string };
+  /**
+   * What the hydration rules say about credit for a category, in member words
+   * ("Partial credit pending."). One Breath repeats it and never writes its own.
+   */
+  creditNote?: (categoryId: string) => string;
   /** Upcoming Moments from the Moments store, soonest first. Absent means the list could not be read. */
   upcoming?: { title: string; day: string; time: string }[];
 }
@@ -154,6 +160,12 @@ export interface OneBreathState {
   outbox: { id: string; to: string; text: string; msLeft: number; state: 'pending' | 'sent' | 'cancelled' | 'unknown' }[];
   /** A drink scanned and not yet confirmed as drunk. */
   scanned?: { barcode: string; name?: string; categoryId?: string; oz?: number };
+  /** A drink named without an amount: the one question is "How much?". */
+  askingDrink?: NamedDrink;
+  /** The last drink logged, while its Undo is still open. */
+  lastDrink?: { id: string; label: string; msLeft: number };
+  /** Drinks logged this session. Part of each log's id, so one action is one log. */
+  logged: number;
   /** The words of every turn, kept when the interpreter is unreachable. */
   words: string[];
   lockedIn: boolean;
@@ -172,6 +184,7 @@ export const emptyOneBreathState = (): OneBreathState => ({
   outbox: [],
   words: [],
   lockedIn: false,
+  logged: 0,
 });
 
 /** Screens One Breath can open, by the words members use for them. Keys are for the router to map; no route is decided here. */
@@ -218,9 +231,80 @@ export const ONE_BREATH_LINES = {
   upcomingUnavailable: "I can\u2019t read your Moments right now.",
   upcomingNone: "Nothing is planned yet.",
   askScreen: "Which screen?",
+  askAmount: "How much?",
+  askDrink: "What did you drink, and how much?",
+  logIt: "Log it?",
+  unknownBarcode: "I don\u2019t know this product yet. I won\u2019t guess what it is. Pick what kind of drink it is, or type it.",
+  nothingLogged: "Nothing is logged.",
+  undoGone: "That can\u2019t be undone here any more.",
   alcoholNotCounted:
     "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
 } as const;
+
+const drinkLabel = (oz: number, name: string) => `${oz} oz ${name}`;
+
+/** Asks the hydration path to log one drink, once, and opens its Undo. Credit is the owner's to state. */
+function logDrink(state: OneBreathState, drink: NamedDrink, oz: number, context: OneBreathContext): OneBreathTurn {
+  const id = `drink:${state.logged}:${drink.categoryId}:${oz}`;
+  const label = drinkLabel(oz, drink.name);
+  const note = context.creditNote?.(drink.categoryId) ?? '';
+  return {
+    state: { ...state, logged: state.logged + 1, scanned: undefined, askingDrink: undefined, lastDrink: { id, label, msLeft: ONE_BREATH_DRINK_UNDO_MS } },
+    status: 'responding',
+    reply: {
+      outcome: 'act',
+      request: 'log_drink',
+      text: `Logged ${label}.${note ? ` ${note}` : ''}`,
+      undo: { reverses: `Logged ${label}`, ms: ONE_BREATH_DRINK_UNDO_MS },
+    },
+    effects: [{ kind: 'log_drink', id, categoryId: drink.categoryId, name: drink.name, oz }],
+  };
+}
+
+const CATEGORY_CHOICES = ['Water', 'Electrolyte drink', 'Sports drink', 'Coffee', 'Energy drink', 'Type it'];
+
+/** Scans, the buttons under them, Undo, and time passing. A scan is never drinking: only "Log it" logs. */
+function drinkControl(state: OneBreathState, input: Exclude<OneBreathInput, { kind: 'say' }>, context: OneBreathContext): OneBreathTurn | null {
+  const reply = (outcome: OneBreathOutcome, text: string, next: OneBreathState, extra: Partial<OneBreathReply> = {}, effects: OneBreathEffect[] = []): OneBreathTurn => ({
+    state: next,
+    status: outcome === 'nothing' ? 'standby' : 'responding',
+    reply: { outcome, request: 'log_drink', text, ...extra },
+    effects,
+  });
+
+  if (input.kind === 'wait') {
+    if (!state.lastDrink) return null;
+    const msLeft = state.lastDrink.msLeft - input.ms;
+    return reply('nothing', '', { ...state, lastDrink: msLeft > 0 ? { ...state.lastDrink, msLeft } : undefined });
+  }
+
+  if (input.kind === 'scan') {
+    const p = input.product;
+    if (!p) {
+      return reply('ask', ONE_BREATH_LINES.unknownBarcode, { ...state, scanned: { barcode: input.barcode } }, { question: ONE_BREATH_LINES.unknownBarcode, choices: CATEGORY_CHOICES });
+    }
+    const scanned = { barcode: input.barcode, name: p.name, categoryId: p.categoryId, oz: p.packageOz };
+    const text = `${p.name}${p.packageOz ? `, ${p.packageOz} oz` : ''}. ${ONE_BREATH_LINES.logIt}`;
+    return reply('ask', text, { ...state, scanned }, { question: ONE_BREATH_LINES.logIt, choices: ['Log it', 'Not now'] });
+  }
+
+  if (input.control === 'close' && state.scanned) return reply('nothing', ONE_BREATH_LINES.nothingLogged, { ...state, scanned: undefined });
+
+  if (input.control === 'log') {
+    const sc = state.scanned;
+    // No scan waiting (a second tap lands here): nothing more to log.
+    if (!sc) return reply('nothing', '', state);
+    if (!sc.categoryId || !sc.name || !sc.oz) return reply('ask', ONE_BREATH_LINES.askAmount, state, { question: ONE_BREATH_LINES.askAmount });
+    return logDrink(state, { categoryId: sc.categoryId as NamedDrink['categoryId'], name: sc.name }, sc.oz, context);
+  }
+
+  if (input.control === 'undo' && state.lastDrink) {
+    const last = state.lastDrink;
+    return reply('undone', `Undone. ${last.label} was not logged.`, { ...state, lastDrink: undefined }, {}, [{ kind: 'undo_drink', id: `undo:${last.id}`, of: last.id }]);
+  }
+
+  return null;
+}
 
 const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): OneBreathTurn => ({
   state,
@@ -238,7 +322,10 @@ const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): On
  * A plan is saved only by an explicit "seal it" on a complete read-back.
  * Read-only requests are answered from what the caller supplies: HydroState
  * and upcoming Moments are repeated with their source, never computed here,
- * and a screen is opened by key.
+ * and a screen is opened by key. A drink is logged when the member names it
+ * with a clear amount, or taps "Log it" after a scan; the category comes from
+ * the app's drink catalog and the words about credit from the hydration
+ * rules, never from here.
  * Every other request is understood by the interpreter but answered
  * 'not_built' with no effects. No screen calls this yet.
  */
@@ -248,7 +335,7 @@ export function oneBreathTurn(
   context: OneBreathContext,
   interpret: Interpreter = interpretByRules,
 ): OneBreathTurn {
-  if (input.kind !== 'say') return notBuilt(state);
+  if (input.kind !== 'say') return drinkControl(state, input, context) ?? notBuilt(state);
 
   const kept: OneBreathState = { ...state, words: [...state.words, input.words] };
   const answer = (
@@ -315,6 +402,12 @@ export function oneBreathTurn(
       : answer('nothing', 'plan_moment', ONE_BREATH_LINES.noPlan);
   }
 
+  // 4. An answer to "How much?" for a drink already named.
+  if (kept.askingDrink) {
+    const oz = ouncesSaid(input.words);
+    if (oz !== null) return logDrink({ ...kept, askingDrink: undefined }, kept.askingDrink, oz, context);
+  }
+
   const heard = interpret(input.words, { social: context.social, momentInWindow: context.momentInWindow });
 
   if (heard.outcome === 'nothing') return answer('nothing', 'none', '');
@@ -335,6 +428,16 @@ export function oneBreathTurn(
     const started = planFromWords(input.words, now, { social: context.social, timingOnly: safety });
     if (started.asking) return ask(started.plan, started.asking);
     return safety ? readBack(started.plan, 'safety', `${ONE_BREATH_LINES.safety} `) : readBack(started.plan);
+  }
+
+  if (heard.request === 'log_drink') {
+    const drink = drinkNamed(input.words);
+    const oz = ouncesSaid(input.words);
+    // A clear drink and amount is the member's instruction. Anything less is one question.
+    if (drink && oz !== null && heard.outcome === 'act') return logDrink(kept, drink, oz, context);
+    const question = drink ? ONE_BREATH_LINES.askAmount : ONE_BREATH_LINES.askDrink;
+    const turn = answer('ask', 'log_drink', question, { ...kept, askingDrink: drink ?? undefined });
+    return { ...turn, reply: { ...turn.reply, question } };
   }
 
   // Read-only requests: no approval, and nothing is changed.

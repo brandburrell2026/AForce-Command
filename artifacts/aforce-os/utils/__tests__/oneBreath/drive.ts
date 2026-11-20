@@ -23,6 +23,13 @@ export const BASE_CONTEXT: OneBreathContext = {
   // Sample values for tests only. In the app these come from HydroState and the Moments store.
   hydroState: { value: 51, word: 'Behind', estimated: true, source: 'drinks you logged today' },
   upcoming: [{ title: 'Morning lift', day: 'Fri, Nov 20', time: '6:30 AM' }],
+  // Stands in for the hydration rules' own wording about credit.
+  creditNote: (categoryId) =>
+    categoryId === 'water' || categoryId === 'bottled_water'
+      ? ''
+      : ['coffee', 'tea', 'energy_drink', 'smoothie'].includes(categoryId)
+        ? 'Partial credit pending.'
+        : 'Credit pending.',
 };
 
 export const say = (words: string, via: 'typed' | 'spoken' = 'typed'): OneBreathInput => ({ kind: 'say', words, via });

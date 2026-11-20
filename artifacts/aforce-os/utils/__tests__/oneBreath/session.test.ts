@@ -16,7 +16,7 @@ describe('One Breath session · built so far', () => {
 
   it('the window comes from context, not from the interpreter\'s say-so', () => {
     const lying = () => ({ request: 'lock_in' as const, outcome: 'act' as const });
-    const state = { sealed: [], outbox: [], words: [], lockedIn: false };
+    const state = { sealed: [], outbox: [], words: [], lockedIn: false, logged: 0 };
     // Imported lazily to pass a custom interpreter.
     return import('@/utils/oneBreath/session').then(({ oneBreathTurn }) => {
       const turn = oneBreathTurn(state, { kind: 'say', words: 'Lock me in', via: 'typed' }, {
@@ -34,17 +34,17 @@ describe('One Breath session · built so far', () => {
   });
 
   it('a request that is understood but not built changes nothing and claims nothing', () => {
-    const r = run([say('Log a 12 oz coffee'), say('When should I leave the house?'), say("Let Annette know I'm heading home")], { social: true });
+    const r = run([say('When should I leave the house?'), say("Let Annette know I'm heading home"), say("Share tonight's plan with Brandon")], { social: true });
     for (const t of r.turns) {
       expect(t.reply.outcome).toBe('not_built');
       expect(t.reply.text).toBe('');
       expect(t.effects).toEqual([]);
     }
-    expect(r.turns.map((t) => t.reply.request)).toEqual(['log_drink', 'prepare', 'send_message']);
+    expect(r.turns.map((t) => t.reply.request)).toEqual(['prepare', 'send_message', 'share_plan']);
   });
 
-  it('taps, scans and waiting do nothing yet', () => {
-    const r = run([scan('012345678905'), tap('log'), wait(6000)]);
+  it('an unknown barcode can never be logged by tapping Log', () => {
+    const r = run([scan('012345678905'), tap('log'), tap('log'), wait(6000)]);
     expect(r.effects).toEqual([]);
   });
 });
@@ -114,6 +114,64 @@ describe('One Breath session · planning a Moment', () => {
   });
 });
 
+describe('One Breath session · drinks', () => {
+  it('logs a clear drink once, repeats the rules\' credit note, and opens a 6-second Undo', () => {
+    const r = run([say('Log a 12 oz coffee')]);
+    expect(r.of('log_drink')).toEqual([{ kind: 'log_drink', id: 'drink:0:coffee:12', categoryId: 'coffee', name: 'coffee', oz: 12 }]);
+    expect(r.last.reply.text).toBe('Logged 12 oz coffee. Partial credit pending.');
+    expect(r.last.reply.undo).toEqual({ reverses: 'Logged 12 oz coffee', ms: 6000 });
+  });
+
+  it('says nothing about credit when the hydration rules say nothing', () => {
+    const r = run([say('Log a 12 oz coffee')], { creditNote: undefined });
+    expect(r.last.reply.text).toBe('Logged 12 oz coffee.');
+  });
+
+  it('Undo inside the window asks for that one log to be reversed; after it, Undo does nothing', () => {
+    const inside = run([say('Had 16 ounces of water'), wait(3000), tap('undo')]);
+    expect(inside.of('undo_drink')).toEqual([{ kind: 'undo_drink', id: 'undo:drink:0:water:16', of: 'drink:0:water:16' }]);
+    expect(inside.last.reply.outcome).toBe('undone');
+    const late = run([say('Had 16 ounces of water'), wait(6000), tap('undo')]);
+    expect(late.of('undo_drink')).toEqual([]);
+    expect(run([say('Had 16 ounces of water'), tap('undo'), tap('undo')]).of('undo_drink')).toHaveLength(1);
+  });
+
+  it('two separate drinks are two logs with different ids', () => {
+    const r = run([say('Had 16 ounces of water'), say('Had 16 ounces of water')]);
+    expect(r.of('log_drink').map((e) => e.id)).toEqual(['drink:0:water:16', 'drink:1:water:16']);
+  });
+
+  it('takes the category from the app\'s drink catalog and never picks between two', () => {
+    expect(run([say('Had a 16 oz LMNT')]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte', name: 'LMNT' });
+    expect(run([say('drank 12 oz of Pedialyte')]).of('log_drink')[0]).toMatchObject({ categoryId: 'electrolyte' });
+    expect(run([say('had a 16 oz Monster')]).of('log_drink')[0]).toMatchObject({ categoryId: 'energy_drink' });
+  });
+
+  it('a drink the catalog does not list is asked about, not filed somewhere', () => {
+    const r = run([say('had a 16 oz AFORCE')]);
+    expect(r.of('log_drink')).toEqual([]);
+    expect(r.last.reply.outcome).toBe('ask');
+  });
+
+  it('reads amounts in ounces, millilitres, litres and cups, and refuses unclear ones', () => {
+    const oz = (words: string) => run([say(words)]).of('log_drink')[0]?.oz;
+    expect(oz('add a 16.9 oz bottle of water')).toBe(16.9);
+    expect(oz('log 500 ml of water')).toBe(16.9);
+    expect(oz('i drank 1 liter of water')).toBe(33.8);
+    expect(oz('had 2 cups of water')).toBe(16);
+    expect(oz('log 16 or 20 oz of water')).toBeUndefined();
+    expect(oz('had a cup of joe')).toBeUndefined();
+    expect(oz('log 900 oz of water')).toBeUndefined();
+  });
+
+  it('a scan logs only on "Log it", with the amount from the package', () => {
+    const r = run([scan('0850012345012', { name: 'LMNT', categoryId: 'electrolyte', packageOz: 16 })]);
+    expect(r.last.reply.text).toBe('LMNT, 16 oz. Log it?');
+    expect(r.last.reply.choices).toEqual(['Log it', 'Not now']);
+    expect(r.effects).toEqual([]);
+  });
+});
+
 describe('One Breath session · read-only requests', () => {
   it('repeats HydroState with its source and says when it is an estimate', () => {
     const r = run([say('How am I doing?')]);
@@ -161,13 +219,24 @@ describe('One Breath session · read-only requests', () => {
   });
 });
 
+/** Clear drink phrases (of 45) that log without a question today. A floor, so it cannot quietly get worse. */
+const DIRECT_LOG_FLOOR = 43;
+
 describe('One Breath session · for every written request', () => {
-  it('the only thing a single utterance can change today is Lock In, inside its window', () => {
+  it('a single utterance never writes more than its phrase allows, and only a drink log or Lock In', () => {
     for (const p of PHRASING_SET) {
       const r = run([say(p.text)], { social: p.social, momentInWindow: p.inWindow });
       const w = writes(r.effects);
-      if (p.request === 'lock_in' && p.inWindow) expect(w.map((e) => e.kind), p.id).toEqual(['lock_in']);
-      else expect(w, p.id).toEqual([]);
+      expect(w.length, `${p.id} ${p.text}`).toBeLessThanOrEqual(p.writes);
+      for (const e of w) expect(['log_drink', 'lock_in'], p.id).toContain(e.kind);
     }
+  });
+
+  it('most clear drink phrases log directly; the rest ask instead of guessing', () => {
+    const clear = PHRASING_SET.filter((p) => p.request === 'log_drink' && p.outcome === 'act');
+    const logged = clear.filter((p) => run([say(p.text)]).of('log_drink').length === 1);
+    const asked = clear.filter((p) => run([say(p.text)]).last.reply.outcome === 'ask');
+    expect(logged.length + asked.length).toBe(clear.length);
+    expect(logged.length).toBeGreaterThanOrEqual(DIRECT_LOG_FLOOR);
   });
 });
