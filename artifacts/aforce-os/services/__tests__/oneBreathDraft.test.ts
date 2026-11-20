@@ -73,3 +73,20 @@ describe('one clarification for a bare time (CB3)', () => {
     }
   });
 });
+
+describe('goal phrasings from the approved prototype (One Breath Final Build Spec, CB1–CB2)', () => {
+  const NOW = new Date(2026, 10, 19, 10);
+  it('"legs need to be fresh" is the Legs fresh goal, not part of the name', () => {
+    const d = suggestMomentDraft('Lift tomorrow at 6:30 AM, legs need to be fresh', NOW);
+    expect(d.prepGoal).toBe('Legs fresh');
+    expect(d.title).toBe('Morning lift');
+  });
+  it('", legs fresh" is the Legs fresh goal', () => {
+    const d = suggestMomentDraft('Lift tomorrow at 6:30 AM, legs fresh', NOW);
+    expect(d.prepGoal).toBe('Legs fresh');
+    expect(d.title).toBe('Morning lift');
+  });
+  it('legs mentioned without a goal are left alone', () => {
+    expect(suggestMomentDraft('Leg day tomorrow at 6:30 AM', NOW).prepGoal).toBe('');
+  });
+});

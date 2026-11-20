@@ -9,8 +9,8 @@
  *
  * A scenario marked `it.fails` is not built yet: it fails today and is reported
  * as an expected failure. When a slice makes it pass, vitest fails that
- * `it.fails`, and the marker comes off in the same PR. Built so far: CB7, CB10,
- * L1, L2, D9. Each scenario asserts at least one thing the empty session cannot
+ * `it.fails`, and the marker comes off in the same PR. Built so far: CB1, CB3,
+ * CB4, CB7, CB10, CB12, CB13, CB14, L1, L2, D9, S7, S10. Each scenario asserts at least one thing the empty session cannot
  * do, so none passes by accident.
  *
  * These run the session contract only. They are not device evidence.
@@ -24,7 +24,7 @@ const GATORADE = { name: 'Gatorade', categoryId: 'sports', packageOz: 20 };
 const WATER = { name: 'Water', categoryId: 'water', packageOz: 8.5 };
 
 describe('One Breath · conversation tests (CB1–CB14)', () => {
-  it.fails('CB1 · multi-turn workout, moved to 7, sealed once, then Quiet', () => {
+  it('CB1 · multi-turn workout, moved to 7, sealed once, then Quiet', () => {
     const r = run([
       say('I want to lift tomorrow, legs need to be fresh'),
       say('6:30 in the morning'),
@@ -49,7 +49,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(writes(r.effects)).toEqual([]);
   });
 
-  it.fails('CB3 · ambiguous time asks one question and makes no plan', () => {
+  it('CB3 · ambiguous time asks one question and makes no plan', () => {
     const r = run([say('Lift at 6:30')]);
     expect(r.last.reply.outcome).toBe('ask');
     expect(r.last.reply.question).toBeTruthy();
@@ -57,7 +57,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(writes(r.effects)).toEqual([]);
   });
 
-  it.fails('CB4 · "No, Saturday" moves the plan and keeps the literal words', () => {
+  it('CB4 · "No, Saturday" moves the plan and keeps the literal words', () => {
     const r = run([say(LIFT), say('No, Saturday')]);
     expect(r.last.reply.outcome).toBe('read_back');
     expect(r.last.state.pendingPlan?.day).toMatch(/^Sat/);
@@ -118,17 +118,20 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
   it.fails('CB11 · learning off: sealing and finishing Replay creates no lesson', () => {
     const r = run([say(LIFT), say('seal it'), tap('replay', 'Okay'), tap('lesson', 'no')], { learningOn: false });
     expect(r.of('save_moment')).toHaveLength(1);
+    // Replay is not built in the session yet, so this stays an expected failure
+    // rather than passing only because nothing can create a lesson.
+    expect(r.turns[2].reply.outcome).toBe('act');
     expect(r.of('save_lesson')).toEqual([]);
   });
 
-  it.fails('CB12 · spoken input reaches the same plan as typing it', () => {
+  it('CB12 · spoken input reaches the same plan as typing it', () => {
     const typed = run([say(LIFT, 'typed')]);
     const spoken = run([say(LIFT, 'spoken')]);
     expect(spoken.last.reply.outcome).toBe('read_back');
     expect(spoken.last.state.pendingPlan).toEqual(typed.last.state.pendingPlan);
   });
 
-  it.fails('CB13 · a second "seal it" changes nothing and makes no duplicate', () => {
+  it('CB13 · a second "seal it" changes nothing and makes no duplicate', () => {
     const r = run([say(LIFT), say('seal it'), say('seal it')]);
     expect(r.of('save_moment')).toHaveLength(1);
     expect(r.last.reply.outcome).toBe('already_done');
@@ -136,7 +139,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(duplicateWriteIds(r.effects)).toEqual([]);
   });
 
-  it.fails('CB14 · a surgery mention gets timing only and a clinician referral', () => {
+  it('CB14 · a surgery mention gets timing only and a clinician referral', () => {
     const r = run([say('Leg day tomorrow at 6:30 AM. I had knee surgery three weeks ago but I feel fine.')]);
     expect(r.last.reply.outcome).toBe('safety');
     expect(r.last.reply.text).toMatch(/clinician/i);
@@ -273,7 +276,7 @@ describe('One Breath · Social tests (S1–S10)', () => {
     expect(r.of('made_it_back')).toHaveLength(1);
   });
 
-  it.fails('S7 · no "Made it back": nothing implies the member arrived', () => {
+  it('S7 · no "Made it back": nothing implies the member arrived', () => {
     const r = run([say('Dinner with Lilia Friday at 8 pm'), say('seal it'), wait(8 * 60 * 60 * 1000)], { social: true });
     expect(r.of('save_moment')).toHaveLength(1);
     expect(r.of('made_it_back')).toEqual([]);
@@ -295,13 +298,14 @@ describe('One Breath · Social tests (S1–S10)', () => {
     expect(r.of('share_plan')).toEqual([]);
   });
 
-  it.fails('S10 · dinner with drinks seals as a Social Moment; nothing about alcohol is shared', () => {
+  it('S10 · dinner with drinks seals as a Social Moment; nothing about alcohol is shared', () => {
     const r = run(
       [say('Dinner with Lilia Friday at 8 pm, probably a couple of drinks'), tap('who', 'Lilia'), tap('share', 'Not now'), say('seal it')],
       { social: true },
     );
     expect(r.of('save_moment')).toHaveLength(1);
     expect(r.of('save_moment')[0].plan.type).toBe('social');
+    expect(r.of('save_moment')[0].plan.title).toBe('Dinner with Lilia');
     expect(r.of('share_plan')).toEqual([]);
     expect(r.of('log_drink')).toEqual([]);
   });

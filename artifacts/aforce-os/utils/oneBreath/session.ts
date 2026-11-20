@@ -21,6 +21,9 @@
 import type { MomentType } from '@/types/moments';
 import type { Interpreter } from '@/services/oneBreath/interpreter';
 import { interpretByRules } from '@/services/oneBreath/rulesInterpreter';
+import { ONE_BREATH_SEAL_UNDO_MS } from '@/config/hydroStateModel';
+import { classifyUtterance, sayPhrasePrompt } from './confirmationWindow';
+import { answerPlanQuestion, changePlan, planComplete, planFromWords, planSealId, type PlanQuestion } from './planTurn';
 
 export type OneBreathStatus = 'standby' | 'listening' | 'operating' | 'responding' | 'quiet';
 
@@ -96,6 +99,9 @@ export interface PlanDraft {
   /** Local day and time as read back, e.g. "Sat" / "7:00 AM". Absent while still missing. */
   day?: string;
   time?: string;
+  /** The same day and time as entered, "YYYY-MM-DD" and "HH:mm" local, for the owning service. */
+  date?: string;
+  time24?: string;
   goal?: string;
   steps: { at: string; label: string }[];
   /** The member's own words, kept for the read-back. */
@@ -133,6 +139,8 @@ export interface OneBreathReply {
 export interface OneBreathState {
   /** A plan read back and not yet sealed. Survives a topic change. */
   pendingPlan?: PlanDraft;
+  /** The one question waiting on the pending plan, when a day or time is missing. */
+  asking?: PlanQuestion;
   /** Ids of Moments sealed in this session. */
   sealed: string[];
   /** Sends held before they leave the phone. */
@@ -167,6 +175,14 @@ export const ONE_BREATH_LINES = {
   lockInNotActive: "No Moment is starting right now. Lock In opens when your next Moment begins. Want to plan one?",
   lockInStarted: "Locked in.",
   lockInAlready: "Already locked in. Nothing changed.",
+  safety:
+    "I\u2019ll keep this to timing only. For training around an injury, surgery or a medical issue, check with your clinician.",
+  askTime: "What time?",
+  askDay: "What day?",
+  askChange: "What should change: the day or the time?",
+  noPlan: "There\u2019s no plan waiting to be sealed.",
+  alreadySealed: "Already sealed. Nothing changed.",
+  stillWaiting: "Nothing saved. Your plan is still waiting for you to seal it.",
   alcoholNotCounted:
     "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
 } as const;
@@ -181,12 +197,12 @@ const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): On
 /**
  * One turn.
  *
- * Built so far: the turns that can be answered without touching anything the
- * member owns except Lock In (unavailable, nothing to do, the honest limit,
- * alcohol outside Social, Lock In inside or outside its window). Every other
- * request is understood by the interpreter but answered 'not_built' with no
- * effects, which is the only safe behaviour until its slice lands. No screen
- * calls this yet.
+ * Built so far: unavailable, nothing to do, the honest limit, alcohol outside
+ * Social, Lock In inside or outside its window, and planning a Moment (one
+ * question at a time, read-back, a spoken or typed change, "seal it" once).
+ * A plan is saved only by an explicit "seal it" on a complete read-back.
+ * Every other request is understood by the interpreter but answered
+ * 'not_built' with no effects. No screen calls this yet.
  */
 export function oneBreathTurn(
   state: OneBreathState,
@@ -208,6 +224,59 @@ export function oneBreathTurn(
   // The member's words are kept before anything can fail.
   if (!context.interpreterReachable) return answer('unavailable', 'none', ONE_BREATH_LINES.unavailable);
 
+  const now = new Date(context.nowIso);
+  const readBack = (plan: PlanDraft, outcome: OneBreathOutcome = 'read_back', lead = ''): OneBreathTurn =>
+    answer(
+      outcome,
+      'plan_moment',
+      `${lead}${plan.title}, ${plan.day} at ${plan.time}.${plan.goal ? ` Goal: ${plan.goal}.` : ''} ${sayPhrasePrompt('seal')}`,
+      { ...kept, pendingPlan: plan, asking: undefined },
+    );
+  const ask = (plan: PlanDraft, asking: PlanQuestion): OneBreathTurn => {
+    const question = asking.question ?? (asking.need === 'time' ? ONE_BREATH_LINES.askTime : ONE_BREATH_LINES.askDay);
+    const turn = answer('ask', 'plan_moment', question, { ...kept, pendingPlan: plan, asking });
+    return { ...turn, reply: { ...turn.reply, question, choices: asking.options?.map((o) => o.label) } };
+  };
+
+  const said = classifyUtterance(input.words);
+  const pending = kept.pendingPlan;
+
+  // 1. An answer to the one open question.
+  if (pending && kept.asking) {
+    const next = answerPlanQuestion(pending, kept.asking, input.words, now);
+    if (next) return next.asking ? ask(next.plan, next.asking) : readBack(next.plan);
+  }
+
+  // 2. A reply to a complete read-back: seal, change, or no.
+  if (pending && planComplete(pending)) {
+    if (said.kind === 'confirm' && said.intent === 'seal') {
+      const id = planSealId(pending);
+      const sealed = answer(
+        'approved',
+        'plan_moment',
+        `Sealed. ${pending.title} \u00b7 ${pending.day} ${pending.time}.`,
+        { ...kept, pendingPlan: undefined, asking: undefined, sealed: [...kept.sealed, id] },
+        [
+          { kind: 'save_moment', id, plan: pending },
+          { kind: 'enter_quiet', id: `quiet:${id}` },
+        ],
+      );
+      return { ...sealed, status: 'quiet', reply: { ...sealed.reply, undo: { reverses: `Sealed ${pending.title}`, ms: ONE_BREATH_SEAL_UNDO_MS } } };
+    }
+    if (said.kind === 'change') {
+      const changed = changePlan(pending, input.words, now);
+      return changed ? readBack(changed) : answer('ask', 'plan_moment', ONE_BREATH_LINES.askChange);
+    }
+    if (said.kind === 'negation') return answer('nothing', 'plan_moment', ONE_BREATH_LINES.stillWaiting);
+  }
+
+  // 3. "Seal it" with nothing waiting never saves anything.
+  if (said.kind === 'confirm' && said.intent === 'seal') {
+    return kept.sealed.length > 0
+      ? answer('already_done', 'plan_moment', ONE_BREATH_LINES.alreadySealed)
+      : answer('nothing', 'plan_moment', ONE_BREATH_LINES.noPlan);
+  }
+
   const heard = interpret(input.words, { social: context.social, momentInWindow: context.momentInWindow });
 
   if (heard.outcome === 'nothing') return answer('nothing', 'none', '');
@@ -221,6 +290,13 @@ export function oneBreathTurn(
     return answer('act', 'lock_in', ONE_BREATH_LINES.lockInStarted, { ...kept, lockedIn: true }, [
       { kind: 'lock_in', id: `lock-in:${context.currentMomentId ?? 'current'}` },
     ]);
+  }
+
+  if (heard.request === 'plan_moment') {
+    const safety = heard.outcome === 'safety';
+    const started = planFromWords(input.words, now, { social: context.social, timingOnly: safety });
+    if (started.asking) return ask(started.plan, started.asking);
+    return safety ? readBack(started.plan, 'safety', `${ONE_BREATH_LINES.safety} `) : readBack(started.plan);
   }
 
   return notBuilt(kept, heard.request);
