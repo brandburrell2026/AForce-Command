@@ -24,7 +24,7 @@ const GATORADE = { name: 'Gatorade', categoryId: 'sports_drink', packageOz: 20 }
 const WATER = { name: 'Water', categoryId: 'water', packageOz: 8.5 };
 
 describe('One Breath · conversation tests (CB1–CB14)', () => {
-  it('CB1 · multi-turn workout, moved to 7, sealed once, then Quiet', () => {
+  it('CB1 · multi-turn workout, moved to 7, sealed once (Quiet waits for Lock In)', () => {
     const r = run([
       say('I want to lift tomorrow, legs need to be fresh'),
       say('6:30 in the morning'),
@@ -36,8 +36,9 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(r.turns[2].state.pendingPlan?.time).toBe('7:00 AM');
     expect(r.of('save_moment')).toHaveLength(1);
     expect(r.of('save_moment')[0].plan.goal).toMatch(/legs fresh/i);
-    expect(r.of('enter_quiet')).toHaveLength(1);
-    expect(r.last.status).toBe('quiet');
+    // Founder decision, 2026-11-20: Seal saves; Quiet begins at Lock In, not here.
+    expect(r.last.status).not.toBe('quiet');
+    expect(r.effects.map((e) => e.kind)).toEqual(['save_moment']);
   });
 
   it.fails('CB2 · follow-up answers from the plan without asking again', () => {
@@ -75,10 +76,11 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
   });
 
   it('CB6 · a 12 oz coffee is logged once, with Undo, and One Breath sets no credit', () => {
-    const r = run([say('Log a 12 oz coffee')]);
+    const r = run([say('Log a 12 oz coffee'), wait(6000)]);
+    expect(r.turns[0].effects).toEqual([]);
     expect(r.of('log_drink')).toHaveLength(1);
     expect(r.of('log_drink')[0]).toMatchObject({ categoryId: 'coffee', oz: 12 });
-    expect(r.last.reply.undo?.ms).toBe(6000);
+    expect(r.turns[0].reply.undo?.ms).toBe(6000);
     expect(r.last.reply.text).toMatch(/partial credit/i);
   });
 
@@ -167,7 +169,7 @@ describe('One Breath · Lock In only inside a Moment window (L1–L2)', () => {
 
 describe('One Breath · drink tests (D1–D9)', () => {
   it('D1 · scan an LMNT, then "Log it": logged as an electrolyte drink', () => {
-    const r = run([scan('0850012345012', LMNT), tap('log')]);
+    const r = run([scan('0850012345012', LMNT), tap('log'), wait(6000)]);
     expect(r.turns[0].reply.outcome).toBe('ask');
     expect(r.turns[0].effects).toEqual([]);
     expect(r.of('log_drink')).toHaveLength(1);
@@ -175,7 +177,7 @@ describe('One Breath · drink tests (D1–D9)', () => {
   });
 
   it('D2 · scan a Gatorade, then "Log it": logged as a sports drink', () => {
-    const r = run([scan('0052000123456', GATORADE), tap('log')]);
+    const r = run([scan('0052000123456', GATORADE), tap('log'), wait(6000)]);
     expect(r.of('log_drink')).toHaveLength(1);
     expect(r.of('log_drink')[0]).toMatchObject({ categoryId: 'sports_drink', oz: 20 });
   });
@@ -188,7 +190,7 @@ describe('One Breath · drink tests (D1–D9)', () => {
   });
 
   it('D4 · "Had an LMNT": one question about the amount, then logged', () => {
-    const r = run([say('Had an LMNT'), say('16 ounces')]);
+    const r = run([say('Had an LMNT'), say('16 ounces'), wait(6000)]);
     expect(r.turns[0].reply.outcome).toBe('ask');
     expect(r.turns[0].effects).toEqual([]);
     expect(r.of('log_drink')).toHaveLength(1);
@@ -196,10 +198,10 @@ describe('One Breath · drink tests (D1–D9)', () => {
   });
 
   it('D5 · "Drank a 20 oz Gatorade": logged directly with Undo', () => {
-    const r = run([say('Drank a 20 oz Gatorade')]);
+    const r = run([say('Drank a 20 oz Gatorade'), wait(6000)]);
     expect(r.of('log_drink')).toHaveLength(1);
     expect(r.of('log_drink')[0]).toMatchObject({ categoryId: 'sports_drink', oz: 20 });
-    expect(r.last.reply.undo?.ms).toBe(6000);
+    expect(r.turns[0].reply.undo?.ms).toBe(6000);
   });
 
   it('D6 · unknown barcode: says so, offers a category pick, never guesses', () => {
@@ -211,14 +213,14 @@ describe('One Breath · drink tests (D1–D9)', () => {
   });
 
   it('D7 · "Had a 12 oz Celsius": logged as an energy drink', () => {
-    const r = run([say('Had a 12 oz Celsius')]);
+    const r = run([say('Had a 12 oz Celsius'), wait(6000)]);
     expect(r.of('log_drink')).toHaveLength(1);
     expect(r.of('log_drink')[0]).toMatchObject({ categoryId: 'energy_drink', oz: 12 });
     expect(r.last.reply.text).toMatch(/partial credit/i);
   });
 
   it('D8 · Log tapped twice: one log, not two', () => {
-    const r = run([scan('0012345000019', WATER), tap('log'), tap('log')]);
+    const r = run([scan('0012345000019', WATER), tap('log'), tap('log'), wait(6000), wait(6000)]);
     expect(r.of('log_drink')).toHaveLength(1);
     expect(duplicateWriteIds(r.effects)).toEqual([]);
   });
