@@ -114,6 +114,10 @@ import {
   type WindowState,
 } from "@/utils/oneBreath/confirmationWindow";
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
+import {
+  LOCK_IN_NOT_YET,
+  lockInOpensInMs,
+} from "@/utils/oneBreath/lockInWindow";
 import { ONE_BREATH_SEAL_UNDO_MS } from "@/config/hydroStateModel";
 
 /** The screens that sit on the Moment's photograph: from understood to Quiet. */
@@ -203,6 +207,13 @@ export function MomentPreparationScreen({
   const [reservationReview, setReservationReview] = React.useState(false);
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
   const [review, setReview] = React.useState<Moment | null>(null);
+  // Lock In belongs to the Moment's start, not to sealing (One Breath Final
+  // Build Spec). Personal One Breath only: the Social flow's Lock In also
+  // opens Return, and narrowing that is a founder decision.
+  const [lockInClock, setLockInClock] = React.useState(() => Date.now());
+  const lockInWaitMs = social
+    ? 0
+    : lockInOpensInMs(review?.startAtIso, lockInClock);
   const [error, setError] = React.useState("");
   const [method, setMethod] = React.useState<
     MomentPreparation["returnMethod"] | null
@@ -660,6 +671,17 @@ export function MomentPreparationScreen({
       cancelHold();
     };
   }, [cancelHold, voice.cancel]);
+  React.useEffect(() => {
+    if (screen !== "lock") return;
+    setLockInClock(Date.now());
+    if (lockInWaitMs <= 0) return;
+    // One timer to the moment the window opens. No polling.
+    const id = setTimeout(
+      () => setLockInClock(Date.now()),
+      Math.min(lockInWaitMs, 2147483647),
+    );
+    return () => clearTimeout(id);
+  }, [screen, lockInWaitMs]);
   React.useEffect(() => {
     dim.setValue(1);
     if (screen !== "quiet") return;
@@ -2207,17 +2229,21 @@ export function MomentPreparationScreen({
             <Text {...headingProps} style={[s.title, s.centered, accessibleHeading]}>
               Your plan is yours.
             </Text>
-            <Text style={[s.body, s.centered]}>Go perform.</Text>
+            {lockInWaitMs > 0 ? (
+              <Text style={[s.body, s.centered]}>{LOCK_IN_NOT_YET}</Text>
+            ) : null}
             {undoUntil !== null ? button("Undo", undoSeal) : null}
-            {button(
-              "Lock In",
-              () =>
-                transition(
-                  { lockedInAtIso: new Date().toISOString() },
-                  "quiet",
-                ),
-              true,
-            )}
+            {lockInWaitMs > 0
+              ? null
+              : button(
+                  "Lock In",
+                  () =>
+                    transition(
+                      { lockedInAtIso: new Date().toISOString() },
+                      "quiet",
+                    ),
+                  true,
+                )}
             {button("Open Moments", () => router.replace("/moments-tab"))}
           </>
         ) : null}
