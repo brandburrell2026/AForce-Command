@@ -29,9 +29,11 @@ export interface TellAforceYourTripProps {
   onCancel: () => void;
   busy?: boolean;
   now?: () => Date;
+  /** A sentence handed over from One Breath. It is read once, as if the member had just said it here. */
+  initialWords?: string;
 }
 
-export function TellAforceYourTrip({ onConfirm, onEditDetails, onCancel, busy = false, now = () => new Date() }: TellAforceYourTripProps) {
+export function TellAforceYourTrip({ onConfirm, onEditDetails, onCancel, busy = false, now = () => new Date(), initialWords }: TellAforceYourTripProps) {
   const [words, setWords] = React.useState('');
   const [draft, setDraft] = React.useState<TripDraft | null>(null);
   const [missed, setMissed] = React.useState<string | null>(null);
@@ -52,6 +54,14 @@ export function TellAforceYourTrip({ onConfirm, onEditDetails, onCancel, busy = 
     setDraft(step.draft);
     setWords('');
   }, []);
+
+  // Words carried over from One Breath start the draft once. Nothing is saved by this.
+  const handed = React.useRef(false);
+  React.useEffect(() => {
+    if (handed.current || !initialWords?.trim()) return;
+    handed.current = true;
+    take(initialWords);
+  }, [initialWords, take]);
 
   const voice = useOneBreathVoice((text, info) => {
     setWords(text);

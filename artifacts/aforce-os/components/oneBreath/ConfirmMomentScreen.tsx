@@ -97,7 +97,7 @@ export function ConfirmMomentScreen() {
             <Text style={styles.body}>Adds one Moment to your plan on this device. AFORCE uses your existing signals to show an eligible preparation action.</Text>
             <Text style={styles.quiet}>Does not log water, change HydroState, book travel, share with Circle, or write to your calendar. Existing reminder preferences still apply.</Text>
           </View>
-          {draft.type === 'travel' ? <AFSecondaryButton label="Add or manage a flight instead" onPress={() => router.push('/travel')} /> : null}
+          {draft.type === 'travel' ? <AFSecondaryButton label="Add or manage a flight instead" onPress={() => router.push('/travel-intelligence')} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           <AFPrimaryButton label="Confirm plan" onPress={confirm} disabled={!store.hydrated} testID="confirm-moment-plan" />
           <AFSecondaryButton label="Back to draft" onPress={() => { setDraft(null); setError(''); }} />
@@ -114,7 +114,7 @@ export function ConfirmMomentScreen() {
           <TextInput editable={!voice.busy} accessibilityLabel="Describe your moment" placeholder="Dinner with the team. I want to arrive relaxed." placeholderTextColor={af.textTertiary} multiline value={text} onChangeText={setText} maxLength={160} style={[styles.input, styles.draft]} />
           <Text style={styles.quiet}>Local draft · Nothing saved until you confirm</Text>
           <AFPrimaryButton label="Review my moment" disabled={!text.trim() || voice.busy} onPress={() => { voice.cancel(); setDraft(suggestMomentDraft(text)); }} testID="review-moment-draft" />
-          <AFSecondaryButton label="Add a flight" onPress={() => router.push('/travel')} />
+          <AFSecondaryButton label="Add a flight" onPress={() => router.push('/travel-intelligence')} />
         </>
       )}
     </ScrollView>

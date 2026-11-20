@@ -10,7 +10,7 @@ import {
 } from "@/services/travel/intelligenceReminders";
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import {
   travelTripsSchema,
@@ -111,6 +111,17 @@ export function TravelIntelligenceScreen() {
   // A new trip starts with "Tell AFORCE your trip". The full form is the
   // fallback, opened by "Edit details" (and always used to edit a saved trip).
   const [manual, setManual] = React.useState(false);
+  // A flight sentence said to One Breath arrives here and opens trip entry with
+  // the words already in it. Read once; nothing is saved until Confirm.
+  const params = useLocalSearchParams<{ trip?: string }>();
+  const handedTrip = typeof params.trip === "string" ? params.trip : "";
+  const opened = React.useRef(false);
+  React.useEffect(() => {
+    if (opened.current || !handedTrip.trim()) return;
+    opened.current = true;
+    setManual(false);
+    setEditing("new");
+  }, [handedTrip]);
   const lock = React.useRef(false);
   const act = async (run: () => Promise<unknown>, success = "Saved.") => {
     if (lock.current) return;
@@ -401,6 +412,7 @@ export function TravelIntelligenceScreen() {
           {editing === "new" && !manual ? (
             <View style={styles.panel}>
               <TellAforceYourTrip
+                initialWords={handedTrip}
                 busy={busy}
                 onConfirm={(draft) =>
                   void act(
