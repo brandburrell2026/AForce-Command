@@ -71,7 +71,7 @@ describe('Account blocks keep a home', () => {
 
 describe('Account wiring in Profile', () => {
   it('draws the list, or one view with a way back', () => {
-    expect(shell).toContain("<AccountHome onOpen={setAccountView} onOpenCircle={() => router.push('/competition')} />");
+    expect(shell).toMatch(/<AccountHome\s+onOpen=\{setAccountView\}\s+onOpenCircle=\{\(\) => router\.push\('\/competition'\)\}/);
     expect(shell).toContain('<AccountViewHeader view={accountView} onBack={() => setAccountView(null)} />');
     expect(shell).toContain('...ACCOUNT_VIEW_BLOCKS[accountView].map((name) => accountBlocks[name])');
   });
@@ -96,5 +96,24 @@ describe('Account list shows only what is real', () => {
 
   it('does not promise a shop, a data download or in-app deletion', () => {
     expect(home).not.toMatch(/Shop AFORCE|Download or delete|Beta preview|no billing/);
+  });
+});
+
+describe('"What AFORCE remembers" row', () => {
+  const route = strip(readFileSync(join(__dirname, '..', '..', '..', 'app', 'remembers.tsx'), 'utf8'));
+
+  it('is drawn only when Profile is given a way to open it', () => {
+    expect(home).toMatch(/\{onOpenRemembers \? \(\s*<Row\s+title="What AFORCE remembers"/);
+  });
+
+  it('Profile offers it only where Replay exists (internal builds)', () => {
+    expect(shell).toContain('const remembersOn = preparationPreviewEnabled();');
+    expect(shell).toMatch(/onOpenRemembers=\{remembersOn \? \(\) => router\.push\('\/remembers' as never\) : undefined\}/);
+  });
+
+  it('the page itself is closed outside internal builds and to anyone not signed in', () => {
+    expect(route).toContain("if (!preparationPreviewEnabled()) return <Redirect href=\"/\" />;");
+    expect(route).toContain('if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;');
+    expect(route).toContain("scope.status !== 'AUTHENTICATED' || scope.userId !== userId");
   });
 });

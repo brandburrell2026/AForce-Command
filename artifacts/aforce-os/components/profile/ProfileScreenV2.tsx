@@ -146,6 +146,9 @@ import {
   type GarminUiState,
 } from '@/utils/garminProviderState';
 import type { ProviderSnapshot } from '@/types/biometrics';
+import { hydrateMomentLessons, useMomentLessons } from '@/services/momentLessons';
+import { preparationPreviewEnabled } from '@/services/preparationAccess';
+import { remembersSummary } from '@/utils/lessonPresentation';
 
 // RC-2 — how long the "Checked just now" Apple Health confirmation stays
 // visible after a successful refresh before fading back out. (Ruling E,
@@ -161,6 +164,12 @@ const APPLE_REFRESH_CONFIRMATION_MS = 2500;
 
 export function ProfileScreenV2() {
   const router = useRouter();
+  // "What AFORCE remembers": internal builds only, the same gate as Replay.
+  const remembersOn = preparationPreviewEnabled();
+  const lessonState = useMomentLessons();
+  React.useEffect(() => {
+    if (remembersOn) void hydrateMomentLessons();
+  }, [remembersOn]);
   const insets = useSafeAreaInsets();
   // RC-1 W3P2: narrow slice subscriptions replace the single `useAppStore()`
   // facade call this screen used to make — the facade memoizes on the raw
@@ -1206,7 +1215,12 @@ export function ProfileScreenV2() {
                       <AccountViewHeader view={accountView} onBack={() => setAccountView(null)} />,
                       ...ACCOUNT_VIEW_BLOCKS[accountView].map((name) => accountBlocks[name]),
                     ]
-                  : [<AccountHome onOpen={setAccountView} onOpenCircle={() => router.push('/competition')} />]
+                  : [<AccountHome
+                      onOpen={setAccountView}
+                      onOpenCircle={() => router.push('/competition')}
+                      onOpenRemembers={remembersOn ? () => router.push('/remembers' as never) : undefined}
+                      remembersSummary={remembersSummary(lessonState.learningOn, lessonState.lessons.length)}
+                    />]
                 : profileTab === 'performance'
                   ? performanceView
                     ? [

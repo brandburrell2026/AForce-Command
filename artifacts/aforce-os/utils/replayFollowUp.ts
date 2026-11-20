@@ -46,20 +46,23 @@ export function replayAnswerLabel(answer: ReplayAnswer | undefined): string | nu
   return REPLAY_ANSWERS.find((a) => a.value === answer)?.label ?? null;
 }
 
-export type ReplayStep = 'ask' | 'yes' | 'skipped' | 'miss' | 'other' | 'noted';
+export type ReplayStep = 'ask' | 'yes' | 'skipped' | 'miss' | 'other' | 'rule' | 'noted';
 
 /** Which part of Replay to show. `editing` is the member's place on screen
- * that has not been saved: re-asking the question, or writing their own note. */
+ * that has not been saved: re-asking the question, writing their own note, or
+ * writing their own rule for next time. */
 export function replayStep(
   preparation: Pick<MomentPreparation, 'replay' | 'replayObstacle'> | undefined,
-  editing: 'ask' | 'other' | null,
+  editing: 'ask' | 'other' | 'rule' | null,
 ): ReplayStep {
   const answer = preparation?.replay;
   if (editing === 'ask' || !answer) return 'ask';
   if (answer === 'skipped') return 'skipped';
   if (answer === 'yes') return 'yes';
   if (editing === 'other') return 'other';
-  return preparation?.replayObstacle ? 'noted' : 'miss';
+  if (!preparation?.replayObstacle) return 'miss';
+  // A rule is only ever written after the follow-up has been answered or skipped.
+  return editing === 'rule' ? 'rule' : 'noted';
 }
 
 /** The member's own words, tidied: one line of spacing, capped. Empty is

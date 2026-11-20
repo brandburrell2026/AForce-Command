@@ -67,9 +67,14 @@ export interface AccountHomeProps {
   onOpen: (view: AccountViewId) => void;
   /** Opens the Circles tab, where what a Circle can see is explained and chosen. */
   onOpenCircle: () => void;
+  /** Opens "What AFORCE remembers". Only passed where Replay exists
+   * (internal builds); without it the row is not drawn. */
+  onOpenRemembers?: () => void;
+  /** e.g. "Learning on · 2 lessons · only what you approved" */
+  remembersSummary?: string;
 }
 
-export function AccountHome({ onOpen, onOpenCircle }: AccountHomeProps) {
+export function AccountHome({ onOpen, onOpenCircle, onOpenRemembers, remembersSummary }: AccountHomeProps) {
   return (
     <View testID="profile-account-home">
       <View style={styles.card}>
@@ -87,6 +92,14 @@ export function AccountHome({ onOpen, onOpenCircle }: AccountHomeProps) {
       <View style={styles.card}>
         <Row title="What your Circle can see" sub="Private by default" onPress={onOpenCircle} testID="account-row-circle" />
         <Row title="Body details" sub="Private" onPress={() => onOpen('body')} testID="account-row-body" />
+        {onOpenRemembers ? (
+          <Row
+            title="What AFORCE remembers"
+            sub={remembersSummary ?? 'Only what you approved'}
+            onPress={onOpenRemembers}
+            testID="account-row-remembers"
+          />
+        ) : null}
         <Row title="Your data" sub="What AFORCE collects and remembers" onPress={() => onOpen('data')} testID="account-row-data" last />
       </View>
 

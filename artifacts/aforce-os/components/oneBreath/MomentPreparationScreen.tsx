@@ -38,6 +38,14 @@ import {
   type ReplayAnswer,
   type ReplayObstacle,
 } from "@/utils/replayFollowUp";
+import {
+  approveLessonFromReplay,
+  hydrateMomentLessons,
+  lessonForMoment,
+  useMomentLessons,
+} from "@/services/momentLessons";
+import { lessonScopeLabel } from "@/utils/lessonPresentation";
+import { MOMENT_LESSON_TEXT_MAX } from "@/config/hydroStateModel";
 import { useAppStore } from "@/store/useAppStore";
 import {
   commitReviewedMoment,
@@ -170,7 +178,13 @@ export function MomentPreparationScreen({
   const [timingOpen, setTimingOpen] = React.useState(false);
   const [returnOpen, setReturnOpen] = React.useState(false);
   // Replay: where the member is on screen before anything is saved.
-  const [replayEditing, setReplayEditing] = React.useState<"ask" | "other" | null>(null);
+  const [replayEditing, setReplayEditing] = React.useState<"ask" | "other" | "rule" | null>(null);
+  const [replayRuleText, setReplayRuleText] = React.useState("");
+  // The member's own lessons, on this phone only.
+  const lessonState = useMomentLessons();
+  React.useEffect(() => {
+    void hydrateMomentLessons();
+  }, []);
   const [replayNoteText, setReplayNoteText] = React.useState("");
   const { state: app } = useAppStore();
   const [scope] = React.useState(captureScope);
@@ -1289,6 +1303,26 @@ export function MomentPreparationScreen({
   const replayPrep = saved?.preparation;
   const replayAt = replayStep(replayPrep, replayEditing);
   const replayAnswerLine = replayNoteLine(replayPrep, current?.type);
+  const replayLesson = lessonForMoment(lessonState.lessons, current?.id);
+  const replayScope = lessonScopeLabel(current?.type);
+  const approveRule = () => {
+    if (!current) return;
+    const result = approveLessonFromReplay({
+      text: replayRuleText,
+      scope: current.type,
+      momentId: current.id,
+      momentAtIso: current.startAtIso,
+      nowIso: new Date().toISOString(),
+    });
+    if (result === "saved") {
+      setError("");
+      setReplayEditing(null);
+    } else if (result === "full") {
+      setError("You have the most lessons this phone keeps. Delete one in What AFORCE remembers first.");
+    } else if (result !== "empty") {
+      setError("That did not save. Try again.");
+    }
+  };
   // Replay's own World photograph, internal builds only.
   const replayPhoto = worldPhoto(REPLAY_SCENE);
   // One Breath's scene, as the prototype shows it: nothing while it listens,
@@ -2451,7 +2485,50 @@ export function MomentPreparationScreen({
                         You said: {replayAnswerLine}
                       </Text>
                     ) : null}
+                    {/* The member's own rule. AFORCE suggests nothing here. */}
+                    {replayLesson ? (
+                      <View style={s.replayCard} testID="replay-lesson">
+                        <Text style={s.eyebrow}>YOUR RULE FOR NEXT TIME</Text>
+                        <Text style={s.replayRuleText}>{replayLesson.text}</Text>
+                        <Text style={s.muted}>
+                          Only for {replayScope}. Kept on this phone. Change, pause or delete it anytime.
+                        </Text>
+                      </View>
+                    ) : null}
+                    {lessonState.hydrated && lessonState.learningOn
+                      ? button(replayLesson ? "Edit your rule" : "Write a rule for next time", () => {
+                          setReplayRuleText(replayLesson?.text ?? "");
+                          setReplayEditing("rule");
+                        })
+                      : null}
+                    {lessonState.hydrated && !lessonState.learningOn ? (
+                      <Text style={s.muted} testID="replay-learning-off">
+                        Learning is off, so Replay saves notes only.
+                      </Text>
+                    ) : null}
+                    {textButton("What AFORCE remembers", () => router.push("/remembers" as never))}
                   </>
+                ) : null}
+                {replayAt === "rule" ? (
+                  <View style={s.field} testID="replay-rule">
+                    <Text style={s.replayQuestion}>Your rule for next time</Text>
+                    <TextInput
+                      accessibilityLabel="Your rule for next time"
+                      value={replayRuleText}
+                      onChangeText={setReplayRuleText}
+                      placeholder="In your own words"
+                      placeholderTextColor={T.muted}
+                      maxLength={MOMENT_LESSON_TEXT_MAX}
+                      multiline
+                      style={[s.input, s.replayNoteInput]}
+                    />
+                    <Text style={s.muted}>
+                      Only for {replayScope}. Kept on this phone, private to you. It changes no plan,
+                      target or score.
+                    </Text>
+                    {button("Approve", approveRule, true, saving || !replayRuleText.trim())}
+                    {textButton("Cancel", () => setReplayEditing(null))}
+                  </View>
                 ) : null}
                 {replayAt === "yes" || replayAt === "skipped" || replayAt === "noted"
                   ? textButton("Change answer", () => {
@@ -2585,6 +2662,7 @@ const s = StyleSheet.create({
     borderColor: T.rule,
     borderRadius: 14,
   },
+  replayRuleText: { fontFamily: "Inter_600SemiBold", fontSize: 17, lineHeight: 23, color: T.bone },
   replayCardText: { ...T.body, color: T.bone, fontSize: 16, lineHeight: 23 },
   replayNoteInput: {
     minHeight: 90,
