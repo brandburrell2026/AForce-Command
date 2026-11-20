@@ -638,6 +638,9 @@ export const MOMENT_LESSON_TEXT_MAX = 90;
  * swapped in for an older one the member approved. */
 export const MOMENT_LESSON_MAX = 50;
 
+/** Most lessons offered on one plan. The rest stay in What AFORCE remembers. */
+export const MOMENT_LESSON_PLAN_MAX = 3;
+
 /* ─── Decision Guard (directive §2 invariants, §11 lifecycle, §21 release gates) ─── */
 
 /**

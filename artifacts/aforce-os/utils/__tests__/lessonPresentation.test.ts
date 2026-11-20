@@ -4,7 +4,7 @@ vi.mock('@/services/momentLessons', () => ({}));
 
 import type { MomentLesson } from '@/services/momentLessons';
 import type { Moment } from '@/types/moments';
-import { lessonRows, lessonScopeLabel, remembersSummary, replayRows } from '../lessonPresentation';
+import { lessonRows, lessonScopeLabel, planLessonOffers, remembersSummary, replayRows, togglePlanLesson } from '../lessonPresentation';
 
 const lesson = (over: Partial<MomentLesson> = {}): MomentLesson => ({
   id: 'l1',
@@ -77,5 +77,53 @@ describe('What AFORCE remembers, in words', () => {
   it('the Profile row summary', () => {
     expect(remembersSummary(true, 1)).toBe('Learning on · 1 lesson · only what you approved');
     expect(remembersSummary(false, 0)).toBe('Learning off · 0 lessons · only what you approved');
+  });
+});
+
+describe('lessons offered on a plan', () => {
+  const offers = (over: Partial<Parameters<typeof planLessonOffers>[0]> = {}) =>
+    planLessonOffers({ lessons: [lesson()], learningOn: true, type: 'training', added: undefined, ...over });
+
+  it('offers a lesson for the same kind of Moment, with where it came from and why', () => {
+    expect(offers()).toEqual([
+      {
+        id: 'l1',
+        text: 'Lay out my gear the night before.',
+        reason: `You wrote this after your Replay on ${when}. It is for Training Moments, and this is a Training Moment.`,
+        added: false,
+      },
+    ]);
+  });
+
+  it('a kept rule with no Replay says it is the member\'s own', () => {
+    expect(offers({ lessons: [lesson({ source: null })] })[0]!.reason).toBe(
+      'Your own rule. It is for Training Moments, and this is a Training Moment.',
+    );
+  });
+
+  it('offers nothing for another kind of Moment, a paused lesson, learning off, or an unknown kind', () => {
+    expect(offers({ type: 'work' })).toEqual([]);
+    expect(offers({ lessons: [lesson({ on: false })] })).toEqual([]);
+    expect(offers({ learningOn: false })).toEqual([]);
+    expect(offers({ type: undefined })).toEqual([]);
+  });
+
+  it('never marks a lesson as added unless the member added it', () => {
+    expect(offers().every((o) => !o.added)).toBe(true);
+    expect(offers({ added: [{ id: 'l1', text: 'x' }] })[0]!.added).toBe(true);
+  });
+
+  it('shows the newest three at most', () => {
+    const many = ['a', 'b', 'c', 'd', 'e'].map((id) => lesson({ id }));
+    expect(offers({ lessons: many }).map((o) => o.id)).toEqual(['e', 'd', 'c']);
+  });
+
+  it('adding copies the wording; removing leaves nothing behind', () => {
+    const one = togglePlanLesson(undefined, { id: 'l1', text: 'Eat first.' });
+    expect(one).toEqual([{ id: 'l1', text: 'Eat first.' }]);
+    const two = togglePlanLesson(one, { id: 'l2', text: 'Leave early.' });
+    expect(two).toHaveLength(2);
+    expect(togglePlanLesson(two, { id: 'l1', text: 'Eat first.' })).toEqual([{ id: 'l2', text: 'Leave early.' }]);
+    expect(togglePlanLesson(one, { id: 'l1', text: 'Eat first.' })).toBeUndefined();
   });
 });
