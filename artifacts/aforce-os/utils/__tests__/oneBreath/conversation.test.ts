@@ -7,10 +7,10 @@
  * differ (D7, D8) the prototype's wording is used, as approved by Brandon on
  * 2026-11-20.
  *
- * Every scenario is `it.fails`: the session does nothing yet, so each one
- * fails today and is reported as an expected failure. When a slice makes a
- * scenario pass, vitest fails that `it.fails`, and the marker comes off in the
- * same PR. Each scenario asserts at least one thing the empty session cannot
+ * A scenario marked `it.fails` is not built yet: it fails today and is reported
+ * as an expected failure. When a slice makes it pass, vitest fails that
+ * `it.fails`, and the marker comes off in the same PR. Built so far: CB7, CB10,
+ * L1, L2, D9. Each scenario asserts at least one thing the empty session cannot
  * do, so none passes by accident.
  *
  * These run the session contract only. They are not device evidence.
@@ -82,7 +82,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(r.last.reply.text).toMatch(/partial credit/i);
   });
 
-  it.fails('CB7 · no reviewed answer, so no guess', () => {
+  it('CB7 · no reviewed answer, so no guess', () => {
     const r = run([say('Should I take creatine before I lift?')]);
     expect(r.last.reply.outcome).toBe('limit');
     expect(r.last.reply.claims ?? []).toEqual([]);
@@ -107,7 +107,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
     expect(r.last.state.outbox[0].state).toBe('sent');
   });
 
-  it.fails('CB10 · interpreter unreachable: words kept, nothing saved, retry or type', () => {
+  it('CB10 · interpreter unreachable: words kept, nothing saved, retry or type', () => {
     const r = run([say(LIFT)], { interpreterReachable: false });
     expect(r.last.reply.outcome).toBe('unavailable');
     expect(r.last.state.words).toContain(LIFT);
@@ -146,7 +146,7 @@ describe('One Breath · conversation tests (CB1–CB14)', () => {
 });
 
 describe('One Breath · Lock In only inside a Moment window (L1–L2)', () => {
-  it.fails('L1 · no Moment starting: says none is active and offers to plan one', () => {
+  it('L1 · no Moment starting: says none is active and offers to plan one', () => {
     const r = run([say('Lock me in')], { momentInWindow: false });
     expect(r.last.reply.request).toBe('lock_in');
     expect(r.last.reply.outcome).toBe('not_active');
@@ -154,7 +154,7 @@ describe('One Breath · Lock In only inside a Moment window (L1–L2)', () => {
     expect(r.last.state.lockedIn).toBe(false);
   });
 
-  it.fails('L2 · a Moment in its window: Lock In starts, once', () => {
+  it('L2 · a Moment in its window: Lock In starts, once', () => {
     const r = run([say('Lock me in'), say('Lock me in')], { momentInWindow: true });
     expect(r.turns[0].reply.outcome).toBe('act');
     expect(r.of('lock_in')).toHaveLength(1);
@@ -220,7 +220,7 @@ describe('One Breath · drink tests (D1–D9)', () => {
     expect(duplicateWriteIds(r.effects)).toEqual([]);
   });
 
-  it.fails('D9 · "Had two beers" outside Social: not counted, nothing logged', () => {
+  it('D9 · "Had two beers" outside Social: not counted, nothing logged', () => {
     const r = run([say('Had two beers')], { social: false });
     expect(r.last.reply.outcome).toBe('not_counted');
     expect(r.of('log_drink')).toEqual([]);

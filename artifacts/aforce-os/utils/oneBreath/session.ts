@@ -19,6 +19,8 @@
  *    Moment screens keep their own.
  */
 import type { MomentType } from '@/types/moments';
+import type { Interpreter } from '@/services/oneBreath/interpreter';
+import { interpretByRules } from '@/services/oneBreath/rulesInterpreter';
 
 export type OneBreathStatus = 'standby' | 'listening' | 'operating' | 'responding' | 'quiet';
 
@@ -84,6 +86,8 @@ export interface OneBreathContext {
   interpreterReachable: boolean;
   /** False simulates the connection dropping while a send is in the outbox. */
   networkUp: boolean;
+  /** The sealed Moment that is in its window, when there is one. Keys the Lock In effect so it happens once. */
+  currentMomentId?: string;
 }
 
 export interface PlanDraft {
@@ -155,19 +159,69 @@ export const emptyOneBreathState = (): OneBreathState => ({
   lockedIn: false,
 });
 
+/** Member-facing lines. From the approved prototype and the spec; wording is for Julius to review before any screen shows it. */
+export const ONE_BREATH_LINES = {
+  limit:
+    "I don\u2019t have a reviewed answer for that, so I won\u2019t guess. I can plan a Moment, log a drink, check your HydroState, message your Circle, or start Lock In.",
+  unavailable: "I couldn\u2019t reach AFORCE. Your words are kept and nothing was saved. Try again, or type it.",
+  lockInNotActive: "No Moment is starting right now. Lock In opens when your next Moment begins. Want to plan one?",
+  lockInStarted: "Locked in.",
+  lockInAlready: "Already locked in. Nothing changed.",
+  alcoholNotCounted:
+    "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
+} as const;
+
+const notBuilt = (state: OneBreathState, request: OneBreathRequest = 'none'): OneBreathTurn => ({
+  state,
+  status: 'standby',
+  reply: { outcome: 'not_built', request, text: '' },
+  effects: [],
+});
+
 /**
- * One turn. Not built: it answers nothing and changes nothing, which is the
- * only safe behaviour until each request's slice lands.
+ * One turn.
+ *
+ * Built so far: the turns that can be answered without touching anything the
+ * member owns except Lock In (unavailable, nothing to do, the honest limit,
+ * alcohol outside Social, Lock In inside or outside its window). Every other
+ * request is understood by the interpreter but answered 'not_built' with no
+ * effects, which is the only safe behaviour until its slice lands. No screen
+ * calls this yet.
  */
 export function oneBreathTurn(
   state: OneBreathState,
-  _input: OneBreathInput,
-  _context: OneBreathContext,
+  input: OneBreathInput,
+  context: OneBreathContext,
+  interpret: Interpreter = interpretByRules,
 ): OneBreathTurn {
-  return {
-    state,
-    status: 'standby',
-    reply: { outcome: 'not_built', request: 'none', text: '' },
-    effects: [],
-  };
+  if (input.kind !== 'say') return notBuilt(state);
+
+  const kept: OneBreathState = { ...state, words: [...state.words, input.words] };
+  const answer = (
+    outcome: OneBreathOutcome,
+    request: OneBreathRequest,
+    text: string,
+    next: OneBreathState = kept,
+    effects: OneBreathEffect[] = [],
+  ): OneBreathTurn => ({ state: next, status: outcome === 'nothing' ? 'standby' : 'responding', reply: { outcome, request, text }, effects });
+
+  // The member's words are kept before anything can fail.
+  if (!context.interpreterReachable) return answer('unavailable', 'none', ONE_BREATH_LINES.unavailable);
+
+  const heard = interpret(input.words, { social: context.social, momentInWindow: context.momentInWindow });
+
+  if (heard.outcome === 'nothing') return answer('nothing', 'none', '');
+  if (heard.request === 'none') return answer('limit', 'none', ONE_BREATH_LINES.limit);
+  if (heard.outcome === 'not_counted') return answer('not_counted', 'log_drink', ONE_BREATH_LINES.alcoholNotCounted);
+
+  if (heard.request === 'lock_in') {
+    // The window is checked here, from context, never taken from the interpreter's word for it.
+    if (!context.momentInWindow) return answer('not_active', 'lock_in', ONE_BREATH_LINES.lockInNotActive);
+    if (kept.lockedIn) return answer('already_done', 'lock_in', ONE_BREATH_LINES.lockInAlready);
+    return answer('act', 'lock_in', ONE_BREATH_LINES.lockInStarted, { ...kept, lockedIn: true }, [
+      { kind: 'lock_in', id: `lock-in:${context.currentMomentId ?? 'current'}` },
+    ]);
+  }
+
+  return notBuilt(kept, heard.request);
 }
