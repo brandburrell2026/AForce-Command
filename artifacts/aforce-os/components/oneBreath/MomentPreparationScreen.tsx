@@ -114,6 +114,8 @@ import {
   type WindowState,
 } from "@/utils/oneBreath/confirmationWindow";
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
+import { isTripSentence } from "@/utils/travel/tripWords";
+import { travelPilotAvailable } from "@/featureFlags/flags";
 import {
   LOCK_IN_NOT_YET,
   lockInOpensInMs,
@@ -767,6 +769,19 @@ export function MomentPreparationScreen({
     ) {
       setChanges(words);
       move("change");
+      return;
+    }
+    // A flight is a trip, not an ordinary Moment: hand the words to trip entry,
+    // which shows them on a card and saves nothing until the member confirms.
+    // Only where Travel is available, and never from Social.
+    if (
+      !social &&
+      !!app.featureFlags &&
+      travelPilotAvailable(app.featureFlags) &&
+      isTripSentence(words, new Date())
+    ) {
+      router.push({ pathname: "/travel-intelligence", params: { trip: words } } as never);
+      setWords("");
       return;
     }
     const suggested = suggestMomentDraft(words);
