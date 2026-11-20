@@ -40,7 +40,8 @@ export const ONE_BREATH_ROUTES: Readonly<Record<string, string>> = {
   sleep: '/(tabs)/sleep',
   remembers: '/remembers',
   weekly_report: '/weekly-report',
-  travel: '/travel',
+  // The current Travel screen. The older one is no longer where a trip is added (founder decision, 2026-11-20).
+  travel: '/travel-intelligence',
   performance_signal: '/performance-signal',
   recovery: '/recovery-coach',
 };

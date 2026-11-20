@@ -59,6 +59,8 @@ describe('One Breath screen answers · answered in place', () => {
     expect(ask('Pull up hydration')).toEqual({ kind: 'open', route: '/journal' });
     expect(ask('open moments')).toEqual({ kind: 'open', route: '/moments-tab' });
     expect(ask('show me what aforce remembers')).toEqual({ kind: 'open', route: '/remembers' });
+    // The current Travel screen, not the older one.
+    expect(ask('open travel')).toEqual({ kind: 'open', route: '/travel-intelligence' });
   });
 
   it('every "open a screen" phrase either has a route or is left to the existing flow', () => {
