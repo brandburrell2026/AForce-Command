@@ -68,6 +68,7 @@ import { firstRunRoute } from '@/utils/firstRunRoute';
 import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
 import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
 import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
+import { CarriedUndoBar } from '@/components/oneBreath/CarriedUndoBar';
 import { PerformanceStatementMount } from '@/components/performanceStatement/PerformanceStatementMount';
 import { enableScreens } from 'react-native-screens';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
@@ -479,6 +480,8 @@ function AppShell() {
                       textToSpeech's single speak() gate. No routing, no score. */}
                   <CoachModeVoiceSync />
                   <RootLayoutNav />
+                  {/* Undo for a drink logged in One Breath, for the seconds left after it closes. Renders nothing otherwise. */}
+                  <CarriedUndoBar />
                   <SplashGate />
                   <InvestorDemoMount />
                   {/* Photo Welcome Hero — mounted UNDER the cinematic

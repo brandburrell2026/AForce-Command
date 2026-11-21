@@ -24,6 +24,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CycleSuccessOverlay } from "@/components/CycleSuccessOverlay";
 import { countRealHistoryEntries, resolveHomeEvidence } from "@/components/home/homeBaselineState";
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
+import { carryUndo } from "@/services/carriedUndo";
+import { travelPilotAvailable } from "@/featureFlags/flags";
+import { canUndoLoggedDrink } from "@/services/oneBreath/effects";
+import { tripHandoff } from "@/utils/oneBreath/tripHandoff";
 import { commitReviewedMoment, hydrateMoments, useMomentsStore } from "@/services/momentsStore";
 import { createOneBreathConversation, type ConversationHost } from "@/services/oneBreath/conversationController";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
@@ -84,6 +88,8 @@ export function OneBreathConversationScreen() {
             : { hydroStateCollecting: true }),
           ...(store.hydrated ? { upcoming: upcomingForOneBreath(store.moments, nowMs) } : {}),
           // The hydration rules' own words for a drink that does not move HydroState yet.
+          // Plain water can be taken back by the hydration log, so it is logged at once with Undo.
+          undoAfterLog: canUndoLoggedDrink,
           creditNote: (categoryId) => (countsAsWater(categoryId) ? "" : `${RECORDED_DRINK_TITLE}. ${RECORDED_DRINK_DETAIL}`),
         };
       },
@@ -91,10 +97,12 @@ export function OneBreathConversationScreen() {
         commitMoment: commitReviewedMoment,
         lockIn: lockInWithoutReminders,
         logWater: (oz) => live.current.app.logIntake("water", { source: "manual", ozOverride: oz }),
+        undoWater: (logId) => live.current.app.undoIntake(logId),
         recordDrink: postRecordedDrink,
         moments: () => live.current.moments.moments,
         command: () => live.current.app.state.engineOutput.command,
       },
+      carryUndo,
       openScreen: (screen) => {
         const route = ONE_BREATH_ROUTES[screen];
         if (!route) return false;
@@ -114,22 +122,35 @@ export function OneBreathConversationScreen() {
     });
     return () => {
       sub.remove();
-      controller.interrupt();
+      // Closing keeps a logged drink and takes its Undo to the next screen.
+      controller.close();
       controller.dispose();
     };
   }, [controller]);
 
   const [words, setWords] = React.useState("");
   const inputRef = React.useRef<TextInput>(null);
+  /** A trip goes to Travel with the words as said; everything else is One Breath's. */
+  const hear = (said: string, via: "typed" | "spoken") => {
+    const session = controller.getSnapshot().session;
+    const flags = live.current.app.state.featureFlags;
+    const route = tripHandoff(said, { session, travelAvailable: !!flags && travelPilotAvailable(flags), now: new Date() });
+    if (route) {
+      // Travel shows what it understood on a card, asks only for what is missing, and saves nothing until confirmed.
+      live.current.router.push(route as never);
+      return;
+    }
+    controller.send({ kind: "say", words: said, via });
+  };
   const voice = useOneBreathVoice((text, info) => {
-    if (info.final && text.trim()) controller.send({ kind: "say", words: text.trim(), via: "spoken" });
+    if (info.final && text.trim()) hear(text.trim(), "spoken");
   });
   const send = () => {
     const said = words.trim();
     if (!said) return;
     voice.cancel();
     setWords("");
-    controller.send({ kind: "say", words: said, via: "typed" });
+    hear(said, "typed");
   };
 
   const results = { done: snapshot.done, failed: snapshot.failed };

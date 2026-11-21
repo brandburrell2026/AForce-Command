@@ -28,6 +28,7 @@ function setup(over: Partial<OneBreathOwners> = {}, ctx: Partial<OneBreathContex
     commitMoment,
     lockIn: vi.fn(async (commit) => commit()) as OneBreathOwners['lockIn'],
     logWater: vi.fn(async () => 'intake-1'),
+    undoWater: vi.fn(async () => true),
     recordDrink: vi.fn(async () => ({})),
     moments: () => moments,
     command: () => ({ id: 'cmd-1', action: 'Drink 12 oz of water.' }),
@@ -35,9 +36,11 @@ function setup(over: Partial<OneBreathOwners> = {}, ctx: Partial<OneBreathContex
     ...over,
   };
   const opened: string[] = [];
+  const carried: { label: string; msLeft: number; undo: () => Promise<boolean> }[] = [];
   const host: ConversationHost = {
     context: () => ({ nowIso: new Date(Date.now()).toISOString(), social: false, momentInWindow: false, learningOn: false, interpreterReachable: true, networkUp: true, ...ctx }),
     owners,
+    carryUndo: (c) => { carried.push(c); },
     openScreen: (screen) => (opened.push(screen), screen !== 'nowhere'),
     clock: (iso) => new Date(iso).toISOString().slice(11, 16),
   };
@@ -47,7 +50,7 @@ function setup(over: Partial<OneBreathOwners> = {}, ctx: Partial<OneBreathContex
     return conversationView(s.entries, s, { state: s.session, planRows: s.planRows, planNote: s.planNote, planError: s.planError });
   };
   const steps = () => view().items.flatMap((i) => (i.kind === 'step' ? [i.line.label] : []));
-  return { c, owners, commitMoment, view, steps, opened, stored: () => moments, setMoments: (m: Moment[]) => { moments = m; } };
+  return { c, owners, commitMoment, view, steps, opened, carried, stored: () => moments, setMoments: (m: Moment[]) => { moments = m; } };
 }
 
 beforeEach(() => {
@@ -195,61 +198,145 @@ describe('Undo of a seal', () => {
   });
 });
 
-describe('logging a drink', () => {
-  it('holds six seconds, then logs water once through the scored rail', async () => {
-    const t = setup();
-    t.c.send(say('Log 16 oz of water'));
-    expect(t.owners.logWater).not.toHaveBeenCalled();
-    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(true);
-    await vi.advanceTimersByTimeAsync(5_900);
-    expect(t.owners.logWater).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(200);
-    await t.c.settled();
-    expect(t.owners.logWater).toHaveBeenCalledTimes(1);
-    expect(t.owners.logWater).toHaveBeenCalledWith(16);
-    expect(t.owners.recordDrink).not.toHaveBeenCalled();
-    expect(t.steps()).toEqual(['Logged']);
-    await vi.advanceTimersByTimeAsync(20_000);
-    expect(t.owners.logWater).toHaveBeenCalledTimes(1);
-  });
-
-  it('coffee goes to the drink log, which cannot move HydroState', async () => {
+describe('logging a drink the log cannot take back (anything but water)', () => {
+  it('holds six seconds, then goes to the drink log once, which cannot move HydroState', async () => {
     const t = setup();
     t.c.send(say('Log a 12 oz coffee'));
+    expect(t.owners.recordDrink).not.toHaveBeenCalled();
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(true);
     await vi.advanceTimersByTimeAsync(6_100);
     await t.c.settled();
     expect(t.owners.logWater).not.toHaveBeenCalled();
     expect(t.owners.recordDrink).toHaveBeenCalledTimes(1);
     expect(t.owners.recordDrink).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'coffee', ozAmount: 12, entrySource: 'manual' }));
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(t.owners.recordDrink).toHaveBeenCalledTimes(1);
   });
 
   it('Undo inside the window logs nothing', async () => {
     const t = setup();
-    t.c.send(say('Log 16 oz of water'));
+    t.c.send(say('Log a 12 oz coffee'));
     await vi.advanceTimersByTimeAsync(3_000);
     t.c.send(tap('undo'));
     await vi.advanceTimersByTimeAsync(20_000);
     await t.c.settled();
-    expect(t.owners.logWater).not.toHaveBeenCalled();
+    expect(t.owners.recordDrink).not.toHaveBeenCalled();
     expect(t.view().items.at(-1)).toMatchObject({ kind: 'ai', text: 'Not logged.' });
   });
 
-  it('closing the screen logs the held drink at once, and only once', async () => {
+  it('closing the screen saves it once', async () => {
     const t = setup();
-    t.c.send(say('Log 16 oz of water'));
-    t.c.interrupt();
-    t.c.interrupt();
+    t.c.send(say('Log a 12 oz coffee'));
+    t.c.close();
+    t.c.close();
     await vi.advanceTimersByTimeAsync(20_000);
     await t.c.settled();
+    expect(t.owners.recordDrink).toHaveBeenCalledTimes(1);
+    expect(t.carried).toHaveLength(0);
+  });
+});
+
+describe('logging water: saved at once, Undo for six seconds', () => {
+  const water = { undoAfterLog: (categoryId: string) => categoryId === 'water' };
+
+  it('logs immediately through the scored rail, once', async () => {
+    const t = setup({}, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    expect(t.owners.logWater).toHaveBeenCalledTimes(1);
+    expect(t.owners.logWater).toHaveBeenCalledWith(16);
+    expect(t.owners.recordDrink).not.toHaveBeenCalled();
+    expect(t.steps()).toEqual(['Logged']);
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(true);
+    await vi.advanceTimersByTimeAsync(20_000);
     expect(t.owners.logWater).toHaveBeenCalledTimes(1);
   });
 
-  it('a log that did not land is never shown as logged', async () => {
-    const t = setup({ logWater: vi.fn(async () => null) });
+  it('Undo takes it back through the hydration log\'s own undo', async () => {
+    const t = setup({}, water);
     t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    t.c.send(tap('undo'));
+    t.c.send(tap('undo'));
+    await t.c.settled();
+    expect(t.owners.undoWater).toHaveBeenCalledTimes(1);
+    expect(t.owners.undoWater).toHaveBeenCalledWith('intake-1');
+    expect(t.steps()).toEqual(['Logged', 'Removed']);
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(false);
+  });
+
+  it('Undo is gone after six seconds and a late Undo changes nothing', async () => {
+    const t = setup({}, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
     await vi.advanceTimersByTimeAsync(6_100);
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(false);
+    t.c.send(tap('undo'));
+    await t.c.settled();
+    expect(t.owners.undoWater).not.toHaveBeenCalled();
+  });
+
+  it('an Undo that fails says the drink is still logged', async () => {
+    const t = setup({ undoWater: vi.fn(async () => false) }, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    t.c.send(tap('undo'));
+    await t.c.settled();
+    expect(t.steps()).toEqual(['Logged', 'Still logged']);
+  });
+
+  it('a log that did not land is never shown as logged and offers no Undo', async () => {
+    const t = setup({ logWater: vi.fn(async () => null) }, water);
+    t.c.send(say('Log 16 oz of water'));
     await t.c.settled();
     expect(t.steps()).toEqual(['Not logged']);
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(false);
+  });
+
+  it('a log the existing undo cannot reference offers no Undo', async () => {
+    const t = setup({ logWater: vi.fn(async () => 'queued-abc') }, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    expect(t.steps()).toEqual(['Logged']);
+    expect(t.view().items.some((i) => i.kind === 'undo')).toBe(false);
+  });
+
+  it('closing keeps the log and carries Undo to the next screen for the time left', async () => {
+    const t = setup({}, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    await vi.advanceTimersByTimeAsync(2_000);
+    t.c.close();
+    t.c.close();
+    expect(t.owners.logWater).toHaveBeenCalledTimes(1);
+    expect(t.carried).toHaveLength(1);
+    expect(t.carried[0]!.label).toBe('16 oz water');
+    expect(t.carried[0]!.msLeft).toBeGreaterThan(3_000);
+    expect(t.carried[0]!.msLeft).toBeLessThanOrEqual(4_000);
+    expect(await t.carried[0]!.undo()).toBe(true);
+    expect(t.owners.undoWater).toHaveBeenCalledWith('intake-1');
+    expect(await t.carried[0]!.undo()).toBe(false);
+    expect(t.owners.undoWater).toHaveBeenCalledTimes(1);
+  });
+
+  it('closing while One Breath is still asking how much saves nothing', async () => {
+    const t = setup({}, water);
+    t.c.send(say('I drank some water'));
+    t.c.close();
+    await vi.advanceTimersByTimeAsync(20_000);
+    await t.c.settled();
+    expect(t.owners.logWater).not.toHaveBeenCalled();
+    expect(t.owners.recordDrink).not.toHaveBeenCalled();
+    expect(t.carried).toHaveLength(0);
+  });
+
+  it('closing after the six seconds carries nothing', async () => {
+    const t = setup({}, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    await vi.advanceTimersByTimeAsync(7_000);
+    t.c.close();
+    expect(t.carried).toHaveLength(0);
   });
 });
 

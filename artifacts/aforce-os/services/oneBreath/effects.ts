@@ -35,6 +35,8 @@ export interface OneBreathOwners {
   /** The store's `logIntake`. Resolves with the log's id only when the write landed. */
   logWater: (oz: number) => Promise<string | number | null | undefined>;
   /** `postRecordedDrink`: the drink log that never moves HydroState. */
+  /** The store's `undoIntake`: takes a logged water back. Resolves false when it could not. */
+  undoWater: (logId: string) => Promise<boolean>;
   recordDrink: (input: { categoryId: string; displayName: string; ozAmount: number; entrySource: "manual" }) => Promise<unknown>;
   /** Saved Moments, read when the effect runs. */
   moments: () => readonly Moment[];
@@ -118,14 +120,14 @@ export function lockInMoment(owners: OneBreathOwners, momentId: string): Promise
 }
 
 /** One drink, down the rail its kind belongs to. Only plain water can move HydroState. */
-export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<void> {
+export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<string | undefined> {
   const name = effect.name ?? "";
   const route = drinkRoute({ categoryId: effect.categoryId, name, enteredOz: effect.oz });
   if (route.kind === "water") {
     const id = await owners.logWater(route.oz);
     // No id means the write did not land (or is only queued): never "Logged".
     if (id === null || id === undefined) throw new Error("Not logged.");
-    return;
+    return String(id);
   }
   const known = route.categoryId in DRINK_CATEGORIES;
   await owners.recordDrink({
@@ -134,4 +136,11 @@ export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreat
     ozAmount: route.oz,
     entrySource: "manual",
   });
+  return undefined;
 }
+
+/** True when the hydration log can take this drink back: plain water, by the app's own routing. The drink log has no removal. */
+export const canUndoLoggedDrink = (categoryId: string, name: string) => drinkRoute({ categoryId, name, enteredOz: 0 }).kind === "water";
+
+/** The only log ids the existing undo accepts. Anything else is never guessed at. */
+export const undoableLogId = (id: string | undefined): id is string => !!id && /^intake-\d+$/.test(id);
