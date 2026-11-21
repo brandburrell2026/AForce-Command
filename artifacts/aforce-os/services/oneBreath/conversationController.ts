@@ -23,17 +23,20 @@ import { preparationReviewMatches } from "@/services/momentPreparation";
 import type { Moment } from "@/types/moments";
 import { effectKey, type ConversationEntry, type PlanRow } from "@/utils/oneBreath/conversation";
 import { planSealId } from "@/utils/oneBreath/planTurn";
+import { planDraftFromMoment } from "@/utils/oneBreath/openPlan";
 import {
   effectFailed,
   undoClosed,
   emptyOneBreathState,
   ONE_BREATH_LINES,
   oneBreathTurn,
+  planReadBack,
   type OneBreathContext,
   type OneBreathEffect,
   type OneBreathInput,
   type OneBreathState,
   type OneBreathTurn,
+  type PlanDraft,
 } from "@/utils/oneBreath/session";
 import { lockInMoment, logDrink, reviewPlan, sealReviewed, undoableLogId, unsealMoment, type OneBreathOwners } from "./effects";
 
@@ -60,6 +63,11 @@ export interface ConversationHost {
    * `undo` resolves true when the log was taken back.
    */
   carryUndo?: (carried: { label: string; msLeft: number; undo: () => Promise<boolean> }) => void;
+  /**
+   * A plan saved earlier and never sealed. The conversation opens on its
+   * read-back, and sealing it updates that Moment: no second one is saved.
+   */
+  resume?: () => Moment | undefined;
   now?: () => number;
   /** How a step's time is written, e.g. "6:10 AM". */
   clock?: (iso: string) => string;
@@ -74,6 +82,12 @@ export interface OneBreathConversationController {
   getSnapshot: () => ConversationSnapshot;
   subscribe: (listener: () => void) => () => void;
   send: (input: OneBreathInput) => void;
+  /**
+   * The member said what changed about a plan that is already sealed. The
+   * changed plan is read back and waits for a seal like any other; sealing it
+   * updates that Moment. Nothing is written here.
+   */
+  revise: (moment: Moment, plan: PlanDraft, words: string, via: "typed" | "spoken") => void;
   /** The app went to the background. Anything held is settled; the screen may come back. */
   interrupt: () => void;
   /** One Breath is closing: settle what is held, and carry an open drink Undo to the next screen. */
@@ -106,6 +120,18 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
   let lastTick = now();
   let disposed = false;
   let snapshot: ConversationSnapshot;
+
+  const resumed = host.resume?.();
+  const resumedPlan = resumed ? planDraftFromMoment(resumed) : undefined;
+  if (resumed && resumedPlan) {
+    session = { ...session, pendingPlan: resumedPlan };
+    carried = resumed;
+    // Shown as a read-back. Nothing is asked of any owner until the member seals it.
+    entries = [{
+      input: { kind: "tap", control: "resume" },
+      turn: { state: session, status: "responding", reply: { outcome: "read_back", request: "plan_moment", text: planReadBack(resumedPlan) }, effects: [] },
+    }];
+  }
 
   const refreshReview = () => {
     const plan = session.pendingPlan;
@@ -259,6 +285,16 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
     },
     send: (input) => {
       if (!disposed) apply(input);
+    },
+    revise: (moment, plan, words, via) => {
+      if (disposed) return;
+      session = { ...session, pendingPlan: plan, asking: undefined, words: [...session.words, words] };
+      carried = moment;
+      entries = [...entries, {
+        input: { kind: "say", words, via },
+        turn: { state: session, status: "responding", reply: { outcome: "read_back", request: "plan_moment", text: planReadBack(plan) }, effects: [] },
+      }];
+      publish();
     },
     interrupt: () => apply({ kind: "interrupt" }),
     close: () => {

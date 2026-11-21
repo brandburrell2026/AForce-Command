@@ -19,3 +19,18 @@ Known differences from the prototype:
 - The prototype starts Quiet at Seal. By founder decision Quiet starts at Lock In.
 - The tab bar still shows under One Breath.
 - Describing what changed, and Replay after "Made it back", open the existing screens.
+
+## Second round, 2026-11-21
+
+| File | What it shows |
+|---|---|
+| `iphone-205-quiet.jpg`, `iphone-205-one-plan-at-a-time.jpg`, `iphone-205-heading-back.jpg` | Frames from the founder's screen recording of **iPhone build 205** (2026-11-21 12:17). Real device. |
+| `v2-quiet-larger-orb.jpg`, `v2-plans-changed-safety.jpg`, `v2-replay-ask.jpg`, `v2-replay-noted.jpg` | Browser harness at 390×844 with sample data, after this round. **Not** from a phone. |
+
+Closed this round: the tab bar is hidden inside One Breath; typed "what
+changed" and Replay stay on the conversation; a saved-but-unsealed plan is
+picked up there. The orb is 20% larger than the prototype's, at the founder's
+direction. Still different from the prototype: no source chips, and no
+"Quiet until …" time. A follow-up Moment is not offered after Replay here
+("Open Moments" is). Private alcohol context is never kept from what is typed
+on this screen.
