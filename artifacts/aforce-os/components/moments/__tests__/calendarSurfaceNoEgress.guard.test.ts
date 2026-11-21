@@ -29,13 +29,24 @@ const SERVICE_FILES = [
   'momentFeedback',
   'momentRecommendation',
   'momentsStore',
+  // Added 2026-11-21 (Connect calendars to Moments): every new calendar file
+  // is scanned from the day it exists.
+  'calendarOccurrence',
+  'calendarSourceLabel',
+  'momentPreparation',
 ].map((n) => join(SERVICES_DIR, `${n}.ts`));
+
+const CINEMATIC_DIR = join(MOMENTS_DIR, 'cinematic');
+const CINEMATIC_FILES = ['MomentsCalendarScreen.tsx', 'momentsCalendarLogic.ts'].map((f) =>
+  join(CINEMATIC_DIR, f),
+);
+const PREPARATION_SCREEN = join(MOMENTS_DIR, '..', 'oneBreath', 'MomentPreparationScreen.tsx');
 
 const MOMENT_SURFACE_FILES = readdirSync(MOMENTS_DIR)
   .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
   .map((f) => join(MOMENTS_DIR, f));
 
-const FILES = [...SERVICE_FILES, ...MOMENT_SURFACE_FILES];
+const FILES = [...SERVICE_FILES, ...MOMENT_SURFACE_FILES, ...CINEMATIC_FILES, PREPARATION_SCREEN];
 
 // Substrings for identifiers/hosts; call-shaped regexes for emit()/fetch() so
 // prose (e.g. a comment about "emit paths") does not trip the guard.
@@ -51,14 +62,35 @@ const BANNED: Array<{ label: string; hit: (src: string) => boolean }> = [
   { label: 'Google Calendar API (calendar/v3)', hit: (s) => s.includes('calendar/v3') },
   { label: 'Outlook API (outlook.office)', hit: (s) => s.includes('outlook.office') },
   { label: 'Microsoft login (login.microsoftonline)', hit: (s) => s.includes('login.microsoftonline') },
+  { label: 'XMLHttpRequest', hit: (s) => /\bXMLHttpRequest\b/.test(s) },
+  { label: 'sendBeacon', hit: (s) => /\bsendBeacon\b/.test(s) },
+  { label: 'WebSocket', hit: (s) => /\bnew\s+WebSocket\b/.test(s) },
+];
+
+// Event data must not reach a log or a crash reporter either. Calendar files
+// only (the One Breath screen predates this rule and is scanned above).
+const NO_LOGS: Array<{ label: string; hit: (src: string) => boolean }> = [
+  { label: 'console.*', hit: (s) => /\bconsole\s*\.\s*(log|info|warn|error|debug)\b/.test(s) },
+  { label: 'Sentry', hit: (s) => /\bSentry\b|captureException|captureMessage/.test(s) },
 ];
 
 describe('calendar/Moments surface — no telemetry egress, no network, no provider APIs', () => {
   it('scans a non-empty, expected surface (fail-loud if the file set drifts)', () => {
     // Guards against a silently-empty scan (e.g. a moved directory).
-    expect(SERVICE_FILES.length).toBe(7);
+    expect(SERVICE_FILES.length).toBe(10); // was 7 before the three calendar files above
+    expect(CINEMATIC_FILES.length).toBe(2);
     expect(MOMENT_SURFACE_FILES.length).toBeGreaterThan(0);
   });
+
+  for (const file of [...SERVICE_FILES.filter((f) => /calendar|momentPreparation\./.test(f)), ...CINEMATIC_FILES]) {
+    const name = file.split('/').slice(-2).join('/');
+    it(`${name} logs nothing and reports nothing`, () => {
+      const src = readFileSync(file, 'utf8');
+      for (const { label, hit } of NO_LOGS) {
+        expect(hit(src), `${name} must not use ${label}`).toBe(false);
+      }
+    });
+  }
 
   for (const file of FILES) {
     const name = file.split('/').slice(-2).join('/');

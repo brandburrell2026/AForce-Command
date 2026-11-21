@@ -54,6 +54,9 @@
         "android.permission.health.READ_STEPS",
         "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
         "android.permission.health.READ_RESPIRATORY_RATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.WRITE_CALENDAR"
       ]
     },
     "web": {
