@@ -1,0 +1,5 @@
+{
+  "platforms": ["ios", "android"],
+  "apple": { "modules": ["HydroScanLabelTextModule"] },
+  "android": { "modules": ["com.aforce.hydroscan.HydroScanLabelTextModule"] }
+}
