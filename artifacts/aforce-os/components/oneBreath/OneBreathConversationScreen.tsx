@@ -21,6 +21,7 @@ import { AppState, KeyboardAvoidingView, Platform, StyleSheet, type TextInput, V
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CycleSuccessOverlay } from "@/components/CycleSuccessOverlay";
 import { countRealHistoryEntries, resolveHomeEvidence } from "@/components/home/homeBaselineState";
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { commitReviewedMoment, hydrateMoments, useMomentsStore } from "@/services/momentsStore";
@@ -164,6 +165,10 @@ export function OneBreathConversationScreen() {
           prompt={PROMPT}
         />
       </View>
+      {/* The S21 contract: every reachable screen that logs water shows the app's own confirmation. */}
+      {app.state.showCycleSuccess && app.state.lastCycleResult ? (
+        <CycleSuccessOverlay result={app.state.lastCycleResult} onDismiss={app.dismissSuccess} />
+      ) : null}
     </KeyboardAvoidingView>
   );
 }
