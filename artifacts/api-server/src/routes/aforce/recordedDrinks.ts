@@ -70,4 +70,28 @@ router.get("/drinks", async (req, res) => {
   }
 });
 
+/**
+ * Take one recorded drink back. This is the member's own Undo, and nothing
+ * else: the row must be theirs. It touches no user state, so removing a drink
+ * can no more move HydroState than recording it could.
+ *
+ * Safe to repeat: a drink that is already gone answers `removed: false`, not
+ * an error, so a retried Undo cannot fail on its own success.
+ */
+router.delete("/drinks/:id", intakeLimiter, async (req, res) => {
+  const id = z.coerce.number().int().positive().safeParse(req.params["id"]);
+  if (!id.success) return res.status(400).json({ error: "recorded_drink_invalid" });
+  try {
+    const userId = resolveUserId(req);
+    const removed = await db
+      .delete(aforceRecordedDrinks)
+      .where(and(eq(aforceRecordedDrinks.userId, userId), eq(aforceRecordedDrinks.id, id.data)))
+      .returning({ id: aforceRecordedDrinks.id });
+    return res.json({ removed: removed.length > 0 });
+  } catch (err) {
+    logger.error({ err }, "DELETE /aforce/drinks/:id failed");
+    return res.status(500).json({ error: "recorded_drink_remove_failed" });
+  }
+});
+
 export default router;

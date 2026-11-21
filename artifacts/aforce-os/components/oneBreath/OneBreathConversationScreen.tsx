@@ -48,7 +48,7 @@ import { tripHandoff } from "@/utils/oneBreath/tripHandoff";
 import { commitReviewedMoment, hydrateMoments, useMomentsStore } from "@/services/momentsStore";
 import { createOneBreathConversation, type ConversationHost } from "@/services/oneBreath/conversationController";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
-import { postRecordedDrink } from "@/services/realApi";
+import { postRecordedDrink, removeRecordedDrink } from "@/services/realApi";
 import { useBootstrapSlice, useEngineSlice, useHistorySlice, useUserSlice } from "@/store/slices";
 import { useAppStore } from "@/store/useAppStore";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
@@ -94,6 +94,7 @@ export function OneBreathConversationScreen() {
       logWater: (oz) => live.current.app.logIntake("water", { source: "manual", ozOverride: oz }),
       undoWater: (logId) => live.current.app.undoIntake(logId),
       recordDrink: postRecordedDrink,
+      removeDrink: removeRecordedDrink,
       moments: () => live.current.moments.moments,
       command: () => live.current.app.state.engineOutput.command,
     }),
@@ -125,8 +126,9 @@ export function OneBreathConversationScreen() {
             : { hydroStateCollecting: true }),
           ...(store.hydrated ? { upcoming: upcomingForOneBreath(store.moments, nowMs) } : {}),
           // The hydration rules' own words for a drink that does not move HydroState yet.
-          // Plain water can be taken back by the hydration log, so it is logged at once with Undo.
-          undoAfterLog: canUndoLoggedDrink,
+          // A drink that can be taken back is logged at once with Undo: water through the
+          // hydration log, anything else by removing it from the drink log.
+          undoAfterLog: (categoryId, name) => canUndoLoggedDrink(categoryId, name, owners),
           creditNote: (categoryId) => (countsAsWater(categoryId) ? "" : `${RECORDED_DRINK_TITLE}. ${RECORDED_DRINK_DETAIL}`),
         };
       },

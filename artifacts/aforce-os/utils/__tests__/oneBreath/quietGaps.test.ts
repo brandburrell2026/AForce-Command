@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createOneBreathConversation, type ConversationHost } from '@/services/oneBreath/conversationController';
-import { saveReplay, type OneBreathOwners } from '@/services/oneBreath/effects';
+import { canUndoLoggedDrink, saveReplay, undoableLogId, undoLoggedDrink, type OneBreathOwners } from '@/services/oneBreath/effects';
 import { closeOneBreath, oneBreathOrigin, rememberOneBreathOrigin, resetOneBreathOriginForTests } from '@/services/oneBreathOrigin';
 import type { Moment } from '@/types/moments';
 import { conversationView, type ConversationItem } from '@/utils/oneBreath/conversation';
@@ -212,5 +212,111 @@ describe('The conversation orb', () => {
   it('is 20% larger than the prototype’s 176pt stage', () => {
     expect(CONVERSATION_STAGE).toBe(211);
     expect(CONVERSATION_ORB).toBe(108);
+  });
+});
+
+describe('Coffee and other drinks · saved at once, with a real Undo', () => {
+  const say = (words: string) => ({ kind: 'say' as const, words, via: 'typed' as const });
+  function drinks() {
+    let rows: { id: number; displayName: string }[] = [];
+    let next = 41;
+    const recordDrink = vi.fn(async (input: { displayName: string }) => {
+      const row = { id: next++, displayName: input.displayName };
+      rows = [...rows, row];
+      return row;
+    });
+    const removeDrink = vi.fn(async (id: number) => {
+      rows = rows.filter((r) => r.id !== id);
+      return true;
+    });
+    const s = setup([]);
+    Object.assign(s.owners, { recordDrink, removeDrink });
+    const carried: { label: string; msLeft: number; undo: () => Promise<boolean> }[] = [];
+    const host: ConversationHost = {
+      context: () => ({ nowIso: new Date(Date.now()).toISOString(), social: false, momentInWindow: false, learningOn: false, interpreterReachable: true, networkUp: true, undoAfterLog: (c, n) => canUndoLoggedDrink(c, n, s.owners) }),
+      owners: s.owners,
+      openScreen: () => true,
+      carryUndo: (c) => { carried.push(c); },
+    };
+    const c = createOneBreathConversation(host);
+    return { c, owners: s.owners, recordDrink, removeDrink, carried, rows: () => rows };
+  }
+
+  it('a drink that can be removed is one that can be undone; without removal, only water is', () => {
+    expect(canUndoLoggedDrink('coffee', 'coffee')).toBe(false);
+    expect(canUndoLoggedDrink('coffee', 'coffee', { removeDrink: async () => true })).toBe(true);
+    expect(canUndoLoggedDrink('water', 'water')).toBe(true);
+    expect(undoableLogId('drink-41')).toBe(true);
+    expect(undoableLogId('intake-7')).toBe(true);
+    expect(undoableLogId('41')).toBe(false);
+  });
+
+  it('coffee is saved the moment it is asked for, once, and never moves water', async () => {
+    const { c, recordDrink, owners, rows } = drinks();
+    c.send(say('Log a 12 oz coffee'));
+    await c.settled();
+    expect(recordDrink).toHaveBeenCalledTimes(1);
+    expect(rows()).toHaveLength(1);
+    expect(owners.logWater).not.toHaveBeenCalled();
+    expect(c.getSnapshot().session.loggedUndo).toBeTruthy();
+    // Six seconds pass with no Undo: nothing more is written.
+    vi.advanceTimersByTime(7000);
+    await c.settled();
+    expect(recordDrink).toHaveBeenCalledTimes(1);
+  });
+
+  it('Undo removes exactly the saved entry; a second Undo does nothing', async () => {
+    const { c, removeDrink, rows } = drinks();
+    c.send(say('Log a 12 oz coffee'));
+    await c.settled();
+    c.send({ kind: 'tap', control: 'undo' });
+    c.send({ kind: 'tap', control: 'undo' });
+    await c.settled();
+    expect(removeDrink).toHaveBeenCalledTimes(1);
+    expect(removeDrink).toHaveBeenCalledWith(41);
+    expect(rows()).toEqual([]);
+  });
+
+  it('Undo follows the member out of One Breath and removes the same entry', async () => {
+    const { c, carried, removeDrink, rows } = drinks();
+    c.send(say('Log a 12 oz coffee'));
+    await c.settled();
+    vi.advanceTimersByTime(2000);
+    c.close();
+    expect(carried).toHaveLength(1);
+    expect(carried[0]!.msLeft).toBeLessThanOrEqual(4000);
+    expect(await carried[0]!.undo()).toBe(true);
+    expect(removeDrink).toHaveBeenCalledWith(41);
+    expect(rows()).toEqual([]);
+  });
+
+  it('a failed removal is said plainly and the drink stays', async () => {
+    const { c, removeDrink, rows } = drinks();
+    removeDrink.mockRejectedValueOnce(new Error('offline'));
+    c.send(say('Log a 12 oz coffee'));
+    await c.settled();
+    c.send({ kind: 'tap', control: 'undo' });
+    await c.settled();
+    expect(rows()).toHaveLength(1);
+    const s = c.getSnapshot();
+    const labels = conversationView(s.entries, s, { state: s.session }).items.flatMap((i) => (i.kind === 'step' ? [i.line.label] : []));
+    expect(labels.at(-1)).toBe('Still logged');
+  });
+
+  it('a save that returns no id offers no Undo it could not honour', async () => {
+    const { c, recordDrink } = drinks();
+    recordDrink.mockResolvedValueOnce({} as never);
+    c.send(say('Log a 12 oz coffee'));
+    await c.settled();
+    expect(c.getSnapshot().session.loggedUndo).toBeUndefined();
+  });
+
+  it('undo goes to the right log for each kind of entry', async () => {
+    const { owners, removeDrink } = drinks();
+    expect(await undoLoggedDrink(owners, 'intake-3')).toBe(true);
+    expect(owners.undoWater).toHaveBeenCalledWith('intake-3');
+    expect(await undoLoggedDrink(owners, 'drink-41')).toBe(true);
+    expect(removeDrink).toHaveBeenCalledWith(41);
+    expect(await undoLoggedDrink(owners, 'something-else')).toBe(false);
   });
 });

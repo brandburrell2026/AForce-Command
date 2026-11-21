@@ -38,7 +38,7 @@ import {
   type OneBreathTurn,
   type PlanDraft,
 } from "@/utils/oneBreath/session";
-import { lockInMoment, logDrink, reviewPlan, sealReviewed, undoableLogId, unsealMoment, type OneBreathOwners } from "./effects";
+import { lockInMoment, logDrink, reviewPlan, sealReviewed, undoableLogId, undoLoggedDrink, unsealMoment, type OneBreathOwners } from "./effects";
 
 export interface ConversationSnapshot {
   entries: readonly ConversationEntry[];
@@ -199,7 +199,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
       }
       case "undo_drink": {
         const logId = logIds.get(effect.of);
-        if (!logId || !(await owners.undoWater(logId))) throw new Error("Still logged.");
+        if (!logId || !(await undoLoggedDrink(owners, logId))) throw new Error("Still logged.");
         logIds.delete(effect.of);
         return;
       }
@@ -312,7 +312,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
             await after;
             const logId = logIds.get(open.id);
             if (!logId) return false;
-            const ok = await host.owners.undoWater(logId);
+            const ok = await undoLoggedDrink(host.owners, logId);
             if (ok) logIds.delete(open.id);
             return ok;
           },

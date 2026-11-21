@@ -27,11 +27,14 @@ Nothing here has been run on a device by the build author. A row is not passed u
 | C7 | Log water, close, reopen One Breath. | No second log. Hydration shows the drink once. | | |
 | C8 | Type "I drank some water". When asked "How much?", close One Breath. | Nothing is logged. No Undo bar. | | |
 | C9 | Airplane mode on. Type "Log 16 oz of water". | "NOT LOGGED". Nothing is added. No Undo. | | |
-| **D. Other drinks** | | | | |
-| D1 | Type "Log a 12 oz coffee". | "12 oz coffee. Logging in 6 seconds." with Undo. | | |
-| D2 | Tap Undo inside six seconds. | "Not logged." Nothing in the drink log. | | |
-| D3 | Log a 12 oz coffee and wait. | "LOGGED" after six seconds. HydroState does not move. | | |
-| D4 | Log a 12 oz coffee and close One Breath inside two seconds. | The coffee is in the drink log once. No Undo bar (it cannot be taken back). | | |
+| **D. Other drinks: saved at once, Undo for six seconds (changed Nov 21; needs a build after 206 / 49 AND the server's drink-removal route deployed)** | | | | |
+| D1 | Type "Log a 12 oz coffee". | "LOGGED" at once, with the saved-to-your-log line. Undo is offered. HydroState and today's water total do not move. | | |
+| D2 | Tap Undo inside six seconds. | "REMOVED". The coffee is gone from the drink log. | | |
+| D3 | Log a 12 oz coffee and wait ten seconds. | Undo is gone. One coffee in the drink log. | | |
+| D4 | Log a 12 oz coffee and close One Breath inside two seconds. | The Undo bar shows on the next screen for the time left. Undo removes the coffee. | | |
+| D5 | Log a 12 oz coffee twice, a minute apart. | Two coffees in the drink log (each is its own entry). | | |
+| D6 | Airplane mode on, log a 12 oz coffee. | "NOT LOGGED". Turn it off and log again: one coffee, not two. | | |
+| D7 | Log a coffee, turn on airplane mode, tap Undo. | "STILL LOGGED · That didn't go through. It is still in your log." | | |
 | **E. HydroScan** | | | | |
 | E1 | Open Scan. | The camera fills the screen. HYDROSCAN, close, light. "Barcode" and "Type it". | | |
 | E2 | Tap the light. | The phone's torch turns on, then off. | | |
@@ -91,4 +94,5 @@ Nothing here has been run on a device by the build author. A row is not passed u
 | iPhone 205 | Same recording | Home score card after logging 34 oz then 16 oz | HydroState went 31 → 51 and stayed at 51. Reported to the founders; see PR #1309. Not a One Breath row. |
 | iPhone 205 | — | All other rows | Not run. |
 | Android 48 | — | All rows | Blocked: no Android phone was available to the build author. |
-| iPhone 206 / Android 49 | — | Sections A–I | Not run. |
+| iPhone 206 / Android 49 | — | Sections A–C, E–I | Not run. |
+| A build after 206 / 49, with the server route deployed | — | Section D (coffee and other drinks) | Blocked until that build exists and the route is live. On 206 / 49 other drinks still use the six-second hold. |
