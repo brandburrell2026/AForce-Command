@@ -18,6 +18,7 @@
 import { DRINK_CATEGORIES, formatDrinkDisplayName, type DrinkCategoryId } from "@/data/drinkCatalog";
 import { validateMomentDraft, createConfirmedMoment, type MomentDraft } from "@/services/momentDraft";
 import { PREPARATION_POLICY_VERSION, preparationReviewMatches, reviewedPreparationSteps } from "@/services/momentPreparation";
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import { alcoholDisclosure } from "@/services/momentSafetyContext";
 import type { Moment, MomentPreparation, MomentType } from "@/types/moments";
 import { drinkRoute } from "@/utils/hydration/drinkRoute";
@@ -35,6 +36,8 @@ export interface OneBreathOwners {
   /** The store's `logIntake`. Resolves with the log's id only when the write landed. */
   logWater: (oz: number) => Promise<string | number | null | undefined>;
   /** `postRecordedDrink`: the drink log that never moves HydroState. */
+  /** The store's `undoIntake`: takes a logged water back. Resolves false when it could not. */
+  undoWater: (logId: string) => Promise<boolean>;
   recordDrink: (input: { categoryId: string; displayName: string; ozAmount: number; entrySource: "manual" }) => Promise<unknown>;
   /** Saved Moments, read when the effect runs. */
   moments: () => readonly Moment[];
@@ -117,15 +120,39 @@ export function lockInMoment(owners: OneBreathOwners, momentId: string): Promise
   );
 }
 
+/**
+ * Ends an open plan the way the existing Quiet screens do: one commit that
+ * stamps the outcome and drops any private safety context. A plan already
+ * closed is left exactly as it is, so a second tap changes nothing.
+ */
+function closePlan(owners: OneBreathOwners, momentId: string, outcome: "returnedAtIso" | "cancelledAtIso"): Promise<Moment> {
+  const now = owners.now ?? Date.now;
+  const saved = owners.moments().find((m) => m.id === momentId);
+  if (!saved?.preparation?.sealedAtIso) return Promise.reject(new Error("No sealed plan."));
+  if (preparationClosed(saved.preparation)) return Promise.resolve(saved);
+  // "Made it back" belongs to a plan that was locked in. A cancellation is never a return.
+  if (outcome === "returnedAtIso" && !saved.preparation.lockedInAtIso) return Promise.reject(new Error("Not locked in."));
+  return owners.commitMoment(
+    { ...saved, safetyContext: undefined, preparation: { ...saved.preparation, [outcome]: new Date(now()).toISOString(), transactionId: transaction() } },
+    saved,
+  );
+}
+
+/** "Made it back": the plan is closed as returned. */
+export const returnFromPlan = (owners: OneBreathOwners, momentId: string) => closePlan(owners, momentId, "returnedAtIso");
+
+/** "My plan is cancelled": the plan is closed as cancelled, with no return recorded. */
+export const cancelPlan = (owners: OneBreathOwners, momentId: string) => closePlan(owners, momentId, "cancelledAtIso");
+
 /** One drink, down the rail its kind belongs to. Only plain water can move HydroState. */
-export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<void> {
+export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<string | undefined> {
   const name = effect.name ?? "";
   const route = drinkRoute({ categoryId: effect.categoryId, name, enteredOz: effect.oz });
   if (route.kind === "water") {
     const id = await owners.logWater(route.oz);
     // No id means the write did not land (or is only queued): never "Logged".
     if (id === null || id === undefined) throw new Error("Not logged.");
-    return;
+    return String(id);
   }
   const known = route.categoryId in DRINK_CATEGORIES;
   await owners.recordDrink({
@@ -134,4 +161,11 @@ export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreat
     ozAmount: route.oz,
     entrySource: "manual",
   });
+  return undefined;
 }
+
+/** True when the hydration log can take this drink back: plain water, by the app's own routing. The drink log has no removal. */
+export const canUndoLoggedDrink = (categoryId: string, name: string) => drinkRoute({ categoryId, name, enteredOz: 0 }).kind === "water";
+
+/** The only log ids the existing undo accepts. Anything else is never guessed at. */
+export const undoableLogId = (id: string | undefined): id is string => !!id && /^intake-\d+$/.test(id);

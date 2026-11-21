@@ -25,6 +25,7 @@ import { effectKey, type ConversationEntry, type PlanRow } from "@/utils/oneBrea
 import { planSealId } from "@/utils/oneBreath/planTurn";
 import {
   effectFailed,
+  undoClosed,
   emptyOneBreathState,
   ONE_BREATH_LINES,
   oneBreathTurn,
@@ -34,7 +35,7 @@ import {
   type OneBreathState,
   type OneBreathTurn,
 } from "@/utils/oneBreath/session";
-import { lockInMoment, logDrink, reviewPlan, sealReviewed, unsealMoment, type OneBreathOwners } from "./effects";
+import { lockInMoment, logDrink, reviewPlan, sealReviewed, undoableLogId, unsealMoment, type OneBreathOwners } from "./effects";
 
 export interface ConversationSnapshot {
   entries: readonly ConversationEntry[];
@@ -54,6 +55,11 @@ export interface ConversationHost {
   owners: OneBreathOwners;
   /** Opens a screen by the engine's key. Returns false when there is no such screen. */
   openScreen: (screen: string) => boolean;
+  /**
+   * Takes an Undo that is still open to the next screen when One Breath closes.
+   * `undo` resolves true when the log was taken back.
+   */
+  carryUndo?: (carried: { label: string; msLeft: number; undo: () => Promise<boolean> }) => void;
   now?: () => number;
   /** How a step's time is written, e.g. "6:10 AM". */
   clock?: (iso: string) => string;
@@ -68,8 +74,10 @@ export interface OneBreathConversationController {
   getSnapshot: () => ConversationSnapshot;
   subscribe: (listener: () => void) => () => void;
   send: (input: OneBreathInput) => void;
-  /** The screen is going away or the app went to the background. */
+  /** The app went to the background. Anything held is settled; the screen may come back. */
   interrupt: () => void;
+  /** One Breath is closing: settle what is held, and carry an open drink Undo to the next screen. */
+  close: () => void;
   /** Resolves when every effect asked for so far has been answered. */
   settled: () => Promise<void>;
   dispose: () => void;
@@ -89,6 +97,8 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
   let review: { sealId: string; moment?: Moment; base?: Moment; error?: string } | undefined;
   /** Moments this conversation sealed, by seal id, for Undo. */
   const sealedMoments = new Map<string, Moment>();
+  /** The hydration log's own id for each drink logged here, for Undo. */
+  const logIds = new Map<string, string>();
   /** A Moment unsealed by Undo: sealing its plan again updates it rather than saving another. */
   let carried: Moment | undefined;
   let queue: Promise<void> = Promise.resolve();
@@ -154,9 +164,19 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
         await lockInMoment(owners, momentId);
         return;
       }
-      case "log_drink":
-        await logDrink(owners, effect);
+      case "log_drink": {
+        const logId = await logDrink(owners, effect);
+        if (undoableLogId(logId)) logIds.set(effect.id, logId);
+        // A log the existing undo cannot reference offers no Undo.
+        else session = undoClosed(session, effect.id);
         return;
+      }
+      case "undo_drink": {
+        const logId = logIds.get(effect.of);
+        if (!logId || !(await owners.undoWater(logId))) throw new Error("Still logged.");
+        logIds.delete(effect.of);
+        return;
+      }
       case "open_screen":
         if (!host.openScreen(effect.screen)) throw new Error("No such screen.");
         return;
@@ -194,7 +214,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
     if (timer) clearTimeout(timer);
     timer = null;
     lastTick = now();
-    const waits = [session.pendingDrink?.msLeft, session.sealUndo?.msLeft].filter((ms): ms is number => typeof ms === "number");
+    const waits = [session.pendingDrink?.msLeft, session.sealUndo?.msLeft, session.loggedUndo?.msLeft].filter((ms): ms is number => typeof ms === "number");
     if (disposed || waits.length === 0) return;
     timer = setTimeout(() => {
       timer = null;
@@ -221,7 +241,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
   function apply(input: OneBreathInput) {
     // Real time first, so an Undo window is judged by the clock and not by when the next word arrived.
     const elapsed = now() - lastTick;
-    if (input.kind !== "wait" && input.kind !== "interrupt" && elapsed > 0 && (session.pendingDrink || session.sealUndo)) {
+    if (input.kind !== "wait" && input.kind !== "interrupt" && elapsed > 0 && (session.pendingDrink || session.sealUndo || session.loggedUndo)) {
       step({ kind: "wait", ms: elapsed });
     }
     step(input);
@@ -241,6 +261,30 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
       if (!disposed) apply(input);
     },
     interrupt: () => apply({ kind: "interrupt" }),
+    close: () => {
+      // Real time first, then settle what is held.
+      const elapsed = now() - lastTick;
+      if (elapsed > 0 && (session.pendingDrink || session.sealUndo || session.loggedUndo)) step({ kind: "wait", ms: elapsed });
+      apply({ kind: "interrupt" });
+      const open = session.loggedUndo;
+      if (open && host.carryUndo) {
+        const after = queue;
+        host.carryUndo({
+          label: open.label,
+          msLeft: open.msLeft,
+          undo: async () => {
+            await after;
+            const logId = logIds.get(open.id);
+            if (!logId) return false;
+            const ok = await host.owners.undoWater(logId);
+            if (ok) logIds.delete(open.id);
+            return ok;
+          },
+        });
+        // It is the next screen's now: it cannot also be undone from here.
+        session = undoClosed(session, open.id);
+      }
+    },
     settled: () => queue,
     dispose: () => {
       if (timer) clearTimeout(timer);

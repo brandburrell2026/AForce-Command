@@ -1,4 +1,6 @@
 vi.mock('@clerk/expo',()=>({useAuth:()=>({isLoaded:true,isSignedIn:true,userId:'member'})}));
+// The route also mounts the conversation screen for a new plan; these cases are about the existing screens.
+vi.mock('@/components/oneBreath/OneBreathConversationScreen',()=>({OneBreathConversationScreen:()=>null}));
 vi.mock('@/hooks/useMomentsFirstExperience',()=>({useMomentsFirstExperience:()=>true}));
 vi.mock('@/components/oneBreath/OneBreathScreen',()=>({OneBreathScreen:()=>null}));
 vi.mock('@/components/oneBreath/ConfirmMomentScreen',()=>({ConfirmMomentScreen:()=>null}));

@@ -116,6 +116,8 @@ import {
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
 import { screenAnswer, type ScreenAnswer } from "@/utils/oneBreath/screenAnswer";
 import { OneBreathStatusAnswer } from "./OneBreathStatusAnswer";
+import { isTripSentence } from "@/utils/travel/tripWords";
+import { travelPilotAvailable } from "@/featureFlags/flags";
 import {
   LOCK_IN_NOT_YET,
   lockInOpensInMs,
@@ -175,7 +177,11 @@ export function MomentPreparationScreen({
   const params = useLocalSearchParams<{
     momentId?: string;
     proposal?: string;
+    /** What the member said changed, handed over from the One Breath conversation. */
+    changed?: string;
   }>();
+  /** The hand-over is applied once: later store updates must not reopen it. */
+  const changedApplied = React.useRef(false);
   const store = useMomentsStore();
   const sharedMoments = useMomentsData();
   const [calendarChanged, setCalendarChanged] = React.useState(false);
@@ -612,11 +618,23 @@ export function MomentPreparationScreen({
       setMethod(existing.preparation.returnMethod);
       setDestination(existing.preparation.destination);
       setEmergency(existing.preparation.emergencyNumber);
+      const handedOver =
+        !changedApplied.current &&
+        !!params.changed?.trim() &&
+        !!existing.preparation.lockedInAtIso &&
+        !preparationClosed(existing.preparation);
+      if (handedOver) {
+        // Same field, same safety check and same "Review changes" as typing it here.
+        changedApplied.current = true;
+        setChanges(params.changed!.trim());
+      }
       setScreen(
         preparationClosed(existing.preparation)
           ? "next"
           : existing.preparation.lockedInAtIso
-            ? "quiet"
+            ? handedOver
+              ? "change"
+              : "quiet"
             : "lock",
       );
     } else setScreen("noticed");
@@ -792,6 +810,19 @@ export function MomentPreparationScreen({
       return;
     }
     setAnswer(null);
+    // A flight is a trip, not an ordinary Moment: hand the words to trip entry,
+    // which shows them on a card and saves nothing until the member confirms.
+    // Only where Travel is available, and never from Social.
+    if (
+      !social &&
+      !!app.featureFlags &&
+      travelPilotAvailable(app.featureFlags) &&
+      isTripSentence(words, new Date())
+    ) {
+      router.push({ pathname: "/travel-intelligence", params: { trip: words } } as never);
+      setWords("");
+      return;
+    }
     const suggested = suggestMomentDraft(words);
     setDraft(suggested);
     setTimeQuestion(suggested.time ? null : suggestTimeQuestion(words));

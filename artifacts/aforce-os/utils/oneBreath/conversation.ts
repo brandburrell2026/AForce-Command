@@ -33,6 +33,10 @@ export type ConversationItem =
   | { kind: 'plan'; key: string; rows: PlanRow[]; note?: string }
   /** A fact repeated from its owner, with the card that shows it. */
   | { kind: 'result'; key: string; value: number; word: string; estimated: boolean }
+  /** A saved plan that is still open: its name, when it is, and its state. */
+  | { kind: 'moment'; key: string; title: string; when: string; pill: string }
+  /** Buttons for what can be done next. `id` is what the screen is told. */
+  | { kind: 'actions'; key: string; actions: { id: string; label: string; primary?: boolean; disabled?: boolean }[]; note?: string }
   /** Undo, while it is still open. */
   | { kind: 'undo'; key: string; reverses: string; lasts: string };
 
@@ -79,12 +83,14 @@ const WRITE_STEP: Partial<Record<OneBreathEffect['kind'], { label: string; savin
   log_drink: { label: 'Logged', saving: 'Logging', failed: 'Not logged' },
   lock_in: { label: 'Locked in', saving: 'Locking in', failed: 'Not locked in' },
   undo_moment: { label: 'Seal undone', saving: 'Undoing', failed: 'Still sealed' },
+  undo_drink: { label: 'Removed', saving: 'Removing', failed: 'Still logged' },
 };
 
 /** What a step says once its owner has answered. */
 function stepText(effect: OneBreathEffect, state: 'done' | 'failed' | 'saving'): string {
   const what = effectText(effect);
   if (effect.kind === 'undo_moment') return state === 'done' ? 'Your plan is waiting.' : state === 'failed' ? 'That didn’t go through. Your plan is still sealed.' : '';
+  if (effect.kind === 'undo_drink') return state === 'done' ? 'Removed from today.' : state === 'failed' ? 'That didn\u2019t go through. It is still in your log.' : '';
   if (effect.kind === 'lock_in') return state === 'failed' ? 'That didn’t go through. Nothing changed.' : '';
   return state === 'failed' ? `That didn’t go through. ${what} Nothing was saved.` : state === 'done' ? `Saved once. ${what}` : what;
 }
@@ -163,7 +169,7 @@ export function conversationView(entries: readonly ConversationEntry[], results:
     if (last && reply.undo) {
       const pending = effects.every((e) => !results.failed.has(effectKey(i, e.id)));
       // With the live session, Undo shows only while the session would still honour it.
-      const open = live ? !!(live.state.pendingDrink || live.state.sealUndo) : true;
+      const open = live ? !!(live.state.pendingDrink || live.state.sealUndo || live.state.loggedUndo) : true;
       if (pending && open) items.push({ kind: 'undo', key: `${key}-undo`, reverses: reply.undo.reverses, lasts: secondsLabel(reply.undo.ms) });
     }
   });

@@ -10,7 +10,7 @@ import {
 } from "@/services/travel/intelligenceReminders";
 import React from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import {
   travelTripsSchema,
@@ -33,6 +33,9 @@ import {
 import { resolveDepartureZone } from "@/services/travel/airportTimeZone";
 import { TravelJourneySection } from "./TravelJourneySection";
 import { SayYourTrip } from "./SayYourTrip";
+import { TellAforceYourTrip } from "./TellAforceYourTrip";
+import { legFormValues, legTitle } from "@/utils/travel/tripCard";
+import { tripTitle, type TripDraft } from "@/utils/travel/tripTurn";
 import {
   travelDeviceId,
   travelPushRegistration,
@@ -105,6 +108,20 @@ export function TravelIntelligenceScreen() {
     [conflict, setConflict] = React.useState<TravelSyncConflict | null>(null),
     [confirm, setConfirm] = React.useState<string | null>(null);
   const [connections, setConnections] = React.useState(false);
+  // A new trip starts with "Tell AFORCE your trip". The full form is the
+  // fallback, opened by "Edit details" (and always used to edit a saved trip).
+  const [manual, setManual] = React.useState(false);
+  // A flight sentence said to One Breath arrives here and opens trip entry with
+  // the words already in it. Read once; nothing is saved until Confirm.
+  const params = useLocalSearchParams<{ trip?: string }>();
+  const handedTrip = typeof params.trip === "string" ? params.trip : "";
+  const opened = React.useRef(false);
+  React.useEffect(() => {
+    if (opened.current || !handedTrip.trim()) return;
+    opened.current = true;
+    setManual(false);
+    setEditing("new");
+  }, [handedTrip]);
   const lock = React.useRef(false);
   const act = async (run: () => Promise<unknown>, success = "Saved.") => {
     if (lock.current) return;
@@ -139,9 +156,9 @@ export function TravelIntelligenceScreen() {
       <Text style={styles.buttonText}>{label}</Text>
     </Pressable>
   );
-  const save = async () => {
-    if (!doc) return;
-    const legs = forms.map((f): TravelLeg => {
+  const legFromForm = (f: LegForm): TravelLeg => {
+    if (!doc) throw new Error("Travel is still loading. Try again.");
+    {
       const origin = f.origin.trim().toUpperCase(),
         destination = f.destination.trim().toUpperCase(),
         departure = airportInstant(
@@ -193,7 +210,11 @@ export function TravelIntelligenceScreen() {
         originTimeZone: departure.zone,
         destinationTimeZone: destinationZone,
       };
-    });
+    }
+  };
+  const save = async () => {
+    if (!doc) return;
+    const legs = forms.map(legFromForm);
     const old = doc.trips.find((t) => t.id === editing);
     const trip = {
       id: editing === "new" ? Crypto.randomUUID() : editing!,
@@ -208,6 +229,25 @@ export function TravelIntelligenceScreen() {
         trip,
       ]),
     );
+    setEditing(null);
+  };
+  /**
+   * Saves a confirmed draft from the itinerary card. It goes through the same
+   * leg building, time-zone checks and schema as the form. The way out and the
+   * way back are saved as two trips, each named from its own airports and day.
+   * Called only from the card's Confirm button.
+   */
+  const saveDraft = async (draft: TripDraft) => {
+    if (!doc) return;
+    const createdAt = new Date().toISOString();
+    const trips = draft.legs.map((leg) => ({
+      id: Crypto.randomUUID(),
+      title: legTitle(leg),
+      legs: [legFromForm({ ...blank(), ...legFormValues(leg) })],
+      createdAt,
+      completedAt: null,
+    }));
+    await travel.save(travelTripsSchema.parse([...doc.trips, ...trips]));
     setEditing(null);
   };
   return (
@@ -365,10 +405,35 @@ export function TravelIntelligenceScreen() {
             : null}
           {button("Add a trip", () => {
             setEditing("new");
+            setManual(false);
             setTitle("");
             setForms([blank()]);
           })}
-          {editing ? (
+          {editing === "new" && !manual ? (
+            <View style={styles.panel}>
+              <TellAforceYourTrip
+                initialWords={handedTrip}
+                busy={busy}
+                onConfirm={(draft) =>
+                  void act(
+                    () => saveDraft(draft),
+                    draft.legs.length > 1
+                      ? "Trips saved. Moments updated on this device."
+                      : "Trip saved. Moments updated on this device.",
+                  )
+                }
+                onEditDetails={(draft) => {
+                  // Carry everything already said into the form; nothing is retyped.
+                  if (draft) {
+                    setForms(draft.legs.map((leg) => ({ ...blank(), ...legFormValues(leg) })));
+                    setTitle(tripTitle(draft));
+                  }
+                  setManual(true);
+                }}
+                onCancel={() => setEditing(null)}
+              />
+            </View>
+          ) : editing ? (
             <View style={styles.panel}>
               <Text style={styles.label}>Review your itinerary</Text>
               {/* Speak the trip instead of typing it. Fills only what was clearly
@@ -604,7 +669,7 @@ export function TravelIntelligenceScreen() {
                 );
               })}
               {button("Edit itinerary", () => {
-                setEditing(trip.id);
+                (setManual(true), setEditing(trip.id));
                 setTitle(trip.title);
                 setForms(trip.legs.map(formFor));
               })}

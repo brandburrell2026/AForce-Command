@@ -21,7 +21,7 @@ function AccountTravelHomeCard() {
   const journey = query.data;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={query.isError ? 'Open Travel to retry loading your journey' : 'Open your travel journey'}
-      testID="travel-home-card" onPress={() => router.push('/travel' as never)} style={styles.card}>
+      testID="travel-home-card" onPress={() => router.push('/travel-intelligence' as never)} style={styles.card}>
       <Text style={styles.eyebrow}>TRAVEL · POWERED BY TRAVELGATE</Text>
       <Text style={styles.title}>{query.isError ? 'Your journey needs a retry' : journey ? `${journey.details.origin} → ${journey.details.destination}` : 'Arrive ready.'}</Text>
       <Text style={styles.body}>{query.isError ? 'We couldn’t read your saved journey. Open Travel to try again.' : journey
