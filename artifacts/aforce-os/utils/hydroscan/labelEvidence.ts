@@ -1081,14 +1081,19 @@ export function displayNameFor(reading: Reading): string {
     product && brand && !reading.catalogSource && !product.toLowerCase().includes(brand.toLowerCase())
       ? `${brand} ${product}`
       : base;
-  if (!variant) return withBrand;
+  // A sparkling water must carry the word, or the drink rail would count it as plain water.
+  const named =
+    reading.sparkling && (reading.drinkType.value === 'water' || reading.drinkType.value === 'bottled_water') && !/sparkling|seltzer|carbonated|mineral/i.test(withBrand)
+      ? `${withBrand} sparkling`
+      : withBrand;
+  if (!variant) return named;
   const redundant = (part: string): boolean => {
     if (/^(zero|diet|sugar free)/i.test(part)) return /zero|diet|sugar.?free/i.test(withBrand);
     if (/^original/i.test(part)) return /classic|original|regular/i.test(withBrand);
     return withBrand.toLowerCase().includes(part.toLowerCase());
   };
   const extra = variant.split(' · ').filter((p) => !redundant(p));
-  return extra.length > 0 ? `${withBrand} ${extra.join(' ')}` : withBrand;
+  return extra.length > 0 ? `${named} ${extra.join(' ')}` : named;
 }
 
 function categoryDisplay(reading: Reading): string {
