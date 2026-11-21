@@ -11,6 +11,7 @@
  */
 
 import { db, aforceUserState, type AforceUserStateRow } from "@workspace/db";
+import { dayRolledOver, requestTimeZone } from "./requestTimeZone";
 import { eq, sql } from "drizzle-orm";
 
 export const DEFAULT_USER_ID = "default";
@@ -31,28 +32,26 @@ export function isAforceFluid(fluidType: string): boolean {
   return AFORCE_SET.has(fluidType);
 }
 
-// UTC day key — used to detect a daily rollover. UTC is intentional for
-// V1 (deterministic, no per-user TZ yet); switch to user-local once the
-// profile carries a timezone.
-function utcDayKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
 /**
  * Idempotently reset per-day counters when the row hasn't been touched
- * today (UTC).
+ * today, where "today" is the member's own calendar date.
  *
- * Race safety: the staleness check lives in the SQL `WHERE` clause —
- * `updated_at < date_trunc('day', now() AT TIME ZONE 'UTC')` — so the
- * UPDATE only fires when the row is actually stale at write time. A
+ * The zone is the one the app sent with this request (`requestTimeZone`).
+ * Until 2026-11-21 the day turned over at midnight UTC, which is 7 PM
+ * Eastern: an evening drink was counted toward the next day's total. A
+ * request that sends no zone still gets UTC, exactly as before.
+ *
+ * Race safety: the staleness check lives in the SQL `WHERE` clause, on the
+ * same local dates, so the UPDATE only fires when the row is actually stale
+ * at write time. A
  * second concurrent caller whose snapshot was stale but whose UPDATE
  * arrives after a fresh write will match 0 rows and become a no-op,
  * never clobbering today's counters back to zero. We then re-read to
  * return whichever state the winning writer left behind.
  */
 async function applyDayRollover(userId: string, current: AforceUserStateRow): Promise<AforceUserStateRow> {
-  const today = utcDayKey(new Date());
-  if (utcDayKey(current.updatedAt) === today) return current;
+  const zone = requestTimeZone();
+  if (!dayRolledOver(current.updatedAt, new Date(), zone)) return current;
   const reset = await db
     .update(aforceUserState)
     .set({
@@ -66,7 +65,7 @@ async function applyDayRollover(userId: string, current: AforceUserStateRow): Pr
       updatedAt: new Date(),
     })
     .where(sql`${aforceUserState.userId} = ${userId}
-              AND ${aforceUserState.updatedAt} < date_trunc('day', now() AT TIME ZONE 'UTC')`)
+              AND (${aforceUserState.updatedAt} AT TIME ZONE ${zone})::date < (now() AT TIME ZONE ${zone})::date`)
     .returning();
   if (reset[0]) return reset[0];
   // Conditional UPDATE matched 0 rows — another request already
