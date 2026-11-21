@@ -91,6 +91,7 @@ export const baseUser = makeUserState();
 
 export const baseFlags: FeatureFlags = {
   travel_mode_enabled: false,
+  hydroscan_label_reader_enabled: false,
   trainer_board_enabled: false,
   trainer_demo_seed_enabled: false,
   elite_home_experience_enabled: false,
