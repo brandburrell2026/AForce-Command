@@ -14,13 +14,13 @@ describe('amount step', () => {
     const plan = planAmountStep(vol(20, 'confirmed'), FALLBACK);
     expect(plan.mode).toBe('container');
     expect(plan.containerOz).toBe(20);
-    expect(plan.choices.map((c) => c.label)).toEqual(['10 fl oz · half', '20 fl oz · all', 'Custom']);
+    expect(plan.choices.map((c) => c.label)).toEqual(['10 fl oz · half the container', '20 fl oz · full container', 'Custom']);
     expect(plan.choices.map((c) => c.oz)).toEqual([10, 20, null]);
   });
 
   it('half of 16.9 fl oz rounds to a tenth', () => {
     const plan = planAmountStep(vol(16.9, 'confirmed'), FALLBACK);
-    expect(plan.choices.map((c) => c.label)).toEqual(['8.5 fl oz · half', '16.9 fl oz · all', 'Custom']);
+    expect(plan.choices.map((c) => c.label)).toEqual(['8.5 fl oz · half the container', '16.9 fl oz · full container', 'Custom']);
   });
 
   it('nothing is preselected: no choice carries a selected flag', () => {
@@ -68,5 +68,16 @@ describe('custom amount', () => {
 
   it('says the allowed range', () => {
     expect(CUSTOM_OZ_HINT).toBe('Enter 0.5 to 64 fl oz.');
+  });
+});
+
+describe('explicit amount labels', () => {
+  const confirmed = { value: 16, confidence: 'confirmed', source: 'user' } as never;
+  it('names the package when the caller knows it', () => {
+    expect(planAmountStep(confirmed, [8, 12], 'bottle').choices.map((c) => c.label)).toEqual(['8 fl oz · half the bottle', '16 fl oz · full bottle', 'Custom']);
+    expect(planAmountStep(confirmed, [8, 12], 'can').choices.map((c) => c.label)).toEqual(['8 fl oz · half the can', '16 fl oz · full can', 'Custom']);
+  });
+  it('says "container" when it does not: it never guesses can or bottle', () => {
+    expect(planAmountStep(confirmed, [8, 12]).choices[0]!.label).toBe('8 fl oz · half the container');
   });
 });
