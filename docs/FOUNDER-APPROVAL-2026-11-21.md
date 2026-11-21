@@ -71,10 +71,10 @@ FROM aforce_user_state s JOIN aforce_users u ON u.id = s.user_id
 WHERE u.email = 'YOUR_EMAIL';
 
 -- Drinks around the recording (Nov 20-21). Read-only.
-SELECT l.id, l.fluid_type, l.oz_amount, l.score_before, l.score_after, l.created_at, l.corrects_intake_id
+SELECT l.id, l.fluid_type, l.oz_amount, l.score_before, l.score_after, l.logged_at, l.corrects_intake_id
 FROM aforce_intake_logs l JOIN aforce_users u ON u.id = l.user_id
-WHERE u.email = 'YOUR_EMAIL' AND l.created_at >= '2026-11-20' AND l.created_at < '2026-11-22'
-ORDER BY l.created_at;
+WHERE u.email = 'YOUR_EMAIL' AND l.logged_at >= '2026-11-20' AND l.logged_at < '2026-11-22'
+ORDER BY l.logged_at;
 ```
 
 The state row is the account as it is now, not as it was at 12:17 PM on Nov 21, so the urine and signal values are only useful if they have not changed since. The drink rows carry the score before and after each drink, which is the firm part. Whether wearable data fed the score is in a column this query leaves out on purpose (health data); say if you want it included.
