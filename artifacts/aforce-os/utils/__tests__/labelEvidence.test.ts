@@ -363,6 +363,16 @@ describe('catalog matching uses the app\'s own catalogs', () => {
     expect(r.catalogSource).toBe('compare');
   });
 
+  it('an AFORCE match is marked unverified until its packaging facts are supplied', () => {
+    const r = read(frame('AFORCE', 'BERRY BLAST + DULSE'), frame('AFORCE BERRY BLAST DULSE'));
+    expect(r.packagingVerified).toBe(false);
+  });
+
+  it('a drink that is not AFORCE carries no packaging mark', () => {
+    const r = read(frame('ELECTROLYTE', 'ENERGY DRINK'), frame('ELECTROLYTE', 'ENERGY DRINK'));
+    expect(r.packagingVerified).toBeNull();
+  });
+
   it('the more specific catalog row wins when its word is on the label', () => {
     expect(read(frame('PEDIALYTE', 'SPORT'), frame('PEDIALYTE SPORT')).product.value).toBe('Pedialyte Sport');
     expect(read(frame('PEDIALYTE'), frame('PEDIALYTE')).product.value).toBe('Pedialyte');

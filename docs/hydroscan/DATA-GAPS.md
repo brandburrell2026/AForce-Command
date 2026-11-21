@@ -22,6 +22,39 @@ Nothing in this file is invented. These are things the repo does not have, and t
 4. Which AFORCE products are a drink-in-a-package (RTD can) versus a mix; the reader hands AFORCE products to the existing AFORCE flow, which counts them as their mixing water. That rule is unchanged and needs the founders' confirmation that a label-read AFORCE log should follow it.
 5. Photos of the real cans and sticks (reflective surfaces) for the benchmark set.
 
+## Missing fields per AFORCE product (2026-11-21)
+
+Every AFORCE product is marked **unverified** in `artifacts/aforce-os/data/aforcePackaging.ts`. A product becomes verified only when all three fields are filled in from the approved packaging. While unverified, the label reader shows "AFORCE PACKAGING · NOT VERIFIED YET" on an AFORCE match, and the benchmark does not count AFORCE results. A test refuses any `85000000xxxx` placeholder as a unit UPC.
+
+| Product | Format | Unit UPC | Exact net contents | Final front-label text |
+|---|---|---|---|---|
+| Berry Blast + Dulse | Hydration Sticks | missing | missing | missing |
+| Watermelon + Chlorella | Hydration Sticks | missing | missing | missing |
+| Soursop + Seamoss | Hydration Sticks | missing | missing | missing |
+| Berry Blast + Dulse | RTD can | missing | missing | missing |
+| Watermelon + Chlorella | RTD can | missing | missing | missing |
+| Soursop + Seamoss | RTD can | missing | missing | missing |
+| Berry Blast + Dulse | Canister | missing | missing | missing |
+| Watermelon + Chlorella | Canister | missing | missing | missing |
+| Soursop + Seamoss | Canister | missing | missing | missing |
+| FIELD BAG | Bulk bag | missing | missing | missing |
+
+What each field means, so it can be read straight off the packaging:
+
+- **Unit UPC:** the barcode number on the one package a member holds. For the RTD that is the single can, not the 12-pack case (send the case code too if the can and the case differ). For sticks, the code on the carton, and say whether a single stick carries any code.
+- **Exact net contents:** as printed, with units. Cans: fl oz and mL. Sticks: net weight per stick and sticks per carton. Canister and bag: net weight and servings.
+- **Final front-label text:** every line on the front panel as printed, in order, including capitalisation, "+" signs and any words such as "Zero Sugar" or "Electrolyte Drink Mix".
+
+Questions the packaging will also answer:
+
+- Does the FIELD BAG exist as a product a member can buy? It is in the catalog and has no store SKU.
+- The app says the RTD is 12 oz and a stick mixes into 12 oz, a canister serving into 18 oz. These are the app's working numbers, not packaging facts.
+- The names differ between tables today ("Berry Blast +Dulse", "Berry Blast + Dulse Stick", "Berry Blast Canister"). The printed label decides.
+
+## Test products
+
+Automated tests and the benchmark use clearly labelled test products, not AFORCE claims: label text typed into the tests as fixtures, and shop-bought drinks in the benchmark. The AFORCE cases in `labelEvidence.test.ts` use the catalog's placeholder names and prove only the matching logic, not that a real AFORCE label reads correctly.
+
 ## Other data gaps found
 
 - The drink catalog (`data/drinkCatalog.ts`) holds serving sizes, not package sizes. The engine never uses them as a container size. Package volume comes only from the label (or the member).

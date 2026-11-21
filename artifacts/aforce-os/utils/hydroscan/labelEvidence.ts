@@ -25,6 +25,7 @@
  */
 import { CATALOG_DRINKS, DRINK_CATEGORIES, type DrinkCategoryId } from '../../data/drinkCatalog';
 import { COMPARE_PRODUCTS } from '../../data/productDatabase';
+import { aforcePackagingStatus } from '../../data/aforcePackaging';
 
 // ─── Public types ───────────────────────────────────────────────────
 
@@ -121,6 +122,11 @@ export interface Reading {
   readonly catalogProductId: string | null;
   /** True when the name came from the app's compare catalog (AFORCE and named rivals). */
   readonly catalogSource: 'drink' | 'compare' | null;
+  /**
+   * AFORCE matches only: false until the founders supply the unit UPC, net
+   * contents and front-label text for that product. Null for anything else.
+   */
+  readonly packagingVerified: boolean | null;
   readonly barcodeCode: string | null;
   readonly question: Question | null;
   readonly hint: Hint | null;
@@ -1044,6 +1050,10 @@ export function readEvidence(state: EvidenceState): Reading {
     },
     catalogProductId,
     catalogSource,
+    packagingVerified:
+      catalogProductId && COMPARE_PRODUCTS.some((p) => p.id === catalogProductId && p.isAForce)
+        ? aforcePackagingStatus(catalogProductId).verified
+        : null,
     barcodeCode: barcode?.code ?? null,
     question: q,
     hint,

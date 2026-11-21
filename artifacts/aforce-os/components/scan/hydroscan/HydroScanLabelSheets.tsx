@@ -27,6 +27,7 @@ export const LABEL_COPY = {
   modeLabel: 'Label',
   pickType: 'Pick a type',
   cardCaption: 'LOOKS LIKE',
+  packagingUnverified: 'AFORCE PACKAGING · NOT VERIFIED YET',
   rowType: 'Type',
   rowSize: 'Size',
   sizeNotRead: 'Not read',
@@ -142,6 +143,9 @@ export function HydroScanLabelCard({
       <View accessible accessibilityLiveRegion="polite">
         <Text style={s.caption}>{LABEL_COPY.cardCaption}</Text>
         <Text accessibilityRole="header" style={s.title}>{name}</Text>
+        {reading.packagingVerified === false ? (
+          <Text style={[s.caption, { marginTop: 8 }]} testID="hydroscan-label-unverified">{LABEL_COPY.packagingUnverified}</Text>
+        ) : null}
       </View>
       <Row label={LABEL_COPY.rowType} value={typeName(reading)} source={reading.drinkType.source} confidence={reading.drinkType.confidence} onChange={onChangeType} testID="hydroscan-label-row-type" />
       <Row
