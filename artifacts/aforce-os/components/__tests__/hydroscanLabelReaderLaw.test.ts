@@ -172,10 +172,15 @@ describe('LOGGING — confirmed by the member, through the screen\'s own guarded
     expect(screen()).toMatch(/lastSavedRef\.current = typeof savedDrink\?\.id === 'number' \? \{ kind: 'recorded', id: savedDrink\.id \} : null;/);
   });
 
-  it('alcohol is offered only where drinkAvailability allows it', () => {
-    expect(screen()).toMatch(/alcoholAllowed=\{ageRestrictedDrinksAvailable\(\)\}/);
-    expect(src('reader')).toMatch(/reading\.drinkType\.value === 'alcohol' && !alcoholAllowed/);
-    expect(src('reader')).toMatch(/availableCategoryOrder\(\)/);
+  it('alcohol is never logged from the reader, in any build', () => {
+    expect(src('reader')).toMatch(/if \(reading\.drinkType\.value === 'alcohol' \|\| reading\.traits\.alcohol\.value === 'alcoholic'\) \{\s*setPhase\('alcohol'\);/);
+    expect(src('reader')).not.toMatch(/&& !alcoholAllowed/);
+    expect(src('reader')).toMatch(/id !== 'custom' && id !== 'alcohol'/);
+  });
+
+  it('a late barcode result cannot change a drink that is already on screen', () => {
+    expect(src('reader')).toMatch(/openRef\.current = phase === 'reading' && reading\.status === 'reading';/);
+    expect(src('reader')).toMatch(/if \(!openRef\.current\) return;/);
   });
 
   it('no HydroState ring, score or physiological claim on any new surface (D1, D4)', () => {

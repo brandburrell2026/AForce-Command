@@ -89,8 +89,8 @@ export interface HydroScanLabelReaderProps {
   onSave: (args: DrinkLogArgs) => Promise<LabelSaveResult>;
   /** The screen's existing intake undo, passed as a function (never called here before a log exists). */
   undoWater: (cycleId: string) => Promise<boolean>;
-  /** Rule SS-26: alcohol only in dev and internal builds. */
-  alcoholAllowed: boolean;
+  /** Kept for the caller; the reader never logs alcohol whatever this says. */
+  alcoholAllowed?: boolean;
 }
 
 type Phase = 'reading' | 'pick' | 'sizeedit' | 'amount' | 'alcohol' | 'failed' | 'done';
@@ -102,7 +102,7 @@ export function HydroScanLabelReader(props: HydroScanLabelReaderProps) {
   return <HydroScanLabelReaderNative {...props} />;
 }
 
-function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOff, onSave, undoWater, alcoholAllowed }: HydroScanLabelReaderProps) {
+function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOff, onSave, undoWater }: HydroScanLabelReaderProps) {
   // Lazy require so web bundling never resolves the native module.
   const ExpoCamera = require('expo-camera') as typeof import('expo-camera');
   const { CameraView, useCameraPermissions } = ExpoCamera;
@@ -180,6 +180,9 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
     setEvidence((prev) => addSample(prev, sample));
   }, []);
 
+  const undoingRef = useRef(false);
+  const openRef = useRef(true);
+  openRef.current = phase === 'reading' && reading.status === 'reading';
   const cameraActive = granted && !paused && appActive && phase === 'reading' && reading.status === 'reading';
 
   // ── The sampler: one still about a second, never overlapping ──────────
@@ -233,6 +236,8 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
       const epoch = epochRef.current;
       const apply = (r: ResolvedBarcode) => {
         if (epoch !== epochRef.current) return;
+        // A late result never changes a drink the member is already looking at.
+        if (!openRef.current) return;
         if (r.handOff) onHandOff(r.handOff);
         else ingest({ barcode: r.candidate }, epoch);
       };
@@ -266,7 +271,8 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
 
   const onConfirm = async () => {
     const epoch = epochRef.current;
-    if (reading.drinkType.value === 'alcohol' && !alcoholAllowed) {
+    // Alcohol is never logged from the reader until the founders' alcohol ruling and the age check (SS-26) exist.
+    if (reading.drinkType.value === 'alcohol' || reading.traits.alcohol.value === 'alcoholic') {
       setPhase('alcohol');
       return;
     }
@@ -314,10 +320,16 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   };
 
   const doUndo = async () => {
-    if (saving || !canUndo(saved)) return;
+    if (saving || undoingRef.current || !canUndo(saved)) return;
+    undoingRef.current = true;
     setSaving(true);
-    const ok = await undoSaved(saved, { undoWater, removeRecorded: removeRecordedDrink });
-    setSaving(false);
+    let ok = false;
+    try {
+      ok = await undoSaved(saved, { undoWater, removeRecorded: removeRecordedDrink });
+    } finally {
+      undoingRef.current = false;
+      setSaving(false);
+    }
     if (ok) {
       setSaved(null);
       setDone((d) => (d ? { ...d, undone: true } : d));
@@ -336,7 +348,7 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   if (phase === 'pick') {
     sheet = (
       <HydroScanLabelTypeGrid
-        categories={availableCategoryOrder().filter((id): id is DrinkCategoryId => id !== 'custom')}
+        categories={availableCategoryOrder().filter((id): id is DrinkCategoryId => id !== 'custom' && id !== 'alcohol')}
         onPick={(id) => {
           setEvidence((e) => applyOverride(e, { drinkType: id }));
           setPhase('reading');
@@ -453,6 +465,7 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="back"
+          active={cameraActive}
           enableTorch={torch}
           barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES as never }}
           onBarcodeScanned={cameraActive ? handleBarcode : undefined}

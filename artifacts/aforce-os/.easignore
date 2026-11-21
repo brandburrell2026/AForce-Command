@@ -53,6 +53,8 @@ expo-env.d.ts
 ios/
 !modules/skinia-image-features/ios/
 !modules/skinia-image-features/ios/**
+!modules/hydroscan-label-text/ios/
+!modules/hydroscan-label-text/ios/**
 node_modules
 node_modules/
 npm-debug.*
