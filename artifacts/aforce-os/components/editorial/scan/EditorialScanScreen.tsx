@@ -64,6 +64,7 @@ import { useRouter } from 'expo-router';
 import { af } from '@/theme';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
 import { LiveBarcodeReader } from '@/components/CameraScanModal';
+import { HydroScanLabelReader, type LabelSaveResult } from '@/components/scan/hydroscan/HydroScanLabelReader';
 import { HydroScanFoot, HydroScanFrame, HydroScanModes, HydroScanSheet, HydroScanTopBar } from '@/components/scan/hydroscan/HydroScanChrome';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
@@ -71,6 +72,9 @@ import { PRODUCTS } from '@/data/products';
 import { postRecordedDrink } from '@/services/realApi';
 import { HydroScanLogged, HydroScanUnknownAmount, HydroScanUnknownPick } from '@/components/scan/hydroscan/HydroScanUnknown';
 import { drinkRoute, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '@/utils/hydration/drinkRoute';
+import { ageRestrictedDrinksAvailable } from '@/utils/hydration/drinkAvailability';
+import { hydroscanLabelReaderAvailable } from '@/featureFlags/flags';
+import type { DrinkLogArgs, SavedDrink } from '@/utils/hydroscan/labelDrinkLog';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -132,6 +136,8 @@ export function EditorialScanScreen() {
   const MAX_LOG_OZ = Math.min(64, DECISION_GUARD_MAX_DOSE_OZ);
   const [qtyOz, setQtyOz] = useState(0);
   const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
+  // What the last confirmed drink write left behind (read by the flagged label reader's Undo).
+  const lastSavedRef = useRef<SavedDrink | null>(null);
 
   // Water uses the scored hydration path. Every other drink is an append-only
   // record and cannot move HydroState until an approved rule exists.
@@ -147,6 +153,7 @@ export function EditorialScanScreen() {
     const route = drinkRoute(args);
     if (route.kind === 'water') {
       const cycleId = await logIntake('water', { source: 'scan', ozOverride: route.oz });
+      lastSavedRef.current = cycleId ? { kind: 'water', cycleId } : null;
       // In the sheet the log's own id is kept, so the Done card can offer Undo.
       if (inSheet && cycleId) {
         setLoggedCycleId(cycleId);
@@ -155,12 +162,13 @@ export function EditorialScanScreen() {
       return inSheet && !cycleId ? 'failed' : 'water';
     }
     try {
-      await postRecordedDrink({
+      const savedDrink = await postRecordedDrink({
         categoryId: route.categoryId,
         displayName: `${args.displayName} · ${args.enteredOz} oz`,
         ozAmount: route.oz,
         entrySource: 'scan',
       });
+      lastSavedRef.current = typeof savedDrink?.id === 'number' ? { kind: 'recorded', id: savedDrink.id } : null;
       // The sheet's own card says this; elsewhere the alert does.
       if (!inSheet) Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
       return 'recorded';
@@ -345,6 +353,28 @@ export function EditorialScanScreen() {
     }
   };
 
+  // ── Flagged label reader (hydroscan_label_reader_enabled, internal) ───
+  // Off: nothing below is used and the screen is exactly the barcode scanner.
+  // On: the reader confirms a drink with the member, then saves it HERE, through
+  // the same confirmed-drink write and the same duplicate guards as above.
+  const labelReaderOn = hydroscanLabelReaderAvailable(state.featureFlags);
+  const saveLabelDrink = useCallback(
+    async (args: DrinkLogArgs): Promise<LabelSaveResult> => {
+      if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return { status: 'busy' };
+      confirmInFlightRef.current = true;
+      setWriteInFlight(true);
+      lastSavedRef.current = null;
+      try {
+        const route = await onConfirmDrink(args, true);
+        return route === 'failed' ? { status: 'failed' } : { status: 'saved', route, saved: lastSavedRef.current };
+      } finally {
+        confirmInFlightRef.current = false;
+        setWriteInFlight(false);
+      }
+    },
+    [onConfirmDrink, state.isCompletingCycle, state.showCycleSuccess],
+  );
+
   // The coach mirror, spoken only in the member's chosen posture. It explains
   // the comparison; it authors no instruction (DR-013).
   useEffect(() => {
@@ -410,6 +440,18 @@ export function EditorialScanScreen() {
         {/* ── OBSERVED · the symbol, and nothing else ─────────────────
             The reader fills the screen and decodes a barcode on the device.
             It keeps no picture. It pauses while a result is on screen. */}
+        {labelReaderOn ? (
+          <HydroScanLabelReader
+            paused={scanning || outcome != null || addDrinkOpen}
+            torch={torch}
+            onRunning={setReaderRunning}
+            onType={() => setAddDrinkOpen(true)}
+            onHandOff={(source) => void runScan(source)}
+            onSave={saveLabelDrink}
+            undoWater={undoIntake}
+            alcoholAllowed={ageRestrictedDrinksAvailable()}
+          />
+        ) : (
         <LiveBarcodeReader
           paused={scanning || outcome != null || addDrinkOpen}
           torch={torch}
@@ -444,8 +486,9 @@ export function EditorialScanScreen() {
             ) : null
           }
         />
+        )}
 
-        {!outcome ? (
+        {!outcome && !labelReaderOn ? (
           <>
             {readerRunning || Platform.OS === 'web' ? (
               <HydroScanFrame

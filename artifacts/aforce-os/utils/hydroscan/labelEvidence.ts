@@ -1018,9 +1018,11 @@ export function readEvidence(state: EvidenceState): Reading {
   const solid =
     identityFrom === 'barcode' ||
     identityFrom === 'user' ||
+    !!overrides.drinkType ||
     identitySamples >= 2 ||
     (identitySamples >= 1 && state.samples >= SINGLE_READ_SAMPLES);
-  const sizeSettled = volume.value != null || state.samples >= SIZE_WAIT_SAMPLES || overrides.volumeOz !== undefined;
+  const sizeSettled =
+    volume.value != null || state.samples >= SIZE_WAIT_SAMPLES || overrides.volumeOz !== undefined || !!overrides.drinkType;
   const q = question as Question | null;
   const ready = !q && identityKnown && solid && sizeSettled;
   const status: Reading['status'] = q ? 'question' : ready ? 'ready' : 'reading';
