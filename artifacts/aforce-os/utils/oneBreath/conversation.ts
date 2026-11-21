@@ -13,7 +13,7 @@
  * can show a save, a log or a send that did not happen.
  */
 import type { LogLine } from '@/components/oneBreath/kit';
-import type { OneBreathEffect, OneBreathInput, OneBreathTurn, PlanDraft } from './session';
+import type { OneBreathEffect, OneBreathInput, OneBreathState, OneBreathTurn, PlanDraft } from './session';
 
 export interface ConversationEntry {
   input: OneBreathInput;
@@ -29,6 +29,8 @@ export type ConversationItem =
   | { kind: 'heard'; key: string; rows: { label: string; value: string }[] }
   /** One real step. */
   | { kind: 'step'; key: string; line: LogLine }
+  /** The plan's steps, shown for review before the seal bar. */
+  | { kind: 'plan'; key: string; rows: PlanRow[]; note?: string }
   /** A fact repeated from its owner, with the card that shows it. */
   | { kind: 'result'; key: string; value: number; word: string; estimated: boolean }
   /** Undo, while it is still open. */
@@ -42,17 +44,50 @@ export interface ConversationView {
   plan?: PlanDraft;
 }
 
-/** Effects whose owner has answered: carried out, or refused. Anything absent is still in progress. */
+/** One reviewed step of the plan: when, and what. */
+export interface PlanRow {
+  at: string;
+  text: string;
+}
+
+/**
+ * Effects whose owner has answered: carried out, or refused. Anything absent
+ * is still in progress. Keyed by `effectKey`: one attempt, one answer, so a
+ * plan sealed again after an Undo or a failure is its own step.
+ */
 export interface EffectResults {
   done: ReadonlySet<string>;
   failed: ReadonlySet<string>;
+}
+
+/** The key for one attempt at an effect: the turn it came from, and its id. */
+export const effectKey = (turnIndex: number, effectId: string) => `${turnIndex}:${effectId}`;
+
+/** What only the screen that owns the session can know right now. */
+export interface ConversationLive {
+  /** The session as it stands. Undo is offered only while its window is still open here. */
+  state: OneBreathState;
+  /** The waiting plan's steps from the preparation service, exactly as they would be saved. */
+  planRows?: readonly PlanRow[];
+  planNote?: string;
+  /** Why the waiting plan cannot be sealed as it stands, in its owner's words. */
+  planError?: string;
 }
 
 const WRITE_STEP: Partial<Record<OneBreathEffect['kind'], { label: string; saving: string; failed: string }>> = {
   save_moment: { label: 'Sealed', saving: 'Sealing', failed: 'Not sealed' },
   log_drink: { label: 'Logged', saving: 'Logging', failed: 'Not logged' },
   lock_in: { label: 'Locked in', saving: 'Locking in', failed: 'Not locked in' },
+  undo_moment: { label: 'Seal undone', saving: 'Undoing', failed: 'Still sealed' },
 };
+
+/** What a step says once its owner has answered. */
+function stepText(effect: OneBreathEffect, state: 'done' | 'failed' | 'saving'): string {
+  const what = effectText(effect);
+  if (effect.kind === 'undo_moment') return state === 'done' ? 'Your plan is waiting.' : state === 'failed' ? 'That didn’t go through. Your plan is still sealed.' : '';
+  if (effect.kind === 'lock_in') return state === 'failed' ? 'That didn’t go through. Nothing changed.' : '';
+  return state === 'failed' ? `That didn’t go through. ${what} Nothing was saved.` : state === 'done' ? `Saved once. ${what}` : what;
+}
 
 const heardRows = (plan: PlanDraft): { label: string; value: string }[] =>
   [
@@ -64,13 +99,19 @@ const heardRows = (plan: PlanDraft): { label: string; value: string }[] =>
 
 const secondsLabel = (ms: number) => `${Math.round(ms / 1000)} seconds`;
 
+/** The owner's words about credit, taken from a "Logged …" reply for this drink. */
+function creditNote(replyText: string, effect: Extract<OneBreathEffect, { kind: 'log_drink' }>): string {
+  const lead = `Logged ${effect.oz} oz ${effect.name ?? 'drink'}.`;
+  return replyText.startsWith(lead) ? replyText.slice(lead.length).trim() : '';
+}
+
 function effectText(effect: OneBreathEffect): string {
   if (effect.kind === 'save_moment') return `${effect.plan.title} · ${effect.plan.day} ${effect.plan.time}.`;
   if (effect.kind === 'log_drink') return `${effect.oz} oz ${effect.name ?? 'drink'}.`;
   return '';
 }
 
-export function conversationView(entries: readonly ConversationEntry[], results: EffectResults): ConversationView {
+export function conversationView(entries: readonly ConversationEntry[], results: EffectResults, live?: ConversationLive): ConversationView {
   const items: ConversationItem[] = [];
   let step = 0;
 
@@ -99,7 +140,8 @@ export function conversationView(entries: readonly ConversationEntry[], results:
 
     for (const effect of writes) {
       const words = WRITE_STEP[effect.kind]!;
-      const state = results.done.has(effect.id) ? 'done' : results.failed.has(effect.id) ? 'failed' : 'saving';
+      const k = effectKey(i, effect.id);
+      const state = results.done.has(k) ? 'done' : results.failed.has(k) ? 'failed' : 'saving';
       step += 1;
       const by = input.kind === 'say' ? `By you · ${input.via}` : 'By you';
       items.push({
@@ -109,7 +151,9 @@ export function conversationView(entries: readonly ConversationEntry[], results:
           n: step,
           label: state === 'done' ? words.label : state === 'failed' ? words.failed : words.saving,
           note: by,
-          text: state === 'failed' ? `That didn’t go through. ${effectText(effect)} Nothing was saved.` : state === 'done' ? `Saved once. ${effectText(effect)}` : effectText(effect),
+          text: stepText(effect, state),
+          // What the hydration rules say about credit, repeated only once the log is real.
+          ...(state === 'done' && effect.kind === 'log_drink' && creditNote(reply.text, effect) ? { detail: creditNote(reply.text, effect) } : {}),
           tone: state === 'done' ? 'accent' : 'waiting',
         },
       });
@@ -117,14 +161,25 @@ export function conversationView(entries: readonly ConversationEntry[], results:
 
     // Undo is offered only on the latest turn, while its window is the live one.
     if (last && reply.undo) {
-      const pending = effects.length === 0 || effects.every((e) => !results.failed.has(e.id));
-      if (pending) items.push({ kind: 'undo', key: `${key}-undo`, reverses: reply.undo.reverses, lasts: secondsLabel(reply.undo.ms) });
+      const pending = effects.every((e) => !results.failed.has(effectKey(i, e.id)));
+      // With the live session, Undo shows only while the session would still honour it.
+      const open = live ? !!(live.state.pendingDrink || live.state.sealUndo) : true;
+      if (pending && open) items.push({ kind: 'undo', key: `${key}-undo`, reverses: reply.undo.reverses, lasts: secondsLabel(reply.undo.ms) });
     }
   });
 
   const latest = entries[entries.length - 1]?.turn;
-  const plan = latest?.state.pendingPlan;
-  const awaitingSeal = !!plan && !!plan.date && !!plan.time24 && !latest?.state.asking;
+  // After a failed save or an Undo the live session holds the plan again.
+  const plan = live ? live.state.pendingPlan : latest?.state.pendingPlan;
+  const asking = live ? live.state.asking : latest?.state.asking;
+  const complete = !!plan && !!plan.date && !!plan.time24 && !asking;
+  // A plan its owner would refuse is not offered for sealing: the reason is shown instead.
+  if (complete && live?.planError) items.push({ kind: 'ai', key: `plan-error-${entries.length}`, text: live.planError });
+  const awaitingSeal = complete && !live?.planError;
+  // The steps are reviewed before the seal: they are what the seal saves.
+  if (awaitingSeal && live?.planRows) {
+    items.push({ kind: 'plan', key: `plan-${entries.length}`, rows: [...live.planRows], ...(live.planNote ? { note: live.planNote } : {}) });
+  }
   return { items, awaitingSeal, plan: awaitingSeal ? plan : undefined };
 }
 
@@ -133,7 +188,8 @@ export function conversationStatus(entries: readonly ConversationEntry[], result
   if (listening) return 'Listening';
   const latest = entries[entries.length - 1]?.turn;
   if (!latest) return 'Standby';
-  const working = latest.effects.some((e) => WRITE_STEP[e.kind] && !results.done.has(e.id) && !results.failed.has(e.id));
+  const at = entries.length - 1;
+  const working = latest.effects.some((e) => WRITE_STEP[e.kind] && !results.done.has(effectKey(at, e.id)) && !results.failed.has(effectKey(at, e.id)));
   if (working) return 'Operating';
   if (latest.status === 'quiet') return 'Quiet';
   return 'Standby';

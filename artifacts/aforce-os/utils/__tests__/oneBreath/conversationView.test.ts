@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { conversationStatus, conversationView, type ConversationEntry, type EffectResults } from '@/utils/oneBreath/conversation';
+import { conversationStatus, conversationView, effectKey, type ConversationEntry, type EffectResults } from '@/utils/oneBreath/conversation';
 import { emptyOneBreathState, oneBreathTurn, type OneBreathInput } from '@/utils/oneBreath/session';
 import { BASE_CONTEXT, say, wait } from './drive';
 
@@ -17,7 +17,7 @@ function play(inputs: OneBreathInput[]): ConversationEntry[] {
   });
 }
 const none: EffectResults = { done: new Set(), failed: new Set() };
-const allDone = (entries: ConversationEntry[]): EffectResults => ({ done: new Set(entries.flatMap((e) => e.turn.effects.map((x) => x.id))), failed: new Set() });
+const allDone = (entries: ConversationEntry[]): EffectResults => ({ done: new Set(entries.flatMap((e, i) => e.turn.effects.map((x) => effectKey(i, x.id)))), failed: new Set() });
 const kinds = (entries: ConversationEntry[], results = none) => conversationView(entries, results).items.map((i) => i.kind);
 const LIFT = [say('I want to lift tomorrow, legs need to be fresh'), say('6:30 in the morning')];
 
@@ -64,7 +64,7 @@ describe('conversation · never shows what did not happen', () => {
   });
 
   it('a save that failed says so and never reads as sealed', () => {
-    const failed = { done: new Set<string>(), failed: new Set(sealed.flatMap((e) => e.turn.effects.map((x) => x.id))) };
+    const failed = { done: new Set<string>(), failed: new Set(sealed.flatMap((e, i) => e.turn.effects.map((x) => effectKey(i, x.id)))) };
     expect(step(failed)).toMatchObject({ line: { label: 'Not sealed' } });
     expect(JSON.stringify(conversationView(sealed, failed).items)).toContain('Nothing was saved.');
     expect(conversationView(sealed, failed).items.some((i) => i.kind === 'undo')).toBe(false);
