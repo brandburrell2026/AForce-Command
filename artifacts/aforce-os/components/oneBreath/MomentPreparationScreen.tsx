@@ -175,11 +175,7 @@ export function MomentPreparationScreen({
   const params = useLocalSearchParams<{
     momentId?: string;
     proposal?: string;
-    /** What the member said changed, handed over from the One Breath conversation. */
-    changed?: string;
   }>();
-  /** The hand-over is applied once: later store updates must not reopen it. */
-  const changedApplied = React.useRef(false);
   const store = useMomentsStore();
   const sharedMoments = useMomentsData();
   const [calendarChanged, setCalendarChanged] = React.useState(false);
@@ -616,23 +612,11 @@ export function MomentPreparationScreen({
       setMethod(existing.preparation.returnMethod);
       setDestination(existing.preparation.destination);
       setEmergency(existing.preparation.emergencyNumber);
-      const handedOver =
-        !changedApplied.current &&
-        !!params.changed?.trim() &&
-        !!existing.preparation.lockedInAtIso &&
-        !preparationClosed(existing.preparation);
-      if (handedOver) {
-        // Same field, same safety check and same "Review changes" as typing it here.
-        changedApplied.current = true;
-        setChanges(params.changed!.trim());
-      }
       setScreen(
         preparationClosed(existing.preparation)
           ? "next"
           : existing.preparation.lockedInAtIso
-            ? handedOver
-              ? "change"
-              : "quiet"
+            ? "quiet"
             : "lock",
       );
     } else setScreen("noticed");

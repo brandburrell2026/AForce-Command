@@ -58,8 +58,9 @@ describe('One Breath conversation · where it opens', () => {
     expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ context: 'social' }))] })).toBe(true);
   });
 
-  it('a plan saved but never sealed keeps the existing Plan screen', () => {
-    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ sealedAtIso: '' }))] })).toBe(false);
+  it('a plan saved but never sealed is picked up in the conversation; one from the calendar keeps its own screen', () => {
+    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ sealedAtIso: '' }))] })).toBe(true);
+    expect(oneBreathOpensConversation({ ...base, moments: [{ ...moment(prep({ sealedAtIso: '' })), source: 'calendar' } as Moment] })).toBe(false);
   });
 
   it('the connected screen uses no AI model and writes nothing itself', () => {

@@ -15,25 +15,35 @@
  * A plan that is sealed, or locked in and in Quiet, is shown here too, as the
  * approved prototype shows it: its row, its state, and Lock In, Plans changed
  * and Heading back as buttons. Each one goes through the same owner as the
- * existing screens. Describing a change, and Replay after "Made it back",
- * hand over to those existing screens.
+ * existing screens. What the member types under "What changed?" meets the same
+ * safety gate first; a changed day or time is read back and sealed like any
+ * plan. Replay after "Made it back" is asked here, with the existing Replay's
+ * steps and saves. Nothing private is kept from what is typed here.
  *
  * Internal builds only (`app/one-breath.tsx`).
  */
 import React from "react";
 import { AppState, KeyboardAvoidingView, Linking, Platform, StyleSheet, type TextInput, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CycleSuccessOverlay } from "@/components/CycleSuccessOverlay";
 import { countRealHistoryEntries, resolveHomeEvidence } from "@/components/home/homeBaselineState";
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { carryUndo } from "@/services/carriedUndo";
+import { closeOneBreath } from "@/services/oneBreathOrigin";
 import { travelPilotAvailable } from "@/featureFlags/flags";
-import { cancelPlan, canUndoLoggedDrink, lockInMoment, returnFromPlan, type OneBreathOwners } from "@/services/oneBreath/effects";
-import { rideHandoffUrl } from "@/services/momentPreparation";
+import { cancelPlan, canUndoLoggedDrink, lockInMoment, returnFromPlan, saveReplay, type OneBreathOwners } from "@/services/oneBreath/effects";
+import { approveLessonFromReplay, hydrateMomentLessons, lessonForMoment, useMomentLessons } from "@/services/momentLessons";
+import { momentReturnLabel, rideHandoffUrl } from "@/services/momentPreparation";
+import { activeAlcoholContext, alcoholDisclosure } from "@/services/momentSafetyContext";
+import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
+import { changePlan } from "@/utils/oneBreath/planTurn";
+import { REPLAY_LINES, replayItems, replayTyping, type ReplayEditing } from "@/utils/oneBreath/replayItems";
+import { cleanReplayNote, type ReplayAnswer, type ReplayObstacle } from "@/utils/replayFollowUp";
+import { ONE_BREATH_LINES } from "@/utils/oneBreath/session";
 import { lockInOpensInMs } from "@/utils/oneBreath/lockInWindow";
-import { OPEN_PLAN_LINES, openOneBreathPlan, openPlanItems, openPlanPhase, type OpenPlanAction, type OpenPlanMode } from "@/utils/oneBreath/openPlan";
+import { OPEN_PLAN_LINES, openOneBreathPlan, openPlanItems, contactNumber, openPlanPhase, planDraftFromMoment, resumableDraft, type OpenPlanMode, type PlanSafety } from "@/utils/oneBreath/openPlan";
 import { tripHandoff } from "@/utils/oneBreath/tripHandoff";
 import { commitReviewedMoment, hydrateMoments, useMomentsStore } from "@/services/momentsStore";
 import { createOneBreathConversation, type ConversationHost } from "@/services/oneBreath/conversationController";
@@ -54,6 +64,7 @@ const PROMPT = "Plan a Moment. Just say it.";
 
 export function OneBreathConversationScreen() {
   const router = useRouter();
+  const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const app = useAppStore();
   const moments = useMomentsStore();
@@ -120,6 +131,12 @@ export function OneBreathConversationScreen() {
         };
       },
       owners,
+      // A plan saved earlier and never sealed is picked up where it was left.
+      resume: () => {
+        const store = live.current.moments;
+        const held = store.hydrated ? openOneBreathPlan(store.moments) : undefined;
+        return resumableDraft(held) ? held : undefined;
+      },
       carryUndo,
       openScreen: (screen) => {
         const route = ONE_BREATH_ROUTES[screen];
@@ -135,7 +152,18 @@ export function OneBreathConversationScreen() {
   const openPlan = moments.hydrated ? openOneBreathPlan(moments.moments) : undefined;
   const phase = openPlan ? openPlanPhase(openPlan) : undefined;
   const [mode, setMode] = React.useState<OpenPlanMode>("rest");
-  const [working, setWorking] = React.useState<OpenPlanAction | undefined>();
+  const [working, setWorking] = React.useState<string | undefined>();
+  const [safety, setSafety] = React.useState<PlanSafety | undefined>();
+  const [contact, setContact] = React.useState(false);
+  // Replay, for the Moment the member has just come back from.
+  const [replayFor, setReplayFor] = React.useState<string | undefined>();
+  const [replayEditing, setReplayEditing] = React.useState<ReplayEditing>(null);
+  const [replayError, setReplayError] = React.useState("");
+  const lessons = useMomentLessons();
+  React.useEffect(() => {
+    if (replayFor) void hydrateMomentLessons();
+  }, [replayFor]);
+  const replayMoment = replayFor ? moments.moments.find((m) => m.id === replayFor) : undefined;
   const [planError, setPlanError] = React.useState("");
   const [cancelled, setCancelled] = React.useState(false);
   const [nowMs, setNowMs] = React.useState(() => Date.now());
@@ -146,6 +174,8 @@ export function OneBreathConversationScreen() {
   React.useEffect(() => {
     if (phase !== "quiet") setMode("rest");
     setPlanError("");
+    setSafety(undefined);
+    setContact(false);
   }, [openPlan?.id, phase]);
   // Lock In appears when its window opens, without the member having to leave and come back.
   const startAtIso = phase === "sealed" ? openPlan?.startAtIso : undefined;
@@ -161,13 +191,19 @@ export function OneBreathConversationScreen() {
     const plan = openPlan;
     if (!plan?.preparation) return;
     setPlanError("");
-    if (id === "plans_changed") return setMode("change");
-    if (id === "heading_back") return setMode("return");
-    if (id === "back_to_quiet") return setMode("rest");
-    if (id === "emergency" || id === "uber" || id === "lyft") {
+    const to = (next: OpenPlanMode) => {
+      setSafety(undefined);
+      setContact(false);
+      setMode(next);
+    };
+    if (id === "plans_changed") return to("change");
+    if (id === "heading_back" || id === "get_ride" || id === "stay") return to("return");
+    if (id === "back_to_quiet") return to("rest");
+    if (id === "contact") return setContact(true);
+    if (id === "emergency" || id === "call_emergency" || id === "uber" || id === "lyft") {
       // Opens the phone or the provider's own app. Nothing is sent from here.
       try {
-        await Linking.openURL(id === "emergency" ? `tel:${plan.preparation.emergencyNumber}` : rideHandoffUrl(id));
+        await Linking.openURL(id === "uber" || id === "lyft" ? rideHandoffUrl(id) : `tel:${plan.preparation.emergencyNumber}`);
       } catch {
         if (mounted.current) setPlanError(OPEN_PLAN_LINES.openFailed);
       }
@@ -185,8 +221,11 @@ export function OneBreathConversationScreen() {
         if (mounted.current) setCancelled(true);
       } else {
         await returnFromPlan(owners, plan.id);
-        // Replay lives on the existing screen for this Moment.
-        live.current.router.replace({ pathname: "/one-breath", params: { momentId: plan.id } } as never);
+        // The one Replay question is asked here, once the return is saved.
+        if (mounted.current) {
+          setReplayEditing(null);
+          setReplayFor(plan.id);
+        }
       }
     } catch {
       if (mounted.current) setPlanError(id === "lock_in" ? OPEN_PLAN_LINES.lockInFailed : OPEN_PLAN_LINES.saveFailed);
@@ -211,17 +250,88 @@ export function OneBreathConversationScreen() {
     };
   }, [controller]);
 
+  // One Breath is also a tab, and a tab stays mounted when the member moves to
+  // another one. Leaving it is leaving all the same: a held drink is logged
+  // now, and an open Undo goes with the member to the screen they land on.
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => controller.close();
+    }, [controller]),
+  );
+
+  /** One Replay save at a time, through the Moments commit. */
+  const replaySave = async (answer: { replay?: ReplayAnswer; replayObstacle?: ReplayObstacle; replayNote?: string }) => {
+    if (!replayFor || busy.current) return;
+    busy.current = true;
+    setWorking("replay");
+    setReplayError("");
+    try {
+      await saveReplay(owners, replayFor, answer);
+      if (mounted.current) setReplayEditing(null);
+    } catch {
+      if (mounted.current) setReplayError(REPLAY_LINES.failed);
+    } finally {
+      busy.current = false;
+      if (mounted.current) setWorking(undefined);
+    }
+  };
+  const replayAct = (id: string) => {
+    setReplayError("");
+    // A new answer starts the follow-up again, as on the existing Replay.
+    if (id.startsWith("replay:")) return void replaySave({ replay: id.slice(7) as ReplayAnswer, replayObstacle: undefined, replayNote: undefined });
+    if (id.startsWith("obstacle:")) return void replaySave({ replayObstacle: id.slice(9) as ReplayObstacle, replayNote: undefined });
+    if (id === "replay_other") return setReplayEditing("other");
+    if (id === "replay_rule") return setReplayEditing("rule");
+    if (id === "replay_change") return setReplayEditing("ask");
+    if (id === "replay_cancel") return setReplayEditing(null);
+    if (id === "remembers") return live.current.router.push("/remembers" as never);
+    if (id === "open_moments") return live.current.router.navigate("/moments-tab" as never);
+  };
+  const typingFor = replayMoment ? replayTyping({ moment: replayMoment, editing: replayEditing }) : null;
+
   const [words, setWords] = React.useState("");
   const inputRef = React.useRef<TextInput>(null);
   /** A trip goes to Travel with the words as said; everything else is One Breath's. */
   const hear = (said: string, via: "typed" | "spoken") => {
+    // Replay is waiting on the member's own words: a private note, or their own rule.
+    if (replayMoment && typingFor === "note") {
+      void replaySave({ replayObstacle: "other", replayNote: cleanReplayNote(said) });
+      return;
+    }
+    if (replayMoment && typingFor === "rule") {
+      const result = approveLessonFromReplay({ text: said, scope: replayMoment.type, momentId: replayMoment.id, momentAtIso: replayMoment.startAtIso, nowIso: new Date().toISOString() });
+      if (result === "saved") {
+        setReplayError("");
+        setReplayEditing(null);
+      } else if (result === "full") setReplayError(REPLAY_LINES.full);
+      else if (result !== "empty") setReplayError(REPLAY_LINES.failed);
+      return;
+    }
     if (openPlan && phase === "quiet" && mode === "change") {
-      // What changed goes to the existing Plans changed screen, which owns the safety check and the review.
-      setMode("rest");
-      live.current.router.push({ pathname: "/one-breath", params: { momentId: openPlan.id, changed: said } } as never);
+      if (contact) {
+        // "Contact someone": the number opens the phone app. No message or status is shared.
+        const number = contactNumber(said);
+        if (number) void Linking.openURL(`tel:${number}`).catch(() => mounted.current && setPlanError(OPEN_PLAN_LINES.openFailed));
+        return;
+      }
+      // The same safety gate as the existing Plans changed screen, before anything else.
+      const found = evaluateMomentSafety(said, alcoholDisclosure(said) || activeAlcoholContext(openPlan));
+      if (found) {
+        setSafety(found);
+        return;
+      }
+      // A changed day or time is read back and waits for a seal. Anything else is asked about.
+      const draft = planDraftFromMoment(openPlan);
+      const changed = draft ? changePlan(draft, said, new Date()) : null;
+      if (changed) {
+        setMode("rest");
+        controller.revise(openPlan, changed, said, via);
+      } else setPlanError(ONE_BREATH_LINES.askChange);
       return;
     }
     if (cancelled) setCancelled(false);
+    // Anything else moves on from a finished or unanswered Replay; it stays in Moments.
+    if (replayFor) setReplayFor(undefined);
     const session = controller.getSnapshot().session;
     const flags = live.current.app.state.featureFlags;
     const route = tripHandoff(said, { session, travelAvailable: !!flags && travelPilotAvailable(flags), now: new Date() });
@@ -251,10 +361,31 @@ export function OneBreathConversationScreen() {
     planError: snapshot.planError,
   });
 
-  const planItems = openPlan && phase !== "draft" ? openPlanItems({ moment: openPlan, mode, nowMs, working, error: planError || undefined }) : [];
+  const planItems =
+    openPlan && phase !== "draft"
+      ? openPlanItems({ moment: openPlan, mode, nowMs, working: working as never, error: planError || undefined, ...(safety ? { safety } : {}), contact })
+      : [];
+  const replay = replayMoment
+    ? replayItems({
+        moment: replayMoment,
+        editing: replayEditing,
+        returnLabel: momentReturnLabel(new Date()),
+        lessonText: lessonForMoment(lessons.lessons, replayMoment.id)?.text,
+        ...(lessons.hydrated ? { learningOn: lessons.learningOn } : {}),
+        clock: (iso) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+        working: !!working,
+        error: replayError || undefined,
+      })
+    : [];
+  const barHint =
+    typingFor === "note" ? REPLAY_LINES.otherHint
+    : typingFor === "rule" ? REPLAY_LINES.ruleHint
+    : phase === "quiet" && mode === "change" ? (contact ? OPEN_PLAN_LINES.contactHint : OPEN_PLAN_LINES.change)
+    : undefined;
   const items = [
     ...view.items,
     ...planItems,
+    ...replay,
     // Said only after the Moments store confirmed the cancellation.
     ...(cancelled && !openPlan ? [{ kind: "ai" as const, key: "op-cancelled", text: OPEN_PLAN_LINES.cancelled }] : []),
   ];
@@ -268,14 +399,14 @@ export function OneBreathConversationScreen() {
           social={false}
           status={status}
           items={items}
-          onAction={(id) => void act(id)}
+          onAction={(id) => (id.startsWith("replay") || id.startsWith("obstacle:") || id === "remembers" || id === "open_moments" ? replayAct(id) : void act(id))}
           quiet={phase === "quiet"}
-          {...(phase === "quiet" && mode === "change" ? { placeholder: OPEN_PLAN_LINES.change } : {})}
+          {...(barHint ? { placeholder: barHint } : {})}
           awaitingSeal={view.awaitingSeal}
           onSeal={() => controller.send({ kind: "tap", control: "seal" })}
           onChoice={(label) => controller.send({ kind: "say", words: label, via: "typed" })}
           onUndo={() => controller.send({ kind: "tap", control: "undo" })}
-          onClose={() => (router.canGoBack() ? router.back() : router.replace("/" as never))}
+          onClose={() => closeOneBreath(router as never, pathname)}
           onTalk={() => {
             if (voice.busy) voice.stop();
             else void voice.start();

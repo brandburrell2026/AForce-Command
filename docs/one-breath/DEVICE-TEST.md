@@ -16,7 +16,7 @@ Nothing here has been run on a device by the build author. A row is not passed u
 | B2 | Hold the seal bar until it fills. | "01 · SEALED". The Moment is in Moments. No Undo (a held seal has none). | | |
 | B3 | New plan, then type "seal it". | "SEALED" with Undo for 5 seconds. | | |
 | B4 | Tap Undo inside 5 seconds. | "SEAL UNDONE". The seal bar is back. Moments shows one Moment, not two. | | |
-| B5 | Close One Breath and open it again. | The existing Lock In screen for the sealed Moment. | | |
+| B5 | Close One Breath and open it again. | The conversation screen with the sealed plan's row (see section H). | | |
 | **C. Water: logged at once, Undo for six seconds** | | | | |
 | C1 | Type "Log 16 oz of water". | "LOGGED" at once. Hydration shows 16 oz more. Undo is offered. | | |
 | C2 | Tap Undo inside six seconds. | "REMOVED". Hydration no longer counts it. | | |
@@ -56,13 +56,39 @@ Nothing here has been run on a device by the build author. A row is not passed u
 | H1 | With a plan sealed for later, tap Breath. | The conversation screen, not the older screen. A row with the plan's name, time and "SEALED". "Your plan is yours. Lock In opens 15 minutes before it starts." No Lock In button. | | |
 | H2 | With a plan sealed and inside 15 minutes of its start, tap Breath. | The same row with a "Lock In" button. | | |
 | H3 | Tap "Lock In". Tap it twice fast. | Status reads "QUIET", a ring sits round the orb, the row says "LOCKED IN", and "Go perform. Phone down. We'll be quiet." One Lock In only. Ordinary reminders stop. | | |
-| H4 | Close One Breath and tap Breath again. | Still the conversation screen in Quiet. Never the older "LOCKED IN" screen. | | |
+| H4 | Close One Breath and tap Breath again. | Still the conversation screen in Quiet. Never the older "LOCKED IN" screen. | Pass · 205 | |
 | H5 | In Quiet tap "Plans changed?" then "Back to Quiet". | "What changed?" with "My plan is cancelled", "Back to Quiet", "Emergency? 911". Back returns to Quiet. Nothing is saved. | | |
-| H6 | Tap "Plans changed?", type what changed and send. | The existing Plans changed screen opens with your words already in the field. | | |
+| H6 | Tap "Plans changed?", type "make it 8 pm" and send. (Needs 206 / 49.) | Stays on the conversation. The plan is read back with the new time and "Hold to seal". Nothing is saved until you seal. | | |
 | H7 | Tap "Plans changed?" then "My plan is cancelled". | "Plan cancelled. Your plan has ended. This does not record a return or check-in." The row is gone. Moments shows it as cancelled, with no return. | | |
-| H8 | In Quiet tap "Heading back?". | "Made it back." with "Made it back ✓", "Open Uber", "Open Lyft", "Back to Quiet". | | |
+| H8 | In Quiet tap "Heading back?". | "Made it back." with "Made it back ✓", "Open Uber", "Open Lyft", "Back to Quiet". | Pass · 205 | |
 | H9 | Tap "Open Uber". | Uber (or its web page) opens. Nothing is sent from AFORCE. | | |
-| H10 | Tap "Made it back ✓". Tap it twice fast. | Replay opens for that Moment. One return is recorded. | | |
+| H10 | Tap "Made it back ✓". Tap it twice fast. (Needs 206 / 49.) | Stays on the conversation. "Did that plan work for you?" with the plan and four answers. One return is recorded. | | |
 | H11 | During Quiet type "log 16 oz water". | Logged once with Undo, as in section C. Quiet does not end. | | |
-| H12 | With a sealed plan open, type a new plan ("Lift tomorrow at 6:30 AM"). | "[Plan name] is still open. One plan at a time." No second plan is saved. | | |
+| H12 | With a sealed plan open, type a new plan ("Lift tomorrow at 6:30 AM"). | "[Plan name] is still open. One plan at a time." No second plan is saved. | Pass · 205 | |
 | H13 | Turn on airplane mode and tap "Lock In". | "Could not enter Quiet. Please try Lock In again." The row still says "SEALED". | | |
+| **I. Added Nov 21, second round (needs iPhone 206 / Android 49 or later)** | | | | |
+| I1 | Tap Breath from Home, from Hydration and from Moments. | No tab bar inside One Breath, in any state. | | |
+| I2 | Tap the close button each time. | Back on the tab you came from. | | |
+| I3 | Open One Breath from the Home card (not the tab) and close it. | Back on Home. | | |
+| I4 | Type "Log 16 oz of water", then close inside two seconds. | The Undo bar shows on the screen you land on for the time left. Undo removes the water. | | |
+| I5 | Once the exchange has started, look at the orb. | About a fifth larger than on 205 / 48. Nothing overlaps it. | | |
+| I6 | In Quiet tap "Plans changed?" and type "I've been drinking and I'm driving home". | "AFORCE can't assess whether you're able to drive." with "Get a ride", "Contact someone", "Stay here", "Emergency? 911". Nothing is saved. | | |
+| I7 | Tap "Contact someone", type a phone number and send. | The phone app opens on that number. No message is sent. | | |
+| I8 | Type "can't breathe" under "What changed?". | "Get emergency help now." with "Call 911" first. | | |
+| I9 | Type "my friend is late" under "What changed?". | "What should change: the day or the time?" Nothing is saved. | | |
+| I10 | After H6, hold to seal. | The same Moment has the new time (Moments shows one, not two). It reads SEALED and needs Lock In again. | | |
+| I11 | After "Made it back ✓", tap "Partly", then "Something else", type a note and send. | "Saved as a note." and "You said: Partly · “your note”". | | |
+| I12 | Tap "Write a rule for next time", type a rule and send. | "Your rule for next time: …". It is listed in What AFORCE remembers. | | |
+| I13 | Tap "Change answer", then "Yes, it worked". | "Same plan next time." The note is gone. | | |
+| I14 | Seal a plan by typing "seal it", tap Undo, close the app fully and open One Breath. | The conversation opens on that plan's read-back with "Hold to seal". Sealing it leaves one Moment, not two. | | |
+| I15 | Open a Moment from the Moments list. | The existing screen for that Moment, unchanged. | | |
+
+## Results recorded so far
+
+| Build | Device | What was checked | Result |
+|---|---|---|---|
+| iPhone 205 | Founder's iPhone, screen recording 2026-11-21 12:17 | H4, H8, H12 | Pass (seen in the recording). |
+| iPhone 205 | Same recording | Home score card after logging 34 oz then 16 oz | HydroState went 31 → 51 and stayed at 51. Reported to the founders; see PR #1309. Not a One Breath row. |
+| iPhone 205 | — | All other rows | Not run. |
+| Android 48 | — | All rows | Blocked: no Android phone was available to the build author. |
+| iPhone 206 / Android 49 | — | Sections A–I | Not run. |

@@ -144,6 +144,21 @@ export const returnFromPlan = (owners: OneBreathOwners, momentId: string) => clo
 /** "My plan is cancelled": the plan is closed as cancelled, with no return recorded. */
 export const cancelPlan = (owners: OneBreathOwners, momentId: string) => closePlan(owners, momentId, "cancelledAtIso");
 
+/**
+ * A Replay answer: the member's own answer about one Moment that has been
+ * returned from. The same single commit the existing Replay makes; it never
+ * reopens the plan and never changes how it ended.
+ */
+export function saveReplay(
+  owners: OneBreathOwners,
+  momentId: string,
+  answer: Pick<MomentPreparation, "replay" | "replayObstacle" | "replayNote">,
+): Promise<Moment> {
+  const saved = owners.moments().find((m) => m.id === momentId);
+  if (!saved?.preparation?.returnedAtIso) return Promise.reject(new Error("No returned plan."));
+  return owners.commitMoment({ ...saved, preparation: { ...saved.preparation, ...answer, transactionId: transaction() } }, saved);
+}
+
 /** One drink, down the rail its kind belongs to. Only plain water can move HydroState. */
 export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<string | undefined> {
   const name = effect.name ?? "";

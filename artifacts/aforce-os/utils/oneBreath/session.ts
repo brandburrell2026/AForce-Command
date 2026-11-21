@@ -239,6 +239,10 @@ export function screenNamed(words: string): string | null {
 }
 
 /** Member-facing lines. From the approved prototype and the spec; wording is for Julius to review before any screen shows it. */
+/** The read-back of a complete plan: what was understood, and how to approve it. */
+export const planReadBack = (plan: PlanDraft, lead = ''): string =>
+  `${lead}${plan.title}, ${plan.day} at ${plan.time}.${plan.goal ? ` Goal: ${plan.goal}.` : ''} ${sayPhrasePrompt('seal')}`;
+
 /** Said when a new plan is asked for while one is still open. New wording, for Julius to review. */
 export const planStillOpenLine = (title: string) => `${title} is still open. One plan at a time.`;
 
@@ -561,7 +565,7 @@ export function oneBreathTurn(
     answer(
       outcome,
       'plan_moment',
-      `${lead}${plan.title}, ${plan.day} at ${plan.time}.${plan.goal ? ` Goal: ${plan.goal}.` : ''} ${sayPhrasePrompt('seal')}`,
+      planReadBack(plan, lead),
       { ...kept, pendingPlan: plan, asking: undefined },
     );
   const ask = (plan: PlanDraft, asking: PlanQuestion): OneBreathTurn => {

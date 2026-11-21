@@ -171,8 +171,18 @@ describe('One Breath · the screen carries these out through the owners only', (
   it('"Plan cancelled." is said only once the store no longer holds the open plan', () => {
     expect(src).toMatch(/cancelled && !openPlan/);
   });
-  it('what changed is handed to the existing Plans changed screen, which owns the safety check', () => {
-    expect(src).toMatch(/params: \{ momentId: openPlan\.id, changed: said \}/);
-    expect(src).not.toMatch(/evaluateMomentSafety/);
+  it('what the member types under "What changed?" meets the existing safety gate before anything else', () => {
+    const gate = src.indexOf('evaluateMomentSafety(said');
+    expect(gate).toBeGreaterThan(-1);
+    expect(src.indexOf('controller.revise(')).toBeGreaterThan(gate);
+    // Nothing private is kept from those words here.
+    expect(src).not.toMatch(/withAlcoholContext|safetyContext/);
+  });
+  it('a Replay answer is saved through the Moments commit, and a rule only through the lessons service', () => {
+    expect(src).toMatch(/saveReplay\(owners, replayFor, answer\)/);
+    expect(src).toMatch(/approveLessonFromReplay\(/);
+  });
+  it('leaving the tab settles what is held and carries an open Undo', () => {
+    expect(src).toMatch(/useFocusEffect\(\s*React\.useCallback\(\(\) => \{\s*return \(\) => controller\.close\(\);/);
   });
 });

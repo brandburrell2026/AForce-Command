@@ -18,8 +18,12 @@ import type { ConversationItem } from "@/utils/oneBreath/conversation";
 import { OperationsLog, ResultCard, TalkTypeBar, UndoStrip } from "./kit";
 import { PreparationOrb } from "./PreparationOrb";
 
-/** The prototype's stage once the exchange starts: a 176pt square (290pt at rest). */
-export const CONVERSATION_STAGE = 176;
+/**
+ * The stage once the exchange starts. The prototype's is a 176pt square (290pt
+ * at rest); the orb is drawn 20% larger than that here at the founder's
+ * direction after seeing it on a phone (2026-11-21): 211pt stage, 108pt orb.
+ */
+export const CONVERSATION_STAGE = Math.round(176 * 1.2);
 export const CONVERSATION_ORB = Math.round((149 * CONVERSATION_STAGE) / 290);
 export const CONVERSATION_DIAL = Math.round((234 * CONVERSATION_STAGE) / 290);
 /** Before the first words the orb rests at its full size, as on the opening screen (290pt stage, 149pt orb, 234pt dial). */
