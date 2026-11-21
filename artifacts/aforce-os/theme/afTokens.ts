@@ -87,6 +87,8 @@ export const af = {
   // mark, the One Breath orb, Lock In and real urgency.
   primaryFill: '#F7F4EF', //              primary button fill (= textPrimary warm white)
   onPrimaryFill: '#090A0A', //            text/icons on primaryFill (= canvas black)
+  onPrimaryFillMuted: '#6B6A66', //       supporting text on primaryFill (the prototype's plan card, 4.9:1)
+  onPrimaryFillRule: 'rgba(9,10,10,0.1)', // hairline between rows on primaryFill
   // Proof Blue #2765FF. Reserved for Social and proof (Master Brief §2): the
   // Social orb and primary action, the live Social border, the thin ring on
   // the centre orb during Social, Replay, "Observed" and "Confirmed".

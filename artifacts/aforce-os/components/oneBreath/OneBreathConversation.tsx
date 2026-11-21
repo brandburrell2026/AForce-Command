@@ -129,6 +129,24 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
               </View>
             );
           }
+          if (item.kind === "plan") {
+            return (
+              <View
+                key={item.key}
+                style={s.plan}
+                accessible
+                accessibilityLabel={`Your plan. ${item.rows.map((r) => `${r.at}: ${r.text}`).join(". ")}${item.note ? `. ${item.note}` : ""}`}
+              >
+                {item.rows.map((r, i) => (
+                  <View key={`${r.at}-${i}`} style={[s.planRow, i === item.rows.length - 1 && !item.note && s.planRowLast]}>
+                    <Text style={s.planAt}>{r.at}</Text>
+                    <Text style={s.planText}>{r.text}</Text>
+                  </View>
+                ))}
+                {item.note ? <Text style={s.planNote}>{item.note}</Text> : null}
+              </View>
+            );
+          }
           return (
             <View key={item.key} style={s.block}>
               <UndoStrip reverses={item.reverses} lasts={item.lasts} onUndo={p.onUndo} />
@@ -233,6 +251,13 @@ const s = StyleSheet.create({
   heardLabel: { fontFamily: MONO, fontSize: 9, letterSpacing: 1.4, color: T.dim, textTransform: "uppercase" },
   heardValue: { fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 19, color: T.bone },
   block: { marginBottom: 14 },
+  // The plan card (the prototype's `.plan`): bone, 14 radius, time at the left, hairline between rows.
+  plan: { marginTop: 8, marginBottom: 14, borderRadius: 14, backgroundColor: T.bone, paddingVertical: 4, paddingHorizontal: 14 },
+  planRow: { flexDirection: "row", gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: T.onBoneRule },
+  planRowLast: { borderBottomWidth: 0 },
+  planAt: { width: 64, fontFamily: MONO, fontSize: 11, lineHeight: 18, letterSpacing: 0.66, color: T.ink },
+  planText: { flex: 1, fontFamily: "Inter_400Regular", fontSize: 14.5, lineHeight: 20, color: T.ink },
+  planNote: { fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 17, color: T.onBoneMuted, paddingVertical: 10 },
   seal: { alignItems: "center", gap: 8, marginBottom: 10 },
   sealButton: { alignSelf: "stretch", minHeight: 58, borderRadius: 999, backgroundColor: T.bone, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   sealFill: { position: "absolute", left: 0, top: 0, bottom: 0, opacity: 0.95 },

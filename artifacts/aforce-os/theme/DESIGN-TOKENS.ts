@@ -28,6 +28,9 @@ export const preparationTokens = {
   onBlue: af.onBlue,
   blueHi: af.blueText,
   rule: af.divider,
+  /** The plan card sits on bone: its supporting text and row hairline. */
+  onBoneMuted: af.onPrimaryFillMuted,
+  onBoneRule: af.onPrimaryFillRule,
   /** The One Breath orb ramp. Signal Red, never orange. */
   oneBreath: afOrb.oneBreath,
   /** The approved prototype's One Breath sphere: ramp, stops, glow and its light. */

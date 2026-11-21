@@ -6,7 +6,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 vi.mock('@/store/slices', () => ({ useEngineSlice: vi.fn(), useUserSlice: vi.fn(), useHistorySlice: vi.fn(), useBootstrapSlice: vi.fn() }));
-vi.mock('react-native', () => ({ StyleSheet: { create: (s: unknown) => s }, Text: 'Text', View: 'View', Pressable: 'Pressable' }));
+vi.mock('react-native', () => ({ StyleSheet: { create: (s: unknown) => s }, Text: 'Text', View: 'View', Pressable: 'Pressable', TextInput: 'TextInput' }));
+// The kit now also exports the talk-or-type bar, which draws an icon.
+vi.mock('@/components/Icon', () => ({ Icon: 'Icon' }));
 
 import { bandWord, statusAnswer } from '../oneBreath/OneBreathStatusAnswer';
 import { ONE_BREATH_LINES } from '@/utils/oneBreath/session';
