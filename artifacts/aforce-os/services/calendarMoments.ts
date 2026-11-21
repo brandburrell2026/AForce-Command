@@ -35,6 +35,20 @@ let calendarMoments: Moment[] = [];
 /** What the last successful read saw, in memory only. Null = no read. */
 let calendarSnapshot: CalendarSnapshot | null = null;
 let lastRefreshMs = 0;
+/** Where the last refresh got to, so a surface can be honest about why a
+ *  list is empty. 'idle' = no refresh has finished yet. */
+export type CalendarReadStatus =
+  | 'idle'
+  | 'ready'
+  | 'not_connected'
+  | 'no_access'
+  | 'read_failed';
+let readStatus: CalendarReadStatus = 'idle';
+function setStatus(next: CalendarReadStatus): void {
+  if (readStatus === next) return;
+  readStatus = next;
+  notify();
+}
 let refreshing = false;
 const listeners = new Set<() => void>();
 
@@ -105,6 +119,10 @@ export function getCalendarSnapshot(): CalendarSnapshot | null {
   return calendarSnapshot;
 }
 
+export function getCalendarReadStatus(): CalendarReadStatus {
+  return readStatus;
+}
+
 function clearDerived(): void {
   if (calendarMoments.length > 0 || calendarSnapshot) {
     calendarMoments = [];
@@ -125,12 +143,14 @@ export async function refreshCalendarMoments(force = false): Promise<void> {
     const prefs = await getCalendarPrefs();
     if (!prefs.connected || prefs.selectedCalendarIds.length === 0) {
       clearDerived();
+      setStatus('not_connected');
       return;
     }
     const permission = await getCalendarPermission();
     if (permission !== 'granted') {
       // Revoked in Settings → drop everything, render manual-only honestly.
       clearDerived();
+      setStatus('no_access');
       return;
     }
     const nowIso = new Date().toISOString();
@@ -165,6 +185,7 @@ export async function refreshCalendarMoments(force = false): Promise<void> {
     }
     calendarMoments = next;
     lastRefreshMs = now;
+    readStatus = read ? 'ready' : 'read_failed';
     notify();
   } finally {
     refreshing = false;
@@ -180,6 +201,10 @@ export function useCalendarMoments(): Moment[] {
   return useSyncExternalStore(subscribeCalendarMoments, getCalendarMoments, getCalendarMoments);
 }
 
+export function useCalendarReadStatus(): CalendarReadStatus {
+  return useSyncExternalStore(subscribeCalendarMoments, getCalendarReadStatus, getCalendarReadStatus);
+}
+
 export function useCalendarSnapshot(): CalendarSnapshot | null {
   return useSyncExternalStore(subscribeCalendarMoments, getCalendarSnapshot, getCalendarSnapshot);
 }
@@ -188,6 +213,7 @@ export function useCalendarSnapshot(): CalendarSnapshot | null {
 subscribeUserScope(() => {
   calendarMoments = [];
   calendarSnapshot = null;
+  readStatus = 'idle';
   lastRefreshMs = 0;
   for (const l of listeners) l();
 });
