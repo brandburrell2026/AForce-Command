@@ -40,7 +40,13 @@ export const CUSTOM_CHOICE: AmountChoice = {
   oz: null,
 };
 
-export function planAmountStep(volume: Field<number>, fallbackOz: readonly number[]): AmountPlan {
+/**
+ * The word for the package. The reader cannot yet tell a can from a bottle, so
+ * callers pass nothing and the label says "container"; it never guesses.
+ */
+export type ContainerWord = 'bottle' | 'can' | 'container';
+
+export function planAmountStep(volume: Field<number>, fallbackOz: readonly number[], word: ContainerWord = 'container'): AmountPlan {
   const oz = volume.value;
   if (volume.confidence === 'confirmed' && oz != null && oz > 0 && oz <= MAX_SINGLE_LOG_OZ) {
     const half = round1(oz / 2);
@@ -49,16 +55,16 @@ export function planAmountStep(volume: Field<number>, fallbackOz: readonly numbe
       choices.push({
         id: 'half',
         kind: 'half',
-        label: `${formatOz(half)} · half`,
-        accessibilityLabel: `Half the container, ${formatOz(half)}`,
+        label: `${formatOz(half)} · half the ${word}`,
+        accessibilityLabel: `Half the ${word}, ${formatOz(half)}`,
         oz: half,
       });
     }
     choices.push({
       id: 'full',
       kind: 'full',
-      label: `${formatOz(oz)} · all`,
-      accessibilityLabel: `The whole container, ${formatOz(oz)}`,
+      label: `${formatOz(oz)} · full ${word}`,
+      accessibilityLabel: `The full ${word}, ${formatOz(oz)}`,
       oz: round1(oz),
     });
     choices.push(CUSTOM_CHOICE);
