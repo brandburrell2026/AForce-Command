@@ -8,7 +8,7 @@
  * the bridge is in-memory only).
  */
 import React from 'react';
-import { View, Text, StyleSheet, Switch, Linking, AppState } from 'react-native';
+import { View, Text, StyleSheet, Switch, Linking, AppState, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -28,6 +28,7 @@ import {
   type DeviceCalendarInfo,
 } from '@/services/calendarBridge';
 import { refreshCalendarMoments } from '@/services/calendarMoments';
+import { calendarSourceKind } from '@/services/calendarSourceLabel';
 import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
 import type { MomentCategoryToggle } from '@/services/momentClassification';
 
@@ -42,9 +43,9 @@ import type { MomentCategoryToggle } from '@/services/momentClassification';
  */
 const DEMO_PREVIEW = DEMO_MODE || CAPTURE_MODE;
 const DEMO_PREVIEW_CALENDARS: DeviceCalendarInfo[] = [
-  { id: 'demo-cal-personal', title: 'Personal', sourceName: 'iCloud', color: af.cyan },
-  { id: 'demo-cal-family', title: 'Family', sourceName: 'iCloud', color: af.green },
-  { id: 'demo-cal-work', title: 'Work', sourceName: 'Google', color: af.red },
+  { id: 'demo-cal-personal', title: 'Personal', sourceName: 'iCloud', sourceType: 'mobileme', color: af.cyan },
+  { id: 'demo-cal-family', title: 'Family', sourceName: 'iCloud', sourceType: 'mobileme', color: af.green },
+  { id: 'demo-cal-work', title: 'Work', sourceName: 'Google', sourceType: 'com.google', color: af.red },
 ];
 const DEMO_PREVIEW_PREFS: CalendarPrefs = {
   connected: true,
@@ -64,6 +65,7 @@ export function ConnectCalendarScreen() {
   const [permission, setPermission] = React.useState<CalendarPermission>('undetermined');
   const [prefs, setPrefs] = React.useState<CalendarPrefs>(DEFAULT_CALENDAR_PREFS);
   const [calendars, setCalendars] = React.useState<DeviceCalendarInfo[]>([]);
+  const [listing, setListing] = React.useState(false);
 
   const reload = React.useCallback(async () => {
     if (DEMO_PREVIEW) {
@@ -105,6 +107,18 @@ export function ConnectCalendarScreen() {
     await setCalendarPrefs(next);
   };
 
+  // Re-list after the member adds an account in phone settings. Lists only;
+  // never changes which calendars are on.
+  const lookAgain = async () => {
+    if (DEMO_PREVIEW || listing) return; // preview has nothing to look for
+    setListing(true);
+    try {
+      setCalendars(await listDeviceCalendars());
+    } finally {
+      setListing(false);
+    }
+  };
+
   const update = async (next: CalendarPrefs) => {
     setPrefs(next);
     if (DEMO_PREVIEW) return; // toggles are local preview state only
@@ -127,13 +141,20 @@ export function ConnectCalendarScreen() {
   };
 
   const bySource = React.useMemo(() => {
-    const groups = new Map<string, DeviceCalendarInfo[]>();
+    // Group by account name AND kind so two accounts that share a name
+    // (say a work and a personal "Google") stay apart.
+    const groups = new Map<string, { source: string; kind: string | null; items: DeviceCalendarInfo[] }>();
     for (const c of calendars) {
-      const list = groups.get(c.sourceName) ?? [];
-      list.push(c);
-      groups.set(c.sourceName, list);
+      const key = `${c.sourceName}\u0000${c.sourceType ?? ''}`;
+      const group = groups.get(key) ?? {
+        source: c.sourceName,
+        kind: calendarSourceKind(c.sourceType),
+        items: [],
+      };
+      group.items.push(c);
+      groups.set(key, group);
     }
-    return [...groups.entries()];
+    return [...groups.values()];
   }, [calendars]);
 
   return (
@@ -178,6 +199,10 @@ export function ConnectCalendarScreen() {
               <Text style={styles.connectHint}>{t('moments.calendar.device_hint')}</Text>
             </View>
           </View>
+          <Text style={styles.statement}>{t('moments.calendar.reads_only_selected')}</Text>
+          {Platform.OS === 'ios' ? (
+            <Text style={styles.statement}>{t('moments.calendar.ios_full_access')}</Text>
+          ) : null}
           <AFPrimaryButton label={t('moments.calendar.connect')} onPress={() => void connect()} testID="calendar-connect-button" />
         </AFCard>
       ) : (
@@ -189,9 +214,25 @@ export function ConnectCalendarScreen() {
 
           <View style={styles.section}>
             <AFSectionLabel label={t('moments.calendar.calendars_label')} />
-            {bySource.map(([source, items]) => (
-              <View key={source} style={styles.sourceGroup}>
-                <Text style={styles.sourceName}>{source}</Text>
+            <Text style={styles.statement} testID="calendar-reads-only-selected">
+              {t('moments.calendar.reads_only_selected')}
+            </Text>
+            {Platform.OS === 'ios' ? (
+              <Text style={styles.statement} testID="calendar-ios-full-access">
+                {t('moments.calendar.ios_full_access')}
+              </Text>
+            ) : null}
+            {calendars.length === 0 ? (
+              <AFCard style={styles.postureCard} testID="calendar-none-found">
+                <Text style={styles.connectTitle}>{t('moments.calendar.none_found_title')}</Text>
+                <Text style={styles.postureText}>{t('moments.calendar.none_found_body')}</Text>
+              </AFCard>
+            ) : null}
+            {bySource.map(({ source, kind, items }) => (
+              <View key={`${source}-${kind ?? ''}`} style={styles.sourceGroup}>
+                <Text style={styles.sourceName} testID={`calendar-source-${source}`}>
+                  {kind && kind !== source ? `${source} · ${kind}` : source}
+                </Text>
                 <View style={styles.card}>
                   {items.map((c, i) => (
                     <View key={c.id}>
@@ -222,6 +263,18 @@ export function ConnectCalendarScreen() {
               </View>
             ))}
           </View>
+
+          <AFCard style={styles.postureCard} testID="calendar-missing-help">
+            <Text style={styles.connectTitle}>{t('moments.calendar.missing_title')}</Text>
+            <Text style={styles.postureText}>
+              {t(Platform.OS === 'ios' ? 'moments.calendar.missing_body_ios' : 'moments.calendar.missing_body_android')}
+            </Text>
+            <AFTextButton
+              label={listing ? t('moments.calendar.looking') : t('moments.calendar.look_again')}
+              onPress={() => void lookAgain()}
+              testID="calendar-look-again"
+            />
+          </AFCard>
 
           <View style={styles.section}>
             <AFSectionLabel label={t('moments.calendar.categories_label')} />
@@ -296,6 +349,7 @@ const styles = StyleSheet.create({
   subtitle: { ...afType.body, color: af.textSecondary, marginTop: 6 },
   postureCard: { gap: 10 },
   postureText: { ...afType.body, color: af.textSecondary, lineHeight: 22 },
+  statement: { ...afType.caption, color: af.textSecondary, lineHeight: 18 },
   connectCard: { gap: 14 },
   connectRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   connectIcon: {
