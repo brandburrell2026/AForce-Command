@@ -39,6 +39,8 @@ export interface OneBreathOwners {
   /** The store's `undoIntake`: takes a logged water back. Resolves false when it could not. */
   undoWater: (logId: string) => Promise<boolean>;
   recordDrink: (input: { categoryId: string; displayName: string; ozAmount: number; entrySource: "manual" }) => Promise<unknown>;
+  /** `removeRecordedDrink`: takes one saved drink back out of the drink log. Absent where that is not possible. */
+  removeDrink?: (id: number) => Promise<boolean>;
   /** Saved Moments, read when the effect runs. */
   moments: () => readonly Moment[];
   /** The member's current command, read when the effect runs. */
@@ -170,17 +172,36 @@ export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreat
     return String(id);
   }
   const known = route.categoryId in DRINK_CATEGORIES;
-  await owners.recordDrink({
+  const saved = await owners.recordDrink({
     categoryId: route.categoryId,
     displayName: `${known ? formatDrinkDisplayName({ categoryId: route.categoryId as DrinkCategoryId, name }) : name || "Drink"} · ${effect.oz} oz`,
     ozAmount: route.oz,
     entrySource: "manual",
   });
-  return undefined;
+  // The drink log's own id for this entry, so Undo removes exactly this one.
+  const id = (saved as { id?: unknown } | null | undefined)?.id;
+  return typeof id === "number" && Number.isInteger(id) && id > 0 ? `drink-${id}` : undefined;
 }
 
-/** True when the hydration log can take this drink back: plain water, by the app's own routing. The drink log has no removal. */
-export const canUndoLoggedDrink = (categoryId: string, name: string) => drinkRoute({ categoryId, name, enteredOz: 0 }).kind === "water";
+/**
+ * Undo of a logged drink: water goes back through the hydration log's own
+ * undo, anything else is removed from the drink log by its id. False when the
+ * owner could not take it back.
+ */
+export async function undoLoggedDrink(owners: OneBreathOwners, logId: string): Promise<boolean> {
+  if (/^intake-\d+$/.test(logId)) return owners.undoWater(logId);
+  const drink = /^drink-(\d+)$/.exec(logId);
+  if (drink && owners.removeDrink) return owners.removeDrink(Number(drink[1]));
+  return false;
+}
 
-/** The only log ids the existing undo accepts. Anything else is never guessed at. */
-export const undoableLogId = (id: string | undefined): id is string => !!id && /^intake-\d+$/.test(id);
+/**
+ * True when a drink can be taken back after it is saved: plain water always
+ * (the hydration log's undo), and any other drink where the drink log's
+ * removal is available. Only then is a drink logged at once with Undo.
+ */
+export const canUndoLoggedDrink = (categoryId: string, name: string, owners?: Pick<OneBreathOwners, "removeDrink">) =>
+  drinkRoute({ categoryId, name, enteredOz: 0 }).kind === "water" || !!owners?.removeDrink;
+
+/** The only log ids an undo accepts: the hydration log's, or the drink log's. Anything else is never guessed at. */
+export const undoableLogId = (id: string | undefined): id is string => !!id && /^(intake|drink)-\d+$/.test(id);

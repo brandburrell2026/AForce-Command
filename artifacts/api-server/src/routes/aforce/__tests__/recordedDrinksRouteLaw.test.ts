@@ -11,6 +11,16 @@ describe("recorded-drinks route law", () => {
     expect(imports).not.toMatch(/aforceUserState|aforceIntakeLogs|applyIntake|broadcastState/i);
   });
 
+  it("removes only the member's own drink, and a repeated removal is not an error", () => {
+    const route = source.slice(source.indexOf('router.delete("/drinks/:id"'));
+    expect(route).toContain("eq(aforceRecordedDrinks.userId, userId)");
+    expect(route).toContain("eq(aforceRecordedDrinks.id, id.data)");
+    expect(route).toContain("removed: removed.length > 0");
+    // No bulk removal: every delete in this file is scoped to one id and one member.
+    expect(source.match(/\.delete\(/g)).toHaveLength(2);
+    expect(source).not.toMatch(/aforceUserState|broadcastState/);
+  });
+
   it("makes client-key retries idempotent without creating a new record", () => {
     expect(source).toContain("onConflictDoNothing");
     expect(source).toContain("replayed: true");
