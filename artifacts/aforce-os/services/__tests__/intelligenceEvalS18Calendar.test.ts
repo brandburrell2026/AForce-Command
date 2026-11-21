@@ -36,7 +36,12 @@ const storage = new Map<string, string>();
 vi.mock('../calendarBridge', () => ({
   getCalendarPermission: async () => bridgeState.permission,
   getCalendarPrefs: async () => bridgeState.prefs,
-  fetchUpcomingEvents: async () => bridgeState.events,
+  // The bridge now reports the read window with the events (calendar-change
+  // detection); the classifier and Moment derivation under test are unchanged.
+  readUpcomingEvents: async () => ({
+    events: bridgeState.events.map((e) => ({ calendarId: 'cal-main', ...e })),
+    window: { startIso: '2000-01-01T00:00:00.000Z', endIso: '2100-01-01T00:00:00.000Z' },
+  }),
 }));
 vi.mock('../scopedStorage', () => ({
   scopedStorage: {
@@ -60,6 +65,7 @@ import {
   markCalendarMomentPrepared,
 } from '../calendarMoments';
 import { planMomentNotifications, DEFAULT_MOMENT_NOTIFY_PREFS } from '../momentNotifications';
+import { calendarMomentId } from '../calendarOccurrence';
 import type { Moment } from '../../types/moments';
 
 // Local noon anchor keeps every fire time clear of the quiet window.
@@ -93,12 +99,15 @@ describe('§18 — calendar consent lifecycle (grant → revoke → reconnect)',
     await refreshCalendarMoments(true);
     const derived = getCalendarMoments();
     expect(derived).toHaveLength(1);
-    expect(derived[0]?.id).toBe('cal-e1');
+    // Occurrence-specific id (recurring occurrences share the event id).
+    const e1Id = calendarMomentId('e1', iso(T0 + 4 * 3600 * 1000));
+    expect(derived[0]?.id).toBe(e1Id);
+    expect(derived[0]?.calendarEventId).toBe('e1');
     expect(derived[0]?.source).toBe('calendar');
     expect(derived[0]?.masked).toBe(true);
 
     const plan = planMomentNotifications(mergedMoments(), DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
-    expect(plan.some((p) => p.momentId === 'cal-e1')).toBe(true);
+    expect(plan.some((p) => p.momentId === e1Id)).toBe(true);
   });
 
   it('2+3. revocation stops calendar use and no calendar-derived intervention can fire', async () => {
@@ -133,12 +142,15 @@ describe('§18 — calendar consent lifecycle (grant → revoke → reconnect)',
     await refreshCalendarMoments(true);
     const derived = getCalendarMoments();
     // Exactly one instance of the same id — no duplicate accumulation.
-    expect(derived.filter((m) => m.id === 'cal-e1')).toHaveLength(1);
-    // The member's own prepared-mark reapplied by event id…
+    const e1Id = calendarMomentId('e1', iso(T0 + 4 * 3600 * 1000));
+    expect(derived.filter((m) => m.id === e1Id)).toHaveLength(1);
+    // The member's own prepared-mark reapplied (a mark written before
+    // occurrence-specific keys is keyed by the bare event id and still applies
+    // to a single occurrence)…
     expect(derived[0]?.preparedAtIso).toBeTruthy();
     // …so the reconnected moment plans NO ping (prepared = silence, tranche 3).
     const plan = planMomentNotifications(mergedMoments(), DEFAULT_MOMENT_NOTIFY_PREFS, iso(T0));
-    expect(plan.some((p) => p.momentId === 'cal-e1')).toBe(false);
+    expect(plan.some((p) => p.momentId === e1Id)).toBe(false);
     expect(plan.some((p) => p.momentId === 'manual-1')).toBe(true);
   });
 });

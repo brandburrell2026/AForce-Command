@@ -15,16 +15,25 @@ import { useSyncExternalStore } from 'react';
 
 import type { Moment } from '@/types/moments';
 import {
-  fetchUpcomingEvents,
+  readUpcomingEvents,
   getCalendarPermission,
   getCalendarPrefs,
 } from '@/services/calendarBridge';
 import { classifyCalendarEvent } from '@/services/momentClassification';
+import {
+  calendarMomentId,
+  dedupeCalendarEvents,
+  occurrenceKey,
+  preparedMarkFor,
+  type CalendarSnapshot,
+} from '@/services/calendarOccurrence';
 
 const PREPARED_KEY = '@aforce/momentPrepared';
 const MIN_REFRESH_GAP_MS = 60_000;
 
 let calendarMoments: Moment[] = [];
+/** What the last successful read saw, in memory only. Null = no read. */
+let calendarSnapshot: CalendarSnapshot | null = null;
 let lastRefreshMs = 0;
 let refreshing = false;
 const listeners = new Set<() => void>();
@@ -45,18 +54,29 @@ async function getPreparedMarks(): Promise<Record<string, string>> {
   }
 }
 
-/** Mark a calendar moment prepared (I'M READY). Persists the mark only. */
-export async function markCalendarMomentPrepared(calendarEventId: string): Promise<void> {
+/**
+ * Mark a calendar moment prepared (I'M READY). Persists the mark only.
+ * Pass the occurrence's start so a recurring event marks only that
+ * occurrence; without it the mark is keyed by the bare event id (the form
+ * written before occurrence-specific keys existed).
+ */
+export async function markCalendarMomentPrepared(
+  calendarEventId: string,
+  startAtIso?: string,
+): Promise<void> {
   const marks = await getPreparedMarks();
-  marks[calendarEventId] = new Date().toISOString();
+  const key = startAtIso ? occurrenceKey(calendarEventId, startAtIso) : calendarEventId;
+  const markedAt = new Date().toISOString();
+  marks[key] = markedAt;
   try {
     await scopedStorage.setItem(PREPARED_KEY, JSON.stringify(marks));
   } catch {
     // best-effort
   }
   calendarMoments = calendarMoments.map((m) =>
-    m.calendarEventId === calendarEventId
-      ? { ...m, preparedAtIso: marks[calendarEventId] }
+    m.calendarEventId === calendarEventId &&
+    (!startAtIso || occurrenceKey(calendarEventId, m.startAtIso) === key)
+      ? { ...m, preparedAtIso: markedAt }
       : m,
   );
   notify();
@@ -80,6 +100,19 @@ export function getCalendarMoments(): Moment[] {
   return calendarMoments;
 }
 
+/** What the last successful read saw (ids, titles, times). Memory only. */
+export function getCalendarSnapshot(): CalendarSnapshot | null {
+  return calendarSnapshot;
+}
+
+function clearDerived(): void {
+  if (calendarMoments.length > 0 || calendarSnapshot) {
+    calendarMoments = [];
+    calendarSnapshot = null;
+    notify();
+  }
+}
+
 /**
  * Refresh the derived set. Throttled (60s) unless `force`. No permission /
  * not connected / no selection → empty set, honestly.
@@ -91,32 +124,33 @@ export async function refreshCalendarMoments(force = false): Promise<void> {
   try {
     const prefs = await getCalendarPrefs();
     if (!prefs.connected || prefs.selectedCalendarIds.length === 0) {
-      if (calendarMoments.length > 0) {
-        calendarMoments = [];
-        notify();
-      }
+      clearDerived();
       return;
     }
     const permission = await getCalendarPermission();
     if (permission !== 'granted') {
       // Revoked in Settings → drop everything, render manual-only honestly.
-      if (calendarMoments.length > 0) {
-        calendarMoments = [];
-        notify();
-      }
+      clearDerived();
       return;
     }
     const nowIso = new Date().toISOString();
-    const [events, marks] = await Promise.all([
-      fetchUpcomingEvents(prefs.selectedCalendarIds, nowIso),
+    const [read, marks] = await Promise.all([
+      readUpcomingEvents(prefs.selectedCalendarIds, nowIso),
       getPreparedMarks(),
     ]);
+    const events = read ? dedupeCalendarEvents(read.events) : [];
+    // A failed read is not "nothing on the calendar": no snapshot, so no
+    // change is ever claimed from it.
+    calendarSnapshot = read ? { events: read.events, window: read.window } : null;
+    const perId = new Map<string, number>();
+    for (const e of events) perId.set(e.id, (perId.get(e.id) ?? 0) + 1);
     const next: Moment[] = [];
     for (const event of events) {
       const result = classifyCalendarEvent(event, prefs.categories);
       if (result.kind !== 'moment') continue;
       next.push({
-        id: `cal-${event.id}`,
+        // Occurrence-specific: recurring occurrences share `event.id`.
+        id: calendarMomentId(event.id, event.startAtIso),
         source: 'calendar',
         title: result.masked ? '' : (event.title ?? '').trim(),
         masked: result.masked,
@@ -125,7 +159,7 @@ export async function refreshCalendarMoments(force = false): Promise<void> {
         startAtIso: event.startAtIso,
         endAtIso: event.endAtIso,
         calendarEventId: event.id,
-        preparedAtIso: marks[event.id],
+        preparedAtIso: preparedMarkFor(marks, event.id, event.startAtIso, perId.get(event.id) ?? 1),
         createdAtIso: nowIso,
       });
     }
@@ -146,9 +180,14 @@ export function useCalendarMoments(): Moment[] {
   return useSyncExternalStore(subscribeCalendarMoments, getCalendarMoments, getCalendarMoments);
 }
 
+export function useCalendarSnapshot(): CalendarSnapshot | null {
+  return useSyncExternalStore(subscribeCalendarMoments, getCalendarSnapshot, getCalendarSnapshot);
+}
+
 // Wave-2 PR6: user-scope change → drop derived calendar moments + marks.
 subscribeUserScope(() => {
   calendarMoments = [];
+  calendarSnapshot = null;
   lastRefreshMs = 0;
   for (const l of listeners) l();
 });
