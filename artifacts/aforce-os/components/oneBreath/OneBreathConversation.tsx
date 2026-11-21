@@ -22,6 +22,10 @@ import { PreparationOrb } from "./PreparationOrb";
 export const CONVERSATION_STAGE = 176;
 export const CONVERSATION_ORB = Math.round((149 * CONVERSATION_STAGE) / 290);
 export const CONVERSATION_DIAL = Math.round((234 * CONVERSATION_STAGE) / 290);
+/** Before the first words the orb rests at its full size, as on the opening screen (290pt stage, 149pt orb, 234pt dial). */
+export const RESTING_STAGE = 290;
+export const RESTING_ORB = 149;
+export const RESTING_DIAL = 234;
 
 export interface OneBreathConversationProps {
   social: boolean;
@@ -51,6 +55,10 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
     scroll.current?.scrollToEnd({ animated: true });
   }, [p.items.length, p.awaitingSeal]);
 
+  const resting = p.items.length === 0;
+  const orb = resting ? RESTING_ORB : CONVERSATION_ORB;
+  const dial = resting ? RESTING_DIAL : CONVERSATION_DIAL;
+
   return (
     <View style={s.root}>
       <View style={s.top}>
@@ -64,13 +72,13 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
         </Pressable>
       </View>
 
-      <View style={s.stage}>
+      <View style={[s.stage, resting && { height: RESTING_STAGE }]}>
         {p.voiceAvailable ? (
           <Pressable accessibilityRole="button" accessibilityLabel={p.voiceListening ? "Stop listening" : "Speak to AFORCE"} onPress={p.onTalk}>
-            <PreparationOrb social={p.social} day={false} size={CONVERSATION_ORB} dial={CONVERSATION_DIAL} />
+            <PreparationOrb social={p.social} day={false} size={orb} dial={dial} />
           </Pressable>
         ) : (
-          <PreparationOrb social={p.social} day={false} size={CONVERSATION_ORB} dial={CONVERSATION_DIAL} />
+          <PreparationOrb social={p.social} day={false} size={orb} dial={dial} />
         )}
       </View>
 
