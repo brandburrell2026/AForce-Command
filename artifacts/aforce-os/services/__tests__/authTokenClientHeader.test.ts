@@ -44,7 +44,8 @@ describe('getAuthHeaders carries the client version', () => {
     vi.mocked(buildClientIdentityHeader).mockReturnValue(null);
     const h = await getAuthHeaders();
     expect(h).not.toHaveProperty(CLIENT_HEADER_NAME);
-    expect(Object.keys(h)).toEqual([]);
+    // The only other header is the device's time zone name (see timeZoneHeader.test.ts).
+    expect(Object.keys(h).filter((k) => k !== 'x-aforce-time-zone')).toEqual([]);
   });
 
   it('a thrown token getter does not take the request down with it', async () => {

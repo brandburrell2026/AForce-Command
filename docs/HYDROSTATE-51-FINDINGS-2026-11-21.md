@@ -43,10 +43,18 @@ figure without adding to it.
 - **Is a cap applied to the total?** No. The total is a plain sum.
 - **Target:** 96 oz on screen ("starting target").
 
-**Proposed fix (not built):** the app sends its time zone with each request;
-the server resets on the member's local date and falls back to UTC when none
-is sent. A regression test at local midnight (23:59 → 00:01, and 7 PM Eastern
-no longer resetting). This is a server change and needs a deploy.
+**Confirmed by the founder, 2026-11-21:** the two waters were logged on the evening of Nov 20.
+
+**Fix built (draft PR #1309, not deployed):** the app sends its time zone name
+with each request, and the server resets "today" on the member's local date. A
+request with no zone (an older build) still gets UTC, as before. The zone is
+not stored. Regression tests cover 7 PM Eastern (no reset), 11:59 PM to
+12:01 AM (reset), this case, a zone east of UTC and a daylight-saving night,
+and check the database's own date comparison against the same cases.
+
+It takes effect only when **both** are live: the server deploy, and an app
+build that sends the zone (after 206 / 49). Nothing in the score changes: the
+score reads the last 24 hours of drinks, not this total.
 
 ## Finding 2: why the score stops at 51
 
@@ -81,6 +89,6 @@ Two consequences for a member who is already over target:
 
 ## Decisions needed
 
-1. Reset "today" at the member's local midnight (Finding 1)? Not a scoring rule, but it changes what "today" means and needs a server deploy.
+1. Finding 1 is fixed in the draft PR and needs a server deploy. One thing to know: the Depleted command's explanation reads today's total, so its wording can differ after the fix.
 2. Is the cap on water at target the intended behaviour when the score is still low (Finding 2)?
 3. Should the Depleted command and its "+18" take today's intake into account (Finding 3)?
