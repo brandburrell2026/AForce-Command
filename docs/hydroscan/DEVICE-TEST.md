@@ -25,7 +25,7 @@ Before any row: confirm the screen shows "POINT AT THE LABEL" (the reader found 
 | Size likely vs confirmed | A single unmarked size shows "Likely" and the amount step offers the fallback amounts until "Size is right" is tapped. | Not run |
 | Multipack | A 12-pack carton: asked whether the drink was one can of the unit size; "A different size" leaves the size unknown. | Not run |
 | Alcohol (internal build) | A beer with ABV: becomes alcohol, goes to the private drink log, does not change today's total or HydroState. A "0.0%" or "non-alcoholic" can does not become alcohol. A can with no strength and a beer word asks. | Not run |
-| Alcohol (ordinary build) | Not offered; "This looks like an alcoholic drink" with Scan again. (Needs a build with the internal flag on but SS-26 off, or a unit check; the flag itself is clamped in public builds.) | Not run |
+| Alcohol (any build) | Never logged from the reader. "This looks like an alcoholic drink" with Scan again; alcohol is not in the type list. | Not run |
 
 ## Logging
 

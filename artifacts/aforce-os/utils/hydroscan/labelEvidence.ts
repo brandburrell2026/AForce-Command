@@ -116,6 +116,8 @@ export interface Reading {
   readonly multipack: { readonly detected: boolean; readonly count: number | null; readonly unitOz: number | null };
   /** Bottled water the label calls sparkling, seltzer or mineral: saved as sparkling water, not plain water. */
   readonly sparkling: boolean;
+  /** A flavour is named on the label. A flavoured water is not plain water. */
+  readonly flavored: boolean;
   /** From the nutrition panel. Informational: never used as the package volume. */
   readonly serving: { readonly oz: number | null; readonly perContainer: number | null };
   /** The catalog id of the matched product, for a hand-off to the product's own flow. */
@@ -329,11 +331,14 @@ const CATEGORY_KEYWORDS: readonly CategoryKeyword[] = [
   { phrases: ['JUICE', 'NOT FROM CONCENTRATE'], category: 'juice' },
 ];
 
+/** Largest size offered as "one can or bottle" of a multipack when the label does not print the unit size. */
+const MAX_SINGLE_UNIT_OZ = 34;
+
 const NET_MARKER = /\bNET\b(?!\s*(?:WT|WEIGHT))|\bNET\s+CONTENTS?\b|\bCONTENTS\b|\bNET\s+VOL/;
 const NET_WEIGHT = /\bNET\s*(?:WT|WEIGHT)\b/;
 const SERVING_MARKER = /SERV(?:ING)?S?\.?\s*SIZE|\bPER\s+SERVING\b|\bAMOUNT\s+PER\b|\bPER\s+\d+(?:\.\d+)?\s*(?:FL\.?\s*)?OZ|\bSERVING\b/;
 const SERVINGS_PER = /SERVINGS?\s+PER\s+(?:CONTAINER|BOTTLE|CAN|PACKAGE|PACK)\W*(?:ABOUT\s*)?(\d+(?:[.,]\d+)?)/;
-const VOLUME_RE = /(\d{1,3}(?:[.,]\d{1,2})?)\s*(FL\.?\s*OZ\.?|FLUID\s+OUNCES?|OUNCES?|OZ\.?|M\s?L|CL|L(?:ITE?RS?|ITRES?)?)(?![A-Z])/g;
+const VOLUME_RE = /(?<![\d.,])(\d{1,2},\d{3}|\d{1,4}(?:[.,]\d{1,2})?)\s*(FL\.?\s*OZ\.?|FLUID\s+OUNCES?|OUNCES?|OZ\.?|M\s?L|CL|L(?:ITE?RS?|ITRES?)?)(?![A-Z])/g;
 const BACK_OF_PACK = /NUTRITION FACTS|SUPPLEMENT FACTS|INGREDIENTS|SERVING SIZE|SERVINGS PER|DISTRIBUTED BY|MANUFACTURED/;
 
 const toOz = (n: number, unit: string): number => {
@@ -343,7 +348,8 @@ const toOz = (n: number, unit: string): number => {
   if (u.startsWith('L')) return (n * 1000) / ML_PER_OZ;
   return n; // FLOZ, OZ, OUNCE(S), FLUIDOUNCE(S)
 };
-const parseNumber = (s: string) => Number.parseFloat(s.replace(',', '.'));
+// "1,000" is a thousands separator; "12,5" is a decimal comma.
+const parseNumber = (s: string) => Number.parseFloat(/^\d{1,2},\d{3}$/.test(s) ? s.replace(',', '') : s.replace(',', '.'));
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const plausible = (oz: number) => oz >= MIN_NET_OZ && oz <= MAX_NET_OZ;
 
@@ -990,7 +996,8 @@ export function readEvidence(state: EvidenceState): Reading {
   if (overrides.volumeOz !== undefined) {
     volume = overrides.volumeOz === null ? UNKNOWN : field(overrides.volumeOz, 'confirmed', 'user');
   } else if (multipack.detected) {
-    const unit = packUnit ?? (cands.length === 1 ? cands[0]!.oz : null);
+    // With no "N x size" text, a lone size may be the whole pack: only a single-serve size is offered as one unit.
+    const unit = packUnit ?? (cands.length === 1 && cands[0]!.oz <= MAX_SINGLE_UNIT_OZ ? cands[0]!.oz : null);
     if (unit != null) {
       volume = field(unit, 'likely', 'label');
       const countText = packCount != null ? `${packCount}-pack` : 'multipack';
@@ -1013,7 +1020,8 @@ export function readEvidence(state: EvidenceState): Reading {
         choices: [top, second].sort((a, b) => a.oz - b.oz).map((c) => ({ id: String(c.oz), label: formatOz(c.oz), patch: { volumeOz: c.oz } })),
       };
     } else {
-      const sure = top.dual || top.samples >= 2 || top.marked;
+      // One sample is never `confirmed`, however clearly it is printed.
+      const sure = top.samples >= 2;
       volume = field(top.oz, sure ? 'confirmed' : 'likely', 'label');
     }
   }
@@ -1044,6 +1052,7 @@ export function readEvidence(state: EvidenceState): Reading {
     traits: { sugar, caffeine, alcohol },
     multipack,
     sparkling: obs.some((o) => o.sparkling),
+    flavored: !!vp.flavor,
     serving: {
       oz: obs.map((o) => o.servingOz).find((v): v is number => v != null) ?? null,
       perContainer: obs.map((o) => o.servingsPerContainer).find((v): v is number => v != null) ?? null,
@@ -1098,14 +1107,17 @@ export function displayNameFor(reading: Reading): string {
     reading.sparkling && (reading.drinkType.value === 'water' || reading.drinkType.value === 'bottled_water') && !/sparkling|seltzer|carbonated|mineral/i.test(withBrand)
       ? `${withBrand} sparkling`
       : withBrand;
-  if (!variant) return named;
+  // A flavoured water must carry the word too, for the same reason.
+  const isWater = reading.drinkType.value === 'water' || reading.drinkType.value === 'bottled_water';
+  const plainGuard = (n: string) => (isWater && reading.flavored && !/flavou?red|sparkling|seltzer|carbonated|mineral|club soda|tonic/i.test(n) ? `${n} flavored` : n);
+  if (!variant) return plainGuard(named);
   const redundant = (part: string): boolean => {
     if (/^(zero|diet|sugar free)/i.test(part)) return /zero|diet|sugar.?free/i.test(withBrand);
     if (/^original/i.test(part)) return /classic|original|regular/i.test(withBrand);
     return withBrand.toLowerCase().includes(part.toLowerCase());
   };
   const extra = variant.split(' · ').filter((p) => !redundant(p));
-  return extra.length > 0 ? `${named} ${extra.join(' ')}` : named;
+  return plainGuard(extra.length > 0 ? `${named} ${extra.join(' ')}` : named);
 }
 
 function categoryDisplay(reading: Reading): string {

@@ -29,7 +29,8 @@ describe('package volume: net contents is not serving size', () => {
       frame('Nutrition Facts', 'Serving size 12 fl oz (355 mL)', 'Servings per container about 1.7'),
     );
     expect(r.volume.value).toBe(20);
-    expect(r.volume.confidence).toBe('confirmed');
+    // Seen in one sample only: likely until a second sample or the member agrees.
+    expect(r.volume.confidence).toBe('likely');
     expect(r.volume.source).toBe('label');
     expect(r.serving.oz).toBe(12);
     expect(r.serving.perContainer).toBe(1.7);
@@ -525,5 +526,39 @@ describe('display', () => {
     expect(displayNameFor(read(frame('GATORADE THIRST QUENCHER', 'FRUIT PUNCH'), frame('GATORADE THIRST QUENCHER', 'FRUIT PUNCH')))).toBe(
       'Gatorade Thirst Quencher Fruit Punch',
     );
+  });
+});
+
+describe('review fixes, 2026-11-21', () => {
+  const size = (...lines: string[]) => read(frame(...lines), frame(...lines)).volume;
+
+  it('reads sizes over 999 mL whole, never their last three digits', () => {
+    expect(size('TEST WATER', 'PURIFIED WATER', '1500 mL').value).toBeCloseTo(50.7, 1);
+    expect(size('TEST WATER', 'PURIFIED WATER', '1000 mL').value).toBeCloseTo(33.8, 1);
+    expect(size('TEST WATER', 'PURIFIED WATER', '1,000 mL').value).toBeCloseTo(33.8, 1);
+    expect(size('TEST WATER', 'PURIFIED WATER', '1250 mL').value).toBeCloseTo(42.3, 1);
+  });
+
+  it('a decimal comma is still a decimal', () => {
+    expect(size('TEST COLA', 'COLA', '0,5 L').value).toBeCloseTo(16.9, 1);
+  });
+
+  it('a size seen in one sample is likely, never confirmed, however clearly printed', () => {
+    const one = read(frame('TEST COLA', 'COLA', 'NET 20 FL OZ (591 mL)'));
+    expect(one.volume.confidence).not.toBe('confirmed');
+    const two = read(frame('TEST COLA', 'COLA', '20 FL OZ (591 mL)'), frame('TEST COLA', 'COLA', '20 FL OZ (591 mL)'));
+    expect(two.volume.confidence).toBe('confirmed');
+  });
+
+  it('a pack total is never offered as one can', () => {
+    const r = read(frame('TEST COLA', 'COLA', '6 PACK', '101.4 FL OZ (3 L)'), frame('TEST COLA', 'COLA', '6 PACK', '101.4 FL OZ (3 L)'));
+    expect(r.volume.value).toBeNull();
+    expect(r.question?.id).not.toBe('multipack');
+  });
+
+  it('a flavoured bottled water is named so it cannot be saved as plain water', () => {
+    const r = read(frame('TEST WATER', 'PURIFIED WATER', 'LEMON'), frame('TEST WATER', 'PURIFIED WATER', 'LEMON'));
+    if (r.flavored) expect(displayNameFor(r)).toMatch(/flavou?red/i);
+    expect(r.flavored).toBe(true);
   });
 });
