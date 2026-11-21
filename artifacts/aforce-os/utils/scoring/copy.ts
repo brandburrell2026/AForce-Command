@@ -17,6 +17,7 @@ import {
   isEvidenceUnknown,
 } from './hydroEvidence';
 import { minutesSince } from './breakdown';
+import { sinceLastDrinkText, strongestHoldDown, waterGoalMet } from './waterGoal';
 import {
   deriveCommandConfidence,
   commandConfidenceInputsFromState,
@@ -37,6 +38,13 @@ import {
  * "if you do nothing" consequence as the closer. We cap at three
  * overlays so the card never overflows its 2-3 line slot.
  */
+/** The reason line under "Water goal met.", or '' when no single nameable reason exists. */
+function waterGoalMetExplanation(state: UserState, now: number): string {
+  const reason = strongestHoldDown(state, now);
+  if (!reason) return '';
+  return i18n.t(`coach.water_goal_met_${reason.id}`, reason.id === 'recency' ? { time: sinceLastDrinkText(reason.minutes) } : undefined);
+}
+
 export function composeExplanation(
   base: string,
   state: UserState,
@@ -55,6 +63,12 @@ export function composeExplanation(
   // appending generic heat/streak overlays would dilute the safety
   // signal. Skip overlays when social rollup is active.
   if (socialActive) return base;
+
+  // "Water goal met." asks for nothing, so there is nothing to skip and no
+  // urgency overlay belongs under it. Its reason line stands alone.
+  if ((level === 'DEPLETED' || level === 'RECOVERING') && waterGoalMet(state) && base === waterGoalMetExplanation(state, now)) {
+    return base;
+  }
 
   const parts: string[] = [base];
   let overlays = 0;
@@ -479,6 +493,20 @@ function buildBaseCommand(
     };
   }
 
+  // Water goal met (founder direction 2026-11-21). The water-and-sticks card is
+  // not repeated to a member who has already met today's goal: more water
+  // cannot raise a full water term. No next action is shown, because no
+  // approved rule supports one yet. The score and the band are untouched.
+  if ((level === 'DEPLETED' || level === 'RECOVERING') && waterGoalMet(state)) {
+    return {
+      id: 'cmd-water-goal-met',
+      action: i18n.t('coach.water_goal_met_action'),
+      explanation: waterGoalMetExplanation(state, now),
+      urgencyLevel: 'medium',
+      estimatedImpact: '',
+    };
+  }
+
   switch (level) {
     case 'PEAK':
       return {
@@ -502,7 +530,8 @@ function buildBaseCommand(
         action: i18n.t('coach.recovering_action', { score }),
         explanation: buildExplanation(level, state),
         urgencyLevel: 'high',
-        estimatedImpact: '+10 to score',
+        // No score claim: the old figure was fixed text, not a calculation (founder direction 2026-11-21).
+        estimatedImpact: '',
       };
     case 'DEPLETED':
       return {
@@ -510,7 +539,8 @@ function buildBaseCommand(
         action: i18n.t('coach.depleted_action', { score }),
         explanation: buildExplanation(level, state),
         urgencyLevel: 'critical',
-        estimatedImpact: '+18 to score',
+        // No score claim: the old figure was fixed text, not a calculation (founder direction 2026-11-21).
+        estimatedImpact: '',
       };
   }
 }
