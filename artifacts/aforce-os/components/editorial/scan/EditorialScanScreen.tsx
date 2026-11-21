@@ -69,6 +69,7 @@ import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
 import { PRODUCTS } from '@/data/products';
 import { postRecordedDrink } from '@/services/realApi';
+import { HydroScanLogged, HydroScanUnknownAmount, HydroScanUnknownPick } from '@/components/scan/hydroscan/HydroScanUnknown';
 import { drinkRoute, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '@/utils/hydration/drinkRoute';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
@@ -141,12 +142,17 @@ export function EditorialScanScreen() {
     enteredOz: number;
     effectiveOz: number;
     hydrationCoefficient: number;
-  }) => {
+  }, inSheet: boolean = false): Promise<'water' | 'recorded' | 'failed'> => {
     setAddDrinkOpen(false);
     const route = drinkRoute(args);
     if (route.kind === 'water') {
-      await logIntake('water', { source: 'scan', ozOverride: route.oz });
-      return;
+      const cycleId = await logIntake('water', { source: 'scan', ozOverride: route.oz });
+      // In the sheet the log's own id is kept, so the Done card can offer Undo.
+      if (inSheet && cycleId) {
+        setLoggedCycleId(cycleId);
+        setUndone(false);
+      }
+      return inSheet && !cycleId ? 'failed' : 'water';
     }
     try {
       await postRecordedDrink({
@@ -155,13 +161,27 @@ export function EditorialScanScreen() {
         ozAmount: route.oz,
         entrySource: 'scan',
       });
-      Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
+      // The sheet's own card says this; elsewhere the alert does.
+      if (!inSheet) Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
+      return 'recorded';
     } catch {
       // Never claim a save that did not land (spec v1.8.2 Part 7.3, 7.7).
-      Alert.alert('Not logged', 'Your drink was not saved. Try again.');
+      if (!inSheet) Alert.alert('Not logged', 'Your drink was not saved. Try again.');
+      return 'failed';
     }
   }, [logIntake]);
   const [undone, setUndone] = useState(false);
+  // ── A barcode that is not in the list (spec drinks 5, D6) ─────────────
+  // The member picks the kind and the amount by taps. Nothing is logged
+  // until "Log it"; the write is the manual confirmation handler above.
+  const [unknown, setUnknown] = useState<
+    | null
+    | { step: 'amount'; categoryId: string; label: string; oz: number | null }
+    | { step: 'done'; label: string; note: string; state: 'logged' | 'failed' }
+  >(null);
+  useEffect(() => {
+    setUnknown(null);
+  }, [outcome]);
   // One write on screen at a time — drives busy states AND freezes SCAN
   // AGAIN so a slow round-trip cannot race a rescan (see the epoch below).
   const [writeInFlight, setWriteInFlight] = useState(false);
@@ -234,6 +254,8 @@ export function EditorialScanScreen() {
   };
 
   const result = outcome?.ok ? outcome.result : null;
+  /** The code was read but is not a product in the list: the member says what it is. */
+  const notInList = !!outcome && !outcome.ok && (outcome.failure.reason === 'unknown_barcode' || outcome.failure.reason === 'unrecognized_qr');
 
   // A new result resets the lifecycle: quantity returns to the product's own
   // serving size (bounded by the Decision Guard ceiling), and any previous
@@ -275,6 +297,30 @@ export function EditorialScanScreen() {
         setLoggedCycleId(cycleId);
         setUndone(false);
       }
+    } finally {
+      confirmInFlightRef.current = false;
+      setWriteInFlight(false);
+    }
+  };
+
+  const onLogUnknown = async () => {
+    if (unknown?.step !== 'amount' || unknown.oz === null) return;
+    if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return;
+    confirmInFlightRef.current = true;
+    setWriteInFlight(true);
+    const { categoryId, label, oz } = unknown;
+    const name = label.toLowerCase();
+    try {
+      const saved = await onConfirmDrink(
+        { categoryId, name: label, displayName: label, enteredOz: oz, effectiveOz: oz, hydrationCoefficient: 1 },
+        true,
+      );
+      setUnknown({
+        step: 'done',
+        label: `${oz} oz ${name}`,
+        note: saved === 'recorded' ? `${RECORDED_DRINK_TITLE}. ${RECORDED_DRINK_DETAIL}` : '',
+        state: saved === 'failed' ? 'failed' : 'logged',
+      });
     } finally {
       confirmInFlightRef.current = false;
       setWriteInFlight(false);
@@ -469,7 +515,34 @@ export function EditorialScanScreen() {
           <HydroScanSheet testID="ed-scan-sheet">
             <Animated.View style={settle}>
           {/* ── FAILED · honest, and never a fabricated product ─────── */}
-          {outcome && !outcome.ok ? (
+          {outcome && !outcome.ok && notInList && unknown?.step === 'done' ? (
+            <HydroScanLogged
+              label={unknown.label}
+              note={unknown.note}
+              state={undone ? 'undone' : unknown.state}
+              busy={writeInFlight}
+              onDone={() => setOutcome(null)}
+              onUndo={loggedCycleId != null && /^intake-\d+$/.test(loggedCycleId) ? () => void onUndoLog() : undefined}
+            />
+          ) : null}
+          {outcome && !outcome.ok && notInList && unknown?.step === 'amount' ? (
+            <HydroScanUnknownAmount
+              kind={unknown.label}
+              oz={unknown.oz}
+              busy={writeInFlight}
+              onAmount={(oz) => setUnknown({ ...unknown, oz })}
+              onLog={() => void onLogUnknown()}
+              onBack={() => setOutcome(null)}
+              onType={() => setAddDrinkOpen(true)}
+            />
+          ) : null}
+          {outcome && !outcome.ok && notInList && !unknown ? (
+            <HydroScanUnknownPick
+              onPick={(k) => setUnknown({ step: 'amount', categoryId: k.categoryId, label: k.label, oz: null })}
+              onType={() => { setOutcome(null); setAddDrinkOpen(true); }}
+            />
+          ) : null}
+          {outcome && !outcome.ok && !notInList ? (
             <View style={styles.section} testID="ed-scan-failure">
               {/* The message is its own accessible node. Wrapping the whole
                   block (including the retry Pressable) in `accessible` flattened
