@@ -13,7 +13,7 @@ Does the label reader (barcode plus on-device label text) log the right drink an
 
 ## Drink sets (physical drinks, bought, not photos)
 
-1. AFORCE products (every SKU that exists; needs the real front-label text, see DATA-GAPS.md).
+1. AFORCE products (every SKU that exists). **Blocked: unverified.** Not run and not counted until the unit UPC, net contents and front-label text for each are in `data/aforcePackaging.ts` (see DATA-GAPS.md).
 2. Common drinks in the catalog (Gatorade, Coca-Cola, Pepsi, Monster, Red Bull, LMNT, Liquid IV, Pedialyte, Smartwater, Fiji, and so on).
 3. Imported drinks (non-US labels: mL only, other languages, no "fl oz").
 4. Look-alike variants, in pairs: regular vs zero sugar; caffeinated vs caffeine free; alcoholic vs non-alcoholic (beer and 0.0% beer; hard seltzer and seltzer; hard cider and cider); a 0.5% kombucha.
