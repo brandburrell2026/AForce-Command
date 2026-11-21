@@ -533,6 +533,9 @@ export function oneBreathTurn(
     if (said.kind === 'negation') return answer('nothing', 'plan_moment', ONE_BREATH_LINES.stillWaiting);
   }
 
+  // A plan still missing its day or time cannot be sealed: the open question is asked again.
+  if (pending && kept.asking && said.kind === 'confirm' && said.intent === 'seal') return ask(pending, kept.asking);
+
   // 3. "Seal it" with nothing waiting never saves anything.
   if (said.kind === 'confirm' && said.intent === 'seal') {
     return kept.sealed.length > 0
