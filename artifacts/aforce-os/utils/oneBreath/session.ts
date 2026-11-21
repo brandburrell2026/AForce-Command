@@ -106,6 +106,13 @@ export interface OneBreathContext {
    * ("Partial credit pending."). One Breath repeats it and never writes its own.
    */
   creditNote?: (categoryId: string) => string;
+  /**
+   * True when the hydration log can take this drink back after it is saved.
+   * Then the drink is logged at once and Undo reverses it (founder decision,
+   * 2026-11-20, second). Where the log cannot take a drink back, the drink is
+   * still held for its Undo window before anything is written.
+   */
+  undoAfterLog?: (categoryId: string, name: string) => boolean;
   /** Upcoming Moments from the Moments store, soonest first. Absent means the list could not be read. */
   upcoming?: { title: string; day: string; time: string }[];
 }
@@ -130,6 +137,7 @@ export type OneBreathEffect =
   | { kind: 'save_moment'; id: string; plan: PlanDraft }
   | { kind: 'undo_moment'; id: string; of: string }
   | { kind: 'log_drink'; id: string; categoryId: string; name?: string; oz: number }
+  | { kind: 'undo_drink'; id: string; of: string }
   | { kind: 'lock_in'; id: string }
   | { kind: 'send_message'; id: string; to: string; text: string }
   | { kind: 'share_plan'; id: string; to: string; fields: string[] }
@@ -176,6 +184,8 @@ export interface OneBreathState {
    * member undoes it (founder decision, 2026-11-20).
    */
   pendingDrink?: { id: string; categoryId: string; name: string; oz: number; label: string; msLeft: number };
+  /** A drink already logged whose Undo is still open. Undo asks the hydration log to take it back. */
+  loggedUndo?: { id: string; label: string; msLeft: number };
   /** Drinks logged this session. Part of each log's id, so one action is one log. */
   logged: number;
   /** The words of every turn, kept when the interpreter is unreachable. */
@@ -252,6 +262,7 @@ export const ONE_BREATH_LINES = {
   unknownBarcode: "I don\u2019t know this product yet. I won\u2019t guess what it is. Pick what kind of drink it is, or type it.",
   nothingLogged: "Nothing is logged.",
   notLogged: "Not logged.",
+  logUndone: "Removed from today.",
   alcoholNotCounted:
     "Alcohol isn\u2019t counted toward HydroState, so nothing was logged. If you\u2019re heading out, plan it as a Social Moment and I\u2019ll handle it there.",
 } as const;
@@ -282,6 +293,16 @@ function holdDrink(state: OneBreathState, drink: NamedDrink, oz: number, context
   const base = flushed ? flushed.state : state;
   const id = `drink:${base.logged}:${drink.categoryId}:${oz}`;
   const label = drinkLabel(oz, drink.name);
+  if (context.undoAfterLog?.(drink.categoryId, drink.name)) {
+    // The member's instruction is complete: log it now. Undo takes it back.
+    const note = context.creditNote?.(drink.categoryId) ?? '';
+    return {
+      state: { ...base, logged: base.logged + 1, scanned: undefined, askingDrink: undefined, loggedUndo: { id, label, msLeft: ONE_BREATH_DRINK_UNDO_MS } },
+      status: 'responding',
+      reply: { outcome: 'act', request: 'log_drink', text: `Logged ${label}.${note ? ` ${note}` : ''}`, undo: { reverses: label, ms: ONE_BREATH_DRINK_UNDO_MS } },
+      effects: [...(flushed ? flushed.effects : []), { kind: 'log_drink', id, categoryId: drink.categoryId, name: drink.name, oz }],
+    };
+  }
   return {
     state: {
       ...base,
@@ -394,18 +415,37 @@ function undoSealTurn(state: OneBreathState): OneBreathTurn {
   };
 }
 
+/** Undo of a drink already logged, inside its window: the hydration log is asked to take it back. */
+function undoLogTurn(state: OneBreathState): OneBreathTurn {
+  const lu = state.loggedUndo!;
+  return {
+    state: { ...state, loggedUndo: undefined },
+    status: 'responding',
+    reply: { outcome: 'undone', request: 'log_drink', text: ONE_BREATH_LINES.logUndone },
+    effects: [{ kind: 'undo_drink', id: `undo:${lu.id}`, of: lu.id }],
+  };
+}
+
 /** Controls and time for a sealed plan: the seal bar, Undo, and the Undo window running out. */
 function sealControl(state: OneBreathState, input: Exclude<OneBreathInput, { kind: 'say' }>, context: OneBreathContext): OneBreathTurn | null {
   if (input.kind === 'wait' || input.kind === 'interrupt') {
     const drink = drinkControl(state, input, context);
     const after = drink?.state ?? state;
-    if (!after.sealUndo) return drink;
-    const msLeft = input.kind === 'interrupt' ? 0 : after.sealUndo.msLeft - input.ms;
-    const next: OneBreathState = { ...after, sealUndo: msLeft > 0 ? { ...after.sealUndo, msLeft } : undefined };
+    if (!after.sealUndo && !after.loggedUndo) return drink;
+    const left = (ms: number) => (input.kind === 'interrupt' ? 0 : ms - input.ms);
+    const sealLeft = after.sealUndo ? left(after.sealUndo.msLeft) : 0;
+    // A logged drink keeps its Undo when the screen goes away: the caller carries it to the next screen.
+    const logLeft = after.loggedUndo ? (input.kind === 'interrupt' ? after.loggedUndo.msLeft : after.loggedUndo.msLeft - input.ms) : 0;
+    const next: OneBreathState = {
+      ...after,
+      sealUndo: after.sealUndo && sealLeft > 0 ? { ...after.sealUndo, msLeft: sealLeft } : undefined,
+      loggedUndo: after.loggedUndo && logLeft > 0 ? { ...after.loggedUndo, msLeft: logLeft } : undefined,
+    };
     return drink ? { ...drink, state: next } : { state: next, status: 'standby', reply: { outcome: 'nothing', request: 'plan_moment', text: '' }, effects: [] };
   }
   if (input.kind !== 'tap') return null;
   // The newest thing is undone first: a pending drink before a seal.
+  if (input.control === 'undo' && !state.pendingDrink && state.loggedUndo) return undoLogTurn(state);
   if (input.control === 'undo' && !state.pendingDrink && state.sealUndo) return undoSealTurn(state);
   if (input.control === 'seal') {
     const plan = state.pendingPlan;
@@ -416,6 +456,11 @@ function sealControl(state: OneBreathState, input: Exclude<OneBreathInput, { kin
     return sealTurn(state, plan, false);
   }
   return null;
+}
+
+/** Undo for a logged drink is no longer on offer: it failed to log, or its log cannot be taken back. */
+export function undoClosed(state: OneBreathState, drinkId: string): OneBreathState {
+  return state.loggedUndo?.id === drinkId ? { ...state, loggedUndo: undefined } : state;
 }
 
 /**
@@ -433,6 +478,7 @@ export function effectFailed(state: OneBreathState, effect: OneBreathEffect): On
     };
   }
   if (effect.kind === 'lock_in') return { ...state, lockedIn: false };
+  if (effect.kind === 'log_drink') return undoClosed(state, effect.id);
   if (effect.kind === 'undo_moment') {
     const waiting = state.pendingPlan && planSealId(state.pendingPlan) === effect.of;
     return { ...state, pendingPlan: waiting ? undefined : state.pendingPlan, sealed: state.sealed.includes(effect.of) ? state.sealed : [...state.sealed, effect.of] };
@@ -480,6 +526,10 @@ export function oneBreathTurn(
     const committed = commitDrink(state, context);
     const turn = oneBreathTurn(committed.state, input, context, interpret);
     return { ...turn, effects: [...committed.effects, ...turn.effects] };
+  }
+
+  if (state.loggedUndo && classifyUtterance(input.words).kind === 'undo') {
+    return undoLogTurn({ ...state, words: [...state.words, input.words] });
   }
 
   if (state.sealUndo && classifyUtterance(input.words).kind === 'undo') {
