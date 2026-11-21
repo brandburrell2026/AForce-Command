@@ -29,7 +29,7 @@ Work, training and performance calendar events can now be offered for preparatio
 Things Legal and Privacy should know:
 
 - Work meeting titles can now reach the preparation screen and, if sealed, be stored (section 1). Previously only travel and social-word events could.
-- `preparationProposalCandidate` is also used by the Social One Breath entry. Widening it means the Social entry can now propose a work, training or performance event too. This is a product call, not a legal one, but it was not stated in the brief. Please confirm or ask for a Social-only restriction.
+- `preparationProposalCandidate` is also used by the Social One Breath entry. Social is restricted to what it proposed before (travel and social plans); work, training and performance events are offered from the Moments calendar page only. Say so if Social should offer them too.
 - Lead windows for the new types (work 24h, training 12h, performance 24h) are in `config/hydroStateModel.ts` and are a first choice for the founder to confirm.
 
 ## 4. Event ids and recurring events
