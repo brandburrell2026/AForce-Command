@@ -37,6 +37,12 @@ export interface OneBreathConversationProps {
   onSeal: () => void;
   onChoice: (label: string) => void;
   onUndo: () => void;
+  /** A button on an open plan: Lock In, Plans changed, Heading back and so on. */
+  onAction?: (id: string) => void;
+  /** The plan is locked in: the orb wears its Quiet ring. */
+  quiet?: boolean;
+  /** Replaces the bar's usual hint, e.g. "What changed?". */
+  placeholder?: string;
   onClose: () => void;
   onTalk: () => void;
   voiceAvailable: boolean;
@@ -58,6 +64,13 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
   const resting = p.items.length === 0;
   const orb = resting ? RESTING_ORB : CONVERSATION_ORB;
   const dial = resting ? RESTING_DIAL : CONVERSATION_DIAL;
+  const orbView = (
+    <View style={s.orbWrap}>
+      <PreparationOrb social={p.social} day={false} size={orb} dial={dial} />
+      {/* Quiet, as the prototype draws it: a still ring close around the orb. */}
+      {p.quiet ? <View pointerEvents="none" style={[s.quietRing, { width: orb + 12, height: orb + 12, borderRadius: (orb + 12) / 2 }]} testID="one-breath-quiet-ring" /> : null}
+    </View>
+  );
 
   return (
     <View style={s.root}>
@@ -75,10 +88,10 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
       <View style={[s.stage, resting && { height: RESTING_STAGE }]}>
         {p.voiceAvailable ? (
           <Pressable accessibilityRole="button" accessibilityLabel={p.voiceListening ? "Stop listening" : "Speak to AFORCE"} onPress={p.onTalk}>
-            <PreparationOrb social={p.social} day={false} size={orb} dial={dial} />
+            {orbView}
           </Pressable>
         ) : (
-          <PreparationOrb social={p.social} day={false} size={orb} dial={dial} />
+          orbView
         )}
       </View>
 
@@ -137,6 +150,42 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
               </View>
             );
           }
+          if (item.kind === "moment") {
+            return (
+              <View key={item.key} style={s.moment} accessible accessibilityLabel={`${item.title}. ${item.when}. ${item.pill}.`} testID="one-breath-open-plan">
+                <View style={s.momentWords}>
+                  <Text style={s.momentTitle}>{item.title}</Text>
+                  <Text style={s.momentWhen}>{item.when}</Text>
+                </View>
+                <View style={s.pill}>
+                  <Text style={s.pillText}>{item.pill}</Text>
+                </View>
+              </View>
+            );
+          }
+          if (item.kind === "actions") {
+            return (
+              <View key={item.key} style={s.block}>
+                <View style={s.actions}>
+                  {item.actions.map((a) => (
+                    <Pressable
+                      key={a.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={a.label}
+                      accessibilityState={{ disabled: !!a.disabled }}
+                      disabled={a.disabled}
+                      onPress={() => p.onAction?.(a.id)}
+                      style={[s.action, a.primary && s.actionPrimary, a.disabled && s.actionWaiting]}
+                      testID={`one-breath-action-${a.id}`}
+                    >
+                      <Text style={[s.actionText, a.primary && s.actionTextPrimary]}>{a.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                {item.note ? <Text style={s.actionNote}>{item.note}</Text> : null}
+              </View>
+            );
+          }
           if (item.kind === "plan") {
             return (
               <View
@@ -171,7 +220,7 @@ export function OneBreathConversation(p: OneBreathConversationProps) {
         onChangeText={p.onChangeWords}
         inputRef={p.inputRef}
         inputLabel="Talk or type to AFORCE"
-        placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
+        placeholder={p.placeholder ?? (p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE")}
         voiceAvailable={p.voiceAvailable}
         voiceListening={p.voiceListening}
         onTalk={p.onTalk}
@@ -259,6 +308,23 @@ const s = StyleSheet.create({
   heardLabel: { fontFamily: MONO, fontSize: 9, letterSpacing: 1.4, color: T.dim, textTransform: "uppercase" },
   heardValue: { fontFamily: "Inter_400Regular", fontSize: 15, lineHeight: 19, color: T.bone },
   block: { marginBottom: 14 },
+  orbWrap: { alignItems: "center", justifyContent: "center" },
+  quietRing: { position: "absolute", borderWidth: 1.5, borderColor: T.blueHi },
+  // An open plan (the prototype's sealed row): name over time, state pill at the right.
+  moment: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 14, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: T.rule, backgroundColor: T.panel },
+  momentWords: { flex: 1, gap: 4 },
+  momentTitle: { fontFamily: "Inter_600SemiBold", fontSize: 15, lineHeight: 20, color: T.bone },
+  momentWhen: { fontFamily: MONO, fontSize: 10, letterSpacing: 1.2, color: T.dim, textTransform: "uppercase" },
+  pill: { minHeight: 24, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: T.rule, justifyContent: "center" },
+  pillText: { fontFamily: MONO, fontSize: 9, letterSpacing: 1.4, color: T.bone, textTransform: "uppercase" },
+  // The prototype's buttons under a step: a bone pill for the main one, outlined for the rest.
+  actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  action: { minHeight: 44, paddingHorizontal: 18, borderRadius: 999, borderWidth: 1, borderColor: T.rule, justifyContent: "center" },
+  actionPrimary: { backgroundColor: T.bone, borderColor: T.bone },
+  actionWaiting: { opacity: 0.5 },
+  actionText: { fontFamily: "Inter_600SemiBold", fontSize: 13.5, color: T.bone },
+  actionTextPrimary: { color: T.ink },
+  actionNote: { marginTop: 10, fontFamily: "Inter_400Regular", fontSize: 12, lineHeight: 17, color: T.dim },
   // The plan card (the prototype's `.plan`): bone, 14 radius, time at the left, hairline between rows.
   plan: { marginTop: 8, marginBottom: 14, borderRadius: 14, backgroundColor: T.bone, paddingVertical: 4, paddingHorizontal: 14 },
   planRow: { flexDirection: "row", gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: T.onBoneRule },

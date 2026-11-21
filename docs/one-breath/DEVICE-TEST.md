@@ -52,3 +52,17 @@ Nothing here has been run on a device by the build author. A row is not passed u
 | **G. Accessibility** | | | | |
 | G1 | VoiceOver / TalkBack: plan and seal a Moment. | Each reply is read. The seal bar seals on double tap. | | |
 | G2 | Largest text size. | Nothing is cut off on the conversation, the Scan sheet or the Undo bar. | | |
+| **H. Sealed, Lock In and Quiet in the conversation (added Nov 21, needs a build after 204 / 47)** | | | | |
+| H1 | With a plan sealed for later, tap Breath. | The conversation screen, not the older screen. A row with the plan's name, time and "SEALED". "Your plan is yours. Lock In opens 15 minutes before it starts." No Lock In button. | | |
+| H2 | With a plan sealed and inside 15 minutes of its start, tap Breath. | The same row with a "Lock In" button. | | |
+| H3 | Tap "Lock In". Tap it twice fast. | Status reads "QUIET", a ring sits round the orb, the row says "LOCKED IN", and "Go perform. Phone down. We'll be quiet." One Lock In only. Ordinary reminders stop. | | |
+| H4 | Close One Breath and tap Breath again. | Still the conversation screen in Quiet. Never the older "LOCKED IN" screen. | | |
+| H5 | In Quiet tap "Plans changed?" then "Back to Quiet". | "What changed?" with "My plan is cancelled", "Back to Quiet", "Emergency? 911". Back returns to Quiet. Nothing is saved. | | |
+| H6 | Tap "Plans changed?", type what changed and send. | The existing Plans changed screen opens with your words already in the field. | | |
+| H7 | Tap "Plans changed?" then "My plan is cancelled". | "Plan cancelled. Your plan has ended. This does not record a return or check-in." The row is gone. Moments shows it as cancelled, with no return. | | |
+| H8 | In Quiet tap "Heading back?". | "Made it back." with "Made it back ✓", "Open Uber", "Open Lyft", "Back to Quiet". | | |
+| H9 | Tap "Open Uber". | Uber (or its web page) opens. Nothing is sent from AFORCE. | | |
+| H10 | Tap "Made it back ✓". Tap it twice fast. | Replay opens for that Moment. One return is recorded. | | |
+| H11 | During Quiet type "log 16 oz water". | Logged once with Undo, as in section C. Quiet does not end. | | |
+| H12 | With a sealed plan open, type a new plan ("Lift tomorrow at 6:30 AM"). | "[Plan name] is still open. One plan at a time." No second plan is saved. | | |
+| H13 | Turn on airplane mode and tap "Lock In". | "Could not enter Quiet. Please try Lock In again." The row still says "SEALED". | | |

@@ -113,6 +113,11 @@ export interface OneBreathContext {
    * still held for its Undo window before anything is written.
    */
   undoAfterLog?: (categoryId: string, name: string) => boolean;
+  /**
+   * The title of a One Breath plan that is sealed and still open. There is one
+   * open plan at a time, so a new one is not started while this is set.
+   */
+  openPlanTitle?: string;
   /** Upcoming Moments from the Moments store, soonest first. Absent means the list could not be read. */
   upcoming?: { title: string; day: string; time: string }[];
 }
@@ -234,6 +239,9 @@ export function screenNamed(words: string): string | null {
 }
 
 /** Member-facing lines. From the approved prototype and the spec; wording is for Julius to review before any screen shows it. */
+/** Said when a new plan is asked for while one is still open. New wording, for Julius to review. */
+export const planStillOpenLine = (title: string) => `${title} is still open. One plan at a time.`;
+
 export const ONE_BREATH_LINES = {
   // The spec's line also offers "message your Circle". It is left out until messaging is built: the line must not promise it.
   limit:
@@ -620,6 +628,8 @@ export function oneBreathTurn(
   }
 
   if (heard.request === 'plan_moment') {
+    // One open plan at a time: the open one is finished or cancelled first.
+    if (context.openPlanTitle && !kept.pendingPlan) return answer('limit', 'plan_moment', planStillOpenLine(context.openPlanTitle));
     const safety = heard.outcome === 'safety';
     const started = planFromWords(input.words, now, { social: context.social, timingOnly: safety });
     if (started.asking) return ask(started.plan, started.asking);

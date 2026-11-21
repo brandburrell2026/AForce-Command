@@ -33,6 +33,10 @@ export type ConversationItem =
   | { kind: 'plan'; key: string; rows: PlanRow[]; note?: string }
   /** A fact repeated from its owner, with the card that shows it. */
   | { kind: 'result'; key: string; value: number; word: string; estimated: boolean }
+  /** A saved plan that is still open: its name, when it is, and its state. */
+  | { kind: 'moment'; key: string; title: string; when: string; pill: string }
+  /** Buttons for what can be done next. `id` is what the screen is told. */
+  | { kind: 'actions'; key: string; actions: { id: string; label: string; primary?: boolean; disabled?: boolean }[]; note?: string }
   /** Undo, while it is still open. */
   | { kind: 'undo'; key: string; reverses: string; lasts: string };
 

@@ -18,6 +18,7 @@
 import { DRINK_CATEGORIES, formatDrinkDisplayName, type DrinkCategoryId } from "@/data/drinkCatalog";
 import { validateMomentDraft, createConfirmedMoment, type MomentDraft } from "@/services/momentDraft";
 import { PREPARATION_POLICY_VERSION, preparationReviewMatches, reviewedPreparationSteps } from "@/services/momentPreparation";
+import { preparationClosed } from "@/services/momentPreparationLifecycle";
 import { alcoholDisclosure } from "@/services/momentSafetyContext";
 import type { Moment, MomentPreparation, MomentType } from "@/types/moments";
 import { drinkRoute } from "@/utils/hydration/drinkRoute";
@@ -118,6 +119,30 @@ export function lockInMoment(owners: OneBreathOwners, momentId: string): Promise
     owners.commitMoment({ ...saved, preparation: { ...saved.preparation!, lockedInAtIso: new Date(now()).toISOString(), transactionId: transaction() } }, saved),
   );
 }
+
+/**
+ * Ends an open plan the way the existing Quiet screens do: one commit that
+ * stamps the outcome and drops any private safety context. A plan already
+ * closed is left exactly as it is, so a second tap changes nothing.
+ */
+function closePlan(owners: OneBreathOwners, momentId: string, outcome: "returnedAtIso" | "cancelledAtIso"): Promise<Moment> {
+  const now = owners.now ?? Date.now;
+  const saved = owners.moments().find((m) => m.id === momentId);
+  if (!saved?.preparation?.sealedAtIso) return Promise.reject(new Error("No sealed plan."));
+  if (preparationClosed(saved.preparation)) return Promise.resolve(saved);
+  // "Made it back" belongs to a plan that was locked in. A cancellation is never a return.
+  if (outcome === "returnedAtIso" && !saved.preparation.lockedInAtIso) return Promise.reject(new Error("Not locked in."));
+  return owners.commitMoment(
+    { ...saved, safetyContext: undefined, preparation: { ...saved.preparation, [outcome]: new Date(now()).toISOString(), transactionId: transaction() } },
+    saved,
+  );
+}
+
+/** "Made it back": the plan is closed as returned. */
+export const returnFromPlan = (owners: OneBreathOwners, momentId: string) => closePlan(owners, momentId, "returnedAtIso");
+
+/** "My plan is cancelled": the plan is closed as cancelled, with no return recorded. */
+export const cancelPlan = (owners: OneBreathOwners, momentId: string) => closePlan(owners, momentId, "cancelledAtIso");
 
 /** One drink, down the rail its kind belongs to. Only plain water can move HydroState. */
 export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreathEffect, { kind: "log_drink" }>): Promise<string | undefined> {

@@ -1,6 +1,6 @@
 /**
  * The connected One Breath conversation is reachable in internal builds only,
- * and only for a new plan (Brandon, 2026-11-20). It is still not for outside
+ * for a new plan and for a sealed or locked-in one (Brandon, 2026-11-21). It is still not for outside
  * testers until it has passed device testing and its wording is reviewed.
  */
 import { describe, it, expect } from 'vitest';
@@ -51,11 +51,15 @@ describe('One Breath conversation · where it opens', () => {
     expect(oneBreathOpensConversation({ ...base, proposal: 'p' })).toBe(false);
   });
 
-  it('an open One Breath plan keeps its Lock In, Quiet and Replay screens', () => {
-    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep())] })).toBe(false);
-    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ lockedInAtIso: '2026-11-20T10:05:00Z' }))] })).toBe(false);
+  it('a sealed plan, and a plan in Quiet, open in the conversation as the prototype shows them', () => {
+    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep())] })).toBe(true);
+    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ lockedInAtIso: '2026-11-20T10:05:00Z' }))] })).toBe(true);
     // A Social plan is not One Breath's.
     expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ context: 'social' }))] })).toBe(true);
+  });
+
+  it('a plan saved but never sealed keeps the existing Plan screen', () => {
+    expect(oneBreathOpensConversation({ ...base, moments: [moment(prep({ sealedAtIso: '' }))] })).toBe(false);
   });
 
   it('the connected screen uses no AI model and writes nothing itself', () => {
