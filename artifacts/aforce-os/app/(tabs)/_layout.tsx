@@ -38,7 +38,7 @@ import { useOrbHidden } from '@/services/orbVisibility';
 import { TabGlyph } from '@/components/navigation/TabGlyph';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { oneBreathOrbRaise, oneBreathTabHitSlop } from '@/utils/navigation/oneBreathOrbGeometry';
-import { DEMO_MODE } from '@/services/demoMode';
+import { DEMO_MODE, CAPTURE_MODE } from '@/services/demoMode';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
@@ -498,7 +498,9 @@ export default function TabLayout() {
   // is always mounted in the root _layout (the app refuses to render
   // without a publishable key).
   const { isLoaded, isSignedIn } = useAuth();
-  if (isLoaded && !isSignedIn && !DEMO_MODE) {
+  // CAPTURE_MODE is dev-only (compile-time false in any release bundle); app/index.tsx
+  // already skips sign-in for it. Dev-build branch only.
+  if (isLoaded && !isSignedIn && !DEMO_MODE && !CAPTURE_MODE) {
     return <Redirect href="/(auth)/sign-in" />;
   }
   // Native Liquid Glass tabs (expo-router/unstable-native-tabs →
