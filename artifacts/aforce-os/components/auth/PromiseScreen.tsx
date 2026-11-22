@@ -26,10 +26,16 @@ export const PROMISE_WORDMARK = 'AFORCE OS™';
 /** The photograph fills the upper screen and fades out above the promise. */
 const PROMISE_PHOTO_HEIGHT = 560;
 
-export function PromiseScreen() {
+export interface PromiseViewProps {
+  onCreate: () => void;
+  onSignIn: () => void;
+}
+
+/** The promise layout itself. The cold-launch front door reuses it, so the two
+ *  first screens a member can meet look the same. */
+export function PromiseView({ onCreate, onSignIn }: PromiseViewProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <GradientBackground>
@@ -58,7 +64,7 @@ export function PromiseScreen() {
         <Text style={styles.sub}>{t('auth.v2.promise_body')}</Text>
 
         <Pressable
-          onPress={() => router.push('/(auth)/sign-up')}
+          onPress={onCreate}
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           accessibilityRole="button"
           accessibilityLabel={t('auth.v2.promise_create')}
@@ -68,7 +74,7 @@ export function PromiseScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => router.push('/(auth)/sign-in')}
+          onPress={onSignIn}
           style={({ pressed }) => [styles.textButton, pressed && styles.pressed]}
           accessibilityRole="button"
           accessibilityLabel={t('auth.v2.promise_signin')}
@@ -80,6 +86,16 @@ export function PromiseScreen() {
         <Text style={styles.note}>{t('auth.v2.promise_privacy')}</Text>
       </View>
     </GradientBackground>
+  );
+}
+
+export function PromiseScreen() {
+  const router = useRouter();
+  return (
+    <PromiseView
+      onCreate={() => router.push('/(auth)/sign-up')}
+      onSignIn={() => router.push('/(auth)/sign-in')}
+    />
   );
 }
 

@@ -45,8 +45,18 @@ describe('promise screen — the prototype\'s copy, word for word', () => {
 
 describe('promise screen — two ways in, nothing else', () => {
   it('"Create account" opens sign-up and "I have an account" opens sign-in', () => {
-    expect(CODE).toMatch(/router\.push\('\/\(auth\)\/sign-up'\)[\s\S]{0,400}testID="promise-create"/);
-    expect(CODE).toMatch(/router\.push\('\/\(auth\)\/sign-in'\)[\s\S]{0,400}testID="promise-signin"/);
+    // The layout takes its two actions as props (the cold-launch front door reuses it);
+    // the route wires them to the existing sign-up and sign-in screens.
+    expect(CODE).toMatch(/onPress=\{onCreate\}[\s\S]{0,400}testID="promise-create"/);
+    expect(CODE).toMatch(/onPress=\{onSignIn\}[\s\S]{0,400}testID="promise-signin"/);
+    expect(CODE).toMatch(/onCreate=\{\(\) => router\.push\('\/\(auth\)\/sign-up'\)\}/);
+    expect(CODE).toMatch(/onSignIn=\{\(\) => router\.push\('\/\(auth\)\/sign-in'\)\}/);
+  });
+
+  it('the cold-launch front door is the same layout, with its own destinations', () => {
+    const hero = read('components/welcome/WelcomeHero.tsx');
+    expect(hero).toMatch(/<PromiseView onCreate=\{onGetStarted\} onSignIn=\{onSignIn\} \/>/);
+    expect(hero).not.toMatch(/t\('welcome\.|fontFamily/);
     expect(CODE.match(/router\.(push|replace)\(/g)).toHaveLength(2);
   });
 

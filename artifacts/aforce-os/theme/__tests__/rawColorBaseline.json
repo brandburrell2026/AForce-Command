@@ -59,7 +59,6 @@
   "components/ui/AFDisclosureSheet.tsx": 1,
   "components/ui/AFEditorialHero.tsx": 1,
   "components/ui/AFOfflineBanner.tsx": 2,
-  "components/welcome/WelcomeHero.tsx": 5,
   "data/flavors.ts": 2,
   "data/healthProviders.ts": 7,
   "data/mockData.ts": 12,
