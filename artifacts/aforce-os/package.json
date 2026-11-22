@@ -78,7 +78,6 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
-    "@workspace/api-zod": "workspace:*",
     "@clerk/expo": "3.2.2",
     "@expo-google-fonts/archivo-black": "^0.4.1",
     "@expo-google-fonts/bebas-neue": "^0.4.1",
@@ -87,6 +86,7 @@
     "@kingstinct/react-native-healthkit": "14.0.2",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@workspace/activation-core": "workspace:*",
+    "@workspace/api-zod": "workspace:*",
     "@workspace/health-core": "workspace:*",
     "expo": "~54.0.35",
     "expo-asset": "~12.0.13",
@@ -94,6 +94,7 @@
     "expo-build-properties": "~1.0.10",
     "expo-calendar": "~15.0.8",
     "expo-camera": "~17.0.10",
+    "expo-dev-client": "~6.0.21",
     "expo-document-picker": "~14.0.8",
     "expo-localization": "~17.0.9",
     "expo-print": "~15.0.8",
