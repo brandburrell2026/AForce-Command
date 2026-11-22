@@ -32,7 +32,6 @@ import { countRealHistoryEntries, resolveHomeEvidence } from "@/components/home/
 import { useOneBreathVoice } from "@/hooks/useOneBreathVoice";
 import { carryUndo } from "@/services/carriedUndo";
 import { closeOneBreath } from "@/services/oneBreathOrigin";
-import { travelPilotAvailable } from "@/featureFlags/flags";
 import { cancelPlan, canUndoLoggedDrink, lockInMoment, returnFromPlan, saveReplay, type OneBreathOwners } from "@/services/oneBreath/effects";
 import { approveLessonFromReplay, hydrateMomentLessons, lessonForMoment, useMomentLessons } from "@/services/momentLessons";
 import { momentReturnLabel, rideHandoffUrl } from "@/services/momentPreparation";
@@ -44,7 +43,6 @@ import { cleanReplayNote, type ReplayAnswer, type ReplayObstacle } from "@/utils
 import { ONE_BREATH_LINES } from "@/utils/oneBreath/session";
 import { lockInOpensInMs } from "@/utils/oneBreath/lockInWindow";
 import { OPEN_PLAN_LINES, openOneBreathPlan, openPlanItems, contactNumber, openPlanPhase, planDraftFromMoment, resumableDraft, type OpenPlanMode, type PlanSafety } from "@/utils/oneBreath/openPlan";
-import { tripHandoff } from "@/utils/oneBreath/tripHandoff";
 import { commitReviewedMoment, hydrateMoments, useMomentsStore } from "@/services/momentsStore";
 import { createOneBreathConversation, type ConversationHost } from "@/services/oneBreath/conversationController";
 import { lockInWithoutReminders } from "@/services/quietDelivery";
@@ -334,14 +332,6 @@ export function OneBreathConversationScreen() {
     if (cancelled) setCancelled(false);
     // Anything else moves on from a finished or unanswered Replay; it stays in Moments.
     if (replayFor) setReplayFor(undefined);
-    const session = controller.getSnapshot().session;
-    const flags = live.current.app.state.featureFlags;
-    const route = tripHandoff(said, { session, travelAvailable: !!flags && travelPilotAvailable(flags), now: new Date() });
-    if (route) {
-      // Travel shows what it understood on a card, asks only for what is missing, and saves nothing until confirmed.
-      live.current.router.push(route as never);
-      return;
-    }
     controller.send({ kind: "say", words: said, via });
   };
   const voice = useOneBreathVoice((text, info) => {
