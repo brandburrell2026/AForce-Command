@@ -9,6 +9,7 @@
  * a deep link or a stale back-stack after sign-in.
  */
 
+import { afterSignInRoute } from '@/services/momentReturn';
 import React from 'react';
 import { Stack, Redirect } from 'expo-router';
 import { useAuth } from '@clerk/expo';
@@ -22,7 +23,8 @@ export default function AuthLayout() {
   }
 
   if (isSignedIn) {
-    return <Redirect href={'/(tabs)' as never} />;
+    // A tap on the AFORCE mark that needed sign-in goes back to the Moment.
+    return <Redirect href={afterSignInRoute() as never} />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

@@ -12,6 +12,7 @@
  * trap where a previous "complete" sign-in would block re-login.
  */
 
+import { afterSignInRoute } from '@/services/momentReturn';
 import React from 'react';
 import {
   View, Text, StyleSheet, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView,
@@ -56,7 +57,7 @@ export function SignInScreenV2() {
         // versions is no longer reliably invoked; activate the
         // session, then route ourselves.
         await ssoSetActive({ session: createdSessionId });
-        router.replace('/(tabs)');
+        router.replace(afterSignInRoute() as never);
       }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : t('auth.v2.signin_err_google'));
@@ -76,7 +77,7 @@ export function SignInScreenV2() {
       });
       if (attempt.status === 'complete') {
         await setActive({ session: attempt.createdSessionId });
-        router.replace('/(tabs)');
+        router.replace(afterSignInRoute() as never);
       } else {
         // Multi-factor or other intermediate states; surface a clear
         // message rather than silently stalling.

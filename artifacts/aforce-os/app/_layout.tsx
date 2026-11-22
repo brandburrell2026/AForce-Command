@@ -1,6 +1,7 @@
 import { useLaunchPhase, type LaunchPhase } from '@/hooks/useLaunchPhase';
 import '../polyfills';
 import { useMomentsStore } from '@/services/momentsStore';
+import { syncMomentLiveActivity } from '@/services/momentLiveActivity';
 import { useQuietDeliveryBlocked } from '@/services/quietDelivery';
 import { useMomentSafetyExpiry } from '@/hooks/useMomentSafetyExpiry';
 import { TravelLifecycleMount } from '@/components/travel/TravelLifecycleMount';
@@ -44,7 +45,7 @@ import {
 } from '@/services/userScope';
 import { safeTokenCache } from '@/featureFlags/safeTokenCache';
 import { af } from '@/theme/afTokens';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
@@ -246,6 +247,25 @@ function CommandLedgerSyncMount() {
  * The readiness number is a read-only projection of the live engine
  * score (Score-Protection): the opening never awards or mutates score.
  */
+/**
+ * Shows the AFORCE mark in the Dynamic Island and on the Lock Screen while a
+ * One Breath plan is locked in, and removes it when the plan ends. It only
+ * follows the saved Moments; it changes nothing. Re-checked when the app comes
+ * back to the front, so an expired card is cleared.
+ */
+function MomentLiveActivitySync() {
+  const { moments, hydrated } = useMomentsStore();
+  React.useEffect(() => {
+    if (!hydrated) return;
+    void syncMomentLiveActivity(moments);
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void syncMomentLiveActivity(moments);
+    });
+    return () => sub.remove();
+  }, [moments, hydrated]);
+  return null;
+}
+
 function OpeningMount({ onDone }: { onDone: () => void }) {
   const { hydrated: momentsHydrated } = useMomentsStore();
   const quiet = useQuietDeliveryBlocked();
@@ -469,6 +489,7 @@ function AppShell() {
                   {/* Mounted *inside* AppProvider so the entitlement
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
+                  <MomentLiveActivitySync />
                   <TravelLifecycleMount />
                   <MomentPrivacyMaintenanceMount />
                   {/* Records acquisition QR / activation deep-links; no routing. */}
