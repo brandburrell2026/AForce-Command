@@ -17,12 +17,15 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/GradientBackground';
 import { af } from '@/theme';
+import { AFMark } from '@/components/ui/AFMark';
 import { WorldPhotoHero } from '@/components/world/WorldPhoto';
 import { worldPhoto } from '@/components/world/worldPhotoSources';
 import { WELCOME_SCENE } from '@/utils/worldPhoto';
 
 /** Same mark as the cold-launch sequence (spec v1.8.2 Part 8.6, decision C5). */
 export const PROMISE_WORDMARK = 'AFORCE OS™';
+/** The thin N–И mark, the same one as the app icon and splash (AFMark). */
+const PROMISE_MARK_SIZE = 30;
 /** The photograph fills the upper screen and fades out above the promise. */
 const PROMISE_PHOTO_HEIGHT = 560;
 
@@ -45,11 +48,7 @@ export function PromiseView({ onCreate, onSignIn }: PromiseViewProps) {
         testID="promise-screen"
       >
         <View style={styles.brand} accessible accessibilityLabel="AFORCE OS">
-          <View style={styles.mark} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <Text style={styles.markGlyph}>N</Text>
-            <View style={styles.markBar} />
-            <Text style={[styles.markGlyph, styles.markMirrored]}>N</Text>
-          </View>
+          <AFMark size={PROMISE_MARK_SIZE} decorative testID="promise-mark" />
           <Text style={styles.wordmark} accessibilityElementsHidden importantForAccessibility="no">
             {PROMISE_WORDMARK}
           </Text>
@@ -102,10 +101,6 @@ export function PromiseScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 22 },
   brand: { alignItems: 'center', gap: 8, paddingTop: 6 },
-  mark: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  markGlyph: { fontFamily: 'Inter_600SemiBold', fontSize: 22, lineHeight: 26, color: af.redText },
-  markMirrored: { transform: [{ scaleX: -1 }] },
-  markBar: { width: 2, height: 20, backgroundColor: af.red },
   wordmark: {
     fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2.6,
     color: af.textPrimary,

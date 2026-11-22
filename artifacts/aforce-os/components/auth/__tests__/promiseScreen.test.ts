@@ -38,8 +38,11 @@ describe('promise screen — the prototype\'s copy, word for word', () => {
   it('carries the same mark as the cold-launch sequence', () => {
     expect(CODE).toContain("PROMISE_WORDMARK = 'AFORCE OS™'");
     expect(read('components/opening/OpeningSequence.tsx')).toContain("OS_WORDMARK = 'AFORCE OS™'");
-    // The right-hand N is the mirrored one.
-    expect(CODE).toMatch(/markMirrored: \{ transform: \[\{ scaleX: -1 \}\] \}/);
+    // The thin N–И mark, drawn by the one component that draws it (the
+    // right-hand N is mirrored there), never typed or rebuilt locally.
+    expect(CODE).toMatch(/<AFMark size=\{PROMISE_MARK_SIZE\} decorative/);
+    expect(CODE).not.toMatch(/markGlyph|markBar/);
+    expect(read('components/ui/AFMark.tsx')).toMatch(/mirror: \{ transform: \[\{ scaleX: -1 \}\] \}/);
   });
 });
 
