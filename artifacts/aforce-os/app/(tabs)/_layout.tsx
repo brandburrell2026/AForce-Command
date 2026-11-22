@@ -55,7 +55,6 @@ function NativeTabLayout() {
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="journal">
-        <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
         <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="one-breath-tab">
@@ -390,7 +389,8 @@ function ClassicTabLayout() {
         listeners={{ tabLongPress: () => router.push('/scan') }}
         options={{
           title: t('tabs.hydration'),
-          tabBarIcon: ({ color }) => <TabGlyph name="hydration" color={color} />,
+          // No water icon on this tab (founder direction, Brandon, 2026-11-22): the label stands alone.
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen

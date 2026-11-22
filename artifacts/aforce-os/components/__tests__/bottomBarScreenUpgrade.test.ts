@@ -48,10 +48,19 @@ describe('order and icons', () => {
 
   // Founder instruction 2026-11-18: the bar must match the approved prototype.
   // Its four icons are the prototype's own drawings, the same on both platforms.
-  it('uses the prototype icons for the four tabs', () => {
-    for (const name of ['home', 'hydration', 'moments', 'circles']) {
+  // Founder direction 2026-11-22 (Brandon): no water icon on the Hydration tab.
+  // Its label stands alone; the other three keep the prototype's drawings.
+  it('uses the prototype icons for Home, Moments and Circles, and no water icon for Hydration', () => {
+    for (const name of ['home', 'moments', 'circles']) {
       expect(classic).toContain(`<TabGlyph name="${name}" color={color} />`);
     }
+    expect(classic).not.toContain('name="hydration"');
+    expect(layout).not.toMatch(/drop\.circle|droplet/);
+    const glyphSrc = require('node:fs').readFileSync(
+      require('node:path').join(__dirname, '..', 'navigation', 'TabGlyph.tsx'),
+      'utf8',
+    ) as string;
+    expect(glyphSrc).not.toContain("name === 'hydration'");
     expect(layout).not.toMatch(/bolt\.circle|name="zap"/);
     expect(layout).not.toMatch(/trophy/i);
   });
