@@ -357,6 +357,20 @@ export async function postRecordedDrink(input: {
   }
 }
 
+/**
+ * Take one saved drink back out of the member's log: the Undo for a drink
+ * that is not water. True when the server confirms it is gone, including when
+ * an earlier try already removed it. It changes no state and no score.
+ */
+export async function removeRecordedDrink(id: number): Promise<boolean> {
+  if (!Number.isInteger(id) || id <= 0) return false;
+  const auth = await getAuthHeaders();
+  const res = await fetch(`${AFORCE_BASE}/drinks/${id}`, { method: 'DELETE', headers: auth });
+  if (!res.ok) throw new Error(`DELETE /drinks/${id} → ${res.status}`);
+  await res.json();
+  return true;
+}
+
 /** Read only the private drink log. These records never become HydroState input. */
 export async function getRecordedDrinks(limit = 10): Promise<RecordedDrink[]> {
   const response = await getJson<{ drinks: RecordedDrink[] }>(`/drinks?limit=${Math.max(1, Math.min(100, Math.floor(limit)))}`);
