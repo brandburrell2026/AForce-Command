@@ -43,7 +43,7 @@
   "components/journal/JournalChart.tsx": 28,
   "components/journal/JournalDayCard.tsx": 18,
   "components/leaderboard/LeaderboardScreenV2.tsx": 1,
-  "components/opening/OpeningSequence.tsx": 2,
+  "components/opening/OpeningSequence.tsx": 1,
   "components/performanceStatement/PostStatementIntentPrompt.tsx": 5,
   "components/profile/panes/DeveloperPane.tsx": 2,
   "components/profile/profileKit.tsx": 14,
