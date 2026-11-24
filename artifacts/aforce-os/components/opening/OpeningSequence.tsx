@@ -255,6 +255,38 @@ function MonogramHero({
   );
 }
 
+/** The word whose leading N is turned, as in the N–И mark. */
+const TURNED_WORD = 'NEGOTIABLE';
+
+/**
+ * "NON — ИEGOTIABLE": the leading N of NEGOTIABLE is turned to match the mark
+ * (founder direction, 2026-11-23). It is a real "N" in a mirrored wrapper,
+ * never the Cyrillic letter typed as text, so a screen reader still reads
+ * "NON — NEGOTIABLE". A caption without that word (another language) renders
+ * as plain text.
+ */
+function BrandCaption({ text }: { text: string }) {
+  const at = text.toUpperCase().indexOf(TURNED_WORD);
+  if (at < 0) return <Text style={styles.brandCaption}>{text}</Text>;
+  return (
+    <View
+      style={styles.brandCaptionRow}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={text}
+      testID="opening-brand-caption"
+    >
+      <Text style={styles.brandCaption}>{text.slice(0, at)}</Text>
+      <View style={styles.brandCaptionTurned} testID="opening-brand-caption-turned">
+        <Text style={[styles.brandCaption, styles.brandCaptionTurnedLetter]}>
+          {text.slice(at, at + 1)}
+        </Text>
+      </View>
+      <Text style={styles.brandCaption}>{text.slice(at + 1)}</Text>
+    </View>
+  );
+}
+
 function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
   const { t } = useTranslation();
   return (
@@ -282,10 +314,7 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
         <Reveal active={active} reduce={reduce} delay={reduce ? 180 : 1300} dy={8}>
           <View style={styles.captionBlock}>
             <View style={styles.captionRule} />
-            {/* Plain forward-facing text. The scaleX(-1) mirror is isolated to
-                the monogram's right N only (see MonogramHero) — it must NOT leak
-                onto any caption N. */}
-            <Text style={styles.brandCaption}>{t('opening.brand_caption')}</Text>
+            <BrandCaption text={t('opening.brand_caption')} />
             <View style={styles.captionRule} />
           </View>
         </Reveal>
@@ -659,6 +688,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
+  brandCaptionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  // The turned N carries its own spacing: letterSpacing trails a glyph, and a
+  // mirrored trailing gap would land on the wrong side.
+  brandCaptionTurned: { transform: [{ scaleX: -1 }], marginRight: 4 },
+  brandCaptionTurnedLetter: { letterSpacing: 0 },
 
   // Stage 3
   ritualWord: {

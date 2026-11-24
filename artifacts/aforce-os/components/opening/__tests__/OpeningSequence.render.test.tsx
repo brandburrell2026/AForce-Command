@@ -300,3 +300,18 @@ describe('the opening starts on the brand, with no water-drop screen', () => {
     }
   });
 });
+
+describe('NON — ИEGOTIABLE: the leading N of NEGOTIABLE is turned', () => {
+  it('turns exactly one caption letter, a real N, and keeps the words readable', () => {
+    render();
+    flushSync(() => vi.advanceTimersByTime(1_700));
+    const caption = host.querySelector('[data-testid="opening-brand-caption"]');
+    expect(caption).not.toBeNull();
+    expect(caption!.textContent).toBe('NON — NEGOTIABLE');
+    const turned = caption!.querySelector('[data-testid="opening-brand-caption-turned"]') as HTMLElement;
+    expect(turned.textContent).toBe('N');
+    expect(turned.style.transform || getComputedStyle(turned).transform || '').toContain('scaleX(-1)');
+    expect(caption!.textContent).not.toContain('И');
+    expect(caption!.getAttribute('aria-label')).toBe('NON — NEGOTIABLE');
+  });
+});
