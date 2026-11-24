@@ -44,6 +44,32 @@ export function parseHydroScanTextResult(value: unknown): HydroScanTextLine[] | 
   return out;
 }
 
+/** What one look at the drink gives back, beyond the text. Every field is optional. */
+export type HydroScanFrame = Readonly<{
+  lines: HydroScanTextLine[];
+  /** The most prominent object, 0..1 with a top-left origin, when the platform finds one. */
+  object: Readonly<{ x: number; y: number; width: number; height: number }> | null;
+  /** Width over height of the picture the boxes refer to. */
+  aspect: number | null;
+  /** Mean brightness, 0..1. */
+  brightness: number | null;
+}>;
+
+/** Text plus the optional box, shape and brightness. Fails closed to null like the text parser. */
+export function parseHydroScanFrameResult(value: unknown): HydroScanFrame | null {
+  const lines = parseHydroScanTextResult(value);
+  if (!lines) return null;
+  const raw = value as Record<string, unknown>;
+  const o = raw.object as Record<string, unknown> | undefined;
+  const object =
+    o && unit(o.x) && unit(o.y) && unit(o.width) && unit(o.height) && (o.width as number) > 0 && (o.height as number) > 0
+      ? { x: o.x as number, y: o.y as number, width: o.width as number, height: o.height as number }
+      : null;
+  const aspect = typeof raw.aspect === 'number' && Number.isFinite(raw.aspect) && raw.aspect > 0.2 && raw.aspect < 5 ? raw.aspect : null;
+  const brightness = unit(raw.brightness) ? raw.brightness : null;
+  return { lines, object, aspect, brightness };
+}
+
 export const hydroScanLabelTextAvailable = (): boolean => nativeModule != null;
 
 /**
@@ -56,6 +82,20 @@ export async function recognizeLabelText(picture: PictureRef): Promise<HydroScan
   if (!nativeModule) return null;
   try {
     return parseHydroScanTextResult(await nativeModule.recognizeAsync(picture));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The same on-device read as `recognizeLabelText`, with the box around the
+ * drink, the picture's shape and its brightness when the platform reports
+ * them. Same rules: no file, no network, nothing logged; null on any failure.
+ */
+export async function recognizeLabelFrame(picture: PictureRef): Promise<HydroScanFrame | null> {
+  if (!nativeModule) return null;
+  try {
+    return parseHydroScanFrameResult(await nativeModule.recognizeAsync(picture));
   } catch {
     return null;
   }

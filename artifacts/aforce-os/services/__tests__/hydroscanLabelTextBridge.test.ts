@@ -4,7 +4,9 @@ vi.mock('expo', () => ({ requireOptionalNativeModule: () => null }));
 
 import {
   hydroScanLabelTextAvailable,
+  parseHydroScanFrameResult,
   parseHydroScanTextResult,
+  recognizeLabelFrame,
   recognizeLabelText,
 } from '../../modules/hydroscan-label-text';
 
@@ -37,5 +39,37 @@ describe('HydroScan label text bridge', () => {
     expect(out[0]).toEqual({ text: 'A' });
     expect(out[1]!.text.length).toBe(200);
     expect(parseHydroScanTextResult({ state: 'OK', lines: Array(300).fill({ text: 'x' }) })!.length).toBe(120);
+  });
+});
+
+describe('HydroScan frame result: the box, shape and brightness fail closed', () => {
+  const lines = [{ text: 'WATER', confidence: 0.9, box: { x: 0.3, y: 0.3, width: 0.3, height: 0.05 } }];
+
+  it('keeps a valid box, shape and brightness', () => {
+    const f = parseHydroScanFrameResult({
+      state: 'OK',
+      lines,
+      object: { x: 0.3, y: 0.2, width: 0.4, height: 0.6, confidence: 0.8 },
+      aspect: 0.75,
+      brightness: 0.4,
+    });
+    expect(f).toEqual({ lines, object: { x: 0.3, y: 0.2, width: 0.4, height: 0.6 }, aspect: 0.75, brightness: 0.4 });
+  });
+
+  it('a platform that reports only text (Android today) gives nulls, not guesses', () => {
+    expect(parseHydroScanFrameResult({ state: 'OK', lines })).toEqual({ lines, object: null, aspect: null, brightness: null });
+  });
+
+  it('drops anything out of range and fails closed on a bad result', () => {
+    const f = parseHydroScanFrameResult({ state: 'OK', lines, object: { x: 2, y: 0, width: 1, height: 1 }, aspect: 40, brightness: 7 });
+    expect(f).toEqual({ lines, object: null, aspect: null, brightness: null });
+    expect(parseHydroScanFrameResult({ state: 'UNAVAILABLE' })).toBeNull();
+    expect(parseHydroScanFrameResult(null)).toBeNull();
+  });
+});
+
+describe('HydroScan frame bridge', () => {
+  it('returns null when the native module is absent', async () => {
+    expect(await recognizeLabelFrame({} as never)).toBeNull();
   });
 });

@@ -18,6 +18,9 @@ const strip = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^
 const FILES = {
   reader: join('components', 'scan', 'hydroscan', 'HydroScanLabelReader.tsx'),
   sheets: join('components', 'scan', 'hydroscan', 'HydroScanLabelSheets.tsx'),
+  film: join('components', 'scan', 'hydroscan', 'HydroScanFilm.tsx'),
+  lock: join('utils', 'hydroscan', 'lockOn.ts'),
+  fill: join('utils', 'hydroscan', 'fillAmount.ts'),
   engine: join('utils', 'hydroscan', 'labelEvidence.ts'),
   amount: join('utils', 'hydroscan', 'amountOptions.ts'),
   log: join('utils', 'hydroscan', 'labelDrinkLog.ts'),
@@ -112,7 +115,8 @@ describe('CAPTURE — only the reader takes a still, in memory, about once a sec
 
   it('without the native text module the reader samples nothing and is the barcode reader', () => {
     expect(src('reader')).toMatch(/hydroScanLabelTextAvailable\(\)/);
-    expect(src('reader')).toMatch(/LABEL_COPY\.frameHintBarcodeOnly/);
+    // The film layout (2026-11-23): with no text module the hint asks for the barcode.
+    expect(src('reader')).toMatch(/mode === 'barcode' \|\| !textOn\s*\?\s*FILM_COPY\.hintBarcode/);
   });
 
   it('evidence is cleared for a different drink and on Scan again', () => {
@@ -184,7 +188,8 @@ describe('LOGGING — confirmed by the member, through the screen\'s own guarded
   });
 
   it('no HydroState ring, score or physiological claim on any new surface (D1, D4)', () => {
-    for (const k of ['reader', 'sheets'] as const) {
+    // The reader's own controls moved to the film layout file (2026-11-23).
+    for (const k of ['film', 'sheets'] as const) {
       const s = src(k);
       expect(s, k).not.toMatch(/hydration\s+score|health\s+score|recovery\s+score|readiness|HydroStateRing|\bring\b|\bscore\b/i);
       expect(s, k).not.toMatch(/\bdehydrat|your body (will|may|is)|\bwill (improve|restore|fix|boost)\b/i);
@@ -196,21 +201,24 @@ describe('LOGGING — confirmed by the member, through the screen\'s own guarded
 
 describe('DESIGN — tokens, targets, labels, no emoji, no literal doses', () => {
   it('colors and fonts come from tokens', () => {
-    for (const k of ['reader', 'sheets'] as const) {
+    // The reader's own controls moved to the film layout file (2026-11-23).
+    for (const k of ['film', 'sheets'] as const) {
       expect(src(k), k).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
       expect(src(k), k).not.toMatch(/\p{Extended_Pictographic}/u);
     }
   });
 
   it('no literal ounce or millilitre numbers in the member-facing components', () => {
-    for (const k of ['reader', 'sheets'] as const) {
+    // The reader's own controls moved to the film layout file (2026-11-23).
+    for (const k of ['film', 'sheets'] as const) {
       const noSizes = src(k).replace(/COMMON_SIZES_OZ[^;]*;/, '');
       expect(noSizes, k).not.toMatch(/['"`>]\s*\d+(\.\d+)?\s?(oz|ml|mL|fl oz)\b/);
     }
   });
 
   it('every control is labelled, has a role, and meets the 44pt floor', () => {
-    for (const k of ['reader', 'sheets'] as const) {
+    // The reader's own controls moved to the film layout file (2026-11-23).
+    for (const k of ['film', 'sheets'] as const) {
       const blocks = src(k).match(/<Pressable[\s\S]*?(?:\/>|<\/Pressable>)/g) ?? [];
       expect(blocks.length, k).toBeGreaterThan(0);
       for (const b of blocks) {

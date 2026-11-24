@@ -19,17 +19,19 @@
  * HydroState). No HydroState ring is shown here (ruling D1).
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Platform, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { CameraView as CameraViewType, PictureRef } from 'expo-camera';
 
-import { af } from '@/theme/afTokens';
 import { type DrinkCategoryId } from '@/data/drinkCatalog';
-import { hydroScanLabelTextAvailable, recognizeLabelText } from '@/modules/hydroscan-label-text';
+import { hydroScanLabelTextAvailable, recognizeLabelFrame, type HydroScanFrame } from '@/modules/hydroscan-label-text';
 import { removeRecordedDrink } from '@/services/realApi';
 import type { ScanSource } from '@/types/scan';
 import { RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '@/utils/hydration/drinkRoute';
 import { availableCategoryOrder } from '@/utils/hydration/drinkAvailability';
 import { parseCustomOz, planAmountStep, type AmountChoice } from '@/utils/hydroscan/amountOptions';
+import { loggableOz, ozToMl } from '@/utils/hydroscan/fillAmount';
+import { boxOnView, hasLight, isSteady, lockPill, lockStage, matchedBy, readout, reliableBounds, type Box } from '@/utils/hydroscan/lockOn';
 import { loggableCatalogSource, resolveBarcodeCandidate, type ResolvedBarcode } from '@/utils/hydroscan/barcodeCandidate';
 import {
   buildDrinkLogArgs,
@@ -52,12 +54,22 @@ import {
   type SampleInput,
 } from '@/utils/hydroscan/labelEvidence';
 
-import { HydroScanFoot, HydroScanFrame, HydroScanModes, HydroScanSheet } from './HydroScanChrome';
+import { HydroScanSheet } from './HydroScanChrome';
+import {
+  FILM_COPY,
+  HydroScanBrackets,
+  HydroScanFillAmount,
+  HydroScanFilmFoot,
+  HydroScanHint,
+  HydroScanLooksLike,
+  HydroScanReview,
+  HydroScanStatus,
+  type FilmMode,
+} from './HydroScanFilm';
 import {
   HydroScanLabelAlcoholUnavailable,
   HydroScanLabelAmount,
   HydroScanLabelCameraOff,
-  HydroScanLabelCard,
   HydroScanLabelQuestion,
   HydroScanLabelSaveFailed,
   HydroScanLabelSizeEdit,
@@ -68,6 +80,10 @@ import { HydroScanLogged, UNKNOWN_DRINK_AMOUNTS_OZ } from './HydroScanUnknown';
 
 /** About one sample a second. */
 export const SAMPLE_INTERVAL_MS = 1000;
+/** How long the lock is held on screen before the card rises, as in the film. */
+export const LOCK_HOLD_MS = 900;
+/** The shape of a portrait still, used until the reader reports the real one. */
+const PORTRAIT_ASPECT = 3 / 4;
 const BARCODE_TYPES = ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'code39', 'qr', 'pdf417', 'datamatrix'];
 const COMMON_SIZES_OZ: readonly number[] = [8, 12, 16, 16.9, 20, 24, 32];
 
@@ -93,7 +109,7 @@ export interface HydroScanLabelReaderProps {
   alcoholAllowed?: boolean;
 }
 
-type Phase = 'reading' | 'pick' | 'sizeedit' | 'amount' | 'alcohol' | 'failed' | 'done';
+type Phase = 'reading' | 'pick' | 'sizeedit' | 'amount' | 'review' | 'alcohol' | 'failed' | 'done';
 
 export function HydroScanLabelReader(props: HydroScanLabelReaderProps) {
   if (Platform.OS === 'web') {
@@ -118,6 +134,19 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<SavedDrink | null>(null);
   const [done, setDone] = useState<{ label: string; note: string; undone: boolean } | null>(null);
+  const insets = useSafeAreaInsets();
+  const [mode, setMode] = useState<FilmMode>('drink');
+  const [area, setArea] = useState({ width: 0, height: 0 });
+  // Where the drink is and how the picture looked, from the last still only.
+  const [seen, setSeen] = useState<{ box: Box | null; steady: boolean | null; light: boolean | null } | null>(null);
+  const lastBoxRef = useRef<Box | null>(null);
+  // The lock is held for a moment before the card rises.
+  const [revealed, setRevealed] = useState(false);
+  // Share of the container drunk, 0..1; null until the member chooses.
+  const [share, setShare] = useState<number | null>(null);
+  // After "Different size" from the Continue path, go on to the amount.
+  const [sizeThenAmount, setSizeThenAmount] = useState(false);
+  const sampleNowRef = useRef<(() => void) | null>(null);
 
   // A new drink in view advances the epoch: results from an older one are dropped.
   const epochRef = useRef(0);
@@ -158,6 +187,11 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
     setSaved(null);
     setDone(null);
     setSaving(false);
+    setSeen(null);
+    lastBoxRef.current = null;
+    setRevealed(false);
+    setShare(null);
+    setSizeThenAmount(false);
   }, []);
 
   // Coming back from a result, the typed entry or a hand-off: a fresh drink.
@@ -183,15 +217,44 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   const undoingRef = useRef(false);
   const openRef = useRef(true);
   openRef.current = phase === 'reading' && reading.status === 'reading';
+  // The preview stays on behind the lock and the card, so the drink stays in view.
+  const previewActive = granted && !paused && appActive && phase === 'reading';
   const cameraActive = granted && !paused && appActive && phase === 'reading' && reading.status === 'reading';
+
+  /** The box around the drink, the steadiness and the light, from one still. Nothing is kept beyond the last one. */
+  const noteFrame = useCallback((frame: HydroScanFrame, epoch: number) => {
+    if (epoch !== epochRef.current) return;
+    const found = reliableBounds(frame.object, frame.lines);
+    const onScreen = found ? boxOnView(found, frame.aspect ?? PORTRAIT_ASPECT, areaRef.current) : null;
+    const steady = isSteady(lastBoxRef.current, found);
+    lastBoxRef.current = found;
+    setSeen({ box: onScreen, steady, light: hasLight(frame.brightness) });
+  }, []);
+  const areaRef = useRef(area);
+  areaRef.current = area;
+
+  // The lock holds for a beat, then the card rises. A drink that goes back to reading starts over.
+  const locked = phase === 'reading' && reading.status === 'ready';
+  useEffect(() => {
+    if (!locked) {
+      setRevealed(false);
+      return undefined;
+    }
+    const t = setTimeout(() => setRevealed(true), LOCK_HOLD_MS);
+    return () => clearTimeout(t);
+  }, [locked]);
 
   // ── The sampler: one still about a second, never overlapping ──────────
   useEffect(() => {
     if (!cameraActive || !textOn) return;
+    // Barcode mode reads the code only: no stills are taken.
+    if (mode !== 'drink') return;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let inFlight = false;
     const tick = async () => {
-      if (stopped) return;
+      if (stopped || inFlight) return;
+      inFlight = true;
       const epoch = epochRef.current;
       let picture: PictureRef | undefined;
       try {
@@ -200,8 +263,10 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
         // In-memory reference: no URI, no base64, no file.
         picture = await camera.takePictureAsync({ pictureRef: true, shutterSound: false, skipProcessing: true, quality: 0.4 });
         if (stopped || epoch !== epochRef.current) return;
-        const lines = await recognizeLabelText(picture);
+        const frame = await recognizeLabelFrame(picture);
         if (stopped || epoch !== epochRef.current) return;
+        if (frame) noteFrame(frame, epoch);
+        const lines = frame ? frame.lines : null;
         if (lines) ingest({ lines }, epoch);
       } catch {
         // A missed sample is only a missed sample.
@@ -211,15 +276,23 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
         } catch {
           // Nothing else holds the reference.
         }
+        inFlight = false;
         if (!stopped) timer = setTimeout(() => void tick(), SAMPLE_INTERVAL_MS);
       }
     };
     timer = setTimeout(() => void tick(), 400);
+    // The round button asks for a read now; it never overlaps one under way.
+    sampleNowRef.current = () => {
+      if (stopped || inFlight) return;
+      if (timer) clearTimeout(timer);
+      void tick();
+    };
     return () => {
       stopped = true;
+      sampleNowRef.current = null;
       if (timer) clearTimeout(timer);
     };
-  }, [cameraActive, textOn, ingest]);
+  }, [cameraActive, textOn, mode, ingest, noteFrame]);
 
   // ── The barcode: as fast as before ────────────────────────────────────
   const handleBarcode = useCallback(
@@ -263,7 +336,11 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   const plan = useMemo(() => planAmountStep(reading.volume, UNKNOWN_DRINK_AMOUNTS_OZ), [reading.volume]);
   const name = displayNameFor(reading);
 
+  const fillOz = reading.volume.confidence === 'confirmed' && reading.volume.value != null && share != null ? loggableOz(reading.volume.value, share) : null;
+  const useFill = plan.mode === 'container' && plan.containerOz != null;
+
   const selectedOz = (): number | null => {
+    if (useFill) return fillOz;
     if (amountId == null) return null;
     if (amountId === 'custom') return parseCustomOz(customText);
     return plan.choices.find((c) => c.id === amountId)?.oz ?? null;
@@ -287,7 +364,19 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
     }
     setAmountId(null);
     setCustomText('');
+    setShare(null);
+    // Continue accepts the size on the card as the starting amount. With no size read, ask for it first.
+    if (reading.volume.value == null) {
+      setSizeThenAmount(true);
+      setPhase('sizeedit');
+      return;
+    }
+    if (reading.volume.confidence !== 'confirmed') setEvidence((e) => applyOverride(e, { volumeOz: reading.volume.value }));
     setPhase('amount');
+  };
+  const afterSize = () => {
+    setPhase(sizeThenAmount ? 'amount' : 'reading');
+    setSizeThenAmount(false);
   };
 
   const doSave = async () => {
@@ -343,9 +432,42 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   const pickAmount = (c: AmountChoice) => setAmountId(c.id);
 
   // ── What is on screen ─────────────────────────────────────────────────
-  const showSheet = phase !== 'reading' || reading.status !== 'reading';
+  const sizeLine = reading.volume.value != null ? `${formatOz(reading.volume.value)} · ${ozToMl(reading.volume.value)} mL` : null;
+  const showCard = locked && revealed;
+  const showSheet = phase !== 'reading' || reading.status === 'question';
+  // The amount and the review take the whole screen, as in the film.
+  let page: React.ReactNode = null;
+  if (phase === 'amount' && useFill && plan.containerOz != null) {
+    page = (
+      <HydroScanFillAmount
+        header={[name, formatOz(plan.containerOz)].join(' · ').toUpperCase()}
+        shape={reading.drinkType.value === 'water' ? 'bottle' : 'can'}
+        containerOz={plan.containerOz}
+        share={share}
+        onShare={setShare}
+        onReview={() => setPhase('review')}
+        onBack={() => setPhase('reading')}
+      />
+    );
+  } else if (phase === 'review' && fillOz != null) {
+    const args = buildDrinkLogArgs(reading, fillOz);
+    page = (
+      <HydroScanReview
+        title={`${formatOz(fillOz)} of ${name}`}
+        drink={name}
+        amount={`${formatOz(fillOz)} · ${ozToMl(fillOz)} mL`}
+        note={args && args.categoryId !== 'water' ? `${RECORDED_DRINK_TITLE}. ${RECORDED_DRINK_DETAIL}` : ''}
+        logLabel={`Log ${formatOz(fillOz)}`}
+        busy={saving || !args}
+        onLog={() => void doSave()}
+        onBack={() => setPhase('amount')}
+      />
+    );
+  }
   let sheet: React.ReactNode = null;
-  if (phase === 'pick') {
+  if (page) {
+    sheet = null;
+  } else if (phase === 'pick') {
     sheet = (
       <HydroScanLabelTypeGrid
         categories={availableCategoryOrder().filter((id): id is DrinkCategoryId => id !== 'custom' && id !== 'alcohol')}
@@ -365,19 +487,22 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
         customValid={customSizeOz != null}
         onPick={(oz) => {
           setEvidence((e) => applyOverride(e, { volumeOz: oz }));
-          setPhase('reading');
+          afterSize();
         }}
         onCustomText={setSizeText}
         onCustomDone={() => {
           if (customSizeOz == null) return;
           setEvidence((e) => applyOverride(e, { volumeOz: customSizeOz }));
-          setPhase('reading');
+          afterSize();
         }}
         onNotSure={() => {
           setEvidence((e) => applyOverride(e, { volumeOz: null }));
+          afterSize();
+        }}
+        onBack={() => {
+          setSizeThenAmount(false);
           setPhase('reading');
         }}
-        onBack={() => setPhase('reading')}
       />
     );
   } else if (phase === 'amount') {
@@ -399,7 +524,7 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   } else if (phase === 'alcohol') {
     sheet = <HydroScanLabelAlcoholUnavailable onScanAgain={resetAll} onType={onType} />;
   } else if (phase === 'failed') {
-    sheet = <HydroScanLabelSaveFailed busy={saving} onRetry={() => void doSave()} onBack={() => setPhase('amount')} />;
+    sheet = <HydroScanLabelSaveFailed busy={saving} onRetry={() => void doSave()} onBack={() => setPhase(useFill ? 'review' : 'amount')} />;
   } else if (phase === 'done' && done) {
     sheet = (
       <HydroScanLogged
@@ -422,29 +547,25 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
         onScanAgain={resetAll}
       />
     );
-  } else if (reading.status === 'ready') {
-    sheet = (
-      <HydroScanLabelCard
-        reading={reading}
-        onConfirm={() => void onConfirm()}
-        onChangeType={() => setPhase('pick')}
-        onChangeSize={() => setPhase('sizeedit')}
-        onConfirmSize={confirmSize}
-        onScanAgain={resetAll}
-        onType={onType}
-      />
-    );
   }
 
-  const frameHint = !permission
-    ? LABEL_COPY.startingCamera
-    : reading.hint
-      ? reading.hint.toUpperCase()
-      : reading.samples > 0 || reading.barcodeCode
-        ? LABEL_COPY.reading
-        : textOn
-          ? LABEL_COPY.frameHint
-          : LABEL_COPY.frameHintBarcodeOnly;
+  const stage = lockStage(reading);
+  const hint = !permission
+    ? FILM_COPY.hintStarting
+    : locked
+      ? lockPill(name)
+      : reading.hint
+        ? reading.hint
+        : stage === 'reading'
+          ? FILM_COPY.hintReading
+          : mode === 'barcode' || !textOn
+            ? FILM_COPY.hintBarcode
+            : FILM_COPY.hintDrink;
+  const cues = {
+    light: seen ? seen.light : null,
+    steady: seen ? seen.steady : null,
+    inFrame: seen ? seen.box != null : null,
+  };
 
   if (permission && !granted) {
     return (
@@ -459,50 +580,62 @@ function HydroScanLabelReaderNative({ paused, torch, onRunning, onType, onHandOf
   }
 
   return (
-    <View style={StyleSheet.absoluteFill} testID="hydroscan-label-reader">
+    <View
+      style={StyleSheet.absoluteFill}
+      onLayout={(e: LayoutChangeEvent) => setArea({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+      testID="hydroscan-label-reader"
+    >
       {granted ? (
         <CameraView
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="back"
-          active={cameraActive}
+          active={previewActive}
           enableTorch={torch}
           barcodeScannerSettings={{ barcodeTypes: BARCODE_TYPES as never }}
           onBarcodeScanned={cameraActive ? handleBarcode : undefined}
         />
       ) : null}
 
-      {showSheet ? (
+      {page ? (
+        page
+      ) : showSheet ? (
         <HydroScanSheet testID="hydroscan-label-sheet">{sheet}</HydroScanSheet>
+      ) : showCard ? (
+        <HydroScanLooksLike
+          name={name}
+          sizeLine={sizeLine}
+          matchedBy={matchedBy(reading)}
+          bars={readout(reading).bars}
+          notice={reading.packagingVerified === false ? LABEL_COPY.packagingUnverified : null}
+          onWrongDrink={() => setPhase('pick')}
+          onDifferentSize={() => setPhase('sizeedit')}
+          onSomeoneElses={resetAll}
+          onContinue={() => void onConfirm()}
+        />
       ) : (
         <>
-          <HydroScanFrame hint={frameHint} note={textOn ? LABEL_COPY.frameNote : LABEL_COPY.frameNoteBarcodeOnly} />
-          <HydroScanFoot>
-            <HydroScanModes
-              selected="label"
-              modes={[
-                { key: 'label', label: LABEL_COPY.modeLabel, accessibilityLabel: 'Label and barcode reader', onPress: () => undefined },
-                { key: 'type', label: LABEL_COPY.typeIt, accessibilityLabel: 'Type your drink', onPress: onType },
-              ]}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Pick the kind of drink from a list"
-              hitSlop={8}
-              onPress={() => setPhase('pick')}
-              style={s.pick}
-              testID="hydroscan-label-pick-type"
-            >
-              <Text style={s.pickText}>{LABEL_COPY.pickType.toUpperCase()}</Text>
-            </Pressable>
-          </HydroScanFoot>
+          <HydroScanStatus top={Math.max(insets.top, 12) + 62} stage={stage} cues={cues} readout={readout(reading)} />
+          <HydroScanBrackets
+            bounds={mode === 'drink' && seen ? seen.box : null}
+            locked={locked}
+            sizeLabel={readout(reading).size}
+            area={area}
+          />
+          <HydroScanHint text={hint} locked={locked} bottom={Math.max(insets.bottom, 14) + 178} />
+          <HydroScanFilmFoot
+            mode={mode}
+            onMode={(m) => {
+              setMode(m);
+              setSeen(null);
+              lastBoxRef.current = null;
+            }}
+            onType={onType}
+            onCapture={() => sampleNowRef.current?.()}
+            captureDisabled={!cameraActive}
+          />
         </>
       )}
     </View>
   );
 }
-
-const s = StyleSheet.create({
-  pick: { marginTop: 10, minHeight: 44, justifyContent: 'center' },
-  pickText: { fontFamily: 'IBMPlexMono_500Medium', fontSize: 11, letterSpacing: 1.6, color: af.textPrimary },
-});
