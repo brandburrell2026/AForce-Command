@@ -315,3 +315,21 @@ describe('NON — ИEGOTIABLE: the leading N of NEGOTIABLE is turned', () => {
     expect(caption!.getAttribute('aria-label')).toBe('NON — NEGOTIABLE');
   });
 });
+
+describe('the ritual: LOCK-IN is the red word', () => {
+  it('spells LOCK-IN with a hyphen, in red, in Inter Bold; the other words stay white', () => {
+    render();
+    flushSync(() => vi.advanceTimersByTime(3_400 + 2_500));
+    const word = (key: string) =>
+      host.querySelector(`[data-testid="opening-ritual_${key}"]`) as HTMLElement;
+    expect(word('lock_in').textContent).toBe('LOCK-IN');
+    const red = getComputedStyle(word('lock_in')).color;
+    expect(red.replace(/\s/g, '')).toMatch(/^rgba?\(229,30,42(,1(\.0+)?)?\)$/);
+    for (const key of ['pause', 'hydrate', 'perform']) {
+      expect(getComputedStyle(word(key)).color).not.toBe(red);
+    }
+    for (const key of ['pause', 'hydrate', 'lock_in', 'perform']) {
+      expect(getComputedStyle(word(key)).fontFamily).toContain('Inter_700Bold');
+    }
+  });
+});

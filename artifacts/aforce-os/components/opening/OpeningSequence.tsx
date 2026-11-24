@@ -16,7 +16,7 @@
  *                    N–И monogram (second N mirrored, bone/silver) → "NON —
  *                    ИEGOTIABLE" (leading N of NEGOTIABLE mirrored). The
  *                    monogram is the emotional peak.
- *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK IN ↓ PERFORM, one at a time.
+ *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK-IN (red) ↓ PERFORM, one at a time.
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
  * Design lock compliance:
@@ -56,6 +56,7 @@ import { useTranslation } from 'react-i18next';
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
 import { AFMark } from '@/components/ui/AFMark';
+import { af } from '@/theme';
 
 const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
@@ -341,6 +342,9 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
 // in locales/*.json.
 const RITUAL_KEYS = ['ritual_pause', 'ritual_hydrate', 'ritual_lock_in', 'ritual_perform'] as const;
 
+/** The one ritual word in red: LOCK-IN, and never PERFORM (founder rule). */
+const RED_RITUAL_KEY = 'ritual_lock_in';
+
 function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
   const { t } = useTranslation();
   const step = reduce ? 90 : 500;
@@ -350,7 +354,12 @@ function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
         {RITUAL_KEYS.map((key, i) => (
           <React.Fragment key={key}>
             <Reveal active={active} reduce={reduce} delay={i * step} dy={10}>
-              <Text style={styles.ritualWord}>{t(`opening.${key}`)}</Text>
+              <Text
+                style={[styles.ritualWord, key === RED_RITUAL_KEY && styles.ritualWordRed]}
+                testID={`opening-${key}`}
+              >
+                {t(`opening.${key}`)}
+              </Text>
             </Reveal>
             {i < RITUAL_KEYS.length - 1 && (
               <Reveal
@@ -702,6 +711,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     textAlign: 'center',
   },
+  ritualWordRed: { color: af.red },
   ritualArrow: {
     fontFamily: FONT_MEDIUM,
     fontSize: 16,
