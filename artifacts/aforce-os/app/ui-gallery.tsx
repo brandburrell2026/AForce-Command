@@ -26,13 +26,10 @@ import {
   AFEmptyState,
   AFErrorState,
   AFDisclosureSheet,
-  AFEditorialHero,
   AFPrice,
   AFProductCard,
   AFSegmentedControl,
 } from '@/components/ui';
-
-const HERO = require('../assets/images/welcome-hero.png');
 
 function Row({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -179,18 +176,6 @@ export default function UIGallery() {
 
       <Row title="Disclosure sheet">
         <AFSecondaryButton label="Open disclosure sheet" onPress={() => setSheet(true)} />
-      </Row>
-
-      <Row title="Editorial hero">
-        <AFEditorialHero
-          source={HERO}
-          height={340}
-          eyebrow="Performance is non-negotiable"
-          title="Built for people who don't get to be off."
-          style={{ borderRadius: 24 }}
-        >
-          <AFPrimaryButton label="Begin setup" onPress={() => {}} />
-        </AFEditorialHero>
       </Row>
 
       <AFDisclosureSheet visible={sheet} onClose={() => setSheet(false)} title="Why this command">

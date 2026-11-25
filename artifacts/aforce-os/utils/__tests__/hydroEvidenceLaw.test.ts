@@ -242,7 +242,8 @@ describe('LAW 7 — genuine observed DEPLETED is untouched', () => {
     const { out } = run(trueDepletedMember());
     expect(out.command.id).toBe('cmd-depleted');
     expect(out.command.urgencyLevel).toBe('critical');
-    expect(out.command.estimatedImpact).toBe('+18 to score');
+    // The fixed "+18 to score" label was removed (founder direction 2026-11-21): it was text, not a calculation.
+    expect(out.command.estimatedImpact).toBe('');
     expect(out.command.action).toMatch(OUNCES);
     expect(out.command.action).toMatch(PRODUCT);
   });

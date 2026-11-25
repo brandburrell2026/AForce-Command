@@ -1,6 +1,7 @@
 import { useLaunchPhase, type LaunchPhase } from '@/hooks/useLaunchPhase';
 import '../polyfills';
 import { useMomentsStore } from '@/services/momentsStore';
+import { syncMomentLiveActivity } from '@/services/momentLiveActivity';
 import { useQuietDeliveryBlocked } from '@/services/quietDelivery';
 import { useMomentSafetyExpiry } from '@/hooks/useMomentSafetyExpiry';
 import { TravelLifecycleMount } from '@/components/travel/TravelLifecycleMount';
@@ -44,7 +45,7 @@ import {
 } from '@/services/userScope';
 import { safeTokenCache } from '@/featureFlags/safeTokenCache';
 import { af } from '@/theme/afTokens';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, usePathname } from 'expo-router';
 
@@ -56,6 +57,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { WelcomeHero } from '@/components/welcome/WelcomeHero';
+import { welcomeGate } from '@/utils/launch/welcomeGate';
 import { useTranslation } from 'react-i18next';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
@@ -68,6 +70,7 @@ import { firstRunRoute } from '@/utils/firstRunRoute';
 import { snoozeRevalidationDelay } from '@/utils/voiceCheckIn';
 import { useVoiceCheckIn } from '@/hooks/useVoiceCheckIn';
 import { VoiceCheckInOverlay } from '@/components/voiceCheckIn/VoiceCheckInOverlay';
+import { CarriedUndoBar } from '@/components/oneBreath/CarriedUndoBar';
 import { PerformanceStatementMount } from '@/components/performanceStatement/PerformanceStatementMount';
 import { enableScreens } from 'react-native-screens';
 import { DEFAULT_FLAGS } from '@/featureFlags/flags';
@@ -96,7 +99,11 @@ setBaseUrl(apiOrigin());
 
 const queryClient = new QueryClient();
 
-const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
+// Keep staging independent of the builder-only legacy Clerk setting.
+// A missing beta key stays missing so staging cannot silently use the regular instance.
+const publishableKey = process.env.EXPO_PUBLIC_BETA_STAGING === '1'
+  ? process.env.EXPO_PUBLIC_BETA_CLERK_PUBLISHABLE_KEY
+  : process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
 const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
 const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
@@ -245,6 +252,25 @@ function CommandLedgerSyncMount() {
  * The readiness number is a read-only projection of the live engine
  * score (Score-Protection): the opening never awards or mutates score.
  */
+/**
+ * Shows the AFORCE mark in the Dynamic Island and on the Lock Screen while a
+ * One Breath plan is locked in, and removes it when the plan ends. It only
+ * follows the saved Moments; it changes nothing. Re-checked when the app comes
+ * back to the front, so an expired card is cleared.
+ */
+function MomentLiveActivitySync() {
+  const { moments, hydrated } = useMomentsStore();
+  React.useEffect(() => {
+    if (!hydrated) return;
+    void syncMomentLiveActivity(moments);
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') void syncMomentLiveActivity(moments);
+    });
+    return () => sub.remove();
+  }, [moments, hydrated]);
+  return null;
+}
+
 function OpeningMount({ onDone }: { onDone: () => void }) {
   const { hydrated: momentsHydrated } = useMomentsStore();
   const quiet = useQuietDeliveryBlocked();
@@ -390,8 +416,9 @@ function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
  *
  * It touches NO routing itself: the buttons call back into AppShell, which
  * navigates (GET STARTED → onboarding, SIGN IN → sign-in) and advances the
- * launch phase to `done`. Universal — shown on every cold launch with no
- * hardware / entitlement gate; Score-Protection is unaffected (pure UI).
+ * launch phase to `done`. Signed-out people only (utils/launch/welcomeGate):
+ * a signed-in member goes straight into the app when the opening finishes.
+ * No hardware / entitlement gate; Score-Protection is unaffected (pure UI).
  */
 function WelcomeMount({
   phase,
@@ -402,9 +429,13 @@ function WelcomeMount({
 }) {
   const quiet = useQuietDeliveryBlocked();
   const { hydrated: momentsHydrated } = useMomentsStore();
+  // AppShell only mounts once Clerk has answered (IdentityGate), so this is a
+  // settled yes or no, never "still loading".
+  const { isSignedIn } = useAuth();
+  const gate = welcomeGate({ phase, signedIn: isSignedIn === true, quiet, momentsHydrated });
   React.useEffect(() => {
-    if (quiet && momentsHydrated && phase !== 'done') onEntered();
-  }, [quiet, momentsHydrated, phase, onEntered]);
+    if (gate.finish) onEntered();
+  }, [gate.finish, onEntered]);
   const onGetStarted = React.useCallback(() => {
     router.replace('/onboarding' as never);
     onEntered();
@@ -414,7 +445,7 @@ function WelcomeMount({
     onEntered();
   }, [onEntered]);
 
-  if (phase === 'done' || quiet) return null;
+  if (!gate.show) return null;
   return (
     <WelcomeHero
       active={phase === 'welcome'}
@@ -468,6 +499,7 @@ function AppShell() {
                   {/* Mounted *inside* AppProvider so the entitlement
                       hook can call useAppStore() safely. */}
                   <ClerkAuthBridge />
+                  <MomentLiveActivitySync />
                   <TravelLifecycleMount />
                   <MomentPrivacyMaintenanceMount />
                   {/* Records acquisition QR / activation deep-links; no routing. */}
@@ -479,6 +511,8 @@ function AppShell() {
                       textToSpeech's single speak() gate. No routing, no score. */}
                   <CoachModeVoiceSync />
                   <RootLayoutNav />
+                  {/* Undo for a drink logged in One Breath, for the seconds left after it closes. Renders nothing otherwise. */}
+                  <CarriedUndoBar />
                   <SplashGate />
                   <InvestorDemoMount />
                   {/* Photo Welcome Hero — mounted UNDER the cinematic

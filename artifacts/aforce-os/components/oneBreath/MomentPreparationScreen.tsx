@@ -63,6 +63,7 @@ import {
   suggestTimeQuestion,
   type TimeQuestion,
 } from "@/services/oneBreathDraft";
+import { DEMO_MODE, CAPTURE_MODE } from "@/services/demoMode";
 import { exerciseRow, workoutFocus } from "@/utils/oneBreath/workoutFocus";
 import { suggestReservationDraft } from "@/services/reservationDraft";
 import { evaluateMomentSafety } from "@/utils/intelligence/decisionGuard";
@@ -70,6 +71,7 @@ import {
   nextPreparationContext,
   reviewedNextPreparationContext,
   isRealPreparationMoment,
+  isSampleCalendarMoment,
   reviewedPreparationSteps,
   preparationReviewMatches,
   preparationContextKey,
@@ -114,6 +116,10 @@ import {
   type WindowState,
 } from "@/utils/oneBreath/confirmationWindow";
 import { changedDate, changedTime } from "@/utils/oneBreath/timeChange";
+import { screenAnswer, type ScreenAnswer } from "@/utils/oneBreath/screenAnswer";
+import { OneBreathStatusAnswer } from "./OneBreathStatusAnswer";
+import { isTripSentence } from "@/utils/travel/tripWords";
+import { travelPilotAvailable } from "@/featureFlags/flags";
 import {
   LOCK_IN_NOT_YET,
   lockInOpensInMs,
@@ -138,6 +144,11 @@ const MOMENT_REMOVED =
   "That Moment is no longer available. You can start a new plan.";
 const TIME_ZONE_CHANGED =
   "Your time zone changed. Review the local date and time before sealing.";
+/** Sample builds can walk Calendar to Prepare for this to the review, then
+ * stop. A synthetic sample event is never saved as a plan (law:
+ * isRealPreparationMoment). One line, shown wherever the sample is reviewed. */
+const SAMPLE_CANNOT_SEAL = "This is a sample event. It cannot be sealed.";
+const SAMPLE_BUILD = DEMO_MODE || CAPTURE_MODE;
 const CALENDAR_CHANGED =
   "Calendar details changed. Review the plan again using the updated event.";
 const draftForMoment = (moment: Moment): MomentDraft => {
@@ -177,6 +188,8 @@ export function MomentPreparationScreen({
   const store = useMomentsStore();
   const sharedMoments = useMomentsData();
   const [calendarChanged, setCalendarChanged] = React.useState(false);
+  // A synthetic sample event under review (DEMO/CAPTURE builds only).
+  const [sampleOnly, setSampleOnly] = React.useState(false);
   const [declineOptions, setDeclineOptions] = React.useState(false);
   const [nextChoice, setNextChoice] = React.useState<string | null>(null);
   const [timingOpen, setTimingOpen] = React.useState(false);
@@ -207,6 +220,8 @@ export function MomentPreparationScreen({
   const [reservationReview, setReservationReview] = React.useState(false);
   const [draft, setDraft] = React.useState<MomentDraft | null>(null);
   const [review, setReview] = React.useState<Moment | null>(null);
+  // One Breath's answer to words that are not a plan (shown on the opening screen).
+  const [answer, setAnswer] = React.useState<ScreenAnswer | null>(null);
   // Lock In belongs to the Moment's start, not to sealing (One Breath Final
   // Build Spec). Personal One Breath only: the Social flow's Lock In also
   // opens Return, and narrowing that is a founder decision.
@@ -570,6 +585,20 @@ export function MomentPreparationScreen({
       setError(CANDIDATE_ENDED);
       return;
     }
+    if (
+      existing &&
+      SAMPLE_BUILD &&
+      !social &&
+      isSampleCalendarMoment(existing) &&
+      !existing.masked &&
+      !existing.preparation
+    ) {
+      // Show the sample's details for review, never as a persisted plan.
+      setSampleOnly(true);
+      setReview(existing);
+      setScreen("noticed");
+      return;
+    }
     if (!existing || !isRealPreparationMoment(existing)) {
       const previous = [...store.moments]
         .filter(
@@ -707,6 +736,7 @@ export function MomentPreparationScreen({
   }, [screen, dim]);
   React.useEffect(() => {
     if (screen !== "noticed" || !current || params.proposal !== "1") return;
+    if (sampleOnly) return; // a sample leaves no suggestion record
     const token = captureScope();
     void recordMomentProposal(current, "shown").catch(() => {
       if (isScopeCurrent(token))
@@ -714,7 +744,7 @@ export function MomentPreparationScreen({
           "Could not remember this suggestion. Your Moment is unchanged.",
         );
     });
-  }, [screen, current?.id, params.proposal]);
+  }, [screen, current?.id, params.proposal, sampleOnly]);
   const proposalResponse = async (
     outcome: "accepted" | "declined",
     neverType = false,
@@ -754,8 +784,10 @@ export function MomentPreparationScreen({
     setNextChoice(null);
     setTimingOpen(false);
     setReturnOpen(false);
-    if (calendarOrigin.current) {
+    if (calendarOrigin.current || sampleOnly) {
+      // The member's own words replace the sample: it is their Moment now.
       calendarOrigin.current = null;
+      setSampleOnly(false);
       setReview(null);
     }
     if (alcoholDisclosure(words)) setAlcoholMentioned(true);
@@ -767,6 +799,38 @@ export function MomentPreparationScreen({
     ) {
       setChanges(words);
       move("change");
+      return;
+    }
+    // Not a plan: answer in place or go where it lives. A plan, and anything
+    // the rules are unsure of, falls through to Mirror exactly as before.
+    const reply = screenAnswer(words, {
+      social,
+      moments: store.moments,
+      nowMs: Date.now(),
+    });
+    if (reply) {
+      setWords("");
+      if (reply.kind === "open") {
+        setAnswer(null);
+        router.push(reply.route as never);
+      } else if (reply.kind === "moment") {
+        setAnswer(null);
+        router.replace({ pathname: "/one-breath", params: { momentId: reply.momentId } });
+      } else setAnswer(reply);
+      return;
+    }
+    setAnswer(null);
+    // A flight is a trip, not an ordinary Moment: hand the words to trip entry,
+    // which shows them on a card and saves nothing until the member confirms.
+    // Only where Travel is available, and never from Social.
+    if (
+      !social &&
+      !!app.featureFlags &&
+      travelPilotAvailable(app.featureFlags) &&
+      isTripSentence(words, new Date())
+    ) {
+      router.push({ pathname: "/travel-intelligence", params: { trip: words } } as never);
+      setWords("");
       return;
     }
     const suggested = suggestMomentDraft(words);
@@ -782,6 +846,11 @@ export function MomentPreparationScreen({
   ): Moment | null => {
     const draft = override ?? liveDraft;
     if (!draft) return null;
+    if (sampleOnly) {
+      // Defense in depth: a sample is never planned, whatever called this.
+      setError(SAMPLE_CANNOT_SEAL);
+      return null;
+    }
     if (
       evaluateMomentSafety(
         draft.title,
@@ -1534,9 +1603,20 @@ export function MomentPreparationScreen({
             <Text style={s.body}>
               {clock(current.startAtIso)}. Want me to prepare around it?
             </Text>
+            {sampleOnly ? (
+              <Text style={s.muted} testID="sample-cannot-seal">
+                {SAMPLE_CANNOT_SEAL}
+              </Text>
+            ) : null}
             {button(
               "Prepare",
               async () => {
+                if (sampleOnly) {
+                  // Review only: fill the draft from the sample, stop before Seal.
+                  setDraft(draftForMoment(current));
+                  move("mirror");
+                  return;
+                }
                 if (!(await proposalResponse("accepted"))) return;
                 if (
                   current.source !== "calendar" &&
@@ -1660,6 +1740,15 @@ export function MomentPreparationScreen({
                 onFocusWords={voice.cancel}
                 inputRef={wordsInput}
                 sendDisabled={!words.trim() || voice.busy || saving}
+                answer={
+                  answer?.kind === "status" ? (
+                    <OneBreathStatusAnswer social={social} />
+                  ) : answer?.kind === "text" ? (
+                    <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={s.answerText}>
+                      {answer.text}
+                    </Text>
+                  ) : undefined
+                }
                 onSend={reviewWords}
                 press={(action) => () => {
                   hapticSelection();
@@ -2000,7 +2089,12 @@ export function MomentPreparationScreen({
               </>
             ) : null}
             {contextControl}
-            {button("Continue", makePlan, true, calendarChanged)}
+            {sampleOnly ? (
+              <Text style={s.muted} testID="sample-cannot-seal-mirror">
+                {SAMPLE_CANNOT_SEAL}
+              </Text>
+            ) : null}
+            {button("Continue", () => makePlan(), true, calendarChanged || sampleOnly)}
             {button("Edit my words", () => move("capture"))}
           </>
         ) : null}
@@ -2651,6 +2745,12 @@ export function MomentPreparationScreen({
   );
 }
 const s = StyleSheet.create({
+  answerText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 16.5,
+    lineHeight: 24,
+    color: T.bone,
+  },
   root: { flex: 1, backgroundColor: T.ink },
   content: {
     paddingHorizontal: 28,

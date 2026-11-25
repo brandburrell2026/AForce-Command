@@ -85,11 +85,14 @@ describe('PR-R5 (A5): One Breath idle wave bars — secondary-text grey through 
     expect(af.textSecondary).toBe('#AEAAA3');
   });
 
-  it('the wave container still carries the non-listening label and the active bar is af.red (the bars stay decorative)', () => {
+  it('the replacement text-first screen keeps an honest input affordance and token colours', () => {
     const src = readFileSync(join(ROOT, 'components/oneBreath/OneBreathScreen.tsx'), 'utf8');
-    expect(src).toContain('accessibilityLabel="Voice capture is not enabled"');
-    expect(src).toContain('waveBarActive: { backgroundColor: af.red }');
-    expect(src).toContain('backgroundColor: withAlpha(af.textSecondary, 0.5)');
+    // The decorative wave was retired by the text-first screen. Pin the
+    // current affordance rather than requiring dead UI to return.
+    expect(src).toContain('accessibilityLabel="Write your moment"');
+    expect(src).toContain('LOCAL DRAFT · NOT SAVED · NO VOICE CAPTURE');
+    expect(src).toContain('placeholderTextColor={af.textTertiary}');
+    expect(stripComments(src).match(RAW_COLOR_RE) ?? []).toEqual([]);
   });
 });
 

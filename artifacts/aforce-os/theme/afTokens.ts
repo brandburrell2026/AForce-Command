@@ -87,6 +87,8 @@ export const af = {
   // mark, the One Breath orb, Lock In and real urgency.
   primaryFill: '#F7F4EF', //              primary button fill (= textPrimary warm white)
   onPrimaryFill: '#090A0A', //            text/icons on primaryFill (= canvas black)
+  onPrimaryFillMuted: '#6B6A66', //       supporting text on primaryFill (the prototype's plan card, 4.9:1)
+  onPrimaryFillRule: 'rgba(9,10,10,0.1)', // hairline between rows on primaryFill
   // Proof Blue #2765FF. Reserved for Social and proof (Master Brief §2): the
   // Social orb and primary action, the live Social border, the thin ring on
   // the centre orb during Social, Replay, "Observed" and "Confirmed".
@@ -408,6 +410,19 @@ export type AfTypeToken = keyof typeof afType;
 export const afOrb = {
   oneBreath: ['#FFC9C4', '#F0525A', '#E51E2A', '#5C0A0E'],
   oneBreathGlow: 'rgba(229,30,42,0.45)',
+  // The approved prototype's One Breath orb (One Breath Final Build Spec,
+  // 2026-11-20, "The look: locked to the prototype"). A deeper sphere than the
+  // Master Brief ramp above, which is kept unchanged for every other orb.
+  // Values are the prototype's own canvas drawing, read from its source.
+  oneBreathDeep: ['#FF7A7F', '#EE2C37', '#B5121C', '#33040A'],
+  oneBreathDeepStops: [0, 0.35, 0.7, 1],
+  oneBreathDeepGlow: 'rgba(229,30,42,0.5)',
+  /** Edge shade, soft bloom, specular highlight and rim of that sphere. */
+  orbShade: '#1E0103',
+  orbBloom: '#FFE1DE',
+  orbSpecular: '#FFFFFF',
+  orbRimLight: '#FFD6D2',
+  orbRimLow: '#FF7878',
   social: ['#CFDBFF', '#5B8BFF', '#2765FF', '#0E2E8C'],
   socialGlow: 'rgba(39,101,255,0.45)',
   /** Gradient stop offsets shared by both ramps. */

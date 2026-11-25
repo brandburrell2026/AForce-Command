@@ -1,4 +1,5 @@
 import travelIdentityEventsRouter from './routes/travelIdentityEvents';
+import { timeZoneMiddleware } from "./lib/requestTimeZone";
 import travelIntelligenceRouter from './routes/travelIntelligence';
 import express, { type Express } from "express";
 import { serializeError } from "./lib/serializeError";
@@ -145,6 +146,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// The member's time zone for this request: used only to end "today" at their
+// own midnight. Read from a header, never stored.
+app.use("/api", timeZoneMiddleware);
 app.use("/api", router);
 
 // JSON 404 for unmatched /api paths. Without this they fall through to

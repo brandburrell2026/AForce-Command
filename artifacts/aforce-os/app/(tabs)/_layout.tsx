@@ -43,6 +43,7 @@ import { DEFAULT_FLAGS } from '@/featureFlags/flags';
 import { useDevMode } from '@/services/devMode';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
 import { useMomentsFirstExperience } from '@/hooks/useMomentsFirstExperience';
+import { rememberOneBreathOrigin } from '@/services/oneBreathOrigin';
 import { useTranslation } from 'react-i18next';
 
 function NativeTabLayout() {
@@ -55,7 +56,6 @@ function NativeTabLayout() {
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="journal">
-        <NativeTabIcon sf={{ default: 'drop.circle', selected: 'drop.circle.fill' }} />
         <Label>{t('tabs.hydration')}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="one-breath-tab">
@@ -332,6 +332,11 @@ function ClassicTabLayout() {
   const isWeb = Platform.OS === 'web';
   const router = useRouter();
   const bottomInset = useSafeAreaInsets().bottom;
+  // One Breath hides this bar, so its Close needs to know which tab to return to.
+  const frontPath = usePathname();
+  React.useEffect(() => {
+    rememberOneBreathOrigin(frontPath);
+  }, [frontPath]);
 
   return (
     <Tabs
@@ -390,7 +395,8 @@ function ClassicTabLayout() {
         listeners={{ tabLongPress: () => router.push('/scan') }}
         options={{
           title: t('tabs.hydration'),
-          tabBarIcon: ({ color }) => <TabGlyph name="hydration" color={color} />,
+          // No water icon on this tab (founder direction, Brandon, 2026-11-22): the label stands alone.
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen
@@ -410,6 +416,9 @@ function ClassicTabLayout() {
           title: 'Breath',
           tabBarAccessibilityLabel: 'One Breath',
           tabBarIcon: () => <OneBreathTabIcon />,
+          // The approved prototype shows no tab bar inside One Breath, in any
+          // state. Its own close button returns to the tab the member came from.
+          ...(momentsFirst ? { tabBarStyle: { display: 'none' as const } } : {}),
           // The raised part of the orb is part of the button's touch area.
           tabBarButton: (btnProps) => (
             <PlainTabButton

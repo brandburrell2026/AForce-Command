@@ -87,12 +87,20 @@ jobs:
       - name: Typecheck api-server
         run: pnpm --filter @workspace/api-server run typecheck
 
+      - name: Check native beta setup and SDK compatibility
+        if: startsWith(github.head_ref, 'test/beta-consolidated-') || startsWith(github.ref_name, 'test/beta-consolidated-')
+        working-directory: artifacts/aforce-os
+        run: pnpm dlx expo-doctor@1.21.8
+
   tests-baseline:
     name: tests-baseline
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          # Protected-file guards compare the candidate to main's merge base.
+          fetch-depth: 0
 
       - name: Setup pnpm + Node
         uses: pnpm/setup@v1
@@ -186,6 +194,18 @@ jobs:
       # not apply to it and any unlisted one fails this job.
       - name: Compare against documented baseline (governance/TEST-BASELINE.md, target-branch copy)
         run: node scripts/src/check-test-baseline.mjs vitest-report.json target-baseline.md
+
+      - name: Require zero failures for the consolidated beta candidate
+        if: startsWith(github.head_ref, 'test/beta-consolidated-') || startsWith(github.ref_name, 'test/beta-consolidated-')
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('vitest-report.json', 'utf8'));
+          if (!report.success || report.numFailedTests !== 0 || report.numFailedTestSuites !== 0 || !(report.numTotalTests > 0)) {
+            throw new Error('The beta candidate requires a complete suite with zero failures.');
+          }
+          console.log(`Beta candidate: ${report.numPassedTests} passed, zero failures.`);
+          JS
 
       - name: Upload test report
         if: always()

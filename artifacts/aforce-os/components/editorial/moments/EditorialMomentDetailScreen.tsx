@@ -185,7 +185,7 @@ export function EditorialMomentDetailScreen({
   const confirm = () => {
     if (!prepared && !readOnly) {
       if(onPrepared){onPrepared();} else if (moment.source === 'calendar' && moment.calendarEventId) {
-        void markCalendarMomentPrepared(moment.calendarEventId);
+        void markCalendarMomentPrepared(moment.calendarEventId, moment.startAtIso);
       } else {
         updateMoment(moment.id, { preparedAtIso: new Date().toISOString() });
       }

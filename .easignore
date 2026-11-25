@@ -16,6 +16,10 @@ node_modules/
 **/ios/
 !artifacts/aforce-os/modules/skinia-image-features/ios/
 !artifacts/aforce-os/modules/skinia-image-features/ios/**
+!artifacts/aforce-os/modules/hydroscan-label-text/ios/
+!artifacts/aforce-os/modules/hydroscan-label-text/ios/**
+!artifacts/aforce-os/modules/moment-live-activity/ios/
+!artifacts/aforce-os/modules/moment-live-activity/ios/**
 **/android/build/
 **/android/app/build/
 **/.expo/

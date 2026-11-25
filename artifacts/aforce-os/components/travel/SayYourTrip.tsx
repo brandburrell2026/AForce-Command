@@ -19,6 +19,7 @@ import {
   SAY_YOUR_TRIP_EXAMPLE,
   parseSpokenTrip,
   spokenTripSummary,
+  tripForForm,
   type SpokenTrip,
   type SpokenTripFields,
 } from '@/utils/travel/spokenTrip';
@@ -44,7 +45,8 @@ export function SayYourTrip({ legNumber, onFields, now = () => new Date() }: Say
     setHeard(text);
     // Interim words are shown but fill nothing; only the finished sentence does.
     if (!info.final) return;
-    const trip = parseSpokenTrip(text, clock.current());
+    // Only what this form can save is applied; anything held back is said in a note.
+    const trip = tripForForm(parseSpokenTrip(text, clock.current()));
     setResult(trip);
     if (Object.keys(trip.fields).length > 0) apply.current(trip.fields);
   });

@@ -296,3 +296,14 @@ describe('One Breath session · for every written request', () => {
     expect(logged.length).toBeGreaterThanOrEqual(DIRECT_LOG_FLOOR);
   });
 });
+
+describe('one breath · "seal it" before the plan is complete', () => {
+  it('asks the open question again and saves nothing', async () => {
+    const { run, say } = await import('./drive');
+    const r = run([say('Lift tomorrow'), say('seal it')]);
+    expect(r.last.reply.outcome).toBe('ask');
+    expect(r.last.reply.text).toBe(r.turns[0].reply.text);
+    expect(r.effects).toEqual([]);
+    expect(r.last.state.pendingPlan).toBeTruthy();
+  });
+});

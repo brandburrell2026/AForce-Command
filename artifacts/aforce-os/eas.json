@@ -78,6 +78,39 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "beta-staging": {
+      "extends": "internal-social",
+      "channel": "beta-staging-20261125",
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_BETA_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_BETA_STAGING": "1"
+      },
+      "environment": "preview"
+    },
+    "beta-staging-apk": {
+      "extends": "internal-social",
+      "channel": "beta-staging-20261125",
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_BETA_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_BETA_STAGING": "1"
+      },
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "environment": "preview"
+    },
+    "beta-staging-simulator": {
+      "extends": "beta-staging",
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {

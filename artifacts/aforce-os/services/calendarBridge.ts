@@ -25,6 +25,11 @@ import { scopedStorage } from './scopedStorage';
 import { MOMENT_CALENDAR_HORIZON_DAYS } from '@/config/hydroStateModel';
 import type { CalendarEventLike } from '@/services/momentClassification';
 import type { MomentCategoryToggle } from '@/services/momentClassification';
+import {
+  calendarReadWindow,
+  dedupeCalendarEvents,
+  type CalendarReadWindow,
+} from '@/services/calendarOccurrence';
 
 const PREFS_KEY = '@aforce/calendarPrefs';
 
@@ -35,6 +40,10 @@ export interface DeviceCalendarInfo {
   title: string;
   /** Account/source name, e.g. "iCloud", "Google", "Exchange". */
   sourceName: string;
+  /** Account kind the OS reports (iOS: local, exchange, caldav, mobileme,
+   *  subscribed, birthdays; Android: the account type, e.g.
+   *  com.google). Absent when the OS gives none. Never an address. */
+  sourceType?: string;
   color?: string;
 }
 
@@ -96,6 +105,12 @@ export async function listDeviceCalendars(): Promise<DeviceCalendarInfo[]> {
       id: c.id,
       title: c.title,
       sourceName: c.source?.name ?? 'Calendar',
+      sourceType:
+        typeof c.source?.type === 'string' && c.source.type.length > 0
+          ? c.source.type
+          : c.source?.isLocalAccount
+            ? 'local'
+            : undefined,
       color: typeof c.color === 'string' ? c.color : undefined,
     }));
   } catch {
@@ -103,45 +118,65 @@ export async function listDeviceCalendars(): Promise<DeviceCalendarInfo[]> {
   }
 }
 
+export interface CalendarRead {
+  /** Every event read, one per occurrence, BEFORE the duplicate-invitation
+   *  de-dupe (change detection needs the ids the de-dupe would drop). */
+  events: CalendarEventLike[];
+  window: CalendarReadWindow;
+}
+
 /**
  * Read upcoming events from the SELECTED calendars, mapped immediately to
  * the minimal CalendarEventLike shape (titles + times + ids only) and held
- * in memory by the caller. Duplicate events across duplicate calendars are
- * de-duped by (title, startAt).
+ * in memory by the caller. `null` means the read did not happen or failed,
+ * which is different from a successful read that found nothing.
+ */
+export async function readUpcomingEvents(
+  selectedCalendarIds: readonly string[],
+  nowIso: string,
+): Promise<CalendarRead | null> {
+  if (selectedCalendarIds.length === 0) return null;
+  const Cal = await loadCalendar();
+  if (!Cal) return null;
+  try {
+    const window = calendarReadWindow(nowIso, MOMENT_CALENDAR_HORIZON_DAYS);
+    const events = await Cal.getEventsAsync(
+      [...selectedCalendarIds],
+      new Date(window.startIso),
+      new Date(window.endIso),
+    );
+    const out: CalendarEventLike[] = [];
+    for (const e of events) {
+      const startMs = new Date(e.startDate as string | number | Date).getTime();
+      if (!Number.isFinite(startMs)) continue; // an unreadable start is skipped, not guessed
+      const startAtIso = new Date(startMs).toISOString();
+      const endMs = e.endDate ? new Date(e.endDate as string | number | Date).getTime() : NaN;
+      out.push({
+        id: e.id,
+        title: e.title ?? null,
+        startAtIso,
+        endAtIso: Number.isFinite(endMs) ? new Date(endMs).toISOString() : undefined,
+        allDay: Boolean(e.allDay),
+        calendarId: e.calendarId ?? '',
+      });
+    }
+    return { events: out, window };
+  } catch {
+    return null; // revoked mid-session / transient errors → honest "no read"
+  }
+}
+
+/**
+ * Upcoming events from the selected calendars with the same invitation seen
+ * through more than one calendar collapsed (same title + start). Failure and
+ * "nothing found" both return [] here; use readUpcomingEvents to tell apart.
  */
 export async function fetchUpcomingEvents(
   selectedCalendarIds: readonly string[],
   nowIso: string,
 ): Promise<CalendarEventLike[]> {
-  if (selectedCalendarIds.length === 0) return [];
-  const Cal = await loadCalendar();
-  if (!Cal) return [];
-  try {
-    const start = new Date(Date.parse(nowIso) - 6 * 3_600_000); // earlier today
-    const end = new Date(
-      Date.parse(nowIso) + MOMENT_CALENDAR_HORIZON_DAYS * 24 * 3_600_000,
-    );
-    const events = await Cal.getEventsAsync([...selectedCalendarIds], start, end);
-    const seen = new Set<string>();
-    const out: CalendarEventLike[] = [];
-    for (const e of events) {
-      const startAtIso = new Date(e.startDate as string | number | Date).toISOString();
-      const dedupeKey = `${(e.title ?? '').trim().toLowerCase()}|${startAtIso}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
-      out.push({
-        id: e.id,
-        title: e.title ?? null,
-        startAtIso,
-        endAtIso: e.endDate ? new Date(e.endDate as string | number | Date).toISOString() : undefined,
-        allDay: Boolean(e.allDay),
-        calendarId: e.calendarId ?? '',
-      });
-    }
-    return out;
-  } catch {
-    return []; // revoked mid-session / transient errors → honest empty
-  }
+  const read = await readUpcomingEvents(selectedCalendarIds, nowIso);
+  return read ? dedupeCalendarEvents(read.events) : [];
 }
 
 // ─── Prefs (the ONLY persisted calendar state — never event data) ─────────

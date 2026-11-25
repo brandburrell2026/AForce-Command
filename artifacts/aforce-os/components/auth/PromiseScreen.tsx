@@ -17,19 +17,28 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '@/components/GradientBackground';
 import { af } from '@/theme';
+import { AFMark } from '@/components/ui/AFMark';
 import { WorldPhotoHero } from '@/components/world/WorldPhoto';
 import { worldPhoto } from '@/components/world/worldPhotoSources';
 import { WELCOME_SCENE } from '@/utils/worldPhoto';
 
 /** Same mark as the cold-launch sequence (spec v1.8.2 Part 8.6, decision C5). */
 export const PROMISE_WORDMARK = 'AFORCE OS™';
+/** The thin N–И mark, the same one as the app icon and splash (AFMark). */
+const PROMISE_MARK_SIZE = 30;
 /** The photograph fills the upper screen and fades out above the promise. */
 const PROMISE_PHOTO_HEIGHT = 560;
 
-export function PromiseScreen() {
+export interface PromiseViewProps {
+  onCreate: () => void;
+  onSignIn: () => void;
+}
+
+/** The promise layout itself. The cold-launch front door reuses it, so the two
+ *  first screens a member can meet look the same. */
+export function PromiseView({ onCreate, onSignIn }: PromiseViewProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
 
   return (
     <GradientBackground>
@@ -39,11 +48,7 @@ export function PromiseScreen() {
         testID="promise-screen"
       >
         <View style={styles.brand} accessible accessibilityLabel="AFORCE OS">
-          <View style={styles.mark} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <Text style={styles.markGlyph}>N</Text>
-            <View style={styles.markBar} />
-            <Text style={[styles.markGlyph, styles.markMirrored]}>N</Text>
-          </View>
+          <AFMark size={PROMISE_MARK_SIZE} decorative testID="promise-mark" />
           <Text style={styles.wordmark} accessibilityElementsHidden importantForAccessibility="no">
             {PROMISE_WORDMARK}
           </Text>
@@ -58,7 +63,7 @@ export function PromiseScreen() {
         <Text style={styles.sub}>{t('auth.v2.promise_body')}</Text>
 
         <Pressable
-          onPress={() => router.push('/(auth)/sign-up')}
+          onPress={onCreate}
           style={({ pressed }) => [styles.button, pressed && styles.pressed]}
           accessibilityRole="button"
           accessibilityLabel={t('auth.v2.promise_create')}
@@ -68,7 +73,7 @@ export function PromiseScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => router.push('/(auth)/sign-in')}
+          onPress={onSignIn}
           style={({ pressed }) => [styles.textButton, pressed && styles.pressed]}
           accessibilityRole="button"
           accessibilityLabel={t('auth.v2.promise_signin')}
@@ -83,13 +88,19 @@ export function PromiseScreen() {
   );
 }
 
+export function PromiseScreen() {
+  const router = useRouter();
+  return (
+    <PromiseView
+      onCreate={() => router.push('/(auth)/sign-up')}
+      onSignIn={() => router.push('/(auth)/sign-in')}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 22 },
   brand: { alignItems: 'center', gap: 8, paddingTop: 6 },
-  mark: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  markGlyph: { fontFamily: 'Inter_600SemiBold', fontSize: 22, lineHeight: 26, color: af.redText },
-  markMirrored: { transform: [{ scaleX: -1 }] },
-  markBar: { width: 2, height: 20, backgroundColor: af.red },
   wordmark: {
     fontFamily: 'IBMPlexMono_400Regular', fontSize: 11, lineHeight: 14, letterSpacing: 2.6,
     color: af.textPrimary,

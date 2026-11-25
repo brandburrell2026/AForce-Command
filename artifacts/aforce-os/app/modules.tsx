@@ -53,7 +53,7 @@ const MODULES: ModuleEntry[] = [
   {
     id: 'travel', title: 'Travel',
     blurb: 'Your journey and AForce rituals · powered by TravelGate',
-    href: '/travel', icon: 'compass', tint: af.textPrimary,
+    href: '/travel-intelligence', icon: 'compass', tint: af.textPrimary,
     gate: 'Internal pilot · travel_mode_enabled',
   },
   {

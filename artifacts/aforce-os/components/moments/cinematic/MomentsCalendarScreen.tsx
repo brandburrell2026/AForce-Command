@@ -5,17 +5,20 @@
  * under each day that has a Moment, then the Moments from the chosen day on.
  *
  * It shows the member's own AFORCE Moments from the same store as the Moments
- * tab. It does not ask for calendar permission and reads nothing from the
- * phone's calendar. Connecting a phone calendar is a separate screen
- * (`/calendar-settings`) behind `moments_calendar_enabled`, which stays off
- * until Legal and Privacy sign (DR-011); the row that opens it only appears
- * when that flag is on.
+ * tab. It never asks for calendar permission and never imports the device
+ * bridge. Connecting calendars is a separate screen (`/calendar-settings`)
+ * behind `moments_calendar_enabled`, which stays off until Legal and Privacy
+ * sign (DR-011); everything about phone calendars on this page, the Connect
+ * row and the "From your calendar" suggestions, only appears when that flag is
+ * on. The suggestions come from the in-memory calendar Moments (the same
+ * derived set the Moments tab merges); "Prepare for this" opens One Breath
+ * with that event's approved details, and the member reviews and seals there.
  */
 import React from 'react';
 import { WorldPhotoHero } from '@/components/world/WorldPhoto';
 import { worldPhoto } from '@/components/world/worldPhotoSources';
 import { CALENDAR_SCENE } from '@/utils/worldPhoto';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/components/Icon';
@@ -23,7 +26,24 @@ import { AFScreen } from '@/components/ui';
 import { useMomentsData } from '@/components/moments/useMomentsData';
 import { useFeatureFlags } from '@/store/useAppStore';
 import { af, AF_MAX_DISPLAY_FONT_SCALE } from '@/theme';
-import { calendarDayKey, calendarMonth, calendarRows, calendarStrip } from './momentsCalendarLogic';
+import {
+  refreshCalendarMoments,
+  useCalendarReadStatus,
+  useCalendarSnapshot,
+} from '@/services/calendarMoments';
+import { detectSealedCalendarChanges } from '@/services/calendarOccurrence';
+import { calendarPrepareSuggestions } from '@/services/momentPreparation';
+import { CAPTURE_MODE, DEMO_MODE } from '@/services/demoMode';
+import {
+  calendarDayKey,
+  calendarMonth,
+  calendarRows,
+  calendarStrip,
+  suggestionRows,
+} from './momentsCalendarLogic';
+
+/** Sample builds show a labelled synthetic day and never read a calendar. */
+const SAMPLE_BUILD = DEMO_MODE || CAPTURE_MODE;
 
 const MONO = 'IBMPlexMono_400Regular';
 const GUTTER = 20;
@@ -36,18 +56,66 @@ export function MomentsCalendarScreen() {
   const now = React.useMemo(() => new Date(data.nowIso), [data.nowIso]);
   const todayKey = calendarDayKey(now);
   const [picked, setPicked] = React.useState<string | null>(null);
+  const calendarOn = flags.moments_calendar_enabled;
   const moments = data.hydrated ? data.surfaced : [];
+  const readStatus = useCalendarReadStatus();
+  const snapshot = useCalendarSnapshot();
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  // Refresh when the page opens. The device is only read when the member has
+  // connected calendars; a sample build never touches it.
+  React.useEffect(() => {
+    if (!calendarOn || SAMPLE_BUILD) return;
+    void refreshCalendarMoments(true);
+  }, [calendarOn]);
+  const onRefresh = React.useCallback(async () => {
+    if (!calendarOn || SAMPLE_BUILD) return;
+    setRefreshing(true);
+    try {
+      await refreshCalendarMoments(true); // pull goes past the 60s throttle
+    } finally {
+      setRefreshing(false);
+    }
+  }, [calendarOn]);
+
+  const suggestions = React.useMemo(
+    () => (calendarOn ? calendarPrepareSuggestions(moments, data.nowIso, { includeSamples: SAMPLE_BUILD }) : []),
+    [calendarOn, moments, data.nowIso],
+  );
+  // The saved plan is never touched; a changed event is only flagged.
+  const changedIds = React.useMemo(
+    () => new Set(Object.keys(calendarOn ? detectSealedCalendarChanges(moments, snapshot) : {})),
+    [calendarOn, moments, snapshot],
+  );
+  // Calendar events are listed once, as suggestions, not again as rows.
+  const ownMoments = React.useMemo(
+    () => (calendarOn ? moments.filter((m) => m.source !== 'calendar') : moments),
+    [calendarOn, moments],
+  );
   const strip = React.useMemo(() => calendarStrip(moments, now), [moments, now]);
   // A day chosen yesterday may have left the strip; fall back to today.
   const selected = picked && strip.some((d) => d.key === picked) ? picked : todayKey;
   const rows = React.useMemo(
-    () => calendarRows(moments, selected, t('moments.private_event')),
-    [moments, selected, t],
+    () => calendarRows(ownMoments, selected, t('moments.private_event'), changedIds),
+    [ownMoments, selected, t, changedIds],
   );
+  const suggested = React.useMemo(() => suggestionRows(suggestions, selected), [suggestions, selected]);
+  const prepare = (id: string) =>
+    router.push({ pathname: '/one-breath', params: { momentId: id, proposal: '1' } });
 
   if (!flags.moments_enabled) return <Redirect href="/" />;
   return (
-    <AFScreen scroll padded={false} contentContainerStyle={styles.content} testID="moments-calendar-screen">
+    <AFScreen
+      scroll
+      padded={false}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        calendarOn && !SAMPLE_BUILD ? (
+          <RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} tintColor={af.textSecondary} />
+        ) : undefined
+      }
+      testID="moments-calendar-screen"
+    >
       <WorldPhotoHero source={worldPhoto(CALENDAR_SCENE)} bleed={GUTTER} height={300} dim testID="moments-calendar-photo" />
       <View style={styles.topRow}>
         <Pressable
@@ -67,7 +135,11 @@ export function MomentsCalendarScreen() {
       <Text accessibilityRole="header" style={styles.month} maxFontSizeMultiplier={AF_MAX_DISPLAY_FONT_SCALE}>
         {calendarMonth(selected)}
       </Text>
-      <Text style={styles.note}>Your AFORCE Moments · not your calendar app</Text>
+      <Text style={styles.note}>
+        {calendarOn
+          ? 'Your AFORCE Moments and events from the calendars you chose'
+          : 'Your AFORCE Moments · not your calendar app'}
+      </Text>
 
       <ScrollView
         horizontal
@@ -95,6 +167,64 @@ export function MomentsCalendarScreen() {
         })}
       </ScrollView>
 
+      {calendarOn ? (
+        <View style={styles.rows} testID="moments-calendar-suggestions">
+          <Text style={styles.sectionLabel}>FROM YOUR CALENDAR</Text>
+          {readStatus === 'idle' && !SAMPLE_BUILD ? (
+            <View style={styles.empty} testID="moments-calendar-suggestions-loading">
+              <Text style={styles.emptyBody}>Checking your calendars…</Text>
+            </View>
+          ) : readStatus === 'not_connected' && !SAMPLE_BUILD ? (
+            <View style={styles.empty} testID="moments-calendar-suggestions-not-connected">
+              <Text style={styles.emptyTitle}>No calendars connected</Text>
+              <Text style={styles.emptyBody}>Connect the calendars you want AFORCE to read. Events you can prepare for show up here.</Text>
+            </View>
+          ) : readStatus === 'no_access' && !SAMPLE_BUILD ? (
+            <View style={styles.empty} testID="moments-calendar-suggestions-no-access">
+              <Text style={styles.emptyTitle}>Calendar access is off</Text>
+              <Text style={styles.emptyBody}>Turn it on in your phone settings to see events here. Your Moments work without it.</Text>
+            </View>
+          ) : readStatus === 'read_failed' && !SAMPLE_BUILD ? (
+            <View style={styles.empty} testID="moments-calendar-suggestions-error">
+              <Text style={styles.emptyTitle}>Could not read your calendars</Text>
+              <Text style={styles.emptyBody}>Nothing was changed. Try again, or pull down to refresh.</Text>
+              <Pressable
+                onPress={() => void onRefresh()}
+                accessibilityRole="button"
+                accessibilityLabel="Try reading your calendars again"
+                hitSlop={8}
+                style={styles.retry}
+                testID="moments-calendar-retry"
+              >
+                <Text style={styles.retryText}>Try again</Text>
+              </Pressable>
+            </View>
+          ) : suggested.length === 0 ? (
+            <View style={styles.empty} testID="moments-calendar-suggestions-empty">
+              <Text style={styles.emptyTitle}>Nothing to prepare for</Text>
+              <Text style={styles.emptyBody}>No work, training, travel or social events in the next two days.</Text>
+            </View>
+          ) : (
+            suggested.map((r) => (
+              <View key={r.id} style={styles.suggestion} testID={`moments-calendar-suggestion-${r.id}`}>
+                <Text style={styles.rowEyebrow}>{r.sample ? 'SAMPLE EVENT' : r.eyebrow.toUpperCase()}</Text>
+                <Text style={styles.rowTitle} numberOfLines={2}>{r.title}</Text>
+                <Text style={styles.rowSub}>{r.when}</Text>
+                <Pressable
+                  onPress={() => prepare(r.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Prepare for this. ${r.title}. ${r.when}`}
+                  style={({ pressed }) => [styles.prepare, pressed && styles.prepPressed]}
+                  testID={`moments-calendar-prepare-${r.id}`}
+                >
+                  <Text style={styles.prepareText}>Prepare for this</Text>
+                </Pressable>
+              </View>
+            ))
+          )}
+        </View>
+      ) : null}
+
       <View style={styles.rows}>
         {rows.length === 0 ? (
           <View style={styles.empty} testID="moments-calendar-empty">
@@ -113,7 +243,13 @@ export function MomentsCalendarScreen() {
             >
               <Text style={styles.rowEyebrow}>{r.eyebrow.toUpperCase()}</Text>
               <Text style={styles.rowTitle} numberOfLines={1}>{r.title}</Text>
-              <Text style={styles.rowSub} numberOfLines={1}>{r.sub}</Text>
+              <Text
+                style={[styles.rowSub, r.changed && styles.rowSubChanged]}
+                numberOfLines={r.changed ? 2 : 1}
+                testID={r.changed ? `moments-calendar-changed-${r.id}` : undefined}
+              >
+                {r.sub}
+              </Text>
             </Pressable>
           ))
         )}
@@ -123,13 +259,13 @@ export function MomentsCalendarScreen() {
         <Pressable
           onPress={() => router.push('/calendar-settings')}
           accessibilityRole="button"
-          accessibilityLabel="Spot Moments on my calendar. Read-only. Offers to plan, never creates anything."
+          accessibilityLabel="Connect calendars. AFORCE only reads the calendars you choose and never creates anything."
           style={({ pressed }) => [styles.connect, pressed && styles.rowPressed]}
           testID="moments-calendar-connect"
         >
           <View style={styles.connectText}>
-            <Text style={styles.connectTitle}>Spot Moments on my calendar</Text>
-            <Text style={styles.rowSub}>Read-only · offers to plan, never creates anything</Text>
+            <Text style={styles.connectTitle}>Connect calendars</Text>
+            <Text style={styles.rowSub}>You choose which calendars AFORCE reads</Text>
           </View>
           <Icon name="chevron-right" size={18} color={af.textTertiary} />
         </Pressable>
@@ -180,6 +316,22 @@ const styles = StyleSheet.create({
   rowEyebrow: { fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: af.textSecondary },
   rowTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 17, color: af.textPrimary },
   rowSub: { fontFamily: 'Inter_400Regular', fontSize: 12.5, lineHeight: 17, color: af.textSecondary },
+  rowSubChanged: { color: af.textPrimary },
+  sectionLabel: { fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: af.textSecondary, marginBottom: 2 },
+  suggestion: { borderRadius: 18, backgroundColor: af.surface, paddingHorizontal: 16, paddingVertical: 14, gap: 4 },
+  prepare: {
+    minHeight: 44,
+    marginTop: 10,
+    borderRadius: 22,
+    backgroundColor: af.primaryFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 18,
+  },
+  prepPressed: { opacity: 0.85 },
+  prepareText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.onPrimaryFill },
+  retry: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+  retryText: { fontFamily: 'Inter_600SemiBold', fontSize: 15, color: af.textPrimary },
   empty: { borderRadius: 18, backgroundColor: af.surface, padding: 16, gap: 4 },
   emptyTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 16, color: af.textPrimary },
   emptyBody: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20, color: af.textSecondary },

@@ -11,6 +11,7 @@ import type { FeatureFlags, SpecFlagName } from '../types';
 
 export const DEFAULT_FLAGS: FeatureFlags = {
   travel_mode_enabled: false,
+  hydroscan_label_reader_enabled: false,
   // Trainer surface — Phase 2 morning board. Off in production; the seed is
   // simulated data and is marked as such wherever it renders.
   trainer_board_enabled: false,
@@ -480,6 +481,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
  */
 export const DEMO_ALL_ON_FLAGS: FeatureFlags = {
   travel_mode_enabled: false,
+  // Internal reader; the INTERNAL_TIER clamp keeps it off in a public build.
+  hydroscan_label_reader_enabled: true,
   trainer_board_enabled: true,
   trainer_demo_seed_enabled: true,
   clutch_access_enabled: true,
@@ -739,6 +742,7 @@ export const LEGAL_GATED_FLAGS = ['moments_calendar_enabled'] as const;
  */
 export const INTERNAL_TIER_FLAGS = [
   'travel_mode_enabled',
+  'hydroscan_label_reader_enabled',
   'circle_membership_enabled',
   'circle_sharing_enabled',
   'trainer_board_enabled',
@@ -776,6 +780,14 @@ export function travelPilotAvailable(
   ctx: UnlockContext = currentUnlockContext(),
 ): boolean {
   return flags.travel_mode_enabled && (ctx.dev || ctx.internalTestflight);
+}
+
+/** The label-reading HydroScan reader: internal and local builds only, and only when the flag is on. */
+export function hydroscanLabelReaderAvailable(
+  flags: Pick<FeatureFlags, 'hydroscan_label_reader_enabled'>,
+  ctx: UnlockContext = currentUnlockContext(),
+): boolean {
+  return flags.hydroscan_label_reader_enabled === true && (ctx.dev || ctx.internalTestflight);
 }
 
 /** A stored flag or generic demo must not expose the real-membership pilot

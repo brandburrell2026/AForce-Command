@@ -13,14 +13,17 @@
  * data) and its "Operations" log (the conversational engine, off for beta).
  */
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, type TextInput, View } from "react-native";
 import { Icon } from "@/components/Icon";
 import { AFMark } from "@/components/ui/AFMark";
 import { preparationTokens as T } from "@/theme/DESIGN-TOKENS";
 import { PreparationOrb } from "./PreparationOrb";
+import { TalkTypeBar } from "./kit/TalkTypeBar";
 
-export const ONE_BREATH_ORB_SIZE = 132;
-export const ONE_BREATH_DIAL_SIZE = 208;
+// The prototype's stage: a 290pt square holding a 149pt orb inside a 234pt
+// dial (its canvas is 660 units for 290pt; orb radius 170, bezel radius 266).
+export const ONE_BREATH_ORB_SIZE = 149;
+export const ONE_BREATH_DIAL_SIZE = 234;
 const STAGE_HEIGHT = 290;
 
 /** Things One Breath can plan today. Tapping one fills the bar; nothing is sent. */
@@ -35,6 +38,8 @@ export interface OneBreathCaptureProps {
   headingProps?: Record<string, unknown>;
   /** A notice above the bar (for example an ended Moment). */
   alert?: string | null;
+  /** One Breath's answer to the last words, shown in place of the prompt. */
+  answer?: React.ReactNode;
   voiceAvailable: boolean;
   voiceListening: boolean;
   voiceBusy: boolean;
@@ -105,9 +110,13 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
         <Text style={s.hint}>{oneBreathHint(p.voiceAvailable, p.voiceListening, p.voiceBusy)}</Text>
       </View>
 
-      <Text {...p.headingProps} style={s.prompt}>
-        Plan a Moment. Just say it.
-      </Text>
+      {p.answer ? (
+        <View style={s.answer}>{p.answer}</View>
+      ) : (
+        <Text {...p.headingProps} style={s.prompt}>
+          Plan a Moment. Just say it.
+        </Text>
+      )}
       {p.alert ? (
         <Text accessibilityRole="alert" style={s.alert}>
           {p.alert}
@@ -141,47 +150,21 @@ export function OneBreathCapture(p: OneBreathCaptureProps) {
         ))}
       </ScrollView>
 
-      <View style={s.composer}>
-        <TextInput
-          ref={p.inputRef}
-          accessibilityLabel="Your moment"
-          value={p.words}
-          onFocus={p.onFocusWords}
-          onChangeText={p.onChangeWords}
-          maxLength={160}
-          placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
-          placeholderTextColor={T.muted}
-          returnKeyType="send"
-          onSubmitEditing={p.sendDisabled ? undefined : p.onSend}
-          style={s.input}
-        />
-        {p.voiceAvailable ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={p.voiceListening ? "Stop" : "Speak"}
-            onPress={p.onTalk}
-            style={[s.round40, s.mic]}
-          >
-            <Icon name="mic" size={18} color={T.bone} />
-          </Pressable>
-        ) : null}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Send"
-          accessibilityState={{ disabled: p.sendDisabled }}
-          aria-disabled={p.sendDisabled}
-          disabled={p.sendDisabled}
-          onPress={press(p.onSend)}
-          style={[
-            s.round40,
-            // Warm white is the primary; blue belongs to Social only.
-            { backgroundColor: p.social ? T.blue : T.bone },
-            p.sendDisabled && s.disabled,
-          ]}
-        >
-          <Icon name="arrow-up" size={18} color={p.social ? T.onBlue : T.ink} />
-        </Pressable>
-      </View>
+      <TalkTypeBar
+        social={p.social}
+        value={p.words}
+        onChangeText={p.onChangeWords}
+        onFocus={p.onFocusWords}
+        inputRef={p.inputRef}
+        inputLabel="Your moment"
+        placeholder={p.voiceAvailable ? "Talk or type to AFORCE" : "Type to AFORCE"}
+        voiceAvailable={p.voiceAvailable}
+        voiceListening={p.voiceListening}
+        onTalk={p.onTalk}
+        sendDisabled={p.sendDisabled}
+        onSend={p.onSend}
+        press={press}
+      />
     </View>
   );
 }
@@ -200,6 +183,7 @@ const s = StyleSheet.create({
     borderRadius: 21,
     borderWidth: 1,
     borderColor: T.rule,
+    backgroundColor: T.panel,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -213,7 +197,7 @@ const s = StyleSheet.create({
     fontFamily: MONO,
     fontSize: 9.5,
     letterSpacing: 2.1,
-    color: T.muted,
+    color: T.dim,
     textTransform: "uppercase",
   },
   prompt: {
@@ -226,6 +210,7 @@ const s = StyleSheet.create({
     marginTop: 18,
     paddingHorizontal: 6,
   },
+  answer: { marginTop: 18, alignSelf: "stretch" },
   alert: { ...T.body, fontSize: 14, lineHeight: 20, color: T.bone, textAlign: "center", marginTop: 12 },
   spacer: { flexGrow: 1, minHeight: 20 },
   chipsBleed: { flexGrow: 0, marginHorizontal: -28 },
@@ -236,22 +221,8 @@ const s = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     borderColor: T.rule,
+    backgroundColor: T.panel,
     justifyContent: "center",
   },
   chipText: { fontFamily: "Inter_500Medium", fontSize: 13, color: T.bone },
-  composer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 6,
-    paddingRight: 6,
-    paddingLeft: 16,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: T.rule,
-  },
-  input: { flex: 1, minWidth: 0, minHeight: 40, fontFamily: "Inter_400Regular", fontSize: 16, color: T.bone },
-  round40: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  mic: { borderWidth: 1, borderColor: T.rule },
-  disabled: { opacity: 0.4 },
 });

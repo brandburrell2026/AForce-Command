@@ -686,7 +686,16 @@ export const SOCIAL_SESSION_MAX_MS = 18 * FRESHNESS_HOUR_MS;
 export const MOMENT_PROPOSAL_DECLINE_THRESHOLD = 2;
 export const MOMENT_PROPOSAL_COOLDOWN_HOURS = 24;
 export const MOMENT_PROPOSAL_MAX_COOLDOWN_HOURS = 168;
-export const MOMENT_PROPOSAL_LEAD_HOURS = { personal: 4, travel: 24 } as const;
+/** Hours ahead a Moment of each type may be offered for preparation. Work,
+ *  training and performance joined travel and social-word personal events on
+ *  2026-11-21 (founder decision, Connect calendars to Moments). */
+export const MOMENT_PROPOSAL_LEAD_HOURS = {
+  personal: 4,
+  travel: 24,
+  work: 24,
+  training: 12,
+  performance: 24,
+} as const;
 export const MOMENT_PROPOSAL_MIN_LEAD_MIN = 30;
 
 /* ─── Travel Intelligence — T1 engine tunables (founder go-ahead 2026-11-11) ── */

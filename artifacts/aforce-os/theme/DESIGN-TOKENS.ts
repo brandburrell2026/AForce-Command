@@ -22,12 +22,28 @@ export const preparationTokens = {
   /** Tertiary text and mono labels (the prototype's `dim`). */
   dim: af.textTertiary,
   red: af.red,
+  /** Red for small text on dark (AA); fills keep `red`. */
+  redText: af.redText,
   blue: af.blue,
   onBlue: af.onBlue,
   blueHi: af.blueText,
   rule: af.divider,
+  /** The plan card sits on bone: its supporting text and row hairline. */
+  onBoneMuted: af.onPrimaryFillMuted,
+  onBoneRule: af.onPrimaryFillRule,
   /** The One Breath orb ramp. Signal Red, never orange. */
   oneBreath: afOrb.oneBreath,
+  /** The approved prototype's One Breath sphere: ramp, stops, glow and its light. */
+  oneBreathDeep: {
+    ramp: afOrb.oneBreathDeep,
+    stops: afOrb.oneBreathDeepStops,
+    glow: afOrb.oneBreathDeepGlow,
+    shade: afOrb.orbShade,
+    bloom: afOrb.orbBloom,
+    specular: afOrb.orbSpecular,
+    rimLight: afOrb.orbRimLight,
+    rimLow: afOrb.orbRimLow,
+  },
   /** The Social orb ramp. Proof Blue. */
   social: afOrb.social,
   holdMs: 1200, breathMs: 6000, quietDimMs: 8000,

@@ -270,6 +270,14 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
    * A failure here is a Core behaviour change. That may be legitimate, but it
    * must be deliberate and authorized — never a side effect of an adoption PR.
    *
+   * REPINNED (3rd), 2026-11-21, by founder direction (Brandon; Julius's
+   * review open): the fixed "+18 to score" and "+10 to score" labels were
+   * removed from the DEPLETED and RECOVERING commands, and a member who has
+   * met today's water goal in those bands gets `cmd-water-goal-met` instead of
+   * the water-and-sticks card. All seven SCORES and BANDS below are unchanged;
+   * only the command and its digest moved. The six `hydrated` fixtures log
+   * 96 oz against a 96 oz target, which is why they changed command.
+   *
    * REPINNED (2nd) by Env PR5: the four weather-carrying fixtures gained a
    * fresh `weatherFetchedAt: T0` anchor, because Core's decay input now passes
    * only CURRENT readings (one canonical freshness verdict). Digests were
@@ -297,23 +305,23 @@ describe('LAW 4 — Core is byte-for-byte unchanged', () => {
    */
   const GOLDEN: Array<[string, Record<string, unknown>, number, string, string, string]> = [
     ['cold start, no weather', { ...P(), lastIntakeTime: new Date(T0) },
-      0, 'DEPLETED', 'cmd-depleted', 'dacb9b984998cc6e'],
+      0, 'DEPLETED', 'cmd-depleted', '386d2641db5bfd56'],
     // PR5: weather-carrying fixtures anchor their reading at `now` — Core's
     // freshness gate (one canonical verdict) only passes CURRENT readings, and
     // these fixtures exist to prove the WEATHER term, not the boundary (the
     // boundary has its own laws in freshnessUnificationLaw.test.ts).
     ['recent intake, no weather', hydrated(5, { weatherTempC: null, weatherHumidity: null }),
-      69, 'RECOVERING', 'cmd-recovering', 'ce4ba56a6b387ad6'],
+      69, 'RECOVERING', 'cmd-water-goal-met', 'e94cdb25a766fb19'],
     ['recent intake, mild 21C/45%', hydrated(5, { weatherTempC: 21, weatherHumidity: 45, weatherFetchedAt: T0 }),
-      69, 'RECOVERING', 'cmd-recovering', 'c4d378465a1cd1ef'],
+      69, 'RECOVERING', 'cmd-water-goal-met', '07287b2e950e8014'],
     ['recent intake, hot 35C/80%', hydrated(5, { weatherTempC: 35, weatherHumidity: 80, weatherFetchedAt: T0 }),
-      66, 'RECOVERING', 'cmd-recovering', '7328efbd5a53f4e3'],
+      66, 'RECOVERING', 'cmd-water-goal-met', 'de1a9079ce041538'],
     ['30min gap, hot 35C/80%', hydrated(30, { weatherTempC: 35, weatherHumidity: 80, weatherFetchedAt: T0 }),
-      38, 'DEPLETED', 'cmd-depleted', 'd3cd258a6df17adc'],
+      38, 'DEPLETED', 'cmd-water-goal-met', '7fce38ba8e50d6b3'],
     ['30min gap, extreme 42C/90%', hydrated(30, { weatherTempC: 42, weatherHumidity: 90, weatherFetchedAt: T0 }),
-      17, 'DEPLETED', 'cmd-depleted', '906bd2a2d9a81360'],
+      17, 'DEPLETED', 'cmd-water-goal-met', '4b0f64c91391b257'],
     ['30min gap, heatLoad seed only', hydrated(30, { weatherTempC: null, weatherHumidity: null, heatLoad: 4 }),
-      57, 'DEPLETED', 'cmd-depleted', '1b25bdd57256f453'],
+      57, 'DEPLETED', 'cmd-water-goal-met', '0bb7d0f2c0b2f008'],
   ];
 
   it.each(GOLDEN)('%s — score, band, command and full output digest match main',

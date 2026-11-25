@@ -189,6 +189,40 @@ export function reviewedNextPreparationContext(
   );
 }
 
+const SOCIAL_WORDS =
+  /\b(dinner|lunch|brunch|party|celebration|reunion|picnic|pool|boat|beach|social)\b/i;
+
+/** Types a calendar event or Moment may be offered for preparation. Recovery
+ * stays out: it is not part of the approved set. */
+type PreparableType = keyof typeof MOMENT_PROPOSAL_LEAD_HOURS;
+
+/**
+ * The shared eligibility rule for offering preparation, used by both the
+ * in-app proposal and the Moments calendar suggestions. Every safety refusal
+ * lives here once: real (non-synthetic) source, a readable title the Decision
+ * Guard approves, not masked, not tentative/cancelled/declined, not already
+ * prepared or planned, not low importance. A generic personal title is not
+ * evidence of a Social moment, so personal needs an explicit social word.
+ * Returns the lead window (hours) for the Moment's type, or null if refused.
+ */
+function preparationLeadHours(m: Moment): number | null {
+  if (
+    !isRealPreparationMoment(m) ||
+    (m.source !== "manual" && m.source !== "calendar") ||
+    !m.title.trim() ||
+    evaluateDeliverableLabel(m.title).verdict !== "approved" ||
+    m.masked ||
+    /\b(maybe|tentative|cancelled|canceled|declined)\b/i.test(m.title) ||
+    m.preparedAtIso ||
+    m.preparation ||
+    m.importance === "low"
+  )
+    return null;
+  if (!(m.type in MOMENT_PROPOSAL_LEAD_HOURS)) return null;
+  if (m.type === "personal" && !SOCIAL_WORDS.test(m.title)) return null;
+  return MOMENT_PROPOSAL_LEAD_HOURS[m.type as PreparableType];
+}
+
 /** Conservative in-app proposal adapter over existing Moments selectors and
  * the shared preference budget. No notifications, place inference or engine. */
 export function preparationProposalCandidate(
@@ -219,31 +253,67 @@ export function preparationProposalCandidate(
     return null;
   return (
     surfaceableMoments(moments, nowIso).find((m) => {
+      const window = preparationLeadHours(m);
       if (
-        !isRealPreparationMoment(m) ||
-        (m.source !== "manual" && m.source !== "calendar") ||
-        evaluateDeliverableLabel(m.title).verdict !== "approved" ||
-        m.masked ||
-        /\b(maybe|tentative|cancelled|canceled|declined)\b/i.test(m.title) ||
-        m.preparedAtIso ||
-        m.preparation ||
-        m.importance === "low" ||
+        window === null ||
         prefs.neverTypes.includes(m.type) ||
         prefs.records.some((r) => r.key === momentProposalKey(m))
       )
         return false;
       const lead = (Date.parse(m.startAtIso) - now) / 3600000;
-      if (lead < MOMENT_PROPOSAL_MIN_LEAD_MIN / 60) return false;
-      if (m.type === "travel") return lead <= MOMENT_PROPOSAL_LEAD_HOURS.travel;
-      // A generic personal title is not evidence of a Social moment. Exact
-      // member/calendar words remain visible for correction before any Seal.
-      return (
-        m.type === "personal" &&
-        lead <= MOMENT_PROPOSAL_LEAD_HOURS.personal &&
-        /\b(dinner|lunch|brunch|party|celebration|reunion|picnic|pool|boat|beach|social)\b/i.test(
-          m.title,
-        )
-      );
+      return lead >= MOMENT_PROPOSAL_MIN_LEAD_MIN / 60 && lead <= window;
     }) ?? null
+  );
+}
+
+/** A synthetic sample calendar event (DEMO/CAPTURE only). It can be shown and
+ * reviewed, never sealed: see isRealPreparationMoment. */
+export function isSampleCalendarMoment(moment: Moment): boolean {
+  return moment.source === "calendar" && !isRealPreparationMoment(moment);
+}
+
+export interface CalendarSuggestion {
+  moment: Moment;
+  /** True for a synthetic sample event. Never a real calendar event. */
+  sample: boolean;
+}
+
+/**
+ * Events the member may choose to prepare for, listed on the Moments calendar
+ * page. Member-initiated, so the unsolicited-proposal budget (quiet hours,
+ * cooldown, "never for this type", shown-once) does not apply; every safety
+ * refusal in preparationLeadHours does. Upcoming only (starts at least the
+ * minimum lead from now), soonest first. `includeSamples` is true only in
+ * DEMO/CAPTURE builds, where the sample day is shown labelled as a sample.
+ */
+export function calendarPrepareSuggestions(
+  moments: readonly Moment[],
+  nowIso: string,
+  options: { includeSamples?: boolean } = {},
+): CalendarSuggestion[] {
+  const now = Date.parse(nowIso);
+  if (!Number.isFinite(now)) return [];
+  const out: CalendarSuggestion[] = [];
+  for (const m of moments) {
+    if (m.source !== "calendar") continue;
+    const sample = isSampleCalendarMoment(m);
+    if (sample && !options.includeSamples) continue;
+    // A sample is judged by the same rules as a real event, minus the
+    // real-source test it can never pass.
+    const eligible = sample
+      ? preparationLeadHours({
+          ...m,
+          source: "manual",
+          id: "sample-check",
+          calendarEventId: undefined,
+        }) !== null
+      : preparationLeadHours(m) !== null;
+    if (!eligible) continue;
+    const lead = Date.parse(m.startAtIso) - now;
+    if (!Number.isFinite(lead) || lead < MOMENT_PROPOSAL_MIN_LEAD_MIN * 60_000) continue;
+    out.push({ moment: m, sample });
+  }
+  return out.sort(
+    (a, b) => Date.parse(a.moment.startAtIso) - Date.parse(b.moment.startAtIso),
   );
 }

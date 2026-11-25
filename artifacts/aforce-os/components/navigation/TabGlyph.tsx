@@ -1,9 +1,9 @@
 /**
- * TabGlyph — the four bottom-bar icons, drawn exactly as the approved
- * prototype draws them: 18pt, 1.4pt stroke, no fill.
+ * TabGlyph — the bottom-bar icons, drawn as the approved prototype draws
+ * them: 18pt, 1.4pt stroke, no fill. The Hydration tab has no icon (founder
+ * direction, 2026-11-22: no water icon); its label stands alone.
  *
  *   home       a ring with a centre dot
- *   hydration  an outline drop
  *   moments    three lines, each shorter than the last
  *   circles    two overlapping rings
  *
@@ -13,7 +13,7 @@
 import React from 'react';
 import Svg, { Circle, Path } from 'react-native-svg';
 
-export type TabGlyphName = 'home' | 'hydration' | 'moments' | 'circles';
+export type TabGlyphName = 'home' | 'moments' | 'circles';
 
 export const TAB_GLYPH_SIZE = 18;
 const STROKE = 1.4;
@@ -26,14 +26,6 @@ export function TabGlyph({ name, color }: { name: TabGlyphName; color: string })
           <Circle cx={9} cy={9} r={7} stroke={color} strokeWidth={STROKE} />
           <Circle cx={9} cy={9} r={1.5} fill={color} />
         </>
-      ) : null}
-      {name === 'hydration' ? (
-        <Path
-          d="M9 2.5c2.6 3.3 4.5 5.6 4.5 8.1a4.5 4.5 0 0 1-9 0C4.5 8.1 6.4 5.8 9 2.5z"
-          stroke={color}
-          strokeWidth={STROKE}
-          strokeLinejoin="round"
-        />
       ) : null}
       {name === 'moments' ? <Path d="M3 5h12M3 9h9M3 13h6" stroke={color} strokeWidth={STROKE} /> : null}
       {name === 'circles' ? (

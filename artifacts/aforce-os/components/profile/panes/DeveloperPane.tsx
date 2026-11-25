@@ -181,6 +181,8 @@ export function renderDeveloperSections(ctx: ProfilePaneCtx): React.ReactNode[] 
           </Pressable>
         ) : null}
 
+        {/* Internal only: off by default and clamped off outside dev and internal TestFlight builds. */}
+        <FlagRow flag="hydroscan_label_reader_enabled" label="HydroScan · label reader" desc="Reads the drink label on the phone as well as the barcode. Internal testing only. Nothing is saved or sent." color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="travel_mode_enabled" label="Travel · TravelGate pilot" desc="Flight planning and AForce Moments. Connected services require private pilot access." color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_access_enabled" label={t('profile.v2.flag_clutch_label')} desc={t('profile.v2.flag_clutch_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
         <FlagRow flag="clutch_heat_mode_enabled" label={t('profile.v2.flag_heat_label')} desc={t('profile.v2.flag_heat_desc')} color={af.cyan} flags={flags} onToggle={toggleFlag} />
