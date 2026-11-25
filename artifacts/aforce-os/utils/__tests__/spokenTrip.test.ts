@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSpokenTrip, spokenTripSummary } from '../travel/spokenTrip';
+import { parseSpokenTrip, spokenTripSummary, tripForForm } from '../travel/spokenTrip';
 
 const NOW = new Date(2026, 10, 19, 10, 0); // 19 Nov 2026, local
 const p = (s: string) => parseSpokenTrip(s, NOW);
@@ -56,9 +56,10 @@ describe('parseSpokenTrip', () => {
   });
 
   it('a place it does not know is left blank and said so', () => {
-    const r = p('from boise to miami');
+    // Boise is known by name since 2026-11-20; Springfield (there are many) is not.
+    const r = p('from springfield to miami');
     expect(r.fields).toEqual({ destination: 'MIA' });
-    expect(r.notes[0]).toContain('“boise” isn’t an airport AFORCE knows by name');
+    expect(r.notes[0]).toContain('“springfield” isn’t an airport AFORCE knows by name');
   });
 
   it('"flying to …" gives the arrival only', () => {
@@ -85,3 +86,115 @@ describe('spokenTripSummary', () => {
     expect(spokenTripSummary(p('hello'))).toBe('Nothing was filled in. Try the example, or type the details.');
   });
 });
+
+// 19 Nov 2026 is a Thursday.
+describe('parseSpokenTrip · the sentences members actually say (2026-11-20)', () => {
+  it('a weekday is the coming one; "this Friday" too', () => {
+    expect(p('flying to Miami Sunday').fields).toEqual({ destination: 'MIA', date: '2026-11-22' });
+    expect(p('from JFK to LAX Friday at 9 am').fields).toEqual({ origin: 'JFK', destination: 'LAX', date: '2026-11-20', time: '09:00' });
+    expect(p('delta 5 from jfk to lax this saturday at 9 pm').fields).toMatchObject({ date: '2026-11-21', time: '21:00' });
+  });
+
+  it('"next Friday" is not guessed: the airports still fill and a note asks for the date', () => {
+    const t = p('from JFK to LAX next Friday at 9 am');
+    expect(t.fields).toEqual({ origin: 'JFK', destination: 'LAX', time: '09:00' });
+    expect(t.notes).toEqual(['Date: “next Friday” can mean two different dates. Say the date, like “November 27”.']);
+  });
+
+  it('a weekday said on that weekday is not guessed either', () => {
+    const t = p('united 2210 from EWR to SFO thursday at 8 am');
+    expect(t.fields.date).toBeUndefined();
+    expect(t.notes).toEqual(['Date: today is Thursday. Say “today”, or the date you mean.']);
+  });
+
+  it('a month date wins over a weekday in the same sentence', () => {
+    expect(p('delta 5 from jfk to lax friday december 4 at 9 am').fields.date).toBe('2026-12-04');
+  });
+
+  it('24-hour times, and a part of the day', () => {
+    expect(p('American 45 from Miami to Los Angeles on December 3 at 14:30').fields.time).toBe('14:30');
+    expect(p('at 07:15').fields.time).toBe('07:15');
+    expect(p('at 00:40').fields.time).toBe('00:40');
+    expect(p('at 7 in the evening').fields.time).toBe('19:00');
+    expect(p('at 6:30 in the morning').fields.time).toBe('06:30');
+    expect(p('at 11 at night').fields.time).toBe('23:00');
+  });
+
+  it('a clock time with no AM or PM is not guessed, and says why', () => {
+    const t = p('delta 5 from jfk to lax saturday at 9');
+    expect(t.fields.time).toBeUndefined();
+    expect(t.notes).toEqual(['Departure time: “9” could be morning or evening. Say AM or PM.']);
+    expect(p('delta 5 saturday at 9:30').notes).toEqual(['Departure time: “9:30” could be morning or evening. Say AM or PM.']);
+  });
+
+  it('a flight number is never mistaken for a time, nor a time for a flight number', () => {
+    expect(p('delta 1430 from jfk to lax tomorrow').fields).toEqual({ flightNumber: 'DL1430', origin: 'JFK', destination: 'LAX', date: '2026-11-20' });
+    expect(p('tomorrow at 14:30 from jfk to lax').fields.flightNumber).toBeUndefined();
+  });
+
+  it('an arrival time is kept apart from the departure time', () => {
+    const t = p('United 88 from EWR to San Francisco December 3 at 8 am landing at 11:15 am');
+    expect(t.fields).toEqual({ flightNumber: 'UA88', origin: 'EWR', destination: 'SFO', date: '2026-12-03', time: '08:00', arrivalTime: '11:15' });
+    expect(p('delta 5 from jfk to lax tomorrow arriving at 12:30 pm').fields).toMatchObject({ arrivalTime: '12:30' });
+    expect(p('delta 5 from jfk to lax tomorrow arriving at 12:30 pm').fields.time).toBeUndefined();
+  });
+
+  it('the arrival date is filled only when it was said, never assumed', () => {
+    expect(p('delta 5 from jfk to lax tomorrow at 11 pm landing at 2 am').fields.arrivalDate).toBeUndefined();
+    expect(p('delta 5 from jfk to lax tomorrow at 11 pm landing november 21 at 2 am').fields).toMatchObject({ arrivalDate: '2026-11-21', arrivalTime: '02:00' });
+  });
+
+  it('a way back becomes a second leg with the airports swapped', () => {
+    const t = p('United 88 from EWR to San Francisco December 3 at 8 am returning December 7 at 5 pm on United 99');
+    expect(t.fields).toEqual({ flightNumber: 'UA88', origin: 'EWR', destination: 'SFO', date: '2026-12-03', time: '08:00' });
+    expect(t.returnLeg).toEqual({ flightNumber: 'UA99', origin: 'SFO', destination: 'EWR', date: '2026-12-07', time: '17:00' });
+  });
+
+  it('the way back never borrows the outbound flight number, date or time', () => {
+    const t = p('delta 5 from jfk to lax tomorrow at 9 am coming back sunday');
+    expect(t.returnLeg).toEqual({ origin: 'LAX', destination: 'JFK', date: '2026-11-22' });
+  });
+
+  it('the way back has no airports when the way out is missing one', () => {
+    expect(p('flying to Miami tomorrow returning sunday').returnLeg).toEqual({ date: '2026-11-22' });
+  });
+
+  it('no return is invented when none was said', () => {
+    expect(p('delta 5 from jfk to lax tomorrow at 9 am').returnLeg).toBeUndefined();
+  });
+
+  it('a three-letter code that is not a real airport is not passed on', () => {
+    const t = p('delta 5 from xqz to lax tomorrow');
+    expect(t.fields.origin).toBeUndefined();
+    expect(t.fields.destination).toBe('LAX');
+    expect(t.notes).toEqual(['Departure: “XQZ” isn’t an airport code AFORCE knows. Check it and type it.']);
+  });
+
+  it('an airline named without a flight number is remembered, and no number is made up', () => {
+    const t = p('flying delta to lax monday at 7 in the evening');
+    expect(t.fields.flightNumber).toBeUndefined();
+    expect(t.airline).toBe('DL');
+    expect(p('delta 5 to lax monday').airline).toBeUndefined();
+  });
+});
+
+describe('tripForForm · what today\'s form can save', () => {
+  it('holds back an arrival time heard without an arrival date, and says so', () => {
+    const t = tripForForm(p('delta 5 from jfk to lax tomorrow at 9 am landing at 12:30 pm'));
+    expect(t.fields).toEqual({ flightNumber: 'DL5', origin: 'JFK', destination: 'LAX', date: '2026-11-20', time: '09:00' });
+    expect(t.notes).toEqual(['Arrival time: heard 12:30. Add the arrival date to use it.']);
+    expect(spokenTripSummary(t)).not.toContain('arrival time');
+  });
+
+  it('passes an arrival time through when its date was said', () => {
+    const t = tripForForm(p('delta 5 from jfk to lax tomorrow at 11 pm landing november 21 at 2 am'));
+    expect(t.fields).toMatchObject({ arrivalDate: '2026-11-21', arrivalTime: '02:00' });
+    expect(t.notes).toEqual([]);
+  });
+
+  it('changes nothing for a trip with no arrival time', () => {
+    const trip = p('delta 5 from jfk to lax tomorrow at 9 am');
+    expect(tripForForm(trip)).toBe(trip);
+  });
+});
+
