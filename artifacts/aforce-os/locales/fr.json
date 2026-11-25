@@ -719,7 +719,11 @@
     },
     "consequence_drop": "Skip this and you're likely to land near {{projected}} in the next {{minutes}} min.",
     "context_late_night": "It's late, and this window sets up your tomorrow.",
-    "pattern_streak": "{{count}} days strong — that consistency is paying off."
+    "pattern_streak": "{{count}} days strong — that consistency is paying off.",
+    "water_goal_met_action": "Water goal met.",
+    "water_goal_met_urine": "Your last urine check is holding your score down.",
+    "water_goal_met_symptom": "The signals you reported are holding your score down.",
+    "water_goal_met_recency": "It has been {{time}} since your last drink."
   },
   "social": {
     "title": "MODE SOCIAL",

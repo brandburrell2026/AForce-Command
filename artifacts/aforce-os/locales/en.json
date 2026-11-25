@@ -875,7 +875,11 @@
       "log_oz_a11y": "Log {{oz}} ounces",
       "dose_oz": "{{oz}} oz",
       "dismiss": "Dismiss"
-    }
+    },
+    "water_goal_met_action": "Water goal met.",
+    "water_goal_met_urine": "Your last urine check is holding your score down.",
+    "water_goal_met_symptom": "The signals you reported are holding your score down.",
+    "water_goal_met_recency": "It has been {{time}} since your last drink."
   },
   "social": {
     "title": "NIGHT OUT",
