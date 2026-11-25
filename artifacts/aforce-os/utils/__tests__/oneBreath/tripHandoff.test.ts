@@ -60,6 +60,7 @@ describe('Travel handoff from the active One Breath conversation', () => {
     expect(source).toContain('unsafe: !!evaluateMomentSafety(said, alcoholDisclosure(said))');
     expect(source).toContain('hear(text.trim(), "spoken")');
     expect(source).toContain('hear(said, "typed")');
+    expect(source).toContain('if (via === "spoken") voice.cancel();');
     expect(source.indexOf('if (trip) {')).toBeLessThan(source.indexOf('controller.send({ kind: "say", words: said, via })'));
   });
 });

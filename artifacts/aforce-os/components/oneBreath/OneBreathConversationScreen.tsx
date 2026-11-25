@@ -342,6 +342,7 @@ export function OneBreathConversationScreen() {
       now: new Date(),
     });
     if (trip) {
+      if (via === "spoken") voice.cancel();
       live.current.router.push(trip as never);
       return;
     }
