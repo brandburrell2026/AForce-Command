@@ -44,7 +44,7 @@
 /libpeerconnection.log
 /typings
 Thumbs.db
-android/
+/android/
 !modules/skinia-image-features/android/
 !modules/skinia-image-features/android/**
 !modules/hydroscan-label-text/android/
@@ -54,7 +54,7 @@ attached_assets/Pasted-*
 dist
 dist/
 expo-env.d.ts
-ios/
+/ios/
 !modules/skinia-image-features/ios/
 !modules/skinia-image-features/ios/**
 !modules/hydroscan-label-text/ios/

@@ -36,6 +36,8 @@ minimumReleaseAgeExclude:
   - stripe-replit-sync
 
 overrides:
+  # Expo SDK 54 native modules must resolve one Constants implementation.
+  expo-constants: 18.0.14
   '@clerk/clerk-js': 6.7.5
   '@clerk/react': 6.4.3
   '@clerk/shared': 4.8.3

@@ -87,6 +87,11 @@ jobs:
       - name: Typecheck api-server
         run: pnpm --filter @workspace/api-server run typecheck
 
+      - name: Check native beta setup and SDK compatibility
+        if: startsWith(github.head_ref, 'test/beta-consolidated-') || startsWith(github.ref_name, 'test/beta-consolidated-')
+        working-directory: artifacts/aforce-os
+        run: pnpm dlx expo-doctor@1.21.8
+
   tests-baseline:
     name: tests-baseline
     runs-on: ubuntu-latest

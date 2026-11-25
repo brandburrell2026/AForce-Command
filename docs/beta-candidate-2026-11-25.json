@@ -38,7 +38,7 @@
     }
   ],
   "backend": "https://aforce-command-candidate-staging.up.railway.app/api",
-  "runtime": "1.0.0-beta-20261125-1",
+  "runtime": "1.0.0-beta-20261125-2",
   "updateChannel": "beta-staging-20261125",
   "excluded": [
     "PR 1055: human policy-review gate remains required"
