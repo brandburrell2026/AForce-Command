@@ -457,8 +457,25 @@ describe('A11Y · MOTION · ISOLATION — the standing editorial rules', () => {
     expect(factors).toMatch(/PROVENANCE_LABEL\[f\.provenance\]/);
   });
 
-  it('the statement is a header landmark', () => {
-    expect(body()).toMatch(/accessibilityRole="header"/);
+  it('the screen name is a header landmark', () => {
+    // HydroScan layout (founder decision 2026-11-20, barcode only): the name
+    // moved from the page statement to the top bar, and the landmark with it.
+    expect(body()).toMatch(/<HydroScanTopBar/);
+    const chrome = strip(read(join(AOS, 'components', 'scan', 'hydroscan', 'HydroScanChrome.tsx')));
+    expect(chrome).toMatch(/accessibilityRole="header"[^>]*>HYDROSCAN</);
+  });
+
+  it('the HydroScan layout carries no capture control and nothing that looks like measuring', () => {
+    // The prototype's Drink mode, round capture button and Container / Size /
+    // Level / Match panel are left out: D2 and D4 still govern this screen.
+    const chrome = strip(read(join(AOS, 'components', 'scan', 'hydroscan', 'HydroScanChrome.tsx')));
+    expect(chrome).not.toMatch(/takePicture|takePhoto|captureAsync/);
+    expect(chrome).not.toMatch(/\bphoto\b|\bphotograph|\bshutter\b|\bsnapshot\b/i);
+    expect(chrome).not.toMatch(/CONTAINER|\bLEVEL\b|\bMATCH\b|SEARCHING|IN FRAME/);
+    expect(chrome, 'the frame does not move').not.toMatch(/Animated\./);
+    expect(body()).not.toMatch(/key: 'drink'/);
+    const reader = strip(read(join(AOS, 'components', 'CameraScanModal.tsx')));
+    expect(reader).toMatch(/export function LiveBarcodeReader/);
   });
 
   it('every interactive target meets the 44pt floor and is labelled', () => {

@@ -38,6 +38,7 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   'components/skinIntelligence/SkinIntelligenceEditorialSuite.tsx': { count: 1, why: '3pt rule' },
   'components/recoveryCoach/RecoveryCoachScreen.tsx': { count: 4, why: 'live dot, pulse core, timer hairline, track fill' },
   'components/onboarding/OnboardingScreenV2.tsx': { count: 1, why: 'step dot' },
+  'components/scan/hydroscan/HydroScanFilm.tsx': { count: 2, why: '5pt and 6pt Locked dots on the HydroScan camera (film layout)' },
   'components/concierge/conciergeKit.tsx': { count: 1, why: 'concierge avatar' },
   // Selected states — not primary buttons. Reviewed with the segmented-control
   // step (gap report V9), not here.

@@ -522,6 +522,12 @@ export interface FeatureFlags {
   travel_mode_enabled: boolean;
   // Trainer surface (Phase 2). Both default false and both listed in
   // INTERNAL_TIER_FLAGS — medical-adjacent copy, same treatment as Clutch.
+  /**
+   * Internal HydroScan reader that reads the visible drink label on the device
+   * as well as the barcode (founder-approved 2026-11-21). Default off; clamped in
+   * public builds (INTERNAL_TIER_FLAGS).
+   */
+  hydroscan_label_reader_enabled: boolean;
   trainer_board_enabled: boolean;
   trainer_demo_seed_enabled: boolean;
   clutch_access_enabled: boolean;

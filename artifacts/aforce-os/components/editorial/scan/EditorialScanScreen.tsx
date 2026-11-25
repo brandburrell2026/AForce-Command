@@ -62,14 +62,19 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 
 import { af } from '@/theme';
-import { AFScreen } from '@/components/ui';
 import { AddDrinkModal } from '@/components/AddDrinkModal';
-import { CameraScanModal } from '@/components/CameraScanModal';
+import { LiveBarcodeReader } from '@/components/CameraScanModal';
+import { HydroScanLabelReader, type LabelSaveResult } from '@/components/scan/hydroscan/HydroScanLabelReader';
+import { HydroScanFoot, HydroScanFrame, HydroScanModes, HydroScanSheet, HydroScanTopBar } from '@/components/scan/hydroscan/HydroScanChrome';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { DECISION_GUARD_MAX_DOSE_OZ } from '@/config/hydroStateModel';
 import { PRODUCTS } from '@/data/products';
 import { postRecordedDrink } from '@/services/realApi';
+import { HydroScanLogged, HydroScanUnknownAmount, HydroScanUnknownPick } from '@/components/scan/hydroscan/HydroScanUnknown';
 import { drinkRoute, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from '@/utils/hydration/drinkRoute';
+import { ageRestrictedDrinksAvailable } from '@/utils/hydration/drinkAvailability';
+import { hydroscanLabelReaderAvailable } from '@/featureFlags/flags';
+import type { DrinkLogArgs, SavedDrink } from '@/utils/hydroscan/labelDrinkLog';
 import { emit } from '@/analytics/event_dispatcher';
 import { usePostScan } from '@/hooks/useServerHistory';
 import { speak as speakCoach, stopSpeaking } from '@/services/textToSpeech';
@@ -87,10 +92,8 @@ import type { ScanOutcome, ScanSource } from '@/types/scan';
 import type { CompareProduct } from '@/types/comparison';
 
 import { EdCaption, EdEvidenceLine, EdKicker, EdRule, EdStatement, EdSurface, useEdSettle } from '../index';
-import { EdReturn } from '../moments/EdReturn';
 import { EdIntakeConfirm } from './EdIntakeConfirm';
 import { EdProductFactors, type ProductFactor } from './EdProductFactors';
-import { EdRegistrationTarget } from './EdRegistrationTarget';
 import {
   CLASS_LABEL,
   coverageNote,
@@ -106,7 +109,10 @@ export function EditorialScanScreen() {
 
   const [outcome, setOutcome] = useState<ScanOutcome | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [cameraOpen, setCameraOpen] = useState(false);
+  // The reader is the screen (the approved HydroScan layout): it runs while
+  // nothing is being read, shown or typed, and pauses behind a result.
+  const [torch, setTorch] = useState(false);
+  const [readerRunning, setReaderRunning] = useState(false);
   // PARITY (not new capability): both of these exist on the production Scan
   // surface. Activating `editorial_scan_enabled` swaps this screen in for
   // HydrationScanScreenV2, which holds the app's ONLY navigation to
@@ -130,6 +136,8 @@ export function EditorialScanScreen() {
   const MAX_LOG_OZ = Math.min(64, DECISION_GUARD_MAX_DOSE_OZ);
   const [qtyOz, setQtyOz] = useState(0);
   const [loggedCycleId, setLoggedCycleId] = useState<string | null>(null);
+  // What the last confirmed drink write left behind (read by the flagged label reader's Undo).
+  const lastSavedRef = useRef<SavedDrink | null>(null);
 
   // Water uses the scored hydration path. Every other drink is an append-only
   // record and cannot move HydroState until an approved rule exists.
@@ -140,27 +148,48 @@ export function EditorialScanScreen() {
     enteredOz: number;
     effectiveOz: number;
     hydrationCoefficient: number;
-  }) => {
+  }, inSheet: boolean = false): Promise<'water' | 'recorded' | 'failed'> => {
     setAddDrinkOpen(false);
     const route = drinkRoute(args);
     if (route.kind === 'water') {
-      await logIntake('water', { source: 'scan', ozOverride: route.oz });
-      return;
+      const cycleId = await logIntake('water', { source: 'scan', ozOverride: route.oz });
+      lastSavedRef.current = cycleId ? { kind: 'water', cycleId } : null;
+      // In the sheet the log's own id is kept, so the Done card can offer Undo.
+      if (inSheet && cycleId) {
+        setLoggedCycleId(cycleId);
+        setUndone(false);
+      }
+      return inSheet && !cycleId ? 'failed' : 'water';
     }
     try {
-      await postRecordedDrink({
+      const savedDrink = await postRecordedDrink({
         categoryId: route.categoryId,
         displayName: `${args.displayName} · ${args.enteredOz} oz`,
         ozAmount: route.oz,
         entrySource: 'scan',
       });
-      Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
+      lastSavedRef.current = typeof savedDrink?.id === 'number' ? { kind: 'recorded', id: savedDrink.id } : null;
+      // The sheet's own card says this; elsewhere the alert does.
+      if (!inSheet) Alert.alert(RECORDED_DRINK_TITLE, RECORDED_DRINK_DETAIL);
+      return 'recorded';
     } catch {
       // Never claim a save that did not land (spec v1.8.2 Part 7.3, 7.7).
-      Alert.alert('Not logged', 'Your drink was not saved. Try again.');
+      if (!inSheet) Alert.alert('Not logged', 'Your drink was not saved. Try again.');
+      return 'failed';
     }
   }, [logIntake]);
   const [undone, setUndone] = useState(false);
+  // ── A barcode that is not in the list (spec drinks 5, D6) ─────────────
+  // The member picks the kind and the amount by taps. Nothing is logged
+  // until "Log it"; the write is the manual confirmation handler above.
+  const [unknown, setUnknown] = useState<
+    | null
+    | { step: 'amount'; categoryId: string; label: string; oz: number | null }
+    | { step: 'done'; label: string; note: string; state: 'logged' | 'failed' }
+  >(null);
+  useEffect(() => {
+    setUnknown(null);
+  }, [outcome]);
   // One write on screen at a time — drives busy states AND freezes SCAN
   // AGAIN so a slow round-trip cannot race a rescan (see the epoch below).
   const [writeInFlight, setWriteInFlight] = useState(false);
@@ -233,6 +262,8 @@ export function EditorialScanScreen() {
   };
 
   const result = outcome?.ok ? outcome.result : null;
+  /** The code was read but is not a product in the list: the member says what it is. */
+  const notInList = !!outcome && !outcome.ok && (outcome.failure.reason === 'unknown_barcode' || outcome.failure.reason === 'unrecognized_qr');
 
   // A new result resets the lifecycle: quantity returns to the product's own
   // serving size (bounded by the Decision Guard ceiling), and any previous
@@ -280,6 +311,30 @@ export function EditorialScanScreen() {
     }
   };
 
+  const onLogUnknown = async () => {
+    if (unknown?.step !== 'amount' || unknown.oz === null) return;
+    if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return;
+    confirmInFlightRef.current = true;
+    setWriteInFlight(true);
+    const { categoryId, label, oz } = unknown;
+    const name = label.toLowerCase();
+    try {
+      const saved = await onConfirmDrink(
+        { categoryId, name: label, displayName: label, enteredOz: oz, effectiveOz: oz, hydrationCoefficient: 1 },
+        true,
+      );
+      setUnknown({
+        step: 'done',
+        label: `${oz} oz ${name}`,
+        note: saved === 'recorded' ? `${RECORDED_DRINK_TITLE}. ${RECORDED_DRINK_DETAIL}` : '',
+        state: saved === 'failed' ? 'failed' : 'logged',
+      });
+    } finally {
+      confirmInFlightRef.current = false;
+      setWriteInFlight(false);
+    }
+  };
+
   const onUndoLog = async () => {
     if (!loggedCycleId || confirmInFlightRef.current) return;
     confirmInFlightRef.current = true;
@@ -297,6 +352,28 @@ export function EditorialScanScreen() {
       setWriteInFlight(false);
     }
   };
+
+  // ── Flagged label reader (hydroscan_label_reader_enabled, internal) ───
+  // Off: nothing below is used and the screen is exactly the barcode scanner.
+  // On: the reader confirms a drink with the member, then saves it HERE, through
+  // the same confirmed-drink write and the same duplicate guards as above.
+  const labelReaderOn = hydroscanLabelReaderAvailable(state.featureFlags);
+  const saveLabelDrink = useCallback(
+    async (args: DrinkLogArgs): Promise<LabelSaveResult> => {
+      if (confirmInFlightRef.current || state.isCompletingCycle || state.showCycleSuccess) return { status: 'busy' };
+      confirmInFlightRef.current = true;
+      setWriteInFlight(true);
+      lastSavedRef.current = null;
+      try {
+        const route = await onConfirmDrink(args, true);
+        return route === 'failed' ? { status: 'failed' } : { status: 'saved', route, saved: lastSavedRef.current };
+      } finally {
+        confirmInFlightRef.current = false;
+        setWriteInFlight(false);
+      }
+    },
+    [onConfirmDrink, state.isCompletingCycle, state.showCycleSuccess],
+  );
 
   // The coach mirror, spoken only in the member's chosen posture. It explains
   // the comparison; it authors no instruction (DR-013).
@@ -359,95 +436,156 @@ export function EditorialScanScreen() {
   return (
     <EdSurface stock="black" style={styles.fill}>
       <StatusBar style="light" />
-      <AFScreen scroll style={styles.canvas} contentContainerStyle={styles.content}>
-        <Animated.View style={settle}>
-          <EdReturn now={new Date()} />
-          <EdCaption text="AFORCE · THE TOOL" />
-          <EdRule />
-          <EdStatement accessibilityRole="header">Scan</EdStatement>
+      <View style={styles.fill}>
+        {/* ── OBSERVED · the symbol, and nothing else ─────────────────
+            The reader fills the screen and decodes a barcode on the device.
+            It keeps no picture. It pauses while a result is on screen. */}
+        {labelReaderOn ? (
+          <HydroScanLabelReader
+            paused={scanning || outcome != null || addDrinkOpen}
+            torch={torch}
+            onRunning={setReaderRunning}
+            onType={() => setAddDrinkOpen(true)}
+            onHandOff={(source) => void runScan(source)}
+            onSave={saveLabelDrink}
+            undoWater={undoIntake}
+            alcoholAllowed={ageRestrictedDrinksAvailable()}
+          />
+        ) : (
+        <LiveBarcodeReader
+          paused={scanning || outcome != null || addDrinkOpen}
+          torch={torch}
+          onRunning={setReaderRunning}
+          onScan={(res) => {
+            void runScan({ kind: res.kind === 'qr' ? 'qr' : 'barcode', rawValue: res.data });
+          }}
+          blocked={(b) =>
+            b && !b.pending ? (
+              <View style={styles.blocked} testID="ed-scan-camera-off">
+                <EdCaption text="CAMERA IS OFF FOR AFORCE" />
+                <Text style={[edType.body as TextStyle, { color: ink.quiet, marginTop: 8 }]}>
+                  HydroScan needs the camera to read a barcode. Nothing is recorded. You can type your drink instead.
+                </Text>
+                {b.canAskAgain ? (
+                  <Pressable
+                    onPress={b.request}
+                    accessibilityRole="button"
+                    accessibilityLabel="Allow the camera"
+                    hitSlop={8}
+                    style={styles.target}
+                    testID="ed-scan-allow-camera"
+                  >
+                    <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>ALLOW CAMERA</Text>
+                  </Pressable>
+                ) : (
+                  <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 14 }]}>
+                    Turn it on in Settings › AFORCE › Camera.
+                  </Text>
+                )}
+              </View>
+            ) : null
+          }
+        />
+        )}
 
-          {/* ── OBSERVED · the symbol, and nothing else ─────────────── */}
-          {!result ? (
-            <>
-              <Pressable
-                onPress={() => setCameraOpen(true)}
-                disabled={scanning || Platform.OS === 'web'}
-                accessibilityRole="button"
-                accessibilityLabel="Open the barcode reader"
-                accessibilityState={{ disabled: scanning || Platform.OS === 'web' }}
-                hitSlop={8}
-                testID="ed-scan-target"
-              >
-                <EdRegistrationTarget
-                  label={scanning ? 'READING' : 'POINT AT BARCODE'}
-                  note="BARCODE DETECTION · ON DEVICE"
-                  testID="ed-scan-registration"
-                />
-              </Pressable>
-              <Text style={[edType.bodySmall as TextStyle, { color: ink.quiet, marginTop: 18 }]}>
-                The reader decodes the code on the pack. It does not read anything about you.
-              </Text>
-
-              {/* OTHER WAYS — parity with the production screen's disclosure
-                  sheet. Presentation differs (a plain editorial row, not a
-                  sheet); the capabilities are identical. */}
-              <Pressable
-                onPress={() => setAddDrinkOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel={t('hydroScan2.v2.log_any_title')}
-                hitSlop={8}
-                style={styles.target}
-                testID="ed-scan-add-drink"
-              >
-                <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>ADD A DRINK MANUALLY</Text>
-              </Pressable>
+        {!outcome && !labelReaderOn ? (
+          <>
+            {readerRunning || Platform.OS === 'web' ? (
+              <HydroScanFrame
+                hint={scanning ? 'READING' : 'POINT AT BARCODE'}
+                note="BARCODE DETECTION · ON DEVICE"
+              />
+            ) : null}
+            <HydroScanFoot>
+              <HydroScanModes
+                selected="barcode"
+                modes={[
+                  { key: 'barcode', label: 'Barcode', accessibilityLabel: 'Barcode reader', onPress: () => undefined },
+                  { key: 'type', label: 'Type it', accessibilityLabel: t('hydroScan2.v2.log_any_title'), onPress: () => setAddDrinkOpen(true) },
+                ]}
+              />
+              {/* PARITY: the app's only way to the Hydration Check. */}
               <Pressable
                 onPress={() => router.push('/urine-check' as never)}
                 accessibilityRole="button"
                 accessibilityLabel={t('hydroScan2.v2.urine_check_title')}
                 hitSlop={8}
-                style={styles.target}
+                style={styles.footTarget}
                 testID="ed-scan-urine-check"
               >
                 <Text style={[edType.micro as TextStyle, { color: ink.primary }]}>HYDRATION CHECK</Text>
               </Pressable>
+              <Text style={[edType.bodySmall as TextStyle, styles.footNote, { color: ink.quiet }]}>
+                The reader decodes the code on the pack. It does not read anything about you.
+              </Text>
+              <EdEvidenceLine parts={[t('hydroScan2.v2.disclaimer')]} />
 
               {/* PREVIEW — dev/demo only, exactly as the production screen has
                   it. `PREVIEW_SCAN_ENABLED` folds to false in a release
                   bundle, so this is unreachable rather than merely hidden:
-                  a simulated scan persists to real history. Carried over so
-                  the flag-ON surface is not less inspectable than the one it
-                  replaces. */}
+                  a simulated scan persists to real history. */}
               {PREVIEW_SCAN_ENABLED ? (
-                <View style={styles.section} testID="ed-scan-preview">
+                <View style={styles.preview} testID="ed-scan-preview">
                   <EdCaption text="PREVIEW · DEV ONLY" />
                   {/* No slice. BARCODE_INDEX lists every AForce code before
                       any rival, so a truncated list showed AForce products
-                      ONLY — the exact copy hierarchy D6 forbids, and it made
-                      rivals and plain water unreachable for inspection. */}
-                  {listSimulatableBarcodes().map((b) => (
-                    <Pressable
-                      key={b.code}
-                      onPress={() => void runScan({ kind: 'barcode', rawValue: b.code })}
-                      disabled={scanning}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Simulate a scan of ${b.label}`}
-                      hitSlop={6}
-                      style={styles.target}
-                      testID={`ed-scan-preview-${b.productId}`}
-                    >
-                      <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
-                        {b.label}
-                      </Text>
-                    </Pressable>
-                  ))}
+                      ONLY — the exact copy hierarchy D6 forbids. */}
+                  <View style={styles.previewRow}>
+                    {listSimulatableBarcodes().map((b) => (
+                      <Pressable
+                        key={b.code}
+                        onPress={() => void runScan({ kind: 'barcode', rawValue: b.code })}
+                        disabled={scanning}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Simulate a scan of ${b.label}`}
+                        hitSlop={6}
+                        style={styles.previewTarget}
+                        testID={`ed-scan-preview-${b.productId}`}
+                      >
+                        <Text style={[edType.micro as TextStyle, { color: ink.quiet }]}>
+                          {b.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
                 </View>
               ) : null}
-            </>
-          ) : null}
+            </HydroScanFoot>
+          </>
+        ) : null}
 
+        {outcome ? (
+          <HydroScanSheet testID="ed-scan-sheet">
+            <Animated.View style={settle}>
           {/* ── FAILED · honest, and never a fabricated product ─────── */}
-          {outcome && !outcome.ok ? (
+          {outcome && !outcome.ok && notInList && unknown?.step === 'done' ? (
+            <HydroScanLogged
+              label={unknown.label}
+              note={unknown.note}
+              state={undone ? 'undone' : unknown.state}
+              busy={writeInFlight}
+              onDone={() => setOutcome(null)}
+              onUndo={loggedCycleId != null && /^intake-\d+$/.test(loggedCycleId) ? () => void onUndoLog() : undefined}
+            />
+          ) : null}
+          {outcome && !outcome.ok && notInList && unknown?.step === 'amount' ? (
+            <HydroScanUnknownAmount
+              kind={unknown.label}
+              oz={unknown.oz}
+              busy={writeInFlight}
+              onAmount={(oz) => setUnknown({ ...unknown, oz })}
+              onLog={() => void onLogUnknown()}
+              onBack={() => setOutcome(null)}
+              onType={() => setAddDrinkOpen(true)}
+            />
+          ) : null}
+          {outcome && !outcome.ok && notInList && !unknown ? (
+            <HydroScanUnknownPick
+              onPick={(k) => setUnknown({ step: 'amount', categoryId: k.categoryId, label: k.label, oz: null })}
+              onType={() => { setOutcome(null); setAddDrinkOpen(true); }}
+            />
+          ) : null}
+          {outcome && !outcome.ok && !notInList ? (
             <View style={styles.section} testID="ed-scan-failure">
               {/* The message is its own accessible node. Wrapping the whole
                   block (including the retry Pressable) in `accessible` flattened
@@ -464,10 +602,7 @@ export function EditorialScanScreen() {
                 </Text>
               </View>
               <Pressable
-                onPress={() => {
-                  setOutcome(null);
-                  setCameraOpen(true);
-                }}
+                onPress={() => setOutcome(null)}
                 accessibilityRole="button"
                 accessibilityLabel="Try the reader again"
                 hitSlop={8}
@@ -637,10 +772,7 @@ export function EditorialScanScreen() {
                   the only way to scan a second product was to leave the route
                   and come back. */}
               <Pressable
-                onPress={() => {
-                  setOutcome(null);
-                  setCameraOpen(true);
-                }}
+                onPress={() => setOutcome(null)}
                 disabled={writeInFlight}
                 accessibilityRole="button"
                 accessibilityLabel="Scan another product"
@@ -669,11 +801,19 @@ export function EditorialScanScreen() {
             </>
           ) : null}
 
-          <View style={styles.folio}>
-            <EdEvidenceLine parts={[t('hydroScan2.v2.disclaimer')]} />
-          </View>
-        </Animated.View>
-      </AFScreen>
+              <View style={styles.folio}>
+                <EdEvidenceLine parts={[t('hydroScan2.v2.disclaimer')]} />
+              </View>
+            </Animated.View>
+          </HydroScanSheet>
+        ) : null}
+
+        <HydroScanTopBar
+          onClose={() => (router.canGoBack() ? router.back() : router.replace('/' as never))}
+          torch={torch}
+          onTorch={readerRunning ? () => setTorch((on) => !on) : undefined}
+        />
+      </View>
 
       <AddDrinkModal
         visible={addDrinkOpen}
@@ -682,14 +822,6 @@ export function EditorialScanScreen() {
         onConfirm={onConfirmDrink}
       />
 
-      <CameraScanModal
-        visible={cameraOpen}
-        onClose={() => setCameraOpen(false)}
-        onScan={(res) => {
-          setCameraOpen(false);
-          void runScan({ kind: res.kind === 'qr' ? 'qr' : 'barcode', rawValue: res.data });
-        }}
-      />
       {/* Durable success confirmation — the S21 contract: every reachable
           non-silent intake writer mounts the overlay locally, so a capped
           score can never make a landed write look like nothing happened. */}
@@ -702,10 +834,13 @@ export function EditorialScanScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: edStock.black },
-  /** AFScreen paints af.canvas on its own shell; the stock is restated so the
-   *  ground is never a coincidence (the E5 paper defect, generalized). */
-  canvas: { backgroundColor: edStock.black },
-  content: { paddingBottom: edRhythm.minTarget * 2 },
+  /** The reader's ground when the camera is not running: black stock, stated. */
+  blocked: { position: 'absolute', left: 24, right: 24, top: '30%' },
+  footTarget: { marginTop: 10, minHeight: edRhythm.minTarget, justifyContent: 'center' },
+  footNote: { textAlign: 'center', marginBottom: 8 },
+  preview: { marginTop: 10, alignSelf: 'stretch' },
+  previewRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 14 },
+  previewTarget: { minHeight: edRhythm.minTarget, justifyContent: 'center' },
   section: { marginTop: 26 },
   spaced: { marginTop: 26 },
   productName: { marginTop: 10 },
