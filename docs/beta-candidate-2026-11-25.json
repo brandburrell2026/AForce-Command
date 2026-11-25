@@ -1,0 +1,60 @@
+{
+  "purpose": "Founder-only beta testing; production release approval is separate",
+  "sources": [
+    {
+      "pr": 1314,
+      "branch": "feat/one-breath-clean",
+      "sha": "9be848185ffaa873d6343e35bb5a406e3c1817ad"
+    },
+    {
+      "pr": 1317,
+      "branch": "feat/hydroscan-film-flow",
+      "sha": "1f1127add0d771c7020e3e77cfd9fb9fcf83bd38"
+    },
+    {
+      "pr": 1316,
+      "branch": "feat/one-breath-live-activity",
+      "sha": "e896febb73f57650ae7516efd1379c3fa459b734"
+    },
+    {
+      "pr": 1315,
+      "branch": "fix/welcome-new-style",
+      "sha": "c5284037a73b8c201824ea4d614f8aa4e18b9e21"
+    },
+    {
+      "pr": 1312,
+      "branch": "feat/water-goal-met-card",
+      "sha": "c5f795e696b70d4ea2c6a81114e854cb9884ccfc"
+    },
+    {
+      "pr": 1310,
+      "branch": "feat/moments-calendar-prepare",
+      "sha": "326821f7cabef4a8da4d5f51f54f0b01d6f5a949"
+    },
+    {
+      "pr": 1304,
+      "branch": "feat/trip-one-breath-handoff",
+      "sha": "6827e448524099e2e5ddad4e7b25da7db0ed0da4"
+    }
+  ],
+  "backend": "https://aforce-command-candidate-staging.up.railway.app/api",
+  "runtime": "1.0.0-beta-20261125-1",
+  "updateChannel": "beta-staging-20261125",
+  "excluded": [
+    "PR 1055: human policy-review gate remains required"
+  ],
+  "restricted": [
+    "Calendar code included; real calendar access remains disabled pending DR-011 legal/privacy approval",
+    "AFORCE packaging matches remain unverified until actual labels and barcodes are supplied"
+  ],
+  "firstTests": [
+    "Signed-out cold launch, Create account and Sign in",
+    "One Breath: plan, seal, Lock In, Quiet, changes and Replay",
+    "Water and coffee: save once, carried Undo, reopen; offline failures stay honest",
+    "HydroScan: enable label reader in Profile > Developer; scan shop-bought labels, corrections, amount, save and Undo",
+    "Travel: type and speak a trip, answer questions, confirm once; ordinary plans stay in One Breath",
+    "iPhone Live Activity: Lock In, background, tap mark, cold return, complete/cancel",
+    "Water goal card: no intake, partial, goal met; no fixed score claims"
+  ],
+  "deviceEvidence": "Required: build number, phone model, pass/fail and screen recording. Automated tests do not substitute for physical camera or lifecycle checks."
+}

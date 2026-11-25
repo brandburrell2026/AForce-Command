@@ -25,7 +25,7 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "AForce OS uses your camera to scan hydration product barcodes.",
+        "NSCameraUsageDescription": "AForce OS uses your camera to read drink labels and barcodes when you choose Scan. Images used for label reading stay on your device.",
         "NSPhotoLibraryUsageDescription": "AForce OS lets you choose an existing photo of a food or drink so Smart Capture can analyze its hydration impact.",
         "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations.",
         "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
@@ -78,7 +78,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "AForce OS uses your camera for approved scans. SkinIA Visual Check is available only to an authorized internal TestFlight cohort."
+          "cameraPermission": "AForce OS uses your camera to read drink labels and barcodes when you choose Scan. Images used for label reading stay on your device."
         }
       ],
       [
@@ -136,7 +136,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only — never attendees, notes, or attachments. You choose which calendars.",
+          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only \u2014 never attendees, notes, or attachments. You choose which calendars.",
           "remindersPermission": "AForce does not use Reminders. This text exists only because the calendar module requires the entry; reminders access is never requested."
         }
       ],
@@ -160,7 +160,7 @@
       }
     },
     "owner": "brandburrell2026",
-    "runtimeVersion": "1.0.0-one-breath-1",
+    "runtimeVersion": "1.0.0-beta-20261125-1",
     "updates": {
       "url": "https://u.expo.dev/c30ebfdb-7cce-475f-98f8-8ff14e58f5b3"
     }

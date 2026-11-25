@@ -45,6 +45,10 @@
 /typings
 Thumbs.db
 android/
+!modules/skinia-image-features/android/
+!modules/skinia-image-features/android/**
+!modules/hydroscan-label-text/android/
+!modules/hydroscan-label-text/android/**
 artifacts/api-server/start-local.sh
 attached_assets/Pasted-*
 dist

@@ -10,12 +10,23 @@ function changed(args: string[]) {
     .split("\n")
     .filter(Boolean);
 }
+function baseRef() {
+  // Actions checks out a detached revision; the target is a remote-tracking
+  // ref, not a local branch. Missing history must still fail this guard.
+  for (const ref of ["origin/main", "main"]) {
+    try {
+      execFileSync("git", ["rev-parse", "--verify", ref], { stdio: "ignore" });
+      return ref;
+    } catch { /* try the local checkout's branch */ }
+  }
+  throw new Error("Protected-file check requires main history; fetch origin/main before testing");
+}
 describe("Gentle Hydration protected files", () => {
   it("never changes scoringEngine.ts or statusColor.ts", () => {
     const files = new Set([
       ...changed(["diff", "--name-only"]),
       ...changed(["diff", "--cached", "--name-only"]),
-      ...changed(["diff", "--name-only", "main...HEAD"]),
+      ...changed(["diff", "--name-only", `${baseRef()}...HEAD`]),
     ]);
     for (const path of protectedPaths)
       expect(files.has(path), `${path} is permanently protected`).toBe(false);
