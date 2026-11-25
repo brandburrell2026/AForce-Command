@@ -77,7 +77,9 @@ describe('launch routing', () => {
   });
 
   it('the auth group still bounces a signed-in member out', () => {
-    expect(read('app/(auth)/_layout.tsx')).toContain("<Redirect href={'/(tabs)' as never} />");
+    // Out to Home, or back to a locked-in Moment when a tap on the AFORCE mark needed sign-in.
+    expect(read('app/(auth)/_layout.tsx')).toContain('<Redirect href={afterSignInRoute() as never} />');
+    expect(read('services/momentReturn.ts')).toContain("return pending ? '/moment-return' : '/(tabs)';");
   });
 
   it('sign-in keeps its own way to sign up, for members who land there directly', () => {

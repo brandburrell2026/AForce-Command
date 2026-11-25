@@ -16,7 +16,9 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.aforce.os",
-      "associatedDomains": ["applinks:www.joinaforce.com"],
+      "associatedDomains": [
+        "applinks:www.joinaforce.com"
+      ],
       "buildNumber": "1",
       "entitlements": {
         "com.apple.developer.healthkit": true
@@ -28,7 +30,8 @@
         "NSLocationWhenInUseUsageDescription": "AForce OS uses your location to show local temperature and humidity, which drive your personalized hydration recommendations.",
         "NSHealthShareUsageDescription": "AForce OS reads heart rate, HRV, sleep, and workout data from Apple Health to personalize your hydration and recovery score.",
         "NSHealthUpdateUsageDescription": "AForce OS does not currently write any data to Apple Health. iOS requires this notice because the app includes Apple Health integration; if saving hydration logs to Apple Health is offered in the future, iOS will ask for your permission first.",
-        "NSMicrophoneUsageDescription": "AForce OS uses your microphone for voice coaching and audio interactions."
+        "NSMicrophoneUsageDescription": "AForce OS uses your microphone for voice coaching and audio interactions.",
+        "NSSupportsLiveActivities": true
       }
     },
     "android": {
@@ -130,7 +133,7 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only \u2014 never attendees, notes, or attachments. You choose which calendars.",
+          "calendarPermission": "AForce reads your calendar to prepare you for important moments. Event titles and times only — never attendees, notes, or attachments. You choose which calendars.",
           "remindersPermission": "AForce does not use Reminders. This text exists only because the calendar module requires the entry; reminders access is never requested."
         }
       ],
@@ -141,7 +144,8 @@
           "microphonePermission": "AForce uses your microphone when you choose Speak a moment. Audio is transcribed on this device and is not saved.",
           "speechRecognitionPermission": "AForce turns your spoken moment into an editable draft. Nothing is added to your plan until you confirm."
         }
-      ]
+      ],
+      "@bacons/apple-targets"
     ],
     "experiments": {
       "typedRoutes": true,

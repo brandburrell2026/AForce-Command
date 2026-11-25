@@ -55,6 +55,8 @@ ios/
 !modules/skinia-image-features/ios/**
 !modules/hydroscan-label-text/ios/
 !modules/hydroscan-label-text/ios/**
+!modules/moment-live-activity/ios/
+!modules/moment-live-activity/ios/**
 node_modules
 node_modules/
 npm-debug.*
