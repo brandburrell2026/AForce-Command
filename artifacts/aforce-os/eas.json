@@ -83,7 +83,8 @@
       "extends": "internal-social",
       "channel": "beta-staging-20261125",
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api"
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA"
       },
       "environment": "preview"
     },
@@ -91,7 +92,8 @@
       "extends": "internal-social",
       "channel": "beta-staging-20261125",
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api"
+        "EXPO_PUBLIC_API_BASE": "https://aforce-command-candidate-staging.up.railway.app/api",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_ZnJhbmstZmx5LTExNzguY2xlcmsuYWNjb3VudHMuZGV2JA"
       },
       "distribution": "internal",
       "android": {

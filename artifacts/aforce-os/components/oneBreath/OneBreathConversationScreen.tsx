@@ -54,6 +54,7 @@ import { countsAsWater, RECORDED_DRINK_DETAIL, RECORDED_DRINK_TITLE } from "@/ut
 import { conversationStatus, conversationView } from "@/utils/oneBreath/conversation";
 import { momentInLockInWindow, ONE_BREATH_ROUTES, upcomingForOneBreath } from "@/utils/oneBreath/screenAnswer";
 import type { OneBreathContext } from "@/utils/oneBreath/session";
+import { oneBreathTripRoute } from "@/utils/oneBreath/tripHandoff";
 import { OneBreathConversation } from "./OneBreathConversation";
 import { bandWord } from "./OneBreathStatusAnswer";
 
@@ -332,6 +333,18 @@ export function OneBreathConversationScreen() {
     if (cancelled) setCancelled(false);
     // Anything else moves on from a finished or unanswered Replay; it stays in Moments.
     if (replayFor) setReplayFor(undefined);
+    const trip = oneBreathTripRoute({
+      words: said,
+      flags: live.current.app.state.featureFlags,
+      session: controller.getSnapshot().session,
+      hasOpenPlan: !!openPlan,
+      unsafe: !!evaluateMomentSafety(said, alcoholDisclosure(said)),
+      now: new Date(),
+    });
+    if (trip) {
+      live.current.router.push(trip as never);
+      return;
+    }
     controller.send({ kind: "say", words: said, via });
   };
   const voice = useOneBreathVoice((text, info) => {

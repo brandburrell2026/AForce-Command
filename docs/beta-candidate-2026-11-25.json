@@ -56,5 +56,6 @@
     "iPhone Live Activity: Lock In, background, tap mark, cold return, complete/cancel",
     "Water goal card: no intake, partial, goal met; no fixed score claims"
   ],
-  "deviceEvidence": "Required: build number, phone model, pass/fail and screen recording. Automated tests do not substitute for physical camera or lifecycle checks."
+  "deviceEvidence": "Required: build number, phone model, pass/fail and screen recording. Automated tests do not substitute for physical camera or lifecycle checks.",
+  "stagingAuthFrontend": "frank-fly-1178.clerk.accounts.dev"
 }
