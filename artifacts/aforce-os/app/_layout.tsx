@@ -99,7 +99,11 @@ setBaseUrl(apiOrigin());
 
 const queryClient = new QueryClient();
 
-const publishableKey = process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
+// Keep staging independent of the builder-only legacy Clerk setting.
+// A missing beta key stays missing so staging cannot silently use the regular instance.
+const publishableKey = process.env.EXPO_PUBLIC_BETA_STAGING === '1'
+  ? process.env.EXPO_PUBLIC_BETA_CLERK_PUBLISHABLE_KEY
+  : process.env['EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY'];
 const proxyUrl = process.env['EXPO_PUBLIC_CLERK_PROXY_URL'] || undefined;
 
 const ONBOARDING_DONE_KEY = 'aforce.hasCompletedOnboarding';
