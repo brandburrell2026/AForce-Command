@@ -73,17 +73,29 @@ describe('calendar rows', () => {
   });
 });
 
-describe('the calendar page reads only AFORCE Moments', () => {
+describe('the calendar page never reaches the device itself', () => {
   const screen = read('components/moments/cinematic/MomentsCalendarScreen.tsx');
   const logic = read('components/moments/cinematic/momentsCalendarLogic.ts');
 
-  it('does not import the phone-calendar bridge or expo-calendar', () => {
+  // CHANGED 2026-11-21 (Connect calendars to Moments, founder-approved): the
+  // page may now show suggestions from the in-memory derived calendar Moments
+  // and refresh them, so it imports `services/calendarMoments`. It must still
+  // never import the device bridge, expo-calendar or a permission request;
+  // the pure logic file stays free of every calendar module.
+  it('does not import the device bridge, expo-calendar or a permission request', () => {
     for (const src of [screen, logic]) {
-      expect(code(src)).not.toMatch(/calendarBridge|calendarMoments|expo-calendar|requestCalendarPermission/);
+      expect(code(src)).not.toMatch(/calendarBridge|expo-calendar|requestCalendarPermission|getCalendarPermission/);
     }
+    expect(code(logic)).not.toMatch(/calendarMoments|calendarOccurrence/);
   });
 
-  it('tells the member these are AFORCE Moments, not their calendar app', () => {
+  it('reaches calendar data only through the derived in-memory Moments, and only behind the flag', () => {
+    const imports = [...code(screen).matchAll(/from '(@\/services\/calendar[A-Za-z]*)'/g)].map((m) => m[1]).sort();
+    expect(imports).toEqual(['@/services/calendarMoments', '@/services/calendarOccurrence']);
+    expect(code(screen)).toMatch(/\{calendarOn \? \(\s*<View style=\{styles\.rows\} testID="moments-calendar-suggestions"/);
+  });
+
+  it('tells the member these are AFORCE Moments, not their calendar app, while calendars are off', () => {
     expect(screen).toContain('Your AFORCE Moments · not your calendar app');
   });
 

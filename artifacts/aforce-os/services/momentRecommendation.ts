@@ -26,6 +26,7 @@
  */
 
 import { preparationClosed } from "@/services/momentPreparationLifecycle";
+import { matchOccurrence, occurrenceKey } from "@/services/calendarOccurrence";
 import type {
   Moment,
   MomentAction,
@@ -262,11 +263,25 @@ export function nextMoment(moments: readonly Moment[], nowIso: string): Moment |
   );
 }
 
-/** Collapse only the exact calendar occurrence explicitly approved at Seal.
- * Other recurring occurrences and moved events remain independent context. */
+/** Collapse the calendar occurrence explicitly approved at Seal, and the
+ * same occurrence if it was later moved (same event id, within the move
+ * window of the sealed time), so a moved event never also appears as a fresh
+ * suggestion beside its own plan. Other recurring occurrences, and events
+ * that moved far, stay independent context. */
 export function mergeReviewedCalendarMoments(manual: readonly Moment[], calendar: readonly Moment[]): Moment[] {
+  const sealed = manual.filter(m => m.source === 'manual' && m.preparation?.sealedAtIso &&
+    !m.preparation.cancelledAtIso && !m.preparation.returnedAtIso &&
+    typeof m.calendarSource?.eventId === 'string' && typeof m.calendarSource?.startAtIso === 'string');
   const approved = new Set(manual.filter(m => m.source === 'manual' && m.preparation?.sealedAtIso &&
     typeof m.calendarSource?.eventId === 'string' && typeof m.calendarSource?.startAtIso === 'string')
     .map(m => JSON.stringify([m.calendarSource!.eventId, m.calendarSource!.startAtIso])));
-  return [...manual, ...calendar.filter(m => !approved.has(JSON.stringify([m.calendarEventId ?? m.id, m.startAtIso])))];
+  const refs = calendar.map(m => ({ eventId: m.calendarEventId ?? m.id, startAtIso: m.startAtIso }));
+  // A sealed plan whose original time is gone follows the moved occurrence.
+  const movedTo = new Set<string>();
+  for (const m of sealed) {
+    const match = matchOccurrence(m.calendarSource!, refs);
+    if (match.kind === 'moved') movedTo.add(occurrenceKey(m.calendarSource!.eventId, match.toStartAtIso));
+  }
+  return [...manual, ...calendar.filter(m => !approved.has(JSON.stringify([m.calendarEventId ?? m.id, m.startAtIso])) &&
+    !movedTo.has(occurrenceKey(m.calendarEventId ?? m.id, m.startAtIso)))];
 }

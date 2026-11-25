@@ -2716,7 +2716,16 @@
       "unavailable": "Calendar access needs an app update. Manual moments work fully in the meantime.",
       "disconnect": "Disconnect calendar",
       "manage_access": "MANAGE CALENDAR ACCESS",
-      "privacy_footer": "We only use what we need to prepare you: event titles and times from the calendars you choose. Never attendees, notes, or attachments. Nothing is stored or sent anywhere. You’re in control — change anytime."
+      "reads_only_selected": "AFORCE reads events only from the calendars you turn on. It reads each event's title, date and time. It never creates or changes anything.",
+      "ios_full_access": "iPhone has no read-only calendar level, so the iPhone prompt says AFORCE wants full access. AFORCE only reads.",
+      "none_found_title": "No calendars found",
+      "none_found_body": "Your phone did not list any calendars. Add the account in your phone settings, then look again.",
+      "missing_title": "Missing a calendar?",
+      "missing_body_ios": "AFORCE lists the calendars your iPhone already has. Add the account in Settings, then Calendar, then Accounts, and turn Calendars on for it. Calendars from a workplace may be hidden by your employer.",
+      "missing_body_android": "AFORCE lists the calendars your phone already syncs. Add the account in Settings, then Accounts. Turn Calendar sync on for it, and make sure the calendar is shown in your calendar app. Workplace accounts may be limited by your employer.",
+      "look_again": "Look again",
+      "looking": "Looking…",
+      "privacy_footer": "We only use what we need to prepare you: event titles and times from the calendars you choose. Never attendees, notes, or attachments. Events are read on this phone and are not sent anywhere. If you seal a plan, it saves that event's title and time, nothing else. You’re in control — change anytime."
     },
     "feedback": {
       "title": "HOW DID THAT PREP FEEL?",

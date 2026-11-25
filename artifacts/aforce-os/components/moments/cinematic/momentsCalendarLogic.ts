@@ -7,12 +7,14 @@
  * AFORCE Moments. Nothing here reads the phone's calendar.
  */
 import type { Moment } from '@/types/moments';
+import type { CalendarSuggestion } from '@/services/momentPreparation';
 import { homeClock, isMomentSealed } from '@/components/home/cinematic/homeCinematicLogic';
 import { isMomentDone } from './momentsCinematicLogic';
 
 export const MOMENTS_CALENDAR_DAYS = 14;
 
 const WEEKDAY_TWO = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_LONG = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -40,7 +42,14 @@ export interface CalendarRowModel {
   eyebrow: string;
   title: string;
   sub: string;
+  /** The plan's calendar event moved or went since it was sealed. */
+  changed?: boolean;
 }
+
+/** Said on a sealed Moment whose calendar event moved or went. Nothing about
+ * the saved plan changes until the member acts. */
+export const CALENDAR_EVENT_CHANGED = 'Calendar event changed';
+export const CALENDAR_EVENT_CHANGED_SUB = 'Your plan has not changed. Review it.';
 
 function momentKey(m: Pick<Moment, 'startAtIso'>): string | null {
   const d = new Date(m.startAtIso);
@@ -76,6 +85,7 @@ export function calendarRows(
   moments: readonly Moment[],
   fromDayKey: string,
   privateLabel: string,
+  changedIds: ReadonlySet<string> = new Set(),
 ): CalendarRowModel[] {
   return [...moments]
     .filter((m) => {
@@ -92,11 +102,47 @@ export function calendarRows(
           : isMomentSealed(m)
             ? 'sealed'
             : 'not prepared';
+      const changed = changedIds.has(m.id);
       return {
         id: m.id,
         eyebrow: `${WEEKDAY_SHORT[start.getDay()]} ${start.getDate()}`,
         title: m.masked ? privateLabel : m.title,
-        sub: `${homeClock(start)} · ${state}`,
+        sub: changed
+          ? `${CALENDAR_EVENT_CHANGED} · ${CALENDAR_EVENT_CHANGED_SUB}`
+          : `${homeClock(start)} · ${state}`,
+        ...(changed ? { changed: true } : {}),
+      };
+    });
+}
+
+export interface SuggestionRowModel {
+  id: string;
+  /** "Fri 20" */
+  eyebrow: string;
+  title: string;
+  /** "Friday, November 20 · 9:00 AM" */
+  when: string;
+  sample: boolean;
+}
+
+/** Calendar suggestions on the chosen day or later, one row each. */
+export function suggestionRows(
+  suggestions: readonly CalendarSuggestion[],
+  fromDayKey: string,
+): SuggestionRowModel[] {
+  return suggestions
+    .filter((s) => {
+      const key = momentKey(s.moment);
+      return key !== null && key >= fromDayKey;
+    })
+    .map(({ moment: m, sample }) => {
+      const start = new Date(m.startAtIso);
+      return {
+        id: m.id,
+        eyebrow: `${WEEKDAY_SHORT[start.getDay()]} ${start.getDate()}`,
+        title: m.title,
+        when: `${WEEKDAY_LONG[start.getDay()]}, ${MONTH_LONG[start.getMonth()]} ${start.getDate()} · ${homeClock(start)}`,
+        sample,
       };
     });
 }

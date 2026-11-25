@@ -43,7 +43,12 @@ function EnabledSocialProtocolEntry() {
           ? preparationProposalCandidate(
               [
                 ...latest,
-                ...latestShared.current.filter((m) => m.source === "calendar"),
+                // Social proposes what it always has: travel and social plans.
+                // Work, training and performance events are offered from the
+                // Moments calendar page only.
+                ...latestShared.current.filter(
+                  (m) => m.source === "calendar" && (m.type === "travel" || m.type === "personal"),
+                ),
               ],
               preferences,
               new Date().toISOString(),
