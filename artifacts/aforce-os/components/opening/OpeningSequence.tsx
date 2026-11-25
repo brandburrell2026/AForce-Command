@@ -1,19 +1,22 @@
 /**
  * OpeningSequence — AForce OS cold-launch cinematic.
  *
- * A four-stage, full-screen opening experience that plays once per cold
+ * A three-stage, full-screen opening experience that plays once per cold
  * launch on top of every other surface, then fades out to reveal
  * whatever the app routed to underneath (home / onboarding / sign-in).
  * It is mounted as an overlay in `app/_layout.tsx` (AppShell) — it does
  * NOT touch routing, so there is no redirect-loop risk and the first-run
  * onboarding wizard is left completely intact.
  *
- *   1. Symbol      — white AForce water-drop mark, breathing fade-in.
+ *   (Stage 1, the water-drop symbol, was removed at the founder's direction on
+ *   2026-11-23. The stage numbers below are kept so the rest of the file and
+ *   its tests still read the same.)
+ *
  *   2. Brand       — eyebrow "PERFORMANCE IS" → AFORCE wordmark → hairline →
  *                    N–И monogram (second N mirrored, bone/silver) → "NON —
  *                    ИEGOTIABLE" (leading N of NEGOTIABLE mirrored). The
  *                    monogram is the emotional peak.
- *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK IN ↓ PERFORM, one at a time.
+ *   3. Ritual      — PAUSE ↓ HYDRATE ↓ LOCK-IN (red) ↓ PERFORM, one at a time.
  *   4. Readiness   — TODAY'S READINESS + count-up score + READY TO PERFORM.
  *
  * Design lock compliance:
@@ -40,21 +43,20 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
-  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
+import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import { hapticSelection } from '@/services/haptics';
 import { useTranslation } from 'react-i18next';
 
 import { Colors } from '@/theme/colors';
 import { Typography } from '@/theme/typography';
 import { AFMark } from '@/components/ui/AFMark';
+import { af } from '@/theme';
 
 const BG = '#0D0D0D';
 const WHITE = Colors.text.primary;
@@ -78,7 +80,7 @@ const FONT_MONO = Typography.roles.eyebrow; // IBM Plex Mono — eyebrow / capti
 
 const EASE = Easing.inOut(Easing.ease);
 
-type Stage = 1 | 2 | 3 | 4;
+type Stage = 2 | 3 | 4;
 
 /**
  * The "nothing observed" glyph — the same treatment Home uses for a value it
@@ -173,47 +175,6 @@ function StageLayer({
   );
 }
 
-// ─── Stage 1 — Symbol ────────────────────────────────────────────────
-const DROP =
-  'M32 4 C 32 4 12 30 12 48 C 12 59 21 68 32 68 C 43 68 52 59 52 48 C 52 30 32 4 32 4 Z';
-
-function StageSymbol({ active, reduce }: { active: boolean; reduce: boolean }) {
-  const breath = useSharedValue(0);
-  React.useEffect(() => {
-    if (active && !reduce) {
-      breath.value = withRepeat(
-        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
-        -1,
-        true,
-      );
-    } else {
-      cancelAnimation(breath);
-      breath.value = 0;
-    }
-    return () => cancelAnimation(breath);
-  }, [active, reduce, breath]);
-  const markStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + breath.value * 0.04 }],
-    opacity: 0.9 + breath.value * 0.1,
-  }));
-  return (
-    <StageLayer active={active} reduce={reduce}>
-      <View style={styles.center}>
-        <Reveal active={active} reduce={reduce} dy={0} duration={900}>
-          <View style={styles.symbolWrap}>
-            <View style={styles.symbolGlow} />
-            <Animated.View style={markStyle}>
-              <Svg width={132} height={165} viewBox="0 0 64 80">
-                <Path d={DROP} fill={WHITE} />
-              </Svg>
-            </Animated.View>
-          </View>
-        </Reveal>
-      </View>
-    </StageLayer>
-  );
-}
-
 // ─── Stage 2 — Brand reveal ──────────────────────────────────────────
 // The mark is the shared AFMark component (Inter 300, mirrored second N, red
 // bar): the opening screen no longer draws its own.
@@ -295,6 +256,38 @@ function MonogramHero({
   );
 }
 
+/** The word whose leading N is turned, as in the N–И mark. */
+const TURNED_WORD = 'NEGOTIABLE';
+
+/**
+ * "NON — ИEGOTIABLE": the leading N of NEGOTIABLE is turned to match the mark
+ * (founder direction, 2026-11-23). It is a real "N" in a mirrored wrapper,
+ * never the Cyrillic letter typed as text, so a screen reader still reads
+ * "NON — NEGOTIABLE". A caption without that word (another language) renders
+ * as plain text.
+ */
+function BrandCaption({ text }: { text: string }) {
+  const at = text.toUpperCase().indexOf(TURNED_WORD);
+  if (at < 0) return <Text style={styles.brandCaption}>{text}</Text>;
+  return (
+    <View
+      style={styles.brandCaptionRow}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={text}
+      testID="opening-brand-caption"
+    >
+      <Text style={styles.brandCaption}>{text.slice(0, at)}</Text>
+      <View style={styles.brandCaptionTurned} testID="opening-brand-caption-turned">
+        <Text style={[styles.brandCaption, styles.brandCaptionTurnedLetter]}>
+          {text.slice(at, at + 1)}
+        </Text>
+      </View>
+      <Text style={styles.brandCaption}>{text.slice(at + 1)}</Text>
+    </View>
+  );
+}
+
 function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
   const { t } = useTranslation();
   return (
@@ -322,10 +315,7 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
         <Reveal active={active} reduce={reduce} delay={reduce ? 180 : 1300} dy={8}>
           <View style={styles.captionBlock}>
             <View style={styles.captionRule} />
-            {/* Plain forward-facing text. The scaleX(-1) mirror is isolated to
-                the monogram's right N only (see MonogramHero) — it must NOT leak
-                onto any caption N. */}
-            <Text style={styles.brandCaption}>{t('opening.brand_caption')}</Text>
+            <BrandCaption text={t('opening.brand_caption')} />
             <View style={styles.captionRule} />
           </View>
         </Reveal>
@@ -352,6 +342,9 @@ function StageBrand({ active, reduce }: { active: boolean; reduce: boolean }) {
 // in locales/*.json.
 const RITUAL_KEYS = ['ritual_pause', 'ritual_hydrate', 'ritual_lock_in', 'ritual_perform'] as const;
 
+/** The one ritual word in red: LOCK-IN, and never PERFORM (founder rule). */
+const RED_RITUAL_KEY = 'ritual_lock_in';
+
 function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
   const { t } = useTranslation();
   const step = reduce ? 90 : 500;
@@ -361,7 +354,12 @@ function StageRitual({ active, reduce }: { active: boolean; reduce: boolean }) {
         {RITUAL_KEYS.map((key, i) => (
           <React.Fragment key={key}>
             <Reveal active={active} reduce={reduce} delay={i * step} dy={10}>
-              <Text style={styles.ritualWord}>{t(`opening.${key}`)}</Text>
+              <Text
+                style={[styles.ritualWord, key === RED_RITUAL_KEY && styles.ritualWordRed]}
+                testID={`opening-${key}`}
+              >
+                {t(`opening.${key}`)}
+              </Text>
             </Reveal>
             {i < RITUAL_KEYS.length - 1 && (
               <Reveal
@@ -474,7 +472,7 @@ export function OpeningSequence({
   onFinish,
 }: Props) {
   const { t } = useTranslation();
-  const [stage, setStage] = React.useState<Stage>(1);
+  const [stage, setStage] = React.useState<Stage>(2);
   const [reduce, setReduce] = React.useState(false);
   const finishedRef = React.useRef(false);
   const timersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -551,15 +549,14 @@ export function OpeningSequence({
   React.useEffect(() => {
     clearTimers();
     if (finishedRef.current) return undefined;
-    // [symbol, brand, ritual, readiness] hold durations (ms). Stage 2 (brand)
-    // holds a beat longer than the symbol/readiness stages so the N|N monogram
-    // + "NON — NEGOTIABLE" composition lands as the emotional peak.
-    const hold = reduce ? [700, 1300, 1300, 1200] : [1900, 3400, 3400, 2800];
+    // [brand, ritual, readiness] hold durations (ms). The sequence opens on
+    // stage 2 (brand), which holds a beat longer than readiness so the N–И
+    // monogram + "NON — NEGOTIABLE" composition lands as the emotional peak.
+    const hold = reduce ? [1300, 1300, 1200] : [3400, 3400, 2800];
     let t = 0;
-    timersRef.current.push(setTimeout(() => setStage(2), (t += hold[0])));
-    timersRef.current.push(setTimeout(() => setStage(3), (t += hold[1])));
-    timersRef.current.push(setTimeout(() => setStage(4), (t += hold[2])));
-    timersRef.current.push(setTimeout(() => finish(false), (t += hold[3])));
+    timersRef.current.push(setTimeout(() => setStage(3), (t += hold[0])));
+    timersRef.current.push(setTimeout(() => setStage(4), (t += hold[1])));
+    timersRef.current.push(setTimeout(() => finish(false), (t += hold[2])));
     return clearTimers;
   }, [reduce, clearTimers, finish]);
 
@@ -593,7 +590,6 @@ export function OpeningSequence({
         accessibilityLabel={t('opening.skip_a11y')}
         testID="opening-skip"
       >
-        <StageSymbol active={stage === 1} reduce={reduce} />
         <StageBrand active={stage === 2} reduce={reduce} />
         <StageRitual active={stage === 3} reduce={reduce} />
         <StageReadiness
@@ -631,16 +627,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   center: { alignItems: 'center', justifyContent: 'center' },
-
-  // Stage 1
-  symbolWrap: { alignItems: 'center', justifyContent: 'center' },
-  symbolGlow: {
-    position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
 
   // Stage 2
   brandEyebrow: {
@@ -711,6 +697,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
+  brandCaptionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  // The turned N carries its own spacing: letterSpacing trails a glyph, and a
+  // mirrored trailing gap would land on the wrong side.
+  brandCaptionTurned: { transform: [{ scaleX: -1 }], marginRight: 4 },
+  brandCaptionTurnedLetter: { letterSpacing: 0 },
 
   // Stage 3
   ritualWord: {
@@ -720,6 +711,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     textAlign: 'center',
   },
+  ritualWordRed: { color: af.red },
   ritualArrow: {
     fontFamily: FONT_MEDIUM,
     fontSize: 16,

@@ -123,12 +123,13 @@ testI18n.use(initReactI18next).init({
 const EM_DASH = '—';
 
 /**
- * Non-reduced stage holds are [1900, 3400, 3400, 2800] ms: stage 4 (readiness)
- * begins at 8700 ms and the sequence self-finishes at 11500 ms. Advancing to
- * 8700 + the 1500 ms count-up (+ margin) lands inside stage 4, well short of
+ * Non-reduced stage holds are [3400, 3400, 2800] ms (the sequence opens on the
+ * brand stage; the water-drop stage was removed 2026-11-23): stage 4 (readiness)
+ * begins at 6800 ms and the sequence self-finishes at 9600 ms. Advancing to
+ * 6800 + the 1500 ms count-up (+ margin) lands inside stage 4, well short of
  * the finish, so the number under test is on screen when it is read.
  */
-const TO_STAGE_4_MS = 8_700;
+const TO_STAGE_4_MS = 6_800;
 const COUNT_UP_MS = 1_600;
 
 let host: HTMLElement;
@@ -275,10 +276,60 @@ describe('OpeningSequence — the guard itself', () => {
 describe('AFORCE OS™ mark (spec v1.8.2 Part 8.6, decision C5)', () => {
   it('shows the product wordmark with ™ once, under the brand caption', () => {
     render();
-    flushSync(() => vi.advanceTimersByTime(1_900 + 1_700));
+    flushSync(() => vi.advanceTimersByTime(1_700));
     const text = host.textContent ?? '';
     expect(text).toContain('AFORCE OS™');
     expect(text.split('™').length - 1).toBe(1);
     expect(text.indexOf('AFORCE OS™')).toBeGreaterThan(text.indexOf('NON'));
+  });
+});
+
+describe('the opening starts on the brand, with no water-drop screen', () => {
+  it('shows the AFORCE brand stage from the first frame', () => {
+    render();
+    const text = host.textContent ?? '';
+    expect(text).toContain('AFORCE');
+    expect(text).toContain('NON');
+  });
+
+  it('draws no water-drop shape at any point before the readiness stage', () => {
+    render();
+    for (const ms of [0, 1_000, 2_000, 3_400]) {
+      flushSync(() => vi.advanceTimersByTime(ms));
+      expect(host.querySelector('path')).toBeNull();
+    }
+  });
+});
+
+describe('NON — ИEGOTIABLE: the leading N of NEGOTIABLE is turned', () => {
+  it('turns exactly one caption letter, a real N, and keeps the words readable', () => {
+    render();
+    flushSync(() => vi.advanceTimersByTime(1_700));
+    const caption = host.querySelector('[data-testid="opening-brand-caption"]');
+    expect(caption).not.toBeNull();
+    expect(caption!.textContent).toBe('NON — NEGOTIABLE');
+    const turned = caption!.querySelector('[data-testid="opening-brand-caption-turned"]') as HTMLElement;
+    expect(turned.textContent).toBe('N');
+    expect(turned.style.transform || getComputedStyle(turned).transform || '').toContain('scaleX(-1)');
+    expect(caption!.textContent).not.toContain('И');
+    expect(caption!.getAttribute('aria-label')).toBe('NON — NEGOTIABLE');
+  });
+});
+
+describe('the ritual: LOCK-IN is the red word', () => {
+  it('spells LOCK-IN with a hyphen, in red, in Inter Bold; the other words stay white', () => {
+    render();
+    flushSync(() => vi.advanceTimersByTime(3_400 + 2_500));
+    const word = (key: string) =>
+      host.querySelector(`[data-testid="opening-ritual_${key}"]`) as HTMLElement;
+    expect(word('lock_in').textContent).toBe('LOCK-IN');
+    const red = getComputedStyle(word('lock_in')).color;
+    expect(red.replace(/\s/g, '')).toMatch(/^rgba?\(229,30,42(,1(\.0+)?)?\)$/);
+    for (const key of ['pause', 'hydrate', 'perform']) {
+      expect(getComputedStyle(word(key)).color).not.toBe(red);
+    }
+    for (const key of ['pause', 'hydrate', 'lock_in', 'perform']) {
+      expect(getComputedStyle(word(key)).fontFamily).toContain('Inter_700Bold');
+    }
   });
 });

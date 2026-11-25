@@ -57,6 +57,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { InvestorDemoOverlay } from '@/components/investorDemo/InvestorDemoOverlay';
 import { OpeningSequence } from '@/components/opening/OpeningSequence';
 import { WelcomeHero } from '@/components/welcome/WelcomeHero';
+import { welcomeGate } from '@/utils/launch/welcomeGate';
 import { useTranslation } from 'react-i18next';
 import { readinessLabel, type PerformanceLevel } from '@/utils/homeDashboard';
 import { AppProvider, useAppStore, useFeatureFlags } from '@/store/useAppStore';
@@ -411,8 +412,9 @@ function VoiceCheckInMount({ openingDone }: { openingDone: boolean }) {
  *
  * It touches NO routing itself: the buttons call back into AppShell, which
  * navigates (GET STARTED → onboarding, SIGN IN → sign-in) and advances the
- * launch phase to `done`. Universal — shown on every cold launch with no
- * hardware / entitlement gate; Score-Protection is unaffected (pure UI).
+ * launch phase to `done`. Signed-out people only (utils/launch/welcomeGate):
+ * a signed-in member goes straight into the app when the opening finishes.
+ * No hardware / entitlement gate; Score-Protection is unaffected (pure UI).
  */
 function WelcomeMount({
   phase,
@@ -423,9 +425,13 @@ function WelcomeMount({
 }) {
   const quiet = useQuietDeliveryBlocked();
   const { hydrated: momentsHydrated } = useMomentsStore();
+  // AppShell only mounts once Clerk has answered (IdentityGate), so this is a
+  // settled yes or no, never "still loading".
+  const { isSignedIn } = useAuth();
+  const gate = welcomeGate({ phase, signedIn: isSignedIn === true, quiet, momentsHydrated });
   React.useEffect(() => {
-    if (quiet && momentsHydrated && phase !== 'done') onEntered();
-  }, [quiet, momentsHydrated, phase, onEntered]);
+    if (gate.finish) onEntered();
+  }, [gate.finish, onEntered]);
   const onGetStarted = React.useCallback(() => {
     router.replace('/onboarding' as never);
     onEntered();
@@ -435,7 +441,7 @@ function WelcomeMount({
     onEntered();
   }, [onEntered]);
 
-  if (phase === 'done' || quiet) return null;
+  if (!gate.show) return null;
   return (
     <WelcomeHero
       active={phase === 'welcome'}

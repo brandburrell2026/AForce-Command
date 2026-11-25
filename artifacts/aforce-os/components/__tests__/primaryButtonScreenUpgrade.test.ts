@@ -26,7 +26,6 @@ const ALLOWED: Record<string, { count: number; why: string }> = {
   'components/oneBreath/MomentPreparationScreen.tsx': { count: 1, why: 'safety line' },
   // Thin rules, progress fills and dots — not buttons
   'components/home/HomeBaselineHero.tsx': { count: 1, why: '2pt rule' },
-  'components/auth/PromiseScreen.tsx': { count: 1, why: '2pt divider of the N–И brand mark' },
   'components/hydration/cinematic/HydrationHistory.tsx': { count: 1, why: '5pt Moment mark above a History bar (prototype)' },
   'components/home/NotificationBanner.tsx': { count: 1, why: '6pt unread dot' },
   'components/editorial/moments/EditorialMomentsScreen.tsx': { count: 1, why: 'live rule' },
