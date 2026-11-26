@@ -36,9 +36,11 @@ import { HomeHydroRing } from './home/cinematic/HomeHydroRing';
 interface Props {
   result: CycleResult;
   onDismiss: () => void;
+  /** Actions owned by the calling screen, kept inside the modal's accessible surface. */
+  children?: React.ReactNode;
 }
 
-export function CycleSuccessOverlay({ result, onDismiss }: Props) {
+export function CycleSuccessOverlay({ result, onDismiss, children }: Props) {
   const { t } = useTranslation();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.85);
@@ -141,6 +143,8 @@ export function CycleSuccessOverlay({ result, onDismiss }: Props) {
           <Icon name="clock" size={12} color={af.textSecondary} />
           <Text style={styles.hintText}>{t('coach.next_check', { minutes: result.nextCheckMinutes })}</Text>
         </View>
+
+        {children}
 
         {/* Dismiss */}
         <TouchableOpacity
