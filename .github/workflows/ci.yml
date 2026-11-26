@@ -125,9 +125,12 @@ jobs:
       # judged against. On a push (no target branch to diff against — e.g.
       # a direct push to `main`), the checked-out HEAD copy is used, since
       # HEAD *is* the branch of record at that point.
-      - name: Fetch target branch (PRs only, shallow)
+      # A shallow fetch here would reintroduce a boundary after checkout's
+      # fetch-depth: 0. For stacked PRs it cuts off the ancestry to main and
+      # prevents protected-file guards from making their required comparison.
+      - name: Fetch target branch with complete history (PRs only)
         if: github.event_name == 'pull_request'
-        run: git fetch --no-tags --depth=1 origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+        run: git fetch --no-tags origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
 
       - name: Resolve the baseline to compare against
         run: |
