@@ -43,6 +43,16 @@ beforeEach(() => {
 afterEach(async () => { await act(async () => root.unmount()); client.clear(); host.remove(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('flight status panel', () => {
+  it('checks a confirmed imported flight without sending raw confirmation text or enabling cloud sync', async () => {
+    const flight = { flightNumber: 'AA123', origin: 'JFK', destination: 'LAX', departureDate: '2026-11-01' };
+    await act(async () => root.render(<QueryClientProvider client={client}><TravelFlightStatus flight={flight} completed={false} /></QueryClientProvider>));
+    expect(fetch).not.toHaveBeenCalled();
+    await check(); await waitUI(() => expect(host.textContent).toContain('Delayed'));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch.mock.calls[0]![0]).toBe('https://aforce.example.test/api/travel/flight-status');
+    expect(JSON.parse(fetch.mock.calls[0]![1]!.body as string)).toEqual(flight);
+    expect(host.textContent).toContain('Your confirmed itinerary stays unchanged');
+  });
   it('makes no background request and shows provider provenance after an explicit check', async () => {
     await render(); expect(fetch).not.toHaveBeenCalled();
     expect(host.textContent).toContain('This sends your flight number');
