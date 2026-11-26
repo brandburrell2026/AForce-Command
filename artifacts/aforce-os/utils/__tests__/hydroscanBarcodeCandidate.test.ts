@@ -14,8 +14,8 @@ describe('barcode candidate', () => {
 
   it('a loggable catalog product hands off to the existing flow', () => {
     const p: ScannedProduct = { ...base, productId: 'aforce_rtd', productName: 'AForce RTD', brand: 'AForce', category: 'electrolyte_mix', isAForce: true, fluidType: 'aforce_rtd' };
-    const r = candidateFromProduct('850000000024', p);
-    expect(r.handOff).toEqual({ kind: 'barcode', rawValue: '850000000024' });
+    const r = candidateFromProduct('860014045004', p);
+    expect(r.handOff).toEqual({ kind: 'barcode', rawValue: '860014045004' });
     expect(r.candidate.product).toMatchObject({ reliable: true, category: 'electrolyte' });
   });
 
