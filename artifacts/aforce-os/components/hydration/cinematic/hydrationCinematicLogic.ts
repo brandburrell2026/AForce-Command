@@ -42,3 +42,8 @@ export function hydrationHero(
     sourceLine: logged ? `Estimated from what you logged · ${homeClock(lastLoggedAt!)}` : 'Nothing logged yet today.',
   };
 }
+
+/** Display the newest entries without reordering the scoring engine's history. */
+export function recentHydrationEvents<T extends { loggedAt: Date }>(events: readonly T[]): T[] {
+  return [...events].sort((a, b) => b.loggedAt.getTime() - a.loggedAt.getTime()).slice(0, 4);
+}

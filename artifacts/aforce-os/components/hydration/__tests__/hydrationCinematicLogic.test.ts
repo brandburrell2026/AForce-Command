@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { hydrationHero } from '../cinematic/hydrationCinematicLogic';
+import { hydrationHero, recentHydrationEvents } from '../cinematic/hydrationCinematicLogic';
 
 const at = (h: number, m: number) => new Date(2026, 10, 18, h, m);
 
@@ -54,5 +54,22 @@ describe('the hero is presentation only', () => {
   it('the primary action is warm white with black text', () => {
     expect(view).toContain('backgroundColor: af.primaryFill');
     expect(view).toContain('color: af.onPrimaryFill');
+  });
+});
+
+describe('recent hydration entries', () => {
+  it('keeps a newly appended offline entry visible ahead of older entries without mutating history', () => {
+    const history = Object.freeze([
+      { id: 'morning', loggedAt: at(8, 0) },
+      { id: 'afternoon', loggedAt: at(16, 29) },
+      { id: 'early', loggedAt: at(7, 0) },
+      { id: 'evening', loggedAt: at(17, 12) },
+      { id: 'midday', loggedAt: at(12, 0) },
+      { id: 'queued-water', loggedAt: at(19, 18) },
+    ]);
+    const order = history.map(e => e.id);
+    expect(recentHydrationEvents(history).map(e => e.id)).toEqual(['queued-water', 'evening', 'afternoon', 'midday']);
+    expect(history.map(e => e.id)).toEqual(order);
+    expect(recentHydrationEvents([])).toEqual([]);
   });
 });

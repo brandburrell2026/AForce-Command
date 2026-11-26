@@ -63,7 +63,7 @@ import { useAFEyebrowType } from '@/hooks/useAFEyebrowType';
 import { HydrationHero, HydrationRecentRow, HydrationEyebrow } from './cinematic/HydrationHero';
 import { HydrationHistory } from './cinematic/HydrationHistory';
 import { dayKey } from './cinematic/hydrationHistoryLogic';
-import { hydrationHero } from './cinematic/hydrationCinematicLogic';
+import { hydrationHero, recentHydrationEvents } from './cinematic/hydrationCinematicLogic';
 import { homeStatusLine } from '@/components/home/cinematic/homeCinematicLogic';
 import { useMomentsData } from '@/components/moments/useMomentsData';
 
@@ -76,7 +76,7 @@ import { useIntakeOutboxStore, selectPendingCount, selectHasFailedItem } from '@
 import { WaterAmountModal } from '@/components/WaterAmountModal';
 import { CycleSuccessOverlay } from '@/components/CycleSuccessOverlay';
 import { fireMoment } from '@/services/haptics';
-import type { FluidType, IntakeEvent } from '@/types';
+import type { FluidType } from '@/types';
 import type { IntakeSource } from '@/services/intakeSource';
 
 interface HydrationActions {
@@ -212,7 +212,7 @@ export function HydrationScreenV2() {
     (userState.intakeEvents?.length ?? 0) > 0 ? new Date(userState.lastIntakeTime) : null,
     DAILY_TARGET_IS_PERSONAL,
   );
-  const recent: IntakeEvent[] = (userState.intakeEvents ?? []).slice(0, 4);
+  const recent = recentHydrationEvents(userState.intakeEvents ?? []);
   const streak = Math.max(0, Math.min(7, userState.complianceStreak));
   const todayIdx = new Date(userState.lastIntakeTime).getDay();
 
