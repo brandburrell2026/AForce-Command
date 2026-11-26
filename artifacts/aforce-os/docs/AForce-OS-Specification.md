@@ -203,7 +203,7 @@ Catalog model: one SKU per (format × flavor), plus per-format bundles
 (`data/pricing.ts`, `data/products.ts`). Subscriber/member pricing is lower than
 list. Pricing/shipping/tax are computed server-side.
 
-- **Formats:** Stick packs (12 ct) · RTD cans (12 pk) · Canisters (30 servings).
+- **Formats:** Stick packs (20 ct) · RTD cans (12 pk) · Canisters (30 servings).
 - **Flavors:** Berry · Watermelon · Soursop.
 - **Bundles:** flavor-agnostic multi-packs (flavor split chosen at checkout).
 - Per-serving sodium and serving sizes are encoded per SKU for the sweat-rate math.

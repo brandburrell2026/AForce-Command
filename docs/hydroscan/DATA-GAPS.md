@@ -2,6 +2,28 @@
 
 Nothing in this file is invented. These are things the repo does not have, and the label reader cannot be tuned for AFORCE without them.
 
+## Update 2026-11-25: registered barcodes supplied
+
+The founder supplied nine registered UPCs (all pass the UPC-A check digit):
+
+| Flavor | 20-count stick carton | Single can | Can six-pack |
+|---|---|---|---|
+| Berry Blast | 860014045011 | 860014380709 | 860014045066 |
+| Watermelon Surge | 860014380716 | 860014045004 | 860014380723 |
+| Soursop Edge | 860014045028 | 860014045042 | 860014045073 |
+
+`BARCODE_INDEX` in `services/productRecognitionService.ts` now holds these and only these for AFORCE; its `85000000xxxx` placeholders are removed. A six-pack code resolves to that flavor's can. The stick carton and single can codes are the unit UPCs in `data/aforcePackaging.ts`.
+
+Still open:
+
+- No code was supplied for the canisters or the FIELD BAG. They no longer match any barcode.
+- **Decided 2026-11-26 (Brandon):** `data/pricing.ts` no longer carries placeholders. The three stick packs carry the registered carton codes. The RTD 12-pack and the canisters carry no `upc`, because no registered code exists for those exact packs (the can codes are for a single can and a six-pack).
+- **Decided 2026-11-26 (Brandon):** the stick carton is **20-count**. The Store stick rows now say "20 ct" with 20 servings, so the price per serving shown is the same price divided by 20 rather than 12. Stick prices themselves are unchanged.
+- The supplied names are "Watermelon Surge" and "Soursop Edge"; the catalog rows the codes resolve to are named "Watermelon + Chlorella" and "Soursop + Seamoss". The name on the real label has not been confirmed.
+- Net contents and front-label text are still missing for every product, so every product is still unverified.
+
+The section below is the state before this update, kept for the record.
+
 ## AFORCE barcodes are placeholders, and two tables disagree
 
 `services/productRecognitionService.ts` (`BARCODE_INDEX`) and `data/pricing.ts` (`upc`) both use `85000000xxxx` sequences, which are placeholder numbers, not registered UPCs. They also map the same code to different products:
@@ -28,12 +50,12 @@ Every AFORCE product is marked **unverified** in `artifacts/aforce-os/data/aforc
 
 | Product | Format | Unit UPC | Exact net contents | Final front-label text |
 |---|---|---|---|---|
-| Berry Blast + Dulse | Hydration Sticks | missing | missing | missing |
-| Watermelon + Chlorella | Hydration Sticks | missing | missing | missing |
-| Soursop + Seamoss | Hydration Sticks | missing | missing | missing |
-| Berry Blast + Dulse | RTD can | missing | missing | missing |
-| Watermelon + Chlorella | RTD can | missing | missing | missing |
-| Soursop + Seamoss | RTD can | missing | missing | missing |
+| Berry Blast + Dulse | Hydration Sticks | 860014045011 | missing | missing |
+| Watermelon + Chlorella | Hydration Sticks | 860014380716 | missing | missing |
+| Soursop + Seamoss | Hydration Sticks | 860014045028 | missing | missing |
+| Berry Blast + Dulse | RTD can | 860014380709 | missing | missing |
+| Watermelon + Chlorella | RTD can | 860014045004 | missing | missing |
+| Soursop + Seamoss | RTD can | 860014045042 | missing | missing |
 | Berry Blast + Dulse | Canister | missing | missing | missing |
 | Watermelon + Chlorella | Canister | missing | missing | missing |
 | Soursop + Seamoss | Canister | missing | missing | missing |

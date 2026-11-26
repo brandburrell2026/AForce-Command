@@ -133,7 +133,7 @@ export const COMPARE_PRODUCTS: CompareProduct[] = [
     absorptionRate: 92,
     recoveryEfficiency: 94,
     compatibleProtocols: ['maintenance', 'recovery', 'morning_reset', 'depletion_correction'],
-    factualNote: '12-stick alkaline mix. Berry + dulse mineral profile.',
+    factualNote: '20-stick alkaline mix. Berry + dulse mineral profile.',
     isAForce: true,
   },
   {
@@ -147,7 +147,7 @@ export const COMPARE_PRODUCTS: CompareProduct[] = [
     absorptionRate: 93,
     recoveryEfficiency: 93,
     compatibleProtocols: ['maintenance', 'recovery', 'heat_stress', 'depletion_correction'],
-    factualNote: '12-stick alkaline mix. Watermelon + chlorella for heat load.',
+    factualNote: '20-stick alkaline mix. Watermelon + chlorella for heat load.',
     isAForce: true,
   },
   {
@@ -161,7 +161,7 @@ export const COMPARE_PRODUCTS: CompareProduct[] = [
     absorptionRate: 91,
     recoveryEfficiency: 95,
     compatibleProtocols: ['recovery', 'maintenance', 'morning_reset'],
-    factualNote: '12-stick alkaline mix. Soursop + seamoss for recovery.',
+    factualNote: '20-stick alkaline mix. Soursop + seamoss for recovery.',
     isAForce: true,
   },
   // ── AForce SKU matrix (flavor × format) ────────────────────────────────
