@@ -34,6 +34,8 @@ import { resolveDepartureZone } from "@/services/travel/airportTimeZone";
 import { TravelJourneySection } from "./TravelJourneySection";
 import { SayYourTrip } from "./SayYourTrip";
 import { TellAforceYourTrip } from "./TellAforceYourTrip";
+import { ImportFlightConfirmation } from "./ImportFlightConfirmation";
+import { TravelFlightStatus } from "./TravelFlightStatus";
 import { legFormValues, legTitle } from "@/utils/travel/tripCard";
 import { tripTitle, type TripDraft } from "@/utils/travel/tripTurn";
 import {
@@ -111,6 +113,8 @@ export function TravelIntelligenceScreen() {
   // A new trip starts with "Tell AFORCE your trip". The full form is the
   // fallback, opened by "Edit details" (and always used to edit a saved trip).
   const [manual, setManual] = React.useState(false);
+  const [confirmationImport, setConfirmationImport] = React.useState(false);
+  const [importNotes, setImportNotes] = React.useState<string[]>([]);
   // A flight sentence said to One Breath arrives here and opens trip entry with
   // the words already in it. Read once; nothing is saved until Confirm.
   const params = useLocalSearchParams<{ trip?: string }>();
@@ -230,6 +234,7 @@ export function TravelIntelligenceScreen() {
       ]),
     );
     setEditing(null);
+    setImportNotes([]);
   };
   /**
    * Saves a confirmed draft from the itinerary card. It goes through the same
@@ -406,10 +411,34 @@ export function TravelIntelligenceScreen() {
           {button("Add a trip", () => {
             setEditing("new");
             setManual(false);
+            setConfirmationImport(false);
+            setImportNotes([]);
             setTitle("");
             setForms([blank()]);
           })}
-          {editing === "new" && !manual ? (
+          {button("Import a flight confirmation", () => {
+            setEditing("new");
+            setManual(false);
+            setConfirmationImport(true);
+            setImportNotes([]);
+            setTitle("");
+            setForms([blank()]);
+          })}
+          {editing === "new" && confirmationImport ? (
+            <View style={styles.panel}>
+              <ImportFlightConfirmation busy={busy}
+                onReview={(review) => {
+                  setForms(review.legs.map((leg) => ({ ...blank(), ...leg })));
+                  const first = review.legs[0];
+                  setTitle(review.legs.length > 1 ? `Imported itinerary · ${review.legs.length} flights` : first?.origin && first.destination ? `${first.origin} → ${first.destination}` : "Imported flight");
+                  setImportNotes(review.notes);
+                  setConfirmationImport(false);
+                  setManual(true);
+                }}
+                onCancel={() => { setConfirmationImport(false); setEditing(null); }}
+              />
+            </View>
+          ) : editing === "new" && !manual ? (
             <View style={styles.panel}>
               <TellAforceYourTrip
                 initialWords={handedTrip}
@@ -436,6 +465,11 @@ export function TravelIntelligenceScreen() {
           ) : editing ? (
             <View style={styles.panel}>
               <Text style={styles.label}>Review your itinerary</Text>
+              {importNotes.length ? <View accessibilityLiveRegion="polite" testID="confirmation-import-notes">
+                <Text style={styles.label}>From your confirmation · review before saving</Text>
+                {importNotes.map(note => <Text key={note} style={styles.copy}>{note}</Text>)}
+                <Text style={styles.copy}>Dates and times are local to each airport. Only these reviewed fields are saved; the pasted confirmation is not retained.</Text>
+              </View> : null}
               {/* Speak the trip instead of typing it. Fills only what was clearly
                   said, into the leg being added; every field stays editable and
                   nothing is saved until the member saves. */}
@@ -602,7 +636,8 @@ export function TravelIntelligenceScreen() {
                         Refresh before relying on it.
                       </Text>
                     ) : null}
-                    {!trip.completedAt
+                    {!trip.completedAt && !doc.sync ? <TravelFlightStatus flight={leg.flight} completed={false} /> : null}
+                    {!trip.completedAt && doc.sync
                       ? button(
                           "Check this flight",
                           () =>
@@ -670,6 +705,8 @@ export function TravelIntelligenceScreen() {
               })}
               {button("Edit itinerary", () => {
                 (setManual(true), setEditing(trip.id));
+                setConfirmationImport(false);
+                setImportNotes([]);
                 setTitle(trip.title);
                 setForms(trip.legs.map(formFor));
               })}
@@ -741,6 +778,7 @@ export function TravelIntelligenceScreen() {
             <>
               <View style={styles.panel}>
                 <Text style={styles.label}>Sync and connections</Text>
+                <Text style={styles.copy}>Direct airline-profile connections are not available in this beta. TravelGate linking below shares only trips you explicitly authorize there.</Text>
                 {button(
                   "Clear cloud and this device’s Travel Intelligence data",
                   () => setConfirm("clearcloud:all"),

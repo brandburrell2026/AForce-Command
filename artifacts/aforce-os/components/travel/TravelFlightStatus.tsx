@@ -8,14 +8,18 @@ import { API_BASE } from '@/lib/apiBase';
 import { fetchTravelFlightStatus, TravelStatusError } from '@/services/travel/flightStatus';
 import { travelStatusPresentation } from '@/utils/travel/statusPresentation';
 import type { TravelJourney } from '@/services/travel/journey';
+import type { TravelFlightRequest } from '@workspace/api-zod';
 
-export function TravelFlightStatus({ journey }: { journey: TravelJourney }) {
+type Props = { journey: TravelJourney; flight?: never; completed?: never } | { journey?: never; flight: TravelFlightRequest; completed: boolean };
+
+export function TravelFlightStatus({ journey, flight: confirmedFlight, completed }: Props) {
   const { userId, getToken } = useAuth();
-  const request = {
-    flightNumber: journey.details.flightNumber.replace(/\s/g, ''),
-    departureDate: journey.details.departureDate,
-    origin: journey.details.origin, destination: journey.details.destination,
+  const request = confirmedFlight ?? {
+    flightNumber: journey!.details.flightNumber.replace(/\s/g, ''),
+    departureDate: journey!.details.departureDate,
+    origin: journey!.details.origin, destination: journey!.details.destination,
   };
+  const finished = journey ? !!journey.completedAt : completed;
   const [now, setNow] = React.useState(Date.now);
   const mounted = React.useRef(false);
   const checking = React.useRef(false);
@@ -31,7 +35,7 @@ export function TravelFlightStatus({ journey }: { journey: TravelJourney }) {
   const query = useQuery({
     queryKey: ['travel-flight-status-v1', userId, request],
     queryFn: async ({ signal }) => {
-      if (!userId || journey.completedAt) throw new TravelStatusError('unauthorized');
+      if (!userId || finished) throw new TravelStatusError('unauthorized');
       // The timer bounds the mobile network request; account changes consume
       // the query AbortSignal so React Query also cancels the outgoing request.
       const controller = new AbortController();
@@ -64,11 +68,11 @@ export function TravelFlightStatus({ journey }: { journey: TravelJourney }) {
       <Text style={styles.copy}>{view.stale ? 'Last reported gate' : 'Reported gate'}: {flight.departureGate ?? 'Not reported'} · Terminal: {flight.departureTerminal ?? 'Not reported'}</Text>
       {flight.estimatedDeparture ? <Text style={styles.copy}>Provider estimated departure: {flight.estimatedDeparture}</Text> : null}
     </> : null}
-    <Pressable accessibilityRole="button" accessibilityState={{ disabled: query.isFetching }} disabled={query.isFetching}
+    <Pressable accessibilityRole="button" accessibilityState={{ disabled: query.isFetching || finished }} disabled={query.isFetching || finished}
       onPress={() => { void check(); }} style={styles.button}>
       <Text style={styles.buttonText}>{query.isFetching ? 'Checking…' : query.data || query.isError ? 'Check again' : 'Check flight status'}</Text>
     </Pressable>
-    <Text style={styles.copy}>Your manually entered itinerary stays unchanged. Flight status is not a boarding guarantee; use your airline’s current instructions.</Text>
+    <Text style={styles.copy}>{confirmedFlight ? 'Your confirmed itinerary stays unchanged.' : 'Your manually entered itinerary stays unchanged.'} Flight status is not a boarding guarantee; use your airline’s current instructions.</Text>
   </View>;
 }
 const styles = StyleSheet.create({

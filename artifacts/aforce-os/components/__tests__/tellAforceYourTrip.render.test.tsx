@@ -214,7 +214,7 @@ describe('containment', () => {
   });
 
   it('a new trip opens on Tell AFORCE your trip; the form is the fallback and still edits saved trips', () => {
-    expect(SCREEN).toContain('{editing === "new" && !manual ? (');
+    expect(SCREEN).toMatch(/editing === "new" && !manual \? \(/);
     expect(SCREEN).toContain('(setManual(true), setEditing(trip.id))');
     expect(SCREEN).toContain('"Confirm itinerary"');
   });
