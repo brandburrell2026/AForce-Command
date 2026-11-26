@@ -17,8 +17,8 @@ The founder supplied nine registered UPCs (all pass the UPC-A check digit):
 Still open:
 
 - No code was supplied for the canisters or the FIELD BAG. They no longer match any barcode.
-- `data/pricing.ts` still carries the placeholder `upc` values. It is the Store's table and was left untouched; it needs its own decision.
-- The supplied carton is a **20-count**. The catalog and Store rows describe 12-stick packs. Which is right has not been confirmed.
+- **Decided 2026-11-26 (Brandon):** `data/pricing.ts` no longer carries placeholders. The three stick packs carry the registered carton codes. The RTD 12-pack and the canisters carry no `upc`, because no registered code exists for those exact packs (the can codes are for a single can and a six-pack).
+- **Decided 2026-11-26 (Brandon):** the stick carton is **20-count**. The Store stick rows now say "20 ct" with 20 servings, so the price per serving shown is the same price divided by 20 rather than 12. Stick prices themselves are unchanged.
 - The supplied names are "Watermelon Surge" and "Soursop Edge"; the catalog rows the codes resolve to are named "Watermelon + Chlorella" and "Soursop + Seamoss". The name on the real label has not been confirmed.
 - Net contents and front-label text are still missing for every product, so every product is still unverified.
 

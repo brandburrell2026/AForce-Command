@@ -77,7 +77,7 @@ const PRODUCT_TO_FLUID: Record<string, FluidType> = {
   aforce_rtd: 'aforce_rtd',
   aforce_canister: 'aforce_canister',
   aforce_bulk_bag: 'aforce_bulk_bag',
-  // Flavored 12-stick bags log as sticks for hydration tracking.
+  // Flavored 20-stick cartons log as sticks for hydration tracking.
   aforce_berry_blast: 'aforce_stick',
   aforce_watermelon_surge: 'aforce_stick',
   aforce_soursop_edge: 'aforce_stick',

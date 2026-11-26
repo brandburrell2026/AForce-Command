@@ -74,3 +74,27 @@ describe('AFORCE registered barcodes', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
+
+describe('Store price list carries only registered codes', () => {
+  it('stick packs carry the 20-count carton codes and say 20', async () => {
+    const { STORE_SKUS } = await import('../../data/pricing');
+    const sticks = STORE_SKUS.filter((s) => s.formatId === 'aforce_stick');
+    expect(sticks.map((s) => [s.flavor, s.upc])).toEqual([
+      ['berry', '860014045011'],
+      ['watermelon', '860014380716'],
+      ['soursop', '860014045028'],
+    ]);
+    for (const s of sticks) {
+      expect(s.servingsPerPack).toBe(20);
+      expect(s.formatLabel).toContain('20 ct');
+    }
+  });
+
+  it('no pack carries a placeholder, and packs without a registered code carry none', async () => {
+    const { STORE_SKUS } = await import('../../data/pricing');
+    for (const s of STORE_SKUS) {
+      if (s.upc) expect(/^85000000\d{4}$/.test(s.upc), s.id).toBe(false);
+      if (s.formatId !== 'aforce_stick') expect(s.upc, s.id).toBeUndefined();
+    }
+  });
+});
