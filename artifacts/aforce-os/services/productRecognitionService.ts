@@ -16,26 +16,29 @@ import type { ScannedProduct, ScanSource } from '../types/scan';
 import type { FluidType } from '../types';
 import { lookupBarcode } from './openFoodFactsService';
 
-/** UPC / EAN / GS1 barcode → product id. */
+/**
+ * UPC / EAN / GS1 barcode → product id.
+ *
+ * AFORCE codes are the registered UPCs supplied by the founder on 2026-11-25:
+ * the 20-count stick carton, the single can and the can six-pack for each
+ * flavor. A six-pack resolves to that flavor's can: one scan is one can.
+ * Canisters and the FIELD BAG have no registered code yet, so they have no
+ * entry. The old `85000000xxxx` placeholders are gone: they were never
+ * registered to AFORCE.
+ */
 const BARCODE_INDEX: Record<string, string> = {
-  // AForce
-  '850000000017': 'aforce_stick',
-  '850000000024': 'aforce_rtd',
-  '850000000031': 'aforce_canister',
-  '850000000048': 'aforce_bulk_bag',
-  '850000000055': 'aforce_berry_blast',
-  '850000000062': 'aforce_watermelon_surge',
-  '850000000079': 'aforce_soursop_edge',
-  // Flavor × format SKU matrix
-  '850000000086': 'aforce_sku_berry_stick',
-  '850000000093': 'aforce_sku_watermelon_stick',
-  '850000000109': 'aforce_sku_soursop_stick',
-  '850000000116': 'aforce_sku_berry_rtd',
-  '850000000123': 'aforce_sku_watermelon_rtd',
-  '850000000130': 'aforce_sku_soursop_rtd',
-  '850000000147': 'aforce_sku_berry_canister',
-  '850000000154': 'aforce_sku_watermelon_canister',
-  '850000000161': 'aforce_sku_soursop_canister',
+  // AFORCE · 20-count stick carton
+  '860014045011': 'aforce_sku_berry_stick',
+  '860014380716': 'aforce_sku_watermelon_stick',
+  '860014045028': 'aforce_sku_soursop_stick',
+  // AFORCE · single can
+  '860014380709': 'aforce_sku_berry_rtd',
+  '860014045004': 'aforce_sku_watermelon_rtd',
+  '860014045042': 'aforce_sku_soursop_rtd',
+  // AFORCE · can six-pack (resolves to the can)
+  '860014045066': 'aforce_sku_berry_rtd',
+  '860014380723': 'aforce_sku_watermelon_rtd',
+  '860014045073': 'aforce_sku_soursop_rtd',
   // Competitors
   '052000338874': 'gatorade',
   '850000111234': 'liquid_iv',
@@ -44,6 +47,11 @@ const BARCODE_INDEX: Record<string, string> = {
   '857335003001': 'prime',
   '000000000000': 'water',
 };
+
+/** A 13-digit EAN with a leading zero is the same code as the 12-digit UPC-A. */
+function asUpcA(code: string): string {
+  return /^0\d{12}$/.test(code) ? code.slice(1) : code;
+}
 
 /** QR payload prefixes (AForce structured payload: "aforce://product/<id>"). */
 const QR_PREFIX = 'aforce://product/';
@@ -163,7 +171,7 @@ export async function recognize(source: ScanSource): Promise<ScannedProduct | un
   // Barcode — local catalog first (fast path), then Open Food Facts
   // for any unknown US beverage SKU.
   if (source.kind === 'barcode') {
-    const productId = BARCODE_INDEX[raw];
+    const productId = BARCODE_INDEX[asUpcA(raw)];
     if (productId) {
       const p = fromCatalog(productId);
       if (p) return toScanned(p);
@@ -213,8 +221,13 @@ export async function recognize(source: ScanSource): Promise<ScannedProduct | un
 
 /** All barcodes the demo can simulate (used by mock scan tray). */
 export function listSimulatableBarcodes(): { code: string; productId: string; label: string }[] {
-  return Object.entries(BARCODE_INDEX).map(([code, productId]) => {
-    const p = fromCatalog(productId);
-    return { code, productId, label: p?.name ?? productId };
-  });
+  // One entry per product: a six-pack code resolves to the same can.
+  const seen = new Set<string>();
+  const out: { code: string; productId: string; label: string }[] = [];
+  for (const [code, productId] of Object.entries(BARCODE_INDEX)) {
+    if (seen.has(productId)) continue;
+    seen.add(productId);
+    out.push({ code, productId, label: fromCatalog(productId)?.name ?? productId });
+  }
+  return out;
 }
