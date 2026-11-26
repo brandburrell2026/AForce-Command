@@ -40,7 +40,7 @@ export interface StoreSKU {
   flavor: ProductFlavor;
   /** Human title shown on the card. */
   title: string;
-  /** Format subtitle, e.g. "12-stick box". */
+  /** Format subtitle, e.g. "20-stick carton". */
   formatLabel: string;
   /** Total servings in the package. */
   servingsPerPack: number;
@@ -52,7 +52,8 @@ export interface StoreSKU {
   subscriptionPriceCents: number;
   /** Optional MSRP / strike-through, in cents. */
   compareAtCents?: number;
-  /** UPC, for traceability and barcode reuse. */
+  /** Registered unit UPC. Left out where no real code exists for this exact pack
+   *  (the RTD 12-pack and the canisters, as of 2026-11-26). Never a placeholder. */
   upc?: string;
   /** Short marketing line. */
   blurb: string;
@@ -86,7 +87,7 @@ export interface StoreBundle {
 
 // ─── Catalog ────────────────────────────────────────────────────────────────
 // Base prices (single packs):
-//   Sticks    — $34.99 / 12 ct      sub $29.99
+//   Sticks    — $34.99 / 20 ct      sub $29.99
 //   RTD 12pk  — $47.99               sub $39.99
 //   Canister  — $59.99 / 30 srv      sub $49.99
 export const STORE_SKUS: StoreSKU[] = [
@@ -96,12 +97,12 @@ export const STORE_SKUS: StoreSKU[] = [
     formatId: "aforce_stick",
     flavor: "berry",
     title: "Berry Blast + Dulse",
-    formatLabel: "Hydration Sticks · 12 ct",
-    servingsPerPack: 12,
+    formatLabel: "Hydration Sticks · 20 ct",
+    servingsPerPack: 20,
     ozPerServing: 12,
     priceCents: 3499,
     subscriptionPriceCents: 2999,
-    upc: "850000000055",
+    upc: "860014045011",
     blurb: "Antioxidant push. Mineral-dense recovery.",
     useCase: "Recovery",
     protocolRole: "baseline_hydration",
@@ -112,12 +113,12 @@ export const STORE_SKUS: StoreSKU[] = [
     formatId: "aforce_stick",
     flavor: "watermelon",
     title: "Watermelon Surge + Chlorella",
-    formatLabel: "Hydration Sticks · 12 ct",
-    servingsPerPack: 12,
+    formatLabel: "Hydration Sticks · 20 ct",
+    servingsPerPack: 20,
     ozPerServing: 12,
     priceCents: 3499,
     subscriptionPriceCents: 2999,
-    upc: "850000000062",
+    upc: "860014380716",
     blurb: "Watermelon flavor with chlorella.",
     useCase: "Heat",
     protocolRole: "baseline_hydration",
@@ -129,12 +130,12 @@ export const STORE_SKUS: StoreSKU[] = [
     formatId: "aforce_stick",
     flavor: "soursop",
     title: "Soursop Edge + Seamoss",
-    formatLabel: "Hydration Sticks · 12 ct",
-    servingsPerPack: 12,
+    formatLabel: "Hydration Sticks · 20 ct",
+    servingsPerPack: 20,
     ozPerServing: 12,
     priceCents: 3499,
     subscriptionPriceCents: 2999,
-    upc: "850000000079",
+    upc: "860014045028",
     blurb: "Full-spectrum recovery. Maximum support.",
     useCase: "Recovery",
     protocolRole: "baseline_hydration",
@@ -153,7 +154,6 @@ export const STORE_SKUS: StoreSKU[] = [
     priceCents: 4799,
     subscriptionPriceCents: 3999,
     compareAtCents: 5388, // $4.49 × 12
-    upc: "850000000017",
     blurb: "Field-grade ready-to-drink. Berry profile.",
     useCase: "Recovery",
     protocolRole: "field_grade_hydration",
@@ -170,7 +170,6 @@ export const STORE_SKUS: StoreSKU[] = [
     priceCents: 4799,
     subscriptionPriceCents: 3999,
     compareAtCents: 5388,
-    upc: "850000000024",
     blurb: "Crush heat. Crack open and go.",
     useCase: "Heat",
     protocolRole: "field_grade_hydration",
@@ -188,7 +187,6 @@ export const STORE_SKUS: StoreSKU[] = [
     priceCents: 4799,
     subscriptionPriceCents: 3999,
     compareAtCents: 5388,
-    upc: "850000000031",
     blurb: "Recovery in your hand. 12 ounces can.",
     useCase: "Recovery",
     protocolRole: "field_grade_hydration",
@@ -206,7 +204,6 @@ export const STORE_SKUS: StoreSKU[] = [
     ozPerServing: 18,
     priceCents: 5999,
     subscriptionPriceCents: 4999,
-    upc: "850000000086",
     blurb: "Daily protocol fuel. Best per-serving value.",
     useCase: "Daily",
     protocolRole: "daily_protocol_fuel",
@@ -223,7 +220,6 @@ export const STORE_SKUS: StoreSKU[] = [
     ozPerServing: 18,
     priceCents: 5999,
     subscriptionPriceCents: 4999,
-    upc: "850000000093",
     blurb: "Daily protocol fuel. Heat-load tuned.",
     useCase: "Daily",
     protocolRole: "daily_protocol_fuel",
@@ -240,7 +236,6 @@ export const STORE_SKUS: StoreSKU[] = [
     ozPerServing: 18,
     priceCents: 5999,
     subscriptionPriceCents: 4999,
-    upc: "850000000109",
     blurb: "Daily protocol fuel. Full-spectrum minerals.",
     useCase: "Daily",
     protocolRole: "daily_protocol_fuel",
