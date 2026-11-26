@@ -7,7 +7,7 @@
  * (AFORCE, coffee, other) are not here: this sheet logs water only, and the
  * other drinks wait on their own rules.
  *
- * Behaviour is unchanged: presets for fast taps, a ±2 oz stepper clamped to
+ * Explicit presets (including 4 oz), a ±2 oz stepper clamped to
  * 4–64 oz, and `onConfirm` as the only way anything is logged.
  */
 
@@ -25,7 +25,7 @@ interface Props {
   onConfirm: (oz: number) => void;
 }
 
-const PRESETS = [8, 12, 16, 20, 24, 32];
+const PRESETS = [4, 8, 12, 16, 20, 24, 32];
 const MIN_OZ = 4;
 const MAX_OZ = 64;
 const STEP_OZ = 2;
@@ -35,26 +35,36 @@ export const ML_PER_FL_OZ = 29.57;
 
 export function WaterAmountModal({ visible, onCancel, onConfirm }: Props) {
   const [oz, setOz] = React.useState<number>(16);
+  // Native selection and submit events can arrive before React commits a new
+  // render. Keep the selected value synchronous so Confirm never reads the
+  // previous render's amount.
+  const selectedOzRef = React.useRef(16);
 
   // Reset to the default whenever the modal re-opens so a previous
   // session's value doesn't leak into the next log.
-  React.useEffect(() => {
-    if (visible) setOz(16);
+  React.useLayoutEffect(() => {
+    if (visible) {
+      selectedOzRef.current = 16;
+      setOz(16);
+    }
   }, [visible]);
 
   const adjust = (delta: number) => {
     hapticSelection();
-    setOz((prev) => Math.max(MIN_OZ, Math.min(MAX_OZ, prev + delta)));
+    selectedOzRef.current = Math.max(MIN_OZ, Math.min(MAX_OZ, selectedOzRef.current + delta));
+    setOz(selectedOzRef.current);
   };
 
   const choose = (value: number) => {
     hapticSelection();
+    selectedOzRef.current = value;
     setOz(value);
   };
 
   const confirm = () => {
+    const amount = selectedOzRef.current;
     hapticImpact('medium');
-    onConfirm(oz);
+    onConfirm(amount);
   };
 
   return (
@@ -228,7 +238,9 @@ const styles = StyleSheet.create({
   },
   preset: {
     minHeight: 44,
-    minWidth: 48,
+    minWidth: 64,
+    width: '22%',
+    maxWidth: 84,
     paddingHorizontal: 14,
     borderRadius: 999,
     borderWidth: 1,

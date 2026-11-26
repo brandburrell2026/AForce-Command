@@ -3,8 +3,7 @@
  * WaterAmountModal — BEHAVIOURAL coverage of the water-logging surface
  * (build-61 CORRECTION 2, after build 60 failed physical-device QA).
  *
- * WHY THIS FILE EXISTS NOW. This component has always been correct and has
- * never had a test, because it was unreachable: its only mount was
+ * WHY THIS FILE EXISTS NOW. This component originally had no test because it was unreachable: its only mount was
  * `components/LogIntakeRow.tsx`, which nothing in the app imports. Build 61
  * re-mounts it on `HomeScreenV2` as the surface behind LOG WATER — the single
  * most important control in the product — so its behaviour stops being
@@ -26,15 +25,9 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-/**
- * This harness drives with `act`, not the `flushSync` the sibling render tests
- * use, because the behaviour under test lives in a PASSIVE EFFECT: the picker
- * resets to its default via `useEffect(..., [visible])`. `flushSync` does not
- * run the update that effect schedules, so a reset assertion written that way
- * reads the pre-reset DOM and reports a failure the real app does not have.
- * `act` requires this flag; without it React only warns and still does not
- * flush, which is the silent version of the same trap.
- */
+/** `act` flushes the picker reset and queued state updates. Separate coverage
+ * below deliberately submits inside the same event batch as selection, before
+ * that render can commit: the physical beta exposed a stale-amount write. */
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 // Native vector glyphs carry no behaviour under test; same stub the sibling
@@ -156,6 +149,19 @@ describe('WaterAmountModal — normal logging', () => {
     expect(onConfirm).toHaveBeenCalledWith(24);
   });
 
+  it('offers a direct 4 oz choice and submits it even before the next render', () => {
+    const onConfirm = vi.fn();
+    render({ onConfirm });
+    const preset = byLabel('4 ounces');
+    const confirm = byLabel('Log 16 ounces of water');
+    act(() => {
+      preset.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      confirm.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+    expect(onConfirm).toHaveBeenCalledExactlyOnceWith(4);
+    expect(byLabel('Log 4 ounces of water')).toBeTruthy();
+  });
+
   it('the stepper amount is what gets confirmed, not the preset it started from', () => {
     const onConfirm = vi.fn();
     render({ onConfirm });
@@ -163,6 +169,24 @@ describe('WaterAmountModal — normal logging', () => {
     press(byLabel('Increase ounces')); // 18 → 20
     press(byLabel('Log 20 ounces of water'));
     expect(onConfirm).toHaveBeenCalledWith(20);
+  });
+
+  it.each([64, 52])('confirms the latest 4 oz choice when decreasing from %s and submitting in one event batch', (startingOz) => {
+    const onConfirm = vi.fn();
+    render({ onConfirm });
+    press(byLabel('32 ounces'));
+    for (let i = 32; i < startingOz; i += 2) press(byLabel('Increase ounces'));
+    const decrease = byLabel('Decrease ounces');
+    const confirm = byLabel(`Log ${startingOz} ounces of water`);
+    act(() => {
+      for (let amount = startingOz; amount > 4; amount -= 2) {
+        decrease.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      }
+      confirm.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
+    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onConfirm).toHaveBeenCalledWith(4);
+    expect(byLabel('Log 4 ounces of water')).toBeTruthy();
   });
 
   it('clamps below the floor so an impossible amount can never be submitted', () => {
