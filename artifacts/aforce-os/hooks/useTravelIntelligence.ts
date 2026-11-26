@@ -73,6 +73,9 @@ export function useTravelIntelligence(enabled = true) {
         .filter((t) => !t.completedAt)
         .flatMap((t) => t.legs.map((l) => [l.id, flightIdentity(l)])),
     );
+    parsed.flightReports = Object.fromEntries(
+      Object.entries(parsed.flightReports ?? {}).filter(([id, cached]) => identities.get(id) === cached.identity),
+    );
     parsed.observations = Object.fromEntries(
       Object.entries(parsed.observations).filter(
         ([id, obs]) => identities.get(id) === obs.identity,

@@ -37,6 +37,7 @@ export interface AppContextValue {
     fluidType: FluidType,
     opts?: {
       silent?: boolean;
+      onQueued?: () => void;
       ozOverride?: number;
       flavorLabel?: string;
       /** Which surface is logging — record-only provenance. */

@@ -19,6 +19,10 @@
  * minimal churn.
  */
 
+import { getScopeState } from './userScope';
+import { projectOfflineHome } from './offlineHome';
+
+
 import {
   createDrinkEventIdRegistry,
   drinkFingerprint,
@@ -54,6 +58,22 @@ import { recordClientPolicy } from './clientSupport';
 // whole app — this module previously carried one of five duplicates).
 
 const AFORCE_BASE = `${API_BASE}/aforce`;
+
+const airplaneBeta = () => process.env.EXPO_PUBLIC_BETA_STAGING === '1';
+const authenticatedOwner = () => {
+  const scope = getScopeState();
+  return scope.status === 'AUTHENTICATED' ? scope.userId : null;
+};
+const offlineOwner = () => airplaneBeta() ? authenticatedOwner() : null;
+let offlineRepository: Promise<ReturnType<typeof import('./offlineHome')['createOfflineHomeRepository']>> | undefined;
+const getOfflineRepository = () => offlineRepository ??= Promise.all([import('./offlineHome'), import('./travel/storage')])
+  .then(([home, native]) => home.createOfflineHomeRepository(native.travelStorage));
+async function rememberOfflineHome(owner: string | null, state: UserState) {
+  if (!owner || offlineOwner() !== owner) return;
+  try { await (await getOfflineRepository()).save(owner, state); }
+  catch { /* A cache failure cannot turn an acknowledged server write into a retry. */ }
+}
+let homeLoadedOwner: string | null = null;
 
 // ─── Server row → UserState normalization ────────────────────────────────────
 // The Postgres row returns ISO date strings + nullable fields; the rest
@@ -206,23 +226,33 @@ function normalizeSocialMode(raw: unknown): UserState['socialMode'] {
   };
 }
 
-async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const auth = await getAuthHeaders();
-  const res = await fetch(`${AFORCE_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', ...auth },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`POST ${path} → ${res.status}`);
-  return (await res.json()) as T;
+async function requestJson<T>(path: string, body?: unknown, expectedOwner?: string): Promise<T> {
+  const owner = expectedOwner ?? offlineOwner();
+  const controller = new AbortController();
+  const timeout = airplaneBeta() ? setTimeout(() => controller.abort(), 10_000) : undefined;
+  const method = body === undefined ? 'GET' : 'POST';
+  try {
+    const auth = await (airplaneBeta() ? Promise.race([
+      getAuthHeaders(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => reject(new Error('Network request timed out')), { once: true });
+      }),
+    ]) : getAuthHeaders());
+    if (owner && authenticatedOwner() !== owner) throw new Error(`${method} ${path} → 409 account changed`);
+    const res = await fetch(`${AFORCE_BASE}${path}`, {
+      method,
+      headers: body === undefined ? auth : { 'content-type': 'application/json', ...auth },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(airplaneBeta() ? { signal: controller.signal } : {}),
+    });
+    if (!res.ok) throw new Error(`${method} ${path} → ${res.status}`);
+    const result = await res.json() as T;
+    if (owner && authenticatedOwner() !== owner) throw new Error(`${method} ${path} → 409 account changed`);
+    return result;
+  } finally { if (timeout) clearTimeout(timeout); }
 }
-
-async function getJson<T>(path: string): Promise<T> {
-  const auth = await getAuthHeaders();
-  const res = await fetch(`${AFORCE_BASE}${path}`, { headers: auth });
-  if (!res.ok) throw new Error(`GET ${path} → ${res.status}`);
-  return (await res.json()) as T;
-}
+async function postJson<T>(path: string, body: unknown, expectedOwner?: string): Promise<T> { return requestJson(path, body, expectedOwner); }
+async function getJson<T>(path: string): Promise<T> { return requestJson(path); }
 
 // ─── GET /home (compat shim over /state) ─────────────────────────────────────
 export interface HomePayload {
@@ -232,6 +262,7 @@ export interface HomePayload {
   /** Wave-3 PR10: true when the server was unreachable and this is the
    *  caller's own last state echoed back. serverTime is null in that case. */
   stale?: boolean;
+  offlineRestored?: boolean;
 }
 
 // PR-2 production-seed honesty: the pre-first-fetch fallback state is the
@@ -258,6 +289,8 @@ export async function fetchServerBiometrics(): Promise<ProviderBiometrics | unde
 }
 
 export async function fetchHome(userState: UserState): Promise<HomePayload> {
+  const owner = offlineOwner();
+  const restore = owner !== null && owner !== homeLoadedOwner;
   // Push any client-side mutations (clutchActive flag, appleHealth,
   // biometrics) forward by merging them onto whatever the server
   // returns. The server is the source of truth for everything else.
@@ -283,6 +316,8 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
       // so real server data flows in and can't freeze behind a stale local copy.
       biometrics: mergeBiometrics(normalized.biometrics, userState.biometrics),
     };
+    await rememberOfflineHome(owner, merged);
+    homeLoadedOwner = owner;
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
   } catch (err) {
@@ -292,11 +327,26 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
     // a server that was never reached — no caller could tell truth from
     // fallback).
     console.warn('[AForce] fetchHome failed, falling back (stale)', err);
+    const delivery = { serverTime: null, stale: true as const };
+    if (restore && owner && offlineOwner() === owner && isOfflineError(err)) {
+      try {
+        const cached = await (await getOfflineRepository()).load(owner);
+        const outbox = await import('./intakeOutbox');
+        await outbox.hydrateIntakeOutbox();
+        const items = outbox.getIntakeOutboxState().items;
+        if ((cached || items.length) && offlineOwner() === owner) {
+          const base = cached ? normalizeUserState(cached.state) : resolveInitialUserState();
+          const restored = projectOfflineHome(base, cached?.savedAt ?? Date.now(), items);
+          homeLoadedOwner = owner;
+          return { userState: restored, engineOutput: calculateScore(restored), ...delivery, offlineRestored: true };
+        }
+      } catch { /* Keep the stale, empty state if local storage is unavailable. */ }
+    }
+
     return {
       engineOutput: calculateScore(userState),
       userState,
-      serverTime: null,
-      stale: true,
+      ...delivery,
     };
   }
 }
@@ -495,6 +545,7 @@ export async function sendPreparedIntake(
   preserve: Pick<UserState, 'appleHealth' | 'biometrics'>,
   opts: { withClientEventId?: boolean } = {},
 ): Promise<IntakeLogResponse> {
+  const owner = offlineOwner();
   const { outbox } = prepared;
   const resp = await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
     '/intake',
@@ -514,6 +565,7 @@ export async function sendPreparedIntake(
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
     biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
+  void rememberOfflineHome(owner, newUserState);
   lastKnownState = newUserState;
   const log: IntakeLog = {
     id: `intake-${resp.log.id}`,
@@ -535,7 +587,11 @@ export async function sendPreparedIntake(
  * the caller reconciles to authoritative server truth via `fetchHome` only once
  * the queue is fully drained, so there is no optimistic/server double-apply.
  */
-export async function replayPreparedIntake(prepared: PreparedIntake): Promise<void> {
+export async function replayPreparedIntake(prepared: PreparedIntake, expectedOwner?: string): Promise<void> {
+  if (expectedOwner) {
+    const scope = getScopeState();
+    if (scope.status !== 'AUTHENTICATED' || scope.userId !== expectedOwner) throw new Error('POST /intake → 409 account changed');
+  }
   await postJson<{ userState: Record<string, unknown>; log: { id: number; loggedAt: string } }>(
     '/intake',
     {
@@ -549,6 +605,7 @@ export async function replayPreparedIntake(prepared: PreparedIntake): Promise<vo
       ...(prepared.entrySource ? { entrySource: prepared.entrySource } : {}),
       clientEventId: prepared.clientEventId,
     },
+    expectedOwner,
   );
 }
 
@@ -590,6 +647,7 @@ async function postAndRecompute(
   body: unknown,
   preserve: Pick<UserState, 'appleHealth' | 'biometrics'>,
 ): Promise<{ newUserState: UserState; engineOutput: ScoreEngineOutput }> {
+  const owner = offlineOwner();
   const resp = await postJson<{ userState: Record<string, unknown> }>(path, body);
   const normalized = normalizeUserState(resp.userState);
   // appleHealth + biometrics are client-only (sourced from HealthKit
@@ -601,6 +659,7 @@ async function postAndRecompute(
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
     biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
+  void rememberOfflineHome(owner, newUserState);
   lastKnownState = newUserState;
   return { newUserState, engineOutput: calculateScore(newUserState) };
 }
@@ -695,6 +754,7 @@ export async function refreshWeather(
   lat: number,
   lon: number,
 ): Promise<{ newUserState: UserState; engineOutput: ScoreEngineOutput }> {
+  const owner = offlineOwner();
   try {
     const resp = await getJson<{ userState: Record<string, unknown> }>(
       `/weather?lat=${lat}&lon=${lon}`,
@@ -705,6 +765,7 @@ export async function refreshWeather(
       appleHealth: userState.appleHealth ?? normalized.appleHealth,
       ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
     };
+    void rememberOfflineHome(owner, newUserState);
     lastKnownState = newUserState;
     return { newUserState, engineOutput: calculateScore(newUserState) };
   } catch (err) {
@@ -725,6 +786,7 @@ export function subscribeToStateUpdates(
   onState: (state: UserState) => void,
   getOverlay: () => Pick<UserState, 'appleHealth' | 'biometrics'>,
 ): () => void {
+  const owner = offlineOwner();
   const wsBase = AFORCE_BASE.replace(/^http/, 'ws');
 
   let ws: WebSocket | null = null;
@@ -762,6 +824,7 @@ export function subscribeToStateUpdates(
             appleHealth: overlay.appleHealth ?? normalized.appleHealth,
             ...(overlay.biometrics ? { biometrics: overlay.biometrics } : {}),
           };
+          void rememberOfflineHome(owner, next);
           lastKnownState = next;
           onState(next);
         }

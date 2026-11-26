@@ -9,10 +9,9 @@
  * unit-tested invariants stay in lockstep.
  *
  * Mirrors `services/commandLedger.ts`:
- *   • `@aforce/*` key, async, best-effort (storage failures are non-fatal).
+ *   • Account-owned `@aforce/*` key; saving fails visibly if storage fails.
  *   • A single in-module write queue serializes every persist.
- *   • Boot hydration MERGES (never overwrites) so an enqueue that lands before
- *     the first load resolves is preserved.
+ *   • Boot hydration precedes serialized writes, preserving stored history.
  *   • A generation guard so a `clear()` (sign-out / reset) can never be undone
  *     by a late load resurrecting cleared items.
  *   • A module-level store + listener set powers `useSyncExternalStore`.
@@ -53,6 +52,8 @@ const STORAGE_KEY_BASE = '@aforce/intake-outbox';
 // scope and ALL persistence/hydration is a no-op — nothing is safe to read or
 // write yet. (Flag-off never sets a scope, so the service stays fully inert.)
 let scopedUserId: string | null = null;
+
+export const getIntakeOutboxUser = () => scopedUserId;
 
 function storageKey(): string | null {
   return scopedUserId == null ? null : `${STORAGE_KEY_BASE}:${scopedUserId}`;
@@ -95,19 +96,6 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
   return run;
 }
 
-function persist(): Promise<void> {
-  const key = storageKey();
-  if (key == null) return Promise.resolve(); // no user scope → nothing to persist
-  const snapshot = current.items;
-  return enqueue(async () => {
-    try {
-      await AsyncStorage.setItem(key, JSON.stringify(snapshot));
-    } catch {
-      /* non-fatal: in-memory state is still authoritative */
-    }
-  });
-}
-
 function parse(raw: string | null): unknown[] {
   if (!raw) return [];
   try {
@@ -146,7 +134,7 @@ export function hydrateIntakeOutbox(): Promise<void> {
     try {
       loaded = parse(await AsyncStorage.getItem(key));
     } catch {
-      loaded = [];
+      throw new Error('Could not read saved water. Try again before logging.');
     }
     // A clear() during the read abandons this result (no resurrection).
     if (gen !== generation) return;
@@ -154,40 +142,47 @@ export function hydrateIntakeOutbox(): Promise<void> {
     const merged = mergeOutboxItems(loaded, current.items);
     setState({ items: merged, hydrated: true });
   })();
-  return hydrating;
+  const pending = hydrating;
+  void pending.catch(() => { if (gen === generation) hydrating = null; });
+  return pending;
 }
 
 // ─── Mutations ────────────────────────────────────────────────────────
 
-/**
- * Enqueue one prepared intake. In-memory state updates first (so reads reflect
- * it immediately) but `hydrated` is NOT flipped — hydration must still run and
- * merge in persisted history. Persist only after hydration has read storage so
- * a pre-hydration enqueue can never clobber stored history before it is merged.
- * Idempotent: an item whose `clientEventId` is already queued is ignored by the
- * merge (no double-enqueue). Returns once the persist is enqueued.
- */
-export function enqueueIntake(
+/** Enqueue exactly once, acknowledging only after storage commits. Account
+ * switches and a full queue refuse the new write without discarding old ones. */
+export async function enqueueIntake(
   prepared: PreparedIntake,
   nowMs: number = Date.now(),
 ): Promise<void> {
-  const item: OutboxItem = {
-    prepared,
-    status: 'pending',
-    attempts: 0,
-    createdAtMs: nowMs,
-    nextAttemptAtMs: nowMs,
-  };
-  setState({
-    items: mergeOutboxItems(current.items, [item], { cap: MAX_OUTBOX_ITEMS }),
-    hydrated: current.hydrated,
+  const key = storageKey(), gen = generation;
+  if (!key) throw new Error('Sign in before saving water offline.');
+  await hydrateIntakeOutbox();
+  return enqueue(async () => {
+    if (gen !== generation) throw new Error('Account changed before saving.');
+    if (current.items.some(i => i.prepared.clientEventId === prepared.clientEventId)) return;
+    const retained = applyPruneSynced(current.items);
+    if (retained.length >= MAX_OUTBOX_ITEMS) throw new Error('Reconnect before saving more water. Your queue is full.');
+    const item: OutboxItem = { prepared, status: 'pending', attempts: 0, createdAtMs: nowMs, nextAttemptAtMs: nowMs };
+    const items = mergeOutboxItems(retained, [item], { cap: MAX_OUTBOX_ITEMS });
+    // Acknowledgement follows the durable write. Failed storage never shows a
+    // successful log, and an account switch never publishes another user's queue.
+    await AsyncStorage.setItem(key, JSON.stringify(items));
+    if (gen !== generation) throw new Error('Account changed while saving.');
+    setState({ items, hydrated: true });
   });
-  return hydrateIntakeOutbox().then(() => persist());
 }
 
-function applyTransition(fn: (items: OutboxItem[]) => OutboxItem[]): Promise<void> {
-  setState({ items: fn(current.items), hydrated: current.hydrated });
-  return hydrateIntakeOutbox().then(() => persist());
+async function applyTransition(fn: (items: OutboxItem[]) => OutboxItem[]): Promise<void> {
+  const key = storageKey(), gen = generation;
+  if (!key) return;
+  await hydrateIntakeOutbox();
+  return enqueue(async () => {
+    if (gen !== generation) return;
+    const items = fn(current.items);
+    await AsyncStorage.setItem(key, JSON.stringify(items));
+    if (gen === generation) setState({ items, hydrated: true });
+  });
 }
 
 /** Flag a queued item as in-flight. */

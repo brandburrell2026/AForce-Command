@@ -62,6 +62,7 @@ export interface PlanRow {
 export interface EffectResults {
   done: ReadonlySet<string>;
   failed: ReadonlySet<string>;
+  queued?: ReadonlySet<string>;
 }
 
 /** The key for one attempt at an effect: the turn it came from, and its id. */
@@ -155,9 +156,9 @@ export function conversationView(entries: readonly ConversationEntry[], results:
         key: `${key}-${effect.id}`,
         line: {
           n: step,
-          label: state === 'done' ? words.label : state === 'failed' ? words.failed : words.saving,
+          label: results.queued?.has(k) ? 'Saved on device' : state === 'done' ? words.label : state === 'failed' ? words.failed : words.saving,
           note: by,
-          text: stepText(effect, state),
+          text: results.queued?.has(k) ? `Waiting to sync when you reconnect. ${effectText(effect)}` : stepText(effect, state),
           // What the hydration rules say about credit, repeated only once the log is real.
           ...(state === 'done' && effect.kind === 'log_drink' && creditNote(reply.text, effect) ? { detail: creditNote(reply.text, effect) } : {}),
           tone: state === 'done' ? 'accent' : 'waiting',

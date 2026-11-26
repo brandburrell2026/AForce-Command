@@ -162,8 +162,8 @@ function weatherRows(w: JourneyWeather | null | undefined): JourneyRow[] {
   const h = w.humidityPct;
   const old = w.stale ? ' · older reading' : '';
   return [
-    { label: 'Temperature', value: t.value == null ? '—' : `${f(t.value)}°F`, source: sourceLabel(t) + (t.value == null ? '' : old) },
-    { label: 'Humidity', value: h.value == null ? '—' : `${Math.round(h.value)}%`, source: sourceLabel(h) + (h.value == null ? '' : old) },
+    { label: 'Temperature', value: t.value == null ? '—' : `${f(t.value)}°F`, source: (w.stale && t.source === 'live' ? 'Last known' : sourceLabel(t)) + (t.value == null ? '' : old) },
+    { label: 'Humidity', value: h.value == null ? '—' : `${Math.round(h.value)}%`, source: (w.stale && h.source === 'live' ? 'Last known' : sourceLabel(h)) + (h.value == null ? '' : old) },
   ];
 }
 

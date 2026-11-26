@@ -74,7 +74,11 @@ export function TravelJourneySection({
     retry: false,
   });
 
-  const view = input && focus ? journeyView({ ...input, weather: weather.data ?? null }) : null;
+  const cachedWeather = weather.data ? {
+    ...weather.data,
+    stale: weather.data.stale || weather.isError || now - weather.dataUpdatedAt > TRAVEL_WEATHER_CACHE_MS,
+  } : null;
+  const view = input && focus ? journeyView({ ...input, weather: cachedWeather }) : null;
   const stage = view?.kind ?? null;
   React.useEffect(() => {
     onStage?.(stage);

@@ -90,7 +90,11 @@ export function OneBreathConversationScreen() {
     () => ({
       commitMoment: commitReviewedMoment,
       lockIn: lockInWithoutReminders,
-      logWater: (oz) => live.current.app.logIntake("water", { source: "manual", ozOverride: oz }),
+      logWater: async (oz) => {
+        let queued = false;
+        const id = await live.current.app.logIntake("water", { source: "manual", ozOverride: oz, onQueued: () => { queued = true; } });
+        return queued ? { pending: true as const } : id;
+      },
       undoWater: (logId) => live.current.app.undoIntake(logId),
       recordDrink: postRecordedDrink,
       removeDrink: removeRecordedDrink,

@@ -36,6 +36,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { resourceCache } from '@clerk/expo/resource-cache';
 import {
   beginScopeResolution,
   getScopeState,
@@ -621,6 +622,7 @@ export default function RootLayout() {
     <ClerkProvider
       publishableKey={publishableKey}
       tokenCache={DEFAULT_FLAGS.secure_store_startup_guard ? safeTokenCache : tokenCache}
+      __experimental_resourceCache={process.env.EXPO_PUBLIC_BETA_STAGING === '1' ? resourceCache : undefined}
       proxyUrl={proxyUrl}
     >
       <IdentityGate />

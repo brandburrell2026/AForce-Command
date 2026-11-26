@@ -6,6 +6,7 @@ import {
   mergeIntelligenceMoments,
   tripMoments,
 } from "../intelligence";
+import { flightIdentity } from "@workspace/api-zod";
 import type { TravelTrip } from "@workspace/api-zod";
 const trip: TravelTrip = {
   id: "trip",
@@ -124,4 +125,16 @@ it("accepts either airline-confirmed offset in a repeated airport hour and rejec
   expect(() => airportInstant("LGA", "2026-11-01", "01:30", "-06:00")).toThrow(
     "does not match",
   );
+});
+
+it("retains last-known reports across restart, isolates owners and drops reports after itinerary changes", async () => {
+  const values = new Map<string, string>();
+  const adapter = { getItem: async (k: string) => values.get(k) ?? null, setItem: async (k: string, v: string) => { values.set(k, v); }, removeItem: async (k: string) => { values.delete(k); } };
+  const doc = { ...emptyTravelDocument(), trips: [trip], flightReports: { leg: { identity: flightIdentity(trip.legs[0]), report: { version: 1 as const, availability: 'unavailable' as const, reason: 'not_found' as const } } } };
+  await createTravelDocuments(adapter).save('A', doc);
+  const restarted = createTravelDocuments(adapter);
+  expect((await restarted.load('A')).flightReports).toEqual(doc.flightReports);
+  expect((await restarted.load('B')).flightReports).toBeUndefined();
+  await restarted.save('A', { ...doc, trips: [{ ...trip, legs: [{ ...trip.legs[0], flight: { ...trip.legs[0].flight, flightNumber: 'AA100' } }] }] });
+  expect((await restarted.load('A')).flightReports).toEqual({});
 });

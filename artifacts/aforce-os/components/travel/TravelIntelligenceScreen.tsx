@@ -636,7 +636,15 @@ export function TravelIntelligenceScreen() {
                         Refresh before relying on it.
                       </Text>
                     ) : null}
-                    {!trip.completedAt && !doc.sync ? <TravelFlightStatus flight={leg.flight} completed={false} /> : null}
+                    {!trip.completedAt && !doc.sync ? <TravelFlightStatus flight={leg.flight} completed={false}
+                      cached={doc.flightReports?.[leg.id]?.identity === flightIdentity(leg) ? doc.flightReports[leg.id]?.report : undefined}
+                      onReport={async report => {
+                        if (report.availability === "unavailable") return;
+                        const current = travel.current();
+                        const active = current.trips.filter(t => !t.completedAt).flatMap(t => t.legs).find(l => l.id === leg.id);
+                        if (!active || flightIdentity(active) !== flightIdentity(leg)) return;
+                        await travel.write({ ...current, flightReports: { ...current.flightReports, [leg.id]: { identity: flightIdentity(leg), report } } });
+                      }} /> : null}
                     {!trip.completedAt && doc.sync
                       ? button(
                           "Check this flight",

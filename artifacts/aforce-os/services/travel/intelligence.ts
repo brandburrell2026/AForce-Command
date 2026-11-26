@@ -4,6 +4,7 @@ import {
   travelTripsSchema,
   flightIdentity,
   travelSnapshotSchema,
+  travelFlightResponseSchema,
   type TravelTrip,
 } from "@workspace/api-zod";
 import type { Moment } from "@/types/moments";
@@ -18,6 +19,7 @@ export const travelDocumentSchema = z.object({
   sync: z.boolean(),
   reminders: z.boolean().default(false),
   linked: z.boolean(),
+  flightReports: z.record(z.string(), z.object({ identity: z.string(), report: travelFlightResponseSchema })).optional(),
   observations: z.record(
     z.string(),
     z.object({ identity: z.string(), snapshot: travelSnapshotSchema }),
@@ -69,6 +71,9 @@ export function createTravelDocuments(adapter: JourneyStorage) {
         parsed.trips
           .filter((t) => !t.completedAt)
           .flatMap((t) => t.legs.map((l) => [l.id, flightIdentity(l)])),
+      );
+      parsed.flightReports = Object.fromEntries(
+        Object.entries(parsed.flightReports ?? {}).filter(([id, cached]) => identities.get(id) === cached.identity),
       );
       parsed.observations = Object.fromEntries(
         Object.entries(parsed.observations).filter(
