@@ -285,6 +285,18 @@ describe('logging water: saved at once, Undo for six seconds', () => {
     expect(t.steps()).toEqual(['Logged', 'Still logged']);
   });
 
+  it('shows a durably queued water entry honestly, without a server-only Undo', async () => {
+    const t = setup({ logWater: vi.fn(async () => ({ pending: true as const })) }, water);
+    t.c.send(say('Log 16 oz of water'));
+    await t.c.settled();
+    expect(t.steps()).toEqual(['Saved on device']);
+    expect(JSON.stringify(t.view())).toContain('Waiting to sync when you reconnect.');
+    expect(t.view().items.some(i => i.kind === 'undo')).toBe(false);
+    t.c.close();
+    expect(t.carried).toHaveLength(0);
+    expect(t.owners.logWater).toHaveBeenCalledTimes(1);
+  });
+
   it('a log that did not land is never shown as logged and offers no Undo', async () => {
     const t = setup({ logWater: vi.fn(async () => null) }, water);
     t.c.send(say('Log 16 oz of water'));

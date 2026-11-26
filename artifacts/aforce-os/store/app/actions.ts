@@ -69,7 +69,8 @@ import { categorizeCommand } from '../../utils/intelligence/commandCategory';
 import { HYDROSTATE_MODEL_VERSION } from '../../utils/scoring/modelBoundary';
 import { confirmationToCommandEvent } from '../../utils/intelligence/commandEventAdapters';
 import { appendCommandEvents } from '../../services/commandLedger';
-import { enqueueIntake } from '../../services/intakeOutbox';
+import { enqueueIntake, getIntakeOutboxState } from '../../services/intakeOutbox';
+import { projectOfflineHome } from '../../services/offlineHome';
 import { classifyWriteFailure, WRITE_FAILURE_COPY } from './writeFailure';
 
 interface StoreActionsDeps {
@@ -122,6 +123,8 @@ export function useStoreActions({
     fluidType: FluidType,
     opts?: {
       silent?: boolean;
+      /** Called only after the offline queue has durably accepted this entry. */
+      onQueued?: () => void;
       ozOverride?: number;
       flavorLabel?: string;
       displayNameOverride?: string;
@@ -186,6 +189,7 @@ export function useStoreActions({
           // optimistic state derives from the user's completed action; the queued
           // item carries frozen scores and the server dedupes on replay.
           await enqueueIntake(prepared.outbox);
+          const optimistic = projectOfflineHome(userStateRef.current, Date.now(), getIntakeOutboxState().items);
           response = {
             log: {
               id: prepared.event.id,
@@ -195,8 +199,8 @@ export function useStoreActions({
               scoreBefore: prepared.scoreBefore,
               scoreAfter: prepared.scoreAfter,
             },
-            newUserState: prepared.optimisticUserState,
-            engineOutput: _initialOnly(prepared.optimisticUserState),
+            newUserState: optimistic,
+            engineOutput: _initialOnly(optimistic),
           };
           offlinePending = true;
         }
@@ -367,6 +371,7 @@ export function useStoreActions({
       // the offline-queued path (flag-gated) resolves optimistically with a
       // client event id the correction endpoint could never reference, so it
       // returns null and no undo is offered until server truth exists.
+      if (offlinePending) opts?.onQueued?.();
       return offlinePending ? null : result.id;
     } catch (err) {
       // Fail-safe: clear loading flag so UI never soft-locks.

@@ -34,7 +34,7 @@ export interface OneBreathOwners {
   /** `lockInWithoutReminders` from Quiet delivery. */
   lockIn: <T>(commit: () => Promise<T>) => Promise<T>;
   /** The store's `logIntake`. Resolves with the log's id only when the write landed. */
-  logWater: (oz: number) => Promise<string | number | null | undefined>;
+  logWater: (oz: number) => Promise<string | number | { pending: true } | null | undefined>;
   /** `postRecordedDrink`: the drink log that never moves HydroState. */
   /** The store's `undoIntake`: takes a logged water back. Resolves false when it could not. */
   undoWater: (logId: string) => Promise<boolean>;
@@ -167,7 +167,8 @@ export async function logDrink(owners: OneBreathOwners, effect: Extract<OneBreat
   const route = drinkRoute({ categoryId: effect.categoryId, name, enteredOz: effect.oz });
   if (route.kind === "water") {
     const id = await owners.logWater(route.oz);
-    // No id means the write did not land (or is only queued): never "Logged".
+    if (typeof id === "object" && id?.pending === true) return "pending-water";
+    // No id means the write did not land: never "Logged".
     if (id === null || id === undefined) throw new Error("Not logged.");
     return String(id);
   }

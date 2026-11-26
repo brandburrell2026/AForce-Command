@@ -90,6 +90,7 @@ import {
   markIntakeFailed,
   pruneSyncedIntakes,
   runExclusiveFlush,
+  getIntakeOutboxUser,
 } from '../services/intakeOutbox';
 import {
   deriveRecoverySnapshot,
@@ -480,6 +481,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const applyServerUserState = useCallback((
     newUserState: UserState,
     _engineOutput: ScoreEngineOutput,
+    offlineRestored = false,
   ) => {
     // Offline Intake Outbox guard: a fresh server snapshot does NOT yet include
     // intakes the user completed offline that are still queued locally. Both the
@@ -489,7 +491,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // the optimistic state; flushOutbox reconciles to authoritative server truth
     // the moment the queue fully drains (pendingCount → 0). Byte-identical when
     // the flag is OFF (queue always empty) or the queue is already empty.
-    if (offlineOutboxEnabledRef.current && selectPendingCount(getIntakeOutboxState()) > 0) {
+    if (!offlineRestored && offlineOutboxEnabledRef.current && selectPendingCount(getIntakeOutboxState()) > 0) {
       return;
     }
     const latest = userStateRef.current;
@@ -537,21 +539,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!offlineOutboxEnabledRef.current) return; // flag OFF → fully inert
     await runExclusiveFlush(async () => {
       await hydrateIntakeOutbox();
+      const owner = getIntakeOutboxUser();
+      if (!owner) return;
       const due = selectDueIntakes(getIntakeOutboxState(), Date.now());
       if (due.length === 0) return;
       for (const item of due) {
+        if (getIntakeOutboxUser() !== owner) return;
         const cid = item.prepared.clientEventId;
         await markIntakeSyncing(cid);
+        if (getIntakeOutboxUser() !== owner) return;
         try {
-          await replayPreparedIntake(item.prepared);
+          await replayPreparedIntake(item.prepared, owner);
+          if (getIntakeOutboxUser() !== owner) return;
           await markIntakeSynced(cid);
         } catch (err) {
+          if (getIntakeOutboxUser() !== owner) return;
           await markIntakeFailed(cid);
           // Still offline — stop hammering the rest; the next trigger retries
           // the remaining due items (respecting their backoff schedule).
           if (isOfflineError(err)) break;
         }
       }
+      if (getIntakeOutboxUser() !== owner) return;
       await pruneSyncedIntakes();
       // Reconcile only when nothing is left unsynced; otherwise the optimistic
       // reducer state (which still includes pending intakes) stays in place.
@@ -564,6 +573,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           // offline again — keep last known state; the next trigger reconciles.
         }
       }
+    }).catch(error => {
+      console.warn('[AForce] Offline sync paused; saved entries retained', error);
+      markRefreshStale(true);
     });
   }, [applyServerUserState]);
   const flushOutboxRef = useRef(flushOutbox);
@@ -587,7 +599,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const refreshState = useCallback(async () => {
     const current = userStateRef.current;
     try {
-      const { engineOutput, userState, stale } = await fetchHome(current);
+      const { engineOutput, userState, stale, offlineRestored } = await fetchHome(current);
       if (!stateRefreshMountedRef.current) return;
       // Report the delivery BEFORE adopting it: the state below is honest
       // either way, but only this bit says whether the server confirmed it.
@@ -605,8 +617,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         // device A would never reach device B until a stronger drift
         // (intake / weather refresh) triggered the swap.
         userState.language !== current.language;
-      if (drift) {
-        applyServerUserState(userState, engineOutput);
+      if (drift || offlineRestored) {
+        applyServerUserState(userState, engineOutput, offlineRestored);
       } else {
         dispatch({ type: 'REFRESH_ENGINE', payload: { engineOutput } });
       }

@@ -95,7 +95,7 @@ describe('journeyView', () => {
 
   it('old readings say so', () => {
     const v = journeyView(input([miami], '2026-11-12T15:30:00Z', { mia: { arrivalConfirmedAtIso: '2026-11-12T15:20:00Z' } }, { ...liveWeather, stale: true }))!;
-    expect(v.rows[1].source).toBe('Live · older reading');
+    expect(v.rows[1].source).toBe('Last known · older reading');
   });
 
   it('ready after the member says so', () => {

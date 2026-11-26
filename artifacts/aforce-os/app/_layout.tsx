@@ -36,6 +36,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { resourceCache } from '@clerk/expo/resource-cache';
 import {
   beginScopeResolution,
   getScopeState,
@@ -621,6 +622,7 @@ export default function RootLayout() {
     <ClerkProvider
       publishableKey={publishableKey}
       tokenCache={DEFAULT_FLAGS.secure_store_startup_guard ? safeTokenCache : tokenCache}
+      __experimental_resourceCache={process.env.EXPO_PUBLIC_BETA_STAGING === '1' ? resourceCache : undefined}
       proxyUrl={proxyUrl}
     >
       <IdentityGate />
@@ -651,7 +653,7 @@ export default function RootLayout() {
  * to catch that failure could never be reached during it.
  */
 function IdentityGate(): React.ReactElement {
-  const { isLoaded } = useAuth();
+  const { isLoaded, userId } = useAuth();
   const [scope, setScope] = React.useState<ScopeState>(() => getScopeState());
 
   React.useEffect(() => {
@@ -659,7 +661,7 @@ function IdentityGate(): React.ReactElement {
     return subscribeScopeState(setScope);
   }, []);
 
-  if (isLoaded) return <AppShell />;
+  if (isLoaded) return <AppShell key={process.env.EXPO_PUBLIC_BETA_STAGING === '1' ? userId ?? 'signed-out' : undefined} />;
   if (scope.status === 'UNVERIFIABLE') return <IdentityUnavailable />;
   // af.canvas (#0D0D0D) is the splash background in app.json, so this frame
   // is visually continuous with the splash rather than a slightly darker box.

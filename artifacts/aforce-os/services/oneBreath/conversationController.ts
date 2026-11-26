@@ -45,6 +45,7 @@ export interface ConversationSnapshot {
   session: OneBreathState;
   done: ReadonlySet<string>;
   failed: ReadonlySet<string>;
+  queued: ReadonlySet<string>;
   /** The waiting plan's steps, exactly as a seal would save them. */
   planRows?: readonly PlanRow[];
   planNote?: string;
@@ -105,6 +106,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
   let session = emptyOneBreathState();
   const done = new Set<string>();
   const failed = new Set<string>();
+  const queued = new Set<string>();
   /** Effect ids running or carried out. The once-only guard. */
   const claimed = new Set<string>();
   /** The reviewed Moment shown for a plan, by its seal id. */
@@ -154,6 +156,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
       session,
       done: new Set(done),
       failed: new Set(failed),
+      queued: new Set(queued),
       ...(steps ? { planRows: steps.map((s) => ({ at: clock(s.atIso), text: s.action })) } : {}),
       ...(steps && !steps.some((s) => s.commandId) ? { planNote: PLAN_NO_COMMAND_NOTE } : {}),
       ...(review?.error ? { planError: review.error } : {}),
@@ -162,7 +165,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
   };
 
   type Review = NonNullable<typeof review>;
-  const carryOut = async (effect: OneBreathEffect, input: OneBreathInput, shownReview: Review | undefined): Promise<void> => {
+  const carryOut = async (effect: OneBreathEffect, input: OneBreathInput, shownReview: Review | undefined, key: string): Promise<void> => {
     const owners = host.owners;
     switch (effect.kind) {
       case "save_moment": {
@@ -192,6 +195,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
       }
       case "log_drink": {
         const logId = await logDrink(owners, effect);
+        if (logId === "pending-water") queued.add(key);
         if (undoableLogId(logId)) logIds.set(effect.id, logId);
         // A log the existing undo cannot reference offers no Undo.
         else session = undoClosed(session, effect.id);
@@ -225,7 +229,7 @@ export function createOneBreathConversation(host: ConversationHost): OneBreathCo
     claimed.add(effect.id);
     queue = queue.then(async () => {
       try {
-        await carryOut(effect, input, shownReview);
+        await carryOut(effect, input, shownReview, key);
         done.add(key);
       } catch {
         claimed.delete(effect.id);

@@ -3,6 +3,7 @@ import React, { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
+import type { TravelFlightResponse } from '@workspace/api-zod';
 import { createJourney } from '@/services/travel/journey';
 
 const state = vi.hoisted(() => ({ owner: 'pilot_A', token: async () => 'synthetic-session' as string | null }));
@@ -52,6 +53,17 @@ describe('flight status panel', () => {
     expect(fetch.mock.calls[0]![0]).toBe('https://aforce.example.test/api/travel/flight-status');
     expect(JSON.parse(fetch.mock.calls[0]![1]!.body as string)).toEqual(flight);
     expect(host.textContent).toContain('Your confirmed itinerary stays unchanged');
+  });
+  it('opens a persisted report as last known with no network request, even when its timestamp is recent', async () => {
+    fetch.mockRejectedValue(new TypeError('Network request failed'));
+    await act(async () => root.render(<QueryClientProvider client={client}><TravelFlightStatus journey={journey} cached={observation() as TravelFlightResponse} /></QueryClientProvider>));
+    expect(fetch).not.toHaveBeenCalled();
+    expect(host.textContent).toContain('Last known result');
+    expect(host.textContent).toContain('Stale information');
+    expect(host.textContent).toContain('Last reported gate: B12');
+    await check();
+    await waitUI(() => expect(host.textContent).toContain('The latest check failed'));
+    expect(host.textContent).toContain('B12');
   });
   it('makes no background request and shows provider provenance after an explicit check', async () => {
     await render(); expect(fetch).not.toHaveBeenCalled();

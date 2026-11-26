@@ -57,6 +57,7 @@ import type { OneBreathContext } from "@/utils/oneBreath/session";
 import { oneBreathTripRoute } from "@/utils/oneBreath/tripHandoff";
 import { OneBreathConversation } from "./OneBreathConversation";
 import { bandWord } from "./OneBreathStatusAnswer";
+import { UndoStrip } from "./kit/UndoStrip";
 
 /** The opening line, from the approved One Breath opening screen. */
 const PROMPT = "Plan a Moment. Just say it.";
@@ -90,7 +91,11 @@ export function OneBreathConversationScreen() {
     () => ({
       commitMoment: commitReviewedMoment,
       lockIn: lockInWithoutReminders,
-      logWater: (oz) => live.current.app.logIntake("water", { source: "manual", ozOverride: oz }),
+      logWater: async (oz) => {
+        let queued = false;
+        const id = await live.current.app.logIntake("water", { source: "manual", ozOverride: oz, onQueued: () => { queued = true; } });
+        return queued ? { pending: true as const } : id;
+      },
       undoWater: (logId) => live.current.app.undoIntake(logId),
       recordDrink: postRecordedDrink,
       removeDrink: removeRecordedDrink,
@@ -359,7 +364,7 @@ export function OneBreathConversationScreen() {
     hear(said, "typed");
   };
 
-  const results = { done: snapshot.done, failed: snapshot.failed };
+  const results = { done: snapshot.done, failed: snapshot.failed, queued: snapshot.queued };
   const view = conversationView(snapshot.entries, results, {
     state: snapshot.session,
     planRows: snapshot.planRows,
@@ -397,6 +402,9 @@ export function OneBreathConversationScreen() {
   ];
   const baseStatus = conversationStatus(snapshot.entries, results, voice.listening);
   const status = working ? "Operating" : baseStatus === "Standby" && phase === "quiet" ? "Quiet" : baseStatus;
+  const drinkUndo = snapshot.session.loggedUndo
+    ? view.items.find((item) => item.kind === "undo")
+    : undefined;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={s.root}>
@@ -428,7 +436,14 @@ export function OneBreathConversationScreen() {
       </View>
       {/* The S21 contract: every reachable screen that logs water shows the app's own confirmation. */}
       {app.state.showCycleSuccess && app.state.lastCycleResult ? (
-        <CycleSuccessOverlay result={app.state.lastCycleResult} onDismiss={app.dismissSuccess} />
+        <CycleSuccessOverlay result={app.state.lastCycleResult} onDismiss={app.dismissSuccess}>
+          {drinkUndo?.kind === "undo" ? (
+            <UndoStrip reverses={drinkUndo.reverses} lasts={drinkUndo.lasts} onUndo={() => {
+              app.dismissSuccess();
+              controller.send({ kind: "tap", control: "undo" });
+            }} />
+          ) : null}
+        </CycleSuccessOverlay>
       ) : null}
     </KeyboardAvoidingView>
   );
