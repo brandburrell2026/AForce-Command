@@ -317,6 +317,7 @@ export async function fetchHome(userState: UserState): Promise<HomePayload> {
       biometrics: mergeBiometrics(normalized.biometrics, userState.biometrics),
     };
     await rememberOfflineHome(owner, merged);
+    if (owner && offlineOwner() !== owner) throw new Error('GET /state → 409 account changed');
     homeLoadedOwner = owner;
     lastKnownState = merged;
     return { engineOutput: calculateScore(merged), userState: merged, serverTime };
@@ -565,7 +566,8 @@ export async function sendPreparedIntake(
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
     biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
-  void rememberOfflineHome(owner, newUserState);
+  await rememberOfflineHome(owner, newUserState);
+  if (owner && offlineOwner() !== owner) throw new Error('POST /state → 409 account changed');
   lastKnownState = newUserState;
   const log: IntakeLog = {
     id: `intake-${resp.log.id}`,
@@ -659,7 +661,8 @@ async function postAndRecompute(
     appleHealth: preserve.appleHealth ?? normalized.appleHealth,
     biometrics: mergeBiometrics(normalized.biometrics, preserve.biometrics),
   };
-  void rememberOfflineHome(owner, newUserState);
+  await rememberOfflineHome(owner, newUserState);
+  if (owner && offlineOwner() !== owner) throw new Error('POST /state → 409 account changed');
   lastKnownState = newUserState;
   return { newUserState, engineOutput: calculateScore(newUserState) };
 }
@@ -765,7 +768,7 @@ export async function refreshWeather(
       appleHealth: userState.appleHealth ?? normalized.appleHealth,
       ...(userState.biometrics ? { biometrics: userState.biometrics } : {}),
     };
-    void rememberOfflineHome(owner, newUserState);
+    await rememberOfflineHome(owner, newUserState);
     lastKnownState = newUserState;
     return { newUserState, engineOutput: calculateScore(newUserState) };
   } catch (err) {

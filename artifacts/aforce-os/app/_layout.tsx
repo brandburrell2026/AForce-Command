@@ -653,7 +653,7 @@ export default function RootLayout() {
  * to catch that failure could never be reached during it.
  */
 function IdentityGate(): React.ReactElement {
-  const { isLoaded } = useAuth();
+  const { isLoaded, userId } = useAuth();
   const [scope, setScope] = React.useState<ScopeState>(() => getScopeState());
 
   React.useEffect(() => {
@@ -661,7 +661,7 @@ function IdentityGate(): React.ReactElement {
     return subscribeScopeState(setScope);
   }, []);
 
-  if (isLoaded) return <AppShell />;
+  if (isLoaded) return <AppShell key={process.env.EXPO_PUBLIC_BETA_STAGING === '1' ? userId ?? 'signed-out' : undefined} />;
   if (scope.status === 'UNVERIFIABLE') return <IdentityUnavailable />;
   // af.canvas (#0D0D0D) is the splash background in app.json, so this frame
   // is visually continuous with the splash rather than a slightly darker box.
